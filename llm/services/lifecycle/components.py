@@ -50,9 +50,9 @@ class ComponentData:
         return project, self.registry.get(self.name)
 
     # 공개 API
-    def bind_model_usage(self, tasks, counters):
+    def bind_model_usage(self, sessions, counters):
         from llm.services.runtime.usage import ComponentUsage
-        self._model_usage = ComponentUsage(self, tasks, counters)
+        self._model_usage = ComponentUsage(self, sessions, counters)
         return self
 
     def model_scope(self):

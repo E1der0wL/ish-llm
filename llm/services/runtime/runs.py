@@ -1,4 +1,4 @@
-"""Task별 직렬 실행을 담당한다. 입력을 먼저 영속 큐에 저장하고 Engine 이벤트를 대화/Step/결과 저장으로 연결한다. 중단된 Run은 자동 재실행하지 않는다."""
+"""Session별 직렬 실행을 담당한다. 입력을 먼저 영속 큐에 저장하고 Engine 이벤트를 대화/Step/결과 저장으로 연결한다. 중단된 Run은 자동 재실행하지 않는다."""
 
 from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
 
@@ -17,11 +17,12 @@ from dataclasses import asdict, replace
 
 from llm.core.models import (
     Message, MessageRole, MessageStatus, Project, Run, RunStatus, StepStatus,
-    Task, TaskStatus, new_id, now,
+    Session, SessionStatus, new_id, now,
 )
 from llm.core.paths import RunPaths
 from llm.core.interactions import InteractionRequest, InteractionResponse
-from llm.engines.base import EngineContext, EngineEvent, EngineEventType, EngineRegistry, required_capabilities
+from llm.engines.base import EngineContext, EngineEvent, EngineEventType, required_capabilities
+from llm.engines.registry import EngineRegistry
 from llm.components.tools import ToolRegistry
 from llm.services.history.conversation import Conversation
 from llm.services.history.context import ConversationContextBuilder
@@ -31,7 +32,7 @@ from llm.services.lifecycle.steps import StepEventRecorder, StepManager
 from llm.services.infrastructure.storage import (
     StorageIO, child, drain_on_cancel, record,
 )
-from llm.services.lifecycle.tasks import TaskManager, TaskRuntime
+from llm.services.lifecycle.sessions import SessionManager, SessionRuntime
 from llm.services.infrastructure.logging import log_event
 from llm.services.results import RunResultQuery
 from llm.core.contracts import Diagnostic, ResourceRef
@@ -51,52 +52,52 @@ from llm.providers.retry import retry_scope
 
 # 실행 메타데이터를 저장한다. Facade와 실행 서비스가 같은 인스턴스를 공유한다.
 class RunRepository:
-    """Run metadata and paths beneath the owning Task's runs root."""
+    """Run metadata and paths beneath the owning Session's runs root."""
 
     def __init__(self, *, output_index_stride: int = 128, catalog_size: int = 4096):
         self.output_journal = OutputJournal(index_stride=output_index_stride)
         self.catalog = FileCatalog(catalog_size)
         self.usage_catalog = FileCatalog(catalog_size, projection=lambda r: (
-            r["task_id"], [{key: entry[key] for key in (
+            r["session_id"], [{key: entry[key] for key in (
                 "started_at", "usage", "usage_complete", "reserved_tokens") if key in entry}
                 for entry in r.get("metadata", {}).get("completions", [])]))
 
-    def completion_history(self, task):
+    def completion_history(self, session):
         """프로젝트 한도 검사에는 사용량 투영만 읽고 전체 Run 객체/조회 로그를 만들지 않는다."""
         if type(self).list is not RunRepository.list or type(self).load is not RunRepository.load:
-            return [entry for run in self.list(task) for entry in run.metadata.get("completions", [])]
+            return [entry for run in self.list(session) for entry in run.metadata.get("completions", [])]
         entries = []
-        for path in task.paths.runs.glob("*/run.json"):
-            self.paths(task, path.parent.name)
+        for path in session.paths.runs.glob("*/run.json"):
+            self.paths(session, path.parent.name)
             owner, values = self.usage_catalog.read(path)
-            if owner != task.id:
+            if owner != session.id:
                 raise ValueError("Run ownership mismatch")
             entries.extend(deepcopy(values))
         return entries
 
-    def delete_history(self, task, run_id):
+    def delete_history(self, session, run_id):
         """보관 서비스가 승인한 완료 Run의 기록만 삭제한다. 재실행/상태 전이는 하지 않는다."""
         from llm.services.infrastructure.storage import remove_named_tree
-        paths = self.paths(task, run_id)
+        paths = self.paths(session, run_id)
         if not paths.root.exists():
             return
-        run = self.load(task, run_id)
+        run = self.load(session, run_id)
         if run.status != RunStatus.COMPLETED:
             raise ValueError("Only completed Run history can be pruned")
-        remove_named_tree(task.paths.runs, paths.root, run_id)
+        remove_named_tree(session.paths.runs, paths.root, run_id)
 
-    def recover_history_deletions(self, task, run_ids):
+    def recover_history_deletions(self, session, run_ids):
         from llm.services.infrastructure.storage import recover_deletions
         for identifier in run_ids:
-            self.paths(task, identifier)
-        return recover_deletions(task.paths.runs, allowed=set(run_ids))
+            self.paths(session, identifier)
+        return recover_deletions(session.paths.runs, allowed=set(run_ids))
 
-    def read_backup(self, task):
+    def read_backup(self, session):
         """자신이 소유하는 Run/출력/체크포인트만 읽어서 검증한다."""
         runs = []
-        for path in task.paths.runs.glob("*/run.json"):
+        for path in session.paths.runs.glob("*/run.json"):
             data = read_domain_record(path)
-            if child(task.paths.runs, data["id"]) != path.parent or data["task_id"] != task.id:
+            if child(session.paths.runs, data["id"]) != path.parent or data["session_id"] != session.id:
                 raise ValueError("Backup Run ownership mismatch")
             run = Run(**{**data, "paths": RunPaths(path.parent), "status": RunStatus(data["status"])})
             if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
@@ -107,26 +108,26 @@ class RunRepository:
             runs.append(run)
         return runs
 
-    def paths(self, task: Task, run_id: str) -> RunPaths:
-        return RunPaths(child(task.paths.runs, run_id))
+    def paths(self, session: Session, run_id: str) -> RunPaths:
+        return RunPaths(child(session.paths.runs, run_id))
 
-    def claim_tool_operation(self, task, call):
-        return OperationRepository().claim(task, call)
+    def claim_tool_operation(self, session, call):
+        return OperationRepository().claim(session, call)
 
-    def complete_tool_operation(self, task, call, result):
-        return OperationRepository().complete(task, call, result)
+    def complete_tool_operation(self, session, call, result):
+        return OperationRepository().complete(session, call, result)
 
-    def fail_tool_operation(self, task, call, evidence):
-        return OperationRepository().not_applied(task, call, evidence)
+    def fail_tool_operation(self, session, call, evidence):
+        return OperationRepository().not_applied(session, call, evidence)
 
-    def tool_operation(self, task, key):
-        return OperationRepository().load(task, key)
+    def tool_operation(self, session, key):
+        return OperationRepository().load(session, key)
 
-    def reconcile_tool_operation(self, task, key, *, result, evidence):
-        return OperationRepository().reconcile(task, key, result=result, evidence=evidence)
+    def reconcile_tool_operation(self, session, key, *, result, evidence):
+        return OperationRepository().reconcile(session, key, result=result, evidence=evidence)
 
-    def verify_tool_operation(self, task, key, observation, expected_version):
-        return OperationRepository().verify(task, key, observation, expected_version)
+    def verify_tool_operation(self, session, key, observation, expected_version):
+        return OperationRepository().verify(session, key, observation, expected_version)
 
     def save(self, run: Run) -> None:
         if run.status not in (RunStatus.PENDING, RunStatus.RUNNING) and "completions" in run.metadata:
@@ -135,10 +136,10 @@ class RunRepository:
         atomic_domain_json(run.paths.root / "run.json", record(run))
         log_event(run.paths.logs, "run.saved", entity_id=run.id, status=run.status)
 
-    def load(self, task: Task, run_id: str) -> Run:
-        paths = self.paths(task, run_id)
+    def load(self, session: Session, run_id: str) -> Run:
+        paths = self.paths(session, run_id)
         data = read_domain_record(paths.root / "run.json")
-        if data["id"] != run_id or data["task_id"] != task.id:
+        if data["id"] != run_id or data["session_id"] != session.id:
             raise ValueError("Run ownership mismatch")
         log_event(paths.logs, "run.loaded", entity_id=run_id)
         return Run(**{**data, "status": RunStatus(data["status"]), "paths": paths})
@@ -195,11 +196,11 @@ class RunRepository:
             run.metadata.setdefault("checkpoints", []).append(event.metadata["name"])
             self.save(run)
 
-    def interaction_requests(self, task: Task, run: Run) -> list[InteractionRequest]:
+    def interaction_requests(self, session: Session, run: Run) -> list[InteractionRequest]:
         names = run.metadata.get("checkpoints", []) or ([run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else [])
         requests = []
         for name in names:
-            values = InteractionRepository().requests({**self.resolve_checkpoint(task, run, name), "name": name}, run)
+            values = InteractionRepository().requests({**self.resolve_checkpoint(session, run, name), "name": name}, run)
             values = InteractionRepository().effective(run, values)
             if any(v.binding.get("checkpoint") != name for v in values):
                 raise ValueError("Interaction checkpoint binding mismatch")
@@ -208,29 +209,29 @@ class RunRepository:
             raise ValueError("Duplicate interaction identity")
         return requests
 
-    def interaction_responses(self, task: Task, run: Run) -> list[InteractionResponse]:
-        return InteractionRepository().responses(run, self.interaction_requests(task, run))
+    def interaction_responses(self, session: Session, run: Run) -> list[InteractionResponse]:
+        return InteractionRepository().responses(run, self.interaction_requests(session, run))
 
-    def respond(self, task: Task, run: Run, response: InteractionResponse) -> InteractionResponse:
-        return InteractionRepository().respond(run, self.interaction_requests(task, run), response)
+    def respond(self, session: Session, run: Run, response: InteractionResponse) -> InteractionResponse:
+        return InteractionRepository().respond(run, self.interaction_requests(session, run), response)
 
-    def interaction_decisions(self, task: Task, run: Run, checkpoint: dict, explicit: dict, *, retry_nodes=(), confirm=False):
+    def interaction_decisions(self, session: Session, run: Run, checkpoint: dict, explicit: dict, *, retry_nodes=(), confirm=False):
         """조회와 실행이 같은 응답 저장소를 사용한다. 주입된 저장소도 이 경로를 공유한다."""
         interactions = InteractionRepository()
-        requests = self.interaction_requests(task, run)
+        requests = self.interaction_requests(session, run)
         if any(interactions.envelope(run, r).get("cancelled") for r in requests):
             raise ValueError("Interaction is cancelled; renew before resuming")
-        return interactions.decisions(requests, self.interaction_responses(task, run), explicit,
+        return interactions.decisions(requests, self.interaction_responses(session, run), explicit,
                                       retry_nodes=retry_nodes, confirm=confirm)
 
-    def apply_interaction_policy(self, task, run, policy):
+    def apply_interaction_policy(self, session, run, policy):
         """정책 응답만 저장한다. 실행 재개와 호스트 허용 여부 검사는 별도다."""
         if not policy.get("enabled", False):
             return []
         ranks = {"low": 0, "medium": 1, "high": 2}
-        answered = {r.request_id for r in self.interaction_responses(task, run)}
+        answered = {r.request_id for r in self.interaction_responses(session, run)}
         saved = []
-        for request in self.interaction_requests(task, run):
+        for request in self.interaction_requests(session, run):
             if (request.id in answered or request.expired or request.risk not in ranks
                     or request.category == "execution.retry_uncertain" or not request.action.get("auto_approval_allowed")
                     or InteractionRepository().envelope(run, request).get("cancelled")):
@@ -240,23 +241,23 @@ class RunRepository:
                     option = next((o for o in request.options if o.effect == "approve"), None)
                     if option is not None:
                         response = replace(request.respond(option.id), actor="policy", policy_id=rule["id"])
-                        saved.append(self.respond(task, run, response))
+                        saved.append(self.respond(session, run, response))
                     break
         return saved
 
-    def resume_link(self, task, run, store):
+    def resume_link(self, session, run, store):
         message = next((m for m in store.list() if m.metadata.get("resume", {}).get("run_id") == run.id
                         and m.status != MessageStatus.CANCELLED), None)
-        resumed = next((r for r in self.list(task) if r.metadata.get("resume", {}).get("run_id") == run.id), None)
+        resumed = next((r for r in self.list(session) if r.metadata.get("resume", {}).get("run_id") == run.id), None)
         return message, resumed
 
-    def interaction_views(self, task, run, store):
-        message, resumed = self.resume_link(task, run, store)
-        return InteractionRepository().views(run, self.interaction_requests(task, run),
-            self.interaction_responses(task, run), resume_message=message, resumed_run=resumed)
+    def interaction_views(self, session, run, store):
+        message, resumed = self.resume_link(session, run, store)
+        return InteractionRepository().views(run, self.interaction_requests(session, run),
+            self.interaction_responses(session, run), resume_message=message, resumed_run=resumed)
 
-    def change_interaction(self, task, run, request, *, operation, expires_at=None):
-        current = next((r for r in self.interaction_requests(task, run) if r.id == request.id), None)
+    def change_interaction(self, session, run, request, *, operation, expires_at=None):
+        current = next((r for r in self.interaction_requests(session, run) if r.id == request.id), None)
         if current is None or current.fingerprint != request.fingerprint:
             raise ValueError("Interaction changed; reload before editing")
         repository = InteractionRepository()
@@ -270,7 +271,7 @@ class RunRepository:
     def checkpoint(self, run: Run, name: str = "graph") -> dict:
         return CheckpointRepository().load(run, name)
 
-    def resolve_checkpoint(self, task: Task, run: Run, name: str = "graph") -> dict:
+    def resolve_checkpoint(self, session: Session, run: Run, name: str = "graph") -> dict:
         """초기 복사 전에 끝난 재개 시도만 검증된 원본을 따라 복원한다."""
         selected, visited = run, set()
         chain = []
@@ -287,7 +288,7 @@ class RunRepository:
                     raise
                 if descriptor["checkpoint"] != name:
                     raise ValueError("Resume checkpoint name mismatch")
-                parent = self.load(task, descriptor["run_id"])
+                parent = self.load(session, descriptor["run_id"])
                 if parent.engine != run.engine or parent.status not in (
                         RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
                     raise ValueError("Invalid resume checkpoint parent")
@@ -299,11 +300,11 @@ class RunRepository:
             checkpoint = {**checkpoint, "run_id": attempt.id, "engine": attempt.engine}
         return checkpoint
 
-    def list(self, task: Task, *, query=None) -> list[Run]:
+    def list(self, session: Session, *, query=None) -> list[Run]:
         if type(query) is Query:
-            return [self.load(task, identifier) for identifier in self.catalog.select(task.paths.runs.glob("*/run.json"), query)]
-        return select(sorted((self.load(task, path.parent.name)
-                       for path in task.paths.runs.glob("*/run.json")),
+            return [self.load(session, identifier) for identifier in self.catalog.select(session.paths.runs.glob("*/run.json"), query)]
+        return select(sorted((self.load(session, path.parent.name)
+                       for path in session.paths.runs.glob("*/run.json")),
                       key=lambda run: (run.created_at, run.id)), query)
 
 
@@ -384,32 +385,32 @@ class _RunPaused(Exception):
 
 # 영속 요청 큐를 실행으로 전환하고 이벤트 저장과 복구를 책임진다.
 class RunManager:
-    """One Task-bound scheduler; separate instances execute separate Tasks."""
+    """One Session-bound scheduler; separate instances execute separate Sessions."""
 
-    def __init__(self, tasks: TaskManager, engines: EngineRegistry, *, task: Task,
+    def __init__(self, sessions: SessionManager, engines: EngineRegistry, *, session: Session,
                  steps: Optional[StepManager] = None,
                  on_event: Optional[Callable[[Run, EngineEvent], None]] = None,
                  on_run_event: Optional[Callable[[RunEvent], None]] = None,
                  repository: Optional[RunRepository] = None,
                  capabilities: Optional[Union[CapabilityResolver, ComponentRegistry]] = None,
-                 conversations: Optional[Callable[[Task], Conversation]] = None,
+                 conversations: Optional[Callable[[Session], Conversation]] = None,
                  context_builder: Optional[ConversationContextBuilder] = None,
                  event_handlers: Optional[EventHandlers] = None,
                  subscriptions: Optional[EventSubscriptions] = None,
                  tool_policy: Optional[ToolPolicy] = None,
                  policy_resolver=None, provider_calls=None, output_policy=None) -> None:
-        if not isinstance(task, Task):
-            raise TypeError("RunManager requires a Task")
-        self._task = deepcopy(task)
-        self.tasks = tasks
+        if not isinstance(session, Session):
+            raise TypeError("RunManager requires a Session")
+        self._session = deepcopy(session)
+        self.sessions = sessions
         self.engines = engines
-        self.repository = repository if repository is not None else tasks.run_repository
+        self.repository = repository if repository is not None else sessions.run_repository
         if self.repository is None:
             self.repository = RunRepository()
-            tasks.run_repository = self.repository
+            sessions.run_repository = self.repository
         self.steps = steps if steps is not None else StepManager()
         self.recorder = StepEventRecorder(self.steps)
-        self.results = RunResultQuery(tasks, self.repository)
+        self.results = RunResultQuery(sessions, self.repository)
         self.events = RunEventPublisher(on_event, self._observer_failed)
         self.on_run_event = on_run_event
         self.event_handlers = event_handlers if event_handlers is not None else EventHandlers()
@@ -421,12 +422,12 @@ class RunManager:
                              if isinstance(capabilities, ComponentRegistry) else capabilities)
         if not callable(getattr(self.capabilities, "resolve", None)):
             raise TypeError("Capability resolver must implement resolve(project, names)")
-        self.conversations = conversations if conversations is not None else tasks.conversations
-        self.context_builder = context_builder if context_builder is not None else tasks.context_builder
-        self._active: Optional[TaskRuntime] = None
+        self.conversations = conversations if conversations is not None else sessions.conversations
+        self.context_builder = context_builder if context_builder is not None else sessions.context_builder
+        self._active: Optional[SessionRuntime] = None
         self._closed = False
         self._control = None
-        self._io = StorageIO(tasks.ownership)
+        self._io = StorageIO(sessions.ownership)
         self._store_instance: Optional[Conversation] = None
         self._request_changed: Optional[asyncio.Event] = None
         self.policy_resolver = policy_resolver if policy_resolver is not None else ProjectPolicyResolver()
@@ -445,16 +446,16 @@ class RunManager:
         registry = self.capabilities.components
         component = registry.get(name)
         data_class = getattr(component, "data_class", None) or ComponentData
-        return data_class(self.tasks.project_access, registry, project, name).bind_model_usage(
-            self.tasks, getattr(self.policy_resolver, "token_counters", {})).bind_runtime(
+        return data_class(self.sessions.project_access, registry, project, name).bind_model_usage(
+            self.sessions, getattr(self.policy_resolver, "token_counters", {})).bind_runtime(
             runner=self._io.run, access_check=self._check_component_access,
-            history_reader=lambda task_id, run_id, tool_call_id, **options: self.results.tool_result(
-                project, task_id, run_id, tool_call_id, steps=self.steps, **options))
+            history_reader=lambda session_id, run_id, tool_call_id, **options: self.results.tool_result(
+                project, session_id, run_id, tool_call_id, steps=self.steps, **options))
 
     def _observer_failed(self, run):
         """실행 루프에서 발생한 관찰자 오류에도 백엔드의 로그 설정을 적용한다."""
         from llm.services.infrastructure.logging import logging_scope
-        with logging_scope(self.tasks.ownership.logger):
+        with logging_scope(self.sessions.ownership.logger):
             log_event(run.paths.logs, "observer.failed", entity_id=run.id)
 
     def _control_lock(self):
@@ -480,18 +481,18 @@ class RunManager:
                 self._observer_failed(run)
         await self.subscriptions.publish("run", event, on_error=lambda: self._observer_failed(run))
 
-    def _store(self, task: Task) -> Conversation:
-        if (task.project_id, task.id) != (self._task.project_id, self._task.id):
-            raise ValueError("Task does not match this RunManager")
+    def _store(self, session: Session) -> Conversation:
+        if (session.project_id, session.id) != (self._session.project_id, self._session.id):
+            raise ValueError("Session does not match this RunManager")
         if self._store_instance is None:
-            self._store_instance = self.conversations(task)
+            self._store_instance = self.conversations(session)
         return self._store_instance
 
     def _prepare(self):
-        project = self.tasks._owner(self._task)
-        current = self.tasks.load(project, self._task.id)
-        if current.status == TaskStatus.DELETED:
-            raise ValueError("Task is deleted")
+        project = self.sessions._owner(self._session)
+        current = self.sessions.load(project, self._session.id)
+        if current.status == SessionStatus.DELETED:
+            raise ValueError("Session is deleted")
         return project, current
 
     def _validate_request(self, engine: str) -> str:
@@ -511,7 +512,7 @@ class RunManager:
                 raise RunRequestError(RunErrorCode.COMPONENT_NOT_REGISTERED, str(error)) from error
         return engine
 
-    async def _runtime(self) -> TaskRuntime:
+    async def _runtime(self) -> SessionRuntime:
         # Caller holds _control. OS ownership is retained before recovery; the
         # worker and all pending storage finish before that ownership is released.
         if self._closed:
@@ -521,13 +522,13 @@ class RunManager:
             runtime = self._active
             if runtime.worker is not None and runtime.worker.done():
                 runtime.worker.result()
-                raise RuntimeError("Task worker has stopped")
+                raise RuntimeError("Session worker has stopped")
             return runtime
 
         def recover():
             # Revalidate under the same ownership scope as attachment/recovery.
             owner, fresh = self._prepare()
-            self.tasks.attach_runtime(fresh)
+            self.sessions.attach_runtime(fresh)
             try:
                 recovered = self._recover(fresh)
                 queued = [message.id for message in self._store(fresh).list()
@@ -537,20 +538,20 @@ class RunManager:
                           count=len(queued))
                 return owner, fresh, queued, recovered
             except BaseException:
-                self.tasks.detach_runtime(fresh)
+                self.sessions.detach_runtime(fresh)
                 raise
 
         project, current, queued, recovered = await self._io.run(recover)
         for run in recovered:
             await self._publish_run(run)
-        runtime = TaskRuntime(deepcopy(project), current)
+        runtime = SessionRuntime(deepcopy(project), current)
         for message_id in queued:
             runtime.queue.put_nowait(message_id)
         self._active = runtime
-        runtime.worker = asyncio.create_task(self._worker(runtime), name=f"llm-task-{current.id}")
+        runtime.worker = asyncio.create_task(self._worker(runtime), name=f"llm-session-{current.id}")
         return runtime
 
-    async def _start(self) -> TaskRuntime:
+    async def _start(self) -> SessionRuntime:
         async with self._control_lock():
             return await self._runtime()
 
@@ -562,12 +563,12 @@ class RunManager:
             selected = await self._io.run(self._validate_request, engine)
             runtime = await self._runtime()
             def persist():
-                self._check_queue(runtime.task)
-                message = self._store(runtime.task).create(
+                self._check_queue(runtime.session)
+                message = self._store(runtime.session).create(
                     MessageRole.USER, content, MessageStatus.QUEUED,
                     metadata={"engine": selected})
-                log_event(runtime.task.paths.logs, "request.queued", entity_id=message.id,
-                          related_id=runtime.task.id)
+                log_event(runtime.session.paths.logs, "request.queued", entity_id=message.id,
+                          related_id=runtime.session.id)
                 return message
 
             message = await self._io.run(persist)
@@ -577,23 +578,23 @@ class RunManager:
             runtime.queue.put_nowait(message.id)
             return message
 
-    def _check_queue(self, task):
-        project = self.tasks._owner(task)
+    def _check_queue(self, session):
+        project = self.sessions._owner(session)
         maximum = project.config.policies["run"]["max_queued"]
-        if maximum is not None and self._store(task).count(
+        if maximum is not None and self._store(session).count(
                 status=MessageStatus.QUEUED, role=MessageRole.USER) >= maximum:
-            raise RunRequestError(RunErrorCode.QUEUE_FULL, "Task request queue is full")
+            raise RunRequestError(RunErrorCode.QUEUE_FULL, "Session request queue is full")
 
     def _cancel_queued(self, message_id):
-        _, task = self._prepare()
-        store = self._store(task)
+        _, session = self._prepare()
+        store = self._store(session)
         message = store.get(message_id)
         if message.role != MessageRole.USER:
             raise ValueError("Request ID must identify a user message")
         if message.status != MessageStatus.QUEUED or message.run_id is not None:
             return False
         # 새 백엔드의 복구 이전에도 이미 Run으로 청구된 요청은 취소하지 않는다.
-        if self._active is None and any(run.input_message_id == message_id for run in self.repository.list(task)):
+        if self._active is None and any(run.input_message_id == message_id for run in self.repository.list(session)):
             return False
         store.set_status(message_id, MessageStatus.CANCELLED)
         return True
@@ -612,8 +613,8 @@ class RunManager:
         if self.pending_work.active:
             raise RunRequestError(RunErrorCode.RESUME_REJECTED, "Cancelled work is still finishing")
         self._validate_request(engine)
-        self._check_queue(runtime.task)
-        source = self.repository.load(runtime.task, run_id)
+        self._check_queue(runtime.session)
+        source = self.repository.load(runtime.session, run_id)
         if source.engine != engine or source.status not in (
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise ValueError("Resume requires a paused/interrupted/failed Run and its original Engine")
@@ -621,18 +622,18 @@ class RunManager:
         name = getattr(strategy, "checkpoint_name", None)
         if not name or not callable(getattr(strategy, "validate_resume", None)):
             raise ValueError("Engine does not support checkpoint resume")
-        checkpoint = self.repository.resolve_checkpoint(runtime.task, source, name)
+        checkpoint = self.repository.resolve_checkpoint(runtime.session, source, name)
         decisions, receipts, retry_nodes = self.repository.interaction_decisions(
-            runtime.task, source, checkpoint, decisions, retry_nodes=retry_nodes, confirm=True)
+            runtime.session, source, checkpoint, decisions, retry_nodes=retry_nodes, confirm=True)
         strategy.validate_resume(checkpoint, retry_nodes=retry_nodes, **({"decisions": decisions} if decisions else {}))
         # 파일 대화는 대기 요청도 재시작 뒤 유지한다. 메모리 큐가 없어져도 이미 시작한
         # 재개 Run의 연결은 남으므로 같은 원본에서 부작용을 두 번 이어가지 않는다.
-        store = self._store(runtime.task)
-        if any(self.repository.resume_link(runtime.task, source, store)):
+        store = self._store(runtime.session)
+        if any(self.repository.resume_link(runtime.session, source, store)):
             raise ValueError("This Run already has a resume request; resume its latest attempt instead")
         descriptor = {"run_id": source.id, "checkpoint": name,
                       "digest": checkpoint_digest(checkpoint), "retry_nodes": list(retry_nodes), "decisions": deepcopy(decisions)}
-        project = self.tasks.require_project(runtime.project)
+        project = self.sessions.require_project(runtime.project)
         candidate = deepcopy(source)
         candidate.metadata["resume"] = descriptor
         candidate.metadata["policies"] = deepcopy(project.config.policies)
@@ -641,22 +642,22 @@ class RunManager:
         if preview:
             return descriptor
         for response in receipts:
-            self.repository.respond(runtime.task, source, response)
+            self.repository.respond(runtime.session, source, response)
         return store.create(MessageRole.USER, store.get(source.input_message_id).content, MessageStatus.QUEUED,
                             metadata={"engine": engine, "resume": descriptor})
 
     def _resume_plan(self, run_id, engine) -> ResumePlan:
-        project, task = self._prepare()
-        source = self.repository.load(task, run_id)
-        views = self.repository.interaction_views(task, source, self._store(task))
-        ref = ResourceRef("run", run_id, project_id=project.id, task_id=task.id, run_id=run_id)
+        project, session = self._prepare()
+        source = self.repository.load(session, run_id)
+        views = self.repository.interaction_views(session, source, self._store(session))
+        ref = ResourceRef("run", run_id, project_id=project.id, session_id=session.id, run_id=run_id)
         reused, retries, blockers, can_resume = [], [], [], False
         try:
             strategy = self.engines.resolve(engine)
-            checkpoint = self.repository.resolve_checkpoint(task, source, strategy.checkpoint_name)
+            checkpoint = self.repository.resolve_checkpoint(session, source, strategy.checkpoint_name)
             reused = [k for k, v in checkpoint["records"].items() if v.get("status") == "completed"]
             retries = [v.request.binding["key"] for v in views if v.request.binding.get("target") == "retry_nodes"]
-            self._resume_request(TaskRuntime(project, task), run_id, engine, (), {}, preview=True)
+            self._resume_request(SessionRuntime(project, session), run_id, engine, (), {}, preview=True)
             can_resume = not any(v.status in ("pending", "denied", "expired", "cancelled", "submitted", "unavailable") for v in views)
             if not can_resume:
                 blockers.append(Diagnostic("interaction_required", "Resolve pending interactions before execution", source=ref))
@@ -677,8 +678,8 @@ class RunManager:
             return message
 
     def _request_run(self, message_id: str) -> Optional[Run]:
-        _, task = self._prepare()
-        message = self._store(task).get(message_id)
+        _, session = self._prepare()
+        message = self._store(session).get(message_id)
         if message.role != MessageRole.USER:
             raise ValueError("Request ID must identify a user message")
         if message.run_id is None:
@@ -687,7 +688,7 @@ class RunManager:
             if message.status != MessageStatus.QUEUED:
                 raise ValueError("Message has no executable request")
             return None
-        run = self.repository.load(task, message.run_id)
+        run = self.repository.load(session, message.run_id)
         if run.input_message_id != message.id:
             raise ValueError("Request and Run ownership mismatch")
         return run
@@ -716,34 +717,34 @@ class RunManager:
                 await runtime.worker
         finally:
             if runtime.worker is None or runtime.worker.done():
-                await self._io.run(self._detach, runtime.task)
+                await self._io.run(self._detach, runtime.session)
                 self._store_instance = None
                 self._active = None
 
-    def _detach(self, task: Task) -> None:
-        log_event(task.paths.logs, "runtime.stopped", entity_id=task.id)
+    def _detach(self, session: Session) -> None:
+        log_event(session.paths.logs, "runtime.stopped", entity_id=session.id)
         # 스토리지 스레드와 이벤트 루프 사이 완료 경쟁에서도 소유권을 정확히 해제한다.
-        self.pending_work.when_idle(lambda: self.tasks.detach_runtime(task))
+        self.pending_work.when_idle(lambda: self.sessions.detach_runtime(session))
 
-    def _recover(self, task: Task) -> list[Run]:
-        from llm.services.history.recovery import recover_task
-        return recover_task(self.tasks, self.repository, self.steps, task, self._store(task))
+    def _recover(self, session: Session) -> list[Run]:
+        from llm.services.history.recovery import recover_session
+        return recover_session(self.sessions, self.repository, self.steps, session, self._store(session))
 
-    def _begin(self, runtime: TaskRuntime, message: Message) -> Optional[Run]:
+    def _begin(self, runtime: SessionRuntime, message: Message) -> Optional[Run]:
         from llm.services.infrastructure.transactions import watch
-        watch(runtime.task)
-        runtime.project = self.tasks.require_project(runtime.project)
-        task = runtime.task
-        store = self._store(task)
+        watch(runtime.session)
+        runtime.project = self.sessions.require_project(runtime.project)
+        session = runtime.session
+        store = self._store(session)
         # cancel과 시작을 같은 소유권/I/O 직렬 경로에서 판정한다.
         if store.get(message.id).status != MessageStatus.QUEUED:
             return None
         run_id = new_id()
         # 선택이 누락된 복구 요청은 실패시킨다. Engine을 추측하지 않는다.
         engine = message.metadata.get("engine")
-        run = Run(run_id, task.id, message.id, new_id(),
+        run = Run(run_id, session.id, message.id, new_id(),
                   engine if isinstance(engine, str) and engine.strip() else "",
-                  self.repository.paths(task, run_id))
+                  self.repository.paths(session, run_id))
         # 대기 중 변경은 새 Run부터 반영한다. 실행 도중에는 저장된 값과 동일한 사본을 사용한다.
         run.metadata["policies"] = deepcopy(runtime.project.config.policies)
         if "resume" in message.metadata:
@@ -753,36 +754,36 @@ class RunManager:
         store.set_status(message.id, MessageStatus.COMMITTED)
         store.create(MessageRole.ASSISTANT, "", MessageStatus.STREAMING,
                      message_id=run.assistant_message_id, run_id=run.id)
-        task.current_run_id = run.id
-        task.status = TaskStatus.RUNNING
-        self.tasks._save_runtime(task)
+        session.current_run_id = run.id
+        session.status = SessionStatus.RUNNING
+        self.sessions._save_runtime(session)
         run.status = RunStatus.RUNNING
         run.started_at = now()
         self.repository.save(run)
         log_event(run.paths.logs, "run.started", entity_id=run.id,
-                  related_id=task.id, status=run.status)
+                  related_id=session.id, status=run.status)
         return run
 
-    def _resume_checkpoint(self, task, run):
+    def _resume_checkpoint(self, session, run):
         descriptor = run.metadata["resume"]
-        source = self.repository.load(task, descriptor["run_id"])
+        source = self.repository.load(session, descriptor["run_id"])
         if source.engine != run.engine or source.status not in (
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise ValueError("Resume source is no longer eligible")
-        checkpoint = self.repository.resolve_checkpoint(task, source, descriptor["checkpoint"])
+        checkpoint = self.repository.resolve_checkpoint(session, source, descriptor["checkpoint"])
         if checkpoint_digest(checkpoint) != descriptor["digest"]:
             raise ValueError("Resume checkpoint changed after admission")
-        if any(request.expired for request in self.repository.interaction_requests(task, source)):
+        if any(request.expired for request in self.repository.interaction_requests(session, source)):
             raise ValueError("Interaction expired while resume was queued")
         return checkpoint
 
-    def _context(self, runtime: TaskRuntime, run: Run, policies=None, *, project=None) -> EngineContext:
+    def _context(self, runtime: SessionRuntime, run: Run, policies=None, *, project=None) -> EngineContext:
         context_policy, completion_policy, limits = (policies if policies is not None
                                                    else self.policy_resolver.resolve(run.metadata["policies"]))
         checkpoint = None
-        store = self._store(runtime.task)
+        store = self._store(runtime.session)
         if "resume" in run.metadata:
-            checkpoint = self._resume_checkpoint(runtime.task, run)
+            checkpoint = self._resume_checkpoint(runtime.session, run)
             header = checkpoint["header"]
             try:
                 history = tuple(store.get(identifier) for identifier in header["message_ids"])
@@ -823,10 +824,10 @@ class RunManager:
             target: retries[source] for source, target in (("max_retries", "max_retries"), ("delay_seconds", "retry_delay"))
             if retries.get(source) is not None})
         tool_scope = ToolExecutionScope(tool_policy,
-            operations=ToolOperations(deepcopy(runtime.task), self._io, self.repository, steps=self.steps))
+            operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
         for name in values.get("tools", ToolRegistry()).names():
             tool_scope.validate(values["tools"].get(name))
-        return EngineContext(project, deepcopy(runtime.task), deepcopy(run), history,
+        return EngineContext(project, deepcopy(runtime.session), deepcopy(run), history,
                              tools=values.get("tools", ToolRegistry()), capabilities=values,
                              checkpoint=checkpoint, tool_scope=tool_scope, pending_work=self.pending_work,
                              completion_policy=completion_policy)
@@ -837,7 +838,7 @@ class RunManager:
         try:
             async with guard:
                 counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"]["completion"]["counter"])
-                source = {"project_id": runtime.project.id, "task_id": runtime.task.id, "run_id": run.id}
+                source = {"project_id": runtime.project.id, "session_id": runtime.session.id, "run_id": run.id}
                 with self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope(), retry_scope(run.metadata["policies"].get("provider_retry", {})):
                     await self._consume(runtime, run, policies)
         except asyncio.TimeoutError as error:
@@ -846,17 +847,17 @@ class RunManager:
                 raise ExecutionLimitError(RunErrorCode.RUN_TIMEOUT, "Run execution deadline exceeded") from error
             raise
 
-    async def _consume(self, runtime: TaskRuntime, run: Run, policies) -> None:
+    async def _consume(self, runtime: SessionRuntime, run: Run, policies) -> None:
         if not run.engine:
             raise RunRequestError(RunErrorCode.ENGINE_REQUIRED, "Queued request has no Engine selection")
         try:
             engine = self.engines.resolve(run.engine)
         except KeyError as error:
             raise RunRequestError(RunErrorCode.ENGINE_NOT_REGISTERED, "Requested Engine is not registered") from error
-        store = self._store(runtime.task)
+        store = self._store(runtime.session)
         try:
             if "resume" in run.metadata:
-                checkpoint = await self._io.run(self._resume_checkpoint, runtime.task, run)
+                checkpoint = await self._io.run(self._resume_checkpoint, runtime.session, run)
                 # 실행 설정 검증이 실패해도 재개 시도의 원본 체크포인트는 남긴다.
                 await self._io.run(self.repository.record_checkpoint, run,
                     EngineEvent(EngineEventType.CHECKPOINT, metadata={
@@ -979,31 +980,31 @@ class RunManager:
             policy = run.metadata["policies"].get("usage", {})
             project_entries = []
             auxiliary = []
-            project = self.tasks.project_access.load(self._task.project_id)
+            project = self.sessions.project_access.load(self._session.project_id)
             if isinstance(self.capabilities, ComponentToolResolver):
                 auxiliary = component_usage(self.capabilities.components, project)
             if policy.get("project_max_calls") is not None or policy.get("project_max_tokens") is not None:
-                project = self.tasks.project_access.load(self._task.project_id)
+                project = self.sessions.project_access.load(self._session.project_id)
                 reader = getattr(self.repository, "completion_history", None)
-                project_entries = [entry for task in self.tasks.list(project, include_deleted=True)
-                                   for entry in (reader(task) if reader else [e for r in self.repository.list(task)
+                project_entries = [entry for session in self.sessions.list(project, include_deleted=True)
+                                   for entry in (reader(session) if reader else [e for r in self.repository.list(session)
                                        for e in r.metadata.get("completions", [])])]
             check_admission(run, result, event.completion.reserved_tokens, [*project_entries, *auxiliary],
                             [e for e in auxiliary if e.get("run_id") == run.id])
             entries.append(result)
         self.repository.save(run)
 
-    def _finish(self, runtime: TaskRuntime, run: Run, status: RunStatus,
+    def _finish(self, runtime: SessionRuntime, run: Run, status: RunStatus,
                 error: Optional[str] = None, error_code: Optional[str] = None) -> None:
         from llm.services.infrastructure.transactions import watch
-        watch(runtime.task)
+        watch(runtime.session)
         for step in self.steps.list(run):
             if step.status in (StepStatus.PENDING, StepStatus.RUNNING):
                 if status == RunStatus.FAILED:
                     self.steps.fail(step, error or "Run failed")
                 else:
                     self.steps.interrupt(step)
-        store = self._store(runtime.task)
+        store = self._store(runtime.session)
         store.set_status(run.assistant_message_id, MessageStatus(status.value))
         run.status = status
         run.error = error
@@ -1012,11 +1013,11 @@ class RunManager:
         self.repository.save(run)
         log_event(run.paths.logs, f"run.{status.value}", entity_id=run.id,
                   status=status)
-        runtime.task.current_run_id = None
-        runtime.task.status = TaskStatus.IDLE
-        self.tasks._save_runtime(runtime.task)
+        runtime.session.current_run_id = None
+        runtime.session.status = SessionStatus.IDLE
+        self.sessions._save_runtime(runtime.session)
 
-    async def _worker(self, runtime: TaskRuntime) -> None:
+    async def _worker(self, runtime: SessionRuntime) -> None:
         while not runtime.closed:
             while self.pending_work.active and not runtime.closed:
                 await self.pending_work.wait()
@@ -1029,7 +1030,7 @@ class RunManager:
                 runtime.preparing = True
                 runtime.interrupt_requested = False
                 runtime.finished = asyncio.Event()
-                message = await self._io.run(self._store(runtime.task).get, message_id)
+                message = await self._io.run(self._store(runtime.session).get, message_id)
                 if message.status != MessageStatus.QUEUED:
                     continue
                 # Set up persistent state before creating the cancellable child.
@@ -1062,7 +1063,7 @@ class RunManager:
                         if status == RunStatus.PAUSED:
                             try:
                                 # 선택적 자동 응답 실패가 이미 확정한 PAUSED를 되돌리지 않는다.
-                                await self._io.run(self.repository.apply_interaction_policy, runtime.task, run,
+                                await self._io.run(self.repository.apply_interaction_policy, runtime.session, run,
                                                    run.metadata["policies"].get("approval", {}))
                             except Exception:
                                 log_event(run.paths.logs, "interaction.policy_failed", entity_id=run.id,
@@ -1086,11 +1087,11 @@ class RunManager:
         self.events.callback = callback
 
     @property
-    def task(self) -> Task:
-        return deepcopy(self._task)
+    def session(self) -> Session:
+        return deepcopy(self._session)
 
     async def start(self) -> None:
-        """Task를 복구하고 선택한 대화 저장소에 남아 있는 대기 요청만 예약한다."""
+        """Session을 복구하고 선택한 대화 저장소에 남아 있는 대기 요청만 예약한다."""
         await drain_on_cancel(self._start())
 
     async def submit(self, content: str, *,
@@ -1135,7 +1136,7 @@ class RunManager:
                     return run
                 if runtime.worker.done():
                     runtime.worker.result()
-                    raise RuntimeError("Task runtime stopped before this request finished")
+                    raise RuntimeError("Session runtime stopped before this request finished")
                 notification = asyncio.create_task(changed.wait())
                 try:
                     await asyncio.wait((notification, runtime.worker), return_when=asyncio.FIRST_COMPLETED)
@@ -1155,7 +1156,7 @@ class RunManager:
         if runtime.execution is not None:
             runtime.execution.cancel()
         await finished.wait()
-        await self._io.run(log_event, runtime.task.paths.logs, "runtime.interrupted", entity_id=runtime.task.id)
+        await self._io.run(log_event, runtime.session.paths.logs, "runtime.interrupted", entity_id=runtime.session.id)
         return True
 
     async def wait_idle(self) -> None:
@@ -1168,7 +1169,7 @@ class RunManager:
             if runtime.worker in done:
                 runtime.worker.result()
                 if not joined.done():
-                    raise RuntimeError("Task worker stopped before draining its queue")
+                    raise RuntimeError("Session worker stopped before draining its queue")
             await joined
         finally:
             joined.cancel()

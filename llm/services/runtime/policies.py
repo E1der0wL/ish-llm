@@ -27,7 +27,7 @@ def positive_seconds(value, name):
 
 @dataclass(frozen=True, slots=True)
 class RunLimits:
-    """Task 대기열과 Run 전체 시간 한도. None은 기존 무제한 동작을 유지한다.
+    """Session 대기열과 Run 전체 시간 한도. None은 기존 무제한 동작을 유지한다.
 
     실행 시간은 문맥 준비부터 Engine 종료까지이며, 대기열 시간은 포함하지 않는다.
     취소에 협조하지 않는 외부 코드/스레드를 강제로 종료하는 OS 제한은 아니다.

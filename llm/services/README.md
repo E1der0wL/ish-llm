@@ -5,10 +5,10 @@ services/
 ├── api.py                    # LargeLanguageModel이 제공하는 탐색형 Facade
 ├── configuration.py          # 서비스와 저장소 구성
 ├── query.py                  # 목록 조회 조건
-├── results.py                # Project/Task 범위의 Run 결과 조회
+├── results.py                # Project/Session 범위의 Run 결과 조회
 ├── lifecycle/
 │   ├── projects.py           # ProjectRepository / ProjectManager
-│   ├── tasks.py              # TaskRepository / TaskManager / TaskRuntime
+│   ├── sessions.py              # SessionRepository / SessionManager / SessionRuntime
 │   ├── steps.py              # StepRepository / StepManager / StepEventRecorder
 │   ├── components.py         # ComponentData
 │   └── access.py             # Project 소유권과 접근 검사
@@ -26,8 +26,8 @@ services/
 ```
 
 폴더는 코드를 찾기 위한 구분이다. Repository/Manager를 분리하거나 실행 계층을
-추가하지 않는다. TaskRuntime의 정의는 Task 서비스에 있고 실행과 수명은 RunManager가
-소유한다. Conversation은 Task에 속하며 Engine은 계속 이벤트를 통해 서비스에 전달한다.
+추가하지 않는다. SessionRuntime의 정의는 Session 서비스에 있고 실행과 수명은 RunManager가
+소유한다. Conversation은 Session에 속하며 Engine은 계속 이벤트를 통해 서비스에 전달한다.
 
 새 코드는 책임별 경로를 사용한다.
 
@@ -57,6 +57,6 @@ getter/setter와 `async_method`처럼 클래스 정의 시 참조하는 항목�
 Enum 값과 dataclass 필드 순서도 바꾸지 않는다.
 
 
-공개 Task/Run 조회와 재개·복구·보관 계획은 core/views.py와 core/plans.py의 데이터 클래스를
+공개 Session/Run 조회와 재개·복구·보관 계획은 core/views.py와 core/plans.py의 데이터 클래스를
 반환한다. 진단·출처·진행 표시는 core/contracts.py의 계약을 사용한다. 실제 상태 전이/저장과
 버전 검증은 서비스 책임이다. [공통 데이터 API](../../docs/data-contracts.md)를 참고한다.

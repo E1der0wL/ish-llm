@@ -25,8 +25,8 @@ def digest(value) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()).hexdigest()
 
 
-def summary_id(task_id: str) -> str:
-    return "summary_" + digest(validate_name(task_id))[:40]
+def summary_id(session_id: str) -> str:
+    return "summary_" + digest(validate_name(session_id))[:40]
 
 
 def processing_settings(configuration: dict, *, token_counter=None) -> dict:
@@ -38,7 +38,7 @@ def processing_settings(configuration: dict, *, token_counter=None) -> dict:
               "keep_turns": 8, "summary_after_chars": 12000, "summary_chars": 3000,
               "context_chars": 6000, "context_tokens": None, "recall_limit": 8,
               "tool_result_chars": 4000, "model_input_chars": 24000, "max_candidates": 5,
-              "extract_scope": "task", "nested_processing": False, "timeout_seconds": 60.0, "failure_mode": "raise",
+              "extract_scope": "session", "nested_processing": False, "timeout_seconds": 60.0, "failure_mode": "raise",
               "priority": 100, "compact_active": True, "active_keep_iterations": 2,
               "max_summary_calls": 4, "recall_every": 0, "recall_query_chars": 2000,
               "completion": {}, **deepcopy(value)}
@@ -56,7 +56,7 @@ def processing_settings(configuration: dict, *, token_counter=None) -> dict:
     if config["context_tokens"] is not None and (type(config["context_tokens"]) is not int or
             config["context_tokens"] < 1 or token_counter is None):
         raise ValueError("context_tokens requires a positive integer and an injected token_counter(text)")
-    if config["failure_mode"] not in ("raise", "continue") or config["extract_scope"] not in ("task", "project"):
+    if config["failure_mode"] not in ("raise", "continue") or config["extract_scope"] not in ("session", "project"):
         raise ValueError("Invalid memory failure mode or extraction scope")
     duration = config["timeout_seconds"]
     if isinstance(duration, bool) or not isinstance(duration, (int, float)) or not math.isfinite(duration) or duration <= 0:
@@ -89,7 +89,7 @@ class MemoryProcessor:
 
 
 class MemorySession(CompletionSession):
-    """한 Loop/Agent 호출에만 존재한다. Task 요약은 최상위 대화에서만 재사용한다."""
+    """한 Loop/Agent 호출에만 존재한다. Session 요약은 최상위 대화에서만 재사용한다."""
 
     def __init__(self, processor, context):
         self.processor, self.data, self.context = processor, processor.data, context
@@ -192,7 +192,7 @@ class MemorySession(CompletionSession):
 
     async def _step(self, name, operation):
         context = replace(self.context, output_visibility="internal")
-        source = {"kind": "processing", "project_id": context.project.id, "task_id": context.task.id,
+        source = {"kind": "processing", "project_id": context.project.id, "session_id": context.session.id,
                   "run_id": context.run.id, "message_id": context.run.input_message_id}
         result = {}
 
@@ -341,13 +341,13 @@ class MemorySession(CompletionSession):
             if not isinstance(text, str) or not text.strip() or len(text) > self.config["summary_chars"]:
                 raise ValueError("Memory summary is empty or exceeds configured size")
         covered += len(batch)
-        record = {"id": summary_id(self.context.task.id), "content": text, "metadata": {
+        record = {"id": summary_id(self.context.session.id), "content": text, "metadata": {
                   "coverage_count": covered, "coverage_hash": digest(signatures[:covered]), "profile": profile,
                   "first_message_id": valid[0].id,
                   "through_message_id": valid[max(covered - 1, 0)].id, "partial": partial,
                   "input_truncated": any(m["truncated"] for m in batch)}}
         self.summary_record = await self.data._async_call(self.data._publish_summary, self.snapshot,
-            record, task_id=self.context.task.id, source=source)
+            record, session_id=self.context.session.id, source=source)
         self.snapshot["summary"] = self.summary_record
         self.covered = covered
         result.update(covered=covered, revision=self.summary_record["revision"], summary_id=self.summary_record["id"],
@@ -358,7 +358,7 @@ class MemorySession(CompletionSession):
         if current.strip():
             config = self.snapshot["configuration"]
             limit = min(self.config["recall_limit"], config.get("max_search_results", 100))
-            hits = await self.data.asearch(current, status="confirmed", limit=limit, task_id=self.context.task.id)
+            hits = await self.data.asearch(current, status="confirmed", limit=limit, session_id=self.context.session.id)
             self.recalled = [hit["memory"] for hit in hits if hit["memory"]["kind"] != "conversation_summary"]
         result["memories"] = [{"id": m["id"], "revision": m["revision"]} for m in self.recalled]
         if False:
@@ -435,7 +435,7 @@ class MemorySession(CompletionSession):
             yield
 
     async def _extract(self, messages, response, result, source):
-        snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.task.id)
+        snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.session.id)
         if snapshot["identity"] != self.snapshot["identity"] or snapshot["configuration"] != self.snapshot["configuration"]:
             raise ValueError("Memory changed before extraction")
         # 모델 입력도 제한하며 오래된 대화/큰 Tool 원본을 다시 전송하지 않는다.
@@ -443,7 +443,7 @@ class MemorySession(CompletionSession):
         allowance = self.config["model_input_chars"] // 3
         existing = []
         # 관련 기억을 먼저 전달해 단순 파일 순서 때문에 중요한 대체 후보가 밀리지 않게 한다.
-        ranked = await self.data.asearch(latest, status="all", limit=self.config["recall_limit"], task_id=self.context.task.id) if latest.strip() else []
+        ranked = await self.data.asearch(latest, status="all", limit=self.config["recall_limit"], session_id=self.context.session.id) if latest.strip() else []
         ordered = {item["memory"]["id"]: item["memory"] for item in ranked}
         ordered.update({key: value for key, value in snapshot["records"].items() if key not in ordered})
         for record in ordered.values():
@@ -481,16 +481,16 @@ class MemorySession(CompletionSession):
                 raise ValueError("Invalid memory consolidation references")
             record = {"content": value["content"], "kind": kind, "tags": tags, "status": "candidate",
                       "scope": self.config["extract_scope"], "metadata": {"replaces": refs}}
-            if record["scope"] == "task":
-                record["task_id"] = self.context.task.id
+            if record["scope"] == "session":
+                record["session_id"] = self.context.session.id
             candidates.append(record)
         result["created"] = await self.data._async_call(self.data._publish_candidates, snapshot, candidates,
-                                                       task_id=self.context.task.id, source=source)
+                                                       session_id=self.context.session.id, source=source)
 
     # 공통 CompletionSession 계약. Engine에는 Memory 전용 분기가 필요 없다.
     async def prepare(self, request):
         if not self.prepared:
-            self.snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.task.id, include_records=False)
+            self.snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.session.id, include_records=False)
             self.config = processing_settings(self.snapshot["configuration"], token_counter=self.processor.token_counter)
             self.prepared = True
         if self.config["summarize"] and (self.context.output_step_id is None or self.config["nested_processing"]) and not self.did_summarize:

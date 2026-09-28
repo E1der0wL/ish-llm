@@ -12,7 +12,7 @@ Markdown을 RAG의 BM25·Chroma·Kuzu에 색인하고, Graph의 Agent가 검색�
 비교 전용 → 보고서 생성 (원본 변경 없음)
 ```
 
-각 `plan`은 별도 Project·Task를 만든다. 문서 색인, Agent·Workflow 정의, Run·Step,
+각 `plan`은 별도 Project·Session을 만든다. 문서 색인, Agent·Workflow 정의, Run·Step,
 승인·체크포인트는 기존 공개 API로 저장한다. `approve`는 새 Run으로 명시적 재개한다.
 Agent에는 검색 Tool만 제공하고, 적용 Tool은 검증 후 Graph의 마지막 노드에서 호출한다.
 

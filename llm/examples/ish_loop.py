@@ -17,7 +17,7 @@ from llm.llm import LargeLanguageModel, LoopEngine, RunStatus, print_event
 async def run_request(args: argparse.Namespace, *, workspace: Path,
                       completion: Mapping[str, Any], max_iterations: int,
                       request_timeout: float) -> int:
-    """기본 Project와 선택한 Task로 요청 한 건을 처리하고 저장된 결과를 확인한다."""
+    """기본 Project와 선택한 Session으로 요청 한 건을 처리하고 저장된 결과를 확인한다."""
     # 모델 인자는 이 테스트 실행의 명시적인 호스트 설정이다.
     # 기존 Project의 컴포넌트·정책·모델 설정을 덮어쓰지 않는다.
     async with LargeLanguageModel(
@@ -30,13 +30,13 @@ async def run_request(args: argparse.Namespace, *, workspace: Path,
         # 처음에는 파일 대화 저장 및 모든 기본 컴포넌트가 선택된다.
         # 이후에는 같은 Project와 사용자가 변경한 설정을 그대로 불러온다.
         project = await backend.projects.aget_default()
-        task = (await project.tasks.aload(args.task_id) if args.task_id
-                else await project.tasks.acreate("ish LoopEngine test"))
+        session = (await project.sessions.aload(args.session_id) if args.session_id
+                else await project.sessions.acreate("ish LoopEngine test"))
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
-        print(f"Task: {task.id}", file=sys.stderr)
+        print(f"Session: {session.id}", file=sys.stderr)
 
         # 기본 Project에서도 실행 엔진 이름은 요청마다 명시한다.
-        request = await task.run.submit(" ".join(args.prompt), engine="loop")
+        request = await session.run.submit(" ".join(args.prompt), engine="loop")
         handle = await request.wait()
         result = await handle.aresult()
         print()
@@ -58,13 +58,13 @@ def main(*argv: str, workspace: Optional[str] = None,
          max_iterations: int = 8, request_timeout: float = 120) -> None:
     """ish가 pickle로 전달하는 동기 진입점. 반환값 대신 프로세스 종료 코드를 사용한다.
 
-    completion은 LiteLLM 인자이며 Project/Task 설정보다 우선한다. 생략한 항목은
-    기존 Project/Task 설정을 따른다. api_key_env는 실행 시점의 셸에서 읽으므로
+    completion은 LiteLLM 인자이며 Project/Session 설정보다 우선한다. 생략한 항목은
+    기존 Project/Session 설정을 따른다. api_key_env는 실행 시점의 셸에서 읽으므로
     ish 안에서 export한 키도 다음 호출에 적용된다. None이면 별도로 읽지 않는다.
-    --task-id 생략 시 새 Task, 지정 시 같은 Task의 이전 대화를 이어간다.
+    --session-id 생략 시 새 Session, 지정 시 같은 Session의 이전 대화를 이어간다.
     """
     parser = argparse.ArgumentParser(prog="llm-test", description=__doc__)
-    parser.add_argument("--task-id", help="기본 Project 안에서 이어갈 Task ID")
+    parser.add_argument("--session-id", help="기본 Project 안에서 이어갈 Session ID")
     parser.add_argument("prompt", nargs="+", help="모델에 전달할 작업 요청")
     args = parser.parse_args(list(argv))
     parameters = dict(completion or {})

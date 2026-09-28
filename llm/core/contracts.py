@@ -97,7 +97,7 @@ class ResourceRef(JsonValue):
     kind: str
     id: str
     project_id: Optional[str] = None
-    task_id: Optional[str] = None
+    session_id: Optional[str] = None
     run_id: Optional[str] = None
     step_id: Optional[str] = None
     component: Optional[str] = None

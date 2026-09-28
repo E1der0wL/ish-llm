@@ -25,7 +25,7 @@ from llm.components.workflows.graph import validate_graph
 from llm.components.workflows.bindings import bind, read_pointer, validate_value
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
-from .base import BaseEngine, EngineContext, EngineEvent, EngineEventType, required_capabilities
+from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType, required_capabilities
 
 
 if TYPE_CHECKING:
@@ -304,7 +304,7 @@ class _WorkflowRuntime:
         """핸들러에 취소를 한 번 전달하고 설정한 시간까지만 정리를 기다린다.
 
         LangGraph의 중첩 실행기는 형제 실패/종료 과정에서 같은 노드를 여러 번 취소할
-        수 있다. 별도 Task를 shield하여 처리기의 finally 정리를 두 번째 취소로 끊지 않는다.
+        수 있다. 별도 asyncio.Task를 shield하여 처리기의 finally 정리를 두 번째 취소로 끊지 않는다.
         그래프의 노드 선택/병렬 스케줄링은 계속 LangGraph가 담당한다.
         """
         from langgraph import errors as graph_errors
@@ -340,7 +340,7 @@ class _WorkflowRuntime:
                     if node.context.pending_work is not None:
                         node.context.pending_work.track(pending)
                     else:
-                        pending.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
+                        pending.add_done_callback(lambda pending: pending.exception() if not pending.cancelled() else None)
                     break
                 try:
                     await asyncio.wait((pending,), timeout=remaining)
@@ -452,7 +452,7 @@ class _WorkflowRuntime:
                         "port": saved["port"], "scope": frame["scope"]}
             if definition.get("pause_before", False) and not (self.resuming and saved):
                 request = approval_request("Workflow 노드 실행 확인",
-                    source={"project_id": context.project.id, "task_id": context.task.id,
+                    source={"project_id": context.project.id, "session_id": context.session.id,
                             "run_id": context.run.id, "node_id": name, "path": path},
                     action={"definition": deepcopy(definition)}, category="workflow.continue")
                 request = replace(request, kind="confirmation", input_schema=definition.get("resume_schema"))
@@ -577,15 +577,15 @@ class GraphEngine:
         return object_schema(properties, **{"x-runtime-configuration": ["workflow", "handlers", "revision", "config_keys"],
             **({"x-settings-key": self.settings_name} if self.settings_name else {})})
 
-    def configuration(self, config, name, *, task_config=None):
-        return engine_configuration(config, self.settings_name or name, self._defaults(), task_config=task_config,
+    def configuration(self, config, name, *, session_config=None):
+        return engine_configuration(config, self.settings_name or name, self._defaults(), session_config=session_config,
             agent=self._agent_options, host=self._overrides, schema=self.configuration_schema())
 
     def configured(self, context):
         """등록 인스턴스를 변경하지 않는 실행별 설정 사본. 중첩 실행에도 동일하게 적용한다."""
         if self._configured:
             return self
-        values = self.configuration(context.project.config, context.run.engine, task_config=context.task.config)["values"]
+        values = self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"]
         worker = copy(self)
         GraphEngine.__init__(worker, self.workflow, handlers=self.handlers, revision=self.revision,
             config_keys=self.config_keys, settings_name=self.settings_name,
@@ -596,7 +596,7 @@ class GraphEngine:
     def _execution_config(self, context):
         return {key: value for key, value in context.project.config.to_dict().items()
                 if self.config_keys is None or key in self.config_keys
-                or key in ("policies", "completion", "engines", "task_defaults", "component_configurations")}
+                or key in ("policies", "completion", "engines", "session_defaults", "component_configurations")}
 
     def _binding(self, context, graph, prepared):
         """코드의 버전은 개발자가 revision으로 관리한다. 저장 가능한 실행 설정은 직접 비교한다."""
@@ -620,7 +620,7 @@ class GraphEngine:
                 "nested_graphs": nested_graphs,
                 "handlers": sorted(self.handlers), "max_steps": self.max_steps,
                 "max_parallelism": self.max_parallelism, "timeout_seconds": self.timeout_seconds,
-                "project_config": self._execution_config(context), "task_config": context.task.config,
+                "project_config": self._execution_config(context), "session_config": context.session.config,
                 "components": list(context.project.components), "agents": list(context.capabilities.get("agents", ())),
                 "tools": context.tools.definitions(), "tool_contracts": context.tools.contracts(),
                 "tool_policy": context.tool_scope.binding() if context.tool_scope else None}

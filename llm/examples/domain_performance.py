@@ -1,6 +1,6 @@
 """메인 도메인의 합성 부하 검사. 모델/API 키 없이 Linux Python 3.12.14에서 실행한다.
 
-python -m llm.examples.domain_performance --tasks 5 --deltas 10000
+python -m llm.examples.domain_performance --sessions 5 --deltas 10000
 JSON 보고서를 stdout에 출력하고 측정용 작업 디렉토리를 보존한다.
 미세 측정은 실제 디스크 쓰기 처리량과 구분하며 통합 측정은 기본 영속 저장을 사용한다.
 """
@@ -108,7 +108,7 @@ def microbenchmarks(args, root):
 
 
 async def integration(args, root):
-    """Project→Task→Run→Graph→Step 저장·결과 조회·재개방을 실제 API로 검사한다."""
+    """Project→Session→Run→Graph→Step 저장·결과 조회·재개방을 실제 API로 검사한다."""
     async def work(node):
         return {"count": node.state["count"] + 1}
 
@@ -131,9 +131,9 @@ async def integration(args, root):
             except asyncio.TimeoutError:
                 lag.append(max(0, time.perf_counter() - before - .05))
 
-    async def request(task):
+    async def request(session):
         before = time.perf_counter()
-        run = await (await task.run.submit("synthetic performance check", engine="graph")).wait(timeout=120)
+        run = await (await session.run.submit("synthetic performance check", engine="graph")).wait(timeout=120)
         result = await run.aresult()
         assert result.status == "completed" and result.output.data["count"] == args.graph_nodes
         steps = await run.steps.alist()
@@ -145,13 +145,13 @@ async def integration(args, root):
         async with LargeLanguageModel(workspace, **options) as app:
             project = await app.projects.acreate("Domain performance", components=["workflows"])
             await (await project.components.aget("workflows")).acreate(graph.to_dict(), identifier="measure")
-            tasks = [await project.tasks.acreate(f"Task {i}") for i in range(args.tasks)]
-            await asyncio.gather(*(request(task) for task in tasks))
+            sessions = [await project.sessions.acreate(f"Session {i}") for i in range(args.sessions)]
+            await asyncio.gather(*(request(session) for session in sessions))
         async with LargeLanguageModel(workspace, **options) as app:
             project = await app.projects.aload(project.id)
-            for previous in tasks:
-                task = await project.tasks.aload(previous.id)
-                runs = await task.run.alist(query=Query(descending=True, limit=1))
+            for previous in sessions:
+                session = await project.sessions.aload(previous.id)
+                runs = await session.run.alist(query=Query(descending=True, limit=1))
                 result = await runs[0].aresult()
                 assert result.status == "completed" and result.output.data["count"] == args.graph_nodes
     finally:
@@ -169,13 +169,13 @@ def main(*argv):
     parser.add_argument("--chunk-chars", type=int, default=256)
     parser.add_argument("--history-size", type=int, default=100000)
     parser.add_argument("--repeats", type=int, default=3)
-    parser.add_argument("--tasks", type=int, default=5)
+    parser.add_argument("--sessions", type=int, default=5)
     parser.add_argument("--graph-nodes", type=int, default=8)
     parser.add_argument("--skip-integration", action="store_true")
     args = parser.parse_args(list(argv) if argv else None)
     if sys.platform != "linux" or sys.version_info[:3] != (3, 12, 14):
         parser.error("Use Linux Python 3.12.14")
-    if any(getattr(args, key) < 1 for key in ("deltas", "chunk_chars", "history_size", "repeats", "tasks", "graph_nodes")):
+    if any(getattr(args, key) < 1 for key in ("deltas", "chunk_chars", "history_size", "repeats", "sessions", "graph_nodes")):
         parser.error("All sizes and repeat counts must be positive")
     root = Path(tempfile.mkdtemp(prefix="llm-domain-performance-"))
     report = {"python": sys.version.split()[0], "platform": sys.platform, "fixture": str(root),

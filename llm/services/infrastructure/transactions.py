@@ -179,7 +179,7 @@ class Transaction:
         key = ("model", id(model))
         if key in self._rollback:
             return
-        # TaskRuntime 등 asyncio 객체를 가진 실행 컨테이너는 대상이 아니다.
+        # SessionRuntime 등 asyncio 객체를 가진 실행 컨테이너는 대상이 아니다.
         if not hasattr(model, "paths"):
             return
         snapshot = {field.name: deepcopy(getattr(model, field.name)) for field in fields(model)}

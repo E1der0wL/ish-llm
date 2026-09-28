@@ -37,14 +37,14 @@ def resolve_configuration(defaults, layers, *, schema=None, host=None):
             "editable": {path: source != "host" for path, source in sources.items()}}
 
 
-def engine_configuration(config, name, defaults, *, task_config=None, agent=None, host=None, schema=None):
-    """Project → Task → Agent → host를 Engine과 UI가 같은 함수로 해석한다."""
+def engine_configuration(config, name, defaults, *, session_config=None, agent=None, host=None, schema=None):
+    """Project → Session → Agent → host를 Engine과 UI가 같은 함수로 해석한다."""
     config = ProjectConfig(config)
-    task = task_config or {}
-    ProjectConfig.validate_task(task)
+    session = session_config or {}
+    ProjectConfig.validate_session(session)
     view = resolve_configuration(defaults, [
         ("project", config.engines.get(name, {})),
-        ("task", task.get("engines", {}).get(name, {})),
+        ("session", session.get("engines", {}).get(name, {})),
         ("agent", agent or {})], host=host, schema=schema)
     view["configuration_key"] = name
     return view

@@ -27,7 +27,7 @@ class ComponentRegistry:
         if not re.fullmatch(r"[a-z][a-z0-9_]*", component.name) or component.name in self._components:
             raise ValueError("Invalid or duplicate component identity")
         directory = validate_name(getattr(component, "directory", None)).lower()
-        if directory in {"tasks", "logs", "state", "cache"} or any(
+        if directory in {"sessions", "logs", "state", "cache"} or any(
                 item.directory.lower() == directory for item in self._components.values()):
             raise ValueError("Component directory is reserved or already owned")
         capabilities = component.capabilities

@@ -8,7 +8,7 @@ Linux Python **3.12.14**에서 플러그인 폴더의 부모 경로를 import �
 python3.12 -m llm.examples.domain_performance > domain-performance.json
 ```
 
-기본 부하는 256자 델타 10,000개, 대화 목록 100,000개, 동시 Task 5개,
+기본 부하는 256자 델타 10,000개, 대화 목록 100,000개, 동시 Session 5개,
 각 Graph의 작업 노드 8개다. 시간은 추적기를 끈 3회 실행의 중앙값이며,
 Python 할당 최고치는 `tracemalloc`으로 별도 실행하여 측정한다. 프로세스 RSS나
 모델 지연 시간과는 다르다. 성능 비교 때는 다른 검사와 동시에 실행하지 않는다.
@@ -16,7 +16,7 @@ Python 할당 최고치는 `tracemalloc`으로 별도 실행하여 측정한다.
 ```bash
 python3.12 -m llm.examples.domain_performance \
   --deltas 20000 --chunk-chars 256 --history-size 200000 \
-  --tasks 5 --graph-nodes 16 --repeats 5 > domain-performance-large.json
+  --sessions 5 --graph-nodes 16 --repeats 5 > domain-performance-large.json
 ```
 
 | 보고서 항목 | 측정 범위 |
@@ -26,7 +26,7 @@ python3.12 -m llm.examples.domain_performance \
 | conversation_append | 메모리 Conversation의 델타 추가와 본문 조회 |
 | conversation_replay | 합성 Conversation JSONL에서 본문 복원 |
 | latest_history_page | 메모리에 적재된 목록의 최신 10건 선택. 파일 목록 탐색 비용 제외 |
-| integration | Project/Task 생성, Graph 동시 실행, Run/Step 결과 조회, 백엔드 종료 후 재개방 |
+| integration | Project/Session 생성, Graph 동시 실행, Run/Step 결과 조회, 백엔드 종료 후 재개방 |
 
 통합 검사는 기본 파일 저장 정책과 트랜잭션을 사용한다. 각 작업의 결과 값과 Step 상태를
 확인하며, 검증 실패 시 종료 코드가 0이 아니다. `--skip-integration`은 미세 측정만 실행한다.

@@ -86,8 +86,8 @@ def component_usage(registry, project):
 class ComponentUsage:
     """ComponentData에 주입되는 비스트리밍 모델 호출 관찰자. 별도의 Run을 만들지 않는다."""
 
-    def __init__(self, data, tasks, counters):
-        self.data, self.tasks, self.counters = data, tasks, counters
+    def __init__(self, data, sessions, counters):
+        self.data, self.sessions, self.counters = data, sessions, counters
 
     def _settings(self):
         project, _ = self.data._current()
@@ -96,22 +96,22 @@ class ComponentUsage:
     def _reserve(self, operation, request, reservation, source):
         project, component = self.data._current()
         policies = project.config.policies
-        repository = self.tasks.run_repository
+        repository = self.sessions.run_repository
         auxiliary = component_usage(self.data.registry, project)
         run = None
         if source is not None:
             if source["project_id"] != project.id:
                 raise ValueError("Model usage cannot cross Project boundaries")
-            task = self.tasks.load(project, source["task_id"])
-            run = repository.load(task, source["run_id"])
+            session = self.sessions.load(project, source["session_id"])
+            run = repository.load(session, source["run_id"])
             if run.status != "running":
                 raise ValueError("Component model call requires an active owning Run")
             policies = run.metadata["policies"]
         entries = []
         if policies["usage"]["project_max_calls"] is not None or policies["usage"]["project_max_tokens"] is not None:
             reader = getattr(repository, "completion_history", None)
-            entries = [entry for task in self.tasks.list(project, include_deleted=True)
-                       for entry in (reader(task) if reader else [e for r in repository.list(task) for e in r.metadata.get("completions", [])])]
+            entries = [entry for session in self.sessions.list(project, include_deleted=True)
+                       for entry in (reader(session) if reader else [e for r in repository.list(session) for e in r.metadata.get("completions", [])])]
         if run is None:
             policies = deepcopy(policies)
             policies["usage"].update(max_calls=None, max_tokens=None)

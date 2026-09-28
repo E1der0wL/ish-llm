@@ -19,7 +19,7 @@ API 키는 환경 변수가 아닌 JSON을 역직렬화한 `ProjectConfig`에서
 OpenAI 호환 서버는 `openai/모델명`을 사용한다. 다른 provider는 해당 LiteLLM 모델명을
 사용하고 필요 없는 api_base를 삭제한다. 임베딩과 대화 모델은 서로 다른 서버·키를 써도 된다.
 Gemini 등 공급자별 문서/질의 옵션이 필요하면 RAG 설정에 `document_kwargs`, `query_kwargs`를
-추가할 수 있다. 예를 들어 Gemini 임베딩의 task_type은 각각 RETRIEVAL_DOCUMENT, RETRIEVAL_QUERY다.
+추가할 수 있다. 예를 들어 Gemini 임베딩의 session_type은 각각 RETRIEVAL_DOCUMENT, RETRIEVAL_QUERY다.
 
 `engines.loop.max_iterations`는 Agent 한 번의 모델 호출 반복 상한이다.
 `--max-attempts`는 답변 검증·수정 회차 상한이며 두 제한은 서로 다른 범위를 가진다.
@@ -93,7 +93,7 @@ Graph 실행 중 검색과 모델 호출은 하나의 소유 Run에 Step으로 �
 
 - 종료 코드: 성공 0, 검증/실행 실패 1, Ctrl+C 130.
 - `workspace/reports/graph-rag-<id>.json`: 단계별 소요 시간, 검색 원문·관계·출처,
-  검증 결과, Project/Task/Run ID, Step 목록, 답변·인용·검증 회차, 실패 단계.
+  검증 결과, Project/Session/Run ID, Step 목록, 답변·인용·검증 회차, 실패 단계.
 - `workspace/projects/<project-id>/`: 실제 도메인 기록과 RAG 데이터.
 - `workspace/logs/providers-<pid>.log`: LiteLLM 등의 WARNING 이상 진단.
 

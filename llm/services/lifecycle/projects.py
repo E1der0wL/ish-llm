@@ -1,4 +1,4 @@
-"""Project의 생성, 저장, 복제, 삭제와 Component 초기화를 조율한다. 실제 하위 디렉토리 구조는 Task/Component에 위임한다."""
+"""Project의 생성, 저장, 복제, 삭제와 Component 초기화를 조율한다. 실제 하위 디렉토리 구조는 Session/Component에 위임한다."""
 
 from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json, revision_token, check_revision, recover_deletions
 
@@ -13,7 +13,7 @@ from llm.core.models import Project, ProjectConfig, new_id
 from llm.core.configuration import component_configuration
 from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.storage import atomic_json, child, read_json, record, remove_owned_tree
-from llm.services.lifecycle.tasks import TaskManager
+from llm.services.lifecycle.sessions import SessionManager
 from llm.services.infrastructure.logging import log_event
 from llm.services.lifecycle.access import ProjectAccess
 from llm.services.results import RunResultQuery
@@ -82,21 +82,21 @@ class ProjectRepository:
 
 # 프로젝트 수명 주기와 하위 도메인 초기화를 조율한다.
 class ProjectManager:
-    def __init__(self, repository: ProjectRepository, tasks: Optional[TaskManager] = None, *,
+    def __init__(self, repository: ProjectRepository, sessions: Optional[SessionManager] = None, *,
                  components: Optional[Union[ComponentRegistry, Iterable[ProjectComponent]]] = None,
                  backups=None, backup_steps=None, configuration_validator=None) -> None:
         registry = (components if isinstance(components, ComponentRegistry)
                     else ComponentRegistry(tuple(components) if components is not None else ()))
         self.repository = repository
-        self.tasks = tasks if tasks is not None else TaskManager()
+        self.sessions = sessions if sessions is not None else SessionManager()
         self.bind_configuration_validator(configuration_validator)
-        if self.tasks.run_repository is None:
+        if self.sessions.run_repository is None:
             from llm.services.runtime.runs import RunRepository
-            self.tasks.run_repository = RunRepository()
+            self.sessions.run_repository = RunRepository()
         self.access = ProjectAccess(repository)
-        self.results = RunResultQuery(self.tasks, self.tasks.run_repository)
+        self.results = RunResultQuery(self.sessions, self.sessions.run_repository)
         self.ownership = repository.ownership
-        self.tasks.bind_project_access(self.access)
+        self.sessions.bind_project_access(self.access)
         self.components = registry
         from llm.services.runtime.policies import model_token_count
         self.usage_counters = {"model_default": model_token_count}
@@ -115,20 +115,20 @@ class ProjectManager:
         self.components.validate_configuration(project)
         if self.configuration_validator is not None:
             self.configuration_validator(project.config)
-            if project.config.task_defaults:
-                self.configuration_validator(project.config, task_config=project.config.task_defaults)
+            if project.config.session_defaults:
+                self.configuration_validator(project.config, session_config=project.config.session_defaults)
 
     def _create(self, project_id: str, title: str, *, config: Optional[ProjectConfig] = None,
                 components: tuple[str, ...] = (),
                 conversation_storage: Optional[str] = None) -> Project:
         selected = self.components.validate(components)
-        storage = self.tasks.conversations.resolve(conversation_storage)
+        storage = self.sessions.conversations.resolve(conversation_storage)
         project = Project(project_id, title, self.repository.paths(project_id),
                           config=deepcopy(config) if config else ProjectConfig(), components=selected,
                           conversation_storage=storage)
         self._validate_configuration(project)
         self.repository.save(project)
-        self.tasks.initialize(deepcopy(project))
+        self.sessions.initialize(deepcopy(project))
         self.components.initialize(project)
         log_event(project.paths.logs, "project.created", entity_id=project.id)
         return project
@@ -144,10 +144,10 @@ class ProjectManager:
             if validator is None:
                 raise ValueError("Component must implement validate_backup for portable backup")
             validator(project)
-        for task in self.tasks.repository.read_backup(project):
+        for session in self.sessions.repository.read_backup(project):
             if self.configuration_validator is not None:
-                self.configuration_validator(project.config, task_config=task.config)
-            for run in self.tasks.run_repository.read_backup(task):
+                self.configuration_validator(project.config, session_config=session.config)
+            for run in self.sessions.run_repository.read_backup(session):
                 self.backup_steps.read_backup(run)
         return project
 
@@ -160,11 +160,11 @@ class ProjectManager:
 
     # 공개 API
     def bind_configuration_validator(self, validator) -> None:
-        """Project/Task 설정 검증을 같은 계약에 연결한다. 저장소와 Engine 실행은 분리한다."""
+        """Project/Session 설정 검증을 같은 계약에 연결한다. 저장소와 Engine 실행은 분리한다."""
         if validator is not None and not callable(validator):
             raise TypeError("Configuration validator must be callable")
         self.configuration_validator = validator
-        self.tasks.bind_configuration_validator(validator)
+        self.sessions.bind_configuration_validator(validator)
 
     @workspace_locked
     def model_usage(self, project):
@@ -172,9 +172,9 @@ class ProjectManager:
         from llm.services.runtime.usage import component_usage
         from datetime import datetime, timezone, timedelta
         current = self.access.require(project)
-        records = [{**entry, "source": "run", "task_id": task.id, "run_id": run.id}
-                   for task in self.tasks.list(current, include_deleted=True)
-                   for run in self.tasks.run_repository.list(task)
+        records = [{**entry, "source": "run", "session_id": session.id, "run_id": run.id}
+                   for session in self.sessions.list(current, include_deleted=True)
+                   for run in self.sessions.run_repository.list(session)
                    for entry in run.metadata.get("completions", [])]
         records.extend({**entry, "source": "component"} for entry in component_usage(self.components, current))
         period = current.config.policies["usage"]["period_seconds"]
@@ -219,12 +219,12 @@ class ProjectManager:
 
     @workspace_locked
     def recover_deletions(self):
-        """실행 런타임이 없는 workspace에서 이전에 시작한 Project/Task 삭제만 마무리한다."""
-        if self.ownership.attached_tasks:
-            raise ValueError("Shut down Task runtimes before deletion recovery")
-        result = {"projects": recover_deletions(self.repository.root), "tasks": {}}
+        """실행 런타임이 없는 workspace에서 이전에 시작한 Project/Session 삭제만 마무리한다."""
+        if self.ownership.attached_sessions:
+            raise ValueError("Shut down Session runtimes before deletion recovery")
+        result = {"projects": recover_deletions(self.repository.root), "sessions": {}}
         for project in self.repository.list(include_deleted=True):
-            result["tasks"][project.id] = recover_deletions(project.paths.tasks)
+            result["sessions"][project.id] = recover_deletions(project.paths.sessions)
         return result
 
     @workspace_locked
@@ -234,7 +234,7 @@ class ProjectManager:
 
     @workspace_locked
     def retention(self, project, *, counter=None, expected_version=None, apply=False):
-        """종료된 Task 단위로 보관 정책을 평가한다. 적용하려면 미리보기 version을 제출한다."""
+        """종료된 Session 단위로 보관 정책을 평가한다. 적용하려면 미리보기 version을 제출한다."""
         from llm.services.history.retention import HistoryRetention
         current = self.access.require(project)
         service = HistoryRetention(self, counter)
@@ -263,7 +263,7 @@ class ProjectManager:
                 self.components.validate(current.components)
                 if pointer["pending"]:
                     # 생성 도중 종료된 경우 같은 Project의 멱등 초기화만 마무리한다.
-                    self.tasks.initialize(deepcopy(current))
+                    self.sessions.initialize(deepcopy(current))
                     self.components.initialize(current)
                     atomic_json(path, {"project_id": current.id, "pending": False})
                 return current
@@ -271,7 +271,7 @@ class ProjectManager:
         settings = deepcopy(config) if config is not None else ProjectConfig()
         settings["default_engine"] = "loop"
         settings.validate()
-        self.tasks.conversations.resolve("file")
+        self.sessions.conversations.resolve("file")
         selected = self.components.validate(self.components.names())
         identifier = pointer["project_id"] if pointer is not None and pointer["pending"] else new_id()
         self._validate_configuration(Project(identifier, title, self.repository.paths(identifier),
@@ -329,9 +329,9 @@ class ProjectManager:
         if project.deleted != current.deleted or project.components != current.components:
             raise ValueError("Use lifecycle or component APIs to change managed Project state")
         if project.conversation_storage != current.conversation_storage:
-            storage = self.tasks.conversations.resolve(project.conversation_storage)
-            if self.tasks.list(current, include_deleted=True):
-                raise ValueError("Cannot change conversation storage after Tasks have been created")
+            storage = self.sessions.conversations.resolve(project.conversation_storage)
+            if self.sessions.list(current, include_deleted=True):
+                raise ValueError("Cannot change conversation storage after Sessions have been created")
             current.conversation_storage = storage
         current.title, current.config = project.title, deepcopy(project.config)
         self._validate_configuration(current)
@@ -361,7 +361,7 @@ class ProjectManager:
             raise ValueError("Component is not enabled for this Project")
         component = self.components.get(name)
         data_class = getattr(component, "data_class", None) or ComponentData
-        return data_class(self.access, self.components, current, name).bind_model_usage(self.tasks, self.usage_counters)
+        return data_class(self.access, self.components, current, name).bind_model_usage(self.sessions, self.usage_counters)
 
     @workspace_locked
     def remove_component(self, project: Project, name: str, *, permanent: bool = False) -> None:
@@ -382,8 +382,8 @@ class ProjectManager:
             if (usage["project_max_calls"] is not None or usage["project_max_tokens"] is not None) and any(
                     cutoff is None or datetime.fromisoformat(r["started_at"]) >= cutoff for r in receipts):
                 raise ValueError("Component usage receipts are required by the active quota period")
-            for task in self.tasks.list(current, include_deleted=True):
-                self.tasks.require_inactive(task)
+            for session in self.sessions.list(current, include_deleted=True):
+                self.sessions.require_inactive(session)
         current.components = tuple(item for item in current.components if item != name)
         if permanent:
             current.config.component_configurations.pop(name, None)
@@ -411,13 +411,13 @@ class ProjectManager:
         if type(permanent) is not bool:
             raise TypeError("permanent must be a bool")
         current = self.access.require(project, allow_deleted=True)
-        tasks = self.tasks.list(current, include_deleted=True)
-        for task in tasks:
-            self.tasks.require_inactive(task)
+        sessions = self.sessions.list(current, include_deleted=True)
+        for session in sessions:
+            self.sessions.require_inactive(session)
         if permanent:
             self.repository.delete(current)
-            for task in tasks:
-                self.tasks._discard_conversation(task)
+            for session in sessions:
+                self.sessions._discard_conversation(session)
         else:
             current.deleted = True
             self.repository.save(current)
@@ -433,7 +433,7 @@ class ProjectManager:
         self.components.initialize(current)
         current.deleted = False
         self.repository.save(current)
-        self.tasks.initialize(deepcopy(current))
+        self.sessions.initialize(deepcopy(current))
         project.deleted = False
         log_event(current.paths.logs, "project.restored", entity_id=current.id)
 
@@ -441,25 +441,25 @@ class ProjectManager:
     def clone(self, source: Project, *, title: Optional[str] = None) -> Project:
         source = self.access.require(source)
         self.components.validate(source.components)
-        tasks = self.tasks.list(source)
-        for task in tasks:
-            self.tasks.require_inactive(task)
+        sessions = self.sessions.list(source)
+        for session in sessions:
+            self.sessions.require_inactive(session)
         clone = self.create(title if title is not None else source.title, config=source.config,
                             components=source.components,
                             conversation_storage=source.conversation_storage)
         self.components.clone(source, clone)
-        for task in tasks:
-            self.tasks.clone(task, clone)
+        for session in sessions:
+            self.sessions.clone(session, clone)
         log_event(clone.paths.logs, "project.cloned", entity_id=clone.id,
                   related_id=source.id)
         return clone
 
     @workspace_locked
     def backup(self, project: Project, destination: Path) -> Path:
-        """Task 런타임 해제 후 전체 프로젝트를 복사한다. 메모리/외부 대화는 지원하지 않는다."""
+        """Session 런타임 해제 후 전체 프로젝트를 복사한다. 메모리/외부 대화는 지원하지 않는다."""
         current = self.access.require(project, allow_deleted=True)
-        for task in self.tasks.list(current, include_deleted=True):
-            self.tasks.require_inactive(task)
+        for session in self.sessions.list(current, include_deleted=True):
+            self.sessions.require_inactive(session)
         target = self._backup_destination(destination)
         with ExitStack() as stack:
             for name in current.components:

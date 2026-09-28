@@ -66,7 +66,7 @@ class Component:
 
     def root(self, project: Project) -> Path:
         directory = validate_name(self.directory)
-        if directory.lower() in {"tasks", "logs", "state", "cache"}:
+        if directory.lower() in {"sessions", "logs", "state", "cache"}:
             raise ValueError("Component directory conflicts with core storage")
         return self._checked(project.paths.root / directory)
 

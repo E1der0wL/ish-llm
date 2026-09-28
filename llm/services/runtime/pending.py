@@ -1,4 +1,4 @@
-"""취소 후 남은 비동기 작업과 Task 소유권 해제 사이의 경쟁을 제어한다."""
+"""취소 후 남은 비동기 작업과 Session 소유권 해제 사이의 경쟁을 제어한다."""
 
 import asyncio
 import threading

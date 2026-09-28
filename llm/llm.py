@@ -7,7 +7,7 @@ ish plugin entry point for one streaming request: python -m llm.llm --help."""
 PLUGIN_META = {
     "name": "llm",
     "version": "0.1.0",
-    "description": "Durable AI tasks and streaming LoopEngine execution for ish.",
+    "description": "Durable AI sessions and streaming LoopEngine execution for ish.",
     "author": "",
     "requirements": [],
     "dependencies": [
@@ -30,19 +30,20 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping, Optional, Union
 
 from llm._platform import require_linux
-from llm.core.models import ProjectConfig, Run, RunStatus, Task
+from llm.core.models import ProjectConfig, Run, RunStatus, Session
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
-from llm.core.views import TaskRuntimeView, RunView
+from llm.core.views import SessionRuntimeView, RunView
 from llm.core.plans import ResumePlan, RecoveryPlan, RetentionPlan, RecoveryResult
 from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult
 from llm.core.interactions import InteractionRequest, InteractionOption, InteractionResponse, InteractionView
 from llm.providers.calls import ProviderCalls, ProviderLimits
 from llm.services.runtime.output import OutputPolicy
-from llm.engines.base import Engine, EngineEvent, EngineEventType, EngineRegistry
+from llm.engines.base import Engine, EngineEvent, EngineEventType
+from llm.engines.registry import EngineRegistry
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine, GraphNodeContext
-from llm.engines.tool import ToolNode
-from llm.engines.agent import AgentNode
+from llm.engines.graph.tool import ToolNode
+from llm.engines.graph.agent import AgentNode
 from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.components.tools.builtin import BuiltinTools
 from llm.components.tools.component import ToolComponent
@@ -69,7 +70,7 @@ from llm.services.runtime.events import EventSubscriptions
 
 # 공개 진입점: 하나의 workspace와 이벤트 루프에 서비스/런타임을 묶는다.
 class LargeLanguageModel:
-    """Project → Task → Run → Engine → Step을 탐색하고 실행하는 공개 백엔드.
+    """Project → Session → Run → Step을 탐색하고 Engine·Component 확장을 연결하는 공개 백엔드.
 
     하나의 프로세스와 이벤트 루프에서 사용한다. 생성자는 파일을 쓰거나 모델을
     호출하지 않으므로 .ishrc.py에서 만들 수 있다. 종료 시 shutdown()을 await하거나
@@ -83,7 +84,7 @@ class LargeLanguageModel:
         # request.options, category, priority, risk, recommended_option_id로 UI를 구성한다.
         response = request.respond("approve")  # 사용자의 실제 선택 후 생성
         await paused_run.arespond(response)    # 원자적 응답 저장, 아직 실행하지 않음
-        resumed = await task.run.resume(paused_run.id, engine=paused_run.engine)
+        resumed = await session.run.resume(paused_run.id, engine=paused_run.engine)
         result = await resumed.wait()
 
     InteractionRequest/InteractionOption/InteractionResponse는 llm 플러그인의 공개 클래스다.
@@ -103,9 +104,9 @@ class LargeLanguageModel:
         print(backend.provider_calls.stats)  # 실제 종료되지 않은 호출도 active에 포함
 
     기본 batch_size=1은 즉시 저장이다. 묶음 모드도 Tool 승인/체크포인트 경계를 보존한다.
-    file Project 백업은 모든 Task 런타임을 해제한 다음 호출한다::
+    file Project 백업은 모든 Session 런타임을 해제한 다음 호출한다::
 
-        await task.run.shutdown()
+        await session.run.shutdown()
         archive = await project.abackup("backups/project-copy")
         # 동일 ID가 없는 별도 backend에서만 복원한다.
         restored = await other_backend.projects.arestore_backup(archive)
@@ -131,8 +132,8 @@ class LargeLanguageModel:
                     config=ProjectConfig(completion={"model": model}),
                     conversation_storage="file",
                 )
-                task = await project.tasks.acreate("첫 대화")
-                request = await task.run.submit("안녕!", engine="chat")
+                session = await project.sessions.acreate("첫 대화")
+                request = await session.run.submit("안녕!", engine="chat")
                 run = await request.wait(timeout=60)
                 result = await run.aresult()
                 if result.status == RunStatus.COMPLETED:
@@ -201,56 +202,56 @@ class LargeLanguageModel:
         await project.arestore()                # 복원
         # await project.adelete(permanent=True)  # 프로젝트 파일까지 영구 삭제
 
-        # Task가 없는 프로젝트에서만 저장 방식을 바꿀 수 있다.
+        # Session이 없는 프로젝트에서만 저장 방식을 바꿀 수 있다.
         await project.asave(conversation_storage="file")
 
     Project의 id/paths로 식별자와 경로를 조회한다. config는 열린 JSON 설정이며
-    save(config=...)는 전체 설정을 교체한다. 복제·삭제 전에는 소속 Task의 런타임을
-    각각 await task.run.shutdown()으로 해제한다. wait_idle()만으로는 해제되지 않는다.
+    save(config=...)는 전체 설정을 교체한다. 복제·삭제 전에는 소속 Session의 런타임을
+    각각 await session.run.shutdown()으로 해제한다. wait_idle()만으로는 해제되지 않는다.
     저장 선택은 project.json에 남는다. memory의 대화와 대기 요청은 백엔드 종료 시
-    사라지지만 Project/Task/Run/Step 파일은 유지된다. 기존 대화를 자동 이전하지 않는다.
+    사라지지만 Project/Session/Run/Step 파일은 유지된다. 기존 대화를 자동 이전하지 않는다.
 
-    Task / Conversation — 독립 대화 세션 관리::
+    Session / Conversation — 독립 대화 세션 관리::
 
-        task = await project.tasks.acreate("코드 검토", config={"completion": {"temperature": 0}})
-        task = await project.tasks.aload(task.id)
-        tasks = await project.tasks.alist(include_deleted=True, query=Query(limit=20))
-        await task.asave(title="검토 세션", metadata={"language": "ko"})
-        messages = await task.aconversation(query=Query(limit=50))
-        await task.run.shutdown()
-        await task.asave(config={"completion": {"temperature": 0.1}})
-        task_copy = await task.aclone(title="검토 사본")
-        await task.adelete()
-        await task.arestore()
-        # await task.adelete(permanent=True)
+        session = await project.sessions.acreate("코드 검토", config={"completion": {"temperature": 0}})
+        session = await project.sessions.aload(session.id)
+        sessions = await project.sessions.alist(include_deleted=True, query=Query(limit=20))
+        await session.asave(title="검토 세션", metadata={"language": "ko"})
+        messages = await session.aconversation(query=Query(limit=50))
+        await session.run.shutdown()
+        await session.asave(config={"completion": {"temperature": 0.1}})
+        session_copy = await session.aclone(title="검토 사본")
+        await session.adelete()
+        await session.arestore()
+        # await session.adelete(permanent=True)
 
-    Task의 id/paths/data를 조회할 수 있다. 제목·메타데이터는 실행 중에도 수정할 수
+    Session의 id/paths/data를 조회할 수 있다. 제목·메타데이터는 실행 중에도 수정할 수
     있지만 config 변경·복제·삭제·복원 전에는 런타임을 해제한다. config와 metadata는
-    전달한 사전으로 교체한다. Task 복제는 대화/설정을 복사하며 Run/Step 이력은 복사하지
-    않는다. 대화는 Task에 속하고 새 입력은 conversation에 직접 쓰지 않고 submit한다.
+    전달한 사전으로 교체한다. Session 복제는 대화/설정을 복사하며 Run/Step 이력은 복사하지
+    않는다. 대화는 Session에 속하고 새 입력은 conversation에 직접 쓰지 않고 submit한다.
 
     Request / Run — 요청 제출·한 건의 완료 대기·실행 제어::
 
-        request = await task.run.submit("이 코드를 검토해줘.", engine="chat")
-        request = await task.run.arequest(request.id)  # 사용자 Message ID로 요청 조회
+        request = await session.run.submit("이 코드를 검토해줘.", engine="chat")
+        request = await session.run.arequest(request.id)  # 사용자 Message ID로 요청 조회
         message = await request.aget_data()
         pending_run = await request.aget_run()        # 아직 실행 전이면 None
         pending_result = await request.aresult()      # Run이 없으면 None
         run = await request.wait(timeout=60)          # 이 요청의 최종 RunHandle
-        run = await task.run.aload(run.id)
-        runs = await task.run.alist(query=Query(status="completed", limit=20))
+        run = await session.run.aload(run.id)
+        runs = await session.run.alist(query=Query(status="completed", limit=20))
         snapshot = await run.aget_data()
         response = await run.aresponse()              # Assistant Message
         result = await run.aresult()                  # ExecutionResult
         print(run.id, snapshot.engine, response.content)
 
-        await task.run.start()       # 저장된 대기 요청 복구; submit도 필요 시 시작한다.
-        await task.run.wait_idle()   # 해당 Task의 전체 요청 큐가 비워질 때까지 대기
-        interrupted = await task.run.interrupt()  # 현재 Run만 중단; 대기 요청은 보존
-        await task.run.shutdown()    # 해당 Task 런타임 해제; 이후 submit으로 다시 시작
+        await session.run.start()       # 저장된 대기 요청 복구; submit도 필요 시 시작한다.
+        await session.run.wait_idle()   # 해당 Session의 전체 요청 큐가 비워질 때까지 대기
+        interrupted = await session.run.interrupt()  # 현재 Run만 중단; 대기 요청은 보존
+        await session.run.shutdown()    # 해당 Session 런타임 해제; 이후 submit으로 다시 시작
 
-    submit의 반환값은 Run이 아닌 RequestHandle이다. 같은 Task는 순차 실행하고 서로
-    다른 Task는 동시에 실행할 수 있다. request.wait()는 실패/중단한 Run도 반환하므로
+    submit의 반환값은 Run이 아닌 RequestHandle이다. 같은 Session은 순차 실행하고 서로
+    다른 Session은 동시에 실행할 수 있다. request.wait()는 실패/중단한 Run도 반환하므로
     result.status를 확인한다. 대기 timeout이나 대기 호출 취소가 Run을 중단하지는 않는다.
     동기 조회는 request.data/run/result, run.data/engine/response/result를 사용한다.
     memory 대화가 소멸하면 이전 Run 메타데이터는 남아도 응답 Message 조회는 KeyError다.
@@ -269,7 +270,7 @@ class LargeLanguageModel:
         }))
         await project.aconfigure_policies({"context": {"mode": "recent", "max_turns": 10}})
         settings = await project.aconfiguration()  # project/components와 UI용 policy_schema
-        status = await task.run.astatus(queued_limit=20)
+        status = await session.run.astatus(queued_limit=20)
         cancelled = await request.cancel()  # 실행 전 요청만 취소; 실행 중이면 False
 
     RunLimits의 기본값은 무제한이다. ToolPolicy에는 async authorize(call),
@@ -284,7 +285,7 @@ class LargeLanguageModel:
     장시간 실행 / 복구 / UI 편집::
 
         checkpoint = await run.acheckpoint("loop")
-        resumed = await task.run.resume(run.id, engine="loop")
+        resumed = await session.run.resume(run.id, engine="loop")
         # 불확실한 Tool은 retry_nodes, 승인 대기는 decisions를 명시한다.
         view = await run.aview(after=0, limit=200)
         snapshot = await project.components.workflows.asnapshot("flow")
@@ -305,25 +306,25 @@ class LargeLanguageModel:
             cwd="/srv/tool-work", read_only_paths=["/opt/tools"], isolation="sandbox")
         services = ServiceConfig(tool_policy=ToolPolicy(
             runner=runner, operation_key=lambda call: call.arguments["operation_id"]))
-        record = await task.run.aoperation("business-id")
-        await task.run.shutdown()
-        await task.run.areconcile_operation("business-id", result={"receipt": "confirmed"},
+        record = await session.run.aoperation("business-id")
+        await session.run.shutdown()
+        await session.run.areconcile_operation("business-id", result={"receipt": "confirmed"},
                                            evidence="외부 시스템에서 완료 확인")
 
     worker는 stdin ToolCall JSON → stdout JSON 계약을 사용한다. sandbox는 Linux Bubblewrap
     필수이며 사용 불가 시 거부한다. 명시적 process 모드는 Linux 프로세스 그룹을 종료하며
-    파일/네트워크 보안 sandbox가 아니다. 키는 Task 범위이며 완료 결과를 재사용하고
+    파일/네트워크 보안 sandbox가 아니다. 키는 Session 범위이며 완료 결과를 재사용하고
     불확실한 started는 차단한다. 제공자 idempotency 규약에 call.idempotency_key를 연결한다.
     기본 핸들러/내장 shell은 자동으로 격리되지 않는다. docs/process-isolation.md를 참고한다.
 
     공통 조회·진단·계획 데이터::
 
-        status = await task.run.astatus()          # TaskRuntimeView
+        status = await session.run.astatus()          # SessionRuntimeView
         print(status.queued_count, status.unfinished_work)
         view = await run.aview()                   # RunView: run/outputs/cursor/events
         payload = view.to_dict()                  # UI 전송용 JSON 사전
         restored = RunView.from_dict(payload)
-        plan = await task.run.resume_plan(run.id, engine=run.engine)  # ResumePlan
+        plan = await session.run.resume_plan(run.id, engine=run.engine)  # ResumePlan
         for issue in plan.blockers:               # Diagnostic
             print(issue.code, issue.message, issue.source)
         recovery = await project.arecovery()      # RecoveryPlan
@@ -333,7 +334,7 @@ class LargeLanguageModel:
             print(step.progress, step.diagnostic) # OperationProgress / Diagnostic 또는 None
         progress = await project.components.rag.ajob_progress(job_id)
 
-    Diagnostic/ResourceRef/OperationProgress, TaskRuntimeView/RunView,
+    Diagnostic/ResourceRef/OperationProgress, SessionRuntimeView/RunView,
     ResumePlan/RecoveryPlan/RecoveryResult/RetentionPlan은 공개 데이터 클래스다.
     JSON은 to_dict/from_dict로 변환한다. dict 접근 별칭은 제공하지 않는다.
     진단의 severity나 진행률로 재시도·승인·완료를 결정하지 않는다. 도메인 상태와
@@ -344,16 +345,16 @@ class LargeLanguageModel:
         views = await run.ainteraction_views()  # InteractionView: 응답/실행 상태 분리
         request = views[0].request
         await run.arespond(request.respond("approve"))
-        plan = await task.run.resume_plan(run.id, engine=run.engine)
+        plan = await session.run.resume_plan(run.id, engine=run.engine)
         if plan.can_resume:
-            resumed = await task.run.resume(run.id, engine=run.engine)
+            resumed = await session.run.resume(run.id, engine=run.engine)
         # 만료/취소 요청은 acancel_interaction/arenew_interaction으로 관리한다.
 
     응답 저장은 실행을 시작하지 않는다. Project policies.approval의 기본값은 비활성이다.
     자동 승인은 호스트 ToolPolicy.auto_approve_categories 상한을 지키고 정책 ID를 남긴다.
     INTERACTION_CHANGED 알림 유실 시 ainteraction_views로 다시 조회한다.
     Graph cleanup_timeout 초과 작업은 astatus().unfinished_work로 조회하고 실제 종료까지
-    Task 소유권을 유지한다. Memory의 aconsolidate는 검토된 후보를 버전 검사 후 통합하며
+    Session 소유권을 유지한다. Memory의 aconsolidate는 검토된 후보를 버전 검사 후 통합하며
     중단된 병합은 apending_consolidations/arecover_consolidations로 복구한다.
     설정과 제약은 docs/domain-hardening.md를 참고한다.
 
@@ -362,10 +363,10 @@ class LargeLanguageModel:
         backend.engines.register("review", LoopEngine(max_iterations=3))
         names = backend.engines.names()
         engine = backend.engines.resolve("review")
-        request = await task.run.submit("검토해줘.", engine="review")
+        request = await session.run.submit("검토해줘.", engine="review")
 
     이름은 중복 등록할 수 없다. GraphEngine 등 개발자가 만든 Engine도 같은 방식으로
-    등록한다. Engine 실행은 task.run.submit을 거쳐야 Run/Step/대화 기록과 연결된다.
+    등록한다. Engine 실행은 session.run.submit을 거쳐야 Run/Step/대화 기록과 연결된다.
     run.engine은 저장된 전략 이름이며 Engine 객체가 아니다. Engine 자체는 영속 파일을
     쓰지 않고 이벤트를 전달한다. Component 정의를 저장하는 것만으로 실행되지는 않는다.
 
@@ -383,10 +384,10 @@ class LargeLanguageModel:
 
         result = await run.aresult()
         print(result.total_tokens, result.finish_reasons, result.duration_seconds)
-        task_results = await task.results.alist(include_running=True, query=Query(limit=20))
+        session_results = await session.results.alist(include_running=True, query=Query(limit=20))
         project_results = await project.results.alist(include_deleted=True, query=Query(limit=20))
         same_result = await project.results.aload(run.id)
-        same_result = await task.results.aload(run.id)
+        same_result = await session.results.aload(run.id)
 
     결과는 Run에서 계산한 조회 뷰이며 별도 Project 결과 파일을 만들지 않는다.
     completions에는 각 모델 호출의 관찰값이 있다. 사용량을 모르면 total_tokens는
@@ -439,11 +440,11 @@ class LargeLanguageModel:
             "completion": {"model": "provider/model"},
             "keep_turns": 8, "context_chars": 6000,
         }})
-        summary = await memory.asummary(task.id)
-        review = await memory.areview(task_id=task.id)
+        summary = await memory.asummary(session.id)
+        review = await memory.areview(session_id=session.id)
         identifier = await memory.acreate({"content": "다음은 검증 단계", "kind": "work_state",
-                                           "scope": "task", "task_id": task.id})
-        record = await memory.aload(identifier, task_id=task.id)
+                                           "scope": "session", "session_id": session.id})
+        record = await memory.aload(identifier, session_id=session.id)
 
     자동 검색/Tool 미리보기는 기본 제공한다. 보조 모델 요약/추출은 설정으로 켜며 원본 대화와
     Tool 결과를 덮어쓰지 않는다. 주요 도메인에는 Memory 전용 실행 로직이 없다.
@@ -506,10 +507,10 @@ class LargeLanguageModel:
 
     Graph 체크포인트 / 명시적 재개::
 
-        request = await task.run.submit("작업", engine="graph")
+        request = await session.run.submit("작업", engine="graph")
         run = await request.wait()  # pause_before 노드에서는 status == RunStatus.PAUSED
         checkpoint = await run.acheckpoint()  # 헤더 + 노드별 started/completed/waiting
-        resumed = await task.run.resume(run.id, engine="graph")
+        resumed = await session.run.resume(run.id, engine="graph")
         next_run = await resumed.wait()
 
     재개는 원본을 연결하는 새 Run이다. 완료된 노드는 호출하지 않는다. started 처리 노드는
@@ -583,12 +584,12 @@ class LargeLanguageModel:
         await project.asave(config=preview["project"]["config"], expected_version=preview["config_version"])
         effective = settings["effective_engines"]  # 적용값·출처·호스트 고정/가려진 값
         # effective["loop"]["values"], ["sources"], ["editable"], ["overridden"]
-        task_settings = await task.aconfiguration()  # Task 설정까지 적용한 Engine 값
+        session_settings = await session.aconfiguration()  # Session 설정까지 적용한 Engine 값
         # RAG/Memory: settings["components"][name]["effective"]
         # config_version/component_versions로 UI 편집 충돌을 검사한다.
         usage = await project.amodel_usage()  # Run + 독립 Component 모델 호출
         plan = await project.arecovery()     # 무결성/복구 미리보기; 자동 재실행 없음
-        retention = await project.aretention()  # Task 또는 Run 단위 후보/보호 이유
+        retention = await project.aretention()  # Session 또는 Run 단위 후보/보호 이유
         maintenance = await project.amaintenance()  # Component 소유 자료의 정리 후보
         # 복구/보관: expected_version=plan.version / retention.version
         # Component maintenance는 열린 사전 계약: expected_version=maintenance["version"]
@@ -597,7 +598,7 @@ class LargeLanguageModel:
     선언된 설정과 등록 Component별 설정이 스키마에 포함된다. 열린 JSON 영역과
     공급자 고유 인자는 additionalProperties=True로 표시하며 모든 가능한 키를 추측하지 않는다.
     호스트 실행 객체의 설정은 별도다. 사용법은 docs/operations-and-ui-settings.md에 있다.
-    설정 우선순위는 기본값 → Project → Task → Agent → 명시적 호스트 값이다.
+    설정 우선순위는 기본값 → Project → Session → Agent → 명시적 호스트 값이다.
     Graph·Loop·Pipeline과 RAG의 적용 규칙 및 변경점은 docs/settings-consistency.md를 따른다.
 
     관찰 콜백 안에서 같은 백엔드의 wait/shutdown을 기다리지 않는다. 사용자 정의 실행
@@ -668,10 +669,10 @@ class LargeLanguageModel:
                 await self.events.publish("engine", run, event)
             pending = asyncio.create_task(publish())
             self._observation_tasks.add(pending)
-            def finished(task):
-                self._observation_tasks.discard(task)
-                if not task.cancelled():
-                    task.exception()
+            def finished(pending):
+                self._observation_tasks.discard(pending)
+                if not pending.cancelled():
+                    pending.exception()
             pending.add_done_callback(finished)
         self._loop.call_soon_threadsafe(schedule)
 
@@ -709,15 +710,15 @@ class LargeLanguageModel:
         elif self._loop is not loop:
             raise RuntimeError("Use LargeLanguageModel on its original event loop")
 
-    def _manager(self, task: Task) -> RunManager:
+    def _manager(self, session: Session) -> RunManager:
         self._check_open()
         self._bind_loop()
-        key = (task.project_id, task.id)
+        key = (session.project_id, session.id)
         if key in self._stopping:
-            raise RuntimeError("Task runtime is shutting down")
+            raise RuntimeError("Session runtime is shutting down")
         if key not in self._managers:
             self._managers[key] = RunManager(
-                self.project_manager.tasks, self.engines, task=task,
+                self.project_manager.sessions, self.engines, session=session,
                 repository=self.run_repository, steps=self.step_manager,
                 capabilities=self.project_manager.components,
                 on_event=self.on_event, on_run_event=self.on_run_event,
@@ -726,12 +727,12 @@ class LargeLanguageModel:
                 provider_calls=self.provider_calls, output_policy=self.services.output_policy)
         return self._managers[key]
 
-    async def _stop_task(self, task: Task) -> None:
+    async def _stop_session(self, session: Session) -> None:
         self._check_open()
         self._bind_loop()
-        key = (task.project_id, task.id)
+        key = (session.project_id, session.id)
         if key in self._stopping:
-            raise RuntimeError("Task runtime is already shutting down")
+            raise RuntimeError("Session runtime is already shutting down")
         manager = self._managers.get(key)
         if manager is None:
             return
@@ -761,7 +762,7 @@ class LargeLanguageModel:
         return project_schema(self, components)
 
     async def shutdown(self) -> None:
-        """모든 Task/I/O를 종료한다. 파일 대기는 보존하고 소유한 메모리 대화는 해제한다."""
+        """모든 Session/I/O를 종료한다. 파일 대기는 보존하고 소유한 메모리 대화는 해제한다."""
         self._bind_loop()
         if self._closed:
             return
@@ -780,7 +781,7 @@ class LargeLanguageModel:
                     if isinstance(result, BaseException):
                         raise result
                 self._managers.clear()
-                self.project_manager.tasks.close_conversations(when_idle=True)
+                self.project_manager.sessions.close_conversations(when_idle=True)
             self._closing = asyncio.create_task(close())
         await drain_on_cancel(self._closing)
 
@@ -818,12 +819,12 @@ async def run_request(args: argparse.Namespace) -> int:
         project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(
             completion={"model": args.model, "temperature": args.temperature, "api_base": args.api_base}),
             components=["tools"] if args.with_tools else [])
-        task = await project.tasks.acreate("Streaming request")
+        session = await project.sessions.acreate("Streaming request")
         if args.with_tools:
             selected_tools = await project.components.aget("tools")
             await selected_tools.aenable("add")
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
-        request = await task.run.submit(args.prompt, engine=args.engine)
+        request = await session.run.submit(args.prompt, engine=args.engine)
         handle = await request.wait()
         run = await handle.aget_data()
         print()
@@ -836,7 +837,7 @@ async def run_request(args: argparse.Namespace) -> int:
 def main(*argv: str) -> None:
     """Run in an ish tool worker, with explicit arguments and a process exit code.
 
-    Each invocation owns a fresh Project/Task and closes its RunManager. Hosts
+    Each invocation owns a fresh Project/Session and closes its RunManager. Hosts
     already running an event loop should use the async service APIs instead.
     """
     require_linux()

@@ -20,7 +20,7 @@ class ResumePlan(JsonValue):
 class RecoveryPlan(JsonValue):
     source: ResourceRef
     issues: list[Diagnostic]
-    repair_tasks: list[str]
+    repair_sessions: list[str]
     version: str
 
 

@@ -136,7 +136,7 @@ async def consume_events(events, policy, handle):
         async for event in events:
             await handle([event])
         return
-    # generator 전체를 하나의 Task에서 실행해야 timeout/context manager의 소유 Task가 유지된다.
+    # generator 전체를 하나의 asyncio.Task에서 실행해야 timeout/context manager의 소유 Task가 유지된다.
     queue = asyncio.Queue(maxsize=policy.batch_size)
     buffer, chars, deadline = [], 0, None
     loop = asyncio.get_running_loop()

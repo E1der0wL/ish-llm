@@ -1,4 +1,4 @@
-"""Task 대화의 공통 API와 파일/메모리 저장소. 기본 JSONL은 fsync로 복구하고 메모리는 명시적으로 선택한다."""
+"""Session 대화의 공통 API와 파일/메모리 저장소. 기본 JSONL은 fsync로 복구하고 메모리는 명시적으로 선택한다."""
 
 from abc import ABC, abstractmethod
 from typing import Callable, Optional, Union
@@ -11,8 +11,8 @@ from collections import Counter, OrderedDict
 from pathlib import Path
 from io import StringIO
 
-from llm.core.models import Message, MessageRole, MessageStatus, Task, new_id
-from llm.core.paths import TaskPaths
+from llm.core.models import Message, MessageRole, MessageStatus, Session, new_id
+from llm.core.paths import SessionPaths
 from llm.services.infrastructure.logging import log_event
 from llm.services.infrastructure.storage import record, sync_directory, append_bytes, prepare_replace, temporary_file
 from llm.services.infrastructure.transactions import current_transaction
@@ -211,7 +211,7 @@ class ConversationStore(Conversation):
 
     @_serialized
     def prune(self, message_ids):
-        """비활성 Task의 명시적 정리만 사용한다. 생존 메시지를 원자 교체하고 캐시를 무효화한다."""
+        """비활성 Session의 명시적 정리만 사용한다. 생존 메시지를 원자 교체하고 캐시를 무효화한다."""
         from llm.services.infrastructure.storage import reject_links
         reject_links(self.path)
         self._refresh()
@@ -288,7 +288,7 @@ class ConversationStore(Conversation):
         # rotation check for every token; lifecycle events remain operational logs.
         if event["type"] != "message.delta":
             message = event.get("message", {})
-            log_event(TaskPaths(self.path.parent).logs, event["type"],
+            log_event(SessionPaths(self.path.parent).logs, event["type"],
                       entity_id=event.get("id", message.get("id")),
                       status=event.get("status", message.get("status")))
 
@@ -345,13 +345,13 @@ class ConversationStore(Conversation):
             raise
 
 
-def conversation_store(task: Task) -> ConversationStore:
+def conversation_store(session: Session) -> ConversationStore:
     """Default injectable factory; consumers do not choose storage paths."""
-    return ConversationStore(task.paths.conversation)
+    return ConversationStore(session.paths.conversation)
 
 
 class MemoryConversationStore(Conversation):
-    """한 Task의 휘발성 메시지 저장소. 파일이나 전역 캐시에 접근하지 않는다."""
+    """한 Session의 휘발성 메시지 저장소. 파일이나 전역 캐시에 접근하지 않는다."""
 
     def _refresh(self) -> None:
         pass
@@ -392,7 +392,7 @@ class MemoryConversationStore(Conversation):
 
 
 class MemoryConversations:
-    """Task별 메모리 저장소를 공유하는 주입용 팩토리. 서로 다른 workspace도 구분한다.
+    """Session별 메모리 저장소를 공유하는 주입용 팩토리. 서로 다른 workspace도 구분한다.
 
     직접 주입하면 팩토리 수명은 호출자가 관리한다. 문자열 'memory' 선택은 백엔드가
     새 팩토리를 소유하고 shutdown 시 정리하므로 다음 백엔드와 대화를 공유하지 않는다.
@@ -403,21 +403,21 @@ class MemoryConversations:
         self._stores: dict[Path, MemoryConversationStore] = {}
 
     @staticmethod
-    def _key(task: Task) -> Path:
-        return task.paths.root.resolve()
+    def _key(session: Session) -> Path:
+        return session.paths.root.resolve()
 
     # 공개 API
-    def __call__(self, task: Task) -> MemoryConversationStore:
+    def __call__(self, session: Session) -> MemoryConversationStore:
         with self._mutex:
-            key = self._key(task)
+            key = self._key(session)
             if key not in self._stores:
                 self._stores[key] = MemoryConversationStore()
             return self._stores[key]
 
-    def discard(self, task: Task) -> None:
-        """영구 삭제된 Task의 대화를 해제한다. 소프트 삭제에는 호출하지 않는다."""
+    def discard(self, session: Session) -> None:
+        """영구 삭제된 Session의 대화를 해제한다. 소프트 삭제에는 호출하지 않는다."""
         with self._mutex:
-            store = self._stores.pop(self._key(task), None)
+            store = self._stores.pop(self._key(session), None)
             if store is not None:
                 store.clear()
 
@@ -436,8 +436,8 @@ class ProjectConversations:
     임의의 파일/메모리 구현으로 대체하지 않으며, 수명도 호출자가 관리한다.
     """
 
-    def __init__(self, selection: Callable[[Task], Optional[str]], *,
-                 default: Union[str, Callable[[Task], Conversation]] = conversation_store,
+    def __init__(self, selection: Callable[[Session], Optional[str]], *,
+                 default: Union[str, Callable[[Session], Conversation]] = conversation_store,
                  file_cache_size: int = 32) -> None:
         if type(file_cache_size) is not int or file_cache_size < 0:
             raise ValueError("file_cache_size must be nonnegative")
@@ -459,13 +459,13 @@ class ProjectConversations:
         self._files = OrderedDict()
         self._mutex = threading.RLock()
 
-    def _file(self, task):
+    def _file(self, session):
         if not self._file_cache_size:
-            return conversation_store(task)
-        key = task.paths.conversation.absolute()
+            return conversation_store(session)
+        key = session.paths.conversation.absolute()
         with self._mutex:
             if key not in self._files:
-                self._files[key] = conversation_store(task)
+                self._files[key] = conversation_store(session)
             self._files.move_to_end(key)
             while len(self._files) > self._file_cache_size:
                 self._files.popitem(last=False)
@@ -479,22 +479,22 @@ class ProjectConversations:
             raise ValueError("Project conversation_storage conflicts with the custom conversation factory")
         return storage if storage is not None else self.default_storage
 
-    def __call__(self, task: Task) -> Conversation:
-        storage = self.resolve(self._selection(task))
+    def __call__(self, session: Session) -> Conversation:
+        storage = self.resolve(self._selection(session))
         if storage == "memory":
-            return self._memory(task)
+            return self._memory(session)
         if storage == "file":
-            return self._file(task)
-        return self._custom(task)
+            return self._file(session)
+        return self._custom(session)
 
-    def discard(self, task: Task) -> None:
+    def discard(self, session: Session) -> None:
         # Project가 이미 영구 삭제되었을 수 있으므로 여기서는 설정을 다시 읽지 않는다.
-        self._memory.discard(task)
+        self._memory.discard(session)
         with self._mutex:
-            self._files.pop(task.paths.conversation.absolute(), None)
+            self._files.pop(session.paths.conversation.absolute(), None)
         discard = getattr(self._custom, "discard", None)
         if callable(discard):
-            discard(task)
+            discard(session)
 
     def clear_owned(self) -> None:
         """백엔드가 소유한 메모리/파일 읽기 캐시만 정리한다. 파일은 삭제하지 않는다."""

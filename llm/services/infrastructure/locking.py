@@ -32,29 +32,29 @@ class WorkspaceOwnership:
         self._stream = None
         self._references = 0
         self._pid = os.getpid()
-        self._tasks = set()
+        self._sessions = set()
 
-    def claim_task(self, key) -> None:
+    def claim_session(self, key) -> None:
         with self._mutex:
-            if key in self._tasks:
-                raise ValueError("Task already has an attached runtime")
+            if key in self._sessions:
+                raise ValueError("Session already has an attached runtime")
             self.retain()
-            self._tasks.add(key)
+            self._sessions.add(key)
 
-    def release_task(self, key) -> None:
+    def release_session(self, key) -> None:
         with self._mutex:
-            self._tasks.remove(key)
+            self._sessions.remove(key)
             self.release()
 
-    def task_attached(self, key) -> bool:
+    def session_attached(self, key) -> bool:
         with self._mutex:
-            return key in self._tasks
+            return key in self._sessions
 
     @property
-    def attached_tasks(self):
+    def attached_sessions(self):
         """유지 중인 런타임 소유권의 독립 스냅샷."""
         with self._mutex:
-            return tuple(self._tasks)
+            return tuple(self._sessions)
 
     def retain(self) -> None:
         with self._mutex:

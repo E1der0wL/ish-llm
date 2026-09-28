@@ -152,10 +152,10 @@ class StepEventRecorder:
             ref = value.source
             if ref is not None and (ref.kind == "step" and ref.id != event.step_id
                     or ref.step_id not in (None, event.step_id) or ref.run_id not in (None, run.id)
-                    or ref.task_id not in (None, run.task_id)):
+                    or ref.session_id not in (None, run.session_id)):
                 raise ValueError("Step observation ownership mismatch")
-            bound = replace(ref, step_id=event.step_id, run_id=run.id, task_id=run.task_id) if ref else ResourceRef(
-                "step", event.step_id, step_id=event.step_id, run_id=run.id, task_id=run.task_id)
+            bound = replace(ref, step_id=event.step_id, run_id=run.id, session_id=run.session_id) if ref else ResourceRef(
+                "step", event.step_id, step_id=event.step_id, run_id=run.id, session_id=run.session_id)
             metadata[name] = replace(value, source=bound).to_dict()
         event = replace(event, metadata=metadata)
         if event.type == EngineEventType.TEXT_DELTA:

@@ -16,7 +16,7 @@ from llm.compat import aclosing
 from llm.components.agents import AgentComponent
 from llm.components.rag import RAGComponent
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
-from llm.engines.agent import AgentNode
+from llm.engines.graph.agent import AgentNode
 from llm.engines.base import BaseEngine, EngineEventType
 from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
@@ -236,9 +236,9 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
             definition = make_workflow(max_attempts)
             await workflows.acreate(definition, identifier="rag-workflow")
             check("workflow_roundtrip", await workflows.aload("rag-workflow") == definition)
-            task = await project.tasks.acreate("RAG-backed Graph request")
-            report["task_id"] = task.id
-            request = await task.run.submit(query, engine="graph")
+            session = await project.sessions.acreate("RAG-backed Graph request")
+            report["session_id"] = session.id
+            request = await session.run.submit(query, engine="graph")
             handle = await phase("graph_execution", request.wait())
             report["run_id"] = handle.id
             result, steps = await handle.aresult(), await handle.steps.alist()
@@ -258,8 +258,8 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
         report["stage"] = "reopen"
         async with LargeLanguageModel(workspace, components=components, engines=engines) as backend:
             project = await backend.projects.aload(report["project_id"])
-            task = await project.tasks.aload(report["task_id"])
-            handle = await task.run.aload(report["run_id"])
+            session = await project.sessions.aload(report["session_id"])
+            handle = await session.run.aload(report["run_id"])
             check("reopened_run", (await handle.aresult()).status == RunStatus.COMPLETED)
             check("reopened_steps", len(await handle.steps.alist()) == len(report["steps"]))
             rag = await project.components.aget("rag")

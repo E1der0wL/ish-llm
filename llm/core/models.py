@@ -1,4 +1,4 @@
-"""Project → Task → Run → Step의 영속 데이터와 상태를 정의한다. asyncio 객체나 서비스 핸들은 이 모델에 저장하지 않는다."""
+"""Project → Session → Run → Step의 영속 데이터와 상태를 정의한다. asyncio 객체나 서비스 핸들은 이 모델에 저장하지 않는다."""
 
 from typing import Optional, TYPE_CHECKING
 import json
@@ -9,12 +9,15 @@ from datetime import datetime, timezone
 from llm.compat import StrEnum
 from uuid import uuid4
 
-from .paths import ProjectPaths, RunPaths, StepPaths, TaskPaths
+from .paths import ProjectPaths, RunPaths, StepPaths, SessionPaths
 from .policies import normalize_policies, policy_schema
 
 if TYPE_CHECKING:
     from .results import EngineOutput
 
+
+# Session 기반 경로·식별자를 사용하는 영속 도메인 형식. 이전 Task 형식은 자동 변환하지 않는다.
+DOMAIN_STORAGE_VERSION = 2
 
 # ---------------------------------------------------------------------------
 # 공통 ID와 UTC 시각 생성
@@ -31,7 +34,7 @@ def now() -> str:
 # 영속 역할과 수명 주기 상태
 # ---------------------------------------------------------------------------
 
-class TaskStatus(StrEnum):
+class SessionStatus(StrEnum):
     IDLE = "idle"
     RUNNING = "running"
     DELETED = "deleted"
@@ -74,10 +77,10 @@ class StepStatus(StrEnum):
 
 
 # ---------------------------------------------------------------------------
-# Project: Task/Engine에 전달할 확장 가능한 JSON 설정
+# Project: Session/Engine에 전달할 확장 가능한 JSON 설정
 # ---------------------------------------------------------------------------
 
-# 고정 필드에 제한되지 않는 JSON 설정. 실행 시 Task 설정과 병합한다.
+# 고정 필드에 제한되지 않는 JSON 설정. 실행 시 Session 설정과 병합한다.
 class ProjectConfig(dict):
     """Open JSON workspace settings with mapping access and attribute shortcuts.
 
@@ -87,7 +90,7 @@ class ProjectConfig(dict):
 
     def __init__(self, values: Optional[dict] = None, **settings) -> None:
         defaults = {"completion": {}, "engines": {}, "policies": {},
-                    "task_defaults": {}, "data": {}, "component_configurations": {}}
+                    "session_defaults": {}, "data": {}, "component_configurations": {}}
         if values is not None:
             defaults.update(deepcopy(dict(values)))
         defaults.update(deepcopy(settings))
@@ -127,13 +130,13 @@ class ProjectConfig(dict):
     def validate(self) -> None:
         self.validate_settings(self)
         self["policies"] = normalize_policies(self.get("policies", {}))
-        for section in ("completion", "engines", "task_defaults", "data", "component_configurations"):
+        for section in ("completion", "engines", "session_defaults", "data", "component_configurations"):
             if not isinstance(self.get(section), dict):
                 raise TypeError(f"{section} must be a dictionary")
         if any(not isinstance(value, dict) for value in self.component_configurations.values()):
             raise TypeError("Each Component configuration must be a dictionary")
-        self.validate_task(self, project=True)
-        self.validate_task(self.task_defaults)
+        self.validate_session(self, project=True)
+        self.validate_session(self.session_defaults)
 
     @staticmethod
     def policy_schema() -> dict:
@@ -154,15 +157,15 @@ class ProjectConfig(dict):
         return deepcopy(self.policies)
 
     @classmethod
-    def validate_task(cls, config: dict, *, project: bool = False) -> None:
+    def validate_session(cls, config: dict, *, project: bool = False) -> None:
         cls.validate_settings(config)
         if not project and "policies" in config:
-            raise ValueError("Execution policies belong to ProjectConfig, not Task configuration")
+            raise ValueError("Execution policies belong to ProjectConfig, not Session configuration")
         if not project and "component_configurations" in config:
-            raise ValueError("Component configurations belong to ProjectConfig, not Task configuration")
+            raise ValueError("Component configurations belong to ProjectConfig, not Session configuration")
         for name in ("completion", "engines", "data"):
             if name in config and not isinstance(config[name], dict):
-                raise TypeError("Task configuration sections must be dictionaries")
+                raise TypeError("Session configuration sections must be dictionaries")
         if any(not isinstance(options, dict) for options in config.get("engines", {}).values()):
             raise TypeError("Each Engine configuration must be a dictionary")
 
@@ -187,13 +190,13 @@ class ProjectConfig(dict):
                            else deepcopy(value))
         return result
 
-    def for_engine(self, name: str, task_config: Optional[dict] = None) -> dict:
-        """Detached settings including arbitrary workspace and Task keys."""
+    def for_engine(self, name: str, session_config: Optional[dict] = None) -> dict:
+        """Detached settings including arbitrary workspace and Session keys."""
         self.validate()
-        task_config = task_config if task_config is not None else {}
-        self.validate_task(task_config)
-        result = self.merge(dict(self), task_config)
-        result["engine"] = self.merge(self.engines.get(name, {}), task_config.get("engines", {}).get(name, {}))
+        session_config = session_config if session_config is not None else {}
+        self.validate_session(session_config)
+        result = self.merge(dict(self), session_config)
+        result["engine"] = self.merge(self.engines.get(name, {}), session_config.get("engines", {}).get(name, {}))
         return result
 
     @classmethod
@@ -215,7 +218,7 @@ class Project:
     components: tuple[str, ...] = ()
     # None은 사용자 주입 대화 팩토리의 저장 방식을 따른다.
     conversation_storage: Optional[str] = None
-    storage_version: int = 1
+    storage_version: int = DOMAIN_STORAGE_VERSION
 
     def __post_init__(self) -> None:
         self.validate_conversation_storage()
@@ -227,30 +230,30 @@ class Project:
 
 
 # ---------------------------------------------------------------------------
-# Task: long-lived session state (runtime asyncio objects live in services)
+# Session: long-lived session state (runtime asyncio objects live in services)
 # ---------------------------------------------------------------------------
 
 @dataclass(slots=True)
-# 대화 세션의 영속 데이터. 큐와 실행 태스크는 TaskRuntime에 둔다.
-class Task:
+# 대화 세션의 영속 데이터. 큐와 실행 태스크는 SessionRuntime에 둔다.
+class Session:
     id: str
     project_id: str
     title: str
-    paths: TaskPaths
-    status: TaskStatus = TaskStatus.IDLE
+    paths: SessionPaths
+    status: SessionStatus = SessionStatus.IDLE
     current_run_id: Optional[str] = None
     created_at: str = field(default_factory=now)
     metadata: dict = field(default_factory=dict)
     config: dict = field(default_factory=dict)
-    storage_version: int = 1
+    storage_version: int = DOMAIN_STORAGE_VERSION
 
 
 # ---------------------------------------------------------------------------
-# Message: JSONL 이벤트로 복원하는 Task 대화 상태
+# Message: JSONL 이벤트로 복원하는 Session 대화 상태
 # ---------------------------------------------------------------------------
 
 @dataclass(slots=True)
-# Task 대화의 메시지와 상태. Run ID로 실행과 연결된다.
+# Session 대화의 메시지와 상태. Run ID로 실행과 연결된다.
 class Message:
     id: str
     role: MessageRole
@@ -269,7 +272,7 @@ class Message:
 # 하나의 사용자 요청에 대응하는 실행 기록.
 class Run:
     id: str
-    task_id: str
+    session_id: str
     input_message_id: str
     assistant_message_id: str
     engine: str
@@ -281,7 +284,7 @@ class Run:
     error: Optional[str] = None
     metadata: dict = field(default_factory=dict)
     error_code: Optional[str] = None
-    storage_version: int = 1
+    storage_version: int = DOMAIN_STORAGE_VERSION
 
 
 # ---------------------------------------------------------------------------
@@ -302,7 +305,7 @@ class Step:
     ended_at: Optional[str] = None
     error: Optional[str] = None
     metadata: dict = field(default_factory=dict)
-    storage_version: int = 1
+    storage_version: int = DOMAIN_STORAGE_VERSION
 
     @property
     def progress(self):

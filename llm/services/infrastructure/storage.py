@@ -14,6 +14,7 @@ from dataclasses import fields
 from pathlib import Path
 from typing import Awaitable, Callable, TypeVar
 
+from llm.core.models import DOMAIN_STORAGE_VERSION
 from llm.services.infrastructure.locking import WorkspaceOwnership
 from llm.services.infrastructure.transactions import current_transaction, watch
 
@@ -126,14 +127,15 @@ def reject_links(path: Path) -> Path:
 def read_domain_record(path: Path) -> dict:
     """지원하지 않는 저장 형식은 로드/수정 전에 거부한다. 암묵적인 변환은 하지 않는다."""
     data = read_json(path)
-    if type(data.get("storage_version")) is not int or data["storage_version"] != 1:
-        raise ValueError(f"Unsupported domain storage_version: {path.name}; explicit backup upgrade required")
+    if type(data.get("storage_version")) is not int or data["storage_version"] != DOMAIN_STORAGE_VERSION:
+        raise ValueError(f"Unsupported domain storage_version: {path.name}; expected {DOMAIN_STORAGE_VERSION}. "
+                         "Use a new workspace or an explicitly upgraded backup")
     return data
 
 
 def atomic_domain_json(path: Path, data: dict) -> None:
     """오래된 핸들도 새 저장 버전의 파일을 덮어쓰지 못하게 한다."""
-    if type(data.get("storage_version")) is not int or data["storage_version"] != 1:
+    if type(data.get("storage_version")) is not int or data["storage_version"] != DOMAIN_STORAGE_VERSION:
         raise ValueError("Unsupported domain storage_version")
     if path.exists():
         read_domain_record(path)

@@ -74,20 +74,20 @@ async def hold_workspace(root, spec):
     async with LargeLanguageModel(root / "workspace", components=[],
             engines={"probe": probe_engine(root, gate)}, on_event=observe) as app:
         project = await app.projects.acreate("Recovery probe", components=[])
-        task = await project.tasks.acreate()
-        first = await task.run.submit("blocked", engine="probe")
+        session = await project.sessions.acreate()
+        first = await session.run.submit("blocked", engine="probe")
         await streamed.wait()
-        queued = await task.run.submit("queued", engine="probe")
+        queued = await session.run.submit("queued", engine="probe")
         run = await first.aget_run()
         check(run is not None, "Running request has no Run")
         check((await run.aresponse()).content == "partial", "Partial response was not persisted")
         check((await queued.aget_data()).status == "queued", "Second request is not durable QUEUED")
-        atomic_json(root / "ready.json", {"project": project.id, "task": task.id,
+        atomic_json(root / "ready.json", {"project": project.id, "session": session.id,
             "first_request": first.id, "queued_request": queued.id, "run_id": run.id})
         while not (root / "release").exists():
             await asyncio.sleep(.02)
         gate.set()
-        await task.run.wait_idle()
+        await session.run.wait_idle()
     return {"released_normally": True}
 
 
@@ -113,9 +113,9 @@ async def recover(root, spec):
     ids = read(root / "ready.json")
     async with LargeLanguageModel(root / "workspace", components=[], engines={"probe": probe_engine(root)}) as app:
         project = await app.projects.aload(ids["project"])
-        task = await project.tasks.aload(ids["task"])
-        await task.run.wait_idle()
-        first = await (await task.run.arequest(ids["first_request"])).wait()
+        session = await project.sessions.aload(ids["session"])
+        await session.run.wait_idle()
+        first = await (await session.run.arequest(ids["first_request"])).wait()
         data, response = await first.aget_data(), await first.aresponse()
         expected = spec["expected_status"]
         check(data.status == expected, f"Expected {expected}, got {data.status}")
@@ -126,18 +126,18 @@ async def recover(root, spec):
         check(response.status == expected, "Run and Assistant state disagree")
         if spec["case"] in ("crash", "multiprocess"):
             check(response.content == "partial", "Partial output changed")
-            queued = await (await task.run.arequest(ids["queued_request"])).wait()
+            queued = await (await session.run.arequest(ids["queued_request"])).wait()
             check((await queued.aresult()).status == "completed", "Queued request was lost")
             check((await queued.aresponse()).content == "answer:queued", "Queued result is incorrect")
             check([e["prompt"] for e in effects(root)] == ["blocked", "queued"], "Effects repeated or queue order changed")
         else:
             check([e["prompt"] for e in effects(root)] == ["work"], "Failed request effect was repeated")
-            following = await (await task.run.submit("next", engine="probe")).wait()
+            following = await (await session.run.submit("next", engine="probe")).wait()
             check((await following.aresult()).status == "completed", "Next request cannot run")
             check([e["prompt"] for e in effects(root)] == ["work", "next"], "Unexpected effect count")
-        state = await task.run.astatus()
-        check(state.active_run_id is None and state.queued_count == 0, "Task did not become idle")
-        run_count = len(await task.run.alist())
+        state = await session.run.astatus()
+        check(state.active_run_id is None and state.queued_count == 0, "Session did not become idle")
+        run_count = len(await session.run.alist())
         check(run_count == 2, "Unexpected orphan/replayed Runs")
     return {"first_run_status": str(data.status), "step_statuses": [str(s.status) for s in steps],
             "partial_text": response.content, "run_count": run_count,
@@ -152,12 +152,12 @@ async def disk_failure(root, spec):
     app = LargeLanguageModel(root / "workspace", components=[], engines={"probe": probe_engine(root)})
     try:
         project = await app.projects.acreate("Disk failure probe", components=[])
-        task = await project.tasks.acreate()
-        await task.run.start()
+        session = await project.sessions.acreate()
+        await session.run.start()
 
         def replace(source, destination, *args, **kwargs):
             path = Path(destination)
-            target = (stage == "begin" and path.name == "task.json" or
+            target = (stage == "begin" and path.name == "session.json" or
                       stage == "finish" and path.name == "run.json" and read(Path(source)).get("status") == "completed")
             if target and not fired:
                 fired.append(str(path))
@@ -174,7 +174,7 @@ async def disk_failure(root, spec):
         # 전용 자식 프로세스에서만 교체한다. ish 호스트/다른 검사의 저장 함수는 건드리지 않는다.
         os.replace, os.fsync = replace, sync
         try:
-            request = await task.run.submit("work", engine="probe")
+            request = await session.run.submit("work", engine="probe")
             try:
                 run = await request.wait()
             except OSError as error:
@@ -184,12 +184,12 @@ async def disk_failure(root, spec):
         finally:
             os.replace, os.fsync = original_replace, original_sync
         check(len(fired) == 1, "Fault boundary was not reached")
-        runs = await task.run.alist()
-        data = await task.aget_data()
+        runs = await session.run.alist()
+        data = await session.aget_data()
         if stage == "begin":
             check(not runs and not effects(root), "Failed begin leaked a Run or executed work")
             check((await request.aget_data()).status == "queued", "Input lost after begin rollback")
-            check(data.current_run_id is None and data.status == "idle", "Task begin was partially committed")
+            check(data.current_run_id is None and data.status == "idle", "Session begin was partially committed")
         else:
             check(len(runs) == 1 and len(effects(root)) == 1, "Unexpected execution count")
             check((await runs[0].aget_data()).status == ("running" if stage == "finish" else "failed"),
@@ -199,7 +199,7 @@ async def disk_failure(root, spec):
                 check(response.content == "" and await runs[0].aoutput_events() == [], "Failed delta was committed")
             else:
                 check(response.status == "streaming" and data.status == "running", "Finish rollback was incomplete")
-        atomic_json(root / "ready.json", {"project": project.id, "task": task.id,
+        atomic_json(root / "ready.json", {"project": project.id, "session": session.id,
             "first_request": request.id, "run_id": runs[0].id if runs else None})
     finally:
         try:
@@ -279,10 +279,10 @@ async def connection_failure(root, spec):
         await asyncio.to_thread(warmup)
         async with LargeLanguageModel(root / "workspace", components=[], engines={"loop": engine}) as app:
             project = await app.projects.acreate("Connection probe", config=config, components=[])
-            task = await project.tasks.acreate()
+            session = await project.sessions.acreate()
             for prompt in ("disconnect-before", "disconnect-mid"):
-                failed = await task.run.submit(prompt, engine="loop")
-                next_request = await task.run.submit("continue", engine="loop")
+                failed = await session.run.submit(prompt, engine="loop")
+                next_request = await session.run.submit("continue", engine="loop")
                 run = await failed.wait()
                 response, data = await run.aresponse(), await run.aget_data()
                 check(data.status == "failed", "Broken connection was treated as success")
@@ -298,10 +298,10 @@ async def connection_failure(root, spec):
                     "partial_text": response.content, "error": data.error})
         async with LargeLanguageModel(root / "workspace", components=[], engines={"loop": engine}) as app:
             project = await app.projects.aload(project.id)
-            task = await project.tasks.aload(task.id)
-            check(len(await task.run.alist()) == 4, "Request was duplicated after reopen")
+            session = await project.sessions.aload(session.id)
+            check(len(await session.run.alist()) == 4, "Request was duplicated after reopen")
             for item in observed:
-                run = await task.run.aload(item["run_id"])
+                run = await session.run.aload(item["run_id"])
                 check((await run.aget_data()).status == "failed", "Failure state not durable")
                 check((await run.aresponse()).content == item["partial_text"], "Partial response not durable")
         check(calls == ["warmup", "disconnect-before", "continue", "disconnect-mid", "continue"], f"Unexpected provider requests: {calls}")

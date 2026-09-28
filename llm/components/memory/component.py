@@ -59,18 +59,18 @@ class MemoryComponent(Component):
                 self._record_cache.popitem(last=False)
             yield path.stem, deepcopy(record)
 
-    def _summary_path(self, project, task_id):
-        return self._checked(self.root(project) / "contexts" / (validate_name(task_id) + ".json"))
+    def _summary_path(self, project, session_id):
+        return self._checked(self.root(project) / "contexts" / (validate_name(session_id) + ".json"))
 
-    def _validate_summary(self, task_id, value):
+    def _validate_summary(self, session_id, value):
         validate_name(value.get("generation"))
-        if value.get("task_id") != task_id or type(value.get("revision")) is not int or value["revision"] < 1:
-            raise ValueError("Invalid Task summary identity")
+        if value.get("session_id") != session_id or type(value.get("revision")) is not int or value["revision"] < 1:
+            raise ValueError("Invalid Session summary identity")
         if not isinstance(value.get("content"), str) or not value["content"].strip():
-            raise ValueError("Invalid Task summary content")
+            raise ValueError("Invalid Session summary content")
         metadata = value.get("metadata", {})
         if not isinstance(metadata, dict) or type(metadata.get("coverage_count")) is not int or metadata["coverage_count"] < 0:
-            raise ValueError("Invalid Task summary coverage")
+            raise ValueError("Invalid Session summary coverage")
         partial = metadata.get("partial")
         if metadata["coverage_count"] == 0 and not partial:
             raise ValueError("Empty summary requires a partial cursor")
@@ -80,13 +80,13 @@ class MemoryComponent(Component):
             raise ValueError("Invalid partial summary cursor")
         for key in ("coverage_hash", "profile", "through_message_id", "first_message_id"):
             if not isinstance(metadata.get(key), str) or not metadata[key]:
-                raise ValueError("Invalid Task summary source")
+                raise ValueError("Invalid Session summary source")
         if not isinstance(value.get("source"), dict):
-            raise ValueError("Invalid Task summary provenance")
+            raise ValueError("Invalid Session summary provenance")
 
     @staticmethod
-    def _visible(record, task_id):
-        return record["scope"] == "project" or record.get("task_id") == task_id
+    def _visible(record, session_id):
+        return record["scope"] == "project" or record.get("session_id") == session_id
 
     @staticmethod
     def _expired(record):
@@ -116,13 +116,13 @@ class MemoryComponent(Component):
         self._write(project, identifier, {"record": record, "history": [*history, entry]})
         return deepcopy(record)
 
-    def _change(self, project, identifier, expected_revision, operation, *, changes=None, source=None, task_id=None):
+    def _change(self, project, identifier, expected_revision, operation, *, changes=None, source=None, session_id=None):
         envelope = self._read(project, identifier)
         record = envelope["record"]
-        if not self._visible(record, task_id):
+        if not self._visible(record, session_id):
             raise FileNotFoundError("Memory is outside the requested scope")
         self._check_revision(record, expected_revision)
-        if changes is not None and any(key in changes and changes[key] != record.get(key) for key in ("scope", "task_id")):
+        if changes is not None and any(key in changes and changes[key] != record.get(key) for key in ("scope", "session_id")):
             raise ValueError("Memory scope cannot be changed")
         if record["deleted"] != (operation == "restore"):
             raise ValueError("Memory is deleted" if record["deleted"] else "Memory is not deleted")
@@ -154,12 +154,12 @@ class MemoryComponent(Component):
             if not isinstance(record.get(key), str) or not record[key].strip():
                 raise ValueError(f"Memory {key} must be nonempty text")
         self._status(record.get("status"))
-        if record.get("scope") not in ("project", "task") or type(record.get("deleted")) is not bool:
-            raise ValueError("Memory requires project/task scope and a deletion marker")
-        if record["scope"] == "task":
-            validate_name(record.get("task_id"))
-        elif record.get("task_id") is not None:
-            raise ValueError("Project memories cannot have a task_id")
+        if record.get("scope") not in ("project", "session") or type(record.get("deleted")) is not bool:
+            raise ValueError("Memory requires project/session scope and a deletion marker")
+        if record["scope"] == "session":
+            validate_name(record.get("session_id"))
+        elif record.get("session_id") is not None:
+            raise ValueError("Project memories cannot have a session_id")
         if record.get("expires_at") is not None:
             if not isinstance(record["expires_at"], str):
                 raise ValueError("Memory expiry must be ISO datetime text")
@@ -173,33 +173,33 @@ class MemoryComponent(Component):
             raise ValueError("Memory requires source object and text tags")
 
     # 공개 API: ComponentData가 아래 트랜잭션 전체를 workspace 잠금으로 보호한다.
-    def summary(self, project, task_id):
-        path = self._summary_path(project, task_id)
+    def summary(self, project, session_id):
+        path = self._summary_path(project, session_id)
         if not path.exists():
             return None
         value = self.deserialize(path.read_text(encoding="utf-8"))
-        self._validate_summary(task_id, value)
+        self._validate_summary(session_id, value)
         return value
 
-    def publish_summary(self, project, task_id, value, *, expected_revision, expected_generation):
-        current = self.summary(project, task_id)
+    def publish_summary(self, project, session_id, value, *, expected_revision, expected_generation):
+        current = self.summary(project, session_id)
         if ((current["revision"] if current else 0) != expected_revision or
                 (current["generation"] if current else None) != expected_generation):
-            raise MemoryConflictError("Task summary changed during processing")
+            raise MemoryConflictError("Session summary changed during processing")
         result = self.deserialize(self.serialize(value))
-        result.update(task_id=task_id, revision=expected_revision + 1,
+        result.update(session_id=session_id, revision=expected_revision + 1,
                       generation=current["generation"] if current else new_id())
-        self._validate_summary(task_id, result)
-        atomic_json(self._summary_path(project, task_id), result)
+        self._validate_summary(session_id, result)
+        atomic_json(self._summary_path(project, session_id), result)
         return result
 
-    def clear_summary(self, project, task_id, *, expected_revision):
-        current = self.summary(project, task_id)
+    def clear_summary(self, project, session_id, *, expected_revision):
+        current = self.summary(project, session_id)
         if current is None:
-            raise FileNotFoundError("Task summary does not exist")
+            raise FileNotFoundError("Session summary does not exist")
         self._check_revision(current, expected_revision)
         from llm.services.infrastructure.storage import unlink_file
-        path = self._summary_path(project, task_id)
+        path = self._summary_path(project, session_id)
         unlink_file(path)
 
     def initialize(self, project):
@@ -216,7 +216,7 @@ class MemoryComponent(Component):
         return read_json(path)["id"]
 
     def history_references(self, project):
-        runs, messages, tasks = set(), set(), set()
+        runs, messages, sessions = set(), set(), set()
         def source(value):
             if isinstance(value, dict):
                 if value.get("run_id"):
@@ -233,9 +233,9 @@ class MemoryComponent(Component):
         for path in self._checked(self.root(project) / "contexts").glob("*.json"):
             value = read_json(self._checked(path))
             self._validate_summary(path.stem, value)
-            tasks.add(value["task_id"])
+            sessions.add(value["session_id"])
             source(value.get("source"))
-        return {"run_ids": sorted(runs), "message_ids": sorted(messages), "task_ids": sorted(tasks)}
+        return {"run_ids": sorted(runs), "message_ids": sorted(messages), "session_ids": sorted(sessions)}
 
     def default_configuration(self):
         return {"tool_write_status": "candidate", "search_status": "confirmed",
@@ -268,7 +268,7 @@ class MemoryComponent(Component):
         properties["context_tokens"] = field(["integer", "null"], None, minimum=1,
             **{"x-available": self.token_counter is not None})
         properties["completion"] = completion_schema()
-        properties["extract_scope"]["enum"] = ["task", "project"]
+        properties["extract_scope"]["enum"] = ["session", "project"]
         properties["failure_mode"]["enum"] = ["raise", "continue"]
         return object_schema({
             "cache_records": field("integer", 256, minimum=0),
@@ -313,44 +313,44 @@ class MemoryComponent(Component):
         self._commit(project, identifier, record, [], "create", source)
         return identifier
 
-    def load(self, project, identifier, *, include_deleted=False, task_id=None):
+    def load(self, project, identifier, *, include_deleted=False, session_id=None):
         record = self._read(project, identifier)["record"]
-        if not self._visible(record, task_id):
+        if not self._visible(record, session_id):
             raise FileNotFoundError("Memory is outside the requested scope")
         if record["deleted"] and not include_deleted:
             raise FileNotFoundError("Memory is deleted")
         return record
 
-    def list(self, project, *, include_deleted=False, status=None, task_id=None):
+    def list(self, project, *, include_deleted=False, status=None, session_id=None):
         if status is not None:
             self._status(status, allow_all=True)
         records = {}
         for identifier, record in self._all_records(project):
-            if self._visible(record, task_id) and (include_deleted or not record["deleted"]) and (status in (None, "all") or record["status"] == status):
+            if self._visible(record, session_id) and (include_deleted or not record["deleted"]) and (status in (None, "all") or record["status"] == status):
                 records[identifier] = record
         return records
 
-    def save(self, project, identifier, data, *, expected_revision, source=None, task_id=None):
-        return self._change(project, identifier, expected_revision, "save", changes=data, source=source, task_id=task_id)
+    def save(self, project, identifier, data, *, expected_revision, source=None, session_id=None):
+        return self._change(project, identifier, expected_revision, "save", changes=data, source=source, session_id=session_id)
 
-    def update(self, project, identifier, changes, *, expected_revision, source=None, task_id=None):
-        return self._change(project, identifier, expected_revision, "update", changes=changes, source=source, task_id=task_id)
+    def update(self, project, identifier, changes, *, expected_revision, source=None, session_id=None):
+        return self._change(project, identifier, expected_revision, "update", changes=changes, source=source, session_id=session_id)
 
-    def delete(self, project, identifier, *, expected_revision, source=None, task_id=None):
-        return self._change(project, identifier, expected_revision, "delete", source=source, task_id=task_id)
+    def delete(self, project, identifier, *, expected_revision, source=None, session_id=None):
+        return self._change(project, identifier, expected_revision, "delete", source=source, session_id=session_id)
 
-    def restore(self, project, identifier, *, expected_revision, source=None, task_id=None):
-        return self._change(project, identifier, expected_revision, "restore", source=source, task_id=task_id)
+    def restore(self, project, identifier, *, expected_revision, source=None, session_id=None):
+        return self._change(project, identifier, expected_revision, "restore", source=source, session_id=session_id)
 
-    def purge(self, project, identifier, *, expected_revision, task_id=None):
-        record = self.load(project, identifier, include_deleted=True, task_id=task_id)
+    def purge(self, project, identifier, *, expected_revision, session_id=None):
+        record = self.load(project, identifier, include_deleted=True, session_id=session_id)
         self._check_revision(record, expected_revision)
         if not record["deleted"]:
             raise ValueError("Soft-delete memory before permanent removal")
         super().delete(project, identifier)
 
-    def history(self, project, identifier, *, task_id=None):
-        self.load(project, identifier, include_deleted=True, task_id=task_id)
+    def history(self, project, identifier, *, session_id=None):
+        self.load(project, identifier, include_deleted=True, session_id=session_id)
         return self._read(project, identifier)["history"]
 
     def score(self, query, record):
@@ -359,14 +359,14 @@ class MemoryComponent(Component):
         text = " ".join([record["content"], record["kind"], *record["tags"]]).casefold()
         return sum(term in text for term in terms) / len(terms) if terms else 0.0
 
-    def search(self, project, query, *, limit=None, status=None, task_id=None):
+    def search(self, project, query, *, limit=None, status=None, session_id=None):
         if not isinstance(query, str) or not query.strip():
             raise ValueError("Memory query must be nonempty text")
         config = {**self.default_configuration(), **self.configuration(project)}
         limit = config["search_limit"] if limit is None else limit
         if type(limit) is not int or not 1 <= limit <= config["max_search_results"]:
             raise ValueError("Memory search limit is outside configured bounds")
-        records = self.list(project, status=config["search_status"] if status is None else status, task_id=task_id)
+        records = self.list(project, status=config["search_status"] if status is None else status, session_id=session_id)
         records = {key: record for key, record in records.items() if not self._expired(record)}
         scores = (self.search_fn(query, deepcopy(records)) if self.search_fn is not None else
                   {key: self.score(query, record) for key, record in records.items()})
@@ -376,9 +376,9 @@ class MemoryComponent(Component):
         hits = [{"score": score, "memory": records[key]} for key, score in scores.items() if score > 0]
         return sorted(hits, key=lambda hit: (-hit["score"], hit["memory"]["id"]))[:limit]
 
-    def consolidate(self, project, identifier, *, expected_revision, task_id=None, source=None):
+    def consolidate(self, project, identifier, *, expected_revision, session_id=None, source=None):
         from .consolidation import MemoryConsolidation
-        return MemoryConsolidation(self, project).apply(identifier, expected_revision=expected_revision, task_id=task_id, source=source)
+        return MemoryConsolidation(self, project).apply(identifier, expected_revision=expected_revision, session_id=session_id, source=source)
 
     def recover_consolidations(self, project):
         from .consolidation import MemoryConsolidation

@@ -13,8 +13,8 @@ class ProjectPaths:
         return self.root / "memory"
 
     @property
-    def tasks(self) -> Path:
-        return self.root / "tasks"
+    def sessions(self) -> Path:
+        return self.root / "sessions"
 
     @property
     def state(self) -> Path:
@@ -30,7 +30,7 @@ class ProjectPaths:
 
 
 @dataclass(frozen=True, slots=True)
-class TaskPaths:
+class SessionPaths:
     root: Path
 
     @property

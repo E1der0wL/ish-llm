@@ -1,95 +1,73 @@
-# llm — ish plugin
+# llm — ish 플러그인
 
-Linux의 ish 호스트에서 사용하는 AI 실행 플러그인입니다. Project → Task → Run → Engine → Step 구조로 대화, 스트리밍, Tool, Workflow, RAG 및 Memory를 관리합니다.
+Linux의 ish에서 사용하는 AI 실행 백엔드입니다. 영속 도메인의 소유 관계는
+**Project → Session → Run → Step**입니다. Session은 프로세스 종료 후에도 다시 열 수 있는
+작업·대화 공간이며 Conversation은 Session에 속합니다.
 
-## 설치
+Engine은 Run의 실행 전략이고 Component는 프로젝트에 연결되는 기능과 자료의 소유자입니다.
+Loop·Graph 등 Engine을 바꾸어도 Run/Step 기록과 Session의 대화 수명은 유지됩니다.
+Engine별 소스 구조와 공개 import는 [Engine 안내](engines/README.md)를 참고하세요.
 
-이 저장소의 **`llm/` 폴더**를 ish의 플러그인 경로 아래 배치합니다.
-폴더명은 Python 패키지 이름과 플러그인 이름이므로 `llm`을 사용해야 합니다.
+## 설치와 진입점
 
-```bash
-# <plugin-script-directory>를 실제 ish 플러그인 경로로 바꾸세요.
-git clone https://github.com/E1der0wL/ish-llm.git ish-llm-source
-cp -R ish-llm-source/llm <plugin-script-directory>/llm
-```
-
-설치 결과는 다음 형태입니다.
-
-```text
-<plugin-script-directory>/
-└─ llm/
-   ├─ llm.py
-   ├─ __init__.py
-   ├─ components/
-   ├─ core/
-   ├─ engines/
-   ├─ providers/
-   └─ services/
-```
-
-이 플러그인 자체를 `pip install`할 필요는 없습니다. 필요한 Python 라이브러리는
-`llm.py`의 `PLUGIN_META.dependencies`에 선언되어 있으며 ish의 플러그인 로더가 처리합니다.
-운영체제는 Linux이며 현재 검증 버전은 Python 3.12.14입니다.
-
-## ish에서 사용
-
-`.ishrc.py`에서 로드된 플러그인의 공개 클래스를 가져옵니다.
+이 저장소의 `llm/` 폴더를 ish의 플러그인 스크립트 디렉토리에 배치합니다.
+플러그인 자체의 pip 설치는 필요하지 않습니다. 외부 라이브러리 의존성은
+`llm.py`의 `PLUGIN_META.dependencies`에 선언되어 있습니다.
+현재 실행 검증 대상은 Linux Python 3.12.14입니다.
 
 ```python
 llm_plugin = plugin.get("llm")
-if llm_plugin is not None:
-    LargeLanguageModel = llm_plugin.LargeLanguageModel
-    LoopEngine = llm_plugin.LoopEngine
+LargeLanguageModel = llm_plugin.LargeLanguageModel
+LoopEngine = llm_plugin.LoopEngine
+ProjectConfig = llm_plugin.ProjectConfig
 ```
 
-호스트의 비동기 실행 경로에서는 다음처럼 사용할 수 있습니다.
+호스트의 비동기 실행 경로에서 다음처럼 호출합니다. 모델과 인증 설정은 호출자가 전달합니다.
 
 ```python
-async def greet(workspace, model):
+async def request_once(workspace, completion):
     async with LargeLanguageModel(
-        workspace,
-        engines={"loop": LoopEngine()},
+        workspace, engines={"loop": LoopEngine()},
     ) as backend:
         project = await backend.projects.acreate(
-            "Greeting", config={"completion": {"model": model}}
+            "Workspace", config=ProjectConfig(completion=completion),
         )
-        task = await project.tasks.acreate("Greeting request")
-        request = await task.run.submit("한국어로 짧게 인사해줘.", engine="loop")
+        session = await project.sessions.acreate("Conversation")
+        request = await session.run.submit("안녕하세요.", engine="loop")
         run = await request.wait()
         result = await run.aresult()
         if result.status != "completed":
-            raise RuntimeError(f"Run failed: {result.status}")
+            raise RuntimeError(result.error or str(result.status))
         return (await run.aresponse()).content
 ```
 
-모델 인증은 사용하는 공급자의 환경변수 또는 completion 설정으로 전달합니다.
-상시 UI에서는 백엔드를 유지하여 사용하고, 호스트 종료 시 `await backend.shutdown()`으로 정리합니다.
-전체 공개 API 예제는 `llm.py`의 `LargeLanguageModel` 독스트링에 있습니다.
+상시 UI는 백엔드를 유지하고 `backend.projects.aload(project_id)`와
+`project.sessions.aload(session_id)`로 선택한 세션을 다시 엽니다. 한 Session의 Run은
+순서대로 실행하며 다른 Session들은 동시에 실행할 수 있습니다. 호스트 종료 시
+`await backend.shutdown()`으로 정리합니다. API 사용 예시는 LargeLanguageModel 독스트링에 있습니다.
 
-## 검증 범위
+## Session으로 이름 변경
 
-개발 저장소에서 Linux Python 3.12.14 전체 **835개 테스트**를 통과했습니다.
-Run 수명과 다중 파일 저장 트랜잭션, 강제 종료 후 복구, 저장 오류, 스트리밍 연결 단절,
-workspace의 경쟁 프로세스 접근 차단을 검증했습니다. 이 `llm/` 폴더에는 실행 가능한
-검증 예제를 포함하며 개발용 unittest 모음, 실행 결과 로그, workspace 및 pip 패키징
-파일은 포함하지 않습니다.
-저장소 루트의 기존 `ish/` 및 개발 자료는 이전 이력 보존을 위해 유지되며 이 플러그인의 실행에 필요하지 않습니다.
-실제 공급자 기반 3시간 작업과 2GB RAG 규모를 보장하는 결과는 아닙니다.
+- `Task` / `TaskManager` / `TaskRepository` / `TaskPaths` → `Session` / `SessionManager` / `SessionRepository` / `SessionPaths`
+- `project.tasks` → `project.sessions`
+- `EngineContext.task`, `Run.task_id` → `EngineContext.session`, `Run.session_id`
+- `task_defaults`, `task_config` → `session_defaults`, `session_config`
+- Memory의 세션 범위는 `scope="session"`, `session_id=...`로 지정합니다.
+- ish Loop 예제의 기존 세션 선택 인자는 `--session-id`입니다.
 
-## 사내 환경 검증 예제
+Project/Session/Run/Step 기록은 `storage_version=2`를 사용합니다. 세션 저장 경로는
+`projects/<project_id>/sessions/<session_id>/session.json`이며 그 아래에 대화 파일과
+`runs/`가 있습니다. Engine 객체는 영속 소유 계층에 들어가지 않습니다.
+
+이전 Task 형식의 데이터는 자동 변환하지 않고 명시적으로 거부합니다. 기존 테스트 데이터는
+그대로 보관하고 **새 workspace 경로**를 지정하세요. 구형 API의 호환 별칭은 제공하지 않습니다.
+선택적인 메모리 대화 저장은 종료 시 대화가 사라지는 기존 특성을 유지합니다.
+
+## 검증 예제
 
 - [GraphEngine·RAG 통합 검사](examples/graph_rag.md)
-- [사용자 요청에 따른 설정 검증·승인·적용 Workflow](examples/configuration_workflow.md)
+- [사용자 요청·검증·승인·적용 Workflow](examples/configuration_workflow.md)
 - [메인 도메인 성능 검사](examples/domain_performance.md)
 - [장애 복구·다중 프로세스 검사](examples/recovery_probe.md)
 
-의존성을 사용할 수 있고 `llm`의 부모 디렉토리가 import 경로에 있는 환경에서 다음처럼
-실행할 수 있습니다. ish 명령 등록 방법과 모델 설정은 각 안내를 참고하세요.
-
-```bash
-python3.12 -m llm.examples.recovery_probe --output-dir ~/llm-probes
-```
-
-장애 검사는 API 키 없이 로컬 서버/새 테스트 workspace를 사용합니다. ENOSPC는
-저장 경계의 단발 오류 주입이며 실제 디스크 고갈이나 사내 모델 서버 장애를 모두
-재현하는 검사는 아닙니다. Graph·RAG 예제의 모델 주소/API 키는 사용자가 설정합니다.
+예제 안내에서 독립 Python 실행과 ish 명령 등록 방법을 확인할 수 있습니다.

@@ -15,7 +15,7 @@ from llm.core.schema import object_schema, field
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
 
-from .base import BaseEngine, Engine, EngineContext, EngineEvent, EngineEventType, required_capabilities
+from llm.engines.base import BaseEngine, Engine, EngineContext, EngineEvent, EngineEventType, required_capabilities
 
 
 class PipelineError(RuntimeError):
@@ -44,14 +44,14 @@ class PreparationStep(BaseEngine):
             exclusiveMinimum=0, **{"x-host-override": "timeout_seconds" in self._overrides})},
             **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
-    def configuration(self, config, name, *, task_config=None):
+    def configuration(self, config, name, *, session_config=None):
         return engine_configuration(config, self.settings_name or name, {"timeout_seconds": 60.0},
-            task_config=task_config, host=self._overrides, schema=self.configuration_schema())
+            session_config=session_config, host=self._overrides, schema=self.configuration_schema())
 
     async def execute(self, context):
         worker = copy(self)
         worker.timeout_seconds = self.configuration(context.project.config, context.run.engine,
-            task_config=context.task.config)["values"]["timeout_seconds"]
+            session_config=context.session.config)["values"]["timeout_seconds"]
         async with aclosing(BaseEngine.execute(worker, context)) as events:
             async for event in events:
                 yield event
@@ -74,13 +74,13 @@ class PipelineEngine:
         self.required_capabilities = tuple(dict.fromkeys(
             name for stage in self.stages for name in required_capabilities(stage)))
 
-    def _stage_settings(self, config, task_config, name, index):
-        """단계 설정을 호출별 사본에만 연결한다. 저장된 Project/Task는 변경하지 않는다."""
-        config, task = ProjectConfig(config), deepcopy(task_config or {})
+    def _stage_settings(self, config, session_config, name, index):
+        """단계 설정을 호출별 사본에만 연결한다. 저장된 Project/Session은 변경하지 않는다."""
+        config, session = ProjectConfig(config), deepcopy(session_config or {})
         pipeline_key, stage = self.settings_name or name, self.stages[index]
         explicit = getattr(stage, "settings_name", None)
         key = explicit or (pipeline_key + ":" + self.stage_names[index] if hasattr(stage, "settings_name") else pipeline_key)
-        for owner in (config, task):
+        for owner in (config, session):
             engines = owner.setdefault("engines", {})
             stages = engines.get(pipeline_key, {}).get("stages", {})
             if not isinstance(stages, dict) or stages.keys() - set(self.stage_names):
@@ -94,7 +94,7 @@ class PipelineEngine:
         if hasattr(stage, "settings_name"):
             worker = copy(stage)
             worker.settings_name = key
-        return worker, config, task, key
+        return worker, config, session, key
 
     def configuration_schema(self):
         return object_schema({"stages": object_schema({name:
@@ -102,18 +102,18 @@ class PipelineEngine:
             object_schema(**{"x-runtime-only": True}) for name, stage in zip(self.stage_names, self.stages)},
             additionalProperties=False)}, **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
-    def configuration(self, config, name, *, task_config=None):
+    def configuration(self, config, name, *, session_config=None):
         stages = {}
         for index, stage_name in enumerate(self.stage_names):
-            stage, project, task, key = self._stage_settings(config, task_config, name, index)
+            stage, project, session, key = self._stage_settings(config, session_config, name, index)
             describe = getattr(stage, "configuration", None)
-            stages[stage_name] = describe(project, key, task_config=task) if describe else {"runtime_only": True}
+            stages[stage_name] = describe(project, key, session_config=session) if describe else {"runtime_only": True}
         return {"configuration_key": self.settings_name or name, "stages": stages}
 
     async def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
         final_output = None
         for index, stage in enumerate(self.stages):
-            stage, project, task, key = self._stage_settings(context.project.config, context.task.config, context.run.engine, index)
+            stage, project, session, key = self._stage_settings(context.project.config, context.session.config, context.run.engine, index)
             active = set()
             stage_id = new_id()
             stage_output = None
@@ -121,7 +121,7 @@ class PipelineEngine:
                               name=type(stage).__name__, metadata={"stage_index": index,
                               "parent_step_id": context.output_step_id})
             events = stage.execute(replace(context, output_step_id=stage_id,
-                project=replace(context.project, config=project), task=replace(context.task, config=task)))
+                project=replace(context.project, config=project), session=replace(context.session, config=session)))
             try:
                 async for event in events:
                     if event.type == EngineEventType.PAUSED:

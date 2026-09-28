@@ -5,7 +5,7 @@ from copy import deepcopy
 from llm.core.interactions import InteractionRequest
 from dataclasses import replace
 
-from .base import EngineEvent, EngineEventType
+from llm.engines.base import EngineEvent, EngineEventType
 
 
 class EngineCheckpointScope:

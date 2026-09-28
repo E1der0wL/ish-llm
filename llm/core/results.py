@@ -1,4 +1,4 @@
-"""Run에 저장된 모델 호출 관찰값과 조회용 실행 결과를 정의한다. Project/Task에 결과 파일을 중복 생성하지 않는다.
+"""Run에 저장된 모델 호출 관찰값과 조회용 실행 결과를 정의한다. Project/Session에 결과 파일을 중복 생성하지 않는다.
 
 Persistable execution observations, separate from Project configuration."""
 
@@ -138,7 +138,7 @@ class CompletionResult:
 class ExecutionResult:
     """A query view of one Run, never a second persisted copy."""
     project_id: str
-    task_id: str
+    session_id: str
     run_id: str
     engine: str
     status: RunStatus
@@ -161,7 +161,7 @@ class ExecutionResult:
             values = [item.usage.get(key) for item in completions]
             usage[key] = (sum(values) if values and all(type(value) is int for value in values)
                           and all(item.usage_complete for item in completions) else None)
-        return cls(project_id, run.task_id, run.id, run.engine, run.status,
+        return cls(project_id, run.session_id, run.id, run.engine, run.status,
                    run.started_at, run.ended_at, duration_seconds(run.started_at, run.ended_at),
                    completions=completions, usage=usage, error=run.error, error_code=run.error_code,
                    output=EngineOutput.from_dict(run.metadata["output"]) if "output" in run.metadata else None)
@@ -173,7 +173,7 @@ class ExecutionResult:
             return None
         return Diagnostic(self.error_code or "execution_failed", self.error or "",
             source=ResourceRef("run", self.run_id, project_id=self.project_id,
-                               task_id=self.task_id, run_id=self.run_id))
+                               session_id=self.session_id, run_id=self.run_id))
 
     @property
     def total_tokens(self) -> Optional[int]:

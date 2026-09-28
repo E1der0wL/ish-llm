@@ -5,13 +5,13 @@ from llm.core.models import ProjectConfig
 from llm.core.schema import checked_schema, completion_schema, object_schema
 
 
-def effective_engines(app, config, *, task_config=None):
+def effective_engines(app, config, *, session_config=None):
     """등록 엔진의 공개 설정 계약을 사용한다. 조회 중 모델/준비 함수를 호출하지 않는다."""
     result = {}
     for name in app.engines.names():
         engine = app.engines.resolve(name)
         describe = getattr(engine, "configuration", None)
-        result[name] = describe(config, name, task_config=task_config) if describe else {"runtime_only": True}
+        result[name] = describe(config, name, session_config=session_config) if describe else {"runtime_only": True}
     return result
 
 
@@ -54,10 +54,10 @@ def project_schema(app, components=None):
             spec["$id"] = "urn:ish:project-component:" + name + ":configuration"
             # UI values에는 기본값을 병합한 객체를 제공한다. 중첩/배열/ref의 조건을 보존한다.
         project_components[name] = spec
-    task = object_schema({"completion": completion_schema(), "engines": object_schema(deepcopy(engines)), "data": object_schema()},
+    session = object_schema({"completion": completion_schema(), "engines": object_schema(deepcopy(engines)), "data": object_schema()},
                          **{"not": {"anyOf": [{"required": ["policies"]}, {"required": ["component_configurations"]}]}})
     config = object_schema({"completion": completion_schema(), "engines": object_schema(engines),
-        "policies": policies, "task_defaults": task, "data": object_schema(),
+        "policies": policies, "session_defaults": session, "data": object_schema(),
         "component_configurations": object_schema(project_components, additionalProperties=False,
             description="컴포넌트 설정의 유일한 저장 위치. 기본값에 재귀 병합하며 등록만으로 활성화하지 않는다."),
         "default_engine": {"type": "string", **({"enum": list(app.engines.names())} if app.engines.names() else {}),
@@ -66,7 +66,7 @@ def project_schema(app, components=None):
     return checked_schema(object_schema({
         "title": {"type": "string"},
         "conversation_storage": {"type": ["string", "null"], "enum": ["file", "memory", None],
-            "description": "null은 주입 저장소 전용. Task가 존재하면 변경할 수 없다."},
+            "description": "null은 주입 저장소 전용. Session이 존재하면 변경할 수 없다."},
         "components": {"type": "array", "uniqueItems": True,
                        "items": {"type": "string", "enum": list(registry.names())} if registry.names() else False},
         "config": config,

@@ -132,7 +132,7 @@ class CompletionPipeline:
         while self.sessions:
             processor, session = self.sessions.pop()
             try:
-                # ContextVar 토큰과 실행 Task 소유 자원도 정리할 수 있도록 같은 Task에서 닫는다.
+                # ContextVar 토큰과 asyncio.Task 소유 자원도 정리할 수 있도록 같은 Task에서 닫는다.
                 async with timeout(processor.close_timeout):
                     await session.aclose(error)
             except BaseException as failure:

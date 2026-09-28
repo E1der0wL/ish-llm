@@ -26,7 +26,7 @@ class ToolCall:
     arguments: dict
     step_id: str
     project_id: Optional[str] = None
-    task_id: Optional[str] = None
+    session_id: Optional[str] = None
     run_id: Optional[str] = None
     operation_key: Optional[str] = None
     idempotency_key: Optional[str] = None
@@ -83,7 +83,7 @@ class ToolPolicy:
     authorize(call)는 정확히 True를 반환해야 실행한다. runner(tool, call)는
     별도 프로세스/호스트에 위임할 수 있는 async 함수다. 기본 실행은 OS sandbox가 아니다.
     승인 대기도 Tool timeout에 포함되며, 정책 오류를 자동 재시도하지 않는다.
-    operation_key(call)는 동기 함수로 Task 범위 업무 키 또는 None을 반환한다.
+    operation_key(call)는 동기 함수로 Session 범위 업무 키 또는 None을 반환한다.
     동일 키의 완료 결과만 재사용하며 불확실한 작업은 명시적인 외부 결과 확인이 필요하다.
     """
 
@@ -239,7 +239,7 @@ class ToolExecutor:
         scope = getattr(context, "tool_scope", None) or ToolExecutionScope(ToolPolicy())
         scope.validate(tool)
         call = ToolCall(tool.name, deepcopy(arguments), step_id,
-                        context.project.id if context else None, context.task.id if context else None,
+                        context.project.id if context else None, context.session.id if context else None,
                         context.run.id if context else None,
                         input_message_id=context.run.input_message_id if context else None,
                         contract=asdict(tool.contract) if tool.contract is not None else None)
@@ -247,9 +247,9 @@ class ToolExecutor:
             key = scope.policy.operation_key(deepcopy(call))
             if key is not None:
                 if scope.operations is None:
-                    raise ValueError("Operation keys require a Task-bound operation service")
+                    raise ValueError("Operation keys require a Session-bound operation service")
                 call = replace(call, operation_key=key,
-                               idempotency_key=operation_token(call.project_id, call.task_id, key))
+                               idempotency_key=operation_token(call.project_id, call.session_id, key))
         if tool.contract is not None and tool.contract.operation_key_required and call.operation_key is None:
             raise ExecutionLimitError("tool_contract", "Tool operation key cannot be empty")
         yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="tool", name=tool.name,
@@ -331,7 +331,7 @@ class ToolExecutor:
                 raise error from request
             # 표시용 문구와 실제 실행 대상은 분리한다. 호출자 제공 source/action은 신뢰하지 않는다.
             request.request = replace(request.request,
-                source={"project_id": call.project_id, "task_id": call.task_id,
+                source={"project_id": call.project_id, "session_id": call.session_id,
                         "run_id": call.run_id, "step_id": call.step_id},
                 action={"tool": call.name, "arguments": deepcopy(call.arguments),
                         "contract": deepcopy(call.contract), "policy": scope.binding(),

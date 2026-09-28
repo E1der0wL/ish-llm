@@ -1,16 +1,16 @@
-"""Task/Run의 UI 조회 스냅샷. 원본 도메인 기록을 추가로 저장하지 않는다."""
+"""Session/Run의 UI 조회 스냅샷. 원본 도메인 기록을 추가로 저장하지 않는다."""
 
 from typing import Optional, Union
 from llm.compat import dataclass
 from .contracts import JsonValue
-from .models import Run, TaskStatus
+from .models import Run, SessionStatus
 from .results import EngineDelta, EngineOutput
 
 
 @dataclass(frozen=True, slots=True)
-class TaskRuntimeView(JsonValue):
-    task_id: str
-    status: TaskStatus
+class SessionRuntimeView(JsonValue):
+    session_id: str
+    status: SessionStatus
     unfinished_work: int
     active_run_id: Optional[str]
     engine: Optional[str]

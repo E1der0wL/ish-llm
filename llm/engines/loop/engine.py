@@ -20,7 +20,7 @@ from llm.core.results import EngineOutput
 from llm.providers.litellm import completion
 from llm.providers.parameters import merge_params
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError, ToolApprovalRequired
-from .base import BaseEngine, EngineContext, EngineEvent, EngineEventType
+from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
 
 
 # 모델 응답과 Tool 실행을 반복한다. 동시 Run의 설정을 서로 격리한다.
@@ -132,7 +132,7 @@ class LoopEngine(BaseEngine):
                                         "x-host-override": self.system_prompt is not None}
         return object_schema(properties, **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
-    def configuration(self, config, name, *, task_config=None):
+    def configuration(self, config, name, *, session_config=None):
         """실행과 UI가 공유하는 최종 설정. 동적 호스트 함수는 미리 실행하지 않는다."""
         from llm.core.models import ProjectConfig
         key = self.settings_name or name
@@ -140,7 +140,7 @@ class LoopEngine(BaseEngine):
         host = dict(self._overrides)
         if isinstance(self.system_prompt, str):
             host["system_prompt"] = self.system_prompt
-        view = engine_configuration(config, key, self._defaults(), task_config=task_config,
+        view = engine_configuration(config, key, self._defaults(), session_config=session_config,
             agent={**agent.get("engine_options", {}), **({"system_prompt": agent["system_prompt"]} if "system_prompt" in agent else {})},
             host=host, schema=self.configuration_schema())
         supplied, runtime = self.completion_kwargs, []
@@ -149,7 +149,7 @@ class LoopEngine(BaseEngine):
         except (TypeError, ValueError):
             supplied, runtime = {}, ["completion"]
         view["completion"] = resolve_configuration({}, [
-            ("project", ProjectConfig(config).completion), ("task", (task_config or {}).get("completion", {})),
+            ("project", ProjectConfig(config).completion), ("session", (session_config or {}).get("completion", {})),
             ("agent", agent.get("completion", {}))], host=dict(supplied or {}))
         view["completion"]["resolved"] = "completion" not in runtime
         if callable(self.system_prompt):
@@ -216,7 +216,7 @@ class LoopEngine(BaseEngine):
             raise ValueError("Completion parameters must be a string-keyed mapping")
         params = merge_params(settings["completion"], self._agent_settings.get("completion", {}))
         params = merge_params(params, dict(supplied or {}))
-        resolved = self.configuration(context.project.config, context.run.engine, task_config=context.task.config)["values"]
+        resolved = self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"]
         limits = {name: resolved[name] for name in self._defaults()}
         prompt = self.system_prompt if self.system_prompt is not None else resolved.get("system_prompt")
         # A Run-local instance keeps shared defaults immutable and preserves

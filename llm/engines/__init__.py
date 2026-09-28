@@ -2,7 +2,8 @@
 
 Execution strategies emit events and never persist domain state."""
 
-from .base import BaseEngine, EngineContext, EngineRegistry
+from .base import BaseEngine, EngineContext
+from .registry import EngineRegistry
 from .graph import GraphEngine, GraphNodeContext, GraphExecutionError
 
 __all__ = ["EngineContext", "EngineRegistry", "BaseEngine", "GraphEngine", "GraphNodeContext", "GraphExecutionError"]

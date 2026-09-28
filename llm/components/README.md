@@ -14,7 +14,7 @@ capability resolution; neither module imports Tools or requires `resolve_tools`.
 | mcp | stdio / HTTP server connection definitions | Client connections and tool discovery need an execution adapter |
 | workflows | Versioned graphs with branch, parallel/join and bounded loop nodes | Structural validation is provided; GraphEngine executes registered async node handlers |
 | rag | Documents, sections, chunks, vectors, evidence relations and Chroma/Kuzu generations | Splitting, embedding/rerank/triple extraction, combined document/graph retrieval |
-| memory | Project/Task memories, provenance, revisions and derived Task summaries | Automatic recall, bounded context, Tool previews, optional summary/extraction and CRUD Tools |
+| memory | Project/Session memories, provenance, revisions and derived Session summaries | Automatic recall, bounded context, Tool previews, optional summary/extraction and CRUD Tools |
 
 한국어 API와 그래프 조립 예시는 [컴포넌트 정의 안내](../../docs/component-definitions.md)를 참고한다.
 기본 LargeLanguageModel은 tools/skills/mcp/rag/agents/workflows/memory를 등록하며
@@ -38,7 +38,7 @@ components = ComponentRegistry((NotesComponent(),))
 ```
 
 Registration rejects missing/unsafe directory declarations,
-core-owned tasks/logs/state/cache directories and duplicate directory ownership.
+core-owned sessions/logs/state/cache directories and duplicate directory ownership.
 Each component owns everything beneath its declared root. Paths remain out of
 ProjectPaths. Base file operations reject symlinks and linked ancestors;
 permanent removal checks every descendant. This assumes cooperative exclusive
@@ -113,7 +113,7 @@ existing ordered storage lane.
 the new selection, preserving previous data on re-enable. Initialization must be
 idempotent; overridden initializers should call `super().initialize(project)`.
 Failure may retain partial directories, but does not publish the changed selection.
-Permanent removal requires all Project Tasks to be inactive/detached. It publishes
+Permanent removal requires all Project Sessions to be inactive/detached. It publishes
 disabled selection before recursive deletion; failed/interrupted removal leaves
 it disabled and can be retried, including when already disabled. Removal is not
 a multi-file transaction. Deleting Project removes its entire component tree.

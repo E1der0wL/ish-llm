@@ -15,8 +15,9 @@ from llm.components.tools import Tool, ToolRegistry
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
 from llm.services.runtime.tools import ToolExecutionScope, ToolPolicy
-from .base import BaseEngine, EngineEvent, EngineEventType, EngineRegistry, required_capabilities
-from .graph import GraphEngine, _GraphPause
+from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities
+from llm.engines.registry import EngineRegistry
+from .engine import GraphEngine, _GraphPause
 from .checkpoints import EngineCheckpointScope
 
 
@@ -128,7 +129,7 @@ class AgentNode:
         return {"agent_id": definition["agent"], "agent": profile,
                 "agent_revision": AgentComponent.revision(profile), "engine": profile["engine"],
                 "handler_revision": self.revision, "resources": resources,
-                "configuration": describe(context.project.config, profile["engine"], task_config=context.task.config)
+                "configuration": describe(context.project.config, profile["engine"], session_config=context.session.config)
                                  if describe else {"runtime_only": True}}
 
     def validate(self, definition, context):
