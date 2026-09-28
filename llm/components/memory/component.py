@@ -198,10 +198,9 @@ class MemoryComponent(Component):
         if current is None:
             raise FileNotFoundError("Task summary does not exist")
         self._check_revision(current, expected_revision)
-        from llm.services.infrastructure.storage import sync_directory
+        from llm.services.infrastructure.storage import unlink_file
         path = self._summary_path(project, task_id)
-        path.unlink()
-        sync_directory(path.parent)
+        unlink_file(path)
 
     def initialize(self, project):
         super().initialize(project)

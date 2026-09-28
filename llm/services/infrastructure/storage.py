@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Awaitable, Callable, TypeVar
 
 from llm.services.infrastructure.locking import WorkspaceOwnership
+from llm.services.infrastructure.transactions import current_transaction, watch
 
 
 # Metadata serialization and durable filesystem primitives.
@@ -46,8 +47,9 @@ def sync_directory(path: Path) -> None:
 def atomic_json(path: Path, value: dict) -> None:
     # Serialize before touching the destination, including on invalid metadata.
     data = json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+    prepare_replace(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    fd, temporary = temporary_file(path)
     try:
         with os.fdopen(fd, "wb") as stream:
             stream.write(data)
@@ -57,6 +59,57 @@ def atomic_json(path: Path, value: dict) -> None:
         sync_directory(path.parent)
     finally:
         Path(temporary).unlink(missing_ok=True)
+
+
+def temporary_file(destination: Path):
+    transaction = current_transaction()
+    if transaction is not None and transaction.owns(destination):
+        return transaction.temporary_file()
+    return tempfile.mkstemp(prefix=f".{destination.name}.", dir=destination.parent)
+
+
+def prepare_replace(path: Path) -> None:
+    """원자 교체/삭제 전 기존 파일을 공통 트랜잭션에 참여시킨다."""
+    transaction = current_transaction()
+    if transaction is not None and transaction.owns(path):
+        transaction.before_replace(path)
+
+
+def make_directory(path: Path) -> None:
+    transaction = current_transaction()
+    if transaction is not None and transaction.owns(path):
+        transaction.mkdir(path)
+    else:
+        path.mkdir(parents=True, exist_ok=True)
+
+
+def prepare_create(path: Path) -> None:
+    """호출자가 생성/복사할 신규 트리를 확정 전에는 되돌릴 수 있게 한다."""
+    transaction = current_transaction()
+    if transaction is not None and transaction.owns(path):
+        transaction.prepare_create(path)
+
+
+def append_bytes(path: Path, data: bytes) -> None:
+    if not data:
+        return
+    transaction = current_transaction()
+    if transaction is not None and transaction.owns(path):
+        transaction.before_append(path)
+    first = not path.exists()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("ab") as stream:
+        stream.write(data)
+        stream.flush()
+        os.fsync(stream.fileno())
+    if first:
+        sync_directory(path.parent)
+
+
+def unlink_file(path: Path) -> None:
+    prepare_replace(path)
+    path.unlink()
+    sync_directory(path.parent)
 
 
 def read_json(path: Path) -> dict:
@@ -133,6 +186,10 @@ def _remove_tree(owner: Path, target: Path, expected: Path) -> None:
             entry = Path(directory) / name
             if entry.is_symlink():
                 raise ValueError("Remove linked contents before permanent deletion")
+    transaction = current_transaction()
+    if transaction is not None and transaction.owns(resolved_target):
+        transaction.remove(resolved_target)
+        return
     # Absolute target and containment have been verified above.
     journal = resolved_owner / ".deletions"
     if journal.is_symlink():
@@ -170,14 +227,17 @@ def recover_deletions(owner: Path, *, protected=(), allowed=None) -> list[str]:
         target = owner / name
         if target.exists() or target.is_symlink():
             remove_named_tree(owner, target, name)
-        else:
-            intent.unlink()
-            sync_directory(intent.parent)
+        if intent.exists():
+            unlink_file(intent)
         recovered.append(name)
     journal = owner / ".deletions"
     if journal.exists() and not any(journal.iterdir()):
-        journal.rmdir()
-        sync_directory(owner)
+        transaction = current_transaction()
+        if transaction is not None and transaction.owns(journal):
+            transaction.remove(journal)
+        else:
+            journal.rmdir()
+            sync_directory(owner)
     return recovered
 
 
@@ -216,6 +276,8 @@ class StorageIO:
         async with self._serial:
             def work():
                 with self.ownership.scope():
+                    for value in (*args, *kwargs.values()):
+                        watch(value)
                     return operation(*args, **kwargs)
 
             pending = asyncio.ensure_future(asyncio.to_thread(work))

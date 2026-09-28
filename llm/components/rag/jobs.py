@@ -123,7 +123,10 @@ class RAGJobs:
         atomic_json(self._path(identifier) / "job.json", job)
         # 공개된 원문/벡터는 corpus 세대가 소유한다. 완료 뒤 준비 결과의 중복 사본을 없앤다.
         try:
-            (self._path(identifier) / "prepared.json").unlink(missing_ok=True)
+            from llm.services.infrastructure.storage import unlink_file
+            prepared = self._path(identifier) / "prepared.json"
+            if prepared.exists():
+                unlink_file(prepared)
             batches = self._path(identifier) / "batches"
             if batches.exists():
                 remove_named_tree(batches.parent, batches, "batches")

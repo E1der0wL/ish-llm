@@ -176,8 +176,9 @@ class Component:
         pass
 
     def initialize(self, project: Project) -> None:
+        from llm.services.infrastructure.storage import make_directory
         self.configuration(project)
-        self._checked(self.root(project) / "records").mkdir(parents=True, exist_ok=True)
+        make_directory(self._checked(self.root(project) / "records"))
 
     def configuration(self, project: Project) -> dict:
         # 기존 파일은 무시해서 설정을 잃지 않도록 명시적으로 거부한다. 변환/삭제는 하지 않는다.
@@ -226,9 +227,9 @@ class Component:
         return data
 
     def delete(self, project: Project, identifier: str) -> None:
+        from llm.services.infrastructure.storage import unlink_file
         path = self._record_path(project, identifier)
-        path.unlink()
-        sync_directory(path.parent)
+        unlink_file(path)
 
     def delete_directory(self, project: Project) -> None:
         """Explicit permanent removal, including component-owned artifacts."""

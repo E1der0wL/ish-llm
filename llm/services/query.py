@@ -31,8 +31,14 @@ class Query:
 
     def apply(self, items):
         """커서가 사라졌으면 오류를 내어 첫 페이지의 중복 반환을 방지한다."""
-        # 오름차순은 전체 복사 없이 필요한 페이지까지만 소비한다.
-        rows = iter(reversed(list(items))) if self.descending else iter(items)
+        # list/dict view는 역방향도 필요한 페이지까지만 소비한다.
+        if self.descending:
+            try:
+                rows = reversed(items)
+            except TypeError:
+                rows = reversed(list(items))
+        else:
+            rows = iter(items)
         if self.after is not None:
             for item in rows:
                 if getattr(item, "id", getattr(item, "run_id", None)) == self.after:

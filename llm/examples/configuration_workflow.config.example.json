@@ -1,0 +1,50 @@
+{
+  "source_root": "/absolute/path/to/configuration-directory",
+  "files": ["YOUR_CONFIGURATION_FILE"],
+  "reference_files": {},
+  "documents": ["/absolute/path/to/internal-markdown-manuals"],
+  "validators": [
+    {
+      "name": "configuration-check",
+      "argv": ["/absolute/path/to/YOUR_TRUSTED_VALIDATOR", "{candidate}"]
+    }
+  ],
+  "max_attempts": 3,
+  "max_source_bytes": 300000,
+  "validator_timeout": 60,
+  "validator_output_bytes": 50000,
+  "project_config": {
+    "completion": {
+      "model": "openai/YOUR_CHAT_MODEL",
+      "api_base": "https://YOUR_CHAT_ENDPOINT/v1",
+      "api_key": "YOUR_API_KEY",
+      "timeout": 120,
+      "num_retries": 0
+    },
+    "engines": {
+      "loop": {"max_iterations": 8, "request_timeout": 120}
+    },
+    "component_configurations": {
+      "rag": {
+        "embedding_params": {
+          "model": "openai/YOUR_EMBEDDING_MODEL",
+          "api_base": "https://YOUR_EMBEDDING_ENDPOINT/v1",
+          "api_key": "YOUR_API_KEY",
+          "timeout": 120,
+          "num_retries": 0
+        },
+        "extraction_params": {
+          "model": "openai/YOUR_CHAT_MODEL",
+          "api_base": "https://YOUR_CHAT_ENDPOINT/v1",
+          "api_key": "YOUR_API_KEY",
+          "timeout": 120,
+          "num_retries": 0
+        },
+        "chunk_size": 1500,
+        "embedding_batch_size": 16,
+        "extraction_batch_size": 8,
+        "graph": {"buffer_pool_size": 67108864, "max_num_threads": 2}
+      }
+    }
+  }
+}

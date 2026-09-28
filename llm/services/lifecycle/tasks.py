@@ -1,6 +1,8 @@
 """Task의 영속 상태와 수명 주기를 관리한다. TaskRuntime은 실행 전용이며 RunManager가 소유한다. 제목/메타데이터 수정은 실행 설정 변경과 분리한다."""
 
 from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
+from llm.services.infrastructure.storage import make_directory
+from llm.services.infrastructure.transactions import after_commit, current_transaction
 
 from llm.services.query import queryable
 from typing import Optional, Union
@@ -71,7 +73,7 @@ class TaskRepository:
         return TaskPaths(child(project.paths.tasks, task_id))
 
     def initialize(self, project: Project) -> None:
-        project.paths.tasks.mkdir(parents=True, exist_ok=True)
+        make_directory(project.paths.tasks)
         log_event(project.paths.logs, "tasks.initialized", entity_id=project.id)
 
     def save(self, task: Task) -> None:
@@ -134,7 +136,7 @@ class TaskManager:
         """상위 서비스가 영구 삭제를 완료한 뒤 선택적 저장소 정리 계약을 호출한다."""
         discard = getattr(self.conversations, "discard", None)
         if callable(discard):
-            discard(task)
+            after_commit(lambda: discard(task))
 
     def _owner(self, task: Task, *, allow_deleted: bool = False) -> Project:
         if self.project_access is None:
@@ -223,6 +225,14 @@ class TaskManager:
                 raise ValueError("Task already has an attached runtime")
             self.ownership.claim_task(key)
             self._attached.add(key)
+            transaction = current_transaction()
+            if transaction is not None:
+                def undo_attachment():
+                    with self._runtime_lock:
+                        if key in self._attached:
+                            self._attached.remove(key)
+                            self.ownership.release_task(key)
+                transaction.on_error(("runtime_attachment", id(self), key), undo_attachment)
 
     @workspace_locked
     def detach_runtime(self, task: Task) -> None:

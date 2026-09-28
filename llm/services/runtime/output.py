@@ -3,19 +3,60 @@
 import asyncio
 import math
 from dataclasses import replace
+from io import StringIO
+from typing import Union
 
 from llm.compat import dataclass
 from llm.engines.base import EngineEventType
 from llm.core.results import EngineOutput, EngineDelta
 
 
+class OutputProjection:
+    """저장/실행에서 공유하는 출력 투영. 델타 본문은 조회할 때만 합친다.
+
+    EngineOutput의 불변 API와 검증 규칙을 유지하면서 매 델타마다 전체 본문을
+    복사하지 않는다. 이 객체는 잠금 안이나 단일 Run 소비자에서만 사용한다.
+    """
+
+    def __init__(self):
+        self.states = {}
+        self.texts = {}
+
+    def add(self, value: Union[EngineDelta, EngineOutput]) -> None:
+        if isinstance(value, EngineDelta):
+            previous = self.states.get(value.output_id) or EngineOutput(
+                value.output_id, step_id=value.step_id, visibility=value.visibility, final=False)
+            # 빈 본문에 공통 계약을 적용한다. 거부된 이벤트는 버퍼도 변경하지 않는다.
+            updated = previous.apply(replace(value, text=""))
+            buffer = self.texts.get(value.output_id)
+            if buffer is None or value.operation == "replace":
+                buffer = StringIO()
+                if value.operation == "append":
+                    buffer.write(previous.text)
+            buffer.write(value.text)
+            self.texts[value.output_id] = buffer
+            self.states[value.output_id] = replace(updated, text="") if updated.text else updated
+        else:
+            self.states[value.output_id] = value
+            self.texts.pop(value.output_id, None)
+
+    def snapshot(self) -> dict[str, EngineOutput]:
+        """기존 공개 결과 형식으로 변환한다. 델타 이벤트 목록을 보관하지 않는다."""
+        return {key: replace(value, text=self.texts[key].getvalue()) if key in self.texts else value
+                for key, value in self.states.items()}
+
+
 class RunOutputState:
     """한 Run의 출력 계약과 누적 본문만 관리한다. 저장·Step 수명·UI 알림은 소유하지 않는다."""
 
     def __init__(self):
-        self.outputs = {}
-        self.visible_text = {}
+        self._projection = OutputProjection()
+        self._visible_text = {}
         self.sequence = 0
+
+    @property
+    def outputs(self):
+        return self._projection.snapshot()
 
     def accept(self, event, active_steps, *, has_result=False):
         """검증된 이벤트와 대화 본문 변경을 반환한다. 호출자는 저장 후에만 알린다."""
@@ -38,7 +79,7 @@ class RunOutputState:
             raise ValueError("Output and event Step ownership mismatch")
         if event.type == EngineEventType.STEP_COMPLETED and value.step_id is None:
             raise ValueError("Step output requires a Step ID")
-        previous = self.outputs.get(value.output_id)
+        previous = self._projection.states.get(value.output_id)
         if previous is not None and (previous.final or
                 (previous.step_id, previous.visibility) != (value.step_id, value.visibility)):
             raise ValueError("Output is finalized or changed ownership")
@@ -46,9 +87,7 @@ class RunOutputState:
             raise ValueError("Output requires a running Step")
         value = replace(value, sequence=self.sequence + 1)
         if isinstance(value, EngineDelta):
-            previous = previous or EngineOutput(value.output_id, step_id=value.step_id,
-                                                visibility=value.visibility, final=False)
-            updated = previous.apply(value)
+            updated = value
             event = replace(event, delta=value)
         else:
             if not value.final:
@@ -59,13 +98,13 @@ class RunOutputState:
             updated = replace(value, text="", data=None, metadata={})
             event = replace(event, output=value)
         # 모든 검증에 성공한 뒤에만 상태와 순서를 반영한다.
+        self._projection.add(updated)
         self.sequence = value.sequence
-        self.outputs[value.output_id] = updated
         change = None
         if isinstance(value, EngineDelta) and value.visibility == "user":
-            self.visible_text[value.output_id] = updated.text
+            self._visible_text[value.output_id] = self._projection.texts[value.output_id]
             change = ((value.text, "append") if value.operation == "append" else
-                      ("".join(self.visible_text.values()), "replace"))
+                      ("".join(buffer.getvalue() for buffer in self._visible_text.values()), "replace"))
         return event, change
 
 

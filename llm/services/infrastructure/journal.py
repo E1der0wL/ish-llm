@@ -3,10 +3,11 @@
 import hashlib
 import json
 import os
+from bisect import bisect_right
 from typing import Optional
 
 from llm.core.results import EngineDelta, EngineOutput
-from llm.services.infrastructure.storage import atomic_json, read_json, sync_directory
+from llm.services.infrastructure.storage import atomic_json, read_json, append_bytes
 
 
 class OutputJournal:
@@ -82,29 +83,26 @@ class OutputJournal:
                         for item in records)
         if not data:
             return
-        path.parent.mkdir(parents=True, exist_ok=True)
-        first = not path.exists()
-        with path.open("ab") as stream:
-            stream.write(data)
-            stream.flush()
-            os.fsync(stream.fileno())
-        if first:
-            sync_directory(path.parent)
+        append_bytes(path, data)
 
-    def read(self, path, *, after: int = 0, limit: Optional[int] = None):
-        """인덱스는 최적화일 뿐이며 삭제/손상/파일 교체 시 원본에서 복구한다."""
+    def iter_events(self, path, *, after: int = 0, limit: Optional[int] = None):
+        """잠금 범위 안에서 소비할 순차 조회. 파일은 완료/오류/close 시 닫힌다.
+
+        인덱스는 최적화일 뿐이며 삭제/손상/파일 교체 시 원본에서 복구한다.
+        """
         if type(after) is not int or after < 0 or (limit is not None and (type(limit) is not int or limit < 0)):
             raise ValueError("Output cursor/limit must be nonnegative integers")
         if not path.exists() or limit == 0:
-            return []
+            return
         offset, sequence = 0, 0
         if after and self.index_stride:
             state = self._index(path)
-            for number, position in reversed(state["anchors"]):
-                if number <= after + 1:
-                    offset, sequence = position, number - 1
-                    break
-        result = []
+            # 두 번째 정렬 키는 실제 파일 크기보다 크게 하여 같은 sequence도 포함한다.
+            index = bisect_right(state["anchors"], [after + 1, state["size"]]) - 1
+            if index >= 0:
+                number, offset = state["anchors"][index]
+                sequence = number - 1
+        count = 0
         with path.open("rb") as stream:
             stream.seek(offset)
             for line in stream:
@@ -115,7 +113,11 @@ class OutputJournal:
                     raise ValueError("Invalid output journal sequence")
                 sequence = value.sequence
                 if sequence > after:
-                    result.append(value)
-                    if limit is not None and len(result) >= limit:
+                    yield value
+                    count += 1
+                    if limit is not None and count >= limit:
                         break
-        return result
+
+    def read(self, path, *, after: int = 0, limit: Optional[int] = None):
+        """공개 목록 계약은 유지하고 내부 복구/투영은 순차 소비할 수 있게 한다."""
+        return list(self.iter_events(path, after=after, limit=limit))

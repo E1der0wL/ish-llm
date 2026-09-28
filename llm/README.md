@@ -68,8 +68,28 @@ async def greet(workspace, model):
 
 ## 검증 범위
 
-개발 저장소에서 Linux Python 3.12.14 전체 774개 테스트와 합성 Engine 5 Task/60초/655 Run,
-정상 종료 후 새 백엔드에서의 저장 결과 조회를 검증했습니다. 이 `llm/` 폴더에는 개발용
-테스트, 실행 결과 로그, workspace 및 pip 패키징 파일을 포함하지 않습니다.
+개발 저장소에서 Linux Python 3.12.14 전체 **835개 테스트**를 통과했습니다.
+Run 수명과 다중 파일 저장 트랜잭션, 강제 종료 후 복구, 저장 오류, 스트리밍 연결 단절,
+workspace의 경쟁 프로세스 접근 차단을 검증했습니다. 이 `llm/` 폴더에는 실행 가능한
+검증 예제를 포함하며 개발용 unittest 모음, 실행 결과 로그, workspace 및 pip 패키징
+파일은 포함하지 않습니다.
 저장소 루트의 기존 `ish/` 및 개발 자료는 이전 이력 보존을 위해 유지되며 이 플러그인의 실행에 필요하지 않습니다.
 실제 공급자 기반 3시간 작업과 2GB RAG 규모를 보장하는 결과는 아닙니다.
+
+## 사내 환경 검증 예제
+
+- [GraphEngine·RAG 통합 검사](examples/graph_rag.md)
+- [사용자 요청에 따른 설정 검증·승인·적용 Workflow](examples/configuration_workflow.md)
+- [메인 도메인 성능 검사](examples/domain_performance.md)
+- [장애 복구·다중 프로세스 검사](examples/recovery_probe.md)
+
+의존성을 사용할 수 있고 `llm`의 부모 디렉토리가 import 경로에 있는 환경에서 다음처럼
+실행할 수 있습니다. ish 명령 등록 방법과 모델 설정은 각 안내를 참고하세요.
+
+```bash
+python3.12 -m llm.examples.recovery_probe --output-dir ~/llm-probes
+```
+
+장애 검사는 API 키 없이 로컬 서버/새 테스트 workspace를 사용합니다. ENOSPC는
+저장 경계의 단발 오류 주입이며 실제 디스크 고갈이나 사내 모델 서버 장애를 모두
+재현하는 검사는 아닙니다. Graph·RAG 예제의 모델 주소/API 키는 사용자가 설정합니다.

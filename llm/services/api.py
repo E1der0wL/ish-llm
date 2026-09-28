@@ -382,6 +382,9 @@ class Runs(AsyncFacade):
             task = self.task.data
             self.app.project_manager.tasks.require_inactive(task)
             self.app.run_repository.reconcile_tool_operation(task, key, result=result, evidence=evidence)
+            from llm.services.runtime.operations import record_operation_step
+            record_operation_step(self.app.run_repository, self.app.step_manager, task,
+                                  self.app.run_repository.tool_operation(task, key))
 
     async def verify_operation(self, key: str, *, apply=False):
         """호스트 operation_probe로 외부 결과를 조회한다. apply=True만 원장에 반영한다."""
@@ -402,7 +405,10 @@ class Runs(AsyncFacade):
             return {"operation": value, "observation": observation, "version": version}
         def commit():
             task = self.app.project_manager.tasks.require_inactive(self.task.data)
-            return self.app.run_repository.verify_tool_operation(task, key, observation, version)
+            value = self.app.run_repository.verify_tool_operation(task, key, observation, version)
+            from llm.services.runtime.operations import record_operation_step
+            record_operation_step(self.app.run_repository, self.app.step_manager, task, value)
+            return value
         return await self._async_call(commit)
 
     def list(self, *, query: Optional[Query] = None) -> list["RunHandle"]:

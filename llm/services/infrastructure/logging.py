@@ -67,8 +67,9 @@ def logging_scope(logger):
 
 
 def log_event(logs: Path, event: str, **fields) -> None:
+    from llm.services.infrastructure.transactions import after_commit
     logger = _logger_context.get()
-    (logger if logger is not None else DomainLogger()).write(logs, event, **fields)
+    after_commit(lambda: (logger if logger is not None else DomainLogger()).write(logs, event, **fields))
 
 
 class _RaisingFileHandler(RotatingFileHandler):

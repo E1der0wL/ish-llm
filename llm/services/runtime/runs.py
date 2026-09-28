@@ -5,11 +5,12 @@ from llm.services.infrastructure.storage import read_domain_record, atomic_domai
 from llm.services.query import FileCatalog, Query, select
 from llm.services.infrastructure.journal import OutputJournal
 from llm.providers.calls import ProviderCalls, ProviderCapacityError
-from llm.services.runtime.output import OutputPolicy, RunOutputState, consume_events
+from llm.services.runtime.output import OutputPolicy, OutputProjection, RunOutputState, consume_events
 from typing import Optional, Union
 import asyncio
 import inspect
 import json
+from contextlib import closing
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict, replace
@@ -174,15 +175,17 @@ class RunRepository:
 
     def outputs(self, run: Run) -> list[EngineOutput]:
         """부분/확정 출력을 ID별로 투영한다. Run/Step 상태는 별도로 조회한다."""
-        values = {}
-        for value in self.output_events(run):
-            if isinstance(value, EngineDelta):
-                previous = values.get(value.output_id) or EngineOutput(value.output_id, step_id=value.step_id,
-                    visibility=value.visibility, final=False)
-                values[value.output_id] = previous.apply(value)
-            else:
-                values[value.output_id] = value
-        return list(values.values())
+        projection = OutputProjection()
+        # 사용자 저장소/저널의 기존 읽기 확장점을 우회하지 않는다.
+        if (type(self).output_events is RunRepository.output_events
+                and type(self.output_journal).read is OutputJournal.read):
+            with closing(self.output_journal.iter_events(run.paths.state / "outputs.jsonl")) as events:
+                for value in events:
+                    projection.add(value)
+        else:
+            for value in self.output_events(run):
+                projection.add(value)
+        return list(projection.snapshot().values())
 
     def record_checkpoint(self, run: Run, event: EngineEvent) -> None:
         CheckpointRepository().record(run, event)
@@ -727,6 +730,8 @@ class RunManager:
         return recover_task(self.tasks, self.repository, self.steps, task, self._store(task))
 
     def _begin(self, runtime: TaskRuntime, message: Message) -> Optional[Run]:
+        from llm.services.infrastructure.transactions import watch
+        watch(runtime.task)
         runtime.project = self.tasks.require_project(runtime.project)
         task = runtime.task
         store = self._store(task)
@@ -818,7 +823,7 @@ class RunManager:
             target: retries[source] for source, target in (("max_retries", "max_retries"), ("delay_seconds", "retry_delay"))
             if retries.get(source) is not None})
         tool_scope = ToolExecutionScope(tool_policy,
-            operations=ToolOperations(deepcopy(runtime.task), self._io, self.repository))
+            operations=ToolOperations(deepcopy(runtime.task), self._io, self.repository, steps=self.steps))
         for name in values.get("tools", ToolRegistry()).names():
             tool_scope.validate(values["tools"].get(name))
         return EngineContext(project, deepcopy(runtime.task), deepcopy(run), history,
@@ -874,54 +879,29 @@ class RunManager:
                     raise ValueError("Engine emitted events after pause")
                 event, change = outputs.accept(event, active_steps, has_result="output" in run.metadata)
                 value = event.delta if event.type == EngineEventType.TEXT_DELTA else event.output
-                if value is not None:
-                    if event.type == EngineEventType.TEXT_DELTA:
-                        pending_outputs.append(value)
-                    else:
-                        await self._io.run(self.repository.record_output, run, value)
                 if event.type == EngineEventType.TEXT_DELTA:
+                    pending_outputs.append(value)
                     if change is not None:
                         pending_deltas.append(change)
-                elif event.type == EngineEventType.OUTPUT:
-                    if value.step_id is None:
-                        await self._io.run(self._record_result, run, store, value)
-                    else:
-                        await self._io.run(self.recorder.record, run,
-                                          replace(event, type=EngineEventType.STEP_UPDATED))
-                elif event.type == EngineEventType.COMPLETION:
-                    await self._io.run(self._record_completion, run, event)
-                elif event.type == EngineEventType.CHECKPOINT:
-                    await self._io.run(self.repository.record_checkpoint, run, event)
-                elif event.type == EngineEventType.PAUSED:
-                    # 일시정지를 알리기 전에 체크포인트가 실제로 존재해야 한다.
-                    await self._io.run(self.repository.checkpoint, run, event.metadata["checkpoint"])
-                    paused = True
-                elif event.type in (EngineEventType.STEP_STARTED, EngineEventType.STEP_UPDATED, EngineEventType.STEP_COMPLETED,
+                elif event.type in (EngineEventType.OUTPUT, EngineEventType.COMPLETION,
+                                    EngineEventType.CHECKPOINT, EngineEventType.PAUSED,
+                                    EngineEventType.STEP_STARTED, EngineEventType.STEP_UPDATED, EngineEventType.STEP_COMPLETED,
                                     EngineEventType.STEP_FAILED, EngineEventType.STEP_INTERRUPTED,
                                     EngineEventType.STEP_CANCELLED):
-                    await self._io.run(self.recorder.record, run, event)
+                    # 한 이벤트의 쓰기를 한 저장 경계에서 끝낸 뒤 런타임 상태를 진행한다.
+                    await self._io.run(self._record_engine_event, run, store, event)
                     if event.type == EngineEventType.STEP_STARTED:
                         active_steps.add(event.step_id)
-                    elif event.type != EngineEventType.STEP_UPDATED:
+                    elif event.type in (EngineEventType.STEP_COMPLETED, EngineEventType.STEP_FAILED,
+                                        EngineEventType.STEP_INTERRUPTED, EngineEventType.STEP_CANCELLED):
                         active_steps.discard(event.step_id)
+                    elif event.type == EngineEventType.PAUSED:
+                        paused = True
                 else:
                     await self.event_handlers.handle(EventContext(run, context, self._io, self.repository), event)
                 notifications.append(event)
             if pending_outputs:
-                def persist():
-                    if len(pending_outputs) == 1:
-                        self.repository.record_output(run, pending_outputs[0])
-                    else:
-                        self.repository.record_outputs(run, pending_outputs)
-                    if len(pending_deltas) == 1:
-                        text, operation = pending_deltas[0]
-                        if operation == "append":
-                            store.delta(run.assistant_message_id, text)
-                        else:
-                            store.delta(run.assistant_message_id, text, operation=operation)
-                    elif pending_deltas:
-                        store.deltas(run.assistant_message_id, pending_deltas)
-                await drain_on_cancel(self._io.run(persist))
+                await drain_on_cancel(self._io.run(self._record_deltas, run, store, pending_outputs, pending_deltas))
             for event in notifications:
                 await self.events.publish(run, event)
                 await self.subscriptions.publish("engine", run, event, on_error=lambda: self._observer_failed(run))
@@ -940,7 +920,43 @@ class RunManager:
                for step in await self._io.run(self.steps.list, run)):
             raise RuntimeError("Engine ended with unfinished or failed Steps")
 
+    def _record_engine_event(self, run: Run, store: Conversation, event: EngineEvent) -> None:
+        """표준 이벤트 하나의 저장 단위. IO 실행기가 잠금·트랜잭션을 제공한다."""
+        if event.type == EngineEventType.COMPLETION:
+            self._record_completion(run, event)
+        elif event.type == EngineEventType.CHECKPOINT:
+            self.repository.record_checkpoint(run, event)
+        elif event.type == EngineEventType.PAUSED:
+            # 일시정지를 알리기 전에 체크포인트가 실제로 존재해야 한다.
+            self.repository.checkpoint(run, event.metadata["checkpoint"])
+        else:
+            if event.output is not None:
+                self.repository.record_output(run, event.output)
+            if event.type == EngineEventType.OUTPUT and event.output.step_id is None:
+                self._record_result(run, store, event.output)
+            else:
+                if event.type == EngineEventType.OUTPUT:
+                    event = replace(event, type=EngineEventType.STEP_UPDATED)
+                self.recorder.record(run, event)
+
+    def _record_deltas(self, run: Run, store: Conversation, outputs, deltas) -> None:
+        """출력 저널과 대화 델타를 같은 트랜잭션에 저장한다. 알림은 호출자가 보낸다."""
+        if len(outputs) == 1:
+            self.repository.record_output(run, outputs[0])
+        else:
+            self.repository.record_outputs(run, outputs)
+        if len(deltas) == 1:
+            text, operation = deltas[0]
+            if operation == "append":
+                store.delta(run.assistant_message_id, text)
+            else:
+                store.delta(run.assistant_message_id, text, operation=operation)
+        elif deltas:
+            store.deltas(run.assistant_message_id, deltas)
+
     def _record_result(self, run: Run, store: Conversation, value: EngineOutput) -> None:
+        from llm.services.infrastructure.transactions import watch
+        watch(run)
         # 최종 텍스트만 다음 대화에 전달한다. 구조화 Graph 결과를 문자열로 바꾸지 않는다.
         # 같은 본문은 재저장하지 않아 일반적인 단일 응답의 중복 쓰기를 피한다.
         if (value.visibility == "user" and (value.text or value.data is None)
@@ -979,6 +995,8 @@ class RunManager:
 
     def _finish(self, runtime: TaskRuntime, run: Run, status: RunStatus,
                 error: Optional[str] = None, error_code: Optional[str] = None) -> None:
+        from llm.services.infrastructure.transactions import watch
+        watch(runtime.task)
         for step in self.steps.list(run):
             if step.status in (StepStatus.PENDING, StepStatus.RUNNING):
                 if status == RunStatus.FAILED:
@@ -992,13 +1010,6 @@ class RunManager:
         run.error_code = error_code
         run.ended_at = now()
         self.repository.save(run)
-        if status == RunStatus.PAUSED:
-            # 자동 승인도 실행을 시작하지 않는다. UI는 PAUSED 알림 뒤 저장된 정책 응답을 조회한다.
-            try:
-                self.repository.apply_interaction_policy(runtime.task, run, run.metadata["policies"].get("approval", {}))
-            except Exception:
-                # 응답 저장 실패는 자동 실행하지 않고 PAUSED 상태를 유지한다.
-                log_event(run.paths.logs, "interaction.policy_failed", entity_id=run.id, status="response_write_failed")
         log_event(run.paths.logs, f"run.{status.value}", entity_id=run.id,
                   status=status)
         runtime.task.current_run_id = None
@@ -1048,6 +1059,14 @@ class RunManager:
                 finally:
                     try:
                         await self._io.run(self._finish, runtime, run, status, error, error_code)
+                        if status == RunStatus.PAUSED:
+                            try:
+                                # 선택적 자동 응답 실패가 이미 확정한 PAUSED를 되돌리지 않는다.
+                                await self._io.run(self.repository.apply_interaction_policy, runtime.task, run,
+                                                   run.metadata["policies"].get("approval", {}))
+                            except Exception:
+                                log_event(run.paths.logs, "interaction.policy_failed", entity_id=run.id,
+                                          status="response_write_failed")
                         await self._publish_run(run)
                     finally:
                         runtime.execution = None

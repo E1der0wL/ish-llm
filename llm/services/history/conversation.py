@@ -9,11 +9,13 @@ from functools import wraps
 from copy import deepcopy
 from collections import Counter, OrderedDict
 from pathlib import Path
+from io import StringIO
 
 from llm.core.models import Message, MessageRole, MessageStatus, Task, new_id
 from llm.core.paths import TaskPaths
 from llm.services.infrastructure.logging import log_event
-from llm.services.infrastructure.storage import record, sync_directory
+from llm.services.infrastructure.storage import record, sync_directory, append_bytes, prepare_replace, temporary_file
+from llm.services.infrastructure.transactions import current_transaction
 from llm.services.query import Query, select
 
 
@@ -31,10 +33,12 @@ class Conversation(ABC):
     def __init__(self) -> None:
         self._mutex = threading.RLock()
         self._messages: dict[str, Message] = {}
+        self._text_buffers: dict[str, StringIO] = {}
         self._counts = Counter()
 
     def _clear(self):
         self._messages.clear()
+        self._text_buffers.clear()
         self._counts.clear()
 
     @abstractmethod
@@ -50,6 +54,13 @@ class Conversation(ABC):
         for event in events:
             self._append(event)
 
+    def _snapshot(self, message: Message) -> Message:
+        """조회할 메시지만 본문을 합친다. 내부 버퍼는 공개 모델/저장 형식에 노출하지 않는다."""
+        snapshot = deepcopy(message)
+        if message.id in self._text_buffers:
+            snapshot.content = self._text_buffers[message.id].getvalue()
+        return snapshot
+
     def _apply(self, event: dict) -> None:
         kind = event["type"]
         if kind == "message.create":
@@ -63,12 +74,21 @@ class Conversation(ABC):
         else:
             message = self._messages[event["id"]]
             if kind == "message.delta":
-                if event.get("operation", "append") == "replace":
-                    message.content = event["text"]
-                else:
-                    message.content += event["text"]
+                if not isinstance(event["text"], str):
+                    raise TypeError("Message delta text must be a string")
+                operation = event.get("operation", "append")
+                buffer = self._text_buffers.get(message.id)
+                if buffer is None or operation == "replace":
+                    buffer = StringIO()
+                    if operation != "replace":
+                        buffer.write(message.content)
+                    self._text_buffers[message.id] = buffer
+                    message.content = ""
+                buffer.write(event["text"])
             elif kind == "message.status":
                 status = MessageStatus(event["status"])
+                if status != MessageStatus.STREAMING and message.id in self._text_buffers:
+                    message.content = self._text_buffers.pop(message.id).getvalue()
                 self._counts[(message.role, message.status)] -= 1
                 message.status = status
                 self._counts[(message.role, message.status)] += 1
@@ -91,12 +111,12 @@ class Conversation(ABC):
     def list(self, *, query: Optional[Query] = None) -> list[Message]:
         self._refresh()
         items = list(self._messages.values()) if query is None else self._messages.values()
-        return deepcopy(select(items, query))
+        return [self._snapshot(message) for message in select(items, query)]
 
     @_serialized
     def get(self, message_id: str) -> Message:
         self._refresh()
-        return deepcopy(self._messages[message_id])
+        return self._snapshot(self._messages[message_id])
 
     @_serialized
     def create(self, role: MessageRole, content: str, status: MessageStatus,
@@ -180,10 +200,18 @@ class ConversationStore(Conversation):
         self._offset = 0
         self._signature = None
 
+    def _enlist(self):
+        transaction = current_transaction()
+        if transaction is not None and transaction.owns(self.path):
+            def invalidate():
+                with self._mutex:
+                    self._clear()
+                    self._offset, self._signature = 0, None
+            transaction.on_rollback(("conversation", id(self)), invalidate)
+
     @_serialized
     def prune(self, message_ids):
         """비활성 Task의 명시적 정리만 사용한다. 생존 메시지를 원자 교체하고 캐시를 무효화한다."""
-        import tempfile
         from llm.services.infrastructure.storage import reject_links
         reject_links(self.path)
         self._refresh()
@@ -191,13 +219,15 @@ class ConversationStore(Conversation):
         if any(m.id in removed and m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING)
                for m in self._messages.values()):
             raise ValueError("Cannot prune pending messages")
+        self._enlist()
+        prepare_replace(self.path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        fd, temporary = tempfile.mkstemp(dir=self.path.parent, prefix=".retention-")
+        fd, temporary = temporary_file(self.path)
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as stream:
                 for message in self._messages.values():
                     if message.id not in removed:
-                        stream.write(json.dumps({"type": "message.create", "message": record(message)},
+                        stream.write(json.dumps({"type": "message.create", "message": record(self._snapshot(message))},
                                                 ensure_ascii=False, allow_nan=False) + "\n")
                 stream.flush()
                 os.fsync(stream.fileno())
@@ -229,25 +259,26 @@ class ConversationStore(Conversation):
                 block = stream.read(position - start)
                 newline = block.rfind(b"\n")
                 if newline != -1:
+                    transaction = current_transaction()
+                    if transaction is not None and transaction.owns(self.path):
+                        transaction.before_truncate(self.path, start + newline + 1)
                     stream.truncate(start + newline + 1)
                     break
                 position = start
             else:
+                transaction = current_transaction()
+                if transaction is not None and transaction.owns(self.path):
+                    transaction.before_truncate(self.path, 0)
                 stream.truncate(0)
             stream.flush()
             os.fsync(stream.fileno())
 
     def _append(self, event: dict) -> None:
         data = (json.dumps(event, ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._enlist()
         if self._signature is not None and self._offset < self._signature[2]:
             self._repair_tail()
-        with self.path.open("ab") as stream:
-            stream.write(data)
-            stream.flush()
-            os.fsync(stream.fileno())
-        if self._signature is None:
-            sync_directory(self.path.parent)
+        append_bytes(self.path, data)
         # Apply the serialized snapshot only after fsync succeeds.
         self._apply(json.loads(data))
         stat = self.path.stat()
@@ -268,15 +299,10 @@ class ConversationStore(Conversation):
             return
         data = b"".join((json.dumps(event, ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
                         for event in events)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._enlist()
         if self._signature is not None and self._offset < self._signature[2]:
             self._repair_tail()
-        with self.path.open("ab") as stream:
-            stream.write(data)
-            stream.flush()
-            os.fsync(stream.fileno())
-        if self._signature is None:
-            sync_directory(self.path.parent)
+        append_bytes(self.path, data)
         for line in data.splitlines():
             self._apply(json.loads(line))
         stat = self.path.stat()
@@ -333,6 +359,29 @@ class MemoryConversationStore(Conversation):
     def _append(self, event: dict) -> None:
         # 파일 모드와 동일한 JSON 값 검증/스냅샷 계약을 지킨다.
         snapshot = json.loads(json.dumps(event, ensure_ascii=False, allow_nan=False))
+        transaction = current_transaction()
+        if transaction is not None:
+            transaction.changed()
+            identifier = snapshot.get("id", snapshot.get("message", {}).get("id"))
+            key = ("memory_message", id(self), identifier)
+            previous = deepcopy(self._messages.get(identifier))
+            # append 취소에는 이전 길이만 필요하다. replace는 새 버퍼를 만들어 원본을 보존한다.
+            previous_buffer = self._text_buffers.get(identifier)
+            previous_length = previous_buffer.tell() if previous_buffer is not None else 0
+            def restore():
+                with self._mutex:
+                    if previous is None:
+                        self._messages.pop(identifier, None)
+                    else:
+                        self._messages[identifier] = previous
+                    if previous_buffer is None:
+                        self._text_buffers.pop(identifier, None)
+                    else:
+                        previous_buffer.seek(previous_length)
+                        previous_buffer.truncate()
+                        self._text_buffers[identifier] = previous_buffer
+                    self._counts = Counter((m.role, m.status) for m in self._messages.values())
+            transaction.on_rollback(key, restore)
         self._apply(snapshot)
 
     # 공개 API

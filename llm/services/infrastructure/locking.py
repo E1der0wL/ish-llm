@@ -14,6 +14,7 @@ from pathlib import Path
 
 from llm._platform import require_linux
 from llm.services.infrastructure.logging import logging_scope
+from llm.services.infrastructure.transactions import TransactionManager, watch
 
 
 class WorkspaceBusyError(RuntimeError):
@@ -26,6 +27,7 @@ class WorkspaceOwnership:
         require_linux()
         self.logger = logger
         self.path = root.absolute() / ".ish.lock"
+        self.transactions = TransactionManager(self.path.parent)
         self._mutex = threading.RLock()
         self._stream = None
         self._references = 0
@@ -91,7 +93,7 @@ class WorkspaceOwnership:
         with self._mutex:
             self.retain()
             try:
-                with logging_scope(self.logger):
+                with logging_scope(self.logger), self.transactions.scope():
                     yield
             finally:
                 self.release()
@@ -102,5 +104,7 @@ def workspace_locked(method):
     @wraps(method)
     def guarded(self, *args, **kwargs):
         with self.ownership.scope():
+            for value in (*args, *kwargs.values()):
+                watch(value)
             return method(self, *args, **kwargs)
     return guarded

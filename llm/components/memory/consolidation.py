@@ -6,7 +6,7 @@ import hashlib
 
 from llm.components.base import Component, validate_name
 from llm.core.models import new_id
-from llm.services.infrastructure.storage import atomic_json, read_json, sync_directory
+from llm.services.infrastructure.storage import atomic_json, read_json, unlink_file
 
 
 class MemoryConsolidation:
@@ -37,8 +37,7 @@ class MemoryConsolidation:
                    "superseded": journal["superseded"], "source": journal["source"]}
         atomic_json(component._checked(self.root / "receipts" / (identifier + ".json")), receipt)
         pending = component._checked(self.root / "pending" / (identifier + ".json"))
-        pending.unlink()
-        sync_directory(pending.parent)
+        unlink_file(pending)
         return receipt
 
     def pending(self):

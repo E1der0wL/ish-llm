@@ -8,6 +8,7 @@ from typing import Any
 
 from llm.core.models import Project
 from llm.services.infrastructure.logging import log_event
+from llm.services.infrastructure.storage import prepare_create
 from .base import ProjectComponent, validate_name
 
 
@@ -56,6 +57,9 @@ class ComponentRegistry:
     def initialize(self, project: Project) -> None:
         self.validate_configuration(project)
         for name in self.validate(project.components):
+            root = project.paths.root / self._components[name].directory
+            if not root.exists():
+                prepare_create(root)
             self._components[name].initialize(deepcopy(project))
         log_event(project.paths.logs, "components.initialized", entity_id=project.id,
                   count=len(project.components))

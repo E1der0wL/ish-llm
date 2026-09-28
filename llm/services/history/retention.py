@@ -138,8 +138,8 @@ class HistoryRetention:
         from llm.services.infrastructure.storage import child
         receipt = child(task.paths.state / "retention_history", intent["id"]).with_suffix(".json")
         atomic_json(reject_links(receipt), {**intent, "completed_at": now()})
-        path.unlink()
-        sync_directory(path.parent)
+        from llm.services.infrastructure.storage import unlink_file
+        unlink_file(path)
         return intent["id"]
 
     def plan(self, project) -> RetentionPlan:

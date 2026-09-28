@@ -66,6 +66,8 @@ class StepManager:
         self.repository = repository if repository is not None else StepRepository()
 
     def _finish(self, step: Step, status: StepStatus, error: Optional[str] = None) -> None:
+        from llm.services.infrastructure.transactions import watch
+        watch(step)
         if step.status not in (StepStatus.PENDING, StepStatus.RUNNING):
             raise ValueError("Step is already terminal")
         if status == StepStatus.COMPLETED and step.status != StepStatus.RUNNING:
@@ -107,6 +109,8 @@ class StepManager:
         return select(self.repository.list(run), query)
 
     def start(self, step: Step) -> None:
+        from llm.services.infrastructure.transactions import watch
+        watch(step)
         if step.status != StepStatus.PENDING:
             raise ValueError("Only pending Steps can start")
         step.status = StepStatus.RUNNING

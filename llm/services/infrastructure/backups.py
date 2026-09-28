@@ -7,7 +7,8 @@ import stat
 import tempfile
 from pathlib import Path
 
-from llm.services.infrastructure.storage import atomic_json, read_json, sync_directory
+from llm.services.infrastructure.storage import atomic_json, read_json, sync_directory, prepare_create
+from llm.services.infrastructure.transactions import current_transaction
 
 
 class DirectoryBackups:
@@ -41,7 +42,9 @@ class DirectoryBackups:
         if destination.exists():
             raise FileExistsError("Backup/restore destination already exists")
         destination.parent.mkdir(parents=True, exist_ok=True)
-        stage = Path(tempfile.mkdtemp(prefix=".llm-backup-", dir=destination.parent))
+        transaction = current_transaction()
+        stage = (transaction.staging_directory() if transaction is not None and transaction.owns(destination)
+                 else Path(tempfile.mkdtemp(prefix=".llm-backup-", dir=destination.parent)))
         try:
             build(stage)
             for path in stage.rglob("*"):
@@ -54,6 +57,7 @@ class DirectoryBackups:
             sync_directory(stage)
             if destination.exists():
                 raise FileExistsError("Backup/restore destination already exists")
+            prepare_create(destination)
             os.rename(stage, destination)
             sync_directory(destination.parent)
         finally:

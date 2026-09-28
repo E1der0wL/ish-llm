@@ -128,14 +128,8 @@ class ProjectManager:
                           conversation_storage=storage)
         self._validate_configuration(project)
         self.repository.save(project)
-        try:
-            self.tasks.initialize(deepcopy(project))
-            self.components.initialize(project)
-        except Exception:
-            project.deleted = True
-            self.repository.save(project)
-            log_event(project.paths.logs, "project.initialization_failed", entity_id=project.id)
-            raise
+        self.tasks.initialize(deepcopy(project))
+        self.components.initialize(project)
         log_event(project.paths.logs, "project.created", entity_id=project.id)
         return project
 
@@ -394,8 +388,7 @@ class ProjectManager:
         if permanent:
             current.config.component_configurations.pop(name, None)
         self.components.validate(current.components)
-        # Publish disabled state first: interrupted removal must not leave a
-        # selected component exposing partially deleted definitions to new Runs.
+        # 선택 해제와 디렉토리 격리를 같은 트랜잭션으로 확정한다.
         self.repository.save(current)
         project.components = current.components
         if permanent:
@@ -440,12 +433,7 @@ class ProjectManager:
         self.components.initialize(current)
         current.deleted = False
         self.repository.save(current)
-        try:
-            self.tasks.initialize(deepcopy(current))
-        except Exception:
-            current.deleted = True
-            self.repository.save(current)
-            raise
+        self.tasks.initialize(deepcopy(current))
         project.deleted = False
         log_event(current.paths.logs, "project.restored", entity_id=current.id)
 
@@ -459,14 +447,9 @@ class ProjectManager:
         clone = self.create(title if title is not None else source.title, config=source.config,
                             components=source.components,
                             conversation_storage=source.conversation_storage)
-        try:
-            self.components.clone(source, clone)
-            for task in tasks:
-                self.tasks.clone(task, clone)
-        except Exception:
-            clone.deleted = True
-            self.repository.save(clone)
-            raise
+        self.components.clone(source, clone)
+        for task in tasks:
+            self.tasks.clone(task, clone)
         log_event(clone.paths.logs, "project.cloned", entity_id=clone.id,
                   related_id=source.id)
         return clone

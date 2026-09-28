@@ -11,6 +11,8 @@ from llm.services.lifecycle.steps import StepManager
 
 def recover_task(tasks, repository, steps, task, store):
     """Task 소유권을 확보한 호출자만 사용한다. Runtime 시작과 수동 복구가 같은 규칙을 쓴다."""
+    from llm.services.infrastructure.transactions import watch
+    watch(task)
     recovered = []
     messages = {message.id: message for message in store.list()}
     for run in repository.list(task):

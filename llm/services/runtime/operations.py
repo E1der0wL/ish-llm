@@ -128,14 +128,38 @@ class OperationRepository:
 class ToolOperations:
     """Engine에 노출하는 서비스 핸들. 파일 위치와 저장소 구현은 Engine에서 알 필요가 없다."""
 
-    def __init__(self, task, io, repository):
+    def __init__(self, task, io, repository, *, steps=None):
         self.task, self.io, self.repository = task, io, repository
+        self.steps = steps
+
+    def _persist(self, method, call, *args):
+        value = method(self.task, call, *args)
+        if self.steps is not None:
+            record_operation_step(self.repository, self.steps, self.task,
+                                  self.repository.tool_operation(self.task, call.operation_key),
+                                  run_id=call.run_id, step_id=call.step_id)
+        return value
 
     async def claim(self, call):
-        return await self.io.run(self.repository.claim_tool_operation, self.task, call)
+        return await self.io.run(self._persist, self.repository.claim_tool_operation, call)
 
     async def complete(self, call, result):
-        await self.io.run(self.repository.complete_tool_operation, self.task, call, result)
+        await self.io.run(self._persist, self.repository.complete_tool_operation, call, result)
 
     async def not_applied(self, call, evidence):
-        await self.io.run(self.repository.fail_tool_operation, self.task, call, evidence)
+        await self.io.run(self._persist, self.repository.fail_tool_operation, call, evidence)
+
+
+def record_operation_step(repository, steps, task, receipt, *, run_id=None, step_id=None):
+    """원장과 관찰 Step을 함께 확정한다. 완료 이벤트나 외부 실행을 기다리지 않는다.
+
+    Step 상태는 Engine 이벤트가 소유한다. 원장 영수증은 효과의 재사용 여부를
+    결정하는 원본이며 재시작으로 Step이 interrupted여도 그 결과를 잃지 않는다.
+    """
+    run = repository.load(task, run_id or receipt["run_id"])
+    step = steps.load(run, step_id or receipt["step_id"])
+    step.metadata["operation_receipt"] = {
+        "key": receipt["key"], "status": receipt["status"],
+        "run_id": receipt["run_id"], "step_id": receipt["step_id"],
+        "ended_at": receipt.get("ended_at"), "evidence": receipt.get("evidence")}
+    steps.save(step)

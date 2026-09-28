@@ -323,7 +323,10 @@ class RAGComponent(DefinitionComponent):
             raise ValueError("Cannot mix embedding models/dimensions in one corpus")
         generation = uuid4().hex
         path = self._generation_path(project, generation)
-        path.mkdir(parents=True)
+        from llm.services.infrastructure.storage import make_directory
+        if path.exists():
+            raise FileExistsError(path)
+        make_directory(path)
         try:
             if previous["generation"] and type(self)._build is RAGComponent._build and "_build" not in self.__dict__:
                 source = self._checked_tree(self._generation_path(project, previous["generation"]))
