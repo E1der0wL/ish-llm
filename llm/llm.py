@@ -1,0 +1,866 @@
+"""ish 플러그인의 진입점과 LargeLanguageModel 공개 API. 백엔드는 실행과 조회에 동일한 서비스를 사용하고 종료 시 저장 작업과 이벤트 알림을 정리한다.
+
+ish plugin entry point for one streaming request: python -m llm.llm --help."""
+
+# The platform reads this literal with ast.literal_eval before importing us.
+# requirements lists other ish plugins; dependencies lists Python distributions.
+PLUGIN_META = {
+    "name": "llm",
+    "version": "0.1.0",
+    "description": "Durable AI tasks and streaming LoopEngine execution for ish.",
+    "author": "",
+    "requirements": [],
+    "dependencies": [
+        "litellm>=1.100,<2",
+        "jsonschema>=4.23,<5",
+        "langgraph>=1.2.12,<2",
+        "chromadb",
+        "kuzu",
+        "rank-bm25|rank_bm25",
+    ],
+}
+
+import argparse
+import asyncio
+import os
+import sys
+from contextvars import ContextVar
+from dataclasses import replace
+from pathlib import Path
+from typing import Any, Callable, Iterable, Mapping, Optional, Union
+
+from llm._platform import require_linux
+from llm.core.models import ProjectConfig, Run, RunStatus, Task
+from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
+from llm.core.views import TaskRuntimeView, RunView
+from llm.core.plans import ResumePlan, RecoveryPlan, RetentionPlan, RecoveryResult
+from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult
+from llm.core.interactions import InteractionRequest, InteractionOption, InteractionResponse, InteractionView
+from llm.providers.calls import ProviderCalls, ProviderLimits
+from llm.services.runtime.output import OutputPolicy
+from llm.engines.base import Engine, EngineEvent, EngineEventType, EngineRegistry
+from llm.engines.loop import LoopEngine
+from llm.engines.graph import GraphEngine, GraphNodeContext
+from llm.engines.tool import ToolNode
+from llm.engines.agent import AgentNode
+from llm.components.tools import Tool, ToolContract, ToolRegistry
+from llm.components.tools.builtin import BuiltinTools
+from llm.components.tools.component import ToolComponent
+from llm.components.agents import AgentComponent
+from llm.components.skills import SkillComponent
+from llm.components.mcp import MCPComponent
+from llm.components.rag import RAGComponent, EmbeddingModel, RerankModel
+from llm.components.rag import TripleExtractor
+from llm.components.workflows import WorkflowComponent, WorkflowGraph
+from llm.components.memory import MemoryComponent, MemoryData, MemoryConflictError
+from llm.components.base import ProjectComponent
+from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
+from llm.services.runtime.runs import RunEvent, RunManager, RunErrorCode, RunRequestError
+from llm.services.runtime.policies import RunLimits, ProjectPolicyResolver
+from llm.services.runtime.tools import ToolPolicy, ToolCall, ToolExecutionError, ToolApprovalRequired
+from llm.services.runtime.processes import ProcessToolRunner
+from llm.services.history.context import CompletionPolicy
+from llm.services.api import Projects
+from llm.services.infrastructure.storage import StorageIO, drain_on_cancel
+from llm.services.configuration import ServiceConfig
+from llm.services.history.conversation import MemoryConversations, MemoryConversationStore, conversation_store
+from llm.services.runtime.events import EventSubscriptions
+
+
+# 공개 진입점: 하나의 workspace와 이벤트 루프에 서비스/런타임을 묶는다.
+class LargeLanguageModel:
+    """Project → Task → Run → Engine → Step을 탐색하고 실행하는 공개 백엔드.
+
+    하나의 프로세스와 이벤트 루프에서 사용한다. 생성자는 파일을 쓰거나 모델을
+    호출하지 않으므로 .ishrc.py에서 만들 수 있다. 종료 시 shutdown()을 await하거나
+    async with를 사용한다. 아래 도메인별 코드는 살아 있는 backend와 그 핸들에 대한
+    사용 예시이며, 모든 블록을 차례대로 실행하는 스크립트는 아니다.
+
+    사용자 승인/확인 요청 (Loop, Graph, 중첩 Agent 공통)::
+
+        requests = await paused_run.ainteractions(pending_only=True)
+        request = requests[0]
+        # request.options, category, priority, risk, recommended_option_id로 UI를 구성한다.
+        response = request.respond("approve")  # 사용자의 실제 선택 후 생성
+        await paused_run.arespond(response)    # 원자적 응답 저장, 아직 실행하지 않음
+        resumed = await task.run.resume(paused_run.id, engine=paused_run.engine)
+        result = await resumed.wait()
+
+    InteractionRequest/InteractionOption/InteractionResponse는 llm 플러그인의 공개 클래스다.
+    EngineEvent.interaction으로 저장 완료된 요청을 실시간 관찰할 수 있으며, UI 재접속 시
+    Run.ainteractions()/ainteraction_responses()로 복원한다. 권장 선택지는 자동 승인이 아니다.
+    거절은 request.respond("deny"), Graph의 명시적 resume_schema 입력은
+    request.respond("approve", value={...})로 전달한다. Tool 인자는 승인 응답으로 변경할 수 없다.
+
+    장시간 실행/출력 저장 조율::
+
+        services = ServiceConfig(
+            provider_limits=ProviderLimits(max_active=4, max_waiting=16, wait_seconds=10),
+            output_policy=OutputPolicy(batch_size=32, max_delay=0.025, max_chars=65536),
+            output_index_stride=128,
+        )
+        backend = LargeLanguageModel("workspace", services=services)
+        print(backend.provider_calls.stats)  # 실제 종료되지 않은 호출도 active에 포함
+
+    기본 batch_size=1은 즉시 저장이다. 묶음 모드도 Tool 승인/체크포인트 경계를 보존한다.
+    file Project 백업은 모든 Task 런타임을 해제한 다음 호출한다::
+
+        await task.run.shutdown()
+        archive = await project.abackup("backups/project-copy")
+        # 동일 ID가 없는 별도 backend에서만 복원한다.
+        restored = await other_backend.projects.arestore_backup(archive)
+        upgraded = await backend.projects.aupgrade_backup(
+            archive, "backups/upgraded", transform=convert_project_copy)
+
+    변환 함수는 사본의 Path를 받는 신뢰한 개발자 코드다. 원본을 변경하지 않고 현재
+    저장 형식으로 검증한다. memory/외부 대화는 휴대 가능한 파일 백업에서 거부한다.
+    자세한 보장/제한과 저장 버전 정책은 docs/operational-storage.md를 참고한다.
+
+    생성 및 최소 실행 예제::
+
+        from llm.llm import LargeLanguageModel, LoopEngine, ProjectConfig, RunStatus
+        from llm.services.query import Query
+
+        async def example(model: str):
+            async with LargeLanguageModel(
+                "./workspace",
+                engines={"chat": LoopEngine(max_iterations=5)},
+            ) as backend:
+                project = await backend.projects.acreate(
+                    "도우미",
+                    config=ProjectConfig(completion={"model": model}),
+                    conversation_storage="file",
+                )
+                task = await project.tasks.acreate("첫 대화")
+                request = await task.run.submit("안녕!", engine="chat")
+                run = await request.wait(timeout=60)
+                result = await run.aresult()
+                if result.status == RunStatus.COMPLETED:
+                    print((await run.aresponse()).content)
+                else:
+                    print(result.status, result.error_code, result.error)
+
+    생성자 설정:
+        workspace는 Project들을 담는 작업 공간이다. engines는 이름→Engine 인스턴스
+        매핑이며 생략하면 "loop"가 등록된다. 등록과 실행 선택은 별개라서 submit에는
+        항상 engine을 지정해야 한다. 모델명과 인증은 사용하는 공급자에 맞게 설정한다.
+        components는 제공할 Component 인스턴스 목록이며 명시하면 기본 목록을 대체한다.
+        실제로 사용할 종류는 Project 생성의 components=["tools", ...]에서 선택한다.
+        services=ServiceConfig(...)로 저장소·문맥 정책·로그·이벤트 처리기를 주입한다.
+        conversation_storage는 새 Project와 선택이 없는 기존 Project의 기본값이다.
+        on_event(run, event), on_run_event(event)는 실행 관찰 콜백이다.
+
+    동기/비동기 사용 규칙:
+        create/load/list/save 등의 동기 API에는 acreate/aload/alist/asave처럼
+        a 접두사의 비동기 API가 있다. UI와 async 코드에서는 비동기 API를 권장한다.
+        예를 들어 project = backend.projects.create("작업")도 가능하다.
+        run.submit/start/wait_idle/interrupt/shutdown과 request.wait는 원래 비동기다.
+        핸들의 data는 최신 도메인 데이터의 분리된 사본이며 수정만으로 저장되지 않는다.
+        async 코드에서는 await handle.aget_data()를 사용하고 변경은 save/asave로 한다.
+
+    Project — 생성·조회·수정·복제·삭제::
+
+        # 각 컴포넌트의 JSON 설정을 ProjectConfig로 전달할 수 있다.
+        project = await backend.projects.acreate(
+            "문서 작업", components=["rag", "memory"],
+            config=ProjectConfig(component_configurations={
+                "rag": {"chunk_size": 1200, "search": {"limit": 8}},
+                "memory": {"search_limit": 5},
+            }, policies={"output": {"batch_size": 16}}),
+        )
+        # 컴포넌트 기본값 위에 Project 설정을 적용한다.
+        # configure() 편의 API도 항상 같은 Project 설정을 갱신한다.
+        view = await project.aconfiguration()
+        print(view["components"]["rag"]["effective"]["sources"])
+        settings = ProjectConfig(view["project"]["config"])
+        settings.component_configurations["rag"]["search"]["limit"] = 10
+        await project.asave(config=settings, expected_version=view["config_version"])
+
+        # 최초에는 loop 기본 선택·전체 등록 Component·file 대화 저장으로 생성한다.
+        # 재호출 시 같은 Project를 반환하고 기존 설정을 덮어쓰지 않는다.
+        project = await backend.projects.aget_default(
+            config=ProjectConfig(completion={"model": model}),
+        )
+        view = await project.aconfiguration()  # 프로젝트 + 선택된 Component 설정의 JSON 사본
+        component_settings = view["components"]["tools"]["configuration"]
+        # 실제 실행에는 engine=view["project"]["config"]["default_engine"]을 명시한다.
+
+        project = await backend.projects.acreate(
+            "연구", config=ProjectConfig(completion={"model": model}),
+            components=["tools", "skills", "agents", "workflows"],
+            conversation_storage="memory",
+        )
+        project = await backend.projects.aload(project.id)
+        projects = await backend.projects.alist(include_deleted=True, query=Query(limit=20))
+        await project.asave(title="연구 노트")
+        settings = (await project.aget_data()).config
+        settings["completion"]["temperature"] = 0.2
+        await project.asave(config=settings)
+        project_copy = await project.aclone(title="연구 사본")
+        await project.adelete()                 # 소프트 삭제
+        await project.arestore()                # 복원
+        # await project.adelete(permanent=True)  # 프로젝트 파일까지 영구 삭제
+
+        # Task가 없는 프로젝트에서만 저장 방식을 바꿀 수 있다.
+        await project.asave(conversation_storage="file")
+
+    Project의 id/paths로 식별자와 경로를 조회한다. config는 열린 JSON 설정이며
+    save(config=...)는 전체 설정을 교체한다. 복제·삭제 전에는 소속 Task의 런타임을
+    각각 await task.run.shutdown()으로 해제한다. wait_idle()만으로는 해제되지 않는다.
+    저장 선택은 project.json에 남는다. memory의 대화와 대기 요청은 백엔드 종료 시
+    사라지지만 Project/Task/Run/Step 파일은 유지된다. 기존 대화를 자동 이전하지 않는다.
+
+    Task / Conversation — 독립 대화 세션 관리::
+
+        task = await project.tasks.acreate("코드 검토", config={"completion": {"temperature": 0}})
+        task = await project.tasks.aload(task.id)
+        tasks = await project.tasks.alist(include_deleted=True, query=Query(limit=20))
+        await task.asave(title="검토 세션", metadata={"language": "ko"})
+        messages = await task.aconversation(query=Query(limit=50))
+        await task.run.shutdown()
+        await task.asave(config={"completion": {"temperature": 0.1}})
+        task_copy = await task.aclone(title="검토 사본")
+        await task.adelete()
+        await task.arestore()
+        # await task.adelete(permanent=True)
+
+    Task의 id/paths/data를 조회할 수 있다. 제목·메타데이터는 실행 중에도 수정할 수
+    있지만 config 변경·복제·삭제·복원 전에는 런타임을 해제한다. config와 metadata는
+    전달한 사전으로 교체한다. Task 복제는 대화/설정을 복사하며 Run/Step 이력은 복사하지
+    않는다. 대화는 Task에 속하고 새 입력은 conversation에 직접 쓰지 않고 submit한다.
+
+    Request / Run — 요청 제출·한 건의 완료 대기·실행 제어::
+
+        request = await task.run.submit("이 코드를 검토해줘.", engine="chat")
+        request = await task.run.arequest(request.id)  # 사용자 Message ID로 요청 조회
+        message = await request.aget_data()
+        pending_run = await request.aget_run()        # 아직 실행 전이면 None
+        pending_result = await request.aresult()      # Run이 없으면 None
+        run = await request.wait(timeout=60)          # 이 요청의 최종 RunHandle
+        run = await task.run.aload(run.id)
+        runs = await task.run.alist(query=Query(status="completed", limit=20))
+        snapshot = await run.aget_data()
+        response = await run.aresponse()              # Assistant Message
+        result = await run.aresult()                  # ExecutionResult
+        print(run.id, snapshot.engine, response.content)
+
+        await task.run.start()       # 저장된 대기 요청 복구; submit도 필요 시 시작한다.
+        await task.run.wait_idle()   # 해당 Task의 전체 요청 큐가 비워질 때까지 대기
+        interrupted = await task.run.interrupt()  # 현재 Run만 중단; 대기 요청은 보존
+        await task.run.shutdown()    # 해당 Task 런타임 해제; 이후 submit으로 다시 시작
+
+    submit의 반환값은 Run이 아닌 RequestHandle이다. 같은 Task는 순차 실행하고 서로
+    다른 Task는 동시에 실행할 수 있다. request.wait()는 실패/중단한 Run도 반환하므로
+    result.status를 확인한다. 대기 timeout이나 대기 호출 취소가 Run을 중단하지는 않는다.
+    동기 조회는 request.data/run/result, run.data/engine/response/result를 사용한다.
+    memory 대화가 소멸하면 이전 Run 메타데이터는 남아도 응답 Message 조회는 KeyError다.
+
+    운영 한도 / UI 대기열::
+
+        services = ServiceConfig(
+            tool_policy=ToolPolicy(max_calls=80),
+            conversation_cache_size=32,
+        )
+        backend = LargeLanguageModel("./workspace", services=services)
+        project = await backend.projects.acreate(config=ProjectConfig(policies={
+            "context": {"mode": "full"},
+            "completion": {"max_tokens": 32000, "reserve_tokens": 4000, "counter": "model_default"},
+            "run": {"max_queued": 20, "timeout_seconds": 1800},
+        }))
+        await project.aconfigure_policies({"context": {"mode": "recent", "max_turns": 10}})
+        settings = await project.aconfiguration()  # project/components와 UI용 policy_schema
+        status = await task.run.astatus(queued_limit=20)
+        cancelled = await request.cancel()  # 실행 전 요청만 취소; 실행 중이면 False
+
+    RunLimits의 기본값은 무제한이다. ToolPolicy에는 async authorize(call),
+    runner(tool, call), allowed_tools를 주입할 수 있다. Loop와 Graph Agent/Tool이
+    Run 단위 예산을 공유한다. ProjectConfig.policies.completion은 매 Loop 호출 전에
+    CompletionPolicy로 과거 턴을 선택한다. 토큰 계산 함수는 ServiceConfig.token_counters에
+    이름으로 등록한다. 정책 사본은 Run.metadata.policies에 남으며 변경은 다음 Run부터 반영한다.
+    현재 Tool 문맥까지
+    넘치면 context_budget_exceeded로 실패하고 원문은 유지한다. 자세한 사용 예와 운영
+    한계는 docs/runtime-reliability.md를 따른다.
+
+    장시간 실행 / 복구 / UI 편집::
+
+        checkpoint = await run.acheckpoint("loop")
+        resumed = await task.run.resume(run.id, engine="loop")
+        # 불확실한 Tool은 retry_nodes, 승인 대기는 decisions를 명시한다.
+        view = await run.aview(after=0, limit=200)
+        snapshot = await project.components.workflows.asnapshot("flow")
+        await project.components.workflows.asave("flow", snapshot["data"],
+            expected_version=snapshot["version"])
+        plan = await project.aretention()  # 기본 삭제 없음; 적용은 별도 명시
+        job = await project.components.rag.aenqueue_document(title="설명서", content=markdown)
+        await project.components.rag.arun_job(job["id"])
+
+    policies의 tool_retry/provider_retry/usage/retention으로 동작을 조절한다.
+    정상 None Tool 결과는 재사용하고 불확실한 효과는 자동 재실행하지 않는다.
+    Graph 안의 Loop는 노드 경계로 재개한다. docs/long-running.md에 사용 조건을 설명한다.
+
+    Tool 격리와 동일 외부 작업 결과 재사용::
+
+        runner = ProcessToolRunner(
+            {"external_job": ["/usr/bin/python3", "-I", "/opt/tools/worker.py"]},
+            cwd="/srv/tool-work", read_only_paths=["/opt/tools"], isolation="sandbox")
+        services = ServiceConfig(tool_policy=ToolPolicy(
+            runner=runner, operation_key=lambda call: call.arguments["operation_id"]))
+        record = await task.run.aoperation("business-id")
+        await task.run.shutdown()
+        await task.run.areconcile_operation("business-id", result={"receipt": "confirmed"},
+                                           evidence="외부 시스템에서 완료 확인")
+
+    worker는 stdin ToolCall JSON → stdout JSON 계약을 사용한다. sandbox는 Linux Bubblewrap
+    필수이며 사용 불가 시 거부한다. 명시적 process 모드는 Linux 프로세스 그룹을 종료하며
+    파일/네트워크 보안 sandbox가 아니다. 키는 Task 범위이며 완료 결과를 재사용하고
+    불확실한 started는 차단한다. 제공자 idempotency 규약에 call.idempotency_key를 연결한다.
+    기본 핸들러/내장 shell은 자동으로 격리되지 않는다. docs/process-isolation.md를 참고한다.
+
+    공통 조회·진단·계획 데이터::
+
+        status = await task.run.astatus()          # TaskRuntimeView
+        print(status.queued_count, status.unfinished_work)
+        view = await run.aview()                   # RunView: run/outputs/cursor/events
+        payload = view.to_dict()                  # UI 전송용 JSON 사전
+        restored = RunView.from_dict(payload)
+        plan = await task.run.resume_plan(run.id, engine=run.engine)  # ResumePlan
+        for issue in plan.blockers:               # Diagnostic
+            print(issue.code, issue.message, issue.source)
+        recovery = await project.arecovery()      # RecoveryPlan
+        retention = await project.aretention()    # RetentionPlan
+        # 검토 뒤 해당 작업 API에 expected_version=recovery.version 등을 전달한다.
+        for step in await run.steps.alist():
+            print(step.progress, step.diagnostic) # OperationProgress / Diagnostic 또는 None
+        progress = await project.components.rag.ajob_progress(job_id)
+
+    Diagnostic/ResourceRef/OperationProgress, TaskRuntimeView/RunView,
+    ResumePlan/RecoveryPlan/RecoveryResult/RetentionPlan은 공개 데이터 클래스다.
+    JSON은 to_dict/from_dict로 변환한다. dict 접근 별칭은 제공하지 않는다.
+    진단의 severity나 진행률로 재시도·승인·완료를 결정하지 않는다. 도메인 상태와
+    실행 정책이 원본이다. 프로젝트 설정, 컴포넌트 정의, 공급자 인자는 열린 dict를 유지한다.
+
+    승인 UI와 명시적 재개::
+
+        views = await run.ainteraction_views()  # InteractionView: 응답/실행 상태 분리
+        request = views[0].request
+        await run.arespond(request.respond("approve"))
+        plan = await task.run.resume_plan(run.id, engine=run.engine)
+        if plan.can_resume:
+            resumed = await task.run.resume(run.id, engine=run.engine)
+        # 만료/취소 요청은 acancel_interaction/arenew_interaction으로 관리한다.
+
+    응답 저장은 실행을 시작하지 않는다. Project policies.approval의 기본값은 비활성이다.
+    자동 승인은 호스트 ToolPolicy.auto_approve_categories 상한을 지키고 정책 ID를 남긴다.
+    INTERACTION_CHANGED 알림 유실 시 ainteraction_views로 다시 조회한다.
+    Graph cleanup_timeout 초과 작업은 astatus().unfinished_work로 조회하고 실제 종료까지
+    Task 소유권을 유지한다. Memory의 aconsolidate는 검토된 후보를 버전 검사 후 통합하며
+    중단된 병합은 apending_consolidations/arecover_consolidations로 복구한다.
+    설정과 제약은 docs/domain-hardening.md를 참고한다.
+
+    Engine — 전략 등록과 명시적 선택::
+
+        backend.engines.register("review", LoopEngine(max_iterations=3))
+        names = backend.engines.names()
+        engine = backend.engines.resolve("review")
+        request = await task.run.submit("검토해줘.", engine="review")
+
+    이름은 중복 등록할 수 없다. GraphEngine 등 개발자가 만든 Engine도 같은 방식으로
+    등록한다. Engine 실행은 task.run.submit을 거쳐야 Run/Step/대화 기록과 연결된다.
+    run.engine은 저장된 전략 이름이며 Engine 객체가 아니다. Engine 자체는 영속 파일을
+    쓰지 않고 이벤트를 전달한다. Component 정의를 저장하는 것만으로 실행되지는 않는다.
+
+    Step — Run 내부 실행 단위 조회::
+
+        steps = await run.steps.alist(query=Query(limit=50))
+        if steps:
+            step = await run.steps.aload(steps[0].id)
+            print(step.kind, step.status, step.metadata)
+
+    반환값은 Step 도메인 객체다. Facade의 Step API는 조회 전용이며 생성·상태 전이는
+    Engine 이벤트를 받는 StepEventRecorder/StepManager가 담당한다.
+
+    Results — Run의 사용량·종료 이유를 상위 도메인에서 조회::
+
+        result = await run.aresult()
+        print(result.total_tokens, result.finish_reasons, result.duration_seconds)
+        task_results = await task.results.alist(include_running=True, query=Query(limit=20))
+        project_results = await project.results.alist(include_deleted=True, query=Query(limit=20))
+        same_result = await project.results.aload(run.id)
+        same_result = await task.results.aload(run.id)
+
+    결과는 Run에서 계산한 조회 뷰이며 별도 Project 결과 파일을 만들지 않는다.
+    completions에는 각 모델 호출의 관찰값이 있다. 사용량을 모르면 total_tokens는
+    0이 아닌 None이다. Query(after=마지막_ID, status=상태, offset=0, limit=20,
+    descending=True)로 목록을 제한한다. after는 숫자 인덱스가 아닌 객체 ID다.
+
+    Component — 선택한 프로젝트 기능의 설정과 데이터 CRUD::
+
+        await project.components.aselect(["tools", "skills", "agents", "workflows"])
+        skills = await project.components.aget("skills")  # 동기: project.components.skills
+        identifier = await skills.acreate({"instructions": "변경된 코드를 검토한다."})
+        data = await skills.aload(identifier)
+        records = await skills.alist()                # {식별자: 데이터} 사전
+        data["description"] = "리뷰 지침"
+        await skills.asave(identifier, data)          # 전체 데이터 교체
+        updated = await skills.aupdate(identifier, {"description": "새 리뷰 지침"})
+        await skills.aconfigure({"ui": {"label": "검토"}})
+        configuration = await skills.aconfiguration()
+        await skills.adelete(identifier)              # 정의 파일 삭제
+        await project.components.aremove("skills")   # 선택 해제; 데이터는 유지
+        # await project.components.aremove("skills", permanent=True)
+
+    select는 전체 선택 목록을 교체하고 필요한 디렉토리를 만든다. 등록되어 있고 선택된
+    Component만 접근할 수 있다. project.components["skills"]도 지원한다. create/acreate의
+    identifier=로 식별자를 지정할 수 있다.
+    configure는 전체 설정을 교체하고 update는 최상위 키를 병합한다. 데이터는 Component
+    검증 규칙을 따르는 열린 JSON 사전이다. 기본 제공 종류는 tools/skills/mcp/rag/
+    agents/workflows/memory이며 정의 저장과 실제 Tool·모델·검색 실행은 별개다.
+
+    Memory — 프로젝트 장기 기억 (휘발성 대화 저장 옵션과는 별개)::
+
+        # 선택 목록에 "memory"를 포함해 Project를 생성한다.
+        memory = await project.components.aget("memory")
+        identifier = await memory.acreate({"content": "설명은 한국어로 작성한다.", "kind": "preference"})
+        record = await memory.aload(identifier)
+        record = await memory.aupdate(identifier, {"tags": ["응답"]}, expected_revision=record["revision"])
+        hits = await memory.asearch("한국어")
+        history = await memory.ahistory(identifier)
+        deleted = await memory.adelete(identifier, expected_revision=record["revision"])
+        await memory.arestore(identifier, expected_revision=deleted["revision"])
+
+    API 작성은 confirmed, 모델 Tool 작성은 candidate가 기본이며 설정으로 조절할 수 있다.
+    선택 시 memory_search/get/create/update/delete Tool을 자동 제공한다. 모델 수정도 revision
+    검사를 거치고 출처는 실행 문맥에서 기록한다. 자세한 정책은 docs/memory.md를 참고한다.
+
+    Memory — 선택적 장기 문맥 처리::
+
+        await memory.aconfigure({"processing": {
+            "summarize": True, "extract": True,
+            "completion": {"model": "provider/model"},
+            "keep_turns": 8, "context_chars": 6000,
+        }})
+        summary = await memory.asummary(task.id)
+        review = await memory.areview(task_id=task.id)
+        identifier = await memory.acreate({"content": "다음은 검증 단계", "kind": "work_state",
+                                           "scope": "task", "task_id": task.id})
+        record = await memory.aload(identifier, task_id=task.id)
+
+    자동 검색/Tool 미리보기는 기본 제공한다. 보조 모델 요약/추출은 설정으로 켜며 원본 대화와
+    Tool 결과를 덮어쓰지 않는다. 주요 도메인에는 Memory 전용 실행 로직이 없다.
+    예산, 중첩 Engine, 오류 정책은 docs/memory-processing.md를 참고한다.
+
+    RAG / GraphRAG — 문서와 검색 인덱스를 함께 관리::
+
+        from llm.components.rag import RAGComponent, EmbeddingModel, TripleExtractor
+
+        # 기본 모델 설정은 ProjectConfig로 전달하고 필요한 실행 함수만 호스트에서 주입한다.
+        project = await backend.projects.acreate("문서", components=["rag"], config=ProjectConfig(
+            component_configurations={"rag": {
+                "embedding_params": {"model": embedding_model, "api_key": api_key},
+                "extraction_params": {"model": model, "api_key": api_key},
+            }}))
+        rag = await project.components.aget("rag")
+        document = await rag.aadd_document(title="운영 안내", content=markdown_text)
+        result = await rag.asearch("백업 정책", method="hybrid", expand="section")
+        hits, relations = result["documents"], result["relations"]
+        graph = await rag.agraph_search("아틀라스", max_hops=2)
+        updated = await rag.aupdate_document(document["id"], content=updated_markdown,
+                                             expected_revision=document["revision"])
+        documents = await rag.alist_documents()
+        await rag.adelete_document(document["id"], expected_revision=updated["revision"])
+
+    rag 하나가 임베딩과 트리플을 함께 저장한다. 등록/수정에는 embedding과 extractor가 필요하다.
+    asearch는 documents/entities/relations/sources를 함께 반환한다. 문서 목록만 필요하면
+    asearch_documents를 사용한다. 관계 탐색에 별도의 질의 전처리 모델 호출은 필요 없다.
+    aadd/aupdate_document는 색인 완료 후 dict를 반환한다. 작업 ID를 반환하는 API가 아니다.
+    새 세대가 완성되기 전에는 이전 문서/색인을 유지한다. 동시 변경 충돌은 RAGConflictError로
+    보고하며 자동 재실행하지 않는다. 문서 API와 기존 정의 acreate/asave/adelete는 별개다.
+    DB 작업은 공유 StorageIO에서 수행하고 모델 준비는 잠금 밖에서 await한다. Component는
+    Run/Step을 생성하지 않는다. Engine/Tool에서 사용할 때 해당 실행의 이벤트로 기록한다.
+
+    Component별 편의 API (add 정의와 workflow_id의 그래프가 저장되어 있는 경우)::
+
+        tools = await project.components.aget("tools")
+        await tools.aenable("add")
+        selected = await tools.aenabled()
+        await tools.adisable("add")
+        await tools.aset_enabled(["add"])
+
+        agents = await project.components.aget("agents")
+        agent_id = await agents.acreate({"engine": "loop", "purpose": "검토", "completion": {"model": model}})
+        prompt = await agents.aprompt(agent_id)
+        await agents.aupdate_prompt(agent_id, "정확하게 검토한다.", expected_revision=prompt["revision"])
+        snapshot = await agents.asnapshot(agent_id)
+        definition = snapshot["definition"]
+        definition["policy"] = {"timeout_seconds": 120}
+        await agents.arevise(agent_id, definition, expected_revision=snapshot["revision"])
+
+        # Graph 처리기는 별도로 Agent 업무 엔진을 명시적으로 등록한다.
+        agent_node = AgentNode(engines={"loop": LoopEngine()})
+        # GraphEngine(workflow_id, handlers={"agent": agent_node})를 백엔드 engines에 등록한다.
+
+        workflows = await project.components.aget("workflows")
+        await workflows.avalidate(workflow_id)         # 저장된 버전 1 그래프 검증
+        graph = await workflows.agraph(workflow_id)   # 수정 가능한 WorkflowGraph 사본
+        await workflows.asave(workflow_id, graph.to_dict())
+
+    Graph 체크포인트 / 명시적 재개::
+
+        request = await task.run.submit("작업", engine="graph")
+        run = await request.wait()  # pause_before 노드에서는 status == RunStatus.PAUSED
+        checkpoint = await run.acheckpoint()  # 헤더 + 노드별 started/completed/waiting
+        resumed = await task.run.resume(run.id, engine="graph")
+        next_run = await resumed.wait()
+
+    재개는 원본을 연결하는 새 Run이다. 완료된 노드는 호출하지 않는다. started 처리 노드는
+    부작용이 불확실하므로 UI가 확인한 키만 retry_nodes=[...]로 승인해야 한다.
+    Workflow/Agent/Tool 정의와 실행 설정이 바뀌면 거부한다. memory 대화가 종료로 소실된
+    뒤에는 재개하지 않는다. 상세 계약과 UI 저장 예제는 docs/graph-checkpoints.md를 따른다.
+
+    RAG/GraphRAG 검색 Tool — Project에서 컴포넌트를 선택하면 자동 제공::
+
+        project = await backend.projects.acreate("검색", components=["rag"])
+        # 문서·관계·출처를 함께 반환하는 rag_search를 LoopEngine에 제공한다.
+
+    검색 문서/모델은 각 컴포넌트에 먼저 구성한다. LoopEngine이 모델의 검색 Tool 호출과
+    결과 전달을 수행하며 기존 Run에 Tool Step이 기록된다. 별도 활성화 API나 비활성화 옵션은 없다.
+
+    Tool 정의 등록과 활성화에는 함수 바인딩이 필요하지 않다. 실제로 실행하려면
+    ToolRegistry에 핸들러를 등록한 ToolComponent를 백엔드에 제공해야 한다.
+
+    Events / 수명 관리 — 스트리밍 관찰과 종료::
+
+        from llm.llm import EngineEventType
+
+        def on_text(run, event):
+            if event.type == EngineEventType.TEXT_DELTA and event.delta.visibility == "user":
+                print(event.delta.text, end="", flush=True)
+
+        def on_run(event):
+            print(event.run.id, event.type)
+
+        unsubscribe = backend.events.subscribe(on_text, channel="engine")
+        backend.events.subscribe(on_run, channel="run", delivery="queued", buffer_size=64)
+        ui_subscription = backend.events.subscribe(
+            on_text, delivery="queued", buffer_size=64,
+            overflow="drop_oldest", callback_timeout=2)
+        # ui_subscription.stats["dropped"]가 늘면 run.aoutput_events(after=cursor)로 복구한다.
+        # 요청을 실행한 뒤:
+        await backend.events.flush()
+        unsubscribe()
+        await backend.shutdown()
+
+    공통 출력 API::
+
+        result = await run.aresult()  # ExecutionResult: Run 상태/사용량/최종 출력
+        if result.output is not None:
+            print(result.output.text, result.output.data)
+        for step in await run.steps.alist():
+            if step.output is not None:
+                print(step.kind, step.output.data)
+        partial_outputs = await run.aoutputs()  # EngineOutput, 중단된 부분 출력 포함
+        changes = await run.aoutput_events(after=0, limit=100)
+
+    EngineEvent.delta는 EngineDelta, EngineEvent.output은 EngineOutput이다.
+    UI는 (run.id, output_id)를 키로 삼고 visibility='user'/'internal'을 구분한다.
+    delta.operation은 append/replace이며 sequence는 Run 전체 출력의 저장 순번이다.
+    OUTPUT 및 STEP_COMPLETED의 output으로 카드를 확정한다. final=True는 해당
+    출력의 확정이며 Run 완료와는 별개다. Run 상태는 result.status/RunEvent로 확인한다.
+    누락 복구 시 마지막으로 연속 적용한 순번 이후부터 재조회하고 중복 순번을 제거한다.
+    최상위 출력은 Run, Agent/중첩 Graph/Tool 결과는 소유 Step에 남는다.
+    저장 형식과 UI 적용 예제는 docs/engine-output.md를 따른다.
+
+    Project 설정 폼과 운영 API::
+
+        schema = backend.project_schema(components=["tools", "rag", "memory"])
+        # properties.config / properties.config.properties.component_configurations에서 타입·기본값·제약 조회
+        settings = await project.aconfiguration()
+        values, schema = settings["values"], settings["schema"]
+        # values.config.component_configurations는 기본값이 병합된 폼 값이다.
+        # settings.project.config는 저장 원본이다. 전체 설정 후보를 저장 전에 검증한다.
+        preview = await project.avalidate_configuration(settings["project"]["config"],
+                                                       expected_version=settings["config_version"])
+        await project.asave(config=preview["project"]["config"], expected_version=preview["config_version"])
+        effective = settings["effective_engines"]  # 적용값·출처·호스트 고정/가려진 값
+        # effective["loop"]["values"], ["sources"], ["editable"], ["overridden"]
+        task_settings = await task.aconfiguration()  # Task 설정까지 적용한 Engine 값
+        # RAG/Memory: settings["components"][name]["effective"]
+        # config_version/component_versions로 UI 편집 충돌을 검사한다.
+        usage = await project.amodel_usage()  # Run + 독립 Component 모델 호출
+        plan = await project.arecovery()     # 무결성/복구 미리보기; 자동 재실행 없음
+        retention = await project.aretention()  # Task 또는 Run 단위 후보/보호 이유
+        maintenance = await project.amaintenance()  # Component 소유 자료의 정리 후보
+        # 복구/보관: expected_version=plan.version / retention.version
+        # Component maintenance는 열린 사전 계약: expected_version=maintenance["version"]
+        # 중단된 보관 삭제는 await project.arecover_retention()으로 마무리한다.
+
+    선언된 설정과 등록 Component별 설정이 스키마에 포함된다. 열린 JSON 영역과
+    공급자 고유 인자는 additionalProperties=True로 표시하며 모든 가능한 키를 추측하지 않는다.
+    호스트 실행 객체의 설정은 별도다. 사용법은 docs/operations-and-ui-settings.md에 있다.
+    설정 우선순위는 기본값 → Project → Task → Agent → 명시적 호스트 값이다.
+    Graph·Loop·Pipeline과 RAG의 적용 규칙 및 변경점은 docs/settings-consistency.md를 따른다.
+
+    관찰 콜백 안에서 같은 백엔드의 wait/shutdown을 기다리지 않는다. 사용자 정의 실행
+    이벤트는 backend.event_handlers.register("custom_event", handler)로 연결한다.
+    handler(context, event)는 async도 가능하며 실패하면 Run도 실패한다. 관찰 구독과 달리
+    실행에 영향을 주는 계약이다. shutdown은 수락한 I/O와 알림까지 정리하며 이후에는
+    새 백엔드를 생성해야 한다. 저수준 서비스는 project_manager/run_repository/
+    step_manager로 접근할 수 있지만 UI에서는 위 Facade API를 사용한다.
+    """
+
+    def __init__(self, workspace: Union[str, Path] = "workspace", *,
+                 components: Optional[Iterable[ProjectComponent]] = None,
+                 engines: Optional[Mapping[str, Engine]] = None,
+                 on_event: Optional[Callable[[Run, EngineEvent], None]] = None,
+                 on_run_event: Optional[Callable[[RunEvent], None]] = None,
+                 services: Optional[ServiceConfig] = None,
+                 conversation_storage: Optional[str] = None) -> None:
+        require_linux()
+        self.workspace = Path(workspace).absolute()
+        self.services = services if services is not None else ServiceConfig()
+        self.policy_resolver = (self.services.policy_resolver if self.services.policy_resolver is not None
+                                else ProjectPolicyResolver(self.services.token_counters))
+        self.provider_calls = (self.services.provider_calls if self.services.provider_calls is not None
+                               else ProviderCalls(self.services.provider_limits))
+        if conversation_storage is not None:
+            if conversation_storage not in ("file", "memory"):
+                raise ValueError("conversation_storage must be 'file' or 'memory'")
+            if self.services.conversations not in (conversation_store, "file"):
+                raise ValueError("Choose conversation_storage or ServiceConfig.conversations, not both")
+            self.services = replace(self.services, conversations=conversation_storage)
+        # 제공 가능한 종류와 Project에서 선택한 종류는 다르다. 선택 시에만 디렉토리를 만든다.
+        available = [ToolComponent(), SkillComponent(), MCPComponent(), RAGComponent(),
+                     AgentComponent(), WorkflowComponent(), MemoryComponent()] if components is None else components
+        self.project_manager, self.run_repository, self.step_manager = self.services.build(
+            self.workspace, available)
+        self.project_manager.usage_counters = dict(getattr(self.policy_resolver, "token_counters", {}))
+        self.events = EventSubscriptions()
+        self.event_handlers = self.services.event_handlers
+        self.projects = Projects(self)
+        self.engines = EngineRegistry()
+        for name, engine in ({"loop": LoopEngine()} if engines is None else engines).items():
+            self.engines.register(name, engine)
+        self.project_manager.bind_configuration_validator(self.engines.validate_configuration)
+        self.on_event = on_event
+        self.on_run_event = on_run_event
+        self._managers: dict[tuple[str, str], RunManager] = {}
+        self._stopping: set[tuple[str, str]] = set()
+        self._loop = None
+        self._pid = os.getpid()
+        self._closed = False
+        self._closing = None
+        self._storage = StorageIO(self.project_manager.ownership)
+        self._storage_tasks: set[asyncio.Task] = set()
+        self._observation_tasks: set[asyncio.Task] = set()
+        self._storage_context = ContextVar("llm_storage_operation", default=False)
+
+    def _interaction_changed(self, run, views):
+        """영속 상태가 원본이다. 저장 스레드는 UI 알림을 이벤트 루프에 예약한다."""
+        if self._loop is None or self._loop.is_closed():
+            return
+        from copy import deepcopy
+        run, values = deepcopy(run), [v.to_dict() for v in views]
+        def schedule():
+            async def publish():
+                event = EngineEvent(EngineEventType.INTERACTION_CHANGED, metadata={"interactions": values})
+                from llm.services.runtime.runs import RunEventPublisher
+                await RunEventPublisher(self.on_event).publish(run, event)
+                await self.events.publish("engine", run, event)
+            pending = asyncio.create_task(publish())
+            self._observation_tasks.add(pending)
+            def finished(task):
+                self._observation_tasks.discard(task)
+                if not task.cancelled():
+                    task.exception()
+            pending.add_done_callback(finished)
+        self._loop.call_soon_threadsafe(schedule)
+
+    def _check_open(self) -> None:
+        if os.getpid() != self._pid:
+            raise RuntimeError("Create a new LargeLanguageModel in each process")
+        if self._closed or (self._closing is not None and not self._storage_context.get()):
+            raise RuntimeError("LargeLanguageModel is shut down or shutting down")
+
+    async def _storage_call(self, operation, *args, **kwargs):
+        """Admit a complete facade transaction off-loop; drain it on shutdown."""
+        self._check_open()
+        self._bind_loop()
+
+        async def execute():
+            token = self._storage_context.set(True)
+            try:
+                return await self._storage.run(operation, *args, **kwargs)
+            finally:
+                self._storage_context.reset(token)
+
+        pending = asyncio.create_task(execute())
+        self._storage_tasks.add(pending)
+        try:
+            return await drain_on_cancel(pending)
+        finally:
+            self._storage_tasks.discard(pending)
+
+    def _bind_loop(self) -> None:
+        if os.getpid() != self._pid:
+            raise RuntimeError("Create a new LargeLanguageModel in each process")
+        loop = asyncio.get_running_loop()
+        if self._loop is None:
+            self._loop = loop
+        elif self._loop is not loop:
+            raise RuntimeError("Use LargeLanguageModel on its original event loop")
+
+    def _manager(self, task: Task) -> RunManager:
+        self._check_open()
+        self._bind_loop()
+        key = (task.project_id, task.id)
+        if key in self._stopping:
+            raise RuntimeError("Task runtime is shutting down")
+        if key not in self._managers:
+            self._managers[key] = RunManager(
+                self.project_manager.tasks, self.engines, task=task,
+                repository=self.run_repository, steps=self.step_manager,
+                capabilities=self.project_manager.components,
+                on_event=self.on_event, on_run_event=self.on_run_event,
+                event_handlers=self.event_handlers, subscriptions=self.events,
+                tool_policy=self.services.tool_policy, policy_resolver=self.policy_resolver,
+                provider_calls=self.provider_calls, output_policy=self.services.output_policy)
+        return self._managers[key]
+
+    async def _stop_task(self, task: Task) -> None:
+        self._check_open()
+        self._bind_loop()
+        key = (task.project_id, task.id)
+        if key in self._stopping:
+            raise RuntimeError("Task runtime is already shutting down")
+        manager = self._managers.get(key)
+        if manager is None:
+            return
+        self._stopping.add(key)
+
+        async def stop():
+            try:
+                await manager.shutdown()
+                self._managers.pop(key, None)
+            finally:
+                self._stopping.discard(key)
+
+        await drain_on_cancel(stop())
+
+    def project_schema(self, *, components=None) -> dict:
+        """UI용 Project 설정 JSON Schema의 독립 사본을 반환한다.
+
+        components=None은 현재 등록된 모든 컴포넌트, []는 선택 없음이다.
+        properties.config에는 ProjectConfig, 그 안의 component_configurations에는
+        선택 컴포넌트의 설정 스키마가 있다. type/default/enum/minimum/description으로
+        폼을 만들고 additionalProperties=True인 영역은 추가 JSON 키 입력을 허용한다.
+        파일/모델을 읽지 않으며 런타임 함수·실제 인증값을 반환하지 않는다.
+        저장된 값과 편집 버전은 await project.aconfiguration()으로 별도 조회한다.
+        """
+        self._check_open()
+        from llm.services.schema import project_schema
+        return project_schema(self, components)
+
+    async def shutdown(self) -> None:
+        """모든 Task/I/O를 종료한다. 파일 대기는 보존하고 소유한 메모리 대화는 해제한다."""
+        self._bind_loop()
+        if self._closed:
+            return
+        if self._closing is None:
+            async def close():
+                # Accepted facade I/O must finish before ownership is released.
+                await asyncio.gather(*tuple(self._storage_tasks), return_exceptions=True)
+                # Attempt every shutdown even if one worker reports an error.
+                results = await asyncio.gather(
+                    *(manager.shutdown() for manager in self._managers.values()),
+                    return_exceptions=True)
+                await asyncio.gather(*tuple(self._observation_tasks), return_exceptions=True)
+                await self.events.close()
+                self._closed = True
+                for result in results:
+                    if isinstance(result, BaseException):
+                        raise result
+                self._managers.clear()
+                self.project_manager.tasks.close_conversations(when_idle=True)
+            self._closing = asyncio.create_task(close())
+        await drain_on_cancel(self._closing)
+
+    async def __aenter__(self) -> "LargeLanguageModel":
+        self._check_open()
+        self._bind_loop()
+        return self
+
+    async def __aexit__(self, exc_type, exc, traceback) -> None:
+        await self.shutdown()
+
+
+async def add(arguments: dict[str, Any]) -> dict[str, Any]:
+    return {"result": arguments["a"] + arguments["b"]}
+
+
+def print_event(run: Run, event: EngineEvent) -> None:
+    if event.type == EngineEventType.TEXT_DELTA and event.delta.visibility == "user":
+        print(event.delta.text, end="", flush=True)
+
+
+async def run_request(args: argparse.Namespace) -> int:
+    tools = ToolRegistry()
+    if args.with_tools:
+        tools.register(Tool("add", "Add two numbers.", {
+            "type": "object", "properties": {"a": {"type": "number"}, "b": {"type": "number"}},
+            "required": ["a", "b"], "additionalProperties": False,
+        }, add))
+    async with LargeLanguageModel(
+        args.workspace, components=[ToolComponent(tools)], on_event=print_event,
+        conversation_storage=args.conversation_storage,
+        engines={"loop": LoopEngine(max_iterations=args.max_iterations,
+                                    request_timeout=args.timeout)},
+    ) as backend:
+        project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(
+            completion={"model": args.model, "temperature": args.temperature, "api_base": args.api_base}),
+            components=["tools"] if args.with_tools else [])
+        task = await project.tasks.acreate("Streaming request")
+        if args.with_tools:
+            selected_tools = await project.components.aget("tools")
+            await selected_tools.aenable("add")
+        print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
+        request = await task.run.submit(args.prompt, engine=args.engine)
+        handle = await request.wait()
+        run = await handle.aget_data()
+        print()
+        if run.status != RunStatus.COMPLETED:
+            print(f"Run {run.status}: {run.error or 'interrupted'}", file=sys.stderr)
+            return 1
+        return 0
+
+
+def main(*argv: str) -> None:
+    """Run in an ish tool worker, with explicit arguments and a process exit code.
+
+    Each invocation owns a fresh Project/Task and closes its RunManager. Hosts
+    already running an event loop should use the async service APIs instead.
+    """
+    require_linux()
+    parser = argparse.ArgumentParser(prog="llm", description=__doc__)
+    parser.add_argument("--engine", required=True, choices=("loop",),
+                        help="Execution Engine (the command currently registers loop)")
+    parser.add_argument("--model", required=True, help="LiteLLM provider/model identifier")
+    parser.add_argument("--prompt", required=True)
+    parser.add_argument("--workspace", type=Path, default=Path("workspace"))
+    parser.add_argument("--conversation-storage", choices=("file", "memory"), default="file",
+                        help="Message storage; memory is lost when this command exits")
+    parser.add_argument("--api-base", help="Optional OpenAI-compatible endpoint URL")
+    parser.add_argument("--temperature", type=float, default=None, help="Omit for model default")
+    parser.add_argument("--max-iterations", type=int, default=8)
+    parser.add_argument("--timeout", type=float, default=60)
+    parser.add_argument("--with-tools", action="store_true", help="Register the example add tool")
+    args = parser.parse_args(list(argv))
+    try:
+        code = asyncio.run(run_request(args))
+    except KeyboardInterrupt:
+        code = 130
+    # ish's worker ignores callable return values, so report failure by exit code.
+    raise SystemExit(code)
+
+
+if __name__ == "__main__":
+    main(*sys.argv[1:])

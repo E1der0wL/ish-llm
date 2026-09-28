@@ -1,0 +1,192 @@
+"""Project 수명 검사와 잠금 아래에서 Memory API와 비동기 API를 제공한다."""
+
+from llm.services.lifecycle.components import ComponentData
+from llm.services.infrastructure.locking import workspace_locked
+from llm.services.infrastructure.logging import log_event
+from llm.services.infrastructure.storage import async_method
+from copy import deepcopy
+
+
+class MemoryData(ComponentData):
+    """열린 기억 레코드 CRUD. 변경 시 마지막으로 읽은 expected_revision이 필수다."""
+
+    def _write_memory(self, operation, *args, **kwargs):
+        project, component = self._current()
+        result = getattr(component, operation)(project, *args, **kwargs)
+        log_event(project.paths.logs, "memory." + operation, entity_id=project.id)
+        return result
+
+    @workspace_locked
+    def _processing_snapshot(self, task_id, *, include_records=True):
+        project, component = self._current()
+        return {"identity": component.identity(project), "configuration": component.configuration(project),
+                "records": component.list(project, include_deleted=True, task_id=task_id) if include_records else {},
+                "summary": component.summary(project, task_id)}
+
+    def _check_snapshot(self, project, component, snapshot):
+        if (component.identity(project) != snapshot["identity"] or
+                component.configuration(project) != snapshot["configuration"]):
+            from .component import MemoryConflictError
+            raise MemoryConflictError("Memory configuration or storage changed during processing")
+
+    @workspace_locked
+    def _publish_summary(self, snapshot, record, *, task_id, source):
+        project, component = self._current()
+        self._check_snapshot(project, component, snapshot)
+        prior = snapshot["summary"]
+        record = {**deepcopy(record), "source": deepcopy(source)}
+        return component.publish_summary(project, task_id, record, expected_revision=prior["revision"] if prior else 0,
+                                         expected_generation=prior["generation"] if prior else None)
+
+    @workspace_locked
+    def _publish_candidates(self, snapshot, candidates, *, task_id, source):
+        from .processing import content_key
+        from .component import MemoryConflictError
+        project, component = self._current()
+        self._check_snapshot(project, component, snapshot)
+        records = component.list(project, include_deleted=True, task_id=task_id)
+        # 모든 참조를 쓰기 전에 검사한다. 모델에게 다른 Task의 ID/버전을 선택하게 하지 않는다.
+        for candidate in candidates:
+            for ref in candidate.get("metadata", {}).get("replaces", []):
+                if ref["id"] not in snapshot["records"] or ref["id"] not in records:
+                    raise MemoryConflictError("Consolidation reference is unavailable")
+                if (ref["revision"] != records[ref["id"]]["revision"] or
+                        records[ref["id"]] != snapshot["records"][ref["id"]]):
+                    raise MemoryConflictError("Consolidation reference changed")
+        keys = {(r["scope"], r.get("task_id"), content_key(r["content"])) for r in records.values()}
+        created = []
+        for candidate in candidates:
+            key = (candidate["scope"], candidate.get("task_id"), content_key(candidate["content"]))
+            if key in keys:
+                continue  # 삭제된 기억도 자동으로 되살리지 않는다.
+            created.append(component.create(project, candidate, source=source))
+            keys.add(key)
+        log_event(project.paths.logs, "memory.extracted", entity_id=project.id, count=len(created))
+        return created
+
+    @workspace_locked
+    def _tool_write(self, operation, arguments, source):
+        # 설정 검사와 쓰기를 하나의 잠금 범위에서 수행한다. Tool 인자로 상태를 승격할 수 없다.
+        project, component = self._current()
+        config = {**component.default_configuration(), **component.configuration(project)}
+        arguments = dict(arguments)
+        if operation == "create":
+            if arguments.get("scope") == "task":
+                arguments["task_id"] = source["task_id"]
+            arguments = {"data": {**arguments, "status": config["tool_write_status"]}}
+        elif operation == "update":
+            arguments["changes"] = {**arguments["changes"], "status": config["tool_write_status"]}
+        elif operation != "delete":
+            raise ValueError("Unsupported memory Tool mutation")
+        if operation != "create":
+            arguments["task_id"] = source["task_id"]
+        result = self._write_memory(operation, **arguments, source=source)
+        return component.load(project, result, task_id=source["task_id"]) if operation == "create" else result
+
+    # 공개 API. 생성과 조회는 revision이 필요 없고, 모든 변경은 CAS를 거친다.
+    @workspace_locked
+    def consolidate(self, identifier, *, expected_revision, task_id=None):
+        return self._write_memory("consolidate", identifier, expected_revision=expected_revision, task_id=task_id)
+
+    @workspace_locked
+    def recover_consolidations(self):
+        return self._write_memory("recover_consolidations")
+
+    @workspace_locked
+    def pending_consolidations(self):
+        project, component = self._current()
+        return component.pending_consolidations(project)
+
+    aconsolidate = async_method(consolidate)
+    arecover_consolidations = async_method(recover_consolidations)
+    apending_consolidations = async_method(pending_consolidations)
+
+    @workspace_locked
+    def summary(self, task_id: str):
+        """Task의 파생 요약과 원본 범위 해시를 조회한다. 없으면 None이다."""
+        project, component = self._current()
+        return component.summary(project, task_id)
+
+    @workspace_locked
+    def clear_summary(self, task_id: str, *, expected_revision: int) -> None:
+        """원본은 유지하고 파생 캐시만 지운다. 다음 요청에서 설정에 따라 다시 요약한다."""
+        self._write_memory("clear_summary", task_id, expected_revision=expected_revision)
+
+    @workspace_locked
+    def review(self, *, task_id=None) -> dict:
+        """정확히 중복된 기억, 만료된 기억, 모델이 제안한 대체 관계를 UI에 제공한다."""
+        from .processing import content_key
+        project, component = self._current()
+        groups, expired, proposals = {}, [], []
+        for identifier, record in component.list(project, task_id=task_id).items():
+            groups.setdefault((record["scope"], record.get("task_id"), content_key(record["content"])), []).append(identifier)
+            if component._expired(record):
+                expired.append(identifier)
+            if record.get("metadata", {}).get("replaces"):
+                proposals.append(deepcopy(record))
+        return {"duplicates": [ids for ids in groups.values() if len(ids) > 1],
+                "expired": expired, "proposals": proposals}
+
+    @workspace_locked
+    def create(self, data: dict, *, identifier=None, source=None) -> str:
+        """API 작성은 confirmed가 기본이다. 사용자 검토 대기는 status='candidate'로 저장한다."""
+        return self._write_memory("create", data, identifier=identifier, source=source)
+
+    @workspace_locked
+    def load(self, identifier: str, *, include_deleted=False, task_id=None) -> dict:
+        project, component = self._current()
+        return component.load(project, identifier, include_deleted=include_deleted, task_id=task_id)
+
+    @workspace_locked
+    def list(self, *, include_deleted=False, status=None, task_id=None) -> dict:
+        project, component = self._current()
+        return component.list(project, include_deleted=include_deleted, status=status, task_id=task_id)
+
+    @workspace_locked
+    def save(self, identifier: str, data: dict, *, expected_revision: int, source=None, task_id=None) -> dict:
+        """사용자 필드 전체 교체. load 결과에서 id/revision/출처 등 관리 필드를 제외해 전달한다."""
+        return self._write_memory("save", identifier, data, expected_revision=expected_revision, source=source, task_id=task_id)
+
+    @workspace_locked
+    def update(self, identifier: str, changes: dict, *, expected_revision: int, source=None, task_id=None) -> dict:
+        """최상위 사용자 필드를 병합한다. 중첩 사전은 통째로 교체된다."""
+        return self._write_memory("update", identifier, changes, expected_revision=expected_revision, source=source, task_id=task_id)
+
+    @workspace_locked
+    def delete(self, identifier: str, *, expected_revision: int, source=None, task_id=None) -> dict:
+        """복구 가능한 삭제. 기본 목록·검색·조회에서 제외한다."""
+        return self._write_memory("delete", identifier, expected_revision=expected_revision, source=source, task_id=task_id)
+
+    @workspace_locked
+    def restore(self, identifier: str, *, expected_revision: int, source=None, task_id=None) -> dict:
+        return self._write_memory("restore", identifier, expected_revision=expected_revision, source=source, task_id=task_id)
+
+    @workspace_locked
+    def purge(self, identifier: str, *, expected_revision: int, task_id=None) -> None:
+        """이미 삭제한 기억과 모든 이력을 영구 제거한다. 모델 Tool로는 제공하지 않는다."""
+        self._write_memory("purge", identifier, expected_revision=expected_revision, task_id=task_id)
+
+    @workspace_locked
+    def history(self, identifier: str, *, task_id=None) -> list:
+        project, component = self._current()
+        return component.history(project, identifier, task_id=task_id)
+
+    @workspace_locked
+    def search(self, query: str, *, limit=None, status=None, task_id=None) -> list:
+        """[{score, memory}] 반환. status='all'이면 candidate도 포함한다. 삭제한 기억은 제외한다."""
+        project, component = self._current()
+        return component.search(project, query, limit=limit, status=status, task_id=task_id)
+
+    acreate = async_method(create)
+    asummary = async_method(summary)
+    aclear_summary = async_method(clear_summary)
+    areview = async_method(review)
+    aload = async_method(load)
+    alist = async_method(list)
+    asave = async_method(save)
+    aupdate = async_method(update)
+    adelete = async_method(delete)
+    arestore = async_method(restore)
+    apurge = async_method(purge)
+    ahistory = async_method(history)
+    asearch = async_method(search)
