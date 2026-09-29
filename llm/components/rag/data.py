@@ -18,7 +18,21 @@ def document_view(document: dict) -> dict:
 class RAGData(ComponentData):
     def _current(self):
         project, component = super()._current()
-        return project, component.configured(project)
+        worker = component.configured(project)
+        prompt_id = worker.extraction_options["prompt_id"]
+        if prompt_id is not None:
+            try:
+                if "prompts" not in project.components:
+                    raise ValueError("RAG extraction.prompt_id requires selecting the prompts component")
+                prompts = self.registry.get("prompts")
+                if "prompts" not in prompts.capabilities:
+                    raise ValueError("Selected prompts component must provide prompts capability")
+                worker = component.configured(project, prompt=prompts.load(project, prompt_id))
+            except (FileNotFoundError, ValueError) as error:
+                # 깨진 참조가 있어도 설정 수정·기존 자료 조회·실패 작업 정리는 가능해야 한다.
+                # 새 문서 준비는 모델 호출 전에 실패한다.
+                worker._extraction_error = error
+        return project, worker
 
     @workspace_locked
     def _snapshot(self):

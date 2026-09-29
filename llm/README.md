@@ -65,6 +65,11 @@ Project/Session/Run/Step 기록은 `storage_version=2`를 사용합니다. 세�
 
 ## 검증 예제
 
+RAG 추출은 few-shot·고정 temperature=0·제한된 JSON 수정 호출을 지원합니다.
+[PromptComponent](components/prompts/README.md)에서 지침을 편집할 수 있습니다.
+관계의 출처·시각·가중치 속성 추가로 기존 RAG 색인은 새 Project에 다시 등록해야 합니다
+(`graph_schema_version=2`; 핵심 도메인 `storage_version`은 그대로 2).
+
 - [GraphEngine·RAG 통합 검사](examples/graph_rag.md)
 - [사용자 요청·검증·승인·적용 Workflow](examples/configuration_workflow.md)
 - [메인 도메인 성능 검사](examples/domain_performance.md)

@@ -49,6 +49,7 @@ from llm.components.tools.builtin import BuiltinTools
 from llm.components.tools.component import ToolComponent
 from llm.components.agents import AgentComponent
 from llm.components.skills import SkillComponent
+from llm.components.prompts import PromptComponent
 from llm.components.mcp import MCPComponent
 from llm.components.rag import RAGComponent, EmbeddingModel, RerankModel
 from llm.components.rag import TripleExtractor
@@ -631,7 +632,7 @@ class LargeLanguageModel:
             self.services = replace(self.services, conversations=conversation_storage)
         # 제공 가능한 종류와 Project에서 선택한 종류는 다르다. 선택 시에만 디렉토리를 만든다.
         available = [ToolComponent(), SkillComponent(), MCPComponent(), RAGComponent(),
-                     AgentComponent(), WorkflowComponent(), MemoryComponent()] if components is None else components
+                     AgentComponent(), WorkflowComponent(), MemoryComponent(), PromptComponent()] if components is None else components
         self.project_manager, self.run_repository, self.step_manager = self.services.build(
             self.workspace, available)
         self.project_manager.usage_counters = dict(getattr(self.policy_resolver, "token_counters", {}))

@@ -15,6 +15,8 @@ from uuid import uuid4
 from llm.compat import aclosing
 from llm.components.agents import AgentComponent
 from llm.components.rag import RAGComponent
+from llm.components.prompts import PromptComponent
+from llm.components.rag.prompts import default_prompt
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.engines.graph.agent import AgentNode
 from llm.engines.base import BaseEngine, EngineEventType
@@ -140,7 +142,7 @@ def validate_config(config: ProjectConfig) -> None:
 
 async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, query=DEFAULT_QUERY,
                    max_attempts=3, require_relations=False, completion_fn=None, rag_component=None,
-                   display=True) -> dict:
+                   display=True, extraction_prompt=None) -> dict:
     """테스트 전용 Project를 생성한다. 주입 인자는 자동 회귀 검사에서만 사용한다."""
     validate_config(config)
     if type(max_attempts) is not int or max_attempts < 1:
@@ -184,16 +186,23 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
         loop = LoopEngine(settings_name="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
         graph = GraphEngine("rag-workflow", handlers={"agent": AgentNode(engines={"loop": loop}),
             "validate_answer": checks.validate, "feedback": checks.feedback, "publish_answer": checks.publish})
-        components = [rag_component or RAGComponent(), AgentComponent(), WorkflowComponent()]
+        config = ProjectConfig(**config.to_dict())
+        extraction = config.component_configurations.setdefault("rag", {}).setdefault("extraction", {})
+        prompt_id = extraction.get("prompt_id") or "rag-triples"
+        extraction["prompt_id"] = prompt_id
+        components = [rag_component or RAGComponent(), AgentComponent(), WorkflowComponent(), PromptComponent()]
         engines = {"loop": loop, "graph": graph}
         async with LargeLanguageModel(workspace, components=components, engines=engines, on_event=observe) as backend:
             project = await phase("create_project", backend.projects.acreate(
                 "Graph and RAG integration test", config=config,
-                components=["rag", "agents", "workflows"], conversation_storage="file"))
+                components=["rag", "agents", "workflows", "prompts"], conversation_storage="file"))
             report.update(project_id=project.id, project=str(project.paths.root), query=query)
             if display:
                 print(f"Project: {project.paths.root}", flush=True)
             rag = await project.components.aget("rag")
+            prompts = await project.components.aget("prompts")
+            await prompts.acreate(default_prompt() if extraction_prompt is None else extraction_prompt, identifier=prompt_id)
+            check("extraction_prompt_saved", bool((await prompts.aload(prompt_id))["messages"]))
             document = await phase("register_document", rag.aadd_document(identifier="manual",
                 title=Path(markdown).name if markdown else "Atlas operations manual", content=content))
             report["document"] = {"id": document["id"], "revision": document["revision"],
@@ -218,6 +227,10 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
                 check(f"{method}_deleted_sources_absent", all(
                     source["document_id"] == "manual" for source in [*result["sources"], *result["relations"]]))
             relations = report["search"]["hybrid"]["relations"]
+            if relations:
+                check("relation_provenance", all(r["document_id"] == "manual" and
+                      type(r["weight"]) is int and r["weight"] >= 1 and
+                      isinstance(r["metadata"], dict) and r["extracted_at"] for r in relations))
             report["relations_observed"] = bool(relations)
             if require_relations or markdown is None:
                 check("graph_relations_found", bool(relations))
@@ -292,6 +305,7 @@ def main(*argv: str) -> None:
     parser.add_argument("--query", default=DEFAULT_QUERY)
     parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument("--require-relations", action="store_true", help="사용자 문서도 관계 검색 결과를 필수로 검사")
+    parser.add_argument("--extraction-prompt", type=Path, help="prompts 컴포넌트에 저장할 messages 정의 JSON")
     args = parser.parse_args(list(argv))
     try:
         config = ProjectConfig.deserialize(args.config.expanduser().read_text(encoding="utf-8"))
@@ -300,7 +314,9 @@ def main(*argv: str) -> None:
             parser.error("--max-attempts must be positive")
         configure_logging(args.workspace.expanduser())
         result = asyncio.run(run_demo(args.workspace, config, markdown=args.markdown, query=args.query,
-            max_attempts=args.max_attempts, require_relations=args.require_relations))
+            max_attempts=args.max_attempts, require_relations=args.require_relations,
+            extraction_prompt=(json.loads(args.extraction_prompt.expanduser().read_text(encoding="utf-8"))
+                               if args.extraction_prompt else None)))
         code = 0 if result["status"] == "passed" else 1
     except KeyboardInterrupt:
         code = 130

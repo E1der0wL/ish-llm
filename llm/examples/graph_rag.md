@@ -18,8 +18,37 @@ API 키는 환경 변수가 아닌 JSON을 역직렬화한 `ProjectConfig`에서
 
 OpenAI 호환 서버는 `openai/모델명`을 사용한다. 다른 provider는 해당 LiteLLM 모델명을
 사용하고 필요 없는 api_base를 삭제한다. 임베딩과 대화 모델은 서로 다른 서버·키를 써도 된다.
-Gemini 등 공급자별 문서/질의 옵션이 필요하면 RAG 설정에 `document_kwargs`, `query_kwargs`를
-추가할 수 있다. 예를 들어 Gemini 임베딩의 session_type은 각각 RETRIEVAL_DOCUMENT, RETRIEVAL_QUERY다.
+공급자별 문서/질의 옵션이 필요하면 RAG 설정에 `document_kwargs`, `query_kwargs`를
+추가할 수 있다. 모델이 실제로 지원하는 옵션을 사용한다.
+
+## 관계 추출과 수정
+
+추출용 기본 프롬프트는 few-shot을 포함하며 테스트 Project의
+`prompts/records/rag-triples.json`에 저장된다. `--extraction-prompt /path/prompt.json`으로
+`{"messages":[{"role":"system","content":"..."}, ...]}` 형식의 사용자 정의를 넣을 수 있다.
+JSON 구조·엔티티 참조·원문 인용 검증은 사용자 프롬프트와 무관하게 유지한다.
+`component_configurations.rag.extraction.prompt_id`가 이 레코드를 선택한다.
+
+`component_configurations.rag.extraction.repair_attempts`는 **추가 수정 호출 횟수**이며
+기본 2, 0이면 비활성화다. 검증 오류·직전 JSON·원본 chunks를 다시 전달한다.
+연결 오류·취소·사용량 한도는 이 수정 루프로 재시도하지 않는다. 각 호출은 사용량에 포함된다.
+추출/수정의 LiteLLM temperature는 0으로 고정되며 유효 설정 조회에도 표시된다.
+`engines.loop` 설정과 답변 검증 `--max-attempts`에는 영향을 주지 않는다.
+
+`extraction.relation_types`로 선호 타입 목록을 지정한다. 기본 USES, DEPENDS_ON,
+PART_OF, CONFIGURES 등이며 뜻이 맞지 않으면 새로운 타입도 허용한다.
+대소문자만 다른 지정 타입은 정규화하지만 의미·방향이 다른 관계를 임의 병합하지 않는다.
+
+관계 검색 결과에 `document_id`, `source_id`, `evidence`, `metadata`, `extracted_at`,
+`weight`를 반환한다. 시각과 문서 ID는 프로그램이 부여한다. weight는 같은 정규화된
+트리플을 뒷받침하는 **서로 다른 문서/청크 쌍의 수**다. 모델의 확신도나 진실 확률이 아니다.
+동일 응답 중복·재시도·동일 문서 재등록 횟수는 가산하지 않고 수정/삭제 시 재계산한다.
+문서 graph 원본에는 문서 내부 가중치, Kuzu 검색에는 현재 코퍼스 가중치를 제공한다.
+검색 문단 우선순위를 유지하며 같은 문단/탐색 노드 내에서 높은 가중치를 우선 반환한다.
+
+Kuzu 속성이 추가되어 RAG `corpus.json`의 `graph_schema_version=2`가 필요하다.
+이전 RAG 색인은 수정하지 않고 명확한 오류로 거부한다. 새 테스트 Project에 원문을 다시 등록한다.
+Project/Session/Run/Step의 `storage_version=2`와는 별도 버전이다.
 
 `engines.loop.max_iterations`는 Agent 한 번의 모델 호출 반복 상한이다.
 `--max-attempts`는 답변 검증·수정 회차 상한이며 두 제한은 서로 다른 범위를 가진다.

@@ -1,6 +1,7 @@
 """문서 검색의 근거 문단 또는 정확한 엔티티 이름에서 시작하는 유한 방향 그래프 탐색."""
 
 from .graph_indexing import connection, rows
+import json
 
 
 def related_graph(path, source_ids: list, *, max_hops: int, limit: int, options=None) -> dict:
@@ -9,7 +10,7 @@ def related_graph(path, source_ids: list, *, max_hops: int, limit: int, options=
     with connection(path, options=options) as conn:
         def collect(found, hop):
             frontier = []
-            for source, source_name, kind, target, target_name, document_id, source_id, evidence in found:
+            for source, source_name, kind, target, target_name, document_id, source_id, evidence, weight, metadata, extracted_at in found:
                 key = (source, target, kind, document_id, source_id, evidence)
                 if key in seen:
                     continue
@@ -18,14 +19,15 @@ def related_graph(path, source_ids: list, *, max_hops: int, limit: int, options=
                 entities[target] = {"id": target, "name": target_name}
                 edges.append({"source": source_name, "target": target_name, "type": kind,
                               "document_id": document_id, "source_id": source_id,
-                              "evidence": evidence, "hop": hop})
+                              "evidence": evidence, "hop": hop, "weight": weight,
+                              "metadata": json.loads(metadata), "extracted_at": extracted_at})
                 frontier.extend((source, target))
                 if len(edges) == limit:
                     break
             return frontier
 
-        columns = " RETURN a.id,a.name,r.kind,b.id,b.name,r.document_id,r.source_id,r.evidence"
-        order = " ORDER BY r.document_id,r.source_id,a.id,b.id,r.kind,r.evidence"
+        columns = " RETURN a.id,a.name,r.kind,b.id,b.name,r.document_id,r.source_id,r.evidence,r.weight,r.metadata,r.extracted_at"
+        order = " ORDER BY r.weight DESC,r.document_id,r.source_id,a.id,b.id,r.kind,r.evidence"
         frontier = []
         # 문서 검색 순서를 유지하므로 낮은 순위 문단이 관계 예산을 먼저 쓰지 않는다.
         for source_id in dict.fromkeys(source_ids):
@@ -65,13 +67,15 @@ def graph_search(path, seed: str, *, max_hops: int = 2, limit: int = 100, option
                 visited.add(identifier)
                 # LIMIT는 검증된 정수로만 삽입한다. 사용자 문자열은 바인딩한다.
                 found = rows(conn, "MATCH (a:Entity)-[r:Link]->(b:Entity) WHERE a.id=$id "
-                    "RETURN r.kind,b.id,b.name,r.document_id,r.source_id,r.evidence "
+                    "RETURN r.kind,b.id,b.name,r.document_id,r.source_id,r.evidence,r.weight,r.metadata,r.extracted_at "
+                    "ORDER BY r.weight DESC,r.document_id,r.source_id,b.id,r.kind,r.evidence "
                     f"LIMIT {limit - len(edges)}", {"id": identifier})
-                for kind, target, target_name, document_id, source_id, evidence in found:
+                for kind, target, target_name, document_id, source_id, evidence, weight, metadata, extracted_at in found:
                     entities[target] = {"id": target, "name": target_name}
                     edges.append({"source": name, "target": target_name, "type": kind,
                                   "document_id": document_id, "source_id": source_id,
-                                  "evidence": evidence, "hop": hop})
+                                  "evidence": evidence, "hop": hop, "weight": weight,
+                                  "metadata": json.loads(metadata), "extracted_at": extracted_at})
                     following.append((target, target_name))
                 if len(edges) >= limit:
                     return {"seed": seed, "entities": list(entities.values()), "relations": edges}

@@ -17,8 +17,9 @@ capability resolution; neither module imports Tools or requires `resolve_tools`.
 | memory | Project/Session memories, provenance, revisions and derived Session summaries | Automatic recall, bounded context, Tool previews, optional summary/extraction and CRUD Tools |
 
 한국어 API와 그래프 조립 예시는 [컴포넌트 정의 안내](../../docs/component-definitions.md)를 참고한다.
-기본 LargeLanguageModel은 tools/skills/mcp/rag/agents/workflows/memory를 등록하며
+기본 LargeLanguageModel은 tools/skills/mcp/rag/agents/workflows/memory/prompts를 등록하며
 Project에서 선택한 종류만 생성한다. 재사용 업무 정의는 agents 하나로 관리한다.
+프롬프트·few-shot CRUD와 RAG 연결은 [Prompt 안내](prompts/README.md)를 참고한다.
 장기 기억의 공개 API, 후보 승인 정책, 모델 Tool과 저장 형식은 [Memory 안내](../../docs/memory.md)를 참고한다.
 범용 확장은 [공통 처리기 계약](../../docs/completion-processing.md), 장기 대화 최적화는 [Memory 처리 정책](../../docs/memory-processing.md)을 참고한다.
 

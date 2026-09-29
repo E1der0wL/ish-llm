@@ -28,6 +28,7 @@
       "chunk_size": 1000,
       "embedding_batch_size": 16,
       "extraction_batch_size": 8,
+      "extraction": {"repair_attempts": 2, "prompt_id": "rag-triples"},
       "graph": {"buffer_pool_size": 67108864, "max_num_threads": 2}
     }
   }
