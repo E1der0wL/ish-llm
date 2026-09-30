@@ -60,6 +60,20 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "max_batch_chars"):
             await prepare_vectors(component, second)
 
+    async def test_previous_fingerprint_never_reuses_incompatible_vectors(self):
+        from copy import deepcopy
+        call = AsyncMock(side_effect=embedding)
+        component = self.component(call)
+        prior = {"chunks": [{"text": "text"}], "vectors": [[999., 999.]],
+                 "embedding_fingerprint": "previous-configuration", "profile": {"dimensions": 2}}
+        original = deepcopy(prior)
+        current = {"chunks": deepcopy(prior["chunks"])}
+        await prepare_vectors(component, current, previous=prior)
+        self.assertEqual(call.await_count, 1)
+        self.assertEqual(current["vectors"], [[4., 1.]])
+        self.assertNotEqual(current["embedding_fingerprint"], prior["embedding_fingerprint"])
+        self.assertEqual(prior, original)
+
     async def test_split_only_transient_and_checkpoint_children_reused(self):
         requests = []
         failed = True
@@ -110,6 +124,27 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
 
 
 class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
+    async def test_effective_retry_configuration_preserves_values_and_cache_contract(self):
+        with tempfile.TemporaryDirectory() as root:
+            async with LargeLanguageModel(root, components=[RAGComponent()]) as backend:
+                values = {name: {"model": "test", "num_retries": 2, "max_retries": 3}
+                          for name in ("embedding_params", "extraction_params", "rerank_params")}
+                project = await backend.projects.acreate("settings", components=["rag"],
+                    config=ProjectConfig(component_configurations={"rag": values}))
+                rag = await project.components.aget("rag")
+                effective = rag.effective_configuration()["values"]
+                for name in values:
+                    self.assertEqual(effective[name]["num_retries"], 2)
+                    self.assertEqual(effective[name]["max_retries"], 3)
+                self.assertFalse(effective["embedding_params"]["caching"])
+                self.assertEqual(effective["embedding_params"]["cache"], {"no-cache": True, "no-store": True})
+                self.assertNotIn("caching", effective["rerank_params"])
+                from llm.providers.requests import provider_schema, provider_defaults
+                self.assertEqual(set(provider_defaults()), {
+                    "max_attempts", "wall_timeout", "delay_seconds", "max_delay_seconds"})
+                self.assertEqual(set(provider_schema()["properties"]), set(provider_defaults()))
+                self.assertFalse((Path(__file__).parents[1] / "providers/openai.py").exists())
+
     async def test_partial_graph_and_disabled_without_extractor(self):
         async def partial(**request):
             chunks = json.loads(request["messages"][-1]["content"])

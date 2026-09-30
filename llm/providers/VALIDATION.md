@@ -1,192 +1,91 @@
-# Provider/RAG 안정화 검증 기록
+# Provider/RAG 설계 단순화 검증
 
-## 추가 검증: 165줄 문서의 rerank와 Graph 검색
+2026-10-01. 구현 변경은 `llm/`에 한정했다. 사용자 승인에 따라 루트의
+`tests/test_rag_models.py`, `tests/test_loop.py`에서는 retry=0 자동 삽입 기대값만
+새 계약으로 바꿨다. Project → Session → Run → Step과 atomic RAG generation은 유지한다.
 
-`examples/graph_rag.py`는 이제 `rag.rerank_params.model`을 필수로 확인한다.
-일반 BM25/vector/hybrid 검색 다음에 동일 후보로 rerank 검색을 실행하고, 유한한 점수와
-원본 후보 내용·출처 보존을 검사한다. Graph Agent의 rag_search 결과에도 rerank 점수가
-있어야 통과한다. 설정이 없거나 rerank 호출이 실패하면 성공으로 보고하지 않는다.
+## 변경 계약
 
-`examples/data/graph_rag_165.md`에 165줄 공개 문서를 포함했다.
-설정 예제의 `cohere/`와 `/v1/rerank`는 Cohere 호환 rerank 서버용이며 chat/embedding의
-OpenAI 호환 여부와는 별개다. 실제 서버의 rerank 프로토콜에 맞춰 변경해야 한다.
+- ProviderRuntime은 지연 import, PRODUCTION/로컬 비용표, dotenv 차단, 로그 격리와 진단을 담당한다.
+  SDK의 retry 환경변수·전역값을 변경하거나 호스트의 후속 변경을 거부하지 않는다.
+- ModelClient와 streaming completion은 `num_retries`/`max_retries`를 그대로 전달한다.
+  인자가 없으면 추가하지 않는다. Loop/BaseEngine/Memory의 자동 0 기본값도 제거했다.
+- SDK retry가 활성화되면 llm invoke는 1회다. 설정이 겹쳐도 오류로 거부하지 않는다.
+  SDK retry가 없는 경로는 기존 max_attempts/backoff/deadline/취소 계약을 유지한다.
+- 요청 값뿐 아니라 주입 client, SDK 기본 retry 값과 retry_policy도 고려한다.
+  SDK가 명시적 0을 기본값으로 되돌릴 수 있어 활성/불명확한 기본값에서는 보수적으로
+  외부 반복을 추가하지 않는다. `provider_retry_delegated` 진단으로 유효 시도 횟수를 알린다.
+- 기본 임베딩 호출은 모두 LiteLLM aembedding을 사용한다. SDK 선택 분기와 모델 접두사 변환은 없다.
+- RAG EmbeddingModel에서만 caching=False, no-cache/no-store를 적용한다.
+  일반 ModelClient의 cache kwargs와 호스트의 기존 SDK cache 객체는 그대로 둔다.
+- reranker 없는 Tool은 schema const:false와 handler의 최종 False 덮어쓰기를 함께 적용한다.
+  공개 Python 검색 API의 명시적 rerank=True 설정 오류는 유지한다.
 
-Linux Python 3.12.14 / LiteLLM 1.103.1 / OpenAI 2.54.0에서 `provider_probe`를 실행했다.
-실제 SDK와 로컬 HTTP 서버를 거쳐 165줄 문서(23 chunks)를 등록했고 다음을 확인했다.
+## 저장·캐시 호환성
 
-- 직접 hybrid 검색 후보 3개가 서버의 반환 index에 맞춰 역순으로 재정렬됨.
-- 직접 검색 1회, Graph 검증·재수정 Agent 2회에서 실제 rerank HTTP 요청 총 3회.
-- 별도 프로세스의 실제 graph_rag.py CLI에서도 23개 확인 항목 통과, rerank HTTP 요청 3회.
-- SDK 준비 후 등록 2.139초, rerank 검색 0.184초, Graph 2.113초.
-- 최초 SDK 초기화를 포함한 CLI 등록 6.141초, rerank 검색 0.167초, Graph 2.167초.
-- reranker 누락 시 생성 전 실패, 호출 실패 시 실패 보고서, index/후보 매핑 회귀 검사 통과.
+벡터 fingerprint에서 제거된 실행 경로 선택 정보 때문에 이전 fingerprint는 일치하지 않는다.
+다음 문서 update에서 벡터를 재계산하며, 기존 corpus를 삭제하거나 이전 벡터를 잘못 재사용하지 않는다.
+저장 형식 버전은 변경하지 않았다. 구성 fingerprint가 바뀐 미완료 Job은 새 Job으로 등록한다.
+기존 설정에 제거된 provider 키가 있다면 삭제해야 하며 자동 설정 마이그레이션은 하지 않는다.
 
-이 결과는 고정 HTTP 응답을 이용한 연동 검사다. 실제 사내 모델의 관련성 판단 품질과
-모델 추론 성능을 검증한 결과는 아니다. API 키·사내 문서는 사용하지 않았다.
-이번 실행 로그는 Git에서 제외되는 `llm/tests/reports/rerank-http-probe.json`에 있다.
+VectorCache의 크기 제한·원래 입력 위치 복원, 변경 없는 청크 재사용, 배치 분할,
+Job/checkpoint 재개, JSON strict/auto/off, graph required/best_effort/disabled는 유지한다.
+index 정규화는 cache hit와 실제 cached 위치·개수·패턴·벡터 검증 근거가 있을 때만 허용한다.
+정규화 이후 strict validation을 다시 수행하며, 근거 없는 중복 index [0,0]은 계속 오류다.
 
-첫 전체 검사에서 공유 validate_config를 쓰는 설정 편집 예제 12건이 reranker 필수 검사로
-실패했다. `require_rerank`를 graph_rag 실행에서만 명시하도록 수정했다. 기존 설정 편집
-예제의 요구 모델은 유지하며, 테스트를 제외하거나 기대 오류를 약화하지 않았다.
+## 회귀 검사
 
-최종 Linux 검사: 관련 검사 45개 통과(36.612초), 전체 루트 테스트 **852개 통과**
-(253.841초). 관련 검사에 포함된 신규 Provider/RAG 23개와 합쳐 고유 테스트 총 **875개**이며
-최종 실패·skip은 0개다. 최종 Linux 소스 사본과 현재 Python/JSON 255개 파일의 SHA-256이
-일치한다. `rerank-source-verification.json`, `focused.txt`, `suite.txt`에 기록했다.
+- 명시적 num_retries=2, max_retries=3의 embedding/extraction/rerank/completion 최종 전달값.
+- 생략된 retry 인자가 SDK에 추가되지 않는지와 SDK 전역/환경변수의 보존.
+- SDK retry 활성, SDK 기본값 활성, client retry, retry_policy에서 llm 시도 1회.
+- retry 비활성 시 bounded attempts, timeout/deadline, 호출/대기 중 취소, 오류 분류.
+- 스트리밍 retry 위임과 첫 delta 이후 외부 자동 재시도 금지.
+- reranker 없는 handler에 직접 True를 전달해도 False, reranker가 있으면 True 허용.
+- RAG cache 차단과 일반 ModelClient의 명시적 cache 설정 보존.
+- UI effective configuration의 retry 보존, provider schema/default의 키 목록.
+- 구 fingerprint의 벡터 비재사용과 기존 문서 무변경.
+- 기존 index 엄격 검증/조건부 정규화, 부분 캐시, durable Job 재개, atomic publish, 사용량 한도.
 
----
+Linux Python 3.12.14, LiteLLM 1.103.1, OpenAI 2.54.0에서 검사한다.
+집중 검사는 `python -m unittest llm.tests.test_provider_runtime llm.tests.test_rag_resilience -v`,
+전체 검사는 `python -m unittest discover -s tests -v`다. 이 워크스테이션에서는
+`llm/tests/run_linux.py --python <Linux Python 3.12.14 경로> --full`로 Linux 파일시스템의
+소스 사본을 만들고 SHA-256 manifest와 검사 로그를 기록한다.
 
-2026-09-30. 구현 범위는 `llm/`이며, 사용자 승인 후 루트 `tests/`의 변경된 계약 검사 4개 파일도 수정했다.
-기존 `ish/`/ish 본체, 영속 도메인 소유 관계, 트랜잭션·세대 공개 방식은 변경하지 않았다.
+최종 결과: **Provider/RAG 29개 통과(9.919초), 전체 루트 852개 통과(248.444초)**.
+합계 **881개**, 실패·skip 0개다. 최종 사본은
+`/home/user/.cache/ish-provider-x12ermpn`이며 현재 Python/JSON 254개 파일의 SHA-256이
+일치한다. `focused.txt`, `suite.txt`, `provider-simplified-source-verification.json`에 기록했다.
+추가로 수정 초기에 RAG 모델/Loop까지 묶은 집중 검사 63개도 통과했다.
 
-## 설계와 설정
+실제 사용한 명령:
 
-초기화·진단은 `providers/runtime.py`, 비스트리밍 안전 재시도는 `providers/requests.py`,
-응답 정규화·벡터 검증은 `providers/embeddings.py`가 담당한다. RAG는 기존 ComponentData/
-RAGJobs를 통해 자료와 체크포인트를 저장한다. Engine이 영속 파일을 직접 쓰는 경로는 추가하지 않았다.
-
-새 설정의 타입과 기본값 전체는 [RAG 설정표](../components/rag/README.md)에 있다.
-라이브러리 기본은 provider 2 attempts/120초, JSON strict, graph required, batch 128,
-문자 제한 없음, 자동 분할 끔, 메모리 vector cache 16MiB다. 운영자가 저사양 프로필을
-선택하도록 예제 JSON에는 batch 16/16,000자, split depth 2, JSON auto를 넣었다.
-
-LiteLLM 1.103.1에서는 SDK request의 retry 두 인자와 전역 DEFAULT_MAX_RETRIES를 모두 0으로
-만든다. embedding에는 caching=False와 no-cache/no-store를 함께 전달한다. 호스트의 기존
-cache 객체는 소유권을 유지한다. 정상 모델 설정이 UI effective configuration에도 반영된다.
-
-정규화는 **cache 사용 근거와 실제 cached 위치 정보**가 확인된 경우에만 배열 순서를 유지해
-index를 복구한다. cache_hit만 보고 임의로 순서를 추측하지 않는다. 정상 호출은 SDK cache를
-끄므로 중복 index를 교정하지 않고 거부한다. `embedding_index_normalized` 진단과 후속
-엄격 검증은 정규화 함수 자체의 계약이다. 알려진 SDK 구현이 바뀌어도 일반 오류를 숨기지 않는다.
-
-JSON auto는 빈 공급자 응답/파싱 실패에서만 response_format을 제거하고 다시 호출한다.
-인증/400/모델 설정 문제에는 fallback하지 않는다. JSON/인용/참조 실패는 semantic repair만
-사용한다. 기본 few-shot, 온도 0, literal evidence 검증을 유지하며 Python이 ID/타입/중복을
-정규화한다. transport retry·JSON fallback·repair 전체가 추출 호출 하나의 deadline을 공유한다.
-
-## 검사 범위
-
-신규 `llm/tests/test_provider_runtime.py`, `test_rag_resilience.py`의 23개 테스트에서
-여러 입력 조합을 반복 검사한다.
-
-- import 전 PRODUCTION/로컬 비용표, dotenv 차단, 실제 최종 SDK kwargs/global retry
-- transient 분류, 인증/400/의미 오류 비재시도, bounded retry, deadline, backoff 중 취소
-- 정상/역순 index, 중복/누락/개수 오류, NaN/Inf/0/차원 오류, 근거 있는 cache 정규화
-- cache off 및 근거 부족일 때 정규화 거부, 정규화 후 strict validation, diagnostic
-- partial cache/repeated input의 original position mapping, 변경 없는 vector 재사용/설정 변경 무효화
-- 문자 제한, timeout 분할, 크기 1 종료, 무결성 오류 비분할, 하위 checkpoint 재사용
-- JSON strict/off/auto, 잘못된 JSON repair, 대명사 해소와 원문 인용 분리
-- graph required/best_effort/disabled, 부분 관계 보존, extractor 없는 disabled 설정
-- 영속 Job 중간 실패 후 재개, 취소 시 기존 generation 보존
-- 사용량 예약·한도 준수, 재시도에 의한 quota 우회 방지
-- TUI 출력 없음, 로그 비밀값/본문 제외, 백엔드 로그 분리, 로그 디스크 장애 카운터
-- SDK import 중 다른 진단 문맥이 막히지 않는지, reranker capability schema
-
-기존 테스트의 변경 사항:
-
-- `tests/test_rag_models.py`: SDK cache/retry 차단 인자의 실제 전달을 단정한다.
-- `tests/test_graph_rag_example.py`: 보고서 파일에 원문·모델 본문·예외 원문이 없는지 확인한다.
-- `tests/test_unified_rag.py`: 검색 응답의 graph completeness 필드를 검증한다.
-- `tests/test_operations_schema.py`: 단일 호출 예약 테스트에 max_attempts=1을 명시하고
-  공급자 오류의 공통 타입을 확인한다. 기본 재시도의 quota 검사는 신규 테스트에서 따로 수행한다.
-
-## 실제 SDK HTTP 통합 검사
-
-Linux Python **3.12.14**, LiteLLM **1.103.1**, OpenAI **2.54.0**.
-네이티브 Linux 파일시스템의 소스 사본과 가상환경에서 실행했다.
-`python -m llm.tests.provider_probe --output /tmp/provider-probe.json`은 고정 응답을 주는
-로컬 OpenAI-compatible HTTP 서버를 사용한다. API 키나 사내 문서는 사용하지 않는다.
-
-최종 HTTP 검사 결과:
-
-- sync LiteLLM / async LiteLLM / direct AsyncOpenAI 임베딩 결과 동일
-- 호스트 SDK cache 객체 존재 시 읽기 0회·쓰기 0회
-- 503 실패의 실제 HTTP 요청 정확히 2회, 종료 코드 provider_unavailable
-- JSON mode HTTP null 응답은 JSON mode 2회 후 plain JSON 1회로 복구
-- graph_rag.py 문서 CRUD·BM25/vector/hybrid·Graph Agent 검색 Tool·검증/재수정·Step/Run·재열기 통과
-- 별도 프로세스에서 실제 `python -m llm.examples.graph_rag ... --require-relations` CLI도
-  종료 코드 0, 20개 확인 항목 통과. LiteLLM WARNING/feedback/dotenv 문구가 콘솔에 없음을 확인.
-
-165줄 공개 문서(23 chunks, 10,573 chunk chars) 측정:
-
-| 항목 | 결과 |
-|---|---:|
-| 문서 등록 전체 | 3.944초 |
-| embedding 6 batches | 0.788초 |
-| extraction 6 batches | 0.363초 |
-| Graph 실행 | 3.560초 |
-
-이 수치는 **로컬 고정 응답 서버의 라이브러리/저장 경로 측정**이다. 실제 사내 모델의
-embedding/추출 속도나 추론 정확도를 예측하지 않는다. 사내에서는 동일 예제로 다시 측정해야 한다.
-위 표는 SDK 준비 후 실행이다. 별도 CLI 프로세스의 최초 실행에서는 SDK 초기화가 첫 임베딩에
-포함되어 문서 등록 8.940초, embedding 6.342초, extraction 1.039초, Graph 2.699초였다.
-전체 회귀 검사와 함께 실행한 개발 호스트의 관찰값이며 통계적 성능 보증이 아니다.
-보고서와 콘솔 로그는 로컬 `llm/tests/reports/`에 있으며 Git에서 제외된다.
-
-## 전체 테스트와 소스 검증
-
-최종 테스트는 `llm/tests/run_linux.py --python <Python 3.12.14 경로> --full`로 실행한다.
-각 실행은 소스 해시 manifest를 남기며 신규 테스트와 루트 전체 테스트를 분리해 기록한다.
-최종 결과는 **신규 23개 통과(12.939초), 기존 전체 850개 통과(310.710초), 실패·skip 0개**다.
-검증 사본과 현재 Python/설정·테스트 파일 208개의 SHA-256이 일치했다.
-검사 결과는 `llm/tests/reports/focused.txt`, `suite.txt`, `source-verification.json`을 참고한다.
-실행 도중 발견한 이전 계약 단정 6건은 새 요구사항에 맞게 보완했고, extractor 없는
-disabled 설정 전환에서 발견한 구현 오류는 수정했다. 실패를 제외하거나 skip하지 않았다.
-
-## 남는 한계
-
-- 실제 사내 endpoint/저사양 CPU에서의 대용량·장시간 검증과 모델의 관계 추출 품질은 별도다.
-- 임의 호스트 함수가 취소를 무시하면 강제 종료할 수 없다. 동기 LiteLLM 스트림은 소비자를
-  취소한 뒤에도 provider timeout/실제 종료까지 worker가 호출 슬롯을 유지한다.
-- 비동기 deadline 만료 후 사용량/저장 취소 정리는 내구성을 위해 drain한다. 외부 SDK/OS가
-  취소나 I/O 종료에 협조하지 않는 상황까지 절대적인 wall-clock 강제 종료를 보장하지 않는다.
-- 모델 서버가 같은 모델명·설정으로 벡터 의미를 바꾸는 경우 자동 감지할 수 없다.
-  모델 revision/embedding_id를 변경하고 새 corpus로 등록해야 한다.
-- graph_complete=true는 모든 추출 batch가 형식·출처 검증을 통과했다는 뜻이다.
-  모델이 원문의 모든 사실을 발견했다는 품질 보증은 아니다.
-- SDK의 임의 로그는 민감한 원문 대신 발생 위치/등급으로 기록한다. 별도 원본 debug 로그가
-  필요하면 호스트가 데이터 노출 정책을 정해야 한다. 디스크 자체가 기록 불가능하면
-  `logging_status().failed_writes`로 손실을 확인한다.
-- 이미 다른 코드가 LiteLLM을 import했다면 그 시점의 dotenv 부작용은 되돌릴 수 없다.
-
-## 변경 파일
-
-```text
-llm/llm.py
-llm/README.md
-llm/providers/runtime.py
-llm/providers/requests.py
-llm/providers/embeddings.py
-llm/providers/openai.py
-llm/providers/litellm.py
-llm/providers/retry.py
-llm/providers/README.md
-llm/providers/VALIDATION.md
-llm/components/rag/_client.py
-llm/components/rag/component.py
-llm/components/rag/data.py
-llm/components/rag/extraction.py
-llm/components/rag/ingestion.py
-llm/components/rag/jobs.py
-llm/components/rag/prompts.py
-llm/components/rag/tools.py
-llm/components/rag/README.md
-llm/services/lifecycle/components.py
-llm/services/runtime/runs.py
-llm/services/runtime/usage.py
-llm/examples/graph_rag.py
-llm/examples/graph_rag.md
-llm/examples/graph_rag.config.example.json
-llm/examples/recovery_probe.py
-llm/tests/__init__.py
-llm/tests/.gitignore
-llm/tests/run_linux.py
-llm/tests/setup_linux.py
-llm/tests/provider_probe.py
-llm/tests/test_provider_runtime.py
-llm/tests/test_rag_resilience.py
-tests/test_rag_models.py
-tests/test_graph_rag_example.py
-tests/test_unified_rag.py
-tests/test_operations_schema.py
+```bash
+/home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python \
+  /mnt/d/WorkSpace/ish/llm/tests/run_linux.py --source /mnt/d/WorkSpace/ish \
+  --python /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python --full
 ```
+
+## 실제 SDK HTTP 검사
+
+`python -m llm.tests.provider_probe --output /tmp/provider-probe.json`은 외부 인증 없이
+고정 응답을 반환하는 로컬 HTTP 서버와 실제 SDK/Chroma/BM25/Kuzu/GraphEngine을 사용한다.
+
+- sync/async LiteLLM 임베딩 결과 일치, SDK cache read/write 각각 0회.
+- SDK max_retries=1 + llm max_attempts=4에서도 503 HTTP 요청은 2회.
+- JSON-mode null 응답 이후 plain JSON fallback: 호출 2회로 성공.
+- 165줄 공개 문서 등록, 검색, rerank 후보 역순 매핑, Graph 답변 검증·재수정과 재열기.
+- 직접 검색 및 Graph Agent 2회에서 rerank HTTP 요청 3회.
+- 별도 프로세스의 graph_rag CLI도 23개 확인 항목 통과, rerank HTTP 요청 3회.
+
+이 검사는 호출·저장 계약을 검증한다. 실제 사내 모델의 추론 정확도나 처리 속도를 보장하지 않는다.
+실행 결과는 Git에서 제외되는 `llm/tests/reports/provider-simplified-http.json`에 있다.
+
+## 한계
+
+SDK 내부 HTTP 재시도는 한 SDK 호출 안에서 발생하므로 별도 사용량 영수증으로 관찰하지 못한다.
+llm은 각 외부 invoke를 계속 예약·집계한다. SDK 자체의 다층 재시도와 임의 주입 함수 내부의
+반복까지 재작성하지 않으며, 불명확한 SDK 정책에는 llm의 외부 반복을 추가하지 않는다.
+동기 SDK worker나 취소를 무시하는 사용자 함수의 강제 종료는 보장하지 않는다.
+SDK 초기화 전에 다른 코드가 dotenv를 로드했다면 해당 부작용을 되돌릴 수 없다.
+모델이 같은 이름으로 벡터 의미를 바꾼 경우 자동 감지할 수 없어 model revision/embedding_id 관리가 필요하다.

@@ -1,12 +1,22 @@
 # 공급자 안정화 경계
 
 `runtime.py`만 LiteLLM 전역 초기화와 로깅을 관리한다. 최초 import 전에
-`LITELLM_MODE=PRODUCTION`, 로컬 비용표, 기본 재시도 0을 설정한다. 기존 인증 환경변수는
+`LITELLM_MODE=PRODUCTION`과 로컬 비용표를 설정한다. 기존 인증 환경변수는
 삭제하지 않는다. SDK import를 다른 플러그인이 먼저 수행했다면 이미 발생한 dotenv 로드는
-되돌릴 수 없다. 같은 프로세스에서 LiteLLM의 기본 재시도 전역값을 다시 바꾸면 거부한다.
+되돌릴 수 없다. SDK의 retry 전역값·환경변수·클라이언트는 수정하거나 거부하지 않는다.
+
+`num_retries`/`max_retries`는 명시한 값 그대로 전달하며, 생략하면 SDK 기본값을 사용한다.
+요청 인자, 주입 client의 `max_retries`, SDK 기본값에서 재시도가 활성화되면 llm invoke는
+한 번만 실행한다. `retry_policy`처럼 공급자별 해석이 필요한 설정도 보수적으로 한 번만 호출한다.
+SDK retry가 없으면 `rag.provider.max_attempts`의 제한 재시도를 적용한다.
+실제 SDK를 쓰는 경로에서 초기화 전/불명확한 기본값은 추가 재시도를 하지 않는 쪽으로 처리한다.
+LiteLLM 1.103.1의 일부 경로는 명시적 0에도 활성 `DEFAULT_MAX_RETRIES`를 사용하므로,
+기본값이 활성화되어 있으면 외부 반복을 얹지 않는다. 전역값을 수정하는 우회는 하지 않는다.
+`provider_retry_delegated` 진단에서 configured/effective attempts를 확인할 수 있다.
 
 비스트리밍 호출은 `requests.invoke`가 전체 wall deadline과 시도 횟수를 소유한다.
-실제 시도마다 기존 사용량 관찰자를 통과하므로 실패·재시도도 사용량 한도에 포함된다.
+llm 시도마다 기존 사용량 관찰자를 통과하므로 실패·재시도도 사용량 한도에 포함된다.
+SDK 내부 HTTP 재시도는 하나의 SDK 호출 안에서 일어나므로 별도 사용량 영수증으로 관찰할 수 없다.
 사용량 예약 실패는 공급자 재시도로 우회하지 않는다. `CancelledError`는 즉시 전달한다.
 HTTP timeout과 별개로 모델 클라이언트 준비·응답·backoff에 같은 deadline을 적용한다.
 TripleExtractor는 JSON-mode fallback과 semantic repair에도 같은 deadline을 공유한다.
@@ -17,7 +27,7 @@ TripleExtractor는 JSON-mode fallback과 semantic repair에도 같은 deadline�
 JSON/의미 오류는 별도의 extraction repair 정책을 사용한다.
 
 스트리밍은 기존 Run의 `policies.provider_retry`를 유지하며 첫 chunk를 받은 뒤에는
-절대로 자동 재시도하지 않는다. SDK에는 `num_retries=max_retries=0`을 강제한다.
+llm은 자동 재시도하지 않는다. 스트리밍도 같은 SDK 우선 정책을 적용하고 사용자 값을 유지한다.
 스트림의 전체 대기 한도는 요청 `timeout`이며, 생략하면 120초다. 동기 SDK worker는
 강제로 죽일 수 없다. 소비자는 취소되지만 실제 호출이 종료될 때까지 슬롯은 반환하지 않는다.
 사용자 주입 함수가 취소를 무시하거나 자체 내부 재시도를 구현하는 경우까지 강제로 제어하지는 않는다.
@@ -37,10 +47,9 @@ SDK 임의 로그는 요청 본문·인증을 포함할 수 있으므로 원문 
 
 ## 임베딩 무결성과 LiteLLM 1.103.1
 
-`caching=False`만으로 cache write가 차단되지 않는 SDK 경로 때문에 항상
+RAG `EmbeddingModel`은 `caching=False`만으로 cache write가 차단되지 않는 SDK 경로 때문에
 `cache={"no-cache": true, "no-store": true}`도 전달한다. 호스트의 다른 작업이 소유하는
-SDK cache 객체를 삭제하지 않는다. 기본 `None`을 유지하며 `False`를 비활성 상태로 쓰지 않는다.
-`DEFAULT_MAX_RETRIES=0`도 설정하여 1.103.1의 `0 or DEFAULT_MAX_RETRIES` 경로를 막는다.
+SDK cache 객체를 삭제하지 않는다. 일반 `ModelClient`의 명시적 cache kwargs는 유지한다.
 
 `normalize_litellm_embeddings` → `validate_embeddings` 순서다. 정규화는 아래가 모두
 확인될 때만 허용한다.
@@ -55,12 +64,8 @@ SDK cache 객체를 삭제하지 않는다. 기본 `None`을 유지하며 `False
 일반 RAG 호출은 SDK cache를 끄므로 이 분기에 들어가지 않는다. `[0,0]`은 서버 오류로 거부한다.
 호스트가 의도적으로 cache merge를 사용하는 별도 어댑터에서만 명시적 위치 증거를 제공한다.
 
-`rag.provider.embedding_adapter="openai"`는 `AsyncOpenAI.embeddings.create`를 선택한다.
-`openai/` 모델 접두사만 제거하며 `api_base`를 `base_url`로 전달한다. 나머지 endpoint 인자는
-OpenAI SDK 계약을 따른다. completion/extraction은 계속 LiteLLM을 사용한다. 주입된
-SDK client의 `max_retries`가 0이 아니면 호출 전에 거부한다.
-
-명시적으로 주입한 모델 함수가 있으면 그 함수가 어댑터보다 우선한다. 내장 ModelClient의
+모든 기본 임베딩은 LiteLLM `aembedding`으로 전달한다. 모델 접두사와 클라이언트 수명은
+LiteLLM이 처리한다. 명시적으로 주입한 모델 함수는 기존 확장 계약대로 사용한다. 내장 ModelClient의
 호출은 공통 정책을 적용하지만, 임의의 커스텀 embedding/extractor 클래스가 내부에서 직접
 호출하는 SDK까지 가로채지는 않는다. 같은 정책 바인딩을 제공하려면 `with_provider(options)`를
 구현하거나 ModelClient를 재사용한다.
@@ -74,6 +79,6 @@ python -m unittest llm.tests.test_provider_runtime llm.tests.test_rag_resilience
 python -m llm.tests.provider_probe --output /tmp/provider-probe.json
 ```
 
-두 번째 명령은 실제 LiteLLM/OpenAI HTTP 경로와 Chroma/BM25/Kuzu/GraphEngine을 사용한다.
+두 번째 명령은 실제 LiteLLM HTTP 경로와 Chroma/BM25/Kuzu/GraphEngine을 사용한다.
 응답은 로컬 고정 fixture이며 외부 모델 품질이나 사내 서버 속도를 측정하지 않는다.
-sync/async LiteLLM 및 direct OpenAI 임베딩 일치, 실제 재시도 횟수, 165줄 문서 등록을 확인한다.
+sync/async LiteLLM 임베딩 일치, SDK retry 중첩 방지, 165줄 문서 등록과 rerank를 확인한다.

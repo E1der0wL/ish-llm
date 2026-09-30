@@ -7,11 +7,12 @@ import math
 from .observations import observed_call
 from .parameters import copy_params
 from .runtime import diagnostic
+from .retry import effective_attempts
 
 
 def provider_defaults():
     return {"max_attempts": 2, "wall_timeout": 120.0, "delay_seconds": 0.25,
-            "max_delay_seconds": 2.0, "embedding_adapter": "litellm"}
+            "max_delay_seconds": 2.0}
 
 
 def provider_schema():
@@ -21,7 +22,6 @@ def provider_schema():
         "wall_timeout": field("number", 120.0, exclusiveMinimum=0),
         "delay_seconds": field("number", 0.25, minimum=0),
         "max_delay_seconds": field("number", 2.0, minimum=0),
-        "embedding_adapter": field("string", "litellm", enum=["litellm", "openai"]),
     }, additionalProperties=False)
 
 
@@ -76,12 +76,13 @@ TRANSIENT = {"provider_timeout", "provider_connection", "provider_rate_limit", "
              "provider_empty_response", "provider_invalid_response"}
 
 
-async def invoke(operation, request, call, options, *, deadline=None):
+async def invoke(operation, request, call, options, *, deadline=None, sdk_defaults=False):
     """각 실제 시도를 관찰한다. 전체 deadline에는 대기·backoff·사용량 관찰도 포함된다."""
     options = resolve_provider_options(options)
     started = time.monotonic()
     end = min(deadline, started + options["wall_timeout"]) if deadline else started + options["wall_timeout"]
-    for attempt in range(options["max_attempts"]):
+    attempts = effective_attempts(request, options["max_attempts"], sdk_defaults=sdk_defaults)
+    for attempt in range(attempts):
         remaining = end - time.monotonic()
         if remaining <= 0:
             raise ProviderError("provider_timeout")
@@ -107,7 +108,7 @@ async def invoke(operation, request, call, options, *, deadline=None):
             code = error_code(error)
             diagnostic(code, severity="warning", operation=operation, attempt=attempt + 1,
                        model=request.get("model"), elapsed_seconds=time.monotonic() - started)
-            if code not in TRANSIENT or attempt + 1 >= options["max_attempts"]:
+            if code not in TRANSIENT or attempt + 1 >= attempts:
                 if code == "provider_failed" or not code.startswith("provider_"):
                     raise
                 raise ProviderError(code) from error

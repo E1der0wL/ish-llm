@@ -106,25 +106,17 @@ def logging_scope(workspace):
 
 
 def litellm_sdk():
-    """최초 import 전에 dotenv/온라인 비용표를 차단하고 retry=0 버그를 방어한다."""
+    """최초 import 전에 dotenv/온라인 비용표를 차단한다. retry 정책은 SDK가 소유한다."""
     global _sdk
     with _lock:
         if _sdk is None:
             os.environ["LITELLM_MODE"] = "PRODUCTION"
             os.environ.setdefault("LITELLM_LOG", "ERROR")
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-            os.environ["DEFAULT_MAX_RETRIES"] = "0"
             configure_logging(refresh=True)
             _sdk = importlib.import_module("litellm")
-            _sdk.DEFAULT_MAX_RETRIES = 0
-            _sdk.num_retries = 0
             _sdk.suppress_debug_info = True
-            # 다른 호스트 코드가 가진 cache 객체는 파괴하지 않는다. 호출별 read/write 차단.
-            if getattr(_sdk, "cache", None) is False:
-                _sdk.cache = None
             configure_logging(refresh=True)
-        if _sdk.DEFAULT_MAX_RETRIES != 0:
-            raise RuntimeError("LiteLLM global retry settings changed outside ProviderRuntime")
         return _sdk
 
 

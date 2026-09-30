@@ -21,7 +21,6 @@ class StreamError(RuntimeError):
 def completion(**kwargs: Any) -> Iterator[Any]:
     # Import and request creation both happen in the stream's worker thread.
     from .runtime import litellm_sdk
-    kwargs.update(num_retries=0, max_retries=0)
     return litellm_sdk().completion(**kwargs)
 
 

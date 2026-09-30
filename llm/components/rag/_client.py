@@ -47,26 +47,18 @@ class ModelClient:
         if not isinstance(request.get("model"), str) or not request["model"].strip():
             raise ValueError("Model is required")
         request.setdefault("timeout", 60)
-        request.update(num_retries=0, max_retries=0)
-        client = request.get("client")
-        if client is not None and getattr(client, "max_retries", 0) != 0:
-            raise ValueError("Injected SDK clients must use max_retries=0")
-        if self._operation == "aembedding":
-            request.update(caching=False, cache={"no-cache": True, "no-store": True})
         call = self._call_fn
         if call is None:
             # Heavy SDK initialization must not block the application's loop.
             from llm.providers.runtime import litellm_sdk, diagnostic
-            if self._operation == "aembedding" and self.provider_options.get("embedding_adapter") == "openai":
-                from llm.providers.openai import embedding
-                call = embedding
-            else:
-                sdk = await asyncio.wait_for(asyncio.to_thread(litellm_sdk), max(0, deadline - time.monotonic()))
-                call = getattr(sdk, self._operation)
-                diagnostic("provider_request", operation=self._operation, num_retries=0, max_retries=0,
-                    caching=request.get("caching"), cache=request.get("cache"),
-                    sdk_cache="none" if sdk.cache is None else "configured")
-        result = await invoke(self._operation, request, call, options, deadline=deadline)
+            sdk = await asyncio.wait_for(asyncio.to_thread(litellm_sdk), max(0, deadline - time.monotonic()))
+            call = getattr(sdk, self._operation)
+            diagnostic("provider_request", operation=self._operation,
+                num_retries=request.get("num_retries"), max_retries=request.get("max_retries"),
+                caching=request.get("caching"), cache=request.get("cache"),
+                sdk_cache="none" if sdk.cache is None else "configured")
+        result = await invoke(self._operation, request, call, options, deadline=deadline,
+                              sdk_defaults=self._call_fn is None)
         if self._operation == "aembedding" and self._call_fn is None:
             from llm.providers.embeddings import normalize_litellm_embeddings
             inputs = request["input"]

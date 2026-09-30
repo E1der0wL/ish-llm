@@ -19,4 +19,6 @@ class EmbeddingModel(ModelClient):
         Per-call kwargs override defaults. Provider-specific input formats and
         model parameters are forwarded without an application allowlist.
         """
+        # RAG 벡터 무결성 계약. 일반 ModelClient의 provider cache 인자는 변경하지 않는다.
+        kwargs.update(caching=False, cache={"no-cache": True, "no-store": True})
         return await self._invoke(input=input, **kwargs)

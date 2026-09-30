@@ -222,7 +222,7 @@ class MemorySession(CompletionSession):
             # fallback 기록은 남는다. 취소/GeneratorExit는 잡지 않고 소유 Run으로 전달한다.
 
     async def _model(self, instruction, payload, result):
-        params = {"stream": True, "num_retries": 0, "timeout": self.config["timeout_seconds"],
+        params = {"stream": True, "timeout": self.config["timeout_seconds"],
                   **deepcopy(self.config["completion"])}
         params["messages"] = [{"role": "system", "content": instruction},
                               {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]

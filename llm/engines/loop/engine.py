@@ -163,7 +163,6 @@ class LoopEngine(BaseEngine):
     def _request(self, context: EngineContext, params: dict[str, Any]) -> dict[str, Any]:
         request: dict[str, Any] = {
             "stream": True, "timeout": self.request_timeout,
-            "num_retries": 0,
         }
         request.update(self.copy_params(params))
         if not isinstance(request.get("model"), str) or not request["model"].strip():

@@ -123,9 +123,8 @@ async def probe(root):
         asynchronous = await async_client.embed(inputs)
         synchronous = await asyncio.to_thread(sdk.embedding, **server.params, input=inputs,
             num_retries=0, max_retries=0, caching=False, cache={"no-cache": True, "no-store": True})
-        direct = await async_client.with_provider({"embedding_adapter": "openai"}).embed(inputs)
-        output["sync_async_direct_equal"] = (validate_embeddings(asynchronous, 2) == validate_embeddings(synchronous, 2)
-                                             == validate_embeddings(direct, 2))
+        output["sync_async_equal"] = validate_embeddings(asynchronous, 2) == validate_embeddings(synchronous, 2)
+        assert output["sync_async_equal"]
         # 호스트가 SDK 캐시를 사용하더라도 llm embedding은 읽기/쓰기에 참여하지 않는다.
         from litellm.caching.caching import Cache
         from unittest.mock import patch, AsyncMock
@@ -140,12 +139,13 @@ async def probe(root):
         server.fail = True
         start = time.monotonic()
         try:
-            await async_client.with_provider({"max_attempts": 2, "delay_seconds": .01}).embed(inputs)
+            await async_client.configured({"num_retries": 0, "max_retries": 1}).with_provider(
+                {"max_attempts": 4, "delay_seconds": .01}).embed(inputs)
         except ProviderError as error:
             output["transient_failure_code"] = error.code
         output["failure_seconds"] = time.monotonic() - start
         output["actual_http_attempts"] = len(server.calls) - before
-        assert output["actual_http_attempts"] == 2, "SDK retry was revived"
+        assert output["actual_http_attempts"] == 2, "SDK retry and llm retry were multiplied"
         server.fail = False
         from llm.components.rag import TripleExtractor
         from llm.components.rag.prompts import extraction_defaults, default_prompt
@@ -155,6 +155,7 @@ async def probe(root):
             {**extraction_defaults(), "json_mode": "auto"}, default_prompt())
         await extractor.extract([])
         output["json_mode_fallback_http_attempts"] = len(server.calls) - before
+        assert output["json_mode_fallback_http_attempts"] == 2
         server.empty_json_mode = False
         text = (Path(__file__).parents[1] / "examples/data/graph_rag_165.md").read_text(encoding="utf-8")
         assert len(text.splitlines()) == 165

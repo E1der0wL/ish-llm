@@ -248,11 +248,10 @@ class BaseEngine:
         response receives the assistant message on success only. Observations
         contain no prompts, tool arguments, headers, or arbitrary SDK payloads.
         """
-        from llm.providers.retry import retry_settings, transient
+        from llm.providers.retry import retry_settings, transient, effective_attempts
         policy = retry_settings()
-        maximum = policy.get("max_retries", 0)
-        if maximum and request.get("num_retries", 0):
-            raise ValueError("Choose project provider_retry or SDK num_retries, not both")
+        maximum = effective_attempts(request, policy.get("max_retries", 0) + 1,
+                                     sdk_defaults=self.completion_fn is completion) - 1
         for attempt in range(maximum + 1):
             progress = {"received": False}
             result = CompletionResult(model=request.get("model") if isinstance(request.get("model"), str) else None)
@@ -314,7 +313,6 @@ class BaseEngine:
         if params.get("stream", True) is not True or params.get("n", 1) != 1:
             raise ValueError("Completion requires stream=True and n=1")
         params["stream"] = True
-        params.setdefault("num_retries", 0)
         if "stream_options" not in params:
             params["stream_options"] = {"include_usage": True}
         elif isinstance(params["stream_options"], dict):

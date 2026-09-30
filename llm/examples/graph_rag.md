@@ -164,8 +164,10 @@ worker 초기화에서 LiteLLM의 로컬 비용표를 선택하므로 GitHub 비
 
 설정 예제는 JSON mode `auto`, graph `required`, batch 최대 16건/16,000자,
 timeout/5xx 분할 깊이 2를 사용한다. 라이브러리 기본값은 JSON `strict`, 분할 깊이 0이다.
-내장 추출 temperature는 0이며 provider SDK retries는 항상 0이다. 추론의 제한 재시도는
-`rag.provider.max_attempts`가 제어한다. 상세 키·타입은 [RAG 설정](../components/rag/README.md)을 참고한다.
+내장 추출 temperature는 0이며 SDK retry 인자는 사용자가 지정한 값을 그대로 전달한다.
+SDK retry가 활성화되면 llm 자체 retry를 추가하지 않는다. SDK retry가 없을 때는
+`rag.provider.max_attempts`를 적용한다. 생략된 값과 일부 SDK의 0 처리 경로에서는 SDK
+기본값도 고려한다. 상세 키·타입은 [RAG 설정](../components/rag/README.md)을 참고한다.
 
 보고서 파일에는 검색 원문·사용자 질의·답변 본문을 저장하지 않는다. 검색 건수/그래프 완전성,
 오류 코드/operation/model/시도·시간, `rag_ingestion` 통계를 확인할 수 있다.

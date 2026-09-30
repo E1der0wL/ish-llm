@@ -72,7 +72,6 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
     texts = [chunk["text"] for chunk in document["chunks"]]
     fingerprint = revision_token({"model": component._identity(),
         "params": getattr(component.embedding, "params", {}), "kwargs": component.document_kwargs,
-        "adapter": component.provider_options["embedding_adapter"],
         "client": type(component.embedding).__qualname__})
     # 주입 함수 교체는 설정 JSON에 나타나지 않는다. 프로세스 캐시만 함수 identity로 분리한다.
     cache_prefix = (getattr(component, "_cache_namespace", "standalone") + fingerprint

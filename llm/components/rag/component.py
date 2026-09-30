@@ -104,16 +104,12 @@ class RAGComponent(DefinitionComponent):
         if isinstance(self.extractor, TripleExtractor) or self.extractor is None and any(
                 values.get("extraction_params") for _, values in layers):
             layers.append(("extraction_contract", {"extraction_params": {"temperature": 0}}))
-        # UI에도 실제 SDK 제어값을 보인다. 값만 존재한다고 미설정 모델을 생성하지 않는다.
-        from ._client import ModelClient
-        enforced = {}
-        for key, client in (("embedding_params", self.embedding), ("extraction_params", self.extractor),
-                            ("rerank_params", self.reranker)):
-            if isinstance(client, ModelClient) or client is None and any(values.get(key) for _, values in layers):
-                enforced[key] = {"num_retries": 0, "max_retries": 0}
-                if key == "embedding_params":
-                    enforced[key].update(caching=False, cache={"no-cache": True, "no-store": True})
-        layers.append(("provider_contract", enforced))
+        # SDK retry 설정은 그대로 노출하고 RAG 임베딩의 캐시 무결성 계약만 표시한다.
+        from .embedding import EmbeddingModel
+        if isinstance(self.embedding, EmbeddingModel) or self.embedding is None and any(
+                values.get("embedding_params") for _, values in layers):
+            layers.append(("embedding_integrity", {"embedding_params": {
+                "caching": False, "cache": {"no-cache": True, "no-store": True}}}))
         view = resolve_configuration(self.default_configuration(), layers,
             schema=self.configuration_schema())
         view["runtime"] = runtime

@@ -29,7 +29,7 @@ def search_tools(data) -> ToolRegistry:
 
     async def retrieve(arguments):
         if not has_reranker:
-            arguments = {"rerank": False, **arguments}
+            arguments = {**arguments, "rerank": False}
         return {"component": data.name, **await data.asearch(**arguments)}
 
     return ToolRegistry((Tool(
