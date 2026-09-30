@@ -3,19 +3,27 @@
 `runtime.py`만 LiteLLM 전역 초기화와 로깅을 관리한다. 최초 import 전에
 `LITELLM_MODE=PRODUCTION`과 로컬 비용표를 설정한다. 기존 인증 환경변수는
 삭제하지 않는다. SDK import를 다른 플러그인이 먼저 수행했다면 이미 발생한 dotenv 로드는
-되돌릴 수 없다. SDK의 retry 전역값·환경변수·클라이언트는 수정하거나 거부하지 않는다.
+되돌릴 수 없다.
 
-`num_retries`/`max_retries`는 명시한 값 그대로 전달하며, 생략하면 SDK 기본값을 사용한다.
-요청 인자, 주입 client의 `max_retries`, SDK 기본값에서 재시도가 활성화되면 llm invoke는
-한 번만 실행한다. `retry_policy`처럼 공급자별 해석이 필요한 설정도 보수적으로 한 번만 호출한다.
-SDK retry가 없으면 `rag.provider.max_attempts`의 제한 재시도를 적용한다.
-실제 SDK를 쓰는 경로에서 초기화 전/불명확한 기본값은 추가 재시도를 하지 않는 쪽으로 처리한다.
-LiteLLM 1.103.1의 일부 경로는 명시적 0에도 활성 `DEFAULT_MAX_RETRIES`를 사용하므로,
-기본값이 활성화되어 있으면 외부 반복을 얹지 않는다. 전역값을 수정하는 우회는 하지 않는다.
-`provider_retry_delegated` 진단에서 configured/effective attempts를 확인할 수 있다.
+LiteLLM import 전에 `os.environ["DEFAULT_MAX_RETRIES"] = "0"`을 강제로 적용한다.
+`litellm_sdk()`는 import 후와 매 진입 시 `sdk.DEFAULT_MAX_RETRIES = 0`도 적용한다.
+LiteLLM 1.103.1 OpenAI embedding 경로의 `max_retries or DEFAULT_MAX_RETRIES`가
+명시적 0을 숨은 retry로 바꾸지 못하게 하는 compatibility rule이다.
+
+| 요청 설정 | LiteLLM retry | llm 외부 시도 |
+|---|---|---|
+| num_retries/max_retries 생략 | 기본 0 | provider.max_attempts |
+| max_retries=2 또는 num_retries=2 | 사용자 값 그대로 | 1회 |
+| num_retries=0, max_retries=0 | 0 | provider.max_attempts |
+
+요청 dict에는 retry 키를 자동 삽입하지 않는다. `effective_attempts()`가 중첩을 막는다.
+주입 client의 max_retries, retry_policy, 호스트가 별도로 설정한 sdk.num_retries가
+활성인 경우도 보수적으로 외부 1회만 호출한다. `provider_retry_delegated`로 이를 관찰한다.
+DEFAULT_MAX_RETRIES만 강제 0이며 명시적 설정이나 호스트의 client를 재작성하지 않는다.
+다른 코드가 호출 도중 SDK 전역값을 변경하는 경쟁까지 제어하지는 못한다.
 
 비스트리밍 호출은 `requests.invoke`가 전체 wall deadline과 시도 횟수를 소유한다.
-llm 시도마다 기존 사용량 관찰자를 통과하므로 실패·재시도도 사용량 한도에 포함된다.
+llm 시도마다 공유 ProviderCalls의 admission과 기존 사용량 관찰자를 통과하므로 실패·재시도도 사용량 한도에 포함된다.
 SDK 내부 HTTP 재시도는 하나의 SDK 호출 안에서 일어나므로 별도 사용량 영수증으로 관찰할 수 없다.
 사용량 예약 실패는 공급자 재시도로 우회하지 않는다. `CancelledError`는 즉시 전달한다.
 HTTP timeout과 별개로 모델 클라이언트 준비·응답·backoff에 같은 deadline을 적용한다.
@@ -51,18 +59,18 @@ RAG `EmbeddingModel`은 `caching=False`만으로 cache write가 차단되지 않
 `cache={"no-cache": true, "no-store": true}`도 전달한다. 호스트의 다른 작업이 소유하는
 SDK cache 객체를 삭제하지 않는다. 일반 `ModelClient`의 명시적 cache kwargs는 유지한다.
 
-`normalize_litellm_embeddings` → `validate_embeddings` 순서다. 정규화는 아래가 모두
-확인될 때만 허용한다.
+RAG embedding ordering does not depend on provider-reported embedding indexes.
+Each document chunk is embedded independently. The application owns the chunk ordinal
+and restores results to that position. Embedding concurrency is bounded by configuration.
 
-- count 일치, cache read 허용, 실제 cache 객체 존재, 내부 `cache_hit=True`
-- 호스트의 SDK 병합 경계에서 확인한 `merge_positions`(캐시된 원래 위치)
-- cached/fresh 위치와 index 패턴 일치, 유한·비영·동일 차원 벡터
+`extract_single_embedding()`은 data가 길이 1인 list인지와 유한·비영·동일 차원 벡터를
+검증한다. index는 없거나 임의 값이어도 읽지 않는다. 문서와 query 모두 동일하다.
+index 정규화, partial-cache merge_positions 복원, embedding 배치 분할은 제거했다.
+여러 후보를 재정렬하는 **reranker의 results[*].index 검증은 그대로 유지**한다.
 
-`cache_hit=True`만으로는 어떤 위치가 캐시에서 왔는지 증명할 수 없으므로 자동 추측하지 않는다.
-정상 응답은 수정하지 않는다. 정규화는 사본에 적용하고 원래 배열 순서를 보존하며,
-`embedding_index_normalized` 진단을 남긴 뒤 다시 엄격하게 검증한다.
-일반 RAG 호출은 SDK cache를 끄므로 이 분기에 들어가지 않는다. `[0,0]`은 서버 오류로 거부한다.
-호스트가 의도적으로 cache merge를 사용하는 별도 어댑터에서만 명시적 위치 증거를 제공한다.
+RAG의 embedding_concurrency는 1–32, 기본 2다. 고정 개수의 asyncio worker가
+단일 청크 요청을 처리하며 백엔드 ProviderCalls의 더 작은 제한도 존중한다.
+VectorCache, 동일 텍스트 중복 제거, unchanged reuse, Job 청크 checkpoint는 유지한다.
 
 모든 기본 임베딩은 LiteLLM `aembedding`으로 전달한다. 모델 접두사와 클라이언트 수명은
 LiteLLM이 처리한다. 명시적으로 주입한 모델 함수는 기존 확장 계약대로 사용한다. 내장 ModelClient의

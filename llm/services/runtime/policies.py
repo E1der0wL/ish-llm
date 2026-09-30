@@ -47,8 +47,8 @@ class RunLimits:
 
 def model_token_count(request: dict) -> int:
     """모델별 LiteLLM 계산기에 메시지·Tool 정의를 전달한다. 원격 모델 호출은 하지 않는다."""
-    from litellm import token_counter
-    return token_counter(model=request.get("model"), messages=request.get("messages"),
+    from llm.providers.runtime import litellm_sdk
+    return litellm_sdk().token_counter(model=request.get("model"), messages=request.get("messages"),
                          tools=request.get("tools"), tool_choice=request.get("tool_choice"))
 
 

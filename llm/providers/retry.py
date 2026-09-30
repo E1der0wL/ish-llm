@@ -21,14 +21,10 @@ def sdk_retry_enabled(request, *, sdk_defaults=False):
         return True
     if sdk_defaults:
         sdk = sys.modules.get("litellm")
-        if sdk is None:
-            return True  # 지연 import 이전에는 기본값을 알 수 없다.
-        # 일부 SDK 경로는 명시적 0도 DEFAULT_MAX_RETRIES로 되돌린다.
-        # 전역값을 바꾸지 않고 활성 기본값이 있으면 보수적으로 한 번만 호출한다.
-        if enabled(getattr(sdk, "num_retries", None)):
+        # Runtime은 import 전/호출 진입마다 DEFAULT_MAX_RETRIES=0을 보장한다.
+        # 별도로 설정한 호스트의 num_retries는 명시적 SDK 정책으로 존중한다.
+        if sdk is not None and enabled(getattr(sdk, "num_retries", None)):
             return True
-        default = getattr(sdk, "DEFAULT_MAX_RETRIES", None)
-        return default is None or enabled(default)
     return False
 
 

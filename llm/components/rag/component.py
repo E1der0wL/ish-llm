@@ -20,7 +20,7 @@ from .graph_search import graph_search, related_graph
 from .files import copy_file
 from llm.core.configuration import resolve_configuration
 from llm.providers.requests import provider_defaults, provider_schema, error_code
-from llm.providers.embeddings import validate_embeddings
+from llm.providers.embeddings import extract_single_embedding
 from llm.providers.runtime import diagnostic, diagnostic_scope
 from .ingestion import VectorCache, prepare_vectors
 
@@ -38,18 +38,18 @@ class RAGComponent(DefinitionComponent):
     data_class = RAGData
 
     def __init__(self, *, embedding=None, embedding_id=None, reranker=None, extractor=None):
-        """모델 구현만 주입한다. 분할·배치·검색 설정은 ProjectConfig에서 받는다."""
+        """모델 구현만 주입한다. 분할·동시성·검색 설정은 ProjectConfig에서 받는다."""
         self.embedding, self.reranker, self.extractor = embedding, reranker, extractor
         self.embedding_id = embedding_id
         values = self.default_configuration()
-        for name in ("chunk_size", "embedding_batch_size", "extraction_batch_size", "search_cache_chars",
+        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
                      "document_kwargs", "query_kwargs", "index_batch_size"):
             setattr(self, name, deepcopy(values[name]))
         from .search import LexicalCache
         self.search_cache = LexicalCache(values["search_cache_chars"])
         self.search_options, self.graph_options = values["search"], values["graph"]
         self.extraction_options, self.extraction_prompt = values["extraction"], default_prompt()
-        self.provider_options, self.batching_options = values["provider"], values["embedding_batching"]
+        self.provider_options = values["provider"]
         self.vector_cache = VectorCache()
 
     def _generation_path(self, project, generation):
@@ -75,13 +75,11 @@ class RAGComponent(DefinitionComponent):
 
     # 공개 API: 직접 호출 시 workspace 소유권은 호출자가 보장해야 한다.
     def default_configuration(self):
-        return {"chunk_size": 2000, "embedding_batch_size": 128, "extraction_batch_size": 32,
+        return {"chunk_size": 2000, "embedding_concurrency": 2, "embedding_cache_max_bytes": 16 * 1024 * 1024, "extraction_batch_size": 32,
                 "search_cache_chars": 1_000_000, "document_kwargs": {}, "query_kwargs": {},
                 "embedding_params": {}, "extraction_params": {}, "rerank_params": {},
                 "extraction": extraction_defaults(),
                 "provider": provider_defaults(),
-                "embedding_batching": {"max_batch_size": 128, "max_batch_chars": None,
-                    "max_split_depth": 0, "cache_max_bytes": 16 * 1024 * 1024},
                 "search": search_defaults(), "index_batch_size": 128,
                 "graph": {"buffer_pool_size": 64 * 1024 * 1024, "max_num_threads": 2},
                 "ingestion": {"max_active": 1}, "retention": {"job_max_age_seconds": None}}
@@ -123,11 +121,11 @@ class RAGComponent(DefinitionComponent):
         values = self.effective_configuration(project)["values"]
         worker = copy(self)
         worker._configuration_source = self
-        for name in ("chunk_size", "embedding_batch_size", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
+        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
             setattr(worker, name, deepcopy(values[name]))
         worker.search_options, worker.graph_options = values["search"], values["graph"]
         worker.extraction_options = deepcopy(values["extraction"])
-        worker.provider_options, worker.batching_options = values["provider"], values["embedding_batching"]
+        worker.provider_options = values["provider"]
         worker._cache_namespace = project.id
         worker._extraction_error = (ValueError("RAG prompt_id requires the selected prompts component through its Project handle")
             if worker.extraction_options["prompt_id"] is not None and prompt is None else None)
@@ -163,7 +161,8 @@ class RAGComponent(DefinitionComponent):
                                      **{"x-open-parameters": True})
         return object_schema({
             "chunk_size": field("integer", 2000, minimum=64),
-            "embedding_batch_size": field("integer", 128, minimum=1),
+            "embedding_concurrency": field("integer", 2, minimum=1, maximum=32),
+            "embedding_cache_max_bytes": field("integer", 16 * 1024 * 1024, minimum=0),
             "extraction_batch_size": field("integer", 32, minimum=1),
             "search_cache_chars": field("integer", 1_000_000, minimum=0),
             "index_batch_size": field("integer", 128, minimum=1), "search": search_schema(),
@@ -173,11 +172,6 @@ class RAGComponent(DefinitionComponent):
             "embedding_params": deepcopy(model_params), "extraction_params": completion_schema(),
             "extraction": extraction_schema(),
             "provider": provider_schema(),
-            "embedding_batching": object_schema({
-                "max_batch_size": field("integer", 128, minimum=1),
-                "max_batch_chars": field(["integer", "null"], None, minimum=1),
-                "max_split_depth": field("integer", 0, minimum=0, maximum=8),
-                "cache_max_bytes": field("integer", 16 * 1024 * 1024, minimum=0)}),
             "rerank_params": deepcopy(model_params),
             "ingestion": object_schema({"max_active": field("integer", 1, "동시 색인 작업 수", minimum=1)}),
             "retention": object_schema({"job_max_age_seconds": field(["number", "null"], None,
@@ -186,6 +180,8 @@ class RAGComponent(DefinitionComponent):
             **{"x-runtime-configuration": ["embedding", "extractor", "reranker", "embedding_id"]})
 
     def validate_configuration(self, data):
+        if any(key in data for key in ("embedding_batch_size", "embedding_batching")):
+            raise ValueError("Embedding batch settings were removed; use embedding_concurrency and embedding_cache_max_bytes")
         from jsonschema import Draft202012Validator
         error = next(Draft202012Validator(self.configuration_schema()).iter_errors(data), None)
         if error:
@@ -193,7 +189,7 @@ class RAGComponent(DefinitionComponent):
         for value in (data.get("ingestion", {}).get("max_active", 1),):
             if type(value) is not int:
                 raise ValueError("ingestion.max_active requires an integer")
-        for name in ("chunk_size", "embedding_batch_size", "extraction_batch_size", "search_cache_chars", "index_batch_size"):
+        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "index_batch_size"):
             if name in data and type(data[name]) is not int:
                 raise ValueError(f"{name} requires an integer")
         if type(data.get("extraction", {}).get("repair_attempts", 2)) is not int:
@@ -306,12 +302,16 @@ class RAGComponent(DefinitionComponent):
         return {**value, "identity": identity, "generation": generation}
 
     async def embed(self, texts: list, *, query=False) -> list:
+        if not isinstance(texts, list) or len(texts) != 1:
+            raise ValueError("RAG embedding requires one chunk per request")
         self._identity()
         if query and self.query_kwargs.get("model", self._identity()) != self._identity():
             raise ValueError("Query embedding model differs from indexed model")
         response = await self.embedding.embed(texts, **(self.query_kwargs if query else self.document_kwargs))
         params = {**getattr(self.embedding, "params", {}), **(self.query_kwargs if query else self.document_kwargs)}
-        return validate_embeddings(response, len(texts), dimensions=params.get("dimensions"))
+        vector = extract_single_embedding(response, dimensions=params.get("dimensions"))
+        from llm.providers.embeddings import validate_vectors
+        return validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))
 
     async def prepare(self, identifier, title, content, metadata, revision, *, progress=None, previous=None, telemetry=None):
         policy = self.extraction_options["failure_policy"]

@@ -41,7 +41,7 @@
           "num_retries": 0
         },
         "chunk_size": 1500,
-        "embedding_batch_size": 16,
+        "embedding_concurrency": 2,
         "extraction_batch_size": 8,
         "graph": {"buffer_pool_size": 67108864, "max_num_threads": 2}
       }

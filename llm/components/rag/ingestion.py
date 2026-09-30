@@ -1,5 +1,6 @@
-"""RAG 준비 단계의 유한 배치·캐시·진행 관찰. 세대 공개와 Job 소유권은 기존 서비스에 둔다."""
+"""RAG 준비 단계의 제한된 청크 병렬 처리·캐시·진행 관찰. 세대 공개와 Job 소유권은 기존 서비스에 둔다."""
 
+import asyncio
 import hashlib
 import threading
 import time
@@ -7,7 +8,6 @@ import sys
 from collections import OrderedDict
 
 from llm.providers.embeddings import validate_vectors
-from llm.providers.requests import error_code
 from llm.providers.runtime import diagnostic, diagnostic_scope
 from llm.services.infrastructure.storage import revision_token
 
@@ -50,128 +50,144 @@ def vector_key(fingerprint, text):
     return fingerprint + ":" + hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def batches(texts, size, max_chars):
-    """청크를 의미 없이 자르지 않는다. 한 청크가 문자 한도를 넘으면 호출 전에 거부한다."""
-    offset, batch, chars = 0, [], 0
-    for text in texts:
-        if max_chars is not None and len(text) > max_chars:
-            raise ValueError("Chunk exceeds embedding max_batch_chars; reduce chunk_size")
-        if batch and (len(batch) >= size or max_chars is not None and chars + len(text) > max_chars):
-            yield offset, batch
-            offset += len(batch)
-            batch, chars = [], 0
-        batch.append(text)
-        chars += len(text)
-    if batch:
-        yield offset, batch
-
-
 async def prepare_vectors(component, document, *, previous=None, progress=None, telemetry=None):
-    """완료 batch는 재사용하며 transient 오류만 제한 깊이 분할한다."""
-    options = component.batching_options
+    """고정 개수 worker가 단일 청크 요청을 수행하고 원래 위치에 결과를 복원한다.
+
+    progress는 서비스가 소유하는 원자적 checkpoint 읽기/쓰기 경계다.
+    실패 시 새 작업 배정을 멈추고 진행 중인 성공 결과는 보존한다.
+    취소 시 worker를 모두 취소·회수한 뒤 반환하므로 미완료 세대는 공개되지 않는다.
+    """
+    concurrency = component.embedding_concurrency
+    if type(concurrency) is not int or not 1 <= concurrency <= 32:
+        raise ValueError("embedding_concurrency must be an integer from 1 to 32")
     texts = [chunk["text"] for chunk in document["chunks"]]
-    fingerprint = revision_token({"model": component._identity(),
-        "params": getattr(component.embedding, "params", {}), "kwargs": component.document_kwargs,
-        "client": type(component.embedding).__qualname__})
-    # 주입 함수 교체는 설정 JSON에 나타나지 않는다. 프로세스 캐시만 함수 identity로 분리한다.
+    fingerprint = revision_token({"contract": "single-chunk-v1", "model": component._identity(),
+        "params": getattr(component.embedding, "params", {}), "document_kwargs": component.document_kwargs,
+        "query_kwargs": component.query_kwargs, "client": type(component.embedding).__qualname__})
     cache_prefix = (getattr(component, "_cache_namespace", "standalone") + fingerprint
-                    + str(id(getattr(component.embedding, "_call_fn", type(component.embedding))))
-                    + str(id(component.embedding.__dict__.get("embed", type(component.embedding).embed))))
-    maximum = options["cache_max_bytes"]
+        + str(id(getattr(component.embedding, "_call_fn", type(component.embedding))))
+        + str(id(component.embedding.__dict__.get("embed", type(component.embedding).embed))))
+    maximum = component.embedding_cache_max_bytes
+    dimensions = getattr(component, "_embedding_dimensions", None)
+    if dimensions is None:
+        dimensions = {**getattr(component.embedding, "params", {}), **component.document_kwargs}.get("dimensions")
+
+    def checked(vector):
+        nonlocal dimensions
+        vector = validate_vectors([vector], dimensions=dimensions)[0]
+        dimensions = len(vector)
+        return vector
+
     reused = {}
     if previous and previous.get("embedding_fingerprint") == fingerprint:
         vectors = validate_vectors(previous["vectors"], dimensions=previous["profile"]["dimensions"])
         if len(vectors) != len(previous["chunks"]):
             raise ValueError("Stored chunk/vector count mismatch")
-        reused = {vector_key(fingerprint, chunk["text"]): vector for chunk, vector in zip(previous["chunks"], vectors)}
-    plan = list(batches(texts, min(component.embedding_batch_size, options["max_batch_size"]), options["max_batch_chars"]))
-    stats = {"chunks_total": len(texts), "total_chars": sum(map(len, texts)),
-             "embedding_batches_total": len(plan), "embedding_batches_completed": 0,
-             "embedding_seconds": 0.0, "cache_hits": 0, "checkpoint_reuse": 0, "batch_splits": 0}
-    stats.update(provider_retries=0, index_normalizations=0)
+        for chunk, vector in zip(previous["chunks"], vectors):
+            key = vector_key(fingerprint, chunk["text"])
+            if key in reused and reused[key] != vector:
+                raise ValueError("Stored identical chunks have conflicting vectors")
+            reused[key] = vector
+    positions = {}
+    for position, text in enumerate(texts):
+        positions.setdefault(text, []).append(position)
+    vectors = [None] * len(texts)
+    stats = dict(chunks_total=len(texts), chunks_completed=0, chunks_reused=0, chunks_cached=0,
+                 chunks_requested=0, embedding_concurrency=concurrency, embedding_seconds=0.0,
+                 provider_retries=0, checkpoint_reuse=0, active_embedding_requests=0,
+                 peak_embedding_requests=0)
+    started, telemetry_lock = time.monotonic(), asyncio.Lock()
 
     def observe(event):
         if event.code == "provider_retry":
             stats["provider_retries"] += 1
-        elif event.code == "embedding_index_normalized":
-            stats["index_normalizations"] += 1
 
-    async def publish(**values):
-        stats.update(values)
-        diagnostic("rag_ingestion_progress", **stats)
-        if telemetry:
-            await telemetry(dict(stats))
+    async def publish():
+        async with telemetry_lock:
+            stats["embedding_seconds"] = time.monotonic() - started
+            diagnostic("rag_ingestion_progress", **stats)
+            if telemetry:
+                await telemetry(dict(stats))
 
-    async def split_batch(key, batch, depth):
-        stats["batch_splits"] += 1
-        middle = len(batch) // 2
-        left = await embed_batch(key + "_l", batch[:middle], depth + 1)
-        right = await embed_batch(key + "_r", batch[middle:], depth + 1)
-        return validate_vectors(left + right)
-
-    async def embed_batch(key, batch, depth=0):
-        signature = revision_token({"fingerprint": fingerprint, "texts": batch})
-        saved = await progress(key, signature) if progress else None
-        if saved is not None:
-            if len(saved) != len(batch):
-                raise ValueError("Checkpoint embedding count mismatch")
-            stats["checkpoint_reuse"] += len(batch)
-            return validate_vectors(saved)
-        split = await progress(key + "_split", signature) if progress else None
-        if split is not None:
-            if split != {"middle": len(batch) // 2} or len(batch) < 2 or depth >= options["max_split_depth"]:
-                raise ValueError("Invalid or changed adaptive batch checkpoint; enqueue a new job")
-            # 이미 분할한 큰 요청을 재호출하지 않고 완료된 하위 결과부터 복원한다.
-            result = await split_batch(key, batch, depth)
-            await progress(key, signature, result)
-            return result
-        result, missing, positions = [None] * len(batch), [], {}
-        for position, text in enumerate(batch):
-            key_hash = vector_key(fingerprint, text)
-            vector = reused.get(key_hash)
-            if vector is None:
-                vector = component.vector_cache.get(vector_key(cache_prefix, text), maximum)
-            if vector is not None:
-                result[position] = vector
-                stats["cache_hits"] += 1
-            else:
-                if text not in positions:
-                    missing.append(text)
-                    positions[text] = []
-                positions[text].append(position)
-        if missing:
-            try:
-                vectors = await component.embed(missing)
-            except Exception as error:
-                if (error_code(error) not in ("provider_timeout", "provider_unavailable")
-                        or depth >= options["max_split_depth"] or len(batch) < 2):
-                    raise
-                if progress:
-                    await progress(key + "_split", signature, {"middle": len(batch) // 2})
-                result = await split_batch(key, batch, depth)
-            else:
-                for text, vector in zip(missing, vectors):
-                    component.vector_cache.put(vector_key(cache_prefix, text), vector, maximum)
-                    for position in positions[text]:
-                        result[position] = vector
-        result = validate_vectors(result)
+    async def embed_chunk(text, ordinals):
+        text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        signature = revision_token({"fingerprint": fingerprint, "text_hash": text_hash})
+        saved_positions, vector = set(), None
         if progress:
-            await progress(key, signature, result)
-        return result
+            for position in ordinals:
+                saved = await progress(f"embedding_{position}", signature)
+                if saved is None:
+                    continue
+                if (not isinstance(saved, dict) or saved.get("fingerprint") != fingerprint
+                        or saved.get("text_hash") != text_hash):
+                    raise ValueError("Chunk checkpoint identity mismatch")
+                candidate = checked(saved.get("vector"))
+                if vector is not None and candidate != vector:
+                    raise ValueError("Duplicate chunk checkpoints have conflicting vectors")
+                vector = candidate
+                saved_positions.add(position)
+            stats["checkpoint_reuse"] += len(saved_positions)
+        if vector is None:
+            vector = reused.get(vector_key(fingerprint, text))
+            if vector is not None:
+                stats["chunks_reused"] += len(ordinals)
+            else:
+                vector = component.vector_cache.get(vector_key(cache_prefix, text), maximum)
+                if vector is not None:
+                    stats["chunks_cached"] += len(ordinals)
+        if vector is None:
+            stats["chunks_requested"] += 1
+            stats["chunks_reused"] += len(ordinals) - 1
+            stats["active_embedding_requests"] += 1
+            stats["peak_embedding_requests"] = max(stats["peak_embedding_requests"], stats["active_embedding_requests"])
+            try:
+                result = await component.embed([text])
+                if not isinstance(result, list) or len(result) != 1:
+                    raise ValueError("Single chunk requires one vector")
+                vector = checked(result[0])
+            finally:
+                stats["active_embedding_requests"] -= 1
+        else:
+            vector = checked(vector)
+        # provider index는 읽지 않는다. 검증된 벡터와 앱이 소유한 ordinal만 연결한다.
+        for position in ordinals:
+            if progress and position not in saved_positions:
+                await progress(f"embedding_{position}", signature,
+                    {"fingerprint": fingerprint, "text_hash": text_hash, "vector": vector})
+            vectors[position] = list(vector)
+            stats["chunks_completed"] += 1
+        component.vector_cache.put(vector_key(cache_prefix, text), vector, maximum)
+        await publish()
+
+    pending, errors = iter(positions.items()), []
+
+    async def worker():
+        while not errors:
+            item = next(pending, None)
+            if item is None:
+                return
+            try:
+                await embed_chunk(*item)
+            except Exception as error:
+                errors.append(error)
+                return
 
     await publish()
-    vectors = []
-    for offset, batch in plan:
-        started = time.monotonic()
+    with diagnostic_scope(observe):
+        workers = [asyncio.create_task(worker(), name=f"rag-embedding-{i}")
+                   for i in range(min(concurrency, len(positions)))]
         try:
-            with diagnostic_scope(observe):
-                vectors.extend(await embed_batch(f"embedding_{offset}", batch))
-            stats["embedding_batches_completed"] += 1
+            await asyncio.gather(*workers)
+        except BaseException:
+            for task in workers:
+                task.cancel()
+            from llm.services.infrastructure.storage import drain_on_cancel
+            await drain_on_cancel(asyncio.gather(*workers, return_exceptions=True))
+            raise
         finally:
-            elapsed = time.monotonic() - started
-            stats["embedding_seconds"] += elapsed
-            await publish(batch_items=len(batch), batch_chars=sum(map(len, batch)), batch_seconds=elapsed)
-    # 서로 다른 배치/캐시 사이의 차원 불일치도 공개 전에 거부한다.
-    document["vectors"] = validate_vectors(vectors)
+            await publish()
+    if errors:
+        raise errors[0]
+    document["vectors"] = validate_vectors(vectors, dimensions=dimensions)
     document["embedding_fingerprint"] = fingerprint
     document["ingestion"] = stats

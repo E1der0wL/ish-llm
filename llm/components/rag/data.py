@@ -37,7 +37,9 @@ class RAGData(ComponentData):
     @workspace_locked
     def _snapshot(self):
         project, component = self._current()
-        return component, {**component.snapshot(project), "configuration_version": component._configuration_version,
+        snapshot = component.snapshot(project)
+        component._embedding_dimensions = (snapshot.get("profile") or {}).get("dimensions")
+        return component, {**snapshot, "configuration_version": component._configuration_version,
                            "search_options": deepcopy(component.search_options)}
 
     @workspace_locked

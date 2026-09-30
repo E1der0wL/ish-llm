@@ -59,8 +59,4 @@ class ModelClient:
                 sdk_cache="none" if sdk.cache is None else "configured")
         result = await invoke(self._operation, request, call, options, deadline=deadline,
                               sdk_defaults=self._call_fn is None)
-        if self._operation == "aembedding" and self._call_fn is None:
-            from llm.providers.embeddings import normalize_litellm_embeddings
-            inputs = request["input"]
-            result = normalize_litellm_embeddings(result, len(inputs) if isinstance(inputs, list) else 1)
         return result

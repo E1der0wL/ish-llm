@@ -89,7 +89,15 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
         try:
             # 취소는 BaseException이므로 retry되지 않는다. 각 시도에 가변 인자 사본을 전달한다.
             async def checked(**params):
-                result = await call(**params)
+                from .calls import current_calls
+                admission = current_calls()
+                if admission is not None:
+                    await admission.acquire()
+                try:
+                    result = await call(**params)
+                finally:
+                    if admission is not None:
+                        admission.release()
                 if result is None:
                     raise ProviderError("provider_empty_response")
                 if operation == "acompletion":

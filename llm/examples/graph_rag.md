@@ -159,15 +159,20 @@ worker 초기화에서 LiteLLM의 로컬 비용표를 선택하므로 GitHub 비
 
 예제는 공통 ProviderRuntime을 사용한다. SDK 전역값이나 logger를 예제 내부에서 변경하지 않는다.
 문서 등록은 영속 RAGJob을 생성하고 실행한다. 실패 보고서의 `ingestion_job_id`로 해당 Project의
-`rag.arun_job(job_id, retry=True)`를 명시적으로 호출하면 완료 batch를 재사용한다.
+`rag.arun_job(job_id, retry=True)`를 명시적으로 호출하면 완료 청크 checkpoint를 재사용한다.
 예제를 다시 실행하면 새 테스트 Project/Job을 생성하므로 자동 재개하지 않는다.
 
-설정 예제는 JSON mode `auto`, graph `required`, batch 최대 16건/16,000자,
-timeout/5xx 분할 깊이 2를 사용한다. 라이브러리 기본값은 JSON `strict`, 분할 깊이 0이다.
-내장 추출 temperature는 0이며 SDK retry 인자는 사용자가 지정한 값을 그대로 전달한다.
-SDK retry가 활성화되면 llm 자체 retry를 추가하지 않는다. SDK retry가 없을 때는
-`rag.provider.max_attempts`를 적용한다. 생략된 값과 일부 SDK의 0 처리 경로에서는 SDK
-기본값도 고려한다. 상세 키·타입은 [RAG 설정](../components/rag/README.md)을 참고한다.
+설정 예제는 JSON mode auto, graph required, chunk_size=1000, embedding_concurrency=2다.
+문서 청크마다 독립 LiteLLM 요청을 보내고 고정 개수 worker가 원래 위치로 벡터를 복원한다.
+RAG embedding ordering does not depend on provider-reported embedding indexes.
+Each document chunk is embedded independently. The application owns the chunk ordinal
+and restores results to that position. Embedding concurrency is bounded by configuration.
+
+embedding_batch_size/embedding_batching은 제거했다. 예전 설정은 직접 해당 키를 제거하고
+embedding_concurrency를 지정해야 한다. 자동으로 값을 변환하지 않는다.
+LiteLLM DEFAULT_MAX_RETRIES는 항상 0이며, 명시적 num_retries/max_retries는 그대로 전달한다.
+명시적 SDK retry가 켜지면 llm invoke는 1회, 아니면 provider.max_attempts를 적용한다.
+상세 설정은 [RAG 설정](../components/rag/README.md)을 참고한다.
 
 보고서 파일에는 검색 원문·사용자 질의·답변 본문을 저장하지 않는다. 검색 건수/그래프 완전성,
 오류 코드/operation/model/시도·시간, `rag_ingestion` 통계를 확인할 수 있다.
@@ -183,3 +188,7 @@ python -m llm.tests.provider_probe --output /tmp/provider-probe.json
 GraphEngine/Loop 검색 Tool과 별도 CLI 실행을 검증한다. 직접 검색 및 재수정하는 두 Agent에서
 rerank 요청이 각각 발생하고, 반환 index대로 실제 후보 순서가 바뀌는지 검사한다.
 고정 HTTP 응답 서버의 측정 시간이므로 사내 모델 서버 처리시간 예측값으로 사용하면 안 된다.
+
+provider_probe는 같은 165줄 문서를 concurrency 1/2/4로 등록하여 chunks_total, 요청 수,
+임베딩 시간, 전체 등록 시간, 캐시/재사용 수, retry 수를 embedding_benchmark에 기록한다.
+fixture는 요청당 30ms 지연이며 실제 모델 처리량 측정이 아니다. 기본값은 속도와 무관하게 2를 유지한다.

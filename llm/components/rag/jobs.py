@@ -205,7 +205,7 @@ class RAGJobs:
             claimed = True
             document = await self.data._async_call(self._prepared, identifier)
             if document is None:
-                _, component = await self.data._async_call(self.data._current)
+                component, _ = await self.data._async_call(self.data._snapshot)
                 await self.data._async_call(self.data.require_model_observation, component.embedding, component.extractor)
                 async def progress(key, signature, value=None):
                     return await self.data._async_call(self._batch, identifier, key, signature, value)

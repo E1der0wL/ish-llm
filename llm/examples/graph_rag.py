@@ -140,13 +140,11 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
     started = perf_counter()
     configure_logging(workspace)
     report["provider_diagnostics"] = []
-    report["rag_ingestion"] = {"provider_retries": 0, "index_normalizations": 0}
+    report["rag_ingestion"] = {"provider_retries": 0}
 
     def provider_event(event):
         if event.code == "provider_retry":
             report["rag_ingestion"]["provider_retries"] += 1
-        if event.code == "embedding_index_normalized":
-            report["rag_ingestion"]["index_normalizations"] += 1
         if event.code.startswith("provider_") or event.severity != "info":
             # 제한된 최근 진단. 원문·프롬프트·인증은 provider가 이벤트에 넣지 않는다.
             report["provider_diagnostics"] = (report["provider_diagnostics"] + [event.to_dict()])[-100:]

@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from llm.components.rag import EmbeddingModel, TripleExtractor
 from llm.components.rag.prompts import extraction_defaults, default_prompt
-from llm.providers.embeddings import validate_embeddings, normalize_litellm_embeddings, EmbeddingIntegrityError
+from llm.providers.embeddings import extract_single_embedding, EmbeddingIntegrityError
 from llm.providers.requests import invoke, ProviderError
 from llm.providers.runtime import configure_logging, diagnostic_scope, litellm_sdk
 
@@ -41,7 +41,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             output = await EmbeddingModel(model="openai/test", num_retries=2, max_retries=3,
                 caching=True, cache={"no-store": False}).embed(["a", "b"])
             self.assertIs(litellm_sdk(), sdk)
-            self.assertEqual((sdk.DEFAULT_MAX_RETRIES, sdk.num_retries), (7, 4))
+            self.assertEqual((sdk.DEFAULT_MAX_RETRIES, sdk.num_retries), (0, 4))
         self.assertIs(output, original)
         request = call.call_args.kwargs
         self.assertEqual((request["num_retries"], request["max_retries"]), (2, 3))
@@ -107,7 +107,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(call.call_args.kwargs, {"model": "test", "num_retries": 2, "max_retries": 3})
             completion(model="test")
             self.assertEqual(call.call_args.kwargs, {"model": "test"})
-        for default, attempts in ((2, 1), (0, 3)):
+        for default, attempts in ((2, 3), (0, 3)):
             with patch.object(sdk, "DEFAULT_MAX_RETRIES", default), patch.object(sdk, "num_retries", None), \
                     patch.object(sdk, "aembedding", AsyncMock(side_effect=TimeoutError())) as call:
                 with self.assertRaises(ProviderError):
@@ -167,7 +167,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(ProviderError):
                 await invoke("aembedding", {}, call, {"delay_seconds": 0})
             self.assertEqual(call.await_count, 1)
-        for failure in (ValueError("semantic validation"), EmbeddingIntegrityError("embedding_index_corruption", "bad")):
+        for failure in (ValueError("semantic validation"), EmbeddingIntegrityError("embedding_result_count", "bad")):
             call = AsyncMock(side_effect=failure)
             with self.assertRaises(Exception):
                 await invoke("aembedding", {}, call, {})
@@ -245,6 +245,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         from llm.providers import runtime
         entered, released = threading.Event(), threading.Event()
         def slow_import(name):
+            import os
+            assert os.environ["DEFAULT_MAX_RETRIES"] == "0"
             entered.set()
             released.wait(2)
             return SimpleNamespace(cache=None)
@@ -277,11 +279,11 @@ with tempfile.TemporaryDirectory() as directory:
     Path('.env').write_text('invalid text = "unterminated')
     sdk = litellm_sdk()
     assert os.environ['LITELLM_MODE'] == 'PRODUCTION'
-    assert os.environ['DEFAULT_MAX_RETRIES'] == '5'
+    assert os.environ['DEFAULT_MAX_RETRIES'] == '0'
     assert os.environ['LITELLM_LOCAL_MODEL_COST_MAP'] == 'True'
-    assert sdk.DEFAULT_MAX_RETRIES == 5
+    assert sdk.DEFAULT_MAX_RETRIES == 0
     sdk.DEFAULT_MAX_RETRIES = 7
-    assert litellm_sdk().DEFAULT_MAX_RETRIES == 7
+    assert litellm_sdk().DEFAULT_MAX_RETRIES == 0
 '''
         result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=40)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -289,39 +291,20 @@ with tempfile.TemporaryDirectory() as directory:
 
 
 class EmbeddingTests(unittest.TestCase):
-    def test_valid_and_reordered(self):
-        self.assertEqual(validate_embeddings(response(), 2), [[1., 2.], [3., 4.]])
-        self.assertEqual(validate_embeddings(response((1, 0)), 2), [[3., 4.], [1., 2.]])
+    def test_single_vector_ignores_index(self):
+        for index in (0, 17, None, False, "arbitrary"):
+            self.assertEqual(extract_single_embedding(response((index,))), [1., 2.])
+        self.assertEqual(extract_single_embedding({"data": [{"embedding": (1., 2.)}]}), [1., 2.])
 
-    def test_all_integrity_failures(self):
-        invalid = [response((0, 0)), response((0, 2)), response((False, 1)), response((None, 1)), response((0,)),
-                   response(vectors=[[0., 0.], [1., 2.]]), response(vectors=[[1.], [1., 2.]]),
-                   response(vectors=[[float('nan'), 1.], [1., 2.]]), response(vectors=[[float('inf'), 1.], [1., 2.]])]
-        for item in invalid:
-            with self.subTest(item=item), self.assertRaises(EmbeddingIntegrityError):
-                validate_embeddings(item, 2)
-
-    def test_known_partial_merge_preserves_order_then_validates(self):
-        events = []
-        raw = response((0, 0), _hidden_params={"cache_hit": True})
-        with diagnostic_scope(events.append):
-            normalized = normalize_litellm_embeddings(raw, 2, cache_read_allowed=True,
-                cache_object=object(), merge_positions=[0])
-        self.assertEqual(validate_embeddings(normalized, 2), [[1., 2.], [3., 4.]])
-        self.assertEqual([r["index"] for r in raw["data"]], [0, 0])
-        self.assertEqual(events[0].code, "embedding_index_normalized")
-
-    def test_no_guess_when_disabled_unproven_or_malformed(self):
-        raw = response((0, 0), _hidden_params={"cache_hit": True})
-        for options in ({}, {"cache_read_allowed": True, "cache_object": object()},
-                        {"cache_read_allowed": True, "cache_object": None, "merge_positions": [0]}):
-            with self.assertRaises(EmbeddingIntegrityError):
-                validate_embeddings(normalize_litellm_embeddings(raw, 2, **options), 2)
-        for invalid in (response((0, 4), _hidden_params={"cache_hit": True}),
-                        response((0, 0), vectors=[[0, 0], [1, 2]], _hidden_params={"cache_hit": True})):
-            with self.assertRaises(EmbeddingIntegrityError):
-                validate_embeddings(normalize_litellm_embeddings(invalid, 2,
-                    cache_read_allowed=True, cache_object=object(), merge_positions=[0]), 2)
+    def test_result_count_and_vector_integrity(self):
+        for rows in (None, [], [{"embedding": [1.]}] * 2, {}, [{"embedding": []}], [{}]):
+            with self.subTest(rows=rows), self.assertRaises(EmbeddingIntegrityError):
+                extract_single_embedding({"data": rows})
+        for vector in ([0, 0], [float("nan"), 1], [float("inf"), 1], [True, 1], "vector"):
+            with self.subTest(vector=vector), self.assertRaises(EmbeddingIntegrityError):
+                extract_single_embedding({"data": [{"embedding": vector}]})
+        with self.assertRaises(EmbeddingIntegrityError):
+            extract_single_embedding(response((0,)), dimensions=3)
 
 
 class ExtractionModeTests(unittest.IsolatedAsyncioTestCase):

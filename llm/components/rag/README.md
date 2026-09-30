@@ -1,50 +1,72 @@
-# RAG 등록 안정화와 저사양 설정
+# RAG 청크 임베딩과 저사양 설정
 
-설정은 `ProjectConfig.component_configurations.rag`에 저장한다. 컴포넌트의
+설정은 `ProjectConfig.component_configurations.rag`에 저장한다.
 `configuration_schema()`가 UI에 같은 키·타입·기본값을 제공한다.
 
 | 키 | 타입 | 기본값 |
 |---|---|---|
-| `provider.max_attempts` | integer 1–10 | 2 (최초 호출 포함) |
-| `provider.wall_timeout` | number > 0 | 120초 |
-| `provider.delay_seconds` | number >= 0 | 0.25초 |
-| `provider.max_delay_seconds` | number >= 0 | 2초 |
-| `embedding_batching.max_batch_size` | integer >= 1 | 128 |
-| `embedding_batching.max_batch_chars` | integer >= 1 / null | null |
-| `embedding_batching.max_split_depth` | integer 0–8 | 0 (분할 끔) |
-| `embedding_batching.cache_max_bytes` | integer >= 0 | 16,777,216 |
-| `extraction.json_mode` | `strict` / `auto` / `off` | `strict` |
-| `extraction.failure_policy` | `required` / `best_effort` / `disabled` | `required` |
+| chunk_size | integer >= 64 | 2000 |
+| embedding_concurrency | integer 1–32 | 2 |
+| embedding_cache_max_bytes | integer >= 0 | 16,777,216 |
+| provider.max_attempts | integer 1–10 | 2 (최초 호출 포함) |
+| provider.wall_timeout | number > 0 | 120초 |
+| provider.delay_seconds | number >= 0 | 0.25초 |
+| provider.max_delay_seconds | number >= 0 | 2초 |
+| extraction.json_mode | strict / auto / off | strict |
+| extraction.failure_policy | required / best_effort / disabled | required |
 
-모델별 `num_retries`/`max_retries`는 LiteLLM에 그대로 전달하고 생략하면 SDK 설정을 따른다.
-SDK retry가 활성화되었거나 기본 정책이 불명확하면 llm invoke는 한 번만 실행하여 중첩을
-방지한다. SDK retry가 없는 경우만 `provider.max_attempts`를 적용한다.
-임베딩 공급자 라우팅은 모두 LiteLLM `aembedding`이 담당한다.
+RAG embedding ordering does not depend on provider-reported embedding indexes.
+Each document chunk is embedded independently. The application owns the chunk ordinal
+and restores results to that position. Embedding concurrency is bounded by configuration.
 
-기존 `embedding_batch_size`와 새 `max_batch_size` 중 작은 값으로 배치한다. 문자 수 제한도
-함께 적용한다. 한 청크가 문자 제한보다 크면 조용히 자르지 않고 설정 오류로 거부한다.
-`chunk_size`도 함께 줄여야 한다. timeout/502/503/504만 제한 깊이의 이등분을 허용한다.
-인덱스·NaN·Inf·0 벡터·차원 오류와 429는 분할하지 않는다. 깊이 d의 최대 분할 트리는
-2^(d+1)-1개 batch 호출이며 각 호출은 provider 시도/시간 한도가 따로 있다.
+`split_markdown(chunk_size)` → 고정 개수 worker → `embedding(input=[text])` →
+`vectors[original_position]` 순서다. 문서 크기만큼 Task를 생성하지 않는다.
+동일 text는 한 번만 요청하고 여러 위치에 결과를 복사한다. 한 요청은 data list 길이 1,
+nonempty list/tuple 벡터, finite/nonzero 값, 설정·기존 corpus·다른 청크와 동일 차원이어야 한다.
+query도 단일 요청 검증을 사용한다. reranker index는 별도 계약으로 유지한다.
 
-SDK 캐시는 사용하지 않는다. llm 메모리 LRU에는 원문이 아닌 fingerprint와 검증된 벡터를
-저장한다. Project/클라이언트/모델/실제 인자/텍스트 해시로 구분하고 partial hit의 원래
-위치를 llm이 직접 복원한다. 용량 0이면 LRU를 끈다. 문서 update는 이전 세대에 저장된
-동일 청크 벡터도 재사용한다. 모델·인자·차원 검증이 맞아야 하며 모델/설정 변경 시 재사용하지
-않는다. 임의 주입 클라이언트의 모델 의미가 바뀌면 개발자가 `embedding_id`도 바꿔야 한다.
+`embedding_batch_size`, `embedding_batching`은 제거했고 설정 검증에서 거부한다.
+기존 값을 concurrency로 변환하지 않는다. 사용자는 해당 키를 제거하고 새 설정을 명시해야 한다.
+자동 분할·split checkpoint는 없다. 큰 청크는 chunk_size로 조정한다.
+extraction_batch_size와 index_batch_size는 각각 관계 추출·DB 쓰기용이므로 유지한다.
 
-2026-10-01 fingerprint 구성 변경 이전에 저장된 벡터는 새 fingerprint와 일치하지 않아
-다음 update에서 재계산된다. 기존 corpus와 검색은 보존하며 저장 버전은 바꾸지 않는다.
-이전 작업과 현재 설정의 fingerprint가 다른 Job은 새 Job으로 등록해야 한다. 완료 checkpoint를
-새 모델 설정의 결과로 간주하거나 기존 저장 내용을 자동 마이그레이션하지 않는다.
+LiteLLM DEFAULT_MAX_RETRIES는 import 전 환경변수와 import 후 전역값 모두 항상 0이다.
+명시한 num_retries/max_retries는 수정 없이 전달한다. SDK retry가 활성화되면 llm invoke는
+1회이며, 생략하거나 모두 0이면 provider.max_attempts를 적용한다. 공유 ProviderCalls 제한과
+사용량 예약을 우회하지 않는다. provider_retries는 llm 외부 재시도 수이며 SDK 내부 retry는 제외한다.
 
-긴 문서는 `enqueue_document` → `arun_job`을 권장한다. 실패하면 같은 Job을
-`arun_job(id, retry=True)`로 재개한다. 완료 batch와 분할된 하위 batch를 검증 후 재사용한다.
-분할 결정도 `embedding_<offset>_split.json`에 기록하므로 이미 분할한 큰 요청은 다시 보내지 않는다.
-재시작 후 자동 모델 호출은 없다. 등록 요청의 설정이 달라졌다면 새 Job을 만들어야 한다.
-`job()["ingestion"]` 및 `diagnostic_scope`에서 청크/문자/배치 수, 시간, cache hit,
-checkpoint reuse, provider retry를 볼 수 있다. 원문이나 API 키는 진단에 넣지 않는다.
-프로세스 종료 시 메모리 LRU는 사라지지만 Job checkpoint/기존 문서 벡터는 남는다.
+## 캐시와 재개
+
+LiteLLM에는 caching=False, cache={"no-cache": true, "no-store": true}를 전달한다.
+llm VectorCache만 사용한다. 용량 0이면 LRU를 끈다. fingerprint에는 single-chunk 계약 버전,
+모델 identity, 유효 embedding params, document/query kwargs, 클라이언트 종류를 포함한다.
+캐시 키에는 Project·런타임 함수 identity·text SHA-256도 반영한다. 모든 재사용 벡터를 검증한다.
+문서 update는 같은 fingerprint의 동일 chunk vector를 이전 문서에서 재사용한다.
+주입 클라이언트의 모델 의미를 바꾸면 embedding_id도 바꿔야 한다.
+
+구 fingerprint는 일치하지 않으므로 다음 update에서 재계산한다. 기존 corpus나 graph schema 2는
+자동 변경하지 않는다. 이전 batch checkpoint를 새 청크 결과로 해석하지 않는다.
+설정이 달라진 prepared Job은 새 Job으로 등록해야 한다.
+
+긴 문서는 enqueue_document → arun_job을 권장한다. 실패 후 arun_job(id, retry=True)로 명시적으로
+재개한다. 기존 서비스 소유 checkpoint 디렉터리 `jobs/<id>/batches/` 아래에
+`embedding_<original_position>.json`을 쓴다. 이 디렉터리는 추출 checkpoint도 공유하므로 이름을 유지한다.
+embedding 파일의 outer signature와 value의 fingerprint/text_hash/vector를 검증한다.
+worker는 progress callback만 호출하며 RAGJobs가 workspace 잠금과 atomic_json으로 저장한다.
+완료 순서와 파일 번호는 무관하고 완료된 청크는 재개 시 호출하지 않는다.
+
+실패하면 새 청크 배정을 중단하고 진행 중 요청의 성공 checkpoint를 보존한다.
+취소하면 모든 worker를 취소하고 종료를 기다린다. 완료 checkpoint는 유지하고 미완료 세대는
+공개하지 않는다. 기존 active generation은 유지한다. 취소된 Job의 자동 재실행은 없다.
+프로세스 재시작 시 LRU는 소실되지만 Job checkpoint와 이전 문서 벡터는 남는다.
+
+`job()["ingestion"]`, 문서 ingestion, diagnostic_scope로 다음을 관찰한다:
+chunks_total/completed/reused/cached/requested, embedding_concurrency, embedding_seconds,
+provider_retries, checkpoint_reuse, active_embedding_requests, peak_embedding_requests.
+requested는 중복 제거 후 새 단일 청크 요청 수(재시도 제외), reused는 이전 문서 및 중복 위치 수,
+cached는 LRU로 채운 위치 수, checkpoint_reuse는 읽은 완료 checkpoint 수다.
+embedding_seconds는 준비 단계 벽시계 시간이다. active/peak는 admission 대기까지 포함한 청크 호출 수로,
+실제 SDK 실행 동시성은 ProviderCalls 한도가 더 낮을 수 있다.
 
 ## 추출과 그래프 실패
 

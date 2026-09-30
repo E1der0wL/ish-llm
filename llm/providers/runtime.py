@@ -1,4 +1,4 @@
-"""공급자 초기화·진단의 단일 경계. SDK 전역 설정을 호출마다 바꾸지 않는다."""
+"""공급자 초기화·진단의 단일 경계. 숨은 SDK 기본 재시도는 항상 끈다."""
 
 import importlib
 import json
@@ -106,9 +106,10 @@ def logging_scope(workspace):
 
 
 def litellm_sdk():
-    """최초 import 전에 dotenv/온라인 비용표를 차단한다. retry 정책은 SDK가 소유한다."""
+    """숨은 기본 retry는 0. 요청에 명시한 retry 값은 변경하지 않는다."""
     global _sdk
     with _lock:
+        os.environ["DEFAULT_MAX_RETRIES"] = "0"
         if _sdk is None:
             os.environ["LITELLM_MODE"] = "PRODUCTION"
             os.environ.setdefault("LITELLM_LOG", "ERROR")
@@ -117,6 +118,9 @@ def litellm_sdk():
             _sdk = importlib.import_module("litellm")
             _sdk.suppress_debug_info = True
             configure_logging(refresh=True)
+        # LiteLLM의 `max_retries or DEFAULT_MAX_RETRIES` 호환성 규칙.
+        # 외부 코드가 전역값을 변경한 경우에도 호출 진입 시 복구한다.
+        _sdk.DEFAULT_MAX_RETRIES = 0
         return _sdk
 
 

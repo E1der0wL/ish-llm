@@ -18,7 +18,7 @@ import time
 from llm.components.rag import EmbeddingModel
 from llm.core.models import ProjectConfig
 from llm.examples.graph_rag import run_demo
-from llm.providers.embeddings import validate_embeddings
+from llm.providers.embeddings import extract_single_embedding
 from llm.providers.runtime import litellm_sdk, configure_logging
 from llm.providers.requests import ProviderError
 
@@ -27,6 +27,7 @@ class LocalServer:
     def __init__(self):
         self.calls, self.fail, self.answers = [], False, 0
         self.empty_json_mode = False
+        self.embedding_delay = 0.0
         owner = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -37,6 +38,7 @@ class LocalServer:
                 request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 owner.calls.append((self.path, request))
                 if self.path.endswith("embeddings"):
+                    time.sleep(owner.embedding_delay)
                     if owner.fail:
                         self.send_response(503)
                         self.end_headers()
@@ -119,11 +121,11 @@ async def probe(root):
     output = {"mode": "local_http_fixture", "versions": {name: importlib.metadata.version(name) for name in ("litellm", "openai")}}
     with LocalServer() as server:
         async_client = EmbeddingModel(**server.params)
-        inputs = ["# Probe", "Probe belongs to Test Suite."]
+        inputs = ["Probe belongs to Test Suite."]
         asynchronous = await async_client.embed(inputs)
         synchronous = await asyncio.to_thread(sdk.embedding, **server.params, input=inputs,
             num_retries=0, max_retries=0, caching=False, cache={"no-cache": True, "no-store": True})
-        output["sync_async_equal"] = validate_embeddings(asynchronous, 2) == validate_embeddings(synchronous, 2)
+        output["sync_async_equal"] = extract_single_embedding(asynchronous) == extract_single_embedding(synchronous)
         assert output["sync_async_equal"]
         # 호스트가 SDK 캐시를 사용하더라도 llm embedding은 읽기/쓰기에 참여하지 않는다.
         from litellm.caching.caching import Cache
@@ -146,6 +148,17 @@ async def probe(root):
         output["failure_seconds"] = time.monotonic() - start
         output["actual_http_attempts"] = len(server.calls) - before
         assert output["actual_http_attempts"] == 2, "SDK retry and llm retry were multiplied"
+        output["default_retry_http_attempts"] = []
+        for retry_params in ({}, {"num_retries": 0, "max_retries": 0}):
+            before = len(server.calls)
+            try:
+                await async_client.configured(retry_params).with_provider(
+                    {"max_attempts": 2, "delay_seconds": 0}).embed(inputs)
+            except ProviderError:
+                pass
+            attempts = len(server.calls) - before
+            assert attempts == 2, "Hidden default SDK retry must remain zero"
+            output["default_retry_http_attempts"].append(attempts)
         server.fail = False
         from llm.components.rag import TripleExtractor
         from llm.components.rag.prompts import extraction_defaults, default_prompt
@@ -155,17 +168,46 @@ async def probe(root):
             {**extraction_defaults(), "json_mode": "auto"}, default_prompt())
         await extractor.extract([])
         output["json_mode_fallback_http_attempts"] = len(server.calls) - before
-        assert output["json_mode_fallback_http_attempts"] == 2
+        assert output["json_mode_fallback_http_attempts"] == 3
         server.empty_json_mode = False
         text = (Path(__file__).parents[1] / "examples/data/graph_rag_165.md").read_text(encoding="utf-8")
         assert len(text.splitlines()) == 165
+        # SDK import/warmup은 제외한다. 실제 LiteLLM HTTP·파일 Job·Chroma/Kuzu 등록을 측정한다.
+        from llm.llm import LargeLanguageModel
+        from llm.components.rag import RAGComponent
+        output["embedding_benchmark"] = []
+        server.embedding_delay = .03
+        for concurrency in (1, 2, 4):
+            async with LargeLanguageModel(root / f"benchmark-{concurrency}", components=[RAGComponent()]) as backend:
+                project = await backend.projects.acreate("chunk benchmark", components=["rag"], config=ProjectConfig(
+                    component_configurations={"rag": {"embedding_params": server.params,
+                        "extraction_params": server.params, "chunk_size": 1000,
+                        "embedding_concurrency": concurrency}}))
+                rag = await project.components.aget("rag")
+                job = await rag.aenqueue_document(title="165 lines", content=text, identifier="manual")
+                before = len(server.calls)
+                started = time.monotonic()
+                done = await rag.arun_job(job["id"])
+                elapsed = time.monotonic() - started
+                requests = [request for path, request in server.calls[before:] if path.endswith("embeddings")]
+                assert all(len(request["input"]) == 1 for request in requests)
+                stats = done["ingestion"]
+                assert stats["chunks_requested"] == len(requests)
+                # 다시 같은 문서를 준비하면 VectorCache가 모델 호출을 생략해야 한다.
+                before = len(server.calls)
+                cached = await rag.aadd_document(title="cached", content=text, identifier="cached")
+                assert not any(path.endswith("embeddings") for path, _ in server.calls[before:])
+                output["embedding_benchmark"].append({**stats, "embedding_provider_calls": len(requests),
+                    "registration_seconds": elapsed, "warm_chunks_cached": cached["ingestion"]["chunks_cached"],
+                    "fixture_delay_seconds": server.embedding_delay})
+        server.embedding_delay = 0
         source = root / "public-165-lines.md"
         source.write_text(text)
         config = ProjectConfig(completion=server.params, component_configurations={"rag": {
             "embedding_params": server.params, "extraction_params": server.params,
             "rerank_params": {**server.params, "model": "cohere/probe",
                               "api_base": server.params["api_base"] + "/rerank"},
-            "embedding_batch_size": 4, "extraction_batch_size": 4, "chunk_size": 512,
+            "embedding_concurrency": 2, "extraction_batch_size": 4, "chunk_size": 512,
             "provider": {"wall_timeout": 15, "max_attempts": 2},
             "extraction": {"json_mode": "auto"}}})
         report = await run_demo(root / "workspace", config, markdown=source, require_relations=True, display=False)

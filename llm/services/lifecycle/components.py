@@ -3,7 +3,7 @@
 Lifecycle-checked component data access without domain-specific knowledge."""
 
 from copy import deepcopy
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 import asyncio
 from typing import Optional
 
@@ -30,6 +30,7 @@ class ComponentData:
         self._async_loop = None
         self.history_reader = None
         self._model_usage = None
+        self._provider_calls = None
 
     async def _async_call(self, operation, *args, **kwargs):
         if self._async_runner is not None:
@@ -60,7 +61,8 @@ class ComponentData:
     def model_scope(self):
         from llm.providers.observations import model_observer
         from llm.providers.runtime import logging_scope
-        with model_observer(self._model_usage), logging_scope(self.ownership.path.parent):
+        admission = self._provider_calls.scope() if self._provider_calls is not None else nullcontext()
+        with admission, model_observer(self._model_usage), logging_scope(self.ownership.path.parent):
             yield
 
     @workspace_locked
@@ -83,12 +85,13 @@ class ComponentData:
 
     amodel_usage = async_method(model_usage)
 
-    def bind_runtime(self, *, runner, access_check, history_reader=None) -> "ComponentData":
+    def bind_runtime(self, *, runner, access_check, history_reader=None, provider_calls=None) -> "ComponentData":
         """Facade의 비동기 실행기와 수명 검사를 명시적으로 연결한다."""
         if not callable(runner) or not callable(access_check) or history_reader is not None and not callable(history_reader):
             raise TypeError("Component runtime hooks must be callable")
         self._async_runner, self._access_check = runner, access_check
         self.history_reader = history_reader
+        self._provider_calls = provider_calls
         return self
 
     @workspace_locked

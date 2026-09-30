@@ -1,8 +1,6 @@
-"""임베딩 무결성 계약과 근거가 있는 공급자 정규화. 저장/UI와 무관하다."""
+"""단일 청크 임베딩 무결성 계약. 저장/UI와 무관하다."""
 
 import math
-from copy import deepcopy
-from .runtime import diagnostic
 
 
 class EmbeddingIntegrityError(ValueError):
@@ -29,52 +27,9 @@ def validate_vectors(vectors, *, dimensions=None):
     return [list(vector) for vector in vectors]
 
 
-def validate_embeddings(response, count, *, dimensions=None):
+def extract_single_embedding(response, *, dimensions=None):
+    """한 요청의 한 벡터만 검증한다. 공급자의 index는 순서 근거가 아니다."""
     rows = value(response, "data")
-    if not isinstance(rows, list) or len(rows) != count:
-        raise EmbeddingIntegrityError("embedding_index_corruption", "Embedding result count does not match input")
-    indexes = [value(row, "index") for row in rows]
-    if any(type(i) is not int for i in indexes) or sorted(indexes) != list(range(count)):
-        raise EmbeddingIntegrityError("embedding_index_corruption", "Embedding result indexes do not match input")
-    ordered = sorted(rows, key=lambda row: value(row, "index"))
-    return validate_vectors([value(row, "embedding") for row in ordered], dimensions=dimensions)
-
-
-def normalize_litellm_embeddings(response, count, *, cache_read_allowed=False, cache_object=None,
-                                 merge_positions=None):
-    """cache_hit 하나만으로 순서를 추측하지 않는다. 호스트가 입증한 cache 위치가 필요하다.
-
-    merge_positions는 SDK 병합 경계에서 확인한 cached 원래 위치의 집합이다.
-    일반 llm 경로는 SDK cache를 끄므로 이 호환 분기에 진입하지 않는다.
-    """
-    rows = value(response, "data")
-    if not isinstance(rows, list) or len(rows) != count:
-        return response
-    indexes = [value(row, "index") for row in rows]
-    if all(type(i) is int for i in indexes) and sorted(indexes) == list(range(count)):
-        return response
-    hidden = value(response, "_hidden_params", {}) or {}
-    if (not cache_read_allowed or cache_object is None or cache_object is False
-            or hidden.get("cache_hit") is not True or merge_positions is None):
-        return response
-    cached = set(merge_positions)
-    if not cached or len(cached) == count or any(type(i) is not int or not 0 <= i < count for i in cached):
-        return response
-    fresh = 0
-    for position, index in enumerate(indexes):
-        # cached item은 원래 위치 또는 단건 캐시 index=0, fresh는 miss subbatch 순서다.
-        if type(index) is not int or (index not in (0, position) if position in cached else index != fresh):
-            return response
-        if position not in cached:
-            fresh += 1
-    validate_vectors([value(row, "embedding") for row in rows])
-    result = deepcopy(response)
-    for position, row in enumerate(value(result, "data")):
-        if isinstance(row, dict):
-            row["index"] = position
-        else:
-            row.index = position
-    validate_embeddings(result, count)
-    diagnostic("embedding_index_normalized", provider="litellm", actual=indexes,
-               normalized=list(range(count)), reason="partial_cache_merge")
-    return result
+    if not isinstance(rows, list) or len(rows) != 1:
+        raise EmbeddingIntegrityError("embedding_result_count", "Single-chunk embedding requires exactly one result")
+    return validate_vectors([value(rows[0], "embedding")], dimensions=dimensions)[0]
