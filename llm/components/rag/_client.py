@@ -3,13 +3,12 @@
 Shared request mechanics; no scheduler, lifecycle events or domain writes."""
 
 import asyncio
-import importlib
+import time
 from copy import copy
 from collections.abc import Awaitable, Callable
 from typing import Any, Optional
 
 from llm.providers.parameters import copy_params, merge_params
-from llm.providers.observations import observed_call
 
 
 class ModelClient:
@@ -22,6 +21,12 @@ class ModelClient:
         self._operation = operation
         self._call_fn = call_fn
         self.params = copy_params(params)
+        self.provider_options = {}
+
+    def with_provider(self, options):
+        worker = copy(self)
+        worker.provider_options = dict(options)
+        return worker
 
     def configured(self, params):
         """호스트 함수를 유지한 호출별 사본. 프로젝트에서 전달한 인자를 클라이언트 기본값 위에 적용한다."""
@@ -32,13 +37,38 @@ class ModelClient:
     async def _invoke(self, **kwargs: Any) -> Any:
         request = copy_params(self.params)
         request.update(copy_params(kwargs))
+        from llm.providers.requests import invoke, resolve_provider_options
+        options = resolve_provider_options(self.provider_options)
+        deadline = request.pop("_provider_deadline", None)
+        end = time.monotonic() + options["wall_timeout"]
+        deadline = min(deadline, end) if deadline else end
+        if request.pop("_without_response_format", False):
+            request.pop("response_format", None)
         if not isinstance(request.get("model"), str) or not request["model"].strip():
             raise ValueError("Model is required")
         request.setdefault("timeout", 60)
-        request.setdefault("num_retries", 0)
+        request.update(num_retries=0, max_retries=0)
+        client = request.get("client")
+        if client is not None and getattr(client, "max_retries", 0) != 0:
+            raise ValueError("Injected SDK clients must use max_retries=0")
+        if self._operation == "aembedding":
+            request.update(caching=False, cache={"no-cache": True, "no-store": True})
         call = self._call_fn
         if call is None:
             # Heavy SDK initialization must not block the application's loop.
-            sdk = await asyncio.to_thread(importlib.import_module, "litellm")
-            call = getattr(sdk, self._operation)
-        return await observed_call(self._operation, request, call)
+            from llm.providers.runtime import litellm_sdk, diagnostic
+            if self._operation == "aembedding" and self.provider_options.get("embedding_adapter") == "openai":
+                from llm.providers.openai import embedding
+                call = embedding
+            else:
+                sdk = await asyncio.wait_for(asyncio.to_thread(litellm_sdk), max(0, deadline - time.monotonic()))
+                call = getattr(sdk, self._operation)
+                diagnostic("provider_request", operation=self._operation, num_retries=0, max_retries=0,
+                    caching=request.get("caching"), cache=request.get("cache"),
+                    sdk_cache="none" if sdk.cache is None else "configured")
+        result = await invoke(self._operation, request, call, options, deadline=deadline)
+        if self._operation == "aembedding" and self._call_fn is None:
+            from llm.providers.embeddings import normalize_litellm_embeddings
+            inputs = request["input"]
+            result = normalize_litellm_embeddings(result, len(inputs) if isinstance(inputs, list) else 1)
+        return result

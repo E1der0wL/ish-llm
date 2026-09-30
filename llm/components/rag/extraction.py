@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import time
 from copy import copy, deepcopy
 from datetime import datetime, timezone
 
@@ -9,19 +10,24 @@ from llm.components.rag._client import ModelClient
 from .prompts import EXTRACTION_CONTRACT, RELATION_TYPES, default_prompt, extraction_defaults
 
 
+class GraphValidationError(ValueError):
+    """구문/의미 계약 실패. 공급자 retry와 분리된 repair/best_effort 대상이다."""
+    code = "graph_validation_failed"
+
+
 def validate_graph(graph: dict, chunks: list, *, relation_types=RELATION_TYPES) -> dict:
     """관계의 양 끝과 정확한 원문 인용을 검증하고 이름 기반 ID로 정규화한다."""
     if not isinstance(graph, dict) or not isinstance(graph.get("entities"), list) or not isinstance(graph.get("relations"), list):
-        raise ValueError("Extraction requires entities and relations lists")
+        raise GraphValidationError("Extraction requires entities and relations lists")
     source = {c["id"]: c["text"] for c in chunks}
     canonical_types = {kind.casefold(): kind for kind in relation_types}
     identities, entities = {}, {}
     for index, entity in enumerate(graph["entities"]):
         if not isinstance(entity, dict):
-            raise ValueError(f"entities[{index}] must be an object")
+            raise GraphValidationError(f"entities[{index}] must be an object")
         identifier, name = entity.get("id"), entity.get("name")
         if not isinstance(identifier, str) or not identifier or identifier in identities or not isinstance(name, str) or not name.strip():
-            raise ValueError("Entities require unique IDs and nonempty names")
+            raise GraphValidationError("Entities require unique IDs and nonempty names")
         name = name.strip()
         key = hashlib.sha256(name.casefold().encode("utf-8")).hexdigest()
         identities[identifier] = key
@@ -29,23 +35,23 @@ def validate_graph(graph: dict, chunks: list, *, relation_types=RELATION_TYPES) 
     relations = []
     for index, edge in enumerate(graph["relations"]):
         if not isinstance(edge, dict):
-            raise ValueError(f"relations[{index}] must be an object")
+            raise GraphValidationError(f"relations[{index}] must be an object")
         if any(not isinstance(edge.get(key), str) or edge[key] not in identities for key in ("source", "target")):
-            raise ValueError(f"Relation references unknown entity at relations[{index}]; source/target must be entities[].id")
+            raise GraphValidationError(f"Relation references unknown entity at relations[{index}]; source/target must be entities[].id")
         evidence, kind = edge.get("evidence"), edge.get("type")
         source_id = edge.get("source_id")
         if (not isinstance(kind, str) or not kind.strip() or not isinstance(source_id, str)
                 or source_id not in source or not isinstance(evidence, str) or not evidence.strip()
                 or evidence not in source[source_id]):
-            raise ValueError(f"Relation requires a type and an exact source quotation at relations[{index}]; "
+            raise GraphValidationError(f"Relation requires a type and an exact source quotation at relations[{index}]; "
                              "source_id must be a supplied chunk ID and evidence a literal substring of its text")
         metadata = edge.get("metadata", {})
         if not isinstance(metadata, dict):
-            raise ValueError(f"relations[{index}].metadata must be a JSON object")
+            raise GraphValidationError(f"relations[{index}].metadata must be a JSON object")
         try:
             metadata = json.loads(json.dumps(metadata, ensure_ascii=False, allow_nan=False))
         except (TypeError, ValueError) as error:
-            raise ValueError(f"relations[{index}].metadata must contain finite JSON values") from error
+            raise GraphValidationError(f"relations[{index}].metadata must contain finite JSON values") from error
         relations.append({"source": identities[edge["source"]], "target": identities[edge["target"]],
             "type": canonical_types.get(kind.strip().casefold(), kind.strip()),
             "source_id": source_id, "evidence": evidence, "metadata": metadata})
@@ -86,9 +92,22 @@ class TripleExtractor(ModelClient):
                      + json.dumps(self.extraction["relation_types"], ensure_ascii=False)},
                     *deepcopy(self.prompt["messages"]),
                     {"role": "user", "content": json.dumps(chunks, ensure_ascii=False)}]
+        from llm.providers.requests import provider_defaults, error_code
+        from llm.providers.runtime import diagnostic
+        mode = self.extraction["json_mode"]
+        deadline = time.monotonic() + self.provider_options.get("wall_timeout", provider_defaults()["wall_timeout"])
         for attempt in range(self.extraction["repair_attempts"] + 1):
-            response = await self._invoke(stream=False, temperature=0,
-                response_format={"type": "json_object"}, messages=messages)
+            try:
+                response = await self._invoke(stream=False, temperature=0, _provider_deadline=deadline,
+                    **({"response_format": {"type": "json_object"}} if mode != "off" else {"_without_response_format": True}),
+                    messages=messages)
+            except Exception as error:
+                if mode != "auto" or error_code(error) not in ("provider_empty_response", "provider_invalid_response"):
+                    raise
+                mode = "off"
+                diagnostic("provider_json_mode_fallback", operation="acompletion")
+                response = await self._invoke(stream=False, temperature=0, _provider_deadline=deadline,
+                    _without_response_format=True, messages=messages)
             content = None
             try:
                 choices = response["choices"] if isinstance(response, dict) else response.choices
@@ -99,7 +118,7 @@ class TripleExtractor(ModelClient):
                 return graph
             except (ValueError, TypeError, KeyError, IndexError, AttributeError) as error:
                 if attempt == self.extraction["repair_attempts"]:
-                    raise ValueError(f"RAG extraction invalid after {attempt} repair attempts: {error}") from error
+                    raise GraphValidationError(f"RAG extraction invalid after {attempt} repair attempts: {error}") from error
                 # 이전 응답을 assistant 지침으로 승격하지 않는다. 고정 크기의 최신 오류만 전달한다.
                 messages[-1] = {"role": "user", "content": json.dumps({
                     "instruction": "Correct the previous JSON to satisfy the extraction contract. Return the full corrected JSON.",

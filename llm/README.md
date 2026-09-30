@@ -8,6 +8,9 @@ Engine은 Run의 실행 전략이고 Component는 프로젝트에 연결되는 �
 Loop·Graph 등 Engine을 바꾸어도 Run/Step 기록과 Session의 대화 수명은 유지됩니다.
 Engine별 소스 구조와 공개 import는 [Engine 안내](engines/README.md)를 참고하세요.
 
+사내 OpenAI-compatible 서버의 재시도·캐시·응답 검증은 [공급자 안정화](providers/README.md),
+배치 재개·벡터 재사용·JSON mode·불완전 그래프 정책은 [RAG 설정](components/rag/README.md)을 참고하세요.
+
 ## 설치와 진입점
 
 이 저장소의 `llm/` 폴더를 ish의 플러그인 스크립트 디렉토리에 배치합니다.

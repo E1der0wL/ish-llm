@@ -138,8 +138,17 @@ class RAGJobs:
     def _finish_error(self, identifier, error, cancelled):
         job = self.get(identifier)
         if job["status"] != "completed":
-            job.update(status="cancelled" if cancelled else "failed", phase="cancelled" if cancelled else "failed", error=str(error), ended_at=now())
+            from llm.providers.requests import error_code
+            code = error_code(error)
+            job.update(status="cancelled" if cancelled else "failed", phase="cancelled" if cancelled else "failed",
+                       error=code, diagnostic_code=code, ended_at=now())
             atomic_json(self._path(identifier) / "job.json", job)
+
+    @workspace_locked
+    def _telemetry(self, identifier, values):
+        job = self.get(identifier)
+        job["ingestion"] = values
+        atomic_json(self._path(identifier) / "job.json", job)
 
     @workspace_locked
     def _lease(self, identifier, *, probe=False):
@@ -200,8 +209,10 @@ class RAGJobs:
                 await self.data._async_call(self.data.require_model_observation, component.embedding, component.extractor)
                 async def progress(key, signature, value=None):
                     return await self.data._async_call(self._batch, identifier, key, signature, value)
+                async def telemetry(values):
+                    await self.data._async_call(self._telemetry, identifier, values)
                 from .component import RAGComponent
-                options = {"progress": progress} if type(component).prepare is RAGComponent.prepare else {}
+                options = {"progress": progress, "telemetry": telemetry} if type(component).prepare is RAGComponent.prepare else {}
                 document = await component.prepare(payload["identifier"], payload["title"], payload["content"], payload["metadata"], 1, **options)
                 document["preparation_configuration"] = component._configuration_version
                 await self.data._async_call(self._prepared, identifier, document)

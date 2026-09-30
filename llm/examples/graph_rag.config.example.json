@@ -25,10 +25,20 @@
         "timeout": 120,
         "num_retries": 0
       },
+      "rerank_params": {
+        "model": "cohere/YOUR_RERANK_MODEL",
+        "api_base": "https://YOUR_RERANK_ENDPOINT/v1/rerank",
+        "api_key": "YOUR_API_KEY",
+        "timeout": 120,
+        "num_retries": 0
+      },
+      "search": {"rerank": true},
       "chunk_size": 1000,
       "embedding_batch_size": 16,
       "extraction_batch_size": 8,
-      "extraction": {"repair_attempts": 2, "prompt_id": "rag-triples"},
+      "extraction": {"repair_attempts": 2, "prompt_id": "rag-triples", "json_mode": "auto", "failure_policy": "required"},
+      "provider": {"max_attempts": 2, "wall_timeout": 120, "delay_seconds": 0.25, "max_delay_seconds": 2, "embedding_adapter": "litellm"},
+      "embedding_batching": {"max_batch_size": 16, "max_batch_chars": 16000, "max_split_depth": 2, "cache_max_bytes": 16777216},
       "graph": {"buffer_pool_size": 67108864, "max_num_threads": 2}
     }
   }

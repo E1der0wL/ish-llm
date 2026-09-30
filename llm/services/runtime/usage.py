@@ -134,7 +134,10 @@ class ComponentUsage:
         entry.update(ended_at=now(), status="failed" if error else "completed",
                      usage=usage if valid else {}, usage_complete=valid)
         if error:
-            entry["error"] = str(error)
+            # 공급자 예외의 원문에는 endpoint 응답/요청 내용이 섞일 수 있다.
+            from llm.providers.requests import error_code
+            entry["error"] = error_code(error)
+            entry["diagnostic_code"] = error_code(error)
         component.save_model_usage(project, entry)
 
     async def __call__(self, operation, request, call):

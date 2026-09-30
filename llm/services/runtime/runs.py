@@ -833,13 +833,14 @@ class RunManager:
                              completion_policy=completion_policy)
 
     async def _consume_limited(self, runtime, run):
+        from llm.providers.runtime import logging_scope as provider_logging_scope
         policies = self.policy_resolver.resolve(run.metadata["policies"])
         guard = timeout(policies[2].timeout_seconds)
         try:
             async with guard:
                 counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"]["completion"]["counter"])
                 source = {"project_id": runtime.project.id, "session_id": runtime.session.id, "run_id": run.id}
-                with self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope(), retry_scope(run.metadata["policies"].get("provider_retry", {})):
+                with provider_logging_scope(self.sessions.ownership.path.parent), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope(), retry_scope(run.metadata["policies"].get("provider_retry", {})):
                     await self._consume(runtime, run, policies)
         except asyncio.TimeoutError as error:
             expired = guard.expired() if callable(guard.expired) else guard.expired

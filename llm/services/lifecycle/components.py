@@ -3,6 +3,7 @@
 Lifecycle-checked component data access without domain-specific knowledge."""
 
 from copy import deepcopy
+from contextlib import contextmanager
 import asyncio
 from typing import Optional
 
@@ -55,9 +56,12 @@ class ComponentData:
         self._model_usage = ComponentUsage(self, sessions, counters)
         return self
 
+    @contextmanager
     def model_scope(self):
         from llm.providers.observations import model_observer
-        return model_observer(self._model_usage)
+        from llm.providers.runtime import logging_scope
+        with model_observer(self._model_usage), logging_scope(self.ownership.path.parent):
+            yield
 
     @workspace_locked
     def require_model_observation(self, *clients):

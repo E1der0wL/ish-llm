@@ -91,8 +91,11 @@ class RAGData(ComponentData):
             metadata = document["metadata"] if metadata is None else metadata
             revision = document["revision"] + 1
         # 이 await 동안 UI와 기존 검색은 계속 진행한다. 취소 시 공개 단계에 진입하지 않는다.
+        from .component import RAGComponent
+        options = {"previous": snapshot["documents"].get(identifier)} if type(component).prepare is RAGComponent.prepare else {}
         prepared = await component.prepare(identifier, title, content,
-                                           deepcopy({} if metadata is None else metadata), revision)
+                                           deepcopy({} if metadata is None else metadata), revision,
+                                           **options)
         return await self._async_call(self._commit, snapshot, prepared)
 
     @observe_component_models
@@ -135,6 +138,11 @@ class RAGData(ComponentData):
         return snapshot, hits
 
     # 공개 API
+    @workspace_locked
+    def has_reranker(self):
+        """현재 Project의 실행 가능한 reranker 유무. Tool 스키마와 동일한 바인딩을 사용한다."""
+        return self._current()[1].reranker is not None
+
     def enqueue_document(self, *, title, content, metadata=None, identifier=None):
         """문서 등록 요청을 영속 큐에 넣는다. 모델 호출은 arun_job에서 명시적으로 시작한다."""
         from .jobs import RAGJobs

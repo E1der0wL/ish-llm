@@ -20,10 +20,5 @@ def retry_settings():
 
 
 def transient(error):
-    visited = set()
-    while error is not None and id(error) not in visited:
-        visited.add(id(error))
-        if getattr(error, "status_code", None) in (429, 502, 503, 504):
-            return True
-        error = error.__cause__
-    return False
+    from .requests import error_code, TRANSIENT
+    return error_code(error) in TRANSIENT

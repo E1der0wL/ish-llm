@@ -6,6 +6,9 @@ import asyncio
 import concurrent.futures
 import inspect
 import threading
+import time
+import math
+from contextvars import copy_context
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import Any
 from .calls import current_calls
@@ -17,9 +20,9 @@ class StreamError(RuntimeError):
 
 def completion(**kwargs: Any) -> Iterator[Any]:
     # Import and request creation both happen in the stream's worker thread.
-    import litellm
-
-    return litellm.completion(**kwargs)
+    from .runtime import litellm_sdk
+    kwargs.update(num_retries=0, max_retries=0)
+    return litellm_sdk().completion(**kwargs)
 
 
 async def stream_completion(
@@ -35,9 +38,15 @@ async def stream_completion(
     """
     if type(buffer_size) is not int or buffer_size < 1:
         raise ValueError("buffer_size must be a positive integer")
+    # 전체 응답 대기 한도. 소비자 취소 뒤 동기 worker는 실제 종료까지 슬롯을 소유한다.
+    transport_timeout = request.get("timeout")
+    wall_timeout = transport_timeout if type(transport_timeout) in (int, float) else 120
+    if not math.isfinite(wall_timeout) or wall_timeout <= 0:
+        raise ValueError("Provider timeout must be positive and finite")
+    deadline = time.monotonic() + wall_timeout
     calls = calls if calls is not None else current_calls()
     if calls is not None:
-        await calls.acquire()
+        await asyncio.wait_for(calls.acquire(), max(0, deadline - time.monotonic()))
     loop = asyncio.get_running_loop()
     queue: asyncio.Queue[tuple[str, Any]] = asyncio.Queue(maxsize=buffer_size)
     stopped = threading.Event()
@@ -99,17 +108,23 @@ async def stream_completion(
                     calls.release()
 
     try:
-        threading.Thread(target=produce, name="ish-litellm-stream", daemon=True).start()
+        context = copy_context()
+        threading.Thread(target=context.run, args=(produce,), name="ish-litellm-stream", daemon=True).start()
     except BaseException:
         if calls is not None:
             calls.release()
         raise
     try:
         while True:
-            kind, value = await queue.get()
+            kind, value = await asyncio.wait_for(queue.get(), max(0, deadline - time.monotonic()))
             if kind == "end":
                 return
             if kind == "error":
+                if completion_fn is completion:
+                    from .requests import error_code
+                    error = StreamError(error_code(value))
+                    error.code = error_code(value)
+                    raise error from value
                 raise StreamError(str(value)) from value
             yield value
     finally:

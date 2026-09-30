@@ -619,6 +619,8 @@ class LargeLanguageModel:
                  conversation_storage: Optional[str] = None) -> None:
         require_linux()
         self.workspace = Path(workspace).absolute()
+        from llm.providers.runtime import configure_logging
+        configure_logging(self.workspace)
         self.services = services if services is not None else ServiceConfig()
         self.policy_resolver = (self.services.policy_resolver if self.services.policy_resolver is not None
                                 else ProjectPolicyResolver(self.services.token_counters))

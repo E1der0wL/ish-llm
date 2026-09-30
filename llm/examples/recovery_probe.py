@@ -217,7 +217,8 @@ async def connection_failure(root, spec):
     import socket
     import threading
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-    os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
+    from llm.providers.runtime import configure_logging
+    configure_logging(root)
     os.environ["NO_PROXY"] = "127.0.0.1,localhost"
     os.environ["no_proxy"] = "127.0.0.1,localhost"
     calls, disconnected = [], []
@@ -273,8 +274,8 @@ async def connection_failure(root, spec):
         # SDK 최초 import/클라이언트 준비가 단절 검사의 실행 시간에 섞이지 않게 한다.
         # 준비 호출도 로컬 서버로만 보내고 요청 횟수에 명시적으로 포함한다.
         def warmup():
-            import litellm
-            return list(litellm.completion(**config["completion"], stream=True,
+            from llm.providers.litellm import completion
+            return list(completion(**config["completion"], stream=True,
                 timeout=spec["timeout"], messages=[{"role": "user", "content": "warmup"}]))
         await asyncio.to_thread(warmup)
         async with LargeLanguageModel(root / "workspace", components=[], engines={"loop": engine}) as app:

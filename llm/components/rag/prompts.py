@@ -20,6 +20,9 @@ source_id MUST equal a supplied chunk id. evidence MUST be a nonempty contiguous
 verbatim substring of that chunk's text: preserve punctuation, case and whitespace.
 Never translate, paraphrase, concatenate, or invent evidence. A quote must support
 the relationship, not merely mention the entities. If unsupported, omit the relation.
+Resolve pronouns semantically in entity names, but keep evidence literal. For example,
+"It stores artifacts in Harbor." can refer to Atlas; never rewrite "It" to "Atlas"
+inside the evidence. Python will canonicalize IDs, type casing and duplicate facts.
 Prefer the supplied relation types with the same meaning and direction. Use a concise
 new type only when none fits. Use consistent entity names and avoid duplicate facts.
 metadata is an optional JSON object. Do not generate weight, document_id or extracted_at;
@@ -44,12 +47,15 @@ def default_prompt() -> dict:
 
 
 def extraction_defaults() -> dict:
-    return {"repair_attempts": 2, "prompt_id": None, "relation_types": list(RELATION_TYPES)}
+    return {"repair_attempts": 2, "prompt_id": None, "relation_types": list(RELATION_TYPES),
+            "json_mode": "strict", "failure_policy": "required"}
 
 
 def extraction_schema() -> dict:
     from llm.core.schema import field, object_schema
     return object_schema({
+        "json_mode": field("string", "strict", enum=["strict", "auto", "off"]),
+        "failure_policy": field("string", "required", enum=["required", "best_effort", "disabled"]),
         "repair_attempts": field("integer", 2, "검증 오류 수정 요청 횟수. 0이면 비활성화", minimum=0),
         "prompt_id": field(["string", "null"], None, "선택된 prompts 컴포넌트의 레코드 ID",
                            pattern="^[A-Za-z0-9_-]{1,64}$"),

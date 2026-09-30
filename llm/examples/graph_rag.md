@@ -8,16 +8,23 @@ API 키는 환경 변수가 아닌 JSON을 역직렬화한 `ProjectConfig`에서
 ## 설정
 
 `graph_rag.config.example.json`을 로컬의 `~/graph-rag-config.json`으로 복사한 뒤
-다음 세 곳의 model, api_base, api_key를 수정한다. 실제 값은 생성된 Project에도 저장된다.
+다음 네 곳의 model, api_base, api_key를 수정한다. 실제 값은 생성된 Project에도 저장된다.
 
 | ProjectConfig 위치 | 용도 |
 | --- | --- |
 | `completion` | Graph 노드의 Agent가 사용하는 대화 모델. 스트리밍과 Tool calling 필요 |
 | `component_configurations.rag.embedding_params` | 문서·질의 벡터를 생성하는 임베딩 모델 |
 | `component_configurations.rag.extraction_params` | 문서에서 엔티티·관계·인용을 추출하는 모델. JSON 응답 지원 필요 |
+| `component_configurations.rag.rerank_params` | 검색 후보의 관련성 점수를 계산하고 순서를 재정렬하는 모델 |
 
 OpenAI 호환 서버는 `openai/모델명`을 사용한다. 다른 provider는 해당 LiteLLM 모델명을
 사용하고 필요 없는 api_base를 삭제한다. 임베딩과 대화 모델은 서로 다른 서버·키를 써도 된다.
+rerank는 OpenAI chat/embedding API와 별도 프로토콜이다. 예제의 `cohere/모델명`과
+`https://서버/v1/rerank`는 Cohere 호환 rerank 서버용이다. 실제 서버가 지원하는 LiteLLM
+rerank provider/URL로 설정해야 하며, 대화 모델의 `openai/` 접두사를 그대로 복사하지 않는다.
+이 예제는 reranker 설정이 없으면 Project를 만들기 전에 실패한다. 라이브러리 자체에서는
+rerank가 여전히 선택 기능이다. 설정 예제의 `search.rerank=true`는 검색 기본값이며,
+직접 비교용 BM25/vector/hybrid 검사에서는 명시적으로 false를 전달한다.
 공급자별 문서/질의 옵션이 필요하면 RAG 설정에 `document_kwargs`, `query_kwargs`를
 추가할 수 있다. 모델이 실제로 지원하는 옵션을 사용한다.
 
@@ -92,6 +99,10 @@ ish가 설치한 의존성을 외부 Python이 자동으로 공유하지는 않�
 
 ```sh
 python -m llm.examples.graph_rag --config ~/graph-rag-config.json
+
+# 배포에 포함된 165줄 공개 문서로 등록 → 검색 → rerank → Graph Agent까지 검사
+python -m llm.examples.graph_rag --config ~/graph-rag-config.json \
+  --markdown llm/examples/data/graph_rag_165.md --require-relations
 ```
 
 ## 수행하는 검증
@@ -100,11 +111,14 @@ python -m llm.examples.graph_rag --config ~/graph-rag-config.json
 2. Markdown 등록: 분할, 임베딩, 관계 추출, 실제 Chroma/Kuzu 색인.
 3. 짧은 별도 문서로 생성·수정·revision 조회·삭제 검증. 본 문서는 유지.
 4. BM25, vector, hybrid 검색과 section 확장 결과 확인. 삭제 문서의 출처가 남지 않는지 검사.
+   같은 hybrid 후보에 `rerank=True`로 실제 모델을 호출하고 유한한 점수와 후보 내용 보존을 검사.
+   실제 모델이 기존 순서를 유지해도 정상이다. 고정 응답 회귀 검사에서는 역순 반환을 검증한다.
 5. Agent와 Workflow JSON을 저장하고 공개 API로 다시 읽어 동일성 확인.
 6. GraphEngine 실행: `Agent → JSON/원문 인용 검증 → 분기 → 오류 피드백 → 재실행`.
    검증에 성공하면 답변 출력 후 종료하고, 상한까지 실패하면 Run도 실패한다.
-7. Agent마다 rag_search를 한 번 이상 성공적으로 실행하도록 정책을 설정.
-   실행 후 검색 Tool 결과, Run·Step 완료 상태와 저장된 Assistant 응답 확인.
+7. Agent마다 rag_search를 한 번 이상 성공적으로 실행하도록 정책을 설정하고 `rerank=true`를 요청.
+   실행 후 검색 Tool 결과에 rerank 점수가 있는지, Run·Step 완료 상태와 저장된 Assistant 응답 확인.
+   Agent가 rerank를 사용하지 않거나 모델 호출이 실패하면 테스트도 실패한다.
 8. 백엔드를 종료하고 새로 열어 Run·Step·Workflow·검색 색인을 조회.
 
 문서 CRUD는 Component API에서 수행하므로 별도의 Run을 만들지 않는다.
@@ -121,8 +135,10 @@ Graph 실행 중 검색과 모델 호출은 하나의 소유 Run에 Step으로 �
 ## 결과와 로그
 
 - 종료 코드: 성공 0, 검증/실행 실패 1, Ctrl+C 130.
-- `workspace/reports/graph-rag-<id>.json`: 단계별 소요 시간, 검색 원문·관계·출처,
-  검증 결과, Project/Session/Run ID, Step 목록, 답변·인용·검증 회차, 실패 단계.
+- `workspace/reports/graph-rag-<id>.json`: 단계별 소요 시간, 검색 건수,
+  검증 결과, Project/Session/Run ID, Step 목록, 실패 단계.
+  `rerank`에는 모델명·후보 수·반환 수·점수, `timings.search_rerank`에는 호출을 포함한 검색 시간이 기록된다.
+  문서 원문·질의·답변 본문은 보고서에 기록하지 않는다.
 - `workspace/projects/<project-id>/`: 실제 도메인 기록과 RAG 데이터.
 - `workspace/logs/providers-<pid>.log`: LiteLLM 등의 WARNING 이상 진단.
 
@@ -138,3 +154,30 @@ worker 초기화에서 LiteLLM의 로컬 비용표를 선택하므로 GitHub 비
 자동 회귀 검사는 실제 Chroma/Kuzu/BM25와 고정 모델 응답으로 재수정 성공, 상한 실패,
 저장 후 재조회, worker import를 검증한다. CLI에는 모의 모델로 대체하는 fallback이 없으며
 사내에서 실행하면 설정한 실제 모델을 호출한다. 장시간/대용량 성능 시험은 별도로 수행한다.
+
+## 저사양 서버 안정화 설정
+
+예제는 공통 ProviderRuntime을 사용한다. SDK 전역값이나 logger를 예제 내부에서 변경하지 않는다.
+문서 등록은 영속 RAGJob을 생성하고 실행한다. 실패 보고서의 `ingestion_job_id`로 해당 Project의
+`rag.arun_job(job_id, retry=True)`를 명시적으로 호출하면 완료 batch를 재사용한다.
+예제를 다시 실행하면 새 테스트 Project/Job을 생성하므로 자동 재개하지 않는다.
+
+설정 예제는 JSON mode `auto`, graph `required`, batch 최대 16건/16,000자,
+timeout/5xx 분할 깊이 2를 사용한다. 라이브러리 기본값은 JSON `strict`, 분할 깊이 0이다.
+내장 추출 temperature는 0이며 provider SDK retries는 항상 0이다. 추론의 제한 재시도는
+`rag.provider.max_attempts`가 제어한다. 상세 키·타입은 [RAG 설정](../components/rag/README.md)을 참고한다.
+
+보고서 파일에는 검색 원문·사용자 질의·답변 본문을 저장하지 않는다. 검색 건수/그래프 완전성,
+오류 코드/operation/model/시도·시간, `rag_ingestion` 통계를 확인할 수 있다.
+기존 domain/사용량 저장소는 authoritative 기록을 계속 소유한다.
+
+외부 모델 없이 실제 SDK HTTP 경로를 먼저 검사하려면 Linux Python 3.12.14에서:
+
+```bash
+python -m llm.tests.provider_probe --output /tmp/provider-probe.json
+```
+
+이 검사는 165줄 공개 fixture, Chroma/BM25/Kuzu, 실제 SDK rerank HTTP 요청,
+GraphEngine/Loop 검색 Tool과 별도 CLI 실행을 검증한다. 직접 검색 및 재수정하는 두 Agent에서
+rerank 요청이 각각 발생하고, 반환 index대로 실제 후보 순서가 바뀌는지 검사한다.
+고정 HTTP 응답 서버의 측정 시간이므로 사내 모델 서버 처리시간 예측값으로 사용하면 안 된다.

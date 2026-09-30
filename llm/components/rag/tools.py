@@ -23,8 +23,13 @@ def search_tools(data) -> ToolRegistry:
     specs = search_schema()["properties"]
     for name in parameters["properties"].keys() - {"query"}:
         parameters["properties"][name] = {**specs[name], "default": defaults[name]}
+    has_reranker = data.has_reranker()
+    if not has_reranker:
+        parameters["properties"]["rerank"] = {"type": "boolean", "const": False, "default": False}
 
     async def retrieve(arguments):
+        if not has_reranker:
+            arguments = {"rerank": False, **arguments}
         return {"component": data.name, **await data.asearch(**arguments)}
 
     return ToolRegistry((Tool(
