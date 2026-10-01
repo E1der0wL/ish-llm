@@ -86,6 +86,7 @@ Kuzu buffer_pool_size/max_num_threads와 Chroma 설정은 명시된 옵션만 �
 | storage index stride128, projection cache4096, conversation cache32, log handle LRU16 | 인덱싱·메모리 eviction만 조절. 원본 데이터/조회 범위는 유지 |
 | JSON/파일 atomic replacement, effect receipt, CAS, parent-death/process group | 저장·외부 효과·취소의 정확성. 사용자 설정처럼 저장하지 않음 |
 | SDK 로그/배너 콘솔 억제 | 터미널은 ish UI 소유. dotenv 및 하위 logger도 파일로 격리하고 설정 없는 자동 삭제는 하지 않음 |
+| 오류 cause/context 관찰 최대 32개·순환 중단 | 비정상 예외 체인이 종료 처리를 막지 않게 하는 내부 관찰 상한. 실행/retry 정책이나 ProjectConfig 값이 아님 |
 
 `get_default()`는 이름 그대로 등록 Component 전체와 file 저장을 선택하는 명시적 생성 API다. 설정 leaf나 기본 실행 Engine을 만들지는 않는다. `create()`는 전달받은 Component만 선택한다. 파일 저장이라는 저장 형식 계약, 초기 queued/pending 상태, 생성 ID/시각, revision, 데이터 레코드의 구조적 초기값은 실행 정책 default와 구분한다. 메모리의 note/project/confirmed 초기 레코드 형식은 CRUD 계약이며 자동 recall·추출 활성화와 무관하다.
 

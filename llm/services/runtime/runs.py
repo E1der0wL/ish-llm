@@ -37,6 +37,7 @@ from llm.services.lifecycle.sessions import SessionManager, SessionRuntime
 from llm.services.infrastructure.logging import log_event
 from llm.services.results import RunResultQuery
 from llm.core.contracts import Diagnostic, ResourceRef
+from llm.errors import CodedError, stable_error_code
 from llm.core.plans import ResumePlan
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
 from llm.compat import dataclass, StrEnum, timeout
@@ -354,7 +355,7 @@ class RunErrorCode(StrEnum):
     PROCESS_FAILED = "process_failed"
 
 
-class RunRequestError(ValueError):
+class RunRequestError(CodedError, ValueError):
     """An actionable request rejection before queue admission."""
 
     def __init__(self, code: RunErrorCode, message: str) -> None:
@@ -1058,7 +1059,7 @@ class RunManager:
                     error_code = RunErrorCode.INTERRUPTED
                 except Exception as failure:
                     status, error = RunStatus.FAILED, str(failure)
-                    error_code = RunErrorCode.PROVIDER_CAPACITY if isinstance(failure, ProviderCapacityError) else failure.code if isinstance(failure, (RunRequestError, ExecutionLimitError)) else RunErrorCode.ENGINE_FAILED
+                    error_code = stable_error_code(failure) or RunErrorCode.ENGINE_FAILED
                 finally:
                     try:
                         await self._io.run(self._finish, runtime, run, status, error, error_code)

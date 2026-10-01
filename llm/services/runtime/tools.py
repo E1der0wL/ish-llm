@@ -10,11 +10,12 @@ from typing import Callable, Optional
 
 from llm.compat import dataclass, timeout
 from llm.core.contracts import Diagnostic
+from llm.errors import CodedError
 from llm.core.configuration import UNSET
 from llm.core.models import ProjectConfig, new_id
 from llm.core.results import EngineOutput
 from llm.core.interactions import InteractionRequest, approval_request
-from llm.engines.base import EngineEvent, EngineEventType
+from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.services.runtime.policies import ExecutionLimitError
 from llm.services.runtime.operations import operation_token
 
@@ -38,8 +39,10 @@ class ToolCall:
 _tool_call = ContextVar("llm_tool_call", default=None)
 
 
-class ToolExecutionError(RuntimeError):
+class ToolExecutionError(CodedError, RuntimeError):
     """핸들러가 보장하는 실패 분류. 효과가 없다는 증거가 있을 때만 effect='none'을 사용한다."""
+
+    code = "tool_failed"
 
     def __init__(self, message: str, *, effect="uncertain", retryable=False):
         if effect not in ("none", "uncertain") or type(retryable) is not bool:
@@ -333,8 +336,8 @@ class ToolExecutor:
         except ToolApprovalRequired as request:
             if authorized:
                 error = ToolExecutionError("Approval requests must originate before Tool execution", effect="uncertain")
-                yield EngineEvent(EngineEventType.STEP_FAILED, step_id=step_id,
-                                  error=str(error), metadata={"phase": "failed", "error_code": "tool_failed"})
+                yield BaseEngine.step_failed_event(step_id, error, code="tool_failed",
+                    metadata={"phase": "failed", "error_code": "tool_failed"})
                 raise error from request
             # 표시용 문구와 실제 실행 대상은 분리한다. 호출자 제공 source/action은 신뢰하지 않는다.
             request.request = replace(request.request,
@@ -349,10 +352,9 @@ class ToolExecutor:
         except Exception as error:
             if isinstance(error, asyncio.TimeoutError):
                 error = ExecutionLimitError("tool_timeout", "Tool execution or authorization timed out")
-            yield EngineEvent(EngineEventType.STEP_FAILED, step_id=step_id,
-                              error=f"Tool execution failed: {error}",
-                              diagnostic=getattr(error, "diagnostic", Diagnostic.from_exception(error, code="tool_failed")),
-                              metadata={"phase": "failed", "error_code": getattr(error, "code", "tool_failed")})
+            yield BaseEngine.step_failed_event(step_id, error, code="tool_failed",
+                message=f"Tool execution failed: {error}",
+                metadata={"phase": "failed", "error_code": getattr(error, "code", "tool_failed")})
             raise error
         yield EngineEvent(EngineEventType.STEP_COMPLETED, step_id=step_id,
                           output=EngineOutput(step_id, data=value, step_id=step_id, visibility="internal"),

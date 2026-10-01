@@ -42,7 +42,8 @@ def main():
     (report / "snapshot.json").write_text(json.dumps({"root": str(target), "python": args.python, "files": files}, indent=2))
     env = dict(os.environ, LITELLM_LOCAL_MODEL_COST_MAP="True", LITELLM_MODE="PRODUCTION")
     print(target, flush=True)
-    modules = args.modules or ["llm.tests.test_provider_runtime", "llm.tests.test_rag_resilience", "llm.tests.test_explicit_configuration"]
+    modules = args.modules or ["llm.tests.test_provider_runtime", "llm.tests.test_rag_resilience",
+                               "llm.tests.test_explicit_configuration", "llm.tests.test_error_boundaries"]
     failed = False
     for name, command in [("focused", modules), *([("suite", ["discover", "-s", "tests"])] if args.full else [])]:
         with (report / (name + ".txt")).open("w") as output:

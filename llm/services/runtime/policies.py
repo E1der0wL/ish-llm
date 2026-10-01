@@ -4,10 +4,11 @@ import math
 from typing import Optional
 
 from llm.core.contracts import Diagnostic
+from llm.errors import CodedError
 from llm.compat import dataclass
 
 
-class ExecutionLimitError(RuntimeError):
+class ExecutionLimitError(CodedError, RuntimeError):
     """UI가 문자열 파싱 없이 처리할 수 있는 실행 정책 오류."""
 
     def __init__(self, code: str, message: str):

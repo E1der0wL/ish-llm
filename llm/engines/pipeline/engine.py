@@ -11,6 +11,7 @@ from llm.compat import aclosing
 from llm.core.models import ProjectConfig
 from llm.core.configuration import engine_configuration
 from llm.core.schema import object_schema, field
+from llm.errors import CodedError
 
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
@@ -18,8 +19,12 @@ from llm.core.results import EngineOutput
 from llm.engines.base import BaseEngine, Engine, EngineContext, EngineEvent, EngineEventType, required_capabilities
 
 
-class PipelineError(RuntimeError):
+class PipelineError(CodedError, RuntimeError):
     """Preparation/stage lifecycle failure."""
+
+    def __init__(self, message, *, code=None):
+        super().__init__(message)
+        self.code = code
 
 
 _UNSET = object()
@@ -120,36 +125,42 @@ class PipelineEngine:
             yield EngineEvent(EngineEventType.STEP_STARTED, step_id=stage_id, kind="engine",
                               name=type(stage).__name__, metadata={"stage_index": index,
                               "parent_step_id": context.output_step_id})
-            events = stage.execute(replace(context, output_step_id=stage_id,
-                project=replace(context.project, config=project), session=replace(context.session, config=session)))
             try:
-                async for event in events:
-                    if event.type == EngineEventType.PAUSED:
+                events = stage.execute(replace(context, output_step_id=stage_id,
+                    project=replace(context.project, config=project), session=replace(context.session, config=session)))
+                try:
+                    async for event in events:
+                        if event.type == EngineEventType.PAUSED:
+                            yield event
+                            return
+                        if event.type == EngineEventType.OUTPUT:
+                            if event.output is None or event.output.step_id != stage_id or stage_output is not None:
+                                raise PipelineError("Stage must emit one output owned by its stage Step")
+                            stage_output = event.output
+                            continue
+                        if event.type == EngineEventType.STEP_STARTED:
+                            active.add(event.step_id)
+                            event = replace(event, metadata={"parent_step_id": stage_id, **event.metadata})
+                        elif event.type == EngineEventType.STEP_COMPLETED:
+                            active.discard(event.step_id)
                         yield event
-                        return
-                    if event.type == EngineEventType.OUTPUT:
-                        if event.output is None or event.output.step_id != stage_id or stage_output is not None:
-                            raise PipelineError("Stage must emit one output owned by its stage Step")
-                        stage_output = event.output
-                        continue
-                    if event.type == EngineEventType.STEP_STARTED:
-                        active.add(event.step_id)
-                        event = replace(event, metadata={"parent_step_id": stage_id, **event.metadata})
-                    elif event.type == EngineEventType.STEP_COMPLETED:
-                        active.discard(event.step_id)
-                    yield event
-                    if event.type in (EngineEventType.STEP_FAILED,
-                                      EngineEventType.STEP_INTERRUPTED,
-                                      EngineEventType.STEP_CANCELLED):
-                        raise PipelineError(event.error or "Pipeline stage did not complete")
-            finally:
-                close = getattr(events, "aclose", None)
-                if close is not None:
-                    await close()
-            if active:
-                raise PipelineError("Pipeline stage left unfinished Steps")
-            # 결과를 발행하지 않는 준비 단계도 종료 사실을 명시한다.
-            completed = BaseEngine.step_completed_event(context, stage_id, stage_output or EngineOutput())
+                        if event.type in (EngineEventType.STEP_FAILED,
+                                          EngineEventType.STEP_INTERRUPTED,
+                                          EngineEventType.STEP_CANCELLED):
+                            # 실패 뒤 generator를 더 실행하지 않는다. raw Diagnostic code를
+                            # 승격하지 않고 Engine이 명시적으로 전달한 classified code만 보존한다.
+                            raise PipelineError(event.error or "Pipeline stage did not complete", code=event.failure_code)
+                finally:
+                    close = getattr(events, "aclose", None)
+                    if close is not None:
+                        await close()
+                if active:
+                    raise PipelineError("Pipeline stage left unfinished Steps")
+                # 결과를 발행하지 않는 준비 단계도 종료 사실을 명시한다.
+                completed = BaseEngine.step_completed_event(context, stage_id, stage_output or EngineOutput())
+            except Exception as error:
+                yield BaseEngine.step_failed_event(stage_id, error)
+                raise
             yield completed
             final_output = completed.output
         yield BaseEngine.output_event(context, final_output)

@@ -264,7 +264,7 @@ class AgentNode:
         except (asyncio.CancelledError, _GraphPause):
             raise
         except Exception as error:
-            await node.emit(EngineEvent(EngineEventType.STEP_FAILED, step_id=step_id, error=str(error)))
+            await node.emit(BaseEngine.step_failed_event(step_id, error))
             raise
         await node.emit(BaseEngine.step_completed_event(context, step_id,
             EngineOutput(text=result["text"], data=result.get("data"), visibility=visibility),

@@ -9,6 +9,7 @@ from typing import Any, Optional, Union, get_args, get_origin, get_type_hints
 
 from llm.compat import dataclass
 from .models import ProjectConfig
+from llm.errors import exception_chain, stable_error_code
 
 
 def _encode(value):
@@ -125,8 +126,15 @@ class Diagnostic(JsonValue):
 
     @classmethod
     def from_exception(cls, error: Exception, *, code="execution_failed", source=None):
-        value = getattr(error, "code", None)
-        return cls(str(value) if isinstance(value, str) and value.strip() else code, str(error), source=source)
+        # Diagnostic은 관찰 계약이다. Run의 신뢰 판별은 stable_error_code가 별도로 한다.
+        known = stable_error_code(error)
+        if known is not None:
+            return cls(known, str(error), source=source)
+        for current in exception_chain(error):
+            value = getattr(current, "code", None)
+            if isinstance(value, str) and value.strip():
+                return cls(str(value), str(error), source=source)
+        return cls(code, str(error), source=source)
 
 
 @dataclass(frozen=True, slots=True)

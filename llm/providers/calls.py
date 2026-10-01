@@ -9,6 +9,7 @@ from contextvars import ContextVar
 from typing import Optional
 
 from llm.compat import dataclass
+from llm.errors import CodedError
 
 
 _current_calls = ContextVar("llm_provider_calls", default=None)
@@ -32,8 +33,10 @@ class ProviderLimits:
             raise ValueError("wait_seconds must be finite and nonnegative")
 
 
-class ProviderCapacityError(RuntimeError):
+class ProviderCapacityError(CodedError, RuntimeError):
     """실행/대기 한도 또는 대기 시간이 소진되어 공급자 호출을 시작하지 못했다."""
+
+    code = "provider_capacity"
 
 
 class ProviderCalls:

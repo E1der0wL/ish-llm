@@ -27,8 +27,7 @@ from llm.engines.loop import LoopEngine
 from llm.core.models import StepStatus
 from llm.llm import LargeLanguageModel, ProjectConfig, RunStatus
 from llm.providers.runtime import configure_logging, diagnostic_scope
-from llm.providers.requests import error_code, ProviderError
-from llm.services.runtime.runs import RunRequestError
+from llm.providers.requests import error_code
 
 
 SAMPLE_DOCUMENT = """# Atlas operations manual
@@ -68,18 +67,6 @@ def make_workflow(max_attempts: int) -> dict:
               **{"while": {"path": "/passed", "op": "eq", "value": False}})
         .node("publish", "publish_answer").node("end", "end")
         .connect("retrieve", "repair").connect("repair", "publish").connect("publish", "end").to_dict())
-
-
-class RetrievalNode(ToolNode):
-    """기존 Tool 실행을 사용하고 provider 코드를 Run의 공개 실패 계약에 연결한다."""
-
-    async def __call__(self, node):
-        try:
-            return await super().__call__(node)
-        except ProviderError as error:
-            # RunManager는 일반 예외를 engine_failed로 기록한다. 코어를 변경하지 않고
-            # 이 예제의 검색 공급자 실패만 기존 typed Run 오류 계약으로 전달한다.
-            raise RunRequestError(error.code, str(error)) from error
 
 
 class AnswerChecks:
@@ -223,7 +210,7 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
             raise ValueError("Markdown document is empty")
         checks = AnswerChecks(content)
         loop = LoopEngine(settings_name="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
-        graph = GraphEngine("rag-workflow", handlers={"agent": AgentNode(engines={"loop": loop}), "tool": RetrievalNode(),
+        graph = GraphEngine("rag-workflow", handlers={"agent": AgentNode(engines={"loop": loop}), "tool": ToolNode(),
             "validate_answer": checks.validate, "feedback": checks.feedback, "publish_answer": checks.publish})
         config = ProjectConfig(**config.to_dict())
         extraction = config.component_configurations.setdefault("rag", {}).setdefault("extraction", {})

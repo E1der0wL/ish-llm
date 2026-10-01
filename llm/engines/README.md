@@ -51,3 +51,44 @@ Agent/Tool 노드는 Graph에 특화된 어댑터이고, 여러 Engine이 공유
 `services/runtime/tools.py`가 계속 담당합니다. LangGraph는 실제 Graph 실행 시 로드합니다.
 
 이번 폴더 정리는 도메인 저장 버전이나 체크포인트 형식을 바꾸지 않습니다.
+
+## 실패 전달 계약
+
+Subsystem은 오류를 분류하고 Engine은 `BaseEngine.step_failed_event(step_id, error)`로
+`STEP_FAILED + Diagnostic`을 전달합니다. Graph 노드·중첩 Graph·Agent·Pipeline·Tool도
+같은 helper를 사용합니다. 기존 Diagnostic의 source/details를 보존하며, source가 없으면
+Step에 연결합니다. 오류에 code가 없으면 Step은 `step_failed`(Tool은 `tool_failed`)입니다.
+문자열 error와 구조화된 diagnostic은 별도 필드이며 raw message 정책은 변경하지 않습니다.
+
+RunManager는 `llm.errors.CodedError` 계약을 명시한 오류의 code만 보존합니다.
+ProviderError, 분류된 StreamError, EmbeddingIntegrityError, GraphValidationError,
+MemoryConflictError, ProviderCapacityError, ExecutionLimitError, RunRequestError,
+ToolExecutionError가 이 계약을 사용합니다. 알려지지 않은 실패는 `engine_failed`입니다.
+RunRequestError는 요청 거절용이므로 공급자 오류를 이 클래스로 변환하지 않습니다.
+
+```python
+from llm.errors import CodedError
+
+class DocumentError(CodedError, ValueError):
+    code = "document_invalid"
+```
+
+확장 코드가 명시적으로 안정적인 오류 의미를 제공할 때도 이 mixin을 사용할 수 있습니다.
+임의 SDK 예외에 `.code`가 있다는 사실만으로는 Run code로 신뢰하지 않습니다.
+Diagnostic은 기존 관찰 계약에 따라 이러한 문자열도 표시할 수 있지만, 이것이 Run의
+분류·재시도·승인 권한으로 승격되지는 않습니다. 명시적인 Diagnostic만 전달하는 사용자
+Engine도 해당 Step 진단을 그대로 저장할 수 있습니다.
+
+`stable_error_code()`는 바깥쪽의 분류된 오류를 우선하며, 없으면 명시적 cause 또는
+숨기지 않은 context를 탐색합니다. `raise ... from None`은 경계를 끊습니다.
+순환을 검사하고 최대 32개까지만 관찰합니다. 이는 실행 정책이 아닌 종료 처리의 작업량
+상한이며, 오류 메시지·HTTP status·vendor code의 의미를 여기서 추측하지 않습니다.
+
+Pipeline은 실패 이벤트 뒤 자식 generator를 더 진행하지 않습니다. 이를 위해 공통 helper가
+분류된 오류에 한해 `EngineEvent.failure_code`를 채웁니다. Pipeline은 이 명시적인 Engine
+계약만 전달하고 관찰용 Diagnostic code를 임의로 승격하지 않습니다. failure_code는
+런타임 조합용 문자열이며 영속 Step에는 추가하지 않습니다. 예외 객체/traceback도 저장하지 않습니다.
+
+StepEventRecorder/StepManager는 전달된 status/error/diagnostic을 기존 소유 경로에 저장할 뿐
+오류를 재분류하지 않습니다. Run timeout·interrupt·pause/resume 및 Provider/Tool/Graph의
+retry·effect·checkpoint 책임과 정책은 그대로 유지됩니다.

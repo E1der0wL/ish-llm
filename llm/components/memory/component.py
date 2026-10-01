@@ -8,11 +8,12 @@ from collections import OrderedDict
 
 from llm.components.base import Component, validate_name
 from llm.core.models import new_id
+from llm.errors import CodedError
 from .data import MemoryData
 from llm.services.infrastructure.storage import atomic_json, read_json
 
 
-class MemoryConflictError(RuntimeError):
+class MemoryConflictError(CodedError, RuntimeError):
     """읽은 뒤 기억이 변경되었다. 최신 revision을 확인하고 명시적으로 다시 수정한다."""
 
     code = "memory_conflict"

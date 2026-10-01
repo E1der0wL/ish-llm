@@ -1,9 +1,10 @@
 """단일 청크 임베딩 무결성 계약. 저장/UI와 무관하다."""
 
 import math
+from llm.errors import CodedError
 
 
-class EmbeddingIntegrityError(ValueError):
+class EmbeddingIntegrityError(CodedError, ValueError):
     def __init__(self, code, message):
         self.code = code
         super().__init__(message)

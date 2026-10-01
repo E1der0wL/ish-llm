@@ -10,9 +10,10 @@ from contextvars import copy_context
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import Any
 from .calls import current_calls
+from llm.errors import CodedError
 
 
-class StreamError(RuntimeError):
+class StreamError(CodedError, RuntimeError):
     """A provider/transport failure crossing the synchronous stream bridge."""
 
 

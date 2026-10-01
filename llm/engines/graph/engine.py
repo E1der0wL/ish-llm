@@ -185,7 +185,7 @@ class _WorkflowRuntime:
         except (asyncio.CancelledError, _GraphPause):
             raise
         except Exception as error:
-            await emit(EngineEvent(EngineEventType.STEP_FAILED, step_id=step_id, error=str(error)))
+            await emit(BaseEngine.step_failed_event(step_id, error))
             raise
         await emit(BaseEngine.step_completed_event(context, step_id,
                                                    EngineOutput(data=output, visibility="internal")))
@@ -489,7 +489,7 @@ class _WorkflowRuntime:
                 raise _GraphPause(key)
             except Exception as error:
                 _propagate_cancellation(error)
-                await self.emit(EngineEvent(EngineEventType.STEP_FAILED, step_id=step_id, error=str(error)))
+                await self.emit(BaseEngine.step_failed_event(step_id, error))
                 raise
             await self._record(key, {**info, "status": "completed", "output": deepcopy(state), "port": port})
             await self.emit(BaseEngine.step_completed_event(context, step_id,
@@ -844,7 +844,7 @@ class GraphEngine:
                     metadata={"checkpoint": "graph", "node_key": str(pause)}))
                 return
             except Exception as error:
-                await emit(EngineEvent(EngineEventType.STEP_FAILED, step_id=root_id, error=str(error)))
+                await emit(BaseEngine.step_failed_event(root_id, error))
                 raise
             await emit(BaseEngine.step_completed_event(context, root_id,
                 EngineOutput(data=output, visibility="internal"),

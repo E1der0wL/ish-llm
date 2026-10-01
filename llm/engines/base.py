@@ -15,6 +15,7 @@ from typing import Any, Optional, Protocol, TypeVar, Union
 from llm.compat import StrEnum, aclosing, dataclass, timeout
 from llm.core.models import Message, Project, Run, RunStatus, Session, new_id, now
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
+from llm.errors import stable_error_code
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
 from llm.core.interactions import InteractionRequest
 from llm.components.tools import ToolRegistry
@@ -56,6 +57,9 @@ class EngineEvent:
     interaction: Optional[InteractionRequest] = None
     diagnostic: Optional[Diagnostic] = None
     progress: Optional[OperationProgress] = None
+    # 실행 중 fail-fast 합성용. Diagnostic의 임의 관찰 code와 달리 명시적 CodedError만 전달한다.
+    # StepEventRecorder는 이 런타임 필드를 저장하지 않는다.
+    failure_code: Optional[str] = None
 
     def __post_init__(self):
         # Step 상태 표시를 공통 계약으로 제공한다. 실제 상태 전이는 서비스가 수행한다.
@@ -63,6 +67,9 @@ class EngineEvent:
             raise TypeError("diagnostic must be Diagnostic")
         if self.progress is not None and not isinstance(self.progress, OperationProgress):
             raise TypeError("progress must be OperationProgress")
+        if self.failure_code is not None and (self.type != EngineEventType.STEP_FAILED
+                or not isinstance(self.failure_code, str) or not self.failure_code.strip()):
+            raise ValueError("failure_code requires a nonempty code on STEP_FAILED")
         phases = {"step_started": "started", "step_updated": "running", "step_completed": "completed",
                   "step_failed": "failed", "step_interrupted": "interrupted", "step_cancelled": "cancelled"}
         if self.step_id is not None and self.type in phases:
@@ -218,6 +225,24 @@ class BaseEngine:
             raise ValueError("output_event requires a final EngineOutput")
         output = BaseEngine._bind_output(context, output)
         return EngineEvent(EngineEventType.OUTPUT, step_id=output.step_id, output=output)
+
+    @staticmethod
+    def step_failed_event(step_id: str, error: Exception, *, message: Optional[str] = None,
+                          diagnostic: Optional[Diagnostic] = None, metadata: Optional[dict] = None,
+                          code: str = "step_failed") -> EngineEvent:
+        """실패 의미를 전달한다. 명시 진단/기존 진단은 유지하고 누락 source만 Step에 연결한다."""
+        if not isinstance(step_id, str) or not step_id.strip():
+            raise ValueError("A failed Step requires an ID")
+        if diagnostic is None:
+            diagnostic = getattr(error, "diagnostic", None)
+        source = ResourceRef("step", step_id, step_id=step_id)
+        if diagnostic is None:
+            diagnostic = Diagnostic.from_exception(error, code=code, source=source)
+        elif isinstance(diagnostic, Diagnostic) and diagnostic.source is None:
+            diagnostic = replace(diagnostic, source=source)
+        return EngineEvent(EngineEventType.STEP_FAILED, step_id=step_id,
+            error=str(error) if message is None else message, diagnostic=deepcopy(diagnostic),
+            metadata=deepcopy(metadata or {}), failure_code=stable_error_code(error))
 
     @staticmethod
     def step_completed_event(context: EngineContext, step_id: str, output: EngineOutput, *,
@@ -508,8 +533,7 @@ class BaseEngine:
             # persisted active Step, including cancellation before run() starts.
             raise
         except Exception as error:
-            yield EngineEvent(EngineEventType.STEP_FAILED, step_id=step_id, error=f"{self.error_message}: {error}",
-                              diagnostic=Diagnostic.from_exception(error, source=ResourceRef("step", step_id, step_id=step_id)))
+            yield self.step_failed_event(step_id, error, message=f"{self.error_message}: {error}")
             raise
         yield completed
         if publish_output:

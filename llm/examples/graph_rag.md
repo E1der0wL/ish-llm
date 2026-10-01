@@ -186,7 +186,8 @@ semantic 호출 한 번에 provider 시도 세 번이다. SDK 내부 HTTP retry�
 정상 기본 실행은 `rerank_requests=1`, `answer_attempts=1..max_attempts`, Run completed다.
 429가 발생해도 실패 검증용 ValueError로 덮지 않고 `run.error_code`를 `error.code`에 보존한다.
 `provider_diagnostics`의 stage/operation/attempt, `failed_node=retrieve`, `retrieval` 상태로 실패 위치를 확인한다.
-이 예제의 RetrievalNode는 기존 ToolNode를 재사용하고 공급자 실패를 기존 typed Run 오류로 전달한다.
+기본 ToolNode를 그대로 사용한다. RunManager가 분류된 ProviderError 코드를 보존하므로
+검색 오류를 RunRequestError로 변환하는 예제 전용 어댑터는 필요하지 않다.
 `rerank_requests=1`인데 429라면 답변 repair의 중복 검색보다 서버 capacity/rate 정책이나 다른 클라이언트의
 트래픽을 먼저 확인한다. 민감한 원문은 보고서에 추가하지 않는다.
 

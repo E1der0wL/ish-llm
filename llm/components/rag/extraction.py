@@ -8,9 +8,10 @@ from datetime import datetime, timezone
 
 from llm.components.rag._client import ModelClient
 from .prompts import EXTRACTION_CONTRACT
+from llm.errors import CodedError
 
 
-class GraphValidationError(ValueError):
+class GraphValidationError(CodedError, ValueError):
     """구문/의미 계약 실패. 공급자 retry와 분리된 repair/best_effort 대상이다."""
     code = "graph_validation_failed"
 

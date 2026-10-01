@@ -8,6 +8,7 @@ from .observations import observed_call
 from .parameters import copy_params
 from .runtime import diagnostic
 from .retry import effective_attempts
+from llm.errors import CodedError
 
 
 def provider_schema():
@@ -29,7 +30,7 @@ def resolve_provider_options(options):
     return result
 
 
-class ProviderError(RuntimeError):
+class ProviderError(CodedError, RuntimeError):
     def __init__(self, code):
         self.code = code
         super().__init__(code.replace("_", " "))
