@@ -210,6 +210,56 @@ async def main(query: Annotated[str, Field(description="Query")],
             with self.subTest(source=source), self.assertRaises(ValueError):
                 self.compile(source)
 
+    def test_invalid_python_defaults_are_rejected_without_coercion(self):
+        for parameter in (
+                'limit: int = "ten"',
+                'limit: int = "10"',
+                'limit: Annotated[int, Field(ge=1, le=20)] = 100',
+                'mode: Literal["fast", "slow"] = "invalid"',
+                'values: list[int] = ["wrong"]',
+                'values: dict[str, int] = {"count": "wrong"}',
+                'query: str = None'):
+            name = parameter.split(":", 1)[0]
+            with self.subTest(parameter=parameter), self.assertRaisesRegex(
+                    ValueError, "default does not satisfy its annotation: " + name):
+                self.compile('''from typing import Annotated, Literal
+from pydantic import Field
+from llm.components.tools import tool
+@tool()
+async def main(''' + parameter + '''):
+    """Default validation."""
+''')
+
+    def test_signature_alone_owns_defaults_and_nullable_none_is_preserved(self):
+        value = self.compile('''from typing import Annotated
+from pydantic import Field
+from llm.components.tools import tool
+@tool()
+async def main(required: Annotated[int, Field(default=100, ge=1, le=20)],
+               limit: Annotated[int, Field(default=100, ge=1, le=20)] = 10,
+               query: str | None = None):
+    """Signature defaults override metadata without coercion."""
+    return {"limit": limit, "query": query}
+''')
+        schema = value.parameters
+        self.assertEqual(schema["required"], ["required"])
+        self.assertNotIn("default", schema["properties"]["required"])
+        self.assertEqual(schema["properties"]["limit"], {
+            "type": "integer", "minimum": 1, "maximum": 20, "default": 10})
+        self.assertIsNone(schema["properties"]["query"]["default"])
+        self.assertEqual(asyncio.run(value.handler({"required": 1})), {"limit": 10, "query": None})
+
+    def test_python_defaults_must_still_be_json_safe(self):
+        for parameter, error_type in (('number: float = float("nan")', ValueError),
+                                      ('number: float = float("inf")', ValueError),
+                                      ('values: list[int] = {1, 2}', TypeError)):
+            with self.subTest(parameter=parameter), self.assertRaises(error_type):
+                self.compile('''from llm.components.tools import tool
+@tool()
+async def main(''' + parameter + '''):
+    """JSON-safe defaults only."""
+''')
+
 
 class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def setup_runtime(self, source, *, policy=None, responses=None):

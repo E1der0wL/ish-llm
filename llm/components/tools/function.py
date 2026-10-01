@@ -6,6 +6,8 @@ import types
 import typing
 
 from pydantic import TypeAdapter
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import ValidationError
 from llm.core.models import ProjectConfig
 from .registry import Tool, ToolContract, ToolRegistry
 
@@ -58,6 +60,13 @@ def function_tool(name, main) -> Tool:
             required.append(key)
         else:
             ProjectConfig.validate_settings({"default": parameter.default})
+            # 실제 Python 기본값을 변환 없이 provider에 공개하는 동일 schema로 검증한다.
+            try:
+                Draft202012Validator(schema).validate(parameter.default)
+            except ValidationError as error:
+                raise ValueError(
+                    f"Tool parameter default does not satisfy its annotation: {key}"
+                ) from error
             schema["default"] = deepcopy(parameter.default)
         properties[key] = schema
     parameters = {"type": "object", "properties": properties, "required": required, "additionalProperties": False}
