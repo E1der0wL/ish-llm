@@ -119,7 +119,7 @@ class LoopEngine(BaseEngine):
         names = self._option_names
         properties = {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0, **{"x-host-override": name in self._overrides}) for name in names}
         properties["system_prompt"] = {"type": ["string", "null"], "description": "기본 시스템 프롬프트",
-                                        "x-host-override": self.system_prompt is not None}
+                                        "x-host-override": "system_prompt" in self._overrides or callable(self.system_prompt)}
         return object_schema(properties, **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
     def configuration(self, config, name, *, session_config=None):

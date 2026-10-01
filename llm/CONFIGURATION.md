@@ -47,7 +47,7 @@ Step의 명시 기한은 provider 진행을 중단하지만 yield된 이벤트�
 | engines/pipeline/engine.py | Preparation timeout 제거 |
 | providers/requests.py, litellm.py | provider 기본 재시도/wall deadline·stream 120초 fallback 제거 |
 | providers/calls.py | active/waiting/admission wait 기본 한도 제거 |
-| providers/runtime.py | 비용표/모드/log 환경변수 강제 선택·자동 로그 회전 삭제 제거 |
+| providers/runtime.py | 모드/log 환경변수 강제 선택·자동 로그 회전 삭제 제거. bundled 비용표 선택은 runtime isolation invariant |
 | services/runtime/tools.py, processes.py | Tool/프로세스 시간·출력·메모리·동시성 cap 제거 |
 | services/runtime/_worker.py | 미설정 core dump 제한을 0으로 강제하지 않고 부모 OS 자원 설정 상속 |
 | components/tools/builtin | 파일/출력/프로세스/검색 개수 cap 제거. Shell, 검색 재귀·대소문자 선택은 명시 |
@@ -75,6 +75,7 @@ Kuzu buffer_pool_size/max_num_threads와 Chroma 설정은 명시된 옵션만 �
 | Loop stream=True, n=1 검증; 추출 stream=False | 이벤트 스트림/단일 assistant/JSON 응답 프로토콜. 해당 Engine/client에서 변경 불가 |
 | RAG caching=False, no-cache/no-store | LiteLLM partial-cache의 벡터 대응 무결성. 변경 불가; llm VectorCache는 명시 설정 |
 | DEFAULT_MAX_RETRIES=0 | LiteLLM 1.103.1 `max_retries or DEFAULT_MAX_RETRIES` 버그 경계. import 전 env, import 후 및 재진입 SDK global에 강제. 명시적 retry kwargs는 변경하지 않음 |
+| LITELLM_LOCAL_MODEL_COST_MAP=True | LiteLLM 초기화 시 외부 cost-map network fetch 대신 bundled map을 사용하는 runtime isolation invariant. import 전과 재진입 시 env에 강제하며 사용자 override 불가. 사용자 inference option이나 ProjectConfig default/values가 아님 |
 | domain storage_version=2, workflow schema_version=1, graph schema_version=2 | 저장 형식 계약; 자동 migration/옛 default 복원 없음 |
 | checkpoint fingerprint·참조·vector·evidence 검증 | 잘못된 결과 재사용/공개 방지. 변경 불가 |
 | Graph DAG/명시적 bounded loop/합류 검증 | 도달성·재개 단위·분기 실행 의미. 임의 cycle 불가; 사용자가 반복 횟수 명시 |
@@ -84,7 +85,7 @@ Kuzu buffer_pool_size/max_num_threads와 Chroma 설정은 명시된 옵션만 �
 | queue 8/32/64, 출력 flush 1/.025s/65536chars | backpressure/저장 batching. 내용을 버리거나 실행 횟수를 제한하지 않음. 명시 drop 정책은 별도 |
 | storage index stride128, projection cache4096, conversation cache32, log handle LRU16 | 인덱싱·메모리 eviction만 조절. 원본 데이터/조회 범위는 유지 |
 | JSON/파일 atomic replacement, effect receipt, CAS, parent-death/process group | 저장·외부 효과·취소의 정확성. 사용자 설정처럼 저장하지 않음 |
-| SDK 로그/배너 콘솔 억제 | 터미널은 ish UI 소유. 로그 파일로 관찰하고 설정 없는 자동 삭제는 하지 않음 |
+| SDK 로그/배너 콘솔 억제 | 터미널은 ish UI 소유. dotenv 및 하위 logger도 파일로 격리하고 설정 없는 자동 삭제는 하지 않음 |
 
 `get_default()`는 이름 그대로 등록 Component 전체와 file 저장을 선택하는 명시적 생성 API다. 설정 leaf나 기본 실행 Engine을 만들지는 않는다. `create()`는 전달받은 Component만 선택한다. 파일 저장이라는 저장 형식 계약, 초기 queued/pending 상태, 생성 ID/시각, revision, 데이터 레코드의 구조적 초기값은 실행 정책 default와 구분한다. 메모리의 note/project/confirmed 초기 레코드 형식은 CRUD 계약이며 자동 recall·추출 활성화와 무관하다.
 

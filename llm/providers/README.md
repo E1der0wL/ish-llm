@@ -1,6 +1,13 @@
 # 공급자 안정화 경계
 
-설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. `runtime.py`는 LiteLLM 초기화와 진단 라우팅을 담당한다. 비용표·모드·인증 환경변수는 호스트 또는 SDK가 선택한다.
+설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. `runtime.py`는 LiteLLM 초기화와 진단 라우팅을 담당한다. 모드·인증 환경변수는 호스트 또는 SDK가 선택한다.
+
+초기화의 code invariant:
+
+- `LITELLM_LOCAL_MODEL_COST_MAP=True`: LiteLLM import 전에 환경변수에 강제해 외부 cost-map network fetch 대신 bundled map을 사용한다. 매 `litellm_sdk()` 진입에서도 복구하는 runtime isolation invariant이며, 사용자 inference option이나 ProjectConfig default/values가 아니다.
+- `DEFAULT_MAX_RETRIES=0`: 아래의 확인된 SDK retry 호환성 문제를 막는 compatibility invariant다. 명시적 요청 retry는 보존한다.
+
+SDK를 외부 코드가 먼저 import했다면 이미 발생한 초기화 fetch를 되돌릴 수는 없다. 플러그인의 초기화 경계는 `litellm_sdk()`다.
 
 LiteLLM import 전에 `os.environ["DEFAULT_MAX_RETRIES"] = "0"`을 강제로 적용한다.
 `litellm_sdk()`는 import 후와 매 진입 시 `sdk.DEFAULT_MAX_RETRIES = 0`도 적용한다.
@@ -26,7 +33,7 @@ SDK 내부 HTTP 재시도는 하나의 SDK 호출 안에서 일어나므로 별�
 HTTP timeout과 별개로 모델 클라이언트 준비·응답·backoff에 같은 deadline을 적용한다.
 TripleExtractor는 JSON-mode fallback과 semantic repair에도 같은 deadline을 공유한다.
 
-재시도 대상은 timeout/연결 오류/429/502/503/504/빈 공급자 응답이다. 인증·요청 오류,
+재시도 대상은 timeout/연결 오류/429/정수 HTTP 500–599 전체/빈 공급자 응답이다. 5xx는 모두 `provider_unavailable`로 분류하며 outer retry는 명시 설정이 있을 때만 수행한다. 인증·요청 오류,
 벡터 무결성, JSON 구문·그래프 의미 오류는 transport retry 대상이 아니다. 마지막 공급자
 오류는 안전한 `ProviderError.code`로 전달하고 `__cause__`에 원본을 보존한다.
 JSON/의미 오류는 별도의 extraction repair 정책을 사용한다.
@@ -47,7 +54,7 @@ llm은 자동 재시도하지 않는다. 스트리밍도 같은 SDK 우선 정�
 
 SDK 임의 로그는 요청 본문·인증을 포함할 수 있으므로 원문 대신 logger/등급/모듈/행을
 기록한다. 모델 호출 실패는 별도로 operation/model/오류 코드/시도/경과 시간을 기록한다.
-`py.warnings`, LiteLLM, Router, Proxy, httpx/httpcore가 콘솔로 전파되지 않는다.
+`py.warnings`, LiteLLM, Router, Proxy, httpx/httpcore, `dotenv` 및 하위 logger가 콘솔로 전파되지 않는다.
 애플리케이션의 stdout/stderr 전체를 전역 redirect하지 않는다.
 
 ## 임베딩 무결성과 LiteLLM 1.103.1

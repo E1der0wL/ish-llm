@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, Mock, patch
 from llm.components.rag import EmbeddingModel, TripleExtractor
 from llm.components.rag.prompts import default_prompt
 from llm.providers.embeddings import extract_single_embedding, EmbeddingIntegrityError
-from llm.providers.requests import invoke, ProviderError
+from llm.providers.requests import invoke, ProviderError, error_code
 from llm.providers.runtime import configure_logging, diagnostic_scope, litellm_sdk
 
 
@@ -59,7 +59,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             with diagnostic_scope(events.append), model_observer(observer):
                 self.assertEqual(await invoke("aembedding", {}, call, {"max_attempts": 2, "delay_seconds": 0}), "ok")
             self.assertEqual(call.await_count, 2)
-        for status in (429, 502, 503, 504):
+        for status in (429, 500, 501, 502, 503, 504, 599):
             failure = RuntimeError("server")
             failure.status_code = status
             call = AsyncMock(side_effect=failure)
@@ -200,13 +200,54 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_logs_do_not_write_sdk_text_or_secrets_to_tui_or_file(self):
         out, err = io.StringIO(), io.StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            for name in ("LiteLLM", "LiteLLM Router", "httpx", "httpcore", "py.warnings"):
+            for name in ("LiteLLM", "LiteLLM Router", "httpx", "httpcore", "dotenv", "dotenv.main", "py.warnings"):
                 logging.getLogger(name).warning("api_key=PRIVATE document PRIVATE-DOC")
         self.assertEqual(out.getvalue() + err.getvalue(), "")
         content = next((Path(self.temp.name) / "logs").glob("providers-*.log")).read_text()
         self.assertIn("provider_library_log", content)
         self.assertIn("WARNING", content)
         self.assertNotIn("PRIVATE", content)
+        self.assertIn('"logger": "dotenv.main"', content)
+
+    def test_all_integer_5xx_and_wrapped_causes_are_unavailable(self):
+        for status in (*range(500, 600), 499, 600, "500", None):
+            with self.subTest(status=status):
+                failure = RuntimeError("server")
+                failure.status_code = status
+                expected = ("provider_unavailable" if isinstance(status, int) and 500 <= status < 600
+                            else "provider_invalid_request" if status == 499 else "provider_failed")
+                self.assertEqual(error_code(failure), expected)
+                wrapped = RuntimeError("wrapped")
+                wrapped.__cause__ = failure
+                self.assertEqual(error_code(wrapped), expected)
+
+    async def test_500_without_explicit_retry_calls_once(self):
+        failure = RuntimeError("server")
+        failure.status_code = 500
+        call = AsyncMock(side_effect=failure)
+        with self.assertRaises(ProviderError) as caught:
+            await invoke("aembedding", {}, call, {})
+        self.assertEqual(caught.exception.code, "provider_unavailable")
+        self.assertEqual(call.await_count, 1)
+
+    def test_runtime_isolation_is_set_before_import_and_restored(self):
+        import os
+        from llm.providers import runtime
+        def import_sdk(name):
+            self.assertEqual(name, "litellm")
+            self.assertEqual(os.environ["LITELLM_LOCAL_MODEL_COST_MAP"], "True")
+            self.assertEqual(os.environ["DEFAULT_MAX_RETRIES"], "0")
+            return SimpleNamespace()
+        with patch.dict(os.environ, LITELLM_LOCAL_MODEL_COST_MAP="False", DEFAULT_MAX_RETRIES="5"), \
+                patch.object(runtime, "_sdk", None), \
+                patch.object(runtime.importlib, "import_module", side_effect=import_sdk) as loader:
+            sdk = runtime.litellm_sdk()
+            os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "False"
+            sdk.DEFAULT_MAX_RETRIES = 7
+            self.assertIs(runtime.litellm_sdk(), sdk)
+            self.assertEqual(os.environ["LITELLM_LOCAL_MODEL_COST_MAP"], "True")
+            self.assertEqual(sdk.DEFAULT_MAX_RETRIES, 0)
+            loader.assert_called_once_with("litellm")
 
     async def test_concurrent_log_scopes_and_logging_disk_failure(self):
         from llm.providers.runtime import logging_scope, diagnostic, logging_status
@@ -279,6 +320,8 @@ def forbidden(*args, **kwargs):
 dotenv.load_dotenv = forbidden
 from llm.providers.runtime import litellm_sdk
 os.environ['DEFAULT_MAX_RETRIES'] = '5'
+os.environ['LITELLM_LOCAL_MODEL_COST_MAP'] = 'False'
+os.environ['LITELLM_MODE'] = 'PRODUCTION'  # Explicit host choice, not a runtime invariant.
 with tempfile.TemporaryDirectory() as directory:
     os.chdir(directory)
     Path('.env').write_text('invalid text = "unterminated')

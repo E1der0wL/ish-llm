@@ -52,7 +52,7 @@ def error_code(error):
             return "provider_rate_limit"
         if status == 408:
             return "provider_timeout"
-        if status in (502, 503, 504):
+        if isinstance(status, int) and 500 <= status < 600:
             return "provider_unavailable"
         if isinstance(status, int) and 400 <= status < 500:
             return "provider_invalid_request"

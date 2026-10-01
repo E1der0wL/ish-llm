@@ -14,7 +14,7 @@ API 키는 환경 변수가 아닌 JSON을 역직렬화한 `ProjectConfig`에서
 
 | ProjectConfig 위치 | 용도 |
 | --- | --- |
-| `completion` | Graph 노드의 Agent가 사용하는 대화 모델. 스트리밍과 Tool calling 필요 |
+| `completion` | Graph 노드의 Agent가 사용하는 대화 모델. 스트리밍과 JSON 답변 생성 필요; 검색 Tool은 Graph가 실행 |
 | `component_configurations.rag.embedding_params` | 문서·질의 벡터를 생성하는 임베딩 모델 |
 | `component_configurations.rag.extraction_params` | 문서에서 엔티티·관계·인용을 추출하는 모델. JSON 응답 지원 필요 |
 | `component_configurations.rag.rerank_params` | 검색 후보의 관련성 점수를 계산하고 순서를 재정렬하는 모델 |
@@ -25,7 +25,8 @@ rerank는 OpenAI chat/embedding API와 별도 프로토콜이다. 예제의 `coh
 `https://서버/v1/rerank`는 Cohere 호환 rerank 서버용이다. 실제 서버가 지원하는 LiteLLM
 rerank provider/URL로 설정해야 하며, 대화 모델의 `openai/` 접두사를 그대로 복사하지 않는다.
 이 예제는 reranker 설정이 없으면 Project를 만들기 전에 실패한다. 라이브러리 자체에서는
-rerank가 여전히 선택 기능이다. 설정 예제의 `search.rerank=true`는 검색 기본값이며,
+rerank가 여전히 선택 기능이다. 이 통합 예제에는 `search.rerank=true`도 명시해야 한다.
+Graph의 `retrieve`는 query만 Tool에 전달하고 나머지는 Project 검색 설정을 상속하며,
 직접 비교용 BM25/vector/hybrid 검사에서는 명시적으로 false를 전달한다.
 공급자별 문서/질의 옵션이 필요하면 RAG 설정에 `document_kwargs`, `query_kwargs`를
 추가할 수 있다. 모델이 실제로 지원하는 옵션을 사용한다.
@@ -61,6 +62,7 @@ Project/Session/Run/Step의 `storage_version=2`와는 별도 버전이다.
 
 `engines.loop.max_iterations`는 Agent 한 번의 모델 호출 반복 상한이다.
 `--max-attempts`는 답변 검증·수정 회차 상한이며 두 제한은 서로 다른 범위를 가진다.
+검색 횟수와는 무관하다. 첫 답변에 실패해도 검색·rerank 결과는 그대로 재사용한다.
 실행 시 지정한 모델의 API 비용이 발생하며 등록/수정 시 임베딩과 관계 추출을 다시 호출한다.
 
 ## ish에서 실행
@@ -105,6 +107,9 @@ python -m llm.examples.graph_rag --config ~/graph-rag-config.json
 # 배포에 포함된 165줄 공개 문서로 등록 → 검색 → rerank → Graph Agent까지 검사
 python -m llm.examples.graph_rag --config ~/graph-rag-config.json \
   --markdown llm/examples/data/graph_rag_165.md --require-relations
+
+# 저수준 RAG API의 직접 rerank도 추가 검사: 총 semantic rerank 요청은 2회
+python -m llm.examples.graph_rag --config ~/graph-rag-config.json --standalone-rerank
 ```
 
 ## 수행하는 검증
@@ -112,16 +117,37 @@ python -m llm.examples.graph_rag --config ~/graph-rag-config.json \
 1. RAG·Agent·Workflow 컴포넌트를 선택한 파일 저장 Project 생성.
 2. Markdown 등록: 분할, 임베딩, 관계 추출, 실제 Chroma/Kuzu 색인.
 3. 짧은 별도 문서로 생성·수정·revision 조회·삭제 검증. 본 문서는 유지.
-4. BM25, vector, hybrid 검색과 section 확장 결과 확인. 삭제 문서의 출처가 남지 않는지 검사.
-   같은 hybrid 후보에 `rerank=True`로 실제 모델을 호출하고 유한한 점수와 후보 내용 보존을 검사.
-   실제 모델이 기존 순서를 유지해도 정상이다. 고정 응답 회귀 검사에서는 역순 반환을 검증한다.
+4. BM25, vector, hybrid 검색 결과 확인. 범위·확장은 Project 설정을 상속하며 rerank=false로 직접 검사를 수행한다.
+   삭제 문서의 출처가 남지 않는지 검사한다. 별도 `search_rerank` 단계는 `--standalone-rerank`일 때만 실행한다.
 5. Agent와 Workflow JSON을 저장하고 공개 API로 다시 읽어 동일성 확인.
-6. GraphEngine 실행: `Agent → JSON/원문 인용 검증 → 분기 → 오류 피드백 → 재실행`.
+6. GraphEngine의 `retrieve` ToolNode가 `rag_search`를 한 번 실행하고 결과 전체를 `/evidence`에 저장한다.
+   이후 `Agent → JSON/원문 인용 검증 → 분기 → 오류 피드백 → 답변 재생성`만 반복한다.
    검증에 성공하면 답변 출력 후 종료하고, 상한까지 실패하면 Run도 실패한다.
-7. Agent마다 rag_search를 한 번 이상 성공적으로 실행하도록 정책을 설정하고 `rerank=true`를 요청.
-   실행 후 검색 Tool 결과에 rerank 점수가 있는지, Run·Step 완료 상태와 저장된 Assistant 응답 확인.
-   Agent가 rerank를 사용하지 않거나 모델 호출이 실패하면 테스트도 실패한다.
-8. 백엔드를 종료하고 새로 열어 Run·Step·Workflow·검색 색인을 조회.
+7. `node_id=retrieve`, `kind=tool`, `name=rag_search`로 Step을 찾고 유한한 rerank 점수와 원문·출처 보존을 확인한다.
+   별도 검색의 동점 순위가 달라질 수 있으므로 저장된 문서의 chunk/metadata/revision/확장 문맥과 직접 비교한다.
+   실제 모델이 기존 순서를 유지해도 정상이다. 고정 응답 검사에서는 역순 반환을 검증한다.
+   Run·Step 완료 상태와 저장된 Assistant 응답도 확인한다.
+8. 백엔드를 종료하고 새로 열어 Run·Step·저장된 검색 결과·Workflow·검색 색인을 조회한다. 재조회에는 rerank를 사용하지 않는다.
+
+이전 구조는 `repair → answer Agent → rag_search/rerank → validate → retry`였다.
+현재는 **retrieve once → answer repair many**다.
+
+```text
+retrieve / rerank (한 번)
+        ↓
+repair loop
+ ├ answer (query + evidence + feedback)
+ ├ validate
+ ├ route → 성공이면 종료
+ └ feedback → 같은 evidence로 answer 재생성
+        ↓
+publish
+```
+
+답변 Agent는 검색 Tool/resource와 require_tool 정책을 갖지 않는다. 검색 결과는 지시가 아닌 근거로만 사용한다.
+JSON/인용 오류 수정 동안 `/evidence`를 변경하지 않으며, 근거 부족에 따른 자동 재검색도 하지 않는다.
+기본 실행의 semantic rerank는 답변 시도 횟수와 무관하게 정확히 1회다. Provider retry/backoff는
+기존 사용자 설정을 따르며 예제에서 횟수·지연을 변경하거나 고정 sleep을 추가하지 않는다.
 
 문서 CRUD는 Component API에서 수행하므로 별도의 Run을 만들지 않는다.
 Graph 실행 중 검색과 모델 호출은 하나의 소유 Run에 Step으로 기록된다.
@@ -130,7 +156,8 @@ Graph 실행 중 검색과 모델 호출은 하나의 소유 Run에 Step으로 �
 답변 검증은 JSON 형식, 답변 존재, 문서 ID, 인용문의 원문 일치를 확인한다.
 **답변의 의미적 정확성이나 질문에 대한 충분성까지 자동 판정하지 않는다.**
 실제 모델이 첫 시도에 유효한 답변을 내면 재수정 분기는 실행되지 않으며,
-보고서의 output.attempts/validation으로 실제 경로를 확인한다.
+보고서의 `answer_attempts`와 `validation`(회차·성공 여부·오류 수)으로 실제 경로를 확인한다.
+Python 반환값은 기존 `output.attempts/validation`도 제공하지만 디스크 보고서에는 답변 원문을 저장하지 않는다.
 관계가 없는 사용자 문서는 정상일 수 있으므로 `--require-relations`를 생략하면 빈 관계도 허용한다.
 이때 `relations_observed=false`를 성공적인 관계 추출 품질 검증으로 해석하지 않는다.
 
@@ -139,7 +166,8 @@ Graph 실행 중 검색과 모델 호출은 하나의 소유 Run에 Step으로 �
 - 종료 코드: 성공 0, 검증/실행 실패 1, Ctrl+C 130.
 - `workspace/reports/graph-rag-<id>.json`: 단계별 소요 시간, 검색 건수,
   검증 결과, Project/Session/Run ID, Step 목록, 실패 단계.
-  `rerank`에는 모델명·후보 수·반환 수·점수, `timings.search_rerank`에는 호출을 포함한 검색 시간이 기록된다.
+  `rerank`에는 모델명·반환 수·점수, `retrieval`에는 Tool Step ID·상태·문서 수를 기록한다.
+  `timings.search_rerank`는 standalone 옵션에서만 존재한다. 기본 검색은 `graph_execution` 시간에 포함된다.
   문서 원문·질의·답변 본문은 보고서에 기록하지 않는다.
 - `workspace/projects/<project-id>/`: 실제 도메인 기록과 RAG 데이터.
 - `workspace/logs/providers-<pid>.log`: LiteLLM 등의 WARNING 이상 진단.
@@ -148,6 +176,19 @@ Graph 실행 중 검색과 모델 호출은 하나의 소유 Run에 Step으로 �
 만들어진 테스트 자료를 보존한다. 중단/실패를 자동 재개하거나 기존 Project를 덮어쓰지 않는다.
 total_tokens는 Graph Run에서 보고된 사용량이며, Run 밖에서 수행한 임베딩·추출 비용까지
 합친 테스트 전체 청구량이 아니다. usage를 제공하지 않는 모델에서는 null일 수 있다.
+
+`rerank_requests`는 `provider_request(operation=arerank)` 진단으로 센 **semantic 호출 수**이고,
+`rerank_provider_retries`는 같은 요청 안의 ish provider 추가 시도 수다. 예를 들어 `1 / 2`는
+semantic 호출 한 번에 provider 시도 세 번이다. SDK 내부 HTTP retry는 이 카운터가 관찰하지 못하므로
+실제 HTTP 횟수와 같다고 해석하지 않는다. 직접 주입한 fake 함수는 provider_request를 만들지 않으므로
+회귀 테스트는 SDK 경계를 대체하여 실제 진단 경로를 사용한다.
+
+정상 기본 실행은 `rerank_requests=1`, `answer_attempts=1..max_attempts`, Run completed다.
+429가 발생해도 실패 검증용 ValueError로 덮지 않고 `run.error_code`를 `error.code`에 보존한다.
+`provider_diagnostics`의 stage/operation/attempt, `failed_node=retrieve`, `retrieval` 상태로 실패 위치를 확인한다.
+이 예제의 RetrievalNode는 기존 ToolNode를 재사용하고 공급자 실패를 기존 typed Run 오류로 전달한다.
+`rerank_requests=1`인데 429라면 답변 repair의 중복 검색보다 서버 capacity/rate 정책이나 다른 클라이언트의
+트래픽을 먼저 확인한다. 민감한 원문은 보고서에 추가하지 않는다.
 
 worker 초기화에서 LiteLLM의 로컬 비용표를 선택하므로 GitHub 비용표 갱신을 시도하지 않는다.
 이 설정은 모델 API 접속을 끄는 옵션이 아니다. 임의 print나 네이티브 라이브러리의 출력까지
@@ -187,8 +228,8 @@ python -m llm.tests.provider_probe --output /tmp/provider-probe.json
 ```
 
 이 검사는 165줄 공개 fixture, Chroma/BM25/Kuzu, 실제 SDK rerank HTTP 요청,
-GraphEngine/Loop 검색 Tool과 별도 CLI 실행을 검증한다. 직접 검색 및 재수정하는 두 Agent에서
-rerank 요청이 각각 발생하고, 반환 index대로 실제 후보 순서가 바뀌는지 검사한다.
+Graph ToolNode 검색과 Loop 답변 수정, 별도 CLI 실행을 검증한다. 두 번 답변을 생성해도
+각 실행의 rerank HTTP 요청은 한 번이며, 반환 index대로 실제 후보 순서가 바뀌는지 검사한다.
 고정 HTTP 응답 서버의 측정 시간이므로 사내 모델 서버 처리시간 예측값으로 사용하면 안 된다.
 
 provider_probe는 같은 165줄 문서를 concurrency 1/2/4로 등록하여 chunks_total, 요청 수,

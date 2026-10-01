@@ -31,9 +31,13 @@
 | Workflow join wait=all | 현재 유일하게 지원하는 join 프로토콜 검증. 다른 값은 거부하며 병렬 분기를 모두 합류 |
 | 생성 title/workspace 경로, record revision, Step kind | 공개 생성 API의 이름·저장 위치·레코드 형식 계약. 모델/실행/검색/보관 정책을 생성하지 않음 |
 | SDK/DB constructor | 설정되지 않은 옵션 생략. Chroma embedding_function=None만 이미 소유한 vector 계약 |
-| domain operational log / SDK 콘솔 차단 | 호출 사실 관찰 및 ish 터미널 소유권. 기본 보관 삭제/회전 없음 |
+| domain operational log / SDK 콘솔 차단 | 호출 사실 관찰 및 ish 터미널 소유권. dotenv 및 하위 logger 포함. 기본 보관 삭제/회전 없음 |
+| LITELLM_LOCAL_MODEL_COST_MAP=True | LiteLLM import 전에 외부 cost-map network fetch를 차단하고 bundled map을 선택하는 runtime isolation invariant. 재진입 시 복구. 사용자 inference option이나 ProjectConfig default/values가 아니며 override 불가 |
+| DEFAULT_MAX_RETRIES=0 | LiteLLM compatibility invariant. import 전 env 및 매 진입 SDK global에 강제하며 사용자가 명시한 retry kwargs는 보존 |
 
-제거한 항목: user default helper/Schema default, Loop/Graph/Tool/Run 제한 생성, Provider admission/wall/retry/stream fallback, RAG algorithm preset, Memory 자동 처리 preset, 파일·조회 truncation, workflow validation의 숨은 nesting32 cap, extraction temperature0 강제, LiteLLM 비용표/모드 환경 강제, Graph Agent의 purpose→system_prompt 자동 변환. 문자열/boolean fallback과 AST 기본 인자까지 확인하며 숫자 검색에만 의존하지 않는다.
+제거한 항목: user default helper/Schema default, Loop/Graph/Tool/Run 제한 생성, Provider admission/wall/retry/stream fallback, RAG algorithm preset, Memory 자동 처리 preset, 파일·조회 truncation, workflow validation의 숨은 nesting32 cap, extraction temperature0 강제, LiteLLM 모드 환경 강제, Graph Agent의 purpose→system_prompt 자동 변환. 문자열/boolean fallback과 AST 기본 인자까지 확인하며 숫자 검색에만 의존하지 않는다.
+
+UI metadata 감사: Loop의 system_prompt=null은 host의 명시적 해제로 x-host-override=true, source=host, editable=false, value=null이 일치한다. 미지정은 Project 값을 상속한다. Graph/Preparation의 nullable 옵션은 키 존재 여부로 판단하며 Pipeline은 단계별 schema/effective 결과를 보존한다. 동적 host prompt는 조회 중 실행하지 않고 host_runtime/unresolved로 표시한다.
 
 Python API의 None은 null을 허용하는 설정 경계에서 명시적 해제다. Loop/Graph/Preparation/host Tool retry는 UNSET으로 누락과 구별한다. null을 지원하지 않는 RAG 알고리즘 설정은 오류이며 null을 임의의 숫자로 변환하지 않는다. SDK nullable 옵션은 실제 request에서 None을 보존한다.
 

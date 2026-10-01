@@ -16,7 +16,7 @@ _directory = ContextVar("provider_log_directory", default=None)
 _lock = threading.RLock()
 _handler = None
 _sdk = None
-_names = ("LiteLLM", "LiteLLM Router", "LiteLLM Proxy", "httpx", "httpcore", "py.warnings", "llm.provider")
+_names = ("LiteLLM", "LiteLLM Router", "LiteLLM Proxy", "httpx", "httpcore", "dotenv", "py.warnings", "llm.provider")
 
 
 class _FileHandler(RotatingFileHandler):
@@ -110,6 +110,8 @@ def litellm_sdk():
     """숨은 기본 retry는 0. 요청에 명시한 retry 값은 변경하지 않는다."""
     global _sdk
     with _lock:
+        # 초기화의 외부 비용표 fetch를 격리한다. 추론 옵션/Project 설정 기본값이 아니다.
+        os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
         os.environ["DEFAULT_MAX_RETRIES"] = "0"
         if _sdk is None:
             configure_logging(refresh=True)

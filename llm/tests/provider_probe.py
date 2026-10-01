@@ -73,16 +73,13 @@ class LocalServer:
                     self.send_response(200)
                     self.send_header("Content-Type", "text/event-stream")
                     self.end_headers()
-                    if request["messages"][-1]["role"] == "tool":
-                        owner.answers += 1
-                        quote = "incorrect quotation" if owner.answers == 1 else "Atlas stores release artifacts in Harbor."
-                        delta = {"content": json.dumps({"answer": "Atlas stores release artifacts in Harbor.",
-                            "citations": [{"document_id": "manual", "quote": quote}]})}
-                        finish = "stop"
-                    else:
-                        delta = {"tool_calls": [{"index": 0, "id": "search-" + str(owner.answers), "type": "function",
-                            "function": {"name": "rag_search", "arguments": '{"query":"Atlas", "method":"hybrid", "rerank":true}'}}]}
-                        finish = "tool_calls"
+                    inputs = json.loads(request["messages"][-1]["content"])
+                    assert inputs["evidence"]["documents"] and not request.get("tools")
+                    owner.answers += 1
+                    quote = "incorrect quotation" if owner.answers == 1 else "Atlas stores release artifacts in Harbor."
+                    delta = {"content": json.dumps({"answer": "Atlas stores release artifacts in Harbor.",
+                        "citations": [{"document_id": "manual", "quote": quote}]})}
+                    finish = "stop"
                     for value, reason in ((delta, None), ({}, finish)):
                         event = {"id": "chat", "object": "chat.completion.chunk", "created": 1, "model": request["model"],
                                  "choices": [{"index": 0, "delta": value, "finish_reason": reason}]}
@@ -167,9 +164,16 @@ async def probe(root):
         before = len(server.calls)
         extractor = TripleExtractor(**server.params).with_provider({"max_attempts": 2, "delay_seconds": 0}).with_extraction(
             {**{"repair_attempts": 2, "json_mode": "strict", "failure_policy": "required"}, "json_mode": "auto"}, default_prompt())
-        await extractor.extract([])
-        output["json_mode_fallback_http_attempts"] = len(server.calls) - before
-        assert output["json_mode_fallback_http_attempts"] == 3
+        try:
+            await extractor.extract([])
+        except ProviderError as error:
+            # LiteLLM은 이 HTTP 응답을 status=500 예외로 바꾼다. 현재 5xx 계약상
+            # unavailable이며 JSON 형식 수리가 아닌 명시적 provider retry만 수행한다.
+            assert error.code == "provider_unavailable"
+        else:
+            raise AssertionError("Invalid server response must fail")
+        output["json_mode_5xx_http_attempts"] = len(server.calls) - before
+        assert output["json_mode_5xx_http_attempts"] == 2
         server.empty_json_mode = False
         text = (Path(__file__).parents[1] / "examples/data/graph_rag_165.md").read_text(encoding="utf-8")
         assert len(text.splitlines()) == 165
@@ -204,7 +208,7 @@ async def probe(root):
         server.embedding_delay = 0
         source = root / "public-165-lines.md"
         source.write_text(text)
-        config = ProjectConfig(completion=server.params, component_configurations={"rag": {**rag_settings(),
+        config = ProjectConfig(completion=server.params, component_configurations={"rag": {**rag_settings({"search": {"rerank": True}}),
             "embedding_params": server.params, "extraction_params": server.params,
             "rerank_params": {**server.params, "model": "cohere/probe",
                               "api_base": server.params["api_base"] + "/rerank"},
@@ -214,14 +218,15 @@ async def probe(root):
         report = await run_demo(root / "workspace", config, markdown=source, require_relations=True, display=False)
         output.update(status=report["status"], checks=report["checks"], timing=report["timings"],
                       rag_ingestion=report["rag_ingestion"], lines=165, report=report["report"])
-        assert report["status"] == "passed", report.get("error")
-        candidates = report["search"]["hybrid"]["documents"]
-        assert len(candidates) > 1, "Rerank ordering needs multiple candidates"
-        assert [hit["id"] for hit in report["search"]["rerank"]["documents"]] == [
-            hit["id"] for hit in reversed(candidates)]
+        assert report["status"] == "passed", (report.get("error"), report["stage"], report["checks"])
         rerank_calls = [request for path, request in server.calls if path.endswith("rerank")]
-        assert rerank_calls[0]["documents"] == [hit["text"] for hit in candidates]
-        assert len(rerank_calls) == 3, "Direct search and both Graph repair attempts must rerank"
+        assert len(rerank_calls) == 1, "Answer repair must reuse the one Graph retrieval"
+        candidates = rerank_calls[0]["documents"]
+        assert len(candidates) > 1, "Rerank ordering needs multiple candidates"
+        assert [hit["text"] for hit in report["search"]["rerank"]["documents"]] == list(reversed(candidates))
+        assert report["rerank_requests"] == 1 and report["answer_attempts"] == 2
+        output.update(rerank_requests=report["rerank_requests"],
+                      rerank_provider_retries=report["rerank_provider_retries"], answer_attempts=report["answer_attempts"])
         output["rerank_http_calls"] = len(rerank_calls)
         output["rerank_reversed_candidates"] = True
         output["rerank"] = report["rerank"]
@@ -238,11 +243,14 @@ async def probe(root):
         assert process.returncode == 0, (process.returncode, process.stderr)
         assert len(cli_reports) == 1
         cli = json.loads(cli_reports[0].read_text())
-        assert cli["status"] == "passed" and cli["checks"]["agent_used_rerank"]
+        assert cli["status"] == "passed" and cli["checks"]["graph_rerank_scored_documents"]
         assert not any(word in process.stdout + process.stderr for word in ("LiteLLM:WARNING", "Give Feedback", "dotenv"))
         output["cli"] = {"exit_code": process.returncode, "checks": cli["checks"], "timing": cli["timings"],
-            "rerank": cli["rerank"], "rerank_http_calls": len([1 for path, _ in server.calls if path.endswith("rerank")]) - before}
-        assert output["cli"]["rerank_http_calls"] == 3
+            "rerank": cli["rerank"], "rerank_requests": cli["rerank_requests"],
+            "rerank_provider_retries": cli["rerank_provider_retries"], "answer_attempts": cli["answer_attempts"],
+            "rerank_http_calls": len([1 for path, _ in server.calls if path.endswith("rerank")]) - before}
+        assert output["cli"]["rerank_http_calls"] == cli["rerank_requests"] == 1
+        assert cli["answer_attempts"] == 2
     return output
 
 

@@ -13,6 +13,7 @@ from llm.core.models import ProjectConfig
 from llm.core.policies import normalize_policies
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
+from llm.engines.pipeline import PipelineEngine, PreparationStep
 from llm.components.rag import RAGComponent, EmbeddingModel, TripleExtractor
 from llm.components.memory import MemoryComponent
 from llm.components.tools import Tool
@@ -29,6 +30,42 @@ def chunks(text="ok"):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_host_override_metadata_matches_effective_values(self):
+        cases = [
+            (LoopEngine(), "system_prompt", "project prompt", False),
+            (LoopEngine(system_prompt=None), "system_prompt", None, True),
+            (LoopEngine(system_prompt=""), "system_prompt", "", True),
+            (LoopEngine(system_prompt="host prompt"), "system_prompt", "host prompt", True),
+            (LoopEngine(request_timeout=None), "request_timeout", None, True),
+            (GraphEngine("workflow", handlers={}, timeout_seconds=None), "timeout_seconds", None, True),
+            (PreparationStep("prepare", lambda context: None, timeout_seconds=None), "timeout_seconds", None, True),
+        ]
+        for engine, key, value, overridden in cases:
+            with self.subTest(engine=type(engine).__name__, key=key, value=value):
+                config = {"engines": {"test": {key: "project prompt" if key == "system_prompt" else 300}}}
+                view = engine.configuration(config, "test")
+                self.assertEqual(view["values"][key], value)
+                self.assertEqual(view["sources"]["/" + key], "host" if overridden else "project")
+                self.assertEqual(view["editable"]["/" + key], not overridden)
+                self.assertEqual(engine.configuration_schema()["properties"][key]["x-host-override"], overridden)
+
+    def test_pipeline_and_runtime_prompt_override_metadata(self):
+        def dynamic_prompt(context):
+            raise AssertionError("UI must not execute runtime factories")
+        engine = PipelineEngine({"explicit": LoopEngine(system_prompt=None),
+                                 "dynamic": LoopEngine(system_prompt=dynamic_prompt)})
+        config = {"engines": {"pipeline": {"stages": {
+            name: {"system_prompt": "project prompt"} for name in ("explicit", "dynamic")}}}}
+        view = engine.configuration(config, "pipeline")["stages"]
+        schema = engine.configuration_schema()["properties"]["stages"]["properties"]
+        self.assertIsNone(view["explicit"]["values"]["system_prompt"])
+        self.assertEqual(view["explicit"]["sources"]["/system_prompt"], "host")
+        self.assertNotIn("system_prompt", view["dynamic"]["values"])
+        self.assertEqual(view["dynamic"]["sources"]["/system_prompt"], "host_runtime")
+        for name in view:
+            self.assertFalse(view[name]["editable"]["/system_prompt"])
+            self.assertTrue(schema[name]["properties"]["system_prompt"]["x-host-override"])
+
     def test_sparse_resolution_and_null(self):
         for session, host, expected, source in (({}, {}, 300, "project"),
                 ({"timeout": 60}, {}, 60, "session"),
@@ -60,6 +97,18 @@ class ConfigurationTests(unittest.TestCase):
 
 
 class RuntimeTests(unittest.IsolatedAsyncioTestCase):
+    async def test_project_ui_exposes_explicit_null_host_override(self):
+        with tempfile.TemporaryDirectory() as root:
+            async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(system_prompt=None)}) as app:
+                project = await app.projects.acreate(config={"engines": {"loop": {"system_prompt": "project prompt"}}})
+                view = await project.aconfiguration()
+                effective = view["effective_engines"]["loop"]
+                self.assertIsNone(effective["values"]["system_prompt"])
+                self.assertEqual(effective["sources"]["/system_prompt"], "host")
+                self.assertFalse(effective["editable"]["/system_prompt"])
+                schema = view["schema"]["properties"]["config"]["properties"]["engines"]["properties"]["loop"]
+                self.assertTrue(schema["properties"]["system_prompt"]["x-host-override"])
+
     async def test_loop_sdk_kwargs_and_wrapper_are_independent(self):
         for options, completion in (({}, {}), ({"request_timeout": .5}, {}),
                                      ({}, {"timeout": None}), ({}, {"timeout": 17})):
