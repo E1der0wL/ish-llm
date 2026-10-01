@@ -13,6 +13,8 @@ PLUGIN_META = {
     "dependencies": [
         "litellm>=1.100,<2",
         "jsonschema>=4.23,<5",
+        "pydantic>=2,<3",
+        "packaging>=23",
         "langgraph>=1.2.12,<2",
         "chromadb",
         "kuzu",
@@ -535,8 +537,16 @@ class LargeLanguageModel:
     검색 문서/모델은 각 컴포넌트에 먼저 구성한다. LoopEngine이 모델의 검색 Tool 호출과
     결과 전달을 수행하며 기존 Run에 Tool Step이 기록된다. 별도 활성화 API나 비활성화 옵션은 없다.
 
-    Tool 정의 등록과 활성화에는 함수 바인딩이 필요하지 않다. 실제로 실행하려면
-    ToolRegistry에 핸들러를 등록한 ToolComponent를 백엔드에 제공해야 한다.
+    Project Python Tool — 소스 관리와 명시적 준비::
+
+        await project.components.tools.acreate({"source": source_text}, identifier="search")
+        definition = await project.components.tools.aprepare("search")
+        await project.components.tools.aenable("search")
+
+    tools/search/search.py의 @tool async main에서 설명·입력 schema·실행 계약을 파생한다.
+    requirements.txt가 있으면 prepare만 ish 공용 plugin/lib에 없는 dependency를 설치한다.
+    CRUD/clone/backup은 import하지 않으며 Run 중 자동 설치는 없다.
+    소스 관리·prepare·활성화는 신뢰한 Host/UI가 담당한다.
 
     Events / 수명 관리 — 스트리밍 관찰과 종료::
 
@@ -805,8 +815,14 @@ class LargeLanguageModel:
         await self.shutdown()
 
 
-async def add(arguments: dict[str, Any]) -> dict[str, Any]:
-    return {"result": arguments["a"] + arguments["b"]}
+ADD_TOOL_SOURCE = '\n'.join([
+    'from llm.components.tools import tool',
+    '@tool(effect="read_only")',
+    'async def main(a: float, b: float) -> dict:',
+    '    """Add two numbers."""',
+    '    return {"result": a + b}',
+    '',
+])
 
 
 def print_event(run: Run, event: EngineEvent) -> None:
@@ -815,14 +831,8 @@ def print_event(run: Run, event: EngineEvent) -> None:
 
 
 async def run_request(args: argparse.Namespace) -> int:
-    tools = ToolRegistry()
-    if args.with_tools:
-        tools.register(Tool("add", "Add two numbers.", {
-            "type": "object", "properties": {"a": {"type": "number"}, "b": {"type": "number"}},
-            "required": ["a", "b"], "additionalProperties": False,
-        }, add))
     async with LargeLanguageModel(
-        args.workspace, components=[ToolComponent(tools)], on_event=print_event,
+        args.workspace, components=[ToolComponent()], on_event=print_event,
         conversation_storage=args.conversation_storage,
         engines={"loop": LoopEngine(**{key: value for key, value in {
             "max_iterations": args.max_iterations, "request_timeout": args.timeout}.items() if value is not None})},
@@ -833,6 +843,8 @@ async def run_request(args: argparse.Namespace) -> int:
         session = await project.sessions.acreate("Streaming request")
         if args.with_tools:
             selected_tools = await project.components.aget("tools")
+            await selected_tools.acreate({"source": ADD_TOOL_SOURCE}, identifier="add")
+            await selected_tools.aprepare("add")
             await selected_tools.aenable("add")
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
         request = await session.run.submit(args.prompt, engine=args.engine)

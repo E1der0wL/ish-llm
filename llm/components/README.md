@@ -10,7 +10,7 @@ capability resolution; neither module imports Tools or requires `resolve_tools`.
 
 | Package | Persisted data | Runtime responsibility |
 | --- | --- | --- |
-| tools | Enabled names and optional native function-tool definitions | Bind definitions to explicitly registered Python handlers |
+| tools | Python source packages and optional requirements; enabled names in ProjectConfig | Load decorated async main into the existing ToolRegistry/ToolExecutor |
 | agents | Purpose, completion model/options and optional prompt/resource references | Purpose-specific model calls belong to Engines |
 | skills | Instructions and optional resource descriptions | The consumer decides how to apply instructions |
 | mcp | stdio / HTTP server connection definitions | Client connections and tool discovery need an execution adapter |
@@ -135,39 +135,27 @@ ToolComponent selects `ToolData`, a ComponentData subclass, through
 backend's `project.components.tools` return this handle. All common CRUD and
 `configure(dict)` methods remain available.
 
-```python
-tools = projects.component(project, "tools")
-tools.create({
-    "type": "function",
-    "function": {
-        "name": "add", "description": "Add numbers",
-        "parameters": {"type": "object", "properties": {}},
-        "strict": True,
-    },
-})  # Uses the function name as its record ID; the handler is only needed for execution.
-tools.enable("add")                  # Add without duplicates.
-tools.enable("search", "read_file")
-tools.disable("search")              # Already disabled names are harmless.
-tools.set_enabled(["add"])           # Replace only the selection.
-names = tools.enabled()              # Detached list, in selection order.
+Project Tool은 `tools/<name>/<name>.py`와 선택적인 `requirements.txt`로 저장한다.
+API 표현은 `{"source": "...", "requirements": "..."}`이며 `identifier`를 명시한다.
+조회·편집·clone·backup은 Python을 import하지 않는다.
 
-# Optional extensions still use the open configuration API (full replacement).
-tools.configure({"enabled": ["add"], "custom_policy": {"label": "example"}})
+```python
+tools = project.components.tools
+await tools.acreate({"source": source_text, "requirements": "httpx>=0.28,<1\n"},
+                    identifier="web_search")
+await tools.aprepare("web_search")  # ish 공용 plugin/lib 준비 + 함수 계약 검증
+await tools.aenable("web_search")
+await tools.adisable("web_search")
+await tools.adelete("web_search")   # enabled 상태이면 거부
 ```
 
-Selection methods preserve every other configuration key and hold the workspace
-lock across read/modify/write. enable/disable accept any number of nonempty string
-names and are idempotent; set_enabled accepts a sequence and rejects duplicates.
-An empty replacement disables all tools. Registering a definition does not enable
-it, and selecting a name does not register a Python handler. Selection can be
-edited before definitions/handlers exist; execution still requires valid binding.
-Changes affect subsequent Run snapshots, not an already executing Run.
-
-ToolData also provides `aenable`, `adisable`, `aset_enabled`, `aenabled` for async
-callers. Custom handle convenience methods can expose an off-loop variant using
-`async_name = async_method(sync_name)` from llm.services.infrastructure.storage, just like the
-built-in handles. The synchronous method must still lock and reload lifecycle
-state; async_method only delegates it to the owner's guarded storage runner.
+`@tool`의 ToolContract, `async main`의 docstring/signature/type hints에서 실행 정의를 파생한다.
+이름은 패키지 디렉토리에서 얻는다. 별도 JSON 정의나 애플리케이션 handler 등록이 필요 없다.
+`enable`/`set_enabled`는 패키지의 정적 존재를 확인한다. ProjectConfig의 `enabled` 저장은
+이름 배열과 중복만 검증하므로 clone 시 파일 복사 전에 설정을 저장할 수 있다.
+변경은 다음 Run의 로딩에 반영되며 활성 Run의 Tool snapshot은 유지한다.
+공용 의존성은 현재 ish `--home`의 `config.PLUGIN_LIB_DIR`만 사용한다.
+상세 계약과 예제는 [Python Tool packages](tools/README.md)를 참고한다.
 
 Other components may opt into the same extension mechanism:
 
@@ -193,13 +181,6 @@ constructor; custom operations must lock and reload state as shown. Domain logic
 belongs to the component, while the handle supplies safe Project-scoped access.
 There is no automatic forwarding of arbitrary component methods. Attribute access
 is dynamic; use `project.components["name"]` for names colliding with handle methods.
-
-Tool definitions preserve provider extension keys. Function identity and argument
-schema are validated independently of the application catalog. CRUD, configuration
-and clone work with an empty catalog; handlers are required only for execution. Missing
-record overrides use the registered catalog definition. Both are current Tool definition sources.
-Disable a tool before deleting its override. Saving JSON never imports code or
-creates a handler; startup must register handlers again.
 
 ToolComponent declares capabilities = ("tools",) and resolves a fresh ToolRegistry
 only when tools is requested. ComponentToolResolver in tools/resolver.py collects

@@ -53,11 +53,16 @@ def error_code(error):
             return "provider_rate_limit"
         if status == 408:
             return "provider_timeout"
+        # LiteLLM이 빈/잘못된 응답에 붙이는 synthetic 500만 따로 분류한다.
+        # 실제 서버 500과 나머지 5xx는 계속 unavailable로 유지한다.
+        text = str(error).lower()
+        if status == 500 and "empty or invalid response from llm endpoint" in text:
+            return "provider_invalid_response"
         if isinstance(status, int) and 500 <= status < 600:
             return "provider_unavailable"
         if isinstance(status, int) and 400 <= status < 500:
             return "provider_invalid_request"
-        text, name = str(error).lower(), type(error).__name__.lower()
+        name = type(error).__name__.lower()
         if "empty or invalid response" in text or "received: none" in text:
             return "provider_invalid_response"
         if isinstance(error, (TimeoutError, asyncio.TimeoutError)) or "timeout" in name:

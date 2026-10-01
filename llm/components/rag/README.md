@@ -81,7 +81,7 @@ JSON/그래프 의미 오류는 기존 `repair_attempts`(미설정이면 수정 
 사용하고 `graph_complete=false`, `graph_diagnostics`를 문서에 저장한다. `disabled`는
 추출 호출 없이 빈 그래프 DB와 문서 색인을 함께 공개한다. 검색 응답의 `graph_complete`와
 `graph_incomplete_documents`로 누락 가능성을 알린다. 실패/취소한 미완료 generation은
-active가 되지 않는다. 기존 graph schema version 2는 그대로 유지한다.
+active가 되지 않는다. 기존 graph schema version 1는 그대로 유지한다.
 
 `rerank` Tool 인자는 실제 reranker가 없으면 `const:false`로 제공하며 handler에서도 불가능한 True 요청을 오류로 거부한다. 공개 Python 검색 API에서 명시적으로 rerank=True를 요청하면 설정 오류를 반환한다.
 

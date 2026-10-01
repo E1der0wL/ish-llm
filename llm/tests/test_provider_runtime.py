@@ -230,6 +230,28 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(caught.exception.code, "provider_unavailable")
         self.assertEqual(call.await_count, 1)
 
+    async def test_only_specific_synthetic_500_precedes_generic_5xx(self):
+        for status, message, expected in (
+                (500, "LiteLLM: Empty or Invalid Response From LLM Endpoint", "provider_invalid_response"),
+                (500, "internal server error", "provider_unavailable"),
+                (500, "empty or invalid response from another service", "provider_unavailable"),
+                (500, "received: none", "provider_unavailable"),
+                (502, "empty or invalid response from llm endpoint", "provider_unavailable"),
+                (503, "empty or invalid response from llm endpoint", "provider_unavailable"),
+                (429, "empty or invalid response from llm endpoint", "provider_rate_limit")):
+            with self.subTest(status=status, message=message):
+                failure = RuntimeError(message)
+                failure.status_code = status
+                self.assertEqual(error_code(failure), expected)
+                wrapped = RuntimeError("outer")
+                wrapped.__cause__ = failure
+                self.assertEqual(error_code(wrapped), expected)
+                call = AsyncMock(side_effect=failure)
+                with self.assertRaises(ProviderError) as caught:
+                    await invoke("acompletion", {}, call, {})
+                self.assertEqual(caught.exception.code, expected)
+                self.assertEqual(call.await_count, 1)
+
     def test_runtime_isolation_is_set_before_import_and_restored(self):
         import os
         from llm.providers import runtime

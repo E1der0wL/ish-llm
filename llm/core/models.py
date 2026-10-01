@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 # Session 기반 경로·식별자를 사용하는 영속 도메인 형식. 이전 Task 형식은 자동 변환하지 않는다.
-DOMAIN_STORAGE_VERSION = 2
+DOMAIN_STORAGE_VERSION = 1
 
 # ---------------------------------------------------------------------------
 # 공통 ID와 UTC 시각 생성

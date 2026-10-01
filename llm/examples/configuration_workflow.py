@@ -18,7 +18,8 @@ from uuid import uuid4
 
 from llm.components.agents import AgentComponent
 from llm.components.rag import RAGComponent
-from llm.components.tools import Tool, ToolComponent, ToolRegistry
+from llm.components.tools import Tool, ToolRegistry
+from llm.components.base import Component
 from llm.components.tools.registry import ToolContract
 from llm.components.tools.builtin.files import FileTools
 from llm.components.tools.builtin.processes import ProcessTools
@@ -353,6 +354,20 @@ class ConfigurationReview:
         return await drain_on_cancel(asyncio.to_thread(self._apply, args["package"]))
 
 
+class ReviewTools(Component):
+    """승인된 적용 기능은 이 예제의 호스트가 제공한다. Project Python Tool 저장소와 별개다."""
+    name = directory = "review_tools"
+    capabilities = ("tools",)
+
+    def __init__(self, registry):
+        self.registry = registry
+
+    def resolve(self, project, capability):
+        if capability != "tools":
+            return super().resolve(project, capability)
+        return self.registry
+
+
 def backend(workspace, config, review, *, completion_fn=None, rag_component=None):
     loop = LoopEngine(settings_name="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
     registry = ToolRegistry((Tool("apply_configuration", "Apply exactly the reviewed configuration after approval.",
@@ -362,7 +377,7 @@ def backend(workspace, config, review, *, completion_fn=None, rag_component=None
     graph = GraphEngine("configuration-review", handlers={"agent": AgentNode(engines={"loop": loop}),
         "snapshot": review.snapshot, "validate_candidate": review.validate, "tool": ToolNode()})
     return LargeLanguageModel(workspace, engines={"graph": graph, "loop": loop}, components=[
-        rag_component or RAGComponent(), AgentComponent(), WorkflowComponent(), ToolComponent(registry)],
+        rag_component or RAGComponent(), AgentComponent(), WorkflowComponent(), ReviewTools(registry)],
         services=ServiceConfig(tool_policy=ToolPolicy(authorize=review.authorize, revision=review.binding,
             operation_key=lambda call: digest(call.arguments) if call.name == "apply_configuration" else None)))
 
@@ -394,13 +409,12 @@ async def plan(workspace, config, request, *, report_only=False, completion_fn=N
     try:
         async with backend(workspace, config, review, completion_fn=completion_fn, rag_component=rag_component) as app:
             project = await app.projects.acreate("Configuration review", config=ProjectConfig.from_dict(config["project_config"]),
-                components=["rag", "agents", "workflows", "tools"], conversation_storage="file")
+                components=["rag", "agents", "workflows", "review_tools"], conversation_storage="file")
             report["project_id"] = project.id
             rag = await project.components.aget("rag")
             for identifier, document in documents.items():
                 print(f"[RAG] {document['title']}", flush=True)
                 await rag.aadd_document(identifier=identifier, **document)
-            await (await project.components.aget("tools")).aenable("apply_configuration")
             await (await project.components.aget("agents")).acreate({"engine": "loop",
                 "purpose": "Propose evidence-based configuration changes", "system_prompt": AGENT_PROMPT,
                 "completion": dict(config["project_config"]["completion"]), "tools": [], "resources": {"rag": True},

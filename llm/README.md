@@ -9,6 +9,7 @@ Linux의 ish에서 사용하는 AI 실행 백엔드입니다. 영속 도메인�
 Engine은 Run의 실행 전략이고 Component는 프로젝트에 연결되는 기능과 자료의 소유자입니다.
 Loop·Graph 등 Engine을 바꾸어도 Run/Step 기록과 Session의 대화 수명은 유지됩니다.
 Engine별 소스 구조와 공개 import는 [Engine 안내](engines/README.md)를 참고하세요.
+Project의 Python Tool 생성·준비·활성화는 [Tool 패키지 안내](components/tools/README.md)에 정리되어 있습니다.
 
 사내 OpenAI-compatible 서버의 재시도·캐시·응답 검증은 [공급자 안정화](providers/README.md),
 배치 재개·벡터 재사용·JSON mode·불완전 그래프 정책은 [RAG 설정](components/rag/README.md)을 참고하세요.
@@ -60,7 +61,7 @@ async def request_once(workspace, completion):
 - Memory의 세션 범위는 `scope="session"`, `session_id=...`로 지정합니다.
 - ish Loop 예제의 기존 세션 선택 인자는 `--session-id`입니다.
 
-Project/Session/Run/Step 기록은 `storage_version=2`를 사용합니다. 세션 저장 경로는
+Project/Session/Run/Step 기록은 `storage_version=1`를 사용합니다. 세션 저장 경로는
 `projects/<project_id>/sessions/<session_id>/session.json`이며 그 아래에 대화 파일과
 `runs/`가 있습니다. Engine 객체는 영속 소유 계층에 들어가지 않습니다.
 
@@ -73,7 +74,7 @@ Project/Session/Run/Step 기록은 `storage_version=2`를 사용합니다. 세�
 RAG 추출은 few-shot·고정 temperature=0·제한된 JSON 수정 호출을 지원합니다.
 [PromptComponent](components/prompts/README.md)에서 지침을 편집할 수 있습니다.
 관계의 출처·시각·가중치 속성 추가로 기존 RAG 색인은 새 Project에 다시 등록해야 합니다
-(`graph_schema_version=2`; 핵심 도메인 `storage_version`은 그대로 2).
+(`graph_schema_version=1`; 핵심 도메인 `storage_version`은 1).
 
 - [GraphEngine·RAG 통합 검사](examples/graph_rag.md)
 - [사용자 요청·검증·승인·적용 Workflow](examples/configuration_workflow.md)

@@ -1,9 +1,10 @@
-"""Tool 정의/선택 데이터와 Python 실행 함수 카탈로그를 제공한다.
+"""Project Python Tool 패키지와 Component의 런타임 Tool 계약을 제공한다.
 
-Runtime tool catalog and Project-scoped enabled tool configuration."""
+Project-owned Python packages and shared runtime Tool contracts."""
 
 from .registry import Tool, ToolContract, ToolRegistry
 from .component import ToolComponent, ToolPaths
 from .data import ToolData
+from .decorator import tool
 
-__all__ = ["Tool", "ToolContract", "ToolRegistry", "ToolComponent", "ToolPaths", "ToolData"]
+__all__ = ["Tool", "ToolContract", "ToolRegistry", "ToolComponent", "ToolPaths", "ToolData", "tool"]

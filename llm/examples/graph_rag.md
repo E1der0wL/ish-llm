@@ -56,9 +56,9 @@ PART_OF, CONFIGURES 등이며 뜻이 맞지 않으면 새로운 타입도 허용
 문서 graph 원본에는 문서 내부 가중치, Kuzu 검색에는 현재 코퍼스 가중치를 제공한다.
 검색 문단 우선순위를 유지하며 같은 문단/탐색 노드 내에서 높은 가중치를 우선 반환한다.
 
-Kuzu 속성이 추가되어 RAG `corpus.json`의 `graph_schema_version=2`가 필요하다.
+Kuzu 속성이 추가되어 RAG `corpus.json`의 `graph_schema_version=1`가 필요하다.
 이전 RAG 색인은 수정하지 않고 명확한 오류로 거부한다. 새 테스트 Project에 원문을 다시 등록한다.
-Project/Session/Run/Step의 `storage_version=2`와는 별도 버전이다.
+Project/Session/Run/Step의 `storage_version=1`와는 별도 버전이다.
 
 `engines.loop.max_iterations`는 Agent 한 번의 모델 호출 반복 상한이다.
 `--max-attempts`는 답변 검증·수정 회차 상한이며 두 제한은 서로 다른 범위를 가진다.

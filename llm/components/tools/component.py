@@ -1,24 +1,12 @@
-"""프로젝트별 Tool 정의와 활성화 목록을 관리한다. JSON 정의는 핸들러 없이 저장할 수 있고 실행 시에만 런타임 카탈로그와 결합한다.
+"""Project-owned Python Tool 패키지와 활성화 선택. 실행 수명은 기존 ToolExecutor가 소유한다."""
 
-Project-scoped tool selection; Python handlers remain application-owned."""
-
-from pathlib import Path
-from typing import Optional, Sequence
-from llm.compat import dataclass
-from llm.core.models import Project
-from llm.components.base import Component
-from .registry import Tool, ToolRegistry
+from copy import deepcopy
+from typing import Sequence
+from llm.components.base import Component, validate_name
+from llm.services.infrastructure.storage import make_directory, remove_named_tree
+from .registry import ToolRegistry
 from .data import ToolData
-
-
-@dataclass(frozen=True, slots=True)
-class ToolPaths:
-    root: Path
-
-    @classmethod
-    def for_project(cls, project: Project) -> "ToolPaths":
-        return cls(project.paths.root / ToolComponent.directory)
-
+from .packages import ToolPaths, read_package, write_package, load_tool
 
 
 class ToolComponent(Component):
@@ -27,78 +15,71 @@ class ToolComponent(Component):
     capabilities = ("tools",)
     data_class = ToolData
 
-    def __init__(self, catalog: Optional[ToolRegistry] = None) -> None:
-        self.catalog = catalog if catalog is not None else ToolRegistry()
+    @staticmethod
+    def _selection_names(names: Sequence[str]) -> list[str]:
+        if isinstance(names, (str, bytes)) or not isinstance(names, Sequence):
+            raise ValueError("Tool names must be a sequence")
+        return [validate_name(name) for name in names]
 
     def configuration_schema(self):
         from llm.core.schema import object_schema
         return object_schema({"enabled": {"type": "array", "items": {"type": "string"},
-            "uniqueItems": True, "description": "프로젝트에서 사용할 Tool 이름",
-            "x-suggestions": list(self.catalog.names())}})
+            "uniqueItems": True, "description": "Run에 노출할 Project Python Tool 이름"}})
 
-    def validate_configuration(self, configuration: dict) -> None:
+    def validate_configuration(self, configuration):
         names = configuration.get("enabled", [])
         if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
             raise ValueError("Enabled tools must be a list of names")
         if len(set(names)) != len(names):
             raise ValueError("Duplicate enabled tool")
 
-    @staticmethod
-    def _selection_names(names: Sequence[str]) -> list[str]:
-        if (isinstance(names, (str, bytes)) or not isinstance(names, Sequence)
-                or any(not isinstance(name, str) or not name.strip() for name in names)):
-            raise ValueError("Tool names must be a sequence of nonempty strings")
-        return list(names)
+    def configuration(self, project):
+        data = deepcopy(project.config.component_configurations.get(self.name, {}))
+        self.serialize(data)
+        self.validate_configuration(data)
+        return data
 
-    def enabled(self, project: Project) -> list[str]:
-        """Read selected names without resolving definitions or Python handlers."""
+    def initialize(self, project):
+        self.configuration(project)
+        make_directory(ToolPaths.for_project(project).root)
+
+    def enabled(self, project):
         return self.configuration(project).get("enabled", [])
 
-    @staticmethod
-    async def _unbound(arguments):
-        raise RuntimeError("Tool definition has no runtime handler")
+    def create(self, project, data, *, identifier=None):
+        paths = ToolPaths.for_project(project)
+        validate_name(identifier)
+        if paths.package(identifier).exists():
+            raise FileExistsError("Tool package already exists")
+        write_package(paths, identifier, data)
+        return identifier
 
-    def _definition(self, identifier: str, data: dict) -> Tool:
-        function = data.get("function")
-        if (data.get("type") != "function" or not isinstance(function, dict)
-                or function.get("name") != identifier
-                or not isinstance(function.get("parameters"), dict)
-                or not isinstance(function.get("description", ""), str)):
-            raise ValueError("Expected a named function tool definition")
-        tool = Tool(identifier, function.get("description", ""), function["parameters"], self._unbound, data)
-        ToolRegistry((tool,))  # validate schema and native definition together
-        return tool
+    def load(self, project, identifier):
+        return read_package(ToolPaths.for_project(project), identifier)
 
-    def validate_record(self, identifier: str, data: dict) -> None:
-        self._definition(identifier, data)
+    def list(self, project):
+        root = ToolPaths.for_project(project).root
+        return {path.name: self.load(project, path.name) for path in sorted(root.iterdir())}
 
-    def create(self, project: Project, data: dict, *, identifier: Optional[str] = None) -> str:
-        if identifier is None and isinstance(data, dict) and isinstance(data.get("function"), dict):
-            identifier = data["function"].get("name")
-        return super().create(project, data, identifier=identifier)
+    def save(self, project, identifier, data):
+        self.load(project, identifier)
+        write_package(ToolPaths.for_project(project), identifier, data)
 
-    def delete(self, project: Project, identifier: str) -> None:
-        if identifier in self.configuration(project).get("enabled", []):
-            raise ValueError("Disable the tool before deleting its definition")
-        super().delete(project, identifier)
+    def delete(self, project, identifier):
+        if identifier in self.enabled(project):
+            raise ValueError("Disable the tool before deleting its package")
+        self.load(project, identifier)
+        paths = ToolPaths.for_project(project)
+        remove_named_tree(paths.root, paths.package(identifier), identifier)
 
-    def resolve_tools(self, project: Project) -> ToolRegistry:
-        names = self.configuration(project).get("enabled", [])
-        tools = ToolRegistry()
-        for name in names:
-            try:
-                data = self.load(project, name)
-            except FileNotFoundError:
-                # 런타임 카탈로그는 기본 정의를, Project 레코드는 정의 재정의를 제공한다.
-                tool = self.catalog.get(name)
-            else:
-                definition = self._definition(name, data)
-                tool = Tool(name, definition.description, definition.parameters,
-                            self.catalog.get(name).handler, definition.definition, self.catalog.get(name).contract)
-            tools.register(tool)
-        return tools
+    def prepare(self, project, identifier):
+        value = load_tool(project, identifier, prepare=True)
+        return ToolRegistry((value,)).definitions()[0]
 
-    def resolve(self, project: Project, capability: str):
+    def resolve_tools(self, project):
+        return ToolRegistry(tuple(load_tool(project, name) for name in self.enabled(project)))
+
+    def resolve(self, project, capability):
         if capability != "tools":
             return super().resolve(project, capability)
         return self.resolve_tools(project)

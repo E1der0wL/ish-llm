@@ -4,7 +4,7 @@
 
 이번 변경은 llm/ 및 허용된 루트 테스트 파일에 한정한다.
 Project → Session → Run → Step, RAG atomic generation publish,
-TripleExtractor의 검증·repair·graph schema version 2와 reranker index 계약은 유지한다.
+TripleExtractor의 검증·repair·graph schema version 1와 reranker index 계약은 유지한다.
 
 ## 실행 계약
 

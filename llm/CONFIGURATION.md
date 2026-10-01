@@ -76,7 +76,7 @@ Kuzu buffer_pool_size/max_num_threads와 Chroma 설정은 명시된 옵션만 �
 | RAG caching=False, no-cache/no-store | LiteLLM partial-cache의 벡터 대응 무결성. 변경 불가; llm VectorCache는 명시 설정 |
 | DEFAULT_MAX_RETRIES=0 | LiteLLM 1.103.1 `max_retries or DEFAULT_MAX_RETRIES` 버그 경계. import 전 env, import 후 및 재진입 SDK global에 강제. 명시적 retry kwargs는 변경하지 않음 |
 | LITELLM_LOCAL_MODEL_COST_MAP=True | LiteLLM 초기화 시 외부 cost-map network fetch 대신 bundled map을 사용하는 runtime isolation invariant. import 전과 재진입 시 env에 강제하며 사용자 override 불가. 사용자 inference option이나 ProjectConfig default/values가 아님 |
-| domain storage_version=2, workflow schema_version=1, graph schema_version=2 | 저장 형식 계약; 자동 migration/옛 default 복원 없음 |
+| domain storage_version=1, workflow schema_version=1, graph schema_version=1 | 저장 형식 계약; 자동 migration/옛 default 복원 없음 |
 | checkpoint fingerprint·참조·vector·evidence 검증 | 잘못된 결과 재사용/공개 방지. 변경 불가 |
 | Graph DAG/명시적 bounded loop/합류 검증 | 도달성·재개 단위·분기 실행 의미. 임의 cycle 불가; 사용자가 반복 횟수 명시 |
 | LangGraph retry_policy=None | 효과가 있을 수 있는 노드를 SDK가 자동 재실행하지 못하게 함. 재개는 명시 API |

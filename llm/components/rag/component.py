@@ -282,7 +282,7 @@ class RAGComponent(DefinitionComponent):
             return {"identity": identity, "generation": None, "documents": {}, "profile": None}
         path = self._generation_path(project, generation)
         value = read_json(self._checked(path / "corpus.json"))
-        if value.get("graph_schema_version") != 2:
+        if value.get("graph_schema_version") != 1:
             raise ValueError("Unsupported RAG graph schema; re-register source documents in a new RAG Project")
         if any(not isinstance(doc.get("graph"), dict) or
                not {"entities", "relations"}.issubset(doc["graph"])
@@ -394,7 +394,7 @@ class RAGComponent(DefinitionComponent):
                 update_graph(path / "graph.kuzu", previous["documents"], documents, options=self.graph_options)
             else:
                 self._build(path, documents)
-            atomic_json(path / "corpus.json", {"graph_schema_version": 2, "documents": documents,
+            atomic_json(path / "corpus.json", {"graph_schema_version": 1, "documents": documents,
                                               "profile": profiles[0] if profiles else None})
         except BaseException:
             remove_named_tree(path.parent, path, generation)

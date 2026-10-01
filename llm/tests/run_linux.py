@@ -44,7 +44,7 @@ def main():
     print(target, flush=True)
     modules = args.modules or ["llm.tests.test_provider_runtime", "llm.tests.test_rag_resilience",
                                "llm.tests.test_explicit_configuration", "llm.tests.test_error_boundaries",
-                               "llm.tests.test_project_activity"]
+                               "llm.tests.test_project_activity", "llm.tests.test_tool_packages"]
     failed = False
     for name, command in [("focused", modules), *([("suite", ["discover", "-s", "tests"])] if args.full else [])]:
         with (report / (name + ".txt")).open("w") as output:

@@ -22,7 +22,8 @@ def string(**options):
 class BuiltinTools:
     """파일 Tool과 선택적 실행/서비스 어댑터를 소유하는 async 수명 관리 객체.
 
-    registry를 ToolComponent에 전달하고 Project에서 필요한 이름을 enable한다.
+    registry는 호스트가 정의한 Component의 tools capability로 제공한다.
+    ToolComponent는 Project Python 소스만 담당하며 이 런타임 객체를 받지 않는다.
     allow_commands는 임의의 호스트 코드 실행을 허용한다. 경로 제한형 샌드박스가 아니다.
     """
 
