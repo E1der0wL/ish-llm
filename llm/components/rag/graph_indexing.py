@@ -29,7 +29,7 @@ def insert_relations(conn, document, weights):
 @contextmanager
 def connection(path, *, options=None):
     import kuzu
-    db = kuzu.Database(str(path), **(options or {"buffer_pool_size": 64 * 1024 * 1024, "max_num_threads": 2}))
+    db = kuzu.Database(str(path), **(options or {}))
     try:
         conn = kuzu.Connection(db)
         try:

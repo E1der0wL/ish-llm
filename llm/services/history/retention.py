@@ -24,7 +24,7 @@ class HistoryRetention:
         return refs
 
     def _run_plan(self, project):
-        policy, refs = project.config.policies["retention"], self._references(project)
+        policy, refs = project.config.policies.get("retention", {}), self._references(project)
         rows, protected, sources = [], [], []
         clock = datetime.now(timezone.utc)
         total_bytes = total_tokens = 0
@@ -50,7 +50,7 @@ class HistoryRetention:
             protected_messages = set(refs["message_ids"])
             completed = sorted((r for r in runs if r.status == "completed"),
                                key=lambda r: (r.ended_at or r.created_at, r.id), reverse=True)
-            keep.update(r.id for r in completed[:policy["keep_runs"]])
+            keep.update(r.id for r in completed[:policy.get("keep_runs", 0)])
             for run in runs:
                 sources.append(record(run))
                 source = run.metadata.get("resume", {}).get("run_id")
@@ -74,7 +74,7 @@ class HistoryRetention:
                 owned = [m for m in messages if m.run_id == run.id or m.id in (run.input_message_id, run.assistant_message_id)]
                 size = sum(s[1] for s in stamps.values()) + sum(len(json.dumps(record(m), ensure_ascii=False).encode("utf-8")) for m in owned)
                 tokens = 0
-                if policy["max_tokens"] is not None:
+                if policy.get("max_tokens") is not None:
                     if self.counter is None:
                         raise ValueError("Retention requires a registered token counter")
                     tokens = self.counter({"model": project.config.completion.get("model"),
@@ -92,16 +92,16 @@ class HistoryRetention:
                     blocked.append("unfinished_or_resumable_run")
                 if run.id in keep:
                     blocked.append("recent_or_referenced")
-                usage = project.config.policies["usage"]
-                if usage["project_max_calls"] is not None or usage["project_max_tokens"] is not None:
-                    if any(usage["period_seconds"] is None or (clock - datetime.fromisoformat(e["started_at"])).total_seconds() <= usage["period_seconds"]
+                usage = project.config.policies.get("usage", {})
+                if usage.get("project_max_calls") is not None or usage.get("project_max_tokens") is not None:
+                    if any(usage.get("period_seconds") is None or (clock - datetime.fromisoformat(e["started_at"])).total_seconds() <= usage.get("period_seconds")
                            for e in run.metadata.get("completions", [])):
                         blocked.append("active_usage_accounting")
                 (protected if blocked else rows).append({**row, **({"reasons": blocked} if blocked else {})})
         left_bytes, left_tokens, selected = total_bytes, total_tokens, []
         for row in sorted(rows, key=lambda r: (r["last_activity"], r["session_id"], r["run_id"])):
-            expired = policy["max_age_seconds"] is not None and (clock - datetime.fromisoformat(row["last_activity"])).total_seconds() > policy["max_age_seconds"]
-            if expired or policy["max_bytes"] is not None and left_bytes > policy["max_bytes"] or policy["max_tokens"] is not None and left_tokens > policy["max_tokens"]:
+            expired = policy.get("max_age_seconds") is not None and (clock - datetime.fromisoformat(row["last_activity"])).total_seconds() > policy.get("max_age_seconds")
+            if expired or policy.get("max_bytes") is not None and left_bytes > policy.get("max_bytes") or policy.get("max_tokens") is not None and left_tokens > policy.get("max_tokens"):
                 selected.append(row)
                 left_bytes -= row["bytes"]
                 left_tokens -= row["tokens"]
@@ -143,9 +143,12 @@ class HistoryRetention:
         return intent["id"]
 
     def plan(self, project) -> RetentionPlan:
-        if project.config.policies["retention"]["unit"] == "run":
+        settings = project.config.policies.get("retention", {})
+        if any(settings.get(k) is not None for k in ("max_age_seconds", "max_bytes", "max_tokens")) and "unit" not in settings:
+            raise ValueError("Retention requires an explicit unit")
+        if settings.get("unit") == "run":
             return self._run_plan(project)
-        policy = project.config.policies["retention"]
+        policy = project.config.policies.get("retention", {})
         refs = self._references(project)
         items, protected = [], []
         total_bytes = total_tokens = 0
@@ -165,7 +168,7 @@ class HistoryRetention:
             size = sum(stamp[1] for stamp in stamps.values())
             messages = self.manager.sessions.conversations(session).list()
             tokens = 0
-            if policy["max_tokens"] is not None:
+            if policy.get("max_tokens") is not None:
                 if self.counter is None:
                     raise ValueError("Retention requires a registered token counter")
                 tokens = self.counter({"model": project.config.completion.get("model"),
@@ -192,9 +195,9 @@ class HistoryRetention:
                 reasons.append("pinned")
             if project.conversation_storage != "file":
                 reasons.append("non_file_conversation")
-            usage = project.config.policies["usage"]
-            if usage["project_max_calls"] is not None or usage["project_max_tokens"] is not None:
-                period = usage["period_seconds"]
+            usage = project.config.policies.get("usage", {})
+            if usage.get("project_max_calls") is not None or usage.get("project_max_tokens") is not None:
+                period = usage.get("period_seconds")
                 if any(period is None or (now - datetime.fromisoformat(e["started_at"])).total_seconds() <= period
                        for r in runs for e in r.metadata.get("completions", [])):
                     reasons.append("active_usage_accounting")
@@ -207,9 +210,9 @@ class HistoryRetention:
                 items.append(row)
         remaining_bytes, remaining_tokens, selected = total_bytes, total_tokens, []
         for row in sorted(items, key=lambda r: (r["last_activity"], r["session_id"])):
-            expired = policy["max_age_seconds"] is not None and (now - datetime.fromisoformat(row["last_activity"])).total_seconds() > policy["max_age_seconds"]
-            oversize = policy["max_bytes"] is not None and remaining_bytes > policy["max_bytes"]
-            overtokens = policy["max_tokens"] is not None and remaining_tokens > policy["max_tokens"]
+            expired = policy.get("max_age_seconds") is not None and (now - datetime.fromisoformat(row["last_activity"])).total_seconds() > policy.get("max_age_seconds")
+            oversize = policy.get("max_bytes") is not None and remaining_bytes > policy.get("max_bytes")
+            overtokens = policy.get("max_tokens") is not None and remaining_tokens > policy.get("max_tokens")
             if expired or oversize or overtokens:
                 selected.append(row)
                 remaining_bytes -= row["bytes"]
@@ -224,7 +227,7 @@ class HistoryRetention:
         plan = self.plan(project)
         if not expected_version or expected_version != plan.version:
             raise ValueError("retention_conflict: review a fresh retention plan")
-        if plan.policy["unit"] == "run":
+        if plan.policy.get("unit") == "run":
             grouped = {}
             for row in plan.candidates:
                 grouped.setdefault(row["session_id"], []).append(row)

@@ -52,17 +52,16 @@ def project_schema(app, components=None):
         spec = checked_schema(describe() if describe else object_schema())
         if isinstance(spec, dict):
             spec["$id"] = "urn:ish:project-component:" + name + ":configuration"
-            # UI values에는 기본값을 병합한 객체를 제공한다. 중첩/배열/ref의 조건을 보존한다.
+            # UI values에는 명시적으로 설정한 값만 제공한다. 중첩/배열/ref의 조건을 보존한다.
         project_components[name] = spec
     session = object_schema({"completion": completion_schema(), "engines": object_schema(deepcopy(engines)), "data": object_schema()},
                          **{"not": {"anyOf": [{"required": ["policies"]}, {"required": ["component_configurations"]}]}})
     config = object_schema({"completion": completion_schema(), "engines": object_schema(engines),
         "policies": policies, "session_defaults": session, "data": object_schema(),
         "component_configurations": object_schema(project_components, additionalProperties=False,
-            description="컴포넌트 설정의 유일한 저장 위치. 기본값에 재귀 병합하며 등록만으로 활성화하지 않는다."),
+            description="컴포넌트 설정의 유일한 저장 위치. 명시된 값만 저장하며 등록만으로 활성화하지 않는다."),
         "default_engine": {"type": "string", **({"enum": list(app.engines.names())} if app.engines.names() else {}),
-                           "description": "UI의 실행 선택 기본값. submit은 engine을 명시해야 한다."}},
-        default=ProjectConfig().to_dict())
+                           "description": "UI의 실행 선택 기본값. submit은 engine을 명시해야 한다."}})
     return checked_schema(object_schema({
         "title": {"type": "string"},
         "conversation_storage": {"type": ["string", "null"], "enum": ["file", "memory", None],

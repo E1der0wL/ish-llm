@@ -7,7 +7,7 @@ from copy import copy, deepcopy
 from datetime import datetime, timezone
 
 from llm.components.rag._client import ModelClient
-from .prompts import EXTRACTION_CONTRACT, RELATION_TYPES, default_prompt, extraction_defaults
+from .prompts import EXTRACTION_CONTRACT
 
 
 class GraphValidationError(ValueError):
@@ -15,7 +15,7 @@ class GraphValidationError(ValueError):
     code = "graph_validation_failed"
 
 
-def validate_graph(graph: dict, chunks: list, *, relation_types=RELATION_TYPES) -> dict:
+def validate_graph(graph: dict, chunks: list, *, relation_types=()) -> dict:
     """관계의 양 끝과 정확한 원문 인용을 검증하고 이름 기반 ID로 정규화한다."""
     if not isinstance(graph, dict) or not isinstance(graph.get("entities"), list) or not isinstance(graph.get("relations"), list):
         raise GraphValidationError("Extraction requires entities and relations lists")
@@ -77,8 +77,8 @@ class TripleExtractor(ModelClient):
 
     def __init__(self, *, completion_fn=None, **params):
         super().__init__("acompletion", completion_fn, params)
-        self.extraction = extraction_defaults()
-        self.prompt = default_prompt()
+        self.extraction = {}
+        self.prompt = {"messages": []}
 
     def with_extraction(self, options: dict, prompt: dict):
         """호출별 정책/프롬프트 사본. 등록 클라이언트나 다른 Project는 변경하지 않는다."""
@@ -89,24 +89,25 @@ class TripleExtractor(ModelClient):
     async def extract(self, chunks: list) -> dict:
         """검증 오류만 제한 횟수 수정한다. 연결 오류·취소·사용량 제한은 그대로 전달한다."""
         messages = [{"role": "system", "content": EXTRACTION_CONTRACT + "\nPreferred relation types: "
-                     + json.dumps(self.extraction["relation_types"], ensure_ascii=False)},
+                     + json.dumps(self.extraction.get("relation_types", []), ensure_ascii=False)},
                     *deepcopy(self.prompt["messages"]),
                     {"role": "user", "content": json.dumps(chunks, ensure_ascii=False)}]
-        from llm.providers.requests import provider_defaults, error_code
+        from llm.providers.requests import error_code
         from llm.providers.runtime import diagnostic
-        mode = self.extraction["json_mode"]
-        deadline = time.monotonic() + self.provider_options.get("wall_timeout", provider_defaults()["wall_timeout"])
-        for attempt in range(self.extraction["repair_attempts"] + 1):
+        mode = self.extraction.get("json_mode")
+        wall_timeout = self.provider_options.get("wall_timeout")
+        deadline = None if wall_timeout is None else time.monotonic() + wall_timeout
+        for attempt in range(self.extraction.get("repair_attempts", 0) + 1):
             try:
-                response = await self._invoke(stream=False, temperature=0, _provider_deadline=deadline,
-                    **({"response_format": {"type": "json_object"}} if mode != "off" else {"_without_response_format": True}),
+                response = await self._invoke(stream=False, _provider_deadline=deadline,
+                    **({"response_format": {"type": "json_object"}} if mode in ("strict", "auto") else {"_without_response_format": True} if mode == "off" else {}),
                     messages=messages)
             except Exception as error:
                 if mode != "auto" or error_code(error) not in ("provider_empty_response", "provider_invalid_response"):
                     raise
                 mode = "off"
                 diagnostic("provider_json_mode_fallback", operation="acompletion")
-                response = await self._invoke(stream=False, temperature=0, _provider_deadline=deadline,
+                response = await self._invoke(stream=False, _provider_deadline=deadline,
                     _without_response_format=True, messages=messages)
             content = None
             try:
@@ -117,7 +118,7 @@ class TripleExtractor(ModelClient):
                 validate_graph(graph, chunks)
                 return graph
             except (ValueError, TypeError, KeyError, IndexError, AttributeError) as error:
-                if attempt == self.extraction["repair_attempts"]:
+                if attempt == self.extraction.get("repair_attempts", 0):
                     raise GraphValidationError(f"RAG extraction invalid after {attempt} repair attempts: {error}") from error
                 # 이전 응답을 assistant 지침으로 승격하지 않는다. 고정 크기의 최신 오류만 전달한다.
                 messages[-1] = {"role": "user", "content": json.dumps({

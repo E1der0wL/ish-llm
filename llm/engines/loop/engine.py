@@ -3,6 +3,7 @@
 A BaseEngine subclass: complete, execute requested tools, then repeat."""
 
 import math
+from itertools import count
 import asyncio
 from copy import copy, deepcopy
 from llm.core.interactions import InteractionRequest
@@ -15,7 +16,7 @@ from urllib.parse import urlsplit
 from llm.compat import aclosing
 from llm.components.processing import CompletionMessage, CompletionRequest, CompletionObservation, CompletionPipeline
 from llm.core.models import MessageRole, MessageStatus
-from llm.core.configuration import engine_configuration, resolve_configuration
+from llm.core.configuration import engine_configuration, resolve_configuration, UNSET
 from llm.core.results import EngineOutput
 from llm.providers.litellm import completion
 from llm.providers.parameters import merge_params
@@ -69,35 +70,31 @@ class LoopEngine(BaseEngine):
         return EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata={"name": "loop", "operation": "record",
                                                                "key": key, "value": deepcopy(value)})
 
-    def __init__(self, *, max_iterations: Optional[int] = None,
-                 request_timeout: Optional[float] = None, tool_timeout: Optional[float] = None,
-                 buffer_size: Optional[int] = None, max_tool_calls: Optional[int] = None,
-                 max_argument_chars: Optional[int] = None, max_output_chars: Optional[int] = None,
-                 completion_kwargs: Optional[Union[Mapping[str, Any],
-                     Callable[[EngineContext], Mapping[str, Any]]]] = None,
-                 system_prompt: Optional[Union[str, Callable[[EngineContext], str]]] = None,
-                 settings_name: Optional[str] = None,
-                 completion_fn: Callable[..., Iterator[Any]] = completion) -> None:
-        supplied = {"max_iterations": max_iterations, "request_timeout": request_timeout,
-                    "tool_timeout": tool_timeout, "buffer_size": buffer_size,
-                    "max_tool_calls": max_tool_calls, "max_argument_chars": max_argument_chars,
-                    "max_output_chars": max_output_chars}
-        self._overrides = {key: value for key, value in supplied.items() if value is not None}
-        defaults = self._defaults()
-        max_iterations = defaults["max_iterations"] if max_iterations is None else max_iterations
-        request_timeout = defaults["request_timeout"] if request_timeout is None else request_timeout
-        tool_timeout = defaults["tool_timeout"] if tool_timeout is None else tool_timeout
-        buffer_size = defaults["buffer_size"] if buffer_size is None else buffer_size
-        max_tool_calls = defaults["max_tool_calls"] if max_tool_calls is None else max_tool_calls
-        max_argument_chars = defaults["max_argument_chars"] if max_argument_chars is None else max_argument_chars
-        max_output_chars = defaults["max_output_chars"] if max_output_chars is None else max_output_chars
+    _option_names = ("max_iterations", "request_timeout", "tool_timeout", "buffer_size",
+                     "max_tool_calls", "max_argument_chars", "max_output_chars")
+
+    def __init__(self, *, max_iterations=UNSET, request_timeout=UNSET, tool_timeout=UNSET,
+                 buffer_size=UNSET, max_tool_calls=UNSET, max_argument_chars=UNSET,
+                 max_output_chars=UNSET, completion_kwargs=None, system_prompt=UNSET,
+                 settings_name=None, completion_fn=completion) -> None:
+        supplied = dict(max_iterations=max_iterations, request_timeout=request_timeout,
+                        tool_timeout=tool_timeout, buffer_size=buffer_size, max_tool_calls=max_tool_calls,
+                        max_argument_chars=max_argument_chars, max_output_chars=max_output_chars)
+        self._overrides = {key: value for key, value in supplied.items() if value is not UNSET}
+        max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars = (
+            self._overrides.get(key) for key in self._option_names if key != "buffer_size")
+        # Queue capacity changes backpressure only; it never drops output or limits execution.
+        buffer_size = 8 if buffer_size is UNSET else buffer_size
+        if system_prompt is not UNSET and not callable(system_prompt):
+            self._overrides["system_prompt"] = system_prompt
+        system_prompt = None if system_prompt is UNSET else system_prompt
         super().__init__("Loop", completion_fn=completion_fn, buffer_size=buffer_size,
                          max_tool_calls=max_tool_calls, max_argument_chars=max_argument_chars,
                          max_output_chars=max_output_chars)
-        if type(max_iterations) is not int or max_iterations < 1:
+        if max_iterations is not None and (type(max_iterations) is not int or max_iterations < 1):
             raise ValueError("max_iterations must be a positive integer")
         for value in (request_timeout, tool_timeout):
-            if (isinstance(value, bool) or not isinstance(value, (int, float))
+            if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
                     or not math.isfinite(value) or value <= 0):
                 raise ValueError("Timeouts must be positive and finite")
         self.max_iterations = max_iterations
@@ -117,18 +114,11 @@ class LoopEngine(BaseEngine):
         self.settings_name = settings_name
         self._agent_settings = {}
 
-    @staticmethod
-    def _defaults():
-        return {"max_iterations": 999, "request_timeout": 7200.0, "tool_timeout": 3600.0,
-                "buffer_size": 8, "max_tool_calls": 16, "max_argument_chars": 65536,
-                "max_output_chars": 1_000_000}
-
     def configuration_schema(self):
         from llm.core.schema import object_schema, field
-        names = self._defaults()
-        properties = {name: field("number" if name.endswith("timeout") else "integer",
-            getattr(self, name), exclusiveMinimum=0, **{"x-host-override": name in self._overrides}) for name in names}
-        properties["system_prompt"] = {"type": "string", "description": "기본 시스템 프롬프트",
+        names = self._option_names
+        properties = {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0, **{"x-host-override": name in self._overrides}) for name in names}
+        properties["system_prompt"] = {"type": ["string", "null"], "description": "기본 시스템 프롬프트",
                                         "x-host-override": self.system_prompt is not None}
         return object_schema(properties, **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
@@ -140,7 +130,7 @@ class LoopEngine(BaseEngine):
         host = dict(self._overrides)
         if isinstance(self.system_prompt, str):
             host["system_prompt"] = self.system_prompt
-        view = engine_configuration(config, key, self._defaults(), session_config=session_config,
+        view = engine_configuration(config, key, session_config=session_config,
             agent={**agent.get("engine_options", {}), **({"system_prompt": agent["system_prompt"]} if "system_prompt" in agent else {})},
             host=host, schema=self.configuration_schema())
         supplied, runtime = self.completion_kwargs, []
@@ -148,7 +138,7 @@ class LoopEngine(BaseEngine):
             ProjectConfig.validate_settings(dict(supplied or {}))
         except (TypeError, ValueError):
             supplied, runtime = {}, ["completion"]
-        view["completion"] = resolve_configuration({}, [
+        view["completion"] = resolve_configuration([
             ("project", ProjectConfig(config).completion), ("session", (session_config or {}).get("completion", {})),
             ("agent", agent.get("completion", {}))], host=dict(supplied or {}))
         view["completion"]["resolved"] = "completion" not in runtime
@@ -162,7 +152,7 @@ class LoopEngine(BaseEngine):
 
     def _request(self, context: EngineContext, params: dict[str, Any]) -> dict[str, Any]:
         request: dict[str, Any] = {
-            "stream": True, "timeout": self.request_timeout,
+            "stream": True,
         }
         request.update(self.copy_params(params))
         if not isinstance(request.get("model"), str) or not request["model"].strip():
@@ -174,7 +164,6 @@ class LoopEngine(BaseEngine):
         definitions = context.tools.definitions()
         if definitions:
             request["tools"] = definitions
-            request.setdefault("tool_choice", "auto")
             if getattr(self, "_require_tool", False) and not context.tool_scope.completed:
                 request["tool_choice"] = "required"
         return request
@@ -186,15 +175,17 @@ class LoopEngine(BaseEngine):
         등록할 수 있다. 준비 작업을 구현한 Loop 서브클래스의 메서드도 유지한다.
         """
         params = self.copy_params(definition.get("completion", {}))
-        if not isinstance(params.get("model"), str) or not params["model"].strip():
-            raise ValueError("Loop Agent requires completion.model")
+        # Agent는 부분 설정이다. 누락된 model은 Project/Session/host에서 상속한다.
+        # 모든 계층에 없으면 최종 request 검증에서 provider 호출 전에 거부한다.
+        if "model" in params and (not isinstance(params["model"], str) or not params["model"].strip()):
+            raise ValueError("Agent completion.model must be nonempty text")
         if any(key in params for key in ("messages", "tools", "functions", "function_call")):
             raise ValueError("Loop Agent owns messages and registered tools")
         if params.get("stream", True) is not True or params.get("n", 1) != 1:
             raise ValueError("Loop Agent requires stream=True and n=1")
-        limits = self._defaults()
+        limits = {}
         options = definition.get("engine_options", {})
-        if options.keys() - limits.keys() or any(value is None for value in options.values()):
+        if options.keys() - set(self._option_names):
             raise ValueError("Unsupported Loop Agent engine_options")
         limits.update(options)
         limits.update(self._overrides)
@@ -202,7 +193,7 @@ class LoopEngine(BaseEngine):
         LoopEngine(**limits)
         worker = copy(self)
         worker._agent_settings = {"engine_options": deepcopy(options), "completion": params,
-                                  "system_prompt": definition.get("system_prompt", definition["purpose"])}
+                                  **({"system_prompt": definition["system_prompt"]} if "system_prompt" in definition else {})}
         worker.settings_name = self.settings_name or definition["engine"]
         worker._require_tool = definition.get("policy", {}).get("require_tool", False)
         return worker
@@ -216,7 +207,7 @@ class LoopEngine(BaseEngine):
         params = merge_params(settings["completion"], self._agent_settings.get("completion", {}))
         params = merge_params(params, dict(supplied or {}))
         resolved = self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"]
-        limits = {name: resolved[name] for name in self._defaults()}
+        limits = {name: resolved[name] for name in self._option_names if name in resolved}
         prompt = self.system_prompt if self.system_prompt is not None else resolved.get("system_prompt")
         # A Run-local instance keeps shared defaults immutable and preserves
         # subclass methods. Only Loop-owned settings are reinitialized.
@@ -276,7 +267,9 @@ class LoopEngine(BaseEngine):
         seen_call_ids: set[str] = set()
         durable = context.output_step_id is None or context.checkpoint_scope is not None
         records = deepcopy(context.checkpoint["records"]) if durable and context.checkpoint else {}
-        for iteration in range(1, self.max_iterations + 1):
+        for iteration in count(1):
+            if self.max_iterations is not None and iteration > self.max_iterations:
+                raise RuntimeError("Loop iteration limit exceeded")
             saved = records.get(f"iteration:{iteration}", {})
             response: dict[str, Any] = deepcopy(saved.get("response", {}))
             calls, prepared = [], []

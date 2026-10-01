@@ -46,7 +46,7 @@ class MemoryComponent(Component):
 
     def _all_records(self, project):
         self._assert_ready(project)
-        limit = self.configuration(project).get("cache_records", 256)
+        limit = self.configuration(project).get("cache_records", 0)
         for path in sorted(self._checked(self.root(project) / "records").glob("*.json")):
             path = self._checked(path)
             stat = path.stat()
@@ -237,51 +237,34 @@ class MemoryComponent(Component):
             source(value.get("source"))
         return {"run_ids": sorted(runs), "message_ids": sorted(messages), "session_ids": sorted(sessions)}
 
-    def default_configuration(self):
-        return {"tool_write_status": "candidate", "search_status": "confirmed",
-                "search_limit": 10, "max_search_results": 100, "cache_records": 256}
-
     def validate_configuration(self, data):
-        config = {**self.default_configuration(), **data}
-        if type(config["cache_records"]) is not int or config["cache_records"] < 0:
-            raise ValueError("cache_records must be nonnegative")
-        self._status(config["tool_write_status"])
-        self._status(config["search_status"], allow_all=True)
-        if any(type(config[key]) is not int or config[key] < 1
-               for key in ("search_limit", "max_search_results")) or config["search_limit"] > config["max_search_results"]:
-            raise ValueError("Memory search limits must be positive and default <= maximum")
+        from jsonschema import Draft202012Validator
+        error = next(Draft202012Validator(self.configuration_schema()).iter_errors(data), None)
+        if error is not None:
+            raise ValueError("Invalid memory configuration: " + error.message)
+        if data.get("search_limit") is not None and data.get("max_search_results") is not None and data["search_limit"] > data["max_search_results"]:
+            raise ValueError("Memory search_limit exceeds max_search_results")
         from .processing import processing_settings
         processing_settings(data, token_counter=self.token_counter)
 
     def configuration_schema(self):
         from llm.core.schema import object_schema, completion_schema, field
-        from .processing import processing_settings
-        defaults = processing_settings({})
-        properties = {}
-        for key, value in defaults.items():
-            kind = "boolean" if type(value) is bool else "integer" if type(value) is int else "number" if type(value) is float else "string"
-            properties[key] = field(kind, value)
-            if kind in ("integer", "number") and key != "priority":
-                properties[key]["exclusiveMinimum"] = 0
-        properties["recall_every"].pop("exclusiveMinimum", None)
-        properties["recall_every"]["minimum"] = 0
-        properties["context_tokens"] = field(["integer", "null"], None, minimum=1,
-            **{"x-available": self.token_counter is not None})
-        properties["completion"] = completion_schema()
-        properties["extract_scope"]["enum"] = ["session", "project"]
-        properties["failure_mode"]["enum"] = ["raise", "continue"]
+        properties = {name: field("boolean") for name in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active")}
+        properties.update({name: field("integer", minimum=1) for name in (
+            "keep_turns", "summary_after_chars", "summary_chars", "context_chars", "recall_limit",
+            "tool_result_chars", "model_input_chars", "max_candidates", "active_keep_iterations",
+            "max_summary_calls", "recall_query_chars", "max_output_chars")})
+        properties.update(priority=field("integer"), recall_every=field("integer", minimum=0),
+            context_tokens=field(["integer", "null"], minimum=1), completion=completion_schema(),
+            extract_scope=field("string", enum=["session", "project"]),
+            failure_mode=field("string", enum=["raise", "continue"]),
+            timeout_seconds=field(["number", "null"], exclusiveMinimum=0))
         return object_schema({
-            "cache_records": field("integer", 256, minimum=0),
-            "tool_write_status": field("string", "candidate", enum=["candidate", "confirmed"]),
-            "search_status": field("string", "confirmed", enum=["candidate", "confirmed", "all"]),
-            "search_limit": field("integer", 10, minimum=1), "max_search_results": field("integer", 100, minimum=1),
-            "processing": object_schema(properties, default=defaults)}, default=self.default_configuration())
-
-    def effective_configuration(self, project):
-        from llm.core.configuration import resolve_configuration
-        from .processing import processing_settings
-        return resolve_configuration({**self.default_configuration(), "processing": processing_settings({})},
-                                     self.configuration_layers(project))
+            "cache_records": field("integer", minimum=0),
+            "tool_write_status": field("string", enum=["candidate", "confirmed"]),
+            "search_status": field("string", enum=["candidate", "confirmed", "all"]),
+            "search_limit": field("integer", minimum=1), "max_search_results": field("integer", minimum=1),
+            "processing": object_schema(properties)})
 
     def validate_record(self, identifier, data):
         record, history = data.get("record"), data.get("history")
@@ -362,11 +345,13 @@ class MemoryComponent(Component):
     def search(self, project, query, *, limit=None, status=None, session_id=None):
         if not isinstance(query, str) or not query.strip():
             raise ValueError("Memory query must be nonempty text")
-        config = {**self.default_configuration(), **self.configuration(project)}
-        limit = config["search_limit"] if limit is None else limit
-        if type(limit) is not int or not 1 <= limit <= config["max_search_results"]:
+        config = self.configuration(project)
+        limit = config.get("search_limit") if limit is None else limit
+        if limit is not None and (type(limit) is not int or limit < 1 or config.get("max_search_results") is not None and limit > config["max_search_results"]):
             raise ValueError("Memory search limit is outside configured bounds")
-        records = self.list(project, status=config["search_status"] if status is None else status, session_id=session_id)
+        if limit is None:
+            limit = config.get("max_search_results")
+        records = self.list(project, status=config.get("search_status") if status is None else status, session_id=session_id)
         records = {key: record for key, record in records.items() if not self._expired(record)}
         scores = (self.search_fn(query, deepcopy(records)) if self.search_fn is not None else
                   {key: self.score(query, record) for key, record in records.items()})
@@ -410,7 +395,7 @@ class MemoryComponent(Component):
             data = data_factory(self.name)
             settings = processing_settings(data.configuration(), token_counter=self.token_counter)
             return MemoryProcessor(data, completion_fn=self.completion_fn,
-                                   token_counter=self.token_counter, priority=settings["priority"])
+                                   token_counter=self.token_counter, priority=settings.get("priority", 0))
         if capability == "memory":
             return data_factory(self.name)
         if capability == "tools":

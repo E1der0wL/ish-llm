@@ -12,6 +12,7 @@ import inspect
 import json
 from contextlib import closing
 from collections.abc import Callable
+from itertools import count
 from copy import deepcopy
 from dataclasses import asdict, replace
 
@@ -580,7 +581,7 @@ class RunManager:
 
     def _check_queue(self, session):
         project = self.sessions._owner(session)
-        maximum = project.config.policies["run"]["max_queued"]
+        maximum = project.config.policies.get("run", {}).get("max_queued")
         if maximum is not None and self._store(session).count(
                 status=MessageStatus.QUEUED, role=MessageRole.USER) >= maximum:
             raise RunRequestError(RunErrorCode.QUEUE_FULL, "Session request queue is full")
@@ -805,7 +806,7 @@ class RunManager:
             if not isinstance(values, dict) or any(name not in values for name in names):
                 raise ValueError("Capability resolver omitted a required capability")
         request = getattr(engine, "additional_capabilities", None)
-        for expansion in range(limits.max_capability_rounds + 1) if request is not None else ():
+        for expansion in count() if request is not None else ():
             extra = request(values)
             if (not isinstance(extra, tuple) or any(not isinstance(name, str) or not name.strip() for name in extra)
                     or len(set(extra)) != len(extra)):
@@ -822,7 +823,7 @@ class RunManager:
         retries = run.metadata["policies"].get("tool_retry", {})
         tool_policy = replace(self.tool_policy, **{
             target: retries[source] for source, target in (("max_retries", "max_retries"), ("delay_seconds", "retry_delay"))
-            if retries.get(source) is not None})
+            if source in retries and target not in self.tool_policy._explicit_retry})
         tool_scope = ToolExecutionScope(tool_policy,
             operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
         for name in values.get("tools", ToolRegistry()).names():
@@ -838,7 +839,7 @@ class RunManager:
         guard = timeout(policies[2].timeout_seconds)
         try:
             async with guard:
-                counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"]["completion"]["counter"])
+                counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"].get("completion", {}).get("counter"))
                 source = {"project_id": runtime.project.id, "session_id": runtime.session.id, "run_id": run.id}
                 with provider_logging_scope(self.sessions.ownership.path.parent), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope(), retry_scope(run.metadata["policies"].get("provider_retry", {})):
                     await self._consume(runtime, run, policies)

@@ -31,8 +31,6 @@ def _condition(value) -> None:
 
 def validate_graph(data: dict, *, _depth: int = 0) -> None:
     """도달성·연결·제어 노드·합류·반복 상한을 검사한다. 사용자 정의 키는 유지한다."""
-    if _depth > 32:
-        raise ValueError("Workflow loop nesting exceeds 32")
     if not isinstance(data, dict) or type(data.get("schema_version")) is not int or data["schema_version"] != 1:
         raise ValueError("Workflow requires schema_version 1")
     if _depth == 0:

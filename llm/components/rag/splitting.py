@@ -4,7 +4,7 @@ import hashlib
 import re
 
 
-def split_markdown(content: str, document_id: str, *, chunk_size: int = 2000) -> dict:
+def split_markdown(content: str, document_id: str, *, chunk_size: int) -> dict:
     """ATX 제목/문단을 분할한다. 코드 펜스 내부의 #는 제목으로 취급하지 않는다."""
     if not isinstance(content, str) or not content.strip():
         raise ValueError("Document content must be nonempty text")

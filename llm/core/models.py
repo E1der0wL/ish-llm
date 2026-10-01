@@ -89,12 +89,12 @@ class ProjectConfig(dict):
     """
 
     def __init__(self, values: Optional[dict] = None, **settings) -> None:
-        defaults = {"completion": {}, "engines": {}, "policies": {},
+        sections = {"completion": {}, "engines": {}, "policies": {},
                     "session_defaults": {}, "data": {}, "component_configurations": {}}
         if values is not None:
-            defaults.update(deepcopy(dict(values)))
-        defaults.update(deepcopy(settings))
-        super().__init__(defaults)
+            sections.update(deepcopy(dict(values)))
+        sections.update(deepcopy(settings))
+        super().__init__(sections)
         self.validate()
 
     def __getattr__(self, name):
@@ -140,7 +140,7 @@ class ProjectConfig(dict):
 
     @staticmethod
     def policy_schema() -> dict:
-        """UI용 정책 필드·기본값·설명. 실행 객체나 계산기 함수는 포함하지 않는다."""
+        """UI용 정책 필드·허용 형식·설명. 실행 객체나 계산기 함수는 포함하지 않는다."""
         return policy_schema()
 
     def configure_policies(self, changes: dict) -> dict:

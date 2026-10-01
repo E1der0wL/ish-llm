@@ -163,7 +163,7 @@ class ProjectHandle(AsyncFacade):
     def retention(self, *, apply=False, expected_version=None) -> RetentionPlan:
         """보관 정책에 따른 정리 미리보기. apply=True는 검토한 Session 기록을 영구 삭제한다."""
         self.app._check_open()
-        name = self.data.config.policies["retention"]["counter"]
+        name = self.data.config.policies.get("retention", {}).get("counter")
         counter = getattr(self.app.policy_resolver, "token_counters", {}).get(name)
         return self.app.project_manager.retention(self._snapshot, counter=counter,
                                                   apply=apply, expected_version=expected_version)
@@ -345,9 +345,9 @@ class Runs(AsyncFacade):
         """Detach just this Session; a later submit creates a fresh manager."""
         await self.session.app._stop_session(self.session._snapshot)
 
-    def status(self, *, queued_limit: int = 20) -> SessionRuntimeView:
+    def status(self, *, queued_limit: Optional[int] = None) -> SessionRuntimeView:
         """실행을 시작하지 않고 UI 상태를 조회한다. 과거 Run/Step 전체 목록을 읽지 않는다."""
-        if type(queued_limit) is not int or queued_limit < 0:
+        if queued_limit is not None and (type(queued_limit) is not int or queued_limit < 0):
             raise ValueError("queued_limit must be a nonnegative integer")
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
@@ -567,7 +567,7 @@ class RunHandle(AsyncFacade):
 
     areconcile_output = async_method(reconcile_output)
 
-    def view(self, *, after=0, limit=200) -> RunView:
+    def view(self, *, after=0, limit=None) -> RunView:
         """UI 재접속/알림 유실 복구용 동일 잠금 스냅샷. cursor까지의 전체 출력과 이후 이벤트를 제공한다."""
         self.app._check_open()
         with self.app.project_manager.ownership.scope():

@@ -26,7 +26,7 @@ _UNSET = object()
 
 
 class PreparationStep(BaseEngine):
-    """Convenience BaseEngine for async preparation; defaults to a 60s deadline."""
+    """Convenience BaseEngine for async preparation; a deadline is applied only when configured."""
 
     def __init__(self, name: str, action: Callable[[EngineContext], Awaitable[None]], *,
                  kind: str = "preparation", timeout_seconds=_UNSET, settings_name=None) -> None:
@@ -36,22 +36,22 @@ class PreparationStep(BaseEngine):
         if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
             raise ValueError("settings_name must be nonempty text")
         self.settings_name = settings_name
-        super().__init__(name, kind=kind, action=action, timeout_seconds=60.0 if timeout_seconds is _UNSET else timeout_seconds,
+        super().__init__(name, kind=kind, action=action, timeout_seconds=None if timeout_seconds is _UNSET else timeout_seconds,
                          error_message="Preparation failed")
 
     def configuration_schema(self):
-        return object_schema({"timeout_seconds": field(["number", "null"], self.timeout_seconds,
+        return object_schema({"timeout_seconds": field(["number", "null"],
             exclusiveMinimum=0, **{"x-host-override": "timeout_seconds" in self._overrides})},
             **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
     def configuration(self, config, name, *, session_config=None):
-        return engine_configuration(config, self.settings_name or name, {"timeout_seconds": 60.0},
+        return engine_configuration(config, self.settings_name or name,
             session_config=session_config, host=self._overrides, schema=self.configuration_schema())
 
     async def execute(self, context):
         worker = copy(self)
         worker.timeout_seconds = self.configuration(context.project.config, context.run.engine,
-            session_config=context.session.config)["values"]["timeout_seconds"]
+            session_config=context.session.config)["values"].get("timeout_seconds")
         async with aclosing(BaseEngine.execute(worker, context)) as events:
             async for event in events:
                 yield event

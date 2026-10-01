@@ -22,7 +22,8 @@ _names = ("LiteLLM", "LiteLLM Router", "LiteLLM Proxy", "httpx", "httpcore", "py
 class _FileHandler(RotatingFileHandler):
     def __init__(self, path, owner):
         self.owner = owner
-        super().__init__(path, maxBytes=5_000_000, backupCount=3, encoding="utf-8")
+        # No retention policy was supplied: never rotate/delete provider diagnostics.
+        super().__init__(path, encoding="utf-8")
 
     def handleError(self, record):
         # 디스크 장애에서도 logging 자체의 traceback을 TUI에 내보내지 않는다.
@@ -111,11 +112,9 @@ def litellm_sdk():
     with _lock:
         os.environ["DEFAULT_MAX_RETRIES"] = "0"
         if _sdk is None:
-            os.environ["LITELLM_MODE"] = "PRODUCTION"
-            os.environ.setdefault("LITELLM_LOG", "ERROR")
-            os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
             configure_logging(refresh=True)
             _sdk = importlib.import_module("litellm")
+            # Host owns the terminal: SDK help banners must not corrupt its input UI.
             _sdk.suppress_debug_info = True
             configure_logging(refresh=True)
         # LiteLLM의 `max_retries or DEFAULT_MAX_RETRIES` 호환성 규칙.

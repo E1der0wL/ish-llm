@@ -34,41 +34,50 @@ def processing_settings(configuration: dict, *, token_counter=None) -> dict:
     value = configuration.get("processing", {})
     if not isinstance(value, dict):
         raise ValueError("Memory processing must be an object")
-    config = {"recall": True, "summarize": False, "extract": False, "compress_tools": True,
-              "keep_turns": 8, "summary_after_chars": 12000, "summary_chars": 3000,
-              "context_chars": 6000, "context_tokens": None, "recall_limit": 8,
-              "tool_result_chars": 4000, "model_input_chars": 24000, "max_candidates": 5,
-              "extract_scope": "session", "nested_processing": False, "timeout_seconds": 60.0, "failure_mode": "raise",
-              "priority": 100, "compact_active": True, "active_keep_iterations": 2,
-              "max_summary_calls": 4, "recall_every": 0, "recall_query_chars": 2000,
-              "completion": {}, **deepcopy(value)}
-    if type(config["priority"]) is not int:
+    config = deepcopy(value)
+    if "priority" in config and type(config["priority"]) is not int:
         raise ValueError("Memory processing priority must be an integer")
     for key in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active"):
-        if type(config[key]) is not bool:
+        if key in config and type(config[key]) is not bool:
             raise ValueError(f"Memory {key} must be boolean")
     for key in ("keep_turns", "summary_after_chars", "summary_chars", "context_chars", "recall_limit",
                 "tool_result_chars", "model_input_chars", "max_candidates", "active_keep_iterations", "max_summary_calls", "recall_query_chars"):
-        if type(config[key]) is not int or config[key] < 1:
+        if key in config and (type(config[key]) is not int or config[key] < 1):
             raise ValueError(f"Memory {key} must be a positive integer")
-    if type(config["recall_every"]) is not int or config["recall_every"] < 0:
+    if "recall_every" in config and (type(config.get("recall_every")) is not int or config.get("recall_every") < 0):
         raise ValueError("recall_every must be a nonnegative integer")
-    if config["context_tokens"] is not None and (type(config["context_tokens"]) is not int or
-            config["context_tokens"] < 1 or token_counter is None):
+    if config.get("context_tokens") is not None and (type(config.get("context_tokens")) is not int or
+            config.get("context_tokens") < 1 or token_counter is None):
         raise ValueError("context_tokens requires a positive integer and an injected token_counter(text)")
-    if config["failure_mode"] not in ("raise", "continue") or config["extract_scope"] not in ("session", "project"):
+    if config.get("failure_mode") not in (None, "raise", "continue") or config.get("extract_scope") not in (None, "session", "project"):
         raise ValueError("Invalid memory failure mode or extraction scope")
-    duration = config["timeout_seconds"]
-    if isinstance(duration, bool) or not isinstance(duration, (int, float)) or not math.isfinite(duration) or duration <= 0:
+    duration = config.get("timeout_seconds")
+    if duration is not None and (isinstance(duration, bool) or not isinstance(duration, (int, float)) or not math.isfinite(duration) or duration <= 0):
         raise ValueError("Memory timeout must be positive and finite")
-    params = config["completion"]
+    params = config.get("completion", {})
     if not isinstance(params, dict) or any(key in params for key in ("messages", "tools", "functions", "function_call")):
         raise ValueError("Memory owns its auxiliary model messages and disables tools")
     if params.get("stream", True) is not True or params.get("n", 1) != 1:
         raise ValueError("Memory completion requires stream=True, n=1")
-    if config["summarize"] or config["extract"]:
+    if config.get("summarize") or config.get("extract"):
         if not isinstance(params.get("model"), str) or not params["model"].strip():
             raise ValueError("Memory summary/extraction requires processing.completion.model")
+    if any(config.get(key) for key in ("recall", "summarize", "extract", "compress_tools")) and "priority" not in config:
+        raise ValueError("Missing required setting: memory.processing.priority")
+    # Opt-in algorithms require their tuning inputs; never silently invent them.
+    requirements = {
+        "recall": ("recall_limit", "recall_query_chars", "context_chars"),
+        "compress_tools": ("tool_result_chars",),
+        "summarize": ("keep_turns", "summary_after_chars", "summary_chars", "model_input_chars", "max_summary_calls", "context_chars"),
+        "extract": ("model_input_chars", "recall_limit", "max_candidates", "summary_chars", "extract_scope"),
+    }
+    if config.get("summarize") and config.get("compact_active"):
+        requirements["summarize"] += ("active_keep_iterations",)
+    for feature, keys in requirements.items():
+        if config.get(feature):
+            for key in keys:
+                if config.get(key) is None:
+                    raise ValueError(f"Missing required setting: memory.processing.{key}")
     return config
 
 
@@ -78,7 +87,7 @@ class MemoryProcessor:
     name = "memory"
     close_timeout = 5.0
 
-    def __init__(self, data, *, completion_fn=None, token_counter=None, priority=100):
+    def __init__(self, data, *, completion_fn=None, token_counter=None, priority=0):
         self.data = data
         self.priority = priority
         self.completion_fn = completion_fn or completion
@@ -203,12 +212,12 @@ class MemorySession(CompletionSession):
 
         try:
             async with aclosing(BaseEngine().step(context, action, name=name, kind="memory",
-                    timeout_seconds=self.config["timeout_seconds"],
+                    timeout_seconds=self.config.get("timeout_seconds"),
                     metadata={"component": self.data.name, "parent_step_id": context.output_step_id})) as events:
                 async for event in events:
                     if event.type == EngineEventType.STEP_STARTED:
                         source["step_id"] = event.step_id
-                    if event.type == EngineEventType.STEP_FAILED and self.config["failure_mode"] == "continue":
+                    if event.type == EngineEventType.STEP_FAILED and self.config.get("failure_mode") == "continue":
                         # 선택적 부가 기능의 실패를 숨기지 않고 완료된 fallback Step으로 기록한다.
                         # FAILED Step을 남긴 Run은 성공할 수 없다는 기존 서비스 불변식을 유지한다.
                         yield BaseEngine.step_completed_event(context, event.step_id,
@@ -217,17 +226,17 @@ class MemorySession(CompletionSession):
                     else:
                         yield event
         except Exception:
-            if self.config["failure_mode"] != "continue":
+            if self.config.get("failure_mode") != "continue":
                 raise
             # fallback 기록은 남는다. 취소/GeneratorExit는 잡지 않고 소유 Run으로 전달한다.
 
     async def _model(self, instruction, payload, result):
-        params = {"stream": True, "timeout": self.config["timeout_seconds"],
+        params = {"stream": True,
                   **deepcopy(self.config["completion"])}
         params["messages"] = [{"role": "system", "content": instruction},
                               {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
         response = {}
-        model = BaseEngine(completion_fn=self.processor.completion_fn, max_output_chars=65536)
+        model = BaseEngine(completion_fn=self.processor.completion_fn, max_output_chars=self.config.get("max_output_chars"))
         async with aclosing(model.stream_completion(params, response=response)) as events:
             async for event in events:
                 if isinstance(event, EngineEvent):
@@ -357,7 +366,9 @@ class MemorySession(CompletionSession):
         current = self.recall_query or next((m.content for m in self.context.messages if m.id == self.context.run.input_message_id), "")
         if current.strip():
             config = self.snapshot["configuration"]
-            limit = min(self.config["recall_limit"], config.get("max_search_results", 100))
+            limit = self.config["recall_limit"]
+            if config.get("max_search_results") is not None:
+                limit = min(limit, config["max_search_results"])
             hits = await self.data.asearch(current, status="confirmed", limit=limit, session_id=self.context.session.id)
             self.recalled = [hit["memory"] for hit in hits if hit["memory"]["kind"] != "conversation_summary"]
         result["memories"] = [{"id": m["id"], "revision": m["revision"]} for m in self.recalled]
@@ -367,11 +378,11 @@ class MemorySession(CompletionSession):
     def _fits(self, text):
         if len(text) > self.config["context_chars"]:
             return False
-        if self.config["context_tokens"] is not None:
+        if self.config.get("context_tokens") is not None:
             count = self.processor.token_counter(text)
             if type(count) is not int or count < 0:
                 raise ValueError("Memory token counter must return a nonnegative integer")
-            return count <= self.config["context_tokens"]
+            return count <= self.config.get("context_tokens")
         return True
 
     async def _compose(self, request, result, source):
@@ -493,14 +504,14 @@ class MemorySession(CompletionSession):
             self.snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.session.id, include_records=False)
             self.config = processing_settings(self.snapshot["configuration"], token_counter=self.processor.token_counter)
             self.prepared = True
-        if self.config["summarize"] and (self.context.output_step_id is None or self.config["nested_processing"]) and not self.did_summarize:
+        if self.config.get("summarize") and (self.context.output_step_id is None or self.config.get("nested_processing")) and not self.did_summarize:
             self.did_summarize = True
             async with aclosing(self._step("Memory summarize", self._summarize)) as events:
                 async for event in events:
                     yield event
         self.prepare_count += 1
-        refresh = self.config["recall_every"] and (self.prepare_count - 1) % self.config["recall_every"] == 0
-        if self.config["recall"] and (not self.did_recall or refresh):
+        refresh = self.config.get("recall_every") and (self.prepare_count - 1) % self.config.get("recall_every") == 0
+        if self.config.get("recall") and (not self.did_recall or refresh):
             current = next((m.value.get("content", "") for m in request.messages if m.source_id == self.context.run.input_message_id), "")
             recent = next((m.value.get("content", "") for m in reversed(request.messages) if m.value.get("role") == "tool"), "")
             self.recall_query = (str(current) + "\n" + str(recent))[-self.config["recall_query_chars"]:]
@@ -508,7 +519,7 @@ class MemorySession(CompletionSession):
             async with aclosing(self._step("Memory recall", self._recall)) as events:
                 async for event in events:
                     yield event
-        if self.config["compress_tools"] and any(m.value.get("role") == "tool" and isinstance(m.value.get("content"), str)
+        if self.config.get("compress_tools") and any(m.value.get("role") == "tool" and isinstance(m.value.get("content"), str)
                 and len(m.value["content"]) > self.config["tool_result_chars"] for m in request.messages):
             async with aclosing(self._step("Memory tool preview", lambda r, s: self._compress(request, r, s))) as events:
                 async for event in events:
@@ -517,13 +528,13 @@ class MemorySession(CompletionSession):
             async with aclosing(self._step("Memory context", lambda r, s: self._compose(request, r, s))) as events:
                 async for event in events:
                     yield event
-        if self.config["summarize"] and self.config["compact_active"]:
+        if self.config.get("summarize") and self.config.get("compact_active"):
             async with aclosing(self._step("Memory active work summary", lambda r, s: self._compact_active(request, r, s))) as events:
                 async for event in events:
                     yield event
 
     async def finish(self, observation):
-        if self.config and self.config["extract"] and (self.context.output_step_id is None or self.config["nested_processing"]):
+        if self.config and self.config.get("extract") and (self.context.output_step_id is None or self.config.get("nested_processing")):
             async with aclosing(self._step("Memory extract", lambda r, s: self._extract(
                     observation.original_messages, observation.response, r, s))) as events:
                 async for event in events:

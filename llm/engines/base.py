@@ -140,9 +140,9 @@ class BaseEngine:
                  metadata: Optional[dict] = None,
                  error_message: str = "Step execution failed",
                  completion_fn: Callable[..., Iterator[Any]] = completion,
-                 buffer_size: int = 8, max_tool_calls: int = 16,
-                 max_argument_chars: int = 65536,
-                 max_output_chars: int = 1_000_000) -> None:
+                 buffer_size: int = 8, max_tool_calls: Optional[int] = None,
+                 max_argument_chars: Optional[int] = None,
+                 max_output_chars: Optional[int] = None) -> None:
         if not isinstance(name, str) or not name.strip() or not isinstance(kind, str) or not kind.strip():
             raise ValueError("Step requires a name and kind")
         if action is not None and not callable(action):
@@ -162,12 +162,14 @@ class BaseEngine:
         self.metadata = deepcopy(metadata or {})
         self.error_message = error_message
         for value in (buffer_size, max_tool_calls, max_argument_chars, max_output_chars):
-            if type(value) is not int or value < 1:
+            if value is not None and (type(value) is not int or value < 1):
                 raise ValueError("Completion limits must be positive integers")
         if not callable(completion_fn):
             raise TypeError("completion_fn must be callable")
         self.completion_fn = completion_fn
         self.buffer_size = buffer_size
+        if type(buffer_size) is not int or buffer_size < 1:
+            raise ValueError("buffer_size must be a positive integer")
         self.max_tool_calls = max_tool_calls
         self.max_argument_chars = max_argument_chars
         self.max_output_chars = max_output_chars
@@ -277,7 +279,9 @@ class BaseEngine:
                     yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
                 if progress["received"] or attempt >= maximum or not transient(error):
                     raise
-                delay = min(policy.get("max_delay_seconds", 30), policy.get("delay_seconds", 1) * (2 ** min(attempt, 30)))
+                delay = policy.get("delay_seconds", 0) * (2 ** attempt)
+                if "max_delay_seconds" in policy:
+                    delay = min(delay, policy["max_delay_seconds"])
                 await asyncio.sleep(delay)
                 continue
             else:
@@ -313,10 +317,6 @@ class BaseEngine:
         if params.get("stream", True) is not True or params.get("n", 1) != 1:
             raise ValueError("Completion requires stream=True and n=1")
         params["stream"] = True
-        if "stream_options" not in params:
-            params["stream_options"] = {"include_usage": True}
-        elif isinstance(params["stream_options"], dict):
-            params["stream_options"].setdefault("include_usage", True)
         if response is not None and not isinstance(response, dict):
             raise TypeError("Completion response must be a dictionary")
         content_parts: list[str] = []
@@ -361,13 +361,13 @@ class BaseEngine:
                     if not isinstance(content, str):
                         raise ValueError("Expected text delta")
                     size += len(content)
-                    if size > self.max_output_chars:
+                    if self.max_output_chars is not None and size > self.max_output_chars:
                         raise ValueError("Completion output limit exceeded")
                     if content:
                         content_parts.append(content)
                 for fragment in fragments:
                     index = get(fragment, "index")
-                    if type(index) is not int or not 0 <= index < self.max_tool_calls:
+                    if type(index) is not int or index < 0 or (self.max_tool_calls is not None and index >= self.max_tool_calls):
                         raise ValueError("Invalid tool call index or too many calls")
                     if get(fragment, "type") not in (None, "function"):
                         raise ValueError("Unsupported tool call type")
@@ -385,8 +385,9 @@ class BaseEngine:
                             target[key] += value
                     # LiteLLM은 Gemini의 thought signature를 호출 ID에 담을 수 있다.
                     # ID는 불투명 값으로 그대로 전달하며 인자와 같은 유한 크기 제한을 쓴다.
-                    if (len(call["function"]["arguments"]) > self.max_argument_chars
-                            or len(call["id"]) > self.max_argument_chars or len(call["function"]["name"]) > 64):
+                    if ((self.max_argument_chars is not None and
+                         (len(call["function"]["arguments"]) > self.max_argument_chars or len(call["id"]) > self.max_argument_chars))
+                            or len(call["function"]["name"]) > 64):
                         raise ValueError("Tool call size limit exceeded")
                 reason = get(choice, "finish_reason")
                 if reason is not None:
@@ -435,57 +436,67 @@ class BaseEngine:
                           kind=self.kind, name=self.name, metadata=deepcopy(self.metadata))
         termination = None
         try:
-            async with timeout(self.timeout_seconds):
-                operation = self.run(context)
-                if inspect.isawaitable(operation):
+            deadline = None if self.timeout_seconds is None else asyncio.get_running_loop().time() + self.timeout_seconds
+            operation = self.run(context)
+            if inspect.isawaitable(operation):
+                async with timeout(self.timeout_seconds):
                     result = await operation
-                    if result is not None and not isinstance(result, EngineOutput):
-                        raise TypeError("Return EngineOutput or None, or yield text")
-                else:
-                    try:
-                        async for text in operation:
-                            if isinstance(text, EngineOutput):
-                                if result is not None:
-                                    raise ValueError("Step already has a final output")
-                                result = text
-                                continue
+                if result is not None and not isinstance(result, EngineOutput):
+                    raise TypeError("Return EngineOutput or None, or yield text")
+            else:
+                try:
+                    iterator = operation.__aiter__()
+                    while True:
+                        remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
+                        if remaining is not None and remaining <= 0:
+                            raise asyncio.TimeoutError()
+                        try:
+                            # yield 중에는 서비스가 이벤트를 저장한다. 그 Task를 타이머로
+                            # 취소하지 않고 다음 Engine 진행 시 절대 기한을 검사한다.
+                            async with timeout(remaining):
+                                text = await iterator.__anext__()
+                        except StopAsyncIteration:
+                            break
+                        if isinstance(text, EngineOutput):
                             if result is not None:
-                                raise ValueError("Cannot emit after a final output")
-                            if isinstance(text, EngineEvent) and text.type == EngineEventType.COMPLETION:
-                                if text.completion is None:
-                                    raise ValueError("Completion event requires a result")
-                                yield replace(text, step_id=step_id,
-                                              completion=replace(text.completion, step_id=step_id))
-                                continue
-                            if isinstance(text, EngineEvent) and text.type not in EngineEventType._value2member_map_:
-                                yield text
-                                continue
-                            if not isinstance(text, (str, EngineDelta)):
-                                raise TypeError("Step streams must yield text, EngineDelta or EngineOutput")
-                            if isinstance(text, str) and not text:
-                                continue
-                            event = self.delta_event(context, text, step_id=step_id)
-                            if visibility is not None and visibility != event.delta.visibility:
-                                raise ValueError("Step output visibility cannot change during streaming")
-                            visibility = event.delta.visibility
-                            if event.delta.operation == "replace":
-                                parts.clear()
-                            parts.append(event.delta.text)
-                            yield event
-                    except (asyncio.CancelledError, GeneratorExit) as error:
-                        termination = error
-                        raise
-                    finally:
-                        close = getattr(operation, "aclose", None)
-                        if close is not None:
-                            try:
-                                await close()
-                            except Exception:
-                                if termination is None:
-                                    raise
-                                # Preserve cancellation/GeneratorExit through
-                                # cleanup. A timeout scope can then translate
-                                # its own cancellation into TimeoutError.
+                                raise ValueError("Step already has a final output")
+                            result = text
+                            continue
+                        if result is not None:
+                            raise ValueError("Cannot emit after a final output")
+                        if isinstance(text, EngineEvent) and text.type == EngineEventType.COMPLETION:
+                            if text.completion is None:
+                                raise ValueError("Completion event requires a result")
+                            yield replace(text, step_id=step_id,
+                                          completion=replace(text.completion, step_id=step_id))
+                            continue
+                        if isinstance(text, EngineEvent) and text.type not in EngineEventType._value2member_map_:
+                            yield text
+                            continue
+                        if not isinstance(text, (str, EngineDelta)):
+                            raise TypeError("Step streams must yield text, EngineDelta or EngineOutput")
+                        if isinstance(text, str) and not text:
+                            continue
+                        event = self.delta_event(context, text, step_id=step_id)
+                        if visibility is not None and visibility != event.delta.visibility:
+                            raise ValueError("Step output visibility cannot change during streaming")
+                        visibility = event.delta.visibility
+                        if event.delta.operation == "replace":
+                            parts.clear()
+                        parts.append(event.delta.text)
+                        yield event
+                except (asyncio.CancelledError, GeneratorExit) as error:
+                    termination = error
+                    raise
+                finally:
+                    close = getattr(operation, "aclose", None)
+                    if close is not None:
+                        try:
+                            await close()
+                        except Exception:
+                            if termination is None:
+                                raise
+                            # 취소/GeneratorExit를 정리 오류로 바꾸지 않는다.
             # 결과 검증도 실패 이벤트/정리 범위 안에 둔다. 입력 객체는 복사 후 연결한다.
             output_context = replace(context, output_visibility=visibility or context.output_visibility)
             completed = self.step_completed_event(output_context, step_id,

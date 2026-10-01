@@ -146,9 +146,9 @@ class _WorkflowRuntime:
         self._context = ContextVar("workflow_engine_context", default=context)
         self.max_steps = engine.max_steps
         self.visited = 0
-        self.semaphore = asyncio.Semaphore(engine.max_parallelism)
+        self.semaphore = None if engine.max_parallelism is None else asyncio.Semaphore(engine.max_parallelism)
         # 제어용 gate도 super-step을 사용한다. 실제 예산은 모든 하위 그래프가 공유한다.
-        self.config = {"recursion_limit": engine.max_steps * 3 + 10}
+        self.config = {} if engine.max_steps is None else {"recursion_limit": engine.max_steps * 3 + 10}
         self.records = parent.records if parent is not None else (
             deepcopy(context.checkpoint["records"]) if context.checkpoint else {})
         self.resuming = context.checkpoint is not None
@@ -403,7 +403,8 @@ class _WorkflowRuntime:
                 async with AsyncExitStack() as slots:
                     if nested is None:
                         for runtime in (*self.parents, self):
-                            await slots.enter_async_context(runtime.semaphore)
+                            if runtime.semaphore is not None:
+                                await slots.enter_async_context(runtime.semaphore)
                     result = await self._call(self.handlers[kind], GraphNodeContext(
                         context, info["node_id"], deepcopy(definition), deepcopy(state), node_emit,
                         deepcopy(inputs), invoke_graph if nested is not None else None, key,
@@ -422,7 +423,7 @@ class _WorkflowRuntime:
             context = self._context.get()
             for runtime in (*self.parents, self):
                 runtime.visited += 1
-                if runtime.visited > runtime.max_steps:
+                if runtime.max_steps is not None and runtime.visited > runtime.max_steps:
                     raise GraphExecutionError("Graph node execution limit reached")
             state = deepcopy(frame["data"])
             kind, step_id = definition["type"], new_id()
@@ -527,15 +528,16 @@ class GraphEngine:
         supplied = dict(max_steps=max_steps, max_parallelism=max_parallelism, timeout_seconds=timeout_seconds,
                         buffer_size=buffer_size, max_nested_depth=max_nested_depth, cleanup_timeout=cleanup_timeout)
         self._overrides = {key: value for key, value in supplied.items() if value is not _UNSET}
-        values = {**self._defaults(), **self._overrides}
-        max_steps, max_parallelism, timeout_seconds = (values[k] for k in ("max_steps", "max_parallelism", "timeout_seconds"))
-        buffer_size, max_nested_depth, cleanup_timeout = (values[k] for k in ("buffer_size", "max_nested_depth", "cleanup_timeout"))
+        values = self._overrides
+        max_steps, max_parallelism, timeout_seconds = (values.get(k) for k in ("max_steps", "max_parallelism", "timeout_seconds"))
+        # Buffer size only controls backpressure. Cleanup must terminate even if a handler ignores cancellation.
+        buffer_size, max_nested_depth, cleanup_timeout = values.get("buffer_size", 32), values.get("max_nested_depth"), values.get("cleanup_timeout", 5.0)
         if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
             raise ValueError("settings_name must be nonempty text")
         self.settings_name, self._agent_options, self._configured = settings_name, {}, False
         if not isinstance(workflow, str) or not workflow:
             raise ValueError("GraphEngine requires a workflow ID")
-        if any(type(value) is not int or value < 1 for value in (max_steps, max_parallelism, buffer_size)):
+        if any(value is not None and (type(value) is not int or value < 1) for value in (max_steps, max_parallelism, buffer_size)):
             raise ValueError("Graph limits must be positive integers")
         self._deadline(timeout_seconds)
         self._deadline(cleanup_timeout)
@@ -544,7 +546,7 @@ class GraphEngine:
         if config_keys is not None and (not isinstance(config_keys, tuple) or any(not isinstance(k, str) or not k for k in config_keys)):
             raise ValueError("config_keys must be a tuple of project setting names")
         self.cleanup_timeout, self.config_keys = cleanup_timeout, config_keys
-        if type(max_nested_depth) is not int or max_nested_depth < 0 or max_nested_depth > 32:
+        if max_nested_depth is not None and (type(max_nested_depth) is not int or max_nested_depth < 0):
             raise ValueError("max_nested_depth must be an integer between 0 and 32")
         self.max_nested_depth = max_nested_depth
         if not isinstance(revision, str) or not revision:
@@ -561,25 +563,25 @@ class GraphEngine:
         self.max_steps, self.max_parallelism = max_steps, max_parallelism
         self.timeout_seconds, self.buffer_size = timeout_seconds, buffer_size
 
-    @staticmethod
-    def _defaults():
-        return {"max_steps": 1000, "max_parallelism": 8, "timeout_seconds": 300.0,
-                "buffer_size": 32, "max_nested_depth": 16, "cleanup_timeout": 5.0}
+    _option_names = ("max_steps", "max_parallelism", "timeout_seconds", "buffer_size", "max_nested_depth", "cleanup_timeout")
 
     def configuration_schema(self):
         from llm.core.schema import object_schema, field
-        properties = {key: field("integer", getattr(self, key), minimum=1,
-                      **{"x-host-override": key in self._overrides}) for key in self._defaults()}
-        properties["max_nested_depth"].update(minimum=0, maximum=32)
+        properties = {key: field(["integer", "null"], minimum=1,
+                      **{"x-host-override": key in self._overrides}) for key in self._option_names}
+        properties["buffer_size"]["type"] = "integer"
+        properties["max_nested_depth"].update(minimum=0)
         for key in ("timeout_seconds", "cleanup_timeout"):
-            properties[key] = field(["number", "null"] if key == "timeout_seconds" else "number",
-                getattr(self, key), exclusiveMinimum=0, **{"x-host-override": key in self._overrides})
+            properties[key] = field(["number", "null"] if key == "timeout_seconds" else "number", exclusiveMinimum=0, **{"x-host-override": key in self._overrides})
         return object_schema(properties, **{"x-runtime-configuration": ["workflow", "handlers", "revision", "config_keys"],
             **({"x-settings-key": self.settings_name} if self.settings_name else {})})
 
     def configuration(self, config, name, *, session_config=None):
-        return engine_configuration(config, self.settings_name or name, self._defaults(), session_config=session_config,
+        view = engine_configuration(config, self.settings_name or name, session_config=session_config,
             agent=self._agent_options, host=self._overrides, schema=self.configuration_schema())
+        if "cleanup_timeout" not in view["values"]:
+            view["enforced"] = {"cleanup_timeout": 5.0}
+        return view
 
     def configured(self, context):
         """등록 인스턴스를 변경하지 않는 실행별 설정 사본. 중첩 실행에도 동일하게 적용한다."""
@@ -589,7 +591,7 @@ class GraphEngine:
         worker = copy(self)
         GraphEngine.__init__(worker, self.workflow, handlers=self.handlers, revision=self.revision,
             config_keys=self.config_keys, settings_name=self.settings_name,
-            **{key: values[key] for key in self._defaults()})
+            **{key: values[key] for key in self._option_names if key in values})
         worker._overrides, worker._agent_options, worker._configured = self._overrides, self._agent_options, True
         return worker
 
@@ -664,9 +666,9 @@ class GraphEngine:
             yield from self.configured(context)._walk(capabilities, context, ancestors, remaining)
             return
         # capability 탐색에는 Project 문맥이 없다. 실제 깊이는 문맥을 받은 사전 검증에서 제한한다.
-        depth = 32 if context is None and "max_nested_depth" not in self._overrides and "max_nested_depth" not in self._agent_options else self.max_nested_depth
-        remaining = depth if remaining is None else min(remaining, depth)
-        if remaining < 0 or self.workflow in ancestors:
+        depth = self.max_nested_depth
+        remaining = depth if remaining is None else remaining if depth is None else min(remaining, depth)
+        if (remaining is not None and remaining < 0) or self.workflow in ancestors:
             raise GraphExecutionError("Cyclic Workflow reference or nested depth limit exceeded")
         if any(name not in capabilities for name in self.required_capabilities):
             if context is not None:
@@ -682,7 +684,7 @@ class GraphEngine:
                 prepare = getattr(self.handlers.get(node["type"]), "graph_context", None)
                 if context is not None and prepare is not None:
                     child_context = prepare(deepcopy(node), context)
-                yield from child._walk(capabilities, child_context, (*ancestors, self.workflow), remaining - 1)
+                yield from child._walk(capabilities, child_context, (*ancestors, self.workflow), None if remaining is None else remaining - 1)
 
     def _prepare(self, context: EngineContext):
         """실행별 정의 스냅샷을 한 번 탐색해 검증과 재개 바인딩에 함께 사용한다.
@@ -712,7 +714,7 @@ class GraphEngine:
     def for_agent(self, definition: dict):
         """Agent가 지정한 Workflow를 부모 Graph 실행 범위에 연결한다."""
         options = deepcopy(definition.get("engine_options", {}))
-        allowed = {"workflow", *self._defaults()}
+        allowed = {"workflow", *self._option_names}
         if options.keys() - allowed:
             raise ValueError("Unsupported Graph Agent engine_options")
         # 모델 지침은 실제 LLM을 실행하는 하위 Agent에서 정의한다.
@@ -721,7 +723,7 @@ class GraphEngine:
             raise ValueError("Graph Agent model/Skill/MCP settings belong to its leaf Agents")
         worker = copy(self)
         workflow = options.pop("workflow", self.workflow)
-        GraphEngine(workflow, handlers=self.handlers, **{**self._defaults(), **options, **self._overrides})
+        GraphEngine(workflow, handlers=self.handlers, **{**options, **self._overrides})
         worker.workflow = workflow
         worker._agent_options, worker._configured = options, False
         worker.settings_name = self.settings_name or definition["engine"]

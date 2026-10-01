@@ -28,20 +28,20 @@ class ProcessToolRunner:
     """
 
     def __init__(self, commands: Mapping[str, Sequence[str]], *, cwd: Union[str, Path],
-                 isolation: str = "sandbox", env: Optional[Mapping[str, str]] = None,
-                 read_only_paths: Sequence[Union[str, Path]] = (), timeout_seconds: float = 60,
-                 max_output_bytes: int = 1_000_000, memory_bytes: int = 512 * 1024 * 1024,
-                 max_concurrency: int = 4,
-                 allow_network: bool = False,
+                 isolation: str, env: Optional[Mapping[str, str]] = None,
+                 read_only_paths: Sequence[Union[str, Path]] = (), timeout_seconds: Optional[float] = None,
+                 max_output_bytes: Optional[int] = None, memory_bytes: Optional[int] = None,
+                 max_concurrency: Optional[int] = None,
+                 allow_network: Optional[bool] = None,
                  python_executable: Optional[Union[str, Path]] = None):
         require_linux()
         positive_seconds(timeout_seconds, "Process timeout")
-        if timeout_seconds is None or isolation not in ("sandbox", "process"):
-            raise ValueError("Choose sandbox or process with a finite timeout")
-        if type(allow_network) is not bool:
+        if isolation not in ("sandbox", "process"):
+            raise ValueError("Choose sandbox or process")
+        if isolation == "sandbox" and type(allow_network) is not bool:
             raise ValueError("allow_network must be boolean")
         for value in (max_output_bytes, memory_bytes, max_concurrency):
-            if type(value) is not int or value < 1:
+            if value is not None and (type(value) is not int or value < 1):
                 raise ValueError("Process limits must be positive integers")
         self.commands = {}
         for name, argv in commands.items():
@@ -114,7 +114,7 @@ class ProcessToolRunner:
                     if not chunk:
                         return b"".join(chunks)
                     total += len(chunk)
-                    if total > self.max_output_bytes:
+                    if self.max_output_bytes is not None and total > self.max_output_bytes:
                         raise ExecutionLimitError("process_failed", "Tool process output limit exceeded")
                     chunks.append(chunk)
 
@@ -166,9 +166,11 @@ class ProcessToolRunner:
         """큐 대기도 timeout에 포함한다. 호출별 프로세스 그룹은 완료·실패·취소 시 회수한다."""
         loop = asyncio.get_running_loop()
         if self._loop is None:
-            self._loop, self._slots = loop, asyncio.Semaphore(self.max_concurrency)
+            self._loop, self._slots = loop, None if self.max_concurrency is None else asyncio.Semaphore(self.max_concurrency)
         if self._loop is not loop:
             raise RuntimeError("Use ProcessToolRunner on its original event loop")
         async with timeout(self.timeout_seconds):
+            if self._slots is None:
+                return await self._execute(call)
             async with self._slots:
                 return await self._execute(call)

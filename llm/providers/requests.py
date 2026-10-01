@@ -10,26 +10,21 @@ from .runtime import diagnostic
 from .retry import effective_attempts
 
 
-def provider_defaults():
-    return {"max_attempts": 2, "wall_timeout": 120.0, "delay_seconds": 0.25,
-            "max_delay_seconds": 2.0}
-
-
 def provider_schema():
     from llm.core.schema import object_schema, field
     return object_schema({
-        "max_attempts": field("integer", 2, minimum=1, maximum=10),
-        "wall_timeout": field("number", 120.0, exclusiveMinimum=0),
-        "delay_seconds": field("number", 0.25, minimum=0),
-        "max_delay_seconds": field("number", 2.0, minimum=0),
+        "max_attempts": field("integer", minimum=1, maximum=10),
+        "wall_timeout": field(["number", "null"], exclusiveMinimum=0),
+        "delay_seconds": field("number", minimum=0),
+        "max_delay_seconds": field("number", minimum=0),
     }, additionalProperties=False)
 
 
 def resolve_provider_options(options):
     from jsonschema import Draft202012Validator
-    result = {**provider_defaults(), **options}
+    result = dict(options)
     Draft202012Validator(provider_schema()).validate(result)
-    if any(not math.isfinite(result[key]) for key in ("wall_timeout", "delay_seconds", "max_delay_seconds")):
+    if any(result.get(key) is not None and not math.isfinite(result[key]) for key in ("wall_timeout", "delay_seconds", "max_delay_seconds")):
         raise ValueError("Provider timing settings must be finite")
     return result
 
@@ -80,11 +75,14 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
     """각 실제 시도를 관찰한다. 전체 deadline에는 대기·backoff·사용량 관찰도 포함된다."""
     options = resolve_provider_options(options)
     started = time.monotonic()
-    end = min(deadline, started + options["wall_timeout"]) if deadline else started + options["wall_timeout"]
-    attempts = effective_attempts(request, options["max_attempts"], sdk_defaults=sdk_defaults)
+    end = deadline
+    if options.get("wall_timeout") is not None:
+        wall_end = started + options["wall_timeout"]
+        end = wall_end if end is None else min(end, wall_end)
+    attempts = effective_attempts(request, options.get("max_attempts", 1), sdk_defaults=sdk_defaults)
     for attempt in range(attempts):
-        remaining = end - time.monotonic()
-        if remaining <= 0:
+        remaining = None if end is None else end - time.monotonic()
+        if remaining is not None and remaining <= 0:
             raise ProviderError("provider_timeout")
         try:
             # 취소는 BaseException이므로 retry되지 않는다. 각 시도에 가변 인자 사본을 전달한다.
@@ -120,8 +118,10 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
                 if code == "provider_failed" or not code.startswith("provider_"):
                     raise
                 raise ProviderError(code) from error
-            delay = min(options["max_delay_seconds"], options["delay_seconds"] * 2 ** attempt)
-            if time.monotonic() + delay >= end:
+            delay = options.get("delay_seconds", 0) * 2 ** attempt
+            if "max_delay_seconds" in options:
+                delay = min(options["max_delay_seconds"], delay)
+            if end is not None and time.monotonic() + delay >= end:
                 raise ProviderError("provider_timeout") from error
             diagnostic("provider_retry", operation=operation, attempt=attempt + 2, delay_seconds=delay)
             await asyncio.sleep(delay)

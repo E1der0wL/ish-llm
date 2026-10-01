@@ -6,7 +6,7 @@ from jsonschema import Draft202012Validator
 from .models import ProjectConfig
 
 
-def resolve_configuration(defaults, layers, *, schema=None, host=None):
+def resolve_configuration(layers, *, schema=None, host=None):
     """뒤의 계층이 우선한다. 호스트 지정 필드는 JSON 경로별로 편집 불가를 표시한다."""
     values, sources, overridden = {}, {}, {}
 
@@ -15,6 +15,8 @@ def resolve_configuration(defaults, layers, *, schema=None, host=None):
             pointer = path + "/" + key.replace("~", "~0").replace("/", "~1")
             if isinstance(value, dict):
                 if not isinstance(target.get(key), dict):
+                    if pointer in sources:
+                        overridden.setdefault(pointer, []).append({"source": sources[pointer], "value": deepcopy(target[key])})
                     target[key] = {}
                     sources.pop(pointer, None)
                 merge(target[key], value, source, pointer)
@@ -26,7 +28,7 @@ def resolve_configuration(defaults, layers, *, schema=None, host=None):
                     if child.startswith(pointer + "/"):
                         del sources[child]
 
-    for source, data in [("default", defaults), *layers, ("host", host or {})]:
+    for source, data in [*layers, ("host", host or {})]:
         ProjectConfig.validate_settings(data)
         merge(values, data, source)
     if schema is not None:
@@ -37,12 +39,12 @@ def resolve_configuration(defaults, layers, *, schema=None, host=None):
             "editable": {path: source != "host" for path, source in sources.items()}}
 
 
-def engine_configuration(config, name, defaults, *, session_config=None, agent=None, host=None, schema=None):
+def engine_configuration(config, name, *, session_config=None, agent=None, host=None, schema=None):
     """Project → Session → Agent → host를 Engine과 UI가 같은 함수로 해석한다."""
     config = ProjectConfig(config)
     session = session_config or {}
     ProjectConfig.validate_session(session)
-    view = resolve_configuration(defaults, [
+    view = resolve_configuration([
         ("project", config.engines.get(name, {})),
         ("session", session.get("engines", {}).get(name, {})),
         ("agent", agent or {})], host=host, schema=schema)
@@ -55,4 +57,14 @@ def component_configuration(component, project):
     describe = getattr(component, "effective_configuration", None)
     if callable(describe):
         return describe(project)
-    return resolve_configuration({}, [("component", component.configuration(project))])
+    return resolve_configuration([("project", component.configuration(project))])
+
+
+# Public/configuration boundaries use this only where explicit None must override inheritance.
+UNSET = object()
+
+
+def required_setting(values, key, *, scope="configuration"):
+    if key not in values or values[key] is None:
+        raise ValueError(f"Missing required setting: {scope}.{key}")
+    return values[key]

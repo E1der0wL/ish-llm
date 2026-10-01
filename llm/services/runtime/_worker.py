@@ -23,8 +23,9 @@ def main():
     data = json.load(sys.stdin.buffer)
     import resource
     memory = data["memory_bytes"]
-    resource.setrlimit(resource.RLIMIT_AS, (memory, memory))
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+    if memory is not None:
+        resource.setrlimit(resource.RLIMIT_AS, (memory, memory))
+    # 명시하지 않은 다른 자원 제한(core dump 등)은 부모 OS 설정을 상속한다.
     process = subprocess.Popen(data["argv"], cwd=data["cwd"], env=data["env"],
                                stdin=subprocess.PIPE, stdout=sys.stdout.buffer, stderr=sys.stderr.buffer)
     process.communicate(json.dumps(data["payload"], ensure_ascii=True, allow_nan=False).encode("utf-8"))

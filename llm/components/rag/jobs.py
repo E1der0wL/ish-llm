@@ -74,8 +74,8 @@ class RAGJobs:
         if job.get("cancel_requested"):
             raise ValueError("Job was cancelled")
         project, component = self.data._current()
-        maximum = component.configuration(project).get("ingestion", {}).get("max_active", 1)
-        if type(maximum) is not int or maximum < 1:
+        maximum = component.configuration(project).get("ingestion", {}).get("max_active")
+        if maximum is not None and (type(maximum) is not int or maximum < 1):
             raise ValueError("ingestion.max_active must be positive")
         active = 0
         for item in self.list():
@@ -86,7 +86,7 @@ class RAGJobs:
                 active += 1
             else:
                 lease.close()
-        if active >= maximum:
+        if maximum is not None and active >= maximum:
             raise ValueError("rag_capacity: indexing concurrency limit reached; job remains queued")
         payload = read_json(root / "input.json")
         if revision_token(payload) != job["input_digest"]:

@@ -35,13 +35,13 @@ class RunLimits:
 
     max_queued: Optional[int] = None
     timeout_seconds: Optional[float] = None
-    max_capability_rounds: int = 32
+    max_capability_rounds: Optional[int] = None
 
     def __post_init__(self):
         if self.max_queued is not None and (type(self.max_queued) is not int or self.max_queued < 1):
             raise ValueError("max_queued must be a positive integer")
         positive_seconds(self.timeout_seconds, "Run timeout")
-        if type(self.max_capability_rounds) is not int or self.max_capability_rounds < 1:
+        if self.max_capability_rounds is not None and (type(self.max_capability_rounds) is not int or self.max_capability_rounds < 1):
             raise ValueError("max_capability_rounds must be a positive integer")
 
 
@@ -65,15 +65,15 @@ class ProjectPolicyResolver:
         from llm.core.policies import normalize_policies
         from llm.services.history.context import ContextPolicy, CompletionPolicy
         values = normalize_policies(settings)
-        completion = values["completion"]
+        completion = values.get("completion", {})
         policy = None
         usage = values.get("usage", {})
-        if (usage.get("max_tokens") is not None or usage.get("project_max_tokens") is not None) and completion["counter"] not in self.token_counters:
+        if (usage.get("max_tokens") is not None or usage.get("project_max_tokens") is not None) and completion.get("counter") not in self.token_counters:
             raise ExecutionLimitError("policy_unavailable", "Usage quota requires a registered token counter")
-        if completion["max_tokens"] is not None:
-            name = completion["counter"]
+        if completion.get("max_tokens") is not None:
+            name = completion.get("counter")
             if name not in self.token_counters:
                 raise ExecutionLimitError("policy_unavailable", f"Token counter is not registered: {name}")
-            policy = CompletionPolicy(completion["max_tokens"], reserve_tokens=completion["reserve_tokens"],
+            policy = CompletionPolicy(completion.get("max_tokens"), reserve_tokens=completion.get("reserve_tokens", 0),
                                       counter=self.token_counters[name])
-        return ContextPolicy(**values["context"]), policy, RunLimits(**values["run"])
+        return (ContextPolicy(**values["context"]) if values.get("context") else None), policy, RunLimits(**values.get("run", {}))

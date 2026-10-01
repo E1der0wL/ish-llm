@@ -1,3 +1,5 @@
+> 모든 알고리즘 설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. 동봉 JSON의 값을 명시해 실행한다.
+
 # 사내 GraphEngine + RAG 통합 테스트
 
 `graph_rag.py`는 실제 LiteLLM 모델과 Chroma/BM25/Kuzu를 함께 실행한다.
@@ -37,12 +39,12 @@ JSON 구조·엔티티 참조·원문 인용 검증은 사용자 프롬프트와
 `component_configurations.rag.extraction.prompt_id`가 이 레코드를 선택한다.
 
 `component_configurations.rag.extraction.repair_attempts`는 **추가 수정 호출 횟수**이며
-기본 2, 0이면 비활성화다. 검증 오류·직전 JSON·원본 chunks를 다시 전달한다.
+예제에서 2를 명시하며, 미설정/0이면 수정 재호출을 하지 않는다. 검증 오류·직전 JSON·원본 chunks를 다시 전달한다.
 연결 오류·취소·사용량 한도는 이 수정 루프로 재시도하지 않는다. 각 호출은 사용량에 포함된다.
-추출/수정의 LiteLLM temperature는 0으로 고정되며 유효 설정 조회에도 표시된다.
+예제는 extraction_params.temperature=0을 명시한다. 라이브러리는 temperature를 강제하지 않는다.
 `engines.loop` 설정과 답변 검증 `--max-attempts`에는 영향을 주지 않는다.
 
-`extraction.relation_types`로 선호 타입 목록을 지정한다. 기본 USES, DEPENDS_ON,
+`extraction.relation_types`로 선호 타입 목록을 지정한다. 예: USES, DEPENDS_ON,
 PART_OF, CONFIGURES 등이며 뜻이 맞지 않으면 새로운 타입도 허용한다.
 대소문자만 다른 지정 타입은 정규화하지만 의미·방향이 다른 관계를 임의 병합하지 않는다.
 
@@ -191,4 +193,4 @@ rerank 요청이 각각 발생하고, 반환 index대로 실제 후보 순서가
 
 provider_probe는 같은 165줄 문서를 concurrency 1/2/4로 등록하여 chunks_total, 요청 수,
 임베딩 시간, 전체 등록 시간, 캐시/재사용 수, retry 수를 embedding_benchmark에 기록한다.
-fixture는 요청당 30ms 지연이며 실제 모델 처리량 측정이 아니다. 기본값은 속도와 무관하게 2를 유지한다.
+fixture는 요청당 30ms 지연이며 실제 모델 처리량 측정이 아니다. 예제 설정은 속도와 무관하게 2를 명시한다. 라이브러리 기본값은 없다.

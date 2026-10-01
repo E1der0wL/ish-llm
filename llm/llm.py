@@ -149,7 +149,7 @@ class LargeLanguageModel:
         components는 제공할 Component 인스턴스 목록이며 명시하면 기본 목록을 대체한다.
         실제로 사용할 종류는 Project 생성의 components=["tools", ...]에서 선택한다.
         services=ServiceConfig(...)로 저장소·문맥 정책·로그·이벤트 처리기를 주입한다.
-        conversation_storage는 새 Project와 선택이 없는 기존 Project의 기본값이다.
+        conversation_storage는 새 Project의 저장 방식이며 기존 Project의 명시된 선택은 보존한다.
         on_event(run, event), on_run_event(event)는 실행 관찰 콜백이다.
 
     동기/비동기 사용 규칙:
@@ -170,7 +170,7 @@ class LargeLanguageModel:
                 "memory": {"search_limit": 5},
             }, policies={"output": {"batch_size": 16}}),
         )
-        # 컴포넌트 기본값 위에 Project 설정을 적용한다.
+        # 명시된 client 설정 위에 Project 설정을 적용한다.
         # configure() 편의 API도 항상 같은 Project 설정을 갱신한다.
         view = await project.aconfiguration()
         print(view["components"]["rag"]["effective"]["sources"])
@@ -178,14 +178,14 @@ class LargeLanguageModel:
         settings.component_configurations["rag"]["search"]["limit"] = 10
         await project.asave(config=settings, expected_version=view["config_version"])
 
-        # 최초에는 loop 기본 선택·전체 등록 Component·file 대화 저장으로 생성한다.
+        # 최초에는 전체 등록 Component·file 대화 저장으로 생성하며 실행 Engine은 명시한다.
         # 재호출 시 같은 Project를 반환하고 기존 설정을 덮어쓰지 않는다.
         project = await backend.projects.aget_default(
             config=ProjectConfig(completion={"model": model}),
         )
         view = await project.aconfiguration()  # 프로젝트 + 선택된 Component 설정의 JSON 사본
         component_settings = view["components"]["tools"]["configuration"]
-        # 실제 실행에는 engine=view["project"]["config"]["default_engine"]을 명시한다.
+        # 실제 실행에는 engine="loop"을 명시한다.
 
         project = await backend.projects.acreate(
             "연구", config=ProjectConfig(completion={"model": model}),
@@ -430,7 +430,7 @@ class LargeLanguageModel:
         deleted = await memory.adelete(identifier, expected_revision=record["revision"])
         await memory.arestore(identifier, expected_revision=deleted["revision"])
 
-    API 작성은 confirmed, 모델 Tool 작성은 candidate가 기본이며 설정으로 조절할 수 있다.
+    API 생성 레코드는 confirmed 상태이며 모델 Tool의 작성 상태는 tool_write_status로 반드시 지정한다.
     선택 시 memory_search/get/create/update/delete Tool을 자동 제공한다. 모델 수정도 revision
     검사를 거치고 출처는 실행 문맥에서 기록한다. 자세한 정책은 docs/memory.md를 참고한다.
 
@@ -447,7 +447,7 @@ class LargeLanguageModel:
                                            "scope": "session", "session_id": session.id})
         record = await memory.aload(identifier, session_id=session.id)
 
-    자동 검색/Tool 미리보기는 기본 제공한다. 보조 모델 요약/추출은 설정으로 켜며 원본 대화와
+    자동 검색/Tool 미리보기는 processing에서 명시적으로 활성화한다. 보조 모델 요약/추출은 설정으로 켜며 원본 대화와
     Tool 결과를 덮어쓰지 않는다. 주요 도메인에는 Memory 전용 실행 로직이 없다.
     예산, 중첩 Engine, 오류 정책은 docs/memory-processing.md를 참고한다.
 
@@ -575,10 +575,10 @@ class LargeLanguageModel:
     Project 설정 폼과 운영 API::
 
         schema = backend.project_schema(components=["tools", "rag", "memory"])
-        # properties.config / properties.config.properties.component_configurations에서 타입·기본값·제약 조회
+        # properties.config / properties.config.properties.component_configurations에서 타입·허용값·제약 조회
         settings = await project.aconfiguration()
         values, schema = settings["values"], settings["schema"]
-        # values.config.component_configurations는 기본값이 병합된 폼 값이다.
+        # values.config.component_configurations는 명시된 값만 포함한다. 없는 키는 미설정이다.
         # settings.project.config는 저장 원본이다. 전체 설정 후보를 저장 전에 검증한다.
         preview = await project.avalidate_configuration(settings["project"]["config"],
                                                        expected_version=settings["config_version"])
@@ -599,7 +599,7 @@ class LargeLanguageModel:
     선언된 설정과 등록 Component별 설정이 스키마에 포함된다. 열린 JSON 영역과
     공급자 고유 인자는 additionalProperties=True로 표시하며 모든 가능한 키를 추측하지 않는다.
     호스트 실행 객체의 설정은 별도다. 사용법은 docs/operations-and-ui-settings.md에 있다.
-    설정 우선순위는 기본값 → Project → Session → Agent → 명시적 호스트 값이다.
+    Engine 설정 우선순위는 Project → Session → Agent → 명시적 호스트 값이다. missing은 상속하고 null은 상위 값을 덮어쓴다. 정책은 Project에만 저장한다.
     Graph·Loop·Pipeline과 RAG의 적용 규칙 및 변경점은 docs/settings-consistency.md를 따른다.
 
     관찰 콜백 안에서 같은 백엔드의 wait/shutdown을 기다리지 않는다. 사용자 정의 실행
@@ -755,7 +755,7 @@ class LargeLanguageModel:
 
         components=None은 현재 등록된 모든 컴포넌트, []는 선택 없음이다.
         properties.config에는 ProjectConfig, 그 안의 component_configurations에는
-        선택 컴포넌트의 설정 스키마가 있다. type/default/enum/minimum/description으로
+        선택 컴포넌트의 설정 스키마가 있다. type/enum/minimum/description으로
         폼을 만들고 additionalProperties=True인 영역은 추가 JSON 키 입력을 허용한다.
         파일/모델을 읽지 않으며 런타임 함수·실제 인증값을 반환하지 않는다.
         저장된 값과 편집 버전은 await project.aconfiguration()으로 별도 조회한다.
@@ -816,11 +816,11 @@ async def run_request(args: argparse.Namespace) -> int:
     async with LargeLanguageModel(
         args.workspace, components=[ToolComponent(tools)], on_event=print_event,
         conversation_storage=args.conversation_storage,
-        engines={"loop": LoopEngine(max_iterations=args.max_iterations,
-                                    request_timeout=args.timeout)},
+        engines={"loop": LoopEngine(**{key: value for key, value in {
+            "max_iterations": args.max_iterations, "request_timeout": args.timeout}.items() if value is not None})},
     ) as backend:
         project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(
-            completion={"model": args.model, "temperature": args.temperature, "api_base": args.api_base}),
+            completion={key: value for key, value in {"model": args.model, "temperature": args.temperature, "api_base": args.api_base}.items() if value is not None}),
             components=["tools"] if args.with_tools else [])
         session = await project.sessions.acreate("Streaming request")
         if args.with_tools:
@@ -854,8 +854,8 @@ def main(*argv: str) -> None:
                         help="Message storage; memory is lost when this command exits")
     parser.add_argument("--api-base", help="Optional OpenAI-compatible endpoint URL")
     parser.add_argument("--temperature", type=float, default=None, help="Omit for model default")
-    parser.add_argument("--max-iterations", type=int, default=8)
-    parser.add_argument("--timeout", type=float, default=60)
+    parser.add_argument("--max-iterations", type=int)
+    parser.add_argument("--timeout", type=float)
     parser.add_argument("--with-tools", action="store_true", help="Register the example add tool")
     args = parser.parse_args(list(argv))
     try:

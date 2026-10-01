@@ -30,19 +30,14 @@ class ToolComponent(Component):
     def __init__(self, catalog: Optional[ToolRegistry] = None) -> None:
         self.catalog = catalog if catalog is not None else ToolRegistry()
 
-    def default_configuration(self) -> dict:
-        return {"enabled": []}
-
     def configuration_schema(self):
         from llm.core.schema import object_schema
         return object_schema({"enabled": {"type": "array", "items": {"type": "string"},
-            "uniqueItems": True, "default": [], "description": "프로젝트에서 사용할 Tool 이름",
-            "x-suggestions": list(self.catalog.names())}}, required=["enabled"], default=self.default_configuration())
+            "uniqueItems": True, "description": "프로젝트에서 사용할 Tool 이름",
+            "x-suggestions": list(self.catalog.names())}})
 
     def validate_configuration(self, configuration: dict) -> None:
-        if "enabled" not in configuration:
-            raise ValueError("Tool configuration requires enabled names")
-        names = configuration["enabled"]
+        names = configuration.get("enabled", [])
         if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
             raise ValueError("Enabled tools must be a list of names")
         if len(set(names)) != len(names):
@@ -57,7 +52,7 @@ class ToolComponent(Component):
 
     def enabled(self, project: Project) -> list[str]:
         """Read selected names without resolving definitions or Python handlers."""
-        return self.configuration(project)["enabled"]
+        return self.configuration(project).get("enabled", [])
 
     @staticmethod
     async def _unbound(arguments):
@@ -83,12 +78,12 @@ class ToolComponent(Component):
         return super().create(project, data, identifier=identifier)
 
     def delete(self, project: Project, identifier: str) -> None:
-        if identifier in self.configuration(project)["enabled"]:
+        if identifier in self.configuration(project).get("enabled", []):
             raise ValueError("Disable the tool before deleting its definition")
         super().delete(project, identifier)
 
     def resolve_tools(self, project: Project) -> ToolRegistry:
-        names = self.configuration(project)["enabled"]
+        names = self.configuration(project).get("enabled", [])
         tools = ToolRegistry()
         for name in names:
             try:

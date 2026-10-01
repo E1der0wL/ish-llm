@@ -19,9 +19,9 @@ class AgentComponent(DefinitionComponent):
         "properties": {
             "purpose": {"type": "string", "minLength": 1},
             "engine": {"type": "string", "minLength": 1},
-            "system_prompt": {"type": "string"},
+            "system_prompt": {"type": ["string", "null"]},
             "completion": {
-                "type": "object", "required": ["model"],
+                "type": "object",
                 "properties": {"model": {"type": "string", "minLength": 1}},
             },
             "engine_options": {"type": "object"},

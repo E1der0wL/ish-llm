@@ -10,26 +10,28 @@ def search_tools(data) -> ToolRegistry:
         "type": "object", "additionalProperties": False, "required": ["query"],
         "properties": {
             "query": {"type": "string", "minLength": 1},
-            "method": {"type": "string", "enum": ["hybrid", "bm25", "vector"], "default": "hybrid"},
-            "expand": {"type": "string", "enum": ["chunk", "section", "document"], "default": "section"},
-            "limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 5},
-            "rerank": {"type": "boolean", "default": False},
-            "max_hops": {"type": "integer", "minimum": 1, "maximum": 5, "default": 2},
-            "relation_limit": {"type": "integer", "minimum": 1, "maximum": 1000, "default": 30},
+            "method": {"type": "string", "enum": ["hybrid", "bm25", "vector"]},
+            "expand": {"type": "string", "enum": ["chunk", "section", "document"]},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+            "rerank": {"type": "boolean"},
+            "max_hops": {"type": "integer", "minimum": 1, "maximum": 5},
+            "relation_limit": {"type": "integer", "minimum": 1, "maximum": 1000},
         },
     }
 
-    defaults = data.effective_configuration()["values"]["search"]
+    configured = data.effective_configuration()["values"].get("search", {})
     specs = search_schema()["properties"]
     for name in parameters["properties"].keys() - {"query"}:
-        parameters["properties"][name] = {**specs[name], "default": defaults[name]}
+        parameters["properties"][name] = dict(specs[name])
+        if name != "rerank" and name not in configured:
+            parameters["required"].append(name)
     has_reranker = data.has_reranker()
     if not has_reranker:
-        parameters["properties"]["rerank"] = {"type": "boolean", "const": False, "default": False}
+        parameters["properties"]["rerank"] = {"type": "boolean", "const": False}
 
     async def retrieve(arguments):
-        if not has_reranker:
-            arguments = {**arguments, "rerank": False}
+        if not has_reranker and arguments.get("rerank", configured.get("rerank")):
+            raise ValueError("Rerank requested without a configured reranker")
         return {"component": data.name, **await data.asearch(**arguments)}
 
     return ToolRegistry((Tool(

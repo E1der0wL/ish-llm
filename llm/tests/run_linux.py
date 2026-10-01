@@ -42,14 +42,17 @@ def main():
     (report / "snapshot.json").write_text(json.dumps({"root": str(target), "python": args.python, "files": files}, indent=2))
     env = dict(os.environ, LITELLM_LOCAL_MODEL_COST_MAP="True", LITELLM_MODE="PRODUCTION")
     print(target, flush=True)
-    modules = args.modules or ["llm.tests.test_provider_runtime", "llm.tests.test_rag_resilience"]
+    modules = args.modules or ["llm.tests.test_provider_runtime", "llm.tests.test_rag_resilience", "llm.tests.test_explicit_configuration"]
+    failed = False
     for name, command in [("focused", modules), *([("suite", ["discover", "-s", "tests"])] if args.full else [])]:
         with (report / (name + ".txt")).open("w") as output:
             result = subprocess.run([args.python, "-m", "unittest", *command, "-v"], cwd=target, env=env,
                                     stdout=output, stderr=subprocess.STDOUT)
+        failed |= result.returncode != 0
         print(name, result.returncode, flush=True)
     print("Reports:", report, flush=True)
+    return int(failed)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

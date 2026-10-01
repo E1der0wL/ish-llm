@@ -29,11 +29,11 @@ class BuiltinTools:
     def __init__(self, root, *, allow_commands: bool = False, git: bool = False,
                  checks: Optional[Mapping[str, Sequence[str]]] = None,
                  adapters: Optional[Mapping[str, Callable]] = None,
-                 max_file_bytes: int = 1_000_000, max_output_bytes: int = 100_000,
-                 max_seconds: float = 60, shell: Optional[Sequence[str]] = None):
-        if any(type(value) is not int or value < 1 for value in (max_file_bytes, max_output_bytes)):
+                 max_file_bytes: Optional[int] = None, max_output_bytes: Optional[int] = None,
+                 max_seconds: Optional[float] = None, shell: Optional[Sequence[str]] = None):
+        if any(value is not None and (type(value) is not int or value < 1) for value in (max_file_bytes, max_output_bytes)):
             raise ValueError("Byte limits must be positive integers")
-        if isinstance(max_seconds, bool) or not isinstance(max_seconds, (int, float)) or not math.isfinite(max_seconds) or max_seconds <= 0:
+        if max_seconds is not None and (isinstance(max_seconds, bool) or not isinstance(max_seconds, (int, float)) or not math.isfinite(max_seconds) or max_seconds <= 0):
             raise ValueError("max_seconds must be positive and finite")
         if type(allow_commands) is not bool or type(git) is not bool:
             raise TypeError("Tool feature switches must be booleans")
@@ -45,8 +45,8 @@ class BuiltinTools:
         digest = string(pattern="^[0-9a-f]{64}$")
         specs = {
             "file_read": ("Read a UTF-8 file and its SHA-256 version.", schema({"path": path, "start_line": {"type": "integer", "minimum": 1}, "max_lines": {"type": "integer", "minimum": 1, "maximum": 5000}}, ["path"])),
-            "file_list": ("List working directory entries without following links.", schema({"path": path, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 1000}})),
-            "file_search": ("Find literal text in UTF-8 files; return line numbers.", schema({"path": path, "query": string(minLength=1), "case_sensitive": {"type": "boolean"}, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 500}}, ["query"])),
+            "file_list": ("List working directory entries without following links.", schema({"path": path, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 1000}}, ["recursive"])),
+            "file_search": ("Find literal text in UTF-8 files; return line numbers.", schema({"path": path, "query": string(minLength=1), "case_sensitive": {"type": "boolean"}, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 500}}, ["query", "case_sensitive", "recursive"])),
             "file_create": ("Create a new UTF-8 file; never overwrite an existing file.", schema({"path": path, "content": string()}, ["path", "content"])),
             "file_patch": ("Replace exactly one matching text after checking the file version.", schema({"path": path, "expected_sha256": digest, "old_text": string(minLength=1), "new_text": string()}, ["path", "expected_sha256", "old_text", "new_text"])),
             "file_move": ("Move a version-checked file without overwriting the destination.", schema({"path": path, "destination": path, "expected_sha256": digest}, ["path", "destination", "expected_sha256"])),
@@ -60,7 +60,7 @@ class BuiltinTools:
                 return await drain_on_cancel(asyncio.to_thread(operation, args))
             self._register(name, description, parameters, file_call)
 
-        limits = {"timeout_seconds": {"type": "number", "exclusiveMinimum": 0, "maximum": max_seconds}}
+        limits = {"timeout_seconds": {"type": "number", "exclusiveMinimum": 0, **({"maximum": max_seconds} if max_seconds is not None else {})}}
         commands = dict(checks or {})
         for name, argv in commands.items():
             if not isinstance(name, str) or not name or isinstance(argv, str) or not argv or any(not isinstance(item, str) or not item for item in argv):
@@ -75,7 +75,7 @@ class BuiltinTools:
         if allow_commands:
             process_schema = schema({"argv": {"type": "array", "minItems": 1, "items": string(minLength=1)}, "cwd": path, **limits}, ["argv"])
             self._register("process_start", "Start an argv command; returns an ID for polling/cancellation.", process_schema, self.processes.start)
-            prefix = list(shell) if shell is not None else ["/bin/sh", "-c"]
+            prefix = list(shell) if shell is not None else []
             if isinstance(shell, str) or not prefix or any(not isinstance(item, str) or not item for item in prefix):
                 raise ValueError("shell must be a nonempty argv prefix")
             async def execute_shell(args):
@@ -136,7 +136,7 @@ class BuiltinTools:
             return await agents.aupdate_prompt(args["agent_id"], args["system_prompt"], expected_revision=args["expected_revision"])
         self._register("prompt_read", "Read a saved Agent prompt and revision.", schema({"agent_id": string()}, ["agent_id"]), read)
         self._register("prompt_update", "Update only a saved Agent system prompt after a revision check.",
-                       schema({"agent_id": string(), "system_prompt": string(), "expected_revision": string()}, ["agent_id", "system_prompt", "expected_revision"]), update)
+                       schema({"agent_id": string(), "system_prompt": {"type": ["string", "null"]}, "expected_revision": string()}, ["agent_id", "system_prompt", "expected_revision"]), update)
 
     async def close(self):
         if not self.closed:

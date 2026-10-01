@@ -11,15 +11,16 @@ from llm.services.infrastructure.storage import atomic_json, read_json, remove_n
 from llm.services.infrastructure.logging import log_event
 from .data import RAGData
 from .indexing import build_index, update_index
-from .search import search, search_defaults, search_schema
+from .search import search, search_schema
 from .splitting import split_markdown
 from .extraction import validate_graph, enrich_graph, GraphValidationError
-from .prompts import default_prompt, extraction_defaults, extraction_schema
+from .prompts import extraction_schema
 from .graph_indexing import build_graph, update_graph
 from .graph_search import graph_search, related_graph
 from .files import copy_file
-from llm.core.configuration import resolve_configuration
-from llm.providers.requests import provider_defaults, provider_schema, error_code
+from llm.core.configuration import resolve_configuration, required_setting
+from llm.core.models import ProjectConfig
+from llm.providers.requests import provider_schema, error_code
 from llm.providers.embeddings import extract_single_embedding
 from llm.providers.runtime import diagnostic, diagnostic_scope
 from .ingestion import VectorCache, prepare_vectors
@@ -41,15 +42,15 @@ class RAGComponent(DefinitionComponent):
         """모델 구현만 주입한다. 분할·동시성·검색 설정은 ProjectConfig에서 받는다."""
         self.embedding, self.reranker, self.extractor = embedding, reranker, extractor
         self.embedding_id = embedding_id
-        values = self.default_configuration()
+        values = {}
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
                      "document_kwargs", "query_kwargs", "index_batch_size"):
-            setattr(self, name, deepcopy(values[name]))
+            setattr(self, name, deepcopy(values.get(name, {} if name.endswith("kwargs") else None)))
         from .search import LexicalCache
-        self.search_cache = LexicalCache(values["search_cache_chars"])
-        self.search_options, self.graph_options = values["search"], values["graph"]
-        self.extraction_options, self.extraction_prompt = values["extraction"], default_prompt()
-        self.provider_options = values["provider"]
+        self.search_cache = LexicalCache(0)
+        self.search_options, self.graph_options = values.get("search", {}), values.get("graph", {})
+        self.extraction_options, self.extraction_prompt = values.get("extraction", {}), {"messages": []}
+        self.provider_options = values.get("provider", {})
         self.vector_cache = VectorCache()
 
     def _generation_path(self, project, generation):
@@ -74,42 +75,29 @@ class RAGComponent(DefinitionComponent):
         return identifier
 
     # 공개 API: 직접 호출 시 workspace 소유권은 호출자가 보장해야 한다.
-    def default_configuration(self):
-        return {"chunk_size": 2000, "embedding_concurrency": 2, "embedding_cache_max_bytes": 16 * 1024 * 1024, "extraction_batch_size": 32,
-                "search_cache_chars": 1_000_000, "document_kwargs": {}, "query_kwargs": {},
-                "embedding_params": {}, "extraction_params": {}, "rerank_params": {},
-                "extraction": extraction_defaults(),
-                "provider": provider_defaults(),
-                "search": search_defaults(), "index_batch_size": 128,
-                "graph": {"buffer_pool_size": 64 * 1024 * 1024, "max_num_threads": 2},
-                "ingestion": {"max_active": 1}, "retention": {"job_max_age_seconds": None}}
-
     def effective_configuration(self, project):
         if getattr(self, "_configuration_source", None) is not None:
             return self._configuration_source.effective_configuration(project)
-        client_defaults = {}
+        client_values = {}
         runtime = []
         for name, client in (("embedding_params", self.embedding), ("extraction_params", self.extractor), ("rerank_params", self.reranker)):
             if client is not None:
                 params = getattr(client, "params", {})
                 try:
                     self.serialize(params)
-                    client_defaults[name] = params
+                    client_values[name] = params
                 except (ValueError, TypeError):
                     runtime.append(name)
-        layers = [("client", client_defaults), *self.configuration_layers(project)]
-        from .extraction import TripleExtractor
-        if isinstance(self.extractor, TripleExtractor) or self.extractor is None and any(
-                values.get("extraction_params") for _, values in layers):
-            layers.append(("extraction_contract", {"extraction_params": {"temperature": 0}}))
-        # SDK retry 설정은 그대로 노출하고 RAG 임베딩의 캐시 무결성 계약만 표시한다.
-        from .embedding import EmbeddingModel
-        if isinstance(self.embedding, EmbeddingModel) or self.embedding is None and any(
-                values.get("embedding_params") for _, values in layers):
-            layers.append(("embedding_integrity", {"embedding_params": {
-                "caching": False, "cache": {"no-cache": True, "no-store": True}}}))
-        view = resolve_configuration(self.default_configuration(), layers,
-            schema=self.configuration_schema())
+        if getattr(self.extractor, "extraction", None):
+            client_values["extraction"] = deepcopy(self.extractor.extraction)
+        layers = [("client", client_values), *self.configuration_layers(project)]
+        view = resolve_configuration(layers, schema=self.configuration_schema())
+        view["enforced"] = {"embedding_params": {"caching": False,
+            "cache": {"no-cache": True, "no-store": True}}}
+        view["model_providers"] = {name: resolve_configuration([
+            ("client", getattr(getattr(self, name), "provider_options", {})),
+            ("project", view["values"].get("provider", {}))], schema=provider_schema())
+            for name in ("embedding", "extractor", "reranker")}
         view["runtime"] = runtime
         return view
 
@@ -118,21 +106,22 @@ class RAGComponent(DefinitionComponent):
         from .embedding import EmbeddingModel
         from .extraction import TripleExtractor
         from .rerank import RerankModel
-        values = self.effective_configuration(project)["values"]
+        view = self.effective_configuration(project)
+        values = view["values"]
         worker = copy(self)
         worker._configuration_source = self
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
-            setattr(worker, name, deepcopy(values[name]))
-        worker.search_options, worker.graph_options = values["search"], values["graph"]
-        worker.extraction_options = deepcopy(values["extraction"])
-        worker.provider_options = values["provider"]
+            setattr(worker, name, deepcopy(values.get(name, {} if name.endswith("kwargs") else None)))
+        worker.search_options, worker.graph_options = values.get("search", {}), values.get("graph", {})
+        worker.extraction_options = deepcopy(values.get("extraction", {}))
+        worker.provider_options = values.get("provider", {})
         worker._cache_namespace = project.id
         worker._extraction_error = (ValueError("RAG prompt_id requires the selected prompts component through its Project handle")
-            if worker.extraction_options["prompt_id"] is not None and prompt is None else None)
-        worker.extraction_prompt = deepcopy(default_prompt() if prompt is None else prompt)
+            if worker.extraction_options.get("prompt_id") is not None and prompt is None else None)
+        worker.extraction_prompt = deepcopy({"messages": []} if prompt is None else prompt)
         for name, key, factory in (("embedding", "embedding_params", EmbeddingModel),
                                    ("extractor", "extraction_params", TripleExtractor), ("reranker", "rerank_params", RerankModel)):
-            client, params = getattr(self, name), values[key]
+            client, params = getattr(self, name), values.get(key, {})
             if client is None and params:
                 client = factory(**params)
             elif client is not None and params:
@@ -142,15 +131,18 @@ class RAGComponent(DefinitionComponent):
                 elif self.configuration(project).get(key):
                     raise ValueError(f"Custom {name} requires configured(params) to apply project parameters")
             if client is not None and callable(getattr(client, "with_provider", None)):
-                client = client.with_provider(worker.provider_options)
+                client = client.with_provider(view["model_providers"][name]["values"])
             setattr(worker, name, client)
         bind_extraction = getattr(worker.extractor, "with_extraction", None)
         if bind_extraction is not None:
+            worker.extraction_options = ProjectConfig.merge(getattr(worker.extractor, "extraction", {}), worker.extraction_options)
+            if prompt is None and getattr(worker.extractor, "prompt", None) is not None:
+                worker.extraction_prompt = deepcopy(worker.extractor.prompt)
             worker.extractor = bind_extraction(worker.extraction_options, worker.extraction_prompt)
-        elif worker.extractor is not None and any(worker.extraction_options[key] != extraction_defaults()[key]
-                 for key in ("repair_attempts", "prompt_id", "relation_types", "json_mode")):
+        elif worker.extractor is not None and any(key in worker.extraction_options for key in ("repair_attempts", "prompt_id", "relation_types", "json_mode")):
             raise ValueError("Custom extractor requires with_extraction(options, prompt) to apply extraction policies")
-        worker._configuration_version = revision_token({"configuration": values, "prompt": worker.extraction_prompt,
+        worker._configuration_version = revision_token({"configuration": values,
+            "model_providers": {k: v["values"] for k, v in view["model_providers"].items()}, "prompt": worker.extraction_prompt,
                                                        "prompt_resolved": worker._extraction_error is None})
         return worker
 
@@ -160,23 +152,22 @@ class RAGComponent(DefinitionComponent):
                                       if key in ("model", "api_key", "api_base", "timeout", "num_retries")},
                                      **{"x-open-parameters": True})
         return object_schema({
-            "chunk_size": field("integer", 2000, minimum=64),
-            "embedding_concurrency": field("integer", 2, minimum=1, maximum=32),
-            "embedding_cache_max_bytes": field("integer", 16 * 1024 * 1024, minimum=0),
-            "extraction_batch_size": field("integer", 32, minimum=1),
-            "search_cache_chars": field("integer", 1_000_000, minimum=0),
-            "index_batch_size": field("integer", 128, minimum=1), "search": search_schema(),
-            "graph": object_schema({"buffer_pool_size": field("integer", 64 * 1024 * 1024, minimum=1),
-                                    "max_num_threads": field("integer", 2, minimum=1)}),
+            "chunk_size": field("integer", minimum=64),
+            "embedding_concurrency": field("integer", minimum=1, maximum=32),
+            "embedding_cache_max_bytes": field("integer", minimum=0),
+            "extraction_batch_size": field("integer", minimum=1),
+            "search_cache_chars": field("integer", minimum=0),
+            "index_batch_size": field("integer", minimum=1), "search": search_schema(),
+            "graph": object_schema({"buffer_pool_size": field("integer", minimum=1),
+                                    "max_num_threads": field("integer", minimum=1)}),
             "document_kwargs": object_schema(), "query_kwargs": object_schema(),
             "embedding_params": deepcopy(model_params), "extraction_params": completion_schema(),
             "extraction": extraction_schema(),
             "provider": provider_schema(),
             "rerank_params": deepcopy(model_params),
-            "ingestion": object_schema({"max_active": field("integer", 1, "동시 색인 작업 수", minimum=1)}),
-            "retention": object_schema({"job_max_age_seconds": field(["number", "null"], None,
+            "ingestion": object_schema({"max_active": field("integer", "동시 색인 작업 수", minimum=1)}),
+            "retention": object_schema({"job_max_age_seconds": field(["number", "null"],
                 "완료·취소한 색인 작업의 입력/영수증 보관 기간. null은 무제한", exclusiveMinimum=0)})},
-            default=self.default_configuration(),
             **{"x-runtime-configuration": ["embedding", "extractor", "reranker", "embedding_id"]})
 
     def validate_configuration(self, data):
@@ -186,13 +177,13 @@ class RAGComponent(DefinitionComponent):
         error = next(Draft202012Validator(self.configuration_schema()).iter_errors(data), None)
         if error:
             raise ValueError("Invalid RAG configuration: " + error.message)
-        for value in (data.get("ingestion", {}).get("max_active", 1),):
-            if type(value) is not int:
+        for value in (data.get("ingestion", {}).get("max_active"),):
+            if value is not None and type(value) is not int:
                 raise ValueError("ingestion.max_active requires an integer")
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "index_batch_size"):
             if name in data and type(data[name]) is not int:
                 raise ValueError(f"{name} requires an integer")
-        if type(data.get("extraction", {}).get("repair_attempts", 2)) is not int:
+        if "repair_attempts" in data.get("extraction", {}) and type(data["extraction"]["repair_attempts"]) is not int:
             raise ValueError("extraction.repair_attempts requires an integer")
 
     def maintenance(self, project, *, apply=False, expected_version=None):
@@ -314,7 +305,11 @@ class RAGComponent(DefinitionComponent):
         return validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))
 
     async def prepare(self, identifier, title, content, metadata, revision, *, progress=None, previous=None, telemetry=None):
-        policy = self.extraction_options["failure_policy"]
+        policy = required_setting(self.extraction_options, "failure_policy", scope="rag.extraction")
+        if self.chunk_size is None:
+            raise ValueError("Missing required setting: rag.chunk_size")
+        if policy != "disabled" and self.extraction_batch_size is None:
+            raise ValueError("Missing required setting: rag.extraction_batch_size")
         if policy != "disabled" and getattr(self, "_extraction_error", None) is not None:
             raise self._extraction_error
         if policy != "disabled" and self.extractor is None:
@@ -347,7 +342,7 @@ class RAGComponent(DefinitionComponent):
                 try:
                     with diagnostic_scope(observe_extraction):
                         graph = validate_graph(await self.extractor.extract(batch), batch,
-                                               relation_types=self.extraction_options["relation_types"])
+                                               relation_types=self.extraction_options.get("relation_types", ()))
                 except Exception as error:
                     code = error_code(error)
                     # 저장/한도/프로그래밍 오류는 best_effort로 숨기지 않는다.
@@ -368,12 +363,12 @@ class RAGComponent(DefinitionComponent):
                 if progress:
                     await progress(key, signature, graph)
             else:
-                graph = validate_graph(graph, batch, relation_types=self.extraction_options["relation_types"])
+                graph = validate_graph(graph, batch, relation_types=self.extraction_options.get("relation_types", ()))
             entities.update({e["id"]: e for e in graph["entities"]})
             relations.extend(graph["relations"])
         document["graph"] = enrich_graph(validate_graph(
             {"entities": list(entities.values()), "relations": relations}, document["chunks"],
-            relation_types=self.extraction_options["relation_types"]), identifier)
+            relation_types=self.extraction_options.get("relation_types", ())), identifier)
         document["preparation_configuration"] = getattr(self, "_configuration_version", None)
         return document
 
@@ -428,8 +423,8 @@ class RAGComponent(DefinitionComponent):
             return []
         path = self._checked_tree(self._generation_path(project, snapshot["generation"]))
         return search(path, snapshot["documents"], query, vector, lexical_cache=self.search_cache,
-                      cache_chars=self.search_cache_chars, candidate_count=self.search_options["candidate_count"],
-                      rrf_constant=self.search_options["rrf_constant"], **options)
+                      cache_chars=self.search_cache_chars, candidate_count=required_setting(self.search_options, "candidate_count", scope="rag.search"),
+                      rrf_constant=required_setting(self.search_options, "rrf_constant", scope="rag.search"), **options)
 
     def graph_search(self, project, *, seed, max_hops, limit):
         snapshot = self.snapshot(project)

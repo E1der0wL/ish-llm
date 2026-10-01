@@ -63,9 +63,9 @@ class RunResultQuery:
         return self.sessions.ownership
 
     @workspace_locked
-    def tool_result(self, owner, session_id, run_id, tool_call_id, *, steps, offset=0, limit=16000):
+    def tool_result(self, owner, session_id, run_id, tool_call_id, *, steps, offset=0, limit=None):
         """소유 Session의 원본 Tool 결과를 부분 조회한다. 경로를 모델 입력으로 받지 않는다."""
-        if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 64000:
+        if type(offset) is not int or offset < 0 or limit is not None and (type(limit) is not int or not 1 <= limit <= 64000):
             raise ValueError("Invalid result slice")
         project = self.sessions.require_project(owner)
         session = self.sessions.load(project, session_id)
@@ -76,7 +76,7 @@ class RunResultQuery:
             raise ValueError("Completed Tool result not found uniquely")
         value = matches[0].output.data
         content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)
-        return {"content": content[offset:offset + limit], "offset": offset,
+        return {"content": content[offset:None if limit is None else offset + limit], "offset": offset,
                 "total_chars": len(content), "sha256": hashlib.sha256(content.encode()).hexdigest(),
                 "run_id": run_id, "step_id": matches[0].id}
 

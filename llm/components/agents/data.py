@@ -1,5 +1,6 @@
 """Agent 프롬프트의 버전 확인과 변경을 같은 Project 잠금 안에서 처리한다."""
 
+from typing import Optional
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.logging import log_event
@@ -30,12 +31,14 @@ class AgentData(ComponentData):
     def prompt(self, identifier: str) -> dict:
         project, component = self._current()
         data = component.load(project, identifier)
-        return {"agent_id": identifier, "system_prompt": data.get("system_prompt", ""), "revision": component.revision(data)}
+        # UI가 저장하지 않은 빈 문자열을 다시 저장해 상속을 끊지 않게 한다.
+        return {"agent_id": identifier, **({"system_prompt": data["system_prompt"]} if "system_prompt" in data else {}),
+                "revision": component.revision(data)}
 
     @workspace_locked
-    def update_prompt(self, identifier: str, system_prompt: str, *, expected_revision: str) -> dict:
-        if not isinstance(system_prompt, str):
-            raise TypeError("system_prompt must be a string")
+    def update_prompt(self, identifier: str, system_prompt: Optional[str], *, expected_revision: str) -> dict:
+        if system_prompt is not None and not isinstance(system_prompt, str):
+            raise TypeError("system_prompt must be a string or None")
         project, component = self._current()
         data = component.load(project, identifier)
         if component.revision(data) != expected_revision:

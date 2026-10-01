@@ -24,7 +24,7 @@ class ToolData(ComponentData):
         _, component = self._current()
         names = component._selection_names(names)
         configuration = self.configuration()
-        configuration["enabled"] = list(dict.fromkeys(configuration["enabled"] + names))
+        configuration["enabled"] = list(dict.fromkeys(configuration.get("enabled", []) + names))
         self.configure(configuration)
 
     @workspace_locked
@@ -33,7 +33,7 @@ class ToolData(ComponentData):
         _, component = self._current()
         names = component._selection_names(names)
         configuration = self.configuration()
-        configuration["enabled"] = [name for name in configuration["enabled"] if name not in names]
+        configuration["enabled"] = [name for name in configuration.get("enabled", []) if name not in names]
         self.configure(configuration)
 
     @workspace_locked

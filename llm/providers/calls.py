@@ -18,16 +18,16 @@ _current_calls = ContextVar("llm_provider_calls", default=None)
 class ProviderLimits:
     """백엔드 전체 호출/대기 상한. transport timeout은 completion 인자로 별도 설정한다."""
 
-    max_active: int = 8
-    max_waiting: int = 32
-    wait_seconds: float = 30.0
+    max_active: Optional[int] = None
+    max_waiting: Optional[int] = None
+    wait_seconds: Optional[float] = None
 
     def __post_init__(self):
         for name, minimum in (("max_active", 1), ("max_waiting", 0)):
             value = getattr(self, name)
-            if type(value) is not int or value < minimum:
+            if value is not None and (type(value) is not int or value < minimum):
                 raise ValueError(f"{name} must be an integer >= {minimum}")
-        if (isinstance(self.wait_seconds, bool) or not isinstance(self.wait_seconds, (int, float))
+        if self.wait_seconds is not None and (isinstance(self.wait_seconds, bool) or not isinstance(self.wait_seconds, (int, float))
                 or not math.isfinite(self.wait_seconds) or self.wait_seconds < 0):
             raise ValueError("wait_seconds must be finite and nonnegative")
 
@@ -60,25 +60,25 @@ class ProviderCalls:
             _current_calls.reset(token)
 
     async def acquire(self):
-        deadline = time.monotonic() + self.limits.wait_seconds
+        deadline = None if self.limits.wait_seconds is None else time.monotonic() + self.limits.wait_seconds
         loop, ready = asyncio.get_running_loop(), asyncio.Event()
         with self._mutex:
-            if self._active < self.limits.max_active:
+            if self.limits.max_active is None or self._active < self.limits.max_active:
                 self._active += 1
                 return
-            if self._waiting >= self.limits.max_waiting:
+            if self.limits.max_waiting is not None and self._waiting >= self.limits.max_waiting:
                 raise ProviderCapacityError("Provider waiting capacity exhausted")
             self._waiting += 1
             self._waiters.add((loop, ready))
         try:
             while True:
                 with self._mutex:
-                    if self._active < self.limits.max_active:
+                    if self.limits.max_active is None or self._active < self.limits.max_active:
                         self._active += 1
                         return
                     ready.clear()
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
+                remaining = None if deadline is None else deadline - time.monotonic()
+                if remaining is not None and remaining <= 0:
                     raise ProviderCapacityError("Provider capacity wait timed out")
                 try:
                     await asyncio.wait_for(ready.wait(), timeout=remaining)

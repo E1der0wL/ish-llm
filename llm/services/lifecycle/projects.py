@@ -177,7 +177,7 @@ class ProjectManager:
                    for run in self.sessions.run_repository.list(session)
                    for entry in run.metadata.get("completions", [])]
         records.extend({**entry, "source": "component"} for entry in component_usage(self.components, current))
-        period = current.config.policies["usage"]["period_seconds"]
+        period = current.config.policies.get("usage", {}).get("period_seconds")
         cutoff = datetime.now(timezone.utc) - timedelta(seconds=period) if period is not None else None
         records = [r for r in records if cutoff is None or datetime.fromisoformat(r["started_at"]) >= cutoff]
         known, reserved, unknown = 0, 0, 0
@@ -269,7 +269,6 @@ class ProjectManager:
                 return current
         # 소프트 삭제는 위 access.load에서 거부한다. 영구 삭제 후에는 새 ID로 만든다.
         settings = deepcopy(config) if config is not None else ProjectConfig()
-        settings["default_engine"] = "loop"
         settings.validate()
         self.sessions.conversations.resolve("file")
         selected = self.components.validate(self.components.names())
@@ -372,14 +371,14 @@ class ProjectManager:
         component = self.components.get(name)
         if permanent:
             from datetime import datetime, timezone, timedelta
-            usage = current.config.policies["usage"]
+            usage = current.config.policies.get("usage", {})
             reader = getattr(component, "model_usage", None)
             receipts = reader(current) if reader and component.root(current).exists() else []
-            period = usage["period_seconds"]
+            period = usage.get("period_seconds")
             cutoff = datetime.now(timezone.utc) - timedelta(seconds=period) if period is not None else None
             if any(r.get("status") == "started" for r in receipts):
                 raise ValueError("Component has unfinished model usage reservations")
-            if (usage["project_max_calls"] is not None or usage["project_max_tokens"] is not None) and any(
+            if (usage.get("project_max_calls") is not None or usage.get("project_max_tokens") is not None) and any(
                     cutoff is None or datetime.fromisoformat(r["started_at"]) >= cutoff for r in receipts):
                 raise ValueError("Component usage receipts are required by the active quota period")
             for session in self.sessions.list(current, include_deleted=True):

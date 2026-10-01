@@ -12,7 +12,7 @@ from uuid import uuid4
 class FileTools:
     """실행 루트는 개발자가 지정한다. 심볼릭 링크과 상위 경로는 따라가지 않는다."""
 
-    def __init__(self, root: Path, max_bytes: int = 1_000_000):
+    def __init__(self, root: Path, max_bytes=None):
         self.root = Path(root).absolute()
         self.max_bytes = max_bytes
         self.lock = threading.RLock()
@@ -41,8 +41,8 @@ class FileTools:
 
     def read_bytes(self, path: Path) -> bytes:
         with path.open("rb") as stream:
-            value = stream.read(self.max_bytes + 1)
-        if len(value) > self.max_bytes:
+            value = stream.read(-1 if self.max_bytes is None else self.max_bytes + 1)
+        if self.max_bytes is not None and len(value) > self.max_bytes:
             raise ValueError("File exceeds Tool byte limit")
         return value
 
@@ -51,7 +51,7 @@ class FileTools:
             raise ValueError("File changed; read it again before editing")
 
     def write(self, path: Path, content: bytes) -> None:
-        if len(content) > self.max_bytes:
+        if self.max_bytes is not None and len(content) > self.max_bytes:
             raise ValueError("File exceeds Tool byte limit")
         path.parent.mkdir(parents=True, exist_ok=True)
         mode = path.stat().st_mode if path.exists() else None
@@ -73,7 +73,7 @@ class FileTools:
         with self.lock:
             value = self.read_bytes(self.path(args["path"]))
             lines = value.decode("utf-8").splitlines(keepends=True)
-            start, count = args.get("start_line", 1), args.get("max_lines", 300)
+            start, count = args.get("start_line", 1), args.get("max_lines", len(lines))
             return {"path": args["path"], "text": "".join(lines[start - 1:start - 1 + count]),
                     "sha256": self.digest(value), "total_lines": len(lines),
                     "start_line": start, "truncated": start > 1 or len(lines) > count}
@@ -89,12 +89,12 @@ class FileTools:
                 if path.name.startswith(".llm-") or path.is_symlink():
                     continue
                 yield path
-                if args.get("recursive", False) and path.is_dir():
+                if args["recursive"] and path.is_dir():
                     pending.append(path)
 
     def file_list(self, args):
         with self.lock:
-            limit = args.get("limit", 500)
+            limit = args.get("limit")
             values = []
             for path in self.entries(args):
                 if len(values) == limit:
@@ -106,13 +106,11 @@ class FileTools:
     def file_search(self, args):
         with self.lock:
             query, values, skipped = args["query"], [], 0
-            insensitive = not args.get("case_sensitive", False)
+            insensitive = not args["case_sensitive"]
             needle = query.casefold() if insensitive else query
             scanned = 0
-            for path in self.entries({**args, "recursive": args.get("recursive", True)}):
+            for path in self.entries(args):
                 scanned += 1
-                if scanned > 5000:
-                    return {"matches": values, "skipped": skipped, "truncated": True}
                 if not path.is_file():
                     continue
                 try:
@@ -123,8 +121,8 @@ class FileTools:
                 for line_number, line in enumerate(text.splitlines(), 1):
                     if needle in (line.casefold() if insensitive else line):
                         values.append({"path": path.relative_to(self.root).as_posix(),
-                                       "line": line_number, "text": line[:2000]})
-                        if len(values) >= args.get("limit", 100):
+                                       "line": line_number, "text": line})
+                        if args.get("limit") is not None and len(values) >= args["limit"]:
                             return {"matches": values, "skipped": skipped, "truncated": True}
             return {"matches": values, "skipped": skipped, "truncated": False}
 

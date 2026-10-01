@@ -11,7 +11,7 @@ class ToolNode:
 
     required_capabilities = ("tools",)
 
-    def __init__(self, *, timeout_seconds=60, max_output_chars=1_000_000):
+    def __init__(self, *, timeout_seconds=None, max_output_chars=None):
         self.executor = ToolExecutor(timeout_seconds=timeout_seconds, max_output_chars=max_output_chars)
 
     def validate(self, definition, context):

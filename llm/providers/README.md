@@ -1,9 +1,6 @@
 # 공급자 안정화 경계
 
-`runtime.py`만 LiteLLM 전역 초기화와 로깅을 관리한다. 최초 import 전에
-`LITELLM_MODE=PRODUCTION`과 로컬 비용표를 설정한다. 기존 인증 환경변수는
-삭제하지 않는다. SDK import를 다른 플러그인이 먼저 수행했다면 이미 발생한 dotenv 로드는
-되돌릴 수 없다.
+설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. `runtime.py`는 LiteLLM 초기화와 진단 라우팅을 담당한다. 비용표·모드·인증 환경변수는 호스트 또는 SDK가 선택한다.
 
 LiteLLM import 전에 `os.environ["DEFAULT_MAX_RETRIES"] = "0"`을 강제로 적용한다.
 `litellm_sdk()`는 import 후와 매 진입 시 `sdk.DEFAULT_MAX_RETRIES = 0`도 적용한다.
@@ -12,9 +9,9 @@ LiteLLM 1.103.1 OpenAI embedding 경로의 `max_retries or DEFAULT_MAX_RETRIES`�
 
 | 요청 설정 | LiteLLM retry | llm 외부 시도 |
 |---|---|---|
-| num_retries/max_retries 생략 | 기본 0 | provider.max_attempts |
+| num_retries/max_retries 생략 | 기본 0 | 명시된 provider.max_attempts, 없으면 최초 호출만 |
 | max_retries=2 또는 num_retries=2 | 사용자 값 그대로 | 1회 |
-| num_retries=0, max_retries=0 | 0 | provider.max_attempts |
+| num_retries=0, max_retries=0 | 0 | 명시된 provider.max_attempts, 없으면 최초 호출만 |
 
 요청 dict에는 retry 키를 자동 삽입하지 않는다. `effective_attempts()`가 중첩을 막는다.
 주입 client의 max_retries, retry_policy, 호스트가 별도로 설정한 sdk.num_retries가
@@ -22,7 +19,7 @@ LiteLLM 1.103.1 OpenAI embedding 경로의 `max_retries or DEFAULT_MAX_RETRIES`�
 DEFAULT_MAX_RETRIES만 강제 0이며 명시적 설정이나 호스트의 client를 재작성하지 않는다.
 다른 코드가 호출 도중 SDK 전역값을 변경하는 경쟁까지 제어하지는 못한다.
 
-비스트리밍 호출은 `requests.invoke`가 전체 wall deadline과 시도 횟수를 소유한다.
+비스트리밍 호출은 명시된 경우에만 `requests.invoke`가 wall deadline과 outer retry를 적용한다. 누락 시 deadline/재시도 없이 최초 호출만 수행한다.
 llm 시도마다 공유 ProviderCalls의 admission과 기존 사용량 관찰자를 통과하므로 실패·재시도도 사용량 한도에 포함된다.
 SDK 내부 HTTP 재시도는 하나의 SDK 호출 안에서 일어나므로 별도 사용량 영수증으로 관찰할 수 없다.
 사용량 예약 실패는 공급자 재시도로 우회하지 않는다. `CancelledError`는 즉시 전달한다.
@@ -36,7 +33,7 @@ JSON/의미 오류는 별도의 extraction repair 정책을 사용한다.
 
 스트리밍은 기존 Run의 `policies.provider_retry`를 유지하며 첫 chunk를 받은 뒤에는
 llm은 자동 재시도하지 않는다. 스트리밍도 같은 SDK 우선 정책을 적용하고 사용자 값을 유지한다.
-스트림의 전체 대기 한도는 요청 `timeout`이며, 생략하면 120초다. 동기 SDK worker는
+스트림 bridge는 자체 deadline을 만들지 않는다. SDK `timeout`과 Loop wrapper request_timeout은 독립이다. 동기 SDK worker는
 강제로 죽일 수 없다. 소비자는 취소되지만 실제 호출이 종료될 때까지 슬롯은 반환하지 않는다.
 사용자 주입 함수가 취소를 무시하거나 자체 내부 재시도를 구현하는 경우까지 강제로 제어하지는 않는다.
 
@@ -44,7 +41,7 @@ llm은 자동 재시도하지 않는다. 스트리밍도 같은 SDK 우선 정�
 
 `configure_logging(workspace)`를 호출하거나 `LargeLanguageModel(workspace)`를 생성하면
 현재 문맥의 `workspace/logs/providers-<pid>.log`에 기록한다. 백엔드 없는 직접 모델 호출은
-`~/.ish/llm-provider-logs`를 쓴다. 파일은 5MB × 4개로 회전하며 열린 목적지는 최대 16개다.
+`~/.ish/llm-provider-logs`를 쓴다. 파일은 자동 회전·삭제하지 않으며 열린 목적지 handle만 최대 16개로 관리한다.
 `diagnostic_scope(callback)`으로 기존 `Diagnostic` 객체를 UI/보고서 수집기에 연결할 수 있다.
 중첩 scope의 관찰자도 호출된다. 엔진 응답은 기존 EngineEvent 흐름을 유지한다.
 
@@ -68,7 +65,7 @@ and restores results to that position. Embedding concurrency is bounded by confi
 index 정규화, partial-cache merge_positions 복원, embedding 배치 분할은 제거했다.
 여러 후보를 재정렬하는 **reranker의 results[*].index 검증은 그대로 유지**한다.
 
-RAG의 embedding_concurrency는 1–32, 기본 2다. 고정 개수의 asyncio worker가
+RAG의 embedding_concurrency는 1–32이며 문서 등록 시 명시해야 한다. 고정 개수의 asyncio worker가
 단일 청크 요청을 처리하며 백엔드 ProviderCalls의 더 작은 제한도 존중한다.
 VectorCache, 동일 텍스트 중복 제거, unchanged reuse, Job 청크 checkpoint는 유지한다.
 

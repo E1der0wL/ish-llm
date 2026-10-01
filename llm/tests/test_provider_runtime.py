@@ -16,7 +16,7 @@ import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
 from llm.components.rag import EmbeddingModel, TripleExtractor
-from llm.components.rag.prompts import extraction_defaults, default_prompt
+from llm.components.rag.prompts import default_prompt
 from llm.providers.embeddings import extract_single_embedding, EmbeddingIntegrityError
 from llm.providers.requests import invoke, ProviderError
 from llm.providers.runtime import configure_logging, diagnostic_scope, litellm_sdk
@@ -57,14 +57,14 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         for failure in (TimeoutError(), ConnectionResetError(), ProviderError("provider_empty_response")):
             call = AsyncMock(side_effect=[failure, "ok"])
             with diagnostic_scope(events.append), model_observer(observer):
-                self.assertEqual(await invoke("aembedding", {}, call, {"delay_seconds": 0}), "ok")
+                self.assertEqual(await invoke("aembedding", {}, call, {"max_attempts": 2, "delay_seconds": 0}), "ok")
             self.assertEqual(call.await_count, 2)
         for status in (429, 502, 503, 504):
             failure = RuntimeError("server")
             failure.status_code = status
             call = AsyncMock(side_effect=failure)
             with self.assertRaises(ProviderError):
-                await invoke("aembedding", {}, call, {"delay_seconds": 0})
+                await invoke("aembedding", {}, call, {"max_attempts": 2, "delay_seconds": 0})
             self.assertEqual(call.await_count, 2)
         self.assertEqual(len(observed), 6)
         self.assertTrue(any(e.code == "provider_retry" for e in events))
@@ -142,21 +142,26 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_reranker_tool_defends_direct_calls_without_mutating_arguments(self):
         from llm.components.rag.tools import search_tools
-        from llm.components.rag.search import search_defaults
+        from llm.tests.configuration_fixtures import rag_settings
         for present in (False, True):
             data = SimpleNamespace(name="rag", has_reranker=lambda: present,
-                effective_configuration=lambda: {"values": {"search": {**search_defaults(), "rerank": True}}},
+                effective_configuration=lambda: {"values": {"search": {**rag_settings()["search"], "rerank": True}}},
                 asearch=AsyncMock(return_value={"documents": []}))
             tool = search_tools(data).get("rag_search")
             spec = tool.parameters["properties"]["rerank"]
             if not present:
-                self.assertEqual(spec, {"type": "boolean", "const": False, "default": False})
+                self.assertEqual(spec, {"type": "boolean", "const": False})
             else:
                 self.assertNotIn("const", spec)
-                self.assertTrue(spec["default"])
+                self.assertNotIn("default", spec)
             arguments = {"query": "q", "rerank": True}
-            await tool.handler(arguments)  # schema를 우회한 직접 호출도 방어해야 한다.
-            self.assertEqual(data.asearch.call_args.kwargs["rerank"], present)
+            if present:
+                await tool.handler(arguments)
+                self.assertTrue(data.asearch.call_args.kwargs["rerank"])
+            else:
+                with self.assertRaisesRegex(ValueError, "reranker"):
+                    await tool.handler(arguments)
+                data.asearch.assert_not_called()
             self.assertTrue(arguments["rerank"])
 
     async def test_permanent_errors_never_retry(self):
@@ -165,7 +170,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             failure.status_code = status
             call = AsyncMock(side_effect=failure)
             with self.assertRaises(ProviderError):
-                await invoke("aembedding", {}, call, {"delay_seconds": 0})
+                await invoke("aembedding", {}, call, {"max_attempts": 2, "delay_seconds": 0})
             self.assertEqual(call.await_count, 1)
         for failure in (ValueError("semantic validation"), EmbeddingIntegrityError("embedding_result_count", "bad")):
             call = AsyncMock(side_effect=failure)
@@ -186,7 +191,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertLess(time.monotonic() - started, .5)
         self.assertTrue(closed.is_set())
         for call in (block, AsyncMock(side_effect=TimeoutError())):
-            task = asyncio.create_task(invoke("aembedding", {}, call, {"delay_seconds": 5, "max_delay_seconds": 5}))
+            task = asyncio.create_task(invoke("aembedding", {}, call, {"max_attempts": 2, "delay_seconds": 5, "max_delay_seconds": 5}))
             await asyncio.sleep(.01)
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):
@@ -232,13 +237,13 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(call.call_args.kwargs["client"], client)
         call = AsyncMock(return_value={"choices": []})
         with self.assertRaisesRegex(ProviderError, "invalid response"):
-            await invoke("acompletion", {}, call, {"delay_seconds": 0})
+            await invoke("acompletion", {}, call, {"max_attempts": 2, "delay_seconds": 0})
         self.assertEqual(call.await_count, 2)
         error = RuntimeError("Empty or invalid response from LLM endpoint")
         error.status_code = 400
         call = AsyncMock(side_effect=error)
         with self.assertRaisesRegex(ProviderError, "invalid request"):
-            await invoke("acompletion", {}, call, {"delay_seconds": 0})
+            await invoke("acompletion", {}, call, {"max_attempts": 2, "delay_seconds": 0})
         self.assertEqual(call.await_count, 1)
 
     async def test_sdk_import_does_not_block_other_diagnostics(self):
@@ -310,7 +315,7 @@ class EmbeddingTests(unittest.TestCase):
 class ExtractionModeTests(unittest.IsolatedAsyncioTestCase):
     def client(self, call, mode):
         return TripleExtractor(model="test", completion_fn=call, response_format={"type": "json_object"}).with_provider(
-            {"delay_seconds": 0}).with_extraction({**extraction_defaults(), "json_mode": mode}, default_prompt())
+            {"max_attempts": 2, "delay_seconds": 0}).with_extraction({**{"repair_attempts": 2, "json_mode": "strict", "failure_policy": "required"}, "json_mode": mode}, default_prompt())
 
     async def test_modes_and_bounded_auto_fallback(self):
         good = {"choices": [{"message": {"content": '{"entities":[],"relations":[]}'}}]}

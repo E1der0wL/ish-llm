@@ -1,3 +1,5 @@
+> 설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. 미설정 정책을 생성하지 않으며, SDK 옵션은 생략한다.
+
 # Project components
 
 Components own Project-root directories and persistent definitions. They do not
@@ -32,8 +34,8 @@ class NotesComponent(Component):
     name = "notes"
     directory = "knowledge"  # Explicit direct child of the Project root.
 
-    def default_configuration(self):
-        return {"format_version": 1}
+    def configuration_schema(self):
+        return {"type": "object", "properties": {"language": {"type": "string"}}}
 
 components = ComponentRegistry((NotesComponent(),))
 ```

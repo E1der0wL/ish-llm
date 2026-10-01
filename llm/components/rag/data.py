@@ -1,6 +1,7 @@
 """UI/Tool에서 사용하는 문서 API. 모델 준비는 잠금 밖, 공개/조회는 잠금 안에서 수행한다."""
 
 from copy import deepcopy
+from llm.core.configuration import required_setting
 from uuid import uuid4
 
 from llm.components.base import validate_name
@@ -19,7 +20,7 @@ class RAGData(ComponentData):
     def _current(self):
         project, component = super()._current()
         worker = component.configured(project)
-        prompt_id = worker.extraction_options["prompt_id"]
+        prompt_id = worker.extraction_options.get("prompt_id")
         if prompt_id is not None:
             try:
                 if "prompts" not in project.components:
@@ -107,7 +108,7 @@ class RAGData(ComponentData):
             raise ValueError("Query must be nonempty text")
         component, snapshot = await self._async_call(self._snapshot)
         options = {"method": method, "expand": expand, "limit": limit, "rerank": rerank}
-        options = {key: component.search_options[key] if value is None else value for key, value in options.items()}
+        options = {key: (component.search_options.get(key, False) if key == "rerank" else required_setting(component.search_options, key, scope="rag.search")) if value is None else value for key, value in options.items()}
         method, expand, limit, rerank = (options[key] for key in ("method", "expand", "limit", "rerank"))
         if type(rerank) is not bool:
             raise ValueError("rerank must be boolean")
@@ -244,8 +245,8 @@ class RAGData(ComponentData):
             if value is not None and (type(value) is not int or not 1 <= value <= maximum):
                 raise ValueError("Invalid graph search limit")
         snapshot, hits = await self._retrieve(query, method=method, expand=expand, limit=limit, rerank=rerank)
-        max_hops = snapshot["search_options"]["max_hops"] if max_hops is None else max_hops
-        relation_limit = snapshot["search_options"]["relation_limit"] if relation_limit is None else relation_limit
+        max_hops = required_setting(snapshot["search_options"], "max_hops", scope="rag.search") if max_hops is None else max_hops
+        relation_limit = required_setting(snapshot["search_options"], "relation_limit", scope="rag.search") if relation_limit is None else relation_limit
         if type(max_hops) is not int or not 1 <= max_hops <= 5:
             raise ValueError("max_hops must be between 1 and 5")
         if type(relation_limit) is not int or not 1 <= relation_limit <= 1000:
@@ -259,8 +260,8 @@ class RAGData(ComponentData):
         if not isinstance(seed, str) or not seed.strip():
             raise ValueError("Seed must be a nonempty entity name")
         project, component = self._current()
-        max_hops = component.search_options["max_hops"] if max_hops is None else max_hops
-        limit = component.search_options["relation_limit"] if limit is None else limit
+        max_hops = required_setting(component.search_options, "max_hops", scope="rag.search") if max_hops is None else max_hops
+        limit = required_setting(component.search_options, "relation_limit", scope="rag.search") if limit is None else limit
         if type(max_hops) is not int or not 1 <= max_hops <= 5:
             raise ValueError("max_hops must be between 1 and 5")
         if type(limit) is not int or not 1 <= limit <= 1000:

@@ -68,7 +68,9 @@ class MemoryData(ComponentData):
     def _tool_write(self, operation, arguments, source):
         # 설정 검사와 쓰기를 하나의 잠금 범위에서 수행한다. Tool 인자로 상태를 승격할 수 없다.
         project, component = self._current()
-        config = {**component.default_configuration(), **component.configuration(project)}
+        config = component.configuration(project)
+        if operation != "delete" and "tool_write_status" not in config:
+            raise ValueError("Missing required setting: memory.tool_write_status")
         arguments = dict(arguments)
         if operation == "create":
             if arguments.get("scope") == "session":

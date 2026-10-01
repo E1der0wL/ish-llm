@@ -1,3 +1,5 @@
+> 현재 설정 계약은 [CONFIGURATION.md](../CONFIGURATION.md)를 따른다. 아래 이전 측정 수치는 해당 명시적 fixture에 대한 기록이다.
+
 # 단일 청크 임베딩 실행 검증
 
 이번 변경은 llm/ 및 허용된 루트 테스트 파일에 한정한다.
@@ -15,7 +17,7 @@ TripleExtractor의 검증·repair·graph schema version 2와 reranker index 계�
 3. RAG embedding ordering does not depend on provider-reported embedding indexes.
    Each document chunk is embedded independently. The application owns the chunk ordinal
    and restores results to that position. Embedding concurrency is bounded by configuration.
-4. embedding_concurrency 기본 2, 정수 1–32. 고정 개수 asyncio worker가 text별 한 요청을 수행한다.
+4. embedding_concurrency 명시 필수, 정수 1–32. 고정 개수 asyncio worker가 text별 한 요청을 수행한다.
    문서의 청크 수만큼 Task를 만들지 않는다. ProviderCalls와 사용량 관찰도 그대로 통과한다.
 5. extract_single_embedding은 data list 길이 1과 유한·비영·nonempty·동일 차원을 검사한다.
    index는 읽지 않는다. query도 동일하다. 기존 corpus와 다른 청크 차원도 공개 전에 검사한다.
@@ -36,7 +38,7 @@ TripleExtractor의 검증·repair·graph schema version 2와 reranker index 계�
 - validate_embeddings(), normalize_litellm_embeddings(), merge_positions와 embedding index 정렬/정규화 진단.
 - embedding_batches_total/completed, batch_splits, batch_items와 index_normalizations 통계.
 
-새 cache 크기는 embedding_cache_max_bytes(기본 16MiB, 0이면 비활성)다.
+새 cache 크기는 embedding_cache_max_bytes(미설정/0이면 비활성)다.
 extraction_batch_size/index_batch_size는 관계 추출/DB I/O용이므로 유지한다.
 LiteLLM cache는 caching=False + no-cache/no-store로 계속 차단한다.
 임베딩 저수준 EmbeddingModel은 LiteLLM 응답을 반환하는 확장 API로 유지하며,
@@ -84,7 +86,7 @@ Linux 파일시스템 사본과 SHA-256 manifest를 llm/tests/run_linux.py로 �
 
 실제 peak 청크 요청은 1/2/4, 완료 후 active는 모두 0. 최초 실행에는 라이브러리 초기화 비용도
 포함되어 있으므로 전체 등록 시간 비율을 순수 동시성 효과로 해석하지 않는다.
-기본 동시성은 저사양 환경을 고려해 **2**를 유지한다. warm 등록은 embedding HTTP 요청 0회다.
+이 측정의 예제는 저사양 환경을 고려해 **2**를 명시했다. 라이브러리는 기본 동시성을 생성하지 않는다. warm 등록은 embedding HTTP 요청 0회다.
 
 추가 HTTP 검사:
 

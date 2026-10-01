@@ -40,18 +40,18 @@ class ModelClient:
         from llm.providers.requests import invoke, resolve_provider_options
         options = resolve_provider_options(self.provider_options)
         deadline = request.pop("_provider_deadline", None)
-        end = time.monotonic() + options["wall_timeout"]
-        deadline = min(deadline, end) if deadline else end
+        if options.get("wall_timeout") is not None:
+            end = time.monotonic() + options["wall_timeout"]
+            deadline = min(deadline, end) if deadline is not None else end
         if request.pop("_without_response_format", False):
             request.pop("response_format", None)
         if not isinstance(request.get("model"), str) or not request["model"].strip():
             raise ValueError("Model is required")
-        request.setdefault("timeout", 60)
         call = self._call_fn
         if call is None:
             # Heavy SDK initialization must not block the application's loop.
             from llm.providers.runtime import litellm_sdk, diagnostic
-            sdk = await asyncio.wait_for(asyncio.to_thread(litellm_sdk), max(0, deadline - time.monotonic()))
+            sdk = await asyncio.wait_for(asyncio.to_thread(litellm_sdk), None if deadline is None else max(0, deadline - time.monotonic()))
             call = getattr(sdk, self._operation)
             diagnostic("provider_request", operation=self._operation,
                 num_retries=request.get("num_retries"), max_retries=request.get("max_retries"),

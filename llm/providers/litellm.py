@@ -6,8 +6,6 @@ import asyncio
 import concurrent.futures
 import inspect
 import threading
-import time
-import math
 from contextvars import copy_context
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import Any
@@ -37,15 +35,10 @@ async def stream_completion(
     """
     if type(buffer_size) is not int or buffer_size < 1:
         raise ValueError("buffer_size must be a positive integer")
-    # 전체 응답 대기 한도. 소비자 취소 뒤 동기 worker는 실제 종료까지 슬롯을 소유한다.
-    transport_timeout = request.get("timeout")
-    wall_timeout = transport_timeout if type(transport_timeout) in (int, float) else 120
-    if not math.isfinite(wall_timeout) or wall_timeout <= 0:
-        raise ValueError("Provider timeout must be positive and finite")
-    deadline = time.monotonic() + wall_timeout
+    # SDK timeout은 그대로 전달한다. bridge는 별도 실행 deadline을 만들지 않는다.
     calls = calls if calls is not None else current_calls()
     if calls is not None:
-        await asyncio.wait_for(calls.acquire(), max(0, deadline - time.monotonic()))
+        await calls.acquire()
     loop = asyncio.get_running_loop()
     queue: asyncio.Queue[tuple[str, Any]] = asyncio.Queue(maxsize=buffer_size)
     stopped = threading.Event()
@@ -115,7 +108,7 @@ async def stream_completion(
         raise
     try:
         while True:
-            kind, value = await asyncio.wait_for(queue.get(), max(0, deadline - time.monotonic()))
+            kind, value = await queue.get()
             if kind == "end":
                 return
             if kind == "error":

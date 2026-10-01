@@ -46,19 +46,14 @@ def default_prompt() -> dict:
             ]}
 
 
-def extraction_defaults() -> dict:
-    return {"repair_attempts": 2, "prompt_id": None, "relation_types": list(RELATION_TYPES),
-            "json_mode": "strict", "failure_policy": "required"}
-
-
 def extraction_schema() -> dict:
     from llm.core.schema import field, object_schema
     return object_schema({
-        "json_mode": field("string", "strict", enum=["strict", "auto", "off"]),
-        "failure_policy": field("string", "required", enum=["required", "best_effort", "disabled"]),
-        "repair_attempts": field("integer", 2, "검증 오류 수정 요청 횟수. 0이면 비활성화", minimum=0),
-        "prompt_id": field(["string", "null"], None, "선택된 prompts 컴포넌트의 레코드 ID",
+        "json_mode": field("string", enum=["strict", "auto", "off"]),
+        "failure_policy": field("string", enum=["required", "best_effort", "disabled"]),
+        "repair_attempts": field("integer", "검증 오류 수정 요청 횟수. 0이면 비활성화", minimum=0),
+        "prompt_id": field(["string", "null"], "선택된 prompts 컴포넌트의 레코드 ID",
                            pattern="^[A-Za-z0-9_-]{1,64}$"),
-        "relation_types": field("array", list(RELATION_TYPES), "우선 사용할 관계 타입; 새 타입도 허용",
+        "relation_types": field("array", "우선 사용할 관계 타입; 새 타입도 허용",
                                 items={"type": "string", "minLength": 1}, uniqueItems=True),
     })

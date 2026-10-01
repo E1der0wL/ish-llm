@@ -12,7 +12,7 @@ from llm.services.infrastructure.storage import drain_on_cancel
 class ProcessTools:
     """호스트 프로세스 실행기다. cwd는 보안 샌드박스가 아니며 별도 OS 격리를 제공하지 않는다."""
 
-    def __init__(self, files, *, max_seconds=60.0, max_output_bytes=100_000, max_sessions=32):
+    def __init__(self, files, *, max_seconds=None, max_output_bytes=None, max_sessions=None):
         require_linux()
         self.files = files
         self.max_seconds, self.max_output_bytes, self.max_sessions = max_seconds, max_output_bytes, max_sessions
@@ -53,7 +53,7 @@ class ProcessTools:
         async with self.lock:
             if self.closed:
                 raise RuntimeError("Process tools are closed")
-            if len(self.sessions) >= self.max_sessions:
+            if self.max_sessions is not None and len(self.sessions) >= self.max_sessions:
                 finished = next((key for key, item in self.sessions.items() if item["task"].done()), None)
                 if finished is None:
                     raise RuntimeError("Too many running Tool processes")
@@ -62,7 +62,7 @@ class ProcessTools:
             if not cwd.is_dir():
                 raise ValueError("Process cwd must be an existing directory")
             seconds = args.get("timeout_seconds", self.max_seconds)
-            if not 0 < seconds <= self.max_seconds:
+            if seconds is not None and (seconds <= 0 or self.max_seconds is not None and seconds > self.max_seconds):
                 raise ValueError("Process timeout exceeds configured limit")
             # 취소가 프로세스 생성과 겹치더라도 핸들을 회수해 종료한다.
             pending = asyncio.create_task(asyncio.create_subprocess_exec(
@@ -85,7 +85,7 @@ class ProcessTools:
                     chunk = await stream.read(8192)
                     if not chunk:
                         break
-                    available = self.max_output_bytes - len(item["stdout"]) - len(item["stderr"])
+                    available = len(chunk) if self.max_output_bytes is None else self.max_output_bytes - len(item["stdout"]) - len(item["stderr"])
                     item[name].extend(chunk[:available])
                     item["truncated"] |= len(chunk) > available
 

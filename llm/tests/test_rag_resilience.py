@@ -1,4 +1,5 @@
 """실제 Chroma/Kuzu 공개·재개 경계와 저사양 청크 병렬 처리를 확인한다."""
+from llm.tests.configuration_fixtures import rag_settings, rag_project
 
 import asyncio
 import json
@@ -23,8 +24,10 @@ async def extract(**request):
 
 class IngestionTests(unittest.IsolatedAsyncioTestCase):
     def component(self, call=embedding):
+        from types import SimpleNamespace
         return RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=call),
-                            extractor=TripleExtractor(model="test", completion_fn=extract))
+                            extractor=TripleExtractor(model="test", completion_fn=extract)).configured(
+                                SimpleNamespace(id="fixture", config=rag_project(), paths=SimpleNamespace(root=Path(tempfile.gettempdir()) / "ish-rag-test-fixture")))
 
     async def test_bounded_workers_order_and_admission(self):
         from llm.providers.calls import ProviderCalls, ProviderLimits
@@ -135,7 +138,7 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
         for key in ("embedding_batch_size", "embedding_batching"):
             with self.assertRaisesRegex(ValueError, "removed"):
                 component.validate_configuration({key: 128})
-        self.assertEqual(component.default_configuration()["embedding_concurrency"], 2)
+        self.assertNotIn("default", component.configuration_schema()["properties"]["embedding_concurrency"])
 
     async def test_partial_content_cache_and_durable_unchanged_reuse(self):
         call = AsyncMock(side_effect=embedding)
@@ -249,9 +252,9 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
             component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=provider))
             async with LargeLanguageModel(root, components=[component],
                     services=ServiceConfig(provider_limits=ProviderLimits(max_active=2))) as backend:
-                project = await backend.projects.acreate("bounded", components=["rag"], config=ProjectConfig(
+                project = await backend.projects.acreate("bounded", components=["rag"], config=rag_project(ProjectConfig(
                     component_configurations={"rag": {"embedding_concurrency": 4,
-                        "extraction": {"failure_policy": "disabled"}}}))
+                        "extraction": {"failure_policy": "disabled"}}})))
                 rag = await project.components.aget("rag")
                 await rag.aadd_document(title="active", content="a\n\nb\n\nc\n\nd", identifier="active")
                 self.assertEqual(peak, 2)
@@ -282,8 +285,8 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[RAGComponent(
                     embedding=EmbeddingModel(model="test", embedding_fn=provider))]) as backend:
-                project = await backend.projects.acreate("dimensions", components=["rag"], config=ProjectConfig(
-                    component_configurations={"rag": {"extraction": {"failure_policy": "disabled"}}}))
+                project = await backend.projects.acreate("dimensions", components=["rag"], config=rag_project(ProjectConfig(
+                    component_configurations={"rag": {"extraction": {"failure_policy": "disabled"}}})))
                 rag = await project.components.aget("rag")
                 await rag.aadd_document(title="first", content="first", identifier="first")
                 _, before = await rag._async_call(rag._snapshot)
@@ -301,19 +304,19 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
                 values = {name: {"model": "test", "num_retries": 2, "max_retries": 3}
                           for name in ("embedding_params", "extraction_params", "rerank_params")}
                 project = await backend.projects.acreate("settings", components=["rag"],
-                    config=ProjectConfig(component_configurations={"rag": values}))
+                    config=rag_project(ProjectConfig(component_configurations={"rag": values})))
                 rag = await project.components.aget("rag")
                 effective = rag.effective_configuration()["values"]
                 for name in values:
                     self.assertEqual(effective[name]["num_retries"], 2)
                     self.assertEqual(effective[name]["max_retries"], 3)
-                self.assertFalse(effective["embedding_params"]["caching"])
-                self.assertEqual(effective["embedding_params"]["cache"], {"no-cache": True, "no-store": True})
+                enforced = rag.effective_configuration()["enforced"]["embedding_params"]
+                self.assertFalse(enforced["caching"])
+                self.assertEqual(enforced["cache"], {"no-cache": True, "no-store": True})
                 self.assertNotIn("caching", effective["rerank_params"])
-                from llm.providers.requests import provider_schema, provider_defaults
-                self.assertEqual(set(provider_defaults()), {
+                from llm.providers.requests import provider_schema
+                self.assertEqual(set(provider_schema()["properties"]), {
                     "max_attempts", "wall_timeout", "delay_seconds", "max_delay_seconds"})
-                self.assertEqual(set(provider_schema()["properties"]), set(provider_defaults()))
                 self.assertFalse((Path(__file__).parents[1] / "providers/openai.py").exists())
 
     async def test_partial_graph_and_disabled_without_extractor(self):
@@ -329,9 +332,9 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
             component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=embedding),
                                     extractor=TripleExtractor(model="test", completion_fn=partial))
             async with LargeLanguageModel(root, components=[component], engines={}) as backend:
-                project = await backend.projects.acreate("partial", components=["rag"], config=ProjectConfig(
+                project = await backend.projects.acreate("partial", components=["rag"], config=rag_project(ProjectConfig(
                     component_configurations={"rag": {"extraction_batch_size": 1,
-                        "extraction": {"failure_policy": "best_effort", "repair_attempts": 0}}}))
+                        "extraction": {"failure_policy": "best_effort", "repair_attempts": 0}}})))
                 rag = await project.components.aget("rag")
                 doc = await rag.aadd_document(title="test", content="Atlas uses Harbor.\n\nUnsupported paragraph.")
                 result = await rag.agraph_search("Atlas")
@@ -339,7 +342,7 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len(result["relations"]), 1)
                 self.assertFalse(doc["graph_complete"])
                 component.extractor = None
-                await rag.aconfigure({"extraction": {"failure_policy": "disabled"}})
+                await rag.aconfigure(rag_settings({"extraction": {"failure_policy": "disabled"}}))
                 doc = await rag.aadd_document(title="disabled", content="No extraction model.")
                 self.assertFalse(doc["graph_complete"])
 
@@ -350,8 +353,8 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
                 component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=embedding),
                     extractor=TripleExtractor(model="test", completion_fn=call))
                 async with LargeLanguageModel(root, components=[component], engines={}) as backend:
-                    project = await backend.projects.acreate("test", components=["rag"], config=ProjectConfig(
-                        component_configurations={"rag": {"extraction": {"failure_policy": policy, "repair_attempts": 0}}}))
+                    project = await backend.projects.acreate("test", components=["rag"], config=rag_project(ProjectConfig(
+                        component_configurations={"rag": {"extraction": {"failure_policy": policy, "repair_attempts": 0}}})))
                     rag = await project.components.aget("rag")
                     if policy == "required":
                         with self.assertRaises(ValueError):
@@ -379,9 +382,9 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
             component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=call),
                                     extractor=TripleExtractor(model="test", completion_fn=extract))
             async with LargeLanguageModel(root, components=[component], engines={}) as backend:
-                project = await backend.projects.acreate("quota", components=["rag"], config=ProjectConfig(
+                project = await backend.projects.acreate("quota", components=["rag"], config=rag_project(ProjectConfig(
                     policies={"usage": {"project_max_calls": 1}},
-                    component_configurations={"rag": {"provider": {"delay_seconds": 0}}}))
+                    component_configurations={"rag": {"provider": {"max_attempts": 2, "delay_seconds": 0}}})))
                 rag = await project.components.aget("rag")
                 with self.assertRaisesRegex(Exception, "exhausted"):
                     await rag.aadd_document(title="test", content="secret text")
@@ -404,9 +407,9 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
             component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=unreliable),
                 extractor=TripleExtractor(model="test", completion_fn=extract))
             async with LargeLanguageModel(root, components=[component], engines={}) as backend:
-                project = await backend.projects.acreate("test", components=["rag"], config=ProjectConfig(
+                project = await backend.projects.acreate("test", components=["rag"], config=rag_project(ProjectConfig(
                     component_configurations={"rag": {"embedding_concurrency": 1, "provider": {"max_attempts": 1},
-                        "embedding_cache_max_bytes": 0}}))
+                        "embedding_cache_max_bytes": 0}})))
                 rag = await project.components.aget("rag")
                 job = await rag.aenqueue_document(title="test", content="first\n\nsecond", identifier="doc")
                 with self.assertRaises(ProviderError):

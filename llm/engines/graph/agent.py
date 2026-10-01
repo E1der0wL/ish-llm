@@ -166,11 +166,13 @@ class AgentNode:
                         tools.register(Tool(alias, tool.description, tool.parameters, tool.handler, contract=tool.contract))
                 engine = self._engine(profile)
                 graph_engine = isinstance(engine, GraphEngine)
-                if not graph_engine:
-                    prompt = profile.get("system_prompt", profile["purpose"])
-                    if resources["skills"]:
-                        prompt += "\n\n" + "\n\n".join(
-                            f"Skill {name}:\n{skill['instructions']}" for name, skill in resources["skills"].items())
+                if not graph_engine and resources["skills"]:
+                    # purpose는 업무 설명이며 미설정 system_prompt의 대체값이 아니다.
+                    # 선택한 Skill만 상속된 명시 프롬프트에 결합한다.
+                    prompt = binding["configuration"].get("values", {}).get("system_prompt", profile.get("system_prompt"))
+                    parts = [prompt] if prompt else []
+                    parts.extend(f"Skill {name}:\n{skill['instructions']}" for name, skill in resources["skills"].items())
+                    prompt = "\n\n".join(parts)
                     engine = self._engine({**profile, "system_prompt": prompt})
                 scope = (node.context.tool_scope or ToolExecutionScope(ToolPolicy())).child(
                     allowed_tools=tools.names(), max_calls=policy.get("max_tool_calls"))

@@ -53,7 +53,7 @@ def related_graph(path, source_ids: list, *, max_hops: int, limit: int, options=
     return {"entities": list(entities.values()), "relations": edges}
 
 
-def graph_search(path, seed: str, *, max_hops: int = 2, limit: int = 100, options=None) -> dict:
+def graph_search(path, seed: str, *, max_hops: int, limit: int, options=None) -> dict:
     edges, entities, visited = [], {}, set()
     with connection(path, options=options) as conn:
         frontier = rows(conn, "MATCH (e:Entity) WHERE e.name=$name RETURN e.id,e.name", {"name": seed})

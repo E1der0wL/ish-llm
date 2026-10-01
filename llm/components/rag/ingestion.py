@@ -68,6 +68,8 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
         + str(id(getattr(component.embedding, "_call_fn", type(component.embedding))))
         + str(id(component.embedding.__dict__.get("embed", type(component.embedding).embed))))
     maximum = component.embedding_cache_max_bytes
+    # No configured cache capacity means the optional cache is inactive.
+    maximum = 0 if maximum is None else maximum
     dimensions = getattr(component, "_embedding_dimensions", None)
     if dimensions is None:
         dimensions = {**getattr(component.embedding, "params", {}), **component.document_kwargs}.get("dimensions")

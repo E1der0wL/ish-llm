@@ -1,6 +1,6 @@
-"""도메인별 운영 로그를 기록한다. 기본값은 회전 파일 로그이며 LogSettings와 DomainLogger sink로 호스트 출력에 연결할 수 있다.
+"""도메인별 운영 로그를 기록한다. 파일 로그는 명시적 회전 설정이 있을 때만 회전하며 LogSettings와 DomainLogger sink로 호스트 출력에 연결할 수 있다.
 
-Domain-scoped, rotating operational logs using Python's logging library."""
+Domain-scoped operational logs using Python's logging library."""
 from typing import Optional
 
 import json
@@ -19,17 +19,19 @@ from llm.compat import dataclass
 @dataclass(frozen=True, slots=True)
 class LogSettings:
     """기본 파일 로그의 크기/보관 개수와 조회 로그 여부를 설정한다."""
-    max_bytes: int = 1_048_576
-    backup_count: int = 3
-    log_reads: bool = True
-    enabled: bool = True
+    max_bytes: Optional[int] = None
+    backup_count: Optional[int] = None
+    log_reads: Optional[bool] = None
+    enabled: Optional[bool] = None
 
     def __post_init__(self):
-        if type(self.max_bytes) is not int or self.max_bytes < 1:
+        if self.max_bytes is not None and (type(self.max_bytes) is not int or self.max_bytes < 1):
             raise ValueError("Log max_bytes must be positive")
-        if type(self.backup_count) is not int or self.backup_count < 1:
+        if self.backup_count is not None and (type(self.backup_count) is not int or self.backup_count < 1):
             raise ValueError("Log backup_count must be positive")
-        if type(self.log_reads) is not bool or type(self.enabled) is not bool:
+        if (self.max_bytes is None) != (self.backup_count is None):
+            raise ValueError("Log rotation requires explicit max_bytes and backup_count")
+        if any(value is not None and type(value) is not bool for value in (self.log_reads, self.enabled)):
             raise ValueError("Log switches must be boolean")
 
 
@@ -42,7 +44,7 @@ class DomainLogger:
         self.sink = sink
 
     def write(self, logs: Path, event: str, **fields):
-        if not self.settings.enabled or (event.endswith(".loaded") and not self.settings.log_reads):
+        if self.settings.enabled is False or (event.endswith(".loaded") and self.settings.log_reads is False):
             return
         if self.sink is None:
             _file_log_event(logs, event, settings=self.settings, **fields)
@@ -111,10 +113,10 @@ def _file_log_event(logs: Path, event: str, *, settings: LogSettings, entity_id:
                 raise OSError("Linked log directory")
         logs.mkdir(mode=0o700, exist_ok=True)
         path = logs / "service.log"
-        for candidate in (path, *(logs / f"service.log.{i}" for i in range(1, settings.backup_count + 1))):
+        for candidate in (path, *(logs / f"service.log.{i}" for i in range(1, (settings.backup_count or 0) + 1))):
             if candidate.is_symlink():
                 raise OSError("Linked log file")
-        handler = _RaisingFileHandler(path, maxBytes=settings.max_bytes, backupCount=settings.backup_count, encoding="utf-8")
+        handler = _RaisingFileHandler(path, maxBytes=settings.max_bytes or 0, backupCount=settings.backup_count or 0, encoding="utf-8")
         handler.setFormatter(logging.Formatter("%(message)s"))
         logger.addHandler(handler)
         level = logging.ERROR if event.endswith(".failed") else logging.INFO

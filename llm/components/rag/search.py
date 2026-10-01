@@ -8,23 +8,17 @@ from heapq import nlargest
 from .indexing import collection
 
 
-def search_defaults():
-    return {"method": "hybrid", "expand": "section", "limit": 5, "rerank": False,
-            "max_hops": 2, "relation_limit": 30, "candidate_count": 20, "rrf_constant": 60}
-
-
 def search_schema():
     from llm.core.schema import object_schema, field
-    defaults = search_defaults()
     return object_schema({
-        "method": field("string", defaults["method"], enum=["hybrid", "bm25", "vector"]),
-        "expand": field("string", defaults["expand"], enum=["chunk", "section", "document"]),
-        "limit": field("integer", defaults["limit"], minimum=1, maximum=100),
-        "rerank": field("boolean", defaults["rerank"]),
-        "max_hops": field("integer", defaults["max_hops"], minimum=1, maximum=5),
-        "relation_limit": field("integer", defaults["relation_limit"], minimum=1, maximum=1000),
-        "candidate_count": field("integer", defaults["candidate_count"], minimum=1),
-        "rrf_constant": field("integer", defaults["rrf_constant"], minimum=1)})
+        "method": field("string", enum=["hybrid", "bm25", "vector"]),
+        "expand": field("string", enum=["chunk", "section", "document"]),
+        "limit": field("integer", minimum=1, maximum=100),
+        "rerank": field("boolean"),
+        "max_hops": field("integer", minimum=1, maximum=5),
+        "relation_limit": field("integer", minimum=1, maximum=1000),
+        "candidate_count": field("integer", minimum=1),
+        "rrf_constant": field("integer", minimum=1)})
 
 
 def tokens(text: str) -> list:
@@ -64,7 +58,7 @@ class LexicalCache:
 
 
 def search(path, documents: dict, query: str, vector, *, method: str, expand: str, limit: int,
-           lexical_cache=None, cache_chars=None, candidate_count=20, rrf_constant=60) -> list:
+           lexical_cache=None, cache_chars=None, candidate_count, rrf_constant) -> list:
     chunks = {c["id"]: c for doc in documents.values() for c in doc["chunks"]}
     if not chunks:
         return []

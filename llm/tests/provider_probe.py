@@ -15,6 +15,7 @@ import tempfile
 import threading
 import time
 
+from llm.tests.configuration_fixtures import rag_settings
 from llm.components.rag import EmbeddingModel
 from llm.core.models import ProjectConfig
 from llm.examples.graph_rag import run_demo
@@ -161,11 +162,11 @@ async def probe(root):
             output["default_retry_http_attempts"].append(attempts)
         server.fail = False
         from llm.components.rag import TripleExtractor
-        from llm.components.rag.prompts import extraction_defaults, default_prompt
+        from llm.components.rag.prompts import default_prompt
         server.empty_json_mode = True
         before = len(server.calls)
-        extractor = TripleExtractor(**server.params).with_provider({"delay_seconds": 0}).with_extraction(
-            {**extraction_defaults(), "json_mode": "auto"}, default_prompt())
+        extractor = TripleExtractor(**server.params).with_provider({"max_attempts": 2, "delay_seconds": 0}).with_extraction(
+            {**{"repair_attempts": 2, "json_mode": "strict", "failure_policy": "required"}, "json_mode": "auto"}, default_prompt())
         await extractor.extract([])
         output["json_mode_fallback_http_attempts"] = len(server.calls) - before
         assert output["json_mode_fallback_http_attempts"] == 3
@@ -180,7 +181,7 @@ async def probe(root):
         for concurrency in (1, 2, 4):
             async with LargeLanguageModel(root / f"benchmark-{concurrency}", components=[RAGComponent()]) as backend:
                 project = await backend.projects.acreate("chunk benchmark", components=["rag"], config=ProjectConfig(
-                    component_configurations={"rag": {"embedding_params": server.params,
+                    component_configurations={"rag": {**rag_settings(), "embedding_params": server.params,
                         "extraction_params": server.params, "chunk_size": 1000,
                         "embedding_concurrency": concurrency}}))
                 rag = await project.components.aget("rag")
@@ -203,13 +204,13 @@ async def probe(root):
         server.embedding_delay = 0
         source = root / "public-165-lines.md"
         source.write_text(text)
-        config = ProjectConfig(completion=server.params, component_configurations={"rag": {
+        config = ProjectConfig(completion=server.params, component_configurations={"rag": {**rag_settings(),
             "embedding_params": server.params, "extraction_params": server.params,
             "rerank_params": {**server.params, "model": "cohere/probe",
                               "api_base": server.params["api_base"] + "/rerank"},
             "embedding_concurrency": 2, "extraction_batch_size": 4, "chunk_size": 512,
             "provider": {"wall_timeout": 15, "max_attempts": 2},
-            "extraction": {"json_mode": "auto"}}})
+            "extraction": {"failure_policy": "required", "json_mode": "auto"}}})
         report = await run_demo(root / "workspace", config, markdown=source, require_relations=True, display=False)
         output.update(status=report["status"], checks=report["checks"], timing=report["timings"],
                       rag_ingestion=report["rag_ingestion"], lines=165, report=report["report"])

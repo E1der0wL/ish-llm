@@ -26,7 +26,8 @@
         "api_base": "https://YOUR_CHAT_ENDPOINT/v1",
         "api_key": "YOUR_API_KEY",
         "timeout": 120,
-        "num_retries": 0
+        "num_retries": 0,
+        "temperature": 0
       },
       "rerank_params": {
         "model": "cohere/YOUR_RERANK_MODEL",
@@ -36,7 +37,14 @@
         "num_retries": 0
       },
       "search": {
-        "rerank": true
+        "rerank": true,
+        "method": "hybrid",
+        "expand": "section",
+        "limit": 5,
+        "max_hops": 2,
+        "relation_limit": 30,
+        "candidate_count": 20,
+        "rrf_constant": 60
       },
       "chunk_size": 1000,
       "embedding_concurrency": 2,
@@ -57,7 +65,9 @@
       "graph": {
         "buffer_pool_size": 67108864,
         "max_num_threads": 2
-      }
+      },
+      "search_cache_chars": 1000000,
+      "index_batch_size": 128
     }
   }
 }

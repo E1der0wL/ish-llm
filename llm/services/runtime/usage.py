@@ -108,13 +108,13 @@ class ComponentUsage:
                 raise ValueError("Component model call requires an active owning Run")
             policies = run.metadata["policies"]
         entries = []
-        if policies["usage"]["project_max_calls"] is not None or policies["usage"]["project_max_tokens"] is not None:
+        if policies.get("usage", {}).get("project_max_calls") is not None or policies.get("usage", {}).get("project_max_tokens") is not None:
             reader = getattr(repository, "completion_history", None)
             entries = [entry for session in self.sessions.list(project, include_deleted=True)
                        for entry in (reader(session) if reader else [e for r in repository.list(session) for e in r.metadata.get("completions", [])])]
         if run is None:
             policies = deepcopy(policies)
-            policies["usage"].update(max_calls=None, max_tokens=None)
+            policies.get("usage", {}).update(max_calls=None, max_tokens=None)
             run = SimpleNamespace(metadata={"policies": policies}, id=None)
         owned = [e for e in auxiliary if run.id is not None and e.get("run_id") == run.id]
         check_admission(run, None, reservation, [*entries, *auxiliary], owned)
@@ -144,10 +144,10 @@ class ComponentUsage:
         policies = await self.data._async_call(self._settings)
         scope = current_usage()
         source = deepcopy(scope.source) if scope else None
-        settings = scope.settings if source else policies["usage"]
+        settings = scope.settings if source else policies.get("usage", {})
         reservation = None
         if settings.get("project_max_tokens") is not None or source and settings.get("max_tokens") is not None:
-            counter = scope.counter if source else self.counters.get(policies["completion"]["counter"])
+            counter = scope.counter if source else self.counters.get(policies.get("completion", {}).get("counter"))
             if counter is None:
                 raise ExecutionLimitError("usage_configuration", "Component model quota requires a token counter")
             counted = deepcopy(request)

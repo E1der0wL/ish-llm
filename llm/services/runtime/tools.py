@@ -5,11 +5,12 @@ import json
 import math
 from copy import deepcopy
 from contextvars import ContextVar
-from dataclasses import replace, asdict
+from dataclasses import replace, asdict, field
 from typing import Callable, Optional
 
 from llm.compat import dataclass, timeout
 from llm.core.contracts import Diagnostic
+from llm.core.configuration import UNSET
 from llm.core.models import ProjectConfig, new_id
 from llm.core.results import EngineOutput
 from llm.core.interactions import InteractionRequest, approval_request
@@ -48,7 +49,6 @@ class ToolExecutionError(RuntimeError):
 
     @property
     def diagnostic(self):
-        from llm.core.contracts import Diagnostic
         return Diagnostic("tool_failed", str(self), details={"effect": self.effect, "retryable": self.retryable})
 
 
@@ -95,19 +95,25 @@ class ToolPolicy:
     operation_probe: Optional[Callable] = None
     # 실행 안전성은 신뢰한 개발자가 등록한다. 모델이 JSON으로 권한을 승격할 수 없다.
     retry_safe_tools: tuple[str, ...] = ()
-    max_retries: int = 0
-    retry_delay: float = 0.0
+    max_retries: Optional[int] = UNSET
+    retry_delay: Optional[float] = UNSET
+    _explicit_retry: frozenset = field(init=False, repr=False, compare=False)
     revision: str = "1"
     auto_approve_categories: tuple[str, ...] = ()
 
     def __post_init__(self):
+        explicit = frozenset(k for k in ("max_retries", "retry_delay") if getattr(self, k) is not UNSET)
+        object.__setattr__(self, "_explicit_retry", explicit)
+        for key in ("max_retries", "retry_delay"):
+            if key not in explicit:
+                object.__setattr__(self, key, None)
         if not isinstance(self.revision, str) or not self.revision.strip():
             raise ValueError("Tool policy revision must be nonempty")
         if not isinstance(self.auto_approve_categories, tuple) or any(not isinstance(v, str) or not v for v in self.auto_approve_categories):
             raise ValueError("auto_approve_categories must be a tuple of category names")
-        if type(self.max_retries) is not int or self.max_retries < 0:
+        if self.max_retries is not None and (type(self.max_retries) is not int or self.max_retries < 0):
             raise ValueError("Tool max_retries must be a nonnegative integer")
-        if (isinstance(self.retry_delay, bool) or not isinstance(self.retry_delay, (int, float))
+        if self.retry_delay is not None and (isinstance(self.retry_delay, bool) or not isinstance(self.retry_delay, (int, float))
                 or not math.isfinite(self.retry_delay) or self.retry_delay < 0):
             raise ValueError("Tool retry_delay must be finite and nonnegative")
         if not isinstance(self.retry_safe_tools, tuple) or any(not isinstance(n, str) or not n for n in self.retry_safe_tools):
@@ -226,10 +232,10 @@ class ToolExecutionScope:
 class ToolExecutor:
     """Tool 핸들러 실행을 하나의 Step으로 표현한다. 저장은 기존 StepManager가 담당한다."""
 
-    def __init__(self, *, timeout_seconds=60.0, max_output_chars=1_000_000):
-        if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
+    def __init__(self, *, timeout_seconds=None, max_output_chars=None):
+        if timeout_seconds is not None and (isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
             raise ValueError("Tool timeout must be positive and finite")
-        if type(max_output_chars) is not int or max_output_chars < 1:
+        if max_output_chars is not None and (type(max_output_chars) is not int or max_output_chars < 1):
             raise ValueError("Tool output limit must be a positive integer")
         self.timeout_seconds, self.max_output_chars = timeout_seconds, max_output_chars
 
@@ -258,15 +264,15 @@ class ToolExecutor:
                                     "idempotency_key": call.idempotency_key})
         authorized = False
         try:
-            deadline = asyncio.get_running_loop().time() + self.timeout_seconds
+            deadline = None if self.timeout_seconds is None else asyncio.get_running_loop().time() + self.timeout_seconds
             async with timeout(self.timeout_seconds):
                 await scope.authorize(call, decision=decision)
             authorized = True
             # yield 바깥 서비스 I/O까지 timeout context가 취소하지 않도록 분리한다.
             yield EngineEvent(EngineEventType.STEP_UPDATED, step_id=step_id,
                               metadata={"phase": "executing", "authorization": "allowed"})
-            remaining = deadline - asyncio.get_running_loop().time()
-            if remaining <= 0:
+            remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
+            if remaining is not None and remaining <= 0:
                 raise asyncio.TimeoutError()
             async with timeout(remaining):
                 reservation = await scope.operations.claim(call) if call.operation_key is not None else {"reused": False}
@@ -275,8 +281,8 @@ class ToolExecutor:
                 attempt = 0
                 uncertain_attempt = False
                 while True:
-                    remaining = deadline - asyncio.get_running_loop().time()
-                    if remaining <= 0:
+                    remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
+                    if remaining is not None and remaining <= 0:
                         raise asyncio.TimeoutError()
                     try:
                         async with timeout(remaining):
@@ -295,7 +301,7 @@ class ToolExecutor:
                         safe = (isinstance(error, ToolExecutionError) and error.effect == "none"
                                 or tool.name in scope.policy.retry_safe_tools)
                         retryable = isinstance(error, ToolExecutionError) and error.retryable
-                        if not safe or not retryable or attempt >= scope.policy.max_retries:
+                        if not safe or not retryable or scope.policy.max_retries is None or attempt >= scope.policy.max_retries:
                             if isinstance(error, ToolExecutionError) and error.effect == "none" and uncertain_attempt:
                                 raise ToolExecutionError(str(error), effect="uncertain") from error
                             if isinstance(error, ToolExecutionError) and error.effect == "none" and call.operation_key is not None:
@@ -308,14 +314,15 @@ class ToolExecutor:
                         yield EngineEvent(EngineEventType.STEP_UPDATED, step_id=step_id,
                             metadata={"phase": "retrying", "retry_attempt": attempt,
                                       "effect": error.effect, "retry_error": str(error)})
-                        remaining = deadline - asyncio.get_running_loop().time()
-                        if remaining <= 0:
+                        remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
+                        if remaining is not None and remaining <= 0:
                             raise asyncio.TimeoutError()
                         async with timeout(remaining):
-                            await asyncio.sleep(scope.policy.retry_delay)
+                            if scope.policy.retry_delay is not None:
+                                await asyncio.sleep(scope.policy.retry_delay)
             ProjectConfig.validate_settings({"result": value})
             content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)
-            if len(content) > self.max_output_chars:
+            if self.max_output_chars is not None and len(content) > self.max_output_chars:
                 raise ValueError("Tool output limit exceeded")
             if call.operation_key is not None and not reservation["reused"]:
                 await scope.operations.complete(call, value)

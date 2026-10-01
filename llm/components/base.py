@@ -2,6 +2,7 @@
 
 Project-owned JSON definitions and directories, independent of execution."""
 
+from copy import deepcopy
 import json
 import re
 from contextlib import nullcontext
@@ -92,18 +93,15 @@ class Component:
         ProjectConfig.validate_settings(data)
         return data
 
-    def default_configuration(self) -> dict:
-        return {}
-
     def configuration_schema(self) -> dict:
         """선언한 필드만 UI에 열거한다. 열린 사용자 설정은 계속 허용한다."""
-        from llm.core.schema import schema_from_default
-        return schema_from_default(self.default_configuration())
+        from llm.core.schema import object_schema
+        return object_schema()
 
     def effective_configuration(self, project) -> dict:
-        """저장값과 기본값을 구분하여 UI에 제공한다. 실행 객체는 직렬화하지 않는다."""
+        """명시된 설정값과 출처를 UI에 제공한다. 실행 객체는 직렬화하지 않는다."""
         from llm.core.configuration import resolve_configuration
-        return resolve_configuration(self.default_configuration(), self.configuration_layers(project))
+        return resolve_configuration(self.configuration_layers(project))
 
     def configuration_layers(self, project):
         """설정 원본은 ProjectConfig뿐이다. 컴포넌트 파일을 대체 설정으로 읽지 않는다."""
@@ -184,8 +182,7 @@ class Component:
         # 기존 파일은 무시해서 설정을 잃지 않도록 명시적으로 거부한다. 변환/삭제는 하지 않는다.
         if self._checked(self.root(project) / "component.json").exists():
             raise ValueError("Legacy component.json is unsupported; move settings to ProjectConfig.component_configurations")
-        data = ProjectConfig.merge(self.default_configuration(),
-                                   project.config.component_configurations.get(self.name, {}))
+        data = deepcopy(project.config.component_configurations.get(self.name, {}))
         self.serialize(data)
         self.validate_configuration(data)
         return data

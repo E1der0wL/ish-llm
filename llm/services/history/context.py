@@ -79,17 +79,19 @@ class CompletionPolicy:
 class ContextPolicy:
     """문맥 선택 프리셋. budget은 토큰 추정 대신 정확한 문자 수 상한을 사용한다."""
 
-    mode: str = "full"
-    max_turns: int = 10
+    mode: Optional[str] = None
+    max_turns: Optional[int] = None
     max_chars: Optional[int] = None
 
     def __post_init__(self):
-        if self.mode not in ("full", "recent", "completed", "recent_completed", "budget"):
+        if self.mode not in (None, "full", "recent", "completed", "recent_completed", "budget"):
             raise ValueError("Unknown context policy")
-        if type(self.max_turns) is not int or self.max_turns < 1:
+        if self.max_turns is not None and (type(self.max_turns) is not int or self.max_turns < 1):
             raise ValueError("max_turns must be positive")
         if self.max_chars is not None and (type(self.max_chars) is not int or self.max_chars < 1):
             raise ValueError("max_chars must be positive")
+        if self.mode in ("recent", "recent_completed") and self.max_turns is None:
+            raise ValueError("Recent context requires explicit max_turns")
         if self.mode == "budget" and self.max_chars is None:
             raise ValueError("budget policy requires max_chars")
 
@@ -97,10 +99,12 @@ class ContextPolicy:
 # 저장된 대화에서 모델 입력에 필요한 대화를 선택한다.
 class ConversationContextBuilder:
     def __init__(self, policy: Optional[ContextPolicy] = None):
-        self.policy = policy if policy is not None else ContextPolicy()
+        self.policy = policy
 
     def _select(self, history, policy=None):
         policy = policy if policy is not None else self.policy
+        if policy is None:
+            return tuple(deepcopy(history))
         # 현재 입력은 항상 유지한다. 과거 대화는 사용자/응답 쌍 단위로 제거한다.
         current, previous = history[-1], history[:-1]
         groups = []

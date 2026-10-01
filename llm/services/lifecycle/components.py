@@ -72,7 +72,7 @@ class ComponentData:
         from llm.services.runtime.policies import ExecutionLimitError
         project, _ = self._current()
         scope = current_usage()
-        policies = [project.config.policies["usage"], scope.settings if scope else {}]
+        policies = [project.config.policies.get("usage", {}), scope.settings if scope else {}]
         limited = any(policy.get(key) is not None for policy in policies
                       for key in ("max_calls", "max_tokens", "project_max_calls", "project_max_tokens"))
         if limited and (self._model_usage is None or any(c is not None and getattr(c, "observes_model_calls", False) is not True for c in clients)):
