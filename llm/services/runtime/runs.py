@@ -35,6 +35,7 @@ from llm.services.infrastructure.storage import (
 )
 from llm.services.lifecycle.sessions import SessionManager, SessionRuntime
 from llm.services.infrastructure.logging import log_event
+from llm.services.infrastructure.activity import activity_event
 from llm.services.results import RunResultQuery
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.errors import CodedError, stable_error_code
@@ -764,6 +765,7 @@ class RunManager:
         self.repository.save(run)
         log_event(run.paths.logs, "run.started", entity_id=run.id,
                   related_id=session.id, status=run.status)
+        activity_event(runtime.project, run, "run.started", time=run.started_at, status=run.status)
         return run
 
     def _resume_checkpoint(self, session, run):
@@ -893,7 +895,7 @@ class RunManager:
                                     EngineEventType.STEP_FAILED, EngineEventType.STEP_INTERRUPTED,
                                     EngineEventType.STEP_CANCELLED):
                     # 한 이벤트의 쓰기를 한 저장 경계에서 끝낸 뒤 런타임 상태를 진행한다.
-                    await self._io.run(self._record_engine_event, run, store, event)
+                    await self._io.run(self._record_engine_event, runtime.project, run, store, event)
                     if event.type == EngineEventType.STEP_STARTED:
                         active_steps.add(event.step_id)
                     elif event.type in (EngineEventType.STEP_COMPLETED, EngineEventType.STEP_FAILED,
@@ -924,7 +926,7 @@ class RunManager:
                for step in await self._io.run(self.steps.list, run)):
             raise RuntimeError("Engine ended with unfinished or failed Steps")
 
-    def _record_engine_event(self, run: Run, store: Conversation, event: EngineEvent) -> None:
+    def _record_engine_event(self, project: Project, run: Run, store: Conversation, event: EngineEvent) -> None:
         """표준 이벤트 하나의 저장 단위. IO 실행기가 잠금·트랜잭션을 제공한다."""
         if event.type == EngineEventType.COMPLETION:
             self._record_completion(run, event)
@@ -942,6 +944,9 @@ class RunManager:
                 if event.type == EngineEventType.OUTPUT:
                     event = replace(event, type=EngineEventType.STEP_UPDATED)
                 self.recorder.record(run, event)
+                if event.type == EngineEventType.STEP_FAILED:
+                    activity_event(project, run, "step.failed", time=now(), status="failed",
+                                   step_id=event.step_id, code=event.failure_code or "step_failed")
 
     def _record_deltas(self, run: Run, store: Conversation, outputs, deltas) -> None:
         """출력 저널과 대화 델타를 같은 트랜잭션에 저장한다. 알림은 호출자가 보낸다."""
@@ -1019,6 +1024,8 @@ class RunManager:
         runtime.session.current_run_id = None
         runtime.session.status = SessionStatus.IDLE
         self.sessions._save_runtime(runtime.session)
+        activity_event(runtime.project, run, f"run.{status.value}", time=run.ended_at,
+                       status=run.status, code=run.error_code)
 
     async def _worker(self, runtime: SessionRuntime) -> None:
         while not runtime.closed:

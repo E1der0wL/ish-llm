@@ -154,6 +154,13 @@ class ProjectHandle(AsyncFacade):
 
     amaintenance = async_method(maintenance)
 
+    def activity(self, *, limit=None, newest_first=True):
+        """최근 lifecycle 참조 조회. limit 생략 시 전체이며 상세 결과는 Run/Step에서 조회한다."""
+        self.app._check_open()
+        return self.app.project_manager.activity(self._snapshot, limit=limit, newest_first=newest_first)
+
+    aactivity = async_method(activity)
+
     def model_usage(self):
         self.app._check_open()
         return self.app.project_manager.model_usage(self._snapshot)

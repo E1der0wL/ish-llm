@@ -31,7 +31,7 @@ from typing import Any, Callable, Iterable, Mapping, Optional, Union
 
 from llm._platform import require_linux
 from llm.core.models import ProjectConfig, Run, RunStatus, Session
-from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
+from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent
 from llm.core.views import SessionRuntimeView, RunView
 from llm.core.plans import ResumePlan, RecoveryPlan, RetentionPlan, RecoveryResult
 from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult
@@ -77,6 +77,14 @@ class LargeLanguageModel:
     호출하지 않으므로 .ishrc.py에서 만들 수 있다. 종료 시 shutdown()을 await하거나
     async with를 사용한다. 아래 도메인별 코드는 살아 있는 backend와 그 핸들에 대한
     사용 예시이며, 모든 블록을 차례대로 실행하는 스크립트는 아니다.
+
+    Project 실행 타임라인 (읽기 전용 파생 인덱스)::
+
+        events = await project.aactivity(limit=100)
+        # 동기 조회: project.activity(limit=100, newest_first=False)
+        # events: tuple[ProjectActivityEvent, ...]; time/event/source/status/code만 포함한다.
+        # source.session_id/run_id/step_id로 기존 도메인의 상세 결과를 조회한다.
+        # limit 미지정 시 전체. 인덱스 누락은 실행 실패가 아니며 복구/재실행의 근거가 아니다.
 
     사용자 승인/확인 요청 (Loop, Graph, 중첩 Agent 공통)::
 

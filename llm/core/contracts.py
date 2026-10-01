@@ -138,6 +138,36 @@ class Diagnostic(JsonValue):
 
 
 @dataclass(frozen=True, slots=True)
+class ProjectActivityEvent(JsonValue):
+    """확정된 lifecycle의 참조만 제공하는 파생 인덱스. 실행·복구의 근거가 아니다."""
+    time: str
+    event: str
+    source: ResourceRef
+    status: Optional[str] = None
+    code: Optional[str] = None
+
+    def __post_init__(self):
+        from datetime import datetime
+        JsonValue.__post_init__(self)
+        states = {"run.started": "running", "run.completed": "completed",
+                  "run.failed": "failed", "run.interrupted": "interrupted",
+                  "run.paused": "paused", "step.failed": "failed"}
+        if self.event not in states or self.status != states[self.event]:
+            raise ValueError("Invalid activity lifecycle")
+        ref = self.source
+        kind = self.event.split(".")[0]
+        if (ref.kind != kind or not all((ref.project_id, ref.session_id, ref.run_id))
+                or ref.id != (ref.step_id if kind == "step" else ref.run_id)
+                or kind == "run" and ref.step_id is not None
+                or ref.component is not None or ref.version is not None):
+            raise ValueError("Invalid activity ownership reference")
+        if datetime.fromisoformat(self.time).utcoffset() is None:
+            raise ValueError("Activity time requires a timezone")
+        if self.code is not None and not self.code.strip():
+            raise ValueError("Activity code must be nonempty")
+
+
+@dataclass(frozen=True, slots=True)
 class OperationProgress(JsonValue):
     """표시용 진행 정보. total=None은 전체량 미상이며 도메인 상태 전이를 대신하지 않는다."""
     source: ResourceRef

@@ -167,6 +167,13 @@ class ProjectManager:
         self.sessions.bind_configuration_validator(validator)
 
     @workspace_locked
+    def activity(self, project, *, limit=None, newest_first=True):
+        """도메인 원본을 로드하지 않고 Project의 확정된 lifecycle 참조만 조회한다."""
+        from llm.services.infrastructure.activity import read_activity
+        current = self.access.require(project)
+        return read_activity(current.paths, limit=limit, newest_first=newest_first)
+
+    @workspace_locked
     def model_usage(self, project):
         """Run과 컴포넌트의 원본 영수증을 조회한다. 프로젝트 합계 파일은 만들지 않는다."""
         from llm.services.runtime.usage import component_usage
