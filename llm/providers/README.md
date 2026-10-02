@@ -1,6 +1,24 @@
-# 공급자 안정화 경계
+# Providers — LiteLLM 호출과 공통 보호 경계
+
+Engine과 RAG 모델 클라이언트가 LiteLLM을 사용할 때 공유하는 경계입니다. SDK 초기화, 호출 admission, 명시적 timeout/retry, 오류 분류, 로그·진단을 담당합니다. Project/Run/Step 파일은 저장하지 않습니다.
+
+## 파일 안내
+
+| 파일 | 역할 |
+| --- | --- |
+| [__init__.py](__init__.py) | provider 패키지의 역할을 설명합니다. 함수·클래스는 각 모듈에서 import합니다. |
+| [runtime.py](runtime.py) | LiteLLM 지연 초기화, compatibility/runtime isolation 불변식, SDK 로그·진단 라우팅입니다. |
+| [parameters.py](parameters.py) | 설정 컨테이너를 복사·병합하며 주입된 runtime client의 identity를 유지합니다. |
+| [requests.py](requests.py) | 비스트리밍 호출, 명시적 wall timeout/outer retry와 ProviderError 분류입니다. |
+| [retry.py](retry.py) | 일시적 오류와 명시적 SDK retry를 판단하고 중첩 retry를 방지합니다. |
+| [calls.py](calls.py) | ProviderCalls/ProviderLimits가 호스트의 명시적 동시 호출·대기 제한을 적용합니다. |
+| [litellm.py](litellm.py) | 동기 completion 스트림을 bounded async 스트림으로 연결하고 취소를 전달합니다. |
+| [observations.py](observations.py) | 모델 호출 관찰·사용량을 기존 실행 문맥과 연결합니다. |
+| [embeddings.py](embeddings.py) | 단일 입력 응답의 벡터 개수·차원·유한성·zero-vector 무결성 검사입니다. |
 
 설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. `runtime.py`는 LiteLLM 초기화와 진단 라우팅을 담당한다. 모드·인증 환경변수는 호스트 또는 SDK가 선택한다.
+
+## 초기화와 retry 계약
 
 초기화의 code invariant:
 
@@ -33,7 +51,7 @@ SDK 내부 HTTP 재시도는 하나의 SDK 호출 안에서 일어나므로 별�
 HTTP timeout과 별개로 모델 클라이언트 준비·응답·backoff에 같은 deadline을 적용한다.
 TripleExtractor는 JSON-mode fallback과 semantic repair에도 같은 deadline을 공유한다.
 
-재시도 대상은 timeout/연결 오류/429/정수 HTTP 500–599 전체/빈 공급자 응답이다. 5xx는 모두 `provider_unavailable`로 분류하며 outer retry는 명시 설정이 있을 때만 수행한다. 인증·요청 오류,
+재시도 대상은 timeout/연결 오류/429/정수 HTTP 500–599 전체/빈 공급자 응답이다. 일반 5xx는 `provider_unavailable`로 분류한다. 예외적으로 LiteLLM의 synthetic 500 중 `empty or invalid response from llm endpoint`가 포함된 오류는 먼저 `provider_invalid_response`로 분류한다. outer retry는 명시 설정이 있을 때만 수행한다. 인증·요청 오류,
 벡터 무결성, JSON 구문·그래프 의미 오류는 transport retry 대상이 아니다. 마지막 공급자
 오류는 안전한 `ProviderError.code`로 전달하고 `__cause__`에 원본을 보존한다.
 JSON/의미 오류는 별도의 extraction repair 정책을 사용한다.
@@ -94,3 +112,5 @@ python -m tests.llm.provider_probe --output /tmp/provider-probe.json
 두 번째 명령은 실제 LiteLLM HTTP 경로와 Chroma/BM25/Kuzu/GraphEngine을 사용한다.
 응답은 로컬 고정 fixture이며 외부 모델 품질이나 사내 서버 속도를 측정하지 않는다.
 sync/async LiteLLM 임베딩 일치, SDK retry 중첩 방지, 165줄 문서 등록과 rerank를 확인한다.
+
+[상위 안내](../README.md)

@@ -117,6 +117,27 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(view.snapshot()['recent'], [])
         await events.close()
 
+    async def test_event_totals_survive_subscription_retirement_without_retaining_entries(self):
+        observer, events = Observability(), EventSubscriptions()
+        view = ObservabilityView(observer, lambda: {}, ProviderCalls(), events)
+        async def broken(value):
+            raise ValueError("observation failure")
+        good = events.subscribe(lambda value: None)
+        failed = events.subscribe(broken, delivery="queued")
+        await events.publish("engine", "value")
+        await events.flush()
+        before = view.snapshot()["events"]
+        self.assertEqual(before, {"delivered": 1, "dropped": 0, "failures": 1, "timed_out": 0, "pending": 0})
+        await good.aclose()
+        await failed.aclose()
+        await events.close()
+        await events.close()
+        self.assertEqual(len(events._subscriptions), 0)
+        self.assertEqual(view.snapshot()["events"], before)
+        self.assertEqual(good.stats["delivered"], 1)
+        self.assertEqual(failed.stats["failures"], 1)
+        self.assertNotIn("events", observer.snapshot())
+
     async def test_same_arguments_at_different_checkpoint_keys_are_distinct_requests(self):
         observer = Observability()
         context = SimpleNamespace(project=SimpleNamespace(id='p'), session=SimpleNamespace(id='s'),

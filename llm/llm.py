@@ -580,7 +580,13 @@ class LargeLanguageModel:
         # 요청을 실행한 뒤:
         await backend.events.flush()
         unsubscribe()
+        await unsubscribe.aclose()  # 실행 중인 콜백 완료와 참조 회수까지 대기
+        await ui_subscription.aclose()
         await backend.shutdown()
+
+    구독 해제는 대기 알림을 폐기하고 새 전달을 중단한다. 실행 중인 콜백은 취소하지 않는다.
+    aclose는 해제와 정리를 함께 기다리며, 자기 콜백 안에서는 unsubscribe()만 사용한다.
+    timeout을 명시하지 않은 콜백이 끝나지 않으면 정리도 기다린다. 해제 후 stats는 유지된다.
 
     공통 출력 API::
 

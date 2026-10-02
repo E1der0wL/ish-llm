@@ -1,203 +1,91 @@
-> 설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. 미설정 정책을 생성하지 않으며, SDK 옵션은 생략한다.
+# Components — Project가 선택하는 기능과 데이터
 
-# Project components
+Component는 Project 안에서 특정 데이터와 기능을 소유합니다. 종류를 백엔드에 **등록**하고, 사용할 종류를 Project에서 **선택**합니다. 예를 들어 `RAGComponent` 등록은 구현을 사용할 수 있게 하는 것이고, `components=["rag"]` 선택은 해당 Project에 RAG 저장 공간과 capability를 연결하는 것입니다.
 
-Components own Project-root directories and persistent definitions. They do not
-execute Runs. `Component` in `base.py` provides directory initialization/removal,
-open JSON serialization/deserialization, configuration, definition CRUD and clone.
-`ComponentRegistry` registers identities/directories and collects generic optional
-capability resolution; neither module imports Tools or requires `resolve_tools`.
+설정은 [명시적 설정 계약](../CONFIGURATION.md)에 따라 `ProjectConfig.component_configurations.<이름>`에만 저장합니다. 레코드는 Component가 관리하는 데이터이며 설정과 구분합니다.
 
-| Package | Persisted data | Runtime responsibility |
+## 제공하는 Component
+
+| 폴더 | 저장하는 데이터 | 실행 시 연결 |
 | --- | --- | --- |
-| tools | Python source packages and optional requirements; enabled names in ProjectConfig | Load decorated async main into the existing ToolRegistry/ToolExecutor |
-| agents | Purpose, completion model/options and optional prompt/resource references | Purpose-specific model calls belong to Engines |
-| skills | Instructions and optional resource descriptions | The consumer decides how to apply instructions |
-| mcp | stdio / HTTP server connection definitions | Client connections and tool discovery need an execution adapter |
-| workflows | Versioned graphs with branch, parallel/join and bounded loop nodes | Structural validation is provided; GraphEngine executes registered async node handlers |
-| rag | Documents, sections, chunks, vectors, evidence relations and Chroma/Kuzu generations | Splitting, embedding/rerank/triple extraction, combined document/graph retrieval |
-| memory | Project/Session memories, provenance, revisions and derived Session summaries | Automatic recall, bounded context, Tool previews, optional summary/extraction and CRUD Tools |
+| [tools/](tools/README.md) | Project별 Python Tool 패키지 | ToolRegistry → ToolExecutor |
+| [rag/](rag/README.md) | 문서·청크·벡터·관계와 출처 | 검색 Tool, embedding/rerank/관계 추출 |
+| [memory/](memory/README.md) | 장기 기억·후보·출처·요약 | Memory Tool, completion processor |
+| [agents/](agents/README.md) | 목적·Engine·모델·리소스·정책 | Graph AgentNode |
+| [workflows/](workflows/README.md) | 노드·간선·입출력 mapping | GraphEngine |
+| [skills/](skills/README.md) | 재사용 지침과 참고 자료 설명 | 선택한 Agent/소비자가 지침 적용 |
+| [mcp/](mcp/README.md) | 서버 연결 정의 | 호스트가 주입한 connector |
+| [prompts/](prompts/README.md) | 시스템 지침·few-shot 메시지 | RAG 등의 소비자가 ID로 참조 |
 
-한국어 API와 그래프 조립 예시는 [컴포넌트 정의 안내](../../docs/llm/component-definitions.md)를 참고한다.
-기본 LargeLanguageModel은 tools/skills/mcp/rag/agents/workflows/memory/prompts를 등록하며
-Project에서 선택한 종류만 생성한다. 재사용 업무 정의는 agents 하나로 관리한다.
-프롬프트·few-shot CRUD와 RAG 연결은 [Prompt 안내](prompts/README.md)를 참고한다.
-장기 기억의 공개 API, 후보 승인 정책, 모델 Tool과 저장 형식은 [Memory 안내](../../docs/llm/memory.md)를 참고한다.
-범용 확장은 [공통 처리기 계약](../../docs/llm/completion-processing.md), 장기 대화 최적화는 [Memory 처리 정책](../../docs/llm/memory-processing.md)을 참고한다.
+기본 `LargeLanguageModel`은 위 종류를 등록합니다. 일반 `projects.acreate()`는 `components`로 선택한 종류만 연결하고, `aget_default()`는 처음 만들 때 등록된 종류를 모두 선택합니다. 선택만으로 모델 인증, MCP connector, RAG 필수 설정까지 생성되지는 않습니다.
 
-## Declare a component
+## 공통 파일
+
+| 파일 | 역할 |
+| --- | --- |
+| [__init__.py](__init__.py) | 공통 Component와 Registry의 공개 import입니다. 개별 종류는 하위 패키지에서 가져옵니다. |
+| [base.py](base.py) | 이름·디렉터리·JSON 직렬화·공통 CRUD·초기화·복제 계약입니다. |
+| [registry.py](registry.py) | 이름·디렉터리 충돌을 검사하고 선택한 capability를 해석합니다. |
+| [definitions.py](definitions.py) | JSON schema를 가진 정의형 Component의 공통 검증·스냅샷 구현입니다. |
+| [processing.py](processing.py) | 모델 입력 변환·응답 관찰을 조합하는 completion processor 계약입니다. |
+
+## 사용자/API 관점
+
+다음은 `prompts`가 선택된 열린 Project에서 사용하는 예입니다.
 
 ```python
-from llm.components import Component, ComponentRegistry
-
-class NotesComponent(Component):
-    name = "notes"
-    directory = "knowledge"  # Explicit direct child of the Project root.
-
-    def configuration_schema(self):
-        return {"type": "object", "properties": {"language": {"type": "string"}}}
-
-components = ComponentRegistry((NotesComponent(),))
+prompts = await project.components.aget("prompts")
+await prompts.acreate({
+    "messages": [{"role": "system", "content": "근거를 함께 설명하세요."}],
+}, identifier="guide")
+record = await prompts.aload("guide")
+record["description"] = "공통 답변 지침"
+await prompts.asave("guide", record)
+records = await prompts.alist()  # {id: record, ...}
 ```
 
-Registration rejects missing/unsafe directory declarations,
-core-owned sessions/logs/state/cache directories and duplicate directory ownership.
-Each component owns everything beneath its declared root. Paths remain out of
-ProjectPaths. Base file operations reject symlinks and linked ancestors;
-permanent removal checks every descendant. This assumes cooperative exclusive
-workspace ownership, not hostile external filesystem mutation. Component code is
-trusted Python and can override the contract; it is not sandboxed.
+`project.components.prompts`도 같은 전용 핸들을 돌려주지만 조회 자체는 동기입니다. 비동기 UI에는 `aget()`를 권장합니다.
 
-Default persistence:
+공통 JSON CRUD에서 create는 중복 ID를 거부하고, save는 기존 레코드를 전체 교체하며, update는 최상위 키를 갱신합니다. configure도 **설정 전체 교체**입니다. 변경할 부분만 있다면 현재 설정을 읽고 수정한 뒤 저장하세요. 동시 편집에는 snapshot과 expected_version을 사용합니다.
+
+Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해당 README를 따릅니다. 특히 RAG 문서는 `aadd_document()`, Memory 수정은 `expected_revision`, Tool은 source/requirements를 사용합니다.
+
+## 새 Component 개발
+
+[메인 README의 NotesComponent](../README.md#새-component-만들기)가 최소 예제입니다. 데이터 검증에 JSON Schema를 사용하려면 `DefinitionComponent`도 사용할 수 있습니다.
+
+- `name`: 등록과 선택에 사용할 고유 이름.
+- `directory`: Project 루트의 직접 하위 디렉터리. 핵심 경로 sessions/logs/state/cache나 다른 Component와 겹치지 않아야 합니다.
+- `configuration_schema()` / `validate_configuration(data)`: 사용자 설정의 형태와 의미.
+- `validate_record(identifier, data)`: 데이터 레코드의 의미 검증.
+- `capabilities`: 제공하는 실행 기능의 이름들.
+- `resolve(project, capability)`: 요청한 기능의 런타임 값을 반환.
+- `resolve_runtime(project, capability, *, data_factory)`: 수명 검사 핸들이 필요한 기능을 연결. 기본 구현은 resolve에 위임.
+- `data_class`: 필요할 때 지정하는 ComponentData 하위 클래스.
+
+직렬화 가능한 JSON만 레코드에 저장하고 client/함수/lock은 capability에 둡니다. 공통 직렬화는 문자열 키와 유한한 값을 확인하며 열린 JSON 키를 보존합니다. `data_class` 없이 Component에 메서드만 추가해도 Facade로 자동 전달되지는 않습니다.
+
+앱은 [ComponentData](../services/lifecycle/README.md)를 통해 접근합니다. 핸들은 최신 Project와 선택 여부를 확인하고 workspace 잠금을 사용합니다. Component의 저수준 메서드를 직접 호출하는 확장 코드는 해당 소유권·수명 경계를 책임져야 합니다.
+
+## 저장과 수명
 
 ```text
 <project>/
-  project.json                      # Component names and ProjectConfig.component_configurations
-  knowledge/
-    records/
-      <id>.json                     # One open definition per file
-  agents/
-    records/reviewer.json           # Model/settings/prompt chosen by the app
-  workflows/
-    records/review.json             # Nodes/edges/reference keys chosen by the app
-  tools/
-    records/add.json                # Optional native function-tool definition
+  project.json                     # 선택 종류와 component_configurations
+  prompts/records/guide.json       # 공통 JSON 레코드
+  agents/records/reviewer.json
+  workflows/records/review.json
+  tools/search/search.py           # Tool 전용 Python 패키지
+  tools/search/requirements.txt    # 선택적 의존성
+  rag/...                          # 문서·색인 세대·작업 체크포인트
 ```
 
-Only selected components are initialized. Records are plain dicts, not fixed
-schema dataclasses; unknown keys survive load/save and clone. `serialize(dict)`
-returns JSON text and `deserialize(text)` returns a detached dict. Values must be
-JSON-safe, string-keyed and finite; runtime objects are rejected. Field names are
-unrestricted, including names used in schema definitions. ProjectConfig uses the
-same JSON compatibility checks without an application key-name blacklist. There is no automatic migration.
-Workflow's validated graph format declares schema_version 1; other definitions remain open objects.
-`validate_configuration` and `validate_record` are optional semantic hooks.
+선택한 Component의 디렉터리만 초기화합니다. 초기화는 다시 호출해도 안전해야 하며 기본 records 구조를 사용하는 구현은 `super().initialize(project)`를 호출합니다. Component 내부 경로를 ProjectPaths에 추가하지 않습니다.
 
-## Use through ProjectManager
+비활성화와 영구 삭제는 다릅니다. `project.components.aremove(name)`은 데이터를 남기고, `permanent=True`는 전용 데이터도 제거합니다. 재선택은 남은 데이터를 사용합니다. 삭제·clone·backup은 Project 서비스의 수명 검사를 통과해야 합니다.
 
-```python
-# Configure ProjectManager with the registry once.
-project = projects.create("Example", components=("notes",))
-notes = projects.component(project, "notes")
-identifier = notes.create({"title": "Example", "tags": ["draft"]}, identifier="intro")
-notes.update(identifier, {"new_option": True})
-value = notes.load(identifier)
-all_values = notes.list()                 # {record_id: dict, ...}
-notes.save(identifier, {"replacement": True})
-notes.delete(identifier)
-notes.configure({"arbitrary_setting": {"enabled": True}})
-configuration = notes.configuration()
+별도 `component.json`이나 과거 형식의 자동 변환은 제공하지 않습니다. JSON 정의는 기본 복제로 복사되지만 색인·특수 파일을 가진 Component는 자신의 clone 계약을 구현해야 합니다.
 
-projects.set_components(project, ("notes", "agents", "workflows"))  # Register first.
-projects.remove_component(project, "notes")                 # Disable, retain data.
-projects.remove_component(project, "notes", permanent=True) # Remove retained tree.
-```
+## 모델 처리기를 추가할 때
 
-`create` rejects duplicate IDs; `save` replaces an existing record; `update` is a
-shallow key update (nested values replace); `delete` removes one record. Configure
-replaces the configuration dict. To remove a key, load/pop/save. Reads return
-independent values. Mutable JSON uses atomic replacement and fsync; updates hold
-the workspace lock over the complete read/modify/write operation.
-
-The ComponentData handle reloads authoritative Project state and selection on
-every call, so stale handles cannot modify a deleted or disabled Project/component.
-Direct Component/ComponentRegistry APIs are lower-level and require the caller's
-workspace ownership scope. In an async UI, use a-prefixed handle methods:
-`await notes.acreate(...)`, `await notes.alist()`, `await notes.aconfigure(...)`.
-When using the backend, first obtain a handle with
-`await project.components.aget("notes")` to offload lookup too. All facade handle
-operations share its storage lane and shutdown guard. Direct ProjectManager
-handles use a per-handle StorageIO lane on their original event loop. Existing
-synchronous APIs and explicit `StorageIO(projects.ownership).run` remain usable.
-Runtime capabilities are resolved in RunManager's
-existing ordered storage lane.
-
-`set_components` initializes missing directories/configuration before publishing
-the new selection, preserving previous data on re-enable. Initialization must be
-idempotent; overridden initializers should call `super().initialize(project)`.
-Failure may retain partial directories, but does not publish the changed selection.
-Permanent removal requires all Project Sessions to be inactive/detached. It publishes
-disabled selection before recursive deletion; failed/interrupted removal leaves
-it disabled and can be retried, including when already disabled. Removal is not
-a multi-file transaction. Deleting Project removes its entire component tree.
-
-Project cloning copies configuration; components copy records into the new Project, retaining record
-IDs so graph references stay valid. It does not copy unregistered artifacts,
-indexes, connections or runtime handlers. Override clone for a component-specific
-artifact policy. RAG rebuilds its indexes from saved document/vector/graph data.
-Workflow records require schema_version 1. Configuration comes only from ProjectConfig; legacy component.json is rejected.
-No old-format reader or implicit conversion is provided.
-
-## Tool specialization and runtime capabilities
-
-ToolComponent selects `ToolData`, a ComponentData subclass, through
-`data_class = ToolData`. Both `projects.component(project, "tools")` and the
-backend's `project.components.tools` return this handle. All common CRUD and
-`configure(dict)` methods remain available.
-
-Project Tool은 `tools/<name>/<name>.py`와 선택적인 `requirements.txt`로 저장한다.
-API 표현은 `{"source": "...", "requirements": "..."}`이며 `identifier`를 명시한다.
-조회·편집·clone·backup은 Python을 import하지 않는다.
-
-```python
-tools = project.components.tools
-await tools.acreate({"source": source_text, "requirements": "httpx>=0.28,<1\n"},
-                    identifier="web_search")
-await tools.aprepare("web_search")  # ish 공용 plugin/lib 준비 + 함수 계약 검증
-await tools.aenable("web_search")
-await tools.adisable("web_search")
-await tools.adelete("web_search")   # enabled 상태이면 거부
-```
-
-`@tool`의 ToolContract, `async main`의 docstring/signature/type hints에서 실행 정의를 파생한다.
-이름은 패키지 디렉토리에서 얻는다. 별도 JSON 정의나 애플리케이션 handler 등록이 필요 없다.
-`enable`/`set_enabled`는 패키지의 정적 존재를 확인한다. ProjectConfig의 `enabled` 저장은
-이름 배열과 중복만 검증하므로 clone 시 파일 복사 전에 설정을 저장할 수 있다.
-변경은 다음 Run의 로딩에 반영되며 활성 Run의 Tool snapshot은 유지한다.
-공용 의존성은 현재 ish `--home`의 `config.PLUGIN_LIB_DIR`만 사용한다.
-상세 계약과 예제는 [Python Tool packages](tools/README.md)를 참고한다.
-
-Other components may opt into the same extension mechanism:
-
-```python
-from llm.services.lifecycle.components import ComponentData
-from llm.services.infrastructure.locking import workspace_locked
-
-class NotesData(ComponentData):
-    @workspace_locked
-    def titles(self):
-        project, component = self._current()  # Reload lifecycle and selection.
-        return [record.get("title", "") for record in component.list(project).values()]
-
-class NotesComponent(Component):
-    name = "notes"
-    directory = "knowledge"
-    data_class = NotesData
-```
-
-Omit data_class (or set it to None) to keep generic ComponentData. Registration
-rejects values that are not ComponentData subclasses. Custom handles inherit its
-constructor; custom operations must lock and reload state as shown. Domain logic
-belongs to the component, while the handle supplies safe Project-scoped access.
-There is no automatic forwarding of arbitrary component methods. Attribute access
-is dynamic; use `project.components["name"]` for names colliding with handle methods.
-
-ToolComponent declares capabilities = ("tools",) and resolves a fresh ToolRegistry
-only when tools is requested. ComponentToolResolver in tools/resolver.py collects
-and validates that result.
-RunManager still accepts `capabilities=components` and wraps it with this adapter;
-custom resolvers must implement resolve(project, names). For direct resolution use
-`ComponentToolResolver(components).resolve_tools(project)` instead of the removed
-ComponentRegistry.resolve_tools API. Other capabilities use arbitrary keys and
-values through `components.resolve(project, "retriever")`. Declare a tuple of
-capability names and implement resolve(project, capability); the registry skips
-components that do not declare the requested name. Base capabilities is empty.
-
-The EngineContext tool snapshot stays fixed for one Run. Definition/configuration
-edits affect later Runs. Engine agent/graph execution and Steps remain inside
-the owning Run; components own their data and retrieval operations. ToolExecutor records JSON call arguments
-and results in the owning Step; the provider's tool-message transcript remains runtime-only.
-Embedding/rerank implementations and public imports live in components/rag.
-Triple extraction and graph indexing also live in components/rag. The single
-RAGComponent exposes rag_search with documents, relations and versioned sources. See
-[RAG 공개 API](../../docs/llm/rag-components.md) for indexed document CRUD and retrieval.
+`processing.py`는 Memory 전용 API가 아닙니다. 여러 processor의 순서, 입력 변경, 응답 관찰과 정리를 조합합니다. 새 Skill/MCP/다른 Component가 이 기능을 쓰더라도 Run 정책이나 Step 저장 책임을 가져오지 않습니다. 자세한 확장은 [공통 처리기 계약](../../docs/llm/completion-processing.md)에 있습니다.

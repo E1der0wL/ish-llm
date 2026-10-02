@@ -48,6 +48,16 @@ decision_for/select_decision과 same_interaction_value를 공유한다. 서비�
 알리지 않으며 저장 transaction 문맥을 이벤트 루프로 넘기지 않는다. Engine/Run 알림은
 기존 저장 경계를 유지하고, UI가 놓친 알림은 도메인 조회/출력 저널로 복원한다.
 
+EventContext.update_metadata는 policies/completions/resume/checkpoints/output을
+서비스 소유 필드로 보호한다. Run 정책은 시작 시점 사본이며 사용자 이벤트가 덮어쓰지
+않는다. 정상 메타데이터 쓰기도 StorageIO의 도메인 객체 watch에 참여하여 저장 실패 시
+파일과 메모리가 함께 복원된다. Project 설정 API와 기존 저장 형식은 유지한다.
+
+EventSubscriptions는 구독 해제 시 대기 알림을 비우고 진행 중인 콜백이 끝나면 worker와
+참조를 회수한다. Subscription.aclose로 완료를 기다릴 수 있다. 종료 구독의 숫자 합계만
+남기며 관측 계층에 별도 실행 상태를 만들지 않는다. 새 timeout/강제 취소 정책을 추가하지
+않는다. 자세한 계약은 [서비스 확장](service-extensions.md)에 있다.
+
 ## RAG 추출 정책과 프롬프트
 
 PromptComponent는 prompts/records 아래 messages 정의를 소유한다. RAG의 기본 지침과

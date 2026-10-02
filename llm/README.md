@@ -1,89 +1,288 @@
-> 설정은 [명시적 설정 계약](CONFIGURATION.md)을 따른다. 미설정 정책을 생성하지 않으며, SDK 옵션은 생략한다.
+# ish-llm
 
-# llm — ish 플러그인
+Linux의 **ish에서 사용하는 AI 실행 백엔드 플러그인**입니다. 대화와 작업 기록을 저장하고, 모델의 응답을 스트리밍하며, Tool이나 Workflow를 실행합니다. 셸과 화면은 ish 또는 UI 플러그인이 담당합니다.
 
-Linux의 ish에서 사용하는 AI 실행 백엔드입니다. 영속 도메인의 소유 관계는
-**Project → Session → Run → Step**입니다. Session은 프로세스 종료 후에도 다시 열 수 있는
-작업·대화 공간이며 Conversation은 Session에 속합니다.
+처음 사용하는 경우 **[ish에서 실행하기](#ish에서-실행하기)** → **[LargeLanguageModel 사용하기](#largelanguagemodel-사용하기)** 순서로 읽으세요. 확장하려는 개발자는 [새 Engine](#새-engine-만들기), [새 Component](#새-component-만들기)부터 시작할 수 있습니다.
 
-Engine은 Run의 실행 전략이고 Component는 프로젝트에 연결되는 기능과 자료의 소유자입니다.
-Loop·Graph 등 Engine을 바꾸어도 Run/Step 기록과 Session의 대화 수명은 유지됩니다.
-Engine별 소스 구조와 공개 import는 [Engine 안내](engines/README.md)를 참고하세요.
-Project의 Python Tool 생성·준비·활성화는 [Tool 패키지 안내](components/tools/README.md)에 정리되어 있습니다.
-Project Tool의 introspection과 실제 호출은 각각 child interpreter에서 실행됩니다.
-승인·재시도·Step·영수증은 기존 ToolExecutor가 소유합니다. worker는 OS sandbox가 아닙니다.
-UI용 `backend.observability.snapshot()`은 [운영 관찰 계약](services/infrastructure/OBSERVABILITY.md)을 참고하세요.
+## 주요 개념과 실행 흐름
 
-사내 OpenAI-compatible 서버의 재시도·캐시·응답 검증은 [공급자 안정화](providers/README.md),
-배치 재개·벡터 재사용·JSON mode·불완전 그래프 정책은 [RAG 설정](components/rag/README.md)을 참고하세요.
+영속 데이터의 소유 관계는 **Project → Session → Run → Step**입니다.
 
-## 설치와 진입점
+| 개념 | 역할 | 예 |
+| --- | --- | --- |
+| Project | 설정, 선택한 Component와 여러 Session을 보관하는 작업 공간 | 개인 업무 프로젝트 |
+| Session | 다시 열 수 있는 대화·작업 세션. Conversation도 여기에 속함 | 문서 작성 대화 |
+| Run | 한 사용자 요청을 실제로 실행한 기록 | “이 문서를 요약해줘” |
+| Step | Run 안에서 관찰할 수 있는 실행 단위 | 모델 호출, Tool 호출, Graph 노드 |
+| Engine | Run을 어떻게 실행할지 정의하는 전략 | LoopEngine, GraphEngine, PipelineEngine |
+| Component | Project에 연결할 기능과 해당 기능의 데이터를 관리 | Tools, RAG, Memory, Agents, Workflows |
 
-이 저장소의 `llm/` 폴더를 ish의 플러그인 스크립트 디렉토리에 배치합니다.
-플러그인 자체의 pip 설치는 필요하지 않습니다. 외부 라이브러리 의존성은
-`llm.py`의 `PLUGIN_META.dependencies`에 선언되어 있습니다.
-개발·실행 검증 대상은 **Linux Python 3.12.14 하나**입니다. 구버전 호환 계층 없이
-표준 `dataclass`, `StrEnum`, `asyncio.timeout`, `contextlib.aclosing`을 사용합니다.
-개발 저장소의 `.python-version`과 `pyproject.toml`도 이 버전으로 고정합니다.
+```text
+UI / ish 명령
+  → LargeLanguageModel
+  → Project 선택 → Session 선택
+  → submit(입력, engine="등록 이름")
+  → 요청 저장(queued) → Run 생성 → Engine 실행
+  → EngineEvent → 서비스가 응답·Step·체크포인트 저장
+  → UI 이벤트 / 저장된 결과 조회
+```
+
+한 Session의 Run은 순서대로 실행됩니다. 다른 Session은 동시에 실행할 수 있습니다. 일반 입력은 현재 작업을 중단하지 않고 대기열에 들어갑니다. 중단은 별도의 `interrupt()` 호출입니다.
+
+Engine과 Component는 소유 계층의 중간 도메인이 아닙니다. Engine은 실행하고, Component는 기능별 자료를 관리하며, 서비스가 Run/Step의 저장과 수명을 담당합니다.
+
+## ish에서 실행하기
+
+### 설치
+
+검증 환경은 **Linux Python 3.12.14**입니다. 저장소의 `llm/` 폴더를 ish 홈의 `plugin/script/` 아래에 복사합니다.
+
+```text
+<ish-home>/plugin/script/llm/
+  llm.py
+  core/
+  engines/
+  components/
+  providers/
+  services/
+  ...
+```
+
+플러그인 자체를 pip로 설치할 필요는 없습니다. ish가 [llm.py](llm.py)의 `PLUGIN_META`를 읽어 외부 라이브러리 의존성을 처리합니다. `tests/`, `examples/`, `docs/`는 개발 저장소의 별도 폴더이며 플러그인 배포에 필요하지 않습니다.
+
+### .ishrc.py에 명령 연결
 
 ```python
 llm_plugin = plugin.get("llm")
-LargeLanguageModel = llm_plugin.LargeLanguageModel
-LoopEngine = llm_plugin.LoopEngine
-ProjectConfig = llm_plugin.ProjectConfig
+if llm_plugin is not None:
+    prompt.set_tool("llm", function=llm_plugin.main)
 ```
 
-호스트의 비동기 실행 경로에서 다음처럼 호출합니다. 모델과 인증 설정은 호출자가 전달합니다.
+이후 ish에서 실행합니다. 모델명과 경로는 사용하는 서버에 맞게 바꾸세요.
+
+```sh
+llm --engine loop --model openai/YOUR_MODEL --prompt "안녕하세요." --workspace /home/user/.ish/llm-workspace
+```
+
+OpenAI-compatible 서버는 `--api-base https://your-server/v1`도 전달할 수 있습니다. 이 간단한 CLI는 LiteLLM이 인식하는 인증 환경변수를 사용하며 `--api-key` 옵션은 없습니다. API 키를 코드의 `ProjectConfig`로 전달하는 방법은 아래 예제에 있습니다.
+
+`main(*argv)`는 ish worker에서 호출할 수 있는 동기 진입점입니다. **호출마다 새 Project와 Session을 만드는 확인용 명령**입니다. 저장된 대화를 이어가려면 아래 API로 Project/Session ID를 다시 열거나 개발 저장소의 [ish Loop 예제](../docs/llm/ishrc-loop-test.md)를 사용하세요.
+
+다른 플러그인에서 클래스만 가져올 수도 있습니다.
 
 ```python
-async def request_once(workspace, completion):
+llm_plugin = plugin.get("llm")
+if llm_plugin is not None:
+    LargeLanguageModel = llm_plugin.LargeLanguageModel
+    ProjectConfig = llm_plugin.ProjectConfig
+    LoopEngine = llm_plugin.LoopEngine
+```
+
+ish 명령용 함수를 직접 만든다면 import 가능한 모듈의 동기 진입점 안에서 `asyncio.run(...)`으로 백엔드를 생성·정리하세요. 실행 중인 백엔드나 이벤트 루프를 worker에 전달하지 않습니다.
+
+## LargeLanguageModel 사용하기
+
+`LargeLanguageModel`은 저장소, 서비스, 등록된 Engine/Component를 한 번 구성하고 공개 핸들로 연결하는 Facade입니다. 모델 호출이나 저장 책임을 별도로 복제하지 않습니다.
+
+### 요청 한 건 실행하고 결과 받기
+
+아래는 Python 모듈로 실행할 수 있는 예제입니다. ish에서 가져온 클래스도 같은 방식으로 사용합니다. 모델명과 인증값은 실제 값으로 교체하세요.
+
+```python
+import asyncio
+
+from llm.llm import LargeLanguageModel, ProjectConfig, LoopEngine, RunStatus
+from llm.engines.base import EngineEventType
+
+
+def on_event(run, event):
+    if event.type == EngineEventType.TEXT_DELTA and event.delta is not None:
+        if event.delta.visibility == "user":
+            print(event.delta.text or "", end="", flush=True)
+
+
+async def main():
     async with LargeLanguageModel(
-        workspace, engines={"loop": LoopEngine()},
+        "/home/user/.ish/llm-workspace",
+        engines={"loop": LoopEngine()},
+        on_event=on_event,
     ) as backend:
         project = await backend.projects.acreate(
-            "Workspace", config=ProjectConfig(completion=completion),
+            "첫 프로젝트",
+            config=ProjectConfig(
+                completion={
+                    "model": "openai/YOUR_MODEL",
+                    "api_key": "YOUR_API_KEY",
+                    # "api_base": "https://your-server/v1",
+                },
+                engines={"loop": {"max_iterations": 4}},
+            ),
+            components=[],
+            conversation_storage="file",
         )
-        session = await project.sessions.acreate("Conversation")
+        session = await project.sessions.acreate("첫 대화")
         request = await session.run.submit("안녕하세요.", engine="loop")
         run = await request.wait()
         result = await run.aresult()
-        if result.status != "completed":
-            raise RuntimeError(result.error or str(result.status))
-        return (await run.aresponse()).content
+
+        print()
+        print("Project ID:", project.id, "Session ID:", session.id)
+        print("상태:", result.status)
+        if result.status == RunStatus.COMPLETED:
+            print("최종 응답:", (await run.aresponse()).content)
+            print("사용 토큰:", result.total_tokens)
+        else:
+            print("오류:", result.error_code, result.error)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-상시 UI는 백엔드를 유지하고 `backend.projects.aload(project_id)`와
-`project.sessions.aload(session_id)`로 선택한 세션을 다시 엽니다. 한 Session의 Run은
-순서대로 실행하며 다른 Session들은 동시에 실행할 수 있습니다. 호스트 종료 시
-`await backend.shutdown()`으로 정리합니다. API 사용 예시는 LargeLanguageModel 독스트링에 있습니다.
+`submit()`의 결과는 **RequestHandle**입니다. `await request.wait()`가 요청의 종료를 기다려 **RunHandle**을 반환합니다. 완료 여부는 `ExecutionResult.status`로 확인합니다. Graph의 구조화된 최종 결과는 `result.output`의 `data`로 조회할 수 있습니다.
 
-## Session으로 이름 변경
+`ProjectConfig`는 열린 JSON 설정 객체입니다. 여기에 넣은 API 키도 Project 설정 JSON에 저장됩니다. 별도 비밀값 저장소는 없으며, 원한다면 키를 저장하지 않고 SDK의 환경변수 인증을 사용할 수 있습니다.
 
-- `Task` / `TaskManager` / `TaskRepository` / `TaskPaths` → `Session` / `SessionManager` / `SessionRepository` / `SessionPaths`
-- `project.tasks` → `project.sessions`
-- `EngineContext.task`, `Run.task_id` → `EngineContext.session`, `Run.session_id`
-- `task_defaults`, `task_config` → `session_defaults`, `session_config`
-- Memory의 세션 범위는 `scope="session"`, `session_id=...`로 지정합니다.
-- ish Loop 예제의 기존 세션 선택 인자는 `--session-id`입니다.
+### 기존 대화와 기본 Project 사용
 
-Project/Session/Run/Step 기록은 `storage_version=1`를 사용합니다. 세션 저장 경로는
-`projects/<project_id>/sessions/<session_id>/session.json`이며 그 아래에 대화 파일과
-`runs/`가 있습니다. Engine 객체는 영속 소유 계층에 들어가지 않습니다.
+다음은 열린 `backend` 안에서 사용하는 코드입니다.
 
-이전 Task 형식의 데이터는 자동 변환하지 않고 명시적으로 거부합니다. 기존 테스트 데이터는
-그대로 보관하고 **새 workspace 경로**를 지정하세요. 구형 API의 호환 별칭은 제공하지 않습니다.
-선택적인 메모리 대화 저장은 종료 시 대화가 사라지는 기존 특성을 유지합니다.
+```python
+project = await backend.projects.aload(project_id)
+session = await project.sessions.aload(session_id)
+request = await session.run.submit("앞의 내용을 이어서 설명해줘.", engine="loop")
+run = await request.wait()
+```
 
-## 검증 예제
+`await backend.projects.aget_default(config=ProjectConfig(...))`는 기본 Project를 생성하거나 다시 엽니다. 처음 생성할 때 등록된 모든 Component를 선택하고 파일 대화 저장을 사용합니다. **기존 Project의 설정은 인자로 덮어쓰지 않습니다.** 모델과 RAG 등의 필수 설정이 자동으로 채워지는 것도 아닙니다. 수정은 `project.asave(config=...)` 또는 해당 Component의 설정 API로 수행합니다.
 
-RAG 추출은 few-shot·고정 temperature=0·제한된 JSON 수정 호출을 지원합니다.
-[PromptComponent](components/prompts/README.md)에서 지침을 편집할 수 있습니다.
-관계의 출처·시각·가중치 속성 추가로 기존 RAG 색인은 새 Project에 다시 등록해야 합니다
-(`graph_schema_version=1`; 핵심 도메인 `storage_version`은 1).
+기본 Project를 사용하더라도 `submit(..., engine="loop")`처럼 실행할 Engine 이름은 매번 명시해야 합니다.
 
-- [GraphEngine·RAG 통합 검사](../examples/llm/graph_rag.md)
-- [사용자 요청·검증·승인·적용 Workflow](../examples/llm/configuration_workflow.md)
-- [메인 도메인 성능 검사](../examples/llm/domain_performance.md)
-- [장애 복구·다중 프로세스 검사](../examples/llm/recovery_probe.md)
+### 자주 쓰는 API
 
-예제 안내에서 독립 Python 실행과 ish 명령 등록 방법을 확인할 수 있습니다.
+표의 호출은 열린 백엔드에서 사용합니다. ID, 설정, 데이터는 호출자가 준비합니다.
+
+| 작업 | 비동기 API |
+| --- | --- |
+| Project 생성·조회·목록 | `backend.projects.acreate(...)`, `aload(id)`, `alist()` |
+| Project 수정·복제·삭제 | `project.asave(...)`, `aclone(title=...)`, `adelete()` |
+| Session 생성·조회·목록 | `project.sessions.acreate(...)`, `aload(id)`, `alist()` |
+| Session 수정·복제·삭제 | `session.asave(...)`, `aclone(...)`, `adelete()` |
+| 요청·대기·중단 | `session.run.submit(..., engine=...)`, `wait_idle()`, `interrupt()` |
+| Run 조회·결과·Step | `session.run.aload(id)`, `run.aresult()`, `run.steps.alist()` |
+| 대화 조회 | `session.aconversation()` |
+| Component 핸들 획득 | `await project.components.aget("prompts")` |
+| JSON 정의 CRUD | `component.acreate(...)`, `aload(id)`, `asave(id, data)`, `adelete(id)` |
+| Component 설정 조회·교체 | `component.aconfiguration()`, `aconfigure(settings)` |
+| 설정 화면 구성 | `backend.project_schema()`, `project.aconfiguration()` |
+| Project/Session 결과 모음 | `project.results.alist()`, `session.results.alist()` |
+
+Project/Session의 `adelete()`는 기본적으로 소프트 삭제이며 `arestore()`로 복원합니다. 영구 삭제는 `permanent=True`를 명시합니다. Component 레코드 삭제는 해당 레코드를 제거합니다.
+
+동기 API도 있지만 비동기 UI에서는 `a` 접두사의 I/O API를 사용하세요. `submit`, `wait`, `interrupt`, `shutdown`은 원래 비동기입니다. `project.data` 같은 동기 조회보다 `await project.aget_data()`가 적합합니다.
+
+### 설정과 UI 연결
+
+- `completion`: LiteLLM에 전달할 모델·인증·추론 옵션.
+- `engines.<등록 이름>`: 해당 Engine의 실행 설정.
+- `policies`: 문맥, 완료 토큰, Run, 조건부 Tool 재시도, 사용량·보관 등의 정책. 호스트의 Tool 실행 권한은 ServiceConfig/ToolPolicy가 별도로 소유합니다.
+- `session_defaults`: 새 Session에 전달할 설정.
+- `component_configurations.<이름>`: 선택한 Component의 설정.
+
+설정이 없으면 임의의 사용자 정책을 만들지 않습니다. SDK 옵션은 생략하여 SDK 동작에 맡깁니다. 설정 누락은 상위 명시값을 상속하고, 지원되는 필드의 명시적 `null`은 상위 값을 덮어씁니다. 상세 우선순위와 강제 불변식은 [설정 계약](CONFIGURATION.md)에 있습니다.
+
+상시 UI에서는 백엔드를 유지하고 종료 시 `await backend.shutdown()`을 호출합니다. `on_event`는 Engine 진행, `on_run_event`는 저장 후 Run 수명 알림입니다. 느린 UI에는 queued 구독을 사용하고, 화면 해제 시 `await subscription.aclose()`로 자원을 정리합니다. 이벤트 누락 가능성이 있는 관찰 구독은 `run.aview()`, `run.aoutput_events()`, `run.steps.alist()`로 저장 상태를 다시 읽어야 합니다. [서비스](services/README.md)와 [이벤트·구독](services/runtime/README.md)을 참고하세요.
+
+승인과 재개는 `run.ainteraction_views()`, `run.arespond(...)`, `session.run.resume(..., engine=...)`로 연결합니다. 승인이 재개 실행 자체를 뜻하지는 않습니다. 명시적 재개는 새 Run을 만들며, 부작용이 불확실한 Tool을 자동 재실행하지 않습니다.
+
+## 새 Engine 만들기
+
+가장 작은 Engine은 `BaseEngine.run()`에서 문자열을 내보내면 됩니다. 아래 코드는 모델 없이도 실행할 수 있습니다.
+
+```python
+from llm.engines import BaseEngine, EngineContext
+
+
+class EchoEngine(BaseEngine):
+    async def run(self, context: EngineContext):
+        yield "입력: "
+        yield context.messages[-1].content
+```
+
+`LargeLanguageModel(workspace, engines={"echo": EchoEngine()})`로 등록한 뒤 `submit(..., engine="echo")`로 선택합니다. `BaseEngine`이 Step·출력 이벤트를 구성하고 서비스가 저장합니다.
+
+확장 계약은 다음과 같습니다.
+
+1. 일반 Engine은 `execute(context)`에서 비동기 `EngineEvent` 스트림을 제공합니다. 단순 작업은 `BaseEngine.run()`을 구현합니다.
+2. 필요한 기능만 `required_capabilities = ("tools",)`처럼 선언합니다. 객체는 Run별 `context.capabilities`로 전달됩니다.
+3. Run/Step/Session/Conversation 파일을 직접 쓰지 않습니다. 체크포인트도 이벤트로 전달합니다.
+4. 실행 상태를 공유 Engine 인스턴스에 누적하지 않습니다. 여러 Session에서 같은 등록 객체를 사용할 수 있습니다.
+5. Tool은 공통 `context.execute_tool(..., checkpoint_key=...)`로 연결합니다. 승인·재시도·영수증은 ToolExecutor가 소유합니다.
+6. 취소를 삼키지 않고 자원을 정리합니다. 명시하지 않은 timeout/retry/출력 제한을 추가하지 않습니다.
+7. 공개 설정이 있다면 `configuration_schema()`와 `configuration(...)` 계약을 구현해 검증·UI·실행 해석을 일치시킵니다.
+
+Graph Agent용으로도 사용하려면 `for_agent(definition)` 계약과 AgentNode 등록을 추가합니다. 체크포인트 기반 재개는 별도의 생성·검증 구현이 필요합니다. 단순 Engine에 이러한 기능이 자동 부여되지는 않습니다.
+
+출력 데이터 클래스, Tool helper, 오류 전달과 재개 계약은 [Engine 개발 안내](engines/README.md)에 있습니다.
+
+## 새 Component 만들기
+
+데이터를 관리하는 최소 Component는 이름과 소유 디렉터리를 선언합니다.
+
+```python
+from llm.components import Component
+
+
+class NotesComponent(Component):
+    name = "notes"
+    directory = "notes"
+
+    def validate_record(self, identifier, data):
+        super().validate_record(identifier, data)
+        if not isinstance(data.get("text"), str):
+            raise ValueError("notes.text must be a string")
+```
+
+`LargeLanguageModel(workspace, components=[NotesComponent()])`로 **종류를 등록**한 뒤, `projects.acreate(..., components=["notes"])`에서 **Project에 선택**합니다.
+
+```python
+notes = await project.components.aget("notes")
+identifier = await notes.acreate({"text": "회의 메모"}, identifier="meeting")
+record = await notes.aload(identifier)
+```
+
+확장 계약은 다음과 같습니다.
+
+1. `directory`는 Project 루트의 안전한 직접 하위 디렉터리여야 합니다. 핵심 도메인 경로나 다른 Component의 경로를 소유하지 않습니다.
+2. Base의 JSON CRUD·직렬화·복제 계약을 재사용합니다. 데이터 형식 제약은 `validate_record()`에 둡니다.
+3. 설정은 `ProjectConfig.component_configurations`로 관리합니다. 별도 `component.json`을 만들지 않습니다.
+4. UI/앱은 잠금과 수명 검사를 제공하는 `ComponentData` 핸들을 사용합니다. 전용 API가 필요하면 `data_class`에 하위 클래스를 지정합니다.
+5. 실행 기능이 필요하면 `capabilities`와 `resolve/resolve_runtime`을 구현합니다. Component가 Run/Step 수명을 직접 관리하지 않습니다.
+6. `configuration_schema()`는 허용 형식을 설명합니다. 사용자 미설정 값을 schema default로 생성하지 않습니다.
+
+Tool은 Python 패키지, RAG는 색인 세대 등 별도 저장 구조를 가질 수 있습니다. [Component 개발 안내](components/README.md)에서 공통 CRUD와 전문 Component의 차이를 확인하세요.
+
+## 코드와 문서 찾기
+
+| 경로 | 읽을 때 |
+| --- | --- |
+| [core/](core/README.md) | 도메인, 설정, 출력·승인 등 공통 데이터 계약 |
+| [engines/](engines/README.md) | Loop/Graph/Pipeline 실행과 새 전략 구현 |
+| [components/](components/README.md) | 기능별 데이터·검색·Tool·장기 기억 |
+| [providers/](providers/README.md) | LiteLLM 호출, 오류·retry·로그·임베딩 검증 |
+| [services/](services/README.md) | 공개 API, 도메인 수명, 저장·복구·이벤트 |
+| [CONFIGURATION.md](CONFIGURATION.md) | 명시적 설정 원칙과 우선순위 |
+| [llm.py](llm.py) | PLUGIN_META, LargeLanguageModel, ish worker용 main |
+| [errors.py](errors.py) | 신뢰할 수 있는 오류 코드의 CodedError 계약 |
+| [_platform.py](_platform.py) | Linux 실행 조건 검사 |
+| [__init__.py](__init__.py) | 플러그인 패키지 초기화 |
+
+개발 저장소에는 [아키텍처](../docs/llm/architecture.md), [인수인계](../docs/llm/handoff.md), [예제 폴더](../examples/llm/), [테스트 실행기](../tests/llm/run_linux.py)가 있습니다. 플러그인만 복사한 배포 환경에서는 이 저장소 문서를 별도로 확인하세요.
+
+전체 검사는 저장소 루트에서 Linux Python 3.12.14로 실행합니다.
+
+```sh
+python tests/llm/run_linux.py --full
+```
+
+이 명령은 Linux 파일시스템에 소스 스냅샷을 만들고 검증합니다. 실제 모델/사내 서버 검사는 별도로 [Graph·RAG 예제](../examples/llm/graph_rag.md)를 사용합니다. 파일 대화 저장은 재시작 후 유지되지만 `conversation_storage="memory"`의 대화·대기 요청은 프로세스 종료 시 사라집니다.

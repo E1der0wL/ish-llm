@@ -1,0 +1,52 @@
+# GraphEngine — 저장한 Workflow 실행
+
+Workflow JSON을 LangGraph 실행 그래프로 구성합니다. 분기, 병렬 합류, 반복, Agent/Tool 노드와 중첩 실행을 지원합니다. Workflow와 Agent의 정의는 Component가 저장하며, 이 폴더는 실행만 담당합니다.
+
+## 파일 안내
+
+| 파일 | 역할 |
+| --- | --- |
+| [__init__.py](__init__.py) | GraphEngine, GraphNodeContext, GraphExecutionError 공개 import입니다. |
+| [engine.py](engine.py) | Workflow 컴파일, 노드 판단과 실행, 스케줄링, 이벤트·체크포인트·재개를 구현합니다. |
+| [agent.py](agent.py) | AgentNode가 저장된 Agent 정의를 등록된 Engine과 연결합니다. |
+| [tool.py](tool.py) | ToolNode가 Tool 호출을 공통 ToolExecutor에 연결합니다. |
+| [checkpoints.py](checkpoints.py) | 중첩 Engine의 체크포인트와 승인 요청을 부모 Graph 범위에 연결합니다. |
+
+## 함께 읽을 코드
+
+- [Workflow Component](../../components/workflows/README.md): 노드·간선·입출력 binding의 저장과 구조 검증.
+- [Agent Component](../../components/agents/README.md): 목적, Engine, 모델, 리소스와 정책 정의.
+- [Graph/RAG 실행 예제](../../../examples/llm/graph_rag.md): ToolNode 검색 → 같은 evidence를 사용한 답변 검증·수정 → publish.
+
+등록 예시는 다음과 같습니다. 실제 Workflow의 action 이름과 handler 키가 일치해야 합니다.
+
+```python
+from llm.engines.graph import GraphEngine
+from llm.engines.graph.tool import ToolNode
+from llm.engines.graph.agent import AgentNode
+from llm.engines.loop import LoopEngine
+
+loop = LoopEngine()
+engines = {
+    "loop": loop,
+    "graph": GraphEngine("review", handlers={
+        "tool": ToolNode(), "agent": AgentNode(engines={"loop": loop}),
+    }),
+}
+```
+
+Agent의 `engine`은 `AgentNode(engines=...)`에 전달한 맵/EngineRegistry에서 찾습니다. 같은 Engine을 최상위 요청에서도 선택하려면 백엔드에도 등록합니다. Agent용 Engine은 `for_agent(definition)`으로 호출별 실행기를 반환해야 하며, LoopEngine과 GraphEngine이 이 계약을 제공합니다. Workflow 선택과 실행 설정은 [Graph 개발 문서](../../../docs/llm/graph-engine.md)에 있습니다.
+
+## 판단과 실행의 경계
+
+`_branch_port`, `_loop_continues`, `_plan_node`는 입력 상태에서 다음 동작만 계산합니다. 파일 저장, 승인 생성, 모델·Tool 실행을 하지 않습니다. 실행부가 계획을 받아 체크포인트 저장 확인 → Step 시작 → 처리기 실행 → 완료 체크포인트 저장 확인 → Step 완료를 수행합니다.
+
+LangGraph 스케줄링, 병렬 합류, 취소 정리와 이벤트 ACK는 실행부가 소유합니다. 일반 실행 timeout은 명시했을 때만 적용합니다. 순수 판단 결과는 별도 영속 상태나 승인 증명이 아닙니다.
+
+## 중단·승인·재개
+
+`pause_before`는 노드 실행 전 대기 기록을 저장합니다. 노드 확인은 Tool 실행 승인을 대신하지 않으며 ToolPolicy가 ASK를 반환하면 별도 Tool 승인이 필요합니다.
+
+명시적 재개는 새 Run을 만듭니다. 완료 노드는 저장 결과를 재사용하고, 시작했지만 완료되지 않은 동작은 명시적 `retry_nodes` 검증을 거칩니다. 중첩 체크포인트도 원래 Interaction과 binding을 검증합니다. [재개 계약](../../../docs/llm/graph-checkpoints.md)을 참고하세요.
+
+[상위 안내](../README.md)

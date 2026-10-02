@@ -1,3 +1,58 @@
+## 2026-10-03 사용자·개발자용 README 정리
+
+- `llm/`의 README 22개를 정리했다. 기존 8개는 개요·사용 흐름부터 읽도록 개편하고,
+  README가 없던 14개 코드 폴더에는 역할과 직접 소유한 파일의 설명을 추가했다.
+  132개 운영 Python 파일 모두 해당 폴더 README에서 찾을 수 있다.
+- 메인 README에 ish 설치/명령 등록, import 가능한 worker 진입점, ProjectConfig 인증,
+  LargeLanguageModel의 Request → Run 결과 대기, 기존 Session 재조회, 비동기 UI,
+  설정·구독·승인 경계, 새 Engine/Component 구현 예제를 넣었다.
+- Tool의 옛 JSON 저장 예시, RAG 배치 임베딩·고정 temperature 표현 등을 바로잡았다.
+  AgentNode의 별도 Engine 등록/for_agent, 명시적 재개, Component 등록과 선택,
+  JSON 공통 CRUD와 Tool/RAG/Memory 전문 API의 차이를 명시했다.
+- 운영 Python 코드에는 변경이 없다. 이전 검증(3lys99mz)의 llm/*.py 132개 해시와 같다.
+  문서 검사 스크립트/결과는 배포·자동 발견에서 제외되는
+  `tests/llm/reports/readme_audit.py`와 `readme_audit.json`에 있다.
+  README 22개, 내부 링크 232개, Python 블록 23개, 파일 안내 누락 검사를 통과했다.
+  문서에서 직접 추출한 코드로 확장 Component CRUD/검증, EchoEngine, facade reopen,
+  정의 저장, 구독 정리, Graph/Agent/Pipeline 구성 및 메인 Loop 예제 등 11개 검사를 통과했다.
+  Loop 예제의 모델 함수는 fixture로 주입했으며 실제 API나 TUI 화면 검사는 하지 않았다.
+- Linux Python 3.12.14: 집중 191개 통과(131.218초), 전체 1,072개 통과(416.751초),
+  실패 0 / skip 0. 집중 검사는 전체에 포함되므로 합산하지 않는다.
+  명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full`.
+  Linux 소스 스냅샷: `/home/user/.cache/ish-provider-ue8xjzaa`.
+  결과: `tests/llm/reports/ish-provider-ue8xjzaa/{focused.txt,suite.txt,snapshot.json,source-verification.json}`.
+  전체 검사 후 현재 Python 소스 270개의 해시가 스냅샷 manifest와 일치함을 확인했다.
+  이번 요청은 문서 정리이므로 GitHub 업로드는 수행하지 않았다.
+
+## 2026-10-03 Run 정책 보호와 구독 자원 회수
+
+- 정책 보호를 먼저 적용·검증한 뒤 구독 회수를 적용했다. EventContext.update_metadata는
+  policies/completions/resume/checkpoints/output이 하나라도 있으면 전체 갱신을 거부한다.
+  사용자 JSON 키와 Project 설정 API는 유지한다. StorageIO에 Run을 명시적 인자로 전달해
+  기존 watch/rollback이 저장·commit 실패 시 파일과 메모리까지 복원하게 했다.
+- 수정 전 신규 회귀 3개가 실패했다(rbnoq65d). 정책 단계의 서비스 확장·장시간 실행·
+  트랜잭션 집중 64개가 16.210초에 통과했다(jek6qq0_). max_calls=1을 메타데이터로
+  지우는 시도를 거부하고 실제 호출은 1회, 다음 호출은 usage_limit으로 끝나는지 확인했다.
+- EventSubscriptions는 해제 시 pending 알림을 버리고 막힌 생산자를 깨운다. 진행 중인
+  콜백은 취소하지 않고 완료 후 worker/콜백/큐 참조를 회수한다. Subscription.aclose로
+  해제 및 정리를 기다린다. 자기 콜백의 aclose/전체 close는 fail-fast하고 동기 해제는
+  허용한다. queued 동기 콜백의 해제는 소유 루프로 예약한다.
+- 종료 구독별 객체 대신 숫자 합계만 유지하고 기존 stats/Observability 소유권을 지킨다.
+  해제 폐기는 overflow dropped와 구분해 집계하지 않는다. idle worker의 마지막 알림/
+  on_error 참조도 해제한다. 정상 close는 활성 구독의 알림을 배출하며 동시 close와
+  대기자 취소가 다른 대기자/콜백을 취소하지 않는다.
+- 숨은 deadline을 추가하지 않았다. 끝나지 않는 콜백은 명시적 callback_timeout이 없으면
+  정리를 지연시킬 수 있다. timeout된 동기 콜백 스레드는 실제 반환까지 살아 있을 수 있다.
+  Project → Session → Run → Step, 승인/Tool/저장 형식·버전에는 변경이 없다.
+- 구독 단계 집중 73개 통과(15.469초, n3gpx967) 뒤 inline 진행 중 해제와 idle 알림 참조
+  회수 검사를 추가했다. 최종 집중 75개 통과(15.467초, 3lys99mz).
+- 최종 Linux Python 3.12.14 전체 suite는 1,072 passed(335.277초), 0 failed / 0 skipped다.
+  집중 검사는 전체에 포함되므로 합산하지 않는다. 종료되지 않은 Task/미회수 예외 경고는
+  없었으며 실제 모델 API나 TUI 화면 검사는 수행하지 않았다.
+  현재 Python 소스 270개와 Linux snapshot/manifest 해시가 일치한다.
+  명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --modules tests.llm.test_service_extensions tests.llm.test_runtime_reliability tests.llm.test_observability`.
+  결과: `tests/llm/reports/ish-provider-3lys99mz/{focused.txt,suite.txt,snapshot.json,source-verification.json}`.
+
 ## 2026-10-03 승인 경계와 이벤트·UI 연결 계약
 
 - Graph pause_before confirmation을 Tool 승인으로 전달하던 경로를 수정했다.

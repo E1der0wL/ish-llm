@@ -1,23 +1,72 @@
-> 설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. 미설정 정책을 생성하지 않으며, SDK 옵션은 생략한다.
+# Engines — Run 실행 전략
 
-# Engine 구성
+Engine은 하나의 Run을 어떻게 실행할지 정의합니다. 모델을 반복 호출하거나 Workflow를 실행해도 Project → Session → Run → Step의 저장 관계는 바뀌지 않습니다. Engine은 비동기 이벤트를 발생시키고 서비스가 저장합니다.
+
+## 파일과 실행 전략
+
+| 파일/폴더 | 역할 |
+| --- | --- |
+| [__init__.py](__init__.py) | BaseEngine, EngineContext, EngineRegistry와 Graph 타입의 공개 import입니다. |
+| [base.py](base.py) | Engine protocol, EngineContext/EngineEvent, BaseEngine과 Step·출력·Tool helper입니다. |
+| [registry.py](registry.py) | 실행 객체 등록, 이름 조회와 실행 전 설정 검증입니다. |
+| [loop/](loop/README.md) | LiteLLM completion → Tool → 다음 completion을 반복합니다. |
+| [graph/](graph/README.md) | LangGraph로 Workflow를 실행하고 Agent/Tool·중첩 체크포인트를 연결합니다. |
+| [pipeline/](pipeline/README.md) | 준비 작업과 여러 Engine을 같은 Run에서 순서대로 실행합니다. |
+
+현재 공개 구현은 LoopEngine, GraphEngine, PipelineEngine입니다. 단일 동작은 BaseEngine으로 구현할 수 있으며 별도 SingleEngine 구현은 없습니다.
+
+## 공개 import와 등록
+
+```python
+from llm.engines import BaseEngine, EngineContext, EngineRegistry
+from llm.engines.base import EngineEvent, EngineEventType
+from llm.engines.loop import LoopEngine
+from llm.engines.graph import GraphEngine
+from llm.engines.pipeline import PipelineEngine, PreparationStep
+
+engines = {"assistant": LoopEngine()}
+# LargeLanguageModel(..., engines=engines)
+# await session.run.submit("안녕하세요", engine="assistant")
+```
+
+등록 이름이 기본 설정 키입니다. Project 설정은 `engines.assistant`에 둡니다. 이름이나 파일 위치만으로 자동 발견하지 않으며, 항상 등록한 Engine 이름을 submit/resume에 전달합니다.
+
+## 새 Engine의 최소 계약
+
+[메인 README](../README.md#새-engine-만들기)의 EchoEngine처럼 BaseEngine.run에서 문자열·EngineDelta·최종 EngineOutput을 yield할 수 있습니다. 복잡한 Engine은 `execute(context)`를 구현하고 BaseEngine의 이벤트 helper를 재사용합니다.
+
+- `execute`는 `AsyncIterator[EngineEvent]`를 반환합니다.
+- `required_capabilities`는 필요한 기능 이름의 중복 없는 tuple입니다. 미선언은 외부 기능 없음입니다.
+- `context`에는 도메인 스냅샷, 메시지, Run별 state/capabilities와 공유 실행 범위가 있습니다. 실행 상태를 Engine 인스턴스에 누적하지 않습니다.
+- Step/Run/Session/대화/체크포인트 파일을 직접 쓰지 않습니다.
+- 이벤트 소비자는 조기 종료에도 generator를 닫도록 `aclosing`을 사용합니다. 취소는 자원을 정리한 뒤 전달합니다.
+- 사용자 설정은 명시한 값만 적용합니다. `configuration_schema()`는 UI·사전 검증에, `configuration(config, name, *, session_config=None)`는 출처를 포함한 유효 설정 조회에 사용합니다. 동일 해석을 실행에서도 사용해야 합니다.
+
+Graph AgentNode에서도 사용할 Engine은 `for_agent(definition)`이 호출별 Engine을 반환하도록 구현하고 AgentNode의 엔진 맵에 등록합니다. 일반 `execute` 계약만 구현했다고 Agent 설정이 자동 적용되지는 않습니다. 명시적 재개까지 지원하려면 Engine별 체크포인트 생성과 `validate_resume` 검증도 구현해야 합니다. BaseEngine의 Tool helper가 체크포인트를 대신 생성하지는 않습니다.
+
+## 출력과 Step
+
+문자열은 BaseEngine이 EngineDelta로 연결합니다. 최종 출력은 EngineOutput, 모델 사용량과 종료 이유는 CompletionResult입니다. UI는 TEXT_DELTA/OUTPUT/COMPLETION 등 EngineEvent를 읽고, 저장 결과는 RunHandle에서 조회합니다.
+
+BaseEngine의 `step()`으로 하위 작업을 Step 이벤트로 감쌀 수 있습니다. Step 시작·진행·실패 이벤트를 발생시켜도 Engine이 persistence owner가 되는 것은 아닙니다. 사용자 출력과 내부 Agent 출력의 visibility, 중첩 Step의 output ownership을 보존하세요.
 
 ## Durable Tool 호출 연결
 
 custom Engine은 기존 체크포인트의 invocation key를 공통 helper에 전달합니다.
 새 ID나 승인 영수증을 만들지 않으며 checkpoint/Interaction/Run resume 기록이 원본입니다.
+아래는 BaseEngine 하위 클래스에 둘 수 있는 메서드 예입니다. 호출자가 결과용 dict와
+현재 invocation의 안정적인 key를 전달하고, 이벤트를 끝까지 소비한 뒤 `result["value"]`를 읽습니다.
 
 ```python
 from contextlib import aclosing
 
-result = {}
-async with aclosing(self.execute_tool(
-    context, tool, arguments, checkpoint_key=key, result=result,
-    executor=executor,  # 명시된 timeout 등 기존 ToolExecutor 설정을 유지
-)) as events:
-    async for event in events:
-        yield event
-value = result["value"]
+async def tool_step(self, context, tool, arguments, *, key, result, executor=None):
+    async with aclosing(self.execute_tool(
+        context, tool, arguments, checkpoint_key=key, result=result,
+        executor=executor,  # 명시된 timeout 등 기존 ToolExecutor 설정을 유지
+    )) as events:
+        async for event in events:
+            yield event
 ```
 
 BaseEngine을 상속하지 않는 처리기는 `context.execute_tool(...)`을 사용합니다.
@@ -34,77 +83,6 @@ confirmation이나 started 기록에 decision을 붙이면 실행 전에 거부�
 일반 비영속 호출에는 key를 강제하지 않습니다. helper는 Step 저장, 승인 정책, retry,
 operation receipt를 소유하지 않으며 ToolExecutor가 이를 계속 담당합니다.
 
-Engine은 Run에 등록·선택되는 실행 전략입니다. 영속 소유 관계는
-Project → Session → Run → Step이며 Engine은 이벤트를 발생시킵니다.
-도메인 저장과 실행 수명 관리는 기존 서비스가 담당합니다.
-
-```text
-engines/
-├── base.py                 # Engine 계약, 문맥·이벤트, BaseEngine
-├── registry.py             # Engine 등록·조회·설정 사전 검증
-├── loop/
-│   ├── __init__.py         # LoopEngine 공개 진입점
-│   └── engine.py           # LiteLLM 스트리밍·Tool 반복 실행
-├── graph/
-│   ├── __init__.py         # GraphEngine, GraphNodeContext 공개 진입점
-│   ├── engine.py           # LangGraph 컴파일·실행·노드 수명 관리
-│   ├── agent.py            # AgentNode: 등록 Engine을 Graph 노드에 연결
-│   ├── tool.py             # ToolNode: 공통 ToolExecutor에 연결
-│   └── checkpoints.py      # 자식 Engine 체크포인트를 부모 Graph에 연결
-└── pipeline/
-    ├── __init__.py         # PipelineEngine, PreparationStep 공개 진입점
-    └── engine.py           # 준비 작업과 여러 Engine의 순차 조합
-```
-
-## 공개 import
-
-```python
-from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
-from llm.engines.registry import EngineRegistry
-from llm.engines.loop import LoopEngine
-from llm.engines.graph import GraphEngine, GraphNodeContext
-from llm.engines.graph.agent import AgentNode
-from llm.engines.graph.tool import ToolNode
-from llm.engines.pipeline import PipelineEngine, PreparationStep
-```
-
-각 패키지의 `__init__.py`는 공개 클래스를 노출합니다. 실제 구현을 패치하거나 내부
-실행부를 조사할 때는 `llm.engines.loop.engine` 같은 구현 모듈을 사용합니다.
-이전 `engines.agent`, `engines.tool`, `engines.checkpoints`와
-`engines.base.EngineRegistry`의 호환 경로는 제공하지 않습니다.
-
-신규 실행 전략도 `engines/<name>/engine.py`와 공개 `__init__.py`로 추가할 수 있습니다.
-플러그인 외부에서 구현한 객체를 EngineRegistry 또는 LargeLanguageModel의 engines에
-등록하는 방식도 유지됩니다. 폴더 구조가 등록 이름이나 ProjectConfig 설정 키를 결정하지는
-않으며 Engine을 파일에서 자동 발견·실행하는 기능은 추가하지 않습니다.
-
-Graph 구현과 Run별 내부 실행 객체는 같은 `graph/engine.py`에 유지합니다.
-Agent/Tool 노드는 Graph에 특화된 어댑터이고, 여러 Engine이 공유하는 Tool 실행 정책은
-`services/runtime/tools.py`가 계속 담당합니다. LangGraph는 실제 Graph 실행 시 로드합니다.
-
-Graph의 다음 판단은 같은 파일의 순수 함수로 분리합니다.
-
-| 내부 함수 | 판단 | 수행하지 않는 작업 |
-| --- | --- | --- |
-| `_branch_port` | 선언 순서의 첫 일치 port 또는 default | 상태 수정, 이벤트 전송 |
-| `_loop_continues` | 다음 반복, 정상 종료, 조건부 반복 상한 오류 | 반복 횟수 갱신, 하위 그래프 실행 |
-| `_plan_node` | 완료 결과 재사용, 사전 대기, 실행 및 검토 응답 선택 | 승인 생성, 체크포인트 저장, 처리기 호출 |
-
-판단 함수에는 JSON 정의·상태·체크포인트 값만 전달합니다. 입력을 변경하지 않으며,
-`_NodePlan`의 decision은 원본과 분리된 사본입니다. 계획은 내부 런타임이 즉시 사용하고
-별도 저장하거나 새 상태 원본으로 삼지 않습니다. 공개 Workflow/GraphNodeContext API는 같습니다.
-
-실행부는 기존 순서대로 started 체크포인트 저장 확인 → Step 시작 확인 → 처리기 실행 →
-completed 체크포인트 저장 확인 → Step 완료를 수행합니다. 완료 노드 재사용은 처리기를
-호출하거나 원본 체크포인트를 덮어쓰지 않습니다. pause는 waiting을 저장한 뒤 실행을 양보합니다.
-분기 비교·반복 상한 오류도 기존 try/except 경계를 통해 Step/Run 실패로 전달합니다.
-
-LangGraph의 병렬 스케줄링·합류, 세마포어, 실행 예산, 취소 정리 및 이벤트 ACK는 실행부가
-계속 소유합니다. 재개 binding/retry_nodes/Interaction 검증도 기존 진입 경계에 남습니다.
-판단 계획은 승인 증명이 아니며 부작용 재실행 권한을 새로 부여하지 않습니다.
-
-이번 폴더 정리는 도메인 저장 버전이나 체크포인트 형식을 바꾸지 않습니다.
-
 ## 승인·재개 값 해석
 
 `InteractionRequest.select_decision()`은 저장된 option과 입력 schema를 사용해 재개 값을
@@ -117,7 +95,7 @@ Loop의 bool 및 Graph의 approved/state 형식, binding과 불확실 실행의 
 option ID로 자식 값을 복원합니다. 응답 영수증을 재생성하거나 갱신 전 요청의 만료 시각을
 재검사하지 않습니다. 순수 해석 함수가 승인 권한을 대신하지 않으므로 custom Engine도
 기존 서비스 재개 경계와 `context.execute_tool(..., checkpoint_key=...)`를 사용해야 합니다.
-API 및 책임 구분은 `docs/llm/interactions.md`를 참고하세요.
+API 및 책임 구분은 [승인 API](../../docs/llm/interactions.md)를 참고하세요.
 
 ## 실패 전달 계약
 

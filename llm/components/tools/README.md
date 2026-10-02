@@ -1,4 +1,24 @@
-# Project Python Tools
+# Tools — Project별 Python Tool 패키지
+
+Project가 소유하는 Python Tool 소스를 저장하고 준비·활성화합니다. 소스 introspection과 실행은 child interpreter에서 수행하며, 승인·retry·operation receipt·Step 수명은 공통 ToolExecutor가 담당합니다.
+
+## 파일 안내
+
+| 파일 | 역할 |
+| --- | --- |
+| [__init__.py](__init__.py) | tool 데코레이터, Tool/ToolContract/ToolRegistry, ToolComponent와 공개 핸들 import입니다. |
+| [decorator.py](decorator.py) | @tool 메타데이터와 불변 실행 계약을 함수에 붙입니다. |
+| [function.py](function.py) | 함수 signature·annotation을 JSON Schema로 변환하고 Python default도 검증합니다. |
+| [registry.py](registry.py) | Tool/ToolContract와 실행용 ToolRegistry, 인자·definition 검증입니다. |
+| [component.py](component.py) | Project Python 패키지 저장 구조와 선택된 Tool capability를 관리합니다. |
+| [data.py](data.py) | ToolData의 source CRUD, prepare, enable/disable 편의 API입니다. |
+| [packages.py](packages.py) | 패키지 파일·requirements 검사, 호스트 의존성 준비와 inspector 연결입니다. |
+| [process.py](process.py) | 신뢰한 backend adapter가 inspector/execution worker를 시작하고 응답을 검증합니다. |
+| [_worker.py](_worker.py) | Project source를 읽고 검사·실행하는 내부 child 진입점입니다. |
+| [resolver.py](resolver.py) | 선택한 Component가 제공한 Tool capability를 런타임 registry로 모읍니다. |
+| [builtin/README.md](builtin/README.md) | 호스트가 선택해 제공하는 파일·프로세스·서비스 Tool 안내입니다. |
+
+## 패키지 작성
 
 Project는 Python 소스를 소유하고, ish Host는 공용 의존성을 소유하며,
 기존 `ToolRegistry → ToolExecutor`가 Run/Step 실행을 담당한다.
@@ -35,12 +55,12 @@ description은 비어 있지 않은 docstring, parameters는 signature/type hint
 str/int/float/bool/None, Optional/Union/`|`, Literal, list[T], dict[str,T], Annotated를 지원한다.
 Annotated의 Pydantic Field 제약은 JSON Schema에 반영한다. 선언하지 않은 인자는 거부한다.
 위치 전용 인자, `*args`, `**kwargs`, 누락/지원하지 않는 annotation은 거부한다.
-Python signature의 명시적 기본값만 schema default가 된다.
+Python signature의 명시적 기본값만 schema default가 된다. JSON-safe 검사와 생성된 JSON Schema 검증을 모두 통과해야 한다. 예를 들어 `limit: int = "ten"`, `query: str = None`, Field 범위 밖의 값은 prepare/introspection에서 거부한다. coercion하지 않으며 `query: str | None = None`은 허용한다.
 
 ## Host/UI API
 
 ```python
-tools = project.components.tools
+tools = await project.components.aget("tools")
 await tools.acreate({"source": source_text, "requirements": "httpx>=0.28,<1\n"},
                     identifier="web_search")
 package = await tools.aload("web_search")
@@ -119,3 +139,5 @@ CancelledError는 일반 Tool 실패로 변환하지 않는다. full traceback�
 RAG/Memory/MCP 등 다른 Component의 `tools` capability와 BuiltinTools는 유지한다.
 Host-owned 함수는 별도 Component의 `resolve(project, "tools")`에서 ToolRegistry를 반환할 수 있다.
 ToolComponent에는 catalog를 주입하지 않는다.
+
+[상위 안내](../README.md)

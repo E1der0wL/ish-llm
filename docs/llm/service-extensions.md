@@ -92,8 +92,12 @@ class ValidatedEngine(BaseEngine):
 
 처리기는 동기 함수 또는 async 함수다. RunManager는 처리 완료를 기다린 후 다음 이벤트로
 진행한다. 실패하면 Run이 실패하고, 명시적 interrupt로 대기 중인 비동기 처리기를 중단할 수 있다.
-검증 결과·검색 결과 등을 Run에 남길 때는 `update_metadata()`를 사용한다. 현재 예약된
-`completions` 키는 이 메서드로 덮어쓸 수 없다.
+검증 결과·검색 결과 등을 Run에 남길 때는 `update_metadata()`를 사용한다.
+`policies`, `completions`, `resume`, `checkpoints`, `output`은 서비스 소유 키다.
+하나라도 포함하면 `ValueError`로 전체 갱신을 거부하며 허용 키만 부분 저장하지 않는다.
+정책은 Project 설정 API로 변경하고, 실행 중인 Run의 시작 시점 정책 사본은 유지한다.
+그 밖의 사용자 JSON 키는 기존처럼 사용할 수 있다. 저장·커밋 실패 시 기존 트랜잭션이
+파일과 메모리 Run 객체를 함께 복원한다. 저장 형식이나 기존 자료를 변환하지 않는다.
 
 텍스트, Completion, Step 수명 주기 이벤트는 기본 처리기가 담당하며 교체할 수 없다.
 등록하지 않은 사용자 이벤트는 조용히 무시하지 않고 실패시킨다.
@@ -115,10 +119,10 @@ backend.events.subscribe(
     monitor, channel="run", delivery="queued", buffer_size=64,
 )
 
-# 더 이상 새 알림을 받지 않기
+# 새 전달 중단과 대기 알림 폐기 요청
 unsubscribe()
-# 현재 큐에 들어간 알림이 처리될 때까지 기다리기
-await backend.events.flush()
+# 실행 중이던 콜백과 자원 정리 완료까지 기다리기 (해제 요청도 포함한다)
+await unsubscribe.aclose()
 ```
 
 `engine` 콜백은 `(run, event)`, `run` 콜백은 `(event)`를 받는다. 각 구독자에게 복사본을
@@ -132,6 +136,23 @@ await backend.events.flush()
 서로 기다리는 상황이 생길 수 있다. 실행 제어가 필요한 동작은 이벤트 처리기에 둔다.
 구독자 예외는 기록하고 다른 구독자/Run을 계속 진행한다. 백엔드 종료는 큐를 배출한다.
 기존 `on_event`, `on_run_event` 인자도 유지되며 async 콜백을 지원한다.
+
+개별 해제는 아직 전달하지 않은 알림을 버리고 막힌 생산자를 깨운다. 이미 시작한
+콜백은 완료까지 기다리며 해제 자체가 콜백이나 inline 실행 Task를 취소하지 않는다.
+콜백 안에서는 `unsubscribe()`를 호출할 수 있지만 자기 `aclose()`나 전체 이벤트
+`close()`를 기다리면 `RuntimeError`다. queued 동기 콜백 스레드의 해제 요청은
+소유 이벤트 루프로 예약한다. 다른 async API는 처음 사용한 이벤트 루프에서 호출한다.
+
+`aclose()`는 반복/동시 호출할 수 있다. 한 대기자를 취소해도 다른 대기자나 콜백을
+취소하지 않는다. `callback_timeout`을 명시했다면 기존 시간 제한을 적용하고 그 뒤
+자동 회수한다. 미설정이면 새 제한을 만들지 않으며 끝나지 않는 콜백은 정리를 지연시킨다.
+시간이 초과된 동기 콜백 스레드는 강제 종료되지 않고 실제 반환까지 참조가 남을 수 있다.
+
+worker 종료 후 콜백/큐 참조를 회수한다. `Subscription.stats`는 해제 후에도 조회할 수
+있으며 백엔드는 종료된 구독별 객체 대신 숫자 합계만 보존한다. `pending`은 대기 중인
+알림 수이고, 의도적인 해제 폐기는 overflow의 `dropped`나 전달 성공으로 세지 않는다.
+`flush()`는 수락된 큐 작업 처리를 기다린다. 정상 백엔드 종료는 해제하지 않은 구독의
+대기 알림을 처리한 뒤 회수하며, `aclose()`는 특정 구독의 최종 정리까지 기다린다.
 
 ## 대화 문맥 프리셋
 

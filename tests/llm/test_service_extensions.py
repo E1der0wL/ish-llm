@@ -5,6 +5,8 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
+from copy import deepcopy
 
 from llm.llm import LargeLanguageModel
 from llm.components.base import Component
@@ -117,6 +119,94 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await failed.aresult()).status, RunStatus.FAILED)
         good = await self.run_one(session)
         self.assertEqual((await good.aresult()).status, RunStatus.COMPLETED)
+
+    async def test_event_metadata_rejects_entire_update_of_service_owned_fields(self):
+        class Inspect(BaseEngine):
+            async def run(self, context):
+                yield EngineEvent("custom.metadata")
+                yield "done"
+        handlers = EventHandlers()
+        async def inspect(context, event):
+            before = context.run.metadata
+            for key in ("policies", "completions", "resume", "checkpoints", "output"):
+                with self.subTest(key=key):
+                    with self.assertRaisesRegex(ValueError, key):
+                        await context.update_metadata({"partial": True, key: {}})
+                    self.assertEqual(context.run.metadata, before)
+            await context.update_metadata({"validation": {"accepted": True}})
+        handlers.register("custom.metadata", inspect)
+        _, _, session = await self.backend(engines={"inspect": Inspect()},
+                                            services=ServiceConfig(event_handlers=handlers))
+        run = await self.run_one(session, engine="inspect")
+        self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
+        data = (await run.aget_data()).metadata
+        self.assertNotIn("partial", data)
+        self.assertEqual(data["validation"], {"accepted": True})
+
+    async def test_event_metadata_cannot_remove_run_usage_limit(self):
+        calls = []
+        def completion(**kwargs):
+            calls.append(kwargs)
+            return iter([{"choices": [{"delta": {"content": "ok"}, "finish_reason": "stop"}]}])
+        class Twice(BaseEngine):
+            async def run(self, context):
+                for index in range(2):
+                    if index:
+                        yield EngineEvent("custom.metadata")
+                    async for event in self.stream_completion({"model": "fixture", "messages": []}):
+                        yield event
+        handlers = EventHandlers()
+        async def inspect(context, event):
+            with self.assertRaisesRegex(ValueError, "policies"):
+                await context.update_metadata({"policies": {}})
+        handlers.register("custom.metadata", inspect)
+        _, project, session = await self.backend(engines={"twice": Twice(completion_fn=completion)},
+                                                 services=ServiceConfig(event_handlers=handlers))
+        await project.aconfigure_policies({"usage": {"max_calls": 1}})
+        run = await self.run_one(session, engine="twice")
+        self.assertEqual((await run.aresult()).error_code, "usage_limit")
+        self.assertEqual(len(calls), 1)
+        self.assertEqual((await run.aget_data()).metadata["policies"], {"usage": {"max_calls": 1}})
+
+    async def test_event_metadata_save_and_commit_failures_restore_memory_and_disk(self):
+        from llm.services.infrastructure import transactions
+        from llm.services.infrastructure.storage import read_json
+        class Inspect(BaseEngine):
+            async def run(self, context):
+                yield EngineEvent("custom.metadata")
+                yield "done"
+        handlers = EventHandlers()
+        async def inspect(context, event):
+            await context.update_metadata({"validation": {"accepted": False}})
+            before = deepcopy(context.run.metadata)
+            path = context.run.paths.root / "run.json"
+            disk_before = read_json(path)
+            original_save, original_write = context._repository.save, transactions._write
+            def fail_save(run):
+                original_save(run)
+                raise OSError("metadata save failed")
+            def fail_commit(path, data):
+                if path.name == "COMMITTED":
+                    raise OSError("metadata commit failed")
+                return original_write(path, data)
+            for target, name, failure in ((context._repository, "save", fail_save),
+                                          (transactions, "_write", fail_commit)):
+                with self.subTest(boundary=name):
+                    with patch.object(target, name, side_effect=failure):
+                        with self.assertRaises(OSError):
+                            await context.update_metadata({"validation": {"accepted": True}, "temporary": True})
+                    self.assertEqual(context.run.metadata, before)
+                    self.assertEqual(read_json(path), disk_before)
+            await context.update_metadata({"checked": True})
+        handlers.register("custom.metadata", inspect)
+        _, _, session = await self.backend(engines={"inspect": Inspect()},
+                                            services=ServiceConfig(event_handlers=handlers))
+        run = await self.run_one(session, engine="inspect")
+        self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
+        data = (await run.aget_data()).metadata
+        self.assertEqual(data["validation"], {"accepted": False})
+        self.assertNotIn("temporary", data)
+        self.assertTrue(data["checked"])
 
     async def test_validation_failure_is_terminal_and_does_not_notify_success(self):
         class Validate(BaseEngine):

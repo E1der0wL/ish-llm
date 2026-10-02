@@ -27,9 +27,15 @@ print(snapshot["events"])     # delivered, dropped, failures, timed_out, pending
 Component별 record 호출을 추가하지 않는다. 공통 ComponentData.model_scope는 Host observer를
 provider boundary로 전달만 한다. Run의 중첩 Engine/Agent도 같은 문맥을 사용한다.
 
-현재 provider active/waiting은 ProviderCalls.stats, 이벤트 통계는 Subscription.stats,
+현재 provider active/waiting은 ProviderCalls.stats, 이벤트 통계는 EventSubscriptions.stats,
 Run/queue/unfinished 값은 기존 manager runtime에서 snapshot 시 읽는다. 독립 gauge를 만들지 않는다.
 snapshot은 순간별 projection이며 여러 owner를 하나의 트랜잭션으로 잠근 일관된 도메인 snapshot은 아니다.
+
+EventSubscriptions는 활성/정리 중인 구독 통계와 종료된 구독의 숫자 합계를 합성한다.
+종료 때 한 번만 합산하고 구독 객체·콜백·worker·큐를 보관하지 않는다. 전달 통계의
+소유자는 그대로 EventSubscriptions이며 Observability에 중복 counter를 추가하지 않는다.
+해제 후에도 개별 Subscription.stats는 마지막 통계를 제공한다. pending은 살아 있는
+알림 큐에서 읽고, 명시적 해제로 버린 대기 알림은 overflow dropped나 delivered로 세지 않는다.
 
 ## Counter 의미
 

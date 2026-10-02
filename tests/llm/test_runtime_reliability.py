@@ -1,9 +1,11 @@
 """운영 정책을 실제 Facade/Run/Step/Graph 경로로 검증한다. 외부 모델은 호출하지 않는다."""
 
 import asyncio
+import gc
 import json
 import tempfile
 import unittest
+import weakref
 from pathlib import Path
 from unittest.mock import patch
 
@@ -357,6 +359,249 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(subscription.stats["timed_out"], 0)
         self.assertTrue(subscription.stats["active"])
         await events.close()
+
+
+class SubscriptionLifetimeTests(unittest.IsolatedAsyncioTestCase):
+    """구독 수명과 실행 수명을 구분하고 실제 Task/콜백 참조 회수를 검사한다."""
+
+    async def asyncSetUp(self):
+        self.events = EventSubscriptions()
+        self.addAsyncCleanup(self.events.close)
+
+    async def test_repeated_unsubscribe_reclaims_workers_and_callbacks(self):
+        class Observer:
+            async def receive(self, value):
+                pass
+        handles, references, workers = [], [], []
+        for _ in range(20):
+            observer = Observer()
+            references.append(weakref.ref(observer))
+            handle = self.events.subscribe(observer.receive, delivery="queued")
+            handles.append(handle)
+            await self.events.publish("engine", "value")
+            await self.events.flush()
+            workers.append(handle._entry["worker"])
+            handle()
+            await self.events.flush()
+            self.assertTrue(workers[-1].done())
+            await handle.aclose()
+            del observer
+        gc.collect()
+        self.assertTrue(all(worker.done() for worker in workers))
+        self.assertTrue(all(reference() is None for reference in references))
+        self.assertEqual(len(self.events._subscriptions), 0)
+        self.assertEqual(self.events.stats["delivered"], 20)
+        self.assertTrue(all(handle.stats["delivered"] == 1 for handle in handles))
+        await self.events.close()
+        self.assertEqual(self.events.stats["delivered"], 20)
+
+    async def test_unused_and_inline_subscriptions_release_callbacks(self):
+        class Observer:
+            def __call__(self, value):
+                pass
+        for publish in (False, True):
+            observer = Observer()
+            reference = weakref.ref(observer)
+            subscription = self.events.subscribe(observer)
+            if publish:
+                await self.events.publish("engine", "value")
+            subscription()
+            subscription()
+            await subscription.aclose()
+            del observer
+            gc.collect()
+            self.assertIsNone(reference())
+            self.assertFalse(subscription.stats["active"])
+        self.assertEqual(self.events.stats["delivered"], 1)
+
+    async def test_unsubscribe_unblocks_publishers_but_finishes_current_callback(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+        seen = []
+        async def callback(value):
+            entered.set()
+            await release.wait()
+            seen.append(value)
+        subscription = self.events.subscribe(callback, delivery="queued", buffer_size=1)
+        await self.events.publish("engine", 0)
+        await entered.wait()
+        await self.events.publish("engine", 1)
+        publishers = [asyncio.create_task(self.events.publish("engine", i)) for i in (2, 3)]
+        await asyncio.sleep(0)
+        self.assertTrue(all(not task.done() for task in publishers))
+        subscription()
+        closing = asyncio.create_task(subscription.aclose())
+        try:
+            await asyncio.wait_for(asyncio.gather(*publishers), 1)
+            await self.events.publish("engine", 4)
+            self.assertFalse(closing.done())
+            self.assertEqual(subscription.stats["pending"], 0)
+            self.assertEqual(seen, [])
+        finally:
+            release.set()
+            await asyncio.wait_for(closing, 1)
+        self.assertEqual(seen, [0])
+        self.assertEqual(subscription.stats["delivered"], 1)
+        self.assertEqual(subscription.stats["dropped"], 0)  # 해제는 overflow drop이 아니다.
+        await asyncio.wait_for(self.events.flush(), 1)
+
+    async def test_callback_can_unsubscribe_itself_but_cannot_await_own_close(self):
+        for delivery in ("inline", "queued"):
+            seen = []
+            async def callback(value):
+                with self.assertRaisesRegex(RuntimeError, "own callback"):
+                    await subscription.aclose()
+                subscription()
+                await asyncio.sleep(0)
+                seen.append(value)
+            subscription = self.events.subscribe(callback, delivery=delivery)
+            await self.events.publish("engine", delivery)
+            await self.events.flush()
+            await subscription.aclose()
+            self.assertEqual(seen, [delivery])
+            self.assertEqual(subscription.stats["failures"], 0)
+
+    async def test_inline_unsubscribe_waits_without_cancelling_publisher(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+        seen = []
+        async def callback(value):
+            entered.set()
+            await release.wait()
+            seen.append(value)
+        subscription = self.events.subscribe(callback)
+        publisher = asyncio.create_task(self.events.publish("engine", "current"))
+        await entered.wait()
+        subscription()
+        closing = asyncio.create_task(subscription.aclose())
+        await asyncio.sleep(0)
+        try:
+            await self.events.publish("engine", "ignored")
+            self.assertFalse(closing.done())
+            self.assertFalse(publisher.done())
+        finally:
+            release.set()
+            await asyncio.wait_for(asyncio.gather(publisher, closing), 1)
+        self.assertEqual(seen, ["current"])
+        self.assertEqual(subscription.stats["delivered"], 1)
+
+    async def test_idle_worker_releases_last_event_and_error_callback(self):
+        class Payload:
+            # 공유 참조를 의도하는 확장 객체도 idle worker가 불필요하게 붙잡지 않는다.
+            def __deepcopy__(self, memo):
+                return self
+        class ErrorObserver:
+            def __call__(self):
+                pass
+        payload, errors = Payload(), ErrorObserver()
+        payload_ref, error_ref = weakref.ref(payload), weakref.ref(errors)
+        self.events.subscribe(lambda value: None, delivery="queued")
+        await self.events.publish("engine", payload, on_error=errors)
+        await self.events.flush()
+        del payload, errors
+        gc.collect()
+        self.assertIsNone(payload_ref())
+        self.assertIsNone(error_ref())
+
+    async def test_thread_callback_can_unsubscribe_without_cancelling_current_work(self):
+        finished = []
+        def callback(value):
+            subscription()
+            finished.append(value)
+        subscription = self.events.subscribe(callback, delivery="queued")
+        await self.events.publish("engine", "thread")
+        await self.events.flush()
+        await subscription.aclose()
+        self.assertEqual(finished, ["thread"])
+        self.assertEqual(subscription.stats["delivered"], 1)
+
+    async def test_timeout_reclaims_worker_and_aggregate_counts_once(self):
+        async def callback(value):
+            await asyncio.Event().wait()
+        reference = weakref.ref(callback)
+        subscription = self.events.subscribe(callback, delivery="queued", callback_timeout=.01)
+        await self.events.publish("engine", "first")
+        await self.events.publish("engine", "discarded")
+        await asyncio.wait_for(self.events.flush(), 1)
+        await subscription.aclose()
+        del callback
+        gc.collect()
+        self.assertIsNone(reference())
+        self.assertEqual(subscription.stats["timed_out"], 1)
+        self.assertEqual(self.events.stats["timed_out"], 1)
+        self.assertEqual(len(self.events._subscriptions), 0)
+        subscription()
+        await self.events.close()
+        self.assertEqual(self.events.stats["failures"], 1)
+
+    async def test_cancelling_close_waiter_does_not_cancel_callback_or_other_waiters(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+        seen = []
+        async def callback(value):
+            entered.set()
+            await release.wait()
+            seen.append(value)
+        subscription = self.events.subscribe(callback, delivery="queued")
+        await self.events.publish("engine", "current")
+        await entered.wait()
+        cancelled = asyncio.create_task(subscription.aclose())
+        other = asyncio.create_task(subscription.aclose())
+        await asyncio.sleep(0)
+        cancelled.cancel()
+        try:
+            with self.assertRaises(asyncio.CancelledError):
+                await cancelled
+            self.assertFalse(other.done())
+        finally:
+            release.set()
+            await asyncio.wait_for(other, 1)
+        self.assertEqual(seen, ["current"])
+        self.assertEqual(self.events.stats["delivered"], 1)
+
+    async def test_shutdown_drains_active_subscription_and_joins_concurrent_close(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+        seen = []
+        async def callback(value):
+            entered.set()
+            await release.wait()
+            seen.append(value)
+        subscription = self.events.subscribe(callback, delivery="queued")
+        await self.events.publish("engine", 0)
+        await entered.wait()
+        await self.events.publish("engine", 1)
+        closing = asyncio.create_task(self.events.close())
+        other = asyncio.create_task(self.events.close())
+        await asyncio.sleep(0)
+        self.assertFalse(closing.done())
+        self.assertFalse(other.done())
+        closing.cancel()
+        try:
+            with self.assertRaises(asyncio.CancelledError):
+                await closing
+        finally:
+            release.set()
+            await asyncio.wait_for(other, 1)
+        self.assertEqual(seen, [0, 1])
+        self.assertFalse(subscription.stats["active"])
+        self.assertEqual(len(self.events._subscriptions), 0)
+        self.assertEqual(self.events.stats["delivered"], 2)
+
+    async def test_unsubscribe_during_shutdown_discards_pending_only(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+        seen = []
+        async def callback(value):
+            entered.set()
+            await release.wait()
+            seen.append(value)
+        subscription = self.events.subscribe(callback, delivery="queued")
+        await self.events.publish("engine", 0)
+        await entered.wait()
+        await self.events.publish("engine", 1)
+        closing = asyncio.create_task(self.events.close())
+        await asyncio.sleep(0)
+        subscription()
+        release.set()
+        await asyncio.wait_for(closing, 1)
+        await subscription.aclose()
+        self.assertEqual(seen, [0])
 
 
 class BudgetAndProjectionTests(unittest.TestCase):
