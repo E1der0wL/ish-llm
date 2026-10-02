@@ -3,6 +3,8 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import wraps
+import asyncio
+import time
 
 _observer = ContextVar("llm_model_observer", default=None)
 
@@ -18,7 +20,34 @@ def model_observer(callback):
 
 async def observed_call(operation, request, call):
     observer = _observer.get()
-    return await observer(operation, request, call) if observer else await call(**request)
+    async def tracked(**params):
+        with provider_attempt(operation):
+            return await call(**params)
+    return await observer(operation, request, tracked) if observer else await tracked(**request)
+
+
+@contextmanager
+def provider_attempt(operation):
+    """공통 SDK 호출 경계. SDK 내부 retry 횟수는 관찰할 수 없으므로 추측하지 않는다."""
+    from llm.services.infrastructure.observability import record
+    started, status, code = time.monotonic(), "completed", None
+    record("providers", "calls", name=operation)
+    try:
+        yield
+    except asyncio.CancelledError:
+        status = "cancelled"
+        raise
+    except BaseException as error:
+        from .requests import error_code
+        status, code = "failed", error_code(error)
+        raise
+    finally:
+        record("providers", status, code=code, name=operation, duration_seconds=time.monotonic() - started)
+
+
+def record_retry(operation):
+    from llm.services.infrastructure.observability import record
+    record("providers", "retries", name=operation)
 
 
 def observe_component_models(method):

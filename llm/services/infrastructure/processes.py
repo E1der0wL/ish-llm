@@ -3,6 +3,52 @@
 import asyncio
 import os
 import signal
+import threading
+from contextlib import contextmanager
+from contextvars import ContextVar
+
+
+_cancellation = ContextVar("llm_process_cancellation", default=None)
+
+
+class ProcessCancellation:
+    """스토리지 스레드의 child만 취소한다. 파일 트랜잭션 자체는 계속 drain한다."""
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._cancelled = False
+        self._callbacks = set()
+
+    @contextmanager
+    def scope(self):
+        token = _cancellation.set(self)
+        try:
+            yield
+        finally:
+            _cancellation.reset(token)
+
+    @contextmanager
+    def register(self, callback):
+        with self._lock:
+            self._callbacks.add(callback)
+            cancelled = self._cancelled
+        if cancelled:
+            callback()
+        try:
+            yield
+        finally:
+            with self._lock:
+                self._callbacks.discard(callback)
+
+    def cancel(self):
+        with self._lock:
+            self._cancelled = True
+            callbacks = tuple(self._callbacks)
+        for callback in callbacks:
+            callback()
+
+
+def current_process_cancellation():
+    return _cancellation.get()
 
 
 async def kill_process_tree(process, *, timeout_seconds=5):

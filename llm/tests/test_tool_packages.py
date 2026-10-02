@@ -110,7 +110,7 @@ class PackageTests(unittest.TestCase):
         value = {"source": "raise AssertionError('no import')", "requirements": "uninstalled-package>=1\n"}
         self.data.create(value, identifier="search")
         self.data.enable("search")
-        with patch.object(packages, "_import_tool", side_effect=AssertionError("no import")), \
+        with patch.object(packages, "inspect_tool", side_effect=AssertionError("no import")), \
                 patch.object(packages, "_host_target", side_effect=AssertionError("no dependency access")):
             clone = self.projects.clone(self.project)
             self.assertEqual(self.projects.component(clone, "tools").load("search"), value)
@@ -149,6 +149,19 @@ class PackageTests(unittest.TestCase):
             self.data.prepare("search")
         with patch("llm.services.runtime.tools.current_tool_call", return_value=object()), self.assertRaises(RuntimeError):
             self.data.prepare("search")
+
+    def test_inspection_never_executes_source_in_backend(self):
+        import builtins
+        source = 'import builtins\nbuiltins.PROJECT_TOOL_LEAK = True\n' + SOURCE
+        self.data.create({"source": source}, identifier="search")
+        self.data.enable("search")
+        modules = {key for key in sys.modules if key.startswith("_ish_llm_tool_")}
+        self.data.prepare("search")
+        resolved = self.resolve()
+        self.assertFalse(hasattr(builtins, "PROJECT_TOOL_LEAK"))
+        self.assertEqual({key for key in sys.modules if key.startswith("_ish_llm_tool_")}, modules)
+        from llm.components.tools.process import ProjectToolHandler
+        self.assertIsInstance(resolved.get("search").handler, ProjectToolHandler)
 
 
 class FunctionTests(unittest.TestCase):
@@ -285,13 +298,13 @@ class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
         from llm.services.runtime.tools import ToolPolicy
         source = '''from llm.components.tools import tool
 from llm.services.runtime.tools import ToolExecutionError
-attempts = 0
+from pathlib import Path
 @tool(effect="read_only")
 async def main():
     """Retry only a known no-effect failure."""
-    global attempts
-    attempts += 1
-    if attempts == 1:
+    receipt = Path(__file__).parents[2] / "retry-fixture"
+    if not receipt.exists():
+        receipt.write_text("attempted")
         raise ToolExecutionError("temporary", effect="none", retryable=True)
     return None
 '''
@@ -470,6 +483,17 @@ class DependencyTests(PackageTests):
         self.package("probe-dependency>=1")
         with self.assertRaisesRegex(ValueError, "Ambiguous"):
             self.data.prepare("search")
+        self.assertEqual(self.calls, [])
+
+    def test_child_imports_host_plugin_lib_without_backend_module_import(self):
+        self.distribution("probe-dependency", "1.0")
+        (self.target / "probe_dependency.py").write_text("VALUE = 42\n")
+        self.package("probe-dependency>=1")
+        self.data.update("search", {"source": SOURCE.replace('return {"query": query, "limit": limit}',
+            'from probe_dependency import VALUE\n    return VALUE')})
+        self.data.prepare("search")
+        self.assertEqual(asyncio.run(self.resolve().get("search").handler({"query": "x"})), 42)
+        self.assertNotIn("probe_dependency", sys.modules)
         self.assertEqual(self.calls, [])
 
     def test_actual_host_installer_stages_and_rolls_back_final_tool_validation(self):

@@ -276,8 +276,10 @@ class StorageIO:
         if self._serial is None:
             self._serial = asyncio.Lock()
         async with self._serial:
+            from .processes import ProcessCancellation, current_process_cancellation
+            cancellation = current_process_cancellation() or ProcessCancellation()
             def work():
-                with self.ownership.scope():
+                with cancellation.scope(), self.ownership.scope():
                     for value in (*args, *kwargs.values()):
                         watch(value)
                     return operation(*args, **kwargs)
@@ -289,6 +291,7 @@ class StorageIO:
                     await asyncio.shield(pending)
                 except asyncio.CancelledError:
                     cancelled = True
+                    cancellation.cancel()
             # Surface storage failures even if cancellation arrived meanwhile.
             result = pending.result()
             if cancelled:

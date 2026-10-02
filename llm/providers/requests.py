@@ -130,4 +130,6 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
             if end is not None and time.monotonic() + delay >= end:
                 raise ProviderError("provider_timeout") from error
             diagnostic("provider_retry", operation=operation, attempt=attempt + 2, delay_seconds=delay)
+            from .observations import record_retry
+            record_retry(operation)
             await asyncio.sleep(delay)

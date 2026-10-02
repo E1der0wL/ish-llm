@@ -39,6 +39,7 @@ class ServiceConfig:
     output_policy: OutputPolicy = field(default_factory=OutputPolicy)
     output_index_stride: int = 128
     backups: Optional[DirectoryBackups] = None
+    observability_sink: Optional[Callable] = None
 
     def build(self, workspace, components):
         """RunManager와 Facade가 같은 저장소/문맥/로그 설정을 공유하도록 연결한다."""

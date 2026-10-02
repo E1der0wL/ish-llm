@@ -338,6 +338,7 @@ class LoopEngine(BaseEngine):
                         async with aclosing(executor.execute(
                             tool, arguments, result=result, context=context,
                             metadata={"iteration": iteration, "tool_call_id": call["id"]},
+                            request_key=key,
                             decision=context.run.metadata.get("resume", {}).get("decisions", {}).get(key),
                         )) as events:
                             async for event in events:

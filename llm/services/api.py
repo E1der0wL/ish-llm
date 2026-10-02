@@ -711,7 +711,7 @@ class Components(AsyncFacade):
         self.project.app._check_open()
         handle = self.project.app.project_manager.component(self.project._snapshot, name)
         return handle.bind_runtime(runner=self.app._storage_call, access_check=self.app._check_open,
-                                   provider_calls=self.app.provider_calls)
+                                   provider_calls=self.app.provider_calls, observability=self.app._observability)
 
     def __getattr__(self, name: str) -> ComponentData:
         if name.startswith("_"):

@@ -80,7 +80,16 @@ class ToolRegistry:
         self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition, tool.contract)
 
     def contracts(self):
-        return {name: asdict(tool.contract) for name, tool in self._tools.items() if tool.contract is not None}
+        contracts = {}
+        for name, tool in self._tools.items():
+            if tool.contract is not None:
+                contracts[name] = asdict(tool.contract)
+                # 신뢰한 실행 adapter의 immutable binding도 승인/재개 fingerprint에 포함한다.
+                binding = getattr(tool.handler, "execution_binding", None)
+                if binding is not None:
+                    json.dumps(binding, allow_nan=False)
+                    contracts[name]["execution_binding"] = deepcopy(binding)
+        return contracts
 
     def definitions(self) -> list[dict[str, Any]]:
         return [deepcopy(tool.definition) if tool.definition is not None else {"type": "function", "function": {

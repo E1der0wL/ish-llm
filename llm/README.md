@@ -10,6 +10,9 @@ Engine은 Run의 실행 전략이고 Component는 프로젝트에 연결되는 �
 Loop·Graph 등 Engine을 바꾸어도 Run/Step 기록과 Session의 대화 수명은 유지됩니다.
 Engine별 소스 구조와 공개 import는 [Engine 안내](engines/README.md)를 참고하세요.
 Project의 Python Tool 생성·준비·활성화는 [Tool 패키지 안내](components/tools/README.md)에 정리되어 있습니다.
+Project Tool의 introspection과 실제 호출은 각각 child interpreter에서 실행됩니다.
+승인·재시도·Step·영수증은 기존 ToolExecutor가 소유합니다. worker는 OS sandbox가 아닙니다.
+UI용 `backend.observability.snapshot()`은 [운영 관찰 계약](services/infrastructure/OBSERVABILITY.md)을 참고하세요.
 
 사내 OpenAI-compatible 서버의 재시도·캐시·응답 검증은 [공급자 안정화](providers/README.md),
 배치 재개·벡터 재사용·JSON mode·불완전 그래프 정책은 [RAG 설정](components/rag/README.md)을 참고하세요.

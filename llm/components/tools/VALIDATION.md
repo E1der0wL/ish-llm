@@ -1,61 +1,53 @@
-# Python Tool 전환 및 저장 형식 감사
+# Project Tool worker / observability 검증
 
-## 실행 경계
+Linux Python 3.12.14의 native Linux filesystem snapshot에서 실행한다.
+`llm/tests/run_linux.py --full`은 현재 소스를 복사하고 SHA-256 manifest와 focused/suite 로그를 남긴다.
 
-Project → Session → Run → Step 소유 관계는 그대로다. Tool 패키지 로딩은 Component에,
-실행·승인·재시도·원장은 기존 ToolExecutor에 남긴다. Run은 의존성을 설치하지 않는다.
-Tool CRUD에는 이전 JSON Tool reader, migration, catalog 결합 경로를 두지 않는다.
-configuration_workflow 예제의 Host-owned 적용 함수는 별도 ReviewTools Component가
-tools capability를 제공한다. 소스 파일에 Host의 실행 객체를 저장하지 않는다.
-
-## 검증 범위
-
-`llm.tests.test_tool_packages`는 다음을 검증한다.
-
-- 소스/requirements CRUD, 멀티 파일 쓰기 실패 rollback, 경로와 symlink 거부
-- import 없는 clone/backup/restore, 의존성 없는 prepare의 함수 검증
-- decorator identity/불변 계약, 지원 annotation, Field 제약, required/default
-- 프로젝트별 동일 이름 격리, enabled 선택, 다음 Run의 소스 변경 반영
-- 현재 ish Config의 ISH_HOME/plugin/lib 사용, 명시적 prepare만 설치
-- 설치 버전 재사용/충돌/중복 metadata, extras/marker, 기존 dependency pin
-- 실제 ish installer의 staging/rollback 연결(네트워크 pip 실행만 fixture로 대체)
-- 파일 Tool의 Loop 실행, 승인/operation receipt, 안전한 retry, None 완료, CodedError
-
-기존 전체 suite는 Loop/Graph/Agent, 격리 실행, 승인·재개, RAG/Memory Tool 제공자와
-저장·장애 복구 계약을 함께 검사한다. 외부 모델/API 인증이나 실제 PyPI 다운로드는 필요 없다.
-
-```bash
-.venv-linux312/bin/python -m unittest llm.tests.test_tool_packages -v
-.venv-linux312/bin/python -m unittest discover -s tests -v
+```text
+wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python \
+  /mnt/d/WorkSpace/ish/llm/tests/run_linux.py --full
 ```
 
-## 출시 전 버전/호환성 코드 점검
+경로는 이 workstation의 검증 환경이다. 다른 Linux 환경에서는 준비된 Python 3.12.14로
+`python llm/tests/run_linux.py --full`을 실행한다. 실제 모델 인증이나 외부 네트워크는 필요 없다.
 
-버전 숫자 자체는 이전 버전을 지원하는 호환성 패치가 아니다. 현재 구현은 다음 형식을
-검증하고 다른 버전은 거부한다. 출시 전 기준 번호를 1로 통일했으며 기존 저장 파일은 변경하지 않았다.
+## 최종 실행 결과 — 2026-10-02
 
-| 위치 | 의미 | 과거 형식 지원 여부 |
-| --- | --- | --- |
-| core/models.py, services/infrastructure/storage.py | Project/Session/Run/Step storage_version=1 | 1만 읽고 쓴다. 자동 변환 없음 |
-| components/rag/component.py | corpus graph_schema_version=1 | 1만 지원. 이전 그래프를 자동 변환하지 않음 |
-| components/workflows/graph.py | Workflow schema_version=1 | 현재 JSON 정의의 구조 검증 |
-| services/runtime/checkpoints.py | checkpoint schema_version=1 | 현재 Run/Engine 소유 관계 검증 |
-| services/runtime/operations.py | Tool 원장 schema_version=1 | 현재 Session/Tool 영수증 검증 |
-| services/infrastructure/backups.py | backup format_version=1 | manifest/파일 무결성 검증 |
-| services/infrastructure/transactions.py | WAL format_version=1 | 복구 시 지원 형식 검증 |
+| 검사 | 통과 | 실패 | 생략 | 시간 |
+| --- | ---: | ---: | ---: | ---: |
+| Focused worker/Tool/provider/observability | 145 | 0 | 0 | 78.572초 |
+| 기존 전체 repository suite | 856 | 0 | 0 | 228.015초 |
 
-실제로 남아 있는 호환/전환 관련 기능은 별도로 구분된다.
+Focused suite와 기존 suite는 일부 검사가 겹치므로 합산한 고유 테스트 수가 아니다.
+실행 환경은 Linux Python 3.12.14이며, native snapshot은
+`/home/user/.cache/ish-provider-r34w5ztp`이다. manifest의 Python 파일 269개를
+현재 작업 소스 및 실제 Linux snapshot과 각각 SHA-256으로 대조하여 모두 일치했다.
+`llm/tests/reports/focused.txt`, `suite.txt`, `snapshot.json`에 실행 근거를 남겼다.
+이 결과 문구는 검사 후 문서에 추가했으며 Python 소스는 변경하지 않았다.
 
-- `llm/compat.py`: Python 3.9의 dataclass slots, StrEnum, timeout, aclosing 어댑터.
-  과거 요청에 따른 Python 버전 호환 코드다. 이번 실행 검증은 3.12.14만 수행한다.
-- `providers/runtime.py`: LiteLLM `max_retries or DEFAULT_MAX_RETRIES` 동작을 막기 위한
-  `DEFAULT_MAX_RETRIES=0` 호환성 규칙. 명시적인 request retry는 변경하지 않는다.
-- `ProjectManager.upgrade_backup` / `DirectoryBackups.upgrade`: 호출자가 직접 제공한
-  transform을 별도 백업에 적용하는 공개 확장 API. 내장 구버전 변환기는 없다.
-- `Component.configuration`: 일반 Component의 이전 component.json을 거부하는 검사.
-  읽기/변환 지원은 아니다. ToolComponent의 새 경로에는 이 legacy 검사를 사용하지 않는다.
-- `BaseEngine`: 이전 provider function_call 응답을 거부하는 검사. tools/tool_calls
-  프로토콜로 자동 변환하는 호환 처리는 없다.
+## 단계별 검사
 
-`LITELLM_LOCAL_MODEL_COST_MAP=True`는 초기화 네트워크 격리 규칙이며 저장 형식 호환과
-무관하다. 버전 번호 통일은 형식이나 호환 어댑터를 변경하지 않는다.
+- Inspector: 기존 signature/default/schema, CRUD, clone/backup, dependency 준비와 backend 오염 방지.
+- Execution: 다른 PID, 호출별 global 초기화, 최소 환경, fd print capture, 출력 상한, source/requirements race 거부.
+- Cancellation: inspector prepare 취소, 실제 Run interrupt/Tool timeout/backend shutdown, child process group 회수.
+- Approval: ASK/DENY 동안 execution 호출 0회, approve/resume 이후 1회. source 변경 시 과거 승인 재사용 거부.
+- Error: ToolExecutionError의 effect/retryable, trusted ProviderError의 Step/Run code, unknown/arbitrary code의 tool_failed 수렴.
+- Dependencies: prepare만 installer 사용, Run/resolve 설치 금지, 실제 plugin/lib import, backend sys.modules 비오염.
+- Observability: retry 요청 1/실행 2/retry 1/최종 실패 0, 승인 재개 중복 방지,
+  서로 다른 checkpoint에 같은 Tool/인자가 있어도 별개 요청, operation reuse 실행 0회,
+  worker crash의 worker/Tool failure 각 1회, 기존 gauge 합성, thread safety, bounded recent, sink 실패 격리.
+- Privacy: prompt/arguments/results/environment 고유 문자열이 snapshot/recent에 포함되지 않음.
+- Boundary audit: Project source exec는 child만 소유, Engine은 ToolExecutor를 사용,
+  framework SDK 호출은 공통 provider 경계 사용, Component별 telemetry 분산 금지.
+
+Worker는 runtime isolation이다. 테스트는 같은 Linux process group의 descendants를 검사하며,
+악의적으로 setsid로 벗어나는 process나 filesystem/network 격리의 보증은 아니다.
+Host-owned builtin과 RAG/Memory/MCP handler는 강제로 worker로 옮기지 않는다.
+
+## 유지하는 실행 계약
+
+ToolExecutor가 approval, operation receipt, retry, timeout, result validation, Step 이벤트를 소유한다.
+RunManager는 commit 이후 Run 통계를 기록한다. worker는 Run/Step 파일을 쓰지 않는다.
+관찰은 실행 결정을 내리지 않으며 SDK 내부 retry 횟수나 child Tool 내부의 임의 네트워크 호출을 추측하지 않는다.
+전체 기존 suite에는 queued request, Session 병렬 실행, stale recovery, 승인·중첩 Graph,
+저장 트랜잭션과 process interruption 회귀가 포함된다.

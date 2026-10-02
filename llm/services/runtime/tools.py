@@ -3,6 +3,7 @@
 import asyncio
 import json
 import math
+import time
 from copy import deepcopy
 from contextvars import ContextVar
 from dataclasses import replace, asdict, field
@@ -10,7 +11,8 @@ from typing import Callable, Optional
 
 from llm.compat import dataclass, timeout
 from llm.core.contracts import Diagnostic
-from llm.errors import CodedError
+from llm.errors import CodedError, stable_error_code
+from llm.services.infrastructure.observability import record
 from llm.core.configuration import UNSET
 from llm.core.models import ProjectConfig, new_id
 from llm.core.results import EngineOutput
@@ -242,7 +244,7 @@ class ToolExecutor:
             raise ValueError("Tool output limit must be a positive integer")
         self.timeout_seconds, self.max_output_chars = timeout_seconds, max_output_chars
 
-    async def execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None):
+    async def _execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None):
         ProjectConfig.validate_settings(arguments)
         step_id = new_id()
         scope = getattr(context, "tool_scope", None) or ToolExecutionScope(ToolPolicy())
@@ -280,6 +282,8 @@ class ToolExecutor:
             async with timeout(remaining):
                 reservation = await scope.operations.claim(call) if call.operation_key is not None else {"reused": False}
             value = reservation.get("result")
+            if reservation["reused"]:
+                record("tools", "reused", name=tool.name)
             if not reservation["reused"]:
                 attempt = 0
                 uncertain_attempt = False
@@ -292,6 +296,8 @@ class ToolExecutor:
                             token = _tool_call.set(call)
                             try:
                                 scope.require_active()
+                                record("tools", "executions", retry=attempt > 0, name=tool.name,
+                                       run_id=call.run_id, step_id=call.step_id)
                                 if scope.policy.runner is None:
                                     value = await tool.handler(deepcopy(arguments))
                                 else:
@@ -359,3 +365,40 @@ class ToolExecutor:
         yield EngineEvent(EngineEventType.STEP_COMPLETED, step_id=step_id,
                           output=EngineOutput(step_id, data=value, step_id=step_id, visibility="internal"),
                           metadata={"phase": "completed", "reused": reservation["reused"]})
+
+    async def execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None,
+                      request_key=None):
+        """논리 호출 계측은 이 경계 하나에 둔다. 재개 여부는 기존 승인 예약에서 읽는다."""
+        from llm.compat import aclosing
+        scope = getattr(context, "tool_scope", None)
+        identity = json.dumps([tool.name, arguments], sort_keys=True, ensure_ascii=False)
+        resumed = decision is not None and scope is not None and identity in scope.pending_approvals
+        if request_key is not None and decision is not None and context is not None:
+            # Loop의 새 Run은 새 scope를 갖는다. 별도 중복 집계 저장소 대신 이미 검증된
+            # 체크포인트의 Tool 승인 영수증을 읽는다. 일반 Graph pause_before는 제외된다.
+            records = (getattr(context, "checkpoint", None) or {}).get("records", {})
+            decisions = getattr(context.run, "metadata", {}).get("resume", {}).get("decisions", {})
+            previous = records.get(request_key, {})
+            action = previous.get("interaction", {}).get("action", {})
+            resumed = (request_key in decisions and previous.get("status") == "waiting"
+                       and action.get("tool") == tool.name and action.get("arguments") == arguments)
+        if not resumed:
+            record("tools", "requests", name=tool.name)
+        started = time.monotonic()
+        status, code = "completed", None
+        try:
+            async with aclosing(self._execute(tool, arguments, result=result, metadata=metadata,
+                                              context=context, decision=decision)) as events:
+                async for event in events:
+                    yield event
+        except ToolApprovalRequired:
+            status = "approval_required"
+            raise
+        except (asyncio.CancelledError, GeneratorExit):
+            status = "cancelled"
+            raise
+        except Exception as error:
+            status, code = "failed", stable_error_code(error) or "tool_failed"
+            raise
+        finally:
+            record("tools", status, code=code, name=tool.name, duration_seconds=time.monotonic() - started)

@@ -5,14 +5,12 @@
 
 from contextlib import ExitStack
 from copy import deepcopy
-import hashlib
 import importlib
 import importlib.metadata
 import os
 from pathlib import Path
 import stat
 import sys
-import types
 
 from packaging.requirements import Requirement, InvalidRequirement
 from packaging.utils import canonicalize_name
@@ -20,7 +18,7 @@ from llm.compat import dataclass
 from llm.components.base import validate_name
 from llm.services.infrastructure.storage import (reject_links, make_directory, prepare_replace,
     temporary_file, sync_directory, unlink_file)
-from .function import function_tool
+from .process import inspect_tool
 
 
 def _checked(path):
@@ -163,32 +161,15 @@ def _host_target():
     return _checked(Path(config.PLUGIN_LIB_DIR))
 
 
-def _import_tool(project, name, data):
-    paths = ToolPaths.for_project(project)
-    digest = hashlib.sha256((str(paths.root.absolute()) + "\0" + data["source"] + "\0" +
-                             data.get("requirements", "")).encode()).hexdigest()
-    identity = f"_ish_llm_tool_{project.id}_{name}_{digest}"
-    module = types.ModuleType(identity)
-    module.__file__ = str(paths.source(name))
-    # compile/exec는 timestamp pyc 재사용/생성을 피한다. 캐시 없이 Run마다 새 함수를 만든다.
-    previous = sys.modules.get(identity)
-    sys.modules[identity] = module
-    try:
-        exec(compile(data["source"], module.__file__, "exec"), module.__dict__)
-        return function_tool(name, getattr(module, "main", None))
-    finally:
-        if previous is None:
-            sys.modules.pop(identity, None)
-        else:
-            sys.modules[identity] = previous
-
-
 def load_tool(project, name, *, prepare=False):
     """prepare만 ish installer를 호출한다. resolve는 availability만 확인하고 실패한다."""
     data = read_package(ToolPaths.for_project(project), name)
     wanted = requirements(data.get("requirements", ""))
     if not wanted:
-        return _import_tool(project, name, data)
+        # Host 공용 경로는 dependency가 없는 Tool에서도 제공할 수 있다.
+        config = sys.modules.get("ish.config")
+        target = getattr(getattr(config, "config", None), "PLUGIN_LIB_DIR", None)
+        return inspect_tool(project, name, data, target)
     target = _host_target()
     installed = _installed(target)
     missing = _missing(wanted, installed)
@@ -210,4 +191,4 @@ def load_tool(project, name, *, prepare=False):
             if _missing(wanted, _installed(target)):
                 raise ValueError("Tool dependency installation did not satisfy requirements")
         importlib.invalidate_caches()
-        return _import_tool(project, name, data)
+        return inspect_tool(project, name, data, target)

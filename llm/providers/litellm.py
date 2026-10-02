@@ -6,6 +6,7 @@ import asyncio
 import concurrent.futures
 import inspect
 import threading
+import time
 from contextvars import copy_context
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import Any
@@ -65,11 +66,17 @@ async def stream_completion(
         return False
 
     def produce() -> None:
+        from llm.services.infrastructure.observability import record
+        from .requests import error_code
+        started = time.monotonic()
+        invoked = False
         stream = None
         failure = None
         try:
             if stopped.is_set():
                 return
+            invoked = True
+            record("providers", "calls", name="completion")
             stream = completion_fn(**request)
             iterator = iter(stream)
             while not stopped.is_set():
@@ -94,6 +101,10 @@ async def stream_completion(
                     if failure is None:
                         failure = error
             try:
+                if invoked:
+                    record("providers", "cancelled" if stopped.is_set() else "failed" if failure is not None else "completed",
+                           code=error_code(failure) if failure is not None else None,
+                           name="completion", duration_seconds=time.monotonic() - started)
                 if not stopped.is_set():
                     send("error" if failure is not None else "end", failure)
             finally:

@@ -10,6 +10,7 @@ from typing import Optional, Union
 import asyncio
 import inspect
 import json
+import time
 from contextlib import closing
 from collections.abc import Callable
 from itertools import count
@@ -401,7 +402,7 @@ class RunManager:
                  event_handlers: Optional[EventHandlers] = None,
                  subscriptions: Optional[EventSubscriptions] = None,
                  tool_policy: Optional[ToolPolicy] = None,
-                 policy_resolver=None, provider_calls=None, output_policy=None) -> None:
+                 policy_resolver=None, provider_calls=None, output_policy=None, observability=None) -> None:
         if not isinstance(session, Session):
             raise TypeError("RunManager requires a Session")
         self._session = deepcopy(session)
@@ -438,6 +439,10 @@ class RunManager:
         self.provider_calls = provider_calls if provider_calls is not None else ProviderCalls()
         self.output_policy = output_policy or OutputPolicy()
         self.pending_work = PendingWork()
+        from llm.services.infrastructure.observability import Observability
+        self.observability = observability if observability is not None else Observability()
+        if self._owns_subscriptions:
+            self.subscriptions.observability = self.observability
 
     def _check_component_access(self):
         if self._closed:
@@ -844,7 +849,7 @@ class RunManager:
             async with guard:
                 counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"].get("completion", {}).get("counter"))
                 source = {"project_id": runtime.project.id, "session_id": runtime.session.id, "run_id": run.id}
-                with provider_logging_scope(self.sessions.ownership.path.parent), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope(), retry_scope(run.metadata["policies"].get("provider_retry", {})):
+                with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope(), retry_scope(run.metadata["policies"].get("provider_retry", {})):
                     await self._consume(runtime, run, policies)
         except asyncio.TimeoutError as error:
             expired = guard.expired() if callable(guard.expired) else guard.expired
@@ -1051,6 +1056,9 @@ class RunManager:
                 run = await self._io.run(self._begin, runtime, message)
                 if run is None:
                     continue
+                started = time.monotonic()
+                self.observability.record("runs", "started", run_id=run.id,
+                    project_id=runtime.project.id, session_id=runtime.session.id)
                 await self._publish_run(run)
                 runtime.preparing = False
                 runtime.execution = asyncio.create_task(self._consume_limited(runtime, run))
@@ -1070,6 +1078,9 @@ class RunManager:
                 finally:
                     try:
                         await self._io.run(self._finish, runtime, run, status, error, error_code)
+                        self.observability.record("runs", status.value, code=error_code,
+                            duration_seconds=time.monotonic() - started, run_id=run.id,
+                            project_id=runtime.project.id, session_id=runtime.session.id)
                         if status == RunStatus.PAUSED:
                             try:
                                 # 선택적 자동 응답 실패가 이미 확정한 PAUSED를 되돌리지 않는다.

@@ -75,6 +75,18 @@ from llm.services.runtime.events import EventSubscriptions
 class LargeLanguageModel:
     """Project → Session → Run → Step을 탐색하고 Engine·Component 확장을 연결하는 공개 백엔드.
 
+    운영 관찰(읽기 전용)::
+
+        snapshot = backend.observability.snapshot()
+        snapshot = await backend.observability.asnapshot()
+        print(snapshot["tools"]["requests"], snapshot["tools"]["executions"])
+        print(snapshot["providers"]["active"], snapshot["events"]["dropped"])
+
+    누적 통계는 backend 수명 동안만 유지한다. 현재 gauge는 기존 runtime owner에서 읽으며
+    snapshot은 모델/Tool/파일 쓰기를 수행하지 않는다. privacy-safe fact만
+    ServiceConfig(observability_sink=callback)으로 받을 수 있다. callback은 빠른 thread-safe
+    동기 함수여야 하며 예외는 실행 결과에 영향을 주지 않는다.
+
     하나의 프로세스와 이벤트 루프에서 사용한다. 생성자는 파일을 쓰거나 모델을
     호출하지 않으므로 .ishrc.py에서 만들 수 있다. 종료 시 shutdown()을 await하거나
     async with를 사용한다. 아래 도메인별 코드는 살아 있는 backend와 그 핸들에 대한
@@ -657,6 +669,11 @@ class LargeLanguageModel:
             self.workspace, available)
         self.project_manager.usage_counters = dict(getattr(self.policy_resolver, "token_counters", {}))
         self.events = EventSubscriptions()
+        from llm.services.infrastructure.observability import Observability, ObservabilityView
+        self._observability = Observability(sink=self.services.observability_sink)
+        self.events.observability = self._observability
+        self.observability = ObservabilityView(self._observability, self._runtime_gauges,
+                                              self.provider_calls, self.events)
         self.event_handlers = self.services.event_handlers
         self.projects = Projects(self)
         self.engines = EngineRegistry()
@@ -673,8 +690,20 @@ class LargeLanguageModel:
         self._closing = None
         self._storage = StorageIO(self.project_manager.ownership)
         self._storage_tasks: set[asyncio.Task] = set()
+        self._storage_processes = set()
         self._observation_tasks: set[asyncio.Task] = set()
         self._storage_context = ContextVar("llm_storage_operation", default=False)
+
+    def _runtime_gauges(self):
+        """기존 Session runtime을 읽기만 한다. 도메인 파일 조회/복구는 하지 않는다."""
+        active = queued = unfinished = 0
+        for manager in tuple(self._managers.values()):
+            runtime = manager._active
+            unfinished += manager.pending_work.active
+            if runtime is not None:
+                active += int(runtime.execution is not None and not runtime.execution.done())
+                queued += runtime.queue.qsize()
+        return {"active_runs": active, "queued_requests": queued, "unfinished_work": unfinished}
 
     def _interaction_changed(self, run, views):
         """영속 상태가 원본이다. 저장 스레드는 UI 알림을 이벤트 루프에 예약한다."""
@@ -707,20 +736,30 @@ class LargeLanguageModel:
         """Admit a complete facade transaction off-loop; drain it on shutdown."""
         self._check_open()
         self._bind_loop()
+        from llm.services.infrastructure.processes import ProcessCancellation
+        cancellation = ProcessCancellation()
 
         async def execute():
             token = self._storage_context.set(True)
             try:
-                return await self._storage.run(operation, *args, **kwargs)
+                with cancellation.scope(), self._observability.scope():
+                    return await self._storage.run(operation, *args, **kwargs)
             finally:
                 self._storage_context.reset(token)
 
         pending = asyncio.create_task(execute())
         self._storage_tasks.add(pending)
+        self._storage_processes.add(cancellation)
         try:
-            return await drain_on_cancel(pending)
+            return await asyncio.shield(pending)
+        except asyncio.CancelledError:
+            pending.cancel()
+            # StorageIO는 durable 트랜잭션을 drain하면서 등록된 inspector를 회수한다.
+            await drain_on_cancel(pending)
+            raise
         finally:
             self._storage_tasks.discard(pending)
+            self._storage_processes.discard(cancellation)
 
     def _bind_loop(self) -> None:
         if os.getpid() != self._pid:
@@ -745,7 +784,8 @@ class LargeLanguageModel:
                 on_event=self.on_event, on_run_event=self.on_run_event,
                 event_handlers=self.event_handlers, subscriptions=self.events,
                 tool_policy=self.services.tool_policy, policy_resolver=self.policy_resolver,
-                provider_calls=self.provider_calls, output_policy=self.services.output_policy)
+                provider_calls=self.provider_calls, output_policy=self.services.output_policy,
+                observability=self._observability)
         return self._managers[key]
 
     async def _stop_session(self, session: Session) -> None:
@@ -790,6 +830,8 @@ class LargeLanguageModel:
         if self._closing is None:
             async def close():
                 # Accepted facade I/O must finish before ownership is released.
+                for cancellation in tuple(self._storage_processes):
+                    cancellation.cancel()
                 await asyncio.gather(*tuple(self._storage_tasks), return_exceptions=True)
                 # Attempt every shutdown even if one worker reports an error.
                 results = await asyncio.gather(

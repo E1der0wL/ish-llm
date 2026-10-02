@@ -82,6 +82,8 @@ Kuzu buffer_pool_size/max_num_threads와 Chroma 설정은 명시된 옵션만 �
 | LangGraph retry_policy=None | 효과가 있을 수 있는 노드를 SDK가 자동 재실행하지 못하게 함. 재개는 명시 API |
 | Chroma embedding_function=None | 이미 검증된 vector를 저장하며 별도 모델을 library가 호출하지 못하게 함 |
 | 취소 cleanup 5초 (Graph/Memory/process) | 정상 실행 deadline이 아닌 종료 감시·강제 회수 경계. Graph는 유한한 명시값으로 조율 가능, 다른 경로는 내부 계약 |
+| Project Tool worker capture 1 MiB / protocol 8 MiB | subprocess IPC가 backend 메모리를 무한히 점유하지 않게 하는 경계. 초과 시 명시적인 worker 오류로 실패하며 출력 truncation 성공은 없음. Project inference 설정이 아님 |
+| observability recent 256 / failure-code 128종 + other | best-effort 관찰 메모리 상한. 실행 제한·데이터 retention·ProjectConfig default가 아님 |
 | queue 8/32/64, 출력 flush 1/.025s/65536chars | backpressure/저장 batching. 내용을 버리거나 실행 횟수를 제한하지 않음. 명시 drop 정책은 별도 |
 | storage index stride128, projection cache4096, conversation cache32, log handle LRU16 | 인덱싱·메모리 eviction만 조절. 원본 데이터/조회 범위는 유지 |
 | JSON/파일 atomic replacement, effect receipt, CAS, parent-death/process group | 저장·외부 효과·취소의 정확성. 사용자 설정처럼 저장하지 않음 |

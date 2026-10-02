@@ -34,6 +34,8 @@
 | domain operational log / SDK 콘솔 차단 | 호출 사실 관찰 및 ish 터미널 소유권. dotenv 및 하위 logger 포함. 기본 보관 삭제/회전 없음 |
 | LITELLM_LOCAL_MODEL_COST_MAP=True | LiteLLM import 전에 외부 cost-map network fetch를 차단하고 bundled map을 선택하는 runtime isolation invariant. 재진입 시 복구. 사용자 inference option이나 ProjectConfig default/values가 아니며 override 불가 |
 | DEFAULT_MAX_RETRIES=0 | LiteLLM compatibility invariant. import 전 env 및 매 진입 SDK global에 강제하며 사용자가 명시한 retry kwargs는 보존 |
+| Project worker capture 1 MiB / protocol 8 MiB | IPC 메모리 경계. 출력 한도 초과는 tool_worker_output_limit으로 실패. Tool 실행 deadline을 추가하지 않음 |
+| observability recent 256 / code 집계 128종 + other | 비영속 관찰 메모리 한도. 사용자 실행·저장 의미를 바꾸지 않음 |
 
 제거한 항목: user default helper/Schema default, Loop/Graph/Tool/Run 제한 생성, Provider admission/wall/retry/stream fallback, RAG algorithm preset, Memory 자동 처리 preset, 파일·조회 truncation, workflow validation의 숨은 nesting32 cap, extraction temperature0 강제, LiteLLM 모드 환경 강제, Graph Agent의 purpose→system_prompt 자동 변환. 문자열/boolean fallback과 AST 기본 인자까지 확인하며 숫자 검색에만 의존하지 않는다.
 

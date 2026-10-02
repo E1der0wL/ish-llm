@@ -2,6 +2,7 @@
 
 import asyncio
 import inspect
+import time
 from copy import deepcopy
 from typing import Callable, Optional
 from llm.compat import timeout
@@ -80,7 +81,8 @@ class EventSubscriptions:
     delivery='queued'는 동기 콜백도 별도 스레드에서 실행한다.
     """
 
-    def __init__(self):
+    def __init__(self, observability=None):
+        self.observability = observability
         self._subscriptions = []
         self._closed = False
 
@@ -95,29 +97,37 @@ class EventSubscriptions:
 
     async def _call(self, entry, args, on_error):
         guard = timeout(entry["timeout"])
+        started, status = time.monotonic(), "delivered"
         try:
             async with guard:
                 await self._invoke(entry, args)
             entry["delivered"] += 1
         except asyncio.TimeoutError:
+            status = "failed"
             # 멈춘 동기 콜백 스레드는 강제 종료할 수 없다. 구독을 꺼 후속 스레드 증가를 막는다.
             expired = guard.expired() if callable(guard.expired) else guard.expired
             if expired:
                 entry["active"] = False
                 entry["timed_out"] += 1
+                status = "timed_out"
             entry["failures"] += 1
             if on_error is not None:
                 on_error()
         except asyncio.CancelledError:
+            status = None
             if entry["delivery"] == "inline":
                 raise
             if on_error is not None:
                 on_error()
         except Exception:
+            status = "failed"
             entry["failures"] += 1
             # 관찰자 실패가 이미 저장된 실행 결과를 바꾸면 안 된다.
             if on_error is not None:
                 on_error()
+        finally:
+            if self.observability is not None and status is not None:
+                self.observability.record("events", status, duration_seconds=time.monotonic() - started)
 
     async def _consume(self, entry):
         queue = entry["queue"]
@@ -133,6 +143,13 @@ class EventSubscriptions:
                 queue.task_done()
 
     # 공개 API
+    @property
+    def stats(self):
+        """Subscription이 소유하는 실제 통계의 합. 별도 전달 counter를 만들지 않는다."""
+        entries = [Subscription(entry).stats for entry in tuple(self._subscriptions)]
+        return {key: sum(entry[key] for entry in entries)
+                for key in ("delivered", "dropped", "failures", "timed_out", "pending")}
+
     def subscribe(self, callback: Callable, *, channel: str = "engine",
                   delivery: str = "inline", buffer_size: int = 64,
                   overflow: str = "block", callback_timeout: Optional[float] = None) -> Subscription:
@@ -176,6 +193,8 @@ class EventSubscriptions:
                         queue.get_nowait()
                         queue.task_done()
                         entry["dropped"] += 1
+                        if self.observability is not None:
+                            self.observability.record("events", "dropped")
                     queue.put_nowait((snapshot, on_error))
                 else:
                     await queue.put((snapshot, on_error))

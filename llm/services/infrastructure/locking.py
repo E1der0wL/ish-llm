@@ -8,7 +8,7 @@ OS handle lifetime, rather than a PID or timeout, determines ownership.
 
 import os
 import threading
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from functools import wraps
 from pathlib import Path
 
@@ -103,7 +103,10 @@ def workspace_locked(method):
     """Hold ownership throughout a synchronous service transaction."""
     @wraps(method)
     def guarded(self, *args, **kwargs):
-        with self.ownership.scope():
+        # Facade에 바인딩된 동기 Component API도 같은 Host 관찰 문맥을 전달한다.
+        # 여기서 계측하거나 상태를 집계하지는 않는다.
+        observer = getattr(self, "_observability", None)
+        with observer.scope() if observer is not None else nullcontext(), self.ownership.scope():
             for value in (*args, *kwargs.values()):
                 watch(value)
             return method(self, *args, **kwargs)

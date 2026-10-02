@@ -33,7 +33,8 @@ class ToolNode:
         tool, values = node.context.tools.prepare(definition["tool"], json.dumps(arguments))
         result = {}
         async with aclosing(self.executor.execute(tool, values, result=result, context=node.context,
-                                                 metadata={"node_id": node.node_id}, decision=node.decision)) as events:
+                                                 metadata={"node_id": node.node_id}, decision=node.decision,
+                                                 request_key=node.checkpoint_key)) as events:
             async for event in events:
                 await node.emit(event)
         return {definition.get("result_key", node.node_id): result["value"]}

@@ -307,6 +307,8 @@ class BaseEngine:
                 delay = policy.get("delay_seconds", 0) * (2 ** attempt)
                 if "max_delay_seconds" in policy:
                     delay = min(delay, policy["max_delay_seconds"])
+                from llm.providers.observations import record_retry
+                record_retry("completion")
                 await asyncio.sleep(delay)
                 continue
             else:

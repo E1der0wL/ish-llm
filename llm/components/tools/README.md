@@ -57,7 +57,8 @@ await tools.adelete("web_search")
 동기 create/load/list/save/update/prepare/enable/disable/delete도 제공한다.
 create는 중복을, save는 없는 패키지를, delete는 enabled 패키지를 거부한다.
 CRUD는 소스를 실행하지 않는다. enable은 정적 패키지 검증만 수행한다.
-prepare는 의존성이 없어도 import와 main/schema 검증을 수행한다. Run/Step은 만들지 않는다.
+prepare는 의존성이 없어도 inspector child에서 import와 main/schema 검증을 수행한다.
+backend에서는 Project source, decorator, type hints를 실행하지 않는다. Run/Step은 만들지 않는다.
 선택은 ProjectConfig.component_configurations.tools.enabled에만 저장한다.
 설정 저장은 list[str]/중복만 검증하며 패키지 유효성은 준비/실행 경계에서 확인한다.
 
@@ -78,17 +79,42 @@ Run/resolve에서는 설치하지 않는다. 누락이면 Host/UI에서 명시�
 
 ## 실행과 저장 경계
 
-enabled 패키지만 매 Run 로딩한다. 모듈 identity는 Project ID/Tool 이름/소스와 requirements
-해시를 포함한다. pyc나 함수 캐시를 재사용하지 않으므로 저장 후 다음 Run에 반영된다.
-실행 중 Run은 자신의 기존 Tool snapshot을 유지한다.
+enabled 패키지만 매 Run inspector에서 로딩한다. child가 JSON-safe descriptor를 반환하면
+backend가 schema/definition/contract를 다시 검증해 ToolRegistry에 등록한다.
+backend handler는 Project 함수가 아닌 trusted process adapter다.
+실제 호출마다 fresh execution child가 생성된다. pyc나 함수/모듈 캐시는 재사용하지 않는다.
+모듈 전역 counter/cache/client는 호출 간 보존되지 않는다. 영속 상태는 Project 자료나 외부 저장소를 사용한다.
+Run은 해석 당시 source/requirements SHA-256 binding을 유지한다. child가 실제 읽은 내용의
+fingerprint를 다시 확인하며, 변경되었으면 실행을 거부한다. 다음 Run은 새 소스를 해석한다.
+소스가 같아도 import 시 동적으로 생성한 schema/default/contract가 달라지면 descriptor hash 검사로 실행을 거부한다.
+binding은 Loop/Graph 승인·재개 검사에도 포함되므로 변경된 소스에 과거 승인을 적용할 수 없다.
 clone/backup은 소스와 requirements만 포함한다. backup 검증은 정적이며 restore는 설치하지 않는다.
 Project 삭제가 Host의 공용 plugin/lib를 삭제하지 않는다.
 
-소스는 신뢰한 Host/UI 관리 코드다. Python import도 코드 실행이므로 prepare/resolve가
-sandbox라고 가정하면 안 된다. 소스 생성·수정·준비를 모델 Tool로 자동 노출하지 않는다.
+소스는 신뢰한 Host/UI 관리 코드다. worker는 Python runtime isolation이며 **OS sandbox가 아니다**.
+filesystem/network/credential 격리는 제공하지 않는다. 같은 process group을 벗어나는
+악의적인 descendant까지 격리하려면 기존 sandbox/OS 정책이 필요하다.
+소스 생성·수정·준비를 모델 Tool로 자동 노출하지 않는다.
 ToolContract의 isolation은 기존 ToolExecutor/명시적 runner 계약을 그대로 따른다.
 process/sandbox 실행은 해당 Tool의 runner command 등록이 별도로 필요하다.
-승인·operation key·retry/resume 계약이 바뀌는 소스 수정은 작성자가 revision도 변경해야 한다.
+
+ToolExecutor가 승인 → operation 예약/재사용 → handler 호출 순서를 유지한다.
+ASK/DENY 상태에서는 execution worker가 생성되지 않는다. prepare/resolve inspector는
+Tool invocation 승인의 대상이 아니다. worker는 승인·재시도·Step·영수증을 직접 관리하지 않는다.
+명시적인 Tool timeout/Run 중단/backend 종료 시 기존 Linux process-group helper로 회수한다.
+비동기 prepare 취소도 inspector를 회수하고 storage transaction 정리를 기다린다.
+
+worker는 `-I`와 최소 locale 환경으로 시작하며 부모 API key/PYTHONPATH/임의 환경을 복사하지 않는다.
+신뢰한 plugin root, Python 설치 라이브러리, Host PLUGIN_LIB_DIR을 사용한다. 새 venv/installer는 없다.
+작업 디렉토리는 기존 backend 호출의 상대 경로 의미를 유지한다. `current_tool_call()`의
+출처/operation/idempotency 정보는 JSON 스냅샷으로 전달하며 runtime scope나 저장소 객체는 전달하지 않는다.
+stdout/stderr print는 protocol FD와 분리된다. capture 1 MiB, protocol 8 MiB의 메모리 경계를
+넘으면 잘라서 성공시키지 않고 `tool_worker_output_limit`으로 실패한다.
+
+오류 경계는 ToolExecutionError(effect/retryable 보존), trusted CodedError(code 보존),
+unknown(tool_failed/uncertain/nonretryable), infrastructure의 네 종류다.
+infrastructure code는 tool_worker_failed / tool_worker_protocol / tool_worker_output_limit이다.
+CancelledError는 일반 Tool 실패로 변환하지 않는다. full traceback이나 원시 출력은 telemetry에 넣지 않는다.
 
 RAG/Memory/MCP 등 다른 Component의 `tools` capability와 BuiltinTools는 유지한다.
 Host-owned 함수는 별도 Component의 `resolve(project, "tools")`에서 ToolRegistry를 반환할 수 있다.
