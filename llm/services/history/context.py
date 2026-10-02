@@ -5,7 +5,7 @@ Build conversation context for Runs and clones, independent of storage."""
 from copy import deepcopy
 
 from llm.core.models import Message, MessageRole, MessageStatus
-from llm.compat import dataclass
+from dataclasses import dataclass
 from typing import Optional
 from collections.abc import Callable
 

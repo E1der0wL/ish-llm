@@ -9,15 +9,18 @@ import math
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator, Mapping
 from copy import deepcopy
-from dataclasses import field, replace
+from dataclasses import dataclass, field, replace
 from typing import Any, Optional, Protocol, TypeVar, Union
 
-from llm.compat import StrEnum, aclosing, dataclass, timeout
+from enum import StrEnum
+from contextlib import aclosing
+from asyncio import timeout
 from llm.core.models import Message, Project, Run, RunStatus, Session, new_id, now
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
 from llm.errors import stable_error_code
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
 from llm.core.interactions import InteractionRequest
+from llm.core.configuration import UNSET
 from llm.components.tools import ToolRegistry
 from llm.providers.litellm import completion, stream_completion
 from llm.providers.parameters import copy_params
@@ -113,6 +116,21 @@ class EngineContext:
     def settings(self, engine: Optional[str] = None) -> dict:
         return self.project.config.for_engine(self.run.engine if engine is None else engine, self.session.config)
 
+    def execute_tool(self, tool, arguments, *, checkpoint_key: str, result: dict,
+                     executor=None, metadata=None, decision=UNSET) -> AsyncIterator[EngineEvent]:
+        """기존 invocation key로 Tool을 연결한다. 승인 증명/새 ID를 생성하지 않는다.
+
+        decision 생략 시 waiting Tool approval의 Interaction binding으로만 응답을
+        해석한다. Workflow confirmation은 Tool 권한을 부여하지 않는다.
+        executor 주입으로 명시된 실행 제한을 유지한다. 소비자는 aclosing을 사용한다.
+        """
+        from llm.services.runtime.tools import ToolExecutor
+        if not isinstance(checkpoint_key, str) or not checkpoint_key.strip():
+            raise ValueError("Tool checkpoint_key must be a nonempty string")
+        executor = executor if executor is not None else ToolExecutor()
+        return executor.execute(tool, arguments, result=result, context=self, metadata=metadata,
+                                decision=decision, request_key=checkpoint_key)
+
 
 class Engine(Protocol):
     def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]: ...
@@ -139,6 +157,12 @@ class BaseEngine:
     """
 
     required_capabilities = ()
+
+    def execute_tool(self, context: EngineContext, tool, arguments, *, checkpoint_key: str,
+                     result: dict, executor=None, metadata=None, decision=UNSET) -> AsyncIterator[EngineEvent]:
+        """공통 문맥에 Tool 호출을 위임한다. Step/승인/retry는 ToolExecutor가 소유한다."""
+        return context.execute_tool(tool, arguments, checkpoint_key=checkpoint_key, result=result,
+                                    executor=executor, metadata=metadata, decision=decision)
 
     def __init__(self, name: str = "Step", *, kind: str = "custom",
                  action: Optional[Callable[[EngineContext],

@@ -5,7 +5,7 @@ from typing import Optional
 
 from llm.core.contracts import Diagnostic
 from llm.errors import CodedError
-from llm.compat import dataclass
+from dataclasses import dataclass
 
 
 class ExecutionLimitError(CodedError, RuntimeError):

@@ -22,7 +22,9 @@ UI용 `backend.observability.snapshot()`은 [운영 관찰 계약](services/infr
 이 저장소의 `llm/` 폴더를 ish의 플러그인 스크립트 디렉토리에 배치합니다.
 플러그인 자체의 pip 설치는 필요하지 않습니다. 외부 라이브러리 의존성은
 `llm.py`의 `PLUGIN_META.dependencies`에 선언되어 있습니다.
-현재 실행 검증 대상은 Linux Python 3.12.14입니다.
+개발·실행 검증 대상은 **Linux Python 3.12.14 하나**입니다. 구버전 호환 계층 없이
+표준 `dataclass`, `StrEnum`, `asyncio.timeout`, `contextlib.aclosing`을 사용합니다.
+개발 저장소의 `.python-version`과 `pyproject.toml`도 이 버전으로 고정합니다.
 
 ```python
 llm_plugin = plugin.get("llm")
@@ -79,9 +81,9 @@ RAG 추출은 few-shot·고정 temperature=0·제한된 JSON 수정 호출을 �
 관계의 출처·시각·가중치 속성 추가로 기존 RAG 색인은 새 Project에 다시 등록해야 합니다
 (`graph_schema_version=1`; 핵심 도메인 `storage_version`은 1).
 
-- [GraphEngine·RAG 통합 검사](examples/graph_rag.md)
-- [사용자 요청·검증·승인·적용 Workflow](examples/configuration_workflow.md)
-- [메인 도메인 성능 검사](examples/domain_performance.md)
-- [장애 복구·다중 프로세스 검사](examples/recovery_probe.md)
+- [GraphEngine·RAG 통합 검사](../examples/llm/graph_rag.md)
+- [사용자 요청·검증·승인·적용 Workflow](../examples/llm/configuration_workflow.md)
+- [메인 도메인 성능 검사](../examples/llm/domain_performance.md)
+- [장애 복구·다중 프로세스 검사](../examples/llm/recovery_probe.md)
 
 예제 안내에서 독립 Python 실행과 ish 명령 등록 방법을 확인할 수 있습니다.

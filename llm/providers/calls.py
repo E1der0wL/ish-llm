@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Optional
 
-from llm.compat import dataclass
+from dataclasses import dataclass
 from llm.errors import CodedError
 
 

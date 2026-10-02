@@ -29,9 +29,22 @@ class EngineCheckpointScope:
         snapshot = self.snapshot()
         run = deepcopy(context.run)
         descriptor = run.metadata.get("resume", {})
-        decisions = {v["local_key"]: descriptor.get("decisions", {})[key]["approved"]
-            for key, v in self.records.items() if v.get("engine_scope") == self.owner
-            and v.get("checkpoint_name") == self.name and key in descriptor.get("decisions", {})}
+        decisions = {}
+        for key, record in self.records.items():
+            if (record.get("engine_scope") != self.owner or record.get("checkpoint_name") != self.name
+                    or key not in descriptor.get("decisions", {})):
+                continue
+            local = record["local_key"]
+            parent = InteractionRequest.from_dict(record["interaction"])
+            child = InteractionRequest.from_dict(record["payload"]["interaction"])
+            expected = child.bind("graph", self.key(local), decision_key="approved")
+            if (key != self.key(local) or child.binding.get("checkpoint") != self.name
+                    or child.binding.get("key") != local or parent.fingerprint != expected.fingerprint):
+                raise ValueError("Child interaction does not match its checkpoint scope")
+            # 부모의 승인 값 모양을 가정하지 않고 같은 선택지 ID를 자식의 원래 값으로 복원한다.
+            # 수명/갱신/응답 영수증은 서비스가 검증한다. 여기서 원본 요청을 다시 승인하지 않는다.
+            option, supplied = parent.select_decision(descriptor["decisions"][key])
+            decisions[local] = child.decision_for(option.id, value=supplied)
         retry = [v["local_key"] for key, v in self.records.items()
             if v.get("engine_scope") == self.owner and v.get("checkpoint_name") == self.name
             and key in descriptor.get("retry_nodes", [])]

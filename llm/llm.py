@@ -138,7 +138,7 @@ class LargeLanguageModel:
 
     변환 함수는 사본의 Path를 받는 신뢰한 개발자 코드다. 원본을 변경하지 않고 현재
     저장 형식으로 검증한다. memory/외부 대화는 휴대 가능한 파일 백업에서 거부한다.
-    자세한 보장/제한과 저장 버전 정책은 docs/operational-storage.md를 참고한다.
+    자세한 보장/제한과 저장 버전 정책은 docs/llm/operational-storage.md를 참고한다.
 
     생성 및 최소 실행 예제::
 
@@ -303,7 +303,7 @@ class LargeLanguageModel:
     이름으로 등록한다. 정책 사본은 Run.metadata.policies에 남으며 변경은 다음 Run부터 반영한다.
     현재 Tool 문맥까지
     넘치면 context_budget_exceeded로 실패하고 원문은 유지한다. 자세한 사용 예와 운영
-    한계는 docs/runtime-reliability.md를 따른다.
+    한계는 docs/llm/runtime-reliability.md를 따른다.
 
     장시간 실행 / 복구 / UI 편집::
 
@@ -320,7 +320,7 @@ class LargeLanguageModel:
 
     policies의 tool_retry/provider_retry/usage/retention으로 동작을 조절한다.
     정상 None Tool 결과는 재사용하고 불확실한 효과는 자동 재실행하지 않는다.
-    Graph 안의 Loop는 노드 경계로 재개한다. docs/long-running.md에 사용 조건을 설명한다.
+    Graph 안의 Loop는 노드 경계로 재개한다. docs/llm/long-running.md에 사용 조건을 설명한다.
 
     Tool 격리와 동일 외부 작업 결과 재사용::
 
@@ -338,7 +338,7 @@ class LargeLanguageModel:
     필수이며 사용 불가 시 거부한다. 명시적 process 모드는 Linux 프로세스 그룹을 종료하며
     파일/네트워크 보안 sandbox가 아니다. 키는 Session 범위이며 완료 결과를 재사용하고
     불확실한 started는 차단한다. 제공자 idempotency 규약에 call.idempotency_key를 연결한다.
-    기본 핸들러/내장 shell은 자동으로 격리되지 않는다. docs/process-isolation.md를 참고한다.
+    기본 핸들러/내장 shell은 자동으로 격리되지 않는다. docs/llm/process-isolation.md를 참고한다.
 
     공통 조회·진단·계획 데이터::
 
@@ -379,7 +379,7 @@ class LargeLanguageModel:
     Graph cleanup_timeout 초과 작업은 astatus().unfinished_work로 조회하고 실제 종료까지
     Session 소유권을 유지한다. Memory의 aconsolidate는 검토된 후보를 버전 검사 후 통합하며
     중단된 병합은 apending_consolidations/arecover_consolidations로 복구한다.
-    설정과 제약은 docs/domain-hardening.md를 참고한다.
+    설정과 제약은 docs/llm/domain-hardening.md를 참고한다.
 
     Engine — 전략 등록과 명시적 선택::
 
@@ -454,7 +454,7 @@ class LargeLanguageModel:
 
     API 생성 레코드는 confirmed 상태이며 모델 Tool의 작성 상태는 tool_write_status로 반드시 지정한다.
     선택 시 memory_search/get/create/update/delete Tool을 자동 제공한다. 모델 수정도 revision
-    검사를 거치고 출처는 실행 문맥에서 기록한다. 자세한 정책은 docs/memory.md를 참고한다.
+    검사를 거치고 출처는 실행 문맥에서 기록한다. 자세한 정책은 docs/llm/memory.md를 참고한다.
 
     Memory — 선택적 장기 문맥 처리::
 
@@ -471,7 +471,7 @@ class LargeLanguageModel:
 
     자동 검색/Tool 미리보기는 processing에서 명시적으로 활성화한다. 보조 모델 요약/추출은 설정으로 켜며 원본 대화와
     Tool 결과를 덮어쓰지 않는다. 주요 도메인에는 Memory 전용 실행 로직이 없다.
-    예산, 중첩 Engine, 오류 정책은 docs/memory-processing.md를 참고한다.
+    예산, 중첩 Engine, 오류 정책은 docs/llm/memory-processing.md를 참고한다.
 
     RAG / GraphRAG — 문서와 검색 인덱스를 함께 관리::
 
@@ -539,7 +539,7 @@ class LargeLanguageModel:
     재개는 원본을 연결하는 새 Run이다. 완료된 노드는 호출하지 않는다. started 처리 노드는
     부작용이 불확실하므로 UI가 확인한 키만 retry_nodes=[...]로 승인해야 한다.
     Workflow/Agent/Tool 정의와 실행 설정이 바뀌면 거부한다. memory 대화가 종료로 소실된
-    뒤에는 재개하지 않는다. 상세 계약과 UI 저장 예제는 docs/graph-checkpoints.md를 따른다.
+    뒤에는 재개하지 않는다. 상세 계약과 UI 저장 예제는 docs/llm/graph-checkpoints.md를 따른다.
 
     RAG/GraphRAG 검색 Tool — Project에서 컴포넌트를 선택하면 자동 제공::
 
@@ -600,7 +600,7 @@ class LargeLanguageModel:
     출력의 확정이며 Run 완료와는 별개다. Run 상태는 result.status/RunEvent로 확인한다.
     누락 복구 시 마지막으로 연속 적용한 순번 이후부터 재조회하고 중복 순번을 제거한다.
     최상위 출력은 Run, Agent/중첩 Graph/Tool 결과는 소유 Step에 남는다.
-    저장 형식과 UI 적용 예제는 docs/engine-output.md를 따른다.
+    저장 형식과 UI 적용 예제는 docs/llm/engine-output.md를 따른다.
 
     Project 설정 폼과 운영 API::
 
@@ -628,9 +628,9 @@ class LargeLanguageModel:
 
     선언된 설정과 등록 Component별 설정이 스키마에 포함된다. 열린 JSON 영역과
     공급자 고유 인자는 additionalProperties=True로 표시하며 모든 가능한 키를 추측하지 않는다.
-    호스트 실행 객체의 설정은 별도다. 사용법은 docs/operations-and-ui-settings.md에 있다.
+    호스트 실행 객체의 설정은 별도다. 사용법은 docs/llm/operations-and-ui-settings.md에 있다.
     Engine 설정 우선순위는 Project → Session → Agent → 명시적 호스트 값이다. missing은 상속하고 null은 상위 값을 덮어쓴다. 정책은 Project에만 저장한다.
-    Graph·Loop·Pipeline과 RAG의 적용 규칙 및 변경점은 docs/settings-consistency.md를 따른다.
+    Graph·Loop·Pipeline과 RAG의 적용 규칙 및 변경점은 docs/llm/settings-consistency.md를 따른다.
 
     관찰 콜백 안에서 같은 백엔드의 wait/shutdown을 기다리지 않는다. 사용자 정의 실행
     이벤트는 backend.event_handlers.register("custom_event", handler)로 연결한다.
@@ -706,7 +706,7 @@ class LargeLanguageModel:
         return {"active_runs": active, "queued_requests": queued, "unfinished_work": unfinished}
 
     def _interaction_changed(self, run, views):
-        """영속 상태가 원본이다. 저장 스레드는 UI 알림을 이벤트 루프에 예약한다."""
+        """영속 상태가 원본이다. 트랜잭션 확정 이후에만 UI 알림을 예약한다."""
         if self._loop is None or self._loop.is_closed():
             return
         from copy import deepcopy
@@ -724,7 +724,10 @@ class LargeLanguageModel:
                 if not pending.cancelled():
                     pending.exception()
             pending.add_done_callback(finished)
-        self._loop.call_soon_threadsafe(schedule)
+        from llm.services.infrastructure.transactions import after_commit
+        # 응답/취소/갱신이 rollback되면 알리지 않는다. 저장 transaction ContextVar도
+        # 확정 콜백 전에 해제되므로 UI의 새 조회가 종료된 transaction에 참여하지 않는다.
+        after_commit(lambda: self._loop.call_soon_threadsafe(schedule))
 
     def _check_open(self) -> None:
         if os.getpid() != self._pid:

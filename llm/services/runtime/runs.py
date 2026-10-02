@@ -15,11 +15,11 @@ from contextlib import closing
 from collections.abc import Callable
 from itertools import count
 from copy import deepcopy
-from dataclasses import asdict, replace
+from dataclasses import asdict, dataclass, replace
 
 from llm.core.models import (
     Message, MessageRole, MessageStatus, Project, Run, RunStatus, StepStatus,
-    Session, SessionStatus, new_id, now,
+    Session, SessionStatus, new_id, now, validate_run_transition,
 )
 from llm.core.paths import RunPaths
 from llm.core.interactions import InteractionRequest, InteractionResponse
@@ -42,7 +42,8 @@ from llm.core.contracts import Diagnostic, ResourceRef
 from llm.errors import CodedError, stable_error_code
 from llm.core.plans import ResumePlan
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
-from llm.compat import dataclass, StrEnum, timeout
+from enum import StrEnum
+from asyncio import timeout
 from llm.services.runtime.policies import ProjectPolicyResolver, ExecutionLimitError
 from llm.services.runtime.tools import ToolPolicy, ToolExecutionScope
 from llm.services.runtime.operations import OperationRepository, ToolOperations
@@ -385,6 +386,23 @@ class RunEvent:
 
 class _RunPaused(Exception):
     """Engine이 저장된 경계에서 실행을 양보했다. 실패나 자동 재개가 아니다."""
+
+
+@dataclass(frozen=True, slots=True)
+class _RunOutcome:
+    """한 실행 시도의 종료 판단. 영속 모델이나 새로운 상태 소유자가 아니다."""
+
+    status: RunStatus
+    error: Optional[str] = None
+    error_code: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        validate_run_transition(RunStatus.RUNNING, self.status, reason="finish")
+        if any(value is not None and not isinstance(value, str) for value in (self.error, self.error_code)):
+            raise TypeError("Run outcome error and error_code must be text or None")
+        if self.status in (RunStatus.COMPLETED, RunStatus.PAUSED) and (
+                self.error is not None or self.error_code is not None):
+            raise ValueError("Completed/paused Run outcome cannot contain a failure")
 
 
 # 영속 요청 큐를 실행으로 전환하고 이벤트 저장과 복구를 책임진다.
@@ -753,6 +771,7 @@ class RunManager:
         run = Run(run_id, session.id, message.id, new_id(),
                   engine if isinstance(engine, str) and engine.strip() else "",
                   self.repository.paths(session, run_id))
+        validate_run_transition(run.status, RunStatus.RUNNING, reason="start")
         # 대기 중 변경은 새 Run부터 반영한다. 실행 도중에는 저장된 값과 동일한 사본을 사용한다.
         run.metadata["policies"] = deepcopy(runtime.project.config.policies)
         if "resume" in message.metadata:
@@ -1009,6 +1028,11 @@ class RunManager:
 
     def _finish(self, runtime: SessionRuntime, run: Run, status: RunStatus,
                 error: Optional[str] = None, error_code: Optional[str] = None) -> None:
+        # 변경 전 검증한다. 중복 종료로 시각/오류/Step을 덮거나 다음 Run의 Session을 해제하지 않는다.
+        validate_run_transition(run.status, status, reason="finish")
+        _RunOutcome(status, error, error_code)
+        if run.session_id != runtime.session.id or runtime.session.current_run_id != run.id:
+            raise ValueError("Run finalization requires the Session's current Run")
         from llm.services.infrastructure.transactions import watch
         watch(runtime.session)
         for step in self.steps.list(run):
@@ -1064,24 +1088,24 @@ class RunManager:
                 runtime.execution = asyncio.create_task(self._consume_limited(runtime, run))
                 if runtime.closed or runtime.interrupt_requested:
                     runtime.execution.cancel()
-                status, error, error_code = RunStatus.COMPLETED, None, None
+                outcome = _RunOutcome(RunStatus.COMPLETED)
                 try:
                     await runtime.execution
                 except _RunPaused:
-                    status = RunStatus.PAUSED
+                    outcome = _RunOutcome(RunStatus.PAUSED)
                 except asyncio.CancelledError:
-                    status = RunStatus.INTERRUPTED
-                    error_code = RunErrorCode.INTERRUPTED
+                    outcome = _RunOutcome(RunStatus.INTERRUPTED, error_code=RunErrorCode.INTERRUPTED)
                 except Exception as failure:
-                    status, error = RunStatus.FAILED, str(failure)
-                    error_code = stable_error_code(failure) or RunErrorCode.ENGINE_FAILED
+                    outcome = _RunOutcome(RunStatus.FAILED, str(failure),
+                                          stable_error_code(failure) or RunErrorCode.ENGINE_FAILED)
                 finally:
                     try:
-                        await self._io.run(self._finish, runtime, run, status, error, error_code)
-                        self.observability.record("runs", status.value, code=error_code,
+                        await self._io.run(self._finish, runtime, run,
+                                           outcome.status, outcome.error, outcome.error_code)
+                        self.observability.record("runs", outcome.status.value, code=outcome.error_code,
                             duration_seconds=time.monotonic() - started, run_id=run.id,
                             project_id=runtime.project.id, session_id=runtime.session.id)
-                        if status == RunStatus.PAUSED:
+                        if outcome.status == RunStatus.PAUSED:
                             try:
                                 # 선택적 자동 응답 실패가 이미 확정한 PAUSED를 되돌리지 않는다.
                                 await self._io.run(self.repository.apply_interaction_policy, runtime.session, run,

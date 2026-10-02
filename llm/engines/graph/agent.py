@@ -2,13 +2,13 @@
 
 import asyncio
 import json
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, aclosing
 from copy import deepcopy
 from dataclasses import replace
 
 from jsonschema import Draft202012Validator
 
-from llm.compat import aclosing, timeout
+from asyncio import timeout
 from llm.components.agents import AgentComponent
 from llm.components.base import Component
 from llm.components.tools import Tool, ToolRegistry

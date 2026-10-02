@@ -3,10 +3,9 @@
 from typing import Optional, TYPE_CHECKING
 import json
 from copy import deepcopy
-from dataclasses import field
-from llm.compat import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from llm.compat import StrEnum
+from enum import StrEnum
 from uuid import uuid4
 
 from .paths import ProjectPaths, RunPaths, StepPaths, SessionPaths
@@ -65,6 +64,27 @@ class RunStatus(StrEnum):
     CANCELLED = "cancelled"
     FAILED = "failed"
     PAUSED = "paused"
+
+
+def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: str) -> None:
+    """Run 상태 변경의 순수 검증. 저장·시각 생성·다른 도메인 변경은 하지 않는다.
+
+    종료한 실행 시도는 다시 열지 않는다. resume는 서비스가 별도 Run을 생성한다.
+    CANCELLED는 기존 저장 enum으로 유지하되 새 실행 경로를 만들지 않는다.
+    대기 요청 취소는 Run 전이가 아니라 Message의 CANCELLED 전이다.
+    """
+    current, target = RunStatus(current), RunStatus(target)
+    if reason == "start":
+        allowed = current == RunStatus.PENDING and target == RunStatus.RUNNING
+    elif reason == "finish":
+        allowed = current == RunStatus.RUNNING and target in (
+            RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.INTERRUPTED, RunStatus.PAUSED)
+    elif reason == "recovery":
+        allowed = current in (RunStatus.PENDING, RunStatus.RUNNING) and target == RunStatus.INTERRUPTED
+    else:
+        raise ValueError(f"Unknown Run transition reason: {reason}")
+    if not allowed:
+        raise ValueError(f"Invalid Run transition ({reason}): {current.value} -> {target.value}")
 
 
 class StepStatus(StrEnum):

@@ -5,7 +5,7 @@ from functools import wraps
 from collections import OrderedDict
 from types import SimpleNamespace
 from heapq import nsmallest, nlargest
-from llm.compat import dataclass
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)

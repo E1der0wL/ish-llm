@@ -6,17 +6,17 @@ import math
 import time
 from copy import deepcopy
 from contextvars import ContextVar
-from dataclasses import replace, asdict, field
+from dataclasses import asdict, dataclass, field, replace
 from typing import Callable, Optional
 
-from llm.compat import dataclass, timeout
+from asyncio import timeout
 from llm.core.contracts import Diagnostic
 from llm.errors import CodedError, stable_error_code
 from llm.services.infrastructure.observability import record
 from llm.core.configuration import UNSET
 from llm.core.models import ProjectConfig, new_id
 from llm.core.results import EngineOutput
-from llm.core.interactions import InteractionRequest, approval_request
+from llm.core.interactions import InteractionRequest, approval_request, same_interaction_value
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.services.runtime.policies import ExecutionLimitError
 from llm.services.runtime.operations import operation_token
@@ -234,6 +234,12 @@ class ToolExecutionScope:
             raise
 
 
+class ToolInvocationError(CodedError, ValueError):
+    """Engine의 durable 호출 연결 오류. 관측 sink나 Tool 실행 실패가 아니다."""
+
+    code = "tool_invocation_invalid"
+
+
 class ToolExecutor:
     """Tool 핸들러 실행을 하나의 Step으로 표현한다. 저장은 기존 StepManager가 담당한다."""
 
@@ -243,6 +249,64 @@ class ToolExecutor:
         if max_output_chars is not None and (type(max_output_chars) is not int or max_output_chars < 1):
             raise ValueError("Tool output limit must be a positive integer")
         self.timeout_seconds, self.max_output_chars = timeout_seconds, max_output_chars
+
+    def _request_state(self, tool, arguments, context, decision, request_key):
+        """권한을 부여하지 않고 기존 체크포인트 연결만 검증한다. 계측 여부와 무관하다."""
+        if request_key is not None and (not isinstance(request_key, str) or not request_key.strip()):
+            raise ToolInvocationError("Tool request_key must be a nonempty string")
+        records = (getattr(context, "checkpoint", None) or {}).get("records", {})
+        run = getattr(context, "run", None)
+        decisions = getattr(run, "metadata", {}).get("resume", {}).get("decisions", {})
+        previous = records.get(request_key, {})
+
+        def tool_approval(record):
+            interaction = record.get("interaction", {})
+            return (record.get("status") == "waiting" and interaction.get("kind") == "approval"
+                    and "tool" in interaction.get("action", {})
+                    and "arguments" in interaction.get("action", {}))
+
+        # Workflow continuation과 Tool 권한은 서로 다른 계약이다. 같은 key의
+        # approved=True라도 실제 waiting Tool 요청이 아니면 승인으로 해석하지 않는다.
+        durable_approval = tool_approval(previous)
+        interaction = previous.get("interaction", {})
+        binding = interaction.get("binding", {})
+        stored_decision = decisions.get(request_key)
+        if durable_approval and request_key in decisions:
+            # Loop bool / Graph object의 해석은 이미 저장된 선택지 값과 effect를 따른다.
+            # 승인 유효성 검사는 InteractionResponse/Engine resume가 계속 소유한다.
+            try:
+                selected, _ = InteractionRequest.from_dict(interaction).select_decision(stored_decision)
+                stored_decision = selected.effect == "approve" if selected.effect in ("approve", "deny") else None
+            except (ValueError, TypeError, KeyError) as error:
+                raise ToolInvocationError("Durable Tool approval has an invalid interaction decision") from error
+        if decision is UNSET:
+            decision = stored_decision if durable_approval and request_key in decisions else None
+
+        if durable_approval:
+            action = interaction.get("action", {})
+            if (request_key not in decisions or type(stored_decision) is not bool
+                    or type(decision) is not bool or decision != stored_decision
+                    or binding.get("key") != request_key
+                    or action.get("tool") != tool.name or not same_interaction_value(action.get("arguments"), arguments)):
+                raise ToolInvocationError("Durable Tool approval does not match its checkpoint invocation")
+            return decision, True
+
+        if request_key in records and decision is not None:
+            raise ToolInvocationError("Checkpoint decision is not a durable Tool approval")
+
+        if decision is not None and (request_key is None or request_key not in records):
+            # 같은 Tool/인자라도 여러 invocation이 가능하므로 후보에서 key를 추측하지 않는다.
+            # 일치 후보는 누락/오류를 검출하는 용도뿐이며 승인 또는 dedup 근거로 사용하지 않는다.
+            for key, value in records.items():
+                action = value.get("interaction", {}).get("action", {})
+                if (key in decisions and tool_approval(value)
+                        and action.get("tool") == tool.name and same_interaction_value(action.get("arguments"), arguments)):
+                    raise ToolInvocationError("Durable Tool approval resume requires its stable request_key")
+        scope = getattr(context, "tool_scope", None)
+        identity = json.dumps([tool.name, arguments], sort_keys=True, ensure_ascii=False)
+        resumed = decision is not None and scope is not None and identity in scope.pending_approvals
+        # 다른 노드의 pause_before는 같은 인자의 pending 요청과 합치지 않는다.
+        return decision, False if request_key in records else resumed
 
     async def _execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None):
         ProjectConfig.validate_settings(arguments)
@@ -366,22 +430,11 @@ class ToolExecutor:
                           output=EngineOutput(step_id, data=value, step_id=step_id, visibility="internal"),
                           metadata={"phase": "completed", "reused": reservation["reused"]})
 
-    async def execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None,
+    async def execute(self, tool, arguments, *, result, metadata=None, context=None, decision=UNSET,
                       request_key=None):
         """논리 호출 계측은 이 경계 하나에 둔다. 재개 여부는 기존 승인 예약에서 읽는다."""
-        from llm.compat import aclosing
-        scope = getattr(context, "tool_scope", None)
-        identity = json.dumps([tool.name, arguments], sort_keys=True, ensure_ascii=False)
-        resumed = decision is not None and scope is not None and identity in scope.pending_approvals
-        if request_key is not None and decision is not None and context is not None:
-            # Loop의 새 Run은 새 scope를 갖는다. 별도 중복 집계 저장소 대신 이미 검증된
-            # 체크포인트의 Tool 승인 영수증을 읽는다. 일반 Graph pause_before는 제외된다.
-            records = (getattr(context, "checkpoint", None) or {}).get("records", {})
-            decisions = getattr(context.run, "metadata", {}).get("resume", {}).get("decisions", {})
-            previous = records.get(request_key, {})
-            action = previous.get("interaction", {}).get("action", {})
-            resumed = (request_key in decisions and previous.get("status") == "waiting"
-                       and action.get("tool") == tool.name and action.get("arguments") == arguments)
+        from contextlib import aclosing
+        decision, resumed = self._request_state(tool, arguments, context, decision, request_key)
         if not resumed:
             record("tools", "requests", name=tool.name)
         started = time.monotonic()

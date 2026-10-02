@@ -13,7 +13,7 @@ from collections.abc import AsyncIterator, Callable, Iterator, Mapping
 from typing import Any, Optional, Union
 from urllib.parse import urlsplit
 
-from llm.compat import aclosing
+from contextlib import aclosing
 from llm.components.processing import CompletionMessage, CompletionRequest, CompletionObservation, CompletionPipeline
 from llm.core.models import MessageRole, MessageStatus
 from llm.core.configuration import engine_configuration, resolve_configuration, UNSET
@@ -64,6 +64,10 @@ class LoopEngine(BaseEngine):
             raise ValueError("Loop decisions must be booleans for waiting Tool keys")
         if waiting - decisions.keys():
             raise ValueError(f"Tool approval decisions required: {sorted(waiting)}")
+        for key in waiting:
+            saved = checkpoint["records"][key]
+            if "interaction" in saved:
+                InteractionRequest.from_dict(saved["interaction"]).select_decision(decisions[key])
 
     def _record(self, key, value):
         interaction = InteractionRequest.from_dict(value["interaction"]) if "interaction" in value else None
@@ -335,11 +339,10 @@ class LoopEngine(BaseEngine):
                     if durable:
                         yield self._record(key, {"status": "started", "requires_retry": True, "name": tool.name, "arguments": arguments})
                     try:
-                        async with aclosing(executor.execute(
-                            tool, arguments, result=result, context=context,
+                        async with aclosing(self.execute_tool(
+                            context, tool, arguments, result=result, executor=executor,
                             metadata={"iteration": iteration, "tool_call_id": call["id"]},
-                            request_key=key,
-                            decision=context.run.metadata.get("resume", {}).get("decisions", {}).get(key),
+                            checkpoint_key=key,
                         )) as events:
                             async for event in events:
                                 if durable and event.type == EngineEventType.STEP_COMPLETED:

@@ -1,13 +1,12 @@
 """UI와 서비스가 공유하는 JSON 데이터 계약. 실행 권한이나 저장 책임은 갖지 않는다."""
 
 from copy import deepcopy
-from dataclasses import field, fields, is_dataclass
+from dataclasses import dataclass, field, fields, is_dataclass
 from enum import Enum
 import math
 from pathlib import Path
 from typing import Any, Optional, Union, get_args, get_origin, get_type_hints
 
-from llm.compat import dataclass
 from .models import ProjectConfig
 from llm.errors import exception_chain, stable_error_code
 

@@ -2,11 +2,10 @@
 
 import asyncio
 import math
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from io import StringIO
 from typing import Union
 
-from llm.compat import dataclass
 from llm.engines.base import EngineEventType
 from llm.core.results import EngineOutput, EngineDelta
 

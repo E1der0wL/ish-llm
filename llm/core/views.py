@@ -1,7 +1,7 @@
 """Session/Run의 UI 조회 스냅샷. 원본 도메인 기록을 추가로 저장하지 않는다."""
 
 from typing import Optional, Union
-from llm.compat import dataclass
+from dataclasses import dataclass
 from .contracts import JsonValue
 from .models import Run, SessionStatus
 from .results import EngineDelta, EngineOutput

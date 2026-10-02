@@ -87,8 +87,8 @@ LiteLLM이 처리한다. 명시적으로 주입한 모델 함수는 기존 확�
 Linux Python 3.12.14에서:
 
 ```bash
-python -m unittest llm.tests.test_provider_runtime llm.tests.test_rag_resilience -v
-python -m llm.tests.provider_probe --output /tmp/provider-probe.json
+python -m unittest tests.llm.test_provider_runtime tests.llm.test_rag_resilience -v
+python -m tests.llm.provider_probe --output /tmp/provider-probe.json
 ```
 
 두 번째 명령은 실제 LiteLLM HTTP 경로와 Chroma/BM25/Kuzu/GraphEngine을 사용한다.

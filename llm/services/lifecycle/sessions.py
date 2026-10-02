@@ -8,8 +8,7 @@ from llm.services.query import queryable
 from typing import Optional, Union
 import asyncio
 import threading
-from dataclasses import field
-from llm.compat import dataclass
+from dataclasses import dataclass, field
 from copy import deepcopy
 from collections.abc import Callable
 

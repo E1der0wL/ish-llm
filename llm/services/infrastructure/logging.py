@@ -13,7 +13,7 @@ from pathlib import Path
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Callable
-from llm.compat import dataclass
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)

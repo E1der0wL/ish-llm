@@ -4,10 +4,9 @@ Explicitly registered async tools; no automatic shell or filesystem access."""
 
 import json
 import re
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from collections.abc import Awaitable, Callable
 from copy import deepcopy
-from llm.compat import dataclass
 from typing import Any, Optional
 
 from jsonschema import Draft202012Validator

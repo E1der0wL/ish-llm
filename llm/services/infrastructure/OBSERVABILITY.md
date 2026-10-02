@@ -35,7 +35,17 @@ snapshot은 순간별 projection이며 여러 owner를 하나의 트랜잭션으
 
 - tools.requests: 논리 호출. 승인 후 재개는 기존 checkpoint/approval 예약으로 식별해 중복 집계하지 않는다.
   Loop/Graph는 해당 invocation의 정확한 checkpoint key를 ToolExecutor에 전달한다.
-  확장 Engine도 durable Tool approval을 구현하면 `execute(..., request_key=...)`를 전달한다.
+  확장 Engine은 `BaseEngine.execute_tool(context, ..., checkpoint_key=...)` 또는
+  `context.execute_tool(..., checkpoint_key=...)`을 사용한다. helper가 기존 key와
+  waiting Tool approval의 Interaction 선택지에 연결된 decision만 ToolExecutor에 전달한다.
+  직접 호출 시에도 ToolExecutor가 durable 승인 연결을 검증한다. 누락/불일치는
+  `ToolInvocationError(code="tool_invocation_invalid")`이며 handler/worker/Tool Step 시작 전에
+  실패한다. 이는 관측 장애가 아닌 Engine 호출 계약 오류로, observer 없이도 검증한다.
+  key 없는 일반 호출은 허용한다. Graph pause_before 확인은 Tool 승인/중복 집계 근거가
+  아니며, 해당 checkpoint의 확인 decision을 Tool 승인으로 전달하면 거부한다.
+  확인 후 ToolPolicy.authorize가 ASK하면 새 논리 Tool 요청 1건으로 기록하고,
+  그 Tool approval을 재개할 때는 같은 요청으로 센다. 같은 Tool/인자의 과거 승인 후보로
+  키를 추측하지 않으며 모호한 durable 재개는 거부한다. key는 승인 권한 자체가 아니다.
 - tools.executions: 실제 handler/runner 시도 시작 수. retries는 그중 첫 시도 이후의 추가 실행 수다.
 - tools.reused: operation receipt 결과 재사용. handler/worker는 실행하지 않는다.
 - tools.approval_required: Tool invocation이 ASK로 일시정지한 수다.

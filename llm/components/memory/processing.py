@@ -8,7 +8,7 @@ import json
 import math
 import re
 
-from llm.compat import aclosing
+from contextlib import aclosing
 from llm.components.base import Component, validate_name
 from llm.components.processing import CompletionSession
 from llm.core.results import EngineOutput

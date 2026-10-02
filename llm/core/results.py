@@ -2,12 +2,11 @@
 
 Persistable execution observations, separate from Project configuration."""
 
-from dataclasses import asdict, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from copy import deepcopy
 from datetime import datetime
 from typing import Any, Optional
 
-from llm.compat import dataclass
 from .contracts import Diagnostic, ResourceRef
 from .models import ProjectConfig, Run, RunStatus, new_id, now
 

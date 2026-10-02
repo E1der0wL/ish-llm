@@ -5,7 +5,9 @@ import json
 import hashlib
 from dataclasses import replace
 
-from llm.core.interactions import InteractionRequest, InteractionResponse, InteractionView, approval_request
+from llm.core.interactions import (
+    InteractionRequest, InteractionResponse, InteractionView, approval_request, same_interaction_value,
+)
 from llm.core.models import Run
 from llm.services.infrastructure.storage import atomic_json, read_json
 
@@ -19,9 +21,6 @@ class InteractionRepository:
             if item.is_symlink():
                 raise ValueError("Interaction paths cannot follow links")
         return path
-
-    def _same(self, left, right):
-        return json.dumps(left, sort_keys=True, allow_nan=False) == json.dumps(right, sort_keys=True, allow_nan=False)
 
     def _path(self, run, request):
         path = self._root(run) / (request.id + ".json")
@@ -158,20 +157,12 @@ class InteractionRepository:
                 receipts.append(response)
             if response is not None:
                 value = response.decision(request)
-                if key in decisions and not self._same(decisions[key], value):
+                if key in decisions and not same_interaction_value(decisions[key], value):
                     raise ValueError("Explicit decision conflicts with stored interaction response")
                 decisions[key] = value
             elif key in decisions:
                 # 저수준 엔진 재개 API도 동일한 선택지/입력 검증과 응답 영수증을 사용한다.
-                value = deepcopy(decisions[key])
-                input_key = request.binding.get("input_key")
-                supplied = value.pop(input_key, None) if input_key and isinstance(value, dict) else None
-                if request.kind == "confirmation" and value == {}:
-                    # 상태만 전달하는 명시적 재개도 확인 선택으로 기록한다.
-                    value = next((o.value for o in request.options if o.effect == "approve"), value)
-                option = next((o for o in request.options if self._same(o.value, value)), None)
-                if option is None:
-                    raise ValueError("Decision is not an interaction option; cannot edit approval arguments")
+                option, supplied = request.select_decision(decisions[key], confirm_empty=True)
                 response = request.respond(option.id, value=supplied)
                 decisions[key] = response.decision(request)
                 receipts.append(response)

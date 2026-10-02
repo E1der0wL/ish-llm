@@ -14,7 +14,7 @@ import sys
 
 from packaging.requirements import Requirement, InvalidRequirement
 from packaging.utils import canonicalize_name
-from llm.compat import dataclass
+from dataclasses import dataclass
 from llm.components.base import validate_name
 from llm.services.infrastructure.storage import (reject_links, make_directory, prepare_replace,
     temporary_file, sync_directory, unlink_file)

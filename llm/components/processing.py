@@ -3,7 +3,9 @@
 import math
 from typing import AsyncIterator, Optional, Protocol, TYPE_CHECKING
 
-from llm.compat import aclosing, dataclass, timeout
+from contextlib import aclosing
+from dataclasses import dataclass
+from asyncio import timeout
 from llm.providers.parameters import copy_params
 
 if TYPE_CHECKING:

@@ -116,4 +116,4 @@ config = ProjectConfig(
 
 ## 감사와 검증
 
-`llm/tests/audit_configuration.py`는 production Python 전체의 fallback/default 패턴과 분류를 수집한다. 보고서의 개별 발생 위치를 변경 시 재검토한다. `llm.tests.test_explicit_configuration`은 빈 설정·상속/null·SDK kwarg 생략·독립 timeout·native library 옵션·정책 비활성 계약을 검증한다. Provider/RAG 테스트는 retry de-duplication, cache/checkpoint/vector mapping/cancellation을 계속 검증한다.
+`tests/llm/audit_configuration.py`는 production Python 전체의 fallback/default 패턴과 분류를 수집한다. 보고서의 개별 발생 위치를 변경 시 재검토한다. `tests.llm.test_explicit_configuration`은 빈 설정·상속/null·SDK kwarg 생략·독립 timeout·native library 옵션·정책 비활성 계약을 검증한다. Provider/RAG 테스트는 retry de-duplication, cache/checkpoint/vector mapping/cancellation을 계속 검증한다.

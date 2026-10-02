@@ -7,7 +7,7 @@ from typing import Optional
 from dataclasses import replace
 from copy import copy, deepcopy
 from collections.abc import Mapping
-from llm.compat import aclosing
+from contextlib import aclosing
 from llm.core.models import ProjectConfig
 from llm.core.configuration import engine_configuration
 from llm.core.schema import object_schema, field

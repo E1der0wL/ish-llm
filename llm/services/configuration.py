@@ -1,11 +1,10 @@
 """백엔드가 실행/조회에 공유할 서비스 의존성을 한 곳에서 조립한다."""
 
-from dataclasses import field
+from dataclasses import dataclass, field
 from llm.providers.calls import ProviderCalls, ProviderLimits
 from llm.services.runtime.output import OutputPolicy
 from typing import Callable, Optional, Union
 from llm.core.models import Session
-from llm.compat import dataclass
 from llm.services.history.context import ConversationContextBuilder
 from llm.services.history.conversation import Conversation, conversation_store
 from llm.services.runtime.events import EventHandlers

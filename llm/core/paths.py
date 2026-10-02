@@ -1,6 +1,6 @@
 """도메인마다 소유하는 주요 경로를 정의한다. Component 내부 경로는 해당 Component에서 관리한다."""
 
-from llm.compat import dataclass
+from dataclasses import dataclass
 from pathlib import Path
 
 

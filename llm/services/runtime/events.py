@@ -5,7 +5,7 @@ import inspect
 import time
 from copy import deepcopy
 from typing import Callable, Optional
-from llm.compat import timeout
+from asyncio import timeout
 from llm.services.runtime.policies import positive_seconds
 
 

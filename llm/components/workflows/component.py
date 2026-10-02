@@ -3,7 +3,7 @@
 Open workflow graph definitions; execution belongs to Graph engines."""
 
 from pathlib import Path
-from llm.compat import dataclass
+from dataclasses import dataclass
 from llm.core.models import Project
 from llm.components.definitions import DefinitionComponent
 from .data import WorkflowData

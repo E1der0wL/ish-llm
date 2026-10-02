@@ -1,0 +1,3 @@
+reports/
+manual/*.py
+__pycache__/

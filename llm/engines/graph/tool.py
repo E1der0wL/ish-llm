@@ -2,7 +2,7 @@
 
 import json
 
-from llm.compat import aclosing
+from contextlib import aclosing
 from llm.services.runtime.tools import ToolExecutor
 
 
@@ -32,9 +32,11 @@ class ToolNode:
             arguments = node.state[definition["arguments_key"]] if "arguments_key" in definition else definition.get("arguments", {})
         tool, values = node.context.tools.prepare(definition["tool"], json.dumps(arguments))
         result = {}
-        async with aclosing(self.executor.execute(tool, values, result=result, context=node.context,
-                                                 metadata={"node_id": node.node_id}, decision=node.decision,
-                                                 request_key=node.checkpoint_key)) as events:
+        # node.decision은 pause_before 확인일 수도 있다. Tool 승인만 공통 helper가
+        # 원본 checkpoint의 interaction/action과 연결해 해석하도록 위임한다.
+        async with aclosing(node.context.execute_tool(tool, values, result=result, executor=self.executor,
+                                                 metadata={"node_id": node.node_id},
+                                                 checkpoint_key=node.checkpoint_key)) as events:
             async for event in events:
                 await node.emit(event)
         return {definition.get("result_key", node.node_id): result["value"]}

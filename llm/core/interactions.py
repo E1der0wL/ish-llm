@@ -1,15 +1,20 @@
 """UI와 실행기가 공유하는 사용자 요청·선택지·응답. 실행이나 파일 저장을 수행하지 않는다."""
 
 from copy import deepcopy
-from dataclasses import asdict, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 import hashlib
 import json
 from typing import Any, Optional
 
-from llm.compat import dataclass
 from .models import ProjectConfig, new_id, now
 from .schema import checked_schema
+
+
+def same_interaction_value(left: Any, right: Any) -> bool:
+    """JSON 응답을 강제 변환 없이 비교한다. 중첩된 true/1과 1/1.0도 구분한다."""
+    ProjectConfig.validate_settings({"left": left, "right": right})
+    return json.dumps(left, sort_keys=True, allow_nan=False) == json.dumps(right, sort_keys=True, allow_nan=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,6 +118,55 @@ class InteractionRequest:
         options = tuple(replace(o, value={decision_key: o.value}) if decision_key and type(o.value) is bool else o for o in self.options)
         return replace(self, options=options, binding={"checkpoint": checkpoint, "key": key, "input_key": input_key})
 
+    def decision_for(self, option_id: str, *, value: Any = None) -> Any:
+        """선택지와 입력의 순수 형식 변환. 요청 수명/응답 지문 검증이나 승인을 대신하지 않는다."""
+        from jsonschema import Draft202012Validator, ValidationError
+        ProjectConfig.validate_settings({"value": value})
+        option = next((o for o in self.options if o.id == option_id), None)
+        if option is None:
+            raise ValueError("Unknown interaction option")
+        decision = deepcopy(option.value)
+        if option.effect == "deny" and value is not None:
+            raise ValueError("Denial cannot include input")
+        if option.effect != "deny" and self.input_schema is not None:
+            try:
+                Draft202012Validator(self.input_schema).validate({} if value is None else value)
+            except ValidationError as error:
+                raise ValueError(f"Invalid interaction input: {error.message}") from error
+        if value is not None:
+            if self.input_schema is None:
+                raise ValueError("Interaction does not accept input")
+            key = self.binding.get("input_key")
+            if key:
+                if not isinstance(decision, dict) or key in decision:
+                    raise ValueError("Interaction input cannot replace the selected decision")
+                decision[key] = deepcopy(value)
+            else:
+                decision = deepcopy(value)
+        return decision
+
+    def select_decision(self, decision: Any, *, confirm_empty: bool = False) -> tuple[InteractionOption, Any]:
+        """재개 값을 유일한 선택지와 추가 입력으로 분리한다. 누락 응답은 호출자가 구분한다.
+
+        빈 confirmation은 명시적 확인 경로에서만 승인 선택으로 해석한다. 일반 approval,
+        choice에는 적용하지 않는다. 반환값은 사본이며 응답 영수증을 생성하지 않는다.
+        """
+        ProjectConfig.validate_settings({"decision": decision})
+        value = deepcopy(decision)
+        input_key = self.binding.get("input_key")
+        supplied = value.pop(input_key, None) if input_key and isinstance(value, dict) else None
+        if confirm_empty and self.kind == "confirmation" and value == {}:
+            options = [o for o in self.options if o.effect == "approve"]
+        else:
+            options = [o for o in self.options if same_interaction_value(o.value, value)]
+        if not options:
+            raise ValueError("Decision is not an interaction option; cannot edit approval arguments")
+        if len(options) != 1:
+            raise ValueError("Ambiguous interaction decision; select an option by ID")
+        option = options[0]
+        self.decision_for(option.id, value=supplied)
+        return deepcopy(option), supplied
+
     def respond(self, option_id: str, *, value: Any = None) -> "InteractionResponse":
         """UI가 본 요청 버전과 실행 대상에 묶인 응답을 만든다. 저장/실행은 하지 않는다."""
         response = InteractionResponse(self.id, self.revision, option_id, self.fingerprint, value)
@@ -157,37 +211,15 @@ class InteractionResponse:
         return deepcopy(value)
 
     def decision(self, request: InteractionRequest) -> Any:
-        from jsonschema import Draft202012Validator, ValidationError
         if (self.request_id != request.id or self.request_revision != request.revision
                 or self.request_fingerprint != request.fingerprint):
             raise ValueError("Interaction changed; reload before responding")
         if request.expired or request.status != "pending":
             raise ValueError("Interaction is no longer pending")
-        option = next((o for o in request.options if o.id == self.option_id), None)
-        if option is None:
-            raise ValueError("Unknown interaction option")
         self.to_dict()
         if self.actor not in ("user", "policy", "host"):
             raise ValueError("Invalid interaction response actor")
-        decision = deepcopy(option.value)
-        if option.effect == "deny" and self.value is not None:
-            raise ValueError("Denial cannot include input")
-        if option.effect != "deny" and request.input_schema is not None:
-            try:
-                Draft202012Validator(request.input_schema).validate({} if self.value is None else self.value)
-            except ValidationError as error:
-                raise ValueError(f"Invalid interaction input: {error.message}") from error
-        if self.value is not None:
-            if request.input_schema is None:
-                raise ValueError("Interaction does not accept input")
-            key = request.binding.get("input_key")
-            if key:
-                if not isinstance(decision, dict) or key in decision:
-                    raise ValueError("Interaction input cannot replace the selected decision")
-                decision[key] = deepcopy(self.value)
-            else:
-                decision = deepcopy(self.value)
-        return decision
+        return request.decision_for(self.option_id, value=self.value)
 
 
 def approval_request(title: str, *, description: str = "", source: Optional[dict] = None,

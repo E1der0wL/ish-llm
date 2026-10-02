@@ -61,4 +61,30 @@ Enum 값과 dataclass 필드 순서도 바꾸지 않는다.
 
 공개 Session/Run 조회와 재개·복구·보관 계획은 core/views.py와 core/plans.py의 데이터 클래스를
 반환한다. 진단·출처·진행 표시는 core/contracts.py의 계약을 사용한다. 실제 상태 전이/저장과
-버전 검증은 서비스 책임이다. [공통 데이터 API](../../docs/data-contracts.md)를 참고한다.
+버전 검증은 서비스 책임이다. [공통 데이터 API](../../docs/llm/data-contracts.md)를 참고한다.
+
+## Run 상태 전이
+
+`core.models.validate_run_transition`은 상태 변경의 허용 여부만 검증한다.
+시각 생성, 저장, Step/Conversation 변경은 계속 기존 서비스가 담당한다.
+
+| 경로 | 이전 상태 | 다음 상태 |
+| --- | --- | --- |
+| 시작 (`start`) | PENDING | RUNNING |
+| 종료 (`finish`) | RUNNING | COMPLETED, FAILED, INTERRUPTED, PAUSED |
+| 복구 (`recovery`) | PENDING, RUNNING | INTERRUPTED |
+
+종료한 Run은 다시 열거나 종료하지 않는다. 명시적 재개는 기존 체크포인트를 참조하는
+새 Run을 생성한다. 대기 요청의 취소는 Message의 CANCELLED이며 새 Run을 만들지 않는다.
+RunStatus.CANCELLED 저장 enum은 유지하지만 새 실행 전이는 추가하지 않는다.
+
+RunManager의 내부 불변 `_RunOutcome`은 종료 상태·오류·오류 코드를 함께 전달한다.
+COMPLETED/PAUSED에 실패 정보를 섞는 조합은 거부한다. `_finish`는 전이 규칙과
+Session의 current_run_id를 먼저 확인하므로 중복/늦은 종료가 다음 Run의 소유권을
+해제하거나 기존 종료 기록을 덮어쓰지 않는다. 이 검사는 Session 소유권을 가진
+기존 직렬 I/O 경로 안에서 수행하며 새 잠금이나 범용 상태 저장기를 만들지 않는다.
+
+실행 순서는 `_worker → _begin → _consume_limited → _finish`를 유지한다.
+시작/종료 트랜잭션, Step 정리 → Assistant 상태 → Run 저장 → Session 저장 순서와
+저장 성공 후 Run 알림·관측 전달도 유지한다. 저장 실패 시 완료 알림을 보내지 않는다.
+복구는 같은 순수 전이 검증만 공유하며 기존 복구 I/O를 그대로 사용한다.

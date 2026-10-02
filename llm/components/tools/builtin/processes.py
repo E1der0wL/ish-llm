@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from llm._platform import require_linux
 from llm.services.infrastructure.processes import kill_process_tree
-from llm.compat import timeout
+from asyncio import timeout
 from llm.services.infrastructure.storage import drain_on_cancel
 
 

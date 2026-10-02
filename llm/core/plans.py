@@ -1,6 +1,6 @@
 """실행 전 검토용 계획. 각 서비스가 원본/정책을 재검증한 뒤 실제 작업을 수행한다."""
 
-from llm.compat import dataclass
+from dataclasses import dataclass
 from .contracts import Diagnostic, JsonValue, ResourceRef
 from .interactions import InteractionView
 

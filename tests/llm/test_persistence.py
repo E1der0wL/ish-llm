@@ -1,0 +1,171 @@
+import json
+import tempfile
+import unittest
+from dataclasses import fields
+from pathlib import Path
+
+from llm.core.models import (
+    Message, MessageRole, MessageStatus, Project, ProjectConfig, Run, RunStatus,
+    Step, StepStatus, Session, SessionStatus, new_id,
+)
+from llm.engines.base import EngineEvent, EngineEventType
+from llm.services.history.conversation import ConversationStore
+from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
+from llm.services.runtime.runs import RunRepository
+from llm.services.lifecycle.steps import StepEventRecorder, StepManager
+from llm.services.infrastructure.storage import atomic_json, read_json
+from llm.services.lifecycle.sessions import SessionManager
+
+
+class PersistenceTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.sessions = SessionManager()
+        self.projects = ProjectManager(ProjectRepository(self.root / "projects"), self.sessions)
+        self.project = self.projects.create("Project", config=ProjectConfig(completion={'model': "fake-model"}))
+        self.session = self.sessions.create(self.project, "Session")
+        self.store = ConversationStore(self.session.paths.conversation)
+
+    def test_domain_and_config_round_trip(self) -> None:
+        self.assertEqual(self.projects.load(self.project.id), self.project)
+        self.assertEqual(self.sessions.load(self.project, self.session.id), self.session)
+        self.assertEqual(self.sessions.list(self.project), [self.session])
+        self.assertEqual(self.projects.list(), [self.project])
+        for model in (Project, Session, Message, Run, Step):
+            names = {item.name for item in fields(model)}
+            self.assertTrue(names.isdisjoint({"queue", "worker", "execution", "lock"}))
+            self.assertIn("__slots__", model.__dict__)
+        self.assertEqual(ProjectConfig(custom_option=True)["custom_option"], True)
+
+    def test_conversation_replays_all_event_types_and_appends_deltas(self) -> None:
+        user = self.store.create(MessageRole.USER, "안녕하세요", MessageStatus.QUEUED)
+        run_id = new_id()
+        self.store.bind_run(user.id, run_id)
+        self.store.set_status(user.id, MessageStatus.COMMITTED)
+        self.store.update_metadata(user.id, {"engine": "fake"})
+        assistant = self.store.create(MessageRole.ASSISTANT, "", MessageStatus.STREAMING,
+                                      run_id=run_id)
+        prefix = self.store.path.read_bytes()
+        self.store.delta(assistant.id, "Hello")
+        self.store.delta(assistant.id, " 🌍")
+        self.store.set_status(assistant.id, MessageStatus.COMPLETED)
+        self.assertTrue(self.store.path.read_bytes().startswith(prefix))
+        loaded = ConversationStore(self.store.path).list()
+        self.assertEqual(loaded[0].content, "안녕하세요")
+        self.assertEqual(loaded[0].run_id, run_id)
+        self.assertEqual(loaded[0].metadata, {"engine": "fake"})
+        self.assertEqual(loaded[0].status, MessageStatus.COMMITTED)
+        self.assertEqual(loaded[1].content, "Hello 🌍")
+        self.assertEqual(loaded[1].status, MessageStatus.COMPLETED)
+        with self.assertRaises(ValueError):
+            self.store.delta(assistant.id, "late")
+
+    def test_incomplete_tail_survives_read_and_is_repaired_before_append(self) -> None:
+        first = self.store.create(MessageRole.USER, "one", MessageStatus.QUEUED)
+        prefix = self.store.path.read_bytes()
+        with self.store.path.open("ab") as stream:
+            stream.write(b'{"type":"message.create","message":"\xe2\x82')
+        self.assertEqual(self.store.list(), [first])
+        self.store.create(MessageRole.USER, "two", MessageStatus.QUEUED)
+        self.assertEqual([message.content for message in self.store.list()], ["one", "two"])
+        self.assertTrue(self.store.path.read_bytes().startswith(prefix))
+        for line in self.store.path.read_bytes().splitlines():
+            json.loads(line)
+
+    def test_corrupt_complete_event_is_not_silently_discarded(self) -> None:
+        self.store.path.write_bytes(b'not-json\n')
+        with self.assertRaises(json.JSONDecodeError):
+            self.store.list()
+
+    def test_invalid_metadata_does_not_replace_valid_json(self) -> None:
+        path = self.root / "metadata.json"
+        atomic_json(path, {"valid": True})
+        with self.assertRaises(TypeError):
+            atomic_json(path, {"invalid": object()})
+        self.assertEqual(read_json(path), {"valid": True})
+
+    def test_ids_cannot_escape_owned_roots(self) -> None:
+        with self.assertRaises(ValueError):
+            self.projects.load("../outside")
+        with self.assertRaises(ValueError):
+            self.sessions.load(self.project, "../outside")
+
+    def test_soft_delete_restore_preserves_history(self) -> None:
+        user = self.store.create(MessageRole.USER, "queued", MessageStatus.QUEUED)
+        self.sessions.delete(self.session)
+        self.assertEqual(self.sessions.list(self.project), [])
+        self.assertEqual(len(self.sessions.list(self.project, include_deleted=True)), 1)
+        self.sessions.restore(self.session)
+        self.assertEqual(self.store.get(user.id).status, MessageStatus.QUEUED)
+        self.projects.delete(self.project)
+        self.assertEqual(self.projects.list(), [])
+        with self.assertRaises(ValueError):
+            self.sessions.create(self.project, "Rejected")
+        self.projects.restore(self.project)
+        self.assertEqual(len(self.projects.list()), 1)
+
+    def test_clone_copies_configuration_and_history_without_replaying_queue(self) -> None:
+        run_id = new_id()
+        user = self.store.create(MessageRole.USER, "done", MessageStatus.COMMITTED, run_id=run_id)
+        self.store.create(MessageRole.ASSISTANT, "answer", MessageStatus.COMPLETED, run_id=run_id)
+        self.store.create(MessageRole.USER, "queued", MessageStatus.QUEUED)
+        cloned_project = self.projects.clone(self.project, title="Copy")
+        cloned_session = self.sessions.list(cloned_project)[0]
+        messages = ConversationStore(cloned_session.paths.conversation).list()
+        self.assertNotEqual(cloned_session.id, self.session.id)
+        self.assertEqual(cloned_session.project_id, cloned_project.id)
+        self.assertIsNone(cloned_session.current_run_id)
+        self.assertEqual(cloned_session.status, SessionStatus.IDLE)
+        self.assertEqual(RunRepository().list(cloned_session), [])
+        self.assertEqual([message.content for message in messages], ["done", "answer", "queued"])
+        self.assertNotEqual(messages[0].id, user.id)
+        self.assertTrue(all(message.run_id is None for message in messages))
+        self.assertEqual(messages[-1].status, MessageStatus.CANCELLED)
+        cloned_project.config.completion["model"] = "different"
+        self.assertEqual(self.projects.load(self.project.id).config.completion["model"], "fake-model")
+        self.assertEqual(self.store.list()[-1].status, MessageStatus.QUEUED)
+
+    def test_active_session_lifecycle_changes_rejected_using_persisted_state(self) -> None:
+        stale_handle = self.sessions.load(self.project, self.session.id)
+        self.session.status = SessionStatus.RUNNING
+        self.session.current_run_id = new_id()
+        self.sessions.repository.save(self.session)
+        with self.assertRaises(ValueError):
+            self.sessions.delete(stale_handle)
+        with self.assertRaises(ValueError):
+            self.sessions.clone(stale_handle, self.project)
+        with self.assertRaises(ValueError):
+            self.projects.clone(self.project)
+        with self.assertRaises(ValueError):
+            self.projects.delete(self.project)
+
+    def test_step_events_and_recovery(self) -> None:
+        runs = RunRepository()
+        run_id = new_id()
+        run = Run(run_id, self.session.id, new_id(), new_id(), "fake", runs.paths(self.session, run_id))
+        runs.save(run)
+        self.assertEqual(runs.load(self.session, run.id).status, RunStatus.PENDING)
+        manager = StepManager()
+        recorder = StepEventRecorder(manager)
+        for event_type, expected in (
+            (EngineEventType.STEP_COMPLETED, StepStatus.COMPLETED),
+            (EngineEventType.STEP_FAILED, StepStatus.FAILED),
+            (EngineEventType.STEP_INTERRUPTED, StepStatus.INTERRUPTED),
+            (EngineEventType.STEP_CANCELLED, StepStatus.CANCELLED),
+        ):
+            step_id = new_id()
+            recorder.record(run, EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id))
+            recorder.record(run, EngineEvent(event_type, step_id=step_id))
+            self.assertEqual(manager.load(run, step_id).status, expected)
+            with self.assertRaises(ValueError):
+                recorder.record(run, EngineEvent(event_type, step_id=step_id))
+        pending = manager.create(run, "tool", "pending")
+        running = manager.create(run, "llm", "running")
+        manager.start(running)
+        manager.recover(run)
+        manager.recover(run)
+        self.assertEqual(manager.load(run, pending.id).status, StepStatus.INTERRUPTED)
+        self.assertEqual(manager.load(run, running.id).status, StepStatus.INTERRUPTED)
+        self.assertEqual(len(manager.list(run)), 6)

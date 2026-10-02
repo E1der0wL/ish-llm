@@ -3,7 +3,7 @@
 from copy import deepcopy
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.plans import RecoveryPlan, RecoveryResult
-from llm.core.models import MessageRole, MessageStatus, RunStatus, StepStatus, SessionStatus, now, new_id
+from llm.core.models import MessageRole, MessageStatus, RunStatus, StepStatus, SessionStatus, now, new_id, validate_run_transition
 from llm.services.infrastructure.storage import atomic_json, record, revision_token, reject_links
 from llm.services.infrastructure.logging import log_event
 from llm.services.lifecycle.steps import StepManager
@@ -16,8 +16,11 @@ def recover_session(sessions, repository, steps, session, store):
     recovered = []
     messages = {message.id: message for message in store.list()}
     for run in repository.list(session):
+        stale = run.status in (RunStatus.PENDING, RunStatus.RUNNING)
+        if stale:
+            validate_run_transition(run.status, RunStatus.INTERRUPTED, reason="recovery")
         steps.recover(run)
-        if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
+        if stale:
             if sessions._owner(session).conversation_storage == "file" and run.assistant_message_id in messages:
                 repository.reconcile_output(run, store)
             run.status, run.error_code, run.ended_at = RunStatus.INTERRUPTED, "process_restart", now()

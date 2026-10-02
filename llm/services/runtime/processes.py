@@ -10,7 +10,7 @@ import sys
 from typing import Any, Mapping, Optional, Sequence, TYPE_CHECKING, Union
 
 from llm._platform import require_linux
-from llm.compat import timeout
+from asyncio import timeout
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.services.runtime.policies import ExecutionLimitError, positive_seconds

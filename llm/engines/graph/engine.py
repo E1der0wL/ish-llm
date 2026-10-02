@@ -12,14 +12,13 @@ import math
 import operator
 from copy import copy, deepcopy
 from llm.core.configuration import engine_configuration
-from llm.compat import aclosing
+from contextlib import AsyncExitStack, aclosing
 from llm.core.interactions import InteractionRequest, approval_request
-from contextlib import AsyncExitStack
 from contextvars import ContextVar
-from dataclasses import replace
-from typing import Annotated, Awaitable, Callable, Mapping, Optional, TYPE_CHECKING, TypedDict
+from dataclasses import dataclass, field, replace
+from typing import Annotated, Awaitable, Callable, Literal, Mapping, Optional, TYPE_CHECKING, TypedDict
 
-from llm.compat import dataclass, timeout
+from asyncio import timeout
 from llm.components.base import Component
 from llm.components.workflows.graph import validate_graph
 from llm.components.workflows.bindings import bind, read_pointer, validate_value
@@ -70,6 +69,53 @@ def matches(condition: dict, state: dict) -> bool:
     return {"lt": operator.lt, "le": operator.le, "gt": operator.gt, "ge": operator.ge}[op](value, other)
 
 
+# 실행 판단은 JSON만 읽는다. 이벤트·체크포인트 쓰기와 처리기 호출은 아래 런타임이 담당한다.
+def _branch_port(definition: dict, state: dict) -> str:
+    """선언 순서대로 첫 일치 port를 고른다. 입력 상태와 정의는 변경하지 않는다."""
+    return next((case["port"] for case in definition["cases"]
+                 if matches(case["when"], state)), definition["default"])
+
+
+def _loop_continues(definition: dict, state: dict, count: int) -> bool:
+    """다음 반복 여부만 판단한다. 고정 반복과 조건부 반복의 상한 계약을 구분한다."""
+    condition = definition.get("while")
+    proceed = condition is None or matches(condition, state)
+    if proceed and count < definition["max_iterations"]:
+        return True
+    if proceed and condition is not None and definition["on_limit"] == "fail":
+        raise GraphExecutionError("Loop iteration limit reached")
+    return False
+
+
+@dataclass(frozen=True, slots=True)
+class _NodePlan:
+    """한 노드의 다음 동작과 독립된 decision 사본. 저장 모델이나 승인 증명이 아니다."""
+
+    action: Literal["reuse", "pause", "execute"]
+    decision: dict = field(default_factory=dict)
+
+
+def _plan_node(definition: dict, state: dict, *, saved: Optional[dict],
+               resuming: bool, decisions: dict, key: str) -> _NodePlan:
+    """완료 재사용·사전 대기·실행을 판단한다. 상태/기록을 쓰거나 승인을 생성하지 않는다.
+
+    binding, retry_nodes, Interaction 검증은 기존 resume 진입 경계가 소유한다.
+    계획은 즉시 소비하며 완료 결과·검토 입력의 원본은 기존 체크포인트에 남는다.
+    """
+    if saved and saved.get("container") and saved["input_state"] != state:
+        raise GraphExecutionError("Checkpoint container input changed; start a new request")
+    if saved and saved["status"] == "completed":
+        if saved["input_state"] != state:
+            raise GraphExecutionError("Checkpoint node input does not match restored state")
+        return _NodePlan("reuse")
+    if definition.get("pause_before", False) and not (resuming and saved):
+        return _NodePlan("pause")
+    decision = decisions.get(key, (saved or {}).get("decision", {}))
+    if decision.get("approved") is False:
+        raise GraphExecutionError("Workflow continuation rejected by user")
+    return _NodePlan("execute", deepcopy(decision))
+
+
 @dataclass(frozen=True, slots=True)
 class GraphNodeContext:
     """state는 전체 상태 복사본, inputs는 명시적으로 선택된 입력이다.
@@ -88,6 +134,7 @@ class GraphNodeContext:
     invoke_graph: Optional[Callable] = None
     checkpoint_key: Optional[str] = None
     record_usage: Optional[Callable] = None
+    # 이 노드의 확인 응답이며 Tool 실행 허가는 아니다. Tool은 context.execute_tool을 사용한다.
     decision: Optional[bool] = None
 
 
@@ -99,14 +146,13 @@ class _Frame(TypedDict):
 
 
 def _propagate_cancellation(error: Exception) -> None:
-    """새 LangGraph의 노드 자발적 취소 오류를 기존 Engine 중단 계약으로 돌린다.
+    """LangGraph의 노드 자발적 취소 오류를 Engine 중단 계약으로 돌린다.
 
-    Python 3.9용 LangGraph 0.6에서는 이 타입 없이 CancelledError가 전파된다.
     오류 문자열을 비교하거나 일반 노드 오류를 취소로 바꾸지 않는다.
     """
-    from langgraph import errors as graph_errors
+    from langgraph.errors import NodeCancelledError
 
-    if isinstance(error, getattr(graph_errors, "NodeCancelledError", ())):
+    if isinstance(error, NodeCancelledError):
         raise asyncio.CancelledError() from error
 
 
@@ -274,13 +320,7 @@ class _WorkflowRuntime:
         builder = StateGraph(_LoopFrame)
 
         def route(frame):
-            condition = node.get("while")
-            proceed = condition is None or matches(condition, frame["data"])
-            if proceed and frame["count"] < node["max_iterations"]:
-                return "body"
-            if proceed and condition is not None and node["on_limit"] == "fail":
-                raise GraphExecutionError("Loop iteration limit reached")
-            return END
+            return "body" if _loop_continues(node, frame["data"], frame["count"]) else END
 
         async def advance(frame):
             count = frame["count"] + 1
@@ -360,8 +400,7 @@ class _WorkflowRuntime:
         key = json.dumps(scope, ensure_ascii=False, separators=(",", ":"))
         detail, port = {}, ""
         if kind == "branch":
-            port = next((case["port"] for case in definition["cases"]
-                         if matches(case["when"], state)), definition["default"])
+            port = _branch_port(definition, state)
             detail["port"] = port
         elif kind == "parallel":
             result = await child.ainvoke({"data": state, "path": path, "branches": {}, "scope": scope}, self.config)
@@ -439,11 +478,9 @@ class _WorkflowRuntime:
                     "source_run_id": context.run.id, "input_state": deepcopy(state),
                     "container": kind == "workflow" or (resumable and
                         getattr(self.handlers.get(kind), "resumable_container", False) is True)}
-            if saved and saved.get("container") and saved["input_state"] != state:
-                raise GraphExecutionError("Checkpoint container input changed; start a new request")
-            if saved and saved["status"] == "completed":
-                if saved["input_state"] != state:
-                    raise GraphExecutionError("Checkpoint node input does not match restored state")
+            plan = _plan_node(definition, state, saved=saved, resuming=self.resuming,
+                              decisions=context.run.metadata.get("resume", {}).get("decisions", {}), key=key)
+            if plan.action == "reuse":
                 await self.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id,
                     kind="graph_node", name=name, metadata={**info, "checkpoint_key": key,
                         "reused_from_run": saved["source_run_id"], "reused_step_id": saved["step_id"]}))
@@ -451,7 +488,7 @@ class _WorkflowRuntime:
                     EngineOutput(data=saved["output"], visibility="internal"), metadata={"reused": True}))
                 return {"data": deepcopy(saved["output"]), "path": frame["path"],
                         "port": saved["port"], "scope": frame["scope"]}
-            if definition.get("pause_before", False) and not (self.resuming and saved):
+            if plan.action == "pause":
                 request = approval_request("Workflow 노드 실행 확인",
                     source={"project_id": context.project.id, "session_id": context.session.id,
                             "run_id": context.run.id, "node_id": name, "path": path},
@@ -461,10 +498,7 @@ class _WorkflowRuntime:
                 await self._record(key, {**info, "status": "waiting", "resume_schema": definition.get("resume_schema"),
                                         "interaction": request.to_dict()})
                 raise _GraphPause(key)
-            decision = context.run.metadata.get("resume", {}).get("decisions", {}).get(key,
-                (saved or {}).get("decision", {}))
-            if decision.get("approved") is False:
-                raise GraphExecutionError("Workflow continuation rejected by user")
+            decision = plan.decision
             state.update(deepcopy(decision.get("state", {})))
             info["decision"] = deepcopy(decision)
             # started를 먼저 fsync한다. 완료 저장 전 종료되면 재실행 승인이 필요한 노드다.
@@ -764,6 +798,8 @@ class GraphEngine:
                 if not isinstance(schema, dict) or schema.get("additionalProperties") is not False:
                     raise ValueError("State edits require an explicit closed resume_schema")
                 validate_value({"resume_schema": schema}, "resume", decision["state"])
+            if "interaction" in saved:
+                InteractionRequest.from_dict(saved["interaction"]).select_decision(decision, confirm_empty=True)
         for key, saved in records.items():
             if saved.get("approval_required") and "approved" not in decisions.get(key, {}):
                 raise ValueError(f"Tool approval decision required: {key}")
