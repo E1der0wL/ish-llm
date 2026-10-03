@@ -24,6 +24,7 @@ from llm.components.workflows.graph import validate_graph
 from llm.components.workflows.bindings import bind, read_pointer, validate_value
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
+from llm.core.steering import SteeringMode, SteeringRoute
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType, required_capabilities
 
 
@@ -136,6 +137,7 @@ class GraphNodeContext:
     record_usage: Optional[Callable] = None
     # 이 노드의 확인 응답이며 Tool 실행 허가는 아니다. Tool은 context.execute_tool을 사용한다.
     decision: Optional[bool] = None
+    node_path: Optional[str] = None
 
 
 class _Frame(TypedDict):
@@ -184,7 +186,7 @@ class _WorkflowRuntime:
     """LangGraph 실행 + 노드 결과 체크포인트. 완료 결과만 복원하고 부작용은 재생하지 않는다."""
 
     def __init__(self, engine: "GraphEngine", context: EngineContext,
-                 emit: Callable[[EngineEvent], Awaitable[None]], *, parent=None) -> None:
+                 emit: Callable[[EngineEvent], Awaitable[None]], *, parent=None, routes=()) -> None:
         self.engine = engine
         self.parents = (*parent.parents, parent) if parent is not None else ()
         self.handlers = dict(engine.handlers)
@@ -198,6 +200,8 @@ class _WorkflowRuntime:
         self.records = parent.records if parent is not None else (
             deepcopy(context.checkpoint["records"]) if context.checkpoint else {})
         self.resuming = context.checkpoint is not None
+        self.routes = parent.routes if parent is not None else {r.key: r for r in routes}
+        self.root_workflow = parent.root_workflow if parent is not None else engine.workflow
 
     async def _record(self, key, value):
         interaction = InteractionRequest.from_dict(value["interaction"]) if "interaction" in value else None
@@ -447,7 +451,7 @@ class _WorkflowRuntime:
                     result = await self._call(self.handlers[kind], GraphNodeContext(
                         context, info["node_id"], deepcopy(definition), deepcopy(state), node_emit,
                         deepcopy(inputs), invoke_graph if nested is not None else None, key,
-                        record_usage if info["container"] else None, info["decision"].get("approved")))
+                        record_usage if info["container"] else None, info["decision"].get("approved"), path))
             Component.serialize(result)
             validate_value(definition, "output", result)
             updates = bind(definition["outputs"], result) if "outputs" in definition else deepcopy(result)
@@ -502,6 +506,14 @@ class _WorkflowRuntime:
             state.update(deepcopy(decision.get("state", {})))
             info["decision"] = deepcopy(decision)
             # started를 먼저 fsync한다. 완료 저장 전 종료되면 재실행 승인이 필요한 노드다.
+            # 예약 경계는 Agent/MCP/모델 실행보다 앞선다. 정수 반복 번호만 제거하고
+            # 호출 위치와 병렬 분기 경로는 보존하므로 같은 이름의 다른 노드와 혼동하지 않는다.
+            route_key = json.dumps([self.root_workflow, *(v for v in scope if isinstance(v, str))],
+                                   ensure_ascii=False, separators=(",", ":"))
+            if context.steering is not None and route_key in self.routes:
+                async with aclosing(BaseEngine.bind_instruction_route(context, self.routes[route_key], key)) as events:
+                    async for event in events:
+                        await self.emit(event)
             await self._record(key, {**info, "status": "started",
                 "requires_retry": kind not in {"branch", "parallel", "join", "loop", "end"} and not info["container"]})
             await self.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="graph_node",
@@ -742,8 +754,50 @@ class GraphEngine:
                             raise TypeError("Handler validate must be synchronous")
         return prepared[0][1], prepared
 
+    def _instruction_routes(self, context, graph):
+        """컴파일과 같은 구조 경로를 열거한다. 실행/반복 번호·표시 path는 예약 ID가 아니다.
+
+        실행 스냅샷만 읽으며 조건 분기의 실제 선택은 예측하지 않는다. 방문하지 않은
+        분기 예약은 Run 종료 시 unapplied로 남는다.
+        """
+        routes = []
+        def region(engine, document, current, prefix, entry=None, stop=None):
+            pending, seen = [document["entry"] if entry is None else entry], set()
+            outgoing = {name: [] for name in document["nodes"]}
+            for edge in document["edges"]:
+                outgoing[edge["source"]].append(edge["target"])
+            while pending:
+                name = pending.pop()
+                if name == stop or name in seen:
+                    continue
+                seen.add(name)
+                node = document["nodes"][name]
+                kind = node["type"]
+                handler = engine.handlers.get(kind)
+                describe = getattr(handler, "instruction_engine", None)
+                consumer = describe(node, current) if describe is not None else None
+                if consumer is not None:
+                    routes.append(SteeringRoute(tuple(prefix), name, consumer))
+                nested = engine._nested_engine(node, current.capabilities)
+                if nested is not None:
+                    prepare = getattr(handler, "graph_context", None)
+                    child_context = prepare(node, current) if prepare is not None else current
+                    region(nested, nested._definition(child_context.capabilities), child_context,
+                           [*prefix, name, "workflow", nested.workflow])
+                if kind == "loop":
+                    region(engine, node["body"], current, [*prefix, name])
+                if kind == "parallel":
+                    for start in outgoing[name]:
+                        region(engine, document, current, [*prefix, name, "branch", start], start, node["join"])
+                    pending.append(node["join"])
+                else:
+                    pending.extend(outgoing[name])
+        region(self, graph, context, [self.workflow])
+        return routes
+
     # 공개 API
     checkpoint_name = "graph"
+    steering_mode = SteeringMode.FORWARD
 
     def for_agent(self, definition: dict):
         """Agent가 지정한 Workflow를 부모 Graph 실행 범위에 연결한다."""
@@ -829,6 +883,7 @@ class GraphEngine:
 
     async def _execute(self, context: EngineContext):
         graph, prepared = self._prepare(context)
+        routes = self._instruction_routes(context, graph) if context.steering is not None else ()
         binding = self._binding(context, graph, prepared)
         if context.checkpoint is not None:
             self.validate_resume(context.checkpoint, retry_nodes=context.run.metadata["resume"]["retry_nodes"],
@@ -861,6 +916,9 @@ class GraphEngine:
             if context.checkpoint is None:
                 await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": "graph",
                     "operation": "initialize", "header": header, "records": {}}))
+            async with aclosing(BaseEngine.declare_instruction_routes(context, routes)) as events:
+                async for event in events:
+                    await emit(event)
             root_id = new_id()
             await emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=root_id,
                                   kind="graph", name=self.workflow,
@@ -868,7 +926,7 @@ class GraphEngine:
             try:
                 async with timeout(self.timeout_seconds):
                     state = deepcopy(header["initial_state"])
-                    runtime = _WorkflowRuntime(self, context, emit)
+                    runtime = _WorkflowRuntime(self, context, emit, routes=routes)
                     state = await runtime.run(graph, state, self.workflow)
                     output = bind(graph["outputs"], state) if "outputs" in graph else deepcopy(state)
                     validate_value(graph, "output", output)

@@ -48,7 +48,7 @@ decision_for/select_decision과 same_interaction_value를 공유한다. 서비�
 알리지 않으며 저장 transaction 문맥을 이벤트 루프로 넘기지 않는다. Engine/Run 알림은
 기존 저장 경계를 유지하고, UI가 놓친 알림은 도메인 조회/출력 저널로 복원한다.
 
-EventContext.update_metadata는 policies/completions/resume/checkpoints/output을
+EventContext.update_metadata는 policies/completions/resume/checkpoints/output/steering을
 서비스 소유 필드로 보호한다. Run 정책은 시작 시점 사본이며 사용자 이벤트가 덮어쓰지
 않는다. 정상 메타데이터 쓰기도 StorageIO의 도메인 객체 watch에 참여하여 저장 실패 시
 파일과 메모리가 함께 복원된다. Project 설정 API와 기존 저장 형식은 유지한다.
@@ -57,6 +57,48 @@ EventSubscriptions는 구독 해제 시 대기 알림을 비우고 진행 중인
 참조를 회수한다. Subscription.aclose로 완료를 기다릴 수 있다. 종료 구독의 숫자 합계만
 남기며 관측 계층에 별도 실행 상태를 만들지 않는다. 새 timeout/강제 취소 정책을 추가하지
 않는다. 자세한 계약은 [서비스 확장](service-extensions.md)에 있다.
+
+## 실행 중 Engine 추가 지시
+
+`session.run.steer(run_id, content)`는 단독 Loop의 같은 RUNNING Run에 user 지시를 추가한다.
+Graph는 `run.ainstruction_targets()`에서 사용자가 선택한 소비자 ID를 `targets=[...]`로 지정한다.
+RunStatus와 영속 소유 계층은 바꾸지 않는다. 일반 submit은 여전히 별도 요청/다음 Run이다.
+ConversationStore의 Message.metadata.steering이 본문·대상·처리 이력을 소유하고
+Run.metadata.steering은 서비스가 실행 대상 등록과 접수 마감을 관리한다. pending/applied/unapplied/partially_applied는
+지시의 상태이며 Run의 상태가 아니다. 선택/적용/종료 쓰기는 기존 StorageIO 트랜잭션에
+참여하고, 내부 STEERING 이벤트 ACK 뒤 EngineContext의 임시 전달함을 갱신한다.
+
+Loop는 현재 completion과 Tool 묶음을 끝내고 다음 반복 시작 시 지시를 선택한다.
+Tool 없는 응답에서도 접수된 지시가 있으면 기존 제한 안에서 반복한다. 최종 응답 전
+접수 마감과 새 지시 저장을 같은 직렬화 경계에서 판정하여 종료 경쟁을 처리한다.
+프로세서와 문맥 예산 검증 후 입력 적용을 저장하고 STEERING_CHANGED를 알린다.
+applied는 입력 준비 확정이며 provider 수신/모델 이행 증명이 아니다.
+
+BaseEngine은 open/select/apply/close helper와 저장 ACK 계약을 제공한다. 소비/전달/미지원은
+SteeringMode로 선언하며 상속만으로 자동 지원하지 않는다. 서비스는 엔진이 지정한 안정적인
+경계 키를 사용하고 Loop 반복 번호/Graph 스케줄링은 해석하지 않는다. Graph AgentNode는
+호출별 전달함을 만들고 기존 EngineCheckpointScope로 입력 이벤트도 부모 저장 경계에 연결한다.
+노드 경로·반복 scope와 이번 실행 ID를 구분한다. 선택한 여러 대상은 각자 안전한 시점에
+반영하며 종료·미지원 대상으로 대신 전달하지 않는다. 미시작 Agent에는 별도
+reserve_instruction API를 사용한다. SteeringRoute는 실행 스냅샷의 구조 경로와 노드 ID이며,
+Graph가 예약 가능한 소비자만 선언하고 노드 시작 경계에서 실제 scope에 결합한다.
+RunManager가 경로·결합을 저장하고 접수와 직렬화하며, Engine은 저장 ACK 후 작업한다.
+한 예약은 경로별 다음 실행 하나에만 전달된다. 분기로 실행되지 않으면 unapplied로 끝난다.
+미사용 예약은 명시적 재개에 이전하지 않으며 선택만 된 미적용 ID도 새 체크포인트 사본에서
+제외한다. 적용한 예약은 기존 문맥만 복원하고 영수증을 추가하거나 원본 Run을 변경하지 않는다.
+지속 변경은 중단·Workflow 수정 후 새 submit으로 처음부터 실행한다.
+AgentNode는 for_agent가 반환한 소비자의 checkpoint_name/validate_resume 계약을 사전 탐색에서
+검사한다. 지시 데이터의 읽기·복구 경계는 현재 대상/상태/참조 형식을 검증하고 복구 상태 변경은
+전체 검증 뒤에만 수행한다. invalid_instruction_data는 원본을 변환하지 않는 명시적 거부이며
+형식이 맞지 않는 Session의 대기 요청을 자동 우회하지 않는다.
+
+Loop의 반복별 steering:<iteration> 체크포인트에는 메시지 ID와 대상 scope만 기록한다. 완료 응답/Tool은
+기존처럼 재사용하고 선택된 입력을 원래 위치에 복원한다. 미선택 지시는 실패/중단/
+승인 대기/재시작 시 사유를 남기며 자동 재실행하지 않는다. 재개는 여전히 새 Run이고
+memory 저장의 restart 한계도 같다. 재개 가능한 지시 참조는 보관 정책에서 보호한다.
+문맥·Memory 요약·CompletionPolicy는 해당 실행의 원래 입력과 추가 지시를 같은 턴으로 취급한다.
+노드 대상 지시는 다른 노드나 후속 일반 대화에 자동 삽입하지 않는다. Pipeline 단계 라우팅은
+미지원이다. [공통 계약·UI·custom Engine](steering.md), [Loop 반영](../../llm/engines/loop/README.md)을 따른다.
 
 ## RAG 추출 정책과 프롬프트
 

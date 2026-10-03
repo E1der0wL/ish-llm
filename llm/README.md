@@ -169,6 +169,8 @@ run = await request.wait()
 | Session 생성·조회·목록 | `project.sessions.acreate(...)`, `aload(id)`, `alist()` |
 | Session 수정·복제·삭제 | `session.asave(...)`, `aclone(...)`, `adelete()` |
 | 요청·대기·중단 | `session.run.submit(..., engine=...)`, `wait_idle()`, `interrupt()` |
+| 실행 중인 Engine에 추가 지시 | `session.run.steer(run_id, text, targets=...)`, `run.ainstructions()`, `run.ainstruction_targets()` |
+| 미시작 Agent 실행에 한 번 예약 | `run.ainstruction_routes()`, `session.run.reserve_instruction(run_id, text, targets=selected_routes)` |
 | Run 조회·결과·Step | `session.run.aload(id)`, `run.aresult()`, `run.steps.alist()` |
 | 대화 조회 | `session.aconversation()` |
 | Component 핸들 획득 | `await project.components.aget("prompts")` |
@@ -179,7 +181,27 @@ run = await request.wait()
 
 Project/Session의 `adelete()`는 기본적으로 소프트 삭제이며 `arestore()`로 복원합니다. 영구 삭제는 `permanent=True`를 명시합니다. Component 레코드 삭제는 해당 레코드를 제거합니다.
 
-동기 API도 있지만 비동기 UI에서는 `a` 접두사의 I/O API를 사용하세요. `submit`, `wait`, `interrupt`, `shutdown`은 원래 비동기입니다. `project.data` 같은 동기 조회보다 `await project.aget_data()`가 적합합니다.
+동기 API도 있지만 비동기 UI에서는 `a` 접두사의 I/O API를 사용하세요. `submit`, `steer`, `wait`, `interrupt`, `shutdown`은 원래 비동기입니다. `project.data` 같은 동기 조회보다 `await project.aget_data()`가 적합합니다.
+
+### 실행을 유지하면서 지시 추가하기
+
+UI가 Run 시작 알림에서 받은 `active_run_id`로 호출합니다. 단독 LoopEngine은 다음처럼 사용합니다.
+
+```python
+instruction = await session.run.steer(active_run_id, "결과를 한국어 표로 정리해줘.")
+run = await session.run.aload(active_run_id)
+instructions = await run.ainstructions()
+```
+
+같은 Run의 다음 completion 입력에 추가하며 `RUNNING` 상태를 유지합니다. 진행 중인 completion이나 Tool은 중단하지 않고, 현재 Tool 묶음이 끝난 뒤 반영합니다. 일반 `submit()`은 계속 다음 Run의 대기 요청입니다.
+
+Graph는 `await run.ainstruction_targets()`의 실행 목록을 UI에 표시하고, 사용자가 선택한 소비자 ID를 `targets=[...]`로 전달합니다. 병렬·중첩·반복 노드의 실행은 각각 구분합니다. 시작 전 노드는 별도 예약 API로 지정하며 종료/미지원 대상에 대신 보내거나 자동 방송하지 않습니다.
+
+미시작 Agent에는 `await run.ainstruction_routes()`에서 조회한 `SteeringRoute`를 선택해 `await session.run.reserve_instruction(run.id, text, targets=selected_routes)`로 예약합니다. 접수 이후 경로별 다음 실행 한 번에만 적용하고, 실행되지 않으면 `unapplied`와 사유를 남깁니다. 미사용 예약은 재개에 자동 이전하지 않으며, 적용한 예약은 기존 문맥만 복원합니다. 지속 변경은 중단 후 Workflow를 수정하고 새 요청으로 처음부터 실행합니다.
+
+추가 지시는 `pending`, `applied`, `unapplied`, `partially_applied`로 조회합니다. 대상별 결과는 `instruction.targets`에 있습니다. `applied`는 입력 준비에 포함했다는 뜻으로 모델의 이행이나 요청 성공을 보장하지 않습니다. UI는 `STEERING_CHANGED`를 받고, 알림을 놓쳤으면 `ainstructions()`, `ainstruction_targets()`, `ainstruction_routes()`로 다시 읽습니다. 접수가 마감된 대상은 `RunRequestError(code="steering_unavailable")`로 거절하며 다른 실행으로 자동 전송하지 않습니다.
+
+기존 반복·토큰·시간 제한은 유지됩니다. 이미 시작한 Tool을 즉시 멈춰야 한다면 `interrupt()`를 사용하세요. Pipeline 단계 라우팅은 지원하지 않습니다. [공통 계약과 Graph 대상 선택](../docs/llm/steering.md), [Loop 반영 시점](engines/loop/README.md#실행-중-추가-지시)을 참고하세요.
 
 ### 설정과 UI 연결
 

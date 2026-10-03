@@ -12,6 +12,7 @@ from contextlib import aclosing
 from llm.components.base import Component, validate_name
 from llm.components.processing import CompletionSession
 from llm.core.results import EngineOutput
+from llm.core.steering import is_instruction
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.providers.litellm import completion
 from llm.services.runtime.policies import ExecutionLimitError
@@ -125,6 +126,9 @@ class MemorySession(CompletionSession):
         if len(boundaries) <= keep:
             return
         cut = boundaries[-keep]
+        # 추가 USER 지시를 요약으로 대체하지 않는다. 현재 접두 Tool 교환만 축약한다.
+        if any(m.value.get("role") == "user" for m in tail[:cut]):
+            return
         prefix = [m.value for m in tail[:cut]]
         if sum(len(json.dumps(m, ensure_ascii=False)) for m in prefix) < self.config["summary_after_chars"]:
             return
@@ -253,7 +257,7 @@ class MemorySession(CompletionSession):
         history = history[:current]
         groups = []
         for message in history:
-            if str(message.role) == "user" or not groups:
+            if (str(message.role) == "user" and not is_instruction(message)) or not groups:
                 groups.append([])
             groups[-1].append(message)
         # 중단/실패한 과거 턴도 상태와 함께 요약한다. 한 번의 실패 때문에 이후의
@@ -288,7 +292,7 @@ class MemorySession(CompletionSession):
         # 큰 역사도 보조 모델 한 번에 무제한으로 넣지 않는다. 다음 호출에서 다음 구간을 처리한다.
         batch, groups = [], []
         for message in remaining:
-            if str(message.role) == "user" or not groups:
+            if (str(message.role) == "user" and not is_instruction(message)) or not groups:
                 groups.append([])
             groups[-1].append(message)
         for group in groups:

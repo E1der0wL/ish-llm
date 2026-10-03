@@ -7,6 +7,7 @@ from llm.core.models import MessageRole, MessageStatus, RunStatus, StepStatus, S
 from llm.services.infrastructure.storage import atomic_json, record, revision_token, reject_links
 from llm.services.infrastructure.logging import log_event
 from llm.services.lifecycle.steps import StepManager
+from llm.core.steering import is_instruction, RunInstruction, InstructionDataError
 
 
 def recover_session(sessions, repository, steps, session, store):
@@ -15,12 +16,30 @@ def recover_session(sessions, repository, steps, session, store):
     watch(session)
     recovered = []
     messages = {message.id: message for message in store.list()}
-    for run in repository.list(session):
+    runs = repository.list(session)
+    # 모든 지시를 먼저 읽어 검증한다. 뒤쪽의 손상으로 앞선 Run/Step만 복구되지 않게 한다.
+    from llm.services.runtime.steering import instruction_targets, instruction_records
+    for message in messages.values():
+        if is_instruction(message):
+            RunInstruction.validate_message(message)
+    for run in runs:
+        if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
+            instruction_targets(run)
+        if "steering" in run.metadata and run.status != RunStatus.COMPLETED:
+            for name in run.metadata.get("checkpoints", []):
+                # 여기서는 형식을 검사한다. memory 대화의 정상적인 재시작 소실은
+                # Session 시작을 막지 않으며 메시지 존재 검사는 명시적 재개가 소유한다.
+                list(instruction_records(repository.checkpoint(run, name)))
+    for run in runs:
         stale = run.status in (RunStatus.PENDING, RunStatus.RUNNING)
         if stale:
             validate_run_transition(run.status, RunStatus.INTERRUPTED, reason="recovery")
         steps.recover(run)
         if stale:
+            if "steering" in run.metadata:
+                from llm.services.runtime.steering import finish_instructions, close_targets
+                finish_instructions(store, run.id, "process_restart")
+                close_targets(run, "process_restart")
             if sessions._owner(session).conversation_storage == "file" and run.assistant_message_id in messages:
                 repository.reconcile_output(run, store)
             run.status, run.error_code, run.ended_at = RunStatus.INTERRUPTED, "process_restart", now()
@@ -71,6 +90,9 @@ class ProjectRecovery:
                 reject_links(session.paths.conversation)
                 store = self.manager.sessions.conversations(session)
                 messages = {m.id: m for m in store.list()}
+                for message in messages.values():
+                    if is_instruction(message):
+                        RunInstruction.validate_message(message)
                 runs = self.runs.list(session)
                 identifiers = {r.id for r in runs}
                 signatures.extend(record(m) for m in messages.values())
@@ -80,6 +102,8 @@ class ProjectRecovery:
                 if any(m.run_id and m.run_id not in identifiers for m in messages.values()):
                     issue("missing_run_reference", session=session.id)
                 for run in runs:
+                    from llm.services.runtime.steering import instruction_targets
+                    instruction_targets(run)
                     stale = run.status in (RunStatus.RUNNING, RunStatus.PENDING)
                     if stale:
                         issue("stale_run", session=session.id, run=run.id, repairable=True)
@@ -101,7 +125,11 @@ class ProjectRecovery:
                     for name in run.metadata.get("checkpoints", []):
                         checkpoint = self.runs.checkpoint(run, name)
                         signatures.append(checkpoint)
-                        if run.status != RunStatus.COMPLETED and any(mid not in messages for mid in checkpoint["header"].get("message_ids", [])):
+                        checkpoint_ids = list(checkpoint["header"].get("message_ids", []))
+                        if "steering" in run.metadata:
+                            from llm.services.runtime.steering import instruction_records
+                            checkpoint_ids.extend(mid for _, value in instruction_records(checkpoint) for mid in value["message_ids"])
+                        if run.status != RunStatus.COMPLETED and any(mid not in messages for mid in checkpoint_ids):
                             issue("missing_checkpoint_message", session=session.id, run=run.id)
                     outputs = self.runs.outputs(run)
                     signatures.append([o.to_dict() if hasattr(o, "to_dict") else str(o) for o in outputs])
@@ -110,6 +138,8 @@ class ProjectRecovery:
                     text = final.text if final else "".join(o.text for o in visible)
                     if outputs and assistant is not None and text != assistant.content:
                         issue("output_gap", session=session.id, run=run.id, repairable=True)
+            except InstructionDataError as error:
+                issue(error.code, session=session.id, detail=str(error))
             except (ValueError, OSError, KeyError, TypeError) as error:
                 issue("unreadable_history", session=session.id, detail=str(error))
             found = issues[start:]

@@ -5,6 +5,7 @@ Build conversation context for Runs and clones, independent of storage."""
 from copy import deepcopy
 
 from llm.core.models import Message, MessageRole, MessageStatus
+from llm.core.steering import is_instruction, RunInstruction
 from dataclasses import dataclass
 from typing import Optional
 from collections.abc import Callable
@@ -30,17 +31,24 @@ class CompletionPolicy:
         self.max_tokens, self.reserve_tokens, self.counter = max_tokens, reserve_tokens, counter
 
     def prepare(self, request: dict) -> dict:
+        return self.prepare_turn(request)
+
+    def prepare_turn(self, request: dict, current_index=None, turn_starts=None) -> dict:
         """provider 호출 직전에 사용한다. 반환 요청과 입력 요청은 독립적이다."""
         from llm.providers.parameters import copy_params
         result = copy_params(request)
         messages = result.get("messages", [])
-        latest = next((i for i in range(len(messages) - 1, -1, -1)
-                       if messages[i].get("role") == "user"), 0)
+        latest = (next((i for i in range(len(messages) - 1, -1, -1)
+                        if messages[i].get("role") == "user"), 0) if current_index is None else current_index)
+        if type(latest) is not int or latest < 0 or (messages and latest >= len(messages)):
+            raise ValueError("Invalid current conversation boundary")
         pinned = [item for item in messages[:latest] if item.get("role") in ("system", "developer")]
-        previous = [item for item in messages[:latest] if item.get("role") not in ("system", "developer")]
         groups = []
-        for item in previous:
-            if item.get("role") == "user" or not groups:
+        for index, item in enumerate(messages[:latest]):
+            if item.get("role") in ("system", "developer"):
+                continue
+            start = item.get("role") == "user" if turn_starts is None else index in turn_starts
+            if start or not groups:
                 groups.append([])
             groups[-1].append(item)
 
@@ -109,7 +117,7 @@ class ConversationContextBuilder:
         current, previous = history[-1], history[:-1]
         groups = []
         for message in previous:
-            if message.role == MessageRole.USER or not groups:
+            if (message.role == MessageRole.USER and not is_instruction(message)) or not groups:
                 groups.append([])
             groups[-1].append(message)
         if policy.mode in ("completed", "recent_completed"):
@@ -134,19 +142,34 @@ class ConversationContextBuilder:
 
     def _ordered(self, messages: list[Message]) -> list[Message]:
         inputs = {message.run_id: index for index, message in enumerate(messages)
-                  if message.role == MessageRole.USER and message.run_id}
+                  if message.role == MessageRole.USER and message.run_id and not is_instruction(message)}
+        # 재개된 작업의 지시를 옛 실패 턴에만 남기면 recent 정책이 이를 버린다.
+        # 각 지시는 자기 Run을 실제로 재개한 가장 최근 자손 턴에 연결한다.
+        # 형제 재개 분기의 지시는 섞지 않으며 원본 Message/Run 연결은 수정하지 않는다.
+        continuations = dict(inputs)
+        for run_id in reversed(inputs):
+            parent = messages[inputs[run_id]].metadata.get("resume", {}).get("run_id")
+            if parent in continuations:
+                continuations[parent] = max(continuations[parent], continuations[run_id])
         return [message for _, message in sorted(enumerate(messages), key=lambda item: (
-            inputs.get(item[1].run_id, item[0]),
-            item[1].role == MessageRole.ASSISTANT, item[0],
+            (continuations if is_instruction(item[1]) else inputs).get(item[1].run_id, item[0]),
+            item[1].role == MessageRole.ASSISTANT, is_instruction(item[1]), item[0],
         ))]
 
     # 공개 API
     def for_run(self, messages: list[Message], input_message_id: str, *,
-                policy: Optional[ContextPolicy] = None) -> tuple[Message, ...]:
+                 policy: Optional[ContextPolicy] = None) -> tuple[Message, ...]:
+        for message in messages:
+            if is_instruction(message):
+                RunInstruction.validate_message(message)
         history = []
         committed = {message.run_id for message in messages
                      if message.role == MessageRole.USER and message.status == MessageStatus.COMMITTED}
         for message in self._ordered(messages):
+            # 노드 대상 지시는 그 실행의 체크포인트로만 복원한다. 다른 Agent/후속 Run에
+            # 일반 사용자 지시처럼 흘러가지 않으며 대화 조회에는 원문이 그대로 남는다.
+            if is_instruction(message) and any(t["scope"] is not None for t in message.metadata["steering"].get("targets", [])):
+                continue
             if message.id == input_message_id:
                 history.append(message)
                 return self._select(history, policy)
@@ -160,11 +183,19 @@ class ConversationContextBuilder:
         raise ValueError("Run input message is missing from the conversation")
 
     def for_clone(self, messages: list[Message]) -> list[Message]:
+        for message in messages:
+            if is_instruction(message):
+                RunInstruction.validate_message(message)
         snapshot = deepcopy(self._ordered(messages))
         for message in snapshot:
             message.run_id = None
             if message.status == MessageStatus.QUEUED:
                 message.status = MessageStatus.CANCELLED
+                if is_instruction(message):
+                    message.metadata["steering"].update(status="unapplied", reason="cloned")
+                    for target in message.metadata["steering"].get("targets", []):
+                        if target["status"] == "pending":
+                            target.update(status="unapplied", reason="cloned")
             elif message.status == MessageStatus.STREAMING:
                 message.status = MessageStatus.INTERRUPTED
         return snapshot

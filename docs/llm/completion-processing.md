@@ -51,11 +51,17 @@ RunLimits를 공유하고, 개별 훅의 작업 기한/Step은 구현체가 Base
 | 필드 | 용도 |
 | --- | --- |
 | `parameters` | 공급자에 전달할 열린 설정 dict. messages는 별도 필드 사용 |
-| `messages` | `CompletionMessage(value, source_id)` 목록 |
+| `messages` | `CompletionMessage(value, source_id, continuation)` 목록 |
 | `iteration` | 현재 모델 호출 순번, 1부터 시작 |
 
 `CompletionMessage.value`는 공급자 메시지 dict이며 `source_id`는 원본 Conversation 메시지 ID다.
 추가 Skill/RAG 참고자료는 `source_id=None`으로 만든다. 출처 ID는 공급자 요청에 섞이지 않는다.
+`continuation=True`는 Loop의 실행 중 추가 지시처럼 같은 작업에 속한 user 메시지다.
+SDK에는 이 표시를 보내지 않는다. 과거 턴 선택·요약 시 원래 요청과 함께 유지하거나
+제거하며, 활성 턴에 이미 추가된 지시의 본문·순서·ID는 processor가 변경하지 않는다.
+입력 선택은 prepare 전에, 적용 기록은 prepare와 CompletionPolicy 검증 뒤에 저장한다.
+Tool 없는 응답 뒤에도 새 지시가 있으면 다음 반복으로 이어지므로 after_completion은
+각 응답을 관찰하고 finish는 실제로 Loop를 마칠 마지막 응답에만 실행된다.
 변환마다 원본과 다른 사본을 사용하고, 다음 Loop 반복에서는 원본 transcript로 다시 시작한다.
 따라서 매 반복 참고자료를 추가해도 이전 반복의 변환 내용이 자동 누적되지 않는다.
 

@@ -11,6 +11,7 @@
 | [events.py](events.py) | 이벤트 처리기 등록, EventContext, 동기·queued 구독과 구독 자원 회수입니다. |
 | [checkpoints.py](checkpoints.py) | Engine이 보낸 체크포인트를 검증·저장·조회합니다. |
 | [interactions.py](interactions.py) | 승인·확인 요청과 사용자 응답의 영속 검증·저장입니다. |
+| [steering.py](steering.py) | 추가 지시의 대상 등록·마감, 메시지·중첩 체크포인트 참조, 대상별 반영 기록을 연결합니다. |
 | [tools.py](tools.py) | ToolExecutor와 Tool 실행 범위. 승인, 실행, 재시도, 결과·Step 이벤트를 담당합니다. |
 | [operations.py](operations.py) | Session 범위 Tool operation 원장과 완료 결과 재사용·불확실 효과 조정입니다. |
 | [processes.py](processes.py) | 명시적으로 선택한 ProcessToolRunner와 process/sandbox 실행을 관리합니다. |
@@ -24,7 +25,11 @@
 
 요청은 먼저 ConversationStore에 QUEUED로 저장합니다. `_begin`에서 COMMITTED와 Run 시작을 처리한 뒤 Engine을 소비하고 `_finish`에서 종료합니다. Step·Assistant·Run·Session 기록과 트랜잭션 경계를 거친 **저장 후** Run 수명 알림을 보냅니다.
 
-Run 시작 시 저장한 `metadata.policies`가 해당 Run의 정책 원본입니다. 사용자 이벤트 처리기의 `EventContext.update_metadata()`로 policies/completions/resume/checkpoints/output을 덮어쓸 수 없습니다. 사용자 정의 메타데이터는 별도 키로 저장합니다.
+Run 시작 시 저장한 `metadata.policies`가 해당 Run의 정책 원본입니다. 사용자 이벤트 처리기의 `EventContext.update_metadata()`로 policies/completions/resume/checkpoints/output/steering을 덮어쓸 수 없습니다. 사용자 정의 메타데이터는 별도 키로 저장합니다.
+
+`steer(run_id, text, targets=...)`로 접수한 지시는 일반 요청 대기열과 구분합니다. 메시지 저장·대상별 선택·반영·접수 마감을 기존 StorageIO 트랜잭션에서 처리하며 저장 후 STEERING_CHANGED를 알립니다. 서비스는 Loop 반복 번호나 Graph 실행 순서를 결정하지 않습니다. [공통 전달·재개 계약](../../../docs/llm/steering.md)을 따릅니다.
+
+`reserve_instruction(run_id, text, targets=routes)`는 아직 시작하지 않은 Agent의 다음 실행에 한 번 예약합니다. 예약 접수와 실행 scope 결합은 같은 저장 직렬화 경계를 사용합니다. 미사용 예약은 종료 사유를 기록하고 재개에 이전하지 않으며, 적용한 예약은 원본 영수증 변경 없이 기존 문맥으로 복원합니다.
 
 ## UI 구독
 

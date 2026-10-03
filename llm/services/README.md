@@ -27,7 +27,7 @@ LargeLanguageModel → api.py의 핸들
 
 ## 공개 API를 사용할 때
 
-비동기 UI는 `acreate/aload/asave/alist` 같은 I/O API를 사용합니다. `submit/wait/interrupt/shutdown`은 원래 비동기입니다. Facade는 백엔드에서 구성한 같은 저장소·ConversationStore factory·StorageIO를 실행과 조회에 사용합니다.
+비동기 UI는 `acreate/aload/asave/alist` 같은 I/O API를 사용합니다. `submit/steer/wait/interrupt/shutdown`은 원래 비동기입니다. Facade는 백엔드에서 구성한 같은 저장소·ConversationStore factory·StorageIO를 실행과 조회에 사용합니다.
 
 반환되는 핸들은 실행 서비스를 연결하는 객체이며 JSON으로 저장하는 도메인 모델이 아닙니다. `aget_data()`는 독립된 도메인 스냅샷을 반환하고, 그 객체를 변경해도 저장되지 않습니다. 명시적 저장 API를 사용하세요.
 
@@ -42,6 +42,10 @@ LargeLanguageModel → api.py의 핸들
 | 재시작 복구 | PENDING / RUNNING | INTERRUPTED |
 
 `core.models.validate_run_transition`은 허용 전이만 판단합니다. 시각·저장·Step/Conversation 변경은 서비스가 수행합니다. 종료된 Run을 다시 열지 않으며 명시적 재개는 새로운 Run을 만듭니다. 대기 요청 취소는 Message의 CANCELLED로 처리하고 새 Run을 만들지 않습니다.
+
+`steer(run_id, text, targets=...)`는 같은 RUNNING Run에 입력을 추가하며 Run 상태 전이를 만들지 않습니다. 단독 Loop는 대상 생략이 가능하고 Graph는 `run.ainstruction_targets()`의 소비자 ID를 지정합니다. 대상별 반영 및 전체 pending/applied/unapplied/partially_applied 상태는 `run.ainstructions()`로 조회합니다. [접수·반영·재개 경계](../../docs/llm/steering.md)를 따릅니다.
+
+미시작 Agent에는 `run.ainstruction_routes()`의 경로를 선택해 `session.run.reserve_instruction(run_id, text, targets=routes)`로 예약합니다. 경로별 다음 실행 한 번에만 결합하며 미사용 예약을 명시적 재개에 이전하지 않습니다. 적용한 예약은 기존 문맥만 복원합니다.
 
 RunManager는 종료 상태와 오류의 조합, Session의 current_run_id를 확인합니다. 늦은 종료가 다음 Run의 소유권을 해제하거나 이미 저장된 종료를 덮어쓰지 못하게 합니다. Step 정리 → Assistant 상태 → Run → Session 기록은 기존 트랜잭션 경계를 따르고 저장 성공 후 수명 알림을 전달합니다.
 

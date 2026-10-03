@@ -44,6 +44,10 @@ engines = {"assistant": LoopEngine()}
 
 Graph AgentNode에서도 사용할 Engine은 `for_agent(definition)`이 호출별 Engine을 반환하도록 구현하고 AgentNode의 엔진 맵에 등록합니다. 일반 `execute` 계약만 구현했다고 Agent 설정이 자동 적용되지는 않습니다. 명시적 재개까지 지원하려면 Engine별 체크포인트 생성과 `validate_resume` 검증도 구현해야 합니다. BaseEngine의 Tool helper가 체크포인트를 대신 생성하지는 않습니다.
 
+실행 중 추가 지시는 `steering_mode`로 `UNSUPPORTED` / `CONSUME` / `FORWARD`를 선언합니다. BaseEngine은 `open_instructions`, `select_instructions`, `apply_instructions`, `close_instructions` helper와 저장 ACK 계약을 제공합니다. 상속만으로 지원되지는 않습니다. Loop는 직접 처리하고 Graph는 사용자가 지정한 자식 실행으로 전달합니다. Pipeline 라우팅은 지원하지 않습니다. [공통 계약과 custom Engine 구현](../../docs/llm/steering.md)을 참고하세요.
+
+미시작 Agent 예약은 전달 Engine이 `declare_instruction_routes`로 검증된 경로를 선언하고 `bind_instruction_route`로 실제 실행 시작에 한 번 결합합니다. 서비스 저장 ACK 뒤 작업을 시작하며 소비 Engine은 기존 선택/반영 helper를 그대로 사용합니다. Graph가 중첩·병렬·반복 경로를 해석하고 서비스는 경로별 영수증을 저장합니다.
+
 ## 출력과 Step
 
 문자열은 BaseEngine이 EngineDelta로 연결합니다. 최종 출력은 EngineOutput, 모델 사용량과 종료 이유는 CompletionResult입니다. UI는 TEXT_DELTA/OUTPUT/COMPLETION 등 EngineEvent를 읽고, 저장 결과는 RunHandle에서 조회합니다.

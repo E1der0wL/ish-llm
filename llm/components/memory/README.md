@@ -25,6 +25,8 @@
 
 ConversationStore는 대화 원본, Memory는 선택·파생된 장기 기억, Run/Step은 실행 기록을 소유합니다. 하나를 다른 것의 대체 저장소로 사용하지 않습니다.
 
+Loop의 추가 지시는 원래 사용자 요청과 같은 턴으로 요약·보존합니다. 활성 Tool 이력을 압축할 때 추가 지시를 가로질러 삭제하지 않으며, 이 경우 압축을 건너뛰어 지시 원문을 유지합니다. 기존 토큰 한도는 그대로 적용됩니다.
+
 필수 필드와 호출 예는 [Memory API](../../../docs/llm/memory.md), 처리 정책은 [Memory 처리](../../../docs/llm/memory-processing.md), processor 확장은 [공통 처리기](../../../docs/llm/completion-processing.md)에 있습니다.
 
 [상위 안내](../README.md)

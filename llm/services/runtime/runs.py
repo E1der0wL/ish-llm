@@ -23,7 +23,10 @@ from llm.core.models import (
 )
 from llm.core.paths import RunPaths
 from llm.core.interactions import InteractionRequest, InteractionResponse
-from llm.engines.base import EngineContext, EngineEvent, EngineEventType, required_capabilities
+from llm.engines.base import EngineContext, EngineEvent, EngineEventType, SteeringInbox, required_capabilities, steering_mode
+from llm.core.steering import RunInstruction, SteeringMode, SteeringRoute, is_instruction, is_queued_request
+from llm.services.runtime.steering import (finish_instructions, checkpoint_messages, steering_boundary,
+    close_targets, initial_channel, reservation_receipts, resume_instructions)
 from llm.engines.registry import EngineRegistry
 from llm.components.tools import ToolRegistry
 from llm.services.history.conversation import Conversation
@@ -201,6 +204,15 @@ class RunRepository:
             run.metadata.setdefault("checkpoints", []).append(event.metadata["name"])
             self.save(run)
 
+    def instructions(self, session, run, store):
+        """본문은 선택한 ConversationStore에서 읽는다. 복제 저장소를 만들지 않는다."""
+        inherited = set()
+        if "steering" in run.metadata:
+            for name in run.metadata.get("checkpoints", ()):
+                inherited.update(checkpoint_messages(store, self.checkpoint(run, name)))
+        values = [(m.id, RunInstruction.from_message(m)) for m in store.list() if is_instruction(m)]
+        return [value for identifier, value in values if identifier in inherited or value.run_id == run.id]
+
     def interaction_requests(self, session: Session, run: Run) -> list[InteractionRequest]:
         names = run.metadata.get("checkpoints", []) or ([run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else [])
         requests = []
@@ -346,6 +358,7 @@ class RunErrorCode(StrEnum):
     QUEUE_FULL = "queue_full"
     POLICY_UNAVAILABLE = "policy_unavailable"
     REQUEST_CANCELLED = "request_cancelled"
+    STEERING_UNAVAILABLE = "steering_unavailable"
     RUN_TIMEOUT = "run_timeout"
     TOOL_DENIED = "tool_denied"
     TOOL_CONTRACT = "tool_contract"
@@ -494,6 +507,59 @@ class RunManager:
             self._request_changed.set()
             self._request_changed = None
 
+    async def _publish_instructions(self, run, values):
+        event = EngineEvent(EngineEventType.STEERING_CHANGED,
+                           metadata={"instructions": [v.to_dict() for v in values],
+                                     "targets": deepcopy(list(run.metadata["steering"].get("targets", {}).values()))})
+        await self.events.publish(run, event)
+        await self.subscriptions.publish("engine", run, event, on_error=lambda: self._observer_failed(run))
+
+    def _accept_instruction(self, run_id, content, targets, reserved=False):
+        _, session = self._prepare()
+        run = self.repository.load(session, run_id)
+        if (run.status != RunStatus.RUNNING or session.current_run_id != run.id
+                or not run.metadata.get("steering", {}).get("accepting")):
+            raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE,
+                                  "Run does not accept live instructions")
+        if self._active is None or self._active.closed or self._active.interrupt_requested:
+            raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, "Run is stopping or owned by another runtime")
+        available = run.metadata["steering"]["targets"]
+        identifiers = () if reserved else targets if targets is not None else ("root",)
+        if not reserved and (not identifiers or len(set(identifiers)) != len(identifiers)):
+            raise ValueError("Choose distinct active instruction targets")
+        selected = reservation_receipts(run, targets) if reserved else []
+        for identifier in identifiers:
+            target = available.get(identifier)
+            if target is None or not target["accepting"] or target["mode"] != SteeringMode.CONSUME:
+                raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, f"Instruction target unavailable: {identifier}")
+            selected.append({"id": identifier, "scope": target["scope"], "status": "pending", "applications": []})
+        store = self._store(session)
+        message = store.create(MessageRole.USER, content, MessageStatus.QUEUED, run_id=run.id,
+            metadata={"steering": {"run_id": run.id, "status": "pending",
+                       "input_message_id": run.metadata["steering"]["input_message_id"], "targets": selected}})
+        return run, RunInstruction.from_message(message)
+
+    async def _send_instruction(self, run_id, content, targets, *, reserved=False):
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError("Live instruction must be nonempty text")
+        async def accept():
+            async with self._control_lock():
+                if self._closed:
+                    raise RuntimeError("RunManager is shut down")
+                return await self._io.run(self._accept_instruction, run_id, content, targets, reserved)
+        run, value = await drain_on_cancel(accept())
+        await self._publish_instructions(run, [value])
+        return value
+
+    def _steering_boundary(self, run, store, event):
+        return steering_boundary(self.repository, run, store, event)
+
+    def _open_resumed_steering(self, run: Run, checkpoint: dict) -> None:
+        """재개 원본 검증 뒤에만 접수한다. 검증 실패도 기존 Run 종료 경계에서 처리한다."""
+        run.metadata["steering"] = initial_channel(run, steering_mode(self.engines.resolve(run.engine)),
+                                                  checkpoint["header"]["input_message_id"])
+        self.repository.save(run)
+
     async def _publish_run(self, run: Run) -> None:
         self._notify_requests()
         event = RunEvent(RunEventType(run.status.value if run.status != RunStatus.RUNNING else "started"),
@@ -558,8 +624,7 @@ class RunManager:
             try:
                 recovered = self._recover(fresh)
                 queued = [message.id for message in self._store(fresh).list()
-                          if message.role == MessageRole.USER
-                          and message.status == MessageStatus.QUEUED]
+                          if is_queued_request(message)]
                 log_event(fresh.paths.logs, "runtime.started", entity_id=fresh.id,
                           count=len(queued))
                 return owner, fresh, queued, recovered
@@ -607,15 +672,15 @@ class RunManager:
     def _check_queue(self, session):
         project = self.sessions._owner(session)
         maximum = project.config.policies.get("run", {}).get("max_queued")
-        if maximum is not None and self._store(session).count(
-                status=MessageStatus.QUEUED, role=MessageRole.USER) >= maximum:
+        if maximum is not None and sum(is_queued_request(m) for m in self._store(session).list(
+                query=Query(status=MessageStatus.QUEUED))) >= maximum:
             raise RunRequestError(RunErrorCode.QUEUE_FULL, "Session request queue is full")
 
     def _cancel_queued(self, message_id):
         _, session = self._prepare()
         store = self._store(session)
         message = store.get(message_id)
-        if message.role != MessageRole.USER:
+        if message.role != MessageRole.USER or is_instruction(message):
             raise ValueError("Request ID must identify a user message")
         if message.status != MessageStatus.QUEUED or message.run_id is not None:
             return False
@@ -706,7 +771,7 @@ class RunManager:
     def _request_run(self, message_id: str) -> Optional[Run]:
         _, session = self._prepare()
         message = self._store(session).get(message_id)
-        if message.role != MessageRole.USER:
+        if message.role != MessageRole.USER or is_instruction(message):
             raise ValueError("Request ID must identify a user message")
         if message.run_id is None:
             if message.status == MessageStatus.CANCELLED:
@@ -763,7 +828,7 @@ class RunManager:
         session = runtime.session
         store = self._store(session)
         # cancel과 시작을 같은 소유권/I/O 직렬 경로에서 판정한다.
-        if store.get(message.id).status != MessageStatus.QUEUED:
+        if not is_queued_request(store.get(message.id)):
             return None
         run_id = new_id()
         # 선택이 누락된 복구 요청은 실패시킨다. Engine을 추측하지 않는다.
@@ -776,6 +841,10 @@ class RunManager:
         run.metadata["policies"] = deepcopy(runtime.project.config.policies)
         if "resume" in message.metadata:
             run.metadata["resume"] = deepcopy(message.metadata["resume"])
+        strategy = self.engines.resolve(engine) if engine in self.engines.names() else None
+        if steering_mode(strategy) != SteeringMode.UNSUPPORTED:
+            run.metadata["steering"] = ({"accepting": False} if "resume" in run.metadata
+                                        else initial_channel(run, steering_mode(strategy), message.id))
         self.repository.save(run)
         store.bind_run(message.id, run.id)
         store.set_status(message.id, MessageStatus.COMMITTED)
@@ -803,7 +872,7 @@ class RunManager:
             raise ValueError("Resume checkpoint changed after admission")
         if any(request.expired for request in self.repository.interaction_requests(session, source)):
             raise ValueError("Interaction expired while resume was queued")
-        return checkpoint
+        return resume_instructions(self._store(session), checkpoint)
 
     def _context(self, runtime: SessionRuntime, run: Run, policies=None, *, project=None) -> EngineContext:
         context_policy, completion_policy, limits = (policies if policies is not None
@@ -855,10 +924,15 @@ class RunManager:
             operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
         for name in values.get("tools", ToolRegistry()).names():
             tool_scope.validate(values["tools"].get(name))
+        inbox = (SteeringInbox(history=checkpoint_messages(store, checkpoint) if checkpoint else {})
+                 if "steering" in run.metadata else None)
+        if inbox is not None:
+            inbox.engine, inbox.mode = run.engine, steering_mode(engine)
+            inbox.channels[inbox.target_id] = inbox
         return EngineContext(project, deepcopy(runtime.session), deepcopy(run), history,
                              tools=values.get("tools", ToolRegistry()), capabilities=values,
                              checkpoint=checkpoint, tool_scope=tool_scope, pending_work=self.pending_work,
-                             completion_policy=completion_policy)
+                             completion_policy=completion_policy, steering=inbox)
 
     async def _consume_limited(self, runtime, run):
         from llm.providers.runtime import logging_scope as provider_logging_scope
@@ -893,6 +967,8 @@ class RunManager:
                         "name": run.metadata["resume"]["checkpoint"], "operation": "initialize",
                         "header": checkpoint["header"], "records": checkpoint["records"]}))
             context = await self._io.run(self._context, runtime, run, policies)
+            if context.checkpoint is not None and context.steering is not None:
+                await self._io.run(self._open_resumed_steering, run, context.checkpoint)
         except ExecutionLimitError:
             raise
         except Exception as error:
@@ -909,6 +985,40 @@ class RunManager:
                     raise ValueError("Engine emitted events after pause")
                 event, change = outputs.accept(event, active_steps, has_result="output" in run.metadata)
                 value = event.delta if event.type == EngineEventType.TEXT_DELTA else event.output
+                if event.type == EngineEventType.STEERING:
+                    if context.steering is None:
+                        raise ValueError("Engine has no live instruction channel")
+                    channel = context.steering.channels[event.metadata["target_id"]]
+                    if event.metadata["operation"] == "open":
+                        target = event.metadata["target"]
+                        if (target["scope"] != channel.scope or target["mode"] != channel.mode
+                                or target["engine"] != channel.engine):
+                            raise ValueError("Instruction target does not match its execution channel")
+                    messages, changed = await self._io.run(self._steering_boundary, run, store, event)
+                    if event.metadata["operation"] in ("routes", "bind"):
+                        channel.acknowledged = event.metadata["request_id"]
+                        if event.metadata["operation"] == "routes":
+                            notifications.append(EngineEvent(EngineEventType.STEERING_CHANGED,
+                                metadata={"routes": deepcopy(list(run.metadata["steering"]["routes"].values()))}))
+                        if changed:
+                            notifications.append(EngineEvent(EngineEventType.STEERING_CHANGED,
+                                metadata={"instructions": [v.to_dict() for v in changed]}))
+                        continue
+                    channel.messages = messages
+                    channel.history.update((m.id, m) for m in messages)
+                    channel.acknowledged = event.metadata["request_id"]
+                    channel.opened = True
+                    channel.closed = run.metadata["steering"]["targets"][channel.target_id]["reason"] is not None
+                    if channel.closed and channel.target_id != "root":
+                        # UI 이력은 저장된 descriptor가 소유한다. 완료한 자식 전달함은 회수한다.
+                        context.steering.channels.pop(channel.target_id)
+                    if event.metadata["operation"] in ("open", "close") or channel.closed:
+                        notifications.append(EngineEvent(EngineEventType.STEERING_CHANGED,
+                            metadata={"targets": deepcopy(list(run.metadata["steering"]["targets"].values()))}))
+                    if changed:
+                        notifications.append(EngineEvent(EngineEventType.STEERING_CHANGED,
+                            metadata={"instructions": [v.to_dict() for v in changed]}))
+                    continue
                 if event.type == EngineEventType.TEXT_DELTA:
                     pending_outputs.append(value)
                     if change is not None:
@@ -946,6 +1056,11 @@ class RunManager:
                 await close()
         if paused:
             raise _RunPaused()
+        if context.steering is not None:
+            if steering_mode(engine) == SteeringMode.CONSUME and not context.steering.opened:
+                raise ValueError("Instruction consumer did not open its channel")
+            if any(t["accepting"] for t in run.metadata["steering"]["targets"].values()):
+                raise ValueError("Engine ended without closing instruction targets")
         if any(step.status in (StepStatus.PENDING, StepStatus.RUNNING, StepStatus.FAILED)
                for step in await self._io.run(self.steps.list, run)):
             raise RuntimeError("Engine ended with unfinished or failed Steps")
@@ -1027,7 +1142,7 @@ class RunManager:
         self.repository.save(run)
 
     def _finish(self, runtime: SessionRuntime, run: Run, status: RunStatus,
-                error: Optional[str] = None, error_code: Optional[str] = None) -> None:
+                error: Optional[str] = None, error_code: Optional[str] = None) -> list[RunInstruction]:
         # 변경 전 검증한다. 중복 종료로 시각/오류/Step을 덮거나 다음 Run의 Session을 해제하지 않는다.
         validate_run_transition(run.status, status, reason="finish")
         _RunOutcome(status, error, error_code)
@@ -1042,6 +1157,11 @@ class RunManager:
                 else:
                     self.steps.interrupt(step)
         store = self._store(runtime.session)
+        changed = []
+        if "steering" in run.metadata:
+            changed = finish_instructions(store, run.id,
+                run.metadata["steering"].get("unapplied_reason") or error_code or status.value)
+            close_targets(run, error_code or status.value)
         store.set_status(run.assistant_message_id, MessageStatus(status.value))
         run.status = status
         run.error = error
@@ -1055,6 +1175,7 @@ class RunManager:
         self.sessions._save_runtime(runtime.session)
         activity_event(runtime.project, run, f"run.{status.value}", time=run.ended_at,
                        status=run.status, code=run.error_code)
+        return changed
 
     async def _worker(self, runtime: SessionRuntime) -> None:
         while not runtime.closed:
@@ -1100,8 +1221,8 @@ class RunManager:
                                           stable_error_code(failure) or RunErrorCode.ENGINE_FAILED)
                 finally:
                     try:
-                        await self._io.run(self._finish, runtime, run,
-                                           outcome.status, outcome.error, outcome.error_code)
+                        changed = await self._io.run(self._finish, runtime, run,
+                                                     outcome.status, outcome.error, outcome.error_code)
                         self.observability.record("runs", outcome.status.value, code=outcome.error_code,
                             duration_seconds=time.monotonic() - started, run_id=run.id,
                             project_id=runtime.project.id, session_id=runtime.session.id)
@@ -1114,6 +1235,8 @@ class RunManager:
                                 log_event(run.paths.logs, "interaction.policy_failed", entity_id=run.id,
                                           status="response_write_failed")
                         await self._publish_run(run)
+                        if "steering" in run.metadata:
+                            await self._publish_instructions(run, changed)
                     finally:
                         runtime.execution = None
                         runtime.finished.set()
@@ -1143,6 +1266,20 @@ class RunManager:
                      engine: str) -> Message:
         """Queue a request for an explicitly named registered Engine."""
         return await drain_on_cancel(self._submit(content, engine))
+
+    async def steer(self, run_id: str, content: str, *, targets=None) -> RunInstruction:
+        """현재 Run에 추가 지시를 저장한다. 일반 요청 큐나 새 Run을 만들지 않는다."""
+        if targets is not None:
+            if not isinstance(targets, (list, tuple)) or any(not isinstance(v, str) or not v for v in targets):
+                raise ValueError("targets must be a list of execution target IDs")
+            targets = tuple(targets)
+        return await self._send_instruction(run_id, content, targets)
+
+    async def reserve_instruction(self, run_id: str, content: str, *, targets) -> RunInstruction:
+        """경로별 다음 Agent 실행 한 번에 예약한다. 실행 중 대상에는 소급 적용하지 않는다."""
+        if not isinstance(targets, (list, tuple)) or any(not isinstance(v, SteeringRoute) for v in targets):
+            raise ValueError("targets must be a list of SteeringRoute values")
+        return await self._send_instruction(run_id, content, tuple(targets), reserved=True)
 
     async def resume_plan(self, run_id: str, *, engine: str) -> ResumePlan:
         """큐 등록이나 모델 호출 없이 재사용·승인·재개 차단 사유를 조회한다."""

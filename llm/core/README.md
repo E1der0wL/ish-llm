@@ -15,6 +15,7 @@ Project → Session → Run → Step의 저장 모델과, Engine·서비스·UI�
 | [contracts.py](contracts.py) | Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent 등 공통 관찰 데이터를 정의합니다. |
 | [interactions.py](interactions.py) | InteractionRequest/Response와 선택지·승인·재개 값의 공통 해석 계약입니다. |
 | [results.py](results.py) | EngineDelta, EngineOutput, CompletionResult, ExecutionResult를 정의합니다. |
+| [steering.py](steering.py) | RunInstruction/InstructionStatus, SteeringTarget/SteeringMode, 예약 경로 SteeringRoute와 일반 대기 요청 구분입니다. 새 영속 도메인은 아닙니다. |
 | [views.py](views.py) | SessionRuntimeView, RunView 등 UI 조회용 스냅샷입니다. |
 | [plans.py](plans.py) | 재개·복구·보관 작업의 계획과 결과 데이터입니다. |
 

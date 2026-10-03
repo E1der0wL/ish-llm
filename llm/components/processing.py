@@ -18,6 +18,8 @@ class CompletionMessage:
 
     value: dict
     source_id: Optional[str] = None
+    # 같은 작업에 추가된 USER 입력. provider kwargs에는 포함하지 않는다.
+    continuation: bool = False
 
 
 @dataclass(slots=True)
@@ -170,7 +172,7 @@ class CompletionPipeline:
             raise ValueError("Completion processor must preserve original message order")
         group = []
         for message in original:
-            if message.value.get("role") == "user":
+            if message.value.get("role") == "user" and not message.continuation:
                 kept = [m.source_id in seen for m in group]
                 if any(kept) and not all(kept):
                     raise ValueError("Completion processor must remove whole prior turns")

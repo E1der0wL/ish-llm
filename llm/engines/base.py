@@ -21,6 +21,7 @@ from llm.errors import stable_error_code
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
 from llm.core.interactions import InteractionRequest
 from llm.core.configuration import UNSET
+from llm.core.steering import SteeringMode, SteeringRoute
 from llm.components.tools import ToolRegistry
 from llm.providers.litellm import completion, stream_completion
 from llm.providers.parameters import copy_params
@@ -43,6 +44,8 @@ class EngineEventType(StrEnum):
     CHECKPOINT = "checkpoint"
     PAUSED = "paused"
     INTERACTION_CHANGED = "interaction_changed"
+    STEERING = "steering"
+    STEERING_CHANGED = "steering_changed"
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,6 +91,34 @@ class EngineEvent:
                     self.error or "Step failed", source=source))
 
 
+@dataclass(slots=True)
+class SteeringInbox:
+    """저장 ACK 뒤 서비스가 채우는 호출별 전달함. 영속 상태의 소유자가 아니다."""
+
+    messages: tuple[Message, ...] = ()
+    history: dict[str, Message] = field(default_factory=dict)
+    target_id: str = "root"
+    scope: Optional[str] = None
+    node_id: Optional[str] = None
+    node_path: Optional[str] = None
+    engine: str = ""
+    mode: SteeringMode = SteeringMode.UNSUPPORTED
+    channels: dict[str, "SteeringInbox"] = field(default_factory=dict, repr=False)
+    acknowledged: Optional[str] = None
+    opened: bool = False
+    closed: bool = False
+
+    def child(self, *, target_id: str, scope: str, engine: str, mode: SteeringMode,
+              node_id: str, node_path: Optional[str]) -> "SteeringInbox":
+        if not scope or target_id in self.channels:
+            raise ValueError("Child instruction channel requires a unique execution and stable scope")
+        child = SteeringInbox(history=dict(self.history), target_id=target_id, scope=scope,
+                              engine=engine, mode=SteeringMode(mode), node_id=node_id, node_path=node_path,
+                              channels=self.channels)
+        self.channels[target_id] = child
+        return child
+
+
 @dataclass(frozen=True, slots=True)
 # Run별 읽기 스냅샷과 임시 state/capability를 전달한다.
 class EngineContext:
@@ -112,6 +143,7 @@ class EngineContext:
     # 중첩 엔진의 최종 결과는 이 Step에 귀속한다. None은 최상위 Run이다.
     output_step_id: Optional[str] = None
     output_visibility: str = "user"
+    steering: Optional[SteeringInbox] = None
 
     def settings(self, engine: Optional[str] = None) -> dict:
         return self.project.config.for_engine(self.run.engine if engine is None else engine, self.session.config)
@@ -145,6 +177,11 @@ def required_capabilities(engine) -> tuple[str, ...]:
     return names
 
 
+def steering_mode(engine) -> SteeringMode:
+    """잘못된 지원 선언은 조용히 무시하지 않는다."""
+    return SteeringMode(getattr(engine, "steering_mode", SteeringMode.UNSUPPORTED))
+
+
 # 작업 함수를 공통 Step 이벤트와 스트리밍 출력으로 감싼다.
 class BaseEngine:
     """Adapt a developer operation to the existing Engine event contract.
@@ -157,6 +194,76 @@ class BaseEngine:
     """
 
     required_capabilities = ()
+    steering_mode = SteeringMode.UNSUPPORTED
+
+    @staticmethod
+    async def instruction_event(context: EngineContext, operation: str, **metadata) -> AsyncIterator[EngineEvent]:
+        """서비스 저장 ACK 후에만 계속한다. Engine은 파일이나 영속 상태를 쓰지 않는다."""
+        inbox = context.steering
+        if inbox is None:
+            return
+        if inbox.closed:
+            raise ValueError("Instruction channel is closed")
+        token = new_id()
+        yield EngineEvent(EngineEventType.STEERING, metadata={
+            **metadata, "operation": operation, "target_id": inbox.target_id, "request_id": token})
+        if inbox.acknowledged != token:
+            raise RuntimeError("Instruction event requires a persisted service acknowledgement")
+
+    @classmethod
+    async def open_instructions(cls, context: EngineContext) -> AsyncIterator[EngineEvent]:
+        inbox = context.steering
+        if inbox is None or inbox.opened:
+            return
+        async with aclosing(cls.instruction_event(context, "open", target={
+                "id": inbox.target_id, "run_id": context.run.id, "engine": inbox.engine,
+                "mode": inbox.mode.value, "scope": inbox.scope, "node_id": inbox.node_id,
+                "node_path": inbox.node_path, "accepting": inbox.mode == SteeringMode.CONSUME})) as events:
+            async for event in events:
+                yield event
+
+    @classmethod
+    async def declare_instruction_routes(cls, context: EngineContext, routes) -> AsyncIterator[EngineEvent]:
+        """전달 Engine이 검증한 스냅샷 경로를 저장한다. 소비자/Workflow 해석은 서비스에 넣지 않는다."""
+        async with aclosing(cls.instruction_event(context, "routes", routes=[r.to_dict() for r in routes])) as events:
+            async for event in events:
+                yield event
+
+    @classmethod
+    async def bind_instruction_route(cls, context: EngineContext, route: SteeringRoute, scope: str) -> AsyncIterator[EngineEvent]:
+        """새 노드 실행 경계에서 예약을 결합한다. ACK 전에는 해당 작업을 시작하지 않는다."""
+        async with aclosing(cls.instruction_event(context, "bind", route=route.to_dict(), scope=scope)) as events:
+            async for event in events:
+                yield event
+
+    @classmethod
+    async def select_instructions(cls, context: EngineContext, *, checkpoint: str, boundary: str,
+                                  final: bool = False, allow_continue: bool = True,
+                                  reason: Optional[str] = None) -> AsyncIterator[EngineEvent]:
+        """boundary는 엔진 소유의 안정적인 키다. 반복 횟수/노드 의미는 해석하지 않는다."""
+        if not isinstance(boundary, str) or not boundary or not isinstance(checkpoint, str) or not checkpoint:
+            raise ValueError("Instructions require a checkpoint and nonempty boundary key")
+        async with aclosing(cls.instruction_event(context, "select", checkpoint=checkpoint, boundary=boundary,
+                final=final, allow_continue=allow_continue, reason=reason)) as events:
+            async for event in events:
+                yield event
+
+    @classmethod
+    async def apply_instructions(cls, context: EngineContext, *, checkpoint: str, boundary: str,
+                                 details: Optional[dict] = None) -> AsyncIterator[EngineEvent]:
+        """입력 구성·검증을 마친 뒤 호출한다. provider 수신이나 이행을 보증하지 않는다."""
+        async with aclosing(cls.instruction_event(context, "apply", checkpoint=checkpoint, boundary=boundary,
+                                                  details=details or {})) as events:
+            async for event in events:
+                yield event
+
+    @classmethod
+    async def close_instructions(cls, context: EngineContext, *, reason: str = "completed") -> AsyncIterator[EngineEvent]:
+        if context.steering is None or context.steering.closed:
+            return
+        async with aclosing(cls.instruction_event(context, "close", reason=reason)) as events:
+            async for event in events:
+                yield event
 
     def execute_tool(self, context: EngineContext, tool, arguments, *, checkpoint_key: str,
                      result: dict, executor=None, metadata=None, decision=UNSET) -> AsyncIterator[EngineEvent]:
@@ -520,6 +627,9 @@ class BaseEngine:
                                 raise ValueError("Completion event requires a result")
                             yield replace(text, step_id=step_id,
                                           completion=replace(text.completion, step_id=step_id))
+                            continue
+                        if isinstance(text, EngineEvent) and text.type == EngineEventType.STEERING:
+                            yield replace(text, step_id=step_id)
                             continue
                         if isinstance(text, EngineEvent) and text.type not in EngineEventType._value2member_map_:
                             yield text

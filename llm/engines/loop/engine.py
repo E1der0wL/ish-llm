@@ -16,6 +16,7 @@ from urllib.parse import urlsplit
 from contextlib import aclosing
 from llm.components.processing import CompletionMessage, CompletionRequest, CompletionObservation, CompletionPipeline
 from llm.core.models import MessageRole, MessageStatus
+from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record
 from llm.core.configuration import engine_configuration, resolve_configuration, UNSET
 from llm.core.results import EngineOutput
 from llm.providers.litellm import completion
@@ -30,6 +31,7 @@ class LoopEngine(BaseEngine):
 
     required_capabilities = ("tools", "completion_processors")
     checkpoint_name = "loop"
+    steering_mode = SteeringMode.CONSUME
 
     def _binding(self, context):
         """설정·Tool 계약을 비교한다. 실행 함수 교체 시에는 프로젝트 engine revision을 변경한다."""
@@ -52,6 +54,9 @@ class LoopEngine(BaseEngine):
         """완료 Tool은 재사용하고 효과가 불확실한 Tool만 명시적 재실행 승인을 받는다."""
         if checkpoint["header"].get("format") != "loop-iterations-v1":
             raise ValueError("Checkpoint does not belong to LoopEngine")
+        for key, value in checkpoint["records"].items():
+            if key.startswith("steering:"):
+                validate_instruction_record(value)
         uncertain = {key for key, value in checkpoint["records"].items()
                      if key.startswith("tool:") and value["status"] == "started"}
         if len(set(retry_nodes)) != len(retry_nodes) or set(retry_nodes) != uncertain:
@@ -242,7 +247,7 @@ class LoopEngine(BaseEngine):
         prompt = self.system_prompt(context) if callable(self.system_prompt) else self.system_prompt
         if prompt is not None and not isinstance(prompt, str):
             raise ValueError("System prompt must be a string")
-        messages = [CompletionMessage({"role": message.role.value, "content": message.content}, message.id)
+        messages = [CompletionMessage({"role": message.role.value, "content": message.content}, message.id, is_instruction(message))
                     for message in context.messages
                     if (message.role == MessageRole.USER and message.status == MessageStatus.COMMITTED)
                     or (message.role != MessageRole.USER and message.status in (
@@ -260,6 +265,9 @@ class LoopEngine(BaseEngine):
                 "header": {"format": "loop-iterations-v1", "binding": self._resume_binding,
                            "message_ids": [m.id for m in context.messages],
                            "input_message_id": context.run.input_message_id}})
+        async with aclosing(self.open_instructions(context)) as events:
+            async for event in events:
+                yield event
         # 도메인별 정책/저장은 처리기가 소유한다. 각 호출의 세션은 다른 Run/Agent와 공유하지 않는다.
         async with CompletionPipeline(context.capabilities.get("completion_processors", ()), context) as processors:
             async with aclosing(self._iterate(context, params, messages, processors)) as events:
@@ -271,14 +279,25 @@ class LoopEngine(BaseEngine):
         seen_call_ids: set[str] = set()
         durable = context.output_step_id is None or context.checkpoint_scope is not None
         records = deepcopy(context.checkpoint["records"]) if durable and context.checkpoint else {}
+        inbox = context.steering
         for iteration in count(1):
             if self.max_iterations is not None and iteration > self.max_iterations:
                 raise RuntimeError("Loop iteration limit exceeded")
+            instruction_key = f"steering:{iteration}"
+            if inbox is not None:
+                if instruction_key not in records:
+                    async with aclosing(self.select_instructions(context, checkpoint=self.checkpoint_name,
+                                                                  boundary=instruction_key)) as events:
+                        async for event in events:
+                            yield event
+                    records[instruction_key] = {"status": "input", "message_ids": [m.id for m in inbox.messages]}
+                selected = [inbox.history[i] for i in records[instruction_key]["message_ids"]]
+                messages.extend(CompletionMessage({"role": "user", "content": m.content}, m.id, True) for m in selected)
             saved = records.get(f"iteration:{iteration}", {})
             response: dict[str, Any] = deepcopy(saved.get("response", {}))
             calls, prepared = [], []
             request = CompletionRequest(self._request(context, params),
-                [CompletionMessage(self.copy_params(m.value), m.source_id) for m in messages], iteration)
+                [CompletionMessage(self.copy_params(m.value), m.source_id, m.continuation) for m in messages], iteration)
             if not saved:
                 async with aclosing(processors.prepare(request, messages)) as events:
                     async for event in events:
@@ -288,7 +307,22 @@ class LoopEngine(BaseEngine):
             async def complete(_context):
                 nonlocal calls, prepared, prepared_request
                 if context.completion_policy is not None:
-                    prepared_request = await asyncio.to_thread(context.completion_policy.prepare, prepared_request)
+                    if any(m.continuation for m in messages):
+                        prepare_turn = getattr(context.completion_policy, "prepare_turn", None)
+                        if not callable(prepare_turn):
+                            raise ValueError("Completion policy must support prepare_turn for live instructions")
+                        current_index = next(i for i, m in enumerate(request.messages) if m.source_id == context.run.input_message_id)
+                        continued_ids = {m.source_id for m in messages if m.continuation}
+                        starts = [i for i, m in enumerate(request.messages[:current_index])
+                                  if m.value.get("role") == "user" and m.source_id not in continued_ids]
+                        prepared_request = await asyncio.to_thread(prepare_turn, prepared_request, current_index, starts)
+                    else:
+                        prepared_request = await asyncio.to_thread(context.completion_policy.prepare, prepared_request)
+                if inbox is not None and records[instruction_key]["message_ids"]:
+                    async with aclosing(self.apply_instructions(context, checkpoint=self.checkpoint_name,
+                            boundary=instruction_key, details={"iteration": iteration})) as events:
+                        async for event in events:
+                            yield event
                 async with aclosing(self.stream_completion(prepared_request, response=response)) as deltas:
                     async for text in deltas:
                         yield text
@@ -323,6 +357,23 @@ class LoopEngine(BaseEngine):
                 if durable:
                     yield self._record(f"iteration:{iteration}", {"status": "responded", "response": response})
             if not calls:
+                if inbox is not None:
+                    next_key = f"steering:{iteration + 1}"
+                    if next_key not in records:
+                        allowed = self.max_iterations is None or iteration < self.max_iterations
+                        async with aclosing(self.select_instructions(context, checkpoint=self.checkpoint_name,
+                                boundary=next_key, final=True, allow_continue=allowed,
+                                reason=None if allowed else "iteration_limit")) as events:
+                            async for event in events:
+                                yield event
+                        following = [m.id for m in inbox.messages]
+                        if following:
+                            records[next_key] = {"status": "input", "message_ids": following}
+                    else:
+                        following = records[next_key]["message_ids"]
+                    if following:
+                        messages.append(CompletionMessage(response))
+                        continue
                 async with aclosing(processors.finish(observation)) as events:
                     async for event in events:
                         yield event

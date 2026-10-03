@@ -87,3 +87,22 @@ class EngineCheckpointScope:
 
     def accepted(self, event):
         self.records[event.metadata["key"]] = deepcopy(event.metadata["value"])
+
+    def wrap_instruction(self, event):
+        """입력 선택/반영도 같은 부모 저장 ACK를 사용한다. 본문은 여기에 저장하지 않는다."""
+        data = event.metadata
+        if data["operation"] not in ("select", "apply"):
+            return event
+        if data["checkpoint"] != self.name:
+            raise ValueError("Child instruction checkpoint name mismatch")
+        local = data["boundary"]
+        envelope = {"node_type": "engine_record", "engine_scope": self.owner, "checkpoint_name": self.name,
+                    "local_key": local, "status": "completed", "container": True, "requires_retry": False}
+        return replace(event, metadata={**data, "checkpoint": "graph", "boundary": self.key(local), "envelope": envelope})
+
+    def accepted_instruction(self, event, inbox):
+        if event.metadata["operation"] == "select" and not inbox.closed:
+            data = event.metadata
+            self.records[data["boundary"]] = {**deepcopy(data["envelope"]), "payload": {
+                "kind": "instruction", "status": "input", "target_scope": self.owner,
+                "message_ids": [m.id for m in inbox.messages]}}

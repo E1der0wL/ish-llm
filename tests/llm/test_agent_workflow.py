@@ -148,6 +148,39 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.calls, [])
         self.assertEqual(await run.steps.alist(), [])
 
+    async def test_steerable_agent_contract_preflight_prevents_tool_and_mcp_effects(self):
+        from llm.core.steering import SteeringMode
+        connected = []
+
+        class Incomplete(BaseEngine):
+            steering_mode = SteeringMode.CONSUME
+            checkpoint_name = "custom"
+            def for_agent(self, definition):
+                return self
+
+        @asynccontextmanager
+        async def connector(definition):
+            connected.append(definition)
+            yield self.catalog
+
+        self.profile = {"engine": "custom", "purpose": "Work",
+                        "resources": {"mcp": {"docs": {"read_docs": "echo"}}}}
+        graph = (WorkflowGraph(entry="effect")
+                 .node("effect", "tool", tool="echo", arguments={"value": "must not execute"})
+                 .node("agent", "agent", agent="writer").node("end", "end")
+                 .connect("effect", "agent").connect("agent", "end").to_dict())
+        await self.setup_graph(graph, None, handlers={"tool": ToolNode(),
+            "agent": AgentNode(engines={"custom": Incomplete()})},
+            extra_components=(MCPComponent(connector=connector),))
+        await (await self.project.components.aget("mcp")).acreate(
+            {"transport": "streamable_http", "url": "https://example.invalid/mcp"}, identifier="docs")
+        run = await self.run_graph()
+        self.assertEqual(run.data.status, RunStatus.FAILED)
+        self.assertIn("checkpoint_name and validate_resume", run.data.error)
+        self.assertEqual(self.calls, [])
+        self.assertEqual(connected, [])
+        self.assertEqual(await run.steps.alist(), [])
+
     async def test_schema_failure_prevents_next_handler(self):
         model = ScriptedCompletion(answer('{"code":42}'))
         graph = agent_graph(output_format="json", output_schema={"type": "object", "properties": {

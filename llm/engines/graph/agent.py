@@ -15,7 +15,8 @@ from llm.components.tools import Tool, ToolRegistry
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
 from llm.services.runtime.tools import ToolExecutionScope, ToolPolicy
-from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities
+from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities, steering_mode
+from llm.core.steering import SteeringMode
 from llm.engines.registry import EngineRegistry
 from .engine import GraphEngine, _GraphPause
 from .checkpoints import EngineCheckpointScope
@@ -73,6 +74,13 @@ class AgentNode:
         if not callable(getattr(bound, "execute", None)):
             raise TypeError("for_agent must return an Engine")
         required_capabilities(bound)
+        # factory가 반환한 실제 실행기도 검사한다. Graph 사전 탐색에서 실패해야
+        # 앞선 노드의 Tool 효과나 MCP 연결 이후에 구성 오류가 드러나지 않는다.
+        if steering_mode(bound) == SteeringMode.CONSUME:
+            checkpoint = getattr(bound, "checkpoint_name", None)
+            if (not isinstance(checkpoint, str) or not checkpoint.strip()
+                    or not callable(getattr(bound, "validate_resume", None))):
+                raise ValueError("Steerable Agent engine requires checkpoint_name and validate_resume")
         return bound
 
     def _resources(self, profile, context):
@@ -119,6 +127,11 @@ class AgentNode:
         """저장·재개 계약을 제공하는 자식만 조율 노드로 선언한다."""
         engine = self._engine(self._profile(definition, context.capabilities))
         return engine if getattr(engine, "checkpoint_name", None) and callable(getattr(engine, "validate_resume", None)) else None
+
+    def instruction_engine(self, definition, context):
+        """예약 가능한 실제 소비자만 선언한다. Graph 전달자 자체는 예약 대상이 아니다."""
+        profile = self._profile(definition, context.capabilities)
+        return profile["engine"] if steering_mode(self._engine(profile)) == SteeringMode.CONSUME else None
 
     def binding(self, definition, context):
         """재개 검사와 Step에 런타임 핸들 없이 재현 가능한 정의를 남긴다."""
@@ -194,14 +207,22 @@ class AgentNode:
                                   state={"agent": deepcopy(binding)}, capabilities=capabilities,
                                   checkpoint=node.context.checkpoint if graph_engine else None, tool_scope=scope,
                                   output_step_id=step_id, output_visibility=visibility)
+                if context.steering is not None:
+                    context = replace(context, steering=context.steering.child(target_id=step_id,
+                        scope=node.checkpoint_key, engine=profile["engine"], mode=steering_mode(engine),
+                        node_id=node.node_id, node_path=node.node_path))
                 bridge = None
                 if not graph_engine and self.checkpoint_engine(node.definition, node.context) is not None:
                     records = deepcopy(node.context.checkpoint["records"]) if node.context.checkpoint else {}
                     bridge = EngineCheckpointScope(node.checkpoint_key, engine.checkpoint_name, records)
                     context = bridge.context(context)
+                if steering_mode(engine) == SteeringMode.CONSUME and bridge is None:
+                    raise ValueError("Steerable Agent engine requires a durable checkpoint contract")
                 engine_output = None
                 async def forward(event):
                     nonlocal engine_output
+                    if event.type == EngineEventType.STEERING and bridge is not None:
+                        event = bridge.wrap_instruction(event)
                     if event.type == EngineEventType.CHECKPOINT:
                         if bridge is not None:
                             event = bridge.wrap(event)
@@ -229,6 +250,8 @@ class AgentNode:
                         engine_output = event.output
                         return
                     await node.emit(event)
+                    if bridge is not None and event.type == EngineEventType.STEERING:
+                        bridge.accepted_instruction(event, context.steering)
                     if bridge is not None and event.type == EngineEventType.CHECKPOINT:
                         bridge.accepted(event)
                     if (graph_engine or bridge is not None) and event.type in (EngineEventType.STEP_UPDATED, EngineEventType.STEP_FAILED,
@@ -237,14 +260,22 @@ class AgentNode:
                         # Agent 한도를 초기화하지 않도록 소유 컨테이너 체크포인트를 갱신한다.
                         await node.record_usage(scope.checkpoint())
                 graph_output = None
+                async with aclosing(BaseEngine.open_instructions(context)) as events:
+                    async for event in events:
+                        await forward(event)
                 if graph_engine:
                     if node.invoke_graph is None:
                         raise ValueError("Graph Agent requires a parent Graph execution scope")
                     graph_output = await node.invoke_graph(engine, context, inputs, forward)
                 else:
-                    async with aclosing(engine.execute(context)) as events:
+                    # 미지원 합성 엔진 내부의 Loop가 부모 채널을 자동 소비해서는 안 된다.
+                    execution_context = replace(context, steering=None) if steering_mode(engine) == SteeringMode.UNSUPPORTED else context
+                    async with aclosing(engine.execute(execution_context)) as events:
                         async for event in events:
                             await forward(event)
+                async with aclosing(BaseEngine.close_instructions(context)) as events:
+                    async for event in events:
+                        await forward(event)
                 if policy.get("require_tool") and not scope.completed:
                     raise ValueError("Agent requires at least one successfully completed Tool")
                 if not graph_engine and engine_output is None:

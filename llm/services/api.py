@@ -333,6 +333,14 @@ class Runs(AsyncFacade):
         message = await self.session.app._manager(self.session._snapshot).submit(content, engine=engine)
         return RequestHandle(self.session, message.id)
 
+    async def steer(self, run_id: str, content: str, *, targets=None):
+        """실행 중 대상에 지시를 저장한다. Graph는 instruction_targets()의 ID 목록이 필수다."""
+        return await self.app._manager(self.session._snapshot).steer(run_id, content, targets=targets)
+
+    async def reserve_instruction(self, run_id: str, content: str, *, targets):
+        """Run의 예약 경로별 다음 Agent 실행에 한 번만 전달한다."""
+        return await self.app._manager(self.session._snapshot).reserve_instruction(run_id, content, targets=targets)
+
     async def resume_plan(self, run_id: str, *, engine: str) -> ResumePlan:
         return await self.app._manager(self.session._snapshot).resume_plan(run_id, engine=engine)
 
@@ -360,14 +368,16 @@ class Runs(AsyncFacade):
         with self.app.project_manager.ownership.scope():
             session = self.session.data
             store = self.app.project_manager.sessions.conversations(session)
-            queued = store.list(query=Query(status=MessageStatus.QUEUED, limit=queued_limit))
+            from llm.core.steering import is_queued_request
+            requests = [m for m in store.list(query=Query(status=MessageStatus.QUEUED)) if is_queued_request(m)]
+            queued = requests if queued_limit is None else requests[:queued_limit]
             active = self.app.run_repository.load(session, session.current_run_id) if session.current_run_id else None
             return SessionRuntimeView(**{"session_id": session.id, "status": session.status,
                     "unfinished_work": getattr(self.app._managers.get((session.project_id, session.id)), "pending_work", None).active if (session.project_id, session.id) in self.app._managers else 0,
                     "active_run_id": active.id if active else None,
                     "engine": active.engine if active else None,
                     "started_at": active.started_at if active else None,
-                    "queued_count": store.count(status=MessageStatus.QUEUED, role=MessageRole.USER),
+                    "queued_count": len(requests),
                     "queued_request_ids": [message.id for message in queued]})
 
     def load(self, run_id: str) -> "RunHandle":
@@ -507,6 +517,30 @@ class RunHandle(AsyncFacade):
 
     acheckpoint = async_method(checkpoint)
 
+    def instructions(self):
+        """접수한 추가 지시와 명시적 재개에서 참조한 지시의 저장된 상태를 조회한다."""
+        self.app._check_open()
+        with self.app.project_manager.ownership.scope():
+            session, run = self.session.data, self.data
+            store = self.app.project_manager.sessions.conversations(session)
+            return self.app.run_repository.instructions(session, run, store)
+
+    ainstructions = async_method(instructions)
+
+    def instruction_targets(self):
+        """저장된 실행 대상 스냅샷. 조회 후 종료될 수 있으므로 접수 시 다시 검증한다."""
+        from llm.services.runtime.steering import instruction_targets
+        return instruction_targets(self.data)
+
+    ainstruction_targets = async_method(instruction_targets)
+
+    def instruction_routes(self):
+        """Graph 실행 스냅샷의 예약 가능한 경로 목록. 정의 편집을 반영하지 않는다."""
+        from llm.services.runtime.steering import instruction_routes
+        return instruction_routes(self.data)
+
+    ainstruction_routes = async_method(instruction_routes)
+
     def interactions(self, *, pending_only: bool = False) -> list[InteractionRequest]:
         """Run의 공통 사용자 요청. 응답/만료 상태는 별도 조회하며 요청 원본은 변경하지 않는다."""
         self.app._check_open()
@@ -608,7 +642,8 @@ class RequestHandle(AsyncFacade):
         with self.app.project_manager.ownership.scope():
             session = self.session.data
             message = self.app.project_manager.sessions.conversations(session).get(self.id)
-            if message.role != MessageRole.USER:
+            from llm.core.steering import is_instruction
+            if message.role != MessageRole.USER or is_instruction(message):
                 raise ValueError("Request ID must identify a user message")
             if message.run_id is None:
                 return None
@@ -623,7 +658,8 @@ class RequestHandle(AsyncFacade):
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             message = self.app.project_manager.sessions.conversations(self.session.data).get(self.id)
-            if message.role != MessageRole.USER:
+            from llm.core.steering import is_instruction
+            if message.role != MessageRole.USER or is_instruction(message):
                 raise ValueError("Request ID must identify a user message")
             return message
 

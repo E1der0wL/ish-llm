@@ -61,6 +61,9 @@ class HistoryRetention:
                         checkpoint = self.manager.sessions.run_repository.checkpoint(run, name)
                         sources.append(checkpoint)
                         protected_messages.update(checkpoint["header"].get("message_ids", []))
+                        if "steering" in run.metadata:
+                            from llm.services.runtime.steering import instruction_records
+                            protected_messages.update(mid for _, value in instruction_records(checkpoint) for mid in value["message_ids"])
             keep.update(m.run_id for m in messages if m.id in protected_messages and m.run_id)
             for run in runs:
                 stamps = {}

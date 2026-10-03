@@ -1,6 +1,7 @@
 """Engine 등록과 실행 전 설정 검증을 담당한다. 구체적인 Engine 구현이나 저장소에 의존하지 않는다."""
 
-from llm.engines.base import Engine, required_capabilities
+from llm.engines.base import Engine, required_capabilities, steering_mode
+from llm.core.steering import SteeringMode
 
 
 class EngineRegistry:
@@ -13,6 +14,10 @@ class EngineRegistry:
         if not callable(getattr(engine, "execute", None)):
             raise TypeError("Engine must implement execute(context)")
         required_capabilities(engine)
+        if steering_mode(engine) == SteeringMode.CONSUME:
+            name_of_checkpoint = getattr(engine, "checkpoint_name", None)
+            if not isinstance(name_of_checkpoint, str) or not name_of_checkpoint:
+                raise ValueError("Instruction consumers must declare checkpoint_name")
         if name in self._engines:
             raise ValueError(f"Engine already registered: {name}")
         self._engines[name] = engine

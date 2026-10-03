@@ -73,7 +73,7 @@ class EventContext:
     """처리기에 제공하는 Run 문맥. 영속 메타데이터 갱신은 서비스 I/O 경로를 사용한다."""
 
     # Run 시작 시 확정한 정책과 실행/재개 원본은 서비스만 변경한다.
-    _managed_metadata = frozenset(("policies", "completions", "resume", "checkpoints", "output"))
+    _managed_metadata = frozenset(("policies", "completions", "resume", "checkpoints", "output", "steering"))
 
     def __init__(self, run, engine_context, io, repository):
         self._run, self.engine_context = run, engine_context

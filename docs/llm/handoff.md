@@ -1,3 +1,166 @@
+## 2026-10-03 Graph 미시작 Agent의 일회성 추가 지시 예약
+
+- `SteeringRoute(workflow_path, node_id, engine)`와 RunHandle의
+  instruction_routes/ainstruction_routes, SessionRuns.reserve_instruction을 추가했다.
+  Graph 사전 검증 후 실행 스냅샷의 소비 Agent 경로를 선언한다. 구조 경로는 중첩 호출
+  위치/병렬 분기를 구분하고 반복 번호를 제외한다. 표시용 node_path를 파싱하지 않는다.
+  Graph Agent 컨테이너는 직접 예약 대상이 아니며 소비 가능한 자식을 선택한다.
+- BaseEngine의 declare_instruction_routes/bind_instruction_route는 기존 STEERING ACK
+  경계를 사용한다. Graph가 다음 노드 실행 시작 시 scope를 알리고, 서비스가 접수와
+  결합을 같은 StorageIO 직렬화/트랜잭션에서 처리한다. 이미 시작한 실행에는 소급하지
+  않는다. 개별 실행에 전달하는 기존 steer API와 Loop의 소비 경계는 유지한다.
+- 메시지 본문은 ConversationStore에 한 번 저장한다. 예약 영수증의 id는 고정이며,
+  reservation에 경로를, scope/execution_id에 결합 결과를 기록한다. 여러 대상은
+  각각 한 번 소비한다. 정상 종료까지 방문하지 않은 경로는 node_not_reached,
+  실패/중단/일시 정지/복구는 종료 사유로 unapplied가 된다. 부분 적용 상태도 유지한다.
+- 명시적 재개에서 미사용 예약은 이전하지 않는다. 선택만 저장되고 적용되지 않은 ID도
+  새 Run의 체크포인트 사본에서 제외한다. 적용한 예약은 기존 문맥만 복원하며 원본
+  영수증/체크포인트를 수정하거나 소비 횟수를 추가하지 않는다. 복원 판단은 메시지의
+  집계 상태가 아니라 대상별 영수증을 사용한다. 일반 활성 지시의 기존 재개 계약은 유지한다.
+- 지속 변경은 중단 후 종료를 기다려 Workflow를 수정하고 새 submit으로 처음부터
+  실행한다. 편집된 Workflow를 옛 체크포인트로 재개하지 않는다. RunStatus, 저장 버전,
+  Project → Session → Run → Step, ToolExecutor/승인/재시도/효과 원장, LangGraph
+  스케줄링은 유지한다. legacy/migration이나 새 사용자 설정 기본값을 추가하지 않았다.
+- tests/llm/test_instruction_reservations.py에 20개 검사를 추가했다. 반복/병렬/분기,
+  중첩 Workflow와 Graph Agent, 다음 실행 예약 경쟁, 미지원 거부, 스냅샷 편집,
+  선택 후 미적용 재개, 적용 후 reopen, 부분 적용 재개, 중단/새 실행, stale 복구,
+  저장 rollback과 손상 영수증의 비파괴 거부를 포함한다.
+- 첫 단계(ofnhlk83)는 GraphEngine에서 BaseEngine helper를 인스턴스 메서드로 호출한
+  오류로 실패했다(13 failure/1 error). 공통 helper 직접 호출로 수정한 뒤 집중 68개가
+  통과했다(2fwk7s14). 확대 집중 151개와 전체 1,146개도 통과했다(phakfzsc).
+  최종 데이터 검증·부분 재개 회귀·문서를 반영한 뒤 아래 최종 소스로 다시 검사했다.
+- 최종 Linux Python 3.12.14: 집중 75 passed / 0 failed / 0 skipped(29.190초),
+  전체 1,148 passed / 0 failed / 0 skipped(366.119초). 집중은 전체에 포함된다.
+  명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --modules tests.llm.test_instruction_reservations tests.llm.test_engine_steering tests.llm.test_loop_steering`.
+  snapshot: `/home/user/.cache/ish-provider-1bvnuwhy`.
+  보고서: `tests/llm/reports/ish-provider-1bvnuwhy/{focused.txt,suite.txt,source-verification.json,documentation-audit.json,changed-files.json,changes.patch}`.
+  Python 소스 275개 해시 일치, README 22개/링크 241개/Python 블록 24개/파일 설명
+  134개 정적 검사가 통과했다. 미회수 Task/RuntimeWarning이 없다. 실제 외부 모델·TUI
+  화면 검사는 수행하지 않았으며 이번 요청에는 GitHub 업로드가 포함되지 않는다.
+
+## 2026-10-03 추가 지시 사전 검증과 복구 경계 보강
+
+- Agent 계약 검증을 먼저 적용했다. AgentNode._engine은 for_agent가 반환한 실제
+  실행기의 steering_mode를 검사하고 소비자에는 유효한 checkpoint_name과
+  validate_resume을 요구한다. Graph 사전 탐색에서 거부하므로 앞선 Tool/MCP 효과가
+  발생하지 않는다. 실행 중 방어 검사도 유지하며 일반 최상위 소비자에 Graph 재개
+  계약을 강제하지 않는다. 이 단계 집중 75개가 통과했다(54o356jj).
+- core/steering에 InstructionDataError(code=invalid_instruction_data)와 현재 지시
+  형식 검증을 추가했다. 대상 ID/scope/상태/반영 이력, 집계 상태 및 메시지 소유권을
+  읽기 경계에서 검사한다. 대상 조회, 문맥 구성·복제, 지시 조회·선택·재개가 이를
+  사용한다. Loop는 자신의 local steering checkpoint 형식을 재개 전에 검사한다.
+- 복구는 지시와 복구 대상 descriptor/입력 기록의 형식을 검사한 뒤 Run/Step/메시지
+  상태를 변경한다. 옛 targets 없는 지시는 원본을 보존하고 명시적으로 거부한다.
+  Project 복구 계획도 해당 Session을 자동 복구 대상으로 분류하지 않는다. 이 경우
+  새 Session을 사용하며 자동 변환/삭제/누락 대상 추측은 없다. memory 대화의 정상적인
+  재시작 소실은 형식 손상이 아니므로 같은 Session의 새 요청은 계속 허용한다.
+- tests/llm의 기존 3개 파일에 테스트 8개를 추가했다. Tool/MCP 실행 전 실패,
+  factory 반환값 검증, malformed 데이터의 비파괴 거부, 체크포인트/대상 검증,
+  복구 전 상태 보존과 별도 Session 실행, memory 재시작을 포함한다. 기존 Graph
+  테스트에는 targets-only 알림과 저장 조회 일치 검사도 추가했다.
+- 단계 검사 izsa5ps0의 오류 1개는 기존 문맥 fixture의 빈 steering={} 때문이며
+  현재 유효한 기록으로 바꾼 뒤 집중 130개가 통과했다(vtvd4s0l, 51.690초).
+  6h4g1p7u 집중/전체 오류 1개는 신규 테스트의 ServiceConfig 인자명 오기였으며
+  conversations="memory"로 수정했다. 해당 단독 검사(zij32wfg)와 최종 전체 검사가 통과했다.
+- 최종 Linux Python 3.12.14: 전체 1,128 passed / 0 failed / 0 skipped(351.603초).
+  최종 focused 메모리 회귀 1개도 통과(0.373초)하며 전체에 포함되므로 합산하지 않는다.
+  명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --modules tests.llm.test_loop_steering.LoopSteeringTests.test_memory_restart_allows_new_request_after_instruction_loss`.
+  snapshot: `/home/user/.cache/ish-provider-abk2h9pe`.
+  보고서: `tests/llm/reports/ish-provider-abk2h9pe/{suite.txt,focused.txt,source-verification.json,documentation-audit.json,changed-files.json}`.
+  Python 소스 274개가 snapshot과 일치하며 README 22개, 링크 241개, Python 블록
+  24개, 파일 설명 134개 정적 검사가 통과했다. 미회수 Task/RuntimeWarning은 없었다.
+- Project → Session → Run → Step, ToolExecutor, 승인/재시도/이벤트 저장 ACK와 저장
+  버전은 유지한다. 대상 이력 저장/알림 성능 최적화는 포함하지 않았다. 실제 외부 모델이나
+  TUI 화면 검사는 수행하지 않았고 이번 요청에서 GitHub 업로드는 하지 않았다.
+
+## 2026-10-03 공통 추가 지시 계약과 Graph 대상 전달
+
+- 공통 계약 → Loop 회귀 → Graph 연결 순서로 진행했다. BaseEngine에
+  open/select/apply/close_instructions와 저장 ACK 검증을 두고 SteeringMode로
+  unsupported/consume/forward를 구분한다. 서비스는 반복 번호 대신 엔진 소유의
+  안정적인 boundary key를 처리한다. Loop의 steering:<iteration> 키, Tool 묶음 뒤
+  반영, 마지막 입력 확인/마감, 기존 실행 제한과 Run 시작 직후 접수 동작은 유지했다.
+- Graph AgentNode는 실행별 전달함과 대상 descriptor를 연결한다. 중첩 Workflow/
+  Graph Agent, 병렬, 반복마다 scope와 실행 ID를 구분한다. Graph는 내용을 해석하거나
+  모든 자식에 방송하지 않는다. 미지원 합성 엔진에는 수신 채널을 전파하지 않는다.
+  완료 자식의 runtime 전달함은 회수하고 UI 이력은 저장 descriptor로 조회한다.
+- `run.instruction_targets()/ainstruction_targets()`와
+  `session.run.steer(run_id, content, targets=[...])`를 추가했다. 단독 Loop는 targets를
+  생략할 수 있다. Graph는 실행 중인 consume 대상만 명시적으로 선택한다. 미시작/종료/
+  미지원 대상이나 다른 Run의 ID가 섞이면 접수 전체를 거부하고 다른 노드로 넘기지 않는다.
+- 본문은 ConversationStore에 한 번 저장한다. RunInstruction.targets에 대상별
+  pending/applied/unapplied와 이력을 둔다. 전체가 종료되고 일부만 반영됐으면
+  partially_applied다. UI에는 저장 후 STEERING_CHANGED의 instructions/targets로 알린다.
+  applied는 입력 준비 확정이며 provider 수신·모델 이행이나 여러 대상의 동시 반영 보장은 아니다.
+- 중첩 선택 기록도 EngineCheckpointScope의 기존 부모 저장 ACK 경계로 전달한다.
+  `kind=instruction`으로 일반 custom Engine의 input 기록과 구분하고 대상 scope와
+  메시지 ID만 저장한다. 명시적 재개는 선택된 입력을 원래 위치에 복원하고 완료 작업을
+  재사용한다. 미선택 지시는 자동 재생하지 않는다. 복구/보관도 중첩 메시지 참조를 보호한다.
+  노드 전용 지시는 후속 일반 대화에 자동 삽입하지 않는다. memory 저장의 소실 규칙은 같다.
+- RunStatus, Project → Session → Run → Step, storage/workflow 버전, ToolExecutor,
+  provider, LangGraph 스케줄링/순수 판단은 유지했다. Workflow 편집, 미시작 노드 예약,
+  Pipeline 단계 라우팅, legacy/migration은 추가하지 않았다. 대상 정보가 없는 이전 개발용
+  추가 지시 체크포인트는 추측/자동 변환하지 않는다. 공개 계약은 steering.md에 정리했다.
+- tests/llm/test_engine_steering.py에 20개 회귀를 추가했다. custom 비반복 경계/ACK/
+  잘못된 지원 선언, 단독 Loop 시작 알림 직후 접수, 단일·다중 대상, 부분 결과,
+  중첩·반복 경로, 승인 후 재개, 저장 실패 rollback, 후속 문맥 분리 등을 검사한다.
+  기존 Loop 회귀의 내부 patch 경로와 synthetic stale fixture도 새 계약에 맞췄다.
+- 단계 검증: Loop 57개(img5o82c), Graph/승인 집중 113개(qx8nzyjl) 통과.
+  추가 검사 a4bc0sjk의 실패 1건은 후속 Loop 테스트 fixture에 모델이 누락된 것이며
+  명시적 모델 설정으로 수정했다. 이어 집중 167개/전체 1,119개(i_xzdpfw)가 통과했다.
+  마지막으로 custom input 기록 구분자와 회귀를 추가하고 아래 최종 전체 검사를 수행했다.
+- 최종 Linux Python 3.12.14: 집중 168개 통과(72.769초), 전체 1,120개 통과(354.101초),
+  실패 0 / skip 0. 집중 검사는 전체에 포함되므로 합산하지 않는다. 실제 외부 모델이나
+  TUI 화면은 실행하지 않았고 실제 Facade/저장/Graph/Loop와 제어 가능한 모델로 검사했다.
+  명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --modules tests.llm.test_engine_steering tests.llm.test_loop_steering tests.llm.test_nested_graph tests.llm.test_graph_checkpoints tests.llm.test_transactions tests.llm.test_run_transitions tests.llm.test_memory_processing tests.llm.test_completion_processing`.
+  snapshot: `/home/user/.cache/ish-provider-ode1jcth`.
+  결과: `tests/llm/reports/ish-provider-ode1jcth/{focused.txt,suite.txt,source-verification.json,documentation-audit.json,changed-files.json}`.
+  Python 소스 274개가 snapshot/manifest와 일치한다. README 22개, 링크 241개,
+  Python 코드 블록 24개와 파일 설명 134개의 정적 검사도 통과했다.
+  검사 스크립트는 tests/llm/reports/engine_steering_audit.py이며 이번에는 GitHub에 올리지 않았다.
+
+## 2026-10-03 단독 Loop 실행 중 추가 지시
+
+- `session.run.steer(run_id, content)`와 `run.instructions()/ainstructions()`를 추가했다.
+  `RunInstruction`, `InstructionStatus`는 llm.llm에서 공개한다. RunStatus/저장 버전과
+  Project → Session → Run → Step 소유 관계는 그대로다. 일반 submit은 다음 Run으로
+  대기하며 steer는 같은 RUNNING Loop에 입력을 추가한다. Graph/Agent/Pipeline 라우팅은
+  포함하지 않았다. 새 설정 기본값이나 timeout/재시도 정책도 추가하지 않았다.
+- 본문은 선택한 ConversationStore에 저장하고 Message.metadata.steering에
+  pending/applied/unapplied 및 적용 Run/반복/Step을 기록한다. Run.metadata.steering은
+  서비스가 접수 마감을 관리한다. Engine의 내부 STEERING 이벤트와 임시 전달함으로
+  저장 ACK 뒤 입력을 전달한다. 공개 알림은 저장 후 STEERING_CHANGED이며 놓친 알림은
+  조회로 복구한다. applied는 모델 입력 준비 확정이며 provider 수신/모델 이행 증명이 아니다.
+- 현재 completion과 Tool 묶음이 끝난 다음 경계에서 반영한다. Tool 없는 답변 뒤에도
+  접수된 지시가 있으면 기존 max_iterations/Run/사용량 한도 내에서 반복한다. 최종 마감과
+  접수를 같은 저장 경계에서 판정하고 사용하지 못한 지시는 사유를 남긴다. instruction ID는
+  일반 RequestHandle로 사용할 수 없으며 queue admission/count/recovery에도 넣지 않는다.
+- steering:<iteration> 체크포인트에는 본문 없이 메시지 ID만 기록한다. 명시적 재개는
+  선택된 지시를 원래 반복 위치에 복원하고 완료한 Tool을 재실행하지 않는다. 미선택 지시는
+  자동 재생하지 않는다. 보관/복구의 참조 검사에도 연결했으며 memory 대화의 restart 한계는
+  유지한다. 새 파일은 core/steering.py와 services/runtime/steering.py다.
+- ContextPolicy/CompletionPolicy/processor/Memory는 지시를 원래 입력과 같은 턴으로
+  보존한다. 활성 지시를 가로지르는 Tool 이력 압축은 생략한다. 재개 후 최근 턴 선택에서도
+  지시가 함께 남고 형제 재개 분기의 지시는 섞이지 않는다. 사용자 completion policy는
+  지시 포함 입력에 prepare_turn(request, current_index, turn_starts)를 제공해야 한다.
+- 전체 검사에서 발견된 대기 중 승인 만료 회귀를 수정했다. 재개 원본 검증을 _begin에서
+  하지 않고 기존 _consume 오류 경계에서 끝낸 뒤 접수를 연다. 체크포인트가 대기 중 변경돼도
+  해당 Run만 실패하고 Session의 다음 요청은 계속 진행한다. 최초 전체 rb6leh5i의 오류
+  2개는 동일 승인 만료 테스트와 그 정리 경로였으며 후속 전체 검사에서 해결됐다.
+- tests/llm/test_loop_steering.py에 회귀 28개를 추가했다. 실제 Facade/저장/Loop와 제어 가능한
+  모델 fixture로 순서, 종료 경쟁, 저장/적용 rollback, 호출자 취소, 중단, 재시작/재개,
+  완료 Tool 재사용, batching, memory store/요약, 토큰/호출/큐 한도, 복제와 분기 문맥을 검사한다.
+  실제 외부 모델이나 TUI 화면을 사용하는 수동 검사는 이번 작업에서 수행하지 않았다.
+- Linux Python 3.12.14: 집중 167개 통과(58.719초), 전체 1,100개 통과(334.396초),
+  실패 0 / skip 0. 집중 검사는 전체에 포함되므로 합산하지 않는다.
+  명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --modules tests.llm.test_loop_steering tests.llm.test_loop tests.llm.test_memory_processing tests.llm.test_completion_processing tests.llm.test_long_running tests.llm.test_run_transitions tests.llm.test_transactions tests.llm.test_interactions`.
+  Linux 소스 스냅샷: `/home/user/.cache/ish-provider-7n4opffu`.
+  결과: `tests/llm/reports/ish-provider-7n4opffu/{focused.txt,suite.txt,snapshot.json,source-verification.json}`.
+  최종 Python 소스 해시는 스냅샷과 대조했다. 문서 링크 검사도 README 22개, 내부 링크
+  238개, Python 파일 안내 134개를 통과했다(`tests/llm/reports/loop-steering-documentation.json`).
+  사용법과 한계는 llm/engines/loop/README.md, 메인 README와 LargeLanguageModel 독스트링에 있다.
+  이번 요청에서는 GitHub 업로드를 수행하지 않았다.
+
 ## 2026-10-03 사용자·개발자용 README 정리
 
 - `llm/`의 README 22개를 정리했다. 기존 8개는 개요·사용 흐름부터 읽도록 개편하고,

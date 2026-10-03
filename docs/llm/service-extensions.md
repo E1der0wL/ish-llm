@@ -33,6 +33,10 @@ project = await backend.projects.acreate(config={
 `event_handlers`, `logger`를 지정할 수 있다. 미지정 저장소는 백엔드 구성 시 생성한다.
 실행, Facade 조회, Project/Session 결과 조회는 같은 저장소 인스턴스를 사용한다.
 주입 context_builder의 for_run은 keyword policy로 해당 Run의 프로젝트 정책을 받는다.
+추가 지시는 원래 요청과 같은 턴이다. 사용자 context_builder도 Message.metadata.steering을
+구분하여 따로 새 턴으로 자르지 않아야 한다. 기본 CompletionPolicy는
+prepare_turn(request, current_index, turn_starts)로 활성 턴 전체를 보호한다. 주입한
+completion policy도 추가 지시가 포함된 입력을 다룰 때 이 메서드를 제공해야 한다.
 저장할 선택값은 [ProjectConfig.policies](project-policies.md)에서 관리한다.
 
 저장소 교체는 기존 모델/경로/동기 저장/ownership 계약을 따르는 구현을 대상으로 한다.
@@ -93,7 +97,7 @@ class ValidatedEngine(BaseEngine):
 처리기는 동기 함수 또는 async 함수다. RunManager는 처리 완료를 기다린 후 다음 이벤트로
 진행한다. 실패하면 Run이 실패하고, 명시적 interrupt로 대기 중인 비동기 처리기를 중단할 수 있다.
 검증 결과·검색 결과 등을 Run에 남길 때는 `update_metadata()`를 사용한다.
-`policies`, `completions`, `resume`, `checkpoints`, `output`은 서비스 소유 키다.
+`policies`, `completions`, `resume`, `checkpoints`, `output`, `steering`은 서비스 소유 키다.
 하나라도 포함하면 `ValueError`로 전체 갱신을 거부하며 허용 키만 부분 저장하지 않는다.
 정책은 Project 설정 API로 변경하고, 실행 중인 Run의 시작 시점 정책 사본은 유지한다.
 그 밖의 사용자 JSON 키는 기존처럼 사용할 수 있다. 저장·커밋 실패 시 기존 트랜잭션이

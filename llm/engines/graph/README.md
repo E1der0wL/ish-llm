@@ -45,6 +45,19 @@ LangGraph 스케줄링, 병렬 합류, 취소 정리와 이벤트 ACK는 실행�
 
 ## 중단·승인·재개
 
+실행 중 추가 지시는 `run.ainstruction_targets()`에서 확인한 소비자 ID를 사용해
+`session.run.steer(run.id, text, targets=[...])`로 전달합니다. Graph는 내용을 해석하지 않고
+선택한 Agent Engine으로 전달하며, Loop는 다음 Completion 경계에서 반영합니다.
+중첩·병렬·반복 실행마다 대상을 구분하고 대상별 반영 상태를 저장합니다. 미시작 Agent는
+`run.ainstruction_routes()`의 경로를 `session.run.reserve_instruction(..., targets=routes)`로
+예약합니다. 접수 이후 다음 실행 하나에만 결합하고 현재 실행에 소급하거나 다음 반복에
+중복 전달하지 않습니다. 실행되지 않으면 unapplied로 종료하며 미사용 예약은 재개에
+이전하지 않습니다. [공통 전달·UI 계약](../../../docs/llm/steering.md)을 참고하세요.
+
+추가 지시를 소비하는 Agent Engine은 `checkpoint_name`과 동기 `validate_resume`을 제공해야 합니다.
+AgentNode는 `for_agent()`가 반환한 실제 Engine을 사전 탐색에서 검사하여, 계약 오류가 있을 때
+앞선 Tool이나 MCP 연결이 먼저 실행되지 않도록 합니다. 미지원 Engine의 기존 계약은 유지합니다.
+
 `pause_before`는 노드 실행 전 대기 기록을 저장합니다. 노드 확인은 Tool 실행 승인을 대신하지 않으며 ToolPolicy가 ASK를 반환하면 별도 Tool 승인이 필요합니다.
 
 명시적 재개는 새 Run을 만듭니다. 완료 노드는 저장 결과를 재사용하고, 시작했지만 완료되지 않은 동작은 명시적 `retry_nodes` 검증을 거칩니다. 중첩 체크포인트도 원래 Interaction과 binding을 검증합니다. [재개 계약](../../../docs/llm/graph-checkpoints.md)을 참고하세요.

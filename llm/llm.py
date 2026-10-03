@@ -41,6 +41,7 @@ from llm.core.interactions import InteractionRequest, InteractionOption, Interac
 from llm.providers.calls import ProviderCalls, ProviderLimits
 from llm.services.runtime.output import OutputPolicy
 from llm.engines.base import Engine, EngineEvent, EngineEventType
+from llm.core.steering import RunInstruction, InstructionStatus, SteeringMode, SteeringTarget, SteeringRoute
 from llm.engines.registry import EngineRegistry
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine, GraphNodeContext
@@ -278,6 +279,37 @@ class LargeLanguageModel:
     result.status를 확인한다. 대기 timeout이나 대기 호출 취소가 Run을 중단하지는 않는다.
     동기 조회는 request.data/run/result, run.data/engine/response/result를 사용한다.
     memory 대화가 소멸하면 이전 Run 메타데이터는 남아도 응답 Message 조회는 KeyError다.
+
+    실행 중 추가 지시 — UI가 Run 시작 알림에서 받은 ID로 호출한다::
+
+        instruction = await session.run.steer(active_run_id, "결과를 표로 정리해줘.")
+        active_run = await session.run.aload(active_run_id)
+        instructions = await active_run.ainstructions()
+
+    단독 Loop에서 같은 RUNNING Run의 다음 completion 입력에 반영한다. 진행 중인 Tool
+    묶음은 먼저 끝내며 일반 submit은 여전히 다음 Run이다. Graph는 실행 대상을 지정한다::
+
+        targets = await active_run.ainstruction_targets()
+        # UI에서 사용자가 선택한 accepting=True 소비자 ID 목록을 전달한다.
+        instruction = await session.run.steer(active_run_id, "근거도 포함해줘.",
+                                               targets=selected_target_ids)
+
+    Graph/중첩 Agent는 지정한 자식 실행에만 전달하며 Pipeline 라우팅은 미지원이다.
+    미시작 Agent는 실행 스냅샷의 SteeringRoute로 한 번 예약한다::
+
+        routes = await active_run.ainstruction_routes()
+        # UI가 routes 중 선택한 SteeringRoute 객체 목록이다.
+        instruction = await session.run.reserve_instruction(
+            active_run_id, "이번 검토에 예외 처리도 포함해줘.", targets=selected_routes)
+
+    경로별 다음 실행 한 번만 소비하며 미사용 예약은 unapplied와 사유를 남긴다.
+    재개 시 미사용 예약은 이전하지 않고 적용한 예약은 기존 문맥만 복원한다.
+    지속 변경은 interrupt 후 종료를 기다려 Workflow를 수정하고 submit으로 새로 시작한다.
+    접수 마감/미지원 대상은 steering_unavailable로 거절한다. 대상별 상태는 instruction.targets,
+    전체 상태는 pending/applied/unapplied/partially_applied다. applied는 입력 준비 확정이며
+    provider 수신이나 모델의 이행을 보장하지 않는다. applications와 reason도 조회한다.
+    저장 후 STEERING_CHANGED(metadata.instructions, targets 또는 routes)로 알린다. 알림 누락이나
+    API 대기 취소 뒤에는 해당 조회 API로 재조회한다. 기존 Run/Tool 정책과 interrupt는 유지된다.
 
     운영 한도 / UI 대기열::
 
