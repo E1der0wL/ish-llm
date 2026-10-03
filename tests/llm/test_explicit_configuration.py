@@ -37,7 +37,7 @@ class ConfigurationTests(unittest.TestCase):
             (LoopEngine(system_prompt=""), "system_prompt", "", True),
             (LoopEngine(system_prompt="host prompt"), "system_prompt", "host prompt", True),
             (LoopEngine(request_timeout=None), "request_timeout", None, True),
-            (GraphEngine("workflow", handlers={}, timeout_seconds=None), "timeout_seconds", None, True),
+            (GraphEngine(handlers={}, timeout_seconds=None), "timeout_seconds", None, True),
             (PreparationStep("prepare", lambda context: None, timeout_seconds=None), "timeout_seconds", None, True),
         ]
         for engine, key, value, overridden in cases:
@@ -85,8 +85,8 @@ class ConfigurationTests(unittest.TestCase):
         self.assertIsNone(loop.request_timeout)
         self.assertIsNone(loop.tool_timeout)
         self.assertEqual(loop.configuration({}, "loop")["values"], {})
-        self.assertEqual(GraphEngine("workflow", handlers={}).configuration({}, "graph")["values"], {})
-        self.assertIsNone(GraphEngine("workflow", handlers={}).timeout_seconds)
+        self.assertEqual(GraphEngine(handlers={}).configuration({}, "graph")["values"], {})
+        self.assertIsNone(GraphEngine(handlers={}).timeout_seconds)
         self.assertEqual(LoopEngine(request_timeout=None).configuration(
             {"engines": {"loop": {"request_timeout": 300}}}, "loop")["values"], {"request_timeout": None})
 
@@ -239,13 +239,13 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(.03)
                 return {}
             with tempfile.TemporaryDirectory() as root:
-                engine = GraphEngine("flow", handlers={"slow": slow}, **graph_options)
+                engine = GraphEngine(handlers={"slow": slow}, **graph_options)
                 async with LargeLanguageModel(root, components=[WorkflowComponent()], engines={"graph": engine}) as app:
                     project = await app.projects.acreate(components=["workflows"])
                     graph = WorkflowGraph(entry="work").node("work", "slow", **node_options).node("end", "end").connect("work", "end")
                     await project.components.workflows.acreate(graph.to_dict(), identifier="flow")
                     session = await project.sessions.acreate()
-                    run = await (await session.run.submit("go", engine="graph")).wait(timeout=5)
+                    run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=5)
                     self.assertEqual(run.data.status, expected, run.data.error)
 
     async def test_native_library_options_are_omitted_and_explicit_values_pass_through(self):
@@ -301,7 +301,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 captured.append(params)
                 return chunks()
             components = [AgentComponent(), WorkflowComponent(), SkillComponent()]
-            graph = GraphEngine("flow", handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=call)})})
+            graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=call)})})
             with tempfile.TemporaryDirectory() as root:
                 async with LargeLanguageModel(root, components=components, engines={"graph": graph}) as app:
                     project = await app.projects.acreate(components=[c.name for c in components], config={
@@ -318,7 +318,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                         .node("end", "end").connect("work", "end"))
                     await project.components.workflows.acreate(flow.to_dict(), identifier="flow")
                     session = await project.sessions.acreate(config={"completion": {"top_p": .7}})
-                    run = await (await session.run.submit("hello", engine="graph")).wait(timeout=5)
+                    run = await (await session.run.submit("hello", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=5)
                     self.assertEqual(run.data.status, "completed", run.data.error)
                     await project.components.agents.aupdate_prompt("worker", None, expected_revision=prompt_view["revision"])
                     self.assertIsNone((await project.components.agents.aprompt("worker"))["system_prompt"])

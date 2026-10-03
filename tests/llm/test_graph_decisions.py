@@ -102,7 +102,7 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.app = LargeLanguageModel(temporary.name,
-            engines={"graph": GraphEngine("flow", handlers={"work": work})}, on_event=on_event)
+            engines={"graph": GraphEngine(handlers={"work": work})}, on_event=on_event)
         self.addAsyncCleanup(self.app.shutdown)
         project = await self.app.projects.acreate(components=["workflows"])
         await project.components.workflows.acreate(definition, identifier="flow")
@@ -140,7 +140,7 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
             .connect("route", "yes", port="yes").connect("route", "no", port="no")
             .connect("yes", "end").connect("no", "end").to_dict())
         await self.setup_graph(graph, work, on_event=observe)
-        paused = await (await self.session.run.submit("go", engine="graph")).wait(timeout=15)
+        paused = await (await self.session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=15)
         self.assertEqual(paused.data.status, RunStatus.PAUSED)
         checkpoint = await paused.acheckpoint()
         self.assertEqual(trace, [("record", "first", "started"), ("start", "first"), ("effect", "first"),
@@ -167,7 +167,7 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
             .connect("route", "action", port="yes").connect("route", "end", port="no")
             .connect("action", "end").to_dict())
         await self.setup_graph(graph, work)
-        failed = await (await self.session.run.submit("go", engine="graph")).wait(timeout=15)
+        failed = await (await self.session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=15)
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         self.assertIn("Ordered comparison", failed.data.error)
         self.assertEqual(calls, [])

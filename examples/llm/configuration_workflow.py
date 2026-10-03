@@ -374,7 +374,7 @@ def backend(workspace, config, review, *, completion_fn=None, rag_component=None
         {"type": "object", "required": ["package"], "properties": {"package": {"type": "object"}},
          "additionalProperties": False}, review.apply,
         contract=ToolContract(effect="external", approval_required=True, operation_key_required=True)),))
-    graph = GraphEngine("configuration-review", handlers={"agent": AgentNode(engines={"loop": loop}),
+    graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": loop}),
         "snapshot": review.snapshot, "validate_candidate": review.validate, "tool": ToolNode()})
     return LargeLanguageModel(workspace, engines={"graph": graph, "loop": loop}, components=[
         rag_component or RAGComponent(), AgentComponent(), WorkflowComponent(), ReviewTools(registry)],
@@ -423,7 +423,7 @@ async def plan(workspace, config, request, *, report_only=False, completion_fn=N
                                                                        identifier="configuration-review")
             session = await project.sessions.acreate("Configuration change request")
             report["session_id"] = session.id
-            await describe_run(await (await session.run.submit(request, engine="graph")).wait(), report)
+            await describe_run(await (await session.run.submit(request, engine="graph", engine_options={"workflow": "configuration-review"})).wait(), report)
     except Exception as error:
         report.update(status="failed", error=f"{type(error).__name__}: {error}")
     finally:

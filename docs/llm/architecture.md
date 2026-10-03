@@ -48,7 +48,7 @@ decision_for/select_decision과 same_interaction_value를 공유한다. 서비�
 알리지 않으며 저장 transaction 문맥을 이벤트 루프로 넘기지 않는다. Engine/Run 알림은
 기존 저장 경계를 유지하고, UI가 놓친 알림은 도메인 조회/출력 저널로 복원한다.
 
-EventContext.update_metadata는 policies/completions/resume/checkpoints/output/steering을
+EventContext.update_metadata는 policies/completions/resume/checkpoints/output/steering/engine_options를
 서비스 소유 필드로 보호한다. Run 정책은 시작 시점 사본이며 사용자 이벤트가 덮어쓰지
 않는다. 정상 메타데이터 쓰기도 StorageIO의 도메인 객체 watch에 참여하여 저장 실패 시
 파일과 메모리가 함께 복원된다. Project 설정 API와 기존 저장 형식은 유지한다.
@@ -57,6 +57,16 @@ EventSubscriptions는 구독 해제 시 대기 알림을 비우고 진행 중인
 참조를 회수한다. Subscription.aclose로 완료를 기다릴 수 있다. 종료 구독의 숫자 합계만
 남기며 관측 계층에 별도 실행 상태를 만들지 않는다. 새 timeout/강제 취소 정책을 추가하지
 않는다. 자세한 계약은 [서비스 확장](service-extensions.md)에 있다.
+
+## 요청별 Engine 선택
+
+Engine 요청 인자는 submit의 engine_options JSON 객체로 접수하여 QUEUED Message.metadata와
+Run.metadata에 저장한다. EngineRegistry.resolve_request가 선택적 동기 for_request를 호출한다.
+factory는 무효과·등록 객체 불변 계약이며 요청 사본이 capability 탐색과 실행을 함께 담당한다.
+Graph 생성자는 handlers/실행 설정만 받는다. workflow는 매 요청에서 필수이고 정의는 Run
+시작 시 읽는다. 재개는 원본 Run의 옵션을 복원하고 기존 체크포인트 binding을 재검증한다.
+Graph Agent는 자신의 engine_options.workflow, workflow 노드는 자신의 workflow를 사용한다.
+RunStatus/소유 계층/저장 버전은 변경하지 않으며 옛 생성자 선택을 복구하는 fallback은 없다.
 
 ## 실행 중 Engine 추가 지시
 
@@ -1275,8 +1285,14 @@ termination, duplicate IDs and size limits. An optional fresh response dictionar
 receives a completion-format assistant message only after success; it remains
 unchanged on failure/cancellation. The method emits COMPLETION observations alongside strings, but no Step
 lifecycle events and no application deadline. Use run()/step() for lifecycle and deadline handling.
-It handles text/tool completion streams and numeric usage observations;
-reasoning/multimodal content is not surfaced. It executes no tools and performs no domain persistence.
+It handles text/tool completion streams and numeric usage observations.
+Provider-supplied `delta.reasoning_content` is accumulated separately in
+`CompletionResult.reasoning_content` and emitted through the existing COMPLETION
+observation/persistence path. It never becomes Assistant answer text or an invented
+reasoning trace. The output character limit covers both answer and reasoning text;
+failure/interruption retains the last durable partial observation. Missing fields in
+older completion observations default to empty text. Multimodal content is not surfaced.
+It executes no tools and performs no domain persistence.
 
 copy_params() retains live SDK clients/callbacks while copying builtin containers.
 Per-call transcripts are isolated even when a cancelled provider thread is still

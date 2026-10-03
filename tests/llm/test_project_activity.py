@@ -170,8 +170,8 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.session = await self.project.sessions.acreate()
         return temporary.name
 
-    async def run_request(self, session=None):
-        return await (await (session or self.session).run.submit("SECRET-PROMPT", engine="test")).wait(timeout=20)
+    async def run_request(self, session=None, **options):
+        return await (await (session or self.session).run.submit("SECRET-PROMPT", engine="test", **options)).wait(timeout=20)
 
     async def test_success_many_steps_two_sessions_reopen_and_no_raw_content(self):
         from llm.engines.pipeline import PipelineEngine
@@ -224,11 +224,11 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
             raise ProviderError("provider_unavailable")
         async def handler(node):
             await invoke("aembedding", {}, component, {"max_attempts": 2})
-        await self.setUpBackend(GraphEngine("flow", handlers={"component": handler}), components=[WorkflowComponent()])
+        await self.setUpBackend(GraphEngine(handlers={"component": handler}), components=[WorkflowComponent()])
         workflow = (WorkflowGraph(entry="component").node("component", "component")
                     .node("end", "end").connect("component", "end").to_dict())
         await self.project.components.workflows.acreate(workflow, identifier="flow")
-        handle = await self.run_request()
+        handle = await self.run_request(engine_options={"workflow": "flow"})
         self.assertEqual(len(calls), 2)
         events = await self.project.aactivity()
         self.assertEqual([e.event for e in events].count("step.failed"), 2)
@@ -305,10 +305,10 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
         async def work(node):
             return {}
         await self.backend.shutdown()
-        await self.setUpBackend(GraphEngine("flow", handlers={"work": work}), components=[WorkflowComponent()])
+        await self.setUpBackend(GraphEngine(handlers={"work": work}), components=[WorkflowComponent()])
         graph = WorkflowGraph(entry="work").node("work", "work", pause_before=True).node("end", "end").connect("work", "end")
         await self.project.components.workflows.acreate(graph.to_dict(), identifier="flow")
-        handle = await self.run_request()
+        handle = await self.run_request(engine_options={"workflow": "flow"})
         self.assertEqual((await handle.aresult()).status, RunStatus.PAUSED)
         events = await self.project.aactivity()
         self.assertEqual([e.event for e in events], ["run.paused", "run.started"])

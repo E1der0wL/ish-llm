@@ -231,7 +231,7 @@ class GraphInteractionTests(unittest.IsolatedAsyncioTestCase):
             return await authorize(call)
         self.app = LargeLanguageModel(self.root, components=[WorkflowComponent(), RuntimeTools(
             ToolRegistry((Tool('act', 'action', {'type': 'object'}, act),)))],
-            engines={'graph': GraphEngine('flow', handlers={'tool': ToolNode()})},
+            engines={'graph': GraphEngine(handlers={'tool': ToolNode()})},
             services=ServiceConfig(tool_policy=ToolPolicy(authorize=checked)))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate(components=['tools', 'workflows'])

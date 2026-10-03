@@ -65,7 +65,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
     async def setup_graph(self, graph, completion, *, handlers=None, extra_components=()):
         components = [AgentComponent(), WorkflowComponent(), RuntimeTools(self.catalog), *extra_components]
         self.backend = LargeLanguageModel(self.root, components=components, engines={
-            "graph": GraphEngine("flow", handlers=handlers or {"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=completion)})})})
+            "graph": GraphEngine(handlers=handlers or {"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=completion)})})})
         self.addAsyncCleanup(self.backend.shutdown)
         self.project = await self.backend.projects.acreate("Workflow", components=[c.name for c in components], config=rag_project() if any(c.name == "rag" for c in components) else {})
         self.agents = await self.project.components.aget("agents")
@@ -76,7 +76,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.session = await self.project.sessions.acreate("Request")
 
     async def run_graph(self, prompt="Please write"):
-        return await (await self.session.run.submit(prompt, engine="graph")).wait(timeout=40)
+        return await (await self.session.run.submit(prompt, engine="graph", engine_options={"workflow": "flow"})).wait(timeout=40)
 
     async def output(self, run):
         return next(s for s in await run.steps.alist() if s.kind == "graph").output.data
@@ -126,8 +126,8 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call('{"value":"x"}', name="echo")]), chunk(finish="tool_calls")],
                                    answer("next"))
         await self.setup_graph(agent_graph(), model)
-        first = await self.session.run.submit("first", engine="graph")
-        second = await self.session.run.submit("second", engine="graph")
+        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
+        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
         self.assertEqual((await first.wait()).data.status, RunStatus.FAILED)
         completed = await second.wait()
         self.assertEqual(completed.data.status, RunStatus.COMPLETED)
@@ -238,9 +238,9 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call('{}', name="echo")]), chunk(finish="tool_calls")],
                                    answer("next"))
         await self.setup_graph(agent_graph(), model)
-        first = await self.session.run.submit("first", engine="graph")
+        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
         await asyncio.wait_for(entered.wait(), 10)
-        second = await self.session.run.submit("second", engine="graph")
+        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
         await self.session.run.interrupt()
         interrupted = await first.wait(timeout=10)
         self.assertEqual(interrupted.data.status, RunStatus.INTERRUPTED)
@@ -444,7 +444,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         await self.setup_graph(agent_graph(), model, extra_components=(MCPComponent(connector=connector),))
         await (await self.project.components.aget("mcp")).acreate(
             {"transport": "stdio", "command": "host-owned"}, identifier="local")
-        request = await self.session.run.submit("wait", engine="graph")
+        request = await self.session.run.submit("wait", engine="graph", engine_options={"workflow": "flow"})
         await asyncio.wait_for(entered.wait(), 10)
         await self.session.run.interrupt()
         run = await request.wait()

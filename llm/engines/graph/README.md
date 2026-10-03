@@ -29,11 +29,28 @@ from llm.engines.loop import LoopEngine
 loop = LoopEngine()
 engines = {
     "loop": loop,
-    "graph": GraphEngine("review", handlers={
+    "graph": GraphEngine(handlers={
         "tool": ToolNode(), "agent": AgentNode(engines={"loop": loop}),
     }),
 }
 ```
+
+백엔드에 위 `engines`를 등록한 뒤 요청마다 저장된 Workflow ID를 선택합니다.
+
+```python
+request = await session.run.submit(
+    "설정 파일을 검토해줘", engine="graph", engine_options={"workflow": "review"},
+)
+run = await request.wait()
+```
+
+생성자는 Workflow를 받지 않습니다. 요청의 `workflow`는 필수이며 기본값이나
+Project 설정으로 추측하지 않습니다. `engine_options`는 JSON 객체이고 Graph 요청은
+`workflow`만 받습니다. 시간·병렬 제한 등은 기존 Project/Session/host 설정 경로를 사용합니다.
+요청 선택은 QUEUED 메시지와 Run에 저장되며 등록 Engine은 변경하지 않습니다.
+정의는 Run 시작 시 읽습니다. 대기 중 편집은 다음 실행에 반영되고 시작한 실행은
+자신의 스냅샷을 사용합니다. 존재하지 않는 ID나 잘못된 정의는 실행 전 검증에서 실패합니다.
+resume은 원본 Run의 선택값을 복원하며 다른 Workflow로 변경할 수 없습니다.
 
 Agent의 `engine`은 `AgentNode(engines=...)`에 전달한 맵/EngineRegistry에서 찾습니다. 같은 Engine을 최상위 요청에서도 선택하려면 백엔드에도 등록합니다. Agent용 Engine은 `for_agent(definition)`으로 호출별 실행기를 반환해야 하며, LoopEngine과 GraphEngine이 이 계약을 제공합니다. Workflow 선택과 실행 설정은 [Graph 개발 문서](../../../docs/llm/graph-engine.md)에 있습니다.
 

@@ -71,7 +71,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
 
     async def setup_graph(self, graph, work, **options):
         self.events = []
-        self.engine = GraphEngine("flow", handlers={"work": work}, **options)
+        self.engine = GraphEngine(handlers={"work": work}, **options)
         self.app = LargeLanguageModel(self.root, engines={"graph": self.engine},
                                      on_run_event=lambda event: self.events.append(event))
         self.addAsyncCleanup(self.app.shutdown)
@@ -81,7 +81,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         self.session = await self.project.sessions.acreate()
 
     async def run_graph(self):
-        return await (await self.session.run.submit("original request", engine="graph")).wait(timeout=30)
+        return await (await self.session.run.submit("original request", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=30)
 
     async def resume(self, run, **options):
         return await (await self.session.run.resume(run.id, engine="graph", **options)).wait(timeout=30)
@@ -133,7 +133,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             return {"done": True}
         await self.setup_graph(straight(), work)
-        request = await self.session.run.submit("run", engine="graph")
+        request = await self.session.run.submit("run", engine="graph", engine_options={"workflow": "flow"})
         await asyncio.wait_for(entered.wait(), 10)
         await self.session.run.interrupt()
         stopped = await request.wait()
@@ -290,7 +290,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             with (self.root / "effects.txt").open("a", encoding="utf-8") as stream:
                 stream.write(node.node_id + "\n")
             return {"second_done": True}
-        app = LargeLanguageModel(self.root, engines={"graph": GraphEngine("flow", handlers={"work": work})})
+        app = LargeLanguageModel(self.root, engines={"graph": GraphEngine(handlers={"work": work})})
         self.addAsyncCleanup(app.shutdown)
         project = (await app.projects.alist())[0]
         session = (await project.sessions.alist())[0]
@@ -341,7 +341,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         memory = await self.app.projects.acreate("memory", components=["workflows"], conversation_storage="memory")
         await (await memory.components.aget("workflows")).acreate(straight(pause_before=True), identifier="flow")
         session = await memory.sessions.acreate()
-        paused = await (await session.run.submit("private memory transcript marker", engine="graph")).wait()
+        paused = await (await session.run.submit("private memory transcript marker", engine="graph", engine_options={"workflow": "flow"})).wait()
         checkpoint = await paused.acheckpoint()
         self.assertNotIn("private memory transcript marker", json.dumps(checkpoint))
         pid, tid, rid = memory.id, session.id, paused.id
@@ -374,8 +374,8 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(node.context.messages[-1].id, node.context.run.input_message_id)
             return {}
         await self.setup_graph(straight(pause_before=True), work)
-        first = await self.session.run.submit("first", engine="graph")
-        second = await self.session.run.submit("second", engine="graph")
+        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
+        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
         first_run, second_run = await first.wait(), await second.wait()
         self.assertEqual(first_run.data.status, RunStatus.PAUSED)
         self.assertEqual(second_run.data.status, RunStatus.PAUSED)

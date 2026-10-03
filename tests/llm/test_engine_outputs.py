@@ -67,8 +67,8 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.project = await self.app.projects.acreate("outputs", conversation_storage=storage)
         self.session = await self.project.sessions.acreate("session")
 
-    async def request(self):
-        return await (await self.session.run.submit("go", engine="test")).wait(timeout=20)
+    async def request(self, **options):
+        return await (await self.session.run.submit("go", engine="test", **options)).wait(timeout=20)
 
     async def test_structured_base_output_final_query_and_reopen(self):
         async def work(context):
@@ -279,7 +279,7 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
                  .node("join", "join").node("end", "end")
                  .connect("fork", "a").connect("fork", "b")
                  .connect("a", "join").connect("b", "join").connect("join", "end").to_dict())
-        self.app = LargeLanguageModel(self.root, engines={"test": GraphEngine("flow",
+        self.app = LargeLanguageModel(self.root, engines={"test": GraphEngine(
             handlers={"agent": AgentNode(engines=engines)})})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("parallel", components=["agents", "workflows", "tools"])
@@ -289,7 +289,7 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
                                   "tools": []}, identifier=name)
         await (await self.project.components.aget("workflows")).acreate(graph, identifier="flow")
         self.session = await self.project.sessions.acreate("parallel")
-        run = await self.request()
+        run = await self.request(engine_options={"workflow": "flow"})
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual((await run.aresponse()).content, "")
         result = (await run.aresult()).output

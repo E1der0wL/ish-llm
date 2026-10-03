@@ -59,8 +59,8 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             await (await project.components.aget("tools")).aenable("act")
         return app, project, await project.sessions.acreate("test")
 
-    async def execute(self, session, engine="echo", text="hello"):
-        request = await session.run.submit(text, engine=engine)
+    async def execute(self, session, engine="echo", text="hello", **options):
+        request = await session.run.submit(text, engine=engine, **options)
         return await request.wait(timeout=15)
 
     def loop(self, *responses):
@@ -263,10 +263,10 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         for name in ("a", "b"):
             graph["nodes"][name] = {"type": "tool", "tool": "act", "arguments": {}}
         _, project, session = await self.backend(components=[self.tools, WorkflowComponent()],
-            engines={"graph": GraphEngine("flow", handlers={"tool": ToolNode()})},
+            engines={"graph": GraphEngine(handlers={"tool": ToolNode()})},
             services=ServiceConfig(tool_policy=ToolPolicy(max_calls=1)))
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
-        run = await self.execute(session, "graph")
+        run = await self.execute(session, "graph", engine_options={"workflow": "flow"})
         self.assertEqual(run.result.error_code, "tool_budget_exceeded")
         self.assertLessEqual(len(self.effects), 1)
         self.assertEqual(run.data.status, RunStatus.FAILED)
@@ -274,13 +274,13 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
     async def test_graph_agent_inherits_backend_tool_policy(self):
         completion = ScriptedCompletion([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         _, project, session = await self.backend(components=[self.tools, WorkflowComponent(), AgentComponent()],
-            engines={"graph": GraphEngine("flow", handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=completion)})})},
+            engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=completion)})})},
             services=ServiceConfig(tool_policy=ToolPolicy(allowed_tools=())))
         await (await project.components.aget("agents")).acreate({"engine": "loop", "purpose": "test", "completion": {"model": "test/model"},
             "tools": ["act"], "engine_options": {"max_iterations": 2}}, identifier="worker")
         graph = WorkflowGraph(entry="a").node("a", "agent", agent="worker").node("end", "end").connect("a", "end").to_dict()
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
-        run = await self.execute(session, "graph")
+        run = await self.execute(session, "graph", engine_options={"workflow": "flow"})
         self.assertEqual(run.result.error_code, "tool_denied")
         self.assertEqual(self.effects, [])
 

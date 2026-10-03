@@ -191,7 +191,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         app = self.backend(components=[MemoryComponent()])
         project = await app.projects.acreate(components=["memory"], config=ProjectConfig(
             component_configurations={"memory": {"search_limit": 4}}, data={"application": 1}))
-        engine = GraphEngine("flow", handlers={}, config_keys=())
+        engine = GraphEngine(handlers={}, config_keys=())
         binding = engine._execution_config(SimpleNamespace(project=await project.aget_data()))
         self.assertEqual(binding["component_configurations"], {"memory": {"search_limit": 4}})
         self.assertNotIn("data", binding)

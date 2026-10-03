@@ -17,7 +17,7 @@ from llm.engines.graph import GraphEngine
 from llm.components.workflows import WorkflowGraph
 
 agent_node = AgentNode(engines={"loop": LoopEngine()})
-graph_engine = GraphEngine("review", handlers={"agent": agent_node})
+graph_engine = GraphEngine(handlers={"agent": agent_node})
 
 async with LargeLanguageModel(workspace, engines={"graph": graph_engine}) as backend:
     project = await backend.projects.acreate(
@@ -47,7 +47,7 @@ async with LargeLanguageModel(workspace, engines={"graph": graph_engine}) as bac
     workflows = await project.components.aget("workflows")
     await workflows.acreate(workflow.to_dict(), identifier="review")
     session = await project.sessions.acreate("Review request")
-    run = await (await session.run.submit("이 코드를 검토해줘: ...", engine="graph")).wait()
+    run = await (await session.run.submit("이 코드를 검토해줘: ...", engine="graph", engine_options={"workflow": "review"})).wait()
     response = await run.aresponse()
     steps = await run.steps.alist()
 ```

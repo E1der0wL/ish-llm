@@ -264,7 +264,7 @@ class EngineDecisionTests(unittest.TestCase):
                 engine.validate_resume(checkpoint, decisions=decisions)
 
     def test_graph_retains_state_schema_and_confirmation_shape(self):
-        engine = GraphEngine("flow", handlers={})
+        engine = GraphEngine(handlers={}).for_request({"workflow": "flow"})
         request = DecisionValueTests().confirmation()
         checkpoint = {"header": {"format": "workflow-nodes-v1", "binding": {
             "workflow_id": "flow", "revision": engine.revision}}, "records": {"review": {

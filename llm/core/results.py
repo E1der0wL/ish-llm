@@ -120,6 +120,8 @@ class CompletionResult:
     usage: dict = field(default_factory=dict)
     usage_complete: bool = False
     reserved_tokens: Optional[int] = None
+    # Only text explicitly exposed by the provider, separate from the answer.
+    reasoning_content: str = ""
 
     @classmethod
     def for_run(cls, data: dict, run: Run) -> "CompletionResult":

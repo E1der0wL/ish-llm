@@ -26,7 +26,7 @@ completed 저장이 실패하면 started로 남아 재실행 승인이 필요하
 ## UI에서 조회·재개
 
 ```python
-request = await session.run.submit("설정 파일을 검토해줘", engine="graph")
+request = await session.run.submit("설정 파일을 검토해줘", engine="graph", engine_options={"workflow": workflow_id})
 run = await request.wait()  # completed / failed / interrupted / paused 중 하나
 snapshot = await run.acheckpoint()
 

@@ -33,7 +33,7 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
         self.root = Path(self.temp.name)
 
     async def setup_graph(self, graph, handlers, **options):
-        self.app = LargeLanguageModel(self.root, engines={"graph": GraphEngine("flow", handlers=handlers, **options)})
+        self.app = LargeLanguageModel(self.root, engines={"graph": GraphEngine(handlers=handlers, **options)})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("graph", components=["workflows"])
         self.workflows = await self.project.components.aget("workflows")
@@ -41,7 +41,7 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
         self.session = await self.project.sessions.acreate("session")
 
     async def run_graph(self):
-        return await asyncio.wait_for((await self.session.run.submit("request", engine="graph")).wait(), 10)
+        return await asyncio.wait_for((await self.session.run.submit("request", engine="graph", engine_options={"workflow": "flow"})).wait(), 10)
 
     async def output(self, run):
         root = next(step for step in await run.steps.alist() if step.kind == "graph")
@@ -161,9 +161,9 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
                     closed.set()
             return {"ok": True}
         await self.setup_graph(straight(), {"work": work})
-        first = await self.session.run.submit("first", engine="graph")
+        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
         await asyncio.wait_for(entered.wait(), 3)
-        second = await self.session.run.submit("second", engine="graph")
+        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
         await self.session.run.interrupt()
         self.assertEqual((await first.wait()).data.status, RunStatus.INTERRUPTED)
         self.assertEqual((await asyncio.wait_for(second.wait(), 5)).data.status, RunStatus.COMPLETED)

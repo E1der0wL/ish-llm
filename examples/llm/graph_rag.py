@@ -210,7 +210,7 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
             raise ValueError("Markdown document is empty")
         checks = AnswerChecks(content)
         loop = LoopEngine(settings_name="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
-        graph = GraphEngine("rag-workflow", handlers={"agent": AgentNode(engines={"loop": loop}), "tool": ToolNode(),
+        graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": loop}), "tool": ToolNode(),
             "validate_answer": checks.validate, "feedback": checks.feedback, "publish_answer": checks.publish})
         config = ProjectConfig(**config.to_dict())
         extraction = config.component_configurations.setdefault("rag", {}).setdefault("extraction", {})
@@ -286,7 +286,7 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
             check("workflow_roundtrip", await workflows.aload("rag-workflow") == definition)
             session = await project.sessions.acreate("RAG-backed Graph request")
             report["session_id"] = session.id
-            request = await session.run.submit(query, engine="graph")
+            request = await session.run.submit(query, engine="graph", engine_options={"workflow": "rag-workflow"})
             handle = await phase("graph_execution", request.wait())
             report["run_id"] = handle.id
             result, steps = await handle.aresult(), await handle.steps.alist()

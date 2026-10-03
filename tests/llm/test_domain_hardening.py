@@ -222,9 +222,9 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
             return {}
         graph = WorkflowGraph(entry="work").node("work", "work").node("end", "end").connect("work", "end").to_dict()
         await self.setup_graph(graph, work, cleanup_timeout=0.05)
-        first = await self.session.run.submit("first", engine="graph")
+        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
         await asyncio.wait_for(started.wait(), 5)
-        second = await self.session.run.submit("second", engine="graph")
+        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
         try:
             await asyncio.wait_for(self.session.run.interrupt(), 3)
             interrupted = await first.wait(timeout=3)
@@ -248,7 +248,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
             return {}
         graph = WorkflowGraph(entry="work").node("work", "work").node("end", "end").connect("work", "end").to_dict()
         await self.setup_graph(graph, work, cleanup_timeout=0.05)
-        await self.session.run.submit("first", engine="graph")
+        await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
         await asyncio.wait_for(started.wait(), 5)
         from llm.llm import LargeLanguageModel
         other = LargeLanguageModel(self.root, engines={"graph": self.engine})
@@ -261,7 +261,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
             release.set()
         await asyncio.sleep(0.05)
         session = (await other.projects.aload(self.project.id)).sessions.load(self.session.id)
-        completed = await (await session.run.submit("after cleanup", engine="graph")).wait()
+        completed = await (await session.run.submit("after cleanup", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual(completed.data.status, "completed", completed.data.error)
 
     async def test_selected_config_binding_allows_ui_but_rejects_model_change(self):

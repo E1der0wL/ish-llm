@@ -82,6 +82,11 @@ ish 명령용 함수를 직접 만든다면 import 가능한 모듈의 동기 �
 
 ## LargeLanguageModel 사용하기
 
+Graph 실행에서는 `GraphEngine(handlers=...)`을 등록하고 매 요청에 저장된 Workflow ID를
+전달합니다. 예: `await session.run.submit("검토", engine="graph", engine_options={"workflow": "review"})`.
+Workflow 선택은 요청/Run에 저장되고 재개 시 원본 선택을 복원합니다. 정의가 변경됐다면
+새 요청으로 시작합니다. 등록·중첩 실행 예제는 [GraphEngine 안내](engines/graph/README.md)를 참고하세요.
+
 `LargeLanguageModel`은 저장소, 서비스, 등록된 Engine/Component를 한 번 구성하고 공개 핸들로 연결하는 Facade입니다. 모델 호출이나 저장 책임을 별도로 복제하지 않습니다.
 
 ### 요청 한 건 실행하고 결과 받기

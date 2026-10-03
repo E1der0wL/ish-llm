@@ -36,6 +36,12 @@ engines = {"assistant": LoopEngine()}
 [메인 README](../README.md#새-engine-만들기)의 EchoEngine처럼 BaseEngine.run에서 문자열·EngineDelta·최종 EngineOutput을 yield할 수 있습니다. 복잡한 Engine은 `execute(context)`를 구현하고 BaseEngine의 이벤트 helper를 재사용합니다.
 
 - `execute`는 `AsyncIterator[EngineEvent]`를 반환합니다.
+- 요청별 인자는 `submit(..., engine_options={...})`로 전달합니다. 선택적인 동기
+  `for_request(options)`가 이를 검증하고 실행별 Engine 사본을 반환합니다. 외부 I/O·효과나
+  등록 객체 변경을 하지 않습니다. 옵션 사본을 받으며 capability 탐색과 실제 실행은 같은
+  사본을 사용합니다. `checkpoint_name`과 `steering_mode`는 등록 Engine과 같아야 합니다.
+  접수 검증·실행·재개 검증에서 여러 번 호출될 수 있으므로 호출 자체가 작업을 실행하면
+  안 됩니다. 이 hook이 없는 Engine은 빈 옵션만 허용합니다. 재개도 원본 옵션으로 연결합니다.
 - `required_capabilities`는 필요한 기능 이름의 중복 없는 tuple입니다. 미선언은 외부 기능 없음입니다.
 - `context`에는 도메인 스냅샷, 메시지, Run별 state/capabilities와 공유 실행 범위가 있습니다. 실행 상태를 Engine 인스턴스에 누적하지 않습니다.
 - Step/Run/Session/대화/체크포인트 파일을 직접 쓰지 않습니다.

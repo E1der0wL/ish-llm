@@ -9,9 +9,14 @@ metadata는 StepManager를 통해 기존 step.json에 반영된다.
 
 ## 실행 백엔드와 설치
 
-기존 `GraphEngine(workflow_id, handlers=...)`, Workflow JSON, 입력·출력 매핑 및
-`await session.run.submit(prompt, engine="graph")` 호출은 동일하다. LangGraph 타입을
+`GraphEngine(handlers=...)`은 실행 전략을 등록한다. Workflow는 요청마다
+`await session.run.submit(prompt, engine="graph", engine_options={"workflow": workflow_id})`로 선택한다. LangGraph 타입을
 프로젝트 설정이나 UI API에 노출하지 않는다. 공개 엔진과 내부 실행부는 모두 `engines/graph/engine.py`에 있다.
+
+Workflow ID는 필수이며 생성자나 기본 설정에서 가져오지 않는다. 선택은 대기 메시지와
+Run에 저장하고 정의는 Run 시작 시 스냅샷으로 읽는다. 같은 등록 엔진을 여러 Session에서
+서로 다른 Workflow로 실행할 수 있다. 재개는 원본 Run의 ID를 복원하고 정의/설정 변경을
+기존 binding 검증으로 거부한다. 변경한 Workflow는 새 submit으로 처음부터 실행한다.
 
 * 일반 노드 → LangGraph 노드, 분기 → 조건부 간선.
 * 병렬 → 경로별 독립 하위 그래프와 모든 결과를 기다리는 합류.
@@ -48,7 +53,7 @@ from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
 
 agent = AgentNode(engines={"loop": LoopEngine()})
-engine = GraphEngine("repair", handlers={"agent": agent, "validate": validate_code})
+engine = GraphEngine(handlers={"agent": agent, "validate": validate_code})
 await project.components.agents.acreate({
     "purpose": "요청과 검증 결과를 보고 코드를 수정한다",
     "engine": "loop",
@@ -197,9 +202,7 @@ async def inspect(node: GraphNodeContext) -> dict:
     issues = await my_analyzer(source)
     return {"passed": not issues, "validation": {"issues": issues}}
 
-engine = GraphEngine(
-    "saved-workflow-id",
-    handlers={"inspect": inspect},
+engine = GraphEngine(handlers={"inspect": inspect},
     max_steps=1000,
     max_parallelism=8,
     timeout_seconds=300,

@@ -224,11 +224,13 @@ from llm.components.workflows import WorkflowGraph
 graph = (WorkflowGraph(entry="read")
     .node("read", "tool", tool="file_read", arguments={"path": "README.md"}, result_key="document")
     .node("end", "end").connect("read", "end").to_dict())
-engine = GraphEngine("read-document", handlers={"tool": ToolNode()})
+engine = GraphEngine(handlers={"tool": ToolNode()})
 ```
 
 그래프를 workflows에 read-document ID로 저장하고 Project Tool에서 file_read를
-활성화해야 한다. `arguments_key`로 이전 노드 상태의 인자 dict를 참조할 수도 있다.
+활성화해야 한다. 등록 후 `session.run.submit(..., engine="graph",
+engine_options={"workflow": "read-document"})`로 요청한다.
+`arguments_key`로 이전 노드 상태의 인자 dict를 참조할 수도 있다.
 arguments와 arguments_key는 동시에 지정하지 않는다. 처리 결과는 result_key에 저장한다.
 
 LoopEngine과 ToolNode는 services/runtime/tools.py의 ToolExecutor를 공유한다. registry.prepare로

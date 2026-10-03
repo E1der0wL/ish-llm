@@ -12,6 +12,7 @@ from llm.core.models import Message, MessageRole, MessageStatus, Project, Projec
 from llm.core.results import ExecutionResult, EngineOutput, EngineDelta
 from llm.core.interactions import InteractionRequest, InteractionResponse
 from llm.core.models import RunStatus
+from llm.core.configuration import UNSET
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.storage import async_method
@@ -329,8 +330,10 @@ class Runs(AsyncFacade):
     async def start(self) -> None:
         await self.session.app._manager(self.session._snapshot).start()
 
-    async def submit(self, content: str, *, engine: str) -> "RequestHandle":
-        message = await self.session.app._manager(self.session._snapshot).submit(content, engine=engine)
+    async def submit(self, content: str, *, engine: str, engine_options=UNSET) -> "RequestHandle":
+        """요청별 JSON 실행 인자를 저장한다. Graph는 workflow ID를 명시해야 한다."""
+        message = await self.session.app._manager(self.session._snapshot).submit(
+            content, engine=engine, engine_options=engine_options)
         return RequestHandle(self.session, message.id)
 
     async def steer(self, run_id: str, content: str, *, targets=None):

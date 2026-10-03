@@ -2,6 +2,11 @@
 
 대기 요청을 실제 Run으로 실행하고, Engine 이벤트를 영속 기록·관찰 알림으로 연결합니다. 승인, Tool 실행, 체크포인트, 사용량 제한의 실행 경계도 이곳에 있습니다.
 
+`submit(..., engine_options={...})`는 요청 인자를 JSON으로 검증·복사하고 QUEUED 메시지에
+함께 저장합니다. Run 시작과 재개는 저장된 옵션으로 실행별 Engine을 연결한 후 그 객체의
+capability를 구성합니다. RunManager는 Workflow ID의 의미를 해석하지 않습니다.
+`Run.metadata.engine_options`는 서비스 관리 필드이며 사용자 이벤트가 덮어쓸 수 없습니다.
+
 ## 파일 안내
 
 | 파일 | 역할 |

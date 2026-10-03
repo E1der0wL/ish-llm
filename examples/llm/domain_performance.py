@@ -117,7 +117,7 @@ async def integration(args, root):
         graph.node(f"n{index}", "work").connect(f"n{index}", f"n{index + 1}" if index + 1 < args.graph_nodes else "end")
     graph.node("end", "end")
     options = {"components": [WorkflowComponent()],
-               "engines": {"graph": GraphEngine("measure", handlers={"work": work})}}
+               "engines": {"graph": GraphEngine(handlers={"work": work})}}
     workspace = root / "workspace"
     start = time.perf_counter()
     latencies, lag = [], []
@@ -133,7 +133,7 @@ async def integration(args, root):
 
     async def request(session):
         before = time.perf_counter()
-        run = await (await session.run.submit("synthetic performance check", engine="graph")).wait(timeout=120)
+        run = await (await session.run.submit("synthetic performance check", engine="graph", engine_options={"workflow": "measure"})).wait(timeout=120)
         result = await run.aresult()
         assert result.status == "completed" and result.output.data["count"] == args.graph_nodes
         steps = await run.steps.alist()

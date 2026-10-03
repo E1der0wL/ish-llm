@@ -46,7 +46,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         async def work(node):
             self.effects.append(node.inputs)
             return {"answer": node.inputs.get("request", "done")}
-        self.engine = GraphEngine("main", handlers=handlers or {"work": work}, **options)
+        self.engine = GraphEngine(handlers=handlers or {"work": work}, **options)
         self.app = LargeLanguageModel(self.root, engines={"graph": self.engine}, services=services, components=[
             WorkflowComponent(), AgentComponent(), RuntimeTools(self.tools), SkillComponent()])
         self.addAsyncCleanup(self.app.shutdown)
@@ -59,7 +59,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         self.session = await self.project.sessions.acreate()
 
     async def request(self):
-        return await (await self.session.run.submit("hello", engine="graph")).wait(timeout=25)
+        return await (await self.session.run.submit("hello", engine="graph", engine_options={"workflow": "main"})).wait(timeout=25)
 
     async def output(self, run):
         return next(s.output.data for s in await run.steps.alist() if s.kind == "graph")
@@ -252,7 +252,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
     async def test_custom_graph_wrapper_is_uncertain_unless_explicitly_pure(self):
         async def work(node):
             raise ValueError("child failed")
-        child_engine = GraphEngine("child", handlers={"work": work})
+        child_engine = GraphEngine(handlers={"work": work}).for_request({"workflow": "child"})
         class Wrapper:
             def graph_engine(self, definition, capabilities):
                 return child_engine
@@ -323,14 +323,14 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
     async def test_graph_agent_child_loop_and_dynamic_skill_capability(self):
         model = ScriptedCompletion([chunk("answer"), chunk(finish="stop")])
         leaf = AgentNode(engines={"loop": LoopEngine(completion_fn=model)})
-        child_engine = GraphEngine("child", handlers={"agent": leaf})
+        child_engine = GraphEngine(handlers={"agent": leaf})
         outer = AgentNode(engines={"graph_worker": child_engine})
         child = action_graph("agent", agent="writer", inputs={"request": "/request"}, outputs={"answer": "/text"})
         child["outputs"] = {"answer": "/answer"}
         parent = action_graph("agent", agent="coordinator", outputs={"answer": "/data/answer"})
         parent["initial_state"] = {"request": "nested"}
         await self.setup({"main": parent, "child": child}, handlers={"agent": outer}, max_parallelism=1)
-        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph_worker"}, identifier="coordinator")
+        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph_worker", "engine_options": {"workflow": "child"}}, identifier="coordinator")
         await self.agents.acreate({"purpose": "Write", "engine": "loop", "completion": {"model": "test/model"},
             "resources": {"skills": ["rules"]}}, identifier="writer")
         await (await self.project.components.aget("skills")).acreate({"instructions": "Follow these rules"}, identifier="rules")
@@ -346,11 +346,11 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
                  .connect("effect", "wait").connect("wait", "end").to_dict())
         async def work(node):
             return {"done": True}
-        child_engine = GraphEngine("child", handlers={"tool": ToolNode(), "work": work})
+        child_engine = GraphEngine(handlers={"tool": ToolNode(), "work": work})
         agent = AgentNode(engines={"graph": child_engine})
         await self.setup({"main": action_graph("agent", agent="coordinator"), "child": child},
                          handlers={"agent": agent}, max_parallelism=1)
-        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "tools": ["effect"],
+        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}, "tools": ["effect"],
             "policy": {"require_tool": True, "max_tool_calls": 1}}, identifier="coordinator")
         paused = await self.request()
         self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
@@ -361,11 +361,11 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(step.metadata["completed_tools"], 1)
 
     async def test_graph_agent_allowlist_validates_before_any_effects(self):
-        child_engine = GraphEngine("child", handlers={"tool": ToolNode()})
+        child_engine = GraphEngine(handlers={"tool": ToolNode()})
         agent = AgentNode(engines={"graph": child_engine})
         await self.setup({"main": action_graph("agent", agent="coordinator"),
             "child": action_graph("tool", tool="effect")}, handlers={"agent": agent})
-        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "tools": []}, identifier="coordinator")
+        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}, "tools": []}, identifier="coordinator")
         run = await self.request()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(self.effects, [])
@@ -386,9 +386,9 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             return {"done": True}
         await self.setup({"main": action_graph("workflow", workflow="child"), "child": action_graph()},
                          handlers={"work": work}, max_parallelism=1)
-        first = await self.session.run.submit("first", engine="graph")
+        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "main"})
         await asyncio.wait_for(entered.wait(), 15)
-        second = await self.session.run.submit("second", engine="graph")
+        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "main"})
         await self.session.run.interrupt()
         self.assertEqual((await first.wait()).data.status, RunStatus.INTERRUPTED)
         self.assertTrue(closed.is_set())
@@ -399,11 +399,11 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             self.effects.append("effect")
             raise ValueError("uncertain remote result")
         self.tools = ToolRegistry((Tool("effect", "uncertain", {"type": "object"}, uncertain),))
-        child_engine = GraphEngine("child", handlers={"tool": ToolNode()})
+        child_engine = GraphEngine(handlers={"tool": ToolNode()})
         agent = AgentNode(engines={"graph": child_engine})
         await self.setup({"main": action_graph("agent", agent="coordinator"),
                           "child": action_graph("tool", tool="effect")}, handlers={"agent": agent})
-        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "tools": ["effect"],
+        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}, "tools": ["effect"],
             "policy": {"max_tool_calls": 1}}, identifier="coordinator")
         failed = await self.request()
         self.assertEqual(failed.data.status, RunStatus.FAILED)
@@ -514,7 +514,7 @@ async def work(node):
     if node.node_id == "second": os._exit(31)
     return {}
 async def main():
-    async with LargeLanguageModel(root, engines={"graph": GraphEngine("main", handlers={"work": work})}) as app:
+    async with LargeLanguageModel(root, engines={"graph": GraphEngine(handlers={"work": work})}) as app:
         project = await app.projects.acreate("crash", components=["workflows"])
         workflows = await project.components.aget("workflows")
         await workflows.acreate(action_graph("workflow", workflow="child"), identifier="main")
@@ -522,7 +522,7 @@ async def main():
                  .node("end", "end").connect("first", "second").connect("second", "end"))
         await workflows.acreate(child.to_dict(), identifier="child")
         session = await project.sessions.acreate()
-        await (await session.run.submit("crash", engine="graph")).wait()
+        await (await session.run.submit("crash", engine="graph", engine_options={"workflow": "main"})).wait()
 asyncio.run(main())
 '''
         result = await asyncio.to_thread(subprocess.run, [sys.executable, "-c", script, str(self.root)],
@@ -532,7 +532,7 @@ asyncio.run(main())
             with (self.root / "effects.txt").open("a") as file:
                 file.write(node.node_id + "\n")
             return {}
-        app = LargeLanguageModel(self.root, engines={"graph": GraphEngine("main", handlers={"work": work})})
+        app = LargeLanguageModel(self.root, engines={"graph": GraphEngine(handlers={"work": work})})
         self.addAsyncCleanup(app.shutdown)
         project = (await app.projects.alist())[0]
         session = (await project.sessions.alist())[0]

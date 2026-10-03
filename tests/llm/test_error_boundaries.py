@@ -98,7 +98,7 @@ class FailureContractTests(unittest.TestCase):
 
 
 class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
-    async def execute(self, engine, *, components=(), definitions=None, config=None):
+    async def execute(self, engine, *, components=(), definitions=None, config=None, engine_options=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         backend = LargeLanguageModel(temporary.name, engines={"test": engine}, components=list(components))
@@ -109,7 +109,7 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             for name, value in records.items():
                 await data.acreate(value, identifier=name)
         session = await project.sessions.acreate()
-        handle = await (await session.run.submit("request", engine="test")).wait(timeout=15)
+        handle = await (await session.run.submit("request", engine="test", engine_options=engine_options or {})).wait(timeout=15)
         result = await handle.aresult()
         steps = await handle.steps.alist()
         # Run 공개 투영과 디스크가 같은 결과를 보존한다.
@@ -122,8 +122,8 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             async def fail(node):
                 raise failure
             graph = WorkflowGraph(entry="fail").node("fail", "fail").node("end", "end").connect("fail", "end").to_dict()
-            result, steps = await self.execute(GraphEngine("flow", handlers={"fail": fail}),
-                components=[WorkflowComponent()], definitions={"workflows": {"flow": graph}})
+            result, steps = await self.execute(GraphEngine(handlers={"fail": fail}),
+                engine_options={"workflow": "flow"}, components=[WorkflowComponent()], definitions={"workflows": {"flow": graph}})
             self.assertEqual(result.status, RunStatus.FAILED)
             self.assertEqual(result.error_code, expected)
             failed = [s for s in steps if s.status == StepStatus.FAILED]
@@ -142,10 +142,11 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             raise ProviderError("provider_timeout")
         inner = WorkflowGraph(entry="fail").node("fail", "fail").node("end", "end").connect("fail", "end").to_dict()
         outer = WorkflowGraph(entry="agent").node("agent", "agent", agent="worker").node("end", "end").connect("agent", "end").to_dict()
-        for child in (AgentEngine(action=fail), GraphEngine("inner", handlers={"fail": node_fail})):
-            result, steps = await self.execute(GraphEngine("outer", handlers={"agent": AgentNode(engines={"child": child})}),
-                components=[WorkflowComponent(), AgentComponent()], definitions={
-                    "workflows": {"outer": outer, "inner": inner}, "agents": {"worker": {"engine": "child", "purpose": "Test failures", "tools": []}}})
+        for child in (AgentEngine(action=fail), GraphEngine(handlers={"fail": node_fail})):
+            result, steps = await self.execute(GraphEngine(handlers={"agent": AgentNode(engines={"child": child})}),
+                engine_options={"workflow": "outer"}, components=[WorkflowComponent(), AgentComponent()], definitions={
+                    "workflows": {"outer": outer, "inner": inner}, "agents": {"worker": {"engine": "child", "purpose": "Test failures", "tools": [],
+                    "engine_options": {"workflow": "inner"} if isinstance(child, GraphEngine) else {}}}})
             self.assertEqual(result.error_code, "provider_timeout")
             self.assertTrue(any(s.kind == "agent" and s.status == StepStatus.FAILED for s in steps))
             self.assertTrue(all(s.diagnostic.code == "provider_timeout" for s in steps if s.status == StepStatus.FAILED))

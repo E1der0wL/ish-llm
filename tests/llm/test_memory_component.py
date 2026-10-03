@@ -289,9 +289,9 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
                  .node("remember", "tool", tool="memory_create", arguments_key="args", result_key="saved")
                  .node("end", "end").connect("remember", "end").to_dict())
         await workflows.acreate(graph, identifier="flow")
-        self.app.engines.register("graph", GraphEngine("flow", handlers={"tool": ToolNode()}))
+        self.app.engines.register("graph", GraphEngine(handlers={"tool": ToolNode()}))
         session = await self.project.sessions.acreate()
-        run = await (await session.run.submit("remember", engine="graph")).wait(timeout=20)
+        run = await (await session.run.submit("remember", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=20)
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         record = next(iter((await self.memory.alist()).values()))
         self.assertEqual(record["source"]["run_id"], run.id)
@@ -302,9 +302,9 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         graph = (WorkflowGraph(entry="reader").node("reader", "agent", agent="reader")
                  .node("end", "end").connect("reader", "end").to_dict())
         await workflows.acreate(graph, identifier="agent_flow")
-        self.app.engines.register("agent", GraphEngine("agent_flow", handlers={
+        self.app.engines.register("agent", GraphEngine(handlers={
             "agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})}))
-        run = await (await session.run.submit("recall", engine="agent")).wait(timeout=20)
+        run = await (await session.run.submit("recall", engine="agent", engine_options={"workflow": "agent_flow"})).wait(timeout=20)
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual([t["function"]["name"] for t in model.requests[0]["tools"]], ["memory_get"])
         self.assertEqual(json.loads(model.requests[-1]["messages"][-1]["content"]), record)

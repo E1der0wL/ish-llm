@@ -120,7 +120,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(temporary.cleanup)
         app = LargeLanguageModel(Path(temporary.name),
             components=[RuntimeTools(ToolRegistry((Tool('act', 'action', {'type': 'object'}, act),))), WorkflowComponent()],
-            engines={'graph': GraphEngine('flow', handlers={'tool': ToolNode()})},
+            engines={'graph': GraphEngine(handlers={'tool': ToolNode()})},
             services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=['tools', 'workflows'])
@@ -128,7 +128,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         graph = WorkflowGraph(entry='action').node('action', 'tool', tool='act').node('end', 'end').connect('action', 'end').to_dict()
         await project.components.workflows.acreate(graph, identifier='flow')
         session = await project.sessions.acreate()
-        paused = await (await session.run.submit('go', engine='graph')).wait()
+        paused = await (await session.run.submit('go', engine='graph', engine_options={"workflow": "flow"})).wait()
         self.assertEqual(paused.data.status, 'paused', paused.data.error)
         self.assertEqual(effects, [])
         resumed = await (await session.run.resume(paused.id, engine='graph', decisions={'["action"]': {'approved': True}})).wait()

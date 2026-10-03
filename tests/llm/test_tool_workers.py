@@ -153,7 +153,7 @@ async def main(limit: int = count):
         for approve in (True, False):
             with self.subTest(approve=approve), tempfile.TemporaryDirectory() as directory:
                 async with LargeLanguageModel(directory, components=[ToolComponent(), WorkflowComponent()],
-                    engines={'graph': GraphEngine('flow', handlers={'tool': ToolNode()})},
+                    engines={'graph': GraphEngine(handlers={'tool': ToolNode()})},
                     services=ServiceConfig(tool_policy=ToolPolicy(authorize=ask))) as app:
                     project = await app.projects.acreate(components=['tools', 'workflows'])
                     await project.components.tools.acreate({'source': source('return None',
@@ -171,7 +171,7 @@ async def main(limit: int = count):
                             executions.append(request['tool_name'])
                         return await original(request)
                     with patch.object(process, 'invoke_worker', side_effect=observe):
-                        confirmation = await (await session.run.submit('act', engine='graph')).wait()
+                        confirmation = await (await session.run.submit('act', engine='graph', engine_options={"workflow": "flow"})).wait()
                         self.assertEqual(confirmation.data.status, 'paused', confirmation.data.error)
                         self.assertEqual(executions, [])
                         # raw resume도 Workflow 확인만 승인한다. Tool 승인은 별도다.

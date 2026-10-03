@@ -66,24 +66,24 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         async def work(node):
             effects.append(node.node_id)
             return {}
-        app = self.backend(engines={"graph": GraphEngine("flow", handlers={"work": work})}, components=[WorkflowComponent()])
+        app = self.backend(engines={"graph": GraphEngine(handlers={"work": work})}, components=[WorkflowComponent()])
         project = await app.projects.acreate(components=["workflows"], config={
             "engines": {"graph": {"max_steps": 1, "timeout_seconds": None}}})
         await (await project.components.aget("workflows")).acreate(
             WorkflowGraph(entry="a").node("a", "work").node("end", "end").connect("a", "end").to_dict(), identifier="flow")
         first = await project.sessions.acreate()
-        failed = await (await first.run.submit("go", engine="graph")).wait()
+        failed = await (await first.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual((await failed.aget_data()).status, "failed")
         second = await project.sessions.acreate(config={"engines": {"graph": {"max_steps": 3}}})
         view = await second.aconfiguration()
         self.assertEqual(view["effective_engines"]["graph"]["sources"]["/max_steps"], "session")
-        done = await (await second.run.submit("go", engine="graph")).wait()
+        done = await (await second.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual((await done.aget_data()).status, "completed")
         self.assertEqual(effects, ["a", "a"])
         self.assertIsNone(app.engines.resolve("graph").max_steps)
 
     async def test_graph_agent_keeps_host_limits_and_inherits_project_settings(self):
-        engine = GraphEngine("original", handlers={}, max_parallelism=2)
+        engine = GraphEngine(handlers={}, max_parallelism=2)
         agent = engine.for_agent({"engine": "nested", "engine_options": {"workflow": "child", "max_parallelism": 8}})
         view = agent.configuration({"engines": {"nested": {"timeout_seconds": None, "max_steps": 42}}}, "nested")
         self.assertEqual(view["values"]["max_steps"], 42)
@@ -94,7 +94,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
     async def test_agent_actual_completion_matches_project_session_agent_host_order(self):
         provider = ScriptedCompletion([chunk("ok", finish="stop")])
         worker = LoopEngine(completion_fn=provider, completion_kwargs={"temperature": 0.1})
-        app = self.backend(engines={"graph": GraphEngine("flow", handlers={"agent": AgentNode(engines={"writer": worker})})},
+        app = self.backend(engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"writer": worker})})},
                            components=[WorkflowComponent(), AgentComponent()])
         project = await app.projects.acreate(components=["workflows", "agents"], config={
             "completion": {"model": "project", "temperature": 0.9}, "engines": {"writer": {"request_timeout": 7}}})
@@ -103,7 +103,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         await (await project.components.aget("workflows")).acreate(WorkflowGraph(entry="a").node("a", "agent", agent="writer")
             .node("end", "end").connect("a", "end").to_dict(), identifier="flow")
         session = await project.sessions.acreate(config={"completion": {"temperature": 0.5}})
-        run = await (await session.run.submit("go", engine="graph")).wait()
+        run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual((await run.aget_data()).status, "completed")
         self.assertEqual(provider.requests[0]["temperature"], 0.1)
         self.assertEqual(provider.requests[0]["model"], "agent")

@@ -18,13 +18,13 @@ async def main(root):
             os._exit(23)  # Run/Step 종료 처리 없이 실제 프로세스를 종료한다.
         return {"first_done": True}
 
-    async with LargeLanguageModel(root, engines={"graph": GraphEngine("flow", handlers={"work": work})}) as app:
+    async with LargeLanguageModel(root, engines={"graph": GraphEngine(handlers={"work": work})}) as app:
         project = await app.projects.acreate("crash", components=["workflows"])
         graph = (WorkflowGraph(entry="first").node("first", "work").node("second", "work")
                  .node("end", "end").connect("first", "second").connect("second", "end").to_dict())
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
         session = await project.sessions.acreate()
-        await (await session.run.submit("original", engine="graph")).wait()
+        await (await session.run.submit("original", engine="graph", engine_options={"workflow": "flow"})).wait()
 
 
 if __name__ == "__main__":

@@ -145,8 +145,8 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
                  .node("join", "join").node("end", "end").connect("fork", "a").connect("fork", "b")
                  .connect("a", "join").connect("b", "join").connect("join", "end").to_dict())
         await (await self.project.components.aget("workflows")).acreate(graph, identifier="flow")
-        self.app.engines.register("parallel", GraphEngine("flow", handlers={"tool": ToolNode()}))
-        run = await (await self.session.run.submit("test", engine="parallel")).wait(timeout=10)
+        self.app.engines.register("parallel", GraphEngine(handlers={"tool": ToolNode()}))
+        run = await (await self.session.run.submit("test", engine="parallel", engine_options={"workflow": "flow"})).wait(timeout=10)
         self.assertEqual(run.result.error_code, "operation_uncertain")
         self.assertLessEqual(len(self.calls), 1)
 

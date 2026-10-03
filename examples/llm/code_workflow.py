@@ -166,7 +166,7 @@ async def run_demo(workspace: Path, *, model=None, completion_fn=None, max_attem
     output = workdir / "solution.py"
     fn = completion_fn or (completion if model else DemonstrationCompletion())
     agent, checks = AgentNode(engines={"loop": LoopEngine(completion_fn=fn)}), CodeChecks(output)
-    engine = GraphEngine("code-review", handlers={"agent": agent, "persist_code": checks.write, "static_check": checks.static,
+    engine = GraphEngine(handlers={"agent": agent, "persist_code": checks.write, "static_check": checks.static,
                                                   "test_code": checks.tests, "report": report})
 
     def observe(run, event):
@@ -188,7 +188,7 @@ async def run_demo(workspace: Path, *, model=None, completion_fn=None, max_attem
         await workflows.acreate(coding_workflow(max_attempts), identifier="code-review")
         project = await backend.projects.aload(project.id)
         session = await project.sessions.acreate("Implement addition")
-        request = await session.run.submit("Implement add(a, b), returning the arithmetic sum of two numbers.", engine="graph")
+        request = await session.run.submit("Implement add(a, b), returning the arithmetic sum of two numbers.", engine="graph", engine_options={"workflow": "code-review"})
         run = await request.wait()
         data, steps = await run.aget_data(), await run.steps.alist()
         root = next((step for step in steps if step.kind == "graph"), None)

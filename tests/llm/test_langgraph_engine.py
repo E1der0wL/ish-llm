@@ -24,7 +24,7 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
 
     async def setup_graph(self, graph, work, **options):
         self.app = LargeLanguageModel(self.root, engines={"graph": GraphEngine(
-            "flow", handlers={"work": work}, **options)})
+            handlers={"work": work}, **options)})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("test", components=["workflows"])
         self.workflows = await self.project.components.aget("workflows")
@@ -32,7 +32,7 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
         self.session = await self.project.sessions.acreate()
 
     async def run_graph(self, session=None):
-        return await (await (session or self.session).run.submit("go", engine="graph")).wait(timeout=30)
+        return await (await (session or self.session).run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=30)
 
     async def output(self, run):
         return next(s for s in await run.steps.alist() if s.kind == "graph").output.data
@@ -238,9 +238,9 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(closed, {"a", "b"})
             return {}
         await self.setup_graph(parallel(), work)
-        first = await self.session.run.submit("first", engine="graph")
+        first = await self.session.run.submit("first", engine="graph", engine_options={"workflow": "flow"})
         await asyncio.wait_for(ready.wait(), 5)
-        second = await self.session.run.submit("second", engine="graph")
+        second = await self.session.run.submit("second", engine="graph", engine_options={"workflow": "flow"})
         await self.session.run.interrupt()
         self.assertEqual((await first.wait(timeout=10)).data.status, RunStatus.INTERRUPTED)
         self.assertEqual(closed, {"a", "b"})

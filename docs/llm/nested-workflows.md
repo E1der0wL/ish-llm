@@ -17,7 +17,7 @@ from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
 
 agents = AgentNode(engines={"loop": LoopEngine()})
-engine = GraphEngine("main", handlers={"agent": agents}, max_nested_depth=16)
+engine = GraphEngine(handlers={"agent": agents}, max_nested_depth=16)
 # engine을 LargeLanguageModel(..., engines={"graph": engine})에 등록한다.
 # Project에서 workflows/agents/tools를 선택하고 writer Agent를 별도로 저장한다.
 
@@ -36,7 +36,7 @@ parent = (WorkflowGraph(entry="delegate", inputs={"request": "/prompt"},
 workflows = await project.components.aget("workflows")
 await workflows.acreate(child.to_dict(), identifier="write_flow")
 await workflows.acreate(parent.to_dict(), identifier="main")
-run = await (await session.run.submit("문서를 바탕으로 코드를 작성해줘", engine="graph")).wait()
+run = await (await session.run.submit("문서를 바탕으로 코드를 작성해줘", engine="graph", engine_options={"workflow": "main"})).wait()
 steps = await run.steps.alist()
 output = (await run.aresult()).output.data
 ```
@@ -56,9 +56,9 @@ Workflow의 outputs/schema 처리 후 부모 노드의 outputs/schema를 거쳐 
 
 ```python
 leaf_agents = AgentNode(engines={"loop": LoopEngine()})
-review_engine = GraphEngine("review_flow", handlers={"agent": leaf_agents})
+review_engine = GraphEngine(handlers={"agent": leaf_agents})
 coordinators = AgentNode(engines={"review_graph": review_engine})
-root_engine = GraphEngine("main", handlers={"agent": coordinators})
+root_engine = GraphEngine(handlers={"agent": coordinators})
 
 await project.components.agents.acreate({
     "purpose": "검토 Workflow 수행",
@@ -73,7 +73,9 @@ await project.components.agents.acreate({
 ```
 
 `engine_options`는 workflow/max_steps/max_parallelism/timeout_seconds/max_nested_depth를
-받는다. 생략하면 등록 엔진 설정을 사용한다. 등록 객체를 변경하지 않고 호출별 복사본을 만든다.
+받는다. `workflow`는 반드시 명시하며 부모 요청이나 등록 객체에서 추측하지 않는다.
+나머지 실행 설정은 기존 Project/Session/Agent/host 순서로 해석한다.
+등록 객체를 변경하지 않고 호출별 복사본을 만든다.
 Graph Agent는 조율 단위다. completion/system_prompt 및 resources.skills/mcp는 이 Agent에
 설정하지 않고 실제 모델/연결을 사용하는 실행 노드에 둔다. 해당 필드를 Graph Agent에 넣으면
 조용히 무시하지 않고 오류로 알린다. resources.rag는 Project의 검색 Tool 허용에 사용할 수 있다.

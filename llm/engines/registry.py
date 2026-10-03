@@ -2,6 +2,9 @@
 
 from llm.engines.base import Engine, required_capabilities, steering_mode
 from llm.core.steering import SteeringMode
+from llm.core.models import ProjectConfig
+from copy import deepcopy
+import inspect
 
 
 class EngineRegistry:
@@ -62,3 +65,32 @@ class EngineRegistry:
 
     def resolve(self, name: str) -> Engine:
         return self._engines[name]
+
+    def resolve_request(self, name: str, options: dict) -> Engine:
+        """JSON 요청 인자를 실행별 Engine에 연결한다. 등록 인스턴스는 변경하지 않는다.
+
+        for_request는 동기·무효과 factory다. 옵션을 지원하지 않는 Engine은 빈 요청만
+        허용하며, 반환된 실행기가 capability 탐색과 실제 실행을 함께 담당한다.
+        """
+        if not isinstance(options, dict):
+            raise TypeError("engine_options must be a JSON object")
+        ProjectConfig.validate_settings(options)
+        engine = self.resolve(name)
+        factory = getattr(engine, "for_request", None)
+        if factory is None:
+            if options:
+                raise ValueError("Engine does not support request options")
+            return engine
+        bound = factory(deepcopy(options))
+        if inspect.isawaitable(bound):
+            if inspect.iscoroutine(bound):
+                bound.close()
+            raise TypeError("Engine for_request must be synchronous")
+        if not callable(getattr(bound, "execute", None)):
+            raise TypeError("Engine for_request must return an Engine")
+        required_capabilities(bound)
+        if steering_mode(bound) != steering_mode(engine):
+            raise ValueError("Request binding must preserve Engine steering mode")
+        if getattr(bound, "checkpoint_name", None) != getattr(engine, "checkpoint_name", None):
+            raise ValueError("Request binding must preserve Engine checkpoint name")
+        return bound

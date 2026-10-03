@@ -165,6 +165,12 @@ class EngineContext:
 
 
 class Engine(Protocol):
+    """execute는 필수다. 요청 인자는 선택적 동기 for_request(options)로 연결한다.
+
+    factory는 외부 효과 없이 등록 객체를 보존하고 실행별 사본을 반환한다.
+    capability는 사본에서 탐색하며 checkpoint 이름과 추가 지시 지원 방식은 유지한다.
+    for_request가 없으면 빈 engine_options만 허용한다.
+    """
     def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]: ...
 
 
@@ -190,6 +196,7 @@ class BaseEngine:
     async 함수는 EngineOutput 또는 None을 반환한다. execute()가 Step과 출력의
     소유권/이벤트를 연결한다. 복잡한 실행기는 execute()에서 아래 출력 메서드를
     재사용한다. 실행별 상태는 인스턴스에 저장하지 않는다.
+    요청별 인자가 필요하면 동기 for_request(options)를 구현하여 사본에 연결한다.
     Labels/metadata/error_message are trusted, persistable developer constants.
     """
 
@@ -510,11 +517,21 @@ class BaseEngine:
                 choice = choices[0]
                 delta = get(choice, "delta")
                 content = get(delta, "content")
+                reasoning = get(delta, "reasoning_content")
                 fragments = get(delta, "tool_calls") or []
                 if get(delta, "function_call"):
                     raise ValueError("Legacy function_call responses are unsupported")
-                if finish_reason is not None and (content or fragments):
+                if finish_reason is not None and (content or fragments or reasoning):
                     raise ValueError("Content after stream termination")
+                if reasoning is not None:
+                    if not isinstance(reasoning, str):
+                        raise ValueError("Expected reasoning text delta")
+                    size += len(reasoning)
+                    if self.max_output_chars is not None and size > self.max_output_chars:
+                        raise ValueError("Completion output limit exceeded")
+                    if reasoning:
+                        result.reasoning_content += reasoning
+                        yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
                 if content is not None:
                     if not isinstance(content, str):
                         raise ValueError("Expected text delta")

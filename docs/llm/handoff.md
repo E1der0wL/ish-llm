@@ -1,3 +1,33 @@
+## 2026-10-04 요청별 Graph Workflow 선택
+
+- GraphEngine 생성자의 workflow 인자를 제거했다. 등록은 GraphEngine(handlers=...)이며
+  매 submit에 engine_options={"workflow": "저장한 ID"}를 명시한다. 옛 생성자 fallback,
+  기본 Workflow 추측, 새 RunStatus/저장 버전이나 migration을 추가하지 않았다.
+- EngineRegistry.resolve_request는 선택적인 동기·무효과 for_request(options)를 사용한다.
+  등록 객체는 유지하며 capability 탐색과 실행은 요청별 같은 사본을 사용한다. factory는
+  checkpoint 이름/steering mode를 바꿀 수 없다. hook이 없으면 빈 옵션만 허용한다.
+- Facade/RunManager는 JSON 옵션을 복사하여 QUEUED Message와 Run.metadata에 저장한다.
+  EventContext는 engine_options 쓰기를 보호한다. Graph 자체가 Workflow를 해석하며
+  서비스에 Graph 타입 분기를 추가하지 않았다. 정의는 Run 시작 시 읽는다.
+- resume/resume_plan은 원본 Run의 옵션으로 실행기를 연결한다. 다른 Workflow로 재개하는
+  API는 없다. 기존 binding 변경 거부, 승인/Tool receipt/취소/추가 지시 계약을 유지한다.
+  Graph Agent도 engine_options.workflow를 필수로 명시하고 workflow 노드는 자기 ID를 쓴다.
+- tests/llm/test_engine_requests.py에 9개 검사를 추가했다. 필수/잘못된 옵션, factory 사본과
+  비동기·계약 변경 거부, 서로 다른 Workflow의 병렬 Session, 큐 종료·재시작, 원본 선택 재개,
+  정의 변경 거부, 대기 중 정의 편집 시점 등을 포함한다. 기존 예제/테스트 호출부도 수정했다.
+- 첫 집중 108개에서 child crash 문자열 fixture의 옛 생성자 1건을 수정했다. 이어 집중
+  77개는 통과했고 전체 1,159개에서는 공유 fixture 호출부의 Workflow 누락 4건이 발견되어
+  수정했다. 최종 Linux Python 3.12.14: 집중 114 passed / 0 failed / 0 skipped(51.761초),
+  전체 1,160 passed / 0 failed / 0 skipped(362.420초). 집중은 전체에 포함된다.
+- 명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --modules tests.llm.test_engine_requests tests.llm.test_domain_hardening tests.llm.test_runtime_reliability tests.llm.test_engine_steering tests.llm.test_instruction_reservations tests.llm.test_graph_rag_example`.
+  snapshot: `/home/user/.cache/ish-provider-wr3p_u30`.
+  보고서: `tests/llm/reports/ish-provider-wr3p_u30/`의 suite.txt/focused.txt,
+  source-verification.json/documentation-audit.json. Python 소스 277개 해시가 일치하고
+  README 22개/링크 242개/Python 블록 25개/파일 설명 134개 검사를 통과했다.
+  RuntimeWarning/미회수 Task가 없다. 외부 모델·TUI 실사용 검사는 수행하지 않았다.
+  ToolExecutor/provider/LangGraph 스케줄링은 수정하지 않았으며 관련 5개 실행 예제도
+  요청 시 Workflow를 지정한다. 별도 hub 개발 및 core/results.py 변경은 그대로 보존했다.
+
 ## 2026-10-03 Graph 미시작 Agent의 일회성 추가 지시 예약
 
 - `SteeringRoute(workflow_path, node_id, engine)`와 RunHandle의

@@ -128,7 +128,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
         handlers = EventHandlers()
         async def inspect(context, event):
             before = context.run.metadata
-            for key in ("policies", "completions", "resume", "checkpoints", "output"):
+            for key in ("policies", "completions", "resume", "checkpoints", "output", "engine_options"):
                 with self.subTest(key=key):
                     with self.assertRaisesRegex(ValueError, key):
                         await context.update_metadata({"partial": True, key: {}})

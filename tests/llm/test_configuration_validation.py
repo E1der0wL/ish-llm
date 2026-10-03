@@ -92,7 +92,7 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await project.sessions.alist(), [])
 
     async def test_graph_settings_validate_without_loading_workflow(self):
-        app = self.backend(engines={"graph": GraphEngine("not-yet-created", handlers={})})
+        app = self.backend(engines={"graph": GraphEngine(handlers={})})
         with self.assertRaisesRegex(ValueError, "graph"):
             await app.projects.acreate(config={"engines": {"graph": {"max_parallelism": 0}}})
         await app.projects.acreate(config={"engines": {"graph": {"max_parallelism": 2}}})

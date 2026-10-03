@@ -114,9 +114,9 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
     async def test_nested_graph_agent_exposes_only_leaf_reservations(self):
         model = Model([chunk("leaf", finish="stop")], gate=False)
         leaf = AgentNode(engines={"writer": LoopEngine(completion_fn=model)})
-        outer = AgentNode(engines={"subgraph": GraphEngine("nested", handlers={"agent": leaf})})
+        outer = AgentNode(engines={"subgraph": GraphEngine(handlers={"agent": leaf})})
         profiles = {"writer": {"purpose": "write", "engine": "writer", "completion": {"model": "test"}},
-            "coordinator": {"purpose": "delegate", "engine": "subgraph", "workflow": "nested"}}
+            "coordinator": {"purpose": "delegate", "engine": "subgraph", "engine_options": {"workflow": "nested"}}}
         routes = await self.gated({"writer": model}, fixtures.agent_graph("coordinator"),
             graphs={"nested": fixtures.agent_graph()}, profiles=profiles, handlers={"agent": outer})
         self.assertEqual(routes, [SteeringRoute(("flow", "work", "workflow", "nested"), "work", "writer")])
@@ -267,7 +267,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(value.status, "unapplied")
         self.assertTrue(value.reason)
         self.gate_release.set()
-        fresh = await (await self.session.run.submit("restart", engine="graph")).wait(timeout=15)
+        fresh = await (await self.session.run.submit("restart", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=15)
         self.assertEqual(fresh.data.status, "completed", fresh.data.error)
         self.assertNotIn("one shot", self.contents(model))
         self.assertEqual(await fresh.ainstructions(), [])

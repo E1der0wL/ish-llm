@@ -41,7 +41,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.root = Path(folder.name)
         engines = {name: LoopEngine(completion_fn=model, **(options or {}).get(name, {})) for name, model in models.items()}
         self.handler = AgentNode(engines=engines)
-        self.engine = GraphEngine("flow", handlers=handlers or {"agent": self.handler})
+        self.engine = GraphEngine(handlers=handlers or {"agent": self.handler})
         self.events = []
         self.app = LargeLanguageModel(self.root, engines={"graph": self.engine},
             components=[WorkflowComponent(), AgentComponent()], on_event=lambda r, e: self.events.append(e))
@@ -57,7 +57,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
                 "completion": {"model": "test/model"}} for name in models}).items():
             await agents.acreate(profile, identifier=name)
         self.session = await self.project.sessions.acreate()
-        self.request = await self.session.run.submit("original", engine="graph")
+        self.request = await self.session.run.submit("original", engine="graph", engine_options={"workflow": "flow"})
 
     async def release_model(self, model):
         model.release.set()
@@ -156,9 +156,9 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
     async def test_nested_graph_agent_exposes_forwarder_and_leaf(self):
         model = Model([chunk("draft", finish="stop")], [chunk("revised", finish="stop")])
         leaf = AgentNode(engines={"writer": LoopEngine(completion_fn=model)})
-        outer = AgentNode(engines={"subgraph": GraphEngine("nested", handlers={"agent": leaf})})
+        outer = AgentNode(engines={"subgraph": GraphEngine(handlers={"agent": leaf})})
         profiles = {"writer": {"purpose": "write", "engine": "writer", "completion": {"model": "test/model"}},
-                    "coordinator": {"purpose": "delegate", "engine": "subgraph", "workflow": "nested"}}
+                    "coordinator": {"purpose": "delegate", "engine": "subgraph", "engine_options": {"workflow": "nested"}}}
         await self.setup_graph({"writer": model}, agent_graph("coordinator"), graphs={"nested": agent_graph()},
                                profiles=profiles, handlers={"agent": outer})
         targets = await self.entered(model)
@@ -335,7 +335,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(folder.cleanup)
         self.app = LargeLanguageModel(folder.name, components=[WorkflowComponent(), AgentComponent(), component],
             services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)),
-            engines={"graph": GraphEngine("flow", handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})})})
+            engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})})})
         self.addAsyncCleanup(self.app.shutdown)
         self.addAsyncCleanup(self.release_model, model)
         self.project = await self.app.projects.acreate("approval", components=["workflows", "agents", "tools"])
@@ -344,7 +344,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
             "completion": {"model": "test"}, "tools": ["act"]}, identifier="writer")
         await (await self.project.components.aget("workflows")).acreate(agent_graph(), identifier="flow")
         self.session = await self.project.sessions.acreate()
-        self.request = await self.session.run.submit("original", engine="graph")
+        self.request = await self.session.run.submit("original", engine="graph", engine_options={"workflow": "flow"})
         target, = await self.entered(model)
         await self.session.run.steer(self.run.id, "then act", targets=[target.id])
         model.release.set()

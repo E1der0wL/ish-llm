@@ -247,12 +247,12 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                  .node("create", "tool", tool="file_create", arguments_key="args", result_key="created")
                  .node("end", "end").connect("create", "end").to_dict())
         async with LargeLanguageModel(self.root / "backend", components=[RuntimeTools(self.tools.registry), WorkflowComponent()],
-                                      engines={"graph": GraphEngine("g", handlers={"tool": ToolNode()})}) as backend:
+                                      engines={"graph": GraphEngine(handlers={"tool": ToolNode()})}) as backend:
             project = await backend.projects.acreate("tools", components=["tools", "workflows"])
             await (await project.components.aget("tools")).aenable("file_create")
             await (await project.components.aget("workflows")).acreate(graph, identifier="g")
             session = await project.sessions.acreate()
-            run = await (await session.run.submit("create", engine="graph")).wait()
+            run = await (await session.run.submit("create", engine="graph", engine_options={"workflow": "g"})).wait()
             self.assertEqual(run.data.status, RunStatus.COMPLETED)
             steps = await run.steps.alist()
             tool = next(step for step in steps if step.kind == "tool")

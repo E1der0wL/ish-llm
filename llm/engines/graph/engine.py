@@ -565,7 +565,7 @@ class GraphEngine:
     미완료 노드부터 실행하며, LangGraph 내부 프레임이나 Python 런타임 객체는 저장하지 않는다.
     """
 
-    def __init__(self, workflow: str, *, handlers: Mapping[str, Callable],
+    def __init__(self, *, handlers: Mapping[str, Callable],
                  max_steps=_UNSET, max_parallelism=_UNSET,
                  timeout_seconds=_UNSET, buffer_size=_UNSET,
                  revision: str = "1", max_nested_depth=_UNSET,
@@ -581,8 +581,6 @@ class GraphEngine:
         if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
             raise ValueError("settings_name must be nonempty text")
         self.settings_name, self._agent_options, self._configured = settings_name, {}, False
-        if not isinstance(workflow, str) or not workflow:
-            raise ValueError("GraphEngine requires a workflow ID")
         if any(value is not None and (type(value) is not int or value < 1) for value in (max_steps, max_parallelism, buffer_size)):
             raise ValueError("Graph limits must be positive integers")
         self._deadline(timeout_seconds)
@@ -598,7 +596,7 @@ class GraphEngine:
         if not isinstance(revision, str) or not revision:
             raise ValueError("GraphEngine revision must be nonempty text")
         self.revision = revision
-        self.workflow, self.handlers = workflow, dict(handlers)
+        self.workflow, self.handlers = None, dict(handlers)
         controls = {"branch", "parallel", "join", "loop", "end", "workflow"}
         if any(not isinstance(name, str) or not name or name in controls or not callable(handler)
                for name, handler in self.handlers.items()):
@@ -619,7 +617,7 @@ class GraphEngine:
         properties["max_nested_depth"].update(minimum=0)
         for key in ("timeout_seconds", "cleanup_timeout"):
             properties[key] = field(["number", "null"] if key == "timeout_seconds" else "number", exclusiveMinimum=0, **{"x-host-override": key in self._overrides})
-        return object_schema(properties, **{"x-runtime-configuration": ["workflow", "handlers", "revision", "config_keys"],
+        return object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
             **({"x-settings-key": self.settings_name} if self.settings_name else {})})
 
     def configuration(self, config, name, *, session_config=None):
@@ -635,10 +633,11 @@ class GraphEngine:
             return self
         values = self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"]
         worker = copy(self)
-        GraphEngine.__init__(worker, self.workflow, handlers=self.handlers, revision=self.revision,
+        GraphEngine.__init__(worker, handlers=self.handlers, revision=self.revision,
             config_keys=self.config_keys, settings_name=self.settings_name,
             **{key: values[key] for key in self._option_names if key in values})
         worker._overrides, worker._agent_options, worker._configured = self._overrides, self._agent_options, True
+        worker.workflow = self.workflow
         return worker
 
     def _execution_config(self, context):
@@ -687,6 +686,8 @@ class GraphEngine:
                 yield from GraphEngine._nodes(node["body"])
 
     def _definition(self, capabilities):
+        if self.workflow is None:
+            raise GraphExecutionError("Graph request requires engine_options.workflow")
         candidates = [source["records"][self.workflow]
                       for source in capabilities["workflows"] if self.workflow in source["records"]]
         if len(candidates) != 1:
@@ -799,6 +800,18 @@ class GraphEngine:
     checkpoint_name = "graph"
     steering_mode = SteeringMode.FORWARD
 
+    def for_request(self, options: dict):
+        """요청이 선택한 Workflow ID를 사본에 고정한다. 정의는 Run 시작 시 읽는다."""
+        if not isinstance(options, dict) or options.keys() != {"workflow"}:
+            raise ValueError("Graph request requires only engine_options.workflow")
+        workflow = options["workflow"]
+        if not isinstance(workflow, str) or not workflow.strip():
+            raise ValueError("Graph request workflow must be a nonempty ID")
+        worker = copy(self)
+        worker.workflow = workflow
+        worker._configured = False
+        return worker
+
     def for_agent(self, definition: dict):
         """Agent가 지정한 Workflow를 부모 Graph 실행 범위에 연결한다."""
         options = deepcopy(definition.get("engine_options", {}))
@@ -809,10 +822,8 @@ class GraphEngine:
         if any(key in definition for key in ("completion", "system_prompt")) or any(
                 definition.get("resources", {}).get(key) for key in ("skills", "mcp")):
             raise ValueError("Graph Agent model/Skill/MCP settings belong to its leaf Agents")
-        worker = copy(self)
-        workflow = options.pop("workflow", self.workflow)
-        GraphEngine(workflow, handlers=self.handlers, **{**options, **self._overrides})
-        worker.workflow = workflow
+        worker = self.for_request({"workflow": options.pop("workflow", None)})
+        GraphEngine(handlers=self.handlers, **{**options, **self._overrides})
         worker._agent_options, worker._configured = options, False
         worker.settings_name = self.settings_name or definition["engine"]
         return worker

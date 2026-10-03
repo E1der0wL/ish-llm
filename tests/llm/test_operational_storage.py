@@ -212,7 +212,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
         async def work(node):
             calls.append(node.node_id)
             return {"last": node.node_id}
-        engine = GraphEngine("flow", handlers={"work": work})
+        engine = GraphEngine(handlers={"work": work})
         graph = (WorkflowGraph(entry="a").node("a", "work").node("b", "work", pause_before=True)
                  .node("end", "end").connect("a", "b").connect("b", "end").to_dict())
         with tempfile.TemporaryDirectory() as directory:
@@ -222,7 +222,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                 project = await app.projects.acreate(components=["workflows"])
                 await project.components.workflows.acreate(graph, identifier="flow")
                 session = await project.sessions.acreate()
-                paused = await (await session.run.submit("work", engine="graph")).wait(timeout=10)
+                paused = await (await session.run.submit("work", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=10)
                 self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
                 await session.run.shutdown()
                 backup = await project.abackup(root / "backup")

@@ -553,7 +553,7 @@ class LargeLanguageModel:
 
         # Graph 처리기는 별도로 Agent 업무 엔진을 명시적으로 등록한다.
         agent_node = AgentNode(engines={"loop": LoopEngine()})
-        # GraphEngine(workflow_id, handlers={"agent": agent_node})를 백엔드 engines에 등록한다.
+        # GraphEngine(handlers={"agent": agent_node})를 백엔드 engines에 등록한다.
 
         workflows = await project.components.aget("workflows")
         await workflows.avalidate(workflow_id)         # 저장된 버전 1 그래프 검증
@@ -562,12 +562,16 @@ class LargeLanguageModel:
 
     Graph 체크포인트 / 명시적 재개::
 
-        request = await session.run.submit("작업", engine="graph")
+        request = await session.run.submit("작업", engine="graph",
+                                           engine_options={"workflow": workflow_id})
         run = await request.wait()  # pause_before 노드에서는 status == RunStatus.PAUSED
         checkpoint = await run.acheckpoint()  # 헤더 + 노드별 started/completed/waiting
         resumed = await session.run.resume(run.id, engine="graph")
         next_run = await resumed.wait()
 
+    workflow는 저장된 Workflow ID이며 생성자 대신 매 submit에서 명시한다.
+    engine_options는 QUEUED 요청과 Run에 저장된다. 정의는 Run 시작 시 읽고 실행 중 유지한다.
+    재개는 원본 engine_options를 복원하며 Workflow를 바꾸지 않는다.
     재개는 원본을 연결하는 새 Run이다. 완료된 노드는 호출하지 않는다. started 처리 노드는
     부작용이 불확실하므로 UI가 확인한 키만 retry_nodes=[...]로 승인해야 한다.
     Workflow/Agent/Tool 정의와 실행 설정이 바뀌면 거부한다. memory 대화가 종료로 소실된
