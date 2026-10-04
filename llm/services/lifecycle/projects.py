@@ -329,11 +329,16 @@ class ProjectManager:
         return policies
 
     @workspace_locked
-    def save(self, project: Project, *, expected_version=None) -> None:
+    def save(self, project: Project, *, expected_version=None, components=None, expected_components=None) -> None:
         current = self.access.require(project)
         check_revision(current.config.to_dict(), expected_version)
+        if expected_components is not None and tuple(expected_components) != current.components:
+            raise ValueError("Project components changed; reload settings")
         if project.deleted != current.deleted or project.components != current.components:
             raise ValueError("Use lifecycle or component APIs to change managed Project state")
+        previous_components = current.components
+        if components is not None:
+            current.components = self.components.validate(components)
         if project.conversation_storage != current.conversation_storage:
             storage = self.sessions.conversations.resolve(project.conversation_storage)
             if self.sessions.list(current, include_deleted=True):
@@ -341,6 +346,10 @@ class ProjectManager:
             current.conversation_storage = storage
         current.title, current.config = project.title, deepcopy(project.config)
         self._validate_configuration(current)
+        if current.components != previous_components:
+            # Prepare component-owned storage before publishing one metadata update.
+            # Initialization is idempotent; a failure must not publish draft settings.
+            self.components.initialize(current)
         self.repository.save(current)
 
     @workspace_locked

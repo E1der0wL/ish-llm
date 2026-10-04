@@ -122,8 +122,13 @@ class ProjectHandle(AsyncFacade):
         return self._snapshot.paths
 
     def save(self, *, title: Optional[str] = None, config: Optional[dict] = None,
-             conversation_storage: Optional[str] = None, expected_version=None) -> None:
-        """제목/설정을 저장한다. 대화 저장 방식은 Session이 없는 프로젝트만 변경할 수 있다."""
+             conversation_storage: Optional[str] = None, expected_version=None,
+             components: Optional[Sequence[str]] = None, expected_components: Optional[Sequence[str]] = None) -> None:
+        """제목/설정/선택을 함께 저장한다. components는 선택적이며 기존 선택을 유지할 수 있다.
+
+        expected_components는 편집 시작 시 선택 목록이다. 설정 버전과 함께 충돌을 검사한다.
+        대화 저장 방식은 Session이 없는 프로젝트만 변경할 수 있다.
+        """
         current = self.data
         if title is not None:
             current.title = title
@@ -131,7 +136,8 @@ class ProjectHandle(AsyncFacade):
             current.config = ProjectConfig(config)
         if conversation_storage is not None:
             current.conversation_storage = conversation_storage
-        self.app.project_manager.save(current, expected_version=expected_version)
+        self.app.project_manager.save(current, expected_version=expected_version,
+                                      components=components, expected_components=expected_components)
 
     def configuration(self) -> dict:
         """저장 원본과 기본값을 병합한 UI 폼 값을 함께 반환한다."""
@@ -290,10 +296,23 @@ class SessionHandle(AsyncFacade):
         self.app._check_open()
         self.app.project_manager.sessions.restore(self._snapshot)
 
-    def clone(self, *, title: Optional[str] = None) -> "SessionHandle":
+    def clone(self, *, title: Optional[str] = None, through_message_id: str | None = None) -> "SessionHandle":
         self.app._check_open()
         return SessionHandle(self.project, self.app.project_manager.sessions.clone(
-            self._snapshot, self.project._snapshot, title=title))
+            self._snapshot, self.project._snapshot, title=title, through_message_id=through_message_id))
+
+    def delete_turn(self, request_id: str) -> None:
+        """일반 대화에서 턴을 숨긴다. 미완료 재개가 참조하는 턴과 실행 중 Session은 보호한다."""
+        self.app._check_open()
+        self.app.project_manager.sessions.delete_turn(self._snapshot, request_id)
+
+    adelete_turn = async_method(delete_turn)
+
+    def turns(self) -> list[list[Message]]:
+        from llm.services.history.turns import conversation_turns
+        return conversation_turns(self.conversation())
+
+    aturns = async_method(turns)
 
     def configuration(self) -> dict:
         """Session 덮어쓰기까지 적용한 설정 조회. 실행 중 Run의 설정을 변경하지 않는다."""
@@ -305,10 +324,11 @@ class SessionHandle(AsyncFacade):
 
     aconfiguration = async_method(configuration)
 
-    def conversation(self, *, query: Optional[Query] = None) -> list[Message]:
+    def conversation(self, *, query: Optional[Query] = None, include_deleted: bool = False) -> list[Message]:
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
-            return select(self.app.project_manager.sessions.conversations(self.data).list(), query)
+            messages = self.app.project_manager.sessions.conversations(self.data).list()
+            return select([m for m in messages if include_deleted or not m.metadata.get("conversation_deleted")], query)
 
     async def aget_data(self) -> Session:
         return await self._async_call(lambda: self.data)

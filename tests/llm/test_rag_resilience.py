@@ -236,15 +236,21 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
         active = peak = 0
         block = False
         entered = asyncio.Event()
+        pair_entered = asyncio.Event()
         async def provider(**request):
             nonlocal active, peak
             active += 1
             peak = max(peak, active)
             try:
-                if block and request["input"][0] != "first":
+                if not block:
+                    # 두 요청의 겹침을 실제 진입으로 동기화한다. 캐시 I/O가 5ms보다 느려도
+                    # admission 검증 결과가 스케줄링 속도에 따라 달라지지 않아야 한다.
+                    if active == 2:
+                        pair_entered.set()
+                    await asyncio.wait_for(pair_entered.wait(), 5)
+                elif request["input"][0] != "first":
                     entered.set()
                     await asyncio.Event().wait()
-                await asyncio.sleep(.005)
                 return await embedding(**request)
             finally:
                 active -= 1

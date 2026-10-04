@@ -52,7 +52,7 @@ from llm.services.runtime.policies import ProjectPolicyResolver, ExecutionLimitE
 from llm.services.runtime.tools import ToolPolicy, ToolExecutionScope
 from llm.services.runtime.operations import OperationRepository, ToolOperations
 from llm.services.runtime.events import EventHandlers, EventContext, EventSubscriptions
-from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_digest
+from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_digest, checkpoint_message_ids
 from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.pending import PendingWork
 from llm.services.runtime.usage import UsageScope, check_admission, component_usage
@@ -268,6 +268,33 @@ class RunRepository:
                         and m.status != MessageStatus.CANCELLED), None)
         resumed = next((r for r in self.list(session) if r.metadata.get("resume", {}).get("run_id") == run.id), None)
         return message, resumed
+
+    def resumable_message_ids(self, session: Session) -> set[str]:
+        """미완료 재개 체인의 마지막 실행만 보호한다. 완료 여부를 중복 저장하지 않는다.
+
+        호출자는 비활성 Session의 workspace 잠금을 소유해야 한다. 체크포인트가 손상되면
+        보호할 참조를 추측하지 않고 거부한다. 초기 복사 전 실패도 resolve_checkpoint로 읽는다.
+        """
+        from graphlib import TopologicalSorter
+        runs = {run.id: run for run in self.list(session)}
+        parents = {run.id: run.metadata["resume"]["run_id"] for run in runs.values() if "resume" in run.metadata}
+        if any(parent not in runs or runs[parent].engine != runs[identifier].engine
+               for identifier, parent in parents.items()):
+            raise ValueError("Invalid resume lineage")
+        # 순환된 이력에서 모든 Run을 '후속 실행 있음'으로 오인하여 보호를 풀지 않는다.
+        tuple(TopologicalSorter({identifier: (parents[identifier],) if identifier in parents else ()
+                                for identifier in runs}).static_order())
+        superseded = set(parents.values())
+        protected = set()
+        for run in runs.values():
+            if run.id in superseded or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
+                continue
+            names = run.metadata.get("checkpoints", ()) or (
+                [run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else ())
+            for name in names:
+                protected.add(run.input_message_id)
+                protected.update(checkpoint_message_ids(self.resolve_checkpoint(session, run, name)))
+        return protected
 
     def interaction_views(self, session, run, store):
         message, resumed = self.resume_link(session, run, store)
@@ -876,7 +903,14 @@ class RunManager:
             raise ValueError("Resume checkpoint changed after admission")
         if any(request.expired for request in self.repository.interaction_requests(session, source)):
             raise ValueError("Interaction expired while resume was queued")
-        return resume_instructions(self._store(session), checkpoint)
+        store = self._store(session)
+        identifiers = checkpoint_message_ids(checkpoint) | {source.input_message_id}
+        try:
+            if any(store.get(identifier).metadata.get("conversation_deleted") for identifier in identifiers):
+                raise ValueError("Deleted conversation messages cannot be used for resume; submit a new request")
+        except KeyError as error:
+            raise ValueError("Original conversation is unavailable; memory-mode resume requires the original backend") from error
+        return resume_instructions(store, checkpoint)
 
     def _context(self, runtime: SessionRuntime, run: Run, policies=None, *, project=None, engine=None) -> EngineContext:
         context_policy, completion_policy, limits = (policies if policies is not None

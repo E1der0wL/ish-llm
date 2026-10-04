@@ -178,6 +178,8 @@ run = await request.wait()
 | 미시작 Agent 실행에 한 번 예약 | `run.ainstruction_routes()`, `session.run.reserve_instruction(run_id, text, targets=selected_routes)` |
 | Run 조회·결과·Step | `session.run.aload(id)`, `run.aresult()`, `run.steps.alist()` |
 | 대화 조회 | `session.aconversation()` |
+| 대화 턴 조회·숨김·시점 복제 | `session.aturns()`, `adelete_turn(request_id)`, `aclone(through_message_id=request_id)` |
+| Project 실행 이력 | `project.aactivity(limit=300)` — 상세 내용은 참조된 Run·Step에서 조회 |
 | Component 핸들 획득 | `await project.components.aget("prompts")` |
 | JSON 정의 CRUD | `component.acreate(...)`, `aload(id)`, `asave(id, data)`, `adelete(id)` |
 | Component 설정 조회·교체 | `component.aconfiguration()`, `aconfigure(settings)` |
@@ -185,6 +187,14 @@ run = await request.wait()
 | Project/Session 결과 모음 | `project.results.alist()`, `session.results.alist()` |
 
 Project/Session의 `adelete()`는 기본적으로 소프트 삭제이며 `arestore()`로 복원합니다. 영구 삭제는 `permanent=True`를 명시합니다. Component 레코드 삭제는 해당 레코드를 제거합니다.
+
+대화 턴 숨김은 `await session.run.shutdown()` 후 대기 요청이 없는 상태에서 수행합니다.
+원본 메시지·Run·Step·체크포인트는 보존하며 새 대화 문맥과 복제에서는 제외합니다.
+재개 체인이 완료되면 과거 paused 상태가 남아 있어도 숨길 수 있습니다. 미완료 재개의 문맥이나
+추가 지시로 참조된 턴은 보호하며, 삭제 표시된 필수 메시지는 재개에서도 거부합니다.
+`session.aconversation(include_deleted=True)`로 숨긴 원본을 조회할 수 있습니다.
+`activity`는 실행 이력의 파생 인덱스입니다. 운영용 `service.log`는 별도로 유지하지만
+이를 수집하는 `project.logs()` API는 제공하지 않습니다.
 
 동기 API도 있지만 비동기 UI에서는 `a` 접두사의 I/O API를 사용하세요. `submit`, `steer`, `wait`, `interrupt`, `shutdown`은 원래 비동기입니다. `project.data` 같은 동기 조회보다 `await project.aget_data()`가 적합합니다.
 

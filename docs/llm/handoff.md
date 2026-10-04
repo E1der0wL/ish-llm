@@ -1,3 +1,34 @@
+## 2026-10-04 대화 턴 삭제·재개 보호와 activity 조회 통일
+
+- ProjectHandle.logs/alogs와 services/history/logs.py를 제거했다. hub의 Ctrl+L은
+  기존 project.aactivity로 실행 이력을 표시한다. DomainLogger/service.log는 운영 진단용으로
+  유지하며 새 저장소나 실행 상태 원본을 만들지 않았다. hub의 연결 변경은 로컬에서 검증하고,
+  기존 GitHub 업로드 범위(llm, docs/llm, examples/llm, tests/llm)와 별도로 유지한다.
+- SessionManager.delete_turn은 비활성 런타임·queued/streaming 차단과 기존 트랜잭션을 유지한다.
+  과거 paused 메시지를 일괄 검사하지 않고 공유 RunRepository.resumable_message_ids로
+  마지막 미완료 재개 실행의 실제 문맥/추가 지시 참조를 보호한다. 다른 체인의 참조도 보호한다.
+  완료된 재개 체인은 원본 paused 상태 그대로 삭제를 허용한다. 새 resolved 플래그는 없다.
+- checkpoint_message_ids는 header와 직접/중첩 instruction 참조를 수집한다. 체크포인트 복사
+  전에 실패한 재개는 기존 resolve_checkpoint를 사용한다. 손상된 참조·순환·파일 누락은
+  삭제 전에 거부한다. 재개 접수/실행에서도 삭제된 필수 메시지를 거부하여 입력을 몰래
+  되살리거나 체크포인트를 변형하지 않는다. 삭제는 원본 JSONL에 표시만 추가한다.
+- 다른 세션에서 추가한 턴 조회/시점 복제와 Project 설정·컴포넌트 선택 일괄 저장은 보존했다.
+  Project → Session → Run → Step, 저장 버전, Engine/ToolExecutor와 승인/효과 영수증은 유지한다.
+- tests/llm/test_conversation_turns.py는 file/memory 삭제·rollback·복제, 단일/다단계 재개 완료,
+  다른 미완료 작업의 참조, 초기 복사 실패, 추가 지시, 재개 거부, 재열기와 activity 조회를 검사한다.
+  첫 집중 검사의 3건은 새 fixture의 RunHandle.paths/GraphEngine.run API 오기였고,
+  다음 1건은 실패 주입 시점을 잘못 잡은 fixture였다. 실제 record_checkpoint 경계로 수정했다.
+  이어 집중 124개가 통과했다. 첫 전체 1,175개 중 RAG 기존 테스트 1건이 peak=1로 실패했다.
+  5ms sleep에 의존하던 동시 진입을 Event로 동기화했으며 제품 RAG 코드는 바꾸지 않았다.
+- Linux Python 3.12.14 hub 전체 55개 통과(39.826초): `/tmp/hub-ui-oe3e6rvg`,
+  `tests/hub/reports/{snapshot.json,suite.txt}`. 외부 모델 호출 없이 PTK/실제 backend를 검사했다.
+  최종 llm snapshot은 `/home/user/.cache/ish-provider-qle7lamx`이며 집중 32개(11.923초),
+  전체 1,175개(501.753초)가 통과했다. 실패 0 / skip 0이며 집중 검사는 전체에 포함된다.
+  RuntimeWarning/미회수 Task 경고는 없었다. 외부 모델 호출은 수행하지 않았다.
+  명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --modules tests.llm.test_conversation_turns tests.llm.test_rag_resilience`.
+  보고서는 `tests/llm/reports/ish-provider-qle7lamx/`에 있으며 소스 279개 해시·AST,
+  README 22개/링크 243개/Python 블록 25개/파일 안내 135개 검사가 통과했다.
+
 ## 2026-10-04 요청별 Graph Workflow 선택
 
 - GraphEngine 생성자의 workflow 인자를 제거했다. 등록은 GraphEngine(handlers=...)이며

@@ -159,6 +159,7 @@ class ConversationContextBuilder:
     # 공개 API
     def for_run(self, messages: list[Message], input_message_id: str, *,
                  policy: Optional[ContextPolicy] = None) -> tuple[Message, ...]:
+        messages = [m for m in messages if not m.metadata.get("conversation_deleted")]
         for message in messages:
             if is_instruction(message):
                 RunInstruction.validate_message(message)
@@ -183,6 +184,7 @@ class ConversationContextBuilder:
         raise ValueError("Run input message is missing from the conversation")
 
     def for_clone(self, messages: list[Message]) -> list[Message]:
+        messages = [m for m in messages if not m.metadata.get("conversation_deleted")]
         for message in messages:
             if is_instruction(message):
                 RunInstruction.validate_message(message)

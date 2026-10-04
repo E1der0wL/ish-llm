@@ -320,7 +320,8 @@ class SessionManager:
         log_event(current.paths.logs, "session.restored", entity_id=current.id)
 
     @workspace_locked
-    def clone(self, source: Session, project: Project, *, title: Optional[str] = None) -> Session:
+    def clone(self, source: Session, project: Project, *, title: Optional[str] = None,
+              through_message_id: str | None = None) -> Session:
         """Copy conversation/configuration, with no execution history or queue replay."""
         self._owner(source)
         source = self.require_inactive(source)
@@ -329,11 +330,15 @@ class SessionManager:
         destination_project = self.require_project(project)
         if self.configuration_validator is not None:
             self.configuration_validator(destination_project.config, session_config=source.config)
+        messages = self.conversations(source).list()
+        if through_message_id is not None:
+            from llm.services.history.turns import through_turn
+            messages = through_turn(messages, through_message_id)
         clone = self.create(project, title if title is not None else source.title)
         clone.metadata = deepcopy(source.metadata)
         clone.config = deepcopy(source.config)
         destination = self.conversations(clone)
-        messages = self.context_builder.for_clone(self.conversations(source).list())
+        messages = self.context_builder.for_clone(messages)
         for message in messages:
             destination.create(message.role, message.content, message.status,
                                metadata=message.metadata)
@@ -341,6 +346,30 @@ class SessionManager:
         log_event(clone.paths.logs, "session.cloned", entity_id=clone.id,
                   related_id=source.id)
         return clone
+
+    @workspace_locked
+    def delete_turn(self, session: Session, request_id: str) -> None:
+        """Append a soft-deletion marker; execution records remain inspectable."""
+        from llm.services.history.turns import conversation_turns
+        current = self.require_inactive(session)
+        if current.status == SessionStatus.DELETED:
+            raise ValueError("Session is deleted")
+        store = self.conversations(current)
+        messages = store.list()
+        if any(m.status in ("queued", "streaming") for m in messages):
+            raise ValueError("Finish pending work before deleting conversation turns")
+        group = next((g for g in conversation_turns(messages) if g[0].id == request_id), None)
+        if group is None:
+            raise ValueError("Conversation turn does not exist")
+        # paused 원본은 재개 완료 후에도 이력으로 남는다. 상태가 아닌 현재 체크포인트 참조를 보호한다.
+        if self.run_repository is None:
+            raise RuntimeError("Turn deletion requires the shared RunRepository")
+        protected = self.run_repository.resumable_message_ids(current)
+        if any(message.id in protected for message in group):
+            raise ValueError("Conversation turn is required by an unfinished resumable Run")
+        for message in group:
+            store.update_metadata(message.id, {"conversation_deleted": True})
+        log_event(current.paths.logs, "conversation.deleted", entity_id=request_id, count=len(group))
 
     @workspace_locked
     def require_inactive(self, session: Session) -> Session:

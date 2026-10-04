@@ -1,5 +1,14 @@
 # Architecture
 
+## Project 설정과 컴포넌트 선택의 일괄 저장
+
+`ProjectHandle.save/asave`는 `components`와 `expected_components`를 선택적으로 받는다.
+ProjectManager는 workspace 잠금 안에서 설정 버전과 원본 선택을 검사하고, 후보 설정과
+컴포넌트 선택을 함께 검증한다. 선택이 바뀌면 컴포넌트가 소유한 초기화를 완료한 후
+Project 메타데이터를 한 번 원자적으로 교체한다. 검증/초기화 실패 시 후보 설정·선택은
+발행하지 않는다. 초기화가 준비한 디렉터리는 남을 수 있으며 기존 데이터는 삭제하지 않는다.
+UI의 저장·취소 동작은 이 계약을 사용하며, 프로젝트/컴포넌트의 저장 경계를 우회하지 않는다.
+
 ## 저장소와 배포 경계
 
 실행 플러그인 루트는 `llm/`과 향후 구현할 `hub/`다. 테스트는 `tests/<plugin>/`,
@@ -1969,3 +1978,28 @@ EngineEvent의 공통 관찰 정보는 StepEventRecorder를 통해 소유 Step m
 RAG job_progress도 같은 표시 타입을 사용하지만 상태 전이·저장은 RAG 컴포넌트가 담당한다.
 ProjectConfig/Component 정의와 업무별 데이터는 dict로 유지한다. 새 실행 계층이나 범용
 Manager를 추가하지 않는다. API 변경과 예시는 [data-contracts.md](data-contracts.md)에 있다.
+## 대화 쌍 관리와 시점별 복제
+
+SessionHandle.turns/aturns는 Run ID로 사용자 요청과 응답·추가 지시를 묶는다.
+예약 요청과 현재 응답의 저장 순서가 섞여도 같은 Run의 쌍을 유지한다.
+delete_turn/adelete_turn은 런타임이 해제된 비활성 Session에서만 실행하고, queued/streaming
+메시지가 있으면 거부한다. 워크스페이스 트랜잭션 아래 참조를 검사하고 message.metadata 이벤트에
+conversation_deleted=true를 추가하며 원본 이벤트 및 Run/Step 기록은 삭제하지 않는다.
+기본 conversation 조회, 새 Run 문맥 생성과 복제는 이 메시지를 제외한다.
+감사용 conversation(include_deleted=True)는 원본 메시지를 계속 반환한다.
+clone/aclone의 through_message_id는 마지막으로 포함할 사용자 요청 ID이며, 해당 요청의
+응답까지 함께 복제한다. 원본 실행 기록이나 예약 실행은 복제하지 않는다.
+재개 관계는 Run.metadata.resume.run_id가 원본이며 별도 resolved 상태를 저장하지 않는다.
+재개된 부모 Run의 paused/failed/interrupted 상태는 이력으로 유지한다. 체인의 마지막 Run이
+completed이면 과거 체크포인트는 삭제를 차단하지 않는다. 마지막 실행이 paused/failed/interrupted이고
+체크포인트가 있으면 header의 문맥·입력 ID 및 직접/중첩 추가 지시 ID가 포함된 턴만 보호한다.
+초기 체크포인트 복사 전에 실패한 재개도 RunRepository.resolve_checkpoint로 원본 참조를 보호한다.
+다른 미완료 체인이 같은 메시지를 참조하면 보호를 유지한다. 체크포인트가 없는 실패는 차단하지 않는다.
+손상된 참조/재개 순환/필수 체크포인트 소실은 추측하지 않고 삭제를 거부한다.
+재개 접수·실행의 기존 검사 경계에서도 필수 메시지의 삭제 표시를 거부한다. 삭제된 내용을 몰래
+되살리거나 체크포인트에서 제외하지 않는다. 새 submit은 삭제를 반영한 현재 문맥으로 실행한다.
+명시적 취소·종료·재개 전이, Run/Step 증거, 승인/Tool 영수증과 저장 버전은 변경하지 않는다.
+
+UI 실행 이력은 ProjectHandle.activity/aactivity로 조회한다. 전체 Session/Run/Step 또는 service.log를
+순회하는 logs/alogs API는 제공하지 않는다. activity는 after-commit 파생 인덱스이며 실행/복구의
+근거는 Run/Step 원본이다. 기존 DomainLogger와 도메인별 service.log는 운영 진단용으로 유지한다.
