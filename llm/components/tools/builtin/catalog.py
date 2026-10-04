@@ -2,6 +2,7 @@
 
 import asyncio
 import math
+from copy import deepcopy
 from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence
 
@@ -9,6 +10,7 @@ from llm.components.tools.registry import Tool, ToolRegistry
 from llm.services.infrastructure.storage import drain_on_cancel
 from .files import FileTools
 from .processes import ProcessTools
+from .diagnostics import DiagnosticTools
 
 
 def schema(properties, required=()):
@@ -27,7 +29,7 @@ class BuiltinTools:
     allow_commands는 임의의 호스트 코드 실행을 허용한다. 경로 제한형 샌드박스가 아니다.
     """
 
-    def __init__(self, root, *, allow_commands: bool = False, git: bool = False,
+    def __init__(self, root, *, allow_commands: bool = False, git: bool = False, diagnostics: bool = False,
                  checks: Optional[Mapping[str, Sequence[str]]] = None,
                  adapters: Optional[Mapping[str, Callable]] = None,
                  max_file_bytes: Optional[int] = None, max_output_bytes: Optional[int] = None,
@@ -36,18 +38,25 @@ class BuiltinTools:
             raise ValueError("Byte limits must be positive integers")
         if max_seconds is not None and (isinstance(max_seconds, bool) or not isinstance(max_seconds, (int, float)) or not math.isfinite(max_seconds) or max_seconds <= 0):
             raise ValueError("max_seconds must be positive and finite")
-        if type(allow_commands) is not bool or type(git) is not bool:
+        if any(type(value) is not bool for value in (allow_commands, git, diagnostics)):
             raise TypeError("Tool feature switches must be booleans")
         self.files = FileTools(Path(root), max_file_bytes)
         self.processes = ProcessTools(self.files, max_seconds=max_seconds, max_output_bytes=max_output_bytes)
         self.registry = ToolRegistry()
         self.closed = False
+        # 재개 binding에 필요한 호스트 실행 환경. client/함수나 숨은 사용자 설정을
+        # 저장하지 않는다. 외부 어댑터의 내부 상태는 여전히 해당 호스트가 관리한다.
+        self._execution_binding = {"root": str(self.files.root), "shell": list(shell) if shell is not None else None,
+            "checks": deepcopy(dict(checks or {})), "max_file_bytes": max_file_bytes,
+            "max_output_bytes": max_output_bytes, "max_seconds": max_seconds}
         path = string(minLength=1)
         digest = string(pattern="^[0-9a-f]{64}$")
+        patterns = {"type": "array", "items": string(minLength=1), "minItems": 1}
+        filters = {"include": patterns, "exclude": patterns}
         specs = {
-            "file_read": ("Read a UTF-8 file and its SHA-256 version.", schema({"path": path, "start_line": {"type": "integer", "minimum": 1}, "max_lines": {"type": "integer", "minimum": 1, "maximum": 5000}}, ["path"])),
-            "file_list": ("List working directory entries without following links.", schema({"path": path, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 1000}}, ["recursive"])),
-            "file_search": ("Find literal text in UTF-8 files; return line numbers.", schema({"path": path, "query": string(minLength=1), "case_sensitive": {"type": "boolean"}, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 500}}, ["query", "case_sensitive", "recursive"])),
+            "file_read": ("Read UTF-8 source or logs and the whole-file SHA-256. Use line ranges or tail_lines (mutually exclusive). expected_sha256 rejects a changed file.", schema({"path": path, "start_line": {"type": "integer", "minimum": 1}, "max_lines": {"type": "integer", "minimum": 1, "maximum": 5000}, "tail_lines": {"type": "integer", "minimum": 1}, "expected_sha256": digest}, ["path"])),
+            "file_list": ("List working directory entries without following links. include/exclude are pathlib relative-path glob patterns; excluded directories are not traversed.", schema({"path": path, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 1000}, **filters}, ["recursive"])),
+            "file_search": ("Find literal text in UTF-8 sources or logs, with line numbers, file hashes and optional surrounding lines. include/exclude use pathlib globs. offset skips matches; paging rescans current files, so restart after edits.", schema({"path": path, "query": string(minLength=1), "case_sensitive": {"type": "boolean"}, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 500}, "offset": {"type": "integer", "minimum": 0}, "context_lines": {"type": "integer", "minimum": 0}, **filters}, ["query", "case_sensitive", "recursive"])),
             "file_create": ("Create a new UTF-8 file; never overwrite an existing file.", schema({"path": path, "content": string()}, ["path", "content"])),
             "file_patch": ("Replace exactly one matching text after checking the file version.", schema({"path": path, "expected_sha256": digest, "old_text": string(minLength=1), "new_text": string()}, ["path", "expected_sha256", "old_text", "new_text"])),
             "file_move": ("Move a version-checked file without overwriting the destination.", schema({"path": path, "destination": path, "expected_sha256": digest}, ["path", "destination", "expected_sha256"])),
@@ -74,8 +83,10 @@ class BuiltinTools:
                 self._register(name, "Run a developer-configured validation command.",
                                schema({"name": {"enum": list(commands)}, **limits}, ["name"]), check)
         if allow_commands:
-            process_schema = schema({"argv": {"type": "array", "minItems": 1, "items": string(minLength=1)}, "cwd": path, **limits}, ["argv"])
+            process_schema = schema({"argv": {"type": "array", "minItems": 1, "items": string(minLength=1)}, "cwd": path, "stdin": {"type": "boolean", "description": "Explicitly open an input pipe for process_write. This is not a PTY."}, **limits}, ["argv"])
             self._register("process_start", "Start an argv command; returns an ID for polling/cancellation.", process_schema, self.processes.start)
+            self._register("process_write", "Send exact text to a process started here with stdin=true, or close its input. No automatic newline. Do not replay uncertain writes.",
+                           schema({"process_id": string(), "text": string(), "close": {"type": "boolean"}}, ["process_id"]), self.processes.write)
             prefix = list(shell) if shell is not None else []
             if isinstance(shell, str) or not prefix or any(not isinstance(item, str) or not item for item in prefix):
                 raise ValueError("shell must be a nonempty argv prefix")
@@ -85,8 +96,25 @@ class BuiltinTools:
             self._register("shell_execute", "Execute a host shell command and wait for its result.",
                            schema({"command": string(minLength=1), "cwd": path, **limits}, ["command"]), execute_shell)
         if allow_commands or commands or git:
-            for name, method in (("process_status", self.processes.status), ("process_output", self.processes.status), ("process_cancel", self.processes.cancel)):
+            for name, method in (("process_status", self.processes.status), ("process_cancel", self.processes.cancel)):
                 self._register(name, "Inspect or cancel a process started by this Tool collection.", schema({"process_id": string()}, ["process_id"]), method)
+            self._register("process_output", "Read retained process output incrementally. Offsets count decoded Unicode characters independently in stdout/stderr. Use next offsets to avoid duplicate text. truncated means configured capture discarded output; stream ordering is not a global event timeline.",
+                schema({"process_id": string(), "stdout_offset": {"type": "integer", "minimum": 0},
+                        "stderr_offset": {"type": "integer", "minimum": 0}, "max_chars": {"type": "integer", "minimum": 1, "description": "Maximum characters per stream in this page."}},
+                       ["process_id"]), self.processes.output)
+        if diagnostics:
+            inspector = DiagnosticTools(self.files.root)
+            diagnostic_specs = {
+                "system_inspect": ("Read Linux kernel, Python, memory, load and work-root disk information.", schema({}), inspector.system),
+                "process_list": ("List visible Linux processes and parent/terminal identity. Optional query matches process names. Results are live observations, not an atomic snapshot.",
+                    schema({"query": string(), "after_pid": {"type": "integer", "minimum": 1}, "limit": {"type": "integer", "minimum": 1}}), inspector.processes),
+                "process_inspect": ("Inspect a Linux PID's cwd, command, standard I/O and terminal/process groups. Optional file descriptors expose pipes/sockets. Unavailable fields are explicit; this cannot observe application UI focus or reconstruct past events.",
+                    schema({"pid": {"type": "integer", "minimum": 1}, "expected_start_ticks": {"type": "integer", "minimum": 0}, "include_files": {"type": "boolean"}}, ["pid"]), inspector.inspect),
+            }
+            for name, (description, parameters, operation) in diagnostic_specs.items():
+                async def inspect(args, operation=operation):
+                    return await asyncio.to_thread(operation, args)
+                self._register(name, description, parameters, inspect)
         if git:
             prefix = ["git", "--no-optional-locks", "-c", "core.fsmonitor=false", "--no-pager"]
             async def status(args):

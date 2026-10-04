@@ -21,7 +21,7 @@
 
 ## 설정과 실행
 
-설정은 `component_configurations.memory`에 저장합니다. 모델 호출을 수반하는 요약·추출, 자동 회상, 문맥 축약 등은 명시한 정책에 따라 적용됩니다. `completion_processors` capability로 Loop 입력·관찰 경계에 연결하고, CRUD Tool은 `tools` capability로 제공합니다.
+설정은 `parameters.components.memory`에 저장합니다. 모델 호출을 수반하는 요약·추출, 자동 회상, 문맥 축약 등은 명시한 정책에 따라 적용됩니다. `completion_processors` capability로 Loop 입력·관찰 경계에 연결하고, CRUD Tool은 `tools` capability로 제공합니다.
 
 ConversationStore는 대화 원본, Memory는 선택·파생된 장기 기억, Run/Step은 실행 기록을 소유합니다. 하나를 다른 것의 대체 저장소로 사용하지 않습니다.
 

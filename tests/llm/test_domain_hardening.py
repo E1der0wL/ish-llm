@@ -277,7 +277,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
         config["ui_color"] = "blue"
         await self.project.asave(config=config)
         self.assertTrue((await self.session.run.resume_plan(run.id, engine="graph")).can_resume)
-        config["completion"] = {"model": "changed/model"}
+        config["parameters"]["engines"] = {"loop": {"completion": {"model": "changed/model"}}}
         await self.project.asave(config=config)
         plan = await self.session.run.resume_plan(run.id, engine="graph")
         self.assertFalse(plan.can_resume)

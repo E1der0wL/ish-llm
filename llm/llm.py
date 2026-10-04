@@ -19,6 +19,7 @@ PLUGIN_META = {
         "chromadb",
         "kuzu",
         "rank-bm25|rank_bm25",
+        "Pillow|PIL",
     ],
 }
 
@@ -48,7 +49,7 @@ from llm.engines.graph import GraphEngine, GraphNodeContext
 from llm.engines.graph.tool import ToolNode
 from llm.engines.graph.agent import AgentNode
 from llm.components.tools import Tool, ToolContract, ToolRegistry
-from llm.components.tools.builtin import BuiltinTools
+from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from llm.components.tools.component import ToolComponent
 from llm.components.agents import AgentComponent
 from llm.components.skills import SkillComponent
@@ -58,6 +59,7 @@ from llm.components.rag import RAGComponent, EmbeddingModel, RerankModel
 from llm.components.rag import TripleExtractor
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.components.memory import MemoryComponent, MemoryData, MemoryConflictError
+from llm.components.vision import VisionComponent, VisionData, TesseractBackend
 from llm.components.base import ProjectComponent
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.runtime.runs import RunEvent, RunManager, RunErrorCode, RunRequestError
@@ -153,7 +155,7 @@ class LargeLanguageModel:
             ) as backend:
                 project = await backend.projects.acreate(
                     "도우미",
-                    config=ProjectConfig(completion={"model": model}),
+                    config=ProjectConfig(parameters={"engines": {"chat": {"completion": {"model": model}}}}),
                     conversation_storage="file",
                 )
                 session = await project.sessions.acreate("첫 대화")
@@ -171,7 +173,8 @@ class LargeLanguageModel:
         항상 engine을 지정해야 한다. 모델명과 인증은 사용하는 공급자에 맞게 설정한다.
         components는 제공할 Component 인스턴스 목록이며 명시하면 기본 목록을 대체한다.
         실제로 사용할 종류는 Project 생성의 components=["tools", ...]에서 선택한다.
-        services=ServiceConfig(...)로 저장소·문맥 정책·로그·이벤트 처리기를 주입한다.
+        services=ServiceConfig(...)로 저장소·계산기·로그·이벤트 처리기를 주입한다.
+        실행 정책은 ProjectConfig.policies, 구현체 인자는 parameters에 저장한다.
         conversation_storage는 새 Project의 저장 방식이며 기존 Project의 명시된 선택은 보존한다.
         on_event(run, event), on_run_event(event)는 실행 관찰 콜백이다.
 
@@ -188,30 +191,24 @@ class LargeLanguageModel:
         # 각 컴포넌트의 JSON 설정을 ProjectConfig로 전달할 수 있다.
         project = await backend.projects.acreate(
             "문서 작업", components=["rag", "memory"],
-            config=ProjectConfig(component_configurations={
+            config=ProjectConfig(policies={"output": {"batch_size": 16}}, parameters={"components": {
                 "rag": {"chunk_size": 1200, "search": {"limit": 8}},
                 "memory": {"search_limit": 5},
-            }, policies={"output": {"batch_size": 16}}),
+            }}),
         )
         # 명시된 client 설정 위에 Project 설정을 적용한다.
         # configure() 편의 API도 항상 같은 Project 설정을 갱신한다.
         view = await project.aconfiguration()
         print(view["components"]["rag"]["effective"]["sources"])
         settings = ProjectConfig(view["project"]["config"])
-        settings.component_configurations["rag"]["search"]["limit"] = 10
+        settings.parameters["components"]["rag"]["search"]["limit"] = 10
         await project.asave(config=settings, expected_version=view["config_version"])
 
-        # 최초에는 전체 등록 Component·file 대화 저장으로 생성하며 실행 Engine은 명시한다.
-        # 재호출 시 같은 Project를 반환하고 기존 설정을 덮어쓰지 않는다.
-        project = await backend.projects.aget_default(
-            config=ProjectConfig(completion={"model": model}),
-        )
-        view = await project.aconfiguration()  # 프로젝트 + 선택된 Component 설정의 JSON 사본
-        component_settings = view["components"]["tools"]["configuration"]
-        # 실제 실행에는 engine="loop"을 명시한다.
+        # 기본 Project/Session과 마지막 선택은 호출 애플리케이션이 소유한다.
+        # acreate는 매번 새 Project를 만들며 재사용은 아래 aload(id)로 명시한다.
 
         project = await backend.projects.acreate(
-            "연구", config=ProjectConfig(completion={"model": model}),
+            "연구", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": model}}}}),
             components=["tools", "skills", "agents", "workflows"],
             conversation_storage="memory",
         )
@@ -219,7 +216,7 @@ class LargeLanguageModel:
         projects = await backend.projects.alist(include_deleted=True, query=Query(limit=20))
         await project.asave(title="연구 노트")
         settings = (await project.aget_data()).config
-        settings["completion"]["temperature"] = 0.2
+        settings["parameters"]["engines"]["loop"]["completion"]["temperature"] = 0.2
         await project.asave(config=settings)
         project_copy = await project.aclone(title="연구 사본")
         await project.adelete()                 # 소프트 삭제
@@ -237,13 +234,13 @@ class LargeLanguageModel:
 
     Session / Conversation — 독립 대화 세션 관리::
 
-        session = await project.sessions.acreate("코드 검토", config={"completion": {"temperature": 0}})
+        session = await project.sessions.acreate("코드 검토", config={"parameters": {"engines": {"loop": {"completion": {"temperature": 0}}}}})
         session = await project.sessions.aload(session.id)
         sessions = await project.sessions.alist(include_deleted=True, query=Query(limit=20))
         await session.asave(title="검토 세션", metadata={"language": "ko"})
         messages = await session.aconversation(query=Query(limit=50))
         await session.run.shutdown()
-        await session.asave(config={"completion": {"temperature": 0.1}})
+        await session.asave(config={"parameters": {"engines": {"loop": {"completion": {"temperature": 0.1}}}}})
         session_copy = await session.aclone(title="검토 사본")
         await session.adelete()
         await session.arestore()
@@ -470,7 +467,21 @@ class LargeLanguageModel:
     identifier=로 식별자를 지정할 수 있다.
     configure는 전체 설정을 교체하고 update는 최상위 키를 병합한다. 데이터는 Component
     검증 규칙을 따르는 열린 JSON 사전이다. 기본 제공 종류는 tools/skills/mcp/rag/
-    agents/workflows/memory이며 정의 저장과 실제 Tool·모델·검색 실행은 별개다.
+    agents/workflows/memory/prompts/vision이며 정의 저장과 실제 Tool·모델·검색 실행은 별개다.
+
+    Vision — 등록된 이미지 전처리·OCR·모델 해석::
+
+        # Project 생성 시 components에 "vision"을 선택한다.
+        vision = await project.components.aget("vision")
+        await vision.aconfigure({"ocr": {"backend": "tesseract"}})
+        image = await vision.aimport_image("/path/screen.png", title="화면")
+        result = await vision.aocr(image["id"])
+        document = await vision.aextract_document(image["id"], mode="ocr", title="화면 텍스트")
+        # rag도 선택·설정되어 있다면 await project.components.rag.aadd_document(**document)
+
+    backend 미설정이면 OCR 호출에서 backend를 명시해야 한다. VLM은 vision.completion의
+    모델 설정 후 aanalyze(image_id, prompt=...)로 호출한다. 이미지 삭제는 출처 보존을 위한
+    tombstone이며 개별 bytes를 회수하지 않는다. 자세한 계약은 components/vision/README.md.
 
     Memory — 프로젝트 장기 기억 (휘발성 대화 저장 옵션과는 별개)::
 
@@ -510,11 +521,10 @@ class LargeLanguageModel:
         from llm.components.rag import RAGComponent, EmbeddingModel, TripleExtractor
 
         # 기본 모델 설정은 ProjectConfig로 전달하고 필요한 실행 함수만 호스트에서 주입한다.
-        project = await backend.projects.acreate("문서", components=["rag"], config=ProjectConfig(
-            component_configurations={"rag": {
+        project = await backend.projects.acreate("문서", components=["rag"], config=ProjectConfig(parameters={"components": {"rag": {
                 "embedding_params": {"model": embedding_model, "api_key": api_key},
                 "extraction_params": {"model": model, "api_key": api_key},
-            }}))
+            }}}))
         rag = await project.components.aget("rag")
         document = await rag.aadd_document(title="운영 안내", content=markdown_text)
         result = await rag.asearch("백업 정책", method="hybrid", expand="section")
@@ -647,10 +657,10 @@ class LargeLanguageModel:
     Project 설정 폼과 운영 API::
 
         schema = backend.project_schema(components=["tools", "rag", "memory"])
-        # properties.config / properties.config.properties.component_configurations에서 타입·허용값·제약 조회
+        # properties.config / properties.config.properties.parameters.properties.components에서 타입·허용값·제약 조회
         settings = await project.aconfiguration()
         values, schema = settings["values"], settings["schema"]
-        # values.config.component_configurations는 명시된 값만 포함한다. 없는 키는 미설정이다.
+        # values.config.parameters["components"]는 명시된 값만 포함한다. 없는 키는 미설정이다.
         # settings.project.config는 저장 원본이다. 전체 설정 후보를 저장 전에 검증한다.
         preview = await project.avalidate_configuration(settings["project"]["config"],
                                                        expected_version=settings["config_version"])
@@ -706,7 +716,8 @@ class LargeLanguageModel:
             self.services = replace(self.services, conversations=conversation_storage)
         # 제공 가능한 종류와 Project에서 선택한 종류는 다르다. 선택 시에만 디렉토리를 만든다.
         available = [ToolComponent(), SkillComponent(), MCPComponent(), RAGComponent(),
-                     AgentComponent(), WorkflowComponent(), MemoryComponent(), PromptComponent()] if components is None else components
+                     AgentComponent(), WorkflowComponent(), MemoryComponent(), PromptComponent(),
+                     VisionComponent()] if components is None else components
         self.project_manager, self.run_repository, self.step_manager = self.services.build(
             self.workspace, available)
         self.project_manager.usage_counters = dict(getattr(self.policy_resolver, "token_counters", {}))
@@ -857,7 +868,7 @@ class LargeLanguageModel:
         """UI용 Project 설정 JSON Schema의 독립 사본을 반환한다.
 
         components=None은 현재 등록된 모든 컴포넌트, []는 선택 없음이다.
-        properties.config에는 ProjectConfig, 그 안의 component_configurations에는
+        properties.config에는 ProjectConfig, 그 안의 parameters.components에는
         선택 컴포넌트의 설정 스키마가 있다. type/enum/minimum/description으로
         폼을 만들고 additionalProperties=True인 영역은 추가 JSON 키 입력을 허용한다.
         파일/모델을 읽지 않으며 런타임 함수·실제 인증값을 반환하지 않는다.
@@ -924,8 +935,7 @@ async def run_request(args: argparse.Namespace) -> int:
         engines={"loop": LoopEngine(**{key: value for key, value in {
             "max_iterations": args.max_iterations, "request_timeout": args.timeout}.items() if value is not None})},
     ) as backend:
-        project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(
-            completion={key: value for key, value in {"model": args.model, "temperature": args.temperature, "api_base": args.api_base}.items() if value is not None}),
+        project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {key: value for key, value in {"model": args.model, "temperature": args.temperature, "api_base": args.api_base}.items() if value is not None}}}}),
             components=["tools"] if args.with_tools else [])
         session = await project.sessions.acreate("Streaming request")
         if args.with_tools:

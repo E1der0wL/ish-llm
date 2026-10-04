@@ -31,6 +31,17 @@ UI / ish 명령
 
 Engine과 Component는 소유 계층의 중간 도메인이 아닙니다. Engine은 실행하고, Component는 기능별 자료를 관리하며, 서비스가 Run/Step의 저장과 수명을 담당합니다.
 
+프로그래밍·문제 분석에는 [기본 Tool](components/tools/builtin/README.md)과
+[Skill](components/skills/README.md)을 조합할 수 있습니다. SkillComponent를 선택하면
+LLM이 skill_list로 작업 지침을 찾고 skill_read로 본문을 읽을 수 있습니다. 소스/로그 조회,
+명령 실행·pipe 입력·출력 이어 읽기, Linux 상태 관찰은 호스트가 제공한 BuiltinTools에서
+Project별로 선택합니다. [실행 예제](../examples/llm/developer_assistant.md)의 시스템 프롬프트와
+초기 지침은 명시적으로 설치하는 예시이며 라이브러리의 숨은 기본 설정이 아닙니다.
+
+[Vision](components/vision/README.md)을 선택하면 등록한 이미지의 전처리·OCR·VLM 해석을
+Tool과 직접 API에서 사용할 수 있습니다. OCR backend나 모델은 명시적으로 선택하며,
+추출 결과는 출처가 있는 문서로 RAG에 전달할 수 있습니다.
+
 ## ish에서 실행하기
 
 ### 설치
@@ -114,14 +125,18 @@ async def main():
     ) as backend:
         project = await backend.projects.acreate(
             "첫 프로젝트",
-            config=ProjectConfig(
-                completion={
-                    "model": "openai/YOUR_MODEL",
-                    "api_key": "YOUR_API_KEY",
-                    # "api_base": "https://your-server/v1",
+            config=ProjectConfig(parameters={
+                "engines": {
+                    "loop": {
+                        "max_iterations": 4,
+                        "completion": {
+                            "model": "openai/YOUR_MODEL",
+                            "api_key": "YOUR_API_KEY",
+                            # "api_base": "https://your-server/v1",
+                        },
+                    },
                 },
-                engines={"loop": {"max_iterations": 4}},
-            ),
+            }),
             components=[],
             conversation_storage="file",
         )
@@ -148,7 +163,7 @@ if __name__ == "__main__":
 
 `ProjectConfig`는 열린 JSON 설정 객체입니다. 여기에 넣은 API 키도 Project 설정 JSON에 저장됩니다. 별도 비밀값 저장소는 없으며, 원한다면 키를 저장하지 않고 SDK의 환경변수 인증을 사용할 수 있습니다.
 
-### 기존 대화와 기본 Project 사용
+### 기존 Project와 대화 선택
 
 다음은 열린 `backend` 안에서 사용하는 코드입니다.
 
@@ -159,9 +174,7 @@ request = await session.run.submit("앞의 내용을 이어서 설명해줘.", e
 run = await request.wait()
 ```
 
-`await backend.projects.aget_default(config=ProjectConfig(...))`는 기본 Project를 생성하거나 다시 엽니다. 처음 생성할 때 등록된 모든 Component를 선택하고 파일 대화 저장을 사용합니다. **기존 Project의 설정은 인자로 덮어쓰지 않습니다.** 모델과 RAG 등의 필수 설정이 자동으로 채워지는 것도 아닙니다. 수정은 `project.asave(config=...)` 또는 해당 Component의 설정 API로 수행합니다.
-
-기본 Project를 사용하더라도 `submit(..., engine="loop")`처럼 실행할 Engine 이름은 매번 명시해야 합니다.
+llm은 기본 Project·Session을 생성하거나 선택하지 않습니다. `acreate()`는 매번 새 Project를 만들고, `aload(id)`는 지정한 Project만 읽습니다. 첫 실행의 템플릿, 마지막 Project/Session 선택, UI의 엔진 선택은 hub 등 호출 애플리케이션이 담당합니다. llm의 `submit(..., engine="loop")`에는 엔진을 항상 명시합니다.
 
 ### 자주 쓰는 API
 
@@ -220,11 +233,11 @@ Graph는 `await run.ainstruction_targets()`의 실행 목록을 UI에 표시하�
 
 ### 설정과 UI 연결
 
-- `completion`: LiteLLM에 전달할 모델·인증·추론 옵션.
-- `engines.<등록 이름>`: 해당 Engine의 실행 설정.
 - `policies`: 문맥, 완료 토큰, Run, 조건부 Tool 재시도, 사용량·보관 등의 정책. 호스트의 Tool 실행 권한은 ServiceConfig/ToolPolicy가 별도로 소유합니다.
-- `session_defaults`: 새 Session에 전달할 설정.
-- `component_configurations.<이름>`: 선택한 Component의 설정.
+- `parameters.engines.<설정 이름>`: 해당 Engine이 해석할 전달 인자. Loop는 이 안의 `completion`에서 LiteLLM 모델·인증·추론 옵션을 읽습니다.
+- `parameters.components.<이름>`: 해당 Component가 해석할 전달 인자. RAG 모델 설정은 `rag.embedding_params` 등 RAG의 스키마를 따릅니다.
+
+최상위 공용 `completion`은 없습니다. 같은 `model` 키라도 다른 엔진·컴포넌트에 자동 전달하지 않습니다. `project.components.rag.aconfigure(...)`와 `project.asave(config=...)`는 동일한 ProjectConfig 저장 위치를 수정합니다. `await project.aconfiguration()`으로 선택한 모든 컴포넌트의 설정·스키마·출처와 엔진별 최종 설정을 계속 한 번에 조회할 수 있습니다.
 
 설정이 없으면 임의의 사용자 정책을 만들지 않습니다. SDK 옵션은 생략하여 SDK 동작에 맡깁니다. 설정 누락은 상위 명시값을 상속하고, 지원되는 필드의 명시적 `null`은 상위 값을 덮어씁니다. 상세 우선순위와 강제 불변식은 [설정 계약](CONFIGURATION.md)에 있습니다.
 
@@ -292,7 +305,7 @@ record = await notes.aload(identifier)
 
 1. `directory`는 Project 루트의 안전한 직접 하위 디렉터리여야 합니다. 핵심 도메인 경로나 다른 Component의 경로를 소유하지 않습니다.
 2. Base의 JSON CRUD·직렬화·복제 계약을 재사용합니다. 데이터 형식 제약은 `validate_record()`에 둡니다.
-3. 설정은 `ProjectConfig.component_configurations`로 관리합니다. 별도 `component.json`을 만들지 않습니다.
+3. 설정은 `ProjectConfig.parameters["components"]`로 관리합니다. 별도 `component.json`을 만들지 않습니다.
 4. UI/앱은 잠금과 수명 검사를 제공하는 `ComponentData` 핸들을 사용합니다. 전용 API가 필요하면 `data_class`에 하위 클래스를 지정합니다.
 5. 실행 기능이 필요하면 `capabilities`와 `resolve/resolve_runtime`을 구현합니다. Component가 Run/Step 수명을 직접 관리하지 않습니다.
 6. `configuration_schema()`는 허용 형식을 설명합니다. 사용자 미설정 값을 schema default로 생성하지 않습니다.

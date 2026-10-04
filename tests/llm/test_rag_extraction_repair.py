@@ -114,7 +114,7 @@ class ComponentExtractionTests(unittest.IsolatedAsyncioTestCase):
                                 extractor=TripleExtractor(model="test/extract", completion_fn=extract))
         self.app = LargeLanguageModel(self.temp.name, components=[self.rag, PromptComponent()])
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate(components=["rag", "prompts"], config=rag_project({"component_configurations": {"rag": {"extraction": {"repair_attempts": 2}}}}))
+        self.project = await self.app.projects.acreate(components=["rag", "prompts"], config=rag_project({"parameters": {"components": {"rag": {"extraction": {"repair_attempts": 2}}}}}))
         self.data = await self.project.components.aget("rag")
         self.prompts = await self.project.components.aget("prompts")
 

@@ -34,7 +34,7 @@ class ToolComponent(Component):
             raise ValueError("Duplicate enabled tool")
 
     def configuration(self, project):
-        data = deepcopy(project.config.component_configurations.get(self.name, {}))
+        data = deepcopy(project.config.parameters.get("components", {}).get(self.name, {}))
         self.serialize(data)
         self.validate_configuration(data)
         return data

@@ -44,8 +44,6 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_engine_is_required_before_admission_even_with_project_defaults(self):
         self.assertNotIn("default_engine", ProjectConfig())
-        self.project.config["default_engine"] = "fake"
-        self.projects.save(self.project)
         loaded = self.sessions.load(self.project, self.session.id)
         self.assertNotIn("default_engine", asdict(loaded))
         manager = self.manager(loaded)
@@ -91,8 +89,6 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.engine.contexts[0].capabilities["custom"], {"ok": True})
 
     async def test_restored_request_without_engine_fails_without_guessing_and_queue_continues(self):
-        self.project.config["default_engine"] = "fake"
-        self.projects.save(self.project)
         store = ConversationStore(self.session.paths.conversation)
         store.create(MessageRole.USER, "legacy", MessageStatus.QUEUED)
         store.create(MessageRole.USER, "explicit", MessageStatus.QUEUED,
@@ -291,7 +287,7 @@ class OpenComponentTests(unittest.TestCase):
         config = ProjectConfig({"editor": {"font_size": 14}}, theme="dark")
         self.assertFalse(is_dataclass(config))
         config["password"] = "ordinary-example-value"
-        config.completion = {"model": "example", "api_key": "example-value"}
+        config.parameters["engines"] = {"loop": {"completion": {"model": "example", "api_key": "example-value"}}}
         config["new_section"] = {"custom": [1, True]}
         config["model"] = {"workspace_setting": True}
         config["__deepcopy__"] = "ordinary mapping key"

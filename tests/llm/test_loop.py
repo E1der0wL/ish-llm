@@ -69,7 +69,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         self.sessions = SessionManager()
         self.components = ComponentRegistry()
         self.projects = ProjectManager(ProjectRepository(Path(self.temporary.name)), self.sessions, components=self.components)
-        self.project = self.projects.create("Loop project", config=ProjectConfig(completion={'model': "openai/test-model"}))
+        self.project = self.projects.create("Loop project", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {'model': "openai/test-model"}}}}))
         self.session = self.sessions.create(self.project, "Loop session")
         self.store = ConversationStore(self.session.paths.conversation)
         self.registry = EngineRegistry()
@@ -139,7 +139,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
                 yield chunk(" 답변", finish="stop")
             finally:
                 closed.set()
-        self.project.config.completion["api_base"] = "http://localhost:8000/v1"
+        self.project.config.parameters["engines"]["loop"]["completion"]["api_base"] = "http://localhost:8000/v1"
         self.projects.save(self.project)
         self.engine(completion_fn, request_timeout=60,
                     completion_kwargs={"max_tokens": 100, "api_key": "secret-test-value"})
@@ -227,7 +227,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(completion_fn.requests, [])
 
     async def test_explicit_model_works_without_project_model(self):
-        self.project.config.completion["model"] = ""
+        self.project.config.parameters["engines"]["loop"]["completion"]["model"] = ""
         self.projects.save(self.project)
         completion_fn = ScriptedCompletion([chunk("done", finish="stop")])
         self.engine(completion_fn, completion_kwargs={"model": "openai/explicit"})

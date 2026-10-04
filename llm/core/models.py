@@ -109,8 +109,7 @@ class ProjectConfig(dict):
     """
 
     def __init__(self, values: Optional[dict] = None, **settings) -> None:
-        sections = {"completion": {}, "engines": {}, "policies": {},
-                    "session_defaults": {}, "data": {}, "component_configurations": {}}
+        sections = {"policies": {}, "parameters": {}, "data": {}}
         if values is not None:
             sections.update(deepcopy(dict(values)))
         sections.update(deepcopy(settings))
@@ -150,13 +149,10 @@ class ProjectConfig(dict):
     def validate(self) -> None:
         self.validate_settings(self)
         self["policies"] = normalize_policies(self.get("policies", {}))
-        for section in ("completion", "engines", "session_defaults", "data", "component_configurations"):
+        for section in ("parameters", "data"):
             if not isinstance(self.get(section), dict):
                 raise TypeError(f"{section} must be a dictionary")
-        if any(not isinstance(value, dict) for value in self.component_configurations.values()):
-            raise TypeError("Each Component configuration must be a dictionary")
         self.validate_session(self, project=True)
-        self.validate_session(self.session_defaults)
 
     @staticmethod
     def policy_schema() -> dict:
@@ -181,13 +177,19 @@ class ProjectConfig(dict):
         cls.validate_settings(config)
         if not project and "policies" in config:
             raise ValueError("Execution policies belong to ProjectConfig, not Session configuration")
-        if not project and "component_configurations" in config:
-            raise ValueError("Component configurations belong to ProjectConfig, not Session configuration")
-        for name in ("completion", "engines", "data"):
+        removed = {"completion", "engines", "component_configurations", "session_defaults", "default_engine"} & config.keys()
+        if removed:
+            raise ValueError(f"Unsupported configuration sections: {sorted(removed)}; use targeted parameters")
+        for name in ("parameters", "data"):
             if name in config and not isinstance(config[name], dict):
                 raise TypeError("Session configuration sections must be dictionaries")
-        if any(not isinstance(options, dict) for options in config.get("engines", {}).values()):
-            raise TypeError("Each Engine configuration must be a dictionary")
+        parameters = config.get("parameters", {})
+        if not project and "components" in parameters:
+            raise ValueError("Component parameters belong to ProjectConfig, not Session configuration")
+        for category in ("engines", "components"):
+            targets = parameters.get(category, {})
+            if not isinstance(targets, dict) or any(not isinstance(options, dict) for options in targets.values()):
+                raise TypeError(f"parameters.{category} must map target names to dictionaries")
 
     def to_dict(self) -> dict:
         self.validate()
@@ -216,7 +218,7 @@ class ProjectConfig(dict):
         session_config = session_config if session_config is not None else {}
         self.validate_session(session_config)
         result = self.merge(dict(self), session_config)
-        result["engine"] = self.merge(self.engines.get(name, {}), session_config.get("engines", {}).get(name, {}))
+        result["engine"] = deepcopy(result.get("parameters", {}).get("engines", {}).get(name, {}))
         return result
 
     @classmethod

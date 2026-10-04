@@ -12,7 +12,7 @@ from pathlib import Path
 from llm.core.models import Project, ProjectConfig, new_id
 from llm.core.configuration import component_configuration
 from llm.core.paths import ProjectPaths
-from llm.services.infrastructure.storage import atomic_json, child, read_json, record, remove_owned_tree
+from llm.services.infrastructure.storage import child, record, remove_owned_tree
 from llm.services.lifecycle.sessions import SessionManager
 from llm.services.infrastructure.logging import log_event
 from llm.services.lifecycle.access import ProjectAccess
@@ -104,19 +104,10 @@ class ProjectManager:
         from llm.services.lifecycle.steps import StepRepository
         self.backup_steps = backup_steps if backup_steps is not None else StepRepository()
 
-    def _default_path(self) -> Path:
-        path = self.repository.root / "default-project.json"
-        for entry in (path, *path.parents):
-            if entry.is_symlink():
-                raise ValueError("Default Project reference cannot follow linked paths")
-        return path
-
     def _validate_configuration(self, project) -> None:
         self.components.validate_configuration(project)
         if self.configuration_validator is not None:
             self.configuration_validator(project.config)
-            if project.config.session_defaults:
-                self.configuration_validator(project.config, session_config=project.config.session_defaults)
 
     def _create(self, project_id: str, title: str, *, config: Optional[ProjectConfig] = None,
                 components: tuple[str, ...] = (),
@@ -255,41 +246,6 @@ class ProjectManager:
                             conversation_storage=conversation_storage)
 
     @workspace_locked
-    def get_default(self, *, title: str = "Default project",
-                    config: Optional[ProjectConfig] = None) -> Project:
-        """최초에는 전체 등록 Component·file 대화 저장을 선택하고, 이후에는 기존 설정을 보존한다."""
-        path = self._default_path()
-        pointer = read_json(path) if path.exists() else None
-        if pointer is not None:
-            if (not isinstance(pointer, dict) or type(pointer.get("pending")) is not bool
-                    or not isinstance(pointer.get("project_id"), str)):
-                raise ValueError("Invalid default Project reference")
-            metadata = self.repository.paths(pointer["project_id"]).root / "project.json"
-            if metadata.exists():
-                current = self.access.load(pointer["project_id"])
-                self.components.validate(current.components)
-                if pointer["pending"]:
-                    # 생성 도중 종료된 경우 같은 Project의 멱등 초기화만 마무리한다.
-                    self.sessions.initialize(deepcopy(current))
-                    self.components.initialize(current)
-                    atomic_json(path, {"project_id": current.id, "pending": False})
-                return current
-        # 소프트 삭제는 위 access.load에서 거부한다. 영구 삭제 후에는 새 ID로 만든다.
-        settings = deepcopy(config) if config is not None else ProjectConfig()
-        settings.validate()
-        self.sessions.conversations.resolve("file")
-        selected = self.components.validate(self.components.names())
-        identifier = pointer["project_id"] if pointer is not None and pointer["pending"] else new_id()
-        self._validate_configuration(Project(identifier, title, self.repository.paths(identifier),
-                                     config=settings, components=selected, conversation_storage="file"))
-        # ID를 먼저 예약하므로 포인터 공개 실패/재시작에도 같은 Project를 재사용한다.
-        atomic_json(path, {"project_id": identifier, "pending": True})
-        project = self._create(identifier, title, config=settings, components=selected,
-                               conversation_storage="file")
-        atomic_json(path, {"project_id": project.id, "pending": False})
-        return project
-
-    @workspace_locked
     def configuration(self, project: Project, *, config=None, expected_version=None) -> dict:
         """UI용 설정 스냅샷. Component 설정을 중복 저장하지 않고 담당 객체에 조회를 위임한다."""
         current = self.access.require(project)
@@ -303,7 +259,7 @@ class ProjectManager:
             self._validate_configuration(current)
             configurations = {}
         self.components.validate(current.components)
-        for name in dict.fromkeys((*current.components, *current.config.component_configurations)):
+        for name in dict.fromkeys((*current.components, *current.config.parameters.get("components", {}))):
             if name not in configurations:
                 configurations[name] = self.components.get(name).configuration(deepcopy(current))
         return {"project": {"id": current.id, "title": current.title,
@@ -312,7 +268,6 @@ class ProjectManager:
                 "policy_schema": ProjectConfig.policy_schema(),
                 "config_version": version,
                 "component_versions": versions,
-                "component_configurations": configurations,
                 "components": {name: {"directory": self.components.get(name).directory,
                     "configuration": deepcopy(configurations[name]),
                     "effective": component_configuration(self.components.get(name), deepcopy(current))}
@@ -401,7 +356,7 @@ class ProjectManager:
                 self.sessions.require_inactive(session)
         current.components = tuple(item for item in current.components if item != name)
         if permanent:
-            current.config.component_configurations.pop(name, None)
+            current.config.parameters.get("components", {}).pop(name, None)
         self.components.validate(current.components)
         # 선택 해제와 디렉토리 격리를 같은 트랜잭션으로 확정한다.
         self.repository.save(current)

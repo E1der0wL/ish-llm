@@ -21,58 +21,60 @@
   "validator_timeout": 60,
   "validator_output_bytes": 50000,
   "project_config": {
-    "completion": {
-      "model": "openai/YOUR_CHAT_MODEL",
-      "api_base": "https://YOUR_CHAT_ENDPOINT/v1",
-      "api_key": "YOUR_API_KEY",
-      "timeout": 120,
-      "num_retries": 0
-    },
-    "engines": {
-      "loop": {
-        "max_iterations": 8,
-        "request_timeout": 120
-      }
-    },
-    "component_configurations": {
-      "rag": {
-        "embedding_params": {
-          "model": "openai/YOUR_EMBEDDING_MODEL",
-          "api_base": "https://YOUR_EMBEDDING_ENDPOINT/v1",
-          "api_key": "YOUR_API_KEY",
-          "timeout": 120,
-          "num_retries": 0
-        },
-        "extraction_params": {
-          "model": "openai/YOUR_CHAT_MODEL",
-          "api_base": "https://YOUR_CHAT_ENDPOINT/v1",
-          "api_key": "YOUR_API_KEY",
-          "timeout": 120,
-          "num_retries": 0,
-          "temperature": 0
-        },
-        "chunk_size": 1500,
-        "embedding_concurrency": 2,
-        "extraction_batch_size": 8,
-        "graph": {
-          "buffer_pool_size": 67108864,
-          "max_num_threads": 2
-        },
-        "search": {
-          "method": "hybrid",
-          "expand": "section",
-          "limit": 5,
-          "max_hops": 2,
-          "relation_limit": 30,
-          "candidate_count": 20,
-          "rrf_constant": 60
-        },
-        "search_cache_chars": 1000000,
-        "index_batch_size": 128,
-        "extraction": {
-          "failure_policy": "required",
-          "repair_attempts": 2,
-          "json_mode": "auto"
+    "parameters": {
+      "engines": {
+        "loop": {
+          "max_iterations": 8,
+          "request_timeout": 120,
+          "completion": {
+            "model": "openai/YOUR_CHAT_MODEL",
+            "api_base": "https://YOUR_CHAT_ENDPOINT/v1",
+            "api_key": "YOUR_API_KEY",
+            "timeout": 120,
+            "num_retries": 0
+          }
+        }
+      },
+      "components": {
+        "rag": {
+          "embedding_params": {
+            "model": "openai/YOUR_EMBEDDING_MODEL",
+            "api_base": "https://YOUR_EMBEDDING_ENDPOINT/v1",
+            "api_key": "YOUR_API_KEY",
+            "timeout": 120,
+            "num_retries": 0
+          },
+          "extraction_params": {
+            "model": "openai/YOUR_CHAT_MODEL",
+            "api_base": "https://YOUR_CHAT_ENDPOINT/v1",
+            "api_key": "YOUR_API_KEY",
+            "timeout": 120,
+            "num_retries": 0,
+            "temperature": 0
+          },
+          "chunk_size": 1500,
+          "embedding_concurrency": 2,
+          "extraction_batch_size": 8,
+          "graph": {
+            "buffer_pool_size": 67108864,
+            "max_num_threads": 2
+          },
+          "search": {
+            "method": "hybrid",
+            "expand": "section",
+            "limit": 5,
+            "max_hops": 2,
+            "relation_limit": 30,
+            "candidate_count": 20,
+            "rrf_constant": 60
+          },
+          "search_cache_chars": 1000000,
+          "index_batch_size": 128,
+          "extraction": {
+            "failure_policy": "required",
+            "repair_attempts": 2,
+            "json_mode": "auto"
+          }
         }
       }
     }

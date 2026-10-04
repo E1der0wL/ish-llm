@@ -7,6 +7,9 @@
 # Linux Python 3.12.14: Linux 스냅샷에서 집중 + 전체 llm 검사
 .venv-linux312/bin/python tests/llm/run_linux.py --full
 
+# llm 설정 계약과 연결된 hub UI까지 함께 검사
+.venv-linux312/bin/python tests/llm/run_linux.py --full --hub
+
 # 이미 소스와 환경이 Linux 파일시스템에 있을 때
 .venv-linux312/bin/python -m unittest discover -s tests/llm -t . -v
 

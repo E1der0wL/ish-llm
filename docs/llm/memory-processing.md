@@ -149,5 +149,5 @@ Session 요약은 최신 캐시를 원자 교체한다. 전체 메시지 ID 목�
 기억 여러 개의 후보 등록은 파일별 원자 쓰기다. I/O 실패 시 일부 후보가 남을 수 있으며
 실패를 자동 재시도하지 않는다. 이미 저장된 후보와 출처를 조회해 확인할 수 있다.
 
-컴포넌트 설정은 `project.json`의 `config.component_configurations`에만 저장한다.
+컴포넌트 설정은 `project.json`의 `config.parameters["components"]`에만 저장한다.
 ComponentData.configure 편의 API도 이 설정을 갱신한다.

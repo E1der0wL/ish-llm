@@ -19,7 +19,7 @@ engines = {"assistant": LoopEngine()}
 # request = await session.run.submit("문서를 설명해줘", engine="assistant")
 ```
 
-등록 이름에 맞춰 `ProjectConfig.engines["assistant"]`에 설정합니다. `settings_name`을 명시하면 별도 설정 키를 사용할 수 있습니다. 요청마다 Engine 이름을 지정합니다.
+등록 이름에 맞춰 `ProjectConfig.parameters["engines"]["assistant"]`에 설정합니다. `settings_name`을 명시하면 별도 설정 키를 사용할 수 있습니다. 요청마다 Engine 이름을 지정합니다.
 
 ## 한 반복의 흐름
 

@@ -417,7 +417,7 @@ async def plan(workspace, config, request, *, report_only=False, completion_fn=N
                 await rag.aadd_document(identifier=identifier, **document)
             await (await project.components.aget("agents")).acreate({"engine": "loop",
                 "purpose": "Propose evidence-based configuration changes", "system_prompt": AGENT_PROMPT,
-                "completion": dict(config["project_config"]["completion"]), "tools": [], "resources": {"rag": True},
+                "completion": dict(config["project_config"]["parameters"]["engines"]["loop"]["completion"]), "tools": [], "resources": {"rag": True},
                 "policy": {"require_tool": True}}, identifier="configuration-editor")
             await (await project.components.aget("workflows")).acreate(make_workflow(config["max_attempts"]),
                                                                        identifier="configuration-review")

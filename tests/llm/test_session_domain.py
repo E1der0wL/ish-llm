@@ -24,9 +24,9 @@ class SessionDomainTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory:
             async with LargeLanguageModel(directory, components=[], engines={'probe': BaseEngine(action=respond)},
                                           on_run_event=events.append) as app:
-                config = ProjectConfig(session_defaults={'data': {'language': 'ko'}})
+                config = ProjectConfig(data={'language': 'ko'})
                 project = await app.projects.acreate('Project', config=config, components=[])
-                session = await project.sessions.acreate('Conversation')
+                session = await project.sessions.acreate('Conversation', config={'data': {'language': 'ko'}})
                 self.assertIsInstance(await session.aget_data(), Session)
                 self.assertIsInstance(session.paths, SessionPaths)
                 self.assertEqual(session.paths.root, project.paths.root / 'sessions' / session.id)
@@ -53,7 +53,7 @@ class SessionDomainTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(DOMAIN_STORAGE_VERSION, 1)
                 self.assertNotIn('tasks', vars(project))
                 schema = app.project_schema()['properties']['config']['properties']
-                self.assertIn('session_defaults', schema)
+                self.assertNotIn('session_defaults', schema)
                 self.assertNotIn('task_defaults', schema)
                 ids = (project.id, session.id, run.id)
 
@@ -103,5 +103,5 @@ class SessionDomainTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(SessionRepository.__module__, 'llm.services.lifecycle.sessions')
         with self.assertRaises(ModuleNotFoundError):
             importlib.import_module('llm.services.lifecycle.tasks')
-        config = ProjectConfig(session_defaults={'data': {'setting': True}})
+        config = ProjectConfig()
         self.assertEqual(config.for_engine('loop', session_config={'data': {'request': 1}})['data'], {'request': 1})

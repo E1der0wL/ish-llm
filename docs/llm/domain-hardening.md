@@ -68,7 +68,7 @@ RunManager의 공통 PendingWork가 추적한다. 완료 전 같은 Session의 �
 
 Graph 재개는 기본적으로 전체 ProjectConfig와 정의·정책·Tool 계약을 검증한다. 개발자가
 `config_keys=("my_runtime",)`를 지정하면 추가 설정 중 실행에 쓰는 키만 결합해 UI 표시 설정
-변경 때문에 재개가 막히는 일을 줄일 수 있다. completion/engines/session_defaults/policies는
+변경 때문에 재개가 막히는 일을 줄일 수 있다. parameters/policies는
 항상 검증한다. 사용자 정의 처리기가 소비하는 설정 키와 코드 revision을 빠뜨리지 않아야 한다.
 중첩 Graph도 자기 설정과 바인딩을 유지한다. LangGraph 스케줄링과 소유 Run의 Step 저장은 유지한다.
 

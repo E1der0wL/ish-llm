@@ -72,11 +72,25 @@ class FileTools:
     def file_read(self, args):
         with self.lock:
             value = self.read_bytes(self.path(args["path"]))
+            if "expected_sha256" in args:
+                self.check_version(value, args["expected_sha256"])
             lines = value.decode("utf-8").splitlines(keepends=True)
             start, count = args.get("start_line", 1), args.get("max_lines", len(lines))
+            if "tail_lines" in args:
+                if "start_line" in args or "max_lines" in args:
+                    raise ValueError("tail_lines cannot be combined with start_line/max_lines")
+                count = args["tail_lines"]
+                start = max(1, len(lines) - count + 1)
+            end = min(len(lines), start - 1 + count)
             return {"path": args["path"], "text": "".join(lines[start - 1:start - 1 + count]),
                     "sha256": self.digest(value), "total_lines": len(lines),
-                    "start_line": start, "truncated": start > 1 or len(lines) > count}
+                    "start_line": start, "next_line": end + 1 if end < len(lines) else None,
+                    "truncated": start > 1 or end < len(lines)}
+
+    def _matches(self, path, patterns):
+        """작업 루트 상대 경로에 pathlib glob 규칙을 적용한다."""
+        relative = path.relative_to(self.root)
+        return any(relative.match(pattern) for pattern in patterns)
 
     def entries(self, args):
         root = self.path(args.get("path", "."))
@@ -88,6 +102,8 @@ class FileTools:
             for path in sorted(directory.iterdir()):
                 if path.name.startswith(".llm-") or path.is_symlink():
                     continue
+                if self._matches(path, args.get("exclude", [])):
+                    continue
                 yield path
                 if args["recursive"] and path.is_dir():
                     pending.append(path)
@@ -97,6 +113,8 @@ class FileTools:
             limit = args.get("limit")
             values = []
             for path in self.entries(args):
+                if "include" in args and not self._matches(path, args["include"]):
+                    continue
                 if len(values) == limit:
                     return {"entries": values, "truncated": True}
                 values.append({"path": path.relative_to(self.root).as_posix(),
@@ -108,23 +126,38 @@ class FileTools:
             query, values, skipped = args["query"], [], 0
             insensitive = not args["case_sensitive"]
             needle = query.casefold() if insensitive else query
-            scanned = 0
+            matched, scanned = 0, 0
+            offset, context = args.get("offset", 0), args.get("context_lines", 0)
             for path in self.entries(args):
-                scanned += 1
                 if not path.is_file():
                     continue
+                if "include" in args and not self._matches(path, args["include"]):
+                    continue
+                scanned += 1
                 try:
-                    text = self.read_bytes(path).decode("utf-8")
+                    raw = self.read_bytes(path)
+                    text = raw.decode("utf-8")
+                    if "\x00" in text:
+                        raise ValueError("Binary file")
                 except (ValueError, UnicodeError):
                     skipped += 1
                     continue
-                for line_number, line in enumerate(text.splitlines(), 1):
+                lines = text.splitlines()
+                digest = self.digest(raw)
+                for line_number, line in enumerate(lines, 1):
                     if needle in (line.casefold() if insensitive else line):
-                        values.append({"path": path.relative_to(self.root).as_posix(),
-                                       "line": line_number, "text": line})
+                        matched += 1
+                        if matched <= offset:
+                            continue
                         if args.get("limit") is not None and len(values) >= args["limit"]:
-                            return {"matches": values, "skipped": skipped, "truncated": True}
-            return {"matches": values, "skipped": skipped, "truncated": False}
+                            return {"matches": values, "skipped": skipped, "scanned": scanned,
+                                    "truncated": True, "next_offset": offset + len(values)}
+                        values.append({"path": path.relative_to(self.root).as_posix(),
+                                       "line": line_number, "text": line, "sha256": digest,
+                                       "context_start_line": max(1, line_number - context),
+                                       "context": lines[max(0, line_number - 1 - context):line_number + context]})
+            return {"matches": values, "skipped": skipped, "scanned": scanned,
+                    "truncated": False, "next_offset": None}
 
     def file_create(self, args):
         with self.lock:

@@ -142,11 +142,11 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
         graph = (WorkflowGraph(entry="repeat").node("repeat", "loop", body=straight(),
                  max_iterations=30, on_limit="fail").node("end", "end").connect("repeat", "end").to_dict())
         await self.setup_graph(graph, work)
-        await self.project.asave(config={"engines": {"graph": {"max_steps": 62}}})
+        await self.project.asave(config={"parameters": {"engines": {"graph": {"max_steps": 62}}}})
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual((await self.output(run))["count"], 30)
-        await self.project.asave(config={"engines": {"graph": {"max_steps": 61}}})
+        await self.project.asave(config={"parameters": {"engines": {"graph": {"max_steps": 61}}}})
         failed = await self.run_graph()
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         self.assertIn("execution limit", failed.data.error)

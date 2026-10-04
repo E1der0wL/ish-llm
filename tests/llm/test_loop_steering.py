@@ -44,8 +44,8 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
             engines={"worker": LoopEngine(completion_fn=model, **(options or {}))}, on_event=on_event)
         self.addAsyncCleanup(app.shutdown)
         self.addCleanup(model.release.set)
-        project = await app.projects.acreate("test", config=ProjectConfig(
-            completion={"model": "test/model"}, **(config or {})),
+        project = await app.projects.acreate("test", config=ProjectConfig(ProjectConfig.merge(
+            {"parameters": {"engines": {"worker": {"completion": {"model": "test/model"}}}}}, config or {})),
             components=[v.name for v in (components or [])])
         for component in components or []:
             if isinstance(component, RuntimeTools):
@@ -495,9 +495,9 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
             summaries.append(json.loads(request["messages"][1]["content"]))
             yield chunk('{"summary":"first request and its correction"}', finish="stop")
         component = MemoryComponent(completion_fn=auxiliary)
-        config = {"component_configurations": {"memory": {"processing": memory_processing({
+        config = {"parameters": {"components": {"memory": {"processing": memory_processing({
             "summarize": True, "recall": False, "keep_turns": 1, "summary_after_chars": 1,
-            "completion": {"model": "test/aux"}})}}}
+            "completion": {"model": "test/aux"}})}}}}
         model = Model([chunk("draft", finish="stop")], [chunk("answer", finish="stop")],
                       [chunk("second answer", finish="stop")], [chunk("third answer", finish="stop")])
         _, session, request, run = await self.setup_backend(model, config=config, components=[component])
@@ -517,9 +517,9 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         def auxiliary(**request):
             yield chunk('{"summary":"completed work"}', finish="stop")
         component = MemoryComponent(completion_fn=auxiliary)
-        config = {"component_configurations": {"memory": {"processing": memory_processing({
+        config = {"parameters": {"components": {"memory": {"processing": memory_processing({
             "summarize": True, "recall": False, "active_keep_iterations": 1, "summary_after_chars": 1,
-            "completion": {"model": "test/aux"}})}}}
+            "completion": {"model": "test/aux"}})}}}}
         effects = []
         async def act(arguments):
             effects.append(1)

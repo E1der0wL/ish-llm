@@ -4,7 +4,7 @@
 
 `graph_rag.py`는 실제 LiteLLM 모델과 Chroma/BM25/Kuzu를 함께 실행한다.
 API 키는 환경 변수가 아닌 JSON을 역직렬화한 `ProjectConfig`에서 읽는다.
-각 실행은 별도 테스트 Project를 만들며 기본 Project와 원본 Markdown 파일은 변경하지 않는다.
+각 실행은 별도 테스트 Project를 만들며 기존 Project와 원본 Markdown 파일은 변경하지 않는다.
 `llm/` 안에 있으므로 이 폴더만 ish에 배포해도 사용할 수 있다.
 
 ## 설정
@@ -14,10 +14,10 @@ API 키는 환경 변수가 아닌 JSON을 역직렬화한 `ProjectConfig`에서
 
 | ProjectConfig 위치 | 용도 |
 | --- | --- |
-| `completion` | Graph 노드의 Agent가 사용하는 대화 모델. 스트리밍과 JSON 답변 생성 필요; 검색 Tool은 Graph가 실행 |
-| `component_configurations.rag.embedding_params` | 문서·질의 벡터를 생성하는 임베딩 모델 |
-| `component_configurations.rag.extraction_params` | 문서에서 엔티티·관계·인용을 추출하는 모델. JSON 응답 지원 필요 |
-| `component_configurations.rag.rerank_params` | 검색 후보의 관련성 점수를 계산하고 순서를 재정렬하는 모델 |
+| `parameters.engines.loop.completion` | Graph 노드의 Agent가 사용하는 Loop 모델. 스트리밍과 JSON 답변 생성 필요; 검색 Tool은 Graph가 실행 |
+| `parameters.components.rag.embedding_params` | 문서·질의 벡터를 생성하는 임베딩 모델 |
+| `parameters.components.rag.extraction_params` | 문서에서 엔티티·관계·인용을 추출하는 모델. JSON 응답 지원 필요 |
+| `parameters.components.rag.rerank_params` | 검색 후보의 관련성 점수를 계산하고 순서를 재정렬하는 모델 |
 
 OpenAI 호환 서버는 `openai/모델명`을 사용한다. 다른 provider는 해당 LiteLLM 모델명을
 사용하고 필요 없는 api_base를 삭제한다. 임베딩과 대화 모델은 서로 다른 서버·키를 써도 된다.
@@ -37,13 +37,13 @@ Graph의 `retrieve`는 query만 Tool에 전달하고 나머지는 Project 검색
 `prompts/records/rag-triples.json`에 저장된다. `--extraction-prompt /path/prompt.json`으로
 `{"messages":[{"role":"system","content":"..."}, ...]}` 형식의 사용자 정의를 넣을 수 있다.
 JSON 구조·엔티티 참조·원문 인용 검증은 사용자 프롬프트와 무관하게 유지한다.
-`component_configurations.rag.extraction.prompt_id`가 이 레코드를 선택한다.
+`parameters.components.rag.extraction.prompt_id`가 이 레코드를 선택한다.
 
-`component_configurations.rag.extraction.repair_attempts`는 **추가 수정 호출 횟수**이며
+`parameters.components.rag.extraction.repair_attempts`는 **추가 수정 호출 횟수**이며
 예제에서 2를 명시하며, 미설정/0이면 수정 재호출을 하지 않는다. 검증 오류·직전 JSON·원본 chunks를 다시 전달한다.
 연결 오류·취소·사용량 한도는 이 수정 루프로 재시도하지 않는다. 각 호출은 사용량에 포함된다.
 예제는 extraction_params.temperature=0을 명시한다. 라이브러리는 temperature를 강제하지 않는다.
-`engines.loop` 설정과 답변 검증 `--max-attempts`에는 영향을 주지 않는다.
+`parameters.engines.loop` 설정과 답변 검증 `--max-attempts`에는 영향을 주지 않는다.
 
 `extraction.relation_types`로 선호 타입 목록을 지정한다. 예: USES, DEPENDS_ON,
 PART_OF, CONFIGURES 등이며 뜻이 맞지 않으면 새로운 타입도 허용한다.
@@ -60,7 +60,7 @@ Kuzu 속성이 추가되어 RAG `corpus.json`의 `graph_schema_version=1`가 필
 이전 RAG 색인은 수정하지 않고 명확한 오류로 거부한다. 새 테스트 Project에 원문을 다시 등록한다.
 Project/Session/Run/Step의 `storage_version=1`와는 별도 버전이다.
 
-`engines.loop.max_iterations`는 Agent 한 번의 모델 호출 반복 상한이다.
+`parameters.engines.loop.max_iterations`는 Agent 한 번의 모델 호출 반복 상한이다.
 `--max-attempts`는 답변 검증·수정 회차 상한이며 두 제한은 서로 다른 범위를 가진다.
 검색 횟수와는 무관하다. 첫 답변에 실패해도 검색·rerank 결과는 그대로 재사용한다.
 실행 시 지정한 모델의 API 비용이 발생하며 등록/수정 시 임베딩과 관계 추출을 다시 호출한다.

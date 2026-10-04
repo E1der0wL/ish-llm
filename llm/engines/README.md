@@ -29,7 +29,7 @@ engines = {"assistant": LoopEngine()}
 # await session.run.submit("안녕하세요", engine="assistant")
 ```
 
-등록 이름이 기본 설정 키입니다. Project 설정은 `engines.assistant`에 둡니다. 이름이나 파일 위치만으로 자동 발견하지 않으며, 항상 등록한 Engine 이름을 submit/resume에 전달합니다.
+등록 이름이 설정 키입니다. Project 설정은 `parameters.engines.assistant`에 둡니다. 이름이나 파일 위치만으로 자동 발견하지 않으며, 항상 등록한 Engine 이름을 submit/resume에 전달합니다.
 
 ## 새 Engine의 최소 계약
 

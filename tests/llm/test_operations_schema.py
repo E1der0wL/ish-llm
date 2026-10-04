@@ -46,7 +46,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         return app, model
 
     async def completed(self, app, count=1, components=()):
-        project = await app.projects.acreate(config=ProjectConfig(completion={"model": "test"}), components=components)
+        project = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"custom": {"completion": {"model": "test"}}}}), components=components)
         session = await project.sessions.acreate()
         runs = []
         for _ in range(count):
@@ -65,17 +65,17 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
                         "properties": {"limit": {"$ref": "#/$defs/positive"}}, "additionalProperties": True}
         app, _ = await self.app(components=[Custom(), MemoryComponent(), RAGComponent()])
         schema = app.project_schema(components=["custom"])
-        self.assertEqual(set(schema["properties"]["config"]["properties"]["component_configurations"]["properties"]), {"custom", "memory", "rag"})
+        self.assertEqual(set(schema["properties"]["config"]["properties"]["parameters"]["properties"]["components"]["properties"]), {"custom", "memory", "rag"})
         validator = Draft202012Validator(schema)
-        validator.validate({"config": {"component_configurations": {"custom": {"limit": 2, "new": {"key": True}}}}})
-        self.assertTrue(list(validator.iter_errors({"config": {"component_configurations": {"custom": {"limit": 0}}}})))
+        validator.validate({"config": {"parameters": {"components": {"custom": {"limit": 2, "new": {"key": True}}}}}})
+        self.assertTrue(list(validator.iter_errors({"config": {"parameters": {"components": {"custom": {"limit": 0}}}}})))
         schema["properties"].clear()
         self.assertIn("config", app.project_schema()["properties"])
         with self.assertRaises(ValueError):
             app.project_schema(components=["missing"])
         all_schema = app.project_schema()
-        self.assertEqual(all_schema["properties"]["config"]["properties"]["default_engine"]["enum"], ["custom"])
-        for name, spec in all_schema["properties"]["config"]["properties"]["component_configurations"]["properties"].items():
+        self.assertNotIn("default_engine", all_schema["properties"]["config"]["properties"])
+        for name, spec in all_schema["properties"]["config"]["properties"]["parameters"]["properties"]["components"]["properties"].items():
             Draft202012Validator(spec).validate({})
         project = await app.projects.acreate(components=["memory"])
         value = await project.aconfiguration()
@@ -93,8 +93,8 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         app.engines.register("other", LoopEngine(settings_name="shared"))
         schema = app.project_schema()
         self.assertEqual(schema["x-engines"]["other"]["configuration_key"], "shared")
-        self.assertIn("shared", schema["properties"]["config"]["properties"]["engines"]["properties"])
-        fields = schema["properties"]["config"]["properties"]["component_configurations"]["properties"]["notes"]["properties"]
+        self.assertIn("shared", schema["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"])
+        fields = schema["properties"]["config"]["properties"]["parameters"]["properties"]["components"]["properties"]["notes"]["properties"]
         self.assertEqual(fields["language"]["type"], "string")
         self.assertEqual(fields["format"]["properties"]["width"]["type"], "integer")
         self.assertNotIn("type", fields["optional"])
@@ -111,7 +111,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
             effects.append(arguments)
         for contract in (ToolContract(approval_required=True), ToolContract(operation_key_required=True), ToolContract(isolation="sandbox")):
             app, model = await self.app(components=[RuntimeTools(ToolRegistry((Tool("act", "Act", {"type": "object"}, effect, contract=contract),)))])
-            project = await app.projects.acreate(components=["tools"], config={"completion": {"model": "test"}})
+            project = await app.projects.acreate(components=["tools"], config={"parameters": {"engines": {"custom": {"completion": {"model": "test"}}}}})
             await project.components.tools.aenable("act")
             session = await project.sessions.acreate()
             run = await (await session.run.submit("act", engine="custom")).wait()
@@ -181,6 +181,25 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         damaged = await project.arecovery()
         self.assertIn("invalid_input_reference", [i.code for i in damaged.issues])
         self.assertEqual(damaged.repair_sessions, [])
+
+    async def test_retention_counter_owns_explicit_parameters_without_engine_settings(self):
+        app, _ = await self.app()
+        project, _, _ = await self.completed(app)
+        calls = []
+        app.policy_resolver.token_counters["retention"] = lambda request: calls.append(request) or 7
+        for unit in ("run", "session"):
+            for params in ({}, {"model": "counter/model", "custom": 4}):
+                with self.subTest(unit=unit, params=params):
+                    config = (await project.aget_data()).config
+                    config.policies["retention"] = {"unit": unit, "max_tokens": 1,
+                        "counter": "retention", "counter_params": params}
+                    await project.asave(config=config)
+                    await project.aretention()
+                    request = calls[-1]
+                    self.assertTrue(request["messages"])
+                    self.assertEqual({key: value for key, value in request.items() if key != "messages"}, params)
+        with self.assertRaises(ValueError):
+            ProjectConfig(policies={"retention": {"counter_params": {"messages": []}}})
 
     async def test_run_retention_keeps_session_latest_turn_and_cached_projection(self):
         app, _ = await self.app(responses=[[chunk(str(i), finish="stop")] for i in range(3)])
@@ -259,7 +278,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_independent_rag_and_loop_share_project_call_quota(self):
         app, model = await self.app(components=[self.rag()])
-        project = await app.projects.acreate(components=["rag"], config=rag_project({"completion": {"model": "test"}}))
+        project = await app.projects.acreate(components=["rag"], config=rag_project({"parameters": {"engines": {"custom": {"completion": {"model": "test"}}}}}))
         await project.aconfigure_policies({"usage": {"project_max_calls": 2}})
         await project.components.rag.aadd_document(title="Guide", content="# Guide\nLocal scripting reference.")
         receipts = await project.components.rag.amodel_usage()
@@ -279,7 +298,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         app, model = await self.app(components=[self.rag()], responses=[
             [chunk(calls=[call('{"query":"reference"}', name="rag_search")], finish="tool_calls")],
             [chunk("should not call", finish="stop")]])
-        project = await app.projects.acreate(components=["rag"], config=rag_project({"completion": {"model": "test"}}))
+        project = await app.projects.acreate(components=["rag"], config=rag_project({"parameters": {"engines": {"custom": {"completion": {"model": "test"}}}}}))
         await project.components.rag.aadd_document(title="Guide", content="# Guide\nLocal scripting reference.")
         await project.aconfigure_policies({"usage": {"max_calls": 2}})
         session = await project.sessions.acreate()
@@ -392,7 +411,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         app, _ = await self.app(components=[RuntimeTools(ToolRegistry((
             Tool("act", "Act", {"type": "object"}, effect, contract=ToolContract(approval_required=True)),)))],
             responses=[[chunk(calls=[call('{}', name="act")], finish="tool_calls")]], policy=ToolPolicy(authorize=approve))
-        project = await app.projects.acreate(components=["tools"], config={"completion": {"model": "test"}})
+        project = await app.projects.acreate(components=["tools"], config={"parameters": {"engines": {"custom": {"completion": {"model": "test"}}}}})
         await project.components.tools.aenable("act")
         session = await project.sessions.acreate()
         run = await (await session.run.submit("act", engine="custom")).wait()

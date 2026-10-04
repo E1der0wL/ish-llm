@@ -643,7 +643,7 @@ class GraphEngine:
     def _execution_config(self, context):
         return {key: value for key, value in context.project.config.to_dict().items()
                 if self.config_keys is None or key in self.config_keys
-                or key in ("policies", "completion", "engines", "session_defaults", "component_configurations")}
+                or key in ("policies", "parameters")}
 
     def _binding(self, context, graph, prepared):
         """코드의 버전은 개발자가 revision으로 관리한다. 저장 가능한 실행 설정은 직접 비교한다."""

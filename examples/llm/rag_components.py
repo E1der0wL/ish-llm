@@ -29,15 +29,14 @@ async def run(args: argparse.Namespace) -> dict:
     engines = ({"loop": LoopEngine(completion_kwargs={"model": args.model, "api_key": key},
                                    max_iterations=8)} if args.ask else {})
     async with LargeLanguageModel(args.workspace, components=[component], engines=engines) as backend:
-        project = await backend.projects.acreate("RAG Component demo", components=["rag"], config={
-            "component_configurations": {"rag": {
+        project = await backend.projects.acreate("RAG Component demo", components=["rag"], config={"parameters": {"components": {"rag": {
                 "chunk_size": 2000, "embedding_concurrency": 2, "extraction_batch_size": 32,
                 "extraction": {"failure_policy": "required"},
                 "graph": {"buffer_pool_size": 64 * 1024 * 1024, "max_num_threads": 2},
                 "search": {"method": "hybrid", "expand": "section", "limit": 5, "candidate_count": 20,
                            "rrf_constant": 60, "max_hops": 2, "relation_limit": 30},
                 "document_kwargs": {"session_type": "RETRIEVAL_DOCUMENT"},
-                "query_kwargs": {"session_type": "RETRIEVAL_QUERY"}}}})
+                "query_kwargs": {"session_type": "RETRIEVAL_QUERY"}}}}})
         rag = await project.components.aget("rag")
         text = await asyncio.to_thread(args.markdown.read_text, encoding="utf-8")
         document = await rag.aadd_document(title=args.markdown.name, content=text,

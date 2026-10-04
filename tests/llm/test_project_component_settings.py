@@ -38,7 +38,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         await tools.acreate({"source": "# editable source"}, identifier="offline_definition")
         await tools.aenable("offline_definition")
         saved = json.loads((project.paths.root / "project.json").read_text())
-        self.assertEqual(saved["config"]["component_configurations"], {
+        self.assertEqual(saved["config"]["parameters"]["components"], {
             "memory": {"search_limit": 3, "extra": {"custom": True}},
             "tools": {"enabled": ["offline_definition"]}})
         self.assertEqual(list(project.paths.root.rglob("component.json")), [])
@@ -56,8 +56,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
             return await fake_embedding(**params)
         model = EmbeddingModel(model="client-default", embedding_fn=embed, timeout=99)
         app = self.backend(components=[RAGComponent(embedding=model, extractor=Extractor())])
-        project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(
-            component_configurations={"rag": {"embedding_params": {"model": "project-model", "timeout": 7}}})))
+        project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {"embedding_params": {"model": "project-model", "timeout": 7}}}})))
         rag = await project.components.aget("rag")
         await rag.aadd_document(title="Manual", content="Alice owns Atlas")
         self.assertEqual((requests[0]["model"], requests[0]["timeout"]), ("project-model", 7))
@@ -82,9 +81,8 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
             return await fake_embedding(**kwargs)
         app = self.backend(components=[RAGComponent(
             embedding=EmbeddingModel(embedding_fn=embed), extractor=Extractor())])
-        project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(
-            component_configurations={"rag": {"chunk_size": 64, "embedding_concurrency": 1,
-                "embedding_params": {"model": "project-model"}, "search": {"method": "bm25", "limit": 1}}})))
+        project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {"chunk_size": 64, "embedding_concurrency": 1,
+                "embedding_params": {"model": "project-model"}, "search": {"method": "bm25", "limit": 1}}}})))
         rag = await project.components.aget("rag")
         document = await rag.aadd_document(title="Manual", content="Alice owns Atlas. " * 12)
         self.assertGreater(len(document["chunks"]), 1)
@@ -101,13 +99,12 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         tools = ToolRegistry((Tool("echo", "Echo", {"type": "object"}, lambda args: args),))
         provider = ScriptedCompletion([chunk("done", finish="stop")])
         app = self.backend(components=[RuntimeTools(tools)], engines={"loop": LoopEngine(completion_fn=provider)})
-        project = await app.projects.acreate(components=["tools"], config=ProjectConfig(
-            completion={"model": "test"}, component_configurations={"tools": {"enabled": []}}))
+        project = await app.projects.acreate(components=["tools"], config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test"}}}, "components": {"tools": {"enabled": []}}}))
         data = await project.components.aget("tools")
         path = project.paths.root / "tools" / "component.json"
         self.assertFalse(path.exists())
         await data.aenable("echo")
-        self.assertEqual((await project.aget_data()).config.component_configurations["tools"]["enabled"], ["echo"])
+        self.assertEqual((await project.aget_data()).config.parameters.setdefault("components", {})["tools"]["enabled"], ["echo"])
         session = await project.sessions.acreate()
         run = await (await session.run.submit("hello", engine="loop")).wait()
         self.assertEqual((await run.aget_data()).status, "completed")
@@ -118,12 +115,11 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_save_validate_before_write_and_detect_stale_component_edit(self):
         app = self.backend(components=[MemoryComponent(), RAGComponent()])
-        project = await app.projects.acreate(components=["memory", "rag"], config=rag_project(ProjectConfig(
-            component_configurations={"memory": {"search_limit": 3}})))
+        project = await app.projects.acreate(components=["memory", "rag"], config=rag_project(ProjectConfig(parameters={"components": {"memory": {"search_limit": 3}}})))
         view = await project.aconfiguration()
         original = (project.paths.root / "project.json").read_bytes()
         settings = ProjectConfig(view["project"]["config"])
-        settings.component_configurations.update({"memory": {"search_limit": 4}, "rag": {"chunk_size": 2}})
+        settings.parameters.setdefault("components", {}).update({"memory": {"search_limit": 4}, "rag": {"chunk_size": 2}})
         with self.assertRaises(ValueError):
             await project.asave(config=settings)
         self.assertEqual((project.paths.root / "project.json").read_bytes(), original)
@@ -134,29 +130,28 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_clone_reopen_disable_and_remove_keep_settings_ownership(self):
         app = self.backend(components=[MemoryComponent()])
-        project = await app.projects.acreate(components=["memory"], config=ProjectConfig(
-            component_configurations={"memory": {"search_limit": 3}}))
+        project = await app.projects.acreate(components=["memory"], config=ProjectConfig(parameters={"components": {"memory": {"search_limit": 3}}}))
         clone = await project.aclone()
         reopened = await app.projects.aload(clone.id)
         memory = await reopened.components.aget("memory")
         self.assertEqual((await memory.aconfiguration())["search_limit"], 3)
         self.assertFalse((clone.paths.root / "memory" / "component.json").exists())
         await reopened.components.aremove("memory")
-        self.assertEqual((await reopened.aget_data()).config.component_configurations["memory"]["search_limit"], 3)
+        self.assertEqual((await reopened.aget_data()).config.parameters.setdefault("components", {})["memory"]["search_limit"], 3)
         await reopened.components.aselect(["memory"])
         await reopened.components.aremove("memory", permanent=True)
-        self.assertNotIn("memory", (await reopened.aget_data()).config.component_configurations)
+        self.assertNotIn("memory", (await reopened.aget_data()).config.parameters.setdefault("components", {}))
 
     async def test_registered_inactive_settings_do_not_create_directories(self):
         app = self.backend(components=[RAGComponent()])
-        project = await app.projects.acreate(config=ProjectConfig(component_configurations={"rag": {"chunk_size": 64}}))
+        project = await app.projects.acreate(config=ProjectConfig(parameters={"components": {"rag": {"chunk_size": 64}}}))
         self.assertFalse((project.paths.root / "rag").exists())
         await project.components.aselect(["rag"])
         self.assertEqual((await (await project.components.aget("rag")).aconfiguration())["chunk_size"], 64)
         with self.assertRaises(ValueError):
-            await app.projects.acreate(config=ProjectConfig(component_configurations={"typo": {}}))
+            await app.projects.acreate(config=ProjectConfig(parameters={"components": {"typo": {}}}))
         with self.assertRaises(ValueError):
-            ProjectConfig(session_defaults={"component_configurations": {"rag": {}}})
+            ProjectConfig(session_defaults={"parameters": {"components": {"rag": {}}}})
 
     async def test_custom_component_validation_and_json_keys_are_preserved(self):
         class Custom(Component):
@@ -165,13 +160,12 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
                 return {"type": "object", "properties": {"limit": {"type": "integer", "minimum": 1}}}
         app = self.backend(components=[Custom()])
         with self.assertRaises(ValueError):
-            await app.projects.acreate(components=["custom"], config=ProjectConfig(component_configurations={"custom": {"limit": 0}}))
-        project = await app.projects.acreate(components=["custom"], config=ProjectConfig(
-            component_configurations={"custom": {"limit": 7, "application": {"new": True}}}))
+            await app.projects.acreate(components=["custom"], config=ProjectConfig(parameters={"components": {"custom": {"limit": 0}}}))
+        project = await app.projects.acreate(components=["custom"], config=ProjectConfig(parameters={"components": {"custom": {"limit": 7, "application": {"new": True}}}}))
         data = await project.components.aget("custom")
         self.assertEqual((await data.aconfiguration())["application"], {"new": True})
         settings = (await project.aget_data()).config
-        settings.component_configurations.clear()
+        settings.parameters.setdefault("components", {}).clear()
         await project.asave(config=settings)
         self.assertNotIn("limit", await data.aconfiguration())
 
@@ -181,7 +175,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         files = [project.paths.root / "project.json"]
         before = [p.read_bytes() for p in files]
         config = (await project.aget_data()).config
-        config.component_configurations.update({"memory": {"search_limit": 4}, "rag": {"chunk_size": 64}})
+        config.parameters.setdefault("components", {}).update({"memory": {"search_limit": 4}, "rag": {"chunk_size": 64}})
         with patch("llm.services.lifecycle.projects.atomic_domain_json", side_effect=OSError("disk unavailable")):
             with self.assertRaises(OSError):
                 await project.asave(config=config)
@@ -189,20 +183,18 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_graph_binding_cannot_filter_project_component_settings(self):
         app = self.backend(components=[MemoryComponent()])
-        project = await app.projects.acreate(components=["memory"], config=ProjectConfig(
-            component_configurations={"memory": {"search_limit": 4}}, data={"application": 1}))
+        project = await app.projects.acreate(components=["memory"], config=ProjectConfig(data={"application": 1}, parameters={"components": {"memory": {"search_limit": 4}}}))
         engine = GraphEngine(handlers={}, config_keys=())
         binding = engine._execution_config(SimpleNamespace(project=await project.aget_data()))
-        self.assertEqual(binding["component_configurations"], {"memory": {"search_limit": 4}})
+        self.assertEqual(binding["parameters"]["components"], {"memory": {"search_limit": 4}})
         self.assertNotIn("data", binding)
 
     async def test_project_output_policy_is_applied_to_run_and_other_project_inherits_host(self):
         provider = ScriptedCompletion([chunk("one"), chunk("two", finish="stop")], [chunk("other", finish="stop")])
         host = OutputPolicy(batch_size=2, max_delay=.04, max_chars=1000)
         app = self.backend(services=ServiceConfig(output_policy=host), engines={"loop": LoopEngine(completion_fn=provider)})
-        project = await app.projects.acreate(config=ProjectConfig(completion={"model": "test"},
-            policies={"output": {"batch_size": 4, "max_chars": 50}}))
-        other = await app.projects.acreate(config=ProjectConfig(completion={"model": "test"}))
+        project = await app.projects.acreate(config=ProjectConfig(policies={"output": {"batch_size": 4, "max_chars": 50}}, parameters={"engines": {"loop": {"completion": {"model": "test"}}}}))
+        other = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test"}}}}))
         seen = []
         async def consume(events, policy, handler):
             seen.append(policy)

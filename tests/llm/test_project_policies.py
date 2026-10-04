@@ -20,16 +20,14 @@ from tests.llm.test_loop import ScriptedCompletion, chunk
 
 class ProjectConfigPolicyTests(unittest.TestCase):
     def test_partial_update_preserves_settings_and_detaches_input_and_result(self):
-        config = ProjectConfig(completion={"model": "test/model"},
-            policies={"context": {"mode": "recent"},
-                      "extension": {"keep": True, "items": ["old"]}},
-            future={"value": 1})
+        config = ProjectConfig(policies={"context": {"mode": "recent"},
+                      "extension": {"keep": True, "items": ["old"]}}, future={"value": 1}, parameters={"engines": {"loop": {"completion": {"model": "test/model"}}}})
         changes = {"context": {"max_turns": 3}, "extension": {"items": ["new"]}}
         result = config.configure_policies(changes)
         self.assertEqual(config.policies["context"],
                          {"mode": "recent", "max_turns": 3})
         self.assertEqual(result["extension"], {"keep": True, "items": ["new"]})
-        self.assertEqual(config.completion, {"model": "test/model"})
+        self.assertEqual(config.parameters["engines"]["loop"]["completion"], {"model": "test/model"})
         self.assertEqual(config.future, {"value": 1})
         changes["extension"]["items"].append("input edit")
         result["extension"]["items"].append("result edit")
@@ -47,7 +45,7 @@ class ProjectConfigPolicyTests(unittest.TestCase):
             self.assertEqual(config, before)
             self.assertIs(config.policies, original)
         # 정책 정규화 이후 다른 설정의 검증이 실패해도 원본에 반영하지 않는다.
-        config["engines"] = []
+        config.parameters["engines"] = []
         before = deepcopy(config)
         with self.assertRaises(TypeError):
             config.configure_policies({"context": {"max_turns": 3}})
@@ -85,7 +83,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(before["project"]["config"]["policies"], {})
         self.assertEqual(before["policy_schema"], ProjectConfig.policy_schema())
         config = before["project"]["config"]
-        config["completion"] = {"model": "test/model"}
+        config["parameters"]["engines"] = {"loop": {"completion": {"model": "test/model"}}}
         config["future"] = {"value": 1}
         await project.asave(config=config)
         await asyncio.gather(project.aconfigure_policies({"context": {"mode": "recent", "max_turns": 2}}),
@@ -93,7 +91,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         saved = (await project.aget_data()).config
         self.assertEqual(saved.policies["context"]["max_turns"], 2)
         self.assertEqual(saved.policies["run"]["max_queued"], 3)
-        self.assertEqual(saved.completion, {"model": "test/model"})
+        self.assertEqual(saved.parameters["engines"]["loop"]["completion"], {"model": "test/model"})
         self.assertEqual(saved.future, {"value": 1})
         disk = json.loads((project.paths.root / "project.json").read_text())
         self.assertEqual(disk["config"]["policies"], saved.policies)

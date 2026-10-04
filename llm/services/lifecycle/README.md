@@ -17,7 +17,7 @@ Project, Session, Step과 Component 데이터 핸들의 수명을 관리합니�
 
 ProjectManager는 Component에 초기화·복제·삭제를 위임하며 각 Component의 내부 파일 구조를 알지 않습니다. SessionManager는 Engine을 실행하지 않습니다. SessionRuntime은 메모리 객체이며 Session JSON에 저장되지 않고 RunManager가 실행 수명을 관리합니다.
 
-ComponentData의 `configure/aconfigure`는 ProjectConfig의 해당 설정을 교체합니다. 저장 설정의 유일한 위치는 `component_configurations`입니다. 사용자 정의 핸들도 이 경계를 유지해야 합니다.
+ComponentData의 `configure/aconfigure`는 ProjectConfig의 해당 설정을 교체합니다. 저장 설정의 유일한 위치는 `parameters.components`입니다. 사용자 정의 핸들도 이 경계를 유지해야 합니다.
 
 서비스를 직접 조합할 필요가 없다면 [LargeLanguageModel](../../README.md) → `projects` → `sessions` → `run` 경로를 사용하세요. 동기 API를 UI 루프에서 직접 호출하는 대신 비동기 Facade를 사용합니다.
 

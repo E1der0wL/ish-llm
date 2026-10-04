@@ -1,125 +1,80 @@
-# 프로젝트 설정과 기본 프로젝트
+# Project 설정과 UI 연결
 
-UI가 사용할 키·자료형·기본값·제약은 `LargeLanguageModel.project_schema()`에서 조회한다.
-`await project.aconfiguration()`에는 `schema`, 같은 구조의 `values`, `component_versions`가
-추가되어 있다. 선택 Component/Engine에 따라 동적으로 구성된다.
-[폼 구성·저장 예제와 운영 API](operations-and-ui-settings.md)를 참고한다.
+Project는 서비스가 집행하는 `policies`와 구현체에 전달하는 `parameters`를 저장한다.
+전달 인자는 대상별 JSON 딕셔너리이며, 해당 구현체가 스키마와 의미를 소유한다.
+Project는 SDK 옵션을 해석하거나 이름이 같은 인자를 여러 대상에 배포하지 않는다.
 
-## 검토 결과
+```python
+config = ProjectConfig(
+    policies={"run": {"timeout_seconds": 1800}},
+    parameters={
+        "engines": {"loop": {
+            "request_timeout": 300,
+            "completion": {"model": "openai/company-model", "temperature": 0.2},
+        }},
+        "components": {"vision": {"ocr": {"backend": "tesseract"}}},
+    },
+)
+project = await backend.projects.acreate(
+    "작업 공간", config=config, components=["vision"], conversation_storage="file",
+)
+session = await project.sessions.acreate("대화", config={
+    "parameters": {"engines": {"loop": {"request_timeout": None}}},
+})
+request = await session.run.submit("안녕하세요", engine="loop")
+```
 
-프로젝트에서 연결된 Component 설정을 한눈에 관리하는 방식은 현재 구조와 잘 맞는다.
-설정의 소유권과 검증은 Component에 두고, Project 서비스가 조회/수정을 조율한다.
-코어 Project 도메인 객체에 모델 클라이언트나 실행 동작을 넣을 필요가 없다.
+숫자와 모델은 예제의 명시적 선택이다. Session의 null은 Project의 300초 제한을 해제한다.
+Session에서 생략한 모델은 실행 시 Project 설정을 상속한다. 생성 시 복사하지 않는다.
+Project의 최상위 completion/engines/component_configurations/session_defaults/default_engine은
+지원하지 않으며 자동 변환도 하지 않는다. 기존 파일은 오류가 나도 그대로 보존한다.
 
-현재 저장 형식인 JSON을 유지한다. 컴포넌트 설정도 `project.json`의
-`config.component_configurations`에만 저장한다. Component는 기본값·검증·해석을 담당한다. Component 내부 디렉토리 구조는 ProjectManager가 알지 않는다.
+## 두 쓰기 경로, 하나의 저장 원본
 
-읽을 때 JSON을 역직렬화하고 ProjectConfig 및 각 Component의 검증을 거쳐 dict로 사용한다.
-열린 JSON 키를 유지하므로 모든 설정을 고정 dataclass로 바꾸지 않는다. UI가 기본 폼을
-자동으로 만들려면 이후 Component별 설정 JSON Schema와 표시용 설명을 추가할 수 있다.
-YAML을 도입한다면 영속 원본을 하나로 유지하면서 가져오기/내보내기에 사용하는 것이 좋다.
-현재 YAML codec이나 자동 UI 폼 생성은 구현하지 않았다.
-
-## 프로젝트 전체 설정 조회
+설정 원본은 `project.json`의 `config.parameters.components[name]`이다.
+Component는 자신의 디렉토리 아래 자료를 관리하고 별도 설정 파일은 만들지 않는다.
 
 ```python
 view = await project.aconfiguration()
-# 동기 코드: view = project.configuration()
+settings = ProjectConfig(view["project"]["config"])
+settings.parameters["engines"]["loop"]["completion"]["temperature"] = 0.1
+await project.asave(config=settings, expected_version=view["config_version"])
+
+vision = await project.components.aget("vision")
+await vision.aconfigure(
+    {"ocr": {"backend": "tesseract", "backends": {"tesseract": {"language": "eng"}}}},
+    expected_version=view["component_versions"]["vision"],
+)
 ```
 
-반환 형태:
+`asave`는 전체 ProjectConfig를, `aconfigure`는 해당 Component 설정 전체를 교체한다.
+후자는 같은 Project 저장 경계의 잠금·검증·버전 비교를 사용한다. 부분 수정은 최신 사본을
+읽고 수정하여 저장한다. 여러 Component를 함께 변경하려면 ProjectConfig를 한 번 저장한다.
+실행 함수·클라이언트·DB 연결은 JSON에 넣지 않는다.
 
-```json
-{
-  "project": {
-    "id": "프로젝트 ID",
-    "title": "Default project",
-    "conversation_storage": "file",
-    "config": {
-      "completion": {},
-      "engines": {},
-      "session_defaults": {},
-      "data": {},
-      "default_engine": "loop"
-    }
-  },
-  "components": {
-    "tools": {
-      "directory": "tools",
-      "configuration": {"enabled": []}
-    },
-    "rag": {
-      "directory": "rag",
-      "configuration": {}
-    }
-  }
-}
-```
+## 통합 조회
 
-선택된 모든 Component를 한 번의 잠금 범위에서 읽어 분리된 사본으로 반환한다.
-위 예시는 일부 Component만 표시했다. 반환 dict를 수정하는 것만으로 저장되지 않는다.
-UI는 components 항목으로 설정 패널을 만들고, 저장 버튼에서 기존 담당 API를 호출한다.
+`backend.project_schema()`는 등록된 Engine/Component 스키마를 조합한다.
+`project.aconfiguration()`은 잠금 아래 읽은 다음 정보를 함께 반환한다.
 
-```python
-# 프로젝트 설정 전체 교체
-settings = view["project"]["config"]
-settings["completion"]["temperature"] = 0.2
-await project.asave(config=settings)
+| 항목 | 내용 |
+|---|---|
+| project.config, values.config | 저장된 명시값의 독립 사본 |
+| schema | 정책과 parameters.engines/components의 허용 키·형식 |
+| effective_engines[name] | 구현체의 values/sources/overridden/editable |
+| components[name].configuration | Component에 전달한 설정 |
+| components[name].effective | 주입 client와 Project 설정을 해석한 결과 |
+| config_version, component_versions | 저장 충돌 검사용 버전 |
 
-# 한 Component의 설정 전체 교체
-tools = await project.components.aget("tools")
-configuration = view["components"]["tools"]["configuration"]
-configuration["ui"] = {"label": "도구"}
-await tools.aconfigure(configuration)
-```
+조회가 없는 값을 채우거나 모델·준비 작업을 실행하지 않는다. JSON Schema default도 없다.
+동적 host factory는 runtime/host_runtime으로 표시하며 실행 전 값을 추측하지 않는다.
+Session override까지 보고 싶으면 `session.aconfiguration()`을 사용한다.
+자세한 상속·강제값은 [설정 계약](../../llm/CONFIGURATION.md)에 있다.
 
-실행 함수·DB 연결·MCP connector 같은 런타임 객체는 직렬화하지 않는다.
-RAG 모델 인자는 component_configurations.rag의 embedding_params/extraction_params/rerank_params로
-전달하며 필요하면 기본 LiteLLM 클라이언트를 구성한다. 생성자에는 실행 구현만 주입한다.
-여러 Component 설정도 ProjectConfig를 한 번 저장하여 원자적으로 변경할 수 있다.
-외부 파일 수정 감시는 제공하지 않으며 변경 후 조회 API로 다시 읽는다.
+## 애플리케이션의 생성·선택 정책
 
-## 기본 프로젝트 생성 및 재사용
-
-```python
-from llm.llm import LargeLanguageModel, ProjectConfig
-
-async with LargeLanguageModel("./workspace") as backend:
-    project = await backend.projects.aget_default(
-        config=ProjectConfig(completion={"model": model_name}),
-    )
-    view = await project.aconfiguration()
-    session = await project.sessions.acreate("첫 대화")
-    request = await session.run.submit(
-        "안녕하세요", engine=view["project"]["config"]["default_engine"],
-    )
-    run = await request.wait()
-```
-
-동기 호출은 `backend.projects.get_default()`다. 생성자는 여전히 파일을 만들지 않는다.
-앱 시작 때 기본 프로젝트가 필요하면 시작 코루틴에서 `aget_default()`를 한 번 호출한다.
-이 메서드는 모델 실행이나 Session 생성을 자동으로 하지 않는다.
-
-최초 생성 기준:
-
-* 설정에 `default_engine: "loop"`를 저장한다. 실행 시에는 여전히 `engine=`을 명시한다.
-* 등록된 모든 Component를 선택한다. 기본 백엔드는 tools/skills/mcp/rag/agents/workflows/memory다.
-* `components=[...]`로 백엔드 등록을 교체했다면 그 목록 전체를 선택한다.
-* 대화 저장은 명시적으로 `file`을 기록한다. 백엔드의 새 프로젝트 기본값이 memory여도 같다.
-* Component 디렉토리/기본 설정을 초기화한다. Tool 함수 활성화, 모델 선택/인증, MCP 접속,
-  RAG 색인 생성은 자동으로 하지 않는다.
-
-재호출/재시작 시 같은 프로젝트를 반환하며 config/title 인자는 생성할 때만 적용한다.
-Component 선택, 대화 저장 방식 등 사용자가 바꾼 값도 덮어쓰지 않는다. 일반 create/acreate의
-기본 선택은 바꾸지 않았다. 파일/메모리 선택은 기존 Session 존재 검사 규칙을 그대로 따른다.
-사용자 대화 저장소 팩토리를 주입한 경우 file 강제가 충돌하므로 새 기본 프로젝트 생성을 거부한다.
-`engines=`를 직접 지정했다면 `loop`라는 이름도 등록해야 이 API를 호출할 수 있다.
-
-기본 프로젝트 ID는 `workspace/projects/default-project.json`에 저장한다. 생성 전에 ID를
-예약하고, 완료 후 pending을 해제하여 생성 중단/포인터 저장 실패에도 중복 생성을 피한다.
-미완료 초기화는 같은 프로젝트의 멱등 초기화만 마무리하며 Run을 재실행하지 않는다.
-잘못된 참조 JSON은 자동 덮어쓰지 않고 오류로 보고한다.
-
-소프트 삭제된 기본 프로젝트는 자동으로 복원하지 않는다. `projects.alist(include_deleted=True)`로
-찾아 명시적으로 복원한다. 영구 삭제했다면 다음 기본 프로젝트 요청은 새 ID로 생성한다.
-프로젝트 복제는 기본 프로젝트 참조를 복사하지 않는다.
+llm은 기본 Project/Session, 최근 선택, UI 기본 엔진, 초기 설정 템플릿을 관리하지 않는다.
+일반 create/load/list/clone/delete와 명시적 `submit(engine=...)`만 사용한다.
+Hub는 자기 `.hub/` 상태와 시작 잠금을 소유하고 공개 llm API로 첫 Project를 만든다.
+다른 플러그인은 Hub에 의존하지 않고 자신의 정책을 구현할 수 있다. title/id/components/
+conversation_storage는 그대로 Project의 수명 속성이며 parameters로 옮기지 않는다.

@@ -45,8 +45,8 @@ def engine_configuration(config, name, *, session_config=None, agent=None, host=
     session = session_config or {}
     ProjectConfig.validate_session(session)
     view = resolve_configuration([
-        ("project", config.engines.get(name, {})),
-        ("session", session.get("engines", {}).get(name, {})),
+        ("project", config.parameters.get("engines", {}).get(name, {})),
+        ("session", session.get("parameters", {}).get("engines", {}).get(name, {})),
         ("agent", agent or {})], host=host, schema=schema)
     view["configuration_key"] = name
     return view

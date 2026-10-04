@@ -79,7 +79,7 @@ create는 중복을, save는 없는 패키지를, delete는 enabled 패키지를
 CRUD는 소스를 실행하지 않는다. enable은 정적 패키지 검증만 수행한다.
 prepare는 의존성이 없어도 inspector child에서 import와 main/schema 검증을 수행한다.
 backend에서는 Project source, decorator, type hints를 실행하지 않는다. Run/Step은 만들지 않는다.
-선택은 ProjectConfig.component_configurations.tools.enabled에만 저장한다.
+선택은 ProjectConfig.parameters.components.tools.enabled에만 저장한다.
 설정 저장은 list[str]/중복만 검증하며 패키지 유효성은 준비/실행 경계에서 확인한다.
 
 ## Dependencies

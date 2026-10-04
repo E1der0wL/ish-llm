@@ -37,7 +37,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.component = MemoryComponent()
         self.app = LargeLanguageModel(self.root / "workspace", components=[self.component], engines={})
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate("Memory", components=["memory"], config={"component_configurations": {"memory": {"tool_write_status": "candidate", "search_status": "confirmed", "cache_records": 256}}})
+        self.project = await self.app.projects.acreate("Memory", components=["memory"], config={"parameters": {"components": {"memory": {"tool_write_status": "candidate", "search_status": "confirmed", "cache_records": 256}}}})
         self.memory = await self.project.components.aget("memory")
 
     async def run_tool(self, name, arguments, *, project=None):
@@ -269,7 +269,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(await self.memory.asearch("configured")), 1)
 
     async def test_concurrent_run_provenance_is_isolated(self):
-        other = await self.app.projects.acreate("Other", components=["memory"], config={"component_configurations": {"memory": {"tool_write_status": "candidate"}}})
+        other = await self.app.projects.acreate("Other", components=["memory"], config={"parameters": {"components": {"memory": {"tool_write_status": "candidate"}}}})
         results = await asyncio.gather(self.run_tool("memory_create", {"content": "one"}),
                                        self.run_tool("memory_create", {"content": "two"}, project=other))
         for (run, _, session), project in zip(results, (self.project, other)):

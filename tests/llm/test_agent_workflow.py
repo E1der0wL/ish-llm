@@ -254,7 +254,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(answer("ok"))
         await self.setup_graph(agent_graph(), model)
         data = await self.project.aget_data()
-        data.config.completion = {"model": "project/default", "temperature": 0.9}
+        data.config.parameters["engines"] = {"loop": {"completion": {"model": "project/default", "temperature": 0.9}}}
         await self.project.asave(config=data.config)
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.COMPLETED)

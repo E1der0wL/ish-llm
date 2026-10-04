@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from llm.components.rag import RAGComponent, EmbeddingModel, TripleExtractor, RerankModel
-from examples.llm.graph_rag import run_demo, main, make_workflow
+from examples.llm.graph_rag import run_demo, main, make_workflow, validate_config
 from llm.llm import ProjectConfig
 from tests.llm.test_loop import chunk
 from tests.llm.test_rag_components import fake_embedding
@@ -57,12 +57,17 @@ class AnswerModel:
 
 
 class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
+    def test_missing_targeted_settings_report_error_without_materializing(self):
+        config = ProjectConfig()
+        before = config.to_dict()
+        with self.assertRaisesRegex(ValueError, "parameters.engines.loop.completion.model is required"):
+            validate_config(config)
+        self.assertEqual(config.to_dict(), before)
+
     def config(self):
-        return ProjectConfig(completion={"model": "test/chat"},
-            engines={"loop": {"max_iterations": 3, "request_timeout": 20}},
-            component_configurations={"rag": {**rag_settings({"search": {"rerank": True}}),
+        return ProjectConfig(parameters={"engines": {"loop": {**{"max_iterations": 3, "request_timeout": 20}, "completion": {"model": "test/chat"}}}, "components": {"rag": {**rag_settings({"search": {"rerank": True}}),
                 "embedding_params": {"model": "test/embed"}, "extraction_params": {"model": "test/extract"},
-                "rerank_params": {"model": "test/rerank"}}})
+                "rerank_params": {"model": "test/rerank"}}}})
 
     async def exercise(self, root, model, *, rerank_fn=reranking, config=None, **options):
         # SDK 경계만 대체하여 실제 provider_request/retry 진단을 함께 검사한다.
@@ -140,7 +145,7 @@ class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
                 raise failure
             return await reranking(**request)
         config = self.config()
-        config.component_configurations["rag"]["provider"] = {"max_attempts": 3, "delay_seconds": 0}
+        config.parameters.setdefault("components", {})["rag"]["provider"] = {"max_attempts": 3, "delay_seconds": 0}
         with tempfile.TemporaryDirectory() as root:
             report = await self.exercise(root, AnswerModel(), rerank_fn=retrying, config=config)
             self.assertEqual(report["status"], "passed", report)
@@ -163,14 +168,14 @@ class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "unused"
             with self.assertRaisesRegex(ValueError, "embedding_params.model"):
-                await run_demo(path, ProjectConfig(completion={"model": "test/chat"}), display=False)
+                await run_demo(path, ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test/chat"}}}}), display=False)
             self.assertFalse(path.exists())
 
     async def test_missing_reranker_fails_before_workspace_creation(self):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "unused"
             config = self.config()
-            config.component_configurations["rag"].pop("rerank_params")
+            config.parameters.setdefault("components", {})["rag"].pop("rerank_params")
             with self.assertRaisesRegex(ValueError, "rerank_params.model"):
                 await run_demo(path, config, display=False)
             self.assertFalse(path.exists())

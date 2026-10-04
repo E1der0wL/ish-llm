@@ -216,7 +216,7 @@ await session.asave(title="새 제목", metadata={"label": "리뷰"})
 # 실행 설정 변경은 기존처럼 런타임 해제 후 수행
 await session.run.wait_idle()
 await session.run.shutdown()
-await session.asave(config={"completion": {"temperature": 0.2}})
+await session.asave(config={"parameters": {"engines": {"loop": {"completion": {"temperature": 0.2}}}}})
 ```
 
 기본 출력은 각 도메인의 `logs/service.log`, 1 MiB, 백업 3개다. sink를 지정하면 그 출력을

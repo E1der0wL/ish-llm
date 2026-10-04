@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--full", action="store_true")
+    parser.add_argument("--hub", action="store_true", help="연결된 hub UI/서비스 회귀도 실행")
     parser.add_argument("--modules", nargs="*")
     args = parser.parse_args()
     version = subprocess.check_output([args.python, "-c", "import platform; print(platform.python_version())"], text=True).strip()
@@ -30,9 +31,16 @@ def main():
     report = report_root / target.name
     report.mkdir(parents=True, exist_ok=True)
     files = {}
-    for directory in ("llm", "tests/llm", "examples/llm", "docs/llm", "ish.platform/src"):
-        for path in (args.source / directory).rglob("*"):
-            if path.is_file() and not {"__pycache__", "reports", "manual"}.intersection(path.parts) and path.suffix in (".py", ".md", ".json"):
+    directories = ("llm", "tests/llm", "examples/llm", "docs/llm", "ish.platform/src")
+    if args.hub:
+        directories += ("hub", "tests/hub", "examples/hub", "docs/hub")
+    for directory in directories:
+        for folder, dirs, names in os.walk(args.source / directory):
+            dirs[:] = [name for name in dirs if name not in ("__pycache__", "reports", "manual")]
+            for name in names:
+                path = Path(folder) / name
+                if path.suffix not in (".py", ".md", ".json"):
+                    continue
                 relative = path.relative_to(args.source)
                 destination = target / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
@@ -53,7 +61,12 @@ def main():
                                "tests.llm.test_run_transitions", "tests.llm.test_graph_decisions",
                                "tests.llm.test_interaction_decisions"]
     failed = False
-    for name, command in [("focused", modules), *([("suite", ["discover", "-s", "tests/llm", "-t", "."])] if args.full else [])]:
+    suites = [("focused", modules)]
+    if args.full:
+        suites.append(("suite", ["discover", "-s", "tests/llm", "-t", "."]))
+    if args.hub:
+        suites.append(("hub", ["discover", "-s", "tests/hub", "-t", "."]))
+    for name, command in suites:
         with (report / (name + ".txt")).open("w") as output:
             result = subprocess.run([args.python, "-m", "unittest", *command, "-v"], cwd=target, env=env,
                                     stdout=output, stderr=subprocess.STDOUT)

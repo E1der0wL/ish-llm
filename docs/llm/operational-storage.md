@@ -132,8 +132,8 @@ Core는 서비스/UI에 의존하지 않고 Engine은 영속 파일을 쓰지 �
 동일한 주입 저장소를 유지한다. 저수준 ProjectManager/RunManager의 기본 Run 저장소도
 SessionManager를 통해 공유한다. capability 탐색의 종전 고정 32회 상한도
 RunLimits.max_capability_rounds로 노출했다. 저장 버전·이벤트 이름·파일 이름은 계약상
-고정값이며 운영 튜닝 값과 구분한다. 기본 프로젝트의 loop 선택은 기존 명시적 편의 API
-정책이며, 일반 요청은 계속 engine 이름을 필수로 지정한다.
+고정값이며 운영 튜닝 값과 구분한다. llm은 기본 Project/Session이나 엔진 선택을 관리하지
+않으며 모든 요청에 engine 이름을 지정한다. UI 생성·선택 정책은 호출 애플리케이션이 소유한다.
 
 추가 제한: 백업은 workspace 잠금을 유지하므로 큰 프로젝트에서는 다른 CRUD가 기다린다.
 온라인 백업, 외부 SDK의 강제 종료, 파일 간 원자적 출력 커밋은 이번 구현의 보장이 아니다.

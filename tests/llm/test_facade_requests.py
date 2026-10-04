@@ -282,11 +282,8 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         shared = LoopEngine(completion_fn=provider)
         self.app.engines.register("alpha", shared)
         self.app.engines.register("beta", shared)
-        await self.project.asave(config={"completion": {"model": "openai/test"}, "engines": {
-            "alpha": {"system_prompt": "project alpha", "request_timeout": 12},
-            "beta": {"system_prompt": "project beta", "request_timeout": 23},
-            "loop": {"system_prompt": "must not use", "request_timeout": 99}}})
-        await self.session.asave(config={"engines": {"alpha": {"system_prompt": "session alpha"}}})
+        await self.project.asave(config={"parameters": {"engines": {"alpha": {**{"system_prompt": "project alpha", "request_timeout": 12}, "completion": {"model": "openai/test"}}, "beta": {**{"system_prompt": "project beta", "request_timeout": 23}, "completion": {"model": "openai/test"}}, "loop": {**{"system_prompt": "must not use", "request_timeout": 99}, "completion": {"model": "openai/test"}}}}})
+        await self.session.asave(config={"parameters": {"engines": {"alpha": {"system_prompt": "session alpha"}}}})
         other = await self.project.sessions.acreate("other")
         a, b = await asyncio.gather(self.session.run.submit("a", engine="alpha"),
                                     other.run.submit("b", engine="beta"))
@@ -304,8 +301,9 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_pipeline_can_choose_explicit_stage_configuration(self):
         provider = ScriptedCompletion([chunk("one", finish="stop")], [chunk("two", finish="stop")])
-        await self.project.asave(config={"completion": {"model": "openai/test"}, "engines": {
-            "pipeline": {"system_prompt": "outer"}, "stage": {"system_prompt": "inner"}}})
+        await self.project.asave(config={"parameters": {"engines": {
+            "pipeline": {"system_prompt": "outer", "completion": {"model": "openai/test"}},
+            "stage": {"system_prompt": "inner", "completion": {"model": "openai/test"}}}}})
         self.app.engines.register("pipeline", PipelineEngine([
             LoopEngine(completion_fn=provider),
             LoopEngine(completion_fn=provider, settings_name="stage"),

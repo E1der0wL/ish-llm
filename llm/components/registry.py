@@ -67,7 +67,7 @@ class ComponentRegistry:
     def validate_configuration(self, project: Project) -> None:
         """등록된 컴포넌트에만 Project 설정을 전달한다. 비활성 자료는 생성하지 않는다."""
         project.config.validate()
-        for name in project.config.component_configurations:
+        for name in project.config.parameters.get("components", {}):
             component = self.get(name)
             validate = getattr(component, "validate_project_configuration", None)
             if validate is None:

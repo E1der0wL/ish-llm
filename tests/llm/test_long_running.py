@@ -142,7 +142,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app.policy_resolver.token_counters['fixed'] = lambda request: 10
         project = app.projects.load(session.data.project_id)
         config = project.data.config
-        config.completion['max_tokens'] = 5
+        config.parameters["engines"]["loop"]["completion"]['max_tokens'] = 5
         config.configure_policies({'completion': {'counter': 'fixed'}, 'usage': {'max_tokens': 20, 'project_max_calls': 1}})
         await project.asave(config=config)
         failed = await (await session.run.submit('go', engine='loop')).wait()
@@ -255,7 +255,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(Path(temporary.name), components=[RuntimeTools(tools)],
             engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy or ToolPolicy()))
         self.addAsyncCleanup(app.shutdown)
-        project = await app.projects.acreate("resume", config=ProjectConfig(completion={"model": "test/model"}), components=["tools"])
+        project = await app.projects.acreate("resume", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test/model"}}}}), components=["tools"])
         project.components.tools.enable("act")
         session = await project.sessions.acreate()
         return app, session, model

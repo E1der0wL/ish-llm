@@ -47,7 +47,7 @@ class EngineRegistry:
                     raise ValueError("Engine configuration key must be nonempty text")
                 # 호스트 고정값이 잘못된 입력을 가리지 않게 UI와 같은 입력 스키마부터 검사한다.
                 for source, owner in (("project", config), ("session", session)):
-                    supplied = owner.get("engines", {})
+                    supplied = owner.get("parameters", {}).get("engines", {})
                     if key in supplied:
                         error = next(Draft202012Validator(spec).iter_errors(supplied[key]), None)
                         if error:

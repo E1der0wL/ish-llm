@@ -2,7 +2,7 @@
 
 Component는 Project 안에서 특정 데이터와 기능을 소유합니다. 종류를 백엔드에 **등록**하고, 사용할 종류를 Project에서 **선택**합니다. 예를 들어 `RAGComponent` 등록은 구현을 사용할 수 있게 하는 것이고, `components=["rag"]` 선택은 해당 Project에 RAG 저장 공간과 capability를 연결하는 것입니다.
 
-설정은 [명시적 설정 계약](../CONFIGURATION.md)에 따라 `ProjectConfig.component_configurations.<이름>`에만 저장합니다. 레코드는 Component가 관리하는 데이터이며 설정과 구분합니다.
+설정은 [명시적 설정 계약](../CONFIGURATION.md)에 따라 `ProjectConfig.parameters.components.<이름>`에만 저장합니다. 레코드는 Component가 관리하는 데이터이며 설정과 구분합니다.
 
 ## 제공하는 Component
 
@@ -10,14 +10,15 @@ Component는 Project 안에서 특정 데이터와 기능을 소유합니다. �
 | --- | --- | --- |
 | [tools/](tools/README.md) | Project별 Python Tool 패키지 | ToolRegistry → ToolExecutor |
 | [rag/](rag/README.md) | 문서·청크·벡터·관계와 출처 | 검색 Tool, embedding/rerank/관계 추출 |
+| [vision/](vision/README.md) | 이미지 원본·가공본·출처 | 전처리/OCR/VLM Tool, RAG 문서 추출 |
 | [memory/](memory/README.md) | 장기 기억·후보·출처·요약 | Memory Tool, completion processor |
 | [agents/](agents/README.md) | 목적·Engine·모델·리소스·정책 | Graph AgentNode |
 | [workflows/](workflows/README.md) | 노드·간선·입출력 mapping | GraphEngine |
-| [skills/](skills/README.md) | 재사용 지침과 참고 자료 설명 | 선택한 Agent/소비자가 지침 적용 |
+| [skills/](skills/README.md) | 재사용 지침과 참고 자료 설명 | skill_list/skill_read, 선택한 Agent의 지침 주입 |
 | [mcp/](mcp/README.md) | 서버 연결 정의 | 호스트가 주입한 connector |
 | [prompts/](prompts/README.md) | 시스템 지침·few-shot 메시지 | RAG 등의 소비자가 ID로 참조 |
 
-기본 `LargeLanguageModel`은 위 종류를 등록합니다. 일반 `projects.acreate()`는 `components`로 선택한 종류만 연결하고, `aget_default()`는 처음 만들 때 등록된 종류를 모두 선택합니다. 선택만으로 모델 인증, MCP connector, RAG 필수 설정까지 생성되지는 않습니다.
+기본 `LargeLanguageModel`은 위 종류를 등록합니다. `projects.acreate()`는 `components`로 선택한 종류만 연결합니다. 초기 선택 목록은 hub 등 호출 애플리케이션이 정합니다. 선택만으로 모델 인증, MCP connector, RAG 필수 설정까지 생성되지는 않습니다.
 
 ## 공통 파일
 
@@ -71,7 +72,7 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 
 ```text
 <project>/
-  project.json                     # 선택 종류와 component_configurations
+  project.json                     # 선택 종류와 parameters.components
   prompts/records/guide.json       # 공통 JSON 레코드
   agents/records/reviewer.json
   workflows/records/review.json

@@ -254,7 +254,7 @@ class SessionManager:
                config: Optional[dict] = None) -> Session:
         project = self.require_project(project)
         ProjectConfig.validate_session(config if config is not None else {})
-        settings = ProjectConfig.merge(project.config.session_defaults, config or {})
+        settings = deepcopy(config) if config is not None else {}
         if self.configuration_validator is not None:
             self.configuration_validator(project.config, session_config=settings)
         self.initialize(project)

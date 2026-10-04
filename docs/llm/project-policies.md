@@ -5,16 +5,14 @@
 Memory/RAG/Skill/MCP 설정은 계속 각 컴포넌트가 소유한다.
 
 정책에는 tool_retry/provider_retry/usage/retention도 포함된다. 모든 사용량/보관 상한은
-기본 null이고 공급자 재시도는 0회다. [장시간 실행 API](long-running.md)에 조건부 Tool
+미설정이면 상한과 외부 재시도를 추가하지 않는다. null/0 값을 자동 저장하지 않는다. [장시간 실행 API](long-running.md)에 조건부 Tool
 재시도와 보관 미리보기·적용 예제를 설명한다. UI는 configuration의 최신 policy_schema를 사용한다.
 
 ```python
 from llm.llm import LargeLanguageModel, ProjectConfig, ServiceConfig
 
 backend = LargeLanguageModel("./workspace")
-project = await backend.projects.acreate("개발 작업", config=ProjectConfig(
-    completion={"model": model_name},
-    policies={
+project = await backend.projects.acreate("개발 작업", config=ProjectConfig(policies={
         "context": {"mode": "full"},
         "completion": {
             "max_tokens": 32000,
@@ -22,13 +20,12 @@ project = await backend.projects.acreate("개발 작업", config=ProjectConfig(
             "counter": "model_default",
         },
         "run": {"max_queued": 20, "timeout_seconds": 1800},
-    },
-))
+    }, parameters={"engines": {"loop": {"completion": {"model": model_name}}}}))
 session = await project.sessions.acreate()
 run = await (await session.run.submit("작업해줘", engine="loop")).wait()
 ```
 
-completion의 model은 모델 호출 인자이며 policies.completion은 입력 선택 정책이다.
+parameters.engines.loop.completion의 model은 Loop 모델 호출 인자이며 policies.completion은 입력 선택 정책이다.
 `max_tokens - reserve_tokens` 안에 최종 요청이 들어오도록 오래된 턴을 제외한다.
 출력 여유분은 모델 출력 길이 설정을 대신하지 않는다. 원본 Conversation은 삭제하지 않는다.
 
@@ -61,7 +58,7 @@ JSON 검사·재귀 병합·전체 설정 검증을 후보 사본에 수행한 �
 메모리의 기존 설정도 유지된다. 반환값은 입력 및 내부 설정과 분리된 정책 사본이다.
 
 ```python
-config = ProjectConfig(completion={"model": model_name})
+config = ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": model_name}}}})
 policies = config.configure_policies({"context": {"mode": "recent", "max_turns": 20}})
 # 위 호출은 메모리만 변경한다. 기존 프로젝트 저장에는 project.aconfigure_policies를 사용한다.
 ```
@@ -80,7 +77,7 @@ namespace는 자유로운 JSON으로 보존한다. 내장 context/completion/run
 
 context mode는 full/recent/completed/recent_completed/budget을 제공한다. budget은 문자 수
 max_chars를 요구한다. recent의 max_turns는 과거 턴 수이며 현재 입력은 별도로 유지한다.
-Session config/session_defaults에는 policies를 지정할 수 없다. 프로젝트 정책을 Session나 Agent의
+Session config에는 policies를 지정할 수 없다. 프로젝트 정책을 Session나 Agent의
 설정 병합으로 우회하지 않으며, 중첩 Agent/Graph는 소유 Run의 CompletionPolicy를 공유한다.
 
 ## 실행 시작 시점의 정책
@@ -98,7 +95,7 @@ Graph 명시적 재개는 기존 checkpoint 설정 일치 검증을 그대로 �
 
 Memory가 오래된 대화 전체를 요약하게 하려면 context.mode=full을 유지한다. recent 등으로
 먼저 제외한 메시지는 Memory에 전달되지 않는다. Memory의 keep_turns/요약 모델/주입 예산은
-`ProjectConfig.component_configurations.memory`에서 관리한다. policies와 중복 저장하지 않는다.
+`ProjectConfig.parameters.components.memory`에서 관리한다. policies와 중복 저장하지 않는다.
 
 ## 토큰 계산기와 실행 구현
 

@@ -8,11 +8,13 @@ ish-llm은 사용자가 설정하지 않은 정책을 대신 결정하지 않는
 - **null**: null을 허용하는 필드의 명시값이다. 상위 값을 덮어쓴다. 자체 timeout에서 null은 제한 해제다. SDK 옵션의 null은 그대로 전달한다(지원 여부는 SDK 계약에 따른다).
 - **value**: 검증한 명시값을 사용한다. 0/False/빈 문자열을 truthiness fallback으로 바꾸지 않는다.
 
-Engine 옵션과 completion의 순서는 **Project → Session → Agent → host constructor/factory**다. `session_defaults`는 Session 생성 시 명시된 Session 설정과 병합된다. 새로운 common/default 계층은 없다. 일반 `resolve_configuration`은 호출자가 제공한 명시적 계층 순서와 마지막 host만 병합한다.
+ProjectConfig는 `policies`와 대상별 전달용 `parameters`를 구분한다. `parameters.engines.<설정 이름>`은 Engine, `parameters.components.<이름>`은 Component가 검증·해석한다. 동일한 이름의 인자도 다른 대상으로 자동 전달하지 않는다. Loop의 SDK 인자는 `parameters.engines.<설정 이름>.completion`에 둔다. Project의 최상위 completion은 없다.
+
+Engine 옵션의 순서는 **Project → Session → Agent → host constructor/factory**다. Session에는 명시한 override만 저장하고 실행 시 최신 Project 사본을 상속한다. Session 생성 시 Project 값을 복사하는 계층은 없다. 일반 `resolve_configuration`은 호출자가 제공한 명시적 계층 순서와 마지막 host만 병합한다.
 
 Agent completion은 model 없는 부분 설정도 허용한다. 모델이 모든 계층에서 없으면 호출 전에 오류다. Agent purpose를 system_prompt로 자동 변환하지 않으며, 명시적으로 선택한 Skill만 상속된 프롬프트에 결합한다. system_prompt=null은 상위 프롬프트를 해제한다. prompt 조회 API도 누락 키를 빈 문자열로 바꾸지 않으며 update_prompt(None)으로 명시적 해제가 가능하다.
 
-Component의 설정은 **주입 client.params → ProjectConfig.component_configurations[name]**이다. 주입 client의 provider 정책은 `model_providers`에 client→project 출처와 함께 표시하며, 추출 정책도 client→project 순서다. Component는 Session 소유가 아니다. 실행 정책은 ProjectConfig.policies의 명시 설정을 Run 시작 시 스냅샷으로 저장한다. 정책과 Component 설정은 Project 소유이며 Session에 저장하려 하면 오류다. Tool 재시도에서는 명시된 host ToolPolicy가 최우선이며 host의 null도 정책을 해제한다. host 자원 한도(ProviderLimits)는 공유 실행 자원에 별도로 적용된다.
+Component의 설정은 **주입 client.params → ProjectConfig.parameters["components"][name]**이다. 주입 client의 provider 정책은 `model_providers`에 client→project 출처와 함께 표시하며, 추출 정책도 client→project 순서다. Component는 Session 소유가 아니다. 실행 정책은 ProjectConfig.policies의 명시 설정을 Run 시작 시 스냅샷으로 저장한다. 정책과 Component 설정은 Project 소유이며 Session에 저장하려 하면 오류다. Tool 재시도에서는 명시된 host ToolPolicy가 최우선이며 host의 null도 정책을 해제한다. host 자원 한도(ProviderLimits)는 공유 실행 자원에 별도로 적용된다.
 
 `values/sources/overridden/editable`은 유지한다. 사용자 설정 출처 `default`는 없다. 강제값은 `enforced`에 따로 표시할 수 있다. Schema는 허용 형식만 설명하며 값 생성에 사용하지 않는다. `ProjectConfig()`는 빈 section만 가진다.
 
@@ -32,7 +34,7 @@ Component의 설정은 **주입 client.params → ProjectConfig.component_config
 | Memory processing | recall/summarize/extract/compress가 명시적으로 활성화될 때만 실행 |
 | RAG | 아래 필요한 알고리즘 설정은 사용 시 명확한 오류. 미설정 cache는 비활성, rerank/repair는 비활성 |
 
-`completion.timeout`, `engines.loop.request_timeout`, `provider.wall_timeout`, Run/Graph/node/Tool timeout은 서로 독립이다. Wrapper 시간을 SDK 인자에 복사하지 않는다.
+Loop의 `completion.timeout`과 `request_timeout`, Component의 `provider.wall_timeout`, Run/Graph/node/Tool timeout은 서로 독립이다. Wrapper 시간을 SDK 인자에 복사하지 않는다.
 
 Step의 명시 기한은 provider 진행을 중단하지만 yield된 이벤트를 저장하는 서비스 Task를 타이머로 취소하지 않는다. 저장 후 Engine이 다시 진행할 때 같은 절대 기한을 검사해 timeout 실패로 기록한다. 따라서 기한이 초기화되지 않으며 사용자 interrupt와 혼동되지 않는다.
 
@@ -90,7 +92,11 @@ Kuzu buffer_pool_size/max_num_threads와 Chroma 설정은 명시된 옵션만 �
 | SDK 로그/배너 콘솔 억제 | 터미널은 ish UI 소유. dotenv 및 하위 logger도 파일로 격리하고 설정 없는 자동 삭제는 하지 않음 |
 | 오류 cause/context 관찰 최대 32개·순환 중단 | 비정상 예외 체인이 종료 처리를 막지 않게 하는 내부 관찰 상한. 실행/retry 정책이나 ProjectConfig 값이 아님 |
 
-`get_default()`는 이름 그대로 등록 Component 전체와 file 저장을 선택하는 명시적 생성 API다. 설정 leaf나 기본 실행 Engine을 만들지는 않는다. `create()`는 전달받은 Component만 선택한다. 파일 저장이라는 저장 형식 계약, 초기 queued/pending 상태, 생성 ID/시각, revision, 데이터 레코드의 구조적 초기값은 실행 정책 default와 구분한다. 메모리의 note/project/confirmed 초기 레코드 형식은 CRUD 계약이며 자동 recall·추출 활성화와 무관하다.
+llm은 기본 Project/Session·마지막 선택·UI 엔진 선택 정책을 소유하지 않는다. `create()`는 새 Project와 명시한 Component만 만든다. 등록된 구현체 목록은 활성화/자동 실행과 다르다. 파일 저장이라는 저장 형식 계약, 초기 queued/pending 상태, 생성 ID/시각, revision, 데이터 레코드의 구조적 초기값은 실행 정책 default와 구분한다. 메모리의 note/project/confirmed 초기 레코드 형식은 CRUD 계약이며 자동 recall·추출 활성화와 무관하다.
+
+기존 최상위 completion/engines/component_configurations/session_defaults/default_engine은 거부한다. 자동 변환·옛 기본값 복원·기존 파일 수정은 하지 않는다. 새 ProjectConfig를 명시적으로 작성해야 한다. 선택한 컴포넌트의 `configure/aconfigure`는 `parameters.components[name]`을 교체하며 Project의 저장 잠금과 버전 검사를 공유한다.
+
+보관 토큰 계산에는 `policies.retention.counter`와 계산기에 필요한 `counter_params`를 명시한다. 예: `{"counter": "model_default", "counter_params": {"model": "openai/my-model"}}`. 여러 엔진이 사용하는 모델 중 하나를 임의로 선택하지 않는다. 보관할 messages는 서비스가 전달하므로 counter_params에서 덮어쓸 수 없다.
 
 미설정 재시도에서 최초 호출 한 번, 지연 없음, 예약 토큰 없음, 보존 개수 추가 보호 없음 등의 중립 동작은 settings에 `1/0`을 생성하는 것이 아니다. 코드의 `get(..., 0/1)`이 이런 수학적 중립값인지 별도 감사한다.
 
@@ -99,21 +105,26 @@ Kuzu buffer_pool_size/max_num_threads와 Chroma 설정은 명시된 옵션만 �
 기존 저장값은 수정하지 않는다. 과거에 생략한 값은 계속 missing이다. 필수 설정이 없으면 해당 기능 사용 전에 오류가 발생한다. 기존 명시된 숫자는 보존한다. 변경된 fingerprint와 맞지 않는 재개/캐시는 안전하게 거부 또는 재계산한다.
 
 ```python
-config = ProjectConfig(
-    completion={"model": "openai/my-model"},  # timeout 등은 SDK native behavior
-    engines={"loop": {"request_timeout": 300, "tool_timeout": None}},
-    component_configurations={"rag": {
+config = ProjectConfig(parameters={"engines": {"loop": {**{"request_timeout": 300, "tool_timeout": None}, "completion": {"model": "openai/my-model"}}}, "components": {"rag": {
         "chunk_size": 1000, "embedding_concurrency": 2,
         "extraction": {"failure_policy": "disabled"},
         "embedding_params": {"model": "openai/my-embedding"},
         "search": {"method": "hybrid", "expand": "section", "limit": 5,
                    "candidate_count": 20, "rrf_constant": 60,
                    "max_hops": 2, "relation_limit": 30}
-    }})
+    }}})
 ```
 
 숫자는 이 예제의 명시적 선택이며 라이브러리 기본값이 아니다. Session에서 request_timeout=null을 설정하면 300초를 해제한다. 사용자가 Engine constructor에 값을 명시하면 host 우선으로 고정된다.
 
 ## 감사와 검증
+
+Vision의 빈 설정은 `{}`다. OCR 호출은 명시한 backend 또는 Project의 ocr.backend를 사용하며
+둘 다 없으면 오류다. 등록된 Tesseract를 자동 선택하지 않는다. VLM model과 prompt도 명시해야
+하며 OCR timeout, provider retry/deadline, 이미지 크기 상한을 생성하지 않는다.
+Tesseract language/psm 및 Pillow 인코딩·이미지 안전 검사는 미설정 시 native 동작을 사용한다.
+Vision의 stream=False/n=1은 단일 분석 결과 프로토콜, PNG 가공본은 손실 없는 저장 표현,
+format_version=1/hash/불변 image ID는 출처 무결성 계약이다. 이는 사용자 설정 leaf로 저장하지
+않는다. 자세한 schema/API는 [Vision](components/vision/README.md)에 있다.
 
 `tests/llm/audit_configuration.py`는 production Python 전체의 fallback/default 패턴과 분류를 수집한다. 보고서의 개별 발생 위치를 변경 시 재검토한다. `tests.llm.test_explicit_configuration`은 빈 설정·상속/null·SDK kwarg 생략·독립 timeout·native library 옵션·정책 비활성 계약을 검증한다. Provider/RAG 테스트는 retry de-duplication, cache/checkpoint/vector mapping/cancellation을 계속 검증한다.

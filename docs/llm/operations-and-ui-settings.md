@@ -16,7 +16,7 @@ schema = settings["schema"]
 form_values = settings["values"]  # schema와 같은 구조
 fields = schema["properties"]["config"]["properties"]
 print(fields["policies"]["properties"]["retention"]["properties"]["max_bytes"])
-# {"type": ["integer", "null"], "default": None, "minimum": 1, ...}
+# {"type": ["integer", "null"], "minimum": 1, ...}
 ```
 
 | 영역 | 내용 |
@@ -24,25 +24,25 @@ print(fields["policies"]["properties"]["retention"]["properties"]["max_bytes"])
 | `properties.title` | Project 제목, string |
 | `properties.conversation_storage` | file/memory/null. null은 주입 저장소용이며 Session 존재 시 변경 제한 |
 | `properties.components` | 등록된 Component 이름, 중복 없는 array |
-| `properties.config` | completion, engines, policies, session_defaults, data 및 추가 JSON 키 |
-| `properties.config.properties.component_configurations` | 선택된 Component별 실제 설정 |
+| `properties.config` | policies, parameters, data 및 추가 JSON 키 |
+| `properties.config.properties.parameters.properties.components` | 선택된 Component별 실제 설정 |
 | `x-components` | 디렉토리, capability, 개별 데이터의 `record_schema` |
-| `x-engines` | Engine 등록명과 `config.engines`에서 사용할 `configuration_key` |
+| `x-engines` | Engine 등록명과 `config.parameters.engines`에서 사용할 `configuration_key` |
 
 `type`은 string/integer/number/boolean/object/array/null 또는 허용 타입의 배열이다.
-`default`, `enum`, `minimum`, `exclusiveMinimum`, `description`을 폼에 사용한다.
+`enum`, `minimum`, `exclusiveMinimum`, `description`을 폼에 사용한다. 미설정 값을 채우지 않는다.
 `additionalProperties: true`는 추가 JSON 키 입력을 허용한다. `$ref`와 `$defs`가 있는
 사용자 컴포넌트도 지원하므로 JSON Schema를 이해하는 폼 생성기를 사용하는 편이 편하다.
 
 **임의로 추가 가능한 모든 키나 미래 LiteLLM 인자를 미리 열거할 수는 없다.**
-API는 선언된 항목을 열거하고, 열린 영역을 명시한다. 공통 completion 인자는 기본 힌트이며
+API는 선언된 항목을 열거하고, 열린 영역을 명시한다. Loop completion 인자는 해당 엔진의 힌트이며
 공급자별 인자·지원 여부와 Loop의 stream=True/n=1 및 messages/tools 소유 규칙은 별도다.
 등록 이름이 바뀌면 Engine 선택지도 바뀐다. `LoopEngine(settings_name="shared")`이면
 `x-engines[등록명].configuration_key`는 `shared`다.
 
-Component는 `configuration_schema()`를 재정의하여 자료형·설명·기본값·제약을 제공한다.
-미정의 시 `default_configuration()`에 있는 키와 기본값으로 폼 힌트를 만든다.
-null 기본값만으로 타입을 추측하지 않는다. 이 힌트는 런타임 검증을 대체하지 않으므로
+Component는 `configuration_schema()`를 재정의하여 자료형·설명·제약을 제공한다.
+스키마가 없으면 열린 JSON 설정을 유지하며 기본값을 추측하거나 생성하지 않는다.
+이 힌트는 런타임 검증을 대체하지 않으므로
 사용자 Component의 `validate_configuration()`도 같은 계약에 맞춰 구현한다.
 Agent/Workflow/Skill/MCP의 **개별 레코드** 형식은 컴포넌트 공통 설정과 다르며
 `x-components[name].record_schema`에 있다.

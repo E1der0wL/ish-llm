@@ -50,7 +50,7 @@ await rag.adelete_document("manual")
 
 ## 설정과 임베딩
 
-설정은 `ProjectConfig.component_configurations.rag`에 저장한다.
+설정은 `ProjectConfig.parameters.components.rag`에 저장한다.
 `configuration_schema()`는 허용 형식만 제공한다. [전역 설정 계약](../../CONFIGURATION.md)을 따른다.
 
 | 키 | 미설정 동작 |

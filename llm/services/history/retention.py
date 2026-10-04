@@ -80,7 +80,7 @@ class HistoryRetention:
                 if policy.get("max_tokens") is not None:
                     if self.counter is None:
                         raise ValueError("Retention requires a registered token counter")
-                    tokens = self.counter({"model": project.config.completion.get("model"),
+                    tokens = self.counter({**policy.get("counter_params", {}),
                         "messages": [{"role": m.role.value, "content": m.content} for m in owned]})
                     if type(tokens) is not int or tokens < 0:
                         raise ValueError("Retention counter requires nonnegative integer tokens")
@@ -174,7 +174,7 @@ class HistoryRetention:
             if policy.get("max_tokens") is not None:
                 if self.counter is None:
                     raise ValueError("Retention requires a registered token counter")
-                tokens = self.counter({"model": project.config.completion.get("model"),
+                tokens = self.counter({**policy.get("counter_params", {}),
                     "messages": [{"role": m.role.value, "content": m.content} for m in messages]})
                 if type(tokens) is not int or tokens < 0:
                     raise ValueError("Retention counter requires nonnegative integer tokens")

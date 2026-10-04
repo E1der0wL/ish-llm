@@ -1,5 +1,21 @@
 # Architecture
 
+## Skill 탐색과 개발·진단 Tool
+
+SkillComponent는 기존 skills 정의 capability와 읽기 전용 tools capability를 제공한다.
+skill_list는 요약 목록, skill_read는 선택한 레코드를 반환한다. capability 해석 경계에서
+Run별 사본을 만들고 전체 정의 지문을 ToolContract revision에 넣어 변경된 지침으로 옛
+체크포인트를 재개하지 않는다. 기존 resources.skills의 Agent 지침 주입은 유지한다.
+Tool을 호출했다는 것과 지침의 검증 절차를 완료했다는 것은 다르며 강제 절차는 기존
+Workflow/ToolPolicy가 소유한다. 일반 Engine/RunManager에 Skill 전용 분기를 넣지 않는다.
+
+BuiltinToolComponent는 호스트가 생성한 BuiltinTools와 ProjectConfig의 enabled 목록을
+연결한다. Project Python Tool 소스 저장소와 별개이며 Toolkit 수명은 호스트가 소유한다.
+프로세스 출력 cursor/표준입력은 해당 Toolkit의 실행에만 적용하며 재시작 시 자동 재실행하지
+않는다. Linux 진단은 명시적 호스트 기능이고 OS 상태를 읽을 뿐 앱 상태를 추측하지 않는다.
+기존 로그는 파일 Tool로 읽고 project.activity/Run/Step 외의 상태 원본을 만들지 않는다.
+승인·retry·operation receipt·Step 저장·provider/Engine 실행 책임은 그대로 유지한다.
+
 ## Project 설정과 컴포넌트 선택의 일괄 저장
 
 `ProjectHandle.save/asave`는 `components`와 `expected_components`를 선택적으로 받는다.
@@ -123,7 +139,7 @@ memory 저장의 restart 한계도 같다. 재개 가능한 지시 참조는 보
 
 PromptComponent는 prompts/records 아래 messages 정의를 소유한다. RAG의 기본 지침과
 검증 계약은 components/rag, 범용 프롬프트 CRUD는 components/prompts에 둔다.
-ProjectConfig.component_configurations.rag.extraction에서 prompt_id, repair_attempts,
+ProjectConfig.parameters.components.rag.extraction에서 prompt_id, repair_attempts,
 relation_types를 설정한다. RAGData는 선택된 registry의 PromptComponent에서 정의를 읽고
 작업별 사본으로 바인딩한다. 프롬프트 내용도 준비/색인 작업의 설정 fingerprint에 포함된다.
 삭제된 참조는 새 모델 호출을 막되 설정 편집·조회·실패 작업 정리를 막지 않는다.
@@ -152,7 +168,7 @@ Engine이나 Component를 핵심 소유 계층의 중간 단계로 삽입하지 
 
 Session/SessionManager/SessionRepository/SessionPaths/SessionHandle을 사용한다.
 공개 진입점은 project.sessions, EngineContext.session, Run.session_id다.
-ProjectConfig.session_defaults와 session_config가 설정 기본값·덮어쓰기를 담당한다.
+ProjectConfig.parameters와 Session의 명시적 parameters override를 실행 시 병합한다. Session 생성 시 설정을 복사하지 않는다.
 Memory의 세션 범위는 scope="session"과 session_id로 지정한다.
 
 Project/Session/Run/Step 저장 형식은 storage_version=1다. Session은 Project 아래
@@ -211,8 +227,8 @@ core/configuration.py에서 해석한다. Loop/Graph/Preparation/Pipeline의 con
 실행과 UI 조회가 공유하며, 호스트 값의 출처와 가려진 설정을 표시한다. Pipeline은 이름 있는
 단계별 설정을 제공하고 Graph는 중첩 실행/재개에서도 호출별 설정 사본을 사용한다.
 RAG의 JSON 설정은 분할·모델 인자·배치·검색·DB 옵션을 소유하며 등록 객체를 변경하지 않는다.
-ProjectConfig.component_configurations는 컴포넌트 설정의 유일한 저장 위치다.
-Component는 기본값·검증·해석을 담당하고 ComponentData의 편의 수정도 ProjectConfig에만 저장한다.
+ProjectConfig.parameters["components"]는 컴포넌트 설정의 유일한 저장 위치다.
+Component는 스키마·검증·해석을 담당하고 ComponentData의 편의 수정도 ProjectConfig에만 저장한다.
 컴포넌트별 설정 파일과 직접 쓰기 API는 제거했다. 복제에서 설정은 Project, 자료는 Component가 담당한다.
 Session은 Project 컴포넌트 설정을 덮어쓰지 못한다.
 policies.output은 Run 시작 시 복사하여 델타 저장 묶음 설정을 프로젝트별로 적용한다.
@@ -225,12 +241,12 @@ policies.output은 Run 시작 시 복사하여 델타 저장 묶음 설정을 �
 `LargeLanguageModel.project_schema()`는 Component/Engine의 `configuration_schema()`와
 ProjectConfig 정책 스키마를 합친다. Component 기록 스키마는 설정 스키마와 분리한다.
 Facade의 `configuration()`은 원본 값·편집 버전·폼용 values/schema를 함께 제공한다.
-폼의 `values.config.component_configurations`에는 컴포넌트 기본값을 병합하며,
-`project.config`는 저장 원본을 유지한다. JSON Schema의 required/ref/배열 제약은 제거하지 않는다.
+폼의 `values.config`와 `project.config`는 같은 저장 원본의 독립 사본이다. 미설정 값을
+만들지 않으며 적용값·출처는 effective 조회로 분리한다. JSON Schema의 required/ref/배열 제약은 제거하지 않는다.
 `ProjectHandle.validate_configuration(config)`와 비동기 API는 저장 경로와 같은 검증으로
 전체 ProjectConfig 후보를 미리 확인한다. 반환 버전은 미리보기 당시 저장 원본의 버전이다.
 백엔드는 EngineRegistry의 동기 설정 검증 계약을 ProjectManager/SessionManager에 주입한다.
-Project 생성·저장·기본 Project 생성·백업 복원, session_defaults 및 Session 생성·저장 시
+Project 생성·저장·백업 복원 및 Session 생성·저장 시
 등록 Engine의 configuration을 검사하며 Engine 실행이나 모델/준비 함수는 호출하지 않는다.
 설정 해석 계약이 없는 확장 Engine은 선언된 스키마로 전달값을 검사한다. 같은 설정 키를
 공유하는 Engine의 UI 스키마는 allOf로 결합하여 모든 소비자의 조건을 만족해야 한다.
@@ -300,7 +316,7 @@ RSS/FD/스레드/이벤트 루프 지연과 재시작 결과를 확인하는 Lin
 
 ## 프로젝트 실행 정책
 
-ProjectConfig.policies의 context/completion/run 등 JSON은 Project가 소유한다. 기본값·스키마·형식
+ProjectConfig.policies의 context/completion/run 등 JSON은 Project가 소유한다. 스키마·형식
 검증은 core/policies.py, 실행 객체 구성은 services/runtime/policies.py의 ProjectPolicyResolver가
 담당한다. ProjectConfig.configure_policies는 후보 사본에 부분 변경을 병합·검증한 뒤 반영한다.
 ProjectManager/Facade의 configure_policies는 잠금 아래 최신 설정에 이 메서드를 호출하고 저장하며
@@ -593,23 +609,20 @@ corpus_version의 identity/generation 포인터만 사용한다. 재정렬 이�
 compact는 삭제 전 활성 코퍼스가 읽히는지 확인하여 손상 시 정리를 중단한다. 관계 출처 조회는 관련 문서의 문단 ID 맵을 한 번 구성하여 재사용한다.
 전역 캐시나 변경 가능한 공유 코퍼스 사본은 추가하지 않는다.
 
-## 프로젝트 설정 통합 조회와 기본 프로젝트
+## 프로젝트 설정 통합 조회와 애플리케이션 선택 정책
 
 ProjectHandle.configuration/aconfiguration은 ProjectManager의 잠금 범위에서 프로젝트
 설정과 선택된 Component들의 설정을 하나의 JSON 호환 스냅샷으로 모은다. 저장 원본은
-project.json의 ProjectConfig.component_configurations이며 디렉토리 지식 집중을 피한다.
+project.json의 ProjectConfig.parameters["components"]이며 디렉토리 지식 집중을 피한다.
 설정 수정은 기존 project.asave 또는 ComponentData.aconfigure에 위임한다. 이 뷰는 저장된
 설정만 표현하며 런타임 생성자 객체를 재구성하지 않는다. YAML과 자동 UI 스키마는 미구현이다.
 
-Projects.get_default/aget_default는 명시적으로 기본 프로젝트를 생성하거나 재사용한다.
-첫 생성 시 default_engine="loop", 등록된 모든 Component, conversation_storage="file"을
-적용한다. 재조회는 사용자 변경을 보존하며 일반 create나 생성자 부작용은 바꾸지 않는다.
-실행의 engine 인자는 여전히 필수다. 프로젝트 모델에는 실행 책임이 추가되지 않는다.
-projects/default-project.json과 Project 초기화를 같은 저장 트랜잭션으로 확정한다.
-확정 전 실패는 포인터와 새 Project를 함께 되돌린다. 기존 pending 참조의 명시적 초기화
-경로는 유지하지만 새 요청에서는 부분 생성 상태가 공개되지 않는다. 소프트 삭제는 복원 요청을
-요구하고 영구 삭제 후에는 새 ID를 만든다. 복제는 기본 프로젝트 참조를 복사하지 않는다.
-사용법과 설정 반영 범위: [프로젝트 설정 안내](project-settings.md).
+Project/Session의 초기 생성·선택과 UI의 엔진 선택은 hub 등 호출 애플리케이션이 소유한다.
+llm은 일반 create/load/list만 제공하고 기본 Project 포인터·기본 Session·session_defaults를
+생성하거나 읽지 않는다. Session에는 명시적 override만 저장한다. submit의 engine은 필수다.
+Hub는 `.hub/startup.lock`으로 최초 생성을 직렬화하고, 활성 Project가 없을 때만 명시적인
+Hub 템플릿으로 일반 Project를 생성한다. 이후에는 명시 ID/마지막 선택/기존 Project 순으로
+선택한다. llm은 Hub 상태 파일을 읽지 않는다.
 
 ## RAG / GraphRAG 컴포넌트의 문서·검색 책임
 
@@ -925,8 +938,7 @@ implements the domain and persistence/runtime foundation described below:
 * `llm/llm.py`: a one-request streaming CLI example with an optional arithmetic tool
 
 There is currently no TUI or dedicated SingleEngine. GraphEngine is implemented. Project
-configuration holds extensible JSON completion, engines,
-session_defaults and data sections. Session.config holds overrides. CompletionResult
+configuration holds Project policies, targeted parameters and open JSON metadata. Session.config holds overrides. CompletionResult
 is persisted in Run metadata; ExecutionResult is a computed query view in core/results.py. Portable file-Project backups, restore into an absent ID, and explicit backup-copy upgrades are implemented.
 Online backup and general retention/cleanup policies remain outside that contract.
 
@@ -1062,8 +1074,7 @@ values use `engine_required`, and unavailable names use `engine_not_registered`.
 Validation precedes queue admission. The chosen name is stored with the QUEUED
 message and copied to Run.engine when execution begins.
 
-ProjectConfig no longer inserts or treats default_engine as a reserved setting.
-Its open JSON keys remain preserved. Session no longer has a default_engine field
+ProjectConfig rejects the removed default_engine setting. Other open JSON metadata remains preserved. Session no longer has a default_engine field
 or creation argument; SessionRepository rejects removed fields without rewriting metadata. Existing queued messages with an Engine keep their
 choice on restart. Missing/malformed selections create a FAILED Run with an empty
 engine name and `engine_required`, publish failure, and allow the worker to
@@ -1191,23 +1202,18 @@ selections are errors rather than inferred from existing directories or backend 
 
 ## Flexible Configuration and Project Execution History
 
-ProjectConfig owns completion, engines, session_defaults and data
-JSON dictionaries. Configuration validation rejects runtime objects, non-string
-keys and non-finite numbers at construction/save; arbitrary field names are allowed.
-ProjectRepository preserves model/temperature/api_base as ordinary workspace keys.
-Only completion configures model calls; no fields are relocated on load. Session JSON
-requires config. There is no credential resolver.
-
-SessionManager.create copies session_defaults then merges explicit config. Session save and
-clone preserve config with independent containers. EngineContext.settings(name)
-merges Project completion/engines[name]/data with Session overrides. Arrays/scalars
-replace defaults; nested dicts merge. Engine constructor arguments override saved
-values. Loop resolves its registered Run engine name unless settings_name is supplied;
-within Pipeline this defaults to the Pipeline registration name. Its per-Run shallow
-instance copy preserves subclass methods and shared SDK handles while replacing
-Loop-owned configuration. All execution state stays local. BaseEngine authors
-choose a section name and read settings explicitly. RunManager reloads the Project
-before a Run, so later edits affect future Runs only.
+ProjectConfig owns policies and targeted parameters, alongside open JSON metadata. Engine
+settings are parameters.engines[name]; Component settings are parameters.components[name].
+Only the selected implementation interprets its options. Loop consumes its own completion
+mapping; Graph, RAG and Vision never inherit Loop SDK options by matching argument names.
+Session.config persists explicit engine overrides without copying Project settings at creation.
+EngineContext.settings(name) returns a detached merged view and the selected `engine` mapping.
+Nested dictionaries merge; explicit null replaces inherited values where supported. Constructor
+settings override Project/Session/Agent settings. Runtime clients remain host-owned.
+Loop uses its registration name unless settings_name explicitly selects another configuration.
+Pipeline stages can select a named target or their own stages mapping. RunManager still reloads
+Project/Session and snapshots policies at Run start. Active Run policy protection is unchanged.
+Removed Project-level SDK/default sections are rejected without rewriting stored files.
 
 COMPLETION EngineEvents carry CompletionResult snapshots: a stable call ID,
 Step ID, model/response ID, finish reason, status, timestamps, duration, numeric
@@ -1217,7 +1223,7 @@ Text consumers may opt out with include_events=False. Custom Engine-protocol cod
 must emit observations itself for detailed LLM accounting. Non-LLM/non-reporting
 engines still receive a terminal Run summary with unknown usage.
 
-The helper requests include_usage by default and retains only numeric usage data,
+The helper forwards include_usage only when explicitly configured and retains numeric usage data,
 including nested token details. Observations update on identity, finish reason or
 usage changes and completion/failure, not every text delta. RunManager persists
 snapshots in Run metadata by call ID before notifying observers. Cancellation and
@@ -1257,8 +1263,9 @@ dispatch. Only providers.parameters is shared with BaseEngine; model-client impo
 neither Engines, services nor core domains. Model results and exceptions retain
 SDK types; cancellation propagates, subject to provider cleanup behavior.
 
-Model defaults can live in ProjectConfig.data.inference and Session data overrides,
-read through context.settings(name). Callers own mapping configuration into clients,
+RAG model options live in ProjectConfig.parameters.components.rag; custom Engines
+declare their own targeted parameters and read context.settings(name)["engine"].
+Callers own mapping configuration into clients,
 inputs, output/index persistence and observability. Within a Run, self.step or
 PreparationStep can record embedding/rerank lifecycle; Tool handlers may call the
 same clients. No automatic model-call usage recording is introduced outside the
@@ -1431,7 +1438,7 @@ validates identity and directory ownership; its declared-capability resolution m
 is generic and has no Tool dependency. Component paths are not in ProjectPaths.
 Core Session initialization remains mandatory, independent of optional selection.
 
-Component configuration is in ProjectConfig.component_configurations; owned records use `<project>/<directory>/records/<id>.json`.
+Component configuration is in ProjectConfig.parameters["components"]; owned records use `<project>/<directory>/records/<id>.json`.
 All mutable JSON uses atomic replacement. Unknown keys survive round trips;
 runtime objects, non-string keys and non-finite numbers are rejected.
 Component-specific validation/codecs can evolve without a central fixed dataclass.
@@ -2003,3 +2010,15 @@ completed이면 과거 체크포인트는 삭제를 차단하지 않는다. 마�
 UI 실행 이력은 ProjectHandle.activity/aactivity로 조회한다. 전체 Session/Run/Step 또는 service.log를
 순회하는 logs/alogs API는 제공하지 않는다. activity는 after-commit 파생 인덱스이며 실행/복구의
 근거는 Run/Step 원본이다. 기존 DomainLogger와 도메인별 service.log는 운영 진단용으로 유지한다.
+
+## Vision 이미지 capability
+
+VisionComponent는 Project의 이미지 원본/가공본 bytes와 immutable hash/출처를 소유한다.
+VisionData는 prepare/검증을 off-loop에서 수행하고 저장 확정에 기존 workspace transaction을
+사용한다. 전처리/OCR/모델 해석의 직접 API와 Tool은 같은 구현을 사용한다. OCR backend는
+호출/Project에서 명시하며 auto나 미설정 Tesseract fallback은 없다. Tesseract subprocess는
+OCR 취소 회수만 담당하며 ToolExecutor의 승인·retry·receipt·Step 책임을 가져오지 않는다.
+LiteLLM 분석은 기존 provider admission/관찰을 사용한다. RAG용 추출 자료는 이미지 hash,
+픽셀 좌표, derived_text 출처를 포함하는 문서이며 RAG의 기존 문서/세대 publish API로 전달한다.
+새 Run/Step/Message 도메인이나 transcript 저장은 추가하지 않는다. Session 메시지에 이미지가
+자동 첨부되지는 않는다. 삭제는 tombstone이며 영속 출처 보존을 위해 개별 bytes/ID를 유지한다.

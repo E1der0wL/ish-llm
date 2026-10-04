@@ -1,6 +1,8 @@
 """작업 루트에서 시작한 프로세스만 조회/취소하고 출력과 실행 시간을 제한한다."""
 
 import asyncio
+import codecs
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from llm._platform import require_linux
@@ -44,6 +46,9 @@ class ProcessTools:
     def snapshot(self, identifier):
         item = self.sessions[identifier]
         return {"process_id": identifier, "status": item["status"], "returncode": item["process"].returncode,
+                "pid": item["process"].pid, "argv": list(item["argv"]), "cwd": item["cwd"],
+                "started_at": item["started_at"], "ended_at": item.get("ended_at"),
+                "stdin_open": item["process"].stdin is not None and not item["process"].stdin.is_closing(),
                 "stdout": bytes(item["stdout"]).decode("utf-8", errors="replace"),
                 "stderr": bytes(item["stderr"]).decode("utf-8", errors="replace"),
                 "truncated": item["truncated"]}
@@ -64,9 +69,12 @@ class ProcessTools:
             seconds = args.get("timeout_seconds", self.max_seconds)
             if seconds is not None and (seconds <= 0 or self.max_seconds is not None and seconds > self.max_seconds):
                 raise ValueError("Process timeout exceeds configured limit")
+            interactive = args.get("stdin", False)
+            if type(interactive) is not bool:
+                raise ValueError("stdin must be boolean")
             # 취소가 프로세스 생성과 겹치더라도 핸들을 회수해 종료한다.
             pending = asyncio.create_task(asyncio.create_subprocess_exec(
-                *args["argv"], cwd=cwd, stdin=asyncio.subprocess.DEVNULL,
+                *args["argv"], cwd=cwd, stdin=asyncio.subprocess.PIPE if interactive else asyncio.subprocess.DEVNULL,
                 stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, start_new_session=True))
             try:
                 process = await asyncio.shield(pending)
@@ -76,7 +84,8 @@ class ProcessTools:
                 raise
             identifier = uuid4().hex
             item = {"process": process, "stdout": bytearray(), "stderr": bytearray(),
-                    "status": "running", "truncated": False}
+                    "status": "running", "truncated": False, "argv": list(args["argv"]), "cwd": str(cwd),
+                    "started_at": datetime.now(timezone.utc).isoformat(), "input_lock": asyncio.Lock()}
             self.sessions[identifier] = item
 
             async def read(name):
@@ -108,10 +117,13 @@ class ProcessTools:
                     await kill_process_tree(process)
                     raise
                 finally:
+                    if process.stdin is not None:
+                        process.stdin.close()
                     for reader in readers:
                         if not reader.done():
                             reader.cancel()
                     await asyncio.gather(*readers, return_exceptions=True)
+                    item["ended_at"] = datetime.now(timezone.utc).isoformat()
             item["task"] = asyncio.create_task(monitor())
             return self.snapshot(identifier)
 
@@ -128,6 +140,50 @@ class ProcessTools:
     async def status(self, args):
         self.check()
         return self.snapshot(args["process_id"])
+
+    async def output(self, args):
+        """문자 offset으로 출력만 이어 읽는다. stdout/stderr 사이의 시간 순서는 추측하지 않는다."""
+        self.check()
+        item = self.sessions[args["process_id"]]
+        result = {"process_id": args["process_id"], "status": item["status"],
+                  "returncode": item["process"].returncode, "truncated": item["truncated"]}
+        for name in ("stdout", "stderr"):
+            # 진행 중 나뉘어 도착한 UTF-8 문자는 완성된 뒤 공개하여 cursor가
+            # 임시 replacement character를 지나가거나 같은 문자를 재소비하지 않게 한다.
+            decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+            text = decoder.decode(bytes(item[name]), final=item["status"] != "running" or item["truncated"])
+            offset = args.get(name + "_offset", 0)
+            if type(offset) is not int or not 0 <= offset <= len(text):
+                raise ValueError("Output offset is outside the retained stream")
+            count = args.get("max_chars", len(text))
+            if type(count) is not int or count < 1 and "max_chars" in args:
+                raise ValueError("max_chars must be a positive integer")
+            result[name] = text[offset:offset + count]
+            result["next_" + name + "_offset"] = offset + len(result[name])
+            result[name + "_remaining"] = len(text) - result["next_" + name + "_offset"]
+        return result
+
+    async def write(self, args):
+        """이 Toolkit이 stdin=True로 만든 프로세스에만 입력한다. 자동 개행/재전송은 하지 않는다."""
+        self.check()
+        item = self.sessions[args["process_id"]]
+        async with item["input_lock"]:
+            stream = item["process"].stdin
+            if item["status"] != "running" or stream is None or stream.is_closing():
+                raise ValueError("Process has no open input pipe")
+            content = args.get("text", "")
+            close = args.get("close", False)
+            if not isinstance(content, str) or type(close) is not bool or not content and not close:
+                raise ValueError("Provide text or explicitly close stdin")
+            # 승인된 write 후 취소되어도 이미 입력한 바이트의 효과는 불확실하다.
+            # common ToolExecutor의 재시도/효과 정책을 유지하고 이 메서드는 재전송하지 않는다.
+            stream.write(content.encode("utf-8"))
+            await stream.drain()
+            if close:
+                stream.close()
+                await stream.wait_closed()
+            return {"process_id": args["process_id"], "bytes_written": len(content.encode("utf-8")),
+                    "stdin_closed": close}
 
     async def cancel(self, args):
         self.check()

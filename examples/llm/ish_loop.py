@@ -1,4 +1,4 @@
-"""기본 Project로 LoopEngine을 실행하는 ish 명령 예제.
+"""명시적으로 생성·선택한 Project로 LoopEngine을 실행하는 ish 명령 예제.
 
 .ishrc.py에서는 main을 functools.partial로 등록한다. 살아 있는 백엔드는
 프로세스 사이에 전달하지 않고, 호출마다 worker의 이벤트 루프 안에서 생성한다.
@@ -17,7 +17,7 @@ from llm.llm import LargeLanguageModel, LoopEngine, RunStatus, print_event
 async def run_request(args: argparse.Namespace, *, workspace: Path,
                       completion: Mapping[str, Any], max_iterations: int,
                       request_timeout: float) -> int:
-    """기본 Project와 선택한 Session으로 요청 한 건을 처리하고 저장된 결과를 확인한다."""
+    """Project ID가 없으면 새 Project를 생성한다. 이전 작업 선택은 호출자가 소유한다."""
     # 모델 인자는 이 테스트 실행의 명시적인 호스트 설정이다.
     # 기존 Project의 컴포넌트·정책·모델 설정을 덮어쓰지 않는다.
     async with LargeLanguageModel(
@@ -27,15 +27,14 @@ async def run_request(args: argparse.Namespace, *, workspace: Path,
                                     request_timeout=request_timeout)},
         on_event=print_event,
     ) as backend:
-        # 처음에는 파일 대화 저장 및 모든 기본 컴포넌트가 선택된다.
-        # 이후에는 같은 Project와 사용자가 변경한 설정을 그대로 불러온다.
-        project = await backend.projects.aget_default()
+        project = (await backend.projects.aload(args.project_id) if args.project_id
+                   else await backend.projects.acreate("ish LoopEngine test", conversation_storage="file"))
         session = (await project.sessions.aload(args.session_id) if args.session_id
                 else await project.sessions.acreate("ish LoopEngine test"))
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
         print(f"Session: {session.id}", file=sys.stderr)
 
-        # 기본 Project에서도 실행 엔진 이름은 요청마다 명시한다.
+        # 실행 엔진 이름은 요청마다 명시한다.
         request = await session.run.submit(" ".join(args.prompt), engine="loop")
         handle = await request.wait()
         result = await handle.aresult()
@@ -64,9 +63,12 @@ def main(*argv: str, workspace: Optional[str] = None,
     --session-id 생략 시 새 Session, 지정 시 같은 Session의 이전 대화를 이어간다.
     """
     parser = argparse.ArgumentParser(prog="llm-test", description=__doc__)
-    parser.add_argument("--session-id", help="기본 Project 안에서 이어갈 Session ID")
+    parser.add_argument("--project-id", help="이어갈 Project ID; 생략하면 새 Project 생성")
+    parser.add_argument("--session-id", help="선택한 Project 안에서 이어갈 Session ID")
     parser.add_argument("prompt", nargs="+", help="모델에 전달할 작업 요청")
     args = parser.parse_args(list(argv))
+    if args.session_id and not args.project_id:
+        parser.error("--session-id requires --project-id")
     parameters = dict(completion or {})
     if api_key_env and os.environ.get(api_key_env):
         parameters["api_key"] = os.environ[api_key_env]

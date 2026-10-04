@@ -19,7 +19,7 @@ def rag_settings(changes=None):
 
 def rag_project(config=None):
     result = ProjectConfig(config)
-    result.component_configurations["rag"] = rag_settings(result.component_configurations.get("rag"))
+    result.parameters.setdefault("components", {})["rag"] = rag_settings(result.parameters.setdefault("components", {}).get("rag"))
     return result
 
 

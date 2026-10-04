@@ -135,5 +135,5 @@ Memory 데이터 저장과 Run/Step 기록은 별개 트랜잭션이다. Tool �
 기억은 이미 반영됐을 수 있으므로 출처와 이력을 확인한다. 실패한 Tool 효과를 자동 재시도하지
 않는 기존 정책을 유지한다.
 
-컴포넌트 설정은 `project.json`의 `config.component_configurations`에만 저장한다.
+컴포넌트 설정은 `project.json`의 `config.parameters["components"]`에만 저장한다.
 ComponentData.configure 편의 API도 이 설정을 갱신한다.

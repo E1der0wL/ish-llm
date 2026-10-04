@@ -244,7 +244,7 @@ class ToolDataTests(unittest.IsolatedAsyncioTestCase):
             sessions = SessionManager()
             projects = ProjectManager(ProjectRepository(Path(temporary)), sessions, components=registry)
             project = projects.create("Test", components=("tools", "agents"),
-                                      config=ProjectConfig(completion={"model": "openai/test"}))
+                                      config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "openai/test"}}}}))
             data = projects.component(project, "tools")
             definition = {"type": "function", "function": {"name": "add", "description": "new",
                           "parameters": {"type": "object", "properties": {"a": {"type": "number"}},

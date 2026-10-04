@@ -38,7 +38,7 @@ await rag.aconfigure(settings)
 
 ## 저장과 참조
 
-정의는 `<project>/prompts/records/<id>.json`에 저장합니다. RAG가 사용할 ID와 수정 횟수는 `ProjectConfig.component_configurations.rag.extraction`에 둡니다. prompt_id가 null이면 RAG의 내장 프로토콜 지침을 사용합니다.
+정의는 `<project>/prompts/records/<id>.json`에 저장합니다. RAG가 사용할 ID와 수정 횟수는 `ProjectConfig.parameters.components.rag.extraction`에 둡니다. prompt_id가 null이면 RAG의 내장 프로토콜 지침을 사용합니다.
 
 삭제·비활성화한 프롬프트를 참조하면 새 문서 준비가 모델 호출 전에 실패합니다. 설정 편집과 기존 문서 조회는 가능합니다. 준비 중 참조 프롬프트가 변경되면 결과 공개가 충돌로 거부됩니다.
 

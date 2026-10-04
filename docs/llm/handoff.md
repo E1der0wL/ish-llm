@@ -1,3 +1,121 @@
+## 2026-10-05 Project 정책·대상별 인자 분리와 기본 선택 제거
+
+- ProjectConfig는 policies(서비스 집행), parameters(대상별 전달), data/추가 JSON으로 구성한다.
+  Engine은 parameters.engines[configuration_key], Component는 parameters.components[name]을
+  읽는다. Project 공용 completion은 제거했고 Loop가 자신의 completion 인자를 해석한다.
+  Session은 명시적 엔진 override만 저장한다. 상속 순서는 Project → Session → Agent → host이며
+  missing/null과 explicit-only 계약을 유지한다. Agent의 for_agent 정의 계약은 그대로다.
+- ProjectManager/Facade의 get_default/aget_default 및 default-project.json 접근을 제거했다.
+  session_defaults/default_engine/기존 최상위 completion·engines·component_configurations는
+  오류로 거부한다. 호환 reader나 자동 변환은 없고 기존 데이터 파일을 수정하지 않는다.
+  일반 create는 새 ID를 만들고, load/list/clone·선택 Component 초기화는 그대로다.
+- ComponentData.configure와 Project.asave는 동일한 ProjectConfig 원본·잠금·CAS를 사용한다.
+  configuration()은 통합 schema/values/effective/sources/editable을 유지하며 저장값에 빈
+  Component 설정이나 SDK 기본값을 덧붙이지 않는다. Loop host null 메타데이터도 검증했다.
+- Run/Step/Conversation/ToolExecutor/provider/승인 저장 경계는 변경하지 않았다. Graph의
+  설정 지문 보호 대상을 policies/parameters로 갱신하고 Pipeline 단계 설정 경로를 연결했다.
+  보관 토큰 계산기는 policies.retention.counter_params를 사용하며 임의 Engine 모델을 빌리지 않는다.
+- Hub의 첫 Project 선택/생성은 hub/backend/bootstrap.py가 일반 llm API로 수행한다.
+  Hub 시작 잠금으로 동시 생성을 직렬화하고 실패·취소 뒤 재시도를 확인했다. 기존 Project는
+  템플릿으로 덮어쓰지 않는다. UI 설정 폼·제목 Engine·모델 표시도 대상별 설정을 사용한다.
+  Graph/custom Engine에 LLM 모델을 강제하지 않고, 동적 host client/factory의 모델을 추측하지 않는다.
+- examples/llm의 Project/Session 설정과 JSON 4개, LargeLanguageModel 독스트링, README,
+  설정/아키텍처 안내를 갱신했다. ish_loop 예제는 --project-id/--session-id로 재사용을 명시한다.
+  기본 생성 테스트를 명시적 생성·동일 설정 원본·상속·격리·구형 입력 거부 검사로 교체했다.
+- Linux Python 3.12.14 전체 llm: 1,213 passed / 0 failed / 0 skipped (415.300초),
+  초기 집중 14 passed, 당시 Hub 전체 85 passed. snapshot: /home/user/.cache/ish-provider-67mfru_8.
+  마지막 예제 미설정 오류 검사 1건과 Hub 런타임 client 검사 1건을 추가한 뒤 집중 32 passed
+  (36.030초), Hub 전체 86 passed (60.467초), 실패·skip 없음.
+  snapshot: /home/user/.cache/ish-provider-bbwn5pp9. 집중 검사 숫자를 전체에 중복 합산하지 않는다.
+- 재현: WSL의 /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python으로
+  /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --hub --modules
+  tests.llm.test_project_creation tests.llm.test_operations_schema.OperationsSchemaTests.test_retention_counter_owns_explicit_parameters_without_engine_settings tests.hub.test_bootstrap
+  를 실행했다. 마지막 집중 명령은 --hub --modules tests.hub.test_bootstrap
+  tests.llm.test_graph_rag_example tests.llm.test_configuration_workflow_example 이다.
+- tests/llm/reports/parameter-contract-audit/audit.json에 196개 runtime Python AST/해시,
+  변경 파일 목록, 예제 JSON 검증과 수정 문서 링크(깨진 링크 0)를 기록했다. llm runtime은
+  전체 suite 사본과 동일하며, 마지막 집중/Hub 사본도 현재 코드·예제·테스트와 해시가 같다.
+  과거 실패 기록은 보존했다. 원인은 이전 설정 fixture/대상 이름과 신규 검사 fixture였으며
+  SDK 옵션 전파·timeout·승인·재개 등의 실제 assertion을 약화하지 않고 명시 설정으로 수정했다.
+  외부 유료 모델 호출은 하지 않았다. GitHub push는 이번 요청 범위에 없다.
+
+## 2026-10-05 Vision 이미지 전처리·OCR·VLM
+
+- components/vision에 이미지 원본/가공본과 출처를 소유하는 VisionComponent/VisionData,
+  Pillow 전처리, OCRBackend/TesseractBackend, LiteLLM VisionModel과 세 Tool 어댑터를 추가했다.
+  기본 등록 목록에 Vision을 추가했고 PLUGIN_META의 Pillow|PIL 및 pyproject vision 의존성을 선언했다.
+- OCR backend는 호출 인자 → Project vision.ocr.backend → 설정 오류 순서다. auto, 숨은
+  Tesseract 선택/timeout/retry/모델/언어·품질 설정은 없다. VLM stream=False/n=1은 단일
+  분석 결과 계약이며 values에 기본값을 채우지 않는다. 실제 SDK 호출은 기존 provider 경계다.
+- 이미지 준비/전처리는 off-loop, 등록 확정은 workspace transaction과 atomic 교체를 쓴다.
+  원본 bytes/hash/ID는 불변이다. 가공본은 새 ID와 연산 이력을 가진다. 삭제는 tombstone이며
+  기존 RAG/Step 출처 때문에 bytes를 보존한다. 개별 asset GC나 자동 RAG 삭제는 제공하지 않는다.
+- Loop/Graph는 기존 ToolExecutor를 통해 image_preprocess/image_ocr/image_analyze를 호출한다.
+  승인/재시도/receipt/Run/Step owner는 변경하지 않았다. 설정·backend revision이 바뀌면 옛
+  Tool 체크포인트 재개를 거부한다. 직접 Component 사용은 새 Run을 만들지 않는다.
+- RAG 입력은 aextract_document의 content/metadata이며 기존 aadd_document로 등록한다.
+  OCR 좌표·이미지 hash·derived_text와 모델 해석 출처를 보존한다. acompletion_content는
+  SDK 전송용 block이며 Session 메시지 자동 첨부·Base64 영속 저장 기능은 추가하지 않았다.
+- Tesseract는 subprocess 취소 시 공통 Linux 프로세스 그룹 종료/pipe 회수를 사용한다.
+  sandbox가 아니다. Pillow thread는 강제 종료하지 못하지만 취소 이후 가공본을 등록하지 않는다.
+- examples/llm/vision.py, 명시적 OCR 설정 JSON과 안내를 추가했다. 공개 생성 이미지로 실제
+  Tesseract 실행 예제가 성공했다. 개발 WSL에는 Tesseract 5.5.0(eng/osd)을 설치했다.
+  VLM은 injected completion으로 입력/SDK retry 중복 방지/사용량/취소를 검증했으며 실제
+  외부 VLM 호출이나 PaddleOCR/EasyOCR는 검사·구현하지 않았다.
+- tests/llm/test_vision.py는 20개 테스트로 자산 무결성·rollback·복제/재열기, 명시 설정,
+  전처리/취소, 실제 OCR 프로세스, Graph 승인/거부·변경 후 재개, Loop Step, RAG 문서 연결을 검사한다.
+  첫 집중 검사의 fixture 메서드 오기(adocument)를 실제 aget_document로 수정했다.
+  이후 집중 83개가 통과했다. 코드 144개 AST/테스트 사본 해시와 문서 링크 87개,
+  실제 OCR CLI 예제 검사는 tests/llm/reports/ish-provider-75t04c0q/vision-audit.json에 있다.
+- 첫 전체 검사에서는 1,213개 중 1건이 기본 Project의 고정 컴포넌트 목록에 vision이 없어
+  실패했다. tests/llm/test_ishrc_loop.py의 목록만 수정했고, ish 연동을 포함한 집중 86개가
+  통과했다. 해당 수정은 제품 실행 코드나 기존 테스트의 실행/저장 검증을 바꾸지 않는다.
+- 최종 Linux Python 3.12.14 집중 86 passed / 0 failed / 0 skipped(13.236초),
+  전체 1,213 passed / 0 failed / 0 skipped(376.424초). 집중 검사는 전체에 포함된다.
+  snapshot: `/home/user/.cache/ish-provider-h0tfyp7b`.
+  명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --modules tests.llm.test_vision tests.llm.test_default_project tests.llm.test_ishrc_loop tests.llm.test_definition_components tests.llm.test_plugin tests.llm.test_explicit_configuration`.
+  최종 보고서: `tests/llm/reports/ish-provider-h0tfyp7b/`의 focused.txt/suite.txt,
+  snapshot.json/vision-audit.json. RuntimeWarning/ResourceWarning/미회수 Task 경고는 없다.
+  소스 144개 해시/AST·문서 링크 87개·실제 OCR CLI도 최종 사본으로 통과했다.
+  GitHub 업로드와 hub/ish.platform 변경은 수행하지 않았다.
+
+## 2026-10-04 Skill 탐색과 프로그래밍·컴퓨터 진단 기반
+
+- SkillComponent는 기존 정의 CRUD와 Agent resources.skills를 유지하고 tools capability로
+  skill_list/skill_read를 제공한다. 목록은 요약·검색·명시적 페이지, 본문은 선택한 ID만
+  반환한다. Run 시작 시 정의 사본을 사용하고 ToolContract revision으로 변경 후 옛
+  체크포인트 재개를 거부한다. Skill은 실행기나 권한 부여자가 아니며 ToolPolicy를 우회하지 않는다.
+- BuiltinToolComponent는 호스트 BuiltinTools를 ProjectConfig의 명시적 enabled 선택에
+  연결한다. Toolkit 수명은 호스트가 소유한다. 작업 루트·셸·검증 명령·호스트 제한 지문을
+  기존 Tool 계약에 연결해 다른 실행 환경에서 이전 승인을 재사용하지 않도록 한다.
+- file_search에 include/exclude·문맥·페이지·파일 지문, file_read에 tail_lines·읽기 지문을
+  보강했다. live 파일 페이지는 변경 시 다시 검색해야 하며 tail도 전체 파일 읽기 제한을 따른다.
+- process_start의 명시적 stdin, process_write의 정확한 입력/EOF와 process_output의
+  Unicode 문자 cursor를 추가했다. 미완성 UTF-8은 공개하지 않으며 cancellation은 기존
+  프로세스 그룹 회수를 사용한다. 기존 ish 터미널/PTY가 아니고 재시작 후 프로세스를 재실행하지 않는다.
+- diagnostics=True로만 Linux system_inspect/process_list/process_inspect를 등록한다.
+  PID start_ticks로 재사용을 감지하고 읽기 불가 필드를 구분한다. 현재 /proc 관찰이며
+  prompt-toolkit 내부 포커스나 과거 입력 라우팅을 추론하는 새 이벤트 저장소는 아니다.
+- examples/llm/developer_assistant.py와 설정/안내를 추가했다. --install-guides로만
+  코드 수정·문제 분석 지침을 설치하며 기존 지침을 덮어쓰지 않는다. 모델·시스템 프롬프트·
+  Tool 선택과 제한은 예제 설정에 명시한다. Project → Session → Run → Step 및
+  Engine/Component 책임, ToolExecutor 승인·재시도·효과 영수증은 변경하지 않았다.
+- tests/llm/test_skill_tools.py와 test_builtin_tools.py에서 실제 파일 수정·Python 검증,
+  Run/Step 저장·재열기, Graph Skill 조회·재개 지문, 권한 거부, Project 격리,
+  출력 cursor·분할 UTF-8·stdin·취소와 /proc 관찰을 검사한다. 모델 선택은 scripted
+  completion이며 실제 저사양 모델의 작업 성공률을 측정한 것은 아니다.
+- 최종 Linux Python 3.12.14: 집중 111 passed / 0 failed / 0 skipped(23.701초),
+  전체 1,193 passed / 0 failed / 0 skipped(395.047초). 집중 검사는 전체에 포함된다.
+  snapshot: `/home/user/.cache/ish-provider-6wqrxlr5`.
+  명령: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --modules tests.llm.test_skill_tools tests.llm.test_builtin_tools tests.llm.test_agent_workflow tests.llm.test_definition_components tests.llm.test_explicit_configuration`.
+  보고서: `tests/llm/reports/ish-provider-6wqrxlr5/`의 focused.txt/suite.txt,
+  snapshot.json/foundation-audit.json. RuntimeWarning/ResourceWarning/미회수 Task 경고는 없다.
+  현재 runtime Python 소스 138개가 테스트 사본과 일치하고 AST 검사 및 변경 문서의
+  로컬 링크 103개가 통과했다. 예제 --help 진입점도 확인했다.
+  첫 집중 검사의 새 fixture import 오류(ToolNode 공개 위치)를 수정했으며,
+  이전 전체 1,192개 통과 후 호스트 실행 지문을 보강하여 위 최종 전체 검사를 다시 했다.
+  외부 모델 호출·GitHub 업로드·hub/ish.platform 변경은 수행하지 않았다.
+
 ## 2026-10-04 대화 턴 삭제·재개 보호와 activity 조회 통일
 
 - ProjectHandle.logs/alogs와 services/history/logs.py를 제거했다. hub의 Ctrl+L은

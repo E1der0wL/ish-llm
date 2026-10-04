@@ -54,7 +54,7 @@ async with LargeLanguageModel(workspace, engines={"graph": graph_engine}) as bac
 
 UI에서는 같은 JSON을 생성/수정하면 된다. 일반 CRUD는 create/load/list/save/update/delete,
 비동기 API는 앞에 a를 붙인다. 저장 경로는 `<project>/agents/records/<id>.json`,
-Workflow는 `<project>/workflows/records/<id>.json`이다. Component 설정은 ProjectConfig.component_configurations에 저장한다.
+Workflow는 `<project>/workflows/records/<id>.json`이다. Component 설정은 ProjectConfig.parameters["components"]에 저장한다.
 
 ## 정책과 리소스
 

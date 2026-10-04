@@ -17,7 +17,7 @@ from contextlib import aclosing
 from llm.components.processing import CompletionMessage, CompletionRequest, CompletionObservation, CompletionPipeline
 from llm.core.models import MessageRole, MessageStatus
 from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record
-from llm.core.configuration import engine_configuration, resolve_configuration, UNSET
+from llm.core.configuration import engine_configuration, UNSET
 from llm.core.results import EngineOutput
 from llm.providers.litellm import completion
 from llm.providers.parameters import merge_params
@@ -124,11 +124,18 @@ class LoopEngine(BaseEngine):
         self._agent_settings = {}
 
     def configuration_schema(self):
-        from llm.core.schema import object_schema, field
+        from llm.core.schema import object_schema, field, completion_schema
         names = self._option_names
         properties = {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0, **{"x-host-override": name in self._overrides}) for name in names}
         properties["system_prompt"] = {"type": ["string", "null"], "description": "기본 시스템 프롬프트",
                                         "x-host-override": "system_prompt" in self._overrides or callable(self.system_prompt)}
+        properties["completion"] = completion_schema()
+        supplied = self.completion_kwargs
+        if isinstance(supplied, Mapping):
+            for name in supplied:
+                properties["completion"]["properties"].setdefault(name, {})["x-host-override"] = True
+        elif callable(supplied):
+            properties["completion"]["x-host-override"] = True
         return object_schema(properties, **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
     def configuration(self, config, name, *, session_config=None):
@@ -139,18 +146,28 @@ class LoopEngine(BaseEngine):
         host = dict(self._overrides)
         if isinstance(self.system_prompt, str):
             host["system_prompt"] = self.system_prompt
-        view = engine_configuration(config, key, session_config=session_config,
-            agent={**agent.get("engine_options", {}), **({"system_prompt": agent["system_prompt"]} if "system_prompt" in agent else {})},
-            host=host, schema=self.configuration_schema())
         supplied, runtime = self.completion_kwargs, []
         try:
             ProjectConfig.validate_settings(dict(supplied or {}))
         except (TypeError, ValueError):
             supplied, runtime = {}, ["completion"]
-        view["completion"] = resolve_configuration([
-            ("project", ProjectConfig(config).completion), ("session", (session_config or {}).get("completion", {})),
-            ("agent", agent.get("completion", {}))], host=dict(supplied or {}))
-        view["completion"]["resolved"] = "completion" not in runtime
+        if supplied:
+            host["completion"] = dict(supplied)
+        overrides = {**agent.get("engine_options", {}),
+                     **({"system_prompt": agent["system_prompt"]} if "system_prompt" in agent else {})}
+        if agent.get("completion"):
+            overrides["completion"] = agent["completion"]
+        view = engine_configuration(config, key, session_config=session_config,
+            agent=overrides, host=host, schema=self.configuration_schema())
+        if runtime:
+            # 런타임 client/함수를 JSON 값으로 가장하지 않는다. 실행 때만 host 값을 해석한다.
+            view["values"].pop("completion", None)
+            for name in ("sources", "editable"):
+                for path in tuple(view[name]):
+                    if path.startswith("/completion/"):
+                        del view[name][path]
+            view["sources"]["/completion"] = "host_runtime"
+            view["editable"]["/completion"] = False
         if callable(self.system_prompt):
             runtime.append("system_prompt")
             view["values"].pop("system_prompt", None)
@@ -213,7 +230,7 @@ class LoopEngine(BaseEngine):
         if supplied is not None and (not isinstance(supplied, Mapping)
                                      or any(not isinstance(key, str) for key in supplied)):
             raise ValueError("Completion parameters must be a string-keyed mapping")
-        params = merge_params(settings["completion"], self._agent_settings.get("completion", {}))
+        params = merge_params(settings["engine"].get("completion", {}), self._agent_settings.get("completion", {}))
         params = merge_params(params, dict(supplied or {}))
         resolved = self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"]
         limits = {name: resolved[name] for name in self._option_names if name in resolved}

@@ -48,14 +48,6 @@ class Projects(AsyncFacade):
 
     arecover_deletions = async_method(recover_deletions)
 
-    def get_default(self, *, title: str = "Default project", config: Optional[dict] = None) -> "ProjectHandle":
-        """기본 프로젝트를 명시적으로 생성/조회한다. loop 등록은 필요하며 기존 설정은 덮어쓰지 않는다."""
-        self.app._check_open()
-        if "loop" not in self.app.engines.names():
-            raise ValueError("Register the 'loop' engine before requesting the default Project")
-        settings = ProjectConfig(config) if config is not None else None
-        return ProjectHandle(self.app, self.app.project_manager.get_default(title=title, config=settings))
-
     def load(self, project_id: str) -> "ProjectHandle":
         self.app._check_open()
         return ProjectHandle(self.app, self.app.project_manager.load(project_id))
@@ -77,7 +69,6 @@ class Projects(AsyncFacade):
     aupgrade_backup = async_method(upgrade_backup)
 
     acreate = async_method(create)
-    aget_default = async_method(get_default)
     aload = async_method(load)
     alist = async_method(list)
 
@@ -99,7 +90,6 @@ class ProjectHandle(AsyncFacade):
                                                        expected_version=expected_version)
         value["schema"] = self.app.project_schema(components=list(value["components"]))
         form_config = deepcopy(value["project"]["config"])
-        form_config["component_configurations"] = value.pop("component_configurations")
         value["values"] = {"title": value["project"]["title"],
                            "conversation_storage": value["project"]["conversation_storage"],
                            "components": list(value["components"]), "config": form_config}

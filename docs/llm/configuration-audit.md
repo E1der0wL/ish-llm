@@ -2,12 +2,39 @@
 
 범위는 `llm/` production Python 전체다. tests/examples는 명시적 호출자의 fixture로 따로 검사했다. 핵심 계약·강제값 전체 목록은 [CONFIGURATION.md](../../llm/CONFIGURATION.md)에 있다.
 
+## 2026-10-05 대상별 전달과 애플리케이션 선택 정책 분리
+
+- `ProjectConfig`에는 `policies`, 열린 `parameters`, `data`를 둔다. Loop SDK 옵션은
+  `parameters.engines[name].completion`, Component 설정은 `parameters.components[name]`이다.
+  Session 생성 시 기본 설정을 복사하지 않고, Run 시작 시 명시적 override를 병합한다.
+- llm production 소스의 get_default/aget_default/default-project 포인터 접근을 제거했다.
+  session_defaults/default_engine은 거부 목록과 스키마의 금지 조건에만 남는다.
+  런타임 선택 분기나 옛 설정 변환은 없다. 기존 데이터 파일도 수정하지 않는다.
+- 같은 이름의 model/timeout 인자를 다른 Engine이나 Component로 전파하지 않는다.
+  보관 계산기는 retention.counter_params를 사용하며 임의 엔진의 모델을 선택하지 않는다.
+- ComponentData.configure와 Project 저장은 같은 ProjectConfig 원본·잠금·CAS를 사용한다.
+  통합 조회의 values.config는 저장된 명시값이고 effective 값·출처는 별도로 제공한다.
+- Hub의 시작 선택·생성 템플릿은 hub/backend/bootstrap.py에 있다. 등록된 구현 목록,
+  일반 create의 ID/제목/저장소 초기화는 기본 프로젝트 선택 정책과 구분한다.
+- 변경 전 소스 사본과 AST/diff를 대조하여 Run/Step/Conversation/ToolExecutor/provider/
+  체크포인트 저장 owner가 바뀌지 않았는지 확인한다. Graph 설정 바인딩은 policies와
+  parameters를 계속 보호하며 Pipeline의 단계별 설정도 같은 새 경로를 사용한다.
+
+설정·생성 회귀는 tests.llm.test_project_creation, Hub 시작 경계는 tests.hub.test_bootstrap에
+있다. 감사 스크립트·차이·검증 기록은 tests/llm/reports/ 아래에 두고 배포에 포함하지 않는다.
+
+## 명시적 설정 불변식 감사
+
 검색은 `_defaults|default_configuration|provider_defaults|search_defaults|extraction_defaults`, `setdefault(`, 숫자 `.get` fallback, `or 숫자`, timeout/max 할당, schema `default`, 숫자 field 생성이며 추가로 AST의 함수 기본 인자·dataclass 초기값·SDK 요청 조립을 검토했다. 재현 스크립트는 `tests/llm/audit_configuration.py`다. grep 결과가 존재한다는 이유로 결함이라고 하거나, 테스트 통과를 감사의 대체로 삼지 않는다.
 
 | 남은 패턴/위치 | 분류와 판단 |
 |---|---|
+| Vision 기본 Tesseract registry | 구현 등록만 수행. 호출/Project backend 미설정은 오류; auto/fallback 없음 |
+| Vision stream=False/n=1, asset format_version=1, PNG 가공본 | 단일 분석 응답·출처 무결성·손실 없는 가공 결과 표현. enforced 메타데이터와 사용자 values 분리 |
+| Vision backend options/limits/provider 빈 dict, timeout=None | 추가 옵션·제한 없음. SDK/native 옵션을 대신 채우지 않음 |
+| Tesseract executable='tesseract', revision='1' | 호스트 실행 파일 탐색 및 구현 지문. backend 선택·품질·실행 기한 default가 아님 |
 | providers/retry.py의 sdk_defaults | SDK에 호스트가 명시한 retry를 감지하는 플래그. default 설정 생성 함수가 아님 |
-| ProjectConfig.session_defaults / merge(defaults, overrides) | 사용자가 제공한 상속값, 또는 인자 이름. 내장 leaf 생성 없음 |
+| ProjectConfig.parameters / merge(defaults, overrides) | 사용자가 제공한 상속값, 또는 인자 이름. 내장 leaf 생성 없음 |
 | invoke max_attempts fallback1 / BaseEngine max_retries fallback0 | 정책이 없는 최초 호출을 표현. values/kwargs에 넣지 않음 |
 | retry delay fallback0 | 대기 정책 부재, 추가 대기 없음. 명시 cap만 적용 |
 | retention keep_runs fallback0 / reserve_tokens fallback0 | 추가 보호·예약 정책 부재. 삭제는 별도 명시 상한 및 apply 승인에 따름 |

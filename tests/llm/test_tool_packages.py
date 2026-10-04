@@ -114,7 +114,7 @@ class PackageTests(unittest.TestCase):
                 patch.object(packages, "_host_target", side_effect=AssertionError("no dependency access")):
             clone = self.projects.clone(self.project)
             self.assertEqual(self.projects.component(clone, "tools").load("search"), value)
-            self.assertEqual(clone.config.component_configurations["tools"]["enabled"], ["search"])
+            self.assertEqual(clone.config.parameters.setdefault("components", {})["tools"]["enabled"], ["search"])
             archive = self.projects.backup(self.project, self.root / "backup")
             restored_manager = ProjectManager(ProjectRepository(self.root / "restored"), components=[ToolComponent()])
             restored = restored_manager.restore_backup(archive)
@@ -288,7 +288,7 @@ class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(temporary.name, components=[ToolComponent()],
             engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy))
         self.addAsyncCleanup(app.shutdown)
-        project = await app.projects.acreate(config={"completion": {"model": "test/model"}}, components=["tools"])
+        project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {"completion": {"model": "test/model"}}}}}, components=["tools"])
         await project.components.tools.acreate({"source": source}, identifier="act")
         await project.components.tools.aprepare("act")
         await project.components.tools.aenable("act")

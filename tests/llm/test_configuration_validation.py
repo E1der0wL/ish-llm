@@ -48,8 +48,8 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_invalid_project_create_and_default_leave_no_metadata(self):
         app = self.backend()
-        invalid = {"engines": {"loop": {"max_iterations": 0}}}
-        for operation in (app.projects.acreate, app.projects.aget_default):
+        invalid = {"parameters": {"engines": {"loop": {"max_iterations": 0}}}}
+        for operation in (app.projects.acreate,):
             with self.assertRaisesRegex(ValueError, "loop"):
                 await operation(config=invalid)
         self.assertEqual(await app.projects.alist(), [])
@@ -57,10 +57,10 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_host_override_cannot_hide_invalid_project_or_session_input(self):
         app = self.backend(engines={"loop": LoopEngine(max_iterations=4)})
-        invalid = {"engines": {"loop": {"max_iterations": 0}}}
+        invalid = {"parameters": {"engines": {"loop": {"max_iterations": 0}}}}
         with self.assertRaisesRegex(ValueError, "project"):
             await app.projects.acreate(config=invalid)
-        project = await app.projects.acreate(config={"engines": {"loop": {"max_iterations": 2}}})
+        project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {"max_iterations": 2}}}})
         before = (project.paths.root / "project.json").read_bytes()
         for operation in (project.asave, project.avalidate_configuration, project.sessions.acreate):
             with self.assertRaises(ValueError):
@@ -78,13 +78,13 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
             path = handle.paths.root / file
             before = path.read_bytes()
             with self.assertRaisesRegex(ValueError, "loop"):
-                await handle.asave(config={"engines": {"loop": {"max_iterations": 0}}})
+                await handle.asave(config={"parameters": {"engines": {"loop": {"max_iterations": 0}}}})
             self.assertEqual(path.read_bytes(), before)
 
     async def test_session_defaults_and_explicit_overrides_validate_before_creation(self):
         app = self.backend()
-        invalid = {"engines": {"loop": {"request_timeout": -1}}}
-        with self.assertRaisesRegex(ValueError, "loop"):
+        invalid = {"parameters": {"engines": {"loop": {"request_timeout": -1}}}}
+        with self.assertRaisesRegex(ValueError, "session_defaults"):
             await app.projects.acreate(config={"session_defaults": invalid})
         project = await app.projects.acreate()
         with self.assertRaisesRegex(ValueError, "loop"):
@@ -94,8 +94,8 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
     async def test_graph_settings_validate_without_loading_workflow(self):
         app = self.backend(engines={"graph": GraphEngine(handlers={})})
         with self.assertRaisesRegex(ValueError, "graph"):
-            await app.projects.acreate(config={"engines": {"graph": {"max_parallelism": 0}}})
-        await app.projects.acreate(config={"engines": {"graph": {"max_parallelism": 2}}})
+            await app.projects.acreate(config={"parameters": {"engines": {"graph": {"max_parallelism": 0}}}})
+        await app.projects.acreate(config={"parameters": {"engines": {"graph": {"max_parallelism": 2}}}})
 
     async def test_pipeline_rejects_invalid_stage_without_preparation(self):
         async def prepare(context):
@@ -105,38 +105,38 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
         for stages in ({"prepare": {"timeout_seconds": -1}},
                        {"answer": {"max_iterations": 0}}, {"unknown": {}}):
             with self.assertRaisesRegex(ValueError, "pipeline"):
-                await app.projects.acreate(config={"engines": {"pipeline": {"stages": stages}}})
-        await app.projects.acreate(config={"engines": {"pipeline": {"stages": {
-            "prepare": {"timeout_seconds": None}, "answer": {"max_iterations": 3}}}}})
+                await app.projects.acreate(config={"parameters": {"engines": {"pipeline": {"stages": stages}}}})
+        await app.projects.acreate(config={"parameters": {"engines": {"pipeline": {"stages": {
+            "prepare": {"timeout_seconds": None}, "answer": {"max_iterations": 3}}}}}})
 
     async def test_partial_nested_defaults_match_ui_without_weakening_arrays(self):
         app = self.backend(components=[ConnectionComponent()])
-        raw = {"component_configurations": {"connection": {"connection": {"host": "localhost", "port": 9000}, "peers": []}}}
+        raw = {"parameters": {"components": {"connection": {"connection": {"host": "localhost", "port": 9000}, "peers": []}}}}
         project = await app.projects.acreate(config=raw, components=["connection"])
         view = await project.aconfiguration()
         Draft202012Validator(view["schema"]).validate(view["values"])
-        self.assertEqual(view["values"]["config"]["component_configurations"]["connection"]["connection"],
+        self.assertEqual(view["values"]["config"]["parameters"]["components"]["connection"]["connection"],
                          {"host": "localhost", "port": 9000})
-        self.assertEqual(view["project"]["config"]["component_configurations"], raw["component_configurations"])
+        self.assertEqual(view["project"]["config"]["parameters"]["components"], raw["parameters"]["components"])
         broken = deepcopy(view["values"])
-        broken["config"]["component_configurations"]["connection"]["peers"] = [{"port": 90}]
+        broken["config"]["parameters"]["components"]["connection"]["peers"] = [{"port": 90}]
         self.assertFalse(Draft202012Validator(view["schema"]).is_valid(broken))
         with self.assertRaises(ValueError):
             await project.avalidate_configuration(broken["config"])
 
     async def test_preview_is_detached_and_keeps_saved_versions(self):
         app = self.backend(components=[ConnectionComponent()])
-        project = await app.projects.acreate(components=["connection"], config={"component_configurations": {"connection": {"connection": {"host": "localhost", "port": 8000}, "peers": []}}})
+        project = await app.projects.acreate(components=["connection"], config={"parameters": {"components": {"connection": {"connection": {"host": "localhost", "port": 8000}, "peers": []}}}})
         original = await project.aconfiguration()
         path = project.paths.root / "project.json"
         before = path.read_bytes()
         candidate = deepcopy(original["project"]["config"])
-        candidate["component_configurations"]["connection"]["connection"]["port"] = 9001
+        candidate["parameters"]["components"]["connection"]["connection"]["port"] = 9001
         preview = await project.avalidate_configuration(candidate, expected_version=original["config_version"])
         self.assertEqual(path.read_bytes(), before)
         self.assertEqual(preview["config_version"], original["config_version"])
         self.assertEqual(preview["component_versions"], original["component_versions"])
-        self.assertEqual(candidate["component_configurations"]["connection"]["connection"]["host"], "localhost")
+        self.assertEqual(candidate["parameters"]["components"]["connection"]["connection"]["host"], "localhost")
         Draft202012Validator(preview["schema"]).validate(preview["values"])
         await project.asave(config=preview["project"]["config"], expected_version=preview["config_version"])
         with self.assertRaisesRegex(ValueError, "changed"):
@@ -146,8 +146,8 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_inactive_component_defaults_are_previewed_without_initialization(self):
         app = self.backend(components=[ConnectionComponent()])
-        project = await app.projects.acreate(config={"component_configurations": {
-            "connection": {"connection": {"host": "localhost", "port": 9010}, "peers": []}}})
+        project = await app.projects.acreate(config={"parameters": {"components": {
+            "connection": {"connection": {"host": "localhost", "port": 9010}, "peers": []}}}})
         view = await project.aconfiguration()
         Draft202012Validator(view["schema"]).validate(view["values"])
         self.assertFalse((project.paths.root / "connection").exists())
@@ -155,14 +155,14 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_shared_settings_require_all_consumers(self):
         app = self.backend(engines={"one": SchemaEngine(1, 10), "two": SchemaEngine(5, 20)})
-        project = await app.projects.acreate(config={"engines": {"shared": {"limit": 7}}})
+        project = await app.projects.acreate(config={"parameters": {"engines": {"shared": {"limit": 7}}}})
         view = await project.aconfiguration()
-        spec = view["schema"]["properties"]["config"]["properties"]["engines"]["properties"]["shared"]
+        spec = view["schema"]["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]["shared"]
         self.assertIn("allOf", spec)
         Draft202012Validator(view["schema"]).validate(view["values"])
         for limit in (2, 15):
             invalid = deepcopy(view["values"])
-            invalid["config"]["engines"]["shared"]["limit"] = limit
+            invalid["config"]["parameters"]["engines"]["shared"]["limit"] = limit
             self.assertFalse(Draft202012Validator(view["schema"]).is_valid(invalid))
             with self.assertRaises(ValueError):
                 await project.asave(config=invalid["config"])
@@ -174,11 +174,11 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
     async def test_custom_configuration_receives_detached_values(self):
         class MutatingEngine(SchemaEngine):
             def configuration(self, config, name, *, session_config=None):
-                config.completion["model"] = "changed"
+                config.parameters["engines"]["loop"]["completion"]["model"] = "changed"
                 session_config["changed"] = True
                 return {}
         app = self.backend(engines={"custom": MutatingEngine(1, 10)})
-        project = await app.projects.acreate(config={"completion": {"model": "original"}})
+        project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {"completion": {"model": "original"}}}}})
         session = await project.sessions.acreate(config={"purpose": "original"})
-        self.assertEqual(project.data.config.completion["model"], "original")
+        self.assertEqual(project.data.config.parameters["engines"]["loop"]["completion"]["model"], "original")
         self.assertNotIn("changed", session.data.config)

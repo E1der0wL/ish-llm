@@ -96,7 +96,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
             await self.rag.aupdate_document('manual', content='Seoul deployment')
             self.assertEqual(await self.rag.asearch_documents('backup', method='bm25'), [])
             self.assertEqual(build.call_count, 2)
-        self.assertLessEqual(self.rag_component.search_cache.used, self.project.data.config.component_configurations["rag"]["search_cache_chars"])
+        self.assertLessEqual(self.rag_component.search_cache.used, self.project.data.config.parameters.setdefault("components", {})["rag"]["search_cache_chars"])
 
     async def test_reflink_fallback_copy_does_not_mutate_original(self):
         import errno
@@ -214,7 +214,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
         self.graph_component = self.rag_component
         self.app = LargeLanguageModel(self.root, engines={}, components=[self.rag_component])
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate("test", components=["rag"], config=rag_project({"component_configurations": {"rag": {"chunk_size": 256}}}))
+        self.project = await self.app.projects.acreate("test", components=["rag"], config=rag_project({"parameters": {"components": {"rag": {"chunk_size": 256}}}}))
         self.rag = await self.project.components.aget("rag")
         self.graph = await self.project.components.aget("rag")
 

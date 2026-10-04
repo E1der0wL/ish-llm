@@ -86,7 +86,7 @@ class PipelineEngine:
         explicit = getattr(stage, "settings_name", None)
         key = explicit or (pipeline_key + ":" + self.stage_names[index] if hasattr(stage, "settings_name") else pipeline_key)
         for owner in (config, session):
-            engines = owner.setdefault("engines", {})
+            engines = owner.setdefault("parameters", {}).setdefault("engines", {})
             stages = engines.get(pipeline_key, {}).get("stages", {})
             if not isinstance(stages, dict) or stages.keys() - set(self.stage_names):
                 raise ValueError("Unknown Pipeline stage configuration")

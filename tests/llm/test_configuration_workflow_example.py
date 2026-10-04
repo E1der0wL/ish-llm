@@ -70,11 +70,9 @@ class ConfigurationWorkflowTests(unittest.IsolatedAsyncioTestCase):
                 "from pathlib import Path; import sys; p=Path(sys.argv[1]); "
                 "assert (p/'extra.conf').read_text() == 'sample fixture\\n'; "
                 "assert (p/'settings.conf').read_text() == 'include extra.conf\\nmode=current\\n'", "{candidate}"]}],
-            "project_config": {"completion": {"model": "test/chat"},
-                "engines": {"loop": {"max_iterations": 3, "request_timeout": 20}},
-                "component_configurations": {"rag": {**rag_settings(), "embedding_params": {"model": "test/embed"},
+            "project_config": {"parameters": {"engines": {"loop": {**{"max_iterations": 3, "request_timeout": 20}, "completion": {"model": "test/chat"}}}, "components": {"rag": {**rag_settings(), "embedding_params": {"model": "test/embed"},
                     "extraction_params": {"model": "test/extract"},
-                    "graph": {"buffer_pool_size": 67108864, "max_num_threads": 2}}}}}
+                    "graph": {"buffer_pool_size": 67108864, "max_num_threads": 2}}}}}}
 
     async def plan(self, model=None, **kwargs):
         return await example.plan(self.root / "workspace", self.config, "Replace legacy with current",

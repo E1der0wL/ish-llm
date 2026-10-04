@@ -39,7 +39,8 @@ class IshrcLoopTests(unittest.TestCase):
             session_file = next(Path(root).rglob("session.json"))
             session_id = json.loads(session_file.read_text())["id"]
             provider = ScriptedCompletion([chunk("이전 대화입니다"), chunk(finish="stop")])
-            code, output, errors = self.invoke(root, provider, "--session-id", session_id,
+            project_id = json.loads(next(Path(root).rglob("project.json")).read_text())["id"]
+            code, output, errors = self.invoke(root, provider, "--project-id", project_id, "--session-id", session_id,
                                                "방금", "무슨 말을 했지?", key="updated-key")
             self.assertEqual(code, 0, errors)
             self.assertEqual(len(list(Path(root).rglob("project.json"))), 1)
@@ -55,8 +56,7 @@ class IshrcLoopTests(unittest.TestCase):
             self.assertEqual(request["messages"][-1]["content"], "방금 무슨 말을 했지?")
             project = json.loads(next(Path(root).rglob("project.json")).read_text())
             self.assertEqual(project["conversation_storage"], "file")
-            self.assertEqual(set(project["components"]),
-                             {"tools", "skills", "mcp", "rag", "agents", "workflows", "memory", "prompts"})
+            self.assertEqual(project["components"], [])
             self.assertNotIn("api_key", project["config"].get("completion", {}))
 
     def test_failed_provider_returns_failure_and_persists_partial_response(self):

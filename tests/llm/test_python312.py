@@ -64,8 +64,8 @@ class Python312Tests(unittest.TestCase):
     def test_dataclass_defaults_frozen_copy_and_field_only_persistence(self) -> None:
         config = ProjectConfig()
         clone = deepcopy(config)
-        clone.completion["model"] = "different"
-        self.assertEqual(config.completion, {})
+        clone.parameters["engines"] = {"loop": {"completion": {"model": "different"}}}
+        self.assertEqual(config.parameters, {})
         event = EngineEvent(EngineEventType.TEXT_DELTA, delta=EngineDelta("test-output", "hello"))
         self.assertEqual(deepcopy(event), event)
         with self.assertRaises(FrozenInstanceError):

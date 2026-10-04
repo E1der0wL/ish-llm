@@ -229,5 +229,5 @@ LoopEngine은 자동으로 Agent를 선택하거나 Workflow를 실행하지 않
 Project 복제는 설정과 JSON 레코드의 ID/연결을 보존한다. 외부 문서와 원격 서버 데이터,
 런타임 연결, 재생성 가능한 인덱스는 자동 복제하지 않는다.
 
-컴포넌트 설정은 `project.json`의 `config.component_configurations`에만 저장한다.
+컴포넌트 설정은 `project.json`의 `config.parameters["components"]`에만 저장한다.
 ComponentData.configure 편의 API도 이 설정을 갱신한다.

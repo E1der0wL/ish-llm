@@ -150,5 +150,5 @@ RAGComponent/rag가 문서와 관계를 함께 관리한다. 구형 graphrag 병
 대규모 증분 색인, 영속 백그라운드 job, 동명이인 해소, 커뮤니티 요약 기반 전역 GraphRAG는
 제공하지 않는다. 검색·추출 품질은 사용하는 모델과 문서로 별도 평가해야 한다.
 
-컴포넌트 설정은 `project.json`의 `config.component_configurations`에만 저장한다.
+컴포넌트 설정은 `project.json`의 `config.parameters["components"]`에만 저장한다.
 ComponentData.configure 편의 API도 이 설정을 갱신한다.

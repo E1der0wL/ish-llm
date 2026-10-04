@@ -22,12 +22,8 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(temp.cleanup)
         self.sessions = SessionManager()
         self.projects = ProjectManager(ProjectRepository(Path(temp.name)), self.sessions)
-        self.project = self.projects.create("Project", config=ProjectConfig(
-            completion={"model": "openai/test", "top_p": 0.8},
-            engines={"loop": {"max_iterations": 2, "system_prompt": "project prompt"}},
-            session_defaults={"data": {"language": "ko"}}, data={"project_label": "test"},
-        ))
-        self.session = self.sessions.create(self.project, "Session")
+        self.project = self.projects.create("Project", config=ProjectConfig(data={"project_label": "test"}, parameters={"engines": {"loop": {"max_iterations": 2, "system_prompt": "project prompt", "completion": {"model": "openai/test", "top_p": 0.8}}}}))
+        self.session = self.sessions.create(self.project, "Session", config={"data": {"language": "ko"}})
         self.engines = EngineRegistry()
         self.manager = RunManager(self.sessions, self.engines, session=self.session)
         self.addAsyncCleanup(self.manager.shutdown)
@@ -48,8 +44,9 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
                 "total_tokens": prompt + answer, "prompt_tokens_details": {"cached_tokens": 1}}}
 
     async def test_flexible_config_persists_inherits_and_runtime_options_win(self):
-        self.session.config["completion"] = {"top_p": 0.6, "extra_body": {"setting": 1}}
-        self.session.config["engines"] = {"loop": {"system_prompt": "session prompt", "max_iterations": 1}}
+        self.session.config["parameters"] = {"engines": {"loop": {
+            "completion": {"top_p": 0.6, "extra_body": {"setting": 1}},
+            "system_prompt": "session prompt", "max_iterations": 1}}}
         self.sessions.save(self.session)
         provider = ScriptedCompletion([chunk("answer", finish="stop")])
         self.engines.register("loop", LoopEngine(completion_fn=provider, completion_kwargs={"top_p": 0.4}))
@@ -63,14 +60,14 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.status, RunStatus.COMPLETED)
         self.assertEqual(self.session.config["data"]["language"], "ko")
         settings = self.project.config.for_engine("loop", self.session.config)
-        settings["completion"]["extra_body"]["setting"] = 99
-        self.assertEqual(self.session.config["completion"]["extra_body"]["setting"], 1)
+        settings["parameters"]["engines"]["loop"]["completion"]["extra_body"]["setting"] = 99
+        self.assertEqual(self.session.config["parameters"]["engines"]["loop"]["completion"]["extra_body"]["setting"], 1)
 
     async def test_project_updates_reach_later_runs_without_mutating_active_snapshot(self):
         provider = ScriptedCompletion([chunk("one", finish="stop")], [chunk("two", finish="stop")])
         self.engines.register("loop", LoopEngine(completion_fn=provider))
         await self.submit()
-        self.project.config.completion["top_p"] = 0.2
+        self.project.config.parameters["engines"]["loop"]["completion"]["top_p"] = 0.2
         self.projects.save(self.project)
         await self.submit()
         self.assertEqual([request["top_p"] for request in provider.requests], [0.8, 0.2])
@@ -101,15 +98,15 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
     async def test_pipeline_aggregates_all_completion_calls_and_missing_usage_is_unknown(self):
         provider = ScriptedCompletion([chunk("one", finish="stop"), self.usage_chunk()],
                                       [chunk("two", finish="stop"), self.usage_chunk(4, 6)])
-        self.engines.register("pipeline", PipelineEngine([LoopEngine(completion_fn=provider),
-                                                          LoopEngine(completion_fn=provider)]))
+        self.engines.register("pipeline", PipelineEngine([LoopEngine(completion_fn=provider, settings_name="loop"),
+                                                          LoopEngine(completion_fn=provider, settings_name="loop")]))
         run = await self.submit("pipeline")
         result = self.projects.results.load(self.project, run.id)
         self.assertEqual(result.engine, "pipeline")
         self.assertEqual(result.total_tokens, 15)
         self.assertEqual(result.finish_reasons, ["stop", "stop"])
         self.assertEqual(len({c.id for c in result.completions}), 2)
-        self.engines.register("missing", LoopEngine(completion_fn=ScriptedCompletion([chunk("none", finish="stop")])))
+        self.engines.register("missing", LoopEngine(settings_name="loop", completion_fn=ScriptedCompletion([chunk("none", finish="stop")])))
         missing = self.projects.results.load(self.project, (await self.submit("missing")).id)
         self.assertIsNone(missing.total_tokens)
         self.assertFalse(missing.completions[0].usage_complete)
@@ -266,11 +263,11 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
     async def test_flat_workspace_fields_are_not_reinterpreted_as_completion(self):
         path = self.project.paths.root / "project.json"
         data = read_json(path)
-        data["config"] = {"model": "old-model", "temperature": 0.1, "default_engine": "loop",
+        data["config"] = {"model": "old-model", "temperature": 0.1,
                           "credential_ref": "env:OLD", "custom": {"mode": "personal"}}
         atomic_json(path, data)
         loaded = self.projects.load(self.project.id)
-        self.assertEqual(loaded.config.completion, {})
+        self.assertEqual(loaded.config.parameters, {})
         self.assertEqual(loaded.config["model"], "old-model")
         self.assertEqual(loaded.config["temperature"], 0.1)
         self.assertEqual(loaded.config["custom"], {"mode": "personal"})
@@ -284,6 +281,6 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.project.config["custom_flag"] = True
         self.projects.save(self.project)
         self.assertTrue(self.projects.load(self.project.id).config["custom_flag"])
-        self.session.config = {"engines": []}
+        self.session.config = {"parameters": {"engines": []}}
         with self.assertRaises(TypeError):
             self.sessions.save(self.session)

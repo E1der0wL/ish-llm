@@ -260,7 +260,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
     async def test_two_projects_share_loop_engine_but_not_enabled_tools(self):
         self.projects.set_components(self.project, ("tools",))
         self.projects.configure_component(self.project, "tools", {"enabled": ["add"]})
-        self.project.config.completion["model"] = "openai/test-model"
+        self.project.config.parameters["engines"] = {"loop": {"completion": {"model": "openai/test-model"}}}
         self.projects.save(self.project)
         other = self.projects.create("Other", config=self.project.config)
         other_session = self.sessions.create(other, "Other")
@@ -331,8 +331,8 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         manager = self.manager()
         stale = deepcopy(self.project)
         await manager.start()
-        self.project.config.completion["model"] = "updated"
+        self.project.config.parameters["engines"] = {"loop": {"completion": {"model": "updated"}}}
         self.projects.save(self.project)
         await manager.submit("test", engine="fake")
         await manager.wait_idle()
-        self.assertEqual(self.engines.resolve("fake").contexts[0].project.config.completion["model"], "updated")
+        self.assertEqual(self.engines.resolve("fake").contexts[0].project.config.parameters["engines"]["loop"]["completion"]["model"], "updated")

@@ -3,7 +3,7 @@
 ## Session 도메인 변경
 영속 계층은 **Project → Session → Run → Step**이며 Engine과 Component는 확장 계약입니다.
 `project.sessions`, `SessionManager`, `EngineContext.session`, `session_id`를 사용합니다.
-설정 기본값은 `ProjectConfig.session_defaults`입니다. 세션은 프로세스를 종료한 뒤에도
+설정은 `ProjectConfig.parameters`에서 대상별로 전달합니다. 세션은 프로세스를 종료한 뒤에도
 다시 열 수 있는 작업·대화 공간입니다.
 
 이 버전은 `storage_version=1`, `sessions/<id>/session.json` 저장 형식을 사용합니다.
@@ -23,7 +23,7 @@ Loop·Graph·Agent·Tool 결과는 `EngineOutput`, 스트리밍 변경은 `Engin
 `await run.aoutputs()`로 조회합니다. UI 재연결은 `run.aoutput_events(after=cursor)`를 사용합니다.
 [엔진 구현 및 UI 연동 안내](engine-output.md)를 참고하세요.
 
-기본 프로젝트 생성·재사용과 UI용 설정 통합 조회는
+명시적 프로젝트 생성·재사용과 UI용 설정 통합 조회는
 [프로젝트 설정 안내](project-settings.md)를 참고하세요.
 
 서비스 확장과 사용 예시는 [한국어 서비스 확장 안내](service-extensions.md)를 참고하세요.
@@ -66,18 +66,16 @@ plugin/script/llm/
     components/
     core/
     engines/
-    inference/
     providers/
     services/
-    compat.py
 ```
 
 The host reads the literal `PLUGIN_META` in `llm.py`, checks its Python
 `dependencies`, and loads the entry point as `llm.llm`. `requirements` is reserved
 for other ish plugins and is empty. `rank-bm25|rank_bm25` means install the
 `rank-bm25` distribution and check the `rank_bm25` import. ChromaDB, Kuzu and
-rank-bm25 are declared for future retrieval components; those integrations have
-not been implemented. They are required by plugin loading because they appear
+rank-bm25 support the RAG component's vector, graph and keyword indexes.
+They are required by plugin loading because they appear
 in its metadata, even though the current LoopEngine does not import them.
 
 Add this to the host's `.ishrc.py`, then restart ish:
@@ -131,7 +129,7 @@ single-request worker adapter.
 ```python
 project = backend.projects.create(
     "Research",
-    config={"completion": {"model": "openai/gpt-4o-mini"}, "custom_setting": 42},
+    config={"parameters": {"engines": {"loop": {"completion": {"model": "openai/gpt-4o-mini"}}}}, "custom_setting": 42},
     components=["tools"],
 )
 session = project.sessions.create("Conversation")
@@ -248,8 +246,7 @@ use the backend's original process/event loop. Synchronous methods still block.
 
 ```python
 # Inside an async handler; backend already contains the "loop" Engine.
-project = await backend.projects.acreate("Example", config=ProjectConfig(
-    completion={"model": "gemini/gemini-3.6-flash"}), components=["tools"])
+project = await backend.projects.acreate("Example", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "gemini/gemini-3.6-flash"}}}}), components=["tools"])
 session = await project.sessions.acreate("Conversation")
 tools = await project.components.aget("tools")  # No synchronous attribute lookup.
 await tools.aset_enabled([])  # Enable names after registering execution handlers.
@@ -298,7 +295,7 @@ Result/history lists still scan their scope; pagination/indexing is not introduc
 Session configuration/lifecycle guards remain: await session.run.shutdown() before changing configuration,
 cloning or deleting an attached Session.
 
-LoopEngine reads `config.engines[registered_engine_name]` by default, including
+LoopEngine reads `config.parameters.engines[registered_engine_name]`, including
 Session overrides. EngineContext.settings() uses the owning Run's engine name.
 For stages in a PipelineEngine, that is the pipeline's registered name. To use
 another section explicitly, construct `LoopEngine(settings_name="loop")` (or any
@@ -396,12 +393,13 @@ engines.register("loop", LoopEngine(
 # await manager.submit(content, engine="loop").
 ```
 
-ProjectConfig.completion stores JSON-compatible LiteLLM defaults, including
+ProjectConfig.parameters.engines[name].completion stores explicit JSON-compatible Loop/LiteLLM options, including
 model, temperature, api_base and provider-specific options. Authentication uses
 the provider SDK environment or runtime-only completion_kwargs. There is no application credential resolver or field-name blocking.
 
-LoopEngine calls `litellm.completion` with `stream=True`; timeout and
-`num_retries=0` are defaults that completion_kwargs can override. It forwards content deltas immediately, assembles indexed
+LoopEngine calls `litellm.completion` with `stream=True`. SDK timeout/retry kwargs
+are forwarded only when explicitly configured; DEFAULT_MAX_RETRIES=0 remains a
+documented LiteLLM compatibility invariant. It forwards content deltas immediately, assembles indexed
 tool-call fragments, validates the complete batch against registered JSON
 schemas, executes async tool handlers serially, and includes their results in
 the next completion. Register tools through `llm.components.tools.ToolRegistry`;
@@ -412,9 +410,9 @@ Each LLM iteration and tool execution emits Step events. A `stop` finish reason
 ends the Run. Truncated streams, provider/tool errors, invalid arguments, and
 exhausted iteration limits fail the Run without automatic retries. Tools from a
 last iteration are not executed when no follow-up completion can be made.
-Output and tool arguments are bounded by LoopEngine constructor limits, and a bounded stream
-bridge applies backpressure. The default total timeout per LLM round is 60s;
-each tool has a 30s timeout.
+Output and tool arguments use only explicitly configured limits; a bounded stream
+bridge applies backpressure without dropping content. Missing Loop request/tool
+timeouts add no deadlines. SDK completion.timeout and Loop request_timeout are independent.
 
 `completion_kwargs` is a mapping of LiteLLM completion arguments or a synchronous
 `factory(context) -> mapping`. Values override Project model/temperature/API base
@@ -442,47 +440,32 @@ forwarded, but actual tool execution remains serial.
 ## Project settings, Session overrides and Run results
 
 ```python
-config = ProjectConfig(
-    completion={"model": "openai/my-model", "top_p": 0.9, "max_tokens": 4096},
-    engines={"loop": {"max_iterations": 8, "request_timeout": 60,
-                      "system_prompt": "Answer clearly."}},
-    session_defaults={"data": {"language": "ko"}},
-    data={"documents": ["manual.md"], "application": {"theme": "dark"}},
-)
+config = ProjectConfig(parameters={"engines": {"loop": {
+    "max_iterations": 8, "request_timeout": 60,
+    "system_prompt": "Answer clearly.",
+    "completion": {"model": "openai/my-model", "top_p": 0.9, "max_tokens": 4096},
+}}}, data={"documents": ["manual.md"]})
 project = projects.create("Workspace", config=config)
 session = sessions.create(project, "Research", config={
-    "completion": {"max_tokens": 2048},
-    "engines": {"loop": {"system_prompt": "Explain with examples.llm."}},
-    "data": {"topic": "Python"},
+    "parameters": {"engines": {"loop": {
+        "completion": {"max_tokens": 2048}, "system_prompt": "Explain with examples.",
+    }}}, "data": {"topic": "Python"},
 })
 ```
 
-Project settings live in project.json; Session overrides live in session.json.config.
-ProjectConfig is a dict subclass, not a dataclass. Add arbitrary top-level keys with
-`config["editor"] = {"font_size": 14}` or constructor kwargs. Existing attribute
-shortcuts such as config.completion remain available; use mapping syntax for keys
-that collide with dict methods. to_dict()/serialize()/deserialize() round-trip all
-JSON fields. JSON type/finite-number checks remain, with no field-name blacklist.
-Call projects.save(project) or sessions.save(session) after editing. Session saves require
-a detached runtime as before. session_defaults is copied when a new Session is created;
-changing it later does not rewrite existing Sessions. Clones copy configuration,
-with independent containers, and start without execution history.
+Project settings live in project.json; explicit Session overrides live in session.json.config.
+ProjectConfig is an open JSON dict with policies, parameters and metadata. Only top-level
+attribute shortcuts are provided; nested values use dictionary access. Removed SDK/default
+sections are rejected rather than migrated. Component settings live in parameters.components.
+Session creation does not copy Project settings. At execution, nested dictionaries merge;
+explicit null overrides where supported. Missing keys remain missing. Loop reads completion
+inside its own parameters.engines target. Host constructor values override inherited settings.
+EngineContext.settings(name) returns a detached view and the selected `engine` mapping.
+Project changes affect future Runs, while active Run snapshots stay unchanged.
+See [the configuration contract](../../llm/CONFIGURATION.md) for sources and UI metadata.
+Persisted Projects require components/conversation_storage; Sessions require config.
+No default Project/Session selection or automatic migration is performed.
 
-Every Engine receives the full Project/Session snapshots and can call
-`context.settings("engine-name")` to get isolated settings, including arbitrary
-workspace/Session keys and the selected engine section.
-Nested Project and Session dictionaries merge recursively; lists/scalars replace.
-Loop reads the registered Run engine section, including a Pipeline registration name; settings_name selects an explicit override.
-Its explicit constructor limits, completion_kwargs and system_prompt override
-saved settings. Omitted constructor limits inherit saved values then builtin
-defaults. Runtime completion_kwargs replaces supplied argument values at the top
-level, retaining client/callback identities. Project changes are reloaded before
-the next Run; they do not alter an active Run's context.
-
-ProjectConfig preserves top-level fields as workspace settings without converting
-model/temperature/api_base into completion. Put model call arguments explicitly
-under completion. Persisted Projects require components/conversation_storage;
-persisted Sessions require config. Unsupported metadata is not silently upgraded.
 
 ```python
 await manager.submit("Explain the design", engine="loop")
@@ -531,8 +514,8 @@ contains Run/Session/Project IDs, Engine name, Run timing/status, completion res
 and summed prompt_tokens/completion_tokens/total_tokens. Summaries aggregate all
 LLM calls in Loops and pipelines. No cost estimate is inferred.
 
-The shared completion helper requests stream_options.include_usage=True by
-default (explicit False is honored). It captures SDK or dict usage-only chunks,
+Set stream_options.include_usage explicitly when the provider supports it; the helper
+does not insert this option. It captures SDK or dict usage-only chunks,
 including numeric cached/reasoning token details. Totals are None if any call
 lacks a count or has an uncompleted stream; partial observed usage remains on the
 individual result. Unknown usage is not zero. Provider-reported counters are not
@@ -572,23 +555,23 @@ ranked = await reranker.rerank("the query", ["first document", "second document"
 Constructor kwargs are runtime defaults; call kwargs override them. Provider-specific
 options pass through without a dataclass allowlist. Builtin request containers are
 copied per instance/call while SDK clients/callbacks retain identity. Model clients
-can be shared across concurrent Sessions. Defaults are timeout=60 and num_retries=0;
-callers may override SDK options. Native responses, exceptions and cancellation
+can be shared across concurrent Sessions. Missing timeout/retry options are omitted;
+callers may explicitly supply SDK options. Native responses, exceptions and cancellation
 propagate to the caller. The injected embedding_fn/rerank_fn must be asynchronous.
 SDK import is lazy and offloaded. Importing model clients from llm.components.rag loads no Engines,
 services, core models or LiteLLM SDK.
 
-Save optional model defaults in ProjectConfig.data, for example:
+Custom Engines may declare their own model settings under targeted parameters:
 
 ```python
-config.data["inference"] = {
+config.parameters.setdefault("engines", {})["retrieval"] = {
     "embedding": {"model": "openai/text-embedding-3-small"},
     "rerank": {"model": "cohere/rerank-english-v3.0", "top_n": 3},
 }
-# Session.config["data"]["inference"] may override these JSON defaults.
+# Session.config["parameters"]["engines"]["retrieval"] may explicitly override them.
 
 async def prepare(context):
-    settings = context.settings("retrieval")["data"]["inference"]
+    settings = context.settings("retrieval")["engine"]
     result = await EmbeddingModel(**settings["embedding"]).embed(["document text"])
     context.state["embeddings"] = result.data
 
@@ -664,7 +647,7 @@ from llm.engines import BaseEngine
 class AnswerEngine(BaseEngine):
     def run(self, context):
         return self.stream_completion({
-            "model": context.project.config.completion["model"],
+            "model": context.settings()["engine"]["completion"]["model"],
             "messages": [{"role": "user", "content": context.messages[-1].content}],
             "max_tokens": 1024,
             "timeout": 30,
@@ -742,8 +725,8 @@ engines.register("prepared_loop", PipelineEngine(stages=[
 await manager.submit("Help with this workspace", engine="prepared_loop")
 ```
 
-PreparationStep defaults to a 60-second timeout; set timeout_seconds explicitly
-or use None for no deadline. Callbacks/factories are developer code on the event
+PreparationStep adds a deadline only for explicit timeout_seconds;
+missing or None adds no deadline. Callbacks/factories are developer code on the event
 loop: avoid blocking calls, propagate cancellation, keep per-Run values in
 context.state, and do not mutate global os.environ. A copied environment reflects
 this process's current environment; it cannot automatically read changes from an
@@ -799,8 +782,7 @@ from llm.services.lifecycle.sessions import SessionManager
 async def main() -> None:
     sessions = SessionManager()
     projects = ProjectManager(ProjectRepository(Path("./workspace/projects")), sessions)
-    project = projects.create("Example", config=ProjectConfig(
-        completion={"model": "openai/gpt-4o-mini"}))
+    project = projects.create("Example", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "openai/gpt-4o-mini"}}}}))
     session = sessions.create(project, "Conversation")
     engines = EngineRegistry()
     engines.register("loop", LoopEngine())
@@ -932,7 +914,7 @@ sessions = SessionManager()
 projects = ProjectManager(ProjectRepository(Path("workspace/projects")), sessions,
                           components=components)
 project = projects.create("Example", components=("tools", "workflows"),
-                          config=ProjectConfig(completion={"model": "openai/gpt-4o-mini"}))
+                          config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "openai/gpt-4o-mini"}}}}))
 projects.configure_component(project, "tools", {"enabled": ["add"]})
 session = sessions.create(project, "Conversation")
 engines = EngineRegistry()
@@ -945,7 +927,7 @@ Pass the same configured component registry to ProjectManager and RunManager.
 Registered components are available to select; they are not automatically enabled.
 `create(..., components=())` creates no tool/workflow directories. Selecting tools
 creates `<project>/tools/records/`; selecting workflows creates its `records/` directory.
-Configuration is stored only in ProjectConfig.component_configurations. Tool handlers remain in the application
+Configuration is stored only in ProjectConfig.parameters.components. Tool handlers remain in the application
 catalog and are never serialized into Project JSON.
 
 `projects.set_components(project, ("tools",))` changes selection after creation.
@@ -1021,7 +1003,7 @@ projects.remove_component(project, "notes", permanent=True)  # Delete knowledge/
 ```
 
 Every selected component owns `<project>/<directory>/records/<id>.json`.
-Its settings are stored only in ProjectConfig.component_configurations. Creation and `set_components` create missing directories.
+Its settings are stored only in ProjectConfig.parameters.components. Creation and `set_components` create missing directories.
 Base initialization is idempotent. Permanent removal requires detached Sessions and
 publishes disabled selection first; an I/O failure can leave partial data for retry.
 

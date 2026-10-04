@@ -184,5 +184,5 @@ tests/llm/reports/history/graph-checkpoint-final-suite-python312.txt다.
 .\.venv312\Scripts\python.exe -m unittest discover -s tests/llm -t . -v
 ```
 
-컴포넌트 설정은 `project.json`의 `config.component_configurations`에만 저장한다.
+컴포넌트 설정은 `project.json`의 `config.parameters["components"]`에만 저장한다.
 ComponentData.configure 편의 API도 이 설정을 갱신한다.

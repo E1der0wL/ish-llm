@@ -92,6 +92,113 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(page["text"], "b\n")
         self.assertTrue(page["truncated"])
 
+    async def test_source_search_filters_context_and_continuation(self):
+        await self.invoke("file_create", path="src/code.py", content="before\nneedle one\nafter\nneedle two\n")
+        await self.invoke("file_create", path="src/notes.txt", content="needle text")
+        await self.invoke("file_create", path="ignored/code.py", content="needle ignored")
+        options = dict(query="needle", recursive=True, case_sensitive=True, include=["*.py"],
+                       exclude=["ignored"], context_lines=1, limit=1)
+        result = await self.invoke("file_search", **options)
+        self.assertEqual(result["matches"][0]["path"], "src/code.py")
+        self.assertEqual(result["matches"][0]["context"], ["before", "needle one", "after"])
+        self.assertEqual(result["next_offset"], 1)
+        following = await self.invoke("file_search", **options, offset=result["next_offset"])
+        self.assertEqual(following["matches"][0]["line"], 4)
+        self.assertFalse(following["truncated"])
+        self.assertIsNone(following["next_offset"])
+        self.assertEqual(following["matches"][0]["sha256"], result["matches"][0]["sha256"])
+        paths = await self.invoke("file_list", recursive=True, include=["*.py"], exclude=["ignored"])
+        self.assertEqual([r["path"] for r in paths["entries"]], ["src/code.py"])
+
+    async def test_log_tail_version_and_line_paging(self):
+        saved = await self.invoke("file_create", path="app.log", content="start\nroute=pty\nfinished\n")
+        result = await self.invoke("file_read", path="app.log", tail_lines=2)
+        self.assertEqual(result["text"], "route=pty\nfinished\n")
+        self.assertEqual(result["start_line"], 2)
+        first = await self.invoke("file_read", path="app.log", max_lines=1)
+        self.assertEqual(first["next_line"], 2)
+        with self.assertRaises(ValueError):
+            await self.invoke("file_read", path="app.log", tail_lines=1, start_line=1)
+        await self.invoke("file_patch", path="app.log", expected_sha256=saved["sha256"], old_text="finished", new_text="changed")
+        with self.assertRaisesRegex(ValueError, "changed"):
+            await self.invoke("file_read", path="app.log", start_line=first["next_line"], expected_sha256=first["sha256"])
+
+    async def test_binary_files_are_reported_as_skipped(self):
+        (self.work / "binary").write_bytes(b"needle\0binary")
+        result = await self.invoke("file_search", query="needle", recursive=True, case_sensitive=True)
+        self.assertEqual(result["matches"], [])
+        self.assertEqual(result["skipped"], 1)
+
+    async def test_process_incremental_unicode_output_and_input_eof(self):
+        started = await self.invoke("process_start", stdin=True, argv=[sys.executable, "-u", "-c",
+            "import sys; print('ready', flush=True); text=sys.stdin.read(); print(text, end=''); print('diagnostic', file=sys.stderr)"])
+        pid = started["process_id"]
+        async with asyncio.timeout(5):
+            while b"ready\n" not in self.tools.processes.sessions[pid]["stdout"]:
+                await asyncio.sleep(.01)
+        first = await self.invoke("process_output", process_id=pid)
+        self.assertEqual(first["stdout"], "ready\n")
+        sent = await self.invoke("process_write", process_id=pid, text="한글🙂\n", close=True)
+        self.assertEqual(sent["bytes_written"], len("한글🙂\n".encode()))
+        await asyncio.wait_for(self.tools.processes.sessions[pid]["task"], 5)
+        second = await self.invoke("process_output", process_id=pid,
+            stdout_offset=first["next_stdout_offset"], stderr_offset=first["next_stderr_offset"], max_chars=2)
+        third = await self.invoke("process_output", process_id=pid,
+            stdout_offset=second["next_stdout_offset"], stderr_offset=second["next_stderr_offset"])
+        self.assertEqual(second["stdout"] + third["stdout"], "한글🙂\n")
+        self.assertEqual(second["stderr"] + third["stderr"], "diagnostic\n")
+        status = await self.invoke("process_status", process_id=pid)
+        self.assertEqual(status["pid"], started["pid"])
+        self.assertEqual(status["cwd"], str(self.work))
+        self.assertIsNotNone(status["ended_at"])
+        with self.assertRaises(ValueError):
+            await self.invoke("process_write", process_id=pid, text="late")
+        with self.assertRaises(ValueError):
+            await self.invoke("process_output", process_id=pid, stdout_offset=9999)
+
+    async def test_split_utf8_does_not_advance_cursor_until_complete(self):
+        started = await self.invoke("process_start", stdin=True, argv=[sys.executable, "-u", "-c",
+            "import os,sys; data='한'.encode(); os.write(1,data[:1]); sys.stdin.readline(); os.write(1,data[1:])"])
+        pid = started["process_id"]
+        async with asyncio.timeout(5):
+            while not self.tools.processes.sessions[pid]["stdout"]:
+                await asyncio.sleep(.01)
+        first = await self.invoke("process_output", process_id=pid)
+        self.assertEqual(first["stdout"], "")
+        self.assertEqual(first["next_stdout_offset"], 0)
+        await self.invoke("process_write", process_id=pid, text="continue\n")
+        await asyncio.wait_for(self.tools.processes.sessions[pid]["task"], 5)
+        self.assertEqual((await self.invoke("process_output", process_id=pid))["stdout"], "한")
+
+    async def test_input_is_opt_in_and_waiting_input_is_cancelled(self):
+        started = await self.invoke("process_start", argv=[sys.executable, "-c", "import time; time.sleep(20)"])
+        with self.assertRaises(ValueError):
+            await self.invoke("process_write", process_id=started["process_id"], text="x")
+        await self.invoke("process_cancel", process_id=started["process_id"])
+        waiting = await self.invoke("process_start", stdin=True, argv=[sys.executable, "-c", "input()"])
+        result = await self.invoke("process_cancel", process_id=waiting["process_id"])
+        self.assertEqual(result["status"], "cancelled")
+        self.assertIsNotNone(result["returncode"])
+
+    async def test_diagnostics_are_opt_in_and_identify_current_process(self):
+        self.assertNotIn("system_inspect", self.tools.registry.names())
+        async with BuiltinTools(self.work, diagnostics=True) as tools:
+            system = await tools.registry.get("system_inspect").handler({})
+            self.assertGreater(system["disk"]["total_bytes"], 0)
+            self.assertIn("MemTotal", system["memory_bytes"])
+            process = await tools.registry.get("process_inspect").handler({"pid": os.getpid(), "include_files": True})
+            self.assertEqual(process["ppid"], os.getppid())
+            self.assertEqual(process["cwd"], str(Path.cwd()))
+            self.assertIn("stdin", process)
+            self.assertIn("files", process)
+            with self.assertRaisesRegex(ValueError, "identity"):
+                await tools.registry.get("process_inspect").handler({"pid": os.getpid(), "expected_start_ticks": -1})
+            page = await tools.registry.get("process_list").handler({"limit": 1})
+            self.assertEqual(len(page["processes"]), 1)
+            if page["next_pid"]:
+                following = await tools.registry.get("process_list").handler({"after_pid": page["next_pid"], "limit": 1})
+                self.assertGreater(following["processes"][0]["pid"], page["next_pid"])
+
     async def test_commands_are_opt_in_and_configured_checks_are_available(self):
         async with BuiltinTools(self.work, checks={"smoke": [sys.executable, "-c", "print('checked')"]}) as tools:
             self.assertNotIn("shell_execute", tools.registry.names())
