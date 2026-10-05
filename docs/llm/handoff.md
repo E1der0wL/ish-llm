@@ -1,3 +1,46 @@
+## 2026-10-06 Graph orchestration · Host Tool constraints · Skill integrity
+
+- 기준 main은 `b761917dc9abd46e6b042e7cf410cf737d31c591`. 요청한 27개 보고 항목과 파일 목록은
+  [boundary-evolution-review.md](boundary-evolution-review.md), 제약 API는
+  [tool-constraints.md](tool-constraints.md)에 있다. 영속 계층과 storage/schema version 1을 유지했다.
+- Graph Agent는 다른 GraphEngine/handler 환경 선택만 한다. behavior/resources/tools/Agent policy는
+  리소스 해석 전에 거부하며 부모 tools/tool_scope/capabilities를 그대로 전달한다.
+  같은 환경은 workflow 노드를 사용하고 WorkflowComponent의 정의/입출력 계약을 유지한다.
+- Host ToolPolicy.argument_constraints의 fixed/bounded/selectable을 공통 Registry/Executor에서
+  집행한다. 모델에는 원본 schema와 교집합을 제공한다. fixed만 명시된 값을 주입하고,
+  bounded/selectable은 인자 생략으로 handler 기본값에 빠지지 않게 명시 입력을 요구한다.
+  자식 scope는 상속/축소만 가능하며 승인/checkpoint binding 변경은 재개를 거부한다.
+- Memory extraction은 검색 전략/recall_limit 없이도 ID 순서로 동작한다. 추출 prompt와 예산은
+  여전히 명시해야 한다. Skill dependencies는 Agent와 child lineage를 나누어 조회하고,
+  직접 삭제와 Refinement CREATE/FORK rollback 모두 참조가 있으면 거부한다. 자동 cascade 없음.
+- 숨은 cleanup 5초, renewal chain 128, 관측 label/code/cardinality 상한을 제거했다.
+  cancel/revoke/PendingWork, protocol/storage/경로/CAS/approval/uncertain-effect 보호는 유지한다.
+  160 production Python 파일의 정적 후보 551개를 검토했다. 원문 보고서는 배포하지 않는다.
+- 최종 Linux Python 3.12.14: 집중 **214 passed / 0 failed / 0 skipped** (79.490초),
+  전체 llm **1,295 passed / 0 failed / 0 skipped** (482.886초). 집중 검사는 전체와 중복이다.
+  Hub **110 passed / 0 failed / 0 skipped** (93.882초).
+- snapshot `/home/user/.cache/ish-provider-s0jss2qi`, 로그는 `tests/llm/reports/ish-provider-s0jss2qi/`.
+  소스 Python 433개와 업로드 대상 Python 391개가 해당 스냅샷 해시와 일치했다.
+  검증 기록: `reports/boundary-contract-snapshot-verification-20261006.json`.
+- `.github/workflows/tests.yml`은 main push/PR/manual에서 Linux Python 3.12.14로 같은 집중 목록을
+  실행한다. plugin은 설치하지 않고 의존성만 설치한다. Hub CI는 미포함: 공개 저장소에 없는
+  reference ish.platform 의존성 때문이다. Hub 구현은 변경하지 않고 로컬 WSL에서 검증한다.
+- 외부 유료 모델/사내 endpoint/장시간 soak는 수행하지 않았다. Graph Agent의 제거된 필드나
+  변경된 checkpoint binding을 자동 변환하지 않으며, Application 정의를 명시적으로 갱신해야 한다.
+
+검증 명령:
+
+```sh
+wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python \
+  /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --source /mnt/d/WorkSpace/ish \
+  --modules tests.llm.test_persistence tests.llm.test_runtime \
+  tests.llm.test_runtime_reliability tests.llm.test_graph_engine tests.llm.test_nested_graph \
+  tests.llm.test_graph_agent_contract tests.llm.test_tool_constraints \
+  tests.llm.test_architecture_boundaries tests.llm.test_refinement \
+  tests.llm.test_completion_processing tests.llm.test_interaction_decisions \
+  tests.llm.test_observability tests.llm.test_error_boundaries --full --hub
+```
+
 ## 2026-10-05 Architecture boundary · Skill evolution
 
 - Project → Session → Run → Step 및 기존 승인/재개/Tool/영속 owner는 유지했다.

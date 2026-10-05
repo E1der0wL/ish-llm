@@ -33,6 +33,11 @@
 candidate metadata에 출처를 남깁니다. JSON 형태, replaces revision, 근거 없는 성공 금지는
 backend 계약입니다. 무엇을 기억할지는 애플리케이션이 결정합니다.
 
+추출은 검색 전략과 독립적입니다. search_strategy 또는 host search_fn이 있을 때만 관련
+기억을 먼저 정렬합니다. 없으면 record ID 순서로 기존 기록을 입력 예산 안에 담습니다.
+추출만 켠 경우 recall_limit은 필수가 아닙니다. 실제 search/recall에는 기존대로 명시적인
+검색 전략이 필요합니다. Memory CRUD와 Run/Step 저장 경계는 변하지 않습니다.
+
 설정은 `parameters.components.memory`에 저장합니다. 모델 호출을 수반하는 요약·추출, 자동 회상, 문맥 축약 등은 명시한 정책에 따라 적용됩니다. `completion_processors` capability로 Loop 입력·관찰 경계에 연결하고, CRUD Tool은 `tools` capability로 제공합니다.
 
 보조 모델의 SDK 인자는 `config.processing.completion`, 외부 호출의 시도·기한은

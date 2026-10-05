@@ -70,7 +70,8 @@ backend 재시작 전의 요청/승인은 누적 통계로 복원하지 않는�
 
 record(fact) 하나에서 counter, latency(count/total_seconds/max_seconds), stable failure code,
 최근 이벤트를 파생한다. threading lock으로 집계를 보호한다. 원시 latency sample은 보관하지 않는다.
-recent는 최대 256개, failure-code key는 최대 128종 및 other다. ID는 recent의 값일 뿐 aggregate key가 아니다.
+recent는 중립적인 최근 관찰 캐시로 최대 256개다. 누적 count와 sink는 전부 보존한다.
+failure-code 종류 수나 label 길이에 임의 상한을 두지 않는다. ID는 recent의 값일 뿐 aggregate key가 아니다.
 prompt, arguments/results, source/requirements, 원문 evidence, 환경, traceback 필드를 받지 않는다.
 
 `ServiceConfig(observability_sink=callback)`은 정규화된 안전한 fact 사본을 받을 수 있다.

@@ -1,5 +1,10 @@
 # Memory에서 장기 대화·작업 최적화
 
+추출은 검색과 독립적이다. `extract=true`와 명시한 extract_prompt 및 추출 입력 예산만으로
+동작한다. search_strategy/host search_fn이 있으면 관련 기록을 먼저 배치하고, 없으면 record ID
+순서를 사용한다. extraction만 켠 경우 recall_limit은 필수가 아니다. 검색/recall 자체는 여전히
+명시적 전략이 필요하다. 기본 semantic prompt나 자동 검색 전략을 만들지 않는다.
+
 요약·기억 선택·Tool 결과 압축·기억 후보 추출은 모두 `llm/components/memory`가 담당한다.
 Project/Session/Run/Step 모델과 Manager에는 Memory 전용 실행 로직을 추가하지 않는다.
 LoopEngine은 `completion_processors`라는 범용 capability를 요청하고 처리기의

@@ -8,7 +8,7 @@
 | --- | --- |
 | [__init__.py](__init__.py) | SkillComponent 공개 import입니다. |
 | [component.py](component.py) | 정의 schema와 skills/tools capability를 선언합니다. |
-| [data.py](data.py) | 생성 시 lineage 검증, lineage 불변성, 현재 Agent 영향 조회입니다. |
+| [data.py](data.py) | 생성 시 lineage 검증, lineage 불변성, Agent/child 의존 조회와 삭제 보호입니다. |
 | [tools.py](tools.py) | Run 스냅샷의 요약 목록·본문을 조회하는 skill_list/skill_read를 제공합니다. |
 
 ## 사용 예
@@ -30,6 +30,11 @@ await skills.acreate({
 자식에 자동 전파하지 않습니다. 모델 기반 UPDATE/CREATE/FORK는 [Refinement](../refinement/README.md)를 사용합니다.
 새 Skill 생성과 Agent 연결은 서로 다른 승인 대상입니다.
 
+`await skills.adependencies(id)`는 `{"agents": [{"agent_id", "revision"}],
+"children": [{"skill_id", "version"}]}` 형태로 각각의 원본 정의를 읽어 반환합니다.
+직접 delete와 Refinement CREATE/FORK rollback은 두 목록 중 하나라도 있으면 거부합니다.
+먼저 Agent 참조/자식 Skill을 명시적으로 제거해야 합니다. 자동 cascade/unbind는 없습니다.
+
 ## LLM이 지침을 선택하는 경로
 
 Project에서 `skills`를 선택하면 tools capability에 읽기 전용 Tool 두 개가 연결됩니다.
@@ -42,7 +47,7 @@ Project에서 `skills`를 선택하면 tools capability에 읽기 전용 Tool �
 - `skill_read({identifier, expected_revision?})`: `{id, revision, definition}`을 반환합니다.
   definition에는 instructions와 사용자가 저장한 추가 필드가 들어갑니다.
 
-일반 Loop는 이 Tool들을 바로 사용할 수 있습니다. Graph Agent에서는 Agent의 `tools` 허용
+일반 Loop는 이 Tool들을 바로 사용할 수 있습니다. Graph 안의 behavioral Agent에서는 `tools` 허용
 목록에 이름을 추가해야 하며, 추가하면 해당 Project의 전체 Skill 목록·본문 조회를 허용합니다.
 특정 Skill만 정적으로 적용하려면 기존 `resources.skills`를 사용합니다. 두 경로 모두 기존
 ToolPolicy·승인과 Run/Step 경계를 유지하며 Skill은 Tool 권한을 추가하지 않습니다.

@@ -473,13 +473,15 @@ workflow/ID를 추가한다. 상태/메시지/입출력은 호출별로 분리�
 
 정적 capability를 읽은 뒤 additional_capabilities를 반복 해결하여 참조 전체를 탐색한다.
 Workflow/Agent 참조의 순환과 깊이 초과, 누락된 정의/처리기/Tool은 실행 전에 거부한다.
-max_nested_depth 기본값은 16(0~32)이다. 바인딩에는 자식 정의와 엔진 제한/revision도 포함한다.
+max_nested_depth는 None 또는 0 이상의 정수이며 임의 기본값/상한은 없다. 바인딩에는 자식 정의와 엔진 제한/revision도 포함한다.
 직접 workflow 노드는 부모 handlers를 공유하며 Graph Agent는 별도 등록 엔진 handlers를 쓴다.
 
 자식 노드 방문은 모든 조상의 max_steps에 합산한다. 실제 작업만 조상 순서대로 세마포어를
 획득하며 조율 노드는 슬롯을 점유하지 않는다. 부모/자식 timeout과 Tool 권한/예산/원장은
-같이 적용한다. Run 제한은 재개 시 새 Run의 한도이며 Graph Agent Tool 시도/성공 횟수는
-agent_usage로 체크포인트에 저장/복원한다. Tool 승인 이후 효과 전에도 컨테이너 사용량을 저장한다.
+같이 적용한다. Run 제한은 재개 시 새 Run의 한도다. Graph Agent는 부모 Tool scope를 그대로
+전달하고 별도 Agent 예산/사용량을 만들지 않는다. behavioral Loop Agent만 agent_usage를
+체크포인트에서 복원한다. Graph Agent는 purpose/engine/engine_options 외 behavioral field를
+리소스 조회 전에 거부한다. Workflow 노드 입출력 schema와 매핑은 계속 적용한다.
 
 자식 pause_before는 예외로 최상위 실행기에 전달하고 PAUSED는 루트만 발행한다. container=true인
 조율 노드는 재개 승인을 요구하지 않으며 자식의 completed 출력만 재사용한다. started 상태의

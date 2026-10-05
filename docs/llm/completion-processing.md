@@ -40,7 +40,8 @@ Run별 가변 상태를 저장하지 않는다. 생성자는 외부 자원을 �
 따라서 부분/최종 텍스트가 이미 관찰되었어도 Run 상태를 함께 확인해야 한다.
 
 정리는 같은 asyncio.Task에서 실행하여 ContextVar 토큰 등 소유 문맥을 보존한다.
-각 Processor의 `close_timeout`은 협력적 비동기 기한이다. 취소를 무시하거나 동기 함수를
+각 Processor의 `close_timeout`은 명시적인 협력적 비동기 기한(양수) 또는 None(추가 기한 없음)이다.
+builtin Memory/Goal의 aclose는 자원을 닫지 않는 no-op으로 None을 사용한다. 취소를 무시하거나 동기 함수를
 무한 실행하는 플러그인을 강제 종료하는 OS 격리 기능은 아니다. 전체 실행 기한은 기존
 RunPolicy를 공유하고, 개별 훅의 작업 기한/Step은 구현체가 BaseEngine.step 등으로 정한다.
 

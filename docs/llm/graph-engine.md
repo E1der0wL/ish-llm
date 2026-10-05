@@ -1,5 +1,11 @@
 # GraphEngine과 코드 수정 Workflow 실행
 
+GraphEngine은 **durable Workflow orchestration engine**이다. WorkflowComponent가 저장과
+구조 검증을 소유하고 Workflow의 노드·간선·입출력이 조율 정의의 source of truth다.
+같은 handler 환경의 중첩은 workflow 노드, 다른 등록 Graph/handler 환경의 선택은
+Graph-backed Agent를 쓴다. 후자는 behavioral Agent가 아니며 Prompt/Skill/Tool 권한을
+추가하지 않는다. [허용·거부 필드](nested-workflows.md)는 실행 전 리소스 조회보다 먼저 검증한다.
+
 `GraphEngine`은 WorkflowComponent에 저장된 버전 1 그래프를 LangGraph `StateGraph`로
 컴파일하여 하나의 Run에서 실행한다. 모델 호출은 AgentNode → LoopEngine → LiteLLM
 `completion(stream=True)` 경로를 사용한다. `langchain-litellm`은 필요하지 않다.

@@ -2,6 +2,18 @@
 
 Workflow JSON을 LangGraph 실행 그래프로 구성합니다. 분기, 병렬 합류, 반복, Agent/Tool 노드와 중첩 실행을 지원합니다. Workflow와 Agent의 정의는 Component가 저장하며, 이 폴더는 실행만 담당합니다.
 
+GraphEngine은 durable Workflow orchestration engine입니다. 같은 handler 환경의 중첩은
+`workflow` 노드로, 다른 등록 GraphEngine/handler 환경의 선택은 Graph-backed Agent로 표현합니다.
+Graph Agent는 behavioral Agent가 아닙니다. purpose/engine/engine_options만 실행 정의로 받고,
+completion/system_prompt/tools/resources/policy/input_schema/output_schema/output_format은
+존재 자체를 거부합니다. 부모 Run의 tools/tool_scope/capabilities를 그대로 전달합니다.
+Workflow 노드의 입출력 매핑/schema는 유지하지만 Graph Agent 노드의 emit_text/output_format은
+거부합니다. 상세 예시는 [중첩 Workflow](../../../docs/llm/nested-workflows.md)에 있습니다.
+
+`max_nested_depth`는 None 또는 0 이상의 정수이며 임의 최대값은 없습니다.
+`cleanup_timeout`은 명시했을 때만 취소 후 대기합니다. 미설정이면 남은 작업은
+기존 PendingWork가 추적하며, 완료 전 Session 보호와 Tool scope revoke는 유지합니다.
+
 ## 파일 안내
 
 | 파일 | 역할 |

@@ -33,7 +33,7 @@ Memory의 암묵적 keyword 검색과 양수 score 필터, Graph의 weight 우�
 
 유지할 invariant: storage/schema version 1, 원자적 publish, CAS/checkpoint identity,
 승인 receipt, 불확실한 효과의 자동 재실행 금지, 경로/심볼릭 링크 검사,
-JSON/evidence 검증, IPC 크기 제한, 유한 cancellation cleanup.
+JSON/evidence 검증, IPC frame 형식, cancellation 전파와 미완료 작업 추적.
 LiteLLM DEFAULT_MAX_RETRIES=0은 알려진 retry 호환성 문제를 막는다.
 LITELLM_LOCAL_MODEL_COST_MAP=True는 초기화 외부 네트워크 접근을 격리한다.
 Loop stream=True/n=1과 embedding no-cache/no-store는 실행/순서 계약이다.
@@ -53,13 +53,16 @@ ORDER BY/score 비교, auto/fallback, 직접 영속 변경이다. 범위는 llm 
 | provider attempts 10 | 임의 상한 제거. 명시한 시도 수, SDK retry 중첩 방지 유지 |
 | file_read 5000 / file_list 1000 / file_search 500 / web_search 20 | schema 제품 상한 제거. host 파일/출력/시간 한도는 유지 |
 | Memory Tool 원문 slice 64000 | 임의 상한 제거. 명시적 페이지 크기만 적용 |
-| Tool worker IPC 8 MiB / stderr 1 MiB | bounded protocol 메모리 보호. 초과는 실패, 무음 자르기 없음 |
-| interaction renewal 128 | 손상된 참조의 파일 traversal/메모리 안전 상한. cycle도 거부 |
+| Tool worker IPC 8 MiB / stderr 1 MiB | worker IPC frame/capture 계약. 양쪽 wire 경계에서 초과 실패, 무음 자르기 없음 |
+| interaction renewal 128 | 임의 chain 길이 상한 제거. visited identity로 cycle 검증 유지 |
 | 이름 64 / operation key 512 / hash 길이 | 식별자·경로·프로토콜 형태. 실행 품질 튜닝이 아님 |
 | crop 좌표 4개 / Tesseract PSM 0..13 | 외부 프로토콜의 유효값 |
 | read block 8192 / catalog LRU / index stride / queue buffer | 결과 의미를 바꾸지 않는 구현 sizing. queue는 backpressure |
-| observability label/cardinality 128 | metric cardinality 메모리 보호. 도메인 원본은 자르지 않음 |
-| cleanup 5초 | 실행 timeout과 분리된 취소 회수 안전 경계 |
+| observability label 128 / code 길이 96 / cardinality 128 | 임의 자르기·other 합산 제거. 허용 fact 필드와 code 문자형식은 유지 |
+| observability recent 256 | 비영속 최근 관찰 projection의 중립 캐시 sizing. 누적 count, sink, 도메인 원본은 보존 |
+| Graph cleanup 5초 | 자동 생성 제거. 명시 기간만 대기, 미설정은 revoke/cancel 후 PendingWork로 소유권 이전 |
+| Memory/Goal close_timeout 5초 | 제거. builtin의 aclose는 무자원 no-op, custom processor는 명시한 None/유한 양수 사용 |
+| process cleanup 5초 | 제거. SIGKILL/process group 종료는 유지하며 OS 회수를 기다림. 명시 timeout만 적용 |
 
 나머지 literal은 schema/JSON 구조, offset/counter 초기값, 삭제/추가 실행의 opt-in,
 명시한 알고리즘의 계산식, 출력 형식 계약, SDK 오류 분류, 버전/CAS, 중립적인 no-policy로
@@ -83,3 +86,20 @@ maintenance를 preview로 시작하는 것은 비파괴 API 계약이며 제품 
 Application은 사용할 검색 전략·분할 크기·동시성, 기억할 사실의 범위, Agent 구성,
 허용 proposal_operations, 평가자/회귀 기준, 승인 UX를 명시해야 한다. backend는 추천 점수,
 자동 Skill 생성/분기 기준, 온보딩 템플릿, 모델 judge를 정하지 않는다.
+
+## Graph와 Tool의 명시적 권한 경계
+
+GraphEngine은 durable Workflow orchestration engine이고 WorkflowComponent는 정의 저장/
+구조 검증을 소유한다. 같은 환경은 workflow 노드, 다른 Graph/handler 환경 선택은 Graph Agent다.
+Graph Agent의 purpose/engine/engine_options만 실행 의미를 가지며 behavioral field는
+GraphEngine.for_agent에서 리소스 조회 전에 거부한다. Tool scope를 새로 만들지 않고 부모 것을
+전달한다. Workflow 노드의 JSON 입출력 계약과 Run/Step 이벤트 저장 경로는 유지한다.
+
+Host가 ToolPolicy.argument_constraints를 지정하면 원본 schema와 교집합을 모델에 보여주고
+ToolExecutor에서 다시 검증한다. fixed만 생략 인자에 **명시된 host 값**을 주입한다.
+bounded/selectable은 값 추천이나 default를 만들지 않는다. child는 좁힐 수만 있고
+effective 제약은 승인/checkpoint binding에 들어간다. [사용법](tool-constraints.md).
+
+Memory 추출은 검색 전략 없이 record ID 순서로 실행한다. Skill dependencies는 Agent와
+child lineage를 각각 원본 정의에서 조회하며 직접 삭제/CREATE·FORK rollback 모두 참조를
+거부한다. 자동 cascade, migration, 승인 preset, 새 영속 도메인을 추가하지 않는다.

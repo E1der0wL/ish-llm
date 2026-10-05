@@ -113,7 +113,7 @@ SDK 인자, 시간 제한과 이벤트 저장 ACK, 설정 변경 후 재개 거�
 | repair_attempts fallback0, rerank False | 기능 미활성. 설정값으로 materialize하지 않음 |
 | Memory cache0/priority0 | 미설정 cache 비활성; 비활성 processor의 중립 순서. 실제 처리 기능 활성화 시 priority 명시 필요 |
 | Graph buffer32/Loop·provider buffer8/Event buffer64 | 유실 없는 backpressure queue. timeout·drop·호출 거절 없음 |
-| Graph cleanup5 / Memory close5 / process kill5 | 취소 회수 계약. 실행 deadline과 분리. Graph는 유한 명시 조정 가능 |
+| Graph/Memory/Goal/process cleanup5 | 자동 기한 제거. Graph 명시 대기 후 또는 미설정 시 PendingWork로 이전; SIGKILL·OS 회수·cancel 전파·scope revoke 유지 |
 | OutputPolicy batch1/delay.025/chars65536 | flush 시점만 조정, 출력 자르지 않음 |
 | index_stride128 / catalog4096 / conversation cache32 / log handle16 | 파생 인덱스·projection·핸들 eviction. 영속 원본은 유지 |
 | log maxBytes0/backupCount0 | 회전 설정 없을 때 Python logging의 비회전 모드. 자동 삭제 없음 |
@@ -134,7 +134,7 @@ SDK 인자, 시간 제한과 이벤트 저장 ACK, 설정 변경 후 재개 거�
 | LITELLM_LOCAL_MODEL_COST_MAP=True | LiteLLM import 전에 외부 cost-map network fetch를 차단하고 bundled map을 선택하는 runtime isolation invariant. 재진입 시 복구. 사용자 inference option이나 ProjectConfig default/values가 아니며 override 불가 |
 | DEFAULT_MAX_RETRIES=0 | LiteLLM compatibility invariant. import 전 env 및 매 진입 SDK global에 강제하며 사용자가 명시한 retry kwargs는 보존 |
 | Project worker capture 1 MiB / protocol 8 MiB | IPC 메모리 경계. 출력 한도 초과는 tool_worker_output_limit으로 실패. Tool 실행 deadline을 추가하지 않음 |
-| observability recent 256 / code 집계 128종 + other | 비영속 관찰 메모리 한도. 사용자 실행·저장 의미를 바꾸지 않음 |
+| observability recent 256 | 비영속 최근 관찰 캐시. code 집계 수 제한과 label 자르기는 제거; 누적 count와 원본은 보존 |
 
 제거한 항목: user default helper/Schema default, Loop/Graph/Tool/Run 제한 생성, Provider admission/wall/retry/stream fallback, RAG algorithm preset, Memory 자동 처리 preset, 파일·조회 truncation, workflow validation의 숨은 nesting32 cap, extraction temperature0 강제, LiteLLM 모드 환경 강제, Graph Agent의 purpose→system_prompt 자동 변환. 문자열/boolean fallback과 AST 기본 인자까지 확인하며 숫자 검색에만 의존하지 않는다.
 

@@ -1,5 +1,11 @@
 # ish-llm
 
+Backend는 mechanism·contract·persistence를 제공하고 Application이 자원 한도·검색 전략·
+모델의 Tool 인자 자유도를 정합니다. [Tool 인자 제약](../docs/llm/tool-constraints.md)은
+fixed/bounded/selectable을 공통 ToolPolicy에서 집행합니다. GraphEngine은 저장된 Workflow의
+실행 전략이며, 같은 환경은 workflow 노드로 중첩하고 다른 handler 환경은 Graph Agent로
+선택합니다. [아키텍처 경계](../docs/llm/architecture-boundaries.md)에 상세 계약이 있습니다.
+
 Linux의 **ish에서 사용하는 AI 실행 백엔드 플러그인**입니다. 대화와 작업 기록을 저장하고, 모델의 응답을 스트리밍하며, Tool이나 Workflow를 실행합니다. 셸과 화면은 ish 또는 UI 플러그인이 담당합니다.
 
 처음 사용하는 경우 **[ish에서 실행하기](#ish에서-실행하기)** → **[LargeLanguageModel 사용하기](#largelanguagemodel-사용하기)** 순서로 읽으세요. 확장하려는 개발자는 [새 Engine](#새-engine-만들기), [새 Component](#새-component-만들기)부터 시작할 수 있습니다.

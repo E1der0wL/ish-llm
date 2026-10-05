@@ -56,7 +56,8 @@ Tool 승인은 bool, Graph 확인은 approved/state 계약을 사용한다. 임�
 
 ## Graph와 Agent
 
-`GraphEngine(cleanup_timeout=5.0)`은 취소 후 정리 대기 시간을 제한한다. 제한을 넘은 코루틴은
+명시한 `GraphEngine(cleanup_timeout=...)`은 취소 후 정리 대기 시간을 제한한다. 숨은 기본값은
+없으며 미설정이면 곧바로 남은 정리를 PendingWork로 넘긴다. 명시한 제한을 넘은 코루틴도
 RunManager의 공통 PendingWork가 추적한다. 완료 전 같은 Session의 다음 요청과 소유권 양도를 막고
 `(await session.run.astatus()).unfinished_work`에서 남은 작업 수를 제공한다. 취소 후 노드 이벤트와
 추가 Tool 실행은 거부한다. 백엔드를 닫아도 Session 및 기존 workspace 소유권과 메모리 대화는 실제 정리 완료까지

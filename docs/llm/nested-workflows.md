@@ -64,42 +64,44 @@ await project.components.agents.acreate({
     "purpose": "검토 Workflow 수행",
     "engine": "review_graph",
     "engine_options": {'policy': {'max_steps': 100}, 'workflow': 'review_flow'},
-    "tools": [],
-    "policy": {"timeout_seconds": 120},
 }, identifier="reviewer")
 # main의 노드는 type='agent', agent='reviewer'로 작성한다.
 # 입력은 일반 Agent와 같고 Workflow 반환값은 결과의 data에 담긴다.
 # 예: outputs={"answer": "/data/answer"}
 ```
 
-`engine_options`는 workflow/max_steps/max_parallelism/timeout_seconds/max_nested_depth를
-받는다. `workflow`는 반드시 명시하며 부모 요청이나 등록 객체에서 추측하지 않는다.
+`engine_options`는 workflow, config.buffer_size/cleanup_timeout,
+policy.max_steps/max_parallelism/timeout_seconds/max_nested_depth를 받는다.
+GraphEngine의 SettingsLayout을 그대로 사용하며 별도 schema를 복제하지 않는다.
+`workflow`는 반드시 명시하며 부모 요청이나 등록 객체에서 추측하지 않는다.
 나머지 실행 설정은 기존 Project/Session/Agent/host 순서로 해석한다.
 등록 객체를 변경하지 않고 호출별 복사본을 만든다.
-Graph Agent는 조율 단위다. completion/system_prompt 및 resources.skills/mcp는 이 Agent에
-설정하지 않고 실제 모델/연결을 사용하는 실행 노드에 둔다. 해당 필드를 Graph Agent에 넣으면
-조용히 무시하지 않고 오류로 알린다. resources.rag는 Project의 검색 Tool 허용에 사용할 수 있다.
-
-Graph Agent의 tools는 하위 작업에도 적용되는 상한이다. 자식 Agent가 더 많은 Tool을
-선택해도 권한이 확대되지 않는다. 현재 Graph Agent의 허용 목록은 Project에 구성된 Tool을
-선택하므로 동적으로 발견하는 MCP Tool을 Graph Agent 경계 밖에서 허용하는 기능은 없다.
-MCP Agent를 포함한 Workflow를 재사용할 때는 직접 workflow 노드로 호출할 수 있다.
-임의 Tool은 공통 ToolExecutor를 통해야 승인/한도/원장이 적용된다.
+Graph Agent는 behavioral Agent가 아닌 **다른 GraphEngine/handler environment의 이름**이다.
+같은 환경에서 중첩하려면 workflow 노드를 사용한다. Graph Agent 정의에는 purpose, engine,
+engine_options와 비실행 metadata만 둔다. completion/system_prompt/tools/resources/policy/
+input_schema/output_schema/output_format은 빈 객체나 null이어도 존재 자체가 오류다.
+검증은 Prompt/Skill/MCP/RAG 조회 전에 수행한다. Workflow Agent-node의 inputs/outputs/
+input_schema/output_schema는 유지하고 emit_text/output_format은 거부한다.
+부모의 tools/tool_scope/capabilities를 그대로 전달하며 추가 allow-list나 Agent 예산을 만들지 않는다.
+RAG는 내부의 Loop Agent resources.rag 또는 rag_search Tool 노드로 선언한다.
+임의 Tool은 공통 ToolExecutor를 통해야 승인/한도/원장/인자 제약이 적용된다.
 
 ## 실행 제한과 중단
 
-- max_nested_depth 기본값은 16, 허용 범위는 0~32다. 0이면 하위 Workflow를 거부한다.
+- max_nested_depth는 미설정/None이면 추가 제한이 없다. 0 이상의 정수를 허용하고 0은 중첩을 거부한다.
 - max_steps에는 자식의 제어/작업 노드도 포함한다. 부모와 자식의 제한을 모두 적용한다.
 - 실제 작업 처리기는 조상 순서로 실행 슬롯을 얻는다. workflow/Graph Agent 조율 노드는
   슬롯을 차지하지 않으므로 max_parallelism=1에서도 자식을 기다리며 교착되지 않는다.
-- 부모 실행 시간, 호출 노드 timeout, 자식 Graph timeout, Agent policy가 함께 적용된다.
-- ToolPolicy와 작업 원장은 같은 Run에서 공유한다. Agent 정책은 추가 제약이다.
-- 중단/시간 초과는 실행 중 자식까지 전달하고 정리를 기다린다. 대기 중인 다음 요청은 보존한다.
+- 부모 실행 시간, 호출 노드 timeout, 자식 Graph timeout은 명시했을 때 함께 적용된다.
+- ToolPolicy와 작업 원장은 같은 Run에서 공유한다. behavioral Agent만 추가 Agent 정책을 적용한다.
+- 중단/시간 초과는 실행 중 자식까지 전달한다. cleanup_timeout 명시 시 그 기간을 기다리며,
+  미설정이면 남은 정리를 기존 PendingWork로 즉시 넘긴다. Tool scope를 먼저 revoke하며
+  정리 완료 전 Session 소유권과 후속 실행 보호를 유지한다. 다음 queued 요청은 보존한다.
 
-명시적 resume은 새 Run이다. Run 단위 시간/호출 한도는 새 시도의 한도이며, Graph Agent의
-Tool 시도/성공 횟수는 체크포인트에서 복원하여 이미 수행한 업무가 Agent 한도에 반영되게 한다.
-승인된 Tool은 효과 실행 전 Agent 사용량도 저장한다. 재시도를 승인해도 이 한도는 초기화되지 않는다.
-예산 소진 시 정의를 바꾸고 기존 체크포인트를 이어 붙이는 대신 새 요청으로 시작한다.
+명시적 resume은 새 Run이다. Run 단위 시간/호출 한도는 새 시도의 한도다. Graph Agent에는
+별도 Tool 사용량/예산이 없다. behavioral Loop Agent의 사용량은 기존대로 체크포인트에서
+복원한다. 완료 노드/Tool receipt는 재사용하고 불확실한 작업은 명시한 retry_nodes만 실행한다.
+예산/인자 제약 등 binding을 바꾸고 기존 체크포인트를 이어 붙일 수 없다.
 
 ## 체크포인트와 UI
 

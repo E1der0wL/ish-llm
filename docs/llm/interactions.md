@@ -1,5 +1,11 @@
 # 공통 사용자 요청과 승인
 
+ToolPolicy.argument_constraints의 effective 값도 Tool 승인 action과 Engine checkpoint binding에
+포함한다. fixed 인자는 승인 전에 실제 호출 인자로 확정한다. constraint가 변경되면 같은 인자가
+계속 유효해도 이전 durable 승인을 재사용하지 못한다. 기존 InteractionRequest/Response,
+ToolExecutor, receipt 소유 관계는 유지하며 별도 승인 엔진을 만들지 않는다.
+[인자 제약 계약](tool-constraints.md)을 참고한다.
+
 `llm.core.interactions`의 `InteractionRequest`, `InteractionOption`,
 `InteractionResponse`는 `llm.llm`에서도 공개한다. ish에서는
 `plugin.get("llm").InteractionRequest`와 같이 접근할 수 있다.
