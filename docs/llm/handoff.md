@@ -1,3 +1,36 @@
+## 2026-10-05 설정 검증과 Hub 적용값 표시 보강
+
+- SettingsLayout의 열린 config에 내부 정책 이름(`input_policy` 등)을 넣어 분류를
+  우회하지 못하게 schema와 unpack 양쪽을 보강했다. 정식 policy 경로만 해석하며
+  관련 없는 확장 키와 SDK dict 내부의 키는 그대로 보존한다.
+- 직접 매핑한 required, 로컬 정의/참조와 하위 schema의 조건을 보존한다. 분할 컨테이너의
+  복합 조건처럼 안전하게 옮길 수 없는 제약은 오류를 내며, 구현자는 최종 공개 경로에
+  implementation_schema를 직접 선언할 수 있다. Pipeline은 하위 schema의 참조 루트를
+  분리하므로 중첩 Pipeline에서도 자식의 $defs를 사용한다.
+- Loop의 host SDK dict는 병합과 같은 leaf 단위로 고정 표시한다. Hub 설정 화면은
+  저장값과 effective 값/출처를 구분하며, host 고정 필드는 읽기 전용이다. 부분 고정 JSON은
+  sibling만 변경할 수 있고 고정 경로의 타입도 보존한다. 여러 Engine의 공유 설정 키,
+  동적 host와 client 설정도 조회값을 저장값으로 자동 복사하지 않는다.
+- 열린 구현체 키를 표시하는 범위는 effective 조회가 있는 Engine/Component 폼이다.
+  일반 언어팩 관리와 중복 편집되던 초기 회귀를 수정했다. 실제 PTK 입력·저장·모델 인자
+  연결과 기존 일반 설정 회귀를 함께 검사한다.
+- Project → Session → Run → Step, 설정의 단일 저장 원본, missing/null/명시값 우선순위,
+  승인·재개·Tool·provider·이벤트 저장 ACK는 유지한다. 실행 알고리즘·영속 형식·migration을
+  추가하지 않았다. AGENTS와 architecture의 오래된 설명을 현재 계약에 맞췄으며 AGENTS는
+  GitHub 배포 대상에서 제외한다.
+- Linux Python 3.12.14 검증: 전체 llm 1,242 passed (608.274초), 최종 Hub 99 passed
+  (106.304초), 모두 failed=0/skipped=0. 집중 37개 및 마지막 Hub 설정 집중 11개도 통과했다.
+  집중 검사는 전체와 중복이며 외부 유료 모델은 호출하지 않았다.
+- llm 전체 기록: tests/llm/reports/ish-provider-kfi90f7t/ (snapshot은 같은 이름의
+  /home/user/.cache/ 하위). 마지막 Hub 타입 보호 수정 후 기록은
+  tests/llm/reports/ish-provider-49r973ra/다. llm 전체 snapshot의 backend Python 303개는
+  변경 없이 일치하며, 마지막 snapshot의 Python 389개는 현재 소스 해시와 모두 일치한다.
+- 재현: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python
+  /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --source /mnt/d/WorkSpace/ish --full --hub
+  --modules tests.llm.test_settings_contract tests.llm.test_configuration_validation
+  tests.hub.test_settings`. 마지막 Hub 재검증은 같은 명령에서 --full을 빼고
+  --modules tests.hub.test_settings로 실행했다.
+
 ## 2026-10-05 구현체 config/policy 외형과 공용 알고리즘
 
 - Engine/Component의 공개 JSON 설정은 `parameters.engines/components[name]` 아래

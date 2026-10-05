@@ -2,6 +2,23 @@
 
 범위는 `llm/` production Python 전체다. tests/examples는 명시적 호출자의 fixture로 따로 검사했다. 핵심 계약·강제값 전체 목록은 [CONFIGURATION.md](../../llm/CONFIGURATION.md)에 있다.
 
+## 2026-10-05 설정 변환·호스트 표시·Hub 연결 경계
+
+- SettingsLayout은 config.input_policy 등 내부 정책 이름과 공개 경로의 충돌을 schema와
+  unpack 양쪽에서 거부한다. SDK dict의 같은 이름은 해당 SDK 소유이므로 보존한다.
+- 직접 매핑한 루트 required와 로컬 정의/참조를 유지한다. 통째로 옮기는 하위 schema의
+  not/allOf 등도 유지하며 정책 위치 검사로 기존 not을 덮어쓰지 않는다. 분할 컨테이너의
+  복합 제약처럼 의미를 보존할 수 없는 변환은 implementation_schema 직접 선언을 요구한다.
+- Pipeline의 하위 schema에는 별도 resource identity를 부여해 중첩 단계의 로컬 참조를 보존한다.
+- host의 중첩 dict는 leaf만 고정 표시한다. null/배열은 교체 값, 빈 dict는 무덮어쓰기다.
+  values/sources/editable과 schema의 표시 단위를 일치시킨다.
+- Hub는 Engine/Component의 effective 조회를 저장값과 분리해 보여준다. 고정 필드는
+  읽기 전용이며 부분 고정 JSON의 변경도 저장 전 검사한다. client/runtime 값을 자동 저장하지 않는다.
+  같은 설정 키를 공유하는 Engine들의 적용값과 고정 경로도 함께 처리한다.
+- 열린 키의 추가 표시를 effective 조회가 있는 구현체 폼에 한정해 일반 환경설정의
+  language_packs 관리와 중복 편집하지 않는다. 실제 PTK 입력과 기존 언어팩 회귀를 포함한다.
+- Run/Step/승인/Tool/provider 실행·저장 코드는 변경하지 않았다. 검증 결과는 handoff 상단에 기록한다.
+
 ## 2026-10-05 config/policy 외형과 재사용 알고리즘
 
 - 구현체 전달값은 `parameters.engines/components[name].config/policy`다. config는

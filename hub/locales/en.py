@@ -209,6 +209,11 @@ MESSAGES = {
     "settings_usage_row": "{title} ({period})\n  Calls {call_count} · Known tokens {known_tokens} · Reserved tokens {reserved_tokens} · Unknown usage {unknown_calls} calls",
 
     "settings_no_description": "No additional schema description.", "settings_no_fields": "No public settings fields.",
+    "settings_stored": "Stored value (editable draft)",
+    "settings_effective": "Current effective value [{name}]: {value} · Source: {source}",
+    "settings_unset": "Unset", "settings_runtime_value": "Resolved by the host at execution",
+    "settings_host_locked": "Host override: read only.",
+    "settings_host_partial": "Some nested keys are host overrides. Their stored values cannot be changed.",
 
     "settings_profile_description": "Name shown in conversations. Initially the current OS account name.",
 

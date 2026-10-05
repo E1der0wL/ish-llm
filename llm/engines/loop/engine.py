@@ -146,7 +146,7 @@ class LoopEngine(BaseEngine):
         self._agent_settings = {}
 
     def configuration_schema(self):
-        from llm.core.schema import object_schema, field, completion_schema
+        from llm.core.schema import object_schema, field, completion_schema, mark_host_overrides
         names = self._option_names
         properties = {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0, **{"x-host-override": name in self._overrides}) for name in names}
         properties["system_prompt"] = {"type": ["string", "null"], "description": "기본 시스템 프롬프트",
@@ -154,19 +154,12 @@ class LoopEngine(BaseEngine):
         properties["completion"] = completion_schema()
         properties["input_policy"] = CompletionPolicy.configuration_schema()
         properties["provider"] = {**provider_schema(), "type": ["object", "null"]}
-        def mark_host(spec, value):
-            if isinstance(value, dict):
-                for key, item in value.items():
-                    mark_host(spec["properties"][key], item)
-            else:
-                spec["x-host-override"] = True
         for name in ("input_policy", "provider"):
             if name in self._overrides:
-                mark_host(properties[name], self._overrides[name])
+                mark_host_overrides(properties[name], self._overrides[name])
         supplied = self.completion_kwargs
         if isinstance(supplied, Mapping):
-            for name in supplied:
-                properties["completion"]["properties"].setdefault(name, {})["x-host-override"] = True
+            mark_host_overrides(properties["completion"], supplied)
         elif callable(supplied):
             properties["completion"]["x-host-override"] = True
         return self.settings_layout.schema(object_schema(properties, **({"x-settings-key": self.settings_name} if self.settings_name else {})))

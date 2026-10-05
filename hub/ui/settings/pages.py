@@ -93,12 +93,17 @@ class ProjectPage(Page):
         self.activate_button = Button(screen.t("settings_open_project"), handler=lambda: screen.activate(self), width=12)
         body = list(self.form.children)
         for key in dict.fromkeys(self.engine_keys.values()):
-            form = SchemaForm(engine_schemas.get(key, {}), values, screen.t, prefix=("config", "parameters", "engines", key))
+            effective = {name: view for name, view in record.get("effective_engines", {}).items()
+                         if self.engine_keys.get(name) == key}
+            form = SchemaForm(engine_schemas.get(key, {}), values, screen.t,
+                              prefix=("config", "parameters", "engines", key), effective=effective)
             self.engine_forms[key] = form
             body.extend([section(key), *form.children])
         for name in self.components:
+            view = record.get("components", {}).get(name, {}).get("effective")
             form = SchemaForm(self.component_schemas.get(name, False), values, screen.t,
-                              prefix=("config", "parameters", "components", name))
+                              prefix=("config", "parameters", "components", name),
+                              effective={name: view} if view is not None else None)
             self.component_forms[name] = form
             body.extend([section(name), *(form.children or [form.container])])
         self.container = SettingsBody(body, self.all_fields())

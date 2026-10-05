@@ -27,7 +27,7 @@ UI의 저장·취소 동작은 이 계약을 사용하며, 프로젝트/컴포�
 
 ## 저장소와 배포 경계
 
-실행 플러그인 루트는 `llm/`과 향후 구현할 `hub/`다. 테스트는 `tests/<plugin>/`,
+실행 플러그인 루트는 `llm/`과 Prompt-Toolkit UI인 `hub/`다. 테스트는 `tests/<plugin>/`,
 예제는 `examples/<plugin>/`, 아키텍처·작업 인계·검토 문서는 `docs/<plugin>/`에 둔다.
 `ish.platform/`은 호스트 참고 소스로 유지하며 로더 계약 테스트에서만 참조한다.
 개인 수동 스크립트와 검사 기록은 `tests/llm/manual/`, `tests/llm/reports/`에 둔다.

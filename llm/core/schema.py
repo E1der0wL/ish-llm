@@ -48,6 +48,17 @@ def completion_schema():
        **{"x-open-parameters": True})
 
 
+def mark_host_overrides(schema, values):
+    """병합과 같은 leaf 단위로 고정값을 표시한다. 빈 dict는 덮어쓰는 값이 없다."""
+    if isinstance(values, dict):
+        if values and "type" not in schema and not any(key in schema for key in ("$ref", "allOf", "anyOf", "oneOf")):
+            schema["type"] = "object"
+        for key, value in values.items():
+            mark_host_overrides(schema.setdefault("properties", {}).setdefault(key, {}), value)
+    else:
+        schema["x-host-override"] = True
+
+
 def checked_schema(value):
     """UI 스키마는 JSON이며 외부 스키마를 내려받지 않는다."""
     import json

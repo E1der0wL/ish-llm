@@ -209,6 +209,11 @@ MESSAGES = {
     "settings_usage_row": "{title} ({period})\n  호출 {call_count}회 · 확인된 토큰 {known_tokens} · 예약 토큰 {reserved_tokens} · 사용량 미확인 {unknown_calls}회",
 
     "settings_no_description": "스키마에 별도 설명이 없습니다.", "settings_no_fields": "공개된 설정 항목이 없습니다.",
+    "settings_stored": "저장값 (편집 대상)",
+    "settings_effective": "현재 적용값 [{name}]: {value} · 출처: {source}",
+    "settings_unset": "미설정", "settings_runtime_value": "실행 시 호스트에서 결정",
+    "settings_host_locked": "호스트 고정값: 읽기 전용입니다.",
+    "settings_host_partial": "일부 하위 키는 호스트 고정값입니다. 해당 키의 저장값을 변경할 수 없습니다.",
 
     "settings_profile_description": "대화에 표시할 이름. 초기값은 현재 OS 계정명입니다.",
 

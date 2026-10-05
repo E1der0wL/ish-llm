@@ -102,9 +102,21 @@ class PipelineEngine:
         return worker, config, session, key
 
     def configuration_schema(self):
+        def stage_schema(stage):
+            from llm.core.schema import checked_implementation_schema
+            import hashlib
+            import json
+            describe = getattr(stage, "configuration_schema", None)
+            spec = checked_implementation_schema(describe() if callable(describe) else
+                                                 implementation_schema(**{"x-runtime-only": True}))
+            # 하위 Engine의 로컬 $ref는 해당 스키마 루트 기준이다. Pipeline에
+            # 끼워 넣어도 참조가 부모의 config/$defs로 바뀌지 않게 resource를 분리한다.
+            if "$id" not in spec:
+                digest = hashlib.sha256(json.dumps(spec, sort_keys=True).encode()).hexdigest()
+                spec["$id"] = "urn:ish:pipeline-stage:" + digest
+            return spec
         return implementation_schema(config=object_schema({"stages": object_schema({name:
-            stage.configuration_schema() if callable(getattr(stage, "configuration_schema", None)) else
-            implementation_schema(**{"x-runtime-only": True}) for name, stage in zip(self.stage_names, self.stages)},
+            stage_schema(stage) for name, stage in zip(self.stage_names, self.stages)},
             additionalProperties=False)}, additionalProperties=False), **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
     def configuration(self, config, name, *, session_config=None):

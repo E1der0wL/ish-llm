@@ -73,6 +73,21 @@ config에 잘못 배치하면 검증 오류다.
 새 구현체는 `implementation_schema(config=..., policy=...)`로 직접 schema를 작성해도 된다.
 SettingsLayout을 상속하거나 내부 실행 알고리즘을 공통 클래스로 바꾸는 것은 필수가 아니다.
 
+`config.input_policy`처럼 내부 정책 인자 이름을 확장 키로 넣어 우회할 수 없다.
+선언된 경로와 충돌하지 않는 확장 키와 SDK dict 내부 키는 계속 보존한다.
+SettingsLayout은 직접 매핑한 필드의 루트 `required`, `$defs`/`definitions`와 로컬
+JSON Pointer 참조를 공개 경로에 맞춰 보존한다. 통째로 매핑한 하위 schema의 조건도 유지한다.
+Pipeline은 하위 Engine schema의 참조 루트를 분리해 중첩 단계에서도 로컬 `$ref`의 의미를 유지한다.
+분할하는 컨테이너의 `allOf`/조건부 제약, 중첩 `required`/정의, 별도 schema resource/anchor 등
+안전하게 재배치할 수 없는 제약은 명시적으로 거부한다. 복합 조건은 변환 도우미를 거치지 않고
+`implementation_schema()`의 최종 config/policy 경로에 직접 선언한다. 조건을 조용히 버리지 않는다.
+
+호스트가 SDK dict 일부를 지정하면 해당 leaf만 `x-host-override`와 `editable=false`로
+표시한다. null·배열은 교체 값이고 빈 dict는 하위 값을 덮어쓰지 않는다.
+Hub는 저장값과 현재 적용값/출처를 구분한다. 고정 필드는 읽기 전용이며, 일부 경로만 고정된
+JSON 편집기는 나머지 경로만 변경할 수 있다. 적용값·client 값·runtime 추정값을 저장값에
+자동으로 복사하지 않는다. 여러 Engine이 설정 키를 공유하면 각 Engine의 적용값을 표시한다.
+
 공통 `policies`는 서비스가 집행하는 context/run/approval/tool_retry/usage/retention/output만
 해석한다. Loop 모델 입력은 `parameters.engines[이름].policy.completion`의 CompletionPolicy,
 스트리밍 재시도는 같은 Engine의 `policy.provider`가 담당한다. Memory 보조 모델에는
