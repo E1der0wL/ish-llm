@@ -1,3 +1,46 @@
+## 2026-10-05 Architecture boundary · Skill evolution
+
+- Project → Session → Run → Step 및 기존 승인/재개/Tool/영속 owner는 유지했다.
+  Boundary 분류와 개발 체크리스트는 [architecture-boundaries.md](architecture-boundaries.md),
+  요청한 22개 결과 항목과 변경 파일은 [boundary-evolution-review.md](boundary-evolution-review.md)에 있다.
+- Memory 검색은 명시 keyword 전략 또는 host search_fn을 요구한다. host의 0·음수 점수는
+  보존하며 추가 cutoff는 명시 시만 적용한다. 의미 추출 지침은 Prompt 참조 또는 host 입력이고,
+  처리기 사본/후보에 출처와 버전을 남긴다.
+- Graph 관계는 support_count를 반환한다. 미설정 정렬은 안정적인 출처/ID 순서,
+  지지 개수 우선은 명시적 선택이다. 기존 graph JSON/Kuzu weight의 사실적 의미와 저장 형식은 유지했다.
+  RAG/파일 조회의 임의 제품 상한을 제거하고 IPC/cleanup/프로토콜 안전 상한은 근거를 기록했다.
+- 모델의 직접 prompt_update/harness_propose_update 경로를 제거했다. Agent는 참조 Prompt,
+  inline prompt, Skill을 고정된 순서와 revision으로 조합한다. 기존 host 우선순위는 유지한다.
+- Refinement는 Skill update/create/fork와 별도 bind_skills, 평가 기록, 부모/대상 CAS,
+  불변 lineage, 승인 후 원자 적용/rollback을 제공한다. 평가 수행과 합격 기준은 앱이 소유한다.
+  Skill 생성은 Agent를 자동 변경하지 않는다. 프롬프트/Skill 데이터로 실행 권한을 늘리지 않는다.
+- 최종 Linux Python 3.12.14: 전체 llm **1,279 passed / 0 failed / 0 skipped** (465.886초),
+  Hub **110 passed / 0 failed / 0 skipped** (97.381초). 수정 후 집중 **26 passed** (13.246초)는
+  전체와 중복이다. 신규 14개 외 기존 관련 fixture/예제 계약 검사를 갱신했다.
+- llm snapshot `/home/user/.cache/ish-provider-2u_2cn0c`, Hub snapshot
+  `/home/user/.cache/ish-provider-hsl_vfys`; 기록은 `tests/llm/reports/<snapshot 이름>/`이다.
+  최종 llm Python 313개, Hub 검증 관련 backend/UI Python 276개의 현재 해시가 각각 일치한다.
+  검증 후 변경은 이 인계/결과 문서뿐이다. 해시 기록은 reports/architecture-boundary-snapshot-verification.json.
+- 중간 회귀에서 graph_rag 예제의 옛 weight 키와 chunk_size 하한 기대값을 수정했다.
+  Kuzu 순서 검사는 조회 후 바뀔 수 있는 DB 파일 바이트 대신 실제 저장된 행의 불변성을 확인한다.
+  앞선 Hub 읽기 위치 대기 timeout은 최종 순차 Hub 전체 검사에서 재현되지 않았다.
+- 정적 감사: production Python 159개 / 검토 후보 520개. 후보/분류 근거는
+  reports/architecture-boundary-audit.json과 architecture-boundaries.md에 있다.
+  외부 유료 모델/사내 endpoint 및 수 시간 실제 운용은 이번 회귀의 검증 범위가 아니다.
+  domain/workflow/graph version 1 유지, migration/호환 별칭 없음. Hub 코드는 수정하지 않았다.
+
+검증 명령 (같은 Linux interpreter에서 순차 실행):
+
+```sh
+wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python \
+  /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --source /mnt/d/WorkSpace/ish \
+  --modules tests.llm.test_architecture_boundaries tests.llm.test_graph_rag_example --full --hub
+# 위 실행의 Hub 110개 통과 후 옛 chunk_size 기대값 fixture를 수정하고 llm 전체 재검증:
+wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python \
+  /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --source /mnt/d/WorkSpace/ish \
+  --modules tests.llm.test_project_component_settings tests.llm.test_architecture_boundaries --full
+```
+
 ## 2026-10-05 Goal · Memory work state · Refinement
 
 - 첨부 지침의 순서대로 Goal → 기존 Memory compaction → Refinement를 구현했다.
