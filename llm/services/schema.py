@@ -1,7 +1,7 @@
 """등록 객체가 선언한 Project 편집 스키마를 조합한다. 저장 파일이나 모델은 읽지 않는다."""
 
 from llm.core.models import ProjectConfig
-from llm.core.schema import checked_schema, object_schema
+from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema
 
 
 def effective_engines(app, config, *, session_config=None):
@@ -23,11 +23,23 @@ def project_schema(app, components=None):
         catalog[name] = {"directory": component.directory, "capabilities": list(component.capabilities),
                          "record_schema": checked_schema(getattr(component, "schema", object_schema())),
                          "project_configuration": callable(getattr(component, "validate_project_configuration", None))}
+    # 선언한 런타임 자원의 선택지만 보강한다. 정책값이나 Engine별 기본값은 생성하지 않는다.
+    def resources(spec):
+        if isinstance(spec, dict):
+            if spec.get("x-resource") == "token_counters":
+                spec["enum"] = sorted(getattr(app.policy_resolver, "token_counters", {}))
+            for value in spec.values():
+                resources(value)
+        elif isinstance(spec, list):
+            for value in spec:
+                resources(value)
+
     engines, engine_catalog = {}, {}
     for name in app.engines.names():
         engine = app.engines.resolve(name)
         describe = getattr(engine, "configuration_schema", None)
-        spec = checked_schema(describe() if describe else object_schema())
+        spec = checked_implementation_schema(describe() if describe else implementation_schema())
+        resources(spec)
         key = spec.get("x-settings-key", name) if isinstance(spec, dict) else name
         if not isinstance(key, str) or not key.strip():
             raise ValueError("Engine configuration key must be nonempty text")
@@ -36,7 +48,7 @@ def project_schema(app, components=None):
         engines[key] = {"allOf": [engines[key], spec]} if key in engines else spec
         engine_catalog[name] = {"configuration_key": key}
     policies = ProjectConfig.policy_schema()
-    for section in ("completion", "retention"):
+    for section in ("usage", "retention"):
         names = sorted(getattr(app.policy_resolver, "token_counters", {}))
         if names:
             policies["properties"][section]["properties"]["counter"]["enum"] = names
@@ -48,7 +60,7 @@ def project_schema(app, components=None):
             project_components[name] = False
             continue
         describe = getattr(component, "configuration_schema", None)
-        spec = checked_schema(describe() if describe else object_schema())
+        spec = checked_implementation_schema(describe() if describe else implementation_schema())
         if isinstance(spec, dict):
             spec["$id"] = "urn:ish:project-component:" + name + ":configuration"
             # UI values에는 명시적으로 설정한 값만 제공한다. 중첩/배열/ref의 조건을 보존한다.

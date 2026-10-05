@@ -31,7 +31,7 @@ class EngineRegistry:
     def validate_configuration(self, config, *, session_config=None) -> None:
         """저장 전 공개 설정 계약만 호출한다. execute/capability/모델 함수는 호출하지 않는다."""
         from llm.core.models import ProjectConfig
-        from llm.core.schema import checked_schema
+        from llm.core.schema import checked_implementation_schema
         from jsonschema import Draft202012Validator
         from copy import deepcopy
         import inspect
@@ -41,7 +41,7 @@ class EngineRegistry:
         for name, engine in self._engines.items():
             schema = getattr(engine, "configuration_schema", None)
             if callable(schema):
-                spec = checked_schema(schema())
+                spec = checked_implementation_schema(schema())
                 key = spec.get("x-settings-key", name) if isinstance(spec, dict) else name
                 if not isinstance(key, str) or not key.strip():
                     raise ValueError("Engine configuration key must be nonempty text")

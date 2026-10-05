@@ -42,13 +42,13 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
     async def test_agent_uses_same_loop_defaults_and_host_precedence(self):
         engine = LoopEngine(max_iterations=4)
         agent = engine.for_agent({"engine": "writer", "purpose": "write", "completion": {"model": "fake"},
-                                  "engine_options": {"max_iterations": 9}})
-        view = agent.configuration({"parameters": {"engines": {"writer": {"max_iterations": 2}}}}, "writer",
-                                   session_config={"parameters": {"engines": {"writer": {"max_iterations": 3}}}})
-        self.assertEqual(view["values"]["max_iterations"], 4)
+                                  "engine_options": {'policy': {'max_iterations': 9}}})
+        view = agent.configuration({"parameters": {"engines": {"writer": {'policy': {'max_iterations': 2}}}}}, "writer",
+                                   session_config={"parameters": {"engines": {"writer": {'policy': {'max_iterations': 3}}}}})
+        self.assertEqual(view["values"]["policy"]["max_iterations"], 4)
         self.assertNotIn("request_timeout", view["values"])
-        self.assertEqual(view["sources"]["/max_iterations"], "host")
-        self.assertEqual(view["overridden"]["/max_iterations"][-1]["source"], "agent")
+        self.assertEqual(view["sources"]["/policy/max_iterations"], "host")
+        self.assertEqual(view["overridden"]["/policy/max_iterations"][-1]["source"], "agent")
 
     async def test_ui_does_not_invoke_runtime_factories(self):
         def factory(context):
@@ -59,7 +59,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(view["effective_engines"]["loop"]["runtime"], ["completion", "system_prompt"])
         json.dumps(view, allow_nan=False)
         self.assertFalse("completion" not in view["effective_engines"]["loop"]["runtime"])
-        self.assertFalse(view["effective_engines"]["loop"]["editable"]["/system_prompt"])
+        self.assertFalse(view["effective_engines"]["loop"]["editable"]["/config/system_prompt"])
 
     async def test_graph_project_session_limits_and_schema_control_actual_execution(self):
         effects = []
@@ -67,15 +67,15 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
             effects.append(node.node_id)
             return {}
         app = self.backend(engines={"graph": GraphEngine(handlers={"work": work})}, components=[WorkflowComponent()])
-        project = await app.projects.acreate(components=["workflows"], config={"parameters": {"engines": {"graph": {"max_steps": 1, "timeout_seconds": None}}}})
+        project = await app.projects.acreate(components=["workflows"], config={"parameters": {"engines": {"graph": {'policy': {'max_steps': 1, 'timeout_seconds': None}}}}})
         await (await project.components.aget("workflows")).acreate(
             WorkflowGraph(entry="a").node("a", "work").node("end", "end").connect("a", "end").to_dict(), identifier="flow")
         first = await project.sessions.acreate()
         failed = await (await first.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual((await failed.aget_data()).status, "failed")
-        second = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {"max_steps": 3}}}})
+        second = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {'policy': {'max_steps': 3}}}}})
         view = await second.aconfiguration()
-        self.assertEqual(view["effective_engines"]["graph"]["sources"]["/max_steps"], "session")
+        self.assertEqual(view["effective_engines"]["graph"]["sources"]["/policy/max_steps"], "session")
         done = await (await second.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual((await done.aget_data()).status, "completed")
         self.assertEqual(effects, ["a", "a"])
@@ -83,11 +83,11 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_graph_agent_keeps_host_limits_and_inherits_project_settings(self):
         engine = GraphEngine(handlers={}, max_parallelism=2)
-        agent = engine.for_agent({"engine": "nested", "engine_options": {"workflow": "child", "max_parallelism": 8}})
-        view = agent.configuration({"parameters": {"engines": {"nested": {"timeout_seconds": None, "max_steps": 42}}}}, "nested")
-        self.assertEqual(view["values"]["max_steps"], 42)
-        self.assertEqual(view["values"]["max_parallelism"], 2)
-        self.assertIsNone(view["values"]["timeout_seconds"])
+        agent = engine.for_agent({"engine": "nested", "engine_options": {'policy': {'max_parallelism': 8}, 'workflow': 'child'}})
+        view = agent.configuration({"parameters": {"engines": {"nested": {'policy': {'timeout_seconds': None, 'max_steps': 42}}}}}, "nested")
+        self.assertEqual(view["values"]["policy"]["max_steps"], 42)
+        self.assertEqual(view["values"]["policy"]["max_parallelism"], 2)
+        self.assertIsNone(view["values"]["policy"]["timeout_seconds"])
         self.assertEqual(agent.workflow, "child")
 
     async def test_agent_actual_completion_matches_project_session_agent_host_order(self):
@@ -95,12 +95,12 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         worker = LoopEngine(completion_fn=provider, completion_kwargs={"temperature": 0.1})
         app = self.backend(engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"writer": worker})})},
                            components=[WorkflowComponent(), AgentComponent()])
-        project = await app.projects.acreate(components=["workflows", "agents"], config={"parameters": {"engines": {"writer": {**{"request_timeout": 7}, "completion": {"model": "project", "temperature": 0.9}}}}})
+        project = await app.projects.acreate(components=["workflows", "agents"], config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 7}, 'config': {'completion': {'model': 'project', 'temperature': 0.9}}}}}})
         await (await project.components.aget("agents")).acreate({"engine": "writer", "purpose": "write",
             "completion": {"model": "agent", "temperature": 0.3}}, identifier="writer")
         await (await project.components.aget("workflows")).acreate(WorkflowGraph(entry="a").node("a", "agent", agent="writer")
             .node("end", "end").connect("a", "end").to_dict(), identifier="flow")
-        session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {"completion": {"temperature": 0.5}}}}})
+        session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'temperature': 0.5}}}}}})
         run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual((await run.aget_data()).status, "completed")
         self.assertEqual(provider.requests[0]["temperature"], 0.1)
@@ -113,15 +113,15 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.sleep(0.2)
         pipeline = PipelineEngine({"prepare": PreparationStep("Prepare", slow), "answer": LoopEngine(completion_fn=provider)})
         app = self.backend(engines={"pipeline": pipeline})
-        project = await app.projects.acreate(config={"parameters": {"engines": {"pipeline": {"stages": {"prepare": {"timeout_seconds": 0.01}}}, "loop": {"completion": {"model": "fake"}}}}})
+        project = await app.projects.acreate(config={"parameters": {"engines": {"pipeline": {'config': {'stages': {'prepare': {'policy': {'timeout_seconds': 0.01}}}}}, "loop": {'config': {'completion': {'model': 'fake'}}}}}})
         view = await project.aconfiguration()
-        self.assertEqual(view["effective_engines"]["pipeline"]["stages"]["prepare"]["values"]["timeout_seconds"], .01)
+        self.assertEqual(view["effective_engines"]["pipeline"]["stages"]["prepare"]["values"]["policy"]["timeout_seconds"], .01)
         session = await project.sessions.acreate()
         run = await (await session.run.submit("go", engine="pipeline")).wait()
         self.assertEqual((await run.aget_data()).status, "failed")
         self.assertEqual(provider.requests, [])
         fixed = PreparationStep("Fixed", slow, timeout_seconds=None)
-        self.assertIsNone(fixed.configuration({"parameters": {"engines": {"fixed": {"timeout_seconds": .01}}}}, "fixed")["values"]["timeout_seconds"])
+        self.assertIsNone(fixed.configuration({"parameters": {"engines": {"fixed": {'policy': {'timeout_seconds': 0.01}}}}}, "fixed")["values"]["policy"]["timeout_seconds"])
 
     async def test_rag_project_settings_isolate_chunking_batches_and_search_defaults(self):
         calls = []
@@ -133,8 +133,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         first = await app.projects.acreate(components=["rag"], config=rag_project())
         second = await app.projects.acreate(components=["rag"], config=rag_project())
         small, large = await first.components.aget("rag"), await second.components.aget("rag")
-        await small.aconfigure(rag_settings({"chunk_size": 64, "embedding_concurrency": 1, "search": {"method": "bm25", "limit": 1},
-                                "index_batch_size": 1, "graph": {"max_num_threads": 1}}))
+        await small.aconfigure(rag_settings({'config': {'chunk_size': 64, 'search': {'method': 'bm25', 'limit': 1}, 'index_batch_size': 1, 'graph': {'max_num_threads': 1}}, 'policy': {'embedding_concurrency': 1}}))
         text = "Alice owns Atlas. " * 12
         a = await small.aadd_document(title="A", content=text)
         b = await large.aadd_document(title="B", content=text)
@@ -145,7 +144,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(hits["documents"]), 1)
         self.assertEqual(len(calls), before)
         view = await first.aconfiguration()
-        self.assertEqual(view["components"]["rag"]["effective"]["sources"]["/chunk_size"], "project")
+        self.assertEqual(view["components"]["rag"]["effective"]["sources"]["/config/chunk_size"], "project")
 
     async def test_rag_json_model_configuration_uses_injected_clients_without_mutation(self):
         call = AsyncMock(side_effect=fake_embedding)
@@ -154,13 +153,13 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         app = self.backend(components=[component])
         project = await app.projects.acreate(components=["rag"], config=rag_project())
         rag = await project.components.aget("rag")
-        await rag.aconfigure(rag_settings({"embedding_params": {"model": "project-model", "timeout": 17}}))
+        await rag.aconfigure(rag_settings({'config': {'embedding_params': {'model': 'project-model', 'timeout': 17}}}))
         await rag.aadd_document(title="A", content="Alice owns Atlas")
         self.assertEqual(call.call_args.kwargs["model"], "project-model")
         self.assertEqual(call.call_args.kwargs["timeout"], 17)
         self.assertEqual(model.params, {})
         view = await rag.aeffective_configuration()
-        self.assertEqual(view["sources"]["/embedding_params/model"], "project")
+        self.assertEqual(view["sources"]["/config/embedding_params/model"], "project")
 
     async def test_rag_rejects_config_change_during_preparation(self):
         entered, release = asyncio.Event(), asyncio.Event()
@@ -173,7 +172,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         rag = await project.components.aget("rag")
         pending = asyncio.create_task(rag.aadd_document(title="A", content="Alice owns Atlas"))
         await entered.wait()
-        await rag.aconfigure(rag_settings({"chunk_size": 64}))
+        await rag.aconfigure(rag_settings({'config': {'chunk_size': 64}}))
         release.set()
         with self.assertRaises(RAGConflictError):
             await pending
@@ -183,14 +182,14 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         app = self.backend(components=[RAGComponent()])
         project = await app.projects.acreate(components=["rag"], config=rag_project())
         rag = await project.components.aget("rag")
-        await rag.aconfigure(rag_settings({"chunk_size": 64, "new_option": {"enabled": True}}))
+        await rag.aconfigure(rag_settings({'config': {'chunk_size': 64, 'new_option': {'enabled': True}}}))
         view = await rag.aeffective_configuration()
-        self.assertEqual(view["values"]["chunk_size"], 64)
-        self.assertTrue(view["editable"]["/chunk_size"])
+        self.assertEqual(view["values"]["config"]["chunk_size"], 64)
+        self.assertTrue(view["editable"]["/config/chunk_size"])
         for config in ({"chunk_size": 2}, {"search": {"limit": 0}}, {"embedding_concurrency": True}):
             with self.assertRaises(ValueError):
                 await rag.aconfigure(rag_settings(config))
-        self.assertEqual((await rag.aconfiguration())["new_option"], {"enabled": True})
+        self.assertEqual((await rag.aconfiguration())["config"]["new_option"], {"enabled": True})
 
     async def test_prepared_job_cannot_publish_after_settings_change(self):
         from llm.components.rag.jobs import RAGJobs
@@ -201,7 +200,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(RAGJobs, "_commit", side_effect=ConnectionError("before publish")):
             with self.assertRaises(ConnectionError):
                 await rag.arun_job(job["id"])
-        await rag.aconfigure(rag_settings({"chunk_size": 64}))
+        await rag.aconfigure(rag_settings({'config': {'chunk_size': 64}}))
         with self.assertRaisesRegex(ValueError, "settings changed"):
             await rag.arun_job(job["id"], retry=True)
         self.assertEqual(await rag.alist_documents(), [])

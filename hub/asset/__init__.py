@@ -1,0 +1,1 @@
+"""Shared Hub visual assets."""

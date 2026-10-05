@@ -210,13 +210,13 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.session.aget_data()).config, {"custom": 1})
         await self.project.components.aselect(["tools", "workflows"])
         tools = await self.project.components.aget("tools")
-        await tools.aconfigure({"enabled": [], "extension": 3})
+        await tools.aconfigure({'config': {'enabled': [], 'extension': 3}})
         await tools.acreate({"source": "# editable"}, identifier="offline")
         await tools.aenable("offline")
         self.assertEqual(await tools.aenabled(), ["offline"])
         await tools.adisable("offline")
         await tools.aset_enabled([])
-        self.assertEqual((await tools.aconfiguration())["extension"], 3)
+        self.assertEqual((await tools.aconfiguration())["config"]["extension"], 3)
         graphs = await self.project.components.aget("workflows")
         identifier = await graphs.acreate(WorkflowGraph(entry="end").node("end", "end").to_dict())
         await graphs.aupdate(identifier, {"custom": 1})
@@ -282,8 +282,8 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         shared = LoopEngine(completion_fn=provider)
         self.app.engines.register("alpha", shared)
         self.app.engines.register("beta", shared)
-        await self.project.asave(config={"parameters": {"engines": {"alpha": {**{"system_prompt": "project alpha", "request_timeout": 12}, "completion": {"model": "openai/test"}}, "beta": {**{"system_prompt": "project beta", "request_timeout": 23}, "completion": {"model": "openai/test"}}, "loop": {**{"system_prompt": "must not use", "request_timeout": 99}, "completion": {"model": "openai/test"}}}}})
-        await self.session.asave(config={"parameters": {"engines": {"alpha": {"system_prompt": "session alpha"}}}})
+        await self.project.asave(config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'project alpha', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 12}}, "beta": {'config': {'system_prompt': 'project beta', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 23}}, "loop": {'config': {'system_prompt': 'must not use', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 99}}}}})
+        await self.session.asave(config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'session alpha'}}}}})
         other = await self.project.sessions.acreate("other")
         a, b = await asyncio.gather(self.session.run.submit("a", engine="alpha"),
                                     other.run.submit("b", engine="beta"))
@@ -302,8 +302,8 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
     async def test_pipeline_can_choose_explicit_stage_configuration(self):
         provider = ScriptedCompletion([chunk("one", finish="stop")], [chunk("two", finish="stop")])
         await self.project.asave(config={"parameters": {"engines": {
-            "pipeline": {"system_prompt": "outer", "completion": {"model": "openai/test"}},
-            "stage": {"system_prompt": "inner", "completion": {"model": "openai/test"}}}}})
+            "pipeline": {'config': {'stages': {'0': {'config': {'system_prompt': 'outer', 'completion': {'model': 'openai/test'}}}}}},
+            "stage": {'config': {'system_prompt': 'inner', 'completion': {'model': 'openai/test'}}}}}})
         self.app.engines.register("pipeline", PipelineEngine([
             LoopEngine(completion_fn=provider),
             LoopEngine(completion_fn=provider, settings_name="stage"),

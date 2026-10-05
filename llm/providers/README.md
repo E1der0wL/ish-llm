@@ -56,9 +56,15 @@ TripleExtractor는 JSON-mode fallback과 semantic repair에도 같은 deadline�
 오류는 안전한 `ProviderError.code`로 전달하고 `__cause__`에 원본을 보존한다.
 JSON/의미 오류는 별도의 extraction repair 정책을 사용한다.
 
-스트리밍은 기존 Run의 `policies.provider_retry`를 유지하며 첫 chunk를 받은 뒤에는
-llm은 자동 재시도하지 않는다. 스트리밍도 같은 SDK 우선 정책을 적용하고 사용자 값을 유지한다.
-스트림 bridge는 자체 deadline을 만들지 않는다. SDK `timeout`과 Loop wrapper request_timeout은 독립이다. 동기 SDK worker는
+스트리밍은 `BaseEngine.stream_completion(request, provider=...)`의 명시적 인자를 사용한다.
+Loop는 `parameters.engines[이름].policy.provider`, Memory 보조 모델은
+`parameters.components.memory.policy.processing.provider`에서 가져온다. 암묵적 Run retry scope는 없다.
+`max_attempts`는 최초 호출을 포함하며 미설정이면 최초 호출만 한다. 첫 chunk 이후에는
+자동 재시도하지 않는다. 스트리밍도 같은 SDK 우선 정책을 적용하고 사용자 값을 유지한다.
+명시한 `wall_timeout`은 응답·재시도에 같은 절대 기한을 적용하되, 이벤트를 저장 중인
+소비자를 취소하지 않는다. 저장 후 다음 진행에서 남은 기한을 확인한다.
+스트림 bridge는 자체 deadline을 만들지 않는다. SDK `timeout`, Loop `request_timeout`,
+provider `wall_timeout`은 독립이다. 동기 SDK worker는
 강제로 죽일 수 없다. 소비자는 취소되지만 실제 호출이 종료될 때까지 슬롯은 반환하지 않는다.
 사용자 주입 함수가 취소를 무시하거나 자체 내부 재시도를 구현하는 경우까지 강제로 제어하지는 않는다.
 

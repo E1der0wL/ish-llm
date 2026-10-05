@@ -10,6 +10,7 @@ Project → Session → Run → Step의 저장 모델과, Engine·서비스·UI�
 | [models.py](models.py) | ProjectConfig, Project, Session, Message, Run, Step과 상태·저장 버전·Run 전이 검증을 정의합니다. |
 | [paths.py](paths.py) | Project/Session/Run/Step의 주요 경로를 정의합니다. Component 내부 경로는 포함하지 않습니다. |
 | [configuration.py](configuration.py) | 명시된 설정 계층을 병합하고 values/sources/overridden/editable을 계산합니다. |
+| [settings.py](settings.py) | SettingsLayout으로 구현체의 config/policy 경로·생성자 명시값·schema 분류를 일치시킵니다. 기본값이나 호환 변환은 만들지 않습니다. |
 | [policies.py](policies.py) | ProjectConfig.policies의 JSON 형식과 정책 값 검증을 담당합니다. |
 | [schema.py](schema.py) | 설정 UI에 쓰는 JSON Schema 생성·검증 도우미입니다. |
 | [contracts.py](contracts.py) | Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent 등 공통 관찰 데이터를 정의합니다. |

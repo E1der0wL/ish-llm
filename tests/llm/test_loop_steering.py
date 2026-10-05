@@ -1,3 +1,4 @@
+from tests.llm.configuration_fixtures import memory_settings
 """실제 Facade/저장/Loop 경계에서 추가 지시와 기존 실행 계약을 검증한다."""
 
 import asyncio
@@ -45,11 +46,11 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(app.shutdown)
         self.addCleanup(model.release.set)
         project = await app.projects.acreate("test", config=ProjectConfig(ProjectConfig.merge(
-            {"parameters": {"engines": {"worker": {"completion": {"model": "test/model"}}}}}, config or {})),
+            {"parameters": {"engines": {"worker": {'config': {'completion': {'model': 'test/model'}}}}}}, config or {})),
             components=[v.name for v in (components or [])])
         for component in components or []:
             if isinstance(component, RuntimeTools):
-                await (await project.components.aget("tools")).aconfigure({"enabled": list(component.registry.names())})
+                await (await project.components.aget("tools")).aconfigure({'config': {'enabled': list(component.registry.names())}})
         session = await project.sessions.acreate("test")
         request = await session.run.submit("original", engine="worker")
         self.assertTrue(await asyncio.to_thread(model.entered.wait, 10))
@@ -148,7 +149,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         model = Model([chunk("x" * 50, finish="stop")])
         services = ServiceConfig(token_counters={"chars": lambda request: sum(len(m.get("content") or "") for m in request["messages"])})
         _, session, request, run = await self.setup_backend(model, services=services,
-            config={"policies": {"completion": {"max_tokens": 20, "counter": "chars"}}})
+            config={"parameters": {"engines": {"worker": {'policy': {'completion': {'max_tokens': 20, 'counter': 'chars'}}}}}})
         await session.run.steer(run.id, "new")
         model.release.set()
         result = await request.wait(timeout=10)
@@ -495,9 +496,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
             summaries.append(json.loads(request["messages"][1]["content"]))
             yield chunk('{"summary":"first request and its correction"}', finish="stop")
         component = MemoryComponent(completion_fn=auxiliary)
-        config = {"parameters": {"components": {"memory": {"processing": memory_processing({
-            "summarize": True, "recall": False, "keep_turns": 1, "summary_after_chars": 1,
-            "completion": {"model": "test/aux"}})}}}}
+        config = {"parameters": {"components": {"memory": memory_settings({'processing': memory_processing({'summarize': True, 'recall': False, 'keep_turns': 1, 'summary_after_chars': 1, 'completion': {'model': 'test/aux'}})})}}}
         model = Model([chunk("draft", finish="stop")], [chunk("answer", finish="stop")],
                       [chunk("second answer", finish="stop")], [chunk("third answer", finish="stop")])
         _, session, request, run = await self.setup_backend(model, config=config, components=[component])
@@ -517,9 +516,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         def auxiliary(**request):
             yield chunk('{"summary":"completed work"}', finish="stop")
         component = MemoryComponent(completion_fn=auxiliary)
-        config = {"parameters": {"components": {"memory": {"processing": memory_processing({
-            "summarize": True, "recall": False, "active_keep_iterations": 1, "summary_after_chars": 1,
-            "completion": {"model": "test/aux"}})}}}}
+        config = {"parameters": {"components": {"memory": memory_settings({'processing': memory_processing({'summarize': True, 'recall': False, 'active_keep_iterations': 1, 'summary_after_chars': 1, 'completion': {'model': 'test/aux'}})})}}}
         effects = []
         async def act(arguments):
             effects.append(1)
@@ -555,7 +552,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         model = Model([chunk("draft", finish="stop")], [chunk("answer", finish="stop")],
                       [chunk("done", finish="stop")])
         _, session, request, run = await self.setup_backend(model, services=services,
-            config={"policies": {"completion": {"max_tokens": 30, "counter": "chars"}}})
+            config={"parameters": {"engines": {"worker": {'policy': {'completion': {'max_tokens': 30, 'counter': 'chars'}}}}}})
         await session.run.steer(run.id, "correction")
         model.release.set()
         self.assertEqual((await request.wait(timeout=10)).data.status, "completed")

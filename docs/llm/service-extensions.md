@@ -32,12 +32,16 @@ project = await backend.projects.acreate(config={
 `step_repository`, `conversations`, `context_builder`, `token_counters`, `policy_resolver`,
 `event_handlers`, `logger`를 지정할 수 있다. 미지정 저장소는 백엔드 구성 시 생성한다.
 실행, Facade 조회, Project/Session 결과 조회는 같은 저장소 인스턴스를 사용한다.
+사용자 policy_resolver의 `resolve(settings)`는 `(ContextPolicy 또는 None, RunPolicy)`를
+반환하고 `token_counters`에 등록된 계산기만 제공한다. 모델 입력 정책이나 Engine/Component
+재시도 객체를 만들어 반환하지 않는다. 기본 resolver도 같은 계약을 사용한다.
 주입 context_builder의 for_run은 keyword policy로 해당 Run의 프로젝트 정책을 받는다.
 추가 지시는 원래 요청과 같은 턴이다. 사용자 context_builder도 Message.metadata.steering을
 구분하여 따로 새 턴으로 자르지 않아야 한다. 기본 CompletionPolicy는
 prepare_turn(request, current_index, turn_starts)로 활성 턴 전체를 보호한다. 주입한
 completion policy도 추가 지시가 포함된 입력을 다룰 때 이 메서드를 제공해야 한다.
-저장할 선택값은 [ProjectConfig.policies](project-policies.md)에서 관리한다.
+공통 선택값은 ProjectConfig.policies, 모델 입력 정책은 해당 Engine의 policy.completion에서
+관리한다. custom Engine은 필요한 정책 객체를 직접 구성한다. [소유권과 설정 예](project-policies.md)
 
 저장소 교체는 기존 모델/경로/동기 저장/ownership 계약을 따르는 구현을 대상으로 한다.
 이 기능 자체가 데이터베이스 어댑터나 분산 실행을 제공하는 것은 아니다.
@@ -216,7 +220,7 @@ await session.asave(title="새 제목", metadata={"label": "리뷰"})
 # 실행 설정 변경은 기존처럼 런타임 해제 후 수행
 await session.run.wait_idle()
 await session.run.shutdown()
-await session.asave(config={"parameters": {"engines": {"loop": {"completion": {"temperature": 0.2}}}}})
+await session.asave(config={"parameters": {"engines": {"loop": {'config': {'completion': {'temperature': 0.2}}}}}})
 ```
 
 기본 출력은 각 도메인의 `logs/service.log`, 1 MiB, 백업 3개다. sink를 지정하면 그 출력을

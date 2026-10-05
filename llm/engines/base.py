@@ -139,6 +139,8 @@ class EngineContext:
     # 백엔드가 주입하는 실행 정책. Run 전체(중첩 Agent/Graph 포함)가 공유한다.
     tool_scope: Any = None
     pending_work: Any = None
+    # 호스트 계산기 레지스트리만 공유한다. 입력 정책은 사용하는 Engine이 별도 사본에 연결한다.
+    token_counters: Mapping[str, Callable] = field(default_factory=dict)
     completion_policy: Any = None
     # 중첩 엔진의 최종 결과는 이 Step에 귀속한다. None은 최상위 Run이다.
     output_step_id: Optional[str] = None
@@ -406,29 +408,53 @@ class BaseEngine:
 
     async def stream_completion(self, request: Mapping[str, Any], *,
                                 response: Optional[dict] = None,
-                                include_events: bool = True) -> AsyncIterator[Union[str, EngineEvent]]:
+                                include_events: bool = True,
+                                provider: Optional[dict] = None) -> AsyncIterator[Union[str, EngineEvent]]:
         """Yield text and completion observations; inherited execute() routes both.
 
         include_events=False is for standalone text consumers without persistence.
         response receives the assistant message on success only. Observations
         contain no prompts, tool arguments, headers, or arbitrary SDK payloads.
+        provider contains only this caller's explicit outer retry/deadline options;
+        no Run policy is implicitly inherited and SDK request options stay separate.
         """
-        from llm.providers.retry import retry_settings, transient, effective_attempts
-        policy = retry_settings()
-        maximum = effective_attempts(request, policy.get("max_retries", 0) + 1,
+        from llm.providers.retry import transient, effective_attempts
+        from llm.providers.requests import resolve_provider_options, ProviderError
+        policy = resolve_provider_options(provider if provider is not None else {})
+        maximum = effective_attempts(request, policy.get("max_attempts", 1),
                                      sdk_defaults=self.completion_fn is completion) - 1
+        deadline = None if policy.get("wall_timeout") is None else time.monotonic() + policy["wall_timeout"]
+
+        def remaining():
+            left = None if deadline is None else deadline - time.monotonic()
+            if left is not None and left <= 0:
+                raise ProviderError("provider_timeout")
+            return left
+
         for attempt in range(maximum + 1):
             progress = {"received": False}
             result = CompletionResult(model=request.get("model") if isinstance(request.get("model"), str) else None)
             usage_scope = current_usage()
             if usage_scope is not None:
-                result.reserved_tokens = await usage_scope.reservation(self.copy_params(dict(request)))
+                try:
+                    async with timeout(remaining()):
+                        result.reserved_tokens = await usage_scope.reservation(self.copy_params(dict(request)))
+                except TimeoutError as error:
+                    raise ProviderError("provider_timeout") from error
             started = time.monotonic()
             if include_events:
                 yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
             try:
                 async with aclosing(self._stream_completion(request, response, result, progress)) as stream:
-                    async for item in stream:
+                    while True:
+                        try:
+                            # 이벤트 저장 중인 소비자는 취소하지 않는다. 다음 진행 시 같은 절대 기한을 검사한다.
+                            async with timeout(remaining()):
+                                item = await anext(stream)
+                        except StopAsyncIteration:
+                            break
+                        except TimeoutError as error:
+                            raise ProviderError("provider_timeout") from error
                         if include_events or isinstance(item, str):
                             yield item
             except (asyncio.CancelledError, GeneratorExit):
@@ -445,6 +471,9 @@ class BaseEngine:
                 delay = policy.get("delay_seconds", 0) * (2 ** attempt)
                 if "max_delay_seconds" in policy:
                     delay = min(delay, policy["max_delay_seconds"])
+                left = remaining()
+                if left is not None and delay >= left:
+                    raise ProviderError("provider_timeout") from error
                 from llm.providers.observations import record_retry
                 record_retry("completion")
                 await asyncio.sleep(delay)

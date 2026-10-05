@@ -19,7 +19,7 @@ def search_tools(data) -> ToolRegistry:
         },
     }
 
-    configured = data.effective_configuration()["values"].get("search", {})
+    configured = data.effective_configuration()["values"].get("config", {}).get("search", {})
     specs = search_schema()["properties"]
     for name in parameters["properties"].keys() - {"query"}:
         parameters["properties"][name] = dict(specs[name])

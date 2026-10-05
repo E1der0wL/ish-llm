@@ -21,7 +21,7 @@ capability를 구성합니다. RunManager는 Workflow ID의 의미를 해석하�
 | [operations.py](operations.py) | Session 범위 Tool operation 원장과 완료 결과 재사용·불확실 효과 조정입니다. |
 | [processes.py](processes.py) | 명시적으로 선택한 ProcessToolRunner와 process/sandbox 실행을 관리합니다. |
 | [_worker.py](_worker.py) | ProcessToolRunner의 내부 child 진입점입니다. 공개 Engine이나 UI 실행 파일이 아닙니다. |
-| [policies.py](policies.py) | Run 시작 정책 스냅샷을 실행 정책 객체로 해석합니다. |
+| [policies.py](policies.py) | 공통 정책을 ContextPolicy/RunPolicy로 해석하고 usage 계산기 등록을 확인합니다. 모델별 입력 정책·재시도는 생성하지 않습니다. |
 | [output.py](output.py) | 출력 델타의 저장 batching, 최종 출력과 조회 journal을 관리합니다. |
 | [pending.py](pending.py) | 취소 후에도 남을 수 있는 비동기·동기 작업의 수명 추적입니다. |
 | [usage.py](usage.py) | Project 모델 사용량 예약과 명시적 한도 적용입니다. |

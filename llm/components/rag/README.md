@@ -55,13 +55,18 @@ await rag.adelete_document("manual")
 
 | 키 | 미설정 동작 |
 |---|---|
-| chunk_size / embedding_concurrency | 문서 등록 시 configuration error (concurrency 범위 1–32) |
-| extraction.failure_policy / extraction_batch_size | 실패 정책은 명시; 추출을 켠 경우 batch_size도 명시 |
-| search method/expand/limit/candidate_count/rrf_constant | 검색 전 명시; 결합 검색은 max_hops/relation_limit도 필요 |
-| embedding_cache_max_bytes / search_cache_chars | 캐시 비활성 |
-| provider max_attempts/wall_timeout/delay | 최초 호출만, 자체 기한/대기 없음 |
-| extraction json_mode/repair_attempts/relation_types | SDK format 변경·수정 재호출·선호 목록 없음 |
-| graph library options | Kuzu native 옵션 |
+| config.chunk_size / policy.embedding_concurrency | 문서 등록 시 configuration error (concurrency 범위 1–32) |
+| policy.extraction.failure_policy / config.extraction_batch_size | 실패 정책은 명시; 추출을 켠 경우 batch_size도 명시 |
+| config.search: method/expand/limit/candidate_count/rrf_constant | 검색 전 명시; 결합 검색은 max_hops/relation_limit도 필요 |
+| config.embedding_cache_max_bytes / config.search_cache_chars | 캐시 비활성 |
+| policy.provider: max_attempts/wall_timeout/delay | 최초 호출만, 자체 기한/대기 없음 |
+| config.extraction.json_mode/relation_types, policy.extraction.repair_attempts | SDK format 변경·수정 재호출·선호 목록 없음 |
+| config.graph | Kuzu native 옵션 |
+
+모델 인자는 config.embedding_params/extraction_params/rerank_params에 둡니다.
+`rag.aconfigure({"config": {...}, "policy": {...}})`도 같은 Project 설정을 교체합니다.
+내부 모델 client의 `provider=` 명시 인자는 policy.provider의 client 출처이며,
+Project에 명시된 같은 정책 키가 우선합니다. 조회만으로 설정을 저장하지 않습니다.
 
 RAG embedding ordering does not depend on provider-reported embedding indexes.
 Each document chunk is embedded independently. The application owns the chunk ordinal

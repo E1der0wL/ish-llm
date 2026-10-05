@@ -23,6 +23,12 @@
 
 설정은 `parameters.components.memory`에 저장합니다. 모델 호출을 수반하는 요약·추출, 자동 회상, 문맥 축약 등은 명시한 정책에 따라 적용됩니다. `completion_processors` capability로 Loop 입력·관찰 경계에 연결하고, CRUD Tool은 `tools` capability로 제공합니다.
 
+보조 모델의 SDK 인자는 `config.processing.completion`, 외부 호출의 시도·기한은
+`policy.processing.provider`에 둡니다. provider의 max_attempts는 최초 호출을 포함하고,
+wall_timeout/delay_seconds/max_delay_seconds는 명시했을 때만 적용합니다. Loop의 provider를
+상속하지 않습니다. Loop 입력에 기억을 결합할 때는 해당 실행의 CompletionPolicy를 사용하므로
+현재 입력 예산과 공통 Run/usage 제한을 그대로 지킵니다.
+
 ConversationStore는 대화 원본, Memory는 선택·파생된 장기 기억, Run/Step은 실행 기록을 소유합니다. 하나를 다른 것의 대체 저장소로 사용하지 않습니다.
 
 Loop의 추가 지시는 원래 사용자 요청과 같은 턴으로 요약·보존합니다. 활성 Tool 이력을 압축할 때 추가 지시를 가로질러 삭제하지 않으며, 이 경우 압축을 건너뛰어 지시 원문을 유지합니다. 기존 토큰 한도는 그대로 적용됩니다.

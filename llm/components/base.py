@@ -95,13 +95,13 @@ class Component:
 
     def configuration_schema(self) -> dict:
         """선언한 필드만 UI에 열거한다. 열린 사용자 설정은 계속 허용한다."""
-        from llm.core.schema import object_schema
-        return object_schema()
+        from llm.core.schema import implementation_schema
+        return implementation_schema()
 
     def effective_configuration(self, project) -> dict:
         """명시된 설정값과 출처를 UI에 제공한다. 실행 객체는 직렬화하지 않는다."""
         from llm.core.configuration import resolve_configuration
-        return resolve_configuration(self.configuration_layers(project))
+        return resolve_configuration(self.configuration_layers(project), schema=self.configuration_schema())
 
     def configuration_layers(self, project):
         """설정 원본은 ProjectConfig뿐이다. 컴포넌트 파일을 대체 설정으로 읽지 않는다."""
@@ -164,7 +164,13 @@ class Component:
         """
         return self.resolve(project, capability)
 
+    def _options(self, project):
+        """구현 내부 인자 사본. 공개 configuration()은 config/policy 형태를 보존한다."""
+        return self.settings_layout.unpack(self.configuration(project))
+
     def validate_configuration(self, data: dict) -> None:
+        from llm.core.schema import validate_implementation_settings
+        validate_implementation_settings(data, scope=self.name)
         from jsonschema import Draft202012Validator
         error = next(Draft202012Validator(self.configuration_schema()).iter_errors(data), None)
         if error:

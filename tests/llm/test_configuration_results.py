@@ -22,7 +22,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(temp.cleanup)
         self.sessions = SessionManager()
         self.projects = ProjectManager(ProjectRepository(Path(temp.name)), self.sessions)
-        self.project = self.projects.create("Project", config=ProjectConfig(data={"project_label": "test"}, parameters={"engines": {"loop": {"max_iterations": 2, "system_prompt": "project prompt", "completion": {"model": "openai/test", "top_p": 0.8}}}}))
+        self.project = self.projects.create("Project", config=ProjectConfig(data={"project_label": "test"}, parameters={"engines": {"loop": {'policy': {'max_iterations': 2}, 'config': {'system_prompt': 'project prompt', 'completion': {'model': 'openai/test', 'top_p': 0.8}}}}}))
         self.session = self.sessions.create(self.project, "Session", config={"data": {"language": "ko"}})
         self.engines = EngineRegistry()
         self.manager = RunManager(self.sessions, self.engines, session=self.session)
@@ -44,9 +44,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
                 "total_tokens": prompt + answer, "prompt_tokens_details": {"cached_tokens": 1}}}
 
     async def test_flexible_config_persists_inherits_and_runtime_options_win(self):
-        self.session.config["parameters"] = {"engines": {"loop": {
-            "completion": {"top_p": 0.6, "extra_body": {"setting": 1}},
-            "system_prompt": "session prompt", "max_iterations": 1}}}
+        self.session.config["parameters"] = {"engines": {"loop": {'config': {'completion': {'top_p': 0.6, 'extra_body': {'setting': 1}}, 'system_prompt': 'session prompt'}, 'policy': {'max_iterations': 1}}}}
         self.sessions.save(self.session)
         provider = ScriptedCompletion([chunk("answer", finish="stop")])
         self.engines.register("loop", LoopEngine(completion_fn=provider, completion_kwargs={"top_p": 0.4}))
@@ -60,14 +58,14 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.status, RunStatus.COMPLETED)
         self.assertEqual(self.session.config["data"]["language"], "ko")
         settings = self.project.config.for_engine("loop", self.session.config)
-        settings["parameters"]["engines"]["loop"]["completion"]["extra_body"]["setting"] = 99
-        self.assertEqual(self.session.config["parameters"]["engines"]["loop"]["completion"]["extra_body"]["setting"], 1)
+        settings["parameters"]["engines"]["loop"]["config"]["completion"]["extra_body"]["setting"] = 99
+        self.assertEqual(self.session.config["parameters"]["engines"]["loop"]["config"]["completion"]["extra_body"]["setting"], 1)
 
     async def test_project_updates_reach_later_runs_without_mutating_active_snapshot(self):
         provider = ScriptedCompletion([chunk("one", finish="stop")], [chunk("two", finish="stop")])
         self.engines.register("loop", LoopEngine(completion_fn=provider))
         await self.submit()
-        self.project.config.parameters["engines"]["loop"]["completion"]["top_p"] = 0.2
+        self.project.config.parameters["engines"]["loop"]["config"]["completion"]["top_p"] = 0.2
         self.projects.save(self.project)
         await self.submit()
         self.assertEqual([request["top_p"] for request in provider.requests], [0.8, 0.2])

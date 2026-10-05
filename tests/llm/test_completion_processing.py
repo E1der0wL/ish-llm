@@ -10,9 +10,10 @@ from llm.components.processing import (CompletionMessage, CompletionRequest, Com
     CompletionSession, CompletionPipeline, ordered_processors)
 from llm.core.models import RunStatus
 from llm.engines.loop import LoopEngine
+from tests.llm.configuration_fixtures import configure_engine
 from llm.llm import LargeLanguageModel
 from llm.services.configuration import ServiceConfig
-from llm.services.history.context import CompletionPolicy
+from llm.policies import CompletionPolicy
 from tests.llm import test_memory_processing as memory_tests
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
@@ -298,7 +299,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
             services=ServiceConfig(token_counters={"test": lambda r: len(r["messages"])}))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.aload(self.project.id)
-        await self.project.aconfigure_policies({"completion": {"max_tokens": 1, "counter": "test"}})
+        await configure_engine(self.project, "loop" + str(self.serial), input_policy={"max_tokens": 1, "counter": "test"})
         self.session = await self.project.sessions.aload(self.session.id)
         await self.project.components.aselect(["observe"])
         run, model = await self.run_loop("current")

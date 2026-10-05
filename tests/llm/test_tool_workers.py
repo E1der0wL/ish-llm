@@ -215,7 +215,7 @@ async def main(limit: int = count):
                 project, session, _ = await self.setup_runtime(text)
                 if action == 'timeout':
                     config = (await project.aget_data()).config.to_dict()
-                    config['parameters']['engines']['loop']['tool_timeout'] = 2
+                    config['parameters']['engines']['loop'].setdefault("policy", {})["tool_timeout"] = 2
                     await project.asave(config=config)
                 request = await session.run.submit('act', engine='loop')
                 async with asyncio.timeout(15):

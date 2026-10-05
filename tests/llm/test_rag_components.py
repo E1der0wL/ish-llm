@@ -96,7 +96,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
             await self.rag.aupdate_document('manual', content='Seoul deployment')
             self.assertEqual(await self.rag.asearch_documents('backup', method='bm25'), [])
             self.assertEqual(build.call_count, 2)
-        self.assertLessEqual(self.rag_component.search_cache.used, self.project.data.config.parameters.setdefault("components", {})["rag"]["search_cache_chars"])
+        self.assertLessEqual(self.rag_component.search_cache.used, self.project.data.config.parameters.setdefault("components", {})["rag"]["config"]["search_cache_chars"])
 
     async def test_reflink_fallback_copy_does_not_mutate_original(self):
         import errno
@@ -109,7 +109,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(source.read_bytes(), b'original')
 
     async def test_ingestion_retry_reuses_batches_and_os_lease(self):
-        await self.rag.aconfigure(rag_settings({"embedding_concurrency": 1, "extraction_batch_size": 1}))
+        await self.rag.aconfigure(rag_settings({'policy': {'embedding_concurrency': 1}, 'config': {'extraction_batch_size': 1}}))
         content = '\n\n'.join(f'## Section {i}\n\nAlice owns Atlas {i}' for i in range(4))
         job = await self.rag.aenqueue_document(title='Manual', content=content, identifier='batches')
         calls = []
@@ -127,7 +127,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse((self.project.paths.root / 'rag' / 'jobs' / job['id'] / 'batches').exists())
 
     async def test_ingestion_graph_failure_reuses_embeddings_and_completed_graph_batches(self):
-        await self.rag.aconfigure(rag_settings({"extraction_batch_size": 1}))
+        await self.rag.aconfigure(rag_settings({'config': {'extraction_batch_size': 1}}))
         content = '\n\n'.join(f'## Part {i}\n\nAlice owns Atlas {i}' for i in range(3))
         job = await self.rag.aenqueue_document(title='Manual', content=content)
         calls = []
@@ -214,7 +214,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
         self.graph_component = self.rag_component
         self.app = LargeLanguageModel(self.root, engines={}, components=[self.rag_component])
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate("test", components=["rag"], config=rag_project({"parameters": {"components": {"rag": {"chunk_size": 256}}}}))
+        self.project = await self.app.projects.acreate("test", components=["rag"], config=rag_project({"parameters": {"components": {"rag": {'config': {'chunk_size': 256}}}}}))
         self.rag = await self.project.components.aget("rag")
         self.graph = await self.project.components.aget("rag")
 

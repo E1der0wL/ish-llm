@@ -222,7 +222,7 @@ Engine 이벤트와 UI 알림은 저장 확정 후 전달한다. 메모리 저�
 
 ## 설정 적용 계약
 
-Engine의 기본값 → Project → Session → Agent → 명시적인 호스트 값 순서를
+Project → Session → Agent → 명시적인 호스트 값 순서를
 core/configuration.py에서 해석한다. Loop/Graph/Preparation/Pipeline의 configuration 계약은
 실행과 UI 조회가 공유하며, 호스트 값의 출처와 가려진 설정을 표시한다. Pipeline은 이름 있는
 단계별 설정을 제공하고 Graph는 중첩 실행/재개에서도 호출별 설정 사본을 사용한다.
@@ -277,8 +277,8 @@ API/정확한 범위는 [운영 및 UI 설정](operations-and-ui-settings.md)을
 
 ## 장시간 실행과 복구
 
-ProjectConfig.policies는 tool_retry/provider_retry/usage/retention도 소유한다. 기본값은
-재시도 0회(또는 호스트 기본값), 사용량/보관 상한 없음이다. 실행 정책은 Run 시작 시 복사하고,
+ProjectConfig.policies는 tool_retry/usage/retention도 소유한다. 미설정 재시도와
+사용량/보관 상한은 활성화하지 않는다. 실행 정책은 Run 시작 시 복사하고,
 조건부 Tool 재시도의 안전성은 신뢰한 호스트 ToolPolicy/핸들러만 선언한다. 정상 None 반환은
 완료로 저장하며 일반 예외·timeout·취소·저장 실패로 외부 효과를 자동 반복하지 않는다.
 
@@ -316,16 +316,42 @@ RSS/FD/스레드/이벤트 루프 지연과 재시작 결과를 확인하는 Lin
 
 ## 프로젝트 실행 정책
 
-ProjectConfig.policies의 context/completion/run 등 JSON은 Project가 소유한다. 스키마·형식
+ProjectConfig.policies의 context/run/approval/tool_retry/usage/retention/output은 서비스가 집행한다. 스키마·형식
 검증은 core/policies.py, 실행 객체 구성은 services/runtime/policies.py의 ProjectPolicyResolver가
 담당한다. ProjectConfig.configure_policies는 후보 사본에 부분 변경을 병합·검증한 뒤 반영한다.
 ProjectManager/Facade의 configure_policies는 잠금 아래 최신 설정에 이 메서드를 호출하고 저장하며
 configuration은 UI용 policy_schema도 제공한다. 다른 열린 설정과 컴포넌트 소유권은 유지한다.
-Run 시작 시 정책 사본을 metadata.policies에 저장하고 ContextPolicy/CompletionPolicy/RunLimits로
-해석한다. 실행 중 변경은 다음 Run부터 적용한다. Session 설정에는 policies를 허용하지 않는다.
+Run 시작 시 정책 사본을 metadata.policies에 저장하고 ContextPolicy/RunPolicy로 해석한다.
+실행 중 변경은 다음 Run부터 적용한다. Session 설정에는 policies를 허용하지 않는다.
 ServiceConfig는 토큰 계산기 registry/resolver와 runtime 구현·공유 자원 한도를 제공한다.
-미등록 계산기는 큐 수락 전에 거부한다. Graph 재개는 기존 설정 fingerprint 검증을 유지한다.
-[프로젝트 정책 API](project-policies.md)에 기본값·변경 시점·확장 계약을 설명한다.
+공통 usage.counter의 미등록 계산기는 큐 수락 전에 거부한다.
+
+Loop의 입력 선택은 parameters.engines[등록 이름].policy.completion이 소유한다. CompletionPolicy는
+policies/completion.py의 재사용 알고리즘이며 Loop가 실행별로 구성한다. 다른 Engine에 자동
+적용하지 않는다. 선택한 Engine의 계산기가 없으면 모델 호출 전에 policy_unavailable로 실패한다.
+parameters.engines[이름].policy.provider는 Loop 스트리밍 시도·기한을, Memory의 policy.processing.provider는
+보조 모델 호출을 각각 소유한다. BaseEngine에는 명시적인 provider 인자만 전달하며 전역 retry
+scope는 없다. 공통 사용량은 policies.usage.counter로 독립 계수하므로 Agent가 입력 정책을
+바꿔도 사용량 상한을 우회하지 않는다. 이전 policies.completion/provider_retry는 거부한다.
+Engine policy.completion/policy.provider는 기존 설정 fingerprint에 포함되고 Graph Agent·재개·저장 책임은 유지한다.
+[프로젝트 정책 API](project-policies.md)에 설정 경로·변경 시점·확장 계약을 설명한다.
+
+## 구현체 설정과 재사용 알고리즘
+
+Engine/Component의 공개 설정은 config(기능·SDK 인자)와 policy(구현체 실행 결정)로
+구분한다. 저장 위치는 ProjectConfig.parameters뿐이며 ComponentData.configure도 같은
+Project 저장 경계로 쓴다. 엔진은 Project → Session → Agent → host, 모델 클라이언트를
+주입한 컴포넌트는 client → Project의 명시값만 병합한다. Component에 Session/Agent
+상속을 추가하지 않는다. UI schema/values/sources/editable도 같은 분류와 해석기를 쓴다.
+
+CompletionPolicy와 공통 실행 정책 오류는 llm/policies에 있다. 이 패키지는 Engine,
+Component, services를 import하지 않는다. 알고리즘의 선택과 설정 소유권은 호출자에
+남는다. RunPolicy/ContextPolicy/ToolPolicy처럼 수명 관리와 결합된 정책은 서비스가
+소유한다. SettingsLayout은 인자 경로만 연결하며 정책을 실행하거나 저장하지 않는다.
+
+평면 설정의 자동 변환이나 옛 import 별칭은 제공하지 않는다. 정의 레코드, 요청별
+Workflow 선택, Project → Session → Run → Step, 이벤트 저장 ACK와 재개 계약은 유지한다.
+자세한 필드 분류는 [설정 계약](../../llm/CONFIGURATION.md)을 따른다.
 
 ## 프로젝트 장기 기억
 
@@ -466,13 +492,13 @@ ToolOperations 서비스가 공유 RunRepository를 통해 Session.state/tool_op
 
 ## 운영 정책과 UI 관찰
 
-ProjectPolicyResolver는 프로젝트별 ContextPolicy/CompletionPolicy/RunLimits를 구성한다.
+ProjectPolicyResolver는 프로젝트별 ContextPolicy/RunPolicy를 구성한다.
 ServiceConfig는 ToolPolicy의 호스트 실행 계약과 파일 대화 캐시 크기를 조립한다.
 RunManager는 Session 대기열 admission/취소와 Run 실행 시간 한도를 담당한다. EngineContext의
 ToolExecutionScope는 중첩 Agent/Graph 분기에서 공유하는 Run 전용 런타임 객체이며 저장하지
 않는다. LoopEngine/ToolNode는 공통 ToolExecutor를 통해 승인·호출 예산·선택적 실행 어댑터를
 적용한다. STEP_UPDATED는 기존 Step의 진행 메타데이터를 갱신하고 승인 기록 이후에 실행한다.
-CompletionPolicy은 모델별 counter를 주입받아 Loop 요청의 과거 턴만 선택한다.
+CompletionPolicy는 Loop가 자신의 policy.completion와 호스트 counter로 구성하며 요청의 과거 턴만 선택한다.
 
 EventSubscriptions의 queued/drop_oldest 전달은 UI 관찰용이다. 저장은 먼저 완료되고,
 누락 통계를 보고 UI가 재조회한다. 실행에 필요한 요청/검증은 EventHandlers/ToolPolicy에 둔다.

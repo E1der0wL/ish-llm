@@ -123,8 +123,8 @@ class SkillIntegrationTests(unittest.IsolatedAsyncioTestCase):
         async with BuiltinTools(work, checks={"verify": [sys.executable, "-c",
                 "from sample import add; assert add(2, 3) == 5; print('verified')"]}) as toolkit:
             components = [BuiltinToolComponent(toolkit, name="computer"), SkillComponent()]
-            config = ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test/model"}}}, "components": {
-                "computer": {"enabled": ["file_search", "file_read", "file_patch", "test_run"]}}})
+            config = ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}, "components": {
+                "computer": {'config': {'enabled': ['file_search', 'file_read', 'file_patch', 'test_run']}}}})
             async with LargeLanguageModel(self.root / "workspace", components=components,
                     engines={"loop": LoopEngine(completion_fn=completion, max_iterations=8)}) as app:
                 project = await app.projects.acreate("Developer", config=config, components=["computer", "skills"])
@@ -174,8 +174,8 @@ class SkillIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(component.resolve(project.data, "tools").names(), ())
                 self.assertEqual(project.data.config.parameters.setdefault("components", {}), {})
                 with self.assertRaises(ValueError):
-                    await project.components.computer.aconfigure({"enabled": ["unregistered"]})
-                await project.components.computer.aconfigure({"enabled": ["file_read"]})
+                    await project.components.computer.aconfigure({'config': {'enabled': ['unregistered']}})
+                await project.components.computer.aconfigure({'config': {'enabled': ['file_read']}})
                 self.assertEqual(component.resolve(await project.aget_data(), "tools").names(), ("file_read",))
 
     async def test_skill_read_cannot_bypass_host_tool_policy(self):
@@ -194,7 +194,7 @@ class SkillIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_builtin_binding_tracks_workdir_and_check_commands(self):
         other = self.root / "other"
         other.mkdir()
-        config = ProjectConfig(parameters={"components": {"computer": {"enabled": ["file_read"]}}})
+        config = ProjectConfig(parameters={"components": {"computer": {'config': {'enabled': ['file_read']}}}})
         async with BuiltinTools(self.root) as first, BuiltinTools(other) as second, BuiltinTools(
                 self.root, checks={"verify": [sys.executable, "-V"]}) as different_check:
             component = BuiltinToolComponent(first, name="computer")

@@ -63,7 +63,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
             lambda: self.sessions.clone(self.session, stale),
             lambda: self.sessions.save(self.session),
             lambda: self.projects.set_components(stale, ("tools",)),
-            lambda: self.projects.configure_component(stale, "tools", {"enabled": ["add"]}),
+            lambda: self.projects.configure_component(stale, "tools", {'config': {'enabled': ['add']}}),
         )
         for operation in mutations:
             with self.assertRaises(ValueError):
@@ -184,7 +184,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_unselected_or_invalid_tool_configuration_is_rejected(self):
         with self.assertRaises(ValueError):
-            self.projects.configure_component(self.project, "tools", {"enabled": ["add"]})
+            self.projects.configure_component(self.project, "tools", {'config': {'enabled': ['add']}})
         self.projects.set_components(self.project, ("tools",))
         path = self.project.paths.root / "project.json"
         before = path.read_bytes()
@@ -196,7 +196,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_component_selection_changes_preserve_data_and_initialization_is_idempotent(self):
         self.projects.set_components(self.project, ("tools",))
-        self.projects.configure_component(self.project, "tools", {"enabled": ["add"]})
+        self.projects.configure_component(self.project, "tools", {'config': {'enabled': ['add']}})
         self.projects.set_components(self.project, ())
         self.assertTrue(ToolPaths.for_project(self.project).root.exists())
         self.assertEqual(ComponentToolResolver(self.components).resolve_tools(self.projects.load(self.project.id)).names(), ())
@@ -208,12 +208,12 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         self.project.title = "Updated"
         self.projects.save(self.project)
         self.projects.set_components(self.project, ("tools", "workflows"))
-        self.projects.configure_component(self.project, "tools", {"enabled": ["add"]})
+        self.projects.configure_component(self.project, "tools", {'config': {'enabled': ['add']}})
         clone = self.projects.clone(stale)
         self.assertEqual(clone.title, "Updated")
         self.assertEqual(clone.components, ("tools", "workflows"))
         self.assertEqual(ComponentToolResolver(self.components).resolve_tools(clone).names(), ("add",))
-        self.projects.configure_component(clone, "tools", {"enabled": []})
+        self.projects.configure_component(clone, "tools", {'config': {'enabled': []}})
         self.assertEqual(ComponentToolResolver(self.components).resolve_tools(self.project).names(), ("add",))
 
     async def test_missing_component_selection_is_rejected_without_scanning_directories(self):
@@ -259,8 +259,8 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_two_projects_share_loop_engine_but_not_enabled_tools(self):
         self.projects.set_components(self.project, ("tools",))
-        self.projects.configure_component(self.project, "tools", {"enabled": ["add"]})
-        self.project.config.parameters["engines"] = {"loop": {"completion": {"model": "openai/test-model"}}}
+        self.projects.configure_component(self.project, "tools", {'config': {'enabled': ['add']}})
+        self.project.config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "openai/test-model"}}}}
         self.projects.save(self.project)
         other = self.projects.create("Other", config=self.project.config)
         other_session = self.sessions.create(other, "Other")
@@ -286,7 +286,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_capabilities_are_fixed_for_one_run_and_refreshed_for_next(self):
         self.projects.set_components(self.project, ("tools",))
-        self.projects.configure_component(self.project, "tools", {"enabled": ["add"]})
+        self.projects.configure_component(self.project, "tools", {'config': {'enabled': ['add']}})
         entered, release = asyncio.Event(), asyncio.Event()
         seen = []
         class Inspect:
@@ -301,7 +301,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         manager = self.manager(capabilities=self.components)
         await manager.submit("one", engine="inspect")
         await asyncio.wait_for(entered.wait(), 5)
-        self.projects.configure_component(self.project, "tools", {"enabled": []})
+        self.projects.configure_component(self.project, "tools", {'config': {'enabled': []}})
         await manager.submit("two", engine="inspect")
         release.set()
         await manager.wait_idle()
@@ -331,8 +331,8 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         manager = self.manager()
         stale = deepcopy(self.project)
         await manager.start()
-        self.project.config.parameters["engines"] = {"loop": {"completion": {"model": "updated"}}}
+        self.project.config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "updated"}}}}
         self.projects.save(self.project)
         await manager.submit("test", engine="fake")
         await manager.wait_idle()
-        self.assertEqual(self.engines.resolve("fake").contexts[0].project.config.parameters["engines"]["loop"]["completion"]["model"], "updated")
+        self.assertEqual(self.engines.resolve("fake").contexts[0].project.config.parameters["engines"]["loop"]["config"]["completion"]["model"], "updated")

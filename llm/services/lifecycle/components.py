@@ -71,7 +71,7 @@ class ComponentData:
     def require_model_observation(self, *clients):
         """한도가 켜졌으면 관찰 계약을 지원하지 않는 주입 클라이언트를 호출 전에 거부한다."""
         from llm.services.runtime.usage import current_usage
-        from llm.services.runtime.policies import ExecutionLimitError
+        from llm.policies import ExecutionLimitError
         project, _ = self._current()
         scope = current_usage()
         policies = [project.config.policies.get("usage", {}), scope.settings if scope else {}]

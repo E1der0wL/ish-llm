@@ -18,7 +18,7 @@ from llm.core.models import ProjectConfig, new_id
 from llm.core.results import EngineOutput
 from llm.core.interactions import InteractionRequest, approval_request, same_interaction_value
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
-from llm.services.runtime.policies import ExecutionLimitError
+from llm.policies import ExecutionLimitError
 from llm.services.runtime.operations import operation_token
 
 

@@ -80,8 +80,8 @@ class ComponentTests(unittest.TestCase):
         self.assertEqual(self.data.list(), {})
         with self.assertRaises(FileNotFoundError):
             self.data.save(identifier, {})
-        self.data.configure({"future_setting": {"label": "anything"}})
-        self.assertEqual(self.data.configuration(), {"future_setting": {"label": "anything"}})
+        self.data.configure({'config': {'future_setting': {'label': 'anything'}}})
+        self.assertEqual(self.data.configuration(), {"config": {"future_setting": {"label": "anything"}}})
 
     def test_invalid_json_and_failed_atomic_replacement_keep_original_data(self):
         identifier = self.data.create({"kept": True})
@@ -151,7 +151,7 @@ class ComponentTests(unittest.TestCase):
         graphs.create(WorkflowGraph(entry="review", future_graph_option=True)
                       .node("review", "agent", agent="reviewer").node("end", "end")
                       .connect("review", "end").to_dict(), identifier="review")
-        self.data.configure({"format_version": 3})
+        self.data.configure({'config': {'format_version': 3}})
         self.data.create({"body": "text"}, identifier="note")
         (self.project.paths.root / "knowledge" / "artifact.bin").write_bytes(b"not a definition")
         clone = self.projects.clone(self.project)
@@ -244,7 +244,7 @@ class ToolDataTests(unittest.IsolatedAsyncioTestCase):
             sessions = SessionManager()
             projects = ProjectManager(ProjectRepository(Path(temporary)), sessions, components=registry)
             project = projects.create("Test", components=("tools", "agents"),
-                                      config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "openai/test"}}}}))
+                                      config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'openai/test'}}}}}))
             data = projects.component(project, "tools")
             definition = {"type": "function", "function": {"name": "add", "description": "new",
                           "parameters": {"type": "object", "properties": {"a": {"type": "number"}},
@@ -252,7 +252,7 @@ class ToolDataTests(unittest.IsolatedAsyncioTestCase):
                           "strict": True}}
             source = {"source": 'from llm.components.tools import tool\n@tool(strict=True)\nasync def main(a: float):\n    """new"""\n    return "result"\n'}
             self.assertEqual(data.create(source, identifier="add"), "add")
-            data.configure({"enabled": [], "future_policy": {"label": "test"}})
+            data.configure({'config': {'enabled': [], 'future_policy': {'label': 'test'}}})
             data.enable("add")
             resolved = ComponentToolResolver(registry).resolve_tools(projects.load(project.id))
             self.assertEqual(resolved.definitions(), [definition])

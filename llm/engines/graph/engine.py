@@ -12,6 +12,7 @@ import math
 import operator
 from copy import copy, deepcopy
 from llm.core.configuration import engine_configuration
+from llm.core.settings import SettingsLayout
 from contextlib import AsyncExitStack, aclosing
 from llm.core.interactions import InteractionRequest, approval_request
 from contextvars import ContextVar
@@ -607,6 +608,9 @@ class GraphEngine:
         self.max_steps, self.max_parallelism = max_steps, max_parallelism
         self.timeout_seconds, self.buffer_size = timeout_seconds, buffer_size
 
+    settings_layout = SettingsLayout(config=("buffer_size", "cleanup_timeout"),
+        policy=("max_steps", "max_parallelism", "timeout_seconds", "max_nested_depth"))
+
     _option_names = ("max_steps", "max_parallelism", "timeout_seconds", "buffer_size", "max_nested_depth", "cleanup_timeout")
 
     def configuration_schema(self):
@@ -617,21 +621,21 @@ class GraphEngine:
         properties["max_nested_depth"].update(minimum=0)
         for key in ("timeout_seconds", "cleanup_timeout"):
             properties[key] = field(["number", "null"] if key == "timeout_seconds" else "number", exclusiveMinimum=0, **{"x-host-override": key in self._overrides})
-        return object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
-            **({"x-settings-key": self.settings_name} if self.settings_name else {})})
+        return self.settings_layout.schema(object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
+            **({"x-settings-key": self.settings_name} if self.settings_name else {})}))
 
     def configuration(self, config, name, *, session_config=None):
         view = engine_configuration(config, self.settings_name or name, session_config=session_config,
-            agent=self._agent_options, host=self._overrides, schema=self.configuration_schema())
-        if "cleanup_timeout" not in view["values"]:
-            view["enforced"] = {"cleanup_timeout": 5.0}
+            agent=self._agent_options, host=self.settings_layout.pack(self._overrides), schema=self.configuration_schema())
+        if "cleanup_timeout" not in view["values"].get("config", {}):
+            view["enforced"] = {"config": {"cleanup_timeout": 5.0}}
         return view
 
     def configured(self, context):
         """등록 인스턴스를 변경하지 않는 실행별 설정 사본. 중첩 실행에도 동일하게 적용한다."""
         if self._configured:
             return self
-        values = self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"]
+        values = self.settings_layout.unpack(self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"])
         worker = copy(self)
         GraphEngine.__init__(worker, handlers=self.handlers, revision=self.revision,
             config_keys=self.config_keys, settings_name=self.settings_name,
@@ -815,7 +819,7 @@ class GraphEngine:
     def for_agent(self, definition: dict):
         """Agent가 지정한 Workflow를 부모 Graph 실행 범위에 연결한다."""
         options = deepcopy(definition.get("engine_options", {}))
-        allowed = {"workflow", *self._option_names}
+        allowed = {"workflow", "config", "policy"}
         if options.keys() - allowed:
             raise ValueError("Unsupported Graph Agent engine_options")
         # 모델 지침은 실제 LLM을 실행하는 하위 Agent에서 정의한다.
@@ -823,7 +827,9 @@ class GraphEngine:
                 definition.get("resources", {}).get(key) for key in ("skills", "mcp")):
             raise ValueError("Graph Agent model/Skill/MCP settings belong to its leaf Agents")
         worker = self.for_request({"workflow": options.pop("workflow", None)})
-        GraphEngine(handlers=self.handlers, **{**options, **self._overrides})
+        from jsonschema import Draft202012Validator
+        Draft202012Validator(self.configuration_schema()).validate(options)
+        GraphEngine(handlers=self.handlers, **{**self.settings_layout.unpack(options), **self._overrides})
         worker._agent_options, worker._configured = options, False
         worker.settings_name = self.settings_name or definition["engine"]
         return worker

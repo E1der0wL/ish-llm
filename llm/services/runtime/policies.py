@@ -3,21 +3,8 @@
 import math
 from typing import Optional
 
-from llm.core.contracts import Diagnostic
-from llm.errors import CodedError
+from llm.policies import errors
 from dataclasses import dataclass
-
-
-class ExecutionLimitError(CodedError, RuntimeError):
-    """UI가 문자열 파싱 없이 처리할 수 있는 실행 정책 오류."""
-
-    def __init__(self, code: str, message: str):
-        self.code = code
-        super().__init__(message)
-
-    @property
-    def diagnostic(self) -> Diagnostic:
-        return Diagnostic.from_exception(self)
 
 
 def positive_seconds(value, name):
@@ -27,7 +14,7 @@ def positive_seconds(value, name):
 
 
 @dataclass(frozen=True, slots=True)
-class RunLimits:
+class RunPolicy:
     """Session 대기열과 Run 전체 시간 한도. None은 기존 무제한 동작을 유지한다.
 
     실행 시간은 문맥 준비부터 Engine 종료까지이며, 대기열 시간은 포함하지 않는다.
@@ -64,17 +51,9 @@ class ProjectPolicyResolver:
 
     def resolve(self, settings: dict):
         from llm.core.policies import normalize_policies
-        from llm.services.history.context import ContextPolicy, CompletionPolicy
+        from llm.services.history.context import ContextPolicy
         values = normalize_policies(settings)
-        completion = values.get("completion", {})
-        policy = None
         usage = values.get("usage", {})
-        if (usage.get("max_tokens") is not None or usage.get("project_max_tokens") is not None) and completion.get("counter") not in self.token_counters:
-            raise ExecutionLimitError("policy_unavailable", "Usage quota requires a registered token counter")
-        if completion.get("max_tokens") is not None:
-            name = completion.get("counter")
-            if name not in self.token_counters:
-                raise ExecutionLimitError("policy_unavailable", f"Token counter is not registered: {name}")
-            policy = CompletionPolicy(completion.get("max_tokens"), reserve_tokens=completion.get("reserve_tokens", 0),
-                                      counter=self.token_counters[name])
-        return (ContextPolicy(**values["context"]) if values.get("context") else None), policy, RunLimits(**values.get("run", {}))
+        if (usage.get("max_tokens") is not None or usage.get("project_max_tokens") is not None) and usage.get("counter") not in self.token_counters:
+            raise errors.ExecutionLimitError("policy_unavailable", "Usage quota requires a registered token counter")
+        return (ContextPolicy(**values["context"]) if values.get("context") else None), RunPolicy(**values.get("run", {}))

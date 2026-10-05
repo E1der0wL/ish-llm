@@ -24,7 +24,7 @@ class PersistenceTests(unittest.TestCase):
         self.root = Path(self.temporary.name)
         self.sessions = SessionManager()
         self.projects = ProjectManager(ProjectRepository(self.root / "projects"), self.sessions)
-        self.project = self.projects.create("Project", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {'model': "fake-model"}}}}))
+        self.project = self.projects.create("Project", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'fake-model'}}}}}))
         self.session = self.sessions.create(self.project, "Session")
         self.store = ConversationStore(self.session.paths.conversation)
 
@@ -123,8 +123,8 @@ class PersistenceTests(unittest.TestCase):
         self.assertNotEqual(messages[0].id, user.id)
         self.assertTrue(all(message.run_id is None for message in messages))
         self.assertEqual(messages[-1].status, MessageStatus.CANCELLED)
-        cloned_project.config.parameters["engines"]["loop"]["completion"]["model"] = "different"
-        self.assertEqual(self.projects.load(self.project.id).config.parameters["engines"]["loop"]["completion"]["model"], "fake-model")
+        cloned_project.config.parameters["engines"]["loop"]["config"]["completion"]["model"] = "different"
+        self.assertEqual(self.projects.load(self.project.id).config.parameters["engines"]["loop"]["config"]["completion"]["model"], "fake-model")
         self.assertEqual(self.store.list()[-1].status, MessageStatus.QUEUED)
 
     def test_active_session_lifecycle_changes_rejected_using_persisted_state(self) -> None:

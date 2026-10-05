@@ -14,10 +14,10 @@ API 키는 환경 변수가 아닌 JSON을 역직렬화한 `ProjectConfig`에서
 
 | ProjectConfig 위치 | 용도 |
 | --- | --- |
-| `parameters.engines.loop.completion` | Graph 노드의 Agent가 사용하는 Loop 모델. 스트리밍과 JSON 답변 생성 필요; 검색 Tool은 Graph가 실행 |
-| `parameters.components.rag.embedding_params` | 문서·질의 벡터를 생성하는 임베딩 모델 |
-| `parameters.components.rag.extraction_params` | 문서에서 엔티티·관계·인용을 추출하는 모델. JSON 응답 지원 필요 |
-| `parameters.components.rag.rerank_params` | 검색 후보의 관련성 점수를 계산하고 순서를 재정렬하는 모델 |
+| `parameters.engines.loop.config.completion` | Graph 노드의 Agent가 사용하는 Loop 모델. 스트리밍과 JSON 답변 생성 필요; 검색 Tool은 Graph가 실행 |
+| `parameters.components.rag.config.embedding_params` | 문서·질의 벡터를 생성하는 임베딩 모델 |
+| `parameters.components.rag.config.extraction_params` | 문서에서 엔티티·관계·인용을 추출하는 모델. JSON 응답 지원 필요 |
+| `parameters.components.rag.config.rerank_params` | 검색 후보의 관련성 점수를 계산하고 순서를 재정렬하는 모델 |
 
 OpenAI 호환 서버는 `openai/모델명`을 사용한다. 다른 provider는 해당 LiteLLM 모델명을
 사용하고 필요 없는 api_base를 삭제한다. 임베딩과 대화 모델은 서로 다른 서버·키를 써도 된다.

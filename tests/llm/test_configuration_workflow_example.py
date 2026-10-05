@@ -1,3 +1,4 @@
+from llm.core.models import ProjectConfig
 from tests.llm.configuration_fixtures import rag_settings
 """사내 문법을 흉내 내지 않고 검색·수정·검증·승인 경계를 실제 서비스로 검사한다."""
 
@@ -70,9 +71,7 @@ class ConfigurationWorkflowTests(unittest.IsolatedAsyncioTestCase):
                 "from pathlib import Path; import sys; p=Path(sys.argv[1]); "
                 "assert (p/'extra.conf').read_text() == 'sample fixture\\n'; "
                 "assert (p/'settings.conf').read_text() == 'include extra.conf\\nmode=current\\n'", "{candidate}"]}],
-            "project_config": {"parameters": {"engines": {"loop": {**{"max_iterations": 3, "request_timeout": 20}, "completion": {"model": "test/chat"}}}, "components": {"rag": {**rag_settings(), "embedding_params": {"model": "test/embed"},
-                    "extraction_params": {"model": "test/extract"},
-                    "graph": {"buffer_pool_size": 67108864, "max_num_threads": 2}}}}}}
+            "project_config": {"parameters": {"engines": {"loop": {'policy': {'max_iterations': 3, 'request_timeout': 20}, 'config': {'completion': {'model': 'test/chat'}}}}, "components": {"rag": ProjectConfig.merge(rag_settings(), {'config': {'embedding_params': {'model': 'test/embed'}, 'extraction_params': {'model': 'test/extract'}, 'graph': {'buffer_pool_size': 67108864, 'max_num_threads': 2}}})}}}}
 
     async def plan(self, model=None, **kwargs):
         return await example.plan(self.root / "workspace", self.config, "Replace legacy with current",

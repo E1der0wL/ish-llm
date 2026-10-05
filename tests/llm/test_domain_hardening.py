@@ -277,7 +277,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
         config["ui_color"] = "blue"
         await self.project.asave(config=config)
         self.assertTrue((await self.session.run.resume_plan(run.id, engine="graph")).can_resume)
-        config["parameters"]["engines"] = {"loop": {"completion": {"model": "changed/model"}}}
+        config["parameters"]["engines"] = {"loop": {"config": {"completion": {"model": "changed/model"}}}}
         await self.project.asave(config=config)
         plan = await self.session.run.resume_plan(run.id, engine="graph")
         self.assertFalse(plan.can_resume)
@@ -348,7 +348,7 @@ class MemoryHardeningTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.memory.apending_consolidations(), [])
 
     async def test_search_adapter_only_receives_visible_records_and_cache_invalidates(self):
-        await self.memory.aconfigure({"search_status": "confirmed", "cache_records": 256})
+        await self.memory.aconfigure({'config': {'search_status': 'confirmed', 'cache_records': 256}})
         await self.memory.acreate({"content": "first"}, identifier="one")
         await self.memory.acreate({"content": "hidden", "status": "candidate"}, identifier="candidate")
         def rank(query, records):

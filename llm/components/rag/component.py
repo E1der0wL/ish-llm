@@ -20,6 +20,7 @@ from .graph_search import graph_search, related_graph
 from .files import copy_file
 from llm.core.configuration import resolve_configuration, required_setting
 from llm.core.models import ProjectConfig
+from llm.core.settings import SettingsLayout
 from llm.providers.requests import provider_schema, error_code
 from llm.providers.embeddings import extract_single_embedding
 from llm.providers.runtime import diagnostic, diagnostic_scope
@@ -37,6 +38,15 @@ class RAGComponent(DefinitionComponent):
     directory = "rag"
     capabilities = ("rag", "tools")
     data_class = RAGData
+    settings_layout = SettingsLayout(
+        config=("chunk_size", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
+                "index_batch_size", "search", "graph", "document_kwargs", "query_kwargs",
+                "embedding_params", "extraction_params", "rerank_params"),
+        policy=("embedding_concurrency", "provider", "ingestion", "retention"),
+        paths={**{"extraction." + key: "config.extraction." + key
+                  for key in ("json_mode", "prompt_id", "relation_types")},
+               **{"extraction." + key: "policy.extraction." + key
+                  for key in ("repair_attempts", "failure_policy")}})
 
     def __init__(self, *, embedding=None, embedding_id=None, reranker=None, extractor=None):
         """모델 구현만 주입한다. 분할·동시성·검색 설정은 ProjectConfig에서 받는다."""
@@ -90,13 +100,13 @@ class RAGComponent(DefinitionComponent):
                     runtime.append(name)
         if getattr(self.extractor, "extraction", None):
             client_values["extraction"] = deepcopy(self.extractor.extraction)
-        layers = [("client", client_values), *self.configuration_layers(project)]
+        layers = [("client", self.settings_layout.pack(client_values)), *self.configuration_layers(project)]
         view = resolve_configuration(layers, schema=self.configuration_schema())
-        view["enforced"] = {"embedding_params": {"caching": False,
-            "cache": {"no-cache": True, "no-store": True}}}
+        view["enforced"] = {"config": {"embedding_params": {"caching": False,
+            "cache": {"no-cache": True, "no-store": True}}}}
         view["model_providers"] = {name: resolve_configuration([
             ("client", getattr(getattr(self, name), "provider_options", {})),
-            ("project", view["values"].get("provider", {}))], schema=provider_schema())
+            ("project", view["values"].get("policy", {}).get("provider", {}))], schema=provider_schema())
             for name in ("embedding", "extractor", "reranker")}
         view["runtime"] = runtime
         return view
@@ -107,7 +117,7 @@ class RAGComponent(DefinitionComponent):
         from .extraction import TripleExtractor
         from .rerank import RerankModel
         view = self.effective_configuration(project)
-        values = view["values"]
+        values = self.settings_layout.unpack(view["values"])
         worker = copy(self)
         worker._configuration_source = self
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
@@ -128,7 +138,7 @@ class RAGComponent(DefinitionComponent):
                 configure = getattr(client, "configured", None)
                 if configure is not None:
                     client = configure(params)
-                elif self.configuration(project).get(key):
+                elif self._options(project).get(key):
                     raise ValueError(f"Custom {name} requires configured(params) to apply project parameters")
             if client is not None and callable(getattr(client, "with_provider", None)):
                 client = client.with_provider(view["model_providers"][name]["values"])
@@ -151,7 +161,7 @@ class RAGComponent(DefinitionComponent):
         model_params = object_schema({key: value for key, value in completion_schema()["properties"].items()
                                       if key in ("model", "api_key", "api_base", "timeout", "num_retries")},
                                      **{"x-open-parameters": True})
-        return object_schema({
+        return self.settings_layout.schema(object_schema({
             "chunk_size": field("integer", minimum=64),
             "embedding_concurrency": field("integer", minimum=1, maximum=32),
             "embedding_cache_max_bytes": field("integer", minimum=0),
@@ -168,7 +178,7 @@ class RAGComponent(DefinitionComponent):
             "ingestion": object_schema({"max_active": field("integer", "동시 색인 작업 수", minimum=1)}),
             "retention": object_schema({"job_max_age_seconds": field(["number", "null"],
                 "완료·취소한 색인 작업의 입력/영수증 보관 기간. null은 무제한", exclusiveMinimum=0)})},
-            **{"x-runtime-configuration": ["embedding", "extractor", "reranker", "embedding_id"]})
+            **{"x-runtime-configuration": ["embedding", "extractor", "reranker", "embedding_id"]}))
 
     def validate_configuration(self, data):
         if any(key in data for key in ("embedding_batch_size", "embedding_batching")):
@@ -177,6 +187,7 @@ class RAGComponent(DefinitionComponent):
         error = next(Draft202012Validator(self.configuration_schema()).iter_errors(data), None)
         if error:
             raise ValueError("Invalid RAG configuration: " + error.message)
+        data = self.settings_layout.unpack(data)
         for value in (data.get("ingestion", {}).get("max_active"),):
             if value is not None and type(value) is not int:
                 raise ValueError("ingestion.max_active requires an integer")
@@ -190,7 +201,7 @@ class RAGComponent(DefinitionComponent):
         """활성 코퍼스와 실패 작업의 재개 자료를 보존하고, 만료된 종료 작업만 정리한다."""
         import fcntl
         from datetime import datetime, timezone
-        maximum = self.configuration(project).get("retention", {}).get("job_max_age_seconds")
+        maximum = self._options(project).get("retention", {}).get("job_max_age_seconds")
         root = self._checked(self.root(project) / "jobs")
         candidates, protected, leases, sources = [], [], [], []
         try:

@@ -1,3 +1,4 @@
+from tests.llm.configuration_fixtures import memory_settings
 """프로젝트별 정책 저장·적용·동시 격리와 Run 사본을 실제 서비스 경로에서 검증한다."""
 
 import asyncio
@@ -16,28 +17,29 @@ from llm.services.configuration import ServiceConfig
 from llm.services.runtime.runs import RunRequestError
 from llm.services.runtime.policies import model_token_count
 from tests.llm.test_loop import ScriptedCompletion, chunk
+from tests.llm.configuration_fixtures import configure_engine
 
 
 class ProjectConfigPolicyTests(unittest.TestCase):
     def test_partial_update_preserves_settings_and_detaches_input_and_result(self):
         config = ProjectConfig(policies={"context": {"mode": "recent"},
-                      "extension": {"keep": True, "items": ["old"]}}, future={"value": 1}, parameters={"engines": {"loop": {"completion": {"model": "test/model"}}}})
+                      "extension": {"keep": True, "items": ["old"]}}, future={"value": 1}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}})
         changes = {"context": {"max_turns": 3}, "extension": {"items": ["new"]}}
         result = config.configure_policies(changes)
         self.assertEqual(config.policies["context"],
                          {"mode": "recent", "max_turns": 3})
         self.assertEqual(result["extension"], {"keep": True, "items": ["new"]})
-        self.assertEqual(config.parameters["engines"]["loop"]["completion"], {"model": "test/model"})
+        self.assertEqual(config.parameters["engines"]["loop"]["config"]["completion"], {"model": "test/model"})
         self.assertEqual(config.future, {"value": 1})
         changes["extension"]["items"].append("input edit")
         result["extension"]["items"].append("result edit")
         self.assertEqual(config.policies["extension"]["items"], ["new"])
 
     def test_failed_update_preserves_in_memory_settings(self):
-        config = ProjectConfig(policies={"completion": {"max_tokens": 100, "reserve_tokens": 20}})
+        config = ProjectConfig(policies={"run": {"max_queued": 100}})
         before = deepcopy(config)
         original = config.policies
-        for changes in ({"completion": {"max_tokens": 10}},
+        for changes in ({"run": {"max_queued": 0}},
                         {"context": {"max_turns": True}},
                         {"extension": {"callback": object()}}, []):
             with self.subTest(changes=changes), self.assertRaises((TypeError, ValueError)):
@@ -83,7 +85,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(before["project"]["config"]["policies"], {})
         self.assertEqual(before["policy_schema"], ProjectConfig.policy_schema())
         config = before["project"]["config"]
-        config["parameters"]["engines"] = {"loop": {"completion": {"model": "test/model"}}}
+        config["parameters"]["engines"] = {"loop": {"config": {"completion": {"model": "test/model"}}}}
         config["future"] = {"value": 1}
         await project.asave(config=config)
         await asyncio.gather(project.aconfigure_policies({"context": {"mode": "recent", "max_turns": 2}}),
@@ -91,7 +93,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         saved = (await project.aget_data()).config
         self.assertEqual(saved.policies["context"]["max_turns"], 2)
         self.assertEqual(saved.policies["run"]["max_queued"], 3)
-        self.assertEqual(saved.parameters["engines"]["loop"]["completion"], {"model": "test/model"})
+        self.assertEqual(saved.parameters["engines"]["loop"]["config"]["completion"], {"model": "test/model"})
         self.assertEqual(saved.future, {"value": 1})
         disk = json.loads((project.paths.root / "project.json").read_text())
         self.assertEqual(disk["config"]["policies"], saved.policies)
@@ -124,53 +126,58 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(await two.aconversation()), 6)
 
     async def test_two_projects_apply_independent_completion_limits(self):
-        small, one = await self.create({"completion": {"max_tokens": 2, "counter": "length"}})
-        large, two = await self.create({"completion": {"max_tokens": 100, "counter": "length"}})
+        small, one = await self.create()
+        large, two = await self.create()
         model = ScriptedCompletion([chunk("ok", finish="stop")])
         self.app.engines.register("loop", LoopEngine(completion_fn=model, completion_kwargs={"model": "test/main"}))
+        await configure_engine(small, "loop", input_policy={"max_tokens": 2, "counter": "length"})
+        await configure_engine(large, "loop", input_policy={"max_tokens": 100, "counter": "length"})
         failed, passed = await asyncio.gather(self.execute(one, "hello", "loop"), self.execute(two, "hello", "loop"))
         self.assertEqual((await failed.aresult()).error_code, "context_budget_exceeded")
         self.assertEqual(passed.data.status, RunStatus.COMPLETED)
         self.assertEqual(len(model.requests), 1)
-        self.assertEqual(failed.data.metadata["policies"]["completion"]["max_tokens"], 2)
+        self.assertNotIn("completion", failed.data.metadata["policies"])
 
     async def test_unknown_counter_is_rejected_before_queue_admission(self):
-        project, session = await self.create({"completion": {"max_tokens": 10, "counter": "missing"}})
+        project, session = await self.create({"usage": {"max_tokens": 10, "counter": "missing"}})
         with self.assertRaises(RunRequestError) as caught:
             await session.run.submit("never queued", engine="inspect")
         self.assertEqual(caught.exception.code, "policy_unavailable")
         self.assertEqual(await session.aconversation(), [])
         self.assertEqual(await session.run.alist(), [])
-        await project.aconfigure_policies({"completion": {"max_tokens": None}})
+        await project.aconfigure_policies({"usage": {"max_tokens": None}})
         self.assertEqual((await self.execute(session)).data.status, RunStatus.COMPLETED)
 
     async def test_running_policy_is_fixed_and_queued_request_uses_latest(self):
         entered, release = asyncio.Event(), asyncio.Event()
         snapshots = []
-        class Hold(BaseEngine):
-            async def run(self, context):
+        class Hold(LoopEngine):
+            async def _execute(self, context):
                 snapshots.append(context.completion_policy.max_tokens)
                 entered.set()
                 await release.wait()
                 snapshots.append(context.completion_policy.max_tokens)
-                yield "done"
+                from llm.core.results import EngineOutput
+                yield self.output_event(context, EngineOutput(text="done"))
         self.app.engines.register("hold", Hold())
-        project, session = await self.create({"completion": {"max_tokens": 100, "counter": "length"}})
+        project, session = await self.create()
+        await configure_engine(project, "hold", input_policy={"max_tokens": 100, "counter": "length"})
         first = await session.run.submit("first", engine="hold")
         await asyncio.wait_for(entered.wait(), 5)
         second = await session.run.submit("second", engine="hold")
-        await project.aconfigure_policies({"completion": {"max_tokens": 20}, "run": {"max_queued": 1}})
+        await configure_engine(project, "hold", input_policy={"max_tokens": 20})
+        await project.aconfigure_policies({"run": {"max_queued": 1}})
         with self.assertRaises(RunRequestError) as caught:
             await session.run.submit("overflow", engine="hold")
         self.assertEqual(caught.exception.code, "queue_full")
         release.set()
         runs = await asyncio.gather(first.wait(), second.wait())
         self.assertEqual(snapshots, [100, 100, 20, 20])
-        self.assertEqual([r.data.metadata["policies"]["completion"]["max_tokens"] for r in runs], [100, 20])
+        self.assertTrue(all("completion" not in r.data.metadata["policies"] for r in runs))
 
     async def test_policy_survives_reopen_and_clone_and_backup(self):
         policies = {"context": {"mode": "recent_completed", "max_turns": 3},
-                    "completion": {"max_tokens": 30, "counter": "length"},
+                    "usage": {"max_tokens": 30, "counter": "length"},
                     "extension": {"future": True}}
         project, session = await self.create(policies)
         await self.execute(session)
@@ -206,12 +213,12 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         first = await session.run.submit("first", engine="hold")
         await asyncio.wait_for(entered.wait(), 5)
         second = await session.run.submit("second", engine="inspect")
-        await project.aconfigure_policies({"completion": {"max_tokens": 10, "counter": "missing"}})
+        await project.aconfigure_policies({"usage": {"max_tokens": 10, "counter": "missing"}})
         release.set()
         self.assertEqual((await first.wait()).data.status, RunStatus.COMPLETED)
         failed = await second.wait()
         self.assertEqual((await failed.aresult()).error_code, "policy_unavailable")
-        await project.aconfigure_policies({"completion": {"counter": "length"}})
+        await project.aconfigure_policies({"usage": {"counter": "length"}})
         self.assertEqual((await self.execute(session)).data.status, RunStatus.COMPLETED)
 
     async def test_run_deadline_is_project_specific(self):
@@ -234,6 +241,6 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         counter.assert_called_once_with(**request)
 
     async def test_completion_policy_name_has_no_legacy_alias(self):
-        import llm.services.history.context as module
+        import llm.policies as module
         self.assertTrue(hasattr(module, "CompletionPolicy"))
         self.assertFalse(hasattr(module, "Completion" + "Budget"))

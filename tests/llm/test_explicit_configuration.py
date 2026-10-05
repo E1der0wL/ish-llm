@@ -42,29 +42,29 @@ class ConfigurationTests(unittest.TestCase):
         ]
         for engine, key, value, overridden in cases:
             with self.subTest(engine=type(engine).__name__, key=key, value=value):
-                config = {"parameters": {"engines": {"test": {key: "project prompt" if key == "system_prompt" else 300}}}}
+                section = "config" if key == "system_prompt" else "policy"
+                config = {"parameters": {"engines": {"test": {section: {key: "project prompt" if key == "system_prompt" else 300}}}}}
                 view = engine.configuration(config, "test")
-                self.assertEqual(view["values"][key], value)
-                self.assertEqual(view["sources"]["/" + key], "host" if overridden else "project")
-                self.assertEqual(view["editable"]["/" + key], not overridden)
-                self.assertEqual(engine.configuration_schema()["properties"][key]["x-host-override"], overridden)
+                self.assertEqual(view["values"][section][key], value)
+                self.assertEqual(view["sources"]["/" + section + "/" + key], "host" if overridden else "project")
+                self.assertEqual(view["editable"]["/" + section + "/" + key], not overridden)
+                self.assertEqual(engine.configuration_schema()["properties"][section]["properties"][key]["x-host-override"], overridden)
 
     def test_pipeline_and_runtime_prompt_override_metadata(self):
         def dynamic_prompt(context):
             raise AssertionError("UI must not execute runtime factories")
         engine = PipelineEngine({"explicit": LoopEngine(system_prompt=None),
                                  "dynamic": LoopEngine(system_prompt=dynamic_prompt)})
-        config = {"parameters": {"engines": {"pipeline": {"stages": {
-            name: {"system_prompt": "project prompt"} for name in ("explicit", "dynamic")}}}}}
+        config = {"parameters": {"engines": {"pipeline": {'config': {'stages': {name: {'config': {'system_prompt': 'project prompt'}} for name in ('explicit', 'dynamic')}}}}}}
         view = engine.configuration(config, "pipeline")["stages"]
-        schema = engine.configuration_schema()["properties"]["stages"]["properties"]
-        self.assertIsNone(view["explicit"]["values"]["system_prompt"])
-        self.assertEqual(view["explicit"]["sources"]["/system_prompt"], "host")
+        schema = engine.configuration_schema()["properties"]["config"]["properties"]["stages"]["properties"]
+        self.assertIsNone(view["explicit"]["values"]["config"]["system_prompt"])
+        self.assertEqual(view["explicit"]["sources"]["/config/system_prompt"], "host")
         self.assertNotIn("system_prompt", view["dynamic"]["values"])
-        self.assertEqual(view["dynamic"]["sources"]["/system_prompt"], "host_runtime")
+        self.assertEqual(view["dynamic"]["sources"]["/config/system_prompt"], "host_runtime")
         for name in view:
-            self.assertFalse(view[name]["editable"]["/system_prompt"])
-            self.assertTrue(schema[name]["properties"]["system_prompt"]["x-host-override"])
+            self.assertFalse(view[name]["editable"]["/config/system_prompt"])
+            self.assertTrue(schema[name]["properties"]["config"]["properties"]["system_prompt"]["x-host-override"])
 
     def test_sparse_resolution_and_null(self):
         for session, host, expected, source in (({}, {}, 300, "project"),
@@ -88,7 +88,7 @@ class ConfigurationTests(unittest.TestCase):
         self.assertEqual(GraphEngine(handlers={}).configuration({}, "graph")["values"], {})
         self.assertIsNone(GraphEngine(handlers={}).timeout_seconds)
         self.assertEqual(LoopEngine(request_timeout=None).configuration(
-            {"parameters": {"engines": {"loop": {"request_timeout": 300}}}}, "loop")["values"], {"request_timeout": None})
+            {"parameters": {"engines": {"loop": {'policy': {'request_timeout': 300}}}}}, "loop")["values"], {"policy": {"request_timeout": None}})
 
     def test_limits_are_inactive_without_host_settings(self):
         limits = ProviderLimits()
@@ -100,14 +100,14 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_project_ui_exposes_explicit_null_host_override(self):
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(system_prompt=None)}) as app:
-                project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {"system_prompt": "project prompt"}}}})
+                project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'config': {'system_prompt': 'project prompt'}}}}})
                 view = await project.aconfiguration()
                 effective = view["effective_engines"]["loop"]
-                self.assertIsNone(effective["values"]["system_prompt"])
-                self.assertEqual(effective["sources"]["/system_prompt"], "host")
-                self.assertFalse(effective["editable"]["/system_prompt"])
+                self.assertIsNone(effective["values"]["config"]["system_prompt"])
+                self.assertEqual(effective["sources"]["/config/system_prompt"], "host")
+                self.assertFalse(effective["editable"]["/config/system_prompt"])
                 schema = view["schema"]["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]["loop"]
-                self.assertTrue(schema["properties"]["system_prompt"]["x-host-override"])
+                self.assertTrue(schema["properties"]["config"]["properties"]["system_prompt"]["x-host-override"])
 
     async def test_loop_sdk_kwargs_and_wrapper_are_independent(self):
         for options, completion in (({}, {}), ({"request_timeout": .5}, {}),
@@ -119,7 +119,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 yield from chunks()
             with tempfile.TemporaryDirectory() as root:
                 async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_fn=call, **options)}) as app:
-                    project = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test", **completion}}}}))
+                    project = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test', **completion}}}}}))
                     session = await project.sessions.acreate()
                     run = await (await session.run.submit("hello", engine="loop")).wait(timeout=5)
                     self.assertEqual(run.data.status, "completed", run.data.error)
@@ -133,7 +133,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             yield from chunks()
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_fn=call, request_timeout=.005)}) as app:
-                project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {"completion": {"model": "test"}}}}})
+                project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}})
                 session = await project.sessions.acreate()
                 run = await (await session.run.submit("hello", engine="loop")).wait(timeout=5)
                 self.assertEqual(run.data.status, "failed")
@@ -283,10 +283,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_agent_inherits_prompt_and_host_null_removes_it(self):
         definition = {"engine": "loop", "purpose": "business purpose", "completion": {"model": "test"}}
         engine = LoopEngine().for_agent(definition)
-        config = {"parameters": {"engines": {"loop": {"system_prompt": "project prompt"}}}}
-        self.assertEqual(engine.configuration(config, "loop")["values"]["system_prompt"], "project prompt")
+        config = {"parameters": {"engines": {"loop": {'config': {'system_prompt': 'project prompt'}}}}}
+        self.assertEqual(engine.configuration(config, "loop")["values"]["config"]["system_prompt"], "project prompt")
         host = LoopEngine(system_prompt=None).for_agent(definition)
-        self.assertIsNone(host.configuration(config, "loop")["values"]["system_prompt"])
+        self.assertIsNone(host.configuration(config, "loop")["values"]["config"]["system_prompt"])
 
     async def test_graph_agent_inherits_partial_completion_and_does_not_invent_prompt(self):
         from llm.components.agents import AgentComponent
@@ -304,7 +304,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=call)})})
             with tempfile.TemporaryDirectory() as root:
                 async with LargeLanguageModel(root, components=components, engines={"graph": graph}) as app:
-                    project = await app.projects.acreate(components=[c.name for c in components], config={"parameters": {"engines": {"loop": {**{"system_prompt": "project prompt"}, "completion": {"model": "test", "temperature": .8}}}}})
+                    project = await app.projects.acreate(components=[c.name for c in components], config={"parameters": {"engines": {"loop": {'config': {'system_prompt': 'project prompt', 'completion': {'model': 'test', 'temperature': 0.8}}}}}})
                     await project.components.agents.acreate({"engine": "loop", "purpose": "Not a system prompt",
                         "completion": {"temperature": 0}, **overrides}, identifier="worker")
                     prompt_view = await project.components.agents.aprompt("worker")
@@ -315,7 +315,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                         .node("work", "agent", agent="worker", inputs={"request": "/request"}, outputs={"answer": "/text"})
                         .node("end", "end").connect("work", "end"))
                     await project.components.workflows.acreate(flow.to_dict(), identifier="flow")
-                    session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {"completion": {"top_p": .7}}}}})
+                    session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'top_p': 0.7}}}}}})
                     run = await (await session.run.submit("hello", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=5)
                     self.assertEqual(run.data.status, "completed", run.data.error)
                     await project.components.agents.aupdate_prompt("worker", None, expected_revision=prompt_view["revision"])
@@ -340,7 +340,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         from llm.components.memory.processing import processing_settings
         self.assertEqual(processing_settings({}), {})
         with self.assertRaisesRegex(ValueError, "Missing required setting"):
-            processing_settings({"processing": {"recall": True}})
+            processing_settings({"policy": {"processing": {"recall": True}}})
 
     async def test_schema_rejects_default_annotation_but_allows_field_named_default(self):
         from llm.core.schema import checked_schema
@@ -355,7 +355,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         component = RAGComponent(embedding=client)
         project = SimpleNamespace(id="one", paths=SimpleNamespace(root=Path("unused")), config=rag_project())
         self.assertEqual(component.configured(project).embedding.provider_options, {"max_attempts": 3, "wall_timeout": 20})
-        project.config.parameters.setdefault("components", {})["rag"]["provider"] = {"wall_timeout": None}
+        project.config.parameters.setdefault("components", {})["rag"]['policy']['provider'] = {"wall_timeout": None}
         view = component.effective_configuration(project)["model_providers"]["embedding"]
         self.assertEqual(view["values"], {"max_attempts": 3, "wall_timeout": None})
         self.assertEqual(view["sources"], {"/max_attempts": "client", "/wall_timeout": "project"})

@@ -8,7 +8,7 @@ from dataclasses import replace
 from llm.llm import (Diagnostic, ResourceRef, OperationProgress, SessionRuntimeView, RunView,
     ResumePlan, RecoveryPlan, RecoveryResult, RetentionPlan, EngineEvent, EngineEventType)
 from llm.core.interactions import approval_request
-from llm.services.runtime.policies import ExecutionLimitError
+from llm.policies import ExecutionLimitError
 from llm.services.runtime.tools import ToolExecutionError
 from tests.llm import test_long_running, test_interactions, test_rag_components
 from tests.llm.test_loop import chunk, call

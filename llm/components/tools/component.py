@@ -3,6 +3,7 @@
 from copy import deepcopy
 from typing import Sequence
 from llm.components.base import Component, validate_name
+from llm.core.settings import SettingsLayout
 from llm.services.infrastructure.storage import make_directory, remove_named_tree
 from .registry import ToolRegistry
 from .data import ToolData
@@ -14,6 +15,7 @@ class ToolComponent(Component):
     directory = "tools"
     capabilities = ("tools",)
     data_class = ToolData
+    settings_layout = SettingsLayout(config=("enabled",))
 
     @staticmethod
     def _selection_names(names: Sequence[str]) -> list[str]:
@@ -23,11 +25,12 @@ class ToolComponent(Component):
 
     def configuration_schema(self):
         from llm.core.schema import object_schema
-        return object_schema({"enabled": {"type": "array", "items": {"type": "string"},
-            "uniqueItems": True, "description": "Run에 노출할 Project Python Tool 이름"}})
+        return self.settings_layout.schema(object_schema({"enabled": {"type": "array", "items": {"type": "string"},
+            "uniqueItems": True, "description": "Run에 노출할 Project Python Tool 이름"}}))
 
     def validate_configuration(self, configuration):
-        names = configuration.get("enabled", [])
+        super().validate_configuration(configuration)
+        names = configuration.get("config", {}).get("enabled", [])
         if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
             raise ValueError("Enabled tools must be a list of names")
         if len(set(names)) != len(names):
@@ -44,7 +47,7 @@ class ToolComponent(Component):
         make_directory(ToolPaths.for_project(project).root)
 
     def enabled(self, project):
-        return self.configuration(project).get("enabled", [])
+        return self._options(project).get("enabled", [])
 
     def create(self, project, data, *, identifier=None):
         paths = ToolPaths.for_project(project)

@@ -8,18 +8,15 @@ Project는 SDK 옵션을 해석하거나 이름이 같은 인자를 여러 대�
 config = ProjectConfig(
     policies={"run": {"timeout_seconds": 1800}},
     parameters={
-        "engines": {"loop": {
-            "request_timeout": 300,
-            "completion": {"model": "openai/company-model", "temperature": 0.2},
-        }},
-        "components": {"vision": {"ocr": {"backend": "tesseract"}}},
+        "engines": {"loop": {'policy': {'request_timeout': 300}, 'config': {'completion': {'model': 'openai/company-model', 'temperature': 0.2}}}},
+        "components": {"vision": {'config': {'ocr': {'backend': 'tesseract'}}}},
     },
 )
 project = await backend.projects.acreate(
     "작업 공간", config=config, components=["vision"], conversation_storage="file",
 )
 session = await project.sessions.acreate("대화", config={
-    "parameters": {"engines": {"loop": {"request_timeout": None}}},
+    "parameters": {"engines": {"loop": {'policy': {'request_timeout': None}}}},
 })
 request = await session.run.submit("안녕하세요", engine="loop")
 ```
@@ -37,12 +34,12 @@ Component는 자신의 디렉토리 아래 자료를 관리하고 별도 설정 
 ```python
 view = await project.aconfiguration()
 settings = ProjectConfig(view["project"]["config"])
-settings.parameters["engines"]["loop"]["completion"]["temperature"] = 0.1
+settings.parameters["engines"]["loop"]["config"]["completion"]["temperature"] = 0.1
 await project.asave(config=settings, expected_version=view["config_version"])
 
 vision = await project.components.aget("vision")
 await vision.aconfigure(
-    {"ocr": {"backend": "tesseract", "backends": {"tesseract": {"language": "eng"}}}},
+    {'config': {'ocr': {'backend': 'tesseract', 'backends': {'tesseract': {'language': 'eng'}}}}},
     expected_version=view["component_versions"]["vision"],
 )
 ```

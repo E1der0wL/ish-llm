@@ -184,7 +184,7 @@ async def run_demo(workspace: Path, *, model=None, completion_fn=None, max_attem
         await agents.acreate({"engine": "loop", "purpose": "Implement and repair a pure addition function",
                              "system_prompt": "Return only JSON with a code string. Implement add(a, b) using a pure arithmetic expression. No imports, calls, annotations, decorators, defaults or docstrings. Fix the reported validation errors.",
                              "completion": {"model": model or "demo/scripted", "temperature": 0},
-                             "tools": [], "engine_options": {"max_iterations": 1}}, identifier="coder")
+                             "tools": [], "engine_options": {'policy': {'max_iterations': 1}}}, identifier="coder")
         await workflows.acreate(coding_workflow(max_attempts), identifier="code-review")
         project = await backend.projects.aload(project.id)
         session = await project.sessions.acreate("Implement addition")

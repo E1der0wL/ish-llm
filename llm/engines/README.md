@@ -8,12 +8,20 @@ Engine은 하나의 Run을 어떻게 실행할지 정의합니다. 모델을 반
 | --- | --- |
 | [__init__.py](__init__.py) | BaseEngine, EngineContext, EngineRegistry와 Graph 타입의 공개 import입니다. |
 | [base.py](base.py) | Engine protocol, EngineContext/EngineEvent, BaseEngine과 Step·출력·Tool helper입니다. |
+| [../policies/](../policies/README.md) | Engine/Component가 재사용하는 CompletionPolicy 알고리즘입니다. |
 | [registry.py](registry.py) | 실행 객체 등록, 이름 조회와 실행 전 설정 검증입니다. |
 | [loop/](loop/README.md) | LiteLLM completion → Tool → 다음 completion을 반복합니다. |
 | [graph/](graph/README.md) | LangGraph로 Workflow를 실행하고 Agent/Tool·중첩 체크포인트를 연결합니다. |
 | [pipeline/](pipeline/README.md) | 준비 작업과 여러 Engine을 같은 Run에서 순서대로 실행합니다. |
 
 현재 공개 구현은 LoopEngine, GraphEngine, PipelineEngine입니다. 단일 동작은 BaseEngine으로 구현할 수 있으며 별도 SingleEngine 구현은 없습니다.
+
+정책 클래스는 실제 처리를 소유한 계층에 둡니다. 서비스의 RunPolicy는 공통 실행 제한,
+공용 CompletionPolicy는 모델 입력 선택을 담당합니다. EngineContext.token_counters는
+호스트 계산기 자원이며 정책값이 아닙니다. Loop는 자신의 policy.completion로 실행별
+CompletionPolicy를 만들어 processor 문맥에 전달합니다. custom Engine이 이 알고리즘을
+사용하려면 자신의 설정에서 명시적으로 구성해야 합니다. BaseEngine의 스트리밍 재시도도
+`stream_completion(..., provider=명시한 설정)`으로 선택하며 중앙 정책을 자동 적용하지 않습니다.
 
 ## 공개 import와 등록
 

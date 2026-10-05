@@ -5,7 +5,7 @@ Project → Session → Run → Step 관계는 바뀌지 않는다. Engine은 �
 ProjectConfig에 Python 객체를 직렬화하지 않는다.
 
 ```python
-from llm.llm import LargeLanguageModel, LoopEngine, ServiceConfig, ProviderLimits, OutputPolicy, RunLimits
+from llm.llm import LargeLanguageModel, LoopEngine, ServiceConfig, ProviderLimits, OutputPolicy, RunPolicy
 
 backend = LargeLanguageModel(
     "workspace",
@@ -28,19 +28,19 @@ project = await backend.projects.acreate(config={"policies": {
 유한하며 한도 초과는 `provider_capacity` Run 오류 코드로 조회한다.
 `backend.provider_calls.stats`는 `active`, `waiting` 스냅샷이다.
 
-기본값은 active=8, waiting=32, wait_seconds=30이다. `ServiceConfig.provider_calls`로
+active/waiting/wait_seconds는 명시한 경우에만 제한한다. `ServiceConfig.provider_calls`로
 공유 객체/서브클래스를 주입하면 provider_limits 대신 그 객체가 정책을 소유한다.
 Session와 중첩 Engine은 같은 객체를 사용한다. ContextVar는 호출 문맥만 전달하며
 프로세스 전역 세마포어나 영속 필드가 아니다. 독립 스트림 사용자는
 `stream_completion(..., calls=pool)` 또는 `with pool.scope():`로 선택한다.
 
-적용 대상은 이 플러그인의 **동기 completion 스트림 어댑터**다. 직접 SDK를 호출하는
-커스텀 Engine이나 RAG의 독립 비동기 모델 API가 자동으로 이 한도에 포함되지는 않는다.
-다른 어댑터도 acquire/release 계약을 사용해 같은 제한에 참여할 수 있다.
+적용 대상은 동기 completion 스트림 어댑터와 공통 비스트리밍 provider 경계다. 백엔드에서
+실행하는 RAG/Vision도 공유 admission에 참여한다. 직접 SDK를 호출하는 custom Engine까지
+가로채지는 않으므로 다른 어댑터도 acquire/release 계약을 사용해 같은 제한에 참여해야 한다.
 동기 네트워크 읽기를 강제 종료하지는 않는다. 연결/읽기 transport timeout은 LiteLLM의
 completion 인자로, LLM iteration 전체는 LoopEngine.request_timeout으로, Run 전체는
-RunLimits.timeout_seconds로 조절한다. 실제 호출이 영원히 반환하지 않으면 슬롯은
-계속 점유되지만 새 스레드를 무제한 생성하지 않는다.
+RunPolicy.timeout_seconds로 조절한다. 실제 호출이 영원히 반환하지 않으면 슬롯은
+계속 점유한다. 추가 동시 호출을 제한하려면 호스트가 max_active를 명시해야 한다.
 
 ## 델타 묶음 저장
 
@@ -131,7 +131,7 @@ Project/Session/Run/Step metadata는 `storage_version=1`를 명시한다. 지원
 Core는 서비스/UI에 의존하지 않고 Engine은 영속 파일을 쓰지 않는다. 실행과 조회는
 동일한 주입 저장소를 유지한다. 저수준 ProjectManager/RunManager의 기본 Run 저장소도
 SessionManager를 통해 공유한다. capability 탐색의 종전 고정 32회 상한도
-RunLimits.max_capability_rounds로 노출했다. 저장 버전·이벤트 이름·파일 이름은 계약상
+RunPolicy.max_capability_rounds로 노출했다. 저장 버전·이벤트 이름·파일 이름은 계약상
 고정값이며 운영 튜닝 값과 구분한다. llm은 기본 Project/Session이나 엔진 선택을 관리하지
 않으며 모든 요청에 engine 이름을 지정한다. UI 생성·선택 정책은 호출 애플리케이션이 소유한다.
 

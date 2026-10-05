@@ -16,11 +16,7 @@ from llm.llm import LargeLanguageModel, ProjectConfig, VisionComponent
 
 async with LargeLanguageModel(workspace, components=[VisionComponent()]) as backend:
     project = await backend.projects.acreate("Images", components=["vision"],
-        config=ProjectConfig(parameters={"components": {"vision": {
-            "ocr": {"backend": "tesseract", "backends": {
-                "tesseract": {"language": "eng", "page_segmentation": 6}
-            }}
-        }}}))
+        config=ProjectConfig(parameters={"components": {"vision": {'config': {'ocr': {'backend': 'tesseract', 'backends': {'tesseract': {'language': 'eng', 'page_segmentation': 6}}}}}}}))
     vision = await project.components.aget("vision")
     image = await vision.aimport_image("/path/screenshot.png", title="Error screen")
     derived = await vision.apreprocess(image["id"], operations=[
@@ -46,12 +42,12 @@ contrast(factor), sharpen(factor), format(PNG/JPEG)입니다. format은 마지�
 
 | 항목 | 미설정 동작 |
 | --- | --- |
-| `ocr.backend` | `aocr(backend=...)`가 없으면 설정 오류. 등록된 Tesseract를 자동 선택하지 않음 |
-| `ocr.backends.<이름>` | backend에 빈 options 전달. Tesseract language/psm 등은 native 동작 |
-| `ocr.timeout` | 추가 deadline 없음. 명시적 null도 무제한 |
-| `completion` | VLM 사용 시 model 필수. timeout/temperature/token/retry 값을 추가하지 않음 |
-| `provider` | 외부 wrapper retry/deadline 없음. 기존 ProviderRuntime 계약 공유 |
-| `limits.max_bytes`, `limits.max_pixels` | ish 추가 제한 없음. Pillow 자체 이미지 검증은 유지 |
+| `config.ocr.backend` | `aocr(backend=...)`가 없으면 설정 오류. 등록된 Tesseract를 자동 선택하지 않음 |
+| `config.ocr.backends.<이름>` | backend에 빈 options 전달. Tesseract language/psm 등은 native 동작 |
+| `policy.ocr.timeout` | 추가 deadline 없음. 명시적 null도 무제한 |
+| `config.completion` | VLM 사용 시 model 필수. timeout/temperature/token/retry 값을 추가하지 않음 |
+| `policy.provider` | 외부 wrapper retry/deadline 없음. 기존 ProviderRuntime 계약 공유 |
+| `policy.limits.max_bytes`, `policy.limits.max_pixels` | ish 추가 제한 없음. Pillow 자체 이미지 검증은 유지 |
 
 OCR backend 선택은 **호출 인자 → Project 명시 설정 → 오류** 순서입니다.
 `auto`, unknown backend, backend=null은 허용하지 않습니다. 호출의 `options`는 선택한
@@ -81,7 +77,7 @@ schema에서 backend를 필수 인자로 노출합니다. 승인 전에는 OCR �
 `aupdate/asave`는 title/metadata만 변경합니다. 동기 등록은 `import_image()`이며
 비동기 UI는 `aimport_image()`를 사용합니다. 공통 JSON create는 이미지 등록에 사용하지 않습니다.
 
-VLM은 `vision.completion.model` 등 모델 서버 설정 후 호출합니다. `aanalyze()`는 기존 provider
+VLM은 `vision.config.completion.model` 등 모델 서버 설정 후 호출합니다. `aanalyze()`는 기존 provider
 admission·재시도·사용량 관찰을 사용합니다. OCR 결과의 confidence는 backend 고유 척도이며
 다른 backend의 점수와 직접 비교하지 않습니다. OCR 좌표는 처리한 이미지의 픽셀 좌표입니다.
 VLM 해석을 검증된 OCR이나 실제 OS 상태로 간주하지 마세요.

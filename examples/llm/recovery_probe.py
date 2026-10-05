@@ -265,8 +265,7 @@ async def connection_failure(root, spec):
     server.daemon_threads = True
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    config = ProjectConfig(policies={"provider_retry": {"max_retries": 0}}, parameters={"engines": {"loop": {"completion": {"model": "openai/probe", "api_key": "local-test-only",
-        "api_base": f"http://127.0.0.1:{server.server_port}/v1", "num_retries": 0}}}})
+    config = ProjectConfig(parameters={"engines": {"loop": {'policy': {'provider': {'max_attempts': 1}}, 'config': {'completion': {'model': 'openai/probe', 'api_key': 'local-test-only', 'api_base': f'http://127.0.0.1:{server.server_port}/v1', 'num_retries': 0}}}}})
     engine = LoopEngine(request_timeout=spec["timeout"], max_iterations=2)
     observed = []
     try:
@@ -274,7 +273,7 @@ async def connection_failure(root, spec):
         # 준비 호출도 로컬 서버로만 보내고 요청 횟수에 명시적으로 포함한다.
         def warmup():
             from llm.providers.litellm import completion
-            return list(completion(**config["parameters"]["engines"]["loop"]["completion"], stream=True,
+            return list(completion(**config["parameters"]["engines"]["loop"]["config"]["completion"], stream=True,
                 timeout=spec["timeout"], messages=[{"role": "user", "content": "warmup"}]))
         await asyncio.to_thread(warmup)
         async with LargeLanguageModel(root / "workspace", components=[], engines={"loop": engine}) as app:

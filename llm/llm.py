@@ -63,10 +63,10 @@ from llm.components.vision import VisionComponent, VisionData, TesseractBackend
 from llm.components.base import ProjectComponent
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.runtime.runs import RunEvent, RunManager, RunErrorCode, RunRequestError
-from llm.services.runtime.policies import RunLimits, ProjectPolicyResolver
+from llm.services.runtime.policies import RunPolicy, ProjectPolicyResolver
 from llm.services.runtime.tools import ToolPolicy, ToolCall, ToolExecutionError, ToolApprovalRequired
 from llm.services.runtime.processes import ProcessToolRunner
-from llm.services.history.context import CompletionPolicy
+from llm.policies import CompletionPolicy
 from llm.services.api import Projects
 from llm.services.infrastructure.storage import StorageIO, drain_on_cancel
 from llm.services.configuration import ServiceConfig
@@ -155,7 +155,7 @@ class LargeLanguageModel:
             ) as backend:
                 project = await backend.projects.acreate(
                     "도우미",
-                    config=ProjectConfig(parameters={"engines": {"chat": {"completion": {"model": model}}}}),
+                    config=ProjectConfig(parameters={"engines": {"chat": {'config': {'completion': {'model': model}}}}}),
                     conversation_storage="file",
                 )
                 session = await project.sessions.acreate("첫 대화")
@@ -192,8 +192,8 @@ class LargeLanguageModel:
         project = await backend.projects.acreate(
             "문서 작업", components=["rag", "memory"],
             config=ProjectConfig(policies={"output": {"batch_size": 16}}, parameters={"components": {
-                "rag": {"chunk_size": 1200, "search": {"limit": 8}},
-                "memory": {"search_limit": 5},
+                "rag": {'config': {'chunk_size': 1200, 'search': {'limit': 8}}},
+                "memory": {'config': {'search_limit': 5}},
             }}),
         )
         # 명시된 client 설정 위에 Project 설정을 적용한다.
@@ -201,14 +201,14 @@ class LargeLanguageModel:
         view = await project.aconfiguration()
         print(view["components"]["rag"]["effective"]["sources"])
         settings = ProjectConfig(view["project"]["config"])
-        settings.parameters["components"]["rag"]["search"]["limit"] = 10
+        settings.parameters["components"]["rag"]["config"]["search"]["limit"] = 10
         await project.asave(config=settings, expected_version=view["config_version"])
 
         # 기본 Project/Session과 마지막 선택은 호출 애플리케이션이 소유한다.
         # acreate는 매번 새 Project를 만들며 재사용은 아래 aload(id)로 명시한다.
 
         project = await backend.projects.acreate(
-            "연구", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": model}}}}),
+            "연구", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': model}}}}}),
             components=["tools", "skills", "agents", "workflows"],
             conversation_storage="memory",
         )
@@ -216,7 +216,7 @@ class LargeLanguageModel:
         projects = await backend.projects.alist(include_deleted=True, query=Query(limit=20))
         await project.asave(title="연구 노트")
         settings = (await project.aget_data()).config
-        settings["parameters"]["engines"]["loop"]["completion"]["temperature"] = 0.2
+        settings["parameters"]["engines"]["loop"]["config"]["completion"]["temperature"] = 0.2
         await project.asave(config=settings)
         project_copy = await project.aclone(title="연구 사본")
         await project.adelete()                 # 소프트 삭제
@@ -234,13 +234,13 @@ class LargeLanguageModel:
 
     Session / Conversation — 독립 대화 세션 관리::
 
-        session = await project.sessions.acreate("코드 검토", config={"parameters": {"engines": {"loop": {"completion": {"temperature": 0}}}}})
+        session = await project.sessions.acreate("코드 검토", config={"parameters": {"engines": {"loop": {"config": {"completion": {"temperature": 0}}}}}})
         session = await project.sessions.aload(session.id)
         sessions = await project.sessions.alist(include_deleted=True, query=Query(limit=20))
         await session.asave(title="검토 세션", metadata={"language": "ko"})
         messages = await session.aconversation(query=Query(limit=50))
         await session.run.shutdown()
-        await session.asave(config={"parameters": {"engines": {"loop": {"completion": {"temperature": 0.1}}}}})
+        await session.asave(config={"parameters": {"engines": {"loop": {"config": {"completion": {"temperature": 0.1}}}}}})
         session_copy = await session.aclone(title="검토 사본")
         await session.adelete()
         await session.arestore()
@@ -314,22 +314,22 @@ class LargeLanguageModel:
             tool_policy=ToolPolicy(max_calls=80),
             conversation_cache_size=32,
         )
-        backend = LargeLanguageModel("./workspace", services=services)
+        backend = LargeLanguageModel("./workspace", services=services, engines={"loop": LoopEngine()})
         project = await backend.projects.acreate(config=ProjectConfig(policies={
             "context": {"mode": "full"},
-            "completion": {"max_tokens": 32000, "reserve_tokens": 4000, "counter": "model_default"},
             "run": {"max_queued": 20, "timeout_seconds": 1800},
-        }))
+        }, parameters={"engines": {"loop": {'policy': {'completion': {'max_tokens': 32000, 'reserve_tokens': 4000, 'counter': 'model_default'}, 'provider': {'max_attempts': 2}}}}}))
         await project.aconfigure_policies({"context": {"mode": "recent", "max_turns": 10}})
         settings = await project.aconfiguration()  # project/components와 UI용 policy_schema
         status = await session.run.astatus(queued_limit=20)
         cancelled = await request.cancel()  # 실행 전 요청만 취소; 실행 중이면 False
 
-    RunLimits의 기본값은 무제한이다. ToolPolicy에는 async authorize(call),
+    RunPolicy의 기본값은 무제한이다. ToolPolicy에는 async authorize(call),
     runner(tool, call), allowed_tools를 주입할 수 있다. Loop와 Graph Agent/Tool이
-    Run 단위 예산을 공유한다. ProjectConfig.policies.completion은 매 Loop 호출 전에
+    Run 단위 예산을 공유한다. parameters.engines[등록 이름].policy.completion는 매 Loop 호출 전에
     CompletionPolicy로 과거 턴을 선택한다. 토큰 계산 함수는 ServiceConfig.token_counters에
-    이름으로 등록한다. 정책 사본은 Run.metadata.policies에 남으며 변경은 다음 Run부터 반영한다.
+    이름으로 등록한다. 공통 사용량 제한은 policies.usage.counter를 별도로 선택한다.
+    공통 정책 사본은 Run.metadata.policies에 남으며 변경은 다음 Run부터 반영한다.
     현재 Tool 문맥까지
     넘치면 context_budget_exceeded로 실패하고 원문은 유지한다. 자세한 사용 예와 운영
     한계는 docs/llm/runtime-reliability.md를 따른다.
@@ -347,7 +347,7 @@ class LargeLanguageModel:
         job = await project.components.rag.aenqueue_document(title="설명서", content=markdown)
         await project.components.rag.arun_job(job["id"])
 
-    policies의 tool_retry/provider_retry/usage/retention으로 동작을 조절한다.
+    policies의 tool_retry/usage/retention과 각 Engine·Component의 provider 설정으로 조절한다.
     정상 None Tool 결과는 재사용하고 불확실한 효과는 자동 재실행하지 않는다.
     Graph 안의 Loop는 노드 경계로 재개한다. docs/llm/long-running.md에 사용 조건을 설명한다.
 
@@ -456,7 +456,7 @@ class LargeLanguageModel:
         data["description"] = "리뷰 지침"
         await skills.asave(identifier, data)          # 전체 데이터 교체
         updated = await skills.aupdate(identifier, {"description": "새 리뷰 지침"})
-        await skills.aconfigure({"ui": {"label": "검토"}})
+        await skills.aconfigure({"config": {"ui": {"label": "검토"}}})
         configuration = await skills.aconfiguration()
         await skills.adelete(identifier)              # 정의 파일 삭제
         await project.components.aremove("skills")   # 선택 해제; 데이터는 유지
@@ -473,13 +473,13 @@ class LargeLanguageModel:
 
         # Project 생성 시 components에 "vision"을 선택한다.
         vision = await project.components.aget("vision")
-        await vision.aconfigure({"ocr": {"backend": "tesseract"}})
+        await vision.aconfigure({"config": {"ocr": {"backend": "tesseract"}}})
         image = await vision.aimport_image("/path/screen.png", title="화면")
         result = await vision.aocr(image["id"])
         document = await vision.aextract_document(image["id"], mode="ocr", title="화면 텍스트")
         # rag도 선택·설정되어 있다면 await project.components.rag.aadd_document(**document)
 
-    backend 미설정이면 OCR 호출에서 backend를 명시해야 한다. VLM은 vision.completion의
+    backend 미설정이면 OCR 호출에서 backend를 명시해야 한다. VLM은 vision.config.completion의
     모델 설정 후 aanalyze(image_id, prompt=...)로 호출한다. 이미지 삭제는 출처 보존을 위한
     tombstone이며 개별 bytes를 회수하지 않는다. 자세한 계약은 components/vision/README.md.
 
@@ -495,24 +495,30 @@ class LargeLanguageModel:
         deleted = await memory.adelete(identifier, expected_revision=record["revision"])
         await memory.arestore(identifier, expected_revision=deleted["revision"])
 
-    API 생성 레코드는 confirmed 상태이며 모델 Tool의 작성 상태는 tool_write_status로 반드시 지정한다.
+    API 생성 레코드는 confirmed 상태이며 모델 Tool의 작성 상태는 policy.tool_write_status로 반드시 지정한다.
     선택 시 memory_search/get/create/update/delete Tool을 자동 제공한다. 모델 수정도 revision
     검사를 거치고 출처는 실행 문맥에서 기록한다. 자세한 정책은 docs/llm/memory.md를 참고한다.
 
     Memory — 선택적 장기 문맥 처리::
 
-        await memory.aconfigure({"processing": {
-            "summarize": True, "extract": True,
-            "completion": {"model": "provider/model"},
-            "keep_turns": 8, "context_chars": 6000,
-        }})
+        await memory.aconfigure({
+            "config": {"processing": {
+                "completion": {"model": "provider/model"}, "priority": 100,
+                "summary_chars": 2000, "recall_limit": 5, "extract_scope": "session",
+            }},
+            "policy": {"processing": {
+                "summarize": True, "extract": True,
+                "keep_turns": 8, "context_chars": 6000, "summary_after_chars": 12000,
+                "model_input_chars": 16000, "max_summary_calls": 2, "max_candidates": 5,
+            }},
+        })
         summary = await memory.asummary(session.id)
         review = await memory.areview(session_id=session.id)
         identifier = await memory.acreate({"content": "다음은 검증 단계", "kind": "work_state",
                                            "scope": "session", "session_id": session.id})
         record = await memory.aload(identifier, session_id=session.id)
 
-    자동 검색/Tool 미리보기는 processing에서 명시적으로 활성화한다. 보조 모델 요약/추출은 설정으로 켜며 원본 대화와
+    자동 검색/Tool 미리보기는 policy.processing에서 명시적으로 활성화한다. 위 숫자는 예제의 선택이다. 보조 모델 요약/추출은 설정으로 켜며 원본 대화와
     Tool 결과를 덮어쓰지 않는다. 주요 도메인에는 Memory 전용 실행 로직이 없다.
     예산, 중첩 Engine, 오류 정책은 docs/llm/memory-processing.md를 참고한다.
 
@@ -521,9 +527,18 @@ class LargeLanguageModel:
         from llm.components.rag import RAGComponent, EmbeddingModel, TripleExtractor
 
         # 기본 모델 설정은 ProjectConfig로 전달하고 필요한 실행 함수만 호스트에서 주입한다.
-        project = await backend.projects.acreate("문서", components=["rag"], config=ProjectConfig(parameters={"components": {"rag": {
-                "embedding_params": {"model": embedding_model, "api_key": api_key},
-                "extraction_params": {"model": model, "api_key": api_key},
+        project = await backend.projects.acreate("문서", components=["rag"],
+            config=ProjectConfig(parameters={"components": {"rag": {
+                "config": {
+                    "embedding_params": {"model": embedding_model, "api_key": api_key},
+                    "extraction_params": {"model": model, "api_key": api_key},
+                    "chunk_size": 1000, "extraction_batch_size": 8,
+                    "search": {"method": "hybrid", "expand": "section", "limit": 5,
+                               "candidate_count": 20, "rrf_constant": 60,
+                               "max_hops": 2, "relation_limit": 30},
+                },
+                "policy": {"embedding_concurrency": 2,
+                           "extraction": {"failure_policy": "required"}},
             }}}))
         rag = await project.components.aget("rag")
         document = await rag.aadd_document(title="운영 안내", content=markdown_text)
@@ -935,7 +950,7 @@ async def run_request(args: argparse.Namespace) -> int:
         engines={"loop": LoopEngine(**{key: value for key, value in {
             "max_iterations": args.max_iterations, "request_timeout": args.timeout}.items() if value is not None})},
     ) as backend:
-        project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {key: value for key, value in {"model": args.model, "temperature": args.temperature, "api_base": args.api_base}.items() if value is not None}}}}),
+        project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {key: value for key, value in {'model': args.model, 'temperature': args.temperature, 'api_base': args.api_base}.items() if value is not None}}}}}),
             components=["tools"] if args.with_tools else [])
         session = await project.sessions.acreate("Streaming request")
         if args.with_tools:

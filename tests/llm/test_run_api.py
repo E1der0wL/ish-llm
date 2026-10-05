@@ -188,7 +188,7 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         self.projects.set_components(self.project, ("tools",))
         data = self.projects.component(self.project, "tools")
         data.create({"source": "# incomplete"}, identifier="offline")
-        data.configure({"enabled": ["offline"]})
+        data.configure({'config': {'enabled': ['offline']}})
         events = []
         manager = self.manager(capabilities=self.components, on_run_event=events.append)
         await manager.submit("request", engine="fake")
@@ -287,7 +287,7 @@ class OpenComponentTests(unittest.TestCase):
         config = ProjectConfig({"editor": {"font_size": 14}}, theme="dark")
         self.assertFalse(is_dataclass(config))
         config["password"] = "ordinary-example-value"
-        config.parameters["engines"] = {"loop": {"completion": {"model": "example", "api_key": "example-value"}}}
+        config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "example", "api_key": "example-value"}}}}
         config["new_section"] = {"custom": [1, True]}
         config["model"] = {"workspace_setting": True}
         config["__deepcopy__"] = "ordinary mapping key"
@@ -309,7 +309,7 @@ class OpenComponentTests(unittest.TestCase):
         data = self.projects.component(self.project, "tools")
         definition = {"source": "# incomplete"}
         data.create(definition, identifier="offline")
-        data.configure({"enabled": ["offline"]})
+        data.configure({'config': {'enabled': ['offline']}})
         self.assertEqual(data.load("offline"), definition)
         data.update("offline", {"requirements": "# none"})
         definitions = {
@@ -328,7 +328,7 @@ class OpenComponentTests(unittest.TestCase):
             ComponentToolResolver(self.components).resolve_tools(self.projects.load(self.project.id))
         data.save("offline", {"source": 'from llm.components.tools import tool\n@tool()\nasync def main():\n    """Offline tool."""\n    return "ok"\n'})
         self.assertEqual(ComponentToolResolver(self.components).resolve_tools(self.projects.load(self.project.id)).names(), ("offline",))
-        data.configure({"enabled": []})
+        data.configure({'config': {'enabled': []}})
         data.delete("offline")
         self.assertEqual(data.list(), {})
 

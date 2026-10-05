@@ -1,3 +1,73 @@
+## 2026-10-05 구현체 config/policy 외형과 공용 알고리즘
+
+- Engine/Component의 공개 JSON 설정은 `parameters.engines/components[name]` 아래
+  `config`(기능 입력·SDK 인자)와 `policy`(구현체 실행 판단·한도)로 확정했다.
+  CompletionPolicy 이름을 유지하며 `llm/policies/completion.py`로 이동했고,
+  공용 ExecutionLimitError도 같은 패키지로 옮겼다. RunPolicy/ContextPolicy/ToolPolicy는
+  기존 서비스 owner에 남는다. 옛 engines.policies 모듈이나 오류 클래스 별칭은 없다.
+- Loop SDK 인자는 config.completion, 입력 선택은 policy.completion, 외부 retry/deadline은
+  policy.provider다. Graph의 실행 한도는 policy, buffer/cleanup 조율은 config다.
+  RAG/Memory/Vision/Tool 설정도 같은 분류를 사용한다. 전체 키 표는 llm/CONFIGURATION.md.
+- `core/settings.py::SettingsLayout`이 명시적 생성자/client 값, schema와 실행 사본을
+  연결한다. 분류 누락, 평면 설정, null section, 잘못 배치한 알려진 policy 키는 거부한다.
+  중첩 config의 열린 확장값·SDK 인자는 보존한다. implementation_schema로 직접 구현해도
+  된다. SettingsLayout은 저장 데이터 변환기나 범용 실행 정책 객체가 아니다.
+- Project → Session → Agent → 명시적 host, Component client → Project, missing/허용된
+  leaf null 계약을 유지한다. ComponentData와 ProjectConfig는 같은 저장 원본을 사용한다.
+  정책/모델값을 자동 생성하지 않으며 기존 저장 Project를 변환하지 않는다.
+- Pipeline 단계는 config.stages.<단계> 아래 config/policy만 전달하고, 자식 host 고정값의
+  values/sources/editable도 부모 경로에 표시한다. Agent/Workflow/Tool 정의 데이터와
+  요청별 engine_options.workflow 선택은 별개다. Graph Agent 프롬프트 상속도 새 경로를 읽는다.
+- Hub 변경은 bootstrap/모델 표시/설정 폼/제목 Engine의 설정 경로 연결에 한정한다.
+  Project → Session → Run → Step, 승인·효과 영수증·추가 지시·저장 ACK·재개 소유권과
+  provider 호출/SDK compatibility 규칙은 유지한다. llm 기본 Project/Session을 복원하지 않았다.
+- 새 회귀 tests.llm.test_settings_contract는 공통 외형, 미설정, null, Agent/host 출처,
+  UI 메타데이터, Pipeline 단계, client 설정, 공유 알고리즘 의존성, 중첩 확장 보존을 검사한다.
+  관련 예제·README·LargeLanguageModel 독스트링·기존 명시 fixture를 새 경로로 바꿨다.
+  정적 감사와 전후 차이는 tests/llm/reports/config-envelope-audit/에 있다.
+- 최종 Linux Python 3.12.14: 집중 45 passed (13.215초), 전체 llm 1,236 passed
+  (610.352초), Hub 94 passed (90.270초). 모두 failed=0, skipped=0이며 집중 검사는
+  전체와 중복이다. snapshot은 /home/user/.cache/ish-provider-x_c3giqj,
+  기록은 tests/llm/reports/ish-provider-x_c3giqj/이다. Python 389개 파일의 현재 해시와
+  스냅샷 해시가 모두 일치한다. 실제 외부 유료 모델 호출은 하지 않았다.
+- 재현: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python
+  /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --source /mnt/d/WorkSpace/ish --full --hub
+  --modules tests.llm.test_settings_contract tests.llm.test_policy_ownership
+  tests.llm.test_explicit_configuration`.
+
+## 2026-10-05 정책 클래스와 구현체 설정 소유권 정리
+
+- RunLimits를 RunPolicy로 바꾸고 llm.llm에서 공개한다. policies.run의 키와 실행 의미는
+  유지하며 옛 이름 별칭은 없다. CompletionPolicy는 이름·턴 선택 알고리즘을 유지하고
+  services/history/context.py에서 engines/policies.py로 이동했다. llm.llm과 llm.engines에서 공개한다.
+- 공통 policies에는 context/run/approval/tool_retry/usage/retention/output만 집행한다.
+  policies.completion/provider_retry는 거부하며 자동 변환하지 않는다. Loop는 등록 이름의
+  parameters.engines[name].input_policy/provider를, Memory 보조 모델은
+  parameters.components.memory.processing.provider를 해석한다. RAG/Vision 자체 provider는 유지한다.
+- ProjectPolicyResolver.resolve는 (ContextPolicy 또는 None, RunPolicy)를 반환한다.
+  RunManager는 계산기 registry만 EngineContext에 전달하며 Loop가 실행별 CompletionPolicy를
+  만든다. 공통 사용량은 policies.usage.counter로 독립 계수해 Agent 입력 예산 변경으로 우회되지 않는다.
+  사용자 resolver도 이 반환 계약과 token_counters 자원 계약을 따라야 한다.
+- retry ContextVar를 제거했다. BaseEngine.stream_completion의 명시적 provider 인자만
+  외부 시도·기한을 제어한다. max_attempts는 최초 호출을 포함한다. SDK kwargs·명시 retry·
+  DEFAULT_MAX_RETRIES=0 compatibility·SDK/외부 retry 중첩 방지를 유지한다.
+  provider.wall_timeout은 Loop request_timeout과 SDK timeout과 독립이고 저장 ACK 사이의
+  Engine 진행에 같은 절대 기한을 적용한다. 입력 사용량 계수 timeout도 provider_timeout으로 분류한다.
+- Project → Session → Agent → host, missing/null, UI sources/editable/x-host-override를
+  검증했다. schema x-resource=token_counters로 계산기 선택지를 채우며 기본 정책값은 만들지 않는다.
+  Graph scheduler, ToolExecutor, 승인/Run/Step/Conversation/체크포인트 저장 소유권은 바꾸지 않았다.
+  새 Engine 설정도 기존 resume binding에 포함되어 변경된 입력/provider 정책의 재개를 거부한다.
+- 문서·LargeLanguageModel 독스트링·예제·기존 fixture를 새 경로로 바꿨다. 새 회귀는
+  tests/llm/test_policy_ownership.py와 Memory 처리 테스트에 있다. 정적 감사·변경 전후 diff는
+  tests/llm/reports/policy-ownership-audit/에 있고 이전 handoff 기록은 당시 용어를 보존한다.
+- 최종 Linux Python 3.12.14 결과: 집중 80 passed (42.177초), 전체 llm 1,227 passed
+  (422.399초), Hub 94 passed (68.561초). 모두 failed=0, skipped=0. 집중 검사는 전체와 중복이다.
+  snapshot /home/user/.cache/ish-provider-4xyt0fgp, 기록 tests/llm/reports/ish-provider-4xyt0fgp/.
+  snapshot의 Python 385개와 현재 소스 해시 일치를 확인했다. 외부 유료 모델 호출은 하지 않았다.
+- 재현: `wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python
+  /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --full --hub --modules tests.llm.test_policy_ownership
+  tests.llm.test_memory_processing tests.llm.test_project_policies tests.llm.test_loop_steering`.
+
 ## 2026-10-05 Project 정책·대상별 인자 분리와 기본 선택 제거
 
 - ProjectConfig는 policies(서비스 집행), parameters(대상별 전달), data/추가 JSON으로 구성한다.

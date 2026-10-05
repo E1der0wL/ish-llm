@@ -129,7 +129,7 @@ single-request worker adapter.
 ```python
 project = backend.projects.create(
     "Research",
-    config={"parameters": {"engines": {"loop": {"completion": {"model": "openai/gpt-4o-mini"}}}}, "custom_setting": 42},
+    config={"parameters": {"engines": {"loop": {'config': {'completion': {'model': 'openai/gpt-4o-mini'}}}}}, "custom_setting": 42},
     components=["tools"],
 )
 session = project.sessions.create("Conversation")
@@ -246,7 +246,7 @@ use the backend's original process/event loop. Synchronous methods still block.
 
 ```python
 # Inside an async handler; backend already contains the "loop" Engine.
-project = await backend.projects.acreate("Example", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "gemini/gemini-3.6-flash"}}}}), components=["tools"])
+project = await backend.projects.acreate("Example", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'gemini/gemini-3.6-flash'}}}}}), components=["tools"])
 session = await project.sessions.acreate("Conversation")
 tools = await project.components.aget("tools")  # No synchronous attribute lookup.
 await tools.aset_enabled([])  # Enable names after registering execution handlers.
@@ -393,7 +393,7 @@ engines.register("loop", LoopEngine(
 # await manager.submit(content, engine="loop").
 ```
 
-ProjectConfig.parameters.engines[name].completion stores explicit JSON-compatible Loop/LiteLLM options, including
+ProjectConfig.parameters.engines[name].config.completion stores explicit JSON-compatible Loop/LiteLLM options, including
 model, temperature, api_base and provider-specific options. Authentication uses
 the provider SDK environment or runtime-only completion_kwargs. There is no application credential resolver or field-name blocking.
 
@@ -440,16 +440,10 @@ forwarded, but actual tool execution remains serial.
 ## Project settings, Session overrides and Run results
 
 ```python
-config = ProjectConfig(parameters={"engines": {"loop": {
-    "max_iterations": 8, "request_timeout": 60,
-    "system_prompt": "Answer clearly.",
-    "completion": {"model": "openai/my-model", "top_p": 0.9, "max_tokens": 4096},
-}}}, data={"documents": ["manual.md"]})
+config = ProjectConfig(parameters={"engines": {"loop": {'policy': {'max_iterations': 8, 'request_timeout': 60}, 'config': {'system_prompt': 'Answer clearly.', 'completion': {'model': 'openai/my-model', 'top_p': 0.9, 'max_tokens': 4096}}}}}, data={"documents": ["manual.md"]})
 project = projects.create("Workspace", config=config)
 session = sessions.create(project, "Research", config={
-    "parameters": {"engines": {"loop": {
-        "completion": {"max_tokens": 2048}, "system_prompt": "Explain with examples.",
-    }}}, "data": {"topic": "Python"},
+    "parameters": {"engines": {"loop": {'config': {'completion': {'max_tokens': 2048}, 'system_prompt': 'Explain with examples.'}}}}, "data": {"topic": "Python"},
 })
 ```
 
@@ -647,7 +641,7 @@ from llm.engines import BaseEngine
 class AnswerEngine(BaseEngine):
     def run(self, context):
         return self.stream_completion({
-            "model": context.settings()["engine"]["completion"]["model"],
+            "model": context.settings()["engine"]["config"]["completion"]["model"],
             "messages": [{"role": "user", "content": context.messages[-1].content}],
             "max_tokens": 1024,
             "timeout": 30,
@@ -782,7 +776,7 @@ from llm.services.lifecycle.sessions import SessionManager
 async def main() -> None:
     sessions = SessionManager()
     projects = ProjectManager(ProjectRepository(Path("./workspace/projects")), sessions)
-    project = projects.create("Example", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "openai/gpt-4o-mini"}}}}))
+    project = projects.create("Example", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'openai/gpt-4o-mini'}}}}}))
     session = sessions.create(project, "Conversation")
     engines = EngineRegistry()
     engines.register("loop", LoopEngine())
@@ -914,8 +908,8 @@ sessions = SessionManager()
 projects = ProjectManager(ProjectRepository(Path("workspace/projects")), sessions,
                           components=components)
 project = projects.create("Example", components=("tools", "workflows"),
-                          config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "openai/gpt-4o-mini"}}}}))
-projects.configure_component(project, "tools", {"enabled": ["add"]})
+                          config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'openai/gpt-4o-mini'}}}}}))
+projects.configure_component(project, "tools", {'config': {'enabled': ['add']}})
 session = sessions.create(project, "Conversation")
 engines = EngineRegistry()
 engines.register("loop", LoopEngine())

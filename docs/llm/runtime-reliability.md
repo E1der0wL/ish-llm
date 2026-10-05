@@ -34,8 +34,7 @@ backend = LargeLanguageModel(
 )
 project = await backend.projects.acreate(config={"policies": {
     "run": {"max_queued": 20, "timeout_seconds": 1800},
-    "completion": {"max_tokens": 32000, "reserve_tokens": 4000, "counter": "custom"},
-}})
+}, "parameters": {"engines": {"loop": {'policy': {'completion': {'max_tokens': 32000, 'reserve_tokens': 4000, 'counter': 'custom'}}}}}})
 ```
 
 숫자는 예시다. 선택한 모델의 문맥 한도, 출력 한도, 작업 성격에 맞춘다.
@@ -53,16 +52,17 @@ counter는 동시 Session에서도 사용할 수 있게 스레드 안전하게 �
 `context_budget_exceeded`로 실패하며 다음 모델 호출은 하지 않는다. 기록된 원문은
 삭제하지 않는다. Memory 처리기를 명시적으로 설정하면 현재 작업의 오래된 Tool 교환도
 요약할 수 있다. Loop는 저장된 회차/Tool 영수증으로 명시적 재개를 지원한다.
-Graph Agent도 같은 예산을 적용한다. 새 Engine은 필요할 때
-`context.completion_policy.prepare(request)`를 사용한다.
+Graph Agent는 선택한 Engine의 policy.completion을 상속·재정의한다. 새 Engine은 필요할 때
+`CompletionPolicy.from_settings(명시한_설정, context.token_counters)`로 알고리즘을 구성한다.
+서비스가 모든 Engine에 같은 CompletionPolicy를 주입하지 않는다.
 
-RunLimits는 Engine 종류와 무관하게 적용된다. max_queued는 Session별 QUEUED 수로,
+RunPolicy는 Engine 종류와 무관하게 적용된다. max_queued는 Session별 QUEUED 수로,
 실행 중인 요청은 제외한다. 한도 초과는 저장 전 `RunRequestError(code="queue_full")`로
 거절한다. 재개 요청도 같은 한도를 사용하며 이미 저장된 복구 대기열은 버리지 않는다.
 시간 한도는 문맥 준비부터 Engine 종료까지이며 큐 대기와 최종 저장은 제외한다.
 초과 시 Run/Assistant/미완료 Step을 실패로 마무리하고 다음 대기 요청을 처리한다.
 
-기본 RunLimits의 두 값은 None이고 CompletionPolicy은 미설정이다. 기존 작업을
+미설정 RunPolicy의 각 제한은 없고 CompletionPolicy도 생성하지 않는다. 기존 작업을
 임의로 중단하지 않도록 운영 한도는 명시적으로 설정한다. `request.wait(timeout=...)`는
 호출자의 대기 한도이며 실제 Run 실행 한도와 다르다.
 

@@ -6,6 +6,7 @@ from unittest.mock import patch
 from pathlib import Path
 
 from tests.llm.support.runtime_tools import RuntimeTools
+from tests.llm.configuration_fixtures import configure_engine
 from llm.llm import LargeLanguageModel, ProjectConfig, LoopEngine, Tool, ToolRegistry, ToolComponent, ServiceConfig
 from llm.services.runtime.tools import ToolPolicy, ToolExecutionError, ToolApprovalRequired
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
@@ -64,7 +65,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             pass
         app, session, model = await self.setup_app(act, [[chunk('partial'), Busy('offline')]])
-        await session.project.aconfigure_policies({'provider_retry': {'max_retries': 2, 'delay_seconds': 0}})
+        await configure_engine(session.project, 'loop', provider={'max_attempts': 3, 'delay_seconds': 0})
         run = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual(run.data.status, 'failed')
         self.assertEqual(len(model.requests), 1)
@@ -75,7 +76,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             self.fail('Incomplete Tool call must not execute')
         app, session, model = await self.setup_app(act, [[chunk(calls=[call('{', name='act')]), Busy('offline')]])
-        await session.project.aconfigure_policies({'provider_retry': {'max_retries': 2, 'delay_seconds': 0}})
+        await configure_engine(session.project, 'loop', provider={'max_attempts': 3, 'delay_seconds': 0})
         run = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual(run.data.status, 'failed')
         self.assertEqual(len(model.requests), 1)
@@ -142,8 +143,8 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app.policy_resolver.token_counters['fixed'] = lambda request: 10
         project = app.projects.load(session.data.project_id)
         config = project.data.config
-        config.parameters["engines"]["loop"]["completion"]['max_tokens'] = 5
-        config.configure_policies({'completion': {'counter': 'fixed'}, 'usage': {'max_tokens': 20, 'project_max_calls': 1}})
+        config.parameters["engines"]["loop"]["config"]["completion"]['max_tokens'] = 5
+        config.configure_policies({'usage': {'counter': 'fixed', 'max_tokens': 20, 'project_max_calls': 1}})
         await project.asave(config=config)
         failed = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual((await failed.aresult()).error_code, 'usage_limit')
@@ -203,7 +204,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             pass
         app, session, model = await self.setup_app(act, [[Busy('busy')], [chunk('done', finish='stop')]])
         project = app.projects.load(session.data.project_id)
-        await project.aconfigure_policies({'provider_retry': {'max_retries': 1, 'delay_seconds': 0}})
+        await configure_engine(project, 'loop', provider={'max_attempts': 2, 'delay_seconds': 0})
         run = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual(run.data.status, 'completed', run.data.error)
         self.assertEqual(len((await run.aresult()).completions), 2)
@@ -243,9 +244,9 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app, session, _ = await self.setup_app(act, [])
         tools = app.projects.load(session.data.project_id).components.tools
         snapshot = await tools.asnapshot()
-        await tools.aconfigure({'enabled': []}, expected_version=snapshot['version'])
+        await tools.aconfigure({'config': {'enabled': []}}, expected_version=snapshot['version'])
         with self.assertRaisesRegex(ValueError, 'edit_conflict'):
-            await tools.aconfigure({'enabled': ['act']}, expected_version=snapshot['version'])
+            await tools.aconfigure({'config': {'enabled': ['act']}}, expected_version=snapshot['version'])
 
     async def setup_app(self, handler, responses, policy=None):
         temporary = tempfile.TemporaryDirectory()
@@ -255,7 +256,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(Path(temporary.name), components=[RuntimeTools(tools)],
             engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy or ToolPolicy()))
         self.addAsyncCleanup(app.shutdown)
-        project = await app.projects.acreate("resume", config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test/model"}}}}), components=["tools"])
+        project = await app.projects.acreate("resume", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}), components=["tools"])
         project.components.tools.enable("act")
         session = await project.sessions.acreate()
         return app, session, model

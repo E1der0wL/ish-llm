@@ -7,7 +7,7 @@ from typing import Any, TYPE_CHECKING
 
 from llm.core.models import ProjectConfig, Session, now
 from llm.services.infrastructure.storage import atomic_json, read_json, sync_directory
-from llm.services.runtime.policies import ExecutionLimitError
+from llm.policies import ExecutionLimitError
 
 if TYPE_CHECKING:
     from llm.services.runtime.tools import ToolCall

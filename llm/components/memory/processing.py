@@ -15,7 +15,7 @@ from llm.core.results import EngineOutput
 from llm.core.steering import is_instruction
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.providers.litellm import completion
-from llm.services.runtime.policies import ExecutionLimitError
+from llm.policies import ExecutionLimitError
 
 
 def content_key(text: str) -> str:
@@ -32,10 +32,13 @@ def summary_id(session_id: str) -> str:
 
 def processing_settings(configuration: dict, *, token_counter=None) -> dict:
     """모든 자동 처리는 프로젝트 설정으로 조절한다. 추가 모델 호출은 명시적으로 켠다."""
-    value = configuration.get("processing", {})
+    from .component import MemoryComponent
+    value = MemoryComponent.settings_layout.unpack(configuration).get("processing", {})
     if not isinstance(value, dict):
         raise ValueError("Memory processing must be an object")
     config = deepcopy(value)
+    from llm.providers.requests import resolve_provider_options
+    resolve_provider_options(config.get("provider") or {})
     if "priority" in config and type(config["priority"]) is not int:
         raise ValueError("Memory processing priority must be an integer")
     for key in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active"):
@@ -241,7 +244,8 @@ class MemorySession(CompletionSession):
                               {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
         response = {}
         model = BaseEngine(completion_fn=self.processor.completion_fn, max_output_chars=self.config.get("max_output_chars"))
-        async with aclosing(model.stream_completion(params, response=response)) as events:
+        async with aclosing(model.stream_completion(params, response=response,
+                provider=self.config.get("provider"))) as events:
             async for event in events:
                 if isinstance(event, EngineEvent):
                     yield event  # 요약 텍스트를 사용자 답변으로 스트리밍하지 않는다.
@@ -369,7 +373,7 @@ class MemorySession(CompletionSession):
     async def _recall(self, result, source):
         current = self.recall_query or next((m.content for m in self.context.messages if m.id == self.context.run.input_message_id), "")
         if current.strip():
-            config = self.snapshot["configuration"]
+            config = self.snapshot["configuration"].get("policy", {})
             limit = self.config["recall_limit"]
             if config.get("max_search_results") is not None:
                 limit = min(limit, config["max_search_results"])

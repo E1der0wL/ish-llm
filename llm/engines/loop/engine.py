@@ -6,6 +6,7 @@ import math
 from itertools import count
 import asyncio
 from copy import copy, deepcopy
+from dataclasses import replace
 from llm.core.interactions import InteractionRequest
 import json
 import hashlib
@@ -18,11 +19,14 @@ from llm.components.processing import CompletionMessage, CompletionRequest, Comp
 from llm.core.models import MessageRole, MessageStatus
 from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record
 from llm.core.configuration import engine_configuration, UNSET
+from llm.core.settings import SettingsLayout
 from llm.core.results import EngineOutput
 from llm.providers.litellm import completion
 from llm.providers.parameters import merge_params
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError, ToolApprovalRequired
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
+from llm.policies import CompletionPolicy
+from llm.providers.requests import provider_schema, resolve_provider_options
 
 
 # 모델 응답과 Tool 실행을 반복한다. 동시 Run의 설정을 서로 격리한다.
@@ -79,13 +83,19 @@ class LoopEngine(BaseEngine):
         return EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata={"name": "loop", "operation": "record",
                                                                "key": key, "value": deepcopy(value)})
 
+    settings_layout = SettingsLayout(
+        config=("completion", "system_prompt", "buffer_size"),
+        policy=("max_iterations", "request_timeout", "tool_timeout", "max_tool_calls",
+                "max_argument_chars", "max_output_chars", "provider"),
+        paths={"input_policy": "policy.completion"})
+
     _option_names = ("max_iterations", "request_timeout", "tool_timeout", "buffer_size",
                      "max_tool_calls", "max_argument_chars", "max_output_chars")
 
     def __init__(self, *, max_iterations=UNSET, request_timeout=UNSET, tool_timeout=UNSET,
                  buffer_size=UNSET, max_tool_calls=UNSET, max_argument_chars=UNSET,
                  max_output_chars=UNSET, completion_kwargs=None, system_prompt=UNSET,
-                 settings_name=None, completion_fn=completion) -> None:
+                 settings_name=None, completion_fn=completion, input_policy=UNSET, provider=UNSET) -> None:
         supplied = dict(max_iterations=max_iterations, request_timeout=request_timeout,
                         tool_timeout=tool_timeout, buffer_size=buffer_size, max_tool_calls=max_tool_calls,
                         max_argument_chars=max_argument_chars, max_output_chars=max_output_chars)
@@ -97,6 +107,18 @@ class LoopEngine(BaseEngine):
         if system_prompt is not UNSET and not callable(system_prompt):
             self._overrides["system_prompt"] = system_prompt
         system_prompt = None if system_prompt is UNSET else system_prompt
+        from jsonschema import Draft202012Validator
+        from llm.core.models import ProjectConfig
+        for name, value, spec in (("input_policy", input_policy, CompletionPolicy.configuration_schema()),
+                                 ("provider", provider, {**provider_schema(), "type": ["object", "null"]})):
+            if value is not UNSET:
+                ProjectConfig.validate_settings({name: value})
+                error = next(Draft202012Validator(spec).iter_errors(value), None)
+                if error:
+                    raise ValueError(f"Invalid {name}: {error.message}")
+                self._overrides[name] = deepcopy(value)
+        self.input_policy = None if input_policy is UNSET else deepcopy(input_policy)
+        self.provider = None if provider is UNSET else deepcopy(provider)
         super().__init__("Loop", completion_fn=completion_fn, buffer_size=buffer_size,
                          max_tool_calls=max_tool_calls, max_argument_chars=max_argument_chars,
                          max_output_chars=max_output_chars)
@@ -130,13 +152,24 @@ class LoopEngine(BaseEngine):
         properties["system_prompt"] = {"type": ["string", "null"], "description": "기본 시스템 프롬프트",
                                         "x-host-override": "system_prompt" in self._overrides or callable(self.system_prompt)}
         properties["completion"] = completion_schema()
+        properties["input_policy"] = CompletionPolicy.configuration_schema()
+        properties["provider"] = {**provider_schema(), "type": ["object", "null"]}
+        def mark_host(spec, value):
+            if isinstance(value, dict):
+                for key, item in value.items():
+                    mark_host(spec["properties"][key], item)
+            else:
+                spec["x-host-override"] = True
+        for name in ("input_policy", "provider"):
+            if name in self._overrides:
+                mark_host(properties[name], self._overrides[name])
         supplied = self.completion_kwargs
         if isinstance(supplied, Mapping):
             for name in supplied:
                 properties["completion"]["properties"].setdefault(name, {})["x-host-override"] = True
         elif callable(supplied):
             properties["completion"]["x-host-override"] = True
-        return object_schema(properties, **({"x-settings-key": self.settings_name} if self.settings_name else {}))
+        return self.settings_layout.schema(object_schema(properties, **({"x-settings-key": self.settings_name} if self.settings_name else {})))
 
     def configuration(self, config, name, *, session_config=None):
         """실행과 UI가 공유하는 최종 설정. 동적 호스트 함수는 미리 실행하지 않는다."""
@@ -153,26 +186,29 @@ class LoopEngine(BaseEngine):
             supplied, runtime = {}, ["completion"]
         if supplied:
             host["completion"] = dict(supplied)
-        overrides = {**agent.get("engine_options", {}),
-                     **({"system_prompt": agent["system_prompt"]} if "system_prompt" in agent else {})}
+        overrides = self.settings_layout.unpack(agent.get("engine_options", {}))
+        if "system_prompt" in agent:
+            overrides["system_prompt"] = agent["system_prompt"]
         if agent.get("completion"):
             overrides["completion"] = agent["completion"]
         view = engine_configuration(config, key, session_config=session_config,
-            agent=overrides, host=host, schema=self.configuration_schema())
+            agent=self.settings_layout.pack(overrides), host=self.settings_layout.pack(host), schema=self.configuration_schema())
+        CompletionPolicy.validate_settings(view["values"].get("policy", {}).get("completion"))
+        resolve_provider_options(view["values"].get("policy", {}).get("provider") or {})
         if runtime:
             # 런타임 client/함수를 JSON 값으로 가장하지 않는다. 실행 때만 host 값을 해석한다.
-            view["values"].pop("completion", None)
+            view["values"].get("config", {}).pop("completion", None)
             for name in ("sources", "editable"):
                 for path in tuple(view[name]):
-                    if path.startswith("/completion/"):
+                    if path.startswith("/config/completion/"):
                         del view[name][path]
-            view["sources"]["/completion"] = "host_runtime"
-            view["editable"]["/completion"] = False
+            view["sources"]["/config/completion"] = "host_runtime"
+            view["editable"]["/config/completion"] = False
         if callable(self.system_prompt):
             runtime.append("system_prompt")
-            view["values"].pop("system_prompt", None)
-            view["sources"]["/system_prompt"] = "host_runtime"
-            view["editable"]["/system_prompt"] = False
+            view["values"].get("config", {}).pop("system_prompt", None)
+            view["sources"]["/config/system_prompt"] = "host_runtime"
+            view["editable"]["/config/system_prompt"] = False
         view["runtime"] = runtime
         return view
 
@@ -211,9 +247,11 @@ class LoopEngine(BaseEngine):
             raise ValueError("Loop Agent requires stream=True and n=1")
         limits = {}
         options = definition.get("engine_options", {})
-        if options.keys() - set(self._option_names):
-            raise ValueError("Unsupported Loop Agent engine_options")
-        limits.update(options)
+        from jsonschema import Draft202012Validator
+        Draft202012Validator(self.configuration_schema()).validate(options)
+        limits.update(self.settings_layout.unpack(options))
+        if "completion" in limits:
+            limits["completion_kwargs"] = limits.pop("completion")
         limits.update(self._overrides)
         # 등록 시 잘못된 Agent 옵션을 거부하되, 기본값을 호스트 override로 바꾸지는 않는다.
         LoopEngine(**limits)
@@ -230,10 +268,13 @@ class LoopEngine(BaseEngine):
         if supplied is not None and (not isinstance(supplied, Mapping)
                                      or any(not isinstance(key, str) for key in supplied)):
             raise ValueError("Completion parameters must be a string-keyed mapping")
-        params = merge_params(settings["engine"].get("completion", {}), self._agent_settings.get("completion", {}))
+        params = merge_params(settings["engine"].get("config", {}).get("completion", {}),
+                              self._agent_settings.get("engine_options", {}).get("config", {}).get("completion", {}))
+        params = merge_params(params, self._agent_settings.get("completion", {}))
         params = merge_params(params, dict(supplied or {}))
-        resolved = self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"]
-        limits = {name: resolved[name] for name in self._option_names if name in resolved}
+        resolved = self.settings_layout.unpack(self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"])
+        params = merge_params(resolved.get("completion", params), dict(supplied or {}))
+        limits = {name: resolved[name] for name in (*self._option_names, "input_policy", "provider") if name in resolved}
         prompt = self.system_prompt if self.system_prompt is not None else resolved.get("system_prompt")
         # A Run-local instance keeps shared defaults immutable and preserves
         # subclass methods. Only Loop-owned settings are reinitialized.
@@ -242,6 +283,9 @@ class LoopEngine(BaseEngine):
         LoopEngine.__init__(worker, **limits, completion_kwargs=params,
                             system_prompt=prompt, settings_name=self.settings_name,
                             completion_fn=self.completion_fn)
+        # 다른 Agent/Engine의 입력 예산을 상속하지 않는다. 처리기는 이 호출의 선택기만 전달받는다.
+        context = replace(context, completion_policy=CompletionPolicy.from_settings(
+            resolved.get("input_policy"), context.token_counters))
         async with aclosing(worker._execute(context)) as events:
             async for event in events:
                 yield event
@@ -340,7 +384,7 @@ class LoopEngine(BaseEngine):
                             boundary=instruction_key, details={"iteration": iteration})) as events:
                         async for event in events:
                             yield event
-                async with aclosing(self.stream_completion(prepared_request, response=response)) as deltas:
+                async with aclosing(self.stream_completion(prepared_request, response=response, provider=self.provider)) as deltas:
                     async for text in deltas:
                         yield text
                 calls = response.get("tool_calls", [])

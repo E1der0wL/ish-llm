@@ -1,3 +1,4 @@
+from llm.core.schema import implementation_schema
 """실행 정책 테스트용 Component capability 제공자. Project Tool 저장소를 사용하지 않는다."""
 from llm.components.base import Component
 from llm.components.tools import ToolRegistry, ToolData
@@ -16,9 +17,7 @@ class RuntimeTools(Component):
         make_directory(self.root(project))
 
     def configuration_schema(self):
-        return {"type": "object", "properties": {"enabled": {"type": "array",
-            "items": {"type": "string"}, "uniqueItems": True,
-            "x-suggestions": list(self.registry.names())}}}
+        return implementation_schema(config={'type': 'object', 'properties': {'enabled': {'type': 'array', 'items': {'type': 'string'}, 'uniqueItems': True, 'x-suggestions': list(self.registry.names())}}})
 
     @staticmethod
     def _selection_names(names):
@@ -26,7 +25,7 @@ class RuntimeTools(Component):
         return [validate_name(n) for n in names]
 
     def enabled(self, project):
-        return self.configuration(project).get("enabled", [])
+        return self.configuration(project).get("config", {}).get("enabled", [])
 
     def load(self, project, name):
         return ToolRegistry((self.registry.get(name),)).definitions()[0]

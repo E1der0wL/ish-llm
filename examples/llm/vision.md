@@ -20,9 +20,9 @@ python -m examples.llm.vision --config examples/llm/vision.config.example.json \
 [{"operation": "resize", "scale": 2}, {"operation": "grayscale"}]
 ```
 
-VLM 검사는 별도 설정 파일의 `parameters.components.vision.completion`에 이미지 지원
+VLM 검사는 별도 설정 파일의 `parameters.components.vision.config.completion`에 이미지 지원
 모델의 model, api_base, api_key 등을 명시한 뒤 실행합니다. 키는 개인 설정 파일에 보관하고
-저장소에 올리지 마세요. provider timeout/retry가 필요하면 같은 vision.provider에 지정합니다.
+저장소에 올리지 마세요. provider timeout/retry가 필요하면 같은 vision.policy.provider에 지정합니다.
 
 ```bash
 python -m examples.llm.vision --config /path/private-vision.json \

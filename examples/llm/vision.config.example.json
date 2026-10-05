@@ -2,18 +2,22 @@
   "parameters": {
     "components": {
       "vision": {
-        "ocr": {
-          "backend": "tesseract",
-          "backends": {
-            "tesseract": {
-              "language": "eng",
-              "page_segmentation": 6
-            }
+        "policy": {
+          "limits": {
+            "max_bytes": 20971520,
+            "max_pixels": 20000000
           }
         },
-        "limits": {
-          "max_bytes": 20971520,
-          "max_pixels": 20000000
+        "config": {
+          "ocr": {
+            "backend": "tesseract",
+            "backends": {
+              "tesseract": {
+                "language": "eng",
+                "page_segmentation": 6
+              }
+            }
+          }
         }
       }
     }

@@ -2,10 +2,57 @@
 
 범위는 `llm/` production Python 전체다. tests/examples는 명시적 호출자의 fixture로 따로 검사했다. 핵심 계약·강제값 전체 목록은 [CONFIGURATION.md](../../llm/CONFIGURATION.md)에 있다.
 
+## 2026-10-05 config/policy 외형과 재사용 알고리즘
+
+- 구현체 전달값은 `parameters.engines/components[name].config/policy`다. config는
+  기능 입력·SDK 인자, policy는 ish가 집행하는 실행 판단·제한·실패 처리로 분류한다.
+  SDK timeout/retry와 wrapper 정책을 합치거나 전역으로 전파하지 않는다.
+- `CompletionPolicy`와 계층 공용 `ExecutionLimitError`를 `llm/policies/`에 둔다.
+  RunPolicy/ContextPolicy/ToolPolicy와 provider의 SDK 재시도 경계는 기존 owner에 남긴다.
+  저장소·Engine 실행·Run/Step 전이를 새 정책 폴더로 옮기지 않았다.
+- `implementation_schema`와 등록/저장 검증이 공통 외형을 검사한다. SettingsLayout은
+  생성자의 명시 인자, schema, 실행 사본을 같은 경로에 연결하며 분류 누락을 거부한다.
+  열린 중첩 config/SDK 확장값은 보존한다. 옛 JSON reader/alias/migration은 추가하지 않는다.
+- 설정 부재는 빈 상태로 유지하고 허용된 leaf null은 명시적 override로 유지한다.
+  Project → Session → Agent → host와 Component client → Project를 바꾸지 않았다.
+  ComponentData와 ProjectConfig는 하나의 원본·잠금·CAS를 계속 사용한다.
+- Pipeline은 config.stages 아래의 단계별 config/policy만 전달한다. 자식 host 고정값의
+  values/sources/editable을 부모 UI 경로에도 반영한다. Graph 요청의 workflow 선택과
+  Agent/Workflow 정의 데이터는 설정 envelope와 별개다.
+- Hub는 모델 표시·설정 폼·제목 생성에서 새 경로를 읽도록만 조정했다.
+  llm에 기본 Project/Session이나 선택 정책을 복원하지 않았다.
+- 비교 원본과 차이는 `tests/llm/reports/config-envelope-before/`,
+  `config-envelope-audit/`에 있다. production diff, AST/JSON 구문, 옛 정책 import,
+  schema 선언·직접 configure·예제의 설정 읽기 경로를 검토했다. 저장 버전·provider 호출·
+  Tool 승인/효과·취소·체크포인트 구현은 유지한다. 최신 실행 결과는 handoff 상단에 기록한다.
+
+## 2026-10-05 실행 책임에 따른 정책 분리
+
+- `RunLimits`를 `RunPolicy`로 변경했다. 공통 admission/deadline/capability 상한의 의미는
+  그대로이며 호환 별칭을 두지 않는다. `CompletionPolicy`의 턴 선택 알고리즘은 이름을
+  유지한 채 policies/completion.py로 옮겼다.
+- `policies.completion/provider_retry`를 거부한다. Engine의 policy.completion/policy.provider,
+  Memory의 policy.processing.provider에 명시된 값만 해석한다. retry ContextVar를 제거해 다른
+  Component 모델 호출로 정책이 흘러가지 않는다. SDK kwargs는 변경하지 않는다.
+- RunManager는 호스트 token_counters만 문맥에 전달한다. Loop는 실행별 CompletionPolicy를
+  만들고 공통 usage는 별도 usage.counter를 사용한다. 서비스의 사용량 보호는 Agent 입력
+  예산 해제·변경과 무관하다. Run 시작 사본/체크포인트 binding은 그대로 보호한다.
+- schema의 x-resource 선언으로 등록 counter 선택지를 제공한다. Project → Session →
+  Agent → host, missing/null, values/sources/editable/x-host-override 일치를 검사했다.
+- 정적 검색은 옛 중앙 정책 읽기, retry_scope/retry_settings, RunLimits, 정책 주입 경로,
+  `_defaults`, setdefault, literal fallback, timeout/max/schema default를 대상으로 한다.
+  새 runtime 숫자는 최초 시도 1회·예약 0·backoff 0의 중립 동작뿐이며 설정에 생성하지 않는다.
+  기존 queue/저장 batching과 LiteLLM compatibility 강제값은 변경하지 않는다.
+- 변경 전 소스와 AST/diff를 비교했다. Graph scheduler, ToolExecutor, 승인/Step/저장소 코드는
+  바꾸지 않았다. 감사 원본은 tests/llm/reports/policy-ownership-audit/에 있다.
+
+회귀 검사에는 Engine별 입력 정책, 공통 사용량, Graph Agent별 설정, Memory 자체 재시도,
+SDK 인자, 시간 제한과 이벤트 저장 ACK, 설정 변경 후 재개 거부가 포함된다.
+
 ## 2026-10-05 대상별 전달과 애플리케이션 선택 정책 분리
 
 - `ProjectConfig`에는 `policies`, 열린 `parameters`, `data`를 둔다. Loop SDK 옵션은
-  `parameters.engines[name].completion`, Component 설정은 `parameters.components[name]`이다.
+  `parameters.engines[name].config.completion`, Component 설정은 `parameters.components[name]`이다.
   Session 생성 시 기본 설정을 복사하지 않고, Run 시작 시 명시적 override를 병합한다.
 - llm production 소스의 get_default/aget_default/default-project 포인터 접근을 제거했다.
   session_defaults/default_engine은 거부 목록과 스키마의 금지 조건에만 남는다.

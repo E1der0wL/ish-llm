@@ -21,7 +21,7 @@ def vision_tools(data, binding, backends):
     async def analyze(arguments):
         return await data.aanalyze(**arguments)
 
-    required = [] if "backend" in data.configuration().get("ocr", {}) else ["backend"]
+    required = [] if "backend" in data.configuration().get("config", {}).get("ocr", {}) else ["backend"]
     tools = [Tool("image_preprocess", "Create a new PNG from a registered project image without changing its original. "
         "Operations run in order on the previous result. Crop uses left,top,right,bottom pixels; rotate is counterclockwise. "
         "Use the returned id for OCR/analysis. Only request transformations needed for the task.",

@@ -1,3 +1,4 @@
+from llm.core.schema import implementation_schema
 from tests.llm.support.runtime_tools import RuntimeTools
 """Project 설정 전달, 단일 저장 경계, 공개 편의 API와 실제 실행을 검증한다."""
 from tests.llm.configuration_fixtures import rag_settings, rag_project
@@ -33,14 +34,14 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate(components=["memory", "tools"])
         memory = await project.components.aget("memory")
         before = await project.aconfiguration()
-        await memory.aconfigure({"search_limit": 3, "extra": {"custom": True}})
+        await memory.aconfigure({'config': {'search_limit': 3, 'extra': {'custom': True}}})
         tools = await project.components.aget("tools")
         await tools.acreate({"source": "# editable source"}, identifier="offline_definition")
         await tools.aenable("offline_definition")
         saved = json.loads((project.paths.root / "project.json").read_text())
         self.assertEqual(saved["config"]["parameters"]["components"], {
-            "memory": {"search_limit": 3, "extra": {"custom": True}},
-            "tools": {"enabled": ["offline_definition"]}})
+            "memory": {"config": {"search_limit": 3, "extra": {"custom": True}}},
+            "tools": {"config": {"enabled": ["offline_definition"]}}})
         self.assertEqual(list(project.paths.root.rglob("component.json")), [])
         self.assertNotIn("component_configurations", (await project.aconfiguration())["values"])
         with self.assertRaises(ValueError):
@@ -56,12 +57,12 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
             return await fake_embedding(**params)
         model = EmbeddingModel(model="client-default", embedding_fn=embed, timeout=99)
         app = self.backend(components=[RAGComponent(embedding=model, extractor=Extractor())])
-        project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {"embedding_params": {"model": "project-model", "timeout": 7}}}})))
+        project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'config': {'embedding_params': {'model': 'project-model', 'timeout': 7}}}}})))
         rag = await project.components.aget("rag")
         await rag.aadd_document(title="Manual", content="Alice owns Atlas")
         self.assertEqual((requests[0]["model"], requests[0]["timeout"]), ("project-model", 7))
         self.assertEqual(model.params, {"model": "client-default", "timeout": 99})
-        self.assertEqual((await rag.aeffective_configuration())["sources"]["/embedding_params/model"], "project")
+        self.assertEqual((await rag.aeffective_configuration())["sources"]["/config/embedding_params/model"], "project")
 
     def test_removed_direct_configuration_apis_are_not_available(self):
         from llm.components.registry import ComponentRegistry
@@ -81,8 +82,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
             return await fake_embedding(**kwargs)
         app = self.backend(components=[RAGComponent(
             embedding=EmbeddingModel(embedding_fn=embed), extractor=Extractor())])
-        project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {"chunk_size": 64, "embedding_concurrency": 1,
-                "embedding_params": {"model": "project-model"}, "search": {"method": "bm25", "limit": 1}}}})))
+        project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'config': {'chunk_size': 64, 'embedding_params': {'model': 'project-model'}, 'search': {'method': 'bm25', 'limit': 1}}, 'policy': {'embedding_concurrency': 1}}}})))
         rag = await project.components.aget("rag")
         document = await rag.aadd_document(title="Manual", content="Alice owns Atlas. " * 12)
         self.assertGreater(len(document["chunks"]), 1)
@@ -92,19 +92,19 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(result["documents"]), 1)
         self.assertEqual(len(requests), count)
         view = await project.aconfiguration()
-        self.assertEqual(view["components"]["rag"]["effective"]["sources"]["/chunk_size"], "project")
+        self.assertEqual(view["components"]["rag"]["effective"]["sources"]["/config/chunk_size"], "project")
         Draft202012Validator(view["schema"]).validate(view["values"])
 
     async def test_tool_conveniences_edit_project_source_and_execution_uses_selection(self):
         tools = ToolRegistry((Tool("echo", "Echo", {"type": "object"}, lambda args: args),))
         provider = ScriptedCompletion([chunk("done", finish="stop")])
         app = self.backend(components=[RuntimeTools(tools)], engines={"loop": LoopEngine(completion_fn=provider)})
-        project = await app.projects.acreate(components=["tools"], config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test"}}}, "components": {"tools": {"enabled": []}}}))
+        project = await app.projects.acreate(components=["tools"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"tools": {'config': {'enabled': []}}}}))
         data = await project.components.aget("tools")
         path = project.paths.root / "tools" / "component.json"
         self.assertFalse(path.exists())
         await data.aenable("echo")
-        self.assertEqual((await project.aget_data()).config.parameters.setdefault("components", {})["tools"]["enabled"], ["echo"])
+        self.assertEqual((await project.aget_data()).config.parameters.setdefault("components", {})["tools"]['config']['enabled'], ["echo"])
         session = await project.sessions.acreate()
         run = await (await session.run.submit("hello", engine="loop")).wait()
         self.assertEqual((await run.aget_data()).status, "completed")
@@ -115,39 +115,39 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_save_validate_before_write_and_detect_stale_component_edit(self):
         app = self.backend(components=[MemoryComponent(), RAGComponent()])
-        project = await app.projects.acreate(components=["memory", "rag"], config=rag_project(ProjectConfig(parameters={"components": {"memory": {"search_limit": 3}}})))
+        project = await app.projects.acreate(components=["memory", "rag"], config=rag_project(ProjectConfig(parameters={"components": {"memory": {'config': {'search_limit': 3}}}})))
         view = await project.aconfiguration()
         original = (project.paths.root / "project.json").read_bytes()
         settings = ProjectConfig(view["project"]["config"])
-        settings.parameters.setdefault("components", {}).update({"memory": {"search_limit": 4}, "rag": {"chunk_size": 2}})
+        settings.parameters.setdefault("components", {}).update({"memory": {'config': {'search_limit': 4}}, "rag": {'config': {'chunk_size': 2}}})
         with self.assertRaises(ValueError):
             await project.asave(config=settings)
         self.assertEqual((project.paths.root / "project.json").read_bytes(), original)
         memory = await project.components.aget("memory")
-        await memory.aconfigure({"search_limit": 5})
+        await memory.aconfigure({'config': {'search_limit': 5}})
         with self.assertRaises(ValueError):
             await project.asave(config=view["project"]["config"], expected_version=view["config_version"])
 
     async def test_clone_reopen_disable_and_remove_keep_settings_ownership(self):
         app = self.backend(components=[MemoryComponent()])
-        project = await app.projects.acreate(components=["memory"], config=ProjectConfig(parameters={"components": {"memory": {"search_limit": 3}}}))
+        project = await app.projects.acreate(components=["memory"], config=ProjectConfig(parameters={"components": {"memory": {'config': {'search_limit': 3}}}}))
         clone = await project.aclone()
         reopened = await app.projects.aload(clone.id)
         memory = await reopened.components.aget("memory")
-        self.assertEqual((await memory.aconfiguration())["search_limit"], 3)
+        self.assertEqual((await memory.aconfiguration())["config"]["search_limit"], 3)
         self.assertFalse((clone.paths.root / "memory" / "component.json").exists())
         await reopened.components.aremove("memory")
-        self.assertEqual((await reopened.aget_data()).config.parameters.setdefault("components", {})["memory"]["search_limit"], 3)
+        self.assertEqual((await reopened.aget_data()).config.parameters.setdefault("components", {})["memory"]['config']['search_limit'], 3)
         await reopened.components.aselect(["memory"])
         await reopened.components.aremove("memory", permanent=True)
         self.assertNotIn("memory", (await reopened.aget_data()).config.parameters.setdefault("components", {}))
 
     async def test_registered_inactive_settings_do_not_create_directories(self):
         app = self.backend(components=[RAGComponent()])
-        project = await app.projects.acreate(config=ProjectConfig(parameters={"components": {"rag": {"chunk_size": 64}}}))
+        project = await app.projects.acreate(config=ProjectConfig(parameters={"components": {"rag": {'config': {'chunk_size': 64}}}}))
         self.assertFalse((project.paths.root / "rag").exists())
         await project.components.aselect(["rag"])
-        self.assertEqual((await (await project.components.aget("rag")).aconfiguration())["chunk_size"], 64)
+        self.assertEqual((await (await project.components.aget("rag")).aconfiguration())["config"]["chunk_size"], 64)
         with self.assertRaises(ValueError):
             await app.projects.acreate(config=ProjectConfig(parameters={"components": {"typo": {}}}))
         with self.assertRaises(ValueError):
@@ -157,13 +157,13 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         class Custom(Component):
             name = directory = "custom"
             def configuration_schema(self):
-                return {"type": "object", "properties": {"limit": {"type": "integer", "minimum": 1}}}
+                return implementation_schema(config={'type': 'object', 'properties': {'limit': {'type': 'integer', 'minimum': 1}}})
         app = self.backend(components=[Custom()])
         with self.assertRaises(ValueError):
-            await app.projects.acreate(components=["custom"], config=ProjectConfig(parameters={"components": {"custom": {"limit": 0}}}))
-        project = await app.projects.acreate(components=["custom"], config=ProjectConfig(parameters={"components": {"custom": {"limit": 7, "application": {"new": True}}}}))
+            await app.projects.acreate(components=["custom"], config=ProjectConfig(parameters={"components": {"custom": {'config': {'limit': 0}}}}))
+        project = await app.projects.acreate(components=["custom"], config=ProjectConfig(parameters={"components": {"custom": {'config': {'limit': 7, 'application': {'new': True}}}}}))
         data = await project.components.aget("custom")
-        self.assertEqual((await data.aconfiguration())["application"], {"new": True})
+        self.assertEqual((await data.aconfiguration())["config"]["application"], {"new": True})
         settings = (await project.aget_data()).config
         settings.parameters.setdefault("components", {}).clear()
         await project.asave(config=settings)
@@ -175,7 +175,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         files = [project.paths.root / "project.json"]
         before = [p.read_bytes() for p in files]
         config = (await project.aget_data()).config
-        config.parameters.setdefault("components", {}).update({"memory": {"search_limit": 4}, "rag": {"chunk_size": 64}})
+        config.parameters.setdefault("components", {}).update({"memory": {'config': {'search_limit': 4}}, "rag": {'config': {'chunk_size': 64}}})
         with patch("llm.services.lifecycle.projects.atomic_domain_json", side_effect=OSError("disk unavailable")):
             with self.assertRaises(OSError):
                 await project.asave(config=config)
@@ -183,18 +183,18 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_graph_binding_cannot_filter_project_component_settings(self):
         app = self.backend(components=[MemoryComponent()])
-        project = await app.projects.acreate(components=["memory"], config=ProjectConfig(data={"application": 1}, parameters={"components": {"memory": {"search_limit": 4}}}))
+        project = await app.projects.acreate(components=["memory"], config=ProjectConfig(data={"application": 1}, parameters={"components": {"memory": {'config': {'search_limit': 4}}}}))
         engine = GraphEngine(handlers={}, config_keys=())
         binding = engine._execution_config(SimpleNamespace(project=await project.aget_data()))
-        self.assertEqual(binding["parameters"]["components"], {"memory": {"search_limit": 4}})
+        self.assertEqual(binding["parameters"]["components"], {"memory": {"config": {"search_limit": 4}}})
         self.assertNotIn("data", binding)
 
     async def test_project_output_policy_is_applied_to_run_and_other_project_inherits_host(self):
         provider = ScriptedCompletion([chunk("one"), chunk("two", finish="stop")], [chunk("other", finish="stop")])
         host = OutputPolicy(batch_size=2, max_delay=.04, max_chars=1000)
         app = self.backend(services=ServiceConfig(output_policy=host), engines={"loop": LoopEngine(completion_fn=provider)})
-        project = await app.projects.acreate(config=ProjectConfig(policies={"output": {"batch_size": 4, "max_chars": 50}}, parameters={"engines": {"loop": {"completion": {"model": "test"}}}}))
-        other = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test"}}}}))
+        project = await app.projects.acreate(config=ProjectConfig(policies={"output": {"batch_size": 4, "max_chars": 50}}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
+        other = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
         seen = []
         async def consume(events, policy, handler):
             seen.append(policy)

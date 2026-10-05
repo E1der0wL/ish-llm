@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime, timezone, timedelta
 
-from llm.services.runtime.policies import ExecutionLimitError
+from llm.policies import ExecutionLimitError
 from llm.core.models import now, new_id
 
 _current = ContextVar("llm_usage_scope", default=None)
@@ -147,7 +147,7 @@ class ComponentUsage:
         settings = scope.settings if source else policies.get("usage", {})
         reservation = None
         if settings.get("project_max_tokens") is not None or source and settings.get("max_tokens") is not None:
-            counter = scope.counter if source else self.counters.get(policies.get("completion", {}).get("counter"))
+            counter = scope.counter if source else self.counters.get(policies.get("usage", {}).get("counter"))
             if counter is None:
                 raise ExecutionLimitError("usage_configuration", "Component model quota requires a token counter")
             counted = deepcopy(request)

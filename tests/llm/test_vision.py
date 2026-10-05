@@ -114,7 +114,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.vision.aeffective_configuration())["values"], {})
         with self.assertRaisesRegex(ValueError, "vision.ocr.backend"):
             await self.vision.aocr("probe")
-        await self.vision.aconfigure({"ocr": {"backend": "first", "backends": {"first": {"language": "eng"}}}})
+        await self.vision.aconfigure({'config': {'ocr': {'backend': 'first', 'backends': {'first': {'language': 'eng'}}}}})
         result = await self.vision.aocr("probe")
         self.assertEqual((result["backend"], self.ocr.calls[-1][1]), ("first", {"language": "eng"}))
         self.assertEqual((await self.vision.aocr("probe", backend="second"))["backend"], "second")
@@ -163,7 +163,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
     async def test_analysis_uses_provider_and_no_hidden_request_parameters(self):
         with self.assertRaisesRegex(ValueError, "completion.model"):
             await self.vision.aanalyze("probe", prompt="What is visible?")
-        await self.vision.aconfigure({"completion": {"model": "test/vision", "max_retries": 3}})
+        await self.vision.aconfigure({'config': {'completion': {'model': 'test/vision', 'max_retries': 3}}})
         result = await self.vision.aanalyze("probe", prompt="What is visible?")
         self.assertEqual(result["kind"], "model_analysis")
         params = self.complete.call_args.kwargs
@@ -194,11 +194,11 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(asyncio.CancelledError):
             await task
         self.assertTrue(cancelled.is_set())
-        await self.vision.aconfigure({"ocr": {"backend": "first", "timeout": 0.01}})
+        await self.vision.aconfigure({'config': {'ocr': {'backend': 'first'}}, 'policy': {'ocr': {'timeout': 0.01}}})
         with self.assertRaises(TimeoutError):
             await self.vision.aocr("probe")
-        await self.vision.aconfigure({"ocr": {"backend": "first", "timeout": None}})
-        self.assertIsNone((await self.vision.aeffective_configuration())["values"]["ocr"]["timeout"])
+        await self.vision.aconfigure({'config': {'ocr': {'backend': 'first'}}, 'policy': {'ocr': {'timeout': None}}})
+        self.assertIsNone((await self.vision.aeffective_configuration())["values"]["policy"]["ocr"]["timeout"])
 
     async def test_configuration_change_and_deletion_during_ocr_fail_closed(self):
         for change in ("config", "delete"):
@@ -212,7 +212,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(self.vision.aocr("probe", backend="first"))
             await started.wait()
             if change == "config":
-                await self.vision.aconfigure({"ocr": {"backend": "second"}})
+                await self.vision.aconfigure({'config': {'ocr': {'backend': 'second'}}})
             else:
                 await self.vision.adelete("probe")
             release.set()
@@ -224,7 +224,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
         tools = vision_tools(self.vision, self.component.binding(self.project.data), ("first", "second"))
         with self.assertRaises(ValueError):
             tools.prepare("image_ocr", '{"image_id":"probe"}')
-        await self.vision.aconfigure({"ocr": {"backend": "first"}})
+        await self.vision.aconfigure({'config': {'ocr': {'backend': 'first'}}})
         with self.assertRaisesRegex(ValueError, "changed"):
             await tools.get("image_ocr").handler({"image_id": "probe", "backend": "first"})
 
@@ -239,8 +239,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
         from llm.providers.requests import ProviderError
         class RateLimit(Exception):
             status_code = 429
-        await self.vision.aconfigure({"completion": {"model": "test", "max_retries": 2},
-                                     "provider": {"max_attempts": 3}})
+        await self.vision.aconfigure({'config': {'completion': {'model': 'test', 'max_retries': 2}}, 'policy': {'provider': {'max_attempts': 3}}})
         self.complete.side_effect = RateLimit()
         with self.assertRaises(ProviderError) as caught:
             await self.vision.aanalyze("probe", prompt="Read")
@@ -300,7 +299,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                         engines={"graph": GraphEngine(handlers={"tool": ToolNode()})},
                         services=ServiceConfig(tool_policy=ToolPolicy(authorize=ask))) as app:
                     project = await app.projects.acreate("Graph", components=["vision", "workflows"],
-                        config=ProjectConfig(parameters={"components": {"vision": {"ocr": {"backend": "local"}}}}))
+                        config=ProjectConfig(parameters={"components": {"vision": {'config': {'ocr': {'backend': 'local'}}}}}))
                     await project.components.vision.aimport_image(picture(), title="Probe", identifier="probe")
                     flow = (WorkflowGraph(entry="read")
                         .node("read", "tool", tool="image_ocr", arguments={"image_id": "probe"}, result_key="ocr")
@@ -312,10 +311,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(ocr.calls, [])
                     request, = await paused.ainteractions(pending_only=True)
                     await paused.arespond(request.respond("approve" if approve else "deny"))
-                    await project.components.vision.aconfigure({"ocr": {"backend": "local", "timeout": 5}})
+                    await project.components.vision.aconfigure({'config': {'ocr': {'backend': 'local'}}, 'policy': {'ocr': {'timeout': 5}}})
                     with self.assertRaisesRegex(Exception, "changed"):
                         await session.run.resume(paused.id, engine="graph")
-                    await project.components.vision.aconfigure({"ocr": {"backend": "local"}})
+                    await project.components.vision.aconfigure({'config': {'ocr': {'backend': 'local'}}})
                     resumed = await (await session.run.resume(paused.id, engine="graph")).wait(timeout=20)
                     self.assertEqual(resumed.data.status, RunStatus.COMPLETED if approve else RunStatus.FAILED, resumed.data.error)
                     self.assertEqual(len(ocr.calls), 1 if approve else 0)
@@ -330,7 +329,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 [chunk("Check the server."), chunk(finish="stop")])
             async with LargeLanguageModel(root, components=[VisionComponent(ocr_backends={"local": OCR()})],
                     engines={"loop": LoopEngine(completion_fn=complete, max_iterations=2)}) as app:
-                project = await app.projects.acreate("Images", components=["vision"], config=ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": "test"}}}, "components": {"vision": {"ocr": {"backend": "local"}}}}))
+                project = await app.projects.acreate("Images", components=["vision"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"vision": {'config': {'ocr': {'backend': 'local'}}}}}))
                 await project.components.vision.aimport_image(picture(), title="Probe", identifier="probe")
                 session = await project.sessions.acreate()
                 run = await (await session.run.submit("Read probe", engine="loop")).wait(timeout=20)
@@ -349,8 +348,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[VisionComponent(ocr_backends={"local": OCR()}),
                     RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=fake_embedding))]) as app:
-                project = await app.projects.acreate("RAG", components=["vision", "rag"], config=ProjectConfig(parameters={"components": {"vision": {"ocr": {"backend": "local"}},
-                    "rag": rag_settings({"extraction": {"failure_policy": "disabled"}})}}))
+                project = await app.projects.acreate("RAG", components=["vision", "rag"], config=ProjectConfig(parameters={"components": {"vision": {'config': {'ocr': {'backend': 'local'}}},
+                    "rag": rag_settings({'policy': {'extraction': {'failure_policy': 'disabled'}}})}}))
                 image = await project.components.vision.aimport_image(picture(), title="Probe")
                 doc = await project.components.vision.aextract_document(image["id"], mode="ocr", title="OCR source")
                 await project.components.rag.aadd_document(**doc, identifier="manual")

@@ -37,7 +37,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.component = MemoryComponent()
         self.app = LargeLanguageModel(self.root / "workspace", components=[self.component], engines={})
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate("Memory", components=["memory"], config={"parameters": {"components": {"memory": {"tool_write_status": "candidate", "search_status": "confirmed", "cache_records": 256}}}})
+        self.project = await self.app.projects.acreate("Memory", components=["memory"], config={"parameters": {"components": {"memory": {'policy': {'tool_write_status': 'candidate'}, 'config': {'search_status': 'confirmed', 'cache_records': 256}}}}})
         self.memory = await self.project.components.aget("memory")
 
     async def run_tool(self, name, arguments, *, project=None):
@@ -95,14 +95,13 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(await self.memory.asearch("PYTHON")), 1)
         self.assertEqual(len(await self.memory.asearch("python", status="all")), 2)
         self.assertEqual((await self.memory.asearch("한국어"))[0]["memory"]["id"], "confirmed")
-        await self.memory.aconfigure({"search_status": "candidate", "search_limit": 1,
-                                      "max_search_results": 2, "ui": {"color": "blue"}})
+        await self.memory.aconfigure({'config': {'search_status': 'candidate', 'search_limit': 1, 'ui': {'color': 'blue'}}, 'policy': {'max_search_results': 2}})
         self.assertEqual((await self.memory.asearch("python"))[0]["memory"]["id"], "candidate")
         for args in ({"limit": 3}, {"limit": True}, {"status": "unknown"}):
             with self.assertRaises(ValueError):
                 await self.memory.asearch("python", **args)
         with self.assertRaises(ValueError):
-            await self.memory.aconfigure({"tool_write_status": "automatic"})
+            await self.memory.aconfigure({'policy': {'tool_write_status': 'automatic'}})
 
     async def test_validation_and_failed_write_leave_old_revision(self):
         await self.memory.acreate({"content": "valid"}, identifier="m")
@@ -263,13 +262,13 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(step.metadata["error_code"], "tool_denied")
 
     async def test_tool_write_status_configuration(self):
-        await self.memory.aconfigure({"tool_write_status": "confirmed"})
+        await self.memory.aconfigure({'policy': {'tool_write_status': 'confirmed'}})
         run, _, _ = await self.run_tool("memory_create", {"content": "configured"})
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(len(await self.memory.asearch("configured")), 1)
 
     async def test_concurrent_run_provenance_is_isolated(self):
-        other = await self.app.projects.acreate("Other", components=["memory"], config={"parameters": {"components": {"memory": {"tool_write_status": "candidate"}}}})
+        other = await self.app.projects.acreate("Other", components=["memory"], config={"parameters": {"components": {"memory": {'policy': {'tool_write_status': 'candidate'}}}}})
         results = await asyncio.gather(self.run_tool("memory_create", {"content": "one"}),
                                        self.run_tool("memory_create", {"content": "two"}, project=other))
         for (run, _, session), project in zip(results, (self.project, other)):

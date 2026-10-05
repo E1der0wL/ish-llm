@@ -8,7 +8,7 @@ LoopEngine은 `completion_processors`라는 범용 capability를 요청하고 �
 Memory는 CompletionSession을 상속해 필요한 prepare/finish만 구현한다.
 다른 컴포넌트도 같은 계약을 제공할 수 있다. 처리기가 없으면 빈 컬렉션으로 실행한다.
 [공통 처리기 계약](completion-processing.md)에 확장 예제와 조합/수명 규칙을 설명한다.
-Memory의 processing.priority는 기본 100이며 작은 값이 먼저 실행된다.
+Memory의 config.processing.priority는 자동 처리를 사용할 때 명시하며 작은 값이 먼저 실행된다.
 
 ## 활성화와 설정
 
@@ -19,26 +19,7 @@ Memory 컴포넌트를 선택하면 기본적으로 관련된 **confirmed 기억
 ```python
 project = await backend.projects.acreate("업무", components=["memory"])
 memory = await project.components.aget("memory")
-await memory.aconfigure({
-    "processing": {
-        "recall": True,
-        "summarize": True,
-        "extract": True,
-        "completion": {"model": model_name, "api_key": api_key},
-        "keep_turns": 8,
-        "summary_after_chars": 12000,
-        "summary_chars": 3000,
-        "context_chars": 6000,
-        "recall_limit": 8,
-        "compress_tools": True,
-        "tool_result_chars": 4000,
-        "model_input_chars": 24000,
-        "max_candidates": 5,
-        "extract_scope": "session",
-        "timeout_seconds": 60,
-        "failure_mode": "raise",
-    },
-})
+await memory.aconfigure({'policy': {'processing': {'recall': True, 'summarize': True, 'extract': True, 'keep_turns': 8, 'summary_after_chars': 12000, 'context_chars': 6000, 'compress_tools': True, 'tool_result_chars': 4000, 'model_input_chars': 24000, 'max_candidates': 5, 'timeout_seconds': 60, 'failure_mode': 'raise'}}, 'config': {'processing': {'completion': {'model': model_name, 'api_key': api_key}, 'summary_chars': 3000, 'recall_limit': 8, 'extract_scope': 'session'}}})
 session = await project.sessions.acreate()
 run = await (await session.run.submit("작업을 계속해줘", engine="loop")).wait()
 ```

@@ -73,7 +73,7 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
         for name, definition in definitions().items():
             data = self.project.components[name]
             record = {**definition, "custom": {"label": "한글", "values": [1, None]}}
-            data.configure({"future_setting": {"v": 1}})
+            data.configure({'config': {'future_setting': {'v': 1}}})
             data.create(record, identifier="example")
             loaded = data.load("example")
             self.assertEqual(loaded, record)

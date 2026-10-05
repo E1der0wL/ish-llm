@@ -118,14 +118,19 @@ state 변경은 waiting 노드에서만 허용하며 닫힌 resume_schema로 검
 await project.aconfigure_policies({
     "usage": {"max_calls": 100, "max_tokens": 200000,
               "project_max_calls": 1000, "project_max_tokens": 2000000,
-              "period_seconds": 86400},
-    "provider_retry": {"max_retries": 2, "delay_seconds": 1, "max_delay_seconds": 10},
+              "period_seconds": 86400, "counter": "model_default"},
 })
+# 등록 이름이 loop인 Engine만 이 재시도 설정을 사용한다.
+config = (await project.aget_data()).config
+config.parameters.setdefault("engines", {}).setdefault("loop", {})["provider"] = {
+    "max_attempts": 3, "delay_seconds": 1, "max_delay_seconds": 10,
+}
+await project.asave(config=config)
 ```
 
-모든 usage 기본값은 null이다. Completion 시작 이벤트를 저장하기 전에 상한을 검사한다.
+usage 상한은 명시했을 때만 적용한다. Completion 시작 이벤트를 저장하기 전에 상한을 검사한다.
 토큰 한도를 켜면 completion.max_tokens 또는 max_completion_tokens를 명시해야 한다.
-등록된 입력 counter + 출력 상한을 예약하고, 완전한 실제 usage를 받으면 실제 토큰으로
+usage.counter로 선택한 계산기의 입력 토큰 + 출력 상한을 예약하고, 완전한 실제 usage를 받으면 실제 토큰으로
 바꾼다. usage가 없거나 중단된 호출은 예약을 유지한다. 과거의 미계수 호출이 집계 범위에
 있으면 usage_unknown으로 추가 호출을 차단한다. 계수기와 공급자의 출력 상한 준수가
 전제이며 실제 요금 청구의 정확한 상한을 보장하는 결제 원장은 아니다.
@@ -137,22 +142,17 @@ await project.aconfigure_policies({
 갖지만 Project 기간 한도는 공유한다. Project Component API로 호출한 RAG 모델은 컴포넌트
 영수증으로 같은 Project 한도에 참여하며, Tool 안의 호출은 현재 Run 한도에도 참여한다.
 
-provider_retry는 BaseEngine completion 경로의 응답 전 429/502/503/504만 재시도한다.
+Engine의 provider는 BaseEngine completion 경로에서 첫 chunk 이전의 일시적인 공급자 오류만 재시도한다.
 부분 응답 이후에는 재시도하지 않는다. 각 시도는 별도 Completion ID와 사용량 예약을 가지며
-Run 기한 안에서 수행한다. SDK num_retries와 동시에 켤 수 없다. 기본 재시도는 0회다.
+Run 기한 안에서 수행한다. max_attempts는 최초 호출을 포함한다. 명시적 SDK retry가 켜져 있으면
+외부 시도는 1회로 제한해 중첩을 막는다. 미설정이면 외부 재시도하지 않는다. Memory 등 다른
+호출자의 provider 설정은 해당 Component에서 별도로 지정한다.
 동기 SDK 스레드 강제 종료/자동 모델 fallback은 제공하지 않는다.
 
 ## 현재 작업 문맥 압축
 
 ```python
-await project.components.memory.aconfigure({"processing": {
-    "summarize": True,
-    "compact_active": True,
-    "active_keep_iterations": 2,
-    "summary_after_chars": 12000,
-    "summary_chars": 3000,
-    "completion": {"model": auxiliary_model, "max_tokens": 1500},
-}})
+await project.components.memory.aconfigure({'policy': {'processing': {'summarize': True, 'compact_active': True, 'active_keep_iterations': 2, 'summary_after_chars': 12000}}, 'config': {'processing': {'summary_chars': 3000, 'completion': {'model': auxiliary_model, 'max_tokens': 1500}}}})
 ```
 
 Memory의 자동 요약은 기본적으로 꺼져 있다. 켜면 현재 작업에서 완료된 오래된 Tool

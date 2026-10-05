@@ -51,7 +51,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
     async def test_unused_tool_does_not_break_text_engine(self):
         app, project, session = await self.backend(components=[ToolComponent()])
         tools = await project.components.aget("tools")
-        await tools.aconfigure({"enabled": ["missing"]})
+        await tools.aconfigure({'config': {'enabled': ['missing']}})
         run = await self.run_one(session)
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
 

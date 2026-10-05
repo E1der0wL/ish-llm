@@ -1,11 +1,6 @@
 """응답을 받기 전의 일시적 공급자 오류만 재시도한다. Tool 효과에는 적용하지 않는다."""
 
-from contextlib import contextmanager
-from contextvars import ContextVar
 import sys
-
-_policy = ContextVar("llm_provider_retry", default={})
-
 
 def sdk_retry_enabled(request, *, sdk_defaults=False):
     """인자/클라이언트/SDK 기본값을 읽기만 한다. 불명확한 SDK 정책에는 외부 재시도를 겹치지 않는다."""
@@ -35,19 +30,6 @@ def effective_attempts(request, maximum, *, sdk_defaults=False):
         diagnostic("provider_retry_delegated", model=request.get("model"),
                    configured_attempts=maximum, effective_attempts=attempts)
     return attempts
-
-
-@contextmanager
-def retry_scope(settings):
-    token = _policy.set(settings)
-    try:
-        yield
-    finally:
-        _policy.reset(token)
-
-
-def retry_settings():
-    return _policy.get()
 
 
 def transient(error):

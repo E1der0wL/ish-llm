@@ -19,12 +19,14 @@ from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
 from llm.engines.graph.tool import ToolNode
 from llm.engines.graph.agent import AgentNode
+from tests.llm.configuration_fixtures import configure_engine
 from llm.llm import LargeLanguageModel
 from llm.services.configuration import ServiceConfig
-from llm.services.history.context import CompletionPolicy
+from llm.policies import CompletionPolicy
 from llm.services.history.conversation import ConversationStore, MemoryConversationStore
 from llm.services.runtime.events import EventSubscriptions
-from llm.services.runtime.policies import ExecutionLimitError, RunLimits
+from llm.policies import ExecutionLimitError
+from llm.services.runtime.policies import RunPolicy
 from llm.services.runtime.runs import RunRequestError
 from llm.services.runtime.tools import ToolPolicy
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
@@ -277,7 +279,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=completion)})})},
             services=ServiceConfig(tool_policy=ToolPolicy(allowed_tools=())))
         await (await project.components.aget("agents")).acreate({"engine": "loop", "purpose": "test", "completion": {"model": "test/model"},
-            "tools": ["act"], "engine_options": {"max_iterations": 2}}, identifier="worker")
+            "tools": ["act"], "engine_options": {'policy': {'max_iterations': 2}}}, identifier="worker")
         graph = WorkflowGraph(entry="a").node("a", "agent", agent="worker").node("end", "end").connect("a", "end").to_dict()
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
         run = await self.execute(session, "graph", engine_options={"workflow": "flow"})
@@ -288,8 +290,8 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         loop, completion = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         counter = lambda request: 100 if any(item["role"] == "tool" for item in request["messages"]) else 1
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
-            services=ServiceConfig(token_counters={"test": counter}),
-            policies={"completion": {"max_tokens": 10, "counter": "test"}})
+            services=ServiceConfig(token_counters={"test": counter}))
+        await configure_engine(session.project, "loop", input_policy={"max_tokens": 10, "counter": "test"})
         run = await self.execute(session, "loop")
         self.assertEqual(run.result.error_code, "context_budget_exceeded")
         self.assertEqual(len(completion.requests), 1)
@@ -304,8 +306,8 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             return 1
         loop, _ = self.loop([chunk("answer"), chunk(finish="stop")])
         _, _, session = await self.backend(engines={"loop": loop},
-            services=ServiceConfig(token_counters={"test": count}),
-            policies={"completion": {"max_tokens": 10, "counter": "test"}})
+            services=ServiceConfig(token_counters={"test": count}))
+        await configure_engine(session.project, "loop", input_policy={"max_tokens": 10, "counter": "test"})
         run = await self.execute(session, "loop")
         self.assertEqual(run.data.status, RunStatus.COMPLETED)
         self.assertTrue(counted_threads)
@@ -658,7 +660,7 @@ class BudgetAndProjectionTests(unittest.TestCase):
             self.assertEqual(reopened.count(), 0)
 
     def test_invalid_limits_fail_early(self):
-        for construct in (lambda: RunLimits(max_queued=0), lambda: RunLimits(timeout_seconds=float("nan")),
+        for construct in (lambda: RunPolicy(max_queued=0), lambda: RunPolicy(timeout_seconds=float("nan")),
                           lambda: ToolPolicy(max_calls=True), lambda: ToolPolicy(allowed_tools=["tool"]),
                           lambda: CompletionPolicy(10, counter=None), lambda: CompletionPolicy(10, reserve_tokens=10, counter=len)):
             with self.assertRaises((ValueError, TypeError)):

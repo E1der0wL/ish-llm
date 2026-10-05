@@ -19,7 +19,7 @@ from llm.engines.pipeline import PipelineEngine, PreparationStep
 from llm.llm import LargeLanguageModel
 from llm.providers.requests import ProviderError
 from llm.providers.calls import ProviderCapacityError
-from llm.services.runtime.policies import ExecutionLimitError
+from llm.policies import ExecutionLimitError
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError
 
 

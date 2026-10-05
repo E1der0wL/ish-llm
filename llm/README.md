@@ -4,6 +4,14 @@ Linux의 **ish에서 사용하는 AI 실행 백엔드 플러그인**입니다. �
 
 처음 사용하는 경우 **[ish에서 실행하기](#ish에서-실행하기)** → **[LargeLanguageModel 사용하기](#largelanguagemodel-사용하기)** 순서로 읽으세요. 확장하려는 개발자는 [새 Engine](#새-engine-만들기), [새 Component](#새-component-만들기)부터 시작할 수 있습니다.
 
+Engine·Component의 설정은 `parameters.engines[이름]` 또는
+`parameters.components[이름]` 아래 **config**(기능·SDK 인자)와 **policy**(실행 결정·한도)로
+구분합니다. 예를 들어 Loop 모델은 `config.completion.model`, 입력 예산은
+`policy.completion`, 외부 재시도는 `policy.provider`입니다. 직접 컴포넌트 설정 API도
+같은 형태를 저장합니다. 전체 분류와 구현체 확장 계약은 [CONFIGURATION.md](CONFIGURATION.md),
+재사용 정책 알고리즘은 [policies/](policies/README.md)를 참고하세요.
+
+
 ## 주요 개념과 실행 흐름
 
 영속 데이터의 소유 관계는 **Project → Session → Run → Step**입니다.
@@ -128,12 +136,10 @@ async def main():
             config=ProjectConfig(parameters={
                 "engines": {
                     "loop": {
-                        "max_iterations": 4,
-                        "completion": {
-                            "model": "openai/YOUR_MODEL",
-                            "api_key": "YOUR_API_KEY",
-                            # "api_base": "https://your-server/v1",
-                        },
+                        "config": {"completion": {
+                            "model": "openai/YOUR_MODEL", "api_key": "YOUR_API_KEY",
+                        }},
+                        "policy": {"max_iterations": 4},
                     },
                 },
             }),
@@ -162,6 +168,13 @@ if __name__ == "__main__":
 `submit()`의 결과는 **RequestHandle**입니다. `await request.wait()`가 요청의 종료를 기다려 **RunHandle**을 반환합니다. 완료 여부는 `ExecutionResult.status`로 확인합니다. Graph의 구조화된 최종 결과는 `result.output`의 `data`로 조회할 수 있습니다.
 
 `ProjectConfig`는 열린 JSON 설정 객체입니다. 여기에 넣은 API 키도 Project 설정 JSON에 저장됩니다. 별도 비밀값 저장소는 없으며, 원한다면 키를 저장하지 않고 SDK의 환경변수 인증을 사용할 수 있습니다.
+
+공통 실행·사용량·보관 정책은 `policies`, 구현체별 인자는 `parameters`에 둡니다.
+Loop 입력 예산은 `parameters.engines[이름].policy.completion`, 모델 호출 재시도는
+`parameters.engines[이름].policy.provider`로 지정합니다. Memory/RAG/Vision의 provider는 각 Component 정책에 따로 둡니다.
+실행 제한 객체는 `RunPolicy`, 모델 입력 선택기는 `CompletionPolicy`입니다. 설정값마다
+클래스를 만들지 않으며 필요한 구현체가 해당 알고리즘을 사용합니다.
+[정책 설정과 예제](../docs/llm/project-policies.md)에서 상속·null·계산기 선택 방법을 확인하세요.
 
 ### 기존 Project와 대화 선택
 
@@ -320,6 +333,7 @@ Tool은 Python 패키지, RAG는 색인 세대 등 별도 저장 구조를 가�
 | [engines/](engines/README.md) | Loop/Graph/Pipeline 실행과 새 전략 구현 |
 | [components/](components/README.md) | 기능별 데이터·검색·Tool·장기 기억 |
 | [providers/](providers/README.md) | LiteLLM 호출, 오류·retry·로그·임베딩 검증 |
+| [policies/](policies/README.md) | Engine·Component에서 재사용하는 수명 독립 정책 알고리즘 |
 | [services/](services/README.md) | 공개 API, 도메인 수명, 저장·복구·이벤트 |
 | [CONFIGURATION.md](CONFIGURATION.md) | 명시적 설정 원칙과 우선순위 |
 | [llm.py](llm.py) | PLUGIN_META, LargeLanguageModel, ish worker용 main |
@@ -332,7 +346,7 @@ Tool은 Python 패키지, RAG는 색인 세대 등 별도 저장 구조를 가�
 전체 검사는 저장소 루트에서 Linux Python 3.12.14로 실행합니다.
 
 ```sh
-python tests/llm/run_linux.py --full
+python tests/llm/run_linux.py --source . --full
 ```
 
 이 명령은 Linux 파일시스템에 소스 스냅샷을 만들고 검증합니다. 실제 모델/사내 서버 검사는 별도로 [Graph·RAG 예제](../examples/llm/graph_rag.md)를 사용합니다. 파일 대화 저장은 재시작 후 유지되지만 `conversation_storage="memory"`의 대화·대기 요청은 프로세스 종료 시 사라집니다.

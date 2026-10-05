@@ -60,7 +60,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         }, echo) for name in ("echo", "forbidden")))
         self.profile = {"engine": "loop", "purpose": "Write", "system_prompt": "Follow the provided request.",
                         "completion": {"model": "test/writer", "temperature": 0.2},
-                        "tools": ["echo"], "engine_options": {"max_iterations": 3}}
+                        "tools": ["echo"], "engine_options": {'policy': {'max_iterations': 3}}}
 
     async def setup_graph(self, graph, completion, *, handlers=None, extra_components=()):
         components = [AgentComponent(), WorkflowComponent(), RuntimeTools(self.catalog), *extra_components]
@@ -122,7 +122,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.calls, [])
 
     async def test_agent_iteration_limit_and_queued_followup(self):
-        self.profile["engine_options"]["max_iterations"] = 1
+        self.profile["engine_options"]['policy']['max_iterations'] = 1
         model = ScriptedCompletion([chunk(calls=[call('{"value":"x"}', name="echo")]), chunk(finish="tool_calls")],
                                    answer("next"))
         await self.setup_graph(agent_graph(), model)
@@ -135,7 +135,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(json.loads(model.requests[1]["messages"][1]["content"]), {"request": "second"})
 
     async def test_all_agent_policies_preflight_before_earlier_side_effect(self):
-        self.profile["engine_options"]["max_iterations"] = 0
+        self.profile["engine_options"]['policy']['max_iterations'] = 0
         async def write(node):
             self.calls.append("write")
             return {}
@@ -254,7 +254,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(answer("ok"))
         await self.setup_graph(agent_graph(), model)
         data = await self.project.aget_data()
-        data.config.parameters["engines"] = {"loop": {"completion": {"model": "project/default", "temperature": 0.9}}}
+        data.config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "project/default", "temperature": 0.9}}}}
         await self.project.asave(config=data.config)
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.COMPLETED)
@@ -341,7 +341,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(answer("no tool"),
             [chunk(calls=[call('{"value":"first"}', name="echo")]), chunk(finish="tool_calls")],
             [chunk(calls=[call('{"value":"second"}', name="echo", call_id="second")]), chunk(finish="tool_calls")])
-        self.profile["engine_options"]["max_iterations"] = 4
+        self.profile["engine_options"]['policy']['max_iterations'] = 4
         await self.setup_graph(agent_graph(), model)
         self.assertEqual((await self.run_graph()).data.status, RunStatus.FAILED)
         self.assertEqual(model.requests[0]["tool_choice"], "required")
@@ -367,7 +367,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
                     seen.append((definition, context.run.id, context.state["agent"]["engine"]))
                     yield "custom result"
                 return BaseEngine("Work", action=work)
-        self.profile = {"engine": "work", "purpose": "Deterministic work", "engine_options": {"mode": "safe"}}
+        self.profile = {"engine": "work", "purpose": "Deterministic work", "engine_options": {'config': {'mode': 'safe'}}}
         await self.setup_graph(agent_graph(), None, handlers={"agent": AgentNode(engines={"work": WorkEngine()})})
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
@@ -490,7 +490,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
             responses.extend([[chunk(calls=[call('{"query":"Alice","method":"hybrid","limit":1}', name="rag_search")]),
                                chunk(finish="tool_calls")], answer(json.dumps({"code": source}))])
         model = ScriptedCompletion(*responses)
-        self.profile.update(tools=[], resources={"rag": True}, engine_options={"max_iterations": 2})
+        self.profile.update(tools=[], resources={"rag": True}, engine_options={'policy': {'max_iterations': 2}})
         graph = coding_workflow()
         graph["nodes"]["repair"]["body"]["nodes"]["implement"]["agent"] = "writer"
         graph["outputs"] = {"code": "/code", "passed": "/passed", "history": "/history"}

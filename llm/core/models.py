@@ -190,6 +190,9 @@ class ProjectConfig(dict):
             targets = parameters.get(category, {})
             if not isinstance(targets, dict) or any(not isinstance(options, dict) for options in targets.values()):
                 raise TypeError(f"parameters.{category} must map target names to dictionaries")
+            from .schema import validate_implementation_settings
+            for name, options in targets.items():
+                validate_implementation_settings(options, scope=f"parameters.{category}.{name}")
 
     def to_dict(self) -> dict:
         self.validate()

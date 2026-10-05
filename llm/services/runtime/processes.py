@@ -13,7 +13,8 @@ from llm._platform import require_linux
 from asyncio import timeout
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
-from llm.services.runtime.policies import ExecutionLimitError, positive_seconds
+from llm.policies import ExecutionLimitError
+from llm.services.runtime.policies import positive_seconds
 
 if TYPE_CHECKING:
     from llm.services.runtime.tools import ToolCall

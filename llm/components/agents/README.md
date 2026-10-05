@@ -20,7 +20,7 @@ await agents.acreate({
     "purpose": "주어진 문서의 오류를 검토한다",
     "engine": "loop",
     "system_prompt": "근거가 있는 문제만 설명하세요.",
-    "engine_options": {"max_iterations": 3},
+    "engine_options": {'policy': {'max_iterations': 3}},
     "output_format": "text",
 }, identifier="reviewer")
 ```

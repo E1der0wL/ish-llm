@@ -11,7 +11,9 @@ def policy_schema() -> dict:
         return {"type": kind, "description": description, **constraints}
     def section(properties):
         return {"type": "object", "additionalProperties": False, "properties": properties}
-    return {"type": "object", "additionalProperties": True, "properties": {
+    return {"type": "object", "additionalProperties": True,
+        "not": {"anyOf": [{"required": [name]} for name in ("completion", "provider_retry")]},
+        "properties": {
         "approval": section({
             "enabled": field("boolean", "호스트가 위임한 요청에만 프로젝트 자동 승인 규칙 적용"),
             "rules": field("array", "카테고리·위험도별 승인 규칙; 불확실한 재실행은 제외", items={
@@ -24,10 +26,6 @@ def policy_schema() -> dict:
                           enum=["full", "recent", "completed", "recent_completed", "budget"]),
             "max_turns": field("integer", "recent 계열의 과거 턴 수; 현재 입력은 별도", minimum=1),
             "max_chars": field(["integer", "null"], "현재 입력 포함 대화 본문 문자 상한", minimum=1)}),
-        "completion": section({
-            "max_tokens": field(["integer", "null"], "요청 토큰 상한; null은 제한하지 않음", minimum=1),
-            "reserve_tokens": field("integer", "입력 예산에서 제외할 출력 여유; 출력 길이 제한은 별도", minimum=0),
-            "counter": field("string", "백엔드에 등록한 요청 토큰 계산기 이름", minLength=1)}),
         "output": section({
             "batch_size": field(["integer", "null"], "델타 저장 묶음 크기; null은 백엔드 기본값", minimum=1),
             "max_delay": field(["number", "null"], "델타 저장 최대 대기(초); null은 백엔드 기본값", exclusiveMinimum=0),
@@ -35,11 +33,8 @@ def policy_schema() -> dict:
         "tool_retry": section({
             "max_retries": field(["integer", "null"], "조건부 Tool 재시도; null은 비활성화", minimum=0),
             "delay_seconds": field(["number", "null"], "Tool 재시도 대기; null은 비활성화", minimum=0)}),
-        "provider_retry": section({
-            "max_retries": field("integer", "응답 전 429/502/503/504 오류 재시도 횟수", minimum=0),
-            "delay_seconds": field("number", "최초 재시도 대기 시간", minimum=0),
-            "max_delay_seconds": field("number", "지수 증가 대기 시간 상한", minimum=0)}),
         "usage": section({
+            "counter": field("string", "누적 토큰 예약 계산기 이름. Engine 입력 선택과 독립적이다", minLength=1),
             "max_calls": field(["integer", "null"], "Run의 누적 모델 호출 상한", minimum=1),
             "max_tokens": field(["integer", "null"], "Run 토큰 예약 상한", minimum=1),
             "project_max_calls": field(["integer", "null"], "Project 기간 내 모델 호출 상한", minimum=1),
@@ -81,12 +76,9 @@ def normalize_policies(value: dict) -> dict:
     rule_ids = [rule["id"] for rule in result.get("approval", {}).get("rules", [])]
     if len(rule_ids) != len(set(rule_ids)):
         raise ValueError("Approval rule IDs must be unique")
-    context, completion = result.get("context", {}), result.get("completion", {})
+    context = result.get("context", {})
     if context.get("mode") == "budget" and context.get("max_chars") is None:
         raise ValueError("Context budget mode requires max_chars")
-    if "counter" in completion and not completion["counter"].strip():
-        raise ValueError("Completion counter must be a nonempty name")
-    maximum, reserve = completion.get("max_tokens"), completion.get("reserve_tokens")
-    if (maximum is None and reserve) or (maximum is not None and reserve is not None and reserve >= maximum):
-        raise ValueError("Completion reserve_tokens requires max_tokens and must be smaller")
+    if "counter" in result.get("usage", {}) and not result["usage"]["counter"].strip():
+        raise ValueError("Usage counter must be a nonempty name")
     return result

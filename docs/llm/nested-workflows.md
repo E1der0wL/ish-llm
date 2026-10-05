@@ -63,7 +63,7 @@ root_engine = GraphEngine(handlers={"agent": coordinators})
 await project.components.agents.acreate({
     "purpose": "검토 Workflow 수행",
     "engine": "review_graph",
-    "engine_options": {"workflow": "review_flow", "max_steps": 100},
+    "engine_options": {'policy': {'max_steps': 100}, 'workflow': 'review_flow'},
     "tools": [],
     "policy": {"timeout_seconds": 120},
 }, identifier="reviewer")

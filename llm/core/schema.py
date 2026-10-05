@@ -12,6 +12,25 @@ def object_schema(properties=None, **extra):
     return {"type": "object", "properties": properties or {}, "additionalProperties": True, **extra}
 
 
+def implementation_schema(*, config=None, policy=None, **metadata):
+    """구현체 설정의 공통 외형. 필드 의미·필수값은 구현체가 선언하며 값은 만들지 않는다."""
+    return object_schema({"config": object_schema() if config is None else config,
+                          "policy": object_schema() if policy is None else policy},
+                         additionalProperties=False, **metadata)
+
+
+def validate_implementation_settings(value, *, scope="implementation"):
+    """저장·직접 설정 경계에서 평면 설정과 null 컨테이너를 거부한다."""
+    if not isinstance(value, dict):
+        raise TypeError(f"{scope} settings must be an object")
+    extra = value.keys() - {"config", "policy"}
+    if extra:
+        raise ValueError(f"{scope}: settings belong under config/policy: {sorted(extra)}")
+    for key in ("config", "policy"):
+        if key in value and not isinstance(value[key], dict):
+            raise TypeError(f"{scope}.{key} must be an object; omit an unset section")
+
+
 def completion_schema():
     return object_schema({
         "model": {"type": "string", "minLength": 1, "description": "공급자/모델 이름"},
@@ -48,3 +67,18 @@ def checked_schema(value):
     check(value)
     Draft202012Validator.check_schema(value)
     return deepcopy(value)
+
+
+def checked_implementation_schema(value):
+    """확장 구현체도 같은 설정 외형을 공개한다. 각 section의 내용은 구현체가 결정한다."""
+    spec = checked_schema(value)
+    if not isinstance(spec, dict) or spec.get("type") != "object":
+        raise ValueError("Implementation configuration schema must describe an object")
+    if spec.get("properties", {}).keys() - {"config", "policy"}:
+        raise ValueError("Implementation configuration schema fields belong under config/policy")
+    for name, section in spec.get("properties", {}).items():
+        if not isinstance(section, dict) or section.get("type") != "object":
+            raise ValueError(f"Implementation {name} schema must describe a non-null object")
+    # 외형 제한을 schema에도 담아 ProjectConfig와 UI 검증이 일치하게 한다.
+    spec["additionalProperties"] = False
+    return spec

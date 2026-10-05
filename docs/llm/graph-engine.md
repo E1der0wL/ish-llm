@@ -59,7 +59,7 @@ await project.components.agents.acreate({
     "engine": "loop",
     "completion": {"model": model, "temperature": 0.2},
     "system_prompt": "기술문서를 확인하고 수정 결과를 JSON으로 반환하세요.",
-    "engine_options": {"max_iterations": 4, "request_timeout": 60, "tool_timeout": 30},
+    "engine_options": {'policy': {'max_iterations': 4, 'request_timeout': 60, 'tool_timeout': 30}},
     "resources": {"skills": ["code_review"], "rag": True},
     "tools": [],
     "policy": {"require_tool": True, "max_tool_calls": 3, "timeout_seconds": 120},

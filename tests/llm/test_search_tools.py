@@ -101,17 +101,17 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_selected_components_always_expose_tools_despite_legacy_flags(self):
         for data in (self.rag,):
-            self.assertEqual((await data.aconfiguration())["search"]["method"], "hybrid")
+            self.assertEqual((await data.aconfiguration())["config"]["search"]["method"], "hybrid")
             self.assertFalse(hasattr(data, "enable_search_tools"))
             self.assertFalse(hasattr(data, "aenable_search_tools"))
             # 과거 필드는 열린 데이터로 보존하지만 더 이상 동작을 제어하지 않는다.
-            await data.aconfigure({"search_tools_enabled": False, "future": {"language": "ko"}})
+            await data.aconfigure({'config': {'search_tools_enabled': False, 'future': {'language': 'ko'}}})
         completion = ScriptedCompletion([chunk("No search needed"), chunk(finish="stop")])
         run = await self.run_loop(self.project, completion)
         self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
         self.assertEqual({item["function"]["name"] for item in completion.requests[0]["tools"]},
                          {"rag_search"})
-        self.assertEqual((await self.rag.aconfiguration())["future"], {"language": "ko"})
+        self.assertEqual((await self.rag.aconfiguration())["config"]["future"], {"language": "ko"})
 
     async def test_project_selection_controls_tools_on_subsequent_runs(self):
         project = await self.app.projects.acreate("Selection", components=[])
@@ -191,7 +191,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_reopen_ignores_legacy_false_and_exposes_search_without_setup(self):
         await self.rag.aadd_document(identifier="doc", title="Guide", content="backup every 15 minutes")
-        await self.rag.aconfigure(rag_settings({"search_tools_enabled": False}))
+        await self.rag.aconfigure(rag_settings({'config': {'search_tools_enabled': False}}))
         project_id = self.project.id
         await self.app.shutdown()
         completion = completion_for("rag_search", {"query": "backup", "method": "bm25"})

@@ -48,7 +48,8 @@ from llm.core.plans import ResumePlan
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
 from enum import StrEnum
 from asyncio import timeout
-from llm.services.runtime.policies import ProjectPolicyResolver, ExecutionLimitError
+from llm.policies import ExecutionLimitError
+from llm.services.runtime.policies import ProjectPolicyResolver
 from llm.services.runtime.tools import ToolPolicy, ToolExecutionScope
 from llm.services.runtime.operations import OperationRepository, ToolOperations
 from llm.services.runtime.events import EventHandlers, EventContext, EventSubscriptions
@@ -56,7 +57,6 @@ from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_di
 from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.pending import PendingWork
 from llm.services.runtime.usage import UsageScope, check_admission, component_usage
-from llm.providers.retry import retry_scope
 
 
 # 실행 메타데이터를 저장한다. Facade와 실행 서비스가 같은 인스턴스를 공유한다.
@@ -913,7 +913,7 @@ class RunManager:
         return resume_instructions(store, checkpoint)
 
     def _context(self, runtime: SessionRuntime, run: Run, policies=None, *, project=None, engine=None) -> EngineContext:
-        context_policy, completion_policy, limits = (policies if policies is not None
+        context_policy, limits = (policies if policies is not None
                                                    else self.policy_resolver.resolve(run.metadata["policies"]))
         checkpoint = None
         store = self._store(runtime.session)
@@ -971,17 +971,17 @@ class RunManager:
         return EngineContext(project, deepcopy(runtime.session), deepcopy(run), history,
                              tools=values.get("tools", ToolRegistry()), capabilities=values,
                              checkpoint=checkpoint, tool_scope=tool_scope, pending_work=self.pending_work,
-                             completion_policy=completion_policy, steering=inbox)
+                             token_counters=dict(getattr(self.policy_resolver, "token_counters", {})), steering=inbox)
 
     async def _consume_limited(self, runtime, run):
         from llm.providers.runtime import logging_scope as provider_logging_scope
         policies = self.policy_resolver.resolve(run.metadata["policies"])
-        guard = timeout(policies[2].timeout_seconds)
+        guard = timeout(policies[1].timeout_seconds)
         try:
             async with guard:
-                counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"].get("completion", {}).get("counter"))
+                counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"].get("usage", {}).get("counter"))
                 source = {"project_id": runtime.project.id, "session_id": runtime.session.id, "run_id": run.id}
-                with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope(), retry_scope(run.metadata["policies"].get("provider_retry", {})):
+                with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope():
                     await self._consume(runtime, run, policies)
         except asyncio.TimeoutError as error:
             expired = guard.expired() if callable(guard.expired) else guard.expired

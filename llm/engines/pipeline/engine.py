@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from contextlib import aclosing
 from llm.core.models import ProjectConfig
 from llm.core.configuration import engine_configuration
-from llm.core.schema import object_schema, field
+from llm.core.schema import object_schema, field, implementation_schema
 from llm.errors import CodedError
 
 from llm.core.models import new_id
@@ -45,18 +45,18 @@ class PreparationStep(BaseEngine):
                          error_message="Preparation failed")
 
     def configuration_schema(self):
-        return object_schema({"timeout_seconds": field(["number", "null"],
-            exclusiveMinimum=0, **{"x-host-override": "timeout_seconds" in self._overrides})},
+        return implementation_schema(policy=object_schema({"timeout_seconds": field(["number", "null"],
+            exclusiveMinimum=0, **{"x-host-override": "timeout_seconds" in self._overrides})}, additionalProperties=False),
             **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
     def configuration(self, config, name, *, session_config=None):
         return engine_configuration(config, self.settings_name or name,
-            session_config=session_config, host=self._overrides, schema=self.configuration_schema())
+            session_config=session_config, host=({"policy": self._overrides} if self._overrides else {}), schema=self.configuration_schema())
 
     async def execute(self, context):
         worker = copy(self)
         worker.timeout_seconds = self.configuration(context.project.config, context.run.engine,
-            session_config=context.session.config)["values"].get("timeout_seconds")
+            session_config=context.session.config)["values"].get("policy", {}).get("timeout_seconds")
         async with aclosing(BaseEngine.execute(worker, context)) as events:
             async for event in events:
                 yield event
@@ -87,13 +87,13 @@ class PipelineEngine:
         key = explicit or (pipeline_key + ":" + self.stage_names[index] if hasattr(stage, "settings_name") else pipeline_key)
         for owner in (config, session):
             engines = owner.setdefault("parameters", {}).setdefault("engines", {})
-            stages = engines.get(pipeline_key, {}).get("stages", {})
+            stages = engines.get(pipeline_key, {}).get("config", {}).get("stages", {})
             if not isinstance(stages, dict) or stages.keys() - set(self.stage_names):
                 raise ValueError("Unknown Pipeline stage configuration")
             options = stages.get(self.stage_names[index], {})
             if not isinstance(options, dict):
                 raise ValueError("Stage configuration must be an object")
-            base = {k: v for k, v in engines.get(explicit or pipeline_key, {}).items() if k != "stages"}
+            base = engines.get(explicit, {}) if explicit else {}
             engines[key] = ProjectConfig.merge(base, options)
         worker = stage
         if hasattr(stage, "settings_name"):
@@ -102,18 +102,31 @@ class PipelineEngine:
         return worker, config, session, key
 
     def configuration_schema(self):
-        return object_schema({"stages": object_schema({name:
+        return implementation_schema(config=object_schema({"stages": object_schema({name:
             stage.configuration_schema() if callable(getattr(stage, "configuration_schema", None)) else
-            object_schema(**{"x-runtime-only": True}) for name, stage in zip(self.stage_names, self.stages)},
-            additionalProperties=False)}, **({"x-settings-key": self.settings_name} if self.settings_name else {}))
+            implementation_schema(**{"x-runtime-only": True}) for name, stage in zip(self.stage_names, self.stages)},
+            additionalProperties=False)}, additionalProperties=False), **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
     def configuration(self, config, name, *, session_config=None):
+        view = engine_configuration(config, self.settings_name or name,
+            session_config=session_config, schema=self.configuration_schema())
         stages = {}
         for index, stage_name in enumerate(self.stage_names):
             stage, project, session, key = self._stage_settings(config, session_config, name, index)
             describe = getattr(stage, "configuration", None)
             stages[stage_name] = describe(project, key, session_config=session) if describe else {"runtime_only": True}
-        return {"configuration_key": self.settings_name or name, "stages": stages}
+            effective = stages[stage_name]
+            # 단계 호스트 고정값도 Pipeline의 UI 경로에서 같은 값·출처로 보인다.
+            if effective.get("values"):
+                view["values"].setdefault("config", {}).setdefault("stages", {})[stage_name] = deepcopy(effective["values"])
+            prefix = "/config/stages/" + stage_name.replace("~", "~0").replace("/", "~1")
+            for section in ("sources", "overridden", "editable"):
+                for path in tuple(view[section]):
+                    if path.startswith(prefix + "/"):
+                        del view[section][path]
+                view[section].update({prefix + path: deepcopy(value)
+                                      for path, value in effective.get(section, {}).items()})
+        return {**view, "stages": stages}
 
     async def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
         final_output = None

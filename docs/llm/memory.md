@@ -87,13 +87,7 @@ ProcessToolRunner에 자동 직렬화되지는 않는다. 주입 runner에서 �
 ## 승인과 검색 설정
 
 ```python
-await memory.aconfigure({
-    "tool_write_status": "candidate",  # 또는 confirmed: 모델 작성도 바로 검색에 사용
-    "search_status": "confirmed",     # candidate / confirmed / all
-    "search_limit": 10,
-    "max_search_results": 100,
-    "ui": {"label": "장기 기억"},
-})
+await memory.aconfigure({'policy': {'tool_write_status': 'candidate', 'max_search_results': 100}, 'config': {'search_status': 'confirmed', 'search_limit': 10, 'ui': {'label': '장기 기억'}}})
 # UI에서 기억 후보를 확인한 뒤 승인한다.
 record = await memory.aload(identifier)
 await memory.aupdate(identifier, {"status": "confirmed"}, expected_revision=record["revision"])

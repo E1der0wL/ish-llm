@@ -8,7 +8,7 @@ Session의 대화 저장과 모델에 전달할 문맥을 관리합니다. 재�
 | --- | --- |
 | [__init__.py](__init__.py) | 대화·이력 서비스 패키지 설명입니다. |
 | [conversation.py](conversation.py) | append-only JSONL 및 memory ConversationStore, 공유 factory와 Project별 저장 선택을 구현합니다. |
-| [context.py](context.py) | ContextPolicy와 CompletionPolicy에 따른 대화 선택·토큰 예산 적용입니다. |
+| [context.py](context.py) | ContextPolicy에 따른 공통 대화 선택입니다. 모델 입력 예산은 공용 CompletionPolicy가 담당합니다. |
 | [turns.py](turns.py) | Run별 요청·응답·추가 지시의 조회 묶음과 시점 복제 범위를 선택합니다. 새 저장소를 만들지 않습니다. |
 | [recovery.py](recovery.py) | stale Run/Step/Assistant 상태를 복구하고 대기 요청 재구성을 지원합니다. |
 | [retention.py](retention.py) | 기간·용량·토큰 등의 명시된 보관 정책에 따른 계획·보호 검사·정리를 담당합니다. |

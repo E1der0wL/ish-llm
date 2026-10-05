@@ -1,139 +1,101 @@
-# 프로젝트별 대화·Completion·Run 정책
+# Project 공통 정책과 구현체 설정
 
-사용자 정책은 `ProjectConfig.policies`의 JSON 값으로 저장한다. Project는 설정을 소유하고,
-서비스의 ProjectPolicyResolver가 실행 객체를 구성한다. Project가 모델이나 Run을 실행하지 않는다.
-Memory/RAG/Skill/MCP 설정은 계속 각 컴포넌트가 소유한다.
+ProjectConfig는 설정의 저장 원본이다. `policies`에는 서비스가 집행하는 공통 정책을,
+`parameters.engines`와 `parameters.components`에는 해당 구현체가 해석할 인자를 저장한다.
+정책마다 클래스를 만들지 않는다. 실제 처리 알고리즘이나 검증된 실행 계약이 필요한
+경우에만 클래스를 유지한다.
 
-정책에는 tool_retry/provider_retry/usage/retention도 포함된다. 모든 사용량/보관 상한은
-미설정이면 상한과 외부 재시도를 추가하지 않는다. null/0 값을 자동 저장하지 않는다. [장시간 실행 API](long-running.md)에 조건부 Tool
-재시도와 보관 미리보기·적용 예제를 설명한다. UI는 configuration의 최신 policy_schema를 사용한다.
-
-```python
-from llm.llm import LargeLanguageModel, ProjectConfig, ServiceConfig
-
-backend = LargeLanguageModel("./workspace")
-project = await backend.projects.acreate("개발 작업", config=ProjectConfig(policies={
-        "context": {"mode": "full"},
-        "completion": {
-            "max_tokens": 32000,
-            "reserve_tokens": 4000,
-            "counter": "model_default",
-        },
-        "run": {"max_queued": 20, "timeout_seconds": 1800},
-    }, parameters={"engines": {"loop": {"completion": {"model": model_name}}}}))
-session = await project.sessions.acreate()
-run = await (await session.run.submit("작업해줘", engine="loop")).wait()
-```
-
-parameters.engines.loop.completion의 model은 Loop 모델 호출 인자이며 policies.completion은 입력 선택 정책이다.
-`max_tokens - reserve_tokens` 안에 최종 요청이 들어오도록 오래된 턴을 제외한다.
-출력 여유분은 모델 출력 길이 설정을 대신하지 않는다. 원본 Conversation은 삭제하지 않는다.
-
-## 저장 및 수정 API
-
-```python
-# 최신 저장값에 정책 일부만 병합한다. 다른 모델/엔진 설정은 보존한다.
-policies = await project.aconfigure_policies({
-    "context": {"mode": "recent", "max_turns": 10},
-    "completion": {"max_tokens": 16000},
-})
-
-# 제한 해제: 기존 출력 여유분도 0으로 설정한다.
-await project.aconfigure_policies({"completion": {"max_tokens": None, "reserve_tokens": 0}})
-
-view = await project.aconfiguration()
-saved = view["project"]["config"]["policies"]
-schema = view["policy_schema"]
-components = view["components"]
-used = (await run.aget_data()).metadata["policies"]
-```
-
-동기 API는 `configure_policies`, `configuration`이다. ProjectManager에도 같은 API가 있다.
-`project.save(config=...)`는 전체 ProjectConfig를 교체하므로 부분 수정에는 configure_policies가
-적합하다. `ProjectConfig.policy_schema()`는 파일 접근 없이 필드/기본값/설명을 반환한다.
-스키마와 추가 관계 검증을 저장 전에 수행하며 잘못된 값은 기존 파일을 덮어쓰지 않는다.
-
-저장 전 설정 객체를 직접 구성할 때는 `ProjectConfig.configure_policies(changes)`를 사용한다.
-JSON 검사·재귀 병합·전체 설정 검증을 후보 사본에 수행한 뒤 정책만 반영하므로, 실패하면
-메모리의 기존 설정도 유지된다. 반환값은 입력 및 내부 설정과 분리된 정책 사본이다.
-
-```python
-config = ProjectConfig(parameters={"engines": {"loop": {"completion": {"model": model_name}}}})
-policies = config.configure_policies({"context": {"mode": "recent", "max_turns": 20}})
-# 위 호출은 메모리만 변경한다. 기존 프로젝트 저장에는 project.aconfigure_policies를 사용한다.
-```
-
-ProjectManager는 잠금 아래 최신 Project를 조회하고 이 메서드에 변경을 위임한 뒤 저장한다.
-
-새 Project에는 아래 기본값을 모두 명시해서 저장한다. ProjectConfig의 생략 필드는 고정
-라이브러리 기본값으로 정규화하며 백엔드의 현재 정책으로 덮어쓰지 않는다. 추가적인 정책
-namespace는 자유로운 JSON으로 보존한다. 내장 context/completion/run 내부의 오타는 거부한다.
-
-| 영역 | 기본값 |
+| 위치 | 책임 |
 | --- | --- |
-| context | mode=full, max_turns=10, max_chars=null |
-| completion | max_tokens=null, reserve_tokens=0, counter=model_default |
-| run | max_queued=null, timeout_seconds=null, max_capability_rounds=32 |
+| policies.context | Run에 전달할 대화의 공통 선택. ContextPolicy/ConversationContextBuilder |
+| policies.run | 대기열·실행 기한·capability 확장 한도. RunPolicy/RunManager |
+| policies.approval, tool_retry | 공통 승인과 조건부 Tool 재시도. 기존 ToolExecutor 계약 |
+| policies.usage | Run/Project의 누적 호출·토큰 사용량. 입력 선택과 독립된 counter |
+| policies.retention | 영속 기록의 명시적 보관·정리 |
+| policies.output | 서비스의 델타 저장 batching |
+| parameters.engines.&lt;이름&gt;.policy.completion | Loop가 해석하는 모델 입력 예산. CompletionPolicy |
+| parameters.engines.&lt;이름&gt;.policy.provider | Loop 스트리밍의 명시적 외부 시도/기한 |
+| parameters.components.memory.policy.processing.provider | Memory 자체 요약·추출 모델의 외부 시도/기한 |
+| parameters.components.rag.policy.provider / vision.policy.provider | 각 Component의 모델 호출 설정 |
 
-context mode는 full/recent/completed/recent_completed/budget을 제공한다. budget은 문자 수
-max_chars를 요구한다. recent의 max_turns는 과거 턴 수이며 현재 입력은 별도로 유지한다.
-Session config에는 policies를 지정할 수 없다. 프로젝트 정책을 Session나 Agent의
-설정 병합으로 우회하지 않으며, 중첩 Agent/Graph는 소유 Run의 CompletionPolicy를 공유한다.
+`policies.completion`과 `policies.provider_retry`는 거부한다. 자동 변환·기본값 복원·호환
+별칭은 없다. 사용자 extension namespace는 계속 JSON으로 보존한다.
 
-## 실행 시작 시점의 정책
-
-Run 시작 시 최신 프로젝트 정책의 JSON 사본을 `Run.metadata.policies`에 기록한다.
-그 사본으로 ContextPolicy, CompletionPolicy, RunLimits를 구성한다. 실행 중 설정 변경은
-현재 Run을 바꾸지 않으며 대기 중 요청은 실행 시작 시 최신 정책을 사용한다.
-대기열 상한은 새 요청을 받을 때 최신 프로젝트 값으로 검사한다. 이미 저장된 대기 요청은
-한도가 낮아져도 지우지 않는다. 정책 변경 때문에 실패한 실행을 자동 재시도하지 않는다.
-
-Graph 명시적 재개는 기존 checkpoint 설정 일치 검증을 그대로 따른다. 프로젝트 정책을
-변경했다면 기존 체크포인트와 설정이 달라 재개가 거부될 수 있다. 원래 설정으로 복원하거나
-새 작업을 제출한다. 재개에서는 기록된 원본 메시지 ID를 복원하며 ContextPolicy로 다시 자르지
-않는다. CompletionPolicy는 이어지는 모델 호출에도 적용된다.
-
-Memory가 오래된 대화 전체를 요약하게 하려면 context.mode=full을 유지한다. recent 등으로
-먼저 제외한 메시지는 Memory에 전달되지 않는다. Memory의 keep_turns/요약 모델/주입 예산은
-`ProjectConfig.parameters.components.memory`에서 관리한다. policies와 중복 저장하지 않는다.
-
-## 토큰 계산기와 실행 구현
-
-기본 model_default는 요청의 model/messages/tools/tool_choice를 LiteLLM token_counter에
-전달한다. 공급자별 토큰 수의 정확성은 해당 tokenizer 지원에 달려 있으며 문자열 길이를
-토큰 수로 추정하지 않는다. 다른 공급자/별도 계산법은 이름으로 등록한다.
+## 설정 예
 
 ```python
-backend = LargeLanguageModel("./workspace", services=ServiceConfig(
-    token_counters={"company_model": count_request_tokens},
+from llm.llm import LargeLanguageModel, LoopEngine, ProjectConfig
+
+backend = LargeLanguageModel("./workspace", engines={"assistant": LoopEngine()})
+project = await backend.projects.acreate("개발 작업", config=ProjectConfig(
+    policies={
+        "context": {"mode": "full"},
+        "run": {"max_queued": 20, "timeout_seconds": 1800},
+        "usage": {"max_tokens": 200000, "counter": "model_default"},
+    },
+    parameters={"engines": {"assistant": {
+        "config": {"completion": {"model": model_name, "max_tokens": 4000}},
+        "policy": {
+            "completion": {"max_tokens": 32000, "reserve_tokens": 4000, "counter": "model_default"},
+            "provider": {"max_attempts": 3, "delay_seconds": 1, "max_delay_seconds": 10},
+        },
+    }}},
 ))
-# 이 backend에서 읽은 ProjectHandle에 적용한다.
-await project.aconfigure_policies({
-    "completion": {"max_tokens": 32000, "counter": "company_model"},
-})
+session = await project.sessions.acreate()
+run = await (await session.run.submit("작업해줘", engine="assistant")).wait()
 ```
 
-계산기는 동기 함수 counter(request)로 음수가 아닌 int를 반환하며 모델/Tool 정의/포맷 비용을
-포함해야 한다. 계산은 기존대로 이벤트 루프 밖에서 수행한다. 동시에 호출될 수 있으므로
-스레드 안전해야 한다. 함수는 JSON에 저장하지 않는다. 지정한 이름이 등록되지 않았으면
-제한이 켜진 요청을 QUEUED로 저장하기 전에 `policy_unavailable`로 거부한다. 복제/백업/재시작은
-정책과 이름을 보존하며 새로운 백엔드에서도 같은 이름의 구현을 등록해야 한다.
-저장된 이름만으로 함수 구현의 동일성까지 검증하지는 않는다. 계산 방식을 변경한다면
-`company_model_v2`처럼 별도 이름을 등록해서 적용 이력을 구분하는 것이 적절하다.
+숫자는 이 예제에서 명시한 선택이다. 빈 설정은 빈 상태로 유지된다. policy.completion의
+max_tokens-reserve_tokens가 입력 예산이며 SDK의 출력 max_tokens를 대신 설정하지 않는다.
+CompletionPolicy는 메시지와 Tool 정의를 계수하고 오래된 턴을 제외한다. 시스템 지시,
+현재 요청·Tool 교환·추가 지시는 보존한다. 현재 작업 자체가 넘치면 호출 전에
+context_budget_exceeded로 실패한다. 저장된 Conversation은 변경하지 않는다.
 
-`ServiceConfig.policy_resolver`로 다른 실행 구현을 주입할 수 있다. `resolve(settings)`는
-`(ContextPolicy, CompletionPolicy 또는 None, RunLimits)`를 반환하는 동기·비차단 함수다.
-정책은 호출별 사본으로 구성해야 한다. 주입 context_builder의 for_run은
-`for_run(messages, input_message_id, *, policy=...)` 계약으로 프로젝트 선택 정책을 받는다.
-같은 builder의 for_clone은 기존 저장소/복제 경로에서 계속 사용한다.
+usage.counter는 누적 사용량 예약용 계산기다. Engine의 입력 계산기·예산을 바꾸거나
+해제해도 공통 usage 상한을 우회하지 않는다. 토큰 사용량 제한을 켜면 SDK 출력 상한도
+명시해야 한다. 계산기는 ServiceConfig.token_counters에 이름으로 등록한다.
 
-ServiceConfig에는 token_counters/계산기 resolver/저장소/연결·승인·실행 어댑터/관찰자와 공유
-자원 설정이 남는다. ProviderLimits는 프로젝트들이 공유하는 실제 provider 슬롯 한도이며
-프로젝트 설정으로 늘리지 않는다. ToolPolicy의 호스트 승인/허용 범위, OutputPolicy의 저장
-배치와 로그·캐시 설정도 백엔드 운영 구성으로 유지한다. 모든 Python 객체를 JSON에 저장하거나
-모든 운영 설정을 프로젝트로 이동한 것은 아니다.
+## 수정과 통합 조회
 
-기존 클래스는 `CompletionPolicy`, EngineContext 필드는 `completion_policy`로 통일했다.
-ServiceConfig의 context_policy/completion_policy/run_limits 인자는 제거했으며 호환 별칭은 없다.
-해당 값은 ProjectConfig.policies로 옮겨야 한다. 직접 요청 선택기를 만들 때는
-`CompletionPolicy(max_tokens, counter=..., reserve_tokens=...)`를 사용할 수 있다.
+```python
+# Project 공통 정책만 부분 수정한다.
+await project.aconfigure_policies({"run": {"timeout_seconds": 900}})
+
+# 구현체 설정은 동일 ProjectConfig 원본에 저장한다. UI는 편집 버전을 함께 전달한다.
+view = await project.aconfiguration()
+config = view["project"]["config"]
+config["parameters"]["engines"]["assistant"]["policy"]["completion"] = None
+await project.asave(config=config, expected_version=view["config_version"])
+
+# Component 전문 API도 같은 설정 원본에 쓴다.
+# await project.components.memory.aconfigure({"policy": {"processing": {"provider": {"max_attempts": 2}}}})
+```
+
+Engine 상속은 **Project → Session → Agent → 명시적 host** 순서다. missing은 상위의
+명시값을 상속한다. Loop policy.completion/policy.provider 전체의 null은 상위 설정을 해제한다.
+provider.wall_timeout=null은 시간 제한만 해제한다. 미설정 SDK 옵션은 전달하지 않는다.
+각 Engine의 values/sources/overridden/editable과 schema x-host-override는 같은 계약을 따른다.
+공통 policies와 Component 설정은 Session/Agent가 덮어쓰지 못한다.
+
+## 실행 객체와 수명
+
+Run 시작 시 공통 정책을 Run.metadata.policies에 복사하고 ProjectPolicyResolver가
+`(ContextPolicy 또는 None, RunPolicy)`를 만든다. Engine 입력 정책과 재시도는 생성하지 않는다.
+각 Loop는 해당 실행의 설정 사본에서 CompletionPolicy를 만들고 처리기에 전달한다.
+Graph Agent도 선택한 Engine의 설정을 해석하므로 서로 다른 모델 예산을 사용할 수 있다.
+현재 Run은 설정 변경의 영향을 받지 않고, 대기 요청은 시작 시 최신 설정을 사용한다.
+
+Memory가 Loop 요청에 기억을 추가할 때는 전달받은 completion_policy로 예산을 확인한다.
+Memory의 자체 요약·추출 호출은 config.processing.completion과 policy.processing.provider만 사용한다. Loop의
+provider 설정은 자동 상속하지 않는다. 공통 Run 기한·승인·Tool 효과·사용량 계약은 유지한다.
+
+BaseEngine.stream_completion(request, provider=...)는 명시된 호출 설정만 사용한다.
+max_attempts는 최초 호출을 포함한다. 미설정은 최초 호출만, wall_timeout 미설정은 자체
+기한 없음이다. SDK retry가 명시되어 활성화되면 외부 시도는 1회로 제한한다. 첫 chunk를
+받은 이후와 취소는 자동 재시도하지 않는다. 이벤트 저장 중인 소비자를 기한 타이머로
+취소하지 않으며 다음 Engine 진행 시 같은 절대 기한을 확인한다.
+
+변경한 입력/provider 설정은 기존 checkpoint binding에 포함되므로 옛 설정의 명시적
+재개를 조용히 실행하지 않는다. checkpoint/Run/Step 저장 책임은 변경하지 않는다.
+CompletionPolicy는 [policies/completion.py](../../llm/policies/completion.py), RunPolicy는
+[services/runtime/policies.py](../../llm/services/runtime/policies.py)에 있다.

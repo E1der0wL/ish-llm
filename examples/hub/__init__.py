@@ -1,1 +1,1 @@
-"""향후 hub 플러그인 실행 예제."""
+"""Runnable Hub UI examples; never deployed as part of the plugin."""

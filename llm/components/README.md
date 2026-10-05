@@ -66,6 +66,12 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 
 직렬화 가능한 JSON만 레코드에 저장하고 client/함수/lock은 capability에 둡니다. 공통 직렬화는 문자열 키와 유한한 값을 확인하며 열린 JSON 키를 보존합니다. `data_class` 없이 Component에 메서드만 추가해도 Facade로 자동 전달되지는 않습니다.
 
+설정 schema는 `llm.core.schema.implementation_schema(config=..., policy=...)`로 선언합니다.
+두 section은 object이며 선택 사항입니다. 기능 입력·SDK 인자는 config, 구현체가 집행하는
+한도·재시도·실패 처리는 policy입니다. 레코드 schema와 Tool 함수 인자는 이 외형으로 감싸지
+않습니다. 여러 계층에서 필요한 입력 선택 알고리즘은 `llm.policies.CompletionPolicy`처럼
+공용 알고리즘을 가져와 자신의 명시 설정으로 구성합니다. 중앙에서 자동 적용하지 않습니다.
+
 앱은 [ComponentData](../services/lifecycle/README.md)를 통해 접근합니다. 핸들은 최신 Project와 선택 여부를 확인하고 workspace 잠금을 사용합니다. Component의 저수준 메서드를 직접 호출하는 확장 코드는 해당 소유권·수명 경계를 책임져야 합니다.
 
 ## 저장과 수명

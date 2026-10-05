@@ -19,6 +19,10 @@ class ComponentRegistry:
             self.register(component)
 
     def register(self, component: ProjectComponent) -> None:
+        describe = getattr(component, "configuration_schema", None)
+        if callable(describe):
+            from llm.core.schema import checked_implementation_schema
+            checked_implementation_schema(describe())
         data_class = getattr(component, "data_class", None)
         if data_class is not None:
             from llm.services.lifecycle.components import ComponentData

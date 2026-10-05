@@ -26,14 +26,14 @@ class VisionData(ComponentData):
     @workspace_locked
     def _snapshot(self, image_id=None):
         project, component = self._current()
-        config = component.configuration(project)
+        config = component._options(project)
         record, raw = (None, None) if image_id is None else component.read_image(project, image_id)
         return component, config, record, raw
 
     @workspace_locked
     def _finish(self, config, record):
         project, component = self._current()
-        if component.configuration(project) != config:
+        if component._options(project) != config:
             raise ValueError("Vision configuration changed during processing")
         if record is not None and component.load(project, record["id"])["sha256"] != record["sha256"]:
             raise ValueError("Image changed during processing")

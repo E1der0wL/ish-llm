@@ -114,7 +114,7 @@ class ComponentExtractionTests(unittest.IsolatedAsyncioTestCase):
                                 extractor=TripleExtractor(model="test/extract", completion_fn=extract))
         self.app = LargeLanguageModel(self.temp.name, components=[self.rag, PromptComponent()])
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate(components=["rag", "prompts"], config=rag_project({"parameters": {"components": {"rag": {"extraction": {"repair_attempts": 2}}}}}))
+        self.project = await self.app.projects.acreate(components=["rag", "prompts"], config=rag_project({"parameters": {"components": {"rag": {'policy': {'extraction': {'repair_attempts': 2}}}}}}))
         self.data = await self.project.components.aget("rag")
         self.prompts = await self.project.components.aget("prompts")
 
@@ -157,16 +157,14 @@ class ComponentExtractionTests(unittest.IsolatedAsyncioTestCase):
     async def test_prompt_crud_project_settings_and_conflict(self):
         custom = {"messages": [{"role": "system", "content": "Custom instructions"}], "extra": {"v": 1}}
         await self.prompts.acreate(custom, identifier="extract")
-        await self.data.aconfigure(rag_settings({"extraction": {"repair_attempts": 2, "prompt_id": "extract", "repair_attempts": 0,
-                                                   "relation_types": ["USES", "CUSTOM"]},
-                                    "extraction_params": {"temperature": .8}}))
+        await self.data.aconfigure(rag_settings({'policy': {'extraction': {'repair_attempts': 0}}, 'config': {'extraction': {'prompt_id': 'extract', 'relation_types': ['USES', 'CUSTOM']}, 'extraction_params': {'temperature': 0.8}}}))
         await self.add()
         self.assertTrue(any(m["content"] == "Custom instructions" for m in self.requests[-1]["messages"]))
         self.assertEqual(self.requests[-1]["temperature"], 0.8)
         self.assertIn("CUSTOM", self.requests[-1]["messages"][0]["content"])
         effective = await self.data.aeffective_configuration()
-        self.assertEqual(effective["values"]["extraction_params"]["temperature"], 0.8)
-        self.assertEqual(effective["sources"]["/extraction_params/temperature"], "project")
+        self.assertEqual(effective["values"]["config"]["extraction_params"]["temperature"], 0.8)
+        self.assertEqual(effective["sources"]["/config/extraction_params/temperature"], "project")
         async def change():
             await self.prompts.aupdate("extract", {"messages": [{"role": "system", "content": "Changed"}]})
         self.mutate_prompt = change
@@ -183,8 +181,8 @@ class ComponentExtractionTests(unittest.IsolatedAsyncioTestCase):
         for extraction in ({"repair_attempts": -1}, {"repair_attempts": True}, {"repair_attempts": 1.5},
                            {"relation_types": [1]}, {"prompt_id": "../escape"}):
             with self.subTest(extraction=extraction), self.assertRaises(ValueError):
-                await self.data.aconfigure(rag_settings({"extraction": extraction}))
-        await self.data.aconfigure(rag_settings({"extraction": {"repair_attempts": 2, "prompt_id": "extract"}}))
+                await self.data.aconfigure(rag_settings({'config': {'extraction': extraction}}))
+        await self.data.aconfigure(rag_settings({'policy': {'extraction': {'repair_attempts': 2}}, 'config': {'extraction': {'prompt_id': 'extract'}}}))
         await self.project.components.aselect(["rag"])
         with self.assertRaisesRegex(ValueError, "requires selecting"):
             await self.add()

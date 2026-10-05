@@ -26,7 +26,8 @@ class ToolData(ComponentData):
         for name in names:
             component.load(project, name)
         configuration = self.configuration()
-        configuration["enabled"] = list(dict.fromkeys(configuration.get("enabled", []) + names))
+        configuration.setdefault("config", {})
+        configuration["config"]["enabled"] = list(dict.fromkeys(configuration["config"].get("enabled", []) + names))
         self.configure(configuration)
 
     @workspace_locked
@@ -35,7 +36,8 @@ class ToolData(ComponentData):
         _, component = self._current()
         names = component._selection_names(names)
         configuration = self.configuration()
-        configuration["enabled"] = [name for name in configuration.get("enabled", []) if name not in names]
+        configuration.setdefault("config", {})
+        configuration["config"]["enabled"] = [name for name in configuration["config"].get("enabled", []) if name not in names]
         self.configure(configuration)
 
     @workspace_locked
@@ -43,9 +45,10 @@ class ToolData(ComponentData):
         """Replace selection, preserving all other component settings."""
         _, component = self._current()
         configuration = self.configuration()
-        configuration["enabled"] = component._selection_names(names)
+        configuration.setdefault("config", {})
+        configuration["config"]["enabled"] = component._selection_names(names)
         project, _ = self._current()
-        for name in configuration["enabled"]:
+        for name in configuration["config"]["enabled"]:
             component.load(project, name)
         self.configure(configuration)
 

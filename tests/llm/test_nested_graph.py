@@ -272,7 +272,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(await run.steps.alist(), [])
         await self.workflows.asave("child", action_graph())
-        await self.project.asave(config={"parameters": {"engines": {"graph": {"max_nested_depth": 0}}}})
+        await self.project.asave(config={"parameters": {"engines": {"graph": {'policy': {'max_nested_depth': 0}}}}})
         run = await self.request()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(self.effects, [])

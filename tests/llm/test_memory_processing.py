@@ -1,3 +1,4 @@
+from tests.llm.configuration_fixtures import memory_settings
 """Memory 중심의 장기 문맥 처리, Session 격리, 원본 보존과 오류/재시작 경계를 검증한다."""
 
 import asyncio
@@ -17,9 +18,10 @@ from llm.core.models import RunStatus
 from llm.engines.graph.agent import AgentNode
 from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
+from tests.llm.configuration_fixtures import configure_engine
 from llm.llm import LargeLanguageModel
 from llm.services.configuration import ServiceConfig
-from llm.services.history.context import CompletionPolicy
+from llm.policies import CompletionPolicy
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
 
@@ -44,6 +46,41 @@ class Auxiliary:
 
 
 class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_loop_retry_does_not_retry_memory_auxiliary_model(self):
+        await self.build_history()
+        calls = []
+        def unavailable(**request):
+            calls.append(request)
+            raise ConnectionError("auxiliary unavailable")
+            yield
+        self.component.completion_fn = unavailable
+        await self.configure(summarize=True, keep_turns=1, summary_after_chars=1)
+        await configure_engine(self.project, "loop" + str(self.serial), provider={"max_attempts": 3})
+        run, main = await self.run_loop()
+        self.assertEqual(run.data.status, RunStatus.FAILED)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(main.requests, [])
+
+    async def test_memory_auxiliary_uses_own_provider_and_keeps_sdk_kwargs(self):
+        await self.build_history()
+        calls = []
+        def retry_once(**request):
+            calls.append(request)
+            if len(calls) == 1:
+                raise ConnectionError("auxiliary unavailable")
+            yield from self.aux(**request)
+        self.component.completion_fn = retry_once
+        await self.configure(summarize=True, keep_turns=1, summary_after_chars=1,
+                             provider={"max_attempts": 2})
+        await configure_engine(self.project, "loop" + str(self.serial), provider={"max_attempts": 1})
+        run, main = await self.run_loop()
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(len(main.requests), 1)
+        for request in calls:
+            for key in ("provider", "max_attempts", "input_policy", "timeout", "num_retries", "max_retries"):
+                self.assertNotIn(key, request)
+
     async def test_active_work_compaction_preserves_original_tool_results(self):
         def summarize(**request):
             yield from answer(json.dumps({'summary': 'Completed lookups; continue remaining work.'}))
@@ -88,7 +125,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.serial = 0
 
     async def configure(self, **options):
-        await self.memory.aconfigure({"tool_write_status": "candidate", "processing": memory_processing({"recall": False, "completion": {"model": "test/aux"}, **options})})
+        await self.memory.aconfigure(memory_settings({'tool_write_status': 'candidate', 'processing': memory_processing({'recall': False, 'completion': {'model': 'test/aux'}, **options})}))
 
     async def run_loop(self, prompt="request", *, model=None, session=None):
         model = model or ScriptedCompletion(answer())
@@ -122,7 +159,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         messages = await self.session.aconversation()
         self.assertEqual(messages[0].content, "Python")
         self.assertNotIn("Reference data", messages[0].content)
-        await self.memory.aconfigure({"processing": {"context_chars": 1}})
+        await self.memory.aconfigure({'policy': {'processing': {'context_chars': 1}}})
         _, model = await self.run_loop("Python", session=other)
         self.assertEqual(model.requests[0]["messages"][-1]["content"], "Python")
 
@@ -289,7 +326,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_scope_and_configuration_checked_after_model_preparation(self):
         snapshot = await self.memory._async_call(self.memory._processing_snapshot, self.session.id)
-        await self.memory.aconfigure({"processing": {"context_chars": 2}})
+        await self.memory.aconfigure({'policy': {'processing': {'context_chars': 2}}})
         with self.assertRaises(MemoryConflictError):
             await self.memory._async_call(self.memory._publish_candidates, snapshot, [], session_id=self.session.id, source={})
         snapshot = await self.memory._async_call(self.memory._processing_snapshot, self.session.id)
@@ -301,7 +338,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
     async def test_memory_token_budget_and_final_request_budget(self):
         self.component.token_counter = lambda text: len(text)
         await self.memory.acreate({"content": "budget memory"})
-        await self.memory.aconfigure({"processing": {"context_tokens": 1}})
+        await self.memory.aconfigure({'policy': {'processing': {'context_tokens': 1}}})
         run, model = await self.run_loop("budget")
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(model.requests[0]["messages"][-1]["content"], "budget")
@@ -311,7 +348,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
                 len(m.get("content") or "") for m in request["messages"])}))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.aload(self.project.id)
-        await self.project.aconfigure_policies({"completion": {"max_tokens": 10, "counter": "test"}})
+        await configure_engine(self.project, "loop" + str(self.serial), input_policy={"max_tokens": 10, "counter": "test"})
         self.memory = await self.project.components.aget("memory")
         await self.configure(recall=True)
         await self.memory.aconfigure({})
@@ -367,8 +404,8 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
                        {"extract_scope": "global"}, {"timeout_seconds": float("inf")},
                        {"extract": "yes"}, {"completion": {"messages": []}}):
             with self.assertRaises(ValueError):
-                await self.memory.aconfigure({"processing": config})
-        self.assertEqual((await self.memory.aconfiguration())["tool_write_status"], "candidate")
+                await self.memory.aconfigure(memory_settings({'processing': config}))
+        self.assertEqual((await self.memory.aconfiguration())["policy"]["tool_write_status"], "candidate")
 
     async def test_interrupt_auxiliary_model_does_not_publish_partial_summary(self):
         await self.configure(summarize=True, keep_turns=1, summary_after_chars=1)

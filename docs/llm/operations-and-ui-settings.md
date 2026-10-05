@@ -161,10 +161,7 @@ RAG는 아래 설정을 통해 완료·취소한 색인 작업 입력/영수증�
 OS lease를 가진 worker와 활성 문서 색인은 유지한다.
 
 ```python
-await project.components.rag.aconfigure({
-    "ingestion": {"max_active": 1},
-    "retention": {"job_max_age_seconds": 30 * 86400},
-})
+await project.components.rag.aconfigure({'policy': {'ingestion': {'max_active': 1}, 'retention': {'job_max_age_seconds': 30 * 86400}}})
 plan = await project.amaintenance()
 await project.amaintenance(apply=True, expected_version=plan["version"])
 ```

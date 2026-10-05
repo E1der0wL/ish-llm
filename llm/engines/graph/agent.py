@@ -182,7 +182,7 @@ class AgentNode:
                 if not graph_engine and resources["skills"]:
                     # purpose는 업무 설명이며 미설정 system_prompt의 대체값이 아니다.
                     # 선택한 Skill만 상속된 명시 프롬프트에 결합한다.
-                    prompt = binding["configuration"].get("values", {}).get("system_prompt", profile.get("system_prompt"))
+                    prompt = binding["configuration"].get("values", {}).get("config", {}).get("system_prompt", profile.get("system_prompt"))
                     parts = [prompt] if prompt else []
                     parts.extend(f"Skill {name}:\n{skill['instructions']}" for name, skill in resources["skills"].items())
                     prompt = "\n\n".join(parts)

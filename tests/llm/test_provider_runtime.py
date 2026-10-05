@@ -122,7 +122,6 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_stream_retry_delegation_and_no_retry_after_delta(self):
         from llm.engines.base import BaseEngine
-        from llm.providers.retry import retry_scope
         for params, partial, expected in (({"num_retries": 2}, False, 1),
                 ({"max_retries": 3}, False, 1), ({}, False, 3), ({}, True, 1)):
             requests = []
@@ -131,8 +130,9 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 if partial:
                     yield {"choices": [{"delta": {"content": "partial"}}]}
                 raise TimeoutError()
-            with retry_scope({"max_retries": 2, "delay_seconds": 0}), self.assertRaises(Exception):
-                async for _ in BaseEngine(completion_fn=stream).stream_completion({"model": "test", **params}):
+            with self.assertRaises(Exception):
+                async for _ in BaseEngine(completion_fn=stream).stream_completion({"model": "test", **params},
+                        provider={"max_attempts": 3, "delay_seconds": 0}):
                     pass
             self.assertEqual(len(requests), expected)
             for key in ("num_retries", "max_retries"):
@@ -145,7 +145,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         from tests.llm.configuration_fixtures import rag_settings
         for present in (False, True):
             data = SimpleNamespace(name="rag", has_reranker=lambda: present,
-                effective_configuration=lambda: {"values": {"search": {**rag_settings()["search"], "rerank": True}}},
+                effective_configuration=lambda: {"values": {"config": {"search": {**rag_settings()["config"]["search"], "rerank": True}}}},
                 asearch=AsyncMock(return_value={"documents": []}))
             tool = search_tools(data).get("rag_search")
             spec = tool.parameters["properties"]["rerank"]

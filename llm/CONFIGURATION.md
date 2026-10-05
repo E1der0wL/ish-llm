@@ -8,7 +8,7 @@ ish-llm은 사용자가 설정하지 않은 정책을 대신 결정하지 않는
 - **null**: null을 허용하는 필드의 명시값이다. 상위 값을 덮어쓴다. 자체 timeout에서 null은 제한 해제다. SDK 옵션의 null은 그대로 전달한다(지원 여부는 SDK 계약에 따른다).
 - **value**: 검증한 명시값을 사용한다. 0/False/빈 문자열을 truthiness fallback으로 바꾸지 않는다.
 
-ProjectConfig는 `policies`와 대상별 전달용 `parameters`를 구분한다. `parameters.engines.<설정 이름>`은 Engine, `parameters.components.<이름>`은 Component가 검증·해석한다. 동일한 이름의 인자도 다른 대상으로 자동 전달하지 않는다. Loop의 SDK 인자는 `parameters.engines.<설정 이름>.completion`에 둔다. Project의 최상위 completion은 없다.
+ProjectConfig는 `policies`와 대상별 전달용 `parameters`를 구분한다. `parameters.engines.<설정 이름>`은 Engine, `parameters.components.<이름>`은 Component가 검증·해석한다. 동일한 이름의 인자도 다른 대상으로 자동 전달하지 않는다. Loop의 SDK 인자는 `parameters.engines.<설정 이름>.config.completion`에 둔다. Project의 최상위 completion은 없다.
 
 Engine 옵션의 순서는 **Project → Session → Agent → host constructor/factory**다. Session에는 명시한 override만 저장하고 실행 시 최신 Project 사본을 상속한다. Session 생성 시 Project 값을 복사하는 계층은 없다. 일반 `resolve_configuration`은 호출자가 제공한 명시적 계층 순서와 마지막 host만 병합한다.
 
@@ -17,6 +17,75 @@ Agent completion은 model 없는 부분 설정도 허용한다. 모델이 모든
 Component의 설정은 **주입 client.params → ProjectConfig.parameters["components"][name]**이다. 주입 client의 provider 정책은 `model_providers`에 client→project 출처와 함께 표시하며, 추출 정책도 client→project 순서다. Component는 Session 소유가 아니다. 실행 정책은 ProjectConfig.policies의 명시 설정을 Run 시작 시 스냅샷으로 저장한다. 정책과 Component 설정은 Project 소유이며 Session에 저장하려 하면 오류다. Tool 재시도에서는 명시된 host ToolPolicy가 최우선이며 host의 null도 정책을 해제한다. host 자원 한도(ProviderLimits)는 공유 실행 자원에 별도로 적용된다.
 
 `values/sources/overridden/editable`은 유지한다. 사용자 설정 출처 `default`는 없다. 강제값은 `enforced`에 따로 표시할 수 있다. Schema는 허용 형식만 설명하며 값 생성에 사용하지 않는다. `ProjectConfig()`는 빈 section만 가진다.
+
+## 정책 소유권
+
+모든 구현체의 공개 설정은 아래 외형을 사용한다. 두 section은 생략할 수 있는 object이며
+비어 있는 설정을 조회하거나 저장할 때 자동으로 생성하지 않는다. section 자체의 null은
+거부하고, null을 지원하는 개별 필드에서만 상속값을 해제한다.
+
+```text
+ProjectConfig
+├─ policies                       서비스가 집행하는 공통 정책
+└─ parameters
+   ├─ engines.<등록 이름>
+   │  ├─ config                   기능·모델·SDK 인자
+   │  └─ policy                   해당 Engine의 실행 결정·제한
+   └─ components.<이름>
+      ├─ config                   기능·입력·검색·backend 선택
+      └─ policy                   해당 Component의 실행·실패·보관 정책
+```
+
+| 구현체 | config | policy |
+|---|---|---|
+| Loop | completion(SDK dict), system_prompt, buffer_size | completion(입력 예산), provider(외부 재시도), max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars |
+| Graph | buffer_size, cleanup_timeout | max_steps, max_parallelism, timeout_seconds, max_nested_depth |
+| Preparation | 별도 정의한 기능 인자 | timeout_seconds |
+| Pipeline | stages.<단계 이름>에 각 단계의 config/policy | 현재 없음 |
+| RAG | chunk_size, embedding_params, extraction_params, rerank_params, document_kwargs, query_kwargs, search, graph, extraction_batch_size, index_batch_size, embedding_cache_max_bytes, search_cache_chars, extraction.json_mode/prompt_id/relation_types | embedding_concurrency, provider, ingestion.max_active, retention.job_max_age_seconds, extraction.repair_attempts/failure_policy |
+| Memory | cache_records, search_status/search_limit, processing.completion/priority/extract_scope/summary_chars/recall_limit/recall_query_chars | tool_write_status, max_search_results, processing의 자동 실행 여부·입력/출력/시간 한도·실패 방식·provider |
+| Vision | completion, ocr.backend/backends | limits.max_bytes/max_pixels, ocr.timeout, provider |
+| Tool/BuiltinTool | enabled | 현재 없음 |
+| Skill/MCP/Agent/Workflow/Prompt | 확장 구현체가 선언한 기능 설정 | 확장 구현체가 선언한 처리 정책 |
+
+숫자라는 이유로 policy에 넣지는 않는다. search.limit은 원하는 검색 결과의 크기이고,
+embedding_concurrency는 실제 동시 실행 상한이다. SDK의 timeout/num_retries/max_retries는
+SDK 인자이므로 config의 모델 dict에 남는다. provider.wall_timeout/max_attempts는
+ish가 집행하는 제한이므로 policy에 둔다. 서로 복사하거나 자동 연동하지 않는다.
+
+Agent/Workflow의 **정의 레코드**, Tool parameter schema, 요청별 engine_options.workflow는
+이 envelope의 적용 대상이 아니다. Agent.engine_options에는 선택한 Engine의 config/policy를
+넣으며 Graph Agent의 workflow 선택은 같은 engine_options의 workflow에 둔다.
+직접 생성자의 명시적 개별 인자는 같은 경로의 host 값으로 표시한다. 함수/client/runner는
+JSON 설정에 저장하지 않는다.
+
+재사용 정책 **알고리즘만** [policies/](policies/README.md)에 둔다. CompletionPolicy는
+설정 계층이나 저장소를 모르며 구성한 호출자에게 선택된 입력 또는 정책 오류를 반환한다.
+RunPolicy/ContextPolicy/ToolPolicy처럼 실행 수명과 결합된 정책은 해당 서비스에 남는다.
+새로운 dict마다 Policy 클래스를 만들거나 여러 정책을 하나의 만능 객체로 합치지 않는다.
+
+설정 분류 선언 `SettingsLayout`은 생성자 명시값, 공개 schema, 내부 인자 사본의 경로를
+맞춘다. 저장된 평면 설정을 변환하는 호환 계층이 아니다. 평면 설정은 거부한다.
+열린 config의 사용자 확장 필드와 SDK dict는 보존하되 이미 알려진 policy 필드를
+config에 잘못 배치하면 검증 오류다.
+분류를 선언하지 않은 schema 필드는 생성 시 거부한다. 중첩 config의 확장 허용 여부도
+원래 선언을 따르며 알려진 키를 옮길 때 같은 컨테이너의 사용자 확장값을 제거하지 않는다.
+새 구현체는 `implementation_schema(config=..., policy=...)`로 직접 schema를 작성해도 된다.
+SettingsLayout을 상속하거나 내부 실행 알고리즘을 공통 클래스로 바꾸는 것은 필수가 아니다.
+
+공통 `policies`는 서비스가 집행하는 context/run/approval/tool_retry/usage/retention/output만
+해석한다. Loop 모델 입력은 `parameters.engines[이름].policy.completion`의 CompletionPolicy,
+스트리밍 재시도는 같은 Engine의 `policy.provider`가 담당한다. Memory 보조 모델에는
+`parameters.components.memory.policy.processing.provider`를 사용하며 RAG/Vision도 각자의 policy.provider를
+사용한다. 이전 `policies.completion/provider_retry`는 오류로 거부하고 자동 변환하지 않는다.
+
+RunPolicy는 공통 대기열·기한·capability 확장 제한을 표현한다. 클래스는 실제 실행·검증
+책임이 필요할 때만 만들고 값을 담는 JSON마다 Policy 클래스를 추가하지 않는다.
+토큰 계산기는 호스트 자원이다. 공통 누적 토큰 한도는 `policies.usage.counter`로 선택하며
+Engine policy.completion.counter와 독립이다. 등록된 계산기는 UI schema에서 조회할 수 있다.
+Loop policy.completion/policy.provider 전체의 null은 상속값을 해제한다. missing은 상위 명시값을
+상속하고 모두 missing이면 정책 객체나 SDK 옵션을 생성하지 않는다.
+[설정 예·실행 경계](../docs/llm/project-policies.md)를 참고한다.
 
 ## 미설정 시 실행
 
@@ -29,12 +98,13 @@ Component의 설정은 **주입 client.params → ProjectConfig.parameters["comp
 | Completion SDK | timeout/temperature/max_tokens/top_p/retry/stream_options/tool_choice 등 미설정 키 생략 |
 | Non-streaming provider | 최초 호출 한 번. outer retry와 wall deadline 없음 |
 | Streaming bridge | 자체 deadline 없음. SDK timeout을 전체 스트림 시간으로 재해석하지 않음 |
-| Context/completion/usage | 필터·토큰 상한·사용량 상한 없음 |
+| Context/Loop policy.completion/usage | 필터·토큰 상한·사용량 상한 없음 |
 | Retention | 자동 보관 상한 없음. 명시적 정리 상한에는 unit도 명시해야 함 |
 | Memory processing | recall/summarize/extract/compress가 명시적으로 활성화될 때만 실행 |
 | RAG | 아래 필요한 알고리즘 설정은 사용 시 명확한 오류. 미설정 cache는 비활성, rerank/repair는 비활성 |
 
-Loop의 `completion.timeout`과 `request_timeout`, Component의 `provider.wall_timeout`, Run/Graph/node/Tool timeout은 서로 독립이다. Wrapper 시간을 SDK 인자에 복사하지 않는다.
+Loop의 `config.completion.timeout`, `policy.request_timeout`, `policy.provider.wall_timeout`, Component의 자체 provider 기한,
+Run/Graph/node/Tool timeout은 서로 독립이다. Wrapper 시간을 SDK 인자에 복사하지 않는다.
 
 Step의 명시 기한은 provider 진행을 중단하지만 yield된 이벤트를 저장하는 서비스 Task를 타이머로 취소하지 않는다. 저장 후 Engine이 다시 진행할 때 같은 절대 기한을 검사해 timeout 실패로 기록한다. 따라서 기한이 초기화되지 않으며 사용자 interrupt와 혼동되지 않는다.
 
@@ -105,14 +175,31 @@ llm은 기본 Project/Session·마지막 선택·UI 엔진 선택 정책을 소�
 기존 저장값은 수정하지 않는다. 과거에 생략한 값은 계속 missing이다. 필수 설정이 없으면 해당 기능 사용 전에 오류가 발생한다. 기존 명시된 숫자는 보존한다. 변경된 fingerprint와 맞지 않는 재개/캐시는 안전하게 거부 또는 재계산한다.
 
 ```python
-config = ProjectConfig(parameters={"engines": {"loop": {**{"request_timeout": 300, "tool_timeout": None}, "completion": {"model": "openai/my-model"}}}, "components": {"rag": {
-        "chunk_size": 1000, "embedding_concurrency": 2,
-        "extraction": {"failure_policy": "disabled"},
-        "embedding_params": {"model": "openai/my-embedding"},
-        "search": {"method": "hybrid", "expand": "section", "limit": 5,
-                   "candidate_count": 20, "rrf_constant": 60,
-                   "max_hops": 2, "relation_limit": 30}
-    }}})
+config = ProjectConfig(parameters={
+    "engines": {
+        "loop": {
+            "config": {"completion": {"model": "openai/my-model"}},
+            "policy": {"request_timeout": 300, "tool_timeout": None},
+        },
+    },
+    "components": {
+        "rag": {
+            "config": {
+                "chunk_size": 1000,
+                "embedding_params": {"model": "openai/my-embedding"},
+                "search": {
+                    "method": "hybrid", "expand": "section", "limit": 5,
+                    "candidate_count": 20, "rrf_constant": 60,
+                    "max_hops": 2, "relation_limit": 30,
+                },
+            },
+            "policy": {
+                "embedding_concurrency": 2,
+                "extraction": {"failure_policy": "disabled"},
+            },
+        },
+    },
+})
 ```
 
 숫자는 이 예제의 명시적 선택이며 라이브러리 기본값이 아니다. Session에서 request_timeout=null을 설정하면 300초를 해제한다. 사용자가 Engine constructor에 값을 명시하면 host 우선으로 고정된다.

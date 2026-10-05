@@ -76,14 +76,7 @@ Graph 재개는 기본적으로 전체 ProjectConfig와 정의·정책·Tool 계
 
 ```python
 memory = project.components.memory
-await memory.aconfigure({"cache_records": 256, "processing": {
-    "summarize": True,
-    "completion": {"model": "provider/model"},
-    "max_summary_calls": 4,
-    "model_input_chars": 24000,
-    "recall_every": 3,
-    "recall_query_chars": 2000,
-}})
+await memory.aconfigure({'config': {'cache_records': 256, 'processing': {'completion': {'model': 'provider/model'}, 'recall_query_chars': 2000}}, 'policy': {'processing': {'summarize': True, 'max_summary_calls': 4, 'model_input_chars': 24000, 'recall_every': 3}}})
 ```
 
 - 단일 과거 턴이 보조 모델 입력보다 크면 여러 조각으로 처리하고 진행 위치를 Session 요약에

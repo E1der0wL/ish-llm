@@ -42,7 +42,7 @@ Run별 가변 상태를 저장하지 않는다. 생성자는 외부 자원을 �
 정리는 같은 asyncio.Task에서 실행하여 ContextVar 토큰 등 소유 문맥을 보존한다.
 각 Processor의 `close_timeout`은 협력적 비동기 기한이다. 취소를 무시하거나 동기 함수를
 무한 실행하는 플러그인을 강제 종료하는 OS 격리 기능은 아니다. 전체 실행 기한은 기존
-RunLimits를 공유하고, 개별 훅의 작업 기한/Step은 구현체가 BaseEngine.step 등으로 정한다.
+RunPolicy를 공유하고, 개별 훅의 작업 기한/Step은 구현체가 BaseEngine.step 등으로 정한다.
 
 ## 입력 출처와 수정 범위
 
@@ -133,7 +133,8 @@ class InstructionsComponent(Component):
 내용을 무조건 system 지시로 승격하지 않는다. 실제 데이터 접근은 ComponentData를 통해
 연결하는 resolve_runtime을 사용하면 잠금/수명 검사를 유지할 수 있다.
 
-Memory의 순서는 `memory.aconfigure({"processing": {"priority": 100, ...}})`로 조절한다.
+Memory의 순서는 현재 설정을 읽어 `config.processing.priority`를 수정한 뒤
+`memory.aconfigure(settings)`로 저장한다. policy.processing의 명시적 활성화 설정도 보존한다.
 configure는 설정 전체 교체이므로 유지할 다른 설정도 전달한다. 낮은 priority가 먼저 실행된다.
 기존 사용자 정의 처리기는 새 CompletionRequest/CompletionObservation 계약으로 갱신해야 한다.
 과거 dict 기반 prepare 및 finish(messages, response)의 호환 별칭은 제공하지 않는다.

@@ -130,7 +130,7 @@ class ProjectHandle(AsyncFacade):
                                       components=components, expected_components=expected_components)
 
     def configuration(self) -> dict:
-        """저장 원본과 기본값을 병합한 UI 폼 값을 함께 반환한다."""
+        """저장된 명시값·UI 스키마·Engine별 적용값을 반환한다. 기본값을 생성하지 않는다."""
         return self._configuration()
 
     def validate_configuration(self, config: dict, *, expected_version=None) -> dict:

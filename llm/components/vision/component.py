@@ -8,6 +8,7 @@ from pathlib import Path
 
 from llm.components.base import Component, validate_name
 from llm.core.models import new_id, now, ProjectConfig
+from llm.core.settings import SettingsLayout
 from llm.core.schema import object_schema, completion_schema, checked_schema
 from llm.providers.requests import provider_schema, resolve_provider_options
 from llm.services.infrastructure.storage import (
@@ -20,6 +21,9 @@ class VisionComponent(Component):
     name = "vision"
     directory = "vision"
     capabilities = ("vision", "tools")
+    settings_layout = SettingsLayout(config=("completion",), policy=("provider", "limits"),
+        paths={"ocr.backend": "config.ocr.backend", "ocr.backends": "config.ocr.backends",
+               "ocr.timeout": "policy.ocr.timeout"})
 
     def __init__(self, *, ocr_backends=None, completion_fn=None, revision="1"):
         from .data import VisionData
@@ -68,7 +72,7 @@ class VisionComponent(Component):
     # 공개 구현 API. 서비스 핸들이 workspace 트랜잭션과 수명 검사를 제공한다.
     def configuration_schema(self):
         backend = ({"enum": list(self.ocr_backends)} if self.ocr_backends else {"not": {}})
-        return object_schema({
+        return self.settings_layout.schema(object_schema({
             "limits": object_schema({key: {"type": "integer", "minimum": 1}
                 for key in ("max_bytes", "max_pixels")}, additionalProperties=False),
             "ocr": object_schema({"backend": {"type": "string", **backend},
@@ -76,11 +80,12 @@ class VisionComponent(Component):
                 "backends": object_schema({key: value.configuration_schema()
                     for key, value in self.ocr_backends.items()}, additionalProperties=False)}, additionalProperties=False),
             "completion": completion_schema(), "provider": provider_schema(),
-        })
+        }))
 
     def validate_configuration(self, values):
         super().validate_configuration(values)
         ProjectConfig.validate_settings(values)
+        values = self.settings_layout.unpack(values)
         resolve_provider_options(values.get("provider", {}))
         params = values.get("completion", {})
         if any(key in params for key in ("messages", "tools", "tool_choice", "functions", "function_call")):
@@ -90,7 +95,7 @@ class VisionComponent(Component):
 
     def effective_configuration(self, project):
         view = super().effective_configuration(project)
-        view["enforced"] = {"completion": {"stream": False, "n": 1}, "asset_format": 1}
+        view["enforced"] = {"config": {"completion": {"stream": False, "n": 1}}, "asset_format": 1}
         return view
 
     def binding(self, project):

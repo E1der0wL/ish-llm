@@ -1,1 +1,1 @@
-"""향후 hub 플러그인의 자동 검사 패키지."""
+"""Hub UI integration checks."""
