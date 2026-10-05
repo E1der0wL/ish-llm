@@ -36,6 +36,36 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
             "regressions": [], "improvements": ["checks evidence"], "evidence": self.evidence,
         }, expected_version=view["version"])
 
+    async def test_lineage_and_agent_references_block_delete_and_fork_rollback(self):
+        skills = self.project.components.skills
+        identifier, _ = await self.new_skill("fork", "child")
+        approved = await self.approve(identifier)
+        applied = await self.refine.aapply(identifier, expected_version=approved["version"])
+        child = await skills.asnapshot("child")
+        await skills.acreate({"instructions": "Grandchild", "lineage": {
+            "parent": "child", "parent_revision": child["version"]}}, identifier="grandchild")
+        refs = await skills.adependencies("child")
+        self.assertEqual(refs["agents"], [])
+        self.assertEqual([r["skill_id"] for r in refs["children"]], ["grandchild"])
+        with self.assertRaisesRegex(ValueError, "referenced"):
+            await skills.adelete("child", expected_version=child["version"])
+        with self.assertRaisesRegex(ValueError, "referenced"):
+            await self.refine.arollback(identifier, expected_version=applied["version"])
+        self.assertEqual(await self.refine.asnapshot(identifier), applied)
+        await skills.adelete("grandchild")
+        agent = await self.project.components.agents.asnapshot("guide")
+        await self.project.components.agents.arevise("guide", {**agent["definition"],
+            "resources": {"skills": ["child"]}}, expected_revision=agent["revision"])
+        self.assertEqual([r["agent_id"] for r in (await skills.adependencies("child"))["agents"]], ["guide"])
+        with self.assertRaisesRegex(ValueError, "referenced"):
+            await skills.adelete("child")
+        with self.assertRaisesRegex(ValueError, "referenced"):
+            await self.refine.arollback(identifier, expected_version=applied["version"])
+        updated = await self.project.components.agents.asnapshot("guide")
+        await self.project.components.agents.arevise("guide", agent["definition"], expected_revision=updated["revision"])
+        await self.refine.arollback(identifier, expected_version=applied["version"])
+        self.assertEqual((await skills.adependencies("guide"))["children"], [])
+
     async def apply_tool(self, identifier, engine):
         view = await self.refine.asnapshot(identifier)
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": identifier,
@@ -237,6 +267,28 @@ class AgentCompositionTests(unittest.IsolatedAsyncioTestCase):
 
 class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
     asyncSetUp = refinement_tests.RefinementTests.asyncSetUp
+
+    async def test_extraction_without_search_uses_stable_record_order(self):
+        from llm.components.memory import MemoryComponent
+        from unittest.mock import patch
+        captured = []
+        def extract(**request):
+            captured.append(json.loads(request["messages"][-1]["content"]))
+            return iter(answer(json.dumps({"memories": []})))
+        memory = self.project.components.memory
+        self.memory_component.completion_fn = extract
+        await memory.acreate({"content": "Last"}, identifier="z")
+        await memory.acreate({"content": "First"}, identifier="a")
+        # No retrieval tuning/recall limit: extraction owns only its explicit input budget.
+        await memory.aconfigure(MemoryComponent.settings_layout.pack({"processing": {
+            "priority": 1, "extract": True, "extract_prompt_id": "guide", "extract_scope": "session",
+            "completion": {"model": "test/extract"}, "model_input_chars": 24000,
+            "max_candidates": 2, "summary_chars": 2000}}))
+        with patch.object(type(memory), "asearch", side_effect=AssertionError("retrieval must be independent")):
+            for _ in range(2):
+                run = await (await self.session.run.submit("remember", engine="loop")).wait()
+                self.assertEqual(str(run.data.status), "completed", run.data.error)
+        self.assertEqual([[r["id"] for r in p["existing"]] for p in captured], [["a", "guide", "z"]] * 2)
 
     async def test_memory_extraction_uses_selected_prompt_and_records_its_revision(self):
         from tests.llm.configuration_fixtures import memory_settings, memory_processing

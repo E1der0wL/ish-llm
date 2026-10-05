@@ -7,7 +7,7 @@ from llm.components.processing import CompletionSession
 
 class GoalProcessor:
     name = "goals"
-    close_timeout = 5.0  # 협력적 자원 회수 계약이며 실행 제한이 아니다.
+    close_timeout = None  # 자원을 소유하지 않는 CompletionSession.aclose no-op.
 
     def __init__(self, data, settings):
         self.data, self.settings = data, deepcopy(settings)

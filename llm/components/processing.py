@@ -83,7 +83,7 @@ class CompletionProcessor(Protocol):
 
     name: str
     priority: int
-    close_timeout: float
+    close_timeout: Optional[float]
 
     def session(self, context: "EngineContext") -> CompletionSession: ...
 
@@ -99,9 +99,10 @@ def ordered_processors(processors):
         if type(getattr(item, "priority", None)) is not int:
             raise ValueError("Completion processor priority must be an integer")
         duration = getattr(item, "close_timeout", None)
-        if (isinstance(duration, bool) or not isinstance(duration, (int, float))
+        if not hasattr(item, "close_timeout") or duration is not None and (
+                isinstance(duration, bool) or not isinstance(duration, (int, float))
                 or not math.isfinite(duration) or duration <= 0):
-            raise ValueError("Completion processor close_timeout must be positive and finite")
+            raise ValueError("Completion processor close_timeout must be None or positive and finite")
         if not callable(getattr(item, "session", None)):
             raise TypeError("Completion processor requires session(context)")
     return tuple(sorted(values, key=lambda item: (item.priority, item.name)))

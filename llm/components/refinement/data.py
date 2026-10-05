@@ -275,8 +275,7 @@ class RefinementData(ComponentData):
         check_revision(current, applied["version"])
         source = {**self._source(source), "kind": "refinement_rollback", "proposal_id": identifier}
         if value["operation"] in ("create", "fork"):
-            if handle.impact(applied["identifier"]):
-                raise ValueError("Unbind referencing Agents before rolling back a created Skill")
+            # SkillData.delete가 Agent와 child lineage 모두를 같은 잠금에서 검사한다.
             handle.delete(applied["identifier"], expected_version=applied["version"])
         elif target["component"] == "memory":
             handle.delete(applied["identifier"], expected_revision=current["revision"], source=source, **kwargs)

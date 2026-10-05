@@ -20,6 +20,7 @@ class MemoryData(ComponentData):
     def _processing_snapshot(self, session_id, *, include_records=True):
         project, component = self._current()
         return {"identity": component.identity(project), "configuration": component.configuration(project),
+                "has_search": component.search_fn is not None or component._options(project).get("search_strategy") is not None,
                 "records": component.list(project, include_deleted=True, session_id=session_id) if include_records else {},
                 "summary": component.summary(project, session_id)}
 

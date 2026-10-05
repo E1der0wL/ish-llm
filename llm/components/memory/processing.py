@@ -73,7 +73,7 @@ def processing_settings(configuration: dict, *, token_counter=None) -> dict:
         "recall": ("recall_limit", "recall_query_chars", "context_chars"),
         "compress_tools": ("tool_result_chars",),
         "summarize": ("keep_turns", "summary_chars", "model_input_chars", "max_summary_calls", "context_chars"),
-        "extract": ("model_input_chars", "recall_limit", "max_candidates", "summary_chars", "extract_scope"),
+        "extract": ("model_input_chars", "max_candidates", "summary_chars", "extract_scope"),
     }
     if config.get("summarize") and config.get("compact_active"):
         requirements["summarize"] += ("active_keep_iterations",)
@@ -91,7 +91,7 @@ class MemoryProcessor:
     """컴포넌트가 제공하는 공통 처리기 팩토리. 저장 핸들과 주입 모델만 공유한다."""
 
     name = "memory"
-    close_timeout = 5.0
+    close_timeout = None  # CompletionSession.aclose는 자원을 소유하지 않는 no-op이다.
 
     def __init__(self, data, *, completion_fn=None, token_counter=None, priority=0):
         self.data = data
@@ -529,10 +529,11 @@ class MemorySession(CompletionSession):
         latest = next((m["content"] for m in reversed(messages) if m.get("role") == "user"), "")
         allowance = self.config["model_input_chars"] // 3
         existing = []
-        # 관련 기억을 먼저 전달해 단순 파일 순서 때문에 중요한 대체 후보가 밀리지 않게 한다.
-        ranked = await self.data.asearch(latest, status="all", limit=self.config["recall_limit"], session_id=self.context.session.id) if latest.strip() else []
+        # 검색을 선택한 경우에만 관련도 순서를 쓴다. 추출 자체는 검색에 의존하지 않는다.
+        ranked = (await self.data.asearch(latest, status="all", limit=self.config.get("recall_limit"),
+                  session_id=self.context.session.id) if latest.strip() and snapshot["has_search"] else [])
         ordered = {item["memory"]["id"]: item["memory"] for item in ranked}
-        ordered.update({key: value for key, value in snapshot["records"].items() if key not in ordered})
+        ordered.update({key: snapshot["records"][key] for key in sorted(snapshot["records"]) if key not in ordered})
         for record in ordered.values():
             if record["deleted"] or record["kind"] == "conversation_summary":
                 continue
