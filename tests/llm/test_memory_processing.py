@@ -115,7 +115,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.aux = Auxiliary()
-        self.component = MemoryComponent(completion_fn=self.aux)
+        self.component = MemoryComponent(completion_fn=self.aux, extract_prompt="Retain reusable facts and preferences.")
         self.app = LargeLanguageModel(self.root / "workspace", components=[self.component], engines={})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("Long work", components=["memory"])

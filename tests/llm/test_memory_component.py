@@ -37,7 +37,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.component = MemoryComponent()
         self.app = LargeLanguageModel(self.root / "workspace", components=[self.component], engines={})
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate("Memory", components=["memory"], config={"parameters": {"components": {"memory": {'policy': {'tool_write_status': 'candidate'}, 'config': {'search_status': 'confirmed', 'cache_records': 256}}}}})
+        self.project = await self.app.projects.acreate("Memory", components=["memory"], config={"parameters": {"components": {"memory": {'policy': {'tool_write_status': 'candidate'}, 'config': {'search_strategy': 'keyword', 'search_status': 'confirmed', 'cache_records': 256}}}}})
         self.memory = await self.project.components.aget("memory")
 
     async def run_tool(self, name, arguments, *, project=None):
@@ -95,7 +95,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(await self.memory.asearch("PYTHON")), 1)
         self.assertEqual(len(await self.memory.asearch("python", status="all")), 2)
         self.assertEqual((await self.memory.asearch("한국어"))[0]["memory"]["id"], "confirmed")
-        await self.memory.aconfigure({'config': {'search_status': 'candidate', 'search_limit': 1, 'ui': {'color': 'blue'}}, 'policy': {'max_search_results': 2}})
+        await self.memory.aconfigure({'config': {'search_strategy': 'keyword', 'search_status': 'candidate', 'search_limit': 1, 'ui': {'color': 'blue'}}, 'policy': {'max_search_results': 2}})
         self.assertEqual((await self.memory.asearch("python"))[0]["memory"]["id"], "candidate")
         for args in ({"limit": 3}, {"limit": True}, {"status": "unknown"}):
             with self.assertRaises(ValueError):
@@ -262,7 +262,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(step.metadata["error_code"], "tool_denied")
 
     async def test_tool_write_status_configuration(self):
-        await self.memory.aconfigure({'policy': {'tool_write_status': 'confirmed'}})
+        await self.memory.aconfigure({'config': {'search_strategy': 'keyword'}, 'policy': {'tool_write_status': 'confirmed'}})
         run, _, _ = await self.run_tool("memory_create", {"content": "configured"})
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(len(await self.memory.asearch("configured")), 1)

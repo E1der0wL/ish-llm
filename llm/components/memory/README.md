@@ -22,6 +22,17 @@
 
 ## 설정과 실행
 
+검색에는 `config.search_strategy="keyword"` 또는 호스트가 주입한 `search_fn`이 필요합니다.
+미설정이면 검색 시 configuration error입니다. keyword는 단어 부분 일치가 있는 레코드를
+일치율 내림차순으로 반환합니다. 주입 검색기의 반환 ID는 0점/음수 점수도 보존합니다.
+`config.min_score`를 명시한 경우에만 추가 cutoff가 적용됩니다. 자동 recall도 같은 경로입니다.
+
+추출의 의미 지침은 `config.processing.extract_prompt_id`로 선택한 Prompt 레코드 또는
+`MemoryComponent(extract_prompt="...")`의 명시적 host 지침으로 공급합니다(host 우선).
+둘 다 없으면 추출을 실행하지 않고 오류를 반환합니다. 처리기 시작 시 지침/버전을 고정하고
+candidate metadata에 출처를 남깁니다. JSON 형태, replaces revision, 근거 없는 성공 금지는
+backend 계약입니다. 무엇을 기억할지는 애플리케이션이 결정합니다.
+
 설정은 `parameters.components.memory`에 저장합니다. 모델 호출을 수반하는 요약·추출, 자동 회상, 문맥 축약 등은 명시한 정책에 따라 적용됩니다. `completion_processors` capability로 Loop 입력·관찰 경계에 연결하고, CRUD Tool은 `tools` capability로 제공합니다.
 
 보조 모델의 SDK 인자는 `config.processing.completion`, 외부 호출의 시도·기한은

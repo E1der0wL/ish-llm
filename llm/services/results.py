@@ -65,7 +65,7 @@ class RunResultQuery:
     @workspace_locked
     def tool_result(self, owner, session_id, run_id, tool_call_id, *, steps, offset=0, limit=None):
         """소유 Session의 원본 Tool 결과를 부분 조회한다. 경로를 모델 입력으로 받지 않는다."""
-        if type(offset) is not int or offset < 0 or limit is not None and (type(limit) is not int or not 1 <= limit <= 64000):
+        if type(offset) is not int or offset < 0 or limit is not None and (type(limit) is not int or limit < 1):
             raise ValueError("Invalid result slice")
         project = self.sessions.require_project(owner)
         session = self.sessions.load(project, session_id)

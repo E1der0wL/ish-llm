@@ -23,6 +23,19 @@ class MemoryData(ComponentData):
                 "records": component.list(project, include_deleted=True, session_id=session_id) if include_records else {},
                 "summary": component.summary(project, session_id)}
 
+    @workspace_locked
+    def _extraction_prompt(self, identifier):
+        """한 처리기 실행에서 사용할 명시적 추출 지침과 버전만 읽는다."""
+        _, component = self._current()
+        if component.extract_prompt is not None:
+            from llm.services.infrastructure.storage import revision_token
+            return {"text": component.extract_prompt, "version": revision_token(component.extract_prompt), "source": "host"}
+        if identifier is None:
+            raise ValueError("Memory extraction requires processing.extract_prompt_id or host extract_prompt")
+        snapshot = self.related("prompts").snapshot(identifier)
+        return {"text": "\n\n".join(f"{m['role']}: {m['content']}" for m in snapshot["data"]["messages"]),
+                "version": snapshot["version"], "source": identifier}
+
     def _check_snapshot(self, project, component, snapshot):
         if (component.identity(project) != snapshot["identity"] or
                 component.configuration(project) != snapshot["configuration"]):

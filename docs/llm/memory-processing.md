@@ -17,10 +17,12 @@ Memory 선택만으로 자동 검색·미리보기·요약·추출이 활성화�
 아래 설정에서 사용하는 보조 모델은 메인 Loop 모델과 독립적으로 지정한다.
 
 ```python
-project = await backend.projects.acreate("업무", components=["memory"])
+project = await backend.projects.acreate("업무", components=["memory", "prompts"])
+await project.components.prompts.acreate({"messages": [{"role": "system",
+    "content": "사용자가 명시한 업무 제약과 응답 선호만 기억 후보로 추출하세요."}]}, identifier="remember")
 memory = await project.components.aget("memory")
 await memory.aconfigure({
-    "config": {"processing": {"priority": 100, "completion": {"model": model_name, "api_key": api_key},
+    "config": {"search_strategy": "keyword", "processing": {"priority": 100, "extract_prompt_id": "remember", "completion": {"model": model_name, "api_key": api_key},
         "summary_chars": 3000, "summary_format": "work_state", "recall_limit": 8,
         "recall_query_chars": 2000, "extract_scope": "session"}},
     "policy": {"processing": {"recall": True, "summarize": True, "extract": True,
@@ -63,7 +65,8 @@ failure_mode="continue"는 요약 실패를 degraded Step으로 남기고 원문
 **기억 검색:** 현재 입력으로 프로젝트 공통 기억과 현재 Session의 기억을 검색한다. candidate와
 만료된 기억은 자동 주입에서 제외한다. 기억 ID/revision과 내용을 구분된 참고 데이터로
 현재 사용자 메시지의 모델 입력 사본에 붙인다. system 지시로 승격하거나 원본 대화를 바꾸지
-않는다. 검색은 키워드 방식이며 입력과 표현이 다른 의미적 연관까지 보장하지 않는다.
+않는다. 검색은 명시한 keyword 또는 host search_fn을 사용한다. keyword만으로는 입력과 표현이
+다른 의미적 연관까지 보장하지 않는다. 기억할 내용의 의미 기준은 extract_prompt_id/host extract_prompt가 소유한다.
 
 **증분 요약:** 최근 `keep_turns`개의 턴은 원문으로 유지하고 그 이전 턴을
 요약한다. 실패·중단·일시정지한 과거 메시지는 상태를 붙여 전달해 성공으로 취급하지 않도록

@@ -15,6 +15,7 @@ from llm.llm import LargeLanguageModel
 async with LargeLanguageModel(workspace) as backend:
     project = await backend.projects.acreate("업무", components=["memory"])
     memory = await project.components.aget("memory")
+    await memory.aconfigure({"config": {"search_strategy": "keyword"}})
     # 동기 코드에서는 project.components.memory와 create/load/update 등을 사용한다.
     identifier = await memory.acreate({
         "content": "설명과 주석은 한국어로 작성한다.",

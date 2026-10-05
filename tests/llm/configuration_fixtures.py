@@ -47,4 +47,4 @@ def memory_processing(changes=None):
 
 def memory_settings(explicit):
     """processor 테스트의 명시적 인자들을 공개 설정 외형에 배치한다."""
-    return MemoryComponent.settings_layout.pack(explicit)
+    return MemoryComponent.settings_layout.pack({"search_strategy": "keyword", **explicit})

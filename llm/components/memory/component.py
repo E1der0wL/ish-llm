@@ -32,10 +32,10 @@ class MemoryComponent(Component):
     capabilities = ("memory", "tools", "completion_processors")
     data_class = MemoryData
     settings_layout = SettingsLayout(
-        config=("cache_records", "search_status", "search_limit"),
+        config=("cache_records", "search_status", "search_limit", "search_strategy", "min_score"),
         policy=("tool_write_status", "max_search_results"),
         paths={**{"processing." + key: "config.processing." + key for key in
-                  ("completion", "priority", "extract_scope", "summary_chars", "recall_limit", "recall_query_chars", "summary_format", "goal_ids")},
+                  ("completion", "priority", "extract_scope", "extract_prompt_id", "summary_chars", "recall_limit", "recall_query_chars", "summary_format", "goal_ids")},
                **{"processing." + key: "policy.processing." + key for key in
                   ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active",
                    "keep_turns", "summary_after_chars", "summary_after_tokens", "context_chars", "tool_result_chars", "model_input_chars",
@@ -43,12 +43,15 @@ class MemoryComponent(Component):
                    "context_tokens", "recall_every", "failure_mode", "timeout_seconds", "provider")}})
     _managed = frozenset({"id", "revision", "created_at", "updated_at", "deleted", "source"})
 
-    def __init__(self, *, completion_fn=None, token_counter=None, search_fn=None):
+    def __init__(self, *, completion_fn=None, token_counter=None, search_fn=None, extract_prompt=None):
         """보조 모델과 토큰 계수기는 런타임에 주입한다. 설정/레코드에는 저장하지 않는다."""
         if any(value is not None and not callable(value) for value in (completion_fn, token_counter, search_fn)):
             raise TypeError("Memory model and token counter must be callable")
         self.completion_fn, self.token_counter = completion_fn, token_counter
         self.search_fn = search_fn
+        if extract_prompt is not None and (not isinstance(extract_prompt, str) or not extract_prompt.strip()):
+            raise ValueError("extract_prompt must be nonempty host instructions")
+        self.extract_prompt = extract_prompt
         self._record_cache = OrderedDict()
 
     def _assert_ready(self, project):
@@ -280,12 +283,15 @@ class MemoryComponent(Component):
             context_tokens=field(["integer", "null"], minimum=1), completion=completion_schema(),
             provider={**provider_schema(), "type": ["object", "null"]},
             extract_scope=field("string", enum=["session", "project"]),
+            extract_prompt_id=field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$"),
             failure_mode=field("string", enum=["raise", "continue"]),
             timeout_seconds=field(["number", "null"], exclusiveMinimum=0))
         return self.settings_layout.schema(object_schema({
             "cache_records": field("integer", minimum=0),
             "tool_write_status": field("string", enum=["candidate", "confirmed"]),
             "search_status": field("string", enum=["candidate", "confirmed", "all"]),
+            "search_strategy": field("string", enum=["keyword"]),
+            "min_score": field("number"),
             "search_limit": field("integer", minimum=1), "max_search_results": field("integer", minimum=1),
             "processing": object_schema(properties)}))
 
@@ -360,7 +366,7 @@ class MemoryComponent(Component):
         return self._read(project, identifier)["history"]
 
     def score(self, query, record):
-        """기본 검색은 Unicode 단어의 부분 일치 비율이다. 의미 검색이 필요하면 재정의한다."""
+        """명시적으로 선택한 keyword 알고리즘: Unicode 단어 부분 일치 비율."""
         terms = set(re.findall(r"\w+", query.casefold()))
         text = " ".join([record["content"], record["kind"], *record["tags"]]).casefold()
         return sum(term in text for term in terms) / len(terms) if terms else 0.0
@@ -369,6 +375,8 @@ class MemoryComponent(Component):
         if not isinstance(query, str) or not query.strip():
             raise ValueError("Memory query must be nonempty text")
         config = self._options(project)
+        if self.search_fn is None and config.get("search_strategy") != "keyword":
+            raise ValueError("Memory search requires config.search_strategy or a host search_fn")
         limit = config.get("search_limit") if limit is None else limit
         if limit is not None and (type(limit) is not int or limit < 1 or config.get("max_search_results") is not None and limit > config["max_search_results"]):
             raise ValueError("Memory search limit is outside configured bounds")
@@ -379,9 +387,13 @@ class MemoryComponent(Component):
         scores = (self.search_fn(query, deepcopy(records)) if self.search_fn is not None else
                   {key: self.score(query, record) for key, record in records.items()})
         if not isinstance(scores, dict) or scores.keys() - records.keys() or any(
-                isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0 for v in scores.values()):
+                isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in scores.values()):
             raise ValueError("Memory search adapter must return finite scores for visible memory IDs")
-        hits = [{"score": score, "memory": records[key]} for key, score in scores.items() if score > 0]
+        # keyword의 매칭 조건은 양수 일치율이다. 주입 검색기는 반환한 ID 집합을
+        # 직접 소유하므로 0점도 보존한다. 추가 cutoff는 명시된 경우에만 적용한다.
+        hits = [{"score": score, "memory": records[key]} for key, score in scores.items()
+                if (self.search_fn is not None or score > 0)
+                and ("min_score" not in config or score >= config["min_score"])]
         return sorted(hits, key=lambda hit: (-hit["score"], hit["memory"]["id"]))[:limit]
 
     def consolidate(self, project, identifier, *, expected_revision, session_id=None, source=None):
