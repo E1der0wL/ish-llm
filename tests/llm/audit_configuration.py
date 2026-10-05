@@ -16,6 +16,10 @@ PATTERNS = {
     "limit_assignment": r"max_.*=",
     "schema_default": r'["\']default["\']\s*:',
     "numeric_field": r"field\(.*,[ \t]*[0-9]",
+    "schema_ceiling": r"maximum|maxLength|maxItems",
+    "ranking_choice": r"ORDER BY|score\s*[><=]|search_fn|search_strategy",
+    "product_choice": r"default_prompt|auto_|fallback|confidence|recommended",
+    "persistent_mutation": r"prompt_update|harness_propose_update|_publish_candidates|apply_authorized",
 }
 
 

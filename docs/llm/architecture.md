@@ -1,5 +1,17 @@
 # Architecture
 
+## Backend / Application 경계와 Skill 진화
+
+[Architecture boundaries](architecture-boundaries.md)는 Contract/Invariant/Execution policy/
+Product policy의 현재 분류와 감사 결과를 정의한다. Hub의 선택·프리셋·UX는 backend에 복제하지 않는다.
+Memory 검색은 명시된 전략/host 함수만 사용하며, 추출 의미 지침은 Prompt 참조/host 입력이다.
+RAG 관계 결과의 support_count는 근거 청크 개수다. 기본 관계 순서는 안정적인 출처 순서이며
+support_count 우선 정렬은 명시적 선택이다. DB의 weight 열은 저장 형식 1로 유지한다.
+Agent는 resources.prompt와 resources.skills를 실행 사본으로 결합하고 Step에 버전을 기록한다.
+Refinement는 UPDATE/Skill CREATE/FORK/Agent bind_skills를 구분한다. 평가 기록과 승인도 별도다.
+모델의 영속 prompt_update/harness_propose_update 우회 경로는 제공하지 않는다.
+trusted host AgentData.update_prompt는 계속 제공한다. 저장 형식 버전과 실행 부모 계층은 바꾸지 않는다.
+
 ## Goal·작업 요약·Refinement
 
 실행 소유 계층은 Project → Session → Run → Step으로 유지한다. Goals는 Project 컴포넌트이며

@@ -11,6 +11,10 @@ Engine·Component의 설정은 `parameters.engines[이름]` 또는
 같은 형태를 저장합니다. 전체 분류와 구현체 확장 계약은 [CONFIGURATION.md](CONFIGURATION.md),
 재사용 정책 알고리즘은 [policies/](policies/README.md)를 참고하세요.
 
+추천 검색 전략·기억할 내용·Skill 생성/분기 기준은 호출 애플리케이션이 정합니다.
+Backend는 계약·저장·권한 불변식을 집행합니다. 새 구현은
+[아키텍처 경계와 감사 결과](../docs/llm/architecture-boundaries.md)를 확인하세요.
+
 
 ## 주요 개념과 실행 흐름
 

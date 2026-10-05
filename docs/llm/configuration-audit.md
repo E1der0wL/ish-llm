@@ -1,5 +1,13 @@
 # 설정 정적 감사 기록
 
+## Architecture boundary / Skill evolution 감사
+
+[새 경계 분류와 상한 표](architecture-boundaries.md), [구현 결과](boundary-evolution-review.md)를
+참고한다. 감사 스크립트에 schema ceiling, ranking/score, 자동 선택/fallback, 영속 변경 후보를
+추가했다. 검색 결과는 수동 검토 후보이며 자동 합격 판정기가 아니다.
+RAG/Memory/Tool의 임의 제품 상한을 제거하고 프로토콜/메모리/취소 안전 상한은 이유와 함께 유지한다.
+새 코드에는 Hub의 preset 이름, 자동 Skill 생성 임계값, 자동 Agent 바인딩을 넣지 않았다.
+
 범위는 `llm/` production Python 전체다. tests/examples는 명시적 호출자의 fixture로 따로 검사했다. 핵심 계약·강제값 전체 목록은 [CONFIGURATION.md](../../llm/CONFIGURATION.md)에 있다.
 
 ## 2026-10-05 설정 변환·호스트 표시·Hub 연결 경계
