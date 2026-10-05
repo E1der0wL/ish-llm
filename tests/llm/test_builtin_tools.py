@@ -297,8 +297,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                  "browser_act": {"session_id": "s", "action": {"click": "button"}},
                  "kernel_execute": {"session_id": "s", "code": "1+1"}, "kernel_reset": {"session_id": "s"},
                  "external_rag_search": {"corpus": "c", "query": "q"}, "external_graphrag_search": {"corpus": "c", "query": "q"},
-                 "context_expand": {"reference": "r", "scope": "section"},
-                 "harness_propose_update": {"harness_id": "h", "changes": {"prompt": "new"}, "reason": "test"}}
+                 "context_expand": {"reference": "r", "scope": "section"}}
         async def adapter(args):
             return {"received": args}
         async with BuiltinTools(self.work, adapters={name: adapter for name in names}) as tools:
@@ -324,11 +323,12 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             await agents.acreate(original, identifier="a")
             self.tools.bind_prompts(agents)
             read = await self.invoke("prompt_read", agent_id="a")
-            updated = await self.invoke("prompt_update", agent_id="a", system_prompt="new", expected_revision=read["revision"])
+            self.assertNotIn("prompt_update", self.tools.registry.names())
+            updated = await agents.aupdate_prompt("a", "new", expected_revision=read["revision"])
             self.assertEqual(updated["applies_to"], "subsequent_runs")
             self.assertEqual((await agents.aload("a"))["policies"], original["policies"])
             with self.assertRaises(ValueError):
-                await self.invoke("prompt_update", agent_id="a", system_prompt="stale", expected_revision=read["revision"])
+                await agents.aupdate_prompt("a", "stale", expected_revision=read["revision"])
         with self.assertRaises(RuntimeError):
             await self.invoke("prompt_read", agent_id="a")
 

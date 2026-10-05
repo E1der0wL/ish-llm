@@ -54,9 +54,9 @@ class BuiltinTools:
         patterns = {"type": "array", "items": string(minLength=1), "minItems": 1}
         filters = {"include": patterns, "exclude": patterns}
         specs = {
-            "file_read": ("Read UTF-8 source or logs and the whole-file SHA-256. Use line ranges or tail_lines (mutually exclusive). expected_sha256 rejects a changed file.", schema({"path": path, "start_line": {"type": "integer", "minimum": 1}, "max_lines": {"type": "integer", "minimum": 1, "maximum": 5000}, "tail_lines": {"type": "integer", "minimum": 1}, "expected_sha256": digest}, ["path"])),
-            "file_list": ("List working directory entries without following links. include/exclude are pathlib relative-path glob patterns; excluded directories are not traversed.", schema({"path": path, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 1000}, **filters}, ["recursive"])),
-            "file_search": ("Find literal text in UTF-8 sources or logs, with line numbers, file hashes and optional surrounding lines. include/exclude use pathlib globs. offset skips matches; paging rescans current files, so restart after edits.", schema({"path": path, "query": string(minLength=1), "case_sensitive": {"type": "boolean"}, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 500}, "offset": {"type": "integer", "minimum": 0}, "context_lines": {"type": "integer", "minimum": 0}, **filters}, ["query", "case_sensitive", "recursive"])),
+            "file_read": ("Read UTF-8 source or logs and the whole-file SHA-256. Use line ranges or tail_lines (mutually exclusive). expected_sha256 rejects a changed file.", schema({"path": path, "start_line": {"type": "integer", "minimum": 1}, "max_lines": {"type": "integer", "minimum": 1}, "tail_lines": {"type": "integer", "minimum": 1}, "expected_sha256": digest}, ["path"])),
+            "file_list": ("List working directory entries without following links. include/exclude are pathlib relative-path glob patterns; excluded directories are not traversed.", schema({"path": path, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1}, **filters}, ["recursive"])),
+            "file_search": ("Find literal text in UTF-8 sources or logs, with line numbers, file hashes and optional surrounding lines. include/exclude use pathlib globs. offset skips matches; paging rescans current files, so restart after edits.", schema({"path": path, "query": string(minLength=1), "case_sensitive": {"type": "boolean"}, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1}, "offset": {"type": "integer", "minimum": 0}, "context_lines": {"type": "integer", "minimum": 0}, **filters}, ["query", "case_sensitive", "recursive"])),
             "file_create": ("Create a new UTF-8 file; never overwrite an existing file.", schema({"path": path, "content": string()}, ["path", "content"])),
             "file_patch": ("Replace exactly one matching text after checking the file version.", schema({"path": path, "expected_sha256": digest, "old_text": string(minLength=1), "new_text": string()}, ["path", "expected_sha256", "old_text", "new_text"])),
             "file_move": ("Move a version-checked file without overwriting the destination.", schema({"path": path, "destination": path, "expected_sha256": digest}, ["path", "destination", "expected_sha256"])),
@@ -125,7 +125,7 @@ class BuiltinTools:
             self._register("git_diff", "Read a Git diff without external diff/textconv programs.", schema({"staged": {"type": "boolean"}}), diff)
 
         adapter_specs = {
-            "web_search": schema({"query": string(minLength=1), "limit": {"type": "integer", "minimum": 1, "maximum": 20}}, ["query"]),
+            "web_search": schema({"query": string(minLength=1), "limit": {"type": "integer", "minimum": 1}}, ["query"]),
             "web_fetch": schema({"url": string(pattern="^https?://")}, ["url"]),
             "browser_open": schema({"url": string(pattern="^https?://")}, ["url"]),
             "browser_snapshot": schema({"session_id": string()}, ["session_id"]),
@@ -135,7 +135,6 @@ class BuiltinTools:
             "external_rag_search": schema({"corpus": string(), "query": string(minLength=1), "options": {"type": "object"}}, ["corpus", "query"]),
             "external_graphrag_search": schema({"corpus": string(), "query": string(minLength=1), "options": {"type": "object"}}, ["corpus", "query"]),
             "context_expand": schema({"reference": string(), "scope": {"enum": ["chunk", "section", "topic", "document"]}}, ["reference", "scope"]),
-            "harness_propose_update": schema({"harness_id": string(), "changes": {"type": "object"}, "reason": string()}, ["harness_id", "changes", "reason"]),
         }
         for name, handler in (adapters or {}).items():
             if name in ("rag_search", "graphrag_search"):
@@ -158,14 +157,10 @@ class BuiltinTools:
         self.registry.register(Tool(name, description, parameters, guarded))
 
     def bind_prompts(self, agents) -> None:
-        """Agent 핸들에 프롬프트 조회/변경 Tool을 연결한다. 모델·권한 설정은 수정하지 않는다."""
+        """조회만 공개한다. 영속 지침 변경은 별도의 Refinement 승인 경계를 사용한다."""
         async def read(args):
             return await agents.aprompt(args["agent_id"])
-        async def update(args):
-            return await agents.aupdate_prompt(args["agent_id"], args["system_prompt"], expected_revision=args["expected_revision"])
         self._register("prompt_read", "Read a saved Agent prompt and revision.", schema({"agent_id": string()}, ["agent_id"]), read)
-        self._register("prompt_update", "Update only a saved Agent system prompt after a revision check.",
-                       schema({"agent_id": string(), "system_prompt": {"type": ["string", "null"]}, "expected_revision": string()}, ["agent_id", "system_prompt", "expected_revision"]), update)
 
     async def close(self):
         if not self.closed:

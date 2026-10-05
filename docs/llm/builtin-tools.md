@@ -29,8 +29,8 @@ enabled가 없으면 builtin Tool을 노출하지 않는다. toolkit.registry.na
 | checks에 명령 등록 | check_run, test_run |
 | git=True | git_status, git_diff |
 | diagnostics=True | system_inspect, process_list, process_inspect |
-| bind_prompts(AgentData) | prompt_read, prompt_update |
-| 해당 어댑터 제공 | web_search, web_fetch, browser_open, browser_snapshot, browser_act, kernel_execute, kernel_reset, external_rag_search, external_graphrag_search, context_expand, harness_propose_update |
+| bind_prompts(AgentData) | prompt_read |
+| 해당 어댑터 제공 | web_search, web_fetch, browser_open, browser_snapshot, browser_act, kernel_execute, kernel_reset, external_rag_search, external_graphrag_search, context_expand |
 
 Project에서 선택한 SkillComponent는 skill_list/skill_read를 별도로 제공한다.
 내장 rag_search 및 Memory Tool도 각 Component가 제공하며 외부 검색 어댑터와 다르다.
@@ -110,7 +110,7 @@ UI 포커스·과거 trace가 아니다. ish 입력 라우팅을 증명하려면
 bind_prompts(agents)는 Agent의 system_prompt를 읽고 revision 확인 후 수정한다.
 PromptComponent 레코드 CRUD가 아니다. 먼저 bind한 뒤 Component enabled를 저장한다.
 변경은 후속 실행에 반영되며 이미 시작한 Run 스냅샷은 바꾸지 않는다.
-harness_propose_update는 changes/reason의 어댑터 전달 접점이며 별도 하네스 런타임이 아니다.
+영속 프롬프트/지침의 모델 변경은 Refinement 제안·승인·CAS 경로를 사용한다. 기존 harness_propose_update 어댑터와 prompt_update Tool은 제공하지 않는다. 신뢰한 host는 AgentData.update_prompt를 직접 사용할 수 있다.
 
 ## 실행 경계·검증
 
