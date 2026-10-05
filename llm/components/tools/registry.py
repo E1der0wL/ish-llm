@@ -90,11 +90,17 @@ class ToolRegistry:
                     contracts[name]["execution_binding"] = deepcopy(binding)
         return contracts
 
-    def definitions(self) -> list[dict[str, Any]]:
-        return [deepcopy(tool.definition) if tool.definition is not None else {"type": "function", "function": {
+    def definitions(self, *, constraints=None) -> list[dict[str, Any]]:
+        from .constraints import constrained_parameters
+        definitions = [deepcopy(tool.definition) if tool.definition is not None else {"type": "function", "function": {
             "name": tool.name, "description": tool.description,
             "parameters": deepcopy(tool.parameters),
         }} for tool in self._tools.values()]
+        for definition in definitions:
+            function = definition["function"]
+            function["parameters"] = constrained_parameters(function["parameters"],
+                (constraints or {}).get(function["name"], {}))
+        return definitions
 
     def names(self) -> tuple[str, ...]:
         return tuple(self._tools)
@@ -120,7 +126,7 @@ class ToolRegistry:
         for tool in other._tools.values():
             self.register(tool)
 
-    def prepare(self, name: str, arguments: str) -> tuple[Tool, dict[str, Any]]:
+    def prepare(self, name: str, arguments: str, *, constraints=None) -> tuple[Tool, dict[str, Any]]:
         """Validate before executing any tool in a returned batch."""
         try:
             tool = self._tools[name]
@@ -130,7 +136,8 @@ class ToolRegistry:
             if not isinstance(values, dict):
                 raise ValueError("Expected argument object")
             json.dumps(values, allow_nan=False)
-            Draft202012Validator(tool.parameters).validate(values)
+            from .constraints import constrained_arguments
+            values = constrained_arguments(tool.parameters, values, (constraints or {}).get(name, {}))
         except Exception:
             raise ValueError("Unknown tool or invalid tool arguments") from None
         return tool, values

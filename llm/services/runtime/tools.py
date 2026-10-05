@@ -105,8 +105,12 @@ class ToolPolicy:
     _explicit_retry: frozenset = field(init=False, repr=False, compare=False)
     revision: str = "1"
     auto_approve_categories: tuple[str, ...] = ()
+    argument_constraints: dict = field(default_factory=dict)
 
     def __post_init__(self):
+        from llm.components.tools.constraints import validate_constraints
+        validate_constraints(self.argument_constraints)
+        object.__setattr__(self, "argument_constraints", deepcopy(self.argument_constraints))
         explicit = frozenset(k for k in ("max_retries", "retry_delay") if getattr(self, k) is not UNSET)
         object.__setattr__(self, "_explicit_retry", explicit)
         for key in ("max_retries", "retry_delay"):
@@ -136,7 +140,11 @@ class ToolExecutionScope:
     """한 Run의 Graph 분기·Agent가 공유하는 호출 예산. asyncio 루프에서만 접근한다."""
 
     def __init__(self, policy: ToolPolicy, *, operations=None, parent=None):
-        self.policy = policy
+        # 외부 dict 편집으로 실행 중 승인/제약의 사본이 바뀌지 않게 한다.
+        from llm.components.tools.constraints import narrow_constraints
+        constraints = (deepcopy(policy.argument_constraints) if parent is None else
+                       narrow_constraints(parent.policy.argument_constraints, policy.argument_constraints))
+        self.policy = replace(policy, argument_constraints=constraints)
         self.calls = 0
         self.operations = operations
         self.parent = parent
@@ -170,7 +178,8 @@ class ToolExecutionScope:
                 "max_calls": self.policy.max_calls, "approval": root.policy.authorize is not None,
                 "isolated_runner": root.policy.runner is not None,
                 "operation_key": root.policy.operation_key is not None,
-                "retry_safe_tools": list(self.policy.retry_safe_tools), "max_retries": self.policy.max_retries}
+                "retry_safe_tools": list(self.policy.retry_safe_tools), "max_retries": self.policy.max_retries,
+                "argument_constraints": deepcopy(self.policy.argument_constraints)}
 
     def restore(self, records):
         if records:
@@ -179,15 +188,18 @@ class ToolExecutionScope:
             self.pending_approvals = list(latest.get("pending_approvals", []))
             self.revision = latest.get("revision", 0)
 
-    def child(self, *, allowed_tools, max_calls=None):
+    def child(self, *, allowed_tools, max_calls=None, argument_constraints=None):
         """Agent 한도를 추가하되 부모의 승인, 실행기, 원장과 예산을 유지한다."""
         return ToolExecutionScope(replace(self.policy, allowed_tools=tuple(allowed_tools),
-                                         max_calls=max_calls, authorize=None),
+                                         max_calls=max_calls, authorize=None,
+                                         argument_constraints={} if argument_constraints is None else argument_constraints),
                                   operations=self.operations, parent=self)
 
     def validate(self, tool):
         """모델/효과 호출 전에 호스트 실행 계약을 검사한다."""
         self.require_active()
+        from llm.components.tools.constraints import constrained_parameters
+        constrained_parameters(tool.parameters, self.policy.argument_constraints.get(tool.name, {}))
         contract = tool.contract
         if contract is None:
             return
@@ -284,6 +296,10 @@ class ToolExecutor:
 
         if durable_approval:
             action = interaction.get("action", {})
+            scope = getattr(context, "tool_scope", None)
+            if scope is not None and not same_interaction_value(
+                    action.get("policy", {}).get("argument_constraints", {}), scope.policy.argument_constraints):
+                raise ToolInvocationError("Durable Tool approval argument constraints changed")
             if (request_key not in decisions or type(stored_decision) is not bool
                     or type(decision) is not bool or decision != stored_decision
                     or binding.get("key") != request_key
@@ -434,6 +450,10 @@ class ToolExecutor:
                       request_key=None):
         """논리 호출 계측은 이 경계 하나에 둔다. 재개 여부는 기존 승인 예약에서 읽는다."""
         from contextlib import aclosing
+        from llm.components.tools.constraints import constrained_arguments
+        scope = getattr(context, "tool_scope", None)
+        arguments = constrained_arguments(tool.parameters, arguments,
+            scope.policy.argument_constraints.get(tool.name, {}) if scope is not None else {})
         decision, resumed = self._request_state(tool, arguments, context, decision, request_key)
         if not resumed:
             record("tools", "requests", name=tool.name)

@@ -216,7 +216,7 @@ class LoopEngine(BaseEngine):
             url = urlsplit(request["api_base"])
             if (url.scheme not in ("http", "https") or not url.hostname):
                 raise ValueError("api_base must be an HTTP URL")
-        definitions = context.tools.definitions()
+        definitions = context.tools.definitions(constraints=context.tool_scope.policy.argument_constraints if context.tool_scope else None)
         if definitions:
             request["tools"] = definitions
             if getattr(self, "_require_tool", False) and not context.tool_scope.completed:
@@ -388,6 +388,7 @@ class LoopEngine(BaseEngine):
                 # Validate the whole batch before any tool can have side effects.
                 prepared = [context.tools.prepare(
                     call["function"]["name"], call["function"]["arguments"],
+                    constraints=context.tool_scope.policy.argument_constraints if context.tool_scope else None,
                 ) for call in calls]
 
             if not saved:
@@ -401,7 +402,8 @@ class LoopEngine(BaseEngine):
                 # after_completion 검증 실패를 성공한 회차로 저장하지 않는다.
             else:
                 calls = response.get("tool_calls", [])
-                prepared = [context.tools.prepare(c["function"]["name"], c["function"]["arguments"]) for c in calls]
+                prepared = [context.tools.prepare(c["function"]["name"], c["function"]["arguments"],
+                    constraints=context.tool_scope.policy.argument_constraints if context.tool_scope else None) for c in calls]
             observation = CompletionObservation(iteration, prepared_request, response,
                                                 [m.value for m in messages])
             if not saved:
