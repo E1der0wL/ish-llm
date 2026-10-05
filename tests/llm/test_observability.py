@@ -204,6 +204,16 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(value['recent']), 256)
         self.assertNotIn('private-secret', json.dumps(value))
 
+    def test_extension_codes_and_labels_are_not_silently_folded_or_truncated(self):
+        observer = Observability()
+        name = "host-extension-" * 20
+        for i in range(140):
+            observer.record("tools", "failed", name=name, code="extension_" + "x" * 100 + str(i))
+        value = observer.snapshot()
+        self.assertEqual(len(value["failures_by_code"]), 140)
+        self.assertNotIn("other", value["failures_by_code"])
+        self.assertEqual(value["recent"][-1]["name"], name)
+
 
 class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
     def context(self, *, records=None, decisions=None, scope=None):

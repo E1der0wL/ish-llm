@@ -51,7 +51,7 @@ def current_process_cancellation():
     return _cancellation.get()
 
 
-async def kill_process_tree(process, *, timeout_seconds=5):
+async def kill_process_tree(process, *, timeout_seconds=None):
     """새 세션으로 시작한 그룹을 종료한다. setsid로 이탈한 자식은 sandbox가 필요하다."""
     try:
         os.killpg(process.pid, signal.SIGKILL)

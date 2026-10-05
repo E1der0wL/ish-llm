@@ -60,9 +60,8 @@ class InteractionRepository:
         for original in requests:
             request, visited = original, set()
             while True:
-                # 손상된 영속 renewal 참조를 따라 무한 파일 읽기/메모리 증가를
-                # 만들지 않는 traversal safety ceiling이다. 자동 승인 기준이 아니다.
-                if request.id in visited or len(visited) >= 128:
+                # 순환은 무결성 오류다. 정상 체인의 길이를 제품 숫자로 제한하지 않는다.
+                if request.id in visited:
                     raise ValueError("Invalid interaction renewal chain")
                 visited.add(request.id)
                 data = self.envelope(run, request)

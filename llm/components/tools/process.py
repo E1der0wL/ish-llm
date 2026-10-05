@@ -180,7 +180,8 @@ async def _invoke_worker(request):
             drains = [asyncio.create_task(discard(s)) for s in (process.stdout, process.stderr)]
             try:
                 await kill_process_tree(process)
-                await asyncio.wait_for(asyncio.gather(*drains), 5)
+                # 그룹 종료 후 EOF를 회수한다. host가 지정하지 않은 cleanup 기한은 만들지 않는다.
+                await asyncio.gather(*drains)
             finally:
                 for task in drains:
                     task.cancel()

@@ -50,12 +50,12 @@ class Observability:
             if kind not in _statuses or status not in _statuses[kind]:
                 return
             event = {"time": datetime.now(timezone.utc).isoformat(), "kind": kind, "status": status}
-            if isinstance(code, str) and re.fullmatch(r"[a-z][a-z0-9_]{0,95}", code):
+            if isinstance(code, str) and re.fullmatch(r"[a-z][a-z0-9_]*", code):
                 event["code"] = code
             for key in _fields:
                 value = fields.get(key)
                 if isinstance(value, str):
-                    event[key] = value[:128]
+                    event[key] = value
             duration = duration_seconds
             if type(duration) in (float, int) and math.isfinite(duration) and duration >= 0:
                 event["duration_seconds"] = duration
@@ -68,9 +68,7 @@ class Observability:
                 if kind == "workers" and status == "failed" and code == "tool_worker_protocol":
                     self._counts[kind]["protocol_failed"] += 1
                 if status == "failed" and "code" in event:
-                    # 오류 코드가 확장마다 무한히 달라져도 관찰 메모리는 유한하다.
-                    key = code if code in self._failures or len(self._failures) < 128 else "other"
-                    self._failures[key] += 1
+                    self._failures[code] += 1
                 if "duration_seconds" in event:
                     aggregate = self._latency.setdefault(kind, {"count": 0, "total_seconds": 0., "max_seconds": 0.})
                     aggregate["count"] += 1

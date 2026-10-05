@@ -125,6 +125,17 @@ class DecisionValueTests(unittest.TestCase):
 
 
 class DecisionRepositoryTests(unittest.TestCase):
+    def test_renewal_has_no_product_chain_limit_but_rejects_cycles(self):
+        repository = InteractionRepository()
+        requests = [approval_request("Review").bind("loop", "key") for _ in range(140)]
+        envelopes = {request.id: {"replacement": requests[i + 1].to_dict()}
+                     for i, request in enumerate(requests[:-1])}
+        with patch.object(repository, "envelope", side_effect=lambda run, request: envelopes.get(request.id, {})):
+            self.assertEqual(repository.effective(None, [requests[0]]), [requests[-1]])
+            envelopes[requests[-1].id] = {"replacement": requests[0].to_dict()}
+            with self.assertRaisesRegex(ValueError, "renewal chain"):
+                repository.effective(None, [requests[0]])
+
     def test_missing_denial_and_confirmation_empty_remain_distinct(self):
         repository = InteractionRepository()
         request = approval_request("Tool").bind("loop", "key")

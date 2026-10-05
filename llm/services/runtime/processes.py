@@ -147,7 +147,7 @@ class ProcessToolRunner:
                 drains = [asyncio.create_task(discard(stream)) for stream in (process.stdout, process.stderr)]
                 try:
                     await kill_process_tree(process)
-                    await asyncio.wait_for(asyncio.gather(*drains), 5)
+                    await asyncio.gather(*drains)
                 finally:
                     for drain in drains:
                         drain.cancel()
