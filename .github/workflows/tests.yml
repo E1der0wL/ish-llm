@@ -1,0 +1,43 @@
+name: Linux backend contracts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    env:
+      LITELLM_LOCAL_MODEL_COST_MAP: "True"
+      LITELLM_MODE: "PRODUCTION"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12.14"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install test dependencies (not the plugin)
+        run: |
+          python - <<'PY'
+          import subprocess, sys, tomllib
+          from pathlib import Path
+          project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
+          dependencies = project["dependencies"] + project["optional-dependencies"]["rag"]
+          subprocess.check_call([sys.executable, "-m", "pip", "install", *dependencies])
+          PY
+      - name: Core runtime and architecture boundaries
+        run: >-
+          python -m unittest -v
+          tests.llm.test_persistence tests.llm.test_runtime
+          tests.llm.test_runtime_reliability tests.llm.test_graph_engine
+          tests.llm.test_nested_graph tests.llm.test_graph_agent_contract
+          tests.llm.test_tool_constraints tests.llm.test_architecture_boundaries
+          tests.llm.test_refinement tests.llm.test_completion_processing
+          tests.llm.test_interaction_decisions tests.llm.test_observability
+          tests.llm.test_error_boundaries
