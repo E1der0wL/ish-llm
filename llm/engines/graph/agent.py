@@ -13,6 +13,7 @@ from llm.components.agents import AgentComponent
 from llm.components.base import Component
 from llm.components.tools import Tool, ToolRegistry
 from llm.core.models import new_id
+from llm.services.infrastructure.storage import revision_token
 from llm.core.results import EngineOutput
 from llm.services.runtime.tools import ToolExecutionScope, ToolPolicy
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities, steering_mode
@@ -87,6 +88,8 @@ class AgentNode:
         resources = profile.get("resources", {})
         skills = {name: deepcopy(self._record(context.capabilities, "skills", name)[1])
                   for name in resources.get("skills", [])}
+        prompt = (deepcopy(self._record(context.capabilities, "prompts", resources["prompt"])[1])
+                  if resources.get("prompt") else None)
         mcp = {}
         for server, aliases in resources.get("mcp", {}).items():
             source, definition = self._record(context.capabilities, "mcp", server)
@@ -104,13 +107,16 @@ class AgentNode:
         aliases = [alias for server in mcp.values() for alias in server["aliases"]]
         if len(set(aliases)) != len(aliases) or set(aliases) & set(names):
             raise ValueError("Agent MCP Tool aliases must be unique")
-        return tools, {"skills": skills, "mcp": mcp, "rag": bool(resources.get("rag"))}
+        return tools, {"skills": skills, "skill_revisions": {name: revision_token(value) for name, value in skills.items()},
+                       "prompt": prompt, "prompt_revision": revision_token(prompt) if prompt is not None else None,
+                       "mcp": mcp, "rag": bool(resources.get("rag"))}
 
     def additional_capabilities(self, definition, capabilities):
         profile = self._profile(definition, capabilities)
         resources = profile.get("resources", {})
         return tuple(dict.fromkeys((*required_capabilities(self._engine(profile)),
-                     *(name for name in ("skills", "mcp", "rag") if resources.get(name)))))
+                     *(name for name in ("skills", "mcp", "rag") if resources.get(name)),
+                     *(("prompts",) if resources.get("prompt") else ()))))
 
     def graph_engine(self, definition, capabilities):
         """Graph 사전 탐색에 하위 실행 정의를 선언한다. 실행은 하지 않는다."""
@@ -179,11 +185,16 @@ class AgentNode:
                         tools.register(Tool(alias, tool.description, tool.parameters, tool.handler, contract=tool.contract))
                 engine = self._engine(profile)
                 graph_engine = isinstance(engine, GraphEngine)
-                if not graph_engine and resources["skills"]:
+                if not graph_engine and (resources["skills"] or resources["prompt"]):
                     # purpose는 업무 설명이며 미설정 system_prompt의 대체값이 아니다.
                     # 선택한 Skill만 상속된 명시 프롬프트에 결합한다.
                     prompt = binding["configuration"].get("values", {}).get("config", {}).get("system_prompt", profile.get("system_prompt"))
-                    parts = [prompt] if prompt else []
+                    # 순서: 참조 Prompt → 명시 inline/상속 prompt → 선택 Skill.
+                    # Prompt의 역할 라벨은 지침 데이터이며 실제 Tool 권한을 만들지 않는다.
+                    parts = ([f"{m['role']}: {m['content']}" for m in resources["prompt"]["messages"]]
+                             if resources["prompt"] else [])
+                    if prompt:
+                        parts.append(prompt)
                     parts.extend(f"Skill {name}:\n{skill['instructions']}" for name, skill in resources["skills"].items())
                     prompt = "\n\n".join(parts)
                     engine = self._engine({**profile, "system_prompt": prompt})

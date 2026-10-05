@@ -28,6 +28,7 @@ class AgentComponent(DefinitionComponent):
             "tools": {"type": "array", "uniqueItems": True,
                       "items": {"type": "string", "minLength": 1}},
             "resources": {"type": "object", "properties": {
+                "prompt": {"type": "string", "minLength": 1},
                 "skills": {"type": "array", "uniqueItems": True,
                            "items": {"type": "string", "minLength": 1}},
                 # 현재 RAG는 Project 단위 corpus다. 문서 ID 필터로 해석하지 않는다.

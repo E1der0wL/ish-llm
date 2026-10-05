@@ -27,6 +27,15 @@ await agents.acreate({
 
 `completion`은 모델 옵션, `tools`는 허용 Tool 이름, `resources`는 Skill/RAG/MCP 연결입니다. `policy`로 require_tool/max_tool_calls/timeout_seconds를 명시할 수 있습니다. JSON 결과 검증에는 output_format과 output_schema를 사용합니다.
 
+`resources.prompt="saved-prompt-id"`로 선택한 Prompt를 참조할 수 있습니다.
+모델 실행 Agent의 조합 순서는 **참조 Prompt → 명시 inline/상속 system_prompt → resources.skills 순서**입니다.
+Prompt messages의 role은 지침 안의 라벨로 보존합니다. purpose는 업무 메타데이터이며
+자동 시스템 프롬프트 대체값이 아닙니다. host의 고정 system_prompt는 기존 우선순위를 유지합니다.
+Graph를 실행하는 조율 Agent는 하위 Agent의 지침을 덮어쓰지 않습니다.
+Prompt·Skill의 JSON 확장 필드는 Tool/MCP/RAG 권한이나 Engine 설정으로 해석하지 않습니다.
+Run의 capability 사본과 Agent Step binding에 정의와 revision을 기록합니다.
+실행 중 저장소 수정은 다음 Run에만 반영되며, 바뀐 정의로 과거 checkpoint를 재개하지 않습니다.
+
 저장 위치는 `<project>/agents/records/<id>.json`입니다. 레코드를 저장한다고 실행되지는 않습니다. Workflow 노드에서 Agent ID를 참조하고 [AgentNode](../../engines/graph/README.md)가 등록된 Engine을 실행합니다. 중첩 Graph도 같은 소유 Run 안에서 실행됩니다.
 
 Agent의 Tool 허용 목록은 Run의 ToolPolicy나 승인 검사를 우회하지 않습니다. 정의·리소스 변경은 재개 binding에 영향을 줄 수 있습니다. [Agent 상세 계약](../../../docs/llm/agents.md)을 참고하세요.

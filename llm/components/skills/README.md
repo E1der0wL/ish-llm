@@ -8,6 +8,7 @@
 | --- | --- |
 | [__init__.py](__init__.py) | SkillComponent 공개 import입니다. |
 | [component.py](component.py) | 정의 schema와 skills/tools capability를 선언합니다. |
+| [data.py](data.py) | 생성 시 lineage 검증, lineage 불변성, 현재 Agent 영향 조회입니다. |
 | [tools.py](tools.py) | Run 스냅샷의 요약 목록·본문을 조회하는 skill_list/skill_read를 제공합니다. |
 
 ## 사용 예
@@ -22,6 +23,12 @@ await skills.acreate({
 ```
 
 저장 위치는 `<project>/skills/records/<id>.json`입니다. Agent의 `resources.skills`에 ID를 나열해 연결합니다. 소비하는 Engine/Agent가 지침을 적용하며, 저장만으로 모든 모델 호출에 자동 주입되지 않습니다.
+
+`await skills.aimpact(id)`는 현재 Agent 정의에서 해당 Skill을 참조하는 ID/revision을 계산합니다.
+별도 역참조 인덱스는 없습니다. FORK는 `lineage={"parent": id, "parent_revision": hash}`를
+저장하며 생성 시 부모 버전을 검사합니다. lineage는 생성 후 바꾸지 않고 부모 업데이트를
+자식에 자동 전파하지 않습니다. 모델 기반 UPDATE/CREATE/FORK는 [Refinement](../refinement/README.md)를 사용합니다.
+새 Skill 생성과 Agent 연결은 서로 다른 승인 대상입니다.
 
 ## LLM이 지침을 선택하는 경로
 

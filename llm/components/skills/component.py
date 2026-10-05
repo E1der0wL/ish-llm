@@ -1,6 +1,7 @@
 """재사용할 작업 지침과 참고 리소스 정의를 저장한다. 지침을 자동 실행하지 않는다."""
 
 from llm.components.definitions import DefinitionComponent
+from .data import SkillData
 
 
 class SkillComponent(DefinitionComponent):
@@ -9,6 +10,7 @@ class SkillComponent(DefinitionComponent):
     name = "skills"
     directory = "skills"
     capabilities = ("skills", "tools")
+    data_class = SkillData
     schema = {
         "type": "object", "required": ["instructions"],
         "properties": {
@@ -17,6 +19,10 @@ class SkillComponent(DefinitionComponent):
             "title": {"type": "string"},
             "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
             "resources": {"type": "array", "items": {"type": "object"}},
+            "lineage": {"type": "object", "required": ["parent", "parent_revision"],
+                        "properties": {"parent": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"},
+                                       "parent_revision": {"type": "string", "pattern": "^[a-f0-9]{64}$"}},
+                        "additionalProperties": False},
         },
     }
 

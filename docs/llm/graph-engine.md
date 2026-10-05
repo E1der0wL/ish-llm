@@ -78,8 +78,8 @@ Project의 `rag_search`를 자동 추가한다. Skill 지침을 프롬프트에 
 연결한 어댑터가 제공한 Tool만 사용한다. 리소스 참조는 실제 실행 전 검증한다.
 
 Loop의 `engine_options`는 max_iterations/request_timeout/tool_timeout/buffer_size/
-max_tool_calls/max_argument_chars/max_output_chars를 받는다. 기본값은
-8/60/60/8/16/65536/1000000이며 등록 엔진의 설정, Agent 설정 순서로 덮어쓴다.
+max_tool_calls/max_argument_chars/max_output_chars를 config/policy 외형으로 받는다.
+Project → Session → Agent → host의 명시된 값만 적용한다. 미설정 실행 한도나 timeout을 생성하지 않는다.
 max_tool_calls는 한 모델 응답의 Tool 개수 제한이고 policy.max_tool_calls는 Agent 전체
 호출 예산이다. 부모 Run의 한도와 권한은 항상 함께 적용한다. require_tool을 만족하지
 못하거나 입력/출력 schema 검증이 실패하면 Agent/Graph Run이 실패하며 자동 재시도하지 않는다.
