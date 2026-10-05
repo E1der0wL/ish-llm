@@ -67,7 +67,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
     async def test_skill_prompt_agent_apply_rollback_and_no_implicit_mutation(self):
         for component, changes in (("skills", {"instructions": "After"}),
             ("prompts", {"messages": [{"role": "system", "content": "After"}]}),
-            ("agents", {"purpose": "After", "system_prompt": "Check evidence"})):
+            ("agents", {"purpose": "After", "description": "Check evidence"})):
             with self.subTest(component=component):
                 identifier, data, original = await self.proposal(component, changes)
                 self.assertEqual(await self.refine.atarget_snapshot(data["target"]), original)
@@ -216,6 +216,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("refinement_apply", tool_names)
 
     async def test_goal_compaction_error_refinement_and_followup_run(self):
+        await self.refine.aconfigure({"policy": {"proposal_operations": ["update"]}})
         goals = self.project.components.goals
         await goals.acreate(goal(), identifier="work")
         read_call = [chunk(calls=[call('{"identifier":"guide"}', name="skill_read")], finish="tool_calls")]

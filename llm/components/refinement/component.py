@@ -11,6 +11,15 @@ TARGET = object_schema({"component": field("string", enum=["skills", "prompts", 
 EVIDENCE = object_schema({"session_id": IDENTIFIER, "run_id": IDENTIFIER, "step_id": IDENTIFIER,
     "tool_call_id": field("string", minLength=1), "error_code": field("string", minLength=1),
     "note": field("string", minLength=1)}, required=["session_id", "run_id"], additionalProperties=False)
+PARENT = object_schema({"identifier": IDENTIFIER, "version": field("string", pattern="^[a-f0-9]{64}$")},
+    required=["identifier", "version"], additionalProperties=False)
+EVALUATION = object_schema({
+    "evaluator": field("string", minLength=1), "baseline_version": field(["string", "null"]),
+    "candidate_version": field("string", pattern="^[a-f0-9]{64}$"), "results": object_schema(),
+    "regressions": {"type": "array"}, "improvements": {"type": "array"},
+    "evidence": {"type": "array", "items": EVIDENCE}},
+    required=["evaluator", "baseline_version", "candidate_version", "results", "regressions", "improvements"],
+    additionalProperties=False)
 
 
 class RefinementComponent(DefinitionComponent):
@@ -18,7 +27,8 @@ class RefinementComponent(DefinitionComponent):
     capabilities = ("refinement", "tools")
     data_class = RefinementData
     schema = object_schema({
-        "target": TARGET, "operation": {"const": "update"}, "expected_version": field("string", minLength=1),
+        "target": TARGET, "operation": {"enum": ["update", "create", "fork", "bind_skills"]},
+        "expected_version": field(["string", "null"], minLength=1), "parent": PARENT,
         "reason": field("string", minLength=1),
         "evidence": {"type": "array", "minItems": 1, "items": EVIDENCE},
         "patch": object_schema(minProperties=1),
@@ -28,7 +38,9 @@ class RefinementComponent(DefinitionComponent):
 
     def configuration_schema(self):
         return implementation_schema(config=object_schema(additionalProperties=False),
-            policy=object_schema({"apply_tools": field("boolean")}, additionalProperties=False))
+            policy=object_schema({"apply_tools": field("boolean"), "require_evaluation": field("boolean"),
+                "proposal_operations": {"type": "array", "uniqueItems": True,
+                    "items": {"enum": ["update", "create", "fork", "bind_skills"]}}}, additionalProperties=False))
 
     def clone(self, source, destination):
         # 제안은 원본 Project의 실행/버전/승인에 묶여 있다. 새 Project에서 재승인으로 위장하지 않는다.
@@ -37,7 +49,9 @@ class RefinementComponent(DefinitionComponent):
     def history_references(self, project):
         records = self.list(project).values()
         return {"message_ids": [], "session_ids": [], "run_ids": sorted({ref["run_id"]
-            for record in records for ref in [*record["evidence"], record.get("source", {})] if "run_id" in ref})}
+            for record in records for ref in [*record["evidence"], record.get("source", {}),
+                *(ref for evaluation in record.get("evaluations", []) for ref in evaluation.get("evidence", [])),
+                *(evaluation.get("source", {}) for evaluation in record.get("evaluations", []))] if "run_id" in ref})}
 
     def resolve(self, project, capability):
         raise ValueError("Refinement capabilities require a lifecycle-bound component data factory")
@@ -48,5 +62,7 @@ class RefinementComponent(DefinitionComponent):
             return data
         if capability == "tools":
             from .tools import refinement_tools
-            return refinement_tools(data, apply=self.configuration(project).get("policy", {}).get("apply_tools") is True)
+            policy = self.configuration(project).get("policy", {})
+            return refinement_tools(data, apply=policy.get("apply_tools") is True,
+                                    operations=policy.get("proposal_operations", ()))
         return super().resolve_runtime(project, capability, data_factory=data_factory)

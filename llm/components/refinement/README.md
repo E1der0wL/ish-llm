@@ -5,12 +5,12 @@ Run을 다시 실행하지 않습니다. 분석은 일반 Loop/Agent/Workflow Ru
 모델 호출과 Tool 사용은 기존 Run/Step에 남습니다. 자동 background 모델 호출은 없습니다.
 
 ```text
-Run/Step 원본 조회 → 모델 분석 → proposal → validation → approval → apply
+Run/Step 원본 조회 → 모델 분석 → proposal → structural validation → evaluation → approval → apply
 ```
 
 대상은 같은 Project에서 선택한 skills/prompts/agents/memory의 **저장된 레코드 한 개**입니다.
 Engine 생성자 system prompt, Runtime 코드, Tool/승인 정책은 대상이 아닙니다.
-Agent에서는 purpose/system_prompt/description만 변경할 수 있습니다. Skill resource 설명은
+Agent의 일반 update에서는 purpose/description만 변경할 수 있습니다. Skill resource 설명은
 실행 권한을 부여하지 않습니다. 각 patch는 최상위 키 교체이며 일반 JSON Patch 문법이 아닙니다.
 
 ## UI / Python API
@@ -48,8 +48,10 @@ Project/Component 전체 영구 삭제는 기존 수명 관리 API의 명시적 
 
 ## 모델 Tool과 승인
 
-선택 시 `refinement_target`, `refinement_evidence`, `refinement_read`,
-`refinement_propose`를 제공합니다. evidence Tool은 현재 Session의 Run과 선택한 Step의
+선택 시 `refinement_target`, `refinement_evidence`, `refinement_read`를 제공합니다.
+`policy.proposal_operations=["update"]` 등을 명시하면 그 연산만 받는 `refinement_propose`를
+추가합니다. update/create/fork/bind_skills를 선택할 수 있으며 제품 프리셋 이름은 없습니다.
+evidence Tool은 현재 Session의 Run과 선택한 Step의
 원본 사본을 반환합니다. Step ID는 기존 실행 조회 API/UI에서 얻어 전달할 수 있습니다.
 proposal 생성 Tool의 source에는 분석 Run/Step ID가 자동으로 기록됩니다. 사용 모델은
 그 Run의 Completion 기록에서 확인합니다. 별도 trajectory 저장소는 만들지 않습니다.
@@ -70,7 +72,7 @@ analysis_run = await handle.wait()
 실제 적용 Tool이 필요하면 다음을 명시합니다.
 
 ```python
-await refine.aconfigure({"policy": {"apply_tools": True}})
+await refine.aconfigure({"policy": {"proposal_operations": ["update"], "apply_tools": True}})
 ```
 
 이 경우 `refinement_apply`, `refinement_rollback`을 추가합니다. 둘 다
@@ -111,3 +113,55 @@ Memory 적용은 **새 candidate**를 만들며 before의 확정 기억은 바�
 
 분석 품질은 모델·근거·지침에 달려 있습니다. JSON 검증은 개선의 의미적 정확성을 보장하지 않습니다.
 첫 버전은 명시적 refinement만 제공하며 자동 on-finish 실행, 복수 대상 원자 변경, 외부 효과 재실행은 하지 않습니다.
+
+## Skill 생성·분기와 별도 바인딩
+
+`operation="create"`는 새 Skill의 전체 정의를 patch로 받고 `expected_version=None`을
+요구합니다. 대상 ID가 이미 있으면 거부합니다. `fork`는 아래처럼 부모 ID/버전을 추가합니다.
+부모 정의에 patch를 적용하고 코드가 lineage를 생성합니다. 모델은 lineage를 직접 쓰지 않습니다.
+
+```python
+parent = await project.components.skills.asnapshot("review-guide")
+proposal_id = await refine.acreate({
+    "operation": "fork", "target": {"component": "skills", "identifier": "review-python"},
+    "expected_version": None,
+    "parent": {"identifier": "review-guide", "version": parent["version"]},
+    "patch": {"instructions": "Python 작업에서는 기존 테스트와 변경 동작을 함께 검사하세요."},
+    "reason": "실행 근거에서 별도 Python 지침이 필요함을 확인했다.",
+    "evidence": [{"session_id": session.id, "run_id": prior_run.id}],
+})
+```
+
+적용 전 부모 변경, 대상 ID 충돌, 잘못된 정의는 실패합니다. 부모의 후속 변경은 자식에
+전파하지 않습니다. 새 Skill은 Agent에 자동 연결되지 않습니다. 별도 `bind_skills` 제안은
+Agent target/expected_version과 `patch={"skills": ["review-python"]}`를 받습니다.
+이는 resources.skills만 교체하며 Tool/Engine/Policy/Prompt/RAG/MCP는 그대로 유지합니다.
+제안 때 선택 Skill들의 버전을 고정하고 적용 때 다시 확인합니다. 빈 목록은 연결 해제입니다.
+생성된 Skill의 rollback은 현재 Agent 참조가 없어야 하며, 그 외 rollback도 적용 후 CAS를 지킵니다.
+NO-OP은 분석 결과이며 저장을 변경하는 proposal operation이 아닙니다.
+
+## 평가와 승인
+
+`validate`는 구조와 참조/CAS만 검증합니다. 의미적 개선 여부는 앱이 선택한 테스트,
+validator, Tool 또는 LLM judge가 판단합니다. Backend는 evaluator를 자동 선택/호출하지 않습니다.
+
+```python
+view = await refine.asnapshot(proposal_id)
+validation = await refine.avalidate(proposal_id)
+evaluated = await refine.arecord_evaluation(proposal_id, {
+    "evaluator": "application/test-suite-v1",
+    "baseline_version": validation["baseline_version"],  # create: None, fork: 부모 버전
+    "candidate_version": validation["candidate_version"],
+    "results": {"passed": True},   # 호출자가 실행한 검사 결과
+    "regressions": [], "improvements": ["누락된 검증 추가"],
+    "evidence": [{"session_id": session.id, "run_id": evaluation_run.id}],
+}, expected_version=view["version"])
+```
+
+평가는 immutable proposal에 append되며 대상은 바뀌지 않습니다. fork의 baseline은 부모 정의이며 부모 버전은
+proposal.parent.version에 보존됩니다. evidence Run/Step 참조는 보관 보호에 포함됩니다.
+`policy.require_evaluation=True`이면 평가 기록 없이 승인·적용할 수 없습니다. 점수 임계값,
+자동 합격/승인, 평가 결과에 따른 자동 UPDATE/CREATE/FORK는 없습니다. 평가 결과의 신뢰는
+호출한 host/evaluator의 책임입니다. 모델에 평가/approve 위조 Tool을 제공하지 않습니다.
+Tool apply는 기존 approval_required/ToolPolicy/Interaction 경계를 사용하고, trusted Python
+approve/apply는 UI·host API로 유지합니다. 구조 검사 통과가 승인이나 평가 통과를 의미하지 않습니다.

@@ -11,12 +11,12 @@ from llm.services.infrastructure.storage import async_method, revision_token, ch
 # Refine은 작업 지침을 개선한다. Agent 권한/엔진/실행 정책을 수정하는 경로가 아니다.
 EDITABLE = {"skills": {"instructions", "description", "title", "tags", "resources"},
             "prompts": {"messages", "description"},
-            "agents": {"purpose", "system_prompt", "description"},
+            "agents": {"purpose", "description"},
             "memory": {"content", "kind", "tags"}}
 
 
 class RefinementData(ComponentData):
-    def _target(self, target):
+    def _target(self, target, *, absent=False):
         from .component import TARGET
         from jsonschema import Draft202012Validator
         if not Draft202012Validator(TARGET).is_valid(target):
@@ -25,8 +25,47 @@ class RefinementData(ComponentData):
             raise ValueError("Only scoped Memory targets accept session_id")
         handle = self.related(target["component"])
         kwargs = {"session_id": target["session_id"]} if "session_id" in target else {}
+        if absent:
+            try:
+                handle.load(target["identifier"], **kwargs)
+            except FileNotFoundError:
+                return handle, {}, kwargs
+            raise FileExistsError("Refinement creation target already exists")
         value = handle.load(target["identifier"], **kwargs)
         return handle, value, kwargs
+
+    def _baseline(self, proposal):
+        operation = proposal["operation"]
+        creating = operation in ("create", "fork")
+        handle, current, kwargs = self._target(proposal["target"], absent=creating)
+        if creating:
+            if proposal["target"]["component"] != "skills" or proposal["expected_version"] is not None:
+                raise ValueError("Skill creation requires an absent target and expected_version=null")
+        else:
+            if not proposal["expected_version"]:
+                raise ValueError("expected_version is required")
+            check_revision(current, proposal["expected_version"])
+        if operation == "fork":
+            parent = proposal.get("parent")
+            from .component import PARENT
+            from jsonschema import Draft202012Validator
+            if not Draft202012Validator(PARENT).is_valid(parent):
+                raise ValueError("Fork requires parent identifier and version")
+            current = handle.load(parent["identifier"])
+            check_revision(current, parent["version"])
+        elif "parent" in proposal:
+            raise ValueError("Only a fork accepts parent")
+        return handle, current, kwargs
+
+    def _bindings(self, skills):
+        if not isinstance(skills, list) or any(not isinstance(s, str) for s in skills) or len(set(skills)) != len(skills):
+            raise ValueError("Skill binding requires unique Skill IDs")
+        handle = self.related("skills")
+        return {key: handle.snapshot(key)["version"] for key in skills}
+
+    def _require_evaluation(self, proposal):
+        if self.configuration().get("policy", {}).get("require_evaluation") is True and not proposal.get("evaluations"):
+            raise ValueError("Proposal requires evaluation before approval")
 
     def _proposal(self, identifier, expected_version, statuses):
         if expected_version is None:
@@ -56,9 +95,23 @@ class RefinementData(ComponentData):
 
     def _replacement(self, proposal, current):
         target, patch = proposal["target"], proposal["patch"]
+        if proposal["operation"] == "bind_skills":
+            if target["component"] != "agents" or set(patch) != {"skills"}:
+                raise ValueError("Binding may change only Agent resources.skills")
+            versions = self._bindings(patch["skills"])
+            if proposal.get("skill_versions", versions) != versions:
+                raise ValueError("Bound Skill changed; create a new binding proposal")
+            result = deepcopy(current)
+            result.setdefault("resources", {})["skills"] = deepcopy(patch["skills"])
+            if result == current:
+                raise ValueError("Binding does not change the target")
+            self.registry.get("agents").validate_record(target["identifier"], result)
+            return result
         if not isinstance(patch, dict) or not patch or set(patch) - EDITABLE[target["component"]]:
             raise ValueError("Refinement patch contains unsupported or authority-changing fields")
         result = {**deepcopy(current), **deepcopy(patch)}
+        if proposal["operation"] == "fork":
+            result["lineage"] = {"parent": proposal["parent"]["identifier"], "parent_revision": proposal["parent"]["version"]}
         if result == current:
             raise ValueError("Refinement patch does not change the target")
         if target["component"] == "memory":
@@ -94,7 +147,7 @@ class RefinementData(ComponentData):
         """ToolExecutor의 승인 이후에만 Tool adapter가 사용한다. 별도 승인 엔진은 없다."""
         value = self._proposal(identifier, expected_version, {"proposed", "approved"})
         if value["status"] == "proposed":
-            expected_version = self._commit(identifier, value, "approved", source=source)["version"]
+            expected_version = self.approve(identifier, expected_version=expected_version, source=source)["version"]
         return self.apply(identifier, expected_version=expected_version, source=source)
 
     # 공개 API: 제안 입력은 immutable. 변경하려면 새 제안을 만든다.
@@ -105,15 +158,17 @@ class RefinementData(ComponentData):
 
     @workspace_locked
     def create(self, data, *, identifier=None, source=None):
-        allowed = {"target", "operation", "expected_version", "reason", "evidence", "patch", "metadata"}
-        if not isinstance(data, dict) or set(data) - allowed or data.get("operation") != "update":
-            raise ValueError("Create requires an update proposal, not lifecycle fields")
-        if not data.get("expected_version"):
-            raise ValueError("expected_version is required")
-        _, before, _ = self._target(data.get("target"))
-        check_revision(before, data["expected_version"])
+        allowed = {"target", "operation", "expected_version", "reason", "evidence", "patch", "metadata", "parent"}
+        required = {"target", "operation", "expected_version", "reason", "evidence", "patch"}
+        if (not isinstance(data, dict) or set(data) - allowed or not required <= data.keys()
+                or data.get("operation") not in ("update", "create", "fork", "bind_skills")
+                or not isinstance(data["patch"], dict)):
+            raise ValueError("Create requires a resource proposal, not lifecycle fields")
+        _, before, _ = self._baseline(data)
         self._validate_evidence(data.get("evidence"))
         value = {**deepcopy(data), "before": before, "status": "proposed", "source": self._source(source), "history": []}
+        if value["operation"] == "bind_skills":
+            value["skill_versions"] = self._bindings(value["patch"].get("skills"))
         self._replacement(value, before)
         value["history"].append({"status": "proposed", "at": datetime.now(timezone.utc).isoformat(), "source": value["source"]})
         return super().create(value, identifier=identifier)
@@ -130,16 +185,37 @@ class RefinementData(ComponentData):
     @workspace_locked
     def validate(self, identifier):
         value = self.load(identifier)
-        _, current, _ = self._target(value["target"])
-        check_revision(current, value["expected_version"])
+        _, current, _ = self._baseline(value)
         self._validate_evidence(value["evidence"])
-        self._replacement(value, current)
-        return {"valid": True, "target_version": revision_token(current)}
+        candidate = self._replacement(value, current)
+        return {"valid": True, "target_version": value["expected_version"],
+                "baseline_version": revision_token(current) if current else None,
+                "candidate_version": revision_token(candidate)}
+
+    @workspace_locked
+    def record_evaluation(self, identifier, evaluation, *, expected_version, source=None):
+        """신뢰한 평가자가 결과를 기록한다. 평가 기준/모델/합격 판정은 호출자가 소유한다."""
+        value = self._proposal(identifier, expected_version, {"proposed"})
+        validation = self.validate(identifier)
+        from .component import EVALUATION
+        from jsonschema import Draft202012Validator
+        if not Draft202012Validator(EVALUATION).is_valid(evaluation):
+            raise ValueError("Invalid refinement evaluation")
+        if evaluation["baseline_version"] != validation["baseline_version"] or evaluation["candidate_version"] != validation["candidate_version"]:
+            raise ValueError("Evaluation versions do not match this proposal")
+        if evaluation.get("evidence"):
+            self._validate_evidence(evaluation["evidence"])
+        updated = deepcopy(value)
+        updated.setdefault("evaluations", []).append({**deepcopy(evaluation), "source": self._source(source),
+                                                     "at": datetime.now(timezone.utc).isoformat()})
+        ComponentData.save(self, identifier, updated, expected_version=expected_version)
+        return self.snapshot(identifier)
 
     @workspace_locked
     def approve(self, identifier, *, expected_version, source=None):
         value = self._proposal(identifier, expected_version, {"proposed"})
         self.validate(identifier)
+        self._require_evaluation(value)
         return self._commit(identifier, value, "approved", source=self._source(source))
 
     @workspace_locked
@@ -159,11 +235,14 @@ class RefinementData(ComponentData):
     def apply(self, identifier, *, expected_version, source=None):
         value = self._proposal(identifier, expected_version, {"approved"})
         self.validate(identifier)
-        handle, current, kwargs = self._target(value["target"])
+        self._require_evaluation(value)
+        handle, current, kwargs = self._baseline(value)
         replacement = self._replacement(value, current)
         source = {**self._source(source), "kind": "refinement", "proposal_id": identifier}
         component, target_id = value["target"]["component"], value["target"]["identifier"]
-        if component == "memory":
+        if value["operation"] in ("create", "fork"):
+            applied_id = handle.create(replacement, identifier=target_id)
+        elif component == "memory":
             # 보존된 원본 revision은 기존 review/consolidation에서 다시 검사한다.
             candidate = {key: deepcopy(replacement[key]) for key in ("content", "kind", "tags", "scope")}
             if "session_id" in replacement:
@@ -195,7 +274,11 @@ class RefinementData(ComponentData):
         current = handle.load(applied["identifier"], **kwargs)
         check_revision(current, applied["version"])
         source = {**self._source(source), "kind": "refinement_rollback", "proposal_id": identifier}
-        if target["component"] == "memory":
+        if value["operation"] in ("create", "fork"):
+            if handle.impact(applied["identifier"]):
+                raise ValueError("Unbind referencing Agents before rolling back a created Skill")
+            handle.delete(applied["identifier"], expected_version=applied["version"])
+        elif target["component"] == "memory":
             handle.delete(applied["identifier"], expected_revision=current["revision"], source=source, **kwargs)
         elif target["component"] == "agents":
             handle.revise(target["identifier"], value["before"], expected_revision=applied["version"])
@@ -209,6 +292,7 @@ class RefinementData(ComponentData):
     aupdate = async_method(update)
     adelete = async_method(delete)
     avalidate = async_method(validate)
+    arecord_evaluation = async_method(record_evaluation)
     aapprove = async_method(approve)
     areject = async_method(reject)
     afail = async_method(fail)
