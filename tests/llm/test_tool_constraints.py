@@ -42,7 +42,7 @@ class ConstraintSchemaTests(unittest.TestCase):
         policy = ToolPolicy(argument_constraints={"rag_search": FIELDS})
         constraints = policy.argument_constraints
         effective = self.registry.definitions(constraints=constraints)[0]["function"]["parameters"]
-        for values in ({"query": "q"}, {"query": "q", "max_hops": 2},
+        for values in ({"query": "q", "limit": 5, "method": "hybrid"}, {"query": "q", "limit": 5, "method": "hybrid", "max_hops": 2},
                        {"query": "q", "limit": 1, "method": "hybrid"},
                        {"query": "q", "limit": 20, "method": "vector"}):
             _, result = self.registry.prepare("rag_search", json.dumps(values), constraints=constraints)
@@ -51,9 +51,19 @@ class ConstraintSchemaTests(unittest.TestCase):
         for values in ({"max_hops": 3}, {"limit": 21}, {"limit": 0}, {"limit": True},
                        {"method": "bm25"}, {"mode": "fixed"}, {"limit": None}):
             with self.subTest(values=values), self.assertRaises(ValueError):
-                self.registry.prepare("rag_search", json.dumps({"query": "q", **values}), constraints=constraints)
+                self.registry.prepare("rag_search", json.dumps({"query": "q", "limit": 5, "method": "hybrid", **values}), constraints=constraints)
+        for omitted in ("limit", "method"):
+            values = {"query": "q", "limit": 5, "method": "hybrid"}
+            del values[omitted]
+            with self.assertRaises(ValueError):
+                self.registry.prepare("rag_search", json.dumps(values), constraints=constraints)
         self.assertEqual(before, self.registry.definitions())
         self.registry.prepare("rag_search", '{"query":"q","limit":1000000000}')
+        with_default = deepcopy(SCHEMA)
+        with_default["properties"]["limit"]["default"] = 1000
+        guarded = constrained_parameters(with_default, {"limit": FIELDS["limit"]})
+        self.assertIn("limit", guarded["required"])
+        self.assertFalse(Draft202012Validator(guarded).is_valid({"query": "q"}))
 
     def test_original_refs_and_bounds_remain_the_upper_contract(self):
         schema = {"type": "object", "$defs": {"value": {"type": "integer", "minimum": 3, "maximum": 9}},
@@ -106,12 +116,12 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
         tool = Tool("rag_search", "test", SCHEMA, handler)
         context = self.context(ToolPolicy(authorize=authorize, argument_constraints={"rag_search": FIELDS}))
         with self.assertRaises(ValidationError):
-            await self.execute(tool, {"query": "q", "max_hops": 3}, context)
+            await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid", "max_hops": 3}, context)
         handler.assert_not_awaited()
         authorize.assert_not_awaited()
-        await self.execute(tool, {"query": "q"}, context)
-        self.assertEqual(handler.await_args.args[0], {"query": "q", "max_hops": 2})
-        self.assertEqual(authorize.await_args.args[0].arguments, {"query": "q", "max_hops": 2})
+        await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, context)
+        self.assertEqual(handler.await_args.args[0], {"query": "q", "limit": 5, "method": "hybrid", "max_hops": 2})
+        self.assertEqual(authorize.await_args.args[0].arguments, {"query": "q", "limit": 5, "method": "hybrid", "max_hops": 2})
 
     async def test_durable_approval_binding_rejects_changed_constraints(self):
         async def ask(call):
@@ -120,15 +130,15 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
         tool = Tool("rag_search", "test", SCHEMA, handler)
         policy = ToolPolicy(authorize=ask, argument_constraints={"rag_search": FIELDS})
         with self.assertRaises(ToolApprovalRequired) as pending:
-            await self.execute(tool, {"query": "q"}, self.context(policy), request_key="tool-1")
+            await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, self.context(policy), request_key="tool-1")
         saved = {"records": {"tool-1": {"status": "waiting", "interaction": pending.exception.request.bind("custom", "tool-1").to_dict()}}}
         changed = deepcopy(FIELDS)
         changed["limit"]["maximum"] = 10  # supplied arguments still valid; binding itself must reject.
         with self.assertRaisesRegex(ToolInvocationError, "constraints changed"):
-            await self.execute(tool, {"query": "q"}, self.context(ToolPolicy(authorize=ask,
+            await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, self.context(ToolPolicy(authorize=ask,
                 argument_constraints={"rag_search": changed}), checkpoint=saved, decisions={"tool-1": True}), request_key="tool-1")
         handler.assert_not_awaited()
-        await self.execute(tool, {"query": "q"}, self.context(policy, checkpoint=saved,
+        await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, self.context(policy, checkpoint=saved,
             decisions={"tool-1": True}), request_key="tool-1")
         handler.assert_awaited_once()
 
@@ -139,7 +149,7 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
         memory = SimpleNamespace(project=SimpleNamespace(id="p"), history_reader=None,
                                  asearch=AsyncMock(return_value=[]))
         for registry, name, fields, args, invalid in (
-            (search_tools(rag), "rag_search", FIELDS, {"query": "q"}, {"query": "q", "method": "bm25"}),
+            (search_tools(rag), "rag_search", FIELDS, {"query": "q", "limit": 5, "method": "hybrid"}, {"query": "q", "limit": 5, "method": "bm25"}),
             (memory_tools(memory), "memory_search", {"status": {"mode": "fixed", "value": "confirmed"}},
              {"query": "q"}, {"query": "q", "status": "all"})):
             with self.subTest(name=name):
@@ -163,7 +173,7 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             handler = AsyncMock(return_value="found")
             registry = ToolRegistry([Tool("rag_search", "test", SCHEMA, handler)])
-            model = ScriptedCompletion([chunk(calls=[call('{"query":"q"}', name="rag_search")], finish="tool_calls")],
+            model = ScriptedCompletion([chunk(calls=[call('{"query":"q","limit":5,"method":"hybrid"}', name="rag_search")], finish="tool_calls")],
                                        [chunk("done", finish="stop")])
             async with LargeLanguageModel(root, components=[RuntimeTools(registry)],
                     engines={"loop": LoopEngine(completion_fn=model, completion_kwargs={"model": "test"})},
@@ -175,7 +185,7 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(str(run.data.status), "completed", run.data.error)
                 schema = model.requests[0]["tools"][0]["function"]["parameters"]
                 Draft202012Validator(schema).validate(handler.await_args.args[0])
-                self.assertFalse(Draft202012Validator(schema).is_valid({"query": "q", "max_hops": 9}))
+                self.assertFalse(Draft202012Validator(schema).is_valid({"query": "q", "limit": 5, "method": "hybrid", "max_hops": 9}))
 
 
 class GraphConstraintTests(unittest.IsolatedAsyncioTestCase):
@@ -185,7 +195,7 @@ class GraphConstraintTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_graph_tool_node_uses_host_constraints(self):
         self.tools = ToolRegistry([Tool("effect", "test", SCHEMA, AsyncMock(return_value="found"))])
-        await self.setup({"main": nested.action_graph("tool", tool="effect", arguments={"query": "q"})},
+        await self.setup({"main": nested.action_graph("tool", tool="effect", arguments={"query": "q", "limit": 5, "method": "hybrid"})},
                          handlers={"tool": ToolNode()}, services=ServiceConfig(tool_policy=ToolPolicy(argument_constraints={"effect": FIELDS})))
         run = await self.request()
         self.assertEqual(str(run.data.status), "completed", run.data.error)
@@ -196,7 +206,7 @@ class GraphConstraintTests(unittest.IsolatedAsyncioTestCase):
             raise ToolApprovalRequired()
         handler = AsyncMock(return_value="found")
         self.tools = ToolRegistry([Tool("effect", "test", SCHEMA, handler)])
-        await self.setup({"main": nested.action_graph("tool", tool="effect", arguments={"query": "q"})},
+        await self.setup({"main": nested.action_graph("tool", tool="effect", arguments={"query": "q", "limit": 5, "method": "hybrid"})},
             handlers={"tool": ToolNode()}, services=ServiceConfig(tool_policy=ToolPolicy(
                 authorize=ask, argument_constraints={"effect": FIELDS})))
         paused = await self.request()

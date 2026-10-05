@@ -89,6 +89,10 @@ def constrained_parameters(schema: dict, fields: dict) -> dict:
                 validator.evolve(schema=original).validate(value)
         # allOf keeps enum, exclusive bounds, $ref, conditional and type constraints intact.
         result["properties"][name] = {"allOf": [deepcopy(original), rule_schema(rule)]}
+        # Omission must not escape to a handler/component's unconstrained default.
+        # Only fixed owns an explicit replacement value; other modes require input.
+        if rule["mode"] != "fixed" and name not in result.get("required", []):
+            result.setdefault("required", []).append(name)
     return result
 
 
