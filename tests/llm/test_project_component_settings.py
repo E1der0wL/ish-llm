@@ -119,7 +119,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         view = await project.aconfiguration()
         original = (project.paths.root / "project.json").read_bytes()
         settings = ProjectConfig(view["project"]["config"])
-        settings.parameters.setdefault("components", {}).update({"memory": {'config': {'search_limit': 4}}, "rag": {'config': {'chunk_size': 2}}})
+        settings.parameters.setdefault("components", {}).update({"memory": {'config': {'search_limit': 4}}, "rag": {'config': {'chunk_size': 0}}})
         with self.assertRaises(ValueError):
             await project.asave(config=settings)
         self.assertEqual((project.paths.root / "project.json").read_bytes(), original)

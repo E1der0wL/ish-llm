@@ -14,7 +14,7 @@ from llm.errors import CodedError
 def provider_schema():
     from llm.core.schema import object_schema, field
     return object_schema({
-        "max_attempts": field("integer", minimum=1, maximum=10),
+        "max_attempts": field("integer", minimum=1),
         "wall_timeout": field(["number", "null"], exclusiveMinimum=0),
         "delay_seconds": field("number", minimum=0),
         "max_delay_seconds": field("number", minimum=0),

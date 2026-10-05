@@ -114,8 +114,8 @@ class RAGData(ComponentData):
             raise ValueError("rerank must be boolean")
         if method not in ("bm25", "vector", "hybrid") or expand not in ("chunk", "section", "document"):
             raise ValueError("Invalid search method or expansion")
-        if type(limit) is not int or not 1 <= limit <= 100:
-            raise ValueError("limit must be between 1 and 100")
+        if type(limit) is not int or limit < 1:
+            raise ValueError("limit must be a positive integer")
         vector = None
         if snapshot["documents"] and method != "bm25":
             await self._async_call(self.require_model_observation, component.embedding)
@@ -241,16 +241,16 @@ class RAGData(ComponentData):
     async def asearch(self, query: str, *, method=None, expand=None, limit=None, rerank=None,
                       max_hops=None, relation_limit=None) -> dict:
         """문서와 해당 문단에 근거한 관계·출처를 한 세대에서 반환한다."""
-        for value, maximum in ((max_hops, 5), (relation_limit, 1000)):
-            if value is not None and (type(value) is not int or not 1 <= value <= maximum):
+        for value in (max_hops, relation_limit):
+            if value is not None and (type(value) is not int or value < 1):
                 raise ValueError("Invalid graph search limit")
         snapshot, hits = await self._retrieve(query, method=method, expand=expand, limit=limit, rerank=rerank)
         max_hops = required_setting(snapshot["search_options"], "max_hops", scope="rag.search") if max_hops is None else max_hops
         relation_limit = required_setting(snapshot["search_options"], "relation_limit", scope="rag.search") if relation_limit is None else relation_limit
-        if type(max_hops) is not int or not 1 <= max_hops <= 5:
-            raise ValueError("max_hops must be between 1 and 5")
-        if type(relation_limit) is not int or not 1 <= relation_limit <= 1000:
-            raise ValueError("relation_limit must be between 1 and 1000")
+        if type(max_hops) is not int or max_hops < 1:
+            raise ValueError("max_hops must be a positive integer")
+        if type(relation_limit) is not int or relation_limit < 1:
+            raise ValueError("relation_limit must be a positive integer")
         return await self._async_call(self._combined, snapshot, query, hits,
                                      {"max_hops": max_hops, "relation_limit": relation_limit})
 
@@ -262,10 +262,10 @@ class RAGData(ComponentData):
         project, component = self._current()
         max_hops = required_setting(component.search_options, "max_hops", scope="rag.search") if max_hops is None else max_hops
         limit = required_setting(component.search_options, "relation_limit", scope="rag.search") if limit is None else limit
-        if type(max_hops) is not int or not 1 <= max_hops <= 5:
-            raise ValueError("max_hops must be between 1 and 5")
-        if type(limit) is not int or not 1 <= limit <= 1000:
-            raise ValueError("limit must be between 1 and 1000")
+        if type(max_hops) is not int or max_hops < 1:
+            raise ValueError("max_hops must be a positive integer")
+        if type(limit) is not int or limit < 1:
+            raise ValueError("limit must be a positive integer")
         return component.graph_search(project, seed=seed, max_hops=max_hops, limit=limit)
 
     agraph_search = async_method(graph_search)

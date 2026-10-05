@@ -66,7 +66,7 @@ sources = result["sources"]
 
 method는 `hybrid`(BM25와 Chroma 순위 결합), `bm25`, `vector`다. score는 확률이 아니다.
 expand는 `chunk`, `section`(하위 절 포함), `document`다. limit는 문서 문단 수(1~100),
-relation_limit는 전체 관계 수(1~1000), max_hops는 탐색 깊이(1~5)를 제한한다.
+relation_limit는 전체 관계 수, max_hops는 탐색 깊이를 양의 정수로 명시한다. 임의의 제품 상한은 적용하지 않는다.
 RerankModel을 `reranker=`로 주입하면 `rerank=True`로 후보를 재정렬할 수 있다.
 
 **실제로 검색된 문단 ID**에 근거가 있는 관계를 첫 단계로 가져오고, 그 양 끝 엔티티의

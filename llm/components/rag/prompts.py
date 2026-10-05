@@ -1,4 +1,4 @@
-"""RAG 추출 기본 지침. 사용자 프롬프트로 교체해도 검증 계약은 유지한다."""
+"""추출 프로토콜과 명시적으로 선택할 수 있는 예제 프롬프트. 예제는 자동 적용하지 않는다."""
 
 import json
 
@@ -20,9 +20,7 @@ source_id MUST equal a supplied chunk id. evidence MUST be a nonempty contiguous
 verbatim substring of that chunk's text: preserve punctuation, case and whitespace.
 Never translate, paraphrase, concatenate, or invent evidence. A quote must support
 the relationship, not merely mention the entities. If unsupported, omit the relation.
-Resolve pronouns semantically in entity names, but keep evidence literal. For example,
-"It stores artifacts in Harbor." can refer to Atlas; never rewrite "It" to "Atlas"
-inside the evidence. Python will canonicalize IDs, type casing and duplicate facts.
+Keep evidence literal. Python will canonicalize IDs, type casing and duplicate facts.
 Prefer the supplied relation types with the same meaning and direction. Use a concise
 new type only when none fits. Use consistent entity names and avoid duplicate facts.
 metadata is an optional JSON object. Do not generate weight, document_id or extracted_at;

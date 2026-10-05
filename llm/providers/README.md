@@ -96,7 +96,7 @@ and restores results to that position. Embedding concurrency is bounded by confi
 index 정규화, partial-cache merge_positions 복원, embedding 배치 분할은 제거했다.
 여러 후보를 재정렬하는 **reranker의 results[*].index 검증은 그대로 유지**한다.
 
-RAG의 embedding_concurrency는 1–32이며 문서 등록 시 명시해야 한다. 고정 개수의 asyncio worker가
+RAG의 embedding_concurrency는 양의 정수이며 문서 등록 시 명시해야 한다. 고정 개수의 asyncio worker가
 단일 청크 요청을 처리하며 백엔드 ProviderCalls의 더 작은 제한도 존중한다.
 VectorCache, 동일 텍스트 중복 제거, unchanged reuse, Job 청크 checkpoint는 유지한다.
 

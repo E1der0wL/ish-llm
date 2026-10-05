@@ -162,8 +162,8 @@ class RAGComponent(DefinitionComponent):
                                       if key in ("model", "api_key", "api_base", "timeout", "num_retries")},
                                      **{"x-open-parameters": True})
         return self.settings_layout.schema(object_schema({
-            "chunk_size": field("integer", minimum=64),
-            "embedding_concurrency": field("integer", minimum=1, maximum=32),
+            "chunk_size": field("integer", minimum=1),
+            "embedding_concurrency": field("integer", minimum=1),
             "embedding_cache_max_bytes": field("integer", minimum=0),
             "extraction_batch_size": field("integer", minimum=1),
             "search_cache_chars": field("integer", minimum=0),
@@ -445,7 +445,8 @@ class RAGComponent(DefinitionComponent):
                 if snapshot["generation"] else None)
         if path is None:
             return {"seed": seed, "entities": [], "relations": [], **status}
-        return {**graph_search(path, seed, max_hops=max_hops, limit=limit, options=self.graph_options), **status}
+        return {**graph_search(path, seed, max_hops=max_hops, limit=limit, options=self.graph_options,
+                              ranking=self.search_options.get("relation_ranking")), **status}
 
     def combined_result(self, project, snapshot, query, hits, *, max_hops, relation_limit):
         """동일한 불변 세대에서 문서 검색 결과와 근거 관계를 묶는다."""
@@ -453,7 +454,8 @@ class RAGComponent(DefinitionComponent):
                 if snapshot["generation"] else None)
         graph = {"entities": [], "relations": []}
         if path is not None and hits:
-            graph = related_graph(path, [hit["id"] for hit in hits], max_hops=max_hops, limit=relation_limit, options=self.graph_options)
+            graph = related_graph(path, [hit["id"] for hit in hits], max_hops=max_hops, limit=relation_limit,
+                                  options=self.graph_options, ranking=self.search_options.get("relation_ranking"))
         sources = {}
         for hit in hits:
             sources[hit["id"]] = {key: hit[key] for key in (

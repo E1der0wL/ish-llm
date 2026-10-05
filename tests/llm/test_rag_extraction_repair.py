@@ -126,23 +126,23 @@ class ComponentExtractionTests(unittest.IsolatedAsyncioTestCase):
         result = await self.data.asearch("Atlas", method="bm25")
         self.assertEqual(len(result["relations"]), 2)
         for edge in result["relations"]:
-            self.assertEqual(edge["weight"], 2)
+            self.assertEqual(edge["support_count"], 2)
             self.assertEqual(edge["document_id"], "doc")
             self.assertEqual(edge["metadata"], {"topic": "storage"})
             self.assertIsNotNone(datetime.fromisoformat(edge["extracted_at"]).utcoffset())
         await self.add("other")
         result = await self.data.agraph_search("Atlas")
-        self.assertEqual({r["weight"] for r in result["relations"]}, {3})
+        self.assertEqual({r["support_count"] for r in result["relations"]}, {3})
         await self.data.aupdate_document("doc", content="Atlas uses Harbor.")
-        self.assertEqual({r["weight"] for r in (await self.data.agraph_search("Atlas"))["relations"]}, {2})
+        self.assertEqual({r["support_count"] for r in (await self.data.agraph_search("Atlas"))["relations"]}, {2})
         await self.data.adelete_document("other")
-        self.assertEqual({r["weight"] for r in (await self.data.agraph_search("Atlas"))["relations"]}, {1})
+        self.assertEqual({r["support_count"] for r in (await self.data.agraph_search("Atlas"))["relations"]}, {1})
         await self.app.shutdown()
         async with LargeLanguageModel(self.temp.name, components=[self.rag, PromptComponent()]) as app:
             data = await (await app.projects.aload(self.project.id)).components.aget("rag")
             edges = (await data.agraph_search("Atlas"))["relations"]
             self.assertEqual(len(edges), 1)
-            self.assertEqual(edges[0]["weight"], 1)
+            self.assertEqual(edges[0]["support_count"], 1)
 
     async def test_failed_repairs_preserve_published_document_and_record_usage(self):
         await self.add()

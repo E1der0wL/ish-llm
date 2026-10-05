@@ -8,8 +8,8 @@ def split_markdown(content: str, document_id: str, *, chunk_size: int) -> dict:
     """ATX 제목/문단을 분할한다. 코드 펜스 내부의 #는 제목으로 취급하지 않는다."""
     if not isinstance(content, str) or not content.strip():
         raise ValueError("Document content must be nonempty text")
-    if type(chunk_size) is not int or chunk_size < 64:
-        raise ValueError("chunk_size must be an integer >= 64")
+    if type(chunk_size) is not int or chunk_size < 1:
+        raise ValueError("chunk_size must be a positive integer")
     sections, chunks, stack, headings = {}, [], [], []
     offset, fence = 0, None
     for line in content.splitlines(keepends=True):

@@ -145,7 +145,7 @@ Step의 명시 기한은 provider 진행을 중단하지만 yield된 이벤트�
 
 ## RAG 설정
 
-문서 등록에는 `chunk_size`, `embedding_concurrency`(1–32), `extraction.failure_policy`가 필요하다. 추출을 활성화하면 `extraction_batch_size`도 필요하다. 모델은 주입하거나 `embedding_params`/`extraction_params`로 명시한다.
+문서 등록에는 `chunk_size`, `embedding_concurrency`(양의 정수), `extraction.failure_policy`가 필요하다. 추출을 활성화하면 `extraction_batch_size`도 필요하다. 모델은 주입하거나 `embedding_params`/`extraction_params`로 명시한다.
 
 검색에는 method/expand/limit, candidate_count/rrf_constant가 필요하다. 결합 검색에는 max_hops/relation_limit도 필요하다. 지원하는 호출 인자로 명시할 수도 있다. `rerank` 미설정은 재정렬 단계를 실행하지 않는다. 필요하면 reranker와 rerank=true를 명시한다.
 

@@ -13,10 +13,11 @@ def search_schema():
     return object_schema({
         "method": field("string", enum=["hybrid", "bm25", "vector"]),
         "expand": field("string", enum=["chunk", "section", "document"]),
-        "limit": field("integer", minimum=1, maximum=100),
+        "limit": field("integer", minimum=1),
         "rerank": field("boolean"),
-        "max_hops": field("integer", minimum=1, maximum=5),
-        "relation_limit": field("integer", minimum=1, maximum=1000),
+        "max_hops": field("integer", minimum=1),
+        "relation_limit": field("integer", minimum=1),
+        "relation_ranking": field("string", enum=["source", "support_count"]),
         "candidate_count": field("integer", minimum=1),
         "rrf_constant": field("integer", minimum=1)})
 

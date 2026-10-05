@@ -17,7 +17,7 @@ TripleExtractor의 검증·repair·graph schema version 1와 reranker index 계�
 3. RAG embedding ordering does not depend on provider-reported embedding indexes.
    Each document chunk is embedded independently. The application owns the chunk ordinal
    and restores results to that position. Embedding concurrency is bounded by configuration.
-4. embedding_concurrency 명시 필수, 정수 1–32. 고정 개수 asyncio worker가 text별 한 요청을 수행한다.
+4. embedding_concurrency 명시 필수, 정수 양의 정수. 고정 개수 asyncio worker가 text별 한 요청을 수행한다.
    문서의 청크 수만큼 Task를 만들지 않는다. ProviderCalls와 사용량 관찰도 그대로 통과한다.
 5. extract_single_embedding은 data list 길이 1과 유한·비영·nonempty·동일 차원을 검사한다.
    index는 읽지 않는다. query도 동일하다. 기존 corpus와 다른 청크 차원도 공개 전에 검사한다.

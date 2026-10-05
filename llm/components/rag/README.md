@@ -55,7 +55,7 @@ await rag.adelete_document("manual")
 
 | 키 | 미설정 동작 |
 |---|---|
-| config.chunk_size / policy.embedding_concurrency | 문서 등록 시 configuration error (concurrency 범위 1–32) |
+| config.chunk_size / policy.embedding_concurrency | 문서 등록 시 configuration error (concurrency 범위 양의 정수) |
 | policy.extraction.failure_policy / config.extraction_batch_size | 실패 정책은 명시; 추출을 켠 경우 batch_size도 명시 |
 | config.search: method/expand/limit/candidate_count/rrf_constant | 검색 전 명시; 결합 검색은 max_hops/relation_limit도 필요 |
 | config.embedding_cache_max_bytes / config.search_cache_chars | 캐시 비활성 |
@@ -121,6 +121,22 @@ embedding_seconds는 준비 단계 벽시계 시간이다. active/peak는 admiss
 실제 SDK 실행 동시성은 ProviderCalls 한도가 더 낮을 수 있다.
 
 ## 추출과 그래프 실패
+
+관계 검색은 `config.search.relation_ranking`을 지정하지 않으면 출처/ID의 안정 순서를
+사용합니다. `"source"`는 그 순서를 명시하고, `"support_count"`는 각 탐색 frontier 안에서
+근거 개수 내림차순을 선택합니다. 문서 hit 순서와 BFS 깊이의 계약은 유지합니다.
+전역 최적 경로/최대 신뢰 관계를 자동 선택하지 않습니다.
+
+반환 관계의 `support_count`는 동일 정규화 관계를 지지하는 서로 다른 문서/청크 쌍의
+개수이며 진실 확률이나 품질 점수가 아닙니다. 내부 graph JSON/Kuzu의 기존 `weight` 열은
+같은 정수 통계로 유지하므로 graph_schema_version=1과 저장 데이터는 변경하지 않습니다.
+응답에 옛 weight 별칭은 추가하지 않습니다. 정렬 설정 변경은 색인 내용을 바꾸지 않습니다.
+
+`method/expand/limit/candidate_count/rrf_constant/max_hops/relation_limit`는 호출자가
+명시합니다. backend가 검색 품질 임계값을 선택하지 않습니다. `RELATION_TYPES`와
+`default_prompt()`는 앱/예제가 명시적으로 선택하는 샘플이며 자동 적용하지 않습니다.
+의미 지침·few-shot·선호 ontology는 `config.extraction.prompt_id/relation_types`로 지정합니다.
+기계적인 JSON/엔티티 ID/evidence/출처 검증은 교체할 수 없는 backend 계약입니다.
 
 - `strict`: 항상 JSON mode 사용.
 - `auto`: 빈 응답/공급자 파싱 오류에만 JSON mode 없는 경로로 한 번 전환.

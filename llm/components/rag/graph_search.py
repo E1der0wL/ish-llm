@@ -4,7 +4,15 @@ from .graph_indexing import connection, rows
 import json
 
 
-def related_graph(path, source_ids: list, *, max_hops: int, limit: int, options=None) -> dict:
+def relation_order(strategy, *, source_column=True):
+    """미설정은 ID 기반 안정 순서다. 지지 개수 우선 정렬은 명시적으로만 선택한다."""
+    if strategy not in (None, "source", "support_count"):
+        raise ValueError("Unknown graph relation ranking")
+    prefix = "r.weight DESC," if strategy == "support_count" else ""
+    return " ORDER BY " + prefix + "r.document_id,r.source_id," + ("a.id," if source_column else "") + "b.id,r.kind,r.evidence"
+
+
+def related_graph(path, source_ids: list, *, max_hops: int, limit: int, options=None, ranking=None) -> dict:
     """검색된 문단에 근거가 있는 관계부터 시작한다. 전체 반환 개수와 깊이를 제한한다."""
     entities, edges, seen = {}, [], set()
     with connection(path, options=options) as conn:
@@ -19,7 +27,7 @@ def related_graph(path, source_ids: list, *, max_hops: int, limit: int, options=
                 entities[target] = {"id": target, "name": target_name}
                 edges.append({"source": source_name, "target": target_name, "type": kind,
                               "document_id": document_id, "source_id": source_id,
-                              "evidence": evidence, "hop": hop, "weight": weight,
+                              "evidence": evidence, "hop": hop, "support_count": weight,
                               "metadata": json.loads(metadata), "extracted_at": extracted_at})
                 frontier.extend((source, target))
                 if len(edges) == limit:
@@ -27,7 +35,7 @@ def related_graph(path, source_ids: list, *, max_hops: int, limit: int, options=
             return frontier
 
         columns = " RETURN a.id,a.name,r.kind,b.id,b.name,r.document_id,r.source_id,r.evidence,r.weight,r.metadata,r.extracted_at"
-        order = " ORDER BY r.weight DESC,r.document_id,r.source_id,a.id,b.id,r.kind,r.evidence"
+        order = relation_order(ranking)
         frontier = []
         # 문서 검색 순서를 유지하므로 낮은 순위 문단이 관계 예산을 먼저 쓰지 않는다.
         for source_id in dict.fromkeys(source_ids):
@@ -53,7 +61,7 @@ def related_graph(path, source_ids: list, *, max_hops: int, limit: int, options=
     return {"entities": list(entities.values()), "relations": edges}
 
 
-def graph_search(path, seed: str, *, max_hops: int, limit: int, options=None) -> dict:
+def graph_search(path, seed: str, *, max_hops: int, limit: int, options=None, ranking=None) -> dict:
     edges, entities, visited = [], {}, set()
     with connection(path, options=options) as conn:
         frontier = rows(conn, "MATCH (e:Entity) WHERE e.name=$name RETURN e.id,e.name", {"name": seed})
@@ -68,13 +76,13 @@ def graph_search(path, seed: str, *, max_hops: int, limit: int, options=None) ->
                 # LIMIT는 검증된 정수로만 삽입한다. 사용자 문자열은 바인딩한다.
                 found = rows(conn, "MATCH (a:Entity)-[r:Link]->(b:Entity) WHERE a.id=$id "
                     "RETURN r.kind,b.id,b.name,r.document_id,r.source_id,r.evidence,r.weight,r.metadata,r.extracted_at "
-                    "ORDER BY r.weight DESC,r.document_id,r.source_id,b.id,r.kind,r.evidence "
-                    f"LIMIT {limit - len(edges)}", {"id": identifier})
+                    + relation_order(ranking, source_column=False)
+                    + f" LIMIT {limit - len(edges)}", {"id": identifier})
                 for kind, target, target_name, document_id, source_id, evidence, weight, metadata, extracted_at in found:
                     entities[target] = {"id": target, "name": target_name}
                     edges.append({"source": name, "target": target_name, "type": kind,
                                   "document_id": document_id, "source_id": source_id,
-                                  "evidence": evidence, "hop": hop, "weight": weight,
+                                  "evidence": evidence, "hop": hop, "support_count": weight,
                                   "metadata": json.loads(metadata), "extracted_at": extracted_at})
                     following.append((target, target_name))
                 if len(edges) >= limit:

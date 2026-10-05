@@ -12,10 +12,10 @@ def search_tools(data) -> ToolRegistry:
             "query": {"type": "string", "minLength": 1},
             "method": {"type": "string", "enum": ["hybrid", "bm25", "vector"]},
             "expand": {"type": "string", "enum": ["chunk", "section", "document"]},
-            "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+            "limit": {"type": "integer", "minimum": 1},
             "rerank": {"type": "boolean"},
-            "max_hops": {"type": "integer", "minimum": 1, "maximum": 5},
-            "relation_limit": {"type": "integer", "minimum": 1, "maximum": 1000},
+            "max_hops": {"type": "integer", "minimum": 1},
+            "relation_limit": {"type": "integer", "minimum": 1},
         },
     }
 

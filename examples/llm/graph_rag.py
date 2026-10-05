@@ -260,7 +260,7 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
             relations = report["search"]["hybrid"]["relations"]
             if relations:
                 check("relation_provenance", all(r["document_id"] == "manual" and
-                      type(r["weight"]) is int and r["weight"] >= 1 and
+                      type(r["support_count"]) is int and r["support_count"] >= 1 and
                       isinstance(r["metadata"], dict) and r["extracted_at"] for r in relations))
             report["relations_observed"] = bool(relations)
             if require_relations or markdown is None and extraction.get("failure_policy", "required") == "required":

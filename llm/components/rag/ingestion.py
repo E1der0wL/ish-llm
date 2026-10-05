@@ -58,8 +58,8 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
     취소 시 worker를 모두 취소·회수한 뒤 반환하므로 미완료 세대는 공개되지 않는다.
     """
     concurrency = component.embedding_concurrency
-    if type(concurrency) is not int or not 1 <= concurrency <= 32:
-        raise ValueError("embedding_concurrency must be an integer from 1 to 32")
+    if type(concurrency) is not int or concurrency < 1:
+        raise ValueError("embedding_concurrency must be a positive integer")
     texts = [chunk["text"] for chunk in document["chunks"]]
     fingerprint = revision_token({"contract": "single-chunk-v1", "model": component._identity(),
         "params": getattr(component.embedding, "params", {}), "document_kwargs": component.document_kwargs,
