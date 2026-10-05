@@ -124,10 +124,9 @@ class AgentNode:
         return engine if isinstance(engine, GraphEngine) else None
 
     def graph_context(self, definition, context):
-        """하위 Workflow의 Tool 참조도 부모 Agent의 허용 목록으로 사전 검증한다."""
-        profile = self._profile(definition, context.capabilities)
-        tools, _ = self._resources(profile, context)
-        return replace(context, tools=tools)
+        """Graph 환경은 부모 Run 권한을 공유한다. wrapper Tool ceiling은 없다."""
+        self._engine(self._profile(definition, context.capabilities))
+        return context
 
     def checkpoint_engine(self, definition, context):
         """저장·재개 계약을 제공하는 자식만 조율 노드로 선언한다."""
@@ -142,28 +141,77 @@ class AgentNode:
     def binding(self, definition, context):
         """재개 검사와 Step에 런타임 핸들 없이 재현 가능한 정의를 남긴다."""
         profile = self._profile(definition, context.capabilities)
-        _, resources = self._resources(profile, context)
         engine = self._engine(profile)
         describe = getattr(engine, "configuration", None)
-        return {"agent_id": definition["agent"], "agent": profile,
+        binding = {"agent_id": definition["agent"], "agent": profile,
                 "agent_revision": AgentComponent.revision(profile), "engine": profile["engine"],
-                "handler_revision": self.revision, "resources": resources,
+                "handler_revision": self.revision,
                 "configuration": describe(context.project.config, profile["engine"], session_config=context.session.config)
                                  if describe else {"runtime_only": True}}
+        if isinstance(engine, GraphEngine):
+            binding["workflow_id"] = engine.workflow
+        else:
+            binding["resources"] = self._resources(profile, context)[1]
+        return binding
 
     def validate(self, definition, context):
         """전체 Workflow의 참조·정책을 외부 작업 전에 검사한다."""
         profile = self._profile(definition, context.capabilities)
+        engine = self._engine(profile)
+        if isinstance(engine, GraphEngine):
+            if any(key in definition for key in ("output_format", "emit_text")):
+                raise ValueError("Graph Agent nodes do not support output_format or emit_text")
+            return
         self._resources(profile, context)
-        self._engine(profile)
         if definition.get("output_format", profile.get("output_format", "text")) not in ("text", "json"):
             raise ValueError("Agent output_format must be text or json")
         if type(definition.get("emit_text", False)) is not bool:
             raise ValueError("Agent emit_text must be boolean")
 
+    async def _graph_call(self, node, engine):
+        """다른 Graph 환경으로 위임한다. behavior/resource/Agent 예산을 만들지 않는다."""
+        if node.invoke_graph is None:
+            raise ValueError("Graph Agent requires a parent Graph execution scope")
+        self.validate(node.definition, node.context)
+        binding = self.binding(node.definition, node.context)
+        inputs = node.inputs if node.inputs is not None else node.state
+        step_id = new_id()
+        context = replace(node.context, state={"agent": deepcopy(binding)},
+                          output_step_id=step_id, output_visibility="internal")
+        if context.steering is not None:
+            context = replace(context, steering=context.steering.child(target_id=step_id,
+                scope=node.checkpoint_key, engine=binding["engine"], mode=steering_mode(engine),
+                node_id=node.node_id, node_path=node.node_path))
+        await node.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="agent",
+            name=binding["agent_id"], metadata={**binding, "inputs": inputs}))
+        async def forward(event):
+            if event.type == EngineEventType.STEP_STARTED:
+                event = replace(event, metadata={**event.metadata,
+                    "agent_step_id": event.metadata.get("agent_step_id", step_id)})
+            await node.emit(event)
+        try:
+            async with aclosing(BaseEngine.open_instructions(context)) as events:
+                async for event in events:
+                    await forward(event)
+            output = await node.invoke_graph(engine, context, inputs, forward)
+            async with aclosing(BaseEngine.close_instructions(context)) as events:
+                async for event in events:
+                    await forward(event)
+        except (asyncio.CancelledError, _GraphPause):
+            raise
+        except Exception as error:
+            await node.emit(BaseEngine.step_failed_event(step_id, error))
+            raise
+        await node.emit(BaseEngine.step_completed_event(context, step_id,
+            EngineOutput(data=output, visibility="internal")))
+        return {"text": "", "data": output}
+
     async def __call__(self, node):
         """업무의 입력/출력을 검증하고 연결 세션과 실행 스코프를 호출별로 정리한다."""
         profile = self._profile(node.definition, node.context.capabilities)
+        engine = self._engine(profile)
+        if isinstance(engine, GraphEngine):
+            return await self._graph_call(node, engine)
         tools, resources = self._resources(profile, node.context)
         inputs = node.inputs if node.inputs is not None else node.state
         if "input_schema" in profile:
@@ -183,9 +231,7 @@ class AgentNode:
                     for alias, name in resource["aliases"].items():
                         tool = remote.get(name)
                         tools.register(Tool(alias, tool.description, tool.parameters, tool.handler, contract=tool.contract))
-                engine = self._engine(profile)
-                graph_engine = isinstance(engine, GraphEngine)
-                if not graph_engine and (resources["skills"] or resources["prompt"]):
+                if resources["skills"] or resources["prompt"]:
                     # purpose는 업무 설명이며 미설정 system_prompt의 대체값이 아니다.
                     # 선택한 Skill만 상속된 명시 프롬프트에 결합한다.
                     prompt = binding["configuration"].get("values", {}).get("config", {}).get("system_prompt", profile.get("system_prompt"))
@@ -208,7 +254,7 @@ class AgentNode:
                 message = next(item for item in node.context.messages if item.id == node.context.run.input_message_id)
                 message = replace(message, content=json.dumps(inputs, ensure_ascii=False, allow_nan=False))
                 # 부모 Run과 예산은 유지하며 기록/임시 상태와 선택 capability만 분리한다.
-                capabilities = dict(node.context.capabilities) if graph_engine else {
+                capabilities = {
                     name: node.context.capabilities[name] for name in required_capabilities(engine) if name != "tools"}
                 if "tools" in required_capabilities(engine):
                     capabilities["tools"] = tools
@@ -216,14 +262,14 @@ class AgentNode:
                               and node.context.output_visibility == "user" else "internal")
                 context = replace(node.context, messages=(message,), tools=tools,
                                   state={"agent": deepcopy(binding)}, capabilities=capabilities,
-                                  checkpoint=node.context.checkpoint if graph_engine else None, tool_scope=scope,
+                                  checkpoint=None, tool_scope=scope,
                                   output_step_id=step_id, output_visibility=visibility)
                 if context.steering is not None:
                     context = replace(context, steering=context.steering.child(target_id=step_id,
                         scope=node.checkpoint_key, engine=profile["engine"], mode=steering_mode(engine),
                         node_id=node.node_id, node_path=node.node_path))
                 bridge = None
-                if not graph_engine and self.checkpoint_engine(node.definition, node.context) is not None:
+                if self.checkpoint_engine(node.definition, node.context) is not None:
                     records = deepcopy(node.context.checkpoint["records"]) if node.context.checkpoint else {}
                     bridge = EngineCheckpointScope(node.checkpoint_key, engine.checkpoint_name, records)
                     context = bridge.context(context)
@@ -237,7 +283,7 @@ class AgentNode:
                     if event.type == EngineEventType.CHECKPOINT:
                         if bridge is not None:
                             event = bridge.wrap(event)
-                        elif not graph_engine or event.metadata.get("operation") != "record":
+                        else:
                             raise ValueError("Agent engines cannot own Workflow checkpoint lifecycle")
                         metadata = deepcopy(event.metadata)
                         metadata["value"].setdefault("agent_usage", {})[node.checkpoint_key] = scope.checkpoint()
@@ -265,38 +311,30 @@ class AgentNode:
                         bridge.accepted_instruction(event, context.steering)
                     if bridge is not None and event.type == EngineEventType.CHECKPOINT:
                         bridge.accepted(event)
-                    if (graph_engine or bridge is not None) and event.type in (EngineEventType.STEP_UPDATED, EngineEventType.STEP_FAILED,
+                    if bridge is not None and event.type in (EngineEventType.STEP_UPDATED, EngineEventType.STEP_FAILED,
                                                        EngineEventType.STEP_COMPLETED, EngineEventType.STEP_CANCELLED):
                         # 승인 이후 효과 이전에도 예산을 기록한다. 불확실한 작업의 명시적 재시도가
                         # Agent 한도를 초기화하지 않도록 소유 컨테이너 체크포인트를 갱신한다.
                         await node.record_usage(scope.checkpoint())
-                graph_output = None
                 async with aclosing(BaseEngine.open_instructions(context)) as events:
                     async for event in events:
                         await forward(event)
-                if graph_engine:
-                    if node.invoke_graph is None:
-                        raise ValueError("Graph Agent requires a parent Graph execution scope")
-                    graph_output = await node.invoke_graph(engine, context, inputs, forward)
-                else:
-                    # 미지원 합성 엔진 내부의 Loop가 부모 채널을 자동 소비해서는 안 된다.
-                    execution_context = replace(context, steering=None) if steering_mode(engine) == SteeringMode.UNSUPPORTED else context
-                    async with aclosing(engine.execute(execution_context)) as events:
-                        async for event in events:
-                            await forward(event)
+                # 미지원 합성 엔진 내부의 Loop가 부모 채널을 자동 소비해서는 안 된다.
+                execution_context = replace(context, steering=None) if steering_mode(engine) == SteeringMode.UNSUPPORTED else context
+                async with aclosing(engine.execute(execution_context)) as events:
+                    async for event in events:
+                        await forward(event)
                 async with aclosing(BaseEngine.close_instructions(context)) as events:
                     async for event in events:
                         await forward(event)
                 if policy.get("require_tool") and not scope.completed:
                     raise ValueError("Agent requires at least one successfully completed Tool")
-                if not graph_engine and engine_output is None:
+                if engine_output is None:
                     raise ValueError("Agent engine must emit an EngineOutput")
                 if engine_output is not None and engine_output.visibility == "internal":
                     visibility = "internal"
                 result = {"text": engine_output.text if engine_output is not None else ""}
-                if graph_engine:
-                    result["data"] = graph_output
-                elif engine_output.data is not None:
+                if engine_output.data is not None:
                     result["data"] = engine_output.data
                 elif node.definition.get("output_format", profile.get("output_format", "text")) == "json":
                     result["data"] = json.loads(result["text"])

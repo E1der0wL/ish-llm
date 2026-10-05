@@ -145,7 +145,7 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
         for child in (AgentEngine(action=fail), GraphEngine(handlers={"fail": node_fail})):
             result, steps = await self.execute(GraphEngine(handlers={"agent": AgentNode(engines={"child": child})}),
                 engine_options={"workflow": "outer"}, components=[WorkflowComponent(), AgentComponent()], definitions={
-                    "workflows": {"outer": outer, "inner": inner}, "agents": {"worker": {"engine": "child", "purpose": "Test failures", "tools": [],
+                    "workflows": {"outer": outer, "inner": inner}, "agents": {"worker": {"engine": "child", "purpose": "Test failures",
                     "engine_options": {"workflow": "inner"} if isinstance(child, GraphEngine) else {}}}})
             self.assertEqual(result.error_code, "provider_timeout")
             self.assertTrue(any(s.kind == "agent" and s.status == StepStatus.FAILED for s in steps))

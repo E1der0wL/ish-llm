@@ -340,7 +340,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Follow these rules", model.requests[0]["messages"][0]["content"])
         self.assertEqual(json.loads(model.requests[0]["messages"][-1]["content"]), {"request": "nested"})
 
-    async def test_graph_agent_pause_retains_required_tool_and_call_budget(self):
+    async def test_graph_agent_pause_reuses_tool_receipt_under_parent_run_policy(self):
         child = (WorkflowGraph(entry="effect").node("effect", "tool", tool="effect")
                  .node("wait", "work", pause_before=True).node("end", "end")
                  .connect("effect", "wait").connect("wait", "end").to_dict())
@@ -349,16 +349,17 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         child_engine = GraphEngine(handlers={"tool": ToolNode(), "work": work})
         agent = AgentNode(engines={"graph": child_engine})
         await self.setup({"main": action_graph("agent", agent="coordinator"), "child": child},
-                         handlers={"agent": agent}, max_parallelism=1)
-        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}, "tools": ["effect"],
-            "policy": {"require_tool": True, "max_tool_calls": 1}}, identifier="coordinator")
+                         handlers={"agent": agent}, max_parallelism=1,
+                         services=ServiceConfig(tool_policy=ToolPolicy(max_calls=1)))
+        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}}, identifier="coordinator")
         paused = await self.request()
         self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
         run = await (await self.session.run.resume(paused.id, engine="graph")).wait()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(len(self.effects), 1)
         step = next(s for s in await run.steps.alist() if s.kind == "agent")
-        self.assertEqual(step.metadata["completed_tools"], 1)
+        self.assertNotIn("completed_tools", step.metadata)
+        self.assertNotIn("resources", step.metadata)
 
     async def test_graph_agent_allowlist_validates_before_any_effects(self):
         child_engine = GraphEngine(handlers={"tool": ToolNode()})
@@ -394,7 +395,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(closed.is_set())
         self.assertEqual((await second.wait()).data.status, RunStatus.COMPLETED)
 
-    async def test_graph_agent_approved_retry_does_not_reset_call_budget(self):
+    async def test_graph_agent_explicit_retry_uses_new_runs_parent_budget(self):
         async def uncertain(arguments):
             self.effects.append("effect")
             raise ValueError("uncertain remote result")
@@ -402,16 +403,16 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         child_engine = GraphEngine(handlers={"tool": ToolNode()})
         agent = AgentNode(engines={"graph": child_engine})
         await self.setup({"main": action_graph("agent", agent="coordinator"),
-                          "child": action_graph("tool", tool="effect")}, handlers={"agent": agent})
-        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}, "tools": ["effect"],
-            "policy": {"max_tool_calls": 1}}, identifier="coordinator")
+                          "child": action_graph("tool", tool="effect")}, handlers={"agent": agent},
+                         services=ServiceConfig(tool_policy=ToolPolicy(max_calls=1)))
+        await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}}, identifier="coordinator")
         failed = await self.request()
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         key = '["work","workflow","child","work"]'
         run = await (await self.session.run.resume(failed.id, engine="graph", retry_nodes=[key])).wait()
         self.assertEqual(run.data.status, RunStatus.FAILED)
-        self.assertEqual(self.effects, ["effect"])
-        self.assertIn("budget", run.data.error)
+        self.assertEqual(self.effects, ["effect", "effect"])
+        self.assertIn("uncertain remote result", run.data.error)
 
     async def test_parent_tool_policy_applies_in_child(self):
         await self.setup({"main": action_graph("workflow", workflow="child"),

@@ -378,10 +378,13 @@ class _WorkflowRuntime:
                 node.context.tool_scope.revoke()
             if not pending.done():
                 pending.cancel()
-            deadline = asyncio.get_running_loop().time() + self.engine.cleanup_timeout
+            # 미설정은 정리 대기를 추가하지 않는다. revoke/emit gate 뒤 미완료
+            # 작업은 기존 PendingWork owner에 넘겨 shutdown/reap한다.
+            deadline = (None if self.engine.cleanup_timeout is None else
+                        asyncio.get_running_loop().time() + self.engine.cleanup_timeout)
             while not pending.done():
-                remaining = deadline - asyncio.get_running_loop().time()
-                if remaining <= 0:
+                remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
+                if remaining is None or remaining <= 0:
                     if node.context.pending_work is not None:
                         node.context.pending_work.track(pending)
                     else:
@@ -577,8 +580,8 @@ class GraphEngine:
         self._overrides = {key: value for key, value in supplied.items() if value is not _UNSET}
         values = self._overrides
         max_steps, max_parallelism, timeout_seconds = (values.get(k) for k in ("max_steps", "max_parallelism", "timeout_seconds"))
-        # Buffer size only controls backpressure. Cleanup must terminate even if a handler ignores cancellation.
-        buffer_size, max_nested_depth, cleanup_timeout = values.get("buffer_size", 32), values.get("max_nested_depth"), values.get("cleanup_timeout", 5.0)
+        # Buffer size only controls backpressure; cleanup waiting is host-owned.
+        buffer_size, max_nested_depth, cleanup_timeout = values.get("buffer_size", 32), values.get("max_nested_depth"), values.get("cleanup_timeout")
         if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
             raise ValueError("settings_name must be nonempty text")
         self.settings_name, self._agent_options, self._configured = settings_name, {}, False
@@ -586,13 +589,13 @@ class GraphEngine:
             raise ValueError("Graph limits must be positive integers")
         self._deadline(timeout_seconds)
         self._deadline(cleanup_timeout)
-        if cleanup_timeout is None:
+        if cleanup_timeout is None and "cleanup_timeout" in values:
             raise ValueError("cleanup_timeout must be finite")
         if config_keys is not None and (not isinstance(config_keys, tuple) or any(not isinstance(k, str) or not k for k in config_keys)):
             raise ValueError("config_keys must be a tuple of project setting names")
         self.cleanup_timeout, self.config_keys = cleanup_timeout, config_keys
         if max_nested_depth is not None and (type(max_nested_depth) is not int or max_nested_depth < 0):
-            raise ValueError("max_nested_depth must be an integer between 0 and 32")
+            raise ValueError("max_nested_depth must be a nonnegative integer or None")
         self.max_nested_depth = max_nested_depth
         if not isinstance(revision, str) or not revision:
             raise ValueError("GraphEngine revision must be nonempty text")
@@ -627,8 +630,6 @@ class GraphEngine:
     def configuration(self, config, name, *, session_config=None):
         view = engine_configuration(config, self.settings_name or name, session_config=session_config,
             agent=self._agent_options, host=self.settings_layout.pack(self._overrides), schema=self.configuration_schema())
-        if "cleanup_timeout" not in view["values"].get("config", {}):
-            view["enforced"] = {"config": {"cleanup_timeout": 5.0}}
         return view
 
     def configured(self, context):
@@ -822,10 +823,11 @@ class GraphEngine:
         allowed = {"workflow", "config", "policy"}
         if options.keys() - allowed:
             raise ValueError("Unsupported Graph Agent engine_options")
-        # 모델 지침은 실제 LLM을 실행하는 하위 Agent에서 정의한다.
-        if any(key in definition for key in ("completion", "system_prompt")) or any(
-                definition.get("resources", {}).get(key) for key in ("skills", "mcp")):
-            raise ValueError("Graph Agent model/Skill/MCP settings belong to its leaf Agents")
+        # 빈 resources/tools도 의미 없는 별도 behavior/authority 계층이다.
+        unsupported = set(definition) & {"completion", "system_prompt", "tools", "resources", "policy",
+                                         "input_schema", "output_schema", "output_format"}
+        if unsupported:
+            raise ValueError("Graph Agent only orchestrates Workflows; unsupported fields: " + ", ".join(sorted(unsupported)))
         worker = self.for_request({"workflow": options.pop("workflow", None)})
         from jsonschema import Draft202012Validator
         Draft202012Validator(self.configuration_schema()).validate(options)
