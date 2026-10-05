@@ -513,7 +513,8 @@ class RunManager:
         registry = self.capabilities.components
         component = registry.get(name)
         data_class = getattr(component, "data_class", None) or ComponentData
-        return data_class(self.sessions.project_access, registry, project, name).bind_model_usage(
+        return data_class(self.sessions.project_access, registry, project, name).bind_resources(
+            self.sessions, self.steps.repository).bind_model_usage(
             self.sessions, getattr(self.policy_resolver, "token_counters", {})).bind_runtime(
             runner=self._io.run, access_check=self._check_component_access,
             history_reader=lambda session_id, run_id, tool_call_id, **options: self.results.tool_result(

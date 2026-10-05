@@ -9,6 +9,7 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.input import create_pipe_input
 
@@ -16,7 +17,7 @@ from hub.ui.application import create_application
 from hub.locales import Language
 from hub.config.preferences import PreferencesStore
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.ui.settings.form import SchemaForm
+from hub.widget.settings import SchemaForm
 from hub.config.theme import HubTheme
 from hub.backend.worker import BackendWorker
 from llm.components.base import Component
@@ -53,8 +54,7 @@ class SettingsFormTests(unittest.TestCase):
         fixed = form.fields[("config", "completion", "extra_body", "fixed")]
         self.assertTrue(prompt.readonly)
         self.assertTrue(fixed.readonly)
-        self.assertIn("null", " ".join(prompt.observations))
-        self.assertIn("host", " ".join(prompt.observations))
+        self.assertEqual(prompt.observations, (Language("en")("settings_host_locked"),))
         self.assertEqual(fixed.input.text, "")
         self.assertEqual(form.values(), original)
         sibling = form.fields[("config", "completion", "extra_body", "sibling")]
@@ -101,7 +101,7 @@ class SettingsFormTests(unittest.TestCase):
         form = SchemaForm(engine.configuration_schema(), {}, Language("en"), effective={"loop": view})
         model = form.fields[("config", "completion", "model")]
         self.assertTrue(model.readonly)
-        self.assertIn("at execution", " ".join(model.observations))
+        self.assertEqual(model.observations, (Language("en")("settings_host_locked"),))
         self.assertEqual(form.values(), {})
         schema = implementation_schema(config={"type": "object", "properties": {"a/b~c": {"type": "number"}}})
         view = {"values": {"config": {"a/b~c": 3}}, "sources": {"/config/a~1b~0c": "client"},
@@ -109,7 +109,7 @@ class SettingsFormTests(unittest.TestCase):
         component = SchemaForm(schema, {}, Language("ko"), effective={"component": view})
         self.assertEqual(component.values(), {})
         self.assertFalse(component.fields[("config", "a/b~c")].readonly)
-        self.assertIn("client", " ".join(component.fields[("config", "a/b~c")].observations))
+        self.assertEqual(component.fields[("config", "a/b~c")].observations, ())
 
     def test_shared_settings_key_uses_all_engine_locks_and_views(self):
         engines = {"a": LoopEngine(system_prompt=None), "b": LoopEngine(tool_timeout=5)}
@@ -120,9 +120,7 @@ class SettingsFormTests(unittest.TestCase):
         views = {name: engine.configuration(project, "shared") for name, engine in engines.items()}
         form = SchemaForm(schema, {"shared": original}, Language("en"), prefix=("shared",), effective=views)
         field = form.fields[("shared",)]
-        self.assertTrue(any("[a]" in note for note in field.observations))
-        self.assertTrue(any("[b]" in note for note in field.observations))
-        self.assertTrue(any("Source: host" in note for note in field.observations))
+        self.assertEqual(field.observations, (Language("en")("settings_host_partial"),))
         self.assertEqual(form.values(), {"shared": original})
         field.input.text = '{"config":{"system_prompt":"changed"}}'
         with self.assertRaisesRegex(ValueError, "Host override"):
@@ -249,9 +247,9 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 field = page.engine_forms["loop"].fields[(*prefix, "system_prompt")]
                 self.assertTrue(field.readonly)
                 self.assertEqual(field.input.text, "stored prompt")
-                self.assertIn("null", " ".join(field.observations))
+                self.assertEqual(field.observations, (screen.t("settings_host_locked"),))
                 app.layout.focus(field.input)
-                pipe.send_text("\rSHOULD_NOT_EDIT")
+                pipe.send_text("e\rSHOULD_NOT_EDIT")
                 await asyncio.sleep(0.05)
                 self.assertFalse(field.editing)
                 self.assertEqual(field.input.text, "stored prompt")
@@ -299,8 +297,10 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(field.input.text, "")
                 self.assertNotIn("reasoning_effort", page.values()["config"]["parameters"]["engines"]["loop"]["config"]["completion"])
                 app.layout.focus(field.input)
-                pipe.send_text("\rlow\r")
-                await until(lambda: field.input.text == "low" and not field.editing)
+                with patch("hub.ui.settings.screen.edit_text", new=AsyncMock(return_value="low")) as editor:
+                    pipe.send_text("e")
+                    await until(lambda: field.input.text == "low" and not field.editing)
+                    editor.assert_awaited_once()
                 app.layout.focus(page.save)
                 pipe.send_text("\r")
                 await until(lambda: screen.page is not page and not screen.busy)
@@ -332,7 +332,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             finally:
                 await reopened.close()
 
-    async def test_ctrl_s_connects_backend_on_first_open(self):
+    async def test_ctrl_q_then_ctrl_s_connects_backend_on_first_open(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             app, controller = create_application(HubConfig(directory, "loop", "test/model", auto_title=False),
                 input=pipe, output=SizedOutput(),
@@ -340,7 +340,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async())
             try:
                 await until(lambda: app.is_running)
-                pipe.send_text("\x13")
+                pipe.send_text("\x11\x13")
                 await until(lambda: controller.view.settings.page is not None)
                 self.assertTrue(controller.view.settings_open)
                 self.assertTrue(controller.view.settings.projects)

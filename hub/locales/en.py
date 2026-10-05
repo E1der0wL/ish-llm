@@ -7,7 +7,7 @@ MESSAGES = {
     "output_image_limit": "Image preview limit reached for this view (32 images).",
     "welcome_title": "No sessions yet",
     "welcome_hint": "Create a session to start a conversation.",
-    "welcome_keys": "F4 New session · Ctrl+S Project settings · Ctrl+Q Return to shell",
+    "welcome_keys": "ESC Panel · Ctrl+S Project settings · F4 New session · ESC in panel to minimize",
     "session_required": "Create a session first. Press F4, or c in the session list.",
     "output_pending": "Receiving output block…",
     "output_image": "Image · {caption}",
@@ -46,7 +46,7 @@ MESSAGES = {
 
     "project_activity": "Project execution history", "activity_empty": "No execution history recorded.",
 
-    "activity_hint": "Latest 300 events · Alt+Arrows/PageUp/PageDown/Home/End scroll · Enter/Esc/Ctrl+L close",
+    "activity_hint": "Latest 300 events · ESC close · Ctrl+L close · Alt + Navigation scroll · Enter close",
 
     "activity_source": "Session: {session_id} · Run: {run_id}",
 
@@ -144,7 +144,7 @@ MESSAGES = {
 
     "settings_loading": "Loading…", "settings_empty": "No projects",
 
-    "settings_footer": "ESC sidebar · Tab regions · Arrows items · Enter edit · Ctrl+S save & chat · Ctrl+Q shell",
+    "settings_footer": "ESC panel · Ctrl+S save & chat · Arrows items · e editor · Enter edit · Tab regions",
 
     "settings_general": "General",
 
@@ -209,9 +209,7 @@ MESSAGES = {
     "settings_usage_row": "{title} ({period})\n  Calls {call_count} · Known tokens {known_tokens} · Reserved tokens {reserved_tokens} · Unknown usage {unknown_calls} calls",
 
     "settings_no_description": "No additional schema description.", "settings_no_fields": "No public settings fields.",
-    "settings_stored": "Stored value (editable draft)",
-    "settings_effective": "Current effective value [{name}]: {value} · Source: {source}",
-    "settings_unset": "Unset", "settings_runtime_value": "Resolved by the host at execution",
+    "settings_editor_failed": "Editor exited with status {code}. The previous draft is unchanged.",
     "settings_host_locked": "Host override: read only.",
     "settings_host_partial": "Some nested keys are host overrides. Their stored values cannot be changed.",
 
@@ -255,9 +253,9 @@ MESSAGES = {
 
     "session_hint": "c new · d delete\ne rename · r clone", "input_hint": "Enter send · Ctrl+Space newline · ↑↓ select · Tab confirm",
 
-    "footer": "Ctrl+Q shell · Ctrl+S settings · ESC sidebar · Ctrl+F find · Alt+navigation scroll · Ctrl+E engine · Ctrl+X stop · Enter send mode",
+    "footer": "ESC panel · Ctrl+E engine · Ctrl+F find · Ctrl+S settings · Ctrl+X stop · Alt + Navigation scroll · Enter send mode",
 
-    "footer_short": "ESC sidebar · Ctrl+F find · Alt+navigation scroll",
+    "footer_short": "ESC panel · Ctrl+F find · Alt + Navigation scroll",
 
     "preview_notice": "Sample data · No model calls or storage.",
 
@@ -265,7 +263,7 @@ MESSAGES = {
 
     "details_narrow": "Run details need at least 116 columns.", "details_open": "Run details shown.",
 
-    "details_closed": "Run details hidden.", "close_hint": "Use Ctrl+Q to return to the shell.",
+    "details_closed": "Run details hidden.", "close_hint": "Press ESC in the panel to minimize Hub and return to the shell.",
 
     "error": "Error: {error}", "not_connected": "Wait for the backend connection.",
 
@@ -313,7 +311,7 @@ MESSAGES = {
 
     "help_title": "Hub help",
 
-    "help": "Enter: send with the selected engine\nCtrl+Space: newline\nCtrl+S: settings\nCtrl+F: find in this session\nCommands, engines and @file paths: autocomplete as you type\n↑↓: select completion · Tab: confirm (first item if unselected)\nTab with no menu: open completions\nESC: move to sidebar (stay if already there)\nTab / Space / Enter in sidebar: enter main panel\nSession list: c create · d delete · e rename · r clone\n/component: enabled component data/settings (help for usage)\nAlt+↑↓: line scroll · Alt+←→: horizontal scroll (overflow)\nAlt+PageUp/PageDown: page scroll · Alt+Home/End: start/end\nEnter during a Run: live instruction / follow-up\nCtrl+X: stop the active Run\nESC in a dialog: close\nF2: next conversation · Ctrl+E: select engine\nF4: create/clone, with an optional name\nF5: Markdown draft preview · F6: Run details\nCtrl+Q: return to the shell\nSettings: ESC sidebar · Tab regions · Enter edit/done\nDialogs: Tab / Shift+Tab moves between fields\n\nInstructions apply at the engine's next supported boundary.\nPaths are inserted as text; files are not automatically attached.",
+    "help": "# Hub help\n\n## Panels and pages\n\n| Key | Action |\n| --- | --- |\n| ESC | Move from main content to the panel |\n| ESC in the panel | Minimize Hub and return to the shell |\n| Ctrl+Q in the shell | Open Hub |\n| Ctrl+S in Hub | Open settings; save and return to chat from settings content |\n| Tab / Space / Enter in the panel | Move to main content |\n\nHub leaves the shell's Ctrl+S binding unchanged.\n\n## Conversation input\n\n- **Enter** sends a request. During a Run, choose steering or a follow-up request.\n- **Ctrl+Space** inserts a newline.\n- **↑↓** selects completions; **Tab** confirms or opens the menu.\n- **Ctrl+X** interrupts the active Run, preserving queued requests.\n- **Ctrl+E** selects an engine and Workflow.\n- **Ctrl+F** searches this session. Enter goes to the next match; Alt+P goes to the previous match.\n- **Ctrl+G** opens the request/response list for deletion and cloning.\n- **Ctrl+L** opens project activity.\n\n## Scrolling\n\n**Alt + Navigation** always includes all of these keys:\n\n| Navigation key | Action |\n| --- | --- |\n| ↑ / ↓ | One line up / down |\n| ← / → | Horizontal overflow |\n| Home / End | Start / end |\n| PgUp / PgDn | One page up / down |\n\nConversation output and read-only dialogs share this behavior.\nSettings uses arrow-key item navigation; Alt scrolling is disabled there.\n\n## Help, activity and query results\n\nContent never receives focus. Scroll with **Alt + Navigation**.\nClose with **ESC**, **Enter** or **Ctrl+L** to restore your previous focus.\n\n## Session panel\n\n**c** create · **d** delete · **e** rename · **r** clone.\n`← / →` adjusts panel width. An empty name enables automatic naming.\nCloning lets you choose a conversation boundary.\n\n## Settings\n\n- **Tab / Shift+Tab** switches between fields and actions.\n- **Arrows** select a field.\n- **Enter** starts / finishes inline editing.\n- **e** opens the configured external editor.\n- **Ctrl+Space / Alt+Enter** inserts a newline while editing.\n- For choices such as icon style, use Enter → arrows → Enter.\n- Project panel c / d / e / r creates / deletes / renames / clones.\n\n## Commands and display\n\nType `/` for enabled component commands.\nUse `/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nPath completions insert text; they do not attach files automatically.\n\n**F1** help · **F2** next session · **F4** create/clone · **F5** draft preview · **F6** Run details.\n",
 
     "status_idle": "{icon_idle} Idle", "status_running": "{icon_running} Running", "status_queued": "{icon_queued} Queued",
 
@@ -325,4 +323,44 @@ MESSAGES = {
 
     "status_unapplied": "{icon_unapplied} Not applied", "status_partially_applied": "{icon_partially_applied} Partially applied",
 
+    'settings_icon_style': 'Icon style',
+    'settings_icon_description': 'Press Enter to choose, use arrows to change, then Enter to finish.',
+    'settings_icon_unicode': 'Standard (Unicode/emoji)',
+    'shortcut_close': 'close',
+    'shortcut_move': 'move',
+    'shortcut_next_match': 'next match',
+    'shortcut_previous_match': 'previous match',
+    'shortcut_activate': 'activate',
+    'shortcut_select': 'select',
+    'shortcut_confirm': 'confirm',
+    'shortcut_delete': 'delete',
+    'shortcut_clone': 'clone',
+    'shortcut_main': 'main',
+    'shortcut_width': 'width',
+    'shortcut_create': 'new',
+    'shortcut_rename': 'rename',
+    'shortcut_shell': 'shell',
+    'shortcut_chat': 'chat',
+    'shortcut_settings': 'settings',
+    'shortcut_done': 'done',
+    'shortcut_edit': 'edit',
+    'shortcut_newline': 'newline',
+    'shortcut_editor': 'editor',
+    'shortcut_items': 'items',
+    'shortcut_regions': 'regions',
+    'shortcut_sidebar': 'panel',
+    'shortcut_save_chat': 'save & chat',
+    'shortcut_engine': 'engine',
+    'shortcut_find': 'find',
+    'shortcut_history': 'turns',
+    'shortcut_logs': 'logs',
+    'shortcut_scroll': 'scroll',
+    'shortcut_stop': 'stop',
+    'shortcut_preview': 'preview',
+    'shortcut_details': 'details',
+    'shortcut_help': 'help',
+    'shortcut_alt_movement': 'Alt + Navigation',
+    'shortcut_minimize': 'minimize',
+    'shortcut_next_session': 'next session',
+    'shortcut_send': 'send',
 }

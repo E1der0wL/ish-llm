@@ -1,3 +1,4 @@
+from hub.ui.presentation import present
 """User-visible engine selection, steering, naming, Markdown and completion."""
 
 import asyncio
@@ -57,8 +58,8 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                     while not any(m.role == "reasoning" for m in (await runtime.snapshot()).messages):
                         await asyncio.sleep(0.02)
                 snapshot = await runtime.snapshot()
-                self.assertIn("chat", snapshot.activity)
-                self.assertIn("LLM completion", snapshot.activity)
+                self.assertIn("chat", present(snapshot, runtime.t).activity)
+                self.assertIn("LLM completion", present(snapshot, runtime.t).activity)
                 run_id, targets = await runtime.instruction_targets(identifier)
                 instruction = await runtime.steer(identifier, run_id, "additional direction", [targets[0][0]])
                 await runtime.submit(identifier, "second request", "review")
@@ -369,7 +370,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view.engine, "review")
                 pipe.send_text("\x1bOS")
                 await until(lambda: view._dialog is not None)
-                pipe.send_text("\x11")
+                pipe.send_text("\x1b")
                 await until(lambda: view._dialog is None)
                 self.assertTrue(view.visible)
                 self.assertFalse(task.done())
@@ -382,7 +383,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.composer.text == "/engine")
                 self.assertIsNone(view._dialog)
                 header = "".join(part[1] for part in view._header())
-                self.assertEqual(header.strip(), "demo-project")
+                self.assertEqual(header, " •  demo-project")
             finally:
                 app.exit()
                 await task

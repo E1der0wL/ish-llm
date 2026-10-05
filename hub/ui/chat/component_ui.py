@@ -2,11 +2,10 @@
 
 import json
 
-from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 
 from ...backend.component_commands import parse_arguments
-from ..widgets import TextArea
+from ...widget.reader import ReadOnlyDialog
 
 
 class ComponentCommands:
@@ -76,9 +75,9 @@ class ComponentCommands:
                         self.controller.app.layout.focus(target)
                 else:
                     text = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, indent=2)
-                    body = TextArea(text=text, read_only=True, scrollbar=True,
-                                    height=Dimension(preferred=18, max=max(3, view._rows() - 6)))
-                    view.open_dialog(f"/{command} {action}", body, focus=body)
+                    popup = ReadOnlyDialog(f"/{command} {action}", text, view._rows, view._columns,
+                                           view.close_dialog, view.t)
+                    view.dialogs.show(popup, popup.receiver)
                 self.controller.app.invalidate()
 
             self.controller._call("component_command", project_id, command, argument, completed=completed)

@@ -9,6 +9,7 @@ from prompt_toolkit.styles import Style
 @dataclass(frozen=True, slots=True)
 class HubTheme:
     sidebar_width: int = 26
+    icon_style: str = "nerd"
     foreground: str = "default"
     background: str = "default"
     accent1: str = "#46b59e"
@@ -72,6 +73,10 @@ class HubTheme:
     def __post_init__(self) -> None:
         for field in fields(self):
             value = getattr(self, field.name)
+            if field.name == "icon_style":
+                from ..asset.icon import for_style
+                for_style(value)
+                continue
             if field.name == "sidebar_width":
                 if type(value) is not int or not 18 <= value <= 60:
                     raise ValueError("sidebar_width must be an integer between 18 and 60")

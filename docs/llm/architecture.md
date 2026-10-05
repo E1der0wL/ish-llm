@@ -1,5 +1,25 @@
 # Architecture
 
+## Goal·작업 요약·Refinement
+
+실행 소유 계층은 Project → Session → Run → Step으로 유지한다. Goals는 Project 컴포넌트이며
+Session scope와 run_refs는 참조다. Core Run에 goal_id를 추가하지 않는다. Goal Processor는
+명시적 활성화 시에만 user 입력 사본에 참조를 넣고, 중첩 Agent는 ID로 별도 선택한다.
+
+MemoryProcessor/CompletionPipeline 안에서 구조화 work state를 선택할 수 있다. 원본 대화,
+Tool Step, receipt, checkpoint는 변경하지 않는다. 전체 요청 token counter 또는 명시적 문자
+조건으로 압축하며 source/config/Goal version/format 지문으로 캐시를 검증한다.
+
+Refinement는 저장된 단일 Skill/Prompt/Agent/Memory에 대한 immutable proposal을 소유한다.
+분석은 일반 Run과 Tool로 수행한다. validate → approve → apply를 분리하고, target API의
+CAS 변경과 proposal receipt를 같은 workspace transaction에 묶는다. rollback도 적용 후
+버전이 유지된 경우만 허용한다. Memory 적용은 candidate/review/consolidation에 연결한다.
+자동 on-finish 모델 호출, 새 승인 시스템, 새로운 실행 부모는 없다.
+
+ComponentData.reference/related는 공유 SessionManager/RunRepository/StepRepository와
+선택 Component의 수명·잠금·비동기 경계를 전달하는 일반 접근 API다. 다른 저장소 인스턴스를
+생성하거나 Runtime에서 Goal/Refinement 의미를 해석하지 않는다.
+
 ## Skill 탐색과 개발·진단 Tool
 
 SkillComponent는 기존 skills 정의 capability와 읽기 전용 tools capability를 제공한다.

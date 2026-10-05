@@ -7,7 +7,7 @@ import unittest
 from prompt_toolkit.input import create_pipe_input
 
 from hub.ui.application import create_application
-from hub.ui.chat.execution import ExecutionChooser
+from hub.widget.execution import ExecutionChooser
 from hub.backend.runtime import HubConfig, HubRuntime
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.engines.graph import GraphEngine

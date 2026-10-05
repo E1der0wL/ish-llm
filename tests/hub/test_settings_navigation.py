@@ -145,6 +145,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 page = screen.page
                 self.assertIn(page.activate_button, page.buttons)
                 self.assertNotIn(page.activate_button, page.body_widgets())
+                self.assertEqual([button.width for button in page.buttons], [10, 10, 10, 10])
                 count = page.component_forms["demo"].fields[("config", "parameters", "components", "demo", "config", "count")]
                 count.input.text = "7"
                 self.assertTrue(page.dirty)

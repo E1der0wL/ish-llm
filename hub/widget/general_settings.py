@@ -6,10 +6,10 @@ import json
 from prompt_toolkit.layout import HSplit, VSplit, Window
 from prompt_toolkit.widgets import Label
 
-from ...asset import icon
-from ...locales import validate_packs
-from .form import SchemaForm
-from ..widgets import Button, RadioList, TextArea
+from .section import section
+from ..locales import validate_packs
+from .settings import SchemaForm
+from .controls import Button, RadioList, TextArea
 
 
 class GeneralForm:
@@ -34,8 +34,7 @@ class GeneralForm:
         self.delete_button = Button(screen.t("language_pack_delete"), handler=self.delete_pack, width=18)
         children, self.widgets = [], []
         for category, keys in self.groups.items():
-            children.extend([Label(screen.t("general_category_" + category), style="class:hub.accent bold"),
-                             Window(height=1, char=icon.RULE, style="class:hub.divider")])
+            children.append(section(screen.t("general_category_" + category)))
             for key in keys:
                 field = self.form.fields[(key,)]
                 children.append(field.container)

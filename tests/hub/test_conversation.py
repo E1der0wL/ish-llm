@@ -6,14 +6,14 @@ from unittest.mock import patch
 from prompt_toolkit.styles import Style, merge_styles
 from prompt_toolkit.utils import get_cwidth
 
-from hub.ui.chat.conversation import ChatMessage, ConversationControl, render_messages
+from hub.widget.conversation import ChatMessage, ConversationControl, render_messages
 from hub.config.theme import HubTheme
 
 
 class ConversationTests(unittest.TestCase):
     def test_horizontal_scroll_is_bounded_to_overflow_and_resets_on_resize(self):
         control = ConversationControl((), HubTheme())
-        with patch("hub.ui.chat.conversation.render_messages", return_value=[[("", "x" * 100)]]):
+        with patch("hub.widget.conversation.render_messages", return_value=[[("", "x" * 100)]]):
             control.create_content(80, 10)
             for _ in range(30):
                 control.scroll("right")
@@ -90,7 +90,7 @@ class ConversationTests(unittest.TestCase):
     def test_resize_content_and_theme_invalidate_render_cache(self):
         messages = (ChatMessage("assistant", "**A response** " * 30),)
         control = ConversationControl(messages, HubTheme())
-        with patch("hub.ui.chat.conversation.render_messages", wraps=render_messages) as render:
+        with patch("hub.widget.conversation.render_messages", wraps=render_messages) as render:
             wide = control.create_content(90, 20)
             control.create_content(90, 20)
             self.assertEqual(render.call_count, 1)

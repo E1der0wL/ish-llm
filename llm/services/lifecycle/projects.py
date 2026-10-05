@@ -331,7 +331,8 @@ class ProjectManager:
             raise ValueError("Component is not enabled for this Project")
         component = self.components.get(name)
         data_class = getattr(component, "data_class", None) or ComponentData
-        return data_class(self.access, self.components, current, name).bind_model_usage(self.sessions, self.usage_counters)
+        return data_class(self.access, self.components, current, name).bind_resources(
+            self.sessions, self.backup_steps).bind_model_usage(self.sessions, self.usage_counters)
 
     @workspace_locked
     def remove_component(self, project: Project, name: str, *, permanent: bool = False) -> None:

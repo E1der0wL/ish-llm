@@ -13,13 +13,14 @@ from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 
 from hub.ui.application import create_application
-from hub.ui.chat.conversation import ChatMessage
+from hub.widget.conversation import ChatMessage
 from hub.config.general import GeneralSettings
 from hub.ui.live import LiveHubView
 from hub.locales import Language
-from hub.ui.chat.notifications import SessionToasts
+from hub.widget.notifications import SessionToasts
 from hub.config.preferences import PreferencesStore
-from hub.backend.runtime import HubConfig, HubRuntime, HubSnapshot, SessionSummary
+from hub.backend.runtime import HubConfig, HubRuntime
+from hub.model import HubSnapshot, SessionSummary
 from hub.config.view_state import ViewStateStore
 from hub.backend.worker import BackendWorker
 from tests.hub.test_live import until
@@ -46,7 +47,7 @@ class GeneralOptionTests(unittest.TestCase):
         view = LiveHubView()
         messages = (ChatMessage("assistant", "paragraph\n\n" * 100, id="first"),)
         snapshot = HubSnapshot("p", "Project", "model", "file", (SessionSummary("s", "Session", "running"),),
-                               "s", messages, "", "", ("loop",))
+                               "s", messages, engines=("loop",))
         view.general = GeneralSettings(auto_scroll=False)
         view.apply_snapshot(snapshot)
         control = view.transcript.control
@@ -73,13 +74,13 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
         view = SimpleNamespace(general=GeneralSettings(notification_kinds=["error"], notification_seconds=3), t=Language())
         toasts = SessionToasts(view)
         toasts.app = SimpleNamespace(invalidate=Mock())
-        with patch("hub.ui.chat.notifications.monotonic", return_value=100):
+        with patch("hub.widget.notifications.monotonic", return_value=100):
             toasts.push("Session", "completed", "success")
             toasts.push("Session", "failed", "error")
             self.assertEqual(len(toasts.items), 1)
             self.assertEqual(toasts.items[0].expires, 103)
             self.assertTrue(toasts.active())
-        with patch("hub.ui.chat.notifications.monotonic", return_value=104):
+        with patch("hub.widget.notifications.monotonic", return_value=104):
             self.assertFalse(toasts.active())
         toasts.alert("Error", "message", "error")
         view.general = GeneralSettings(notification_kinds=[])

@@ -6,10 +6,9 @@ import json
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import HSplit, Window
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.key_binding import KeyBindings
+from ..ui.input.registry import ShortcutRegistry
 from prompt_toolkit.widgets import Label
-from ..widgets import TextArea
-from ...asset import icon
+from .controls import TextArea
 
 
 MISSING = object()
@@ -54,28 +53,34 @@ def type_hint(schema):
 
 
 class SettingField:
+    external_editable = True
+
     def __init__(self, key, schema, value, t, *, readonly=False, observations=()):
         self.schema = schema if isinstance(schema, dict) else {}
         self.original = deepcopy(value) if value is not MISSING else MISSING
         self.initial = ("" if value is MISSING else value if isinstance(value, str) and value else
                         json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
-        kind = self.schema.get("type")
-        complex_value = kind in ("object", "array") or isinstance(value, (dict, list)) or kind is None
         self.editing = False
         self.readonly = readonly
         self.observations = tuple(observations)
         self.enabled = lambda: True
-        self.input = TextArea(text=self.initial, multiline=True, height=3 if complex_value else 1,
+        self.on_edit = None
+        self.input = TextArea(text=self.initial, multiline=True,
+                              height=lambda: min(3, self.input.buffer.document.line_count),
                               read_only=Condition(lambda: self.readonly or not self.editing or not self.enabled()),
                               wrap_lines=True, style="class:hub.settings-input", focus_on_click=True)
-        keys = KeyBindings()
-        @keys.add("enter", eager=True)
-        def edit(event):
-            self.finish() if self.editing else self.begin()
-        @keys.add("c-space", filter=Condition(lambda: self.editing), eager=True)
-        def newline(event):
-            self.input.buffer.insert_text("\n")
-        self.input.control.key_bindings = keys
+        registry = ShortcutRegistry()
+        editable = lambda: self.enabled() and not self.readonly
+        registry.add(["e", "E"], "e", "editor", lambda e: self.on_edit and self.on_edit(self),
+                     when=lambda: editable() and not self.editing)
+        registry.add(["enter"], "Enter", lambda: "done" if self.editing else "edit",
+                     lambda e: self.finish() if self.editing else self.begin(), when=editable)
+        registry.add(["c-space"], "Ctrl+Space", "newline", lambda e: self.input.buffer.insert_text("\n"),
+                     when=lambda: editable() and self.editing)
+        registry.add([("escape", "enter")], "Alt+Enter", "newline", lambda e: self.input.buffer.insert_text("\n"),
+                     when=lambda: editable() and self.editing)
+        self.input.control.key_bindings = registry.bindings
+        self.input.control.hub_shortcuts = registry
         self.input.window.style = lambda: "class:hub.settings-input" + (
             " class:hub.focused" if get_app().layout.has_focus(self.input) else "")
         description = self.schema.get("description") or t("settings_no_description")
@@ -83,10 +88,10 @@ class SettingField:
                        "minLength", "maxLength", "pattern") if name in self.schema}
         if constraints:
             description += " · " + json.dumps(constraints, ensure_ascii=False)
-        self.container = HSplit([Label(lambda: (icon.EDIT + " " if self.editing else "") + key, style="class:hub.title"),
+        self.container = HSplit([Label(lambda: (t.icons.edit + " " if self.editing else "") + key, style="class:hub.title"),
                                  Label("- " + description, style="class:hub.muted"),
                                  Label(t("settings_type", type=type_hint(self.schema)), style="class:hub.muted"),
-                                 *([Label(t("settings_stored"), style="class:hub.muted")] if observations else []), self.input,
+                                 self.input,
                                  *[Label(note, style="class:hub.muted") for note in self.observations],
                                  Window(height=1)])
 
@@ -114,10 +119,38 @@ class SettingField:
         return json.loads(raw, parse_constant=lambda value: (_ for _ in ()).throw(ValueError("Invalid JSON: " + value)))
 
 
+class ChoiceField(SettingField):
+    """A finite choice in the same field region: Enter, arrows, Enter."""
+
+    external_editable = False
+
+    def __init__(self, key, schema, value, t, **kwargs):
+        super().__init__(key, schema, value, t, **kwargs)
+        self.choices = schema["x-hub-choices"]
+        self.input.text = self.initial = self.choices[value]
+        self.input.buffer.read_only = Condition(lambda: True)
+        self.input.window.always_hide_cursor = Condition(lambda: True)
+        registry = ShortcutRegistry()
+        editable = lambda: self.enabled() and not self.readonly
+        registry.add(["enter"], "Enter", lambda: "done" if self.editing else "edit",
+                     lambda e: self.finish() if self.editing else self.begin(), when=editable)
+        def choose(event):
+            labels = list(self.choices.values())
+            delta = -1 if event.key_sequence[-1].key in ("up", "left") else 1
+            self.input.text = labels[(labels.index(self.input.text) + delta) % len(labels)]
+        registry.add(["up", "down", "left", "right"], "↑↓←→", "select", choose,
+                     when=lambda: editable() and self.editing)
+        self.input.control.key_bindings = registry.bindings
+        self.input.control.hub_shortcuts = registry
+
+    def value(self):
+        return next(key for key, label in self.choices.items() if label == self.input.text)
+
+
 class SchemaForm:
     def __init__(self, schema, values, t, *, prefix=(), effective=None):
         self.schema, self.original, self.t = schema, deepcopy(values), t
-        # 적용값은 표시 전용 사본이다. 저장할 값과 혼합하거나 기본값으로 채우지 않는다.
+        # 적용값은 고정 경로와 확장 키 조회에만 사용하고 저장할 값과 혼합하지 않는다.
         self.prefix, self.effective = prefix, deepcopy(effective or {})
         self.locked = set()
         for view in self.effective.values():
@@ -141,16 +174,7 @@ class SchemaForm:
                 self._schema_locks(child, path)
 
     def _observations(self, path):
-        relative = path[len(self.prefix):]
-        pointer = ("/" + "/".join(part.replace("~", "~0").replace("/", "~1") for part in relative)) if relative else ""
         notes = []
-        for name, view in self.effective.items():
-            value = at_path(view.get("values", {}), relative)
-            sources = {source for key, source in view.get("sources", {}).items()
-                       if key == pointer or key.startswith(pointer + "/") or pointer.startswith(key + "/")}
-            display = (self.t("settings_runtime_value") if "host_runtime" in sources else self.t("settings_unset")) if value is MISSING else json.dumps(value, ensure_ascii=False)
-            notes.append(self.t("settings_effective", name=name, value=display,
-                                source=", ".join(sorted(sources)) or self.t("settings_unset")))
         if any(path[:len(locked)] == locked for locked in self.locked):
             notes.append(self.t("settings_host_locked"))
         elif any(locked[:len(path)] == path for locked in self.locked):
@@ -178,7 +202,8 @@ class SchemaForm:
             for key, spec in properties.items():
                 self._walk(spec, (*path, key))
         else:
-            field = SettingField(schema.get("title", ".".join(path)), schema, at_path(self.original, path), self.t,
+            field_type = ChoiceField if "x-hub-choices" in schema else SettingField
+            field = field_type(schema.get("title", ".".join(path)), schema, at_path(self.original, path), self.t,
                 readonly=any(path[:len(locked)] == locked for locked in self.locked), observations=self._observations(path))
             self.fields[path] = field
             self.children.append(field.container)

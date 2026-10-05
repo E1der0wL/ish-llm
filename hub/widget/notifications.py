@@ -8,7 +8,6 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import DynamicContainer, HSplit, Window
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.widgets import Frame
-from ...asset import icon
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,6 +18,7 @@ class Alert:
     text: str
     level: str
     expires: float
+    status: str = ""
 
 
 class SessionToasts:
@@ -43,11 +43,15 @@ class SessionToasts:
 
     def text(self):
         self.active()
-        return "\n\n".join(f"{item.title}\n{icon.ALERT[item.level]} {item.text}" for item in self.items)
+        return "\n\n".join(f"{item.title}\n{self._text(item)}" for item in self.items)
+
+    def _text(self, item):
+        text = self.view.t.status(item.status) if item.status else item.text
+        return f"{self.view.t.icons.alerts[item.level]} {text}"
 
     def _container(self):
         self.active()
-        return HSplit([Frame(Window(FormattedTextControl(f"{icon.ALERT[item.level]} {item.text}"),
+        return HSplit([Frame(Window(FormattedTextControl(self._text(item)),
                                     height=1, wrap_lines=False), title=item.title,
                              style=f"class:hub.alert-{item.level}", height=3)
                        for item in self.items], padding=1) if self.items else Window(height=1)
@@ -55,10 +59,10 @@ class SessionToasts:
     def push(self, title, status, session_key):
         level = ("error" if status == "failed" else "success" if status == "completed" else
                  "warning" if status in ("interrupted", "cancelled", "paused") else "info")
-        self.alert(title, self.view.t.status(status), level, session_key)
+        self.alert(title, self.view.t.status(status), level, session_key, status=status)
 
-    def alert(self, title, text, level="info", key=None):
-        if level not in icon.ALERT:
+    def alert(self, title, text, level="info", key=None, *, status=""):
+        if level not in self.view.t.icons.alerts:
             raise ValueError("Unknown alert level")
         if level not in self.view.general.notification_kinds:
             return
@@ -69,6 +73,6 @@ class SessionToasts:
             return " ".join("".join(char if char.isprintable() else " " for char in str(value)).split())
         self.items = deque((item for item in self.items if item.key != key), maxlen=3)
         seconds = self.view.general.notification_seconds
-        self.items.append(Alert(self._serial, key, clean(title)[:80], clean(text), level, monotonic() + seconds))
+        self.items.append(Alert(self._serial, key, clean(title)[:80], clean(text), level, monotonic() + seconds, status))
         asyncio.get_running_loop().call_later(seconds, app.invalidate)
         app.invalidate()

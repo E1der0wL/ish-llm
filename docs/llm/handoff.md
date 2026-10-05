@@ -1,3 +1,35 @@
+## 2026-10-05 Goal · Memory work state · Refinement
+
+- 첨부 지침의 순서대로 Goal → 기존 Memory compaction → Refinement를 구현했다.
+  Project → Session → Run → Step 계층은 유지하며 Goal은 scope/run_refs를 가진 선택 리소스다.
+  Runtime의 유일한 변경은 ComponentData에 공유 저장소를 전달하는 일반 바인딩이다.
+- Goal CRUD/내용 해시 CAS/진행/Run 연결, 선택적 user 참고자료 주입, 명시적 중첩 Agent
+  선택과 승인 대상 쓰기 Tool을 제공한다. 기본 정책/Goal/Session을 생성하지 않는다.
+- Memory는 선택적인 구조화 work state와 코드가 기록하는 출처, 전체 요청 tokenizer 조건,
+  Goal 참조/버전 기반 캐시 무효화 및 publish 충돌 검사를 추가했다. 오래된 text 요약 API와
+  원본 대화/Tool/체크포인트를 보존한다. 문서의 과거 hidden-default 설명도 바로잡았다.
+- Refinement는 immutable proposal → 검증 → 승인 → 단일 대상 CAS 적용/되돌리기다.
+  대상 공개 API와 proposal 영수증을 같은 workspace transaction에 묶었다. Memory는
+  candidate/review/consolidation으로 연결한다. 자동 모델 실행/새 승인 엔진/권한 수정은 없다.
+- API·파일 목록·설계 제약·한계는 [long-running-components.md](long-running-components.md),
+  각 Component README와 memory-processing.md에 있다. migration/legacy alias는 추가하지 않았다.
+- 단계별 집중 검사: Goal 관련 53개, Memory/처리기/승인/추가 지시 관련 97개 통과.
+  최종 새 기능 집중 23개, 전체 llm **1,265 passed / 0 failed / 0 skipped** (457.390초),
+  Hub **110 passed / 0 failed / 0 skipped** (97.075초). 집중 검사는 전체와 중복이다.
+  외부 유료 모델 호출/수 시간 실제 운용 테스트는 수행하지 않았다.
+- Linux Python 3.12.14 스냅샷 `/home/user/.cache/ish-provider-iq9n6a1g`,
+  기록 `tests/llm/reports/ish-provider-iq9n6a1g/`. Python 428개 파일을 비교해
+  실행 코드/테스트 차이가 없음을 확인했다. 최종 llm.py API 독스트링만 갱신되었으며 AST
+  비교에서도 실행부는 동일하다. 감사 결과는 reports/long-running-components/source_audit.json.
+
+검증 명령:
+
+```sh
+wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python \
+  /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --source /mnt/d/WorkSpace/ish \
+  --modules tests.llm.test_refinement tests.llm.test_goals tests.llm.test_work_state --full --hub
+```
+
 ## 2026-10-05 설정 검증과 Hub 적용값 표시 보강
 
 - SettingsLayout의 열린 config에 내부 정책 이름(`input_policy` 등)을 넣어 분류를

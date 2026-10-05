@@ -53,9 +53,12 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                         await until(lambda: view.active_page.sidebar_focused)
                         await paint()
                         pipe.send_text("\x1b")
-                        await asyncio.sleep(0.08)  # Allow a standalone ESC to be disambiguated.
-                        await paint()
-                        self.assertTrue(view.active_page.sidebar_focused)
+                        await until(lambda: not view.visible)
+                        pipe.send_text("\x11")
+                        await until(lambda: view.visible)
+                        if not settings:
+                            pipe.send_text("\x1b")
+                            await until(lambda: view.active_page.sidebar_focused)
                         pipe.send_text(key)
                         await until(lambda: not view.active_page.sidebar_focused)
                     self.assertEqual(view.composer.text, "preserved draft")
@@ -85,7 +88,7 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("appearance")
                     screen.layout.focus_main()
                 self.assertEqual(set(screen.page.form.fields), {(key,) for key in
-                    ("background", "foreground", "accent1", "accent2", "accent3", "comment", "sidebar_width")})
+                    ("background", "foreground", "accent1", "accent2", "accent3", "comment", "sidebar_width", "icon_style")})
                 screen.page.form.fields[("accent1",)].input.text = "invalid"
                 pipe.send_text("\x13")
                 await until(lambda: "accent1" in screen.status)

@@ -1,3 +1,4 @@
+from tests.hub.test_mockup import minimize
 """Exercise dialogs and shell alerts through real host rendering and backend APIs."""
 
 import asyncio
@@ -9,7 +10,7 @@ import unittest
 from prompt_toolkit.input import create_pipe_input
 from hub.hub import install
 from hub.ui.application import create_application
-from hub.ui.chat.conversation import ChatMessage
+from hub.widget.conversation import ChatMessage
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.backend.worker import BackendWorker
 from tests.hub.test_ish_integration import Prompt
@@ -37,7 +38,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("hold finish\r")
                 await until(lambda: any(m.status == "streaming" for m in view.transcript.control.messages))
-                pipe.send_text("\x11")
+                await minimize(pipe, view)
                 await until(lambda: not view.visible)
                 gate.set()
                 await until(lambda: any(item.level == "success" for item in view.toasts.items))

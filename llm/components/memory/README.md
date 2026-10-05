@@ -10,6 +10,7 @@
 | [component.py](component.py) | 기억 레코드·revision·출처·상태·설정과 저장 구조를 관리합니다. |
 | [data.py](data.py) | 잠금과 Project 수명 검사 아래의 MemoryData CRUD·검색·검토 API입니다. |
 | [processing.py](processing.py) | MemoryProcessor/MemorySession: 회상, 문맥·Tool 결과 축약, 요약·후보 추출을 조합합니다. |
+| [work_state.py](work_state.py) | 선택적 구조화 요약의 형식·검증·출처 데이터를 정의합니다. |
 | [tools.py](tools.py) | 모델이 호출할 Memory Tool 정의와 실행 출처 연결입니다. |
 | [consolidation.py](consolidation.py) | 기억 통합 계획·승인·journal·중단 후 복구를 담당합니다. |
 

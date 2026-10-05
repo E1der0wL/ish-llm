@@ -3,7 +3,7 @@
 from prompt_toolkit.layout import ConditionalContainer, DynamicContainer, HSplit
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.widgets import Label
-from ..widgets import RadioList
+from .controls import RadioList
 
 
 class ExecutionChooser:

@@ -1,16 +1,12 @@
 """Session turn management and project execution activity dialogs."""
 
-from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import HSplit, VSplit, Window
-from prompt_toolkit.layout.controls import FormattedTextControl
-from prompt_toolkit.keys import Keys
+from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.widgets import Dialog, Label
+from prompt_toolkit.widgets import Label
+from ...widget.reader import ReadOnlyDialog
 
-from ...asset import icon
-from ..widgets import Button, RadioList
-from ..text_viewport import TextViewport
+from ...widget.controls import Button, RadioList
 
 
 def turn_label(row, index, t):
@@ -24,7 +20,7 @@ def format_activity(rows, t):
     blocks = []
     for row in rows:
         source = row["source"]
-        lines = [f"{icon.ALERT[levels.get(row['status'], 'info')]} {row['time']} · {t.status(row['status'])} · {row['event']}",
+        lines = [f"{t.icons.alerts[levels.get(row['status'], 'info')]} {row['time']} · {t.status(row['status'])} · {row['event']}",
                  t("activity_source", session_id=source["session_id"], run_id=source["run_id"])]
         if source.get("step_id"):
             lines.append(t("activity_step", step_id=source["step_id"]))
@@ -81,18 +77,13 @@ class HistoryUI:
                         self.open()
                 self.controller._call("delete_turn", session_id, request_id, completed=removed)
             view.open_dialog(t("history_delete"), Label(t("history_delete_confirm")), confirmed)
-        keys = KeyBindings()
-        @keys.add("d", eager=True)
-        def delete_key(event):
-            delete()
-        @keys.add("r", eager=True)
-        def clone_key(event):
-            clone()
-        choices.control.key_bindings = merge_key_bindings([choices.control.key_bindings, keys])
+        choices.control.hub_shortcuts.add(["d"], "d", "delete", lambda e: delete())
+        choices.control.hub_shortcuts.add(["r"], "r", "clone", lambda e: clone())
         body = HSplit([Label(t("history_hint")), choices, Label(detail),
                        VSplit([Button(t("history_delete"), handler=delete, width=14),
                                Button(t("history_clone"), handler=clone, width=20)], padding=2)], padding=1)
         view.open_dialog(t("history_title"), body, focus=choices)
+        view._dialog.shortcut_context = "history"
 
     def activity(self):
         view, t = self.view, self.view.t
@@ -111,31 +102,7 @@ class HistoryUI:
 
     def _activity_dialog(self, text):
         view = self.view
-        # Prefer a substantial viewport even for short/loading logs. Recompute
-        # on each paint so an open dialog follows terminal resizes.
-        output = self.activity_output = TextViewport(text,
-            height=lambda: Dimension.exact(max(1, min(30, view._rows() - 8))))
-        keys = KeyBindings()
-        @keys.add(Keys.Any)
-        def ignore(event):
-            pass
-        @keys.add("enter", eager=True)
-        @keys.add("escape")
-        @keys.add("c-l", eager=True)
-        def close(event):
-            view.close_dialog()
-        for key in ("up", "down", "left", "right", "pageup", "pagedown", "home", "end"):
-            @keys.add("escape", key, eager=True)
-            def scroll(event):
-                output.scroll(event.key_sequence[-1].key)
-                event.app.invalidate()
-        # Only this invisible key receiver is focusable; the output and dialog
-        # have no focusable buttons or fields, and shell/composer input is isolated.
-        receiver = FormattedTextControl("", focusable=True, show_cursor=False, key_bindings=keys, modal=True)
-        view._dialog_focus = get_app().layout.current_control
-        view._dialog = Dialog(title=view.t("project_activity"),
-            body=HSplit([Label(view.t("activity_hint")), output, Window(receiver, height=0)]),
-            buttons=[], width=lambda: Dimension(preferred=100, max=max(1, view._columns() - 4)),
-            with_background=False, modal=False)
-        get_app().layout.focus(receiver)
-        get_app().invalidate()
+        popup = ReadOnlyDialog(view.t("project_activity"), text, view._rows, view._columns,
+                               view.close_dialog, view.t)
+        self.activity_output = popup.output
+        view.dialogs.show(popup, popup.receiver)

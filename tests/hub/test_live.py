@@ -1,3 +1,5 @@
+from tests.hub.test_mockup import minimize
+from hub.ui.presentation import present
 """Real LLM persistence and runtime integration, with deterministic model output."""
 
 import asyncio
@@ -104,7 +106,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(snapshot.messages[-1].elapsed_seconds, elapsed)
                 self.assertEqual(snapshot.messages[-1].time, "")
                 self.assertEqual(calls[0]["model"], "openai/test")
-                self.assertIn("완료", snapshot.detail)
+                self.assertIn("완료", present(snapshot, runtime.t).detail)
                 project_id = snapshot.project_id
             finally:
                 await runtime.close()
@@ -171,7 +173,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\r")  # Default: follow-up request.
                 await until(lambda: view.composer.text == "")
                 await until(lambda: "예약 1" in view.sessions[view.selected].status)
-                pipe.send_text("\x11")
+                await minimize(pipe, view)
                 await until(lambda: not view.visible)
                 self.assertTrue(controller.worker._thread.is_alive())
                 pipe.send_text("\x11\x18")  # return; Ctrl+X interrupts only the active Run
@@ -237,7 +239,7 @@ class HostLifecycleTests(unittest.TestCase):
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("hold request\r")
                 await until(lambda: any("reply" in m.text for m in view.transcript.control.messages))
-                pipe.send_text("\x11")
+                await minimize(pipe, view)
                 await until(lambda: not view.visible)
                 prompt.app.exit(result="pwd")
                 await first

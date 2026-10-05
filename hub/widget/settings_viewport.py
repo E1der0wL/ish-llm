@@ -8,7 +8,7 @@ from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.screen import WritePosition
 
-from ..widgets import ScrollablePane
+from .controls import ScrollablePane
 
 
 class SettingsBody(HSplit):

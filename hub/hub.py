@@ -19,6 +19,7 @@ from .ui.mockup import HubMockup
 from .config.theme import HubTheme
 from .backend.runtime import HubConfig
 from .config.profile import UserProfile
+from .ui.terminal_screen import HubTerminalScreen
 
 
 class HubInstallation:
@@ -36,16 +37,15 @@ class HubInstallation:
         else:
             self.view = HubMockup(theme)
         self._closed = False
+        self._terminal_screen = HubTerminalScreen(prompt.app, self.view)
         self._style = prompt.style
         self._bindings = prompt.app.key_bindings
         self._previous_q = [binding for binding in prompt.key_bindings.bindings
                             if binding.keys == (Keys.ControlQ,)]
-        self._previous_s = [binding for binding in prompt.key_bindings.bindings
-                            if binding.keys == (Keys.ControlS,)]
         prompt.style = merge_styles([self._style or Style([]), DynamicStyle(lambda: self.view.style)])
         self._installed_style = prompt.style
         # Application-level shell editing bindings also need to be inactive while
-        # the modal is open. Hub's local Ctrl+Q handles the return path.
+        # the modal is open. ESC from the sidebar returns to the shell.
         prompt.app.key_bindings = merge_key_bindings([
             ConditionalKeyBindings(self._bindings, filter=Condition(lambda: not self.view.visible)),
             self.view.navigation_keys,
@@ -58,8 +58,7 @@ class HubInstallation:
             height=lambda: prompt.app.output.get_size().rows,
             z_index=100,
         )
-        prompt.set_key("c-q", handler=self.view.toggle, eager=True)
-        prompt.set_key("c-s", handler=self.view.toggle_settings, eager=True)
+        prompt.set_key("c-q", handler=self.view.toggle, filter=Condition(lambda: not self.view.visible), eager=True)
         self.alert_handle = prompt.set_float(
             ConditionalContainer(self.view.toasts.container,
                 Condition(lambda: not self.view.visible and self.view.toasts.active())),
@@ -80,8 +79,8 @@ class HubInstallation:
         if self.controller:
             self.controller.close()
         self.view.hide(self.prompt.app)
+        self._terminal_screen.close()
         self.prompt.set_key(self.view.toggle)
-        self.prompt.set_key(self.view.toggle_settings)
         if not any(binding.keys == (Keys.ControlQ,)
                    for binding in self.prompt.key_bindings.bindings):
             for binding in self._previous_q:
@@ -90,11 +89,6 @@ class HubInstallation:
                     is_global=binding.is_global, save_before=binding.save_before,
                     record_in_macro=binding.record_in_macro,
                 )(binding.handler)
-        if not any(binding.keys == (Keys.ControlS,) for binding in self.prompt.key_bindings.bindings):
-            for binding in self._previous_s:
-                self.prompt.key_bindings.add(*binding.keys, filter=binding.filter, eager=binding.eager,
-                    is_global=binding.is_global, save_before=binding.save_before,
-                    record_in_macro=binding.record_in_macro)(binding.handler)
         self.prompt.set_float(target_float=self.float_handle)
         self.prompt.set_float(target_float=self.alert_handle)
         self.prompt.app.before_render -= self._bind_loop

@@ -6,7 +6,8 @@
 
 `python -m examples.hub.preview`로 독립 PTK 미리보기를 실행합니다.
 Linux Python 3.12.14, `prompt-toolkit==3.0.53`, `rich>=14,<15`가 필요합니다.
-Ctrl+Q로 Hub를 닫은 뒤 Ctrl+C로 종료합니다.
+ESC로 패널에 이동한 뒤 다시 ESC로 최소화하고, 모형 셸에서 Ctrl+C로 종료합니다.
+셸에서 Hub를 다시 열 때는 Ctrl+Q를 사용합니다.
 기본은 터미널 배경을 유지합니다. `--theme dark`로 어두운 테마를 비교합니다.
 사용자 메시지는 오른쪽 정렬하고 Assistant 응답은 Rich Markdown으로 표시합니다.
 

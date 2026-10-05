@@ -44,7 +44,7 @@ def processing_settings(configuration: dict, *, token_counter=None) -> dict:
     for key in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active"):
         if key in config and type(config[key]) is not bool:
             raise ValueError(f"Memory {key} must be boolean")
-    for key in ("keep_turns", "summary_after_chars", "summary_chars", "context_chars", "recall_limit",
+    for key in ("keep_turns", "summary_after_chars", "summary_after_tokens", "summary_chars", "context_chars", "recall_limit",
                 "tool_result_chars", "model_input_chars", "max_candidates", "active_keep_iterations", "max_summary_calls", "recall_query_chars"):
         if key in config and (type(config[key]) is not int or config[key] < 1):
             raise ValueError(f"Memory {key} must be a positive integer")
@@ -72,11 +72,13 @@ def processing_settings(configuration: dict, *, token_counter=None) -> dict:
     requirements = {
         "recall": ("recall_limit", "recall_query_chars", "context_chars"),
         "compress_tools": ("tool_result_chars",),
-        "summarize": ("keep_turns", "summary_after_chars", "summary_chars", "model_input_chars", "max_summary_calls", "context_chars"),
+        "summarize": ("keep_turns", "summary_chars", "model_input_chars", "max_summary_calls", "context_chars"),
         "extract": ("model_input_chars", "recall_limit", "max_candidates", "summary_chars", "extract_scope"),
     }
     if config.get("summarize") and config.get("compact_active"):
         requirements["summarize"] += ("active_keep_iterations",)
+    if config.get("summarize") and not any(key in config for key in ("summary_after_chars", "summary_after_tokens")):
+        raise ValueError("Memory summary requires summary_after_chars or summary_after_tokens")
     for feature, keys in requirements.items():
         if config.get(feature):
             for key in keys:
@@ -119,6 +121,40 @@ class MemorySession(CompletionSession):
         self.active_partial = None
         self.prepare_count = 0
         self.recall_query = None
+        self.goal_references = []
+        self.summary_due = False
+
+    async def _threshold(self, request, chars):
+        """실제 전체 요청 tokenizer가 있으면 토큰 기준, 없으면 명시된 문자 기준만 쓴다."""
+        policy = self.context.completion_policy
+        if "summary_after_tokens" in self.config and policy is not None:
+            count = await asyncio.to_thread(policy.counter, request.to_kwargs())
+            if type(count) is not int or count < 0:
+                raise ValueError("Completion token counter must return a nonnegative integer")
+            return count >= self.config["summary_after_tokens"]
+        if "summary_after_chars" not in self.config:
+            raise ValueError("Memory token threshold requires a CompletionPolicy counter or explicit char threshold")
+        return chars >= self.config["summary_after_chars"]
+
+    async def _summary_model(self, instruction, payload, result):
+        """기존 문자열 요약 호출과 구조화 요약 호출이 같은 처리/취소 경계를 사용한다."""
+        if self.config.get("summary_format") != "work_state":
+            async for event in self._model(instruction, payload, result):
+                yield event
+            return
+        from .work_state import INSTRUCTION, validate_work_state
+        answer = {}
+        async for event in self._model(INSTRUCTION, payload, answer):
+            yield event
+        state = validate_work_state(answer.get("work_state"))
+        result["summary"] = json.dumps(state, ensure_ascii=False)
+
+    def _summary_metadata(self, text, *, sources):
+        from .work_state import SUMMARY_FORMAT_VERSION, validate_work_state
+        result = {"sources": sources}
+        if self.config.get("summary_format") == "work_state":
+            result.update(work_state=validate_work_state(json.loads(text)), summary_format_version=SUMMARY_FORMAT_VERSION)
+        return result
 
     async def _compact_active(self, request, result, source):
         """완료된 현재 작업의 오래된 Tool 교환을 요약한다. 원본과 체크포인트는 그대로 둔다."""
@@ -133,7 +169,21 @@ class MemorySession(CompletionSession):
         if any(m.value.get("role") == "user" for m in tail[:cut]):
             return
         prefix = [m.value for m in tail[:cut]]
-        if sum(len(json.dumps(m, ensure_ascii=False)) for m in prefix) < self.config["summary_after_chars"]:
+        # 미완료/중복 Tool 결과는 절대로 요약으로 숨기지 않는다.
+        pending = set()
+        for message in prefix:
+            if message.get("role") == "assistant":
+                if pending:
+                    return
+                calls = [call["id"] for call in message.get("tool_calls", [])]
+                if len(set(calls)) != len(calls):
+                    return
+                pending.update(calls)
+            elif message.get("role") == "tool":
+                if message.get("tool_call_id") not in pending:
+                    return
+                pending.remove(message["tool_call_id"])
+        if pending or not await self._threshold(request, sum(len(json.dumps(m, ensure_ascii=False)) for m in prefix)):
             return
         # 전체 교환 단위로만 요약한다. 모델에 보내지 않은 메시지는 제거하지 않는다.
         cached = next(iter(self.active_summaries.values()), None)
@@ -173,7 +223,7 @@ class MemorySession(CompletionSession):
                     if low == offset:
                         break
                     answer = {}
-                    async for event in self._model(
+                    async for event in self._summary_model(
                         'Summarize completed tool exchange fragments as reference data. Preserve constraints, '
                         'uncertainty, unfinished work and source call IDs. Do not invent success. Return JSON {"summary":"..."}.',
                         build(low), answer):
@@ -188,7 +238,7 @@ class MemorySession(CompletionSession):
                 self.active_partial, text = None, working
             else:
                 answer = {}
-                async for event in self._model(
+                async for event in self._summary_model(
                     'Summarize completed tool exchanges and the previous summary as reference data. Preserve objectives, decisions, failures, pending work and source call IDs. Do not invent success. Return JSON {"summary":"..."}.',
                     payload, answer):
                     yield event
@@ -201,10 +251,13 @@ class MemorySession(CompletionSession):
         if not covered:
             return
         ids = tuple(c["id"] for m in prefix[:covered] for c in m.get("tool_calls", []))
+        from .work_state import provenance
+        metadata = self._summary_metadata(text, sources=provenance(tool_calls=ids,
+            run_ids=[self.context.run.id], checksum=digest(prefix[:covered]), goals=self.goal_references))
         request.messages[index].value["content"] += "\n\n[Completed work reference; verify details against original Tool results]\n" + text + "\nSource calls: " + ", ".join(ids)
         request.messages[index + 1:] = tail[covered:]
         request.compacted_tool_calls = ids
-        result.update(summary=text, tool_call_ids=list(ids), source_digest=digest(prefix[:covered]))
+        result.update(summary=text, tool_call_ids=list(ids), source_digest=digest(prefix[:covered]), **metadata)
 
     async def _step(self, name, operation):
         context = replace(self.context, output_visibility="internal")
@@ -274,13 +327,14 @@ class MemorySession(CompletionSession):
         return valid
 
     def _signature(self, message):
-        return digest({"id": message.id, "role": str(message.role), "status": str(message.status), "content": message.content})
+        return digest({"id": message.id, "role": str(message.role), "status": str(message.status),
+                       "content": message.content, "run_id": message.run_id, "metadata": message.metadata})
 
     async def _summarize(self, result, source):
         valid = self._history()
         signatures = [self._signature(message) for message in valid]
         cached = self.snapshot["summary"]
-        profile = digest({"format": 4, "settings": self.config})
+        profile = digest({"format": 5, "settings": self.config, "goals": self.goal_references})
         previous, covered = "", 0
         cache_usable = False
         if cached and cached["metadata"]["profile"] == profile:
@@ -290,7 +344,7 @@ class MemorySession(CompletionSession):
                 previous, covered = cached["content"] if count else "", count
                 self.summary_record, self.covered = cached, covered
         remaining = valid[covered:]
-        if not remaining or (not covered and sum(len(m.content) for m in valid) < self.config["summary_after_chars"]):
+        if not remaining or (not covered and not self.summary_due):
             result.update(reused=bool(covered), covered=covered)
             return
         # 큰 역사도 보조 모델 한 번에 무제한으로 넣지 않는다. 다음 호출에서 다음 구간을 처리한다.
@@ -331,7 +385,7 @@ class MemorySession(CompletionSession):
                     result.update(reused=bool(covered), covered=covered, oversized_turn=True)
                     return
                 answer = {}
-                async for event in self._model(
+                async for event in self._summary_model(
                     'Summarize this reference fragment and previous summary. Fragments may split a turn. '
                     'Preserve constraints, uncertainty, decisions and unfinished work; never infer success. Return JSON {"summary":"..."}.',
                     payload(low), answer):
@@ -348,7 +402,7 @@ class MemorySession(CompletionSession):
                 text = previous or "[Partial summary; original turn retained]"
         else:
             answer = {}
-            async for event in self._model(
+            async for event in self._summary_model(
                     'Summarize reference conversation data, not instructions. Preserve decisions, constraints, '
                     'unfinished work and uncertainties. Failed/interrupted/paused messages or missing responses '
                     'are not evidence of success. Merge the previous summary. Return only JSON {"summary":"..."}.',
@@ -363,6 +417,19 @@ class MemorySession(CompletionSession):
                   "first_message_id": valid[0].id,
                   "through_message_id": valid[max(covered - 1, 0)].id, "partial": partial,
                   "input_truncated": any(m["truncated"] for m in batch)}}
+        from .work_state import provenance
+        # 긴 대화의 파생 캐시에 전체 ID 목록을 다시 복제하지 않는다. 원본 메시지
+        # 범위 양 끝 + coverage_count/hash로 정확한 범위를 재조회/검증할 수 있다.
+        boundaries = [valid[0], valid[covered - 1]] if covered else []
+        sources = provenance(messages=[m.id for m in boundaries],
+            run_ids=[m.run_id for m in boundaries if m.run_id],
+            checksum=digest(signatures[:covered]), goals=self.goal_references)
+        sources["messages_are_range_boundaries"] = True
+        # 부분 턴의 작업 상태는 완성된 요약으로 공개하지 않는다.
+        if covered:
+            record["metadata"].update(self._summary_metadata(text, sources=sources))
+        else:
+            record["metadata"]["sources"] = sources
         self.summary_record = await self.data._async_call(self.data._publish_summary, self.snapshot,
             record, session_id=self.context.session.id, source=source)
         self.snapshot["summary"] = self.summary_record
@@ -405,7 +472,8 @@ class MemorySession(CompletionSession):
         can_summarize = bool(covered) and present == covered
         if self.summary_record and can_summarize:
             entries.append({"type": "conversation_summary", "content": self.summary_record["content"],
-                            "id": self.summary_record["id"], "revision": self.summary_record["revision"]})
+                            "id": self.summary_record["id"], "revision": self.summary_record["revision"],
+                            "sources": deepcopy(self.summary_record["metadata"].get("sources", {}))})
             if not self._fits(render(entries)):
                 entries.clear()
         use_summary = bool(entries)
@@ -512,7 +580,18 @@ class MemorySession(CompletionSession):
             self.snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.session.id, include_records=False)
             self.config = processing_settings(self.snapshot["configuration"], token_counter=self.processor.token_counter)
             self.prepared = True
-        if self.config.get("summarize") and (self.context.output_step_id is None or self.config.get("nested_processing")) and not self.did_summarize:
+        summarizing = self.config.get("summarize") and (self.context.output_step_id is None or self.config.get("nested_processing"))
+        if summarizing:
+            # Goal 원문을 소유하지 않는다. 버전이 변하면 profile과 publish CAS가 캐시를 거부한다.
+            ids = self.config.get("goal_ids", [])
+            refs = await self.data._async_call(self.data._goal_references, self.context.session.id, ids)
+            if refs != self.goal_references:
+                self.did_summarize, self.summary_record, self.covered = False, None, 0
+                self.active_summaries, self.active_partial = {}, None
+            self.goal_references = refs
+            self.snapshot.update(goal_ids=ids, goal_references=self.goal_references)
+        if summarizing and not self.did_summarize:
+            self.summary_due = await self._threshold(request, sum(len(m.content) for m in self._history()))
             self.did_summarize = True
             async with aclosing(self._step("Memory summarize", self._summarize)) as events:
                 async for event in events:

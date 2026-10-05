@@ -18,7 +18,7 @@ def create_preview(*, input=None, output=None, theme=None):
     background = HSplit([
         Window(FormattedTextControl(
             "\n  ish · Hub UI preview\n\n"
-            "  Ctrl+Q : Hub 열기 / 닫기\n"
+            "  Ctrl+Q : Hub 열기 · ESC : 패널 / 최소화\n"
             "  Ctrl+C : 미리보기 종료 (Hub를 닫은 상태)\n\n"
             "  아래는 입력 보존을 확인하기 위한 모형 셸입니다.\n"
             "  실제 셸 명령이나 AI 요청은 실행되지 않습니다.\n"

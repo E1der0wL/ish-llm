@@ -1,7 +1,7 @@
 """UI language packs; model content and backend diagnostics are not translated."""
 
 from . import en, ko
-from ..asset.icon import VALUES
+from ..asset.icon import VALUES, NERD
 import re
 from string import Formatter
 
@@ -25,7 +25,7 @@ def validate_packs(packs):
 
 
 class Language:
-    def __init__(self, code: str = "ko", custom_packs=None) -> None:
+    def __init__(self, code: str = "ko", custom_packs=None, *, icons=None) -> None:
         custom_packs = {} if custom_packs is None else custom_packs
         validate_packs(custom_packs)
         packs = {"ko": ko.MESSAGES, "en": en.MESSAGES, **custom_packs}
@@ -33,12 +33,17 @@ class Language:
             raise ValueError(f"Unsupported Hub language: {code}")
         self.code = code
         self.messages = {**en.MESSAGES, **packs[code]}
+        self.icon_source = icons or NERD
+
+    @property
+    def icons(self):
+        return self.icon_source() if callable(self.icon_source) else self.icon_source
 
     def __call__(self, key: str, **values) -> str:
         try:
-            return self.messages.get(key, en.MESSAGES.get(key, key)).format(**{**VALUES, **values})
+            return self.messages.get(key, en.MESSAGES.get(key, key)).format(**{**self.icons.values, **values})
         except (KeyError, ValueError, TypeError, IndexError):
-            return en.MESSAGES.get(key, key).format(**{**VALUES, **values})
+            return en.MESSAGES.get(key, key).format(**{**self.icons.values, **values})
 
     def status(self, value) -> str:
         return self("status_" + str(value)) if "status_" + str(value) in self.messages else str(value)

@@ -26,6 +26,17 @@ async def eventually(predicate):
             await asyncio.sleep(0.01)
 
 
+async def minimize(pipe, view):
+    if view._dialog is not None:
+        pipe.send_text("\x1b")
+        await eventually(lambda: view._dialog is None)
+    if not view.active_page.sidebar_focused:
+        pipe.send_text("\x1b")
+        await eventually(lambda: view.active_page.sidebar_focused)
+    pipe.send_text("\x1b")
+    await eventually(lambda: not view.visible)
+
+
 class MockupTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.input_context = create_pipe_input()
@@ -51,7 +62,7 @@ class MockupTests(unittest.IsolatedAsyncioTestCase):
         await self.open_hub()
         self.pipe.send_text("draft")
         await eventually(lambda: self.view.composer.text == "draft")
-        self.pipe.send_text("\x11")
+        await minimize(self.pipe, self.view)
         await eventually(lambda: not self.view.visible)
         self.assertIs(self.app.layout.current_control, self.shell.control)
         self.assertEqual(self.shell.text, "unfinished shell")

@@ -223,7 +223,8 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         from types import SimpleNamespace
         from llm.components.memory.processing import MemorySession
         from llm.components.processing import CompletionRequest, CompletionMessage
-        session = MemorySession(SimpleNamespace(data=None), SimpleNamespace(run=SimpleNamespace(input_message_id='input')))
+        session = MemorySession(SimpleNamespace(data=None), SimpleNamespace(completion_policy=None,
+            run=SimpleNamespace(input_message_id='input', id='run')))
         session.config = {'active_keep_iterations': 1, 'summary_after_chars': 1,
                           'summary_chars': 100, 'model_input_chars': 540, 'max_summary_calls': 2}
         submitted = []

@@ -7,6 +7,8 @@ from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.widgets import Button as PTKButton, Checkbox as PTKCheckbox
 from prompt_toolkit.widgets import RadioList as PTKRadioList, TextArea as PTKTextArea
 from ..asset import icon
+from ..ui.input.registry import ShortcutRegistry
+from prompt_toolkit.key_binding import merge_key_bindings
 
 
 def _arrows(window) -> None:
@@ -59,6 +61,11 @@ class Button(PTKButton):
         super().__init__(*args, **kwargs)
 
         self.control.show_cursor = False
+        self.control.hub_role = "button"
+        registry = ShortcutRegistry()
+        registry.add(["enter", " "], "Enter/Space", "activate", lambda e: self.handler and self.handler())
+        self.control.hub_shortcuts = registry
+        self.control.key_bindings = merge_key_bindings([self.control.key_bindings, registry.bindings])
 
 
 class Checkbox(PTKCheckbox):
@@ -75,6 +82,18 @@ class RadioList(PTKRadioList):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _arrows(self.window)
+        self.control.hub_role = "choices"
+        native = self.control.key_bindings
+        registry = ShortcutRegistry()
+        def invoke(event):
+            bindings = native.get_bindings_for_keys(tuple(item.key for item in event.key_sequence))
+            for binding in reversed(bindings):
+                if binding.filter():
+                    return binding.handler(event)
+        registry.add(["up", "down"], "↑↓", "select", invoke)
+        registry.add(["enter", " "], "Enter/Space", "confirm", invoke)
+        self.control.hub_shortcuts = registry
+        self.control.key_bindings = merge_key_bindings([native, registry.bindings])
 
 
 class TextArea(PTKTextArea):

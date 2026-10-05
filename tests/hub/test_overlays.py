@@ -1,3 +1,4 @@
+from tests.hub.test_mockup import minimize
 """Assert visible renderer cells, not only popup state and key handling."""
 
 import asyncio
@@ -49,7 +50,7 @@ class OverlayTests(unittest.IsolatedAsyncioTestCase):
                     await eventually(lambda: view._dialog is None)
                     self.assertEqual(view.engine, "review-overlay")
                     view.composer.text = ""
-                pipe.send_text("\x11")
+                await minimize(pipe, view)
                 await eventually(lambda: not view.visible)
                 self.assertEqual(prompt.default_buffer.text, "shell draft")
             finally:

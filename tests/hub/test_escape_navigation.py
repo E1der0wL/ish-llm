@@ -1,3 +1,4 @@
+from tests.hub.test_mockup import minimize
 """ESC navigation must not swallow Alt sequences or interrupt a Run."""
 
 import asyncio
@@ -58,7 +59,7 @@ class EscapeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view.settings.layout.sidebar_focused)
                 self.assertFalse(view.settings.editing)
                 self.assertEqual(view.composer.text, "draft")
-                pipe.send_text("\x11")
+                await minimize(pipe, view)
                 await eventually(lambda: not view.visible)
                 self.assertEqual((app.ttimeoutlen, app.timeoutlen), (0.4, 1.2))
                 pipe.send_text("\x11")

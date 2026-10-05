@@ -1,3 +1,5 @@
+from hub.ui.presentation import present
+from tests.hub.test_mockup import minimize
 """Durable UI positions, message metadata, and bounded draft preview."""
 
 import asyncio
@@ -12,7 +14,7 @@ import unittest
 from prompt_toolkit.input import create_pipe_input
 
 from hub.ui.application import create_application
-from hub.ui.chat.conversation import ChatMessage, ConversationControl
+from hub.widget.conversation import ChatMessage, ConversationControl
 from hub.config.profile import UserProfile
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.config.theme import HubTheme
@@ -72,7 +74,8 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(user.author, "my-account")
                 self.assertEqual(user.status, "committed")
                 self.assertEqual(user.id, stored.id)
-                self.assertEqual(user.time, datetime.fromisoformat(stored.created_at).astimezone().strftime("%Y-%m-%d %H:%M:%S"))
+                self.assertEqual(user.time, stored.created_at)
+                self.assertEqual(present(snapshot, runtime.t).messages[0].time, datetime.fromisoformat(stored.created_at).astimezone().strftime("%Y-%m-%d %H:%M:%S"))
                 second = await runtime.new_session("new", "Second")
                 await runtime.submit(second, "Second\n\n" + "paragraph\n\n" * 70)
                 await runtime.sessions[second].run.wait_idle()
@@ -109,7 +112,7 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                                 store = ViewStateStore(directory)
                                 await until(lambda: store.path.exists() and
                                             store.load(view.project_id)[1].get(identifier) == positions[identifier])
-                            pipe.send_text("\x11")
+                            await minimize(pipe, view)
                             await until(lambda: not view.visible)
                             await asyncio.wrap_future(controller.worker.call("submit", first, "Hidden addition", "loop"))
                             await until(lambda: any(message.role == "assistant" and "Hidden addition" in message.text

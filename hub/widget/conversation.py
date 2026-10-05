@@ -1,11 +1,12 @@
 """Rich Markdown rendered into PTK cells, without printing to the terminal."""
 
-from dataclasses import dataclass
+from ..model import ChatMessage
+from ..asset.icon import for_style
 from bisect import bisect_right
 import re
 from pathlib import Path
 from prompt_toolkit.application.current import get_app
-from ..output import OutputParser, RendererRegistry, ImageRenderer, RenderContext
+from ..ui.output import OutputParser, RendererRegistry, ImageRenderer, RenderContext
 
 from prompt_toolkit.data_structures import Point
 from prompt_toolkit.formatted_text.utils import fragment_list_width
@@ -14,31 +15,20 @@ from prompt_toolkit.layout import ScrollOffsets
 from prompt_toolkit.mouse_events import MouseEventType
 from prompt_toolkit.utils import get_cwidth
 from rich.text import Text
-from ..output.markdown import HubMarkdown, make_console, _segment_style, _trim_right
+from ..ui.output.markdown import HubMarkdown, make_console, _segment_style, _trim_right
 
-from ...config.theme import HubTheme
-from ...locales import Language
-from ...config.profile import UserProfile
-from ...config.view_state import ReadingPosition
-from ..widgets import ScrollbarMargin
-
-
-@dataclass(frozen=True, slots=True)
-class ChatMessage:
-    role: str
-    text: str
-    time: str = ""
-    status: str = ""
-    id: str = ""
-    author: str = ""
-    elapsed_seconds: float | None = None
+from ..config.theme import HubTheme
+from ..locales import Language
+from ..config.profile import UserProfile
+from ..config.view_state import ReadingPosition
+from .controls import ScrollbarMargin
 
 
 def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubTheme, language=None, *, anchors=None,
                     renderers=None, root=None, invalidate=None):
     """Return already-wrapped fragment lines using terminal-cell widths."""
     inner = max(1, width - 4)
-    t = language or Language()
+    t = language or Language(icons=for_style(theme.icon_style))
     console = make_console(inner, theme)
     lines = []
     account_name = UserProfile().display_name
@@ -106,7 +96,7 @@ class ConversationControl(UIControl):
     def __init__(self, messages: tuple[ChatMessage, ...], theme: HubTheme, language=None) -> None:
         self.messages = messages
         self.theme = theme
-        self.language = language or Language()
+        self.language = language or Language(icons=lambda: for_style(self.theme.icon_style))
         self.file_root = Path.cwd()
         self.renderers = RendererRegistry()
         self.images = ImageRenderer()

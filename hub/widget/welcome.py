@@ -5,7 +5,7 @@ from functools import lru_cache
 from prompt_toolkit.layout import UIContent, UIControl, Window
 from prompt_toolkit.utils import get_cwidth
 
-from ..output.registry import literal_lines
+from ..ui.output.registry import literal_lines
 
 
 @lru_cache(maxsize=12)

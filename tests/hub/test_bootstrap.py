@@ -23,7 +23,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await runtime.start()
                 await runtime.new_session()
-                self.assertNotEqual((await runtime.snapshot()).notice, runtime.t("model_required"))
+                self.assertFalse((await runtime.snapshot()).model_required)
                 await runtime.submit(runtime.selected_id, "hello")
                 await runtime.sessions[runtime.selected_id].run.wait_idle()
                 run = (await runtime.sessions[runtime.selected_id].run.alist())[-1]
@@ -48,7 +48,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.activate_project(runtime.project, session_id=session.id)
                 view = await runtime.snapshot()
                 self.assertEqual(view.model, "test/session")
-                self.assertNotEqual(view.notice, runtime.t("model_required"))
+                self.assertFalse(view.model_required)
                 await runtime.submit(session.id, "hello")
                 await runtime.sessions[session.id].run.wait_idle()
                 self.assertEqual(provider.requests[0]["model"], "test/session")

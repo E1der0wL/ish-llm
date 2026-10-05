@@ -53,6 +53,8 @@ from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from llm.components.tools.component import ToolComponent
 from llm.components.agents import AgentComponent
 from llm.components.skills import SkillComponent
+from llm.components.goals import GoalComponent, GoalData
+from llm.components.refinement import RefinementComponent, RefinementData
 from llm.components.prompts import PromptComponent
 from llm.components.mcp import MCPComponent
 from llm.components.rag import RAGComponent, EmbeddingModel, RerankModel
@@ -467,7 +469,23 @@ class LargeLanguageModel:
     identifier=로 식별자를 지정할 수 있다.
     configure는 전체 설정을 교체하고 update는 최상위 키를 병합한다. 데이터는 Component
     검증 규칙을 따르는 열린 JSON 사전이다. 기본 제공 종류는 tools/skills/mcp/rag/
-    agents/workflows/memory/prompts/vision이며 정의 저장과 실제 Tool·모델·검색 실행은 별개다.
+    agents/workflows/memory/prompts/vision/goals/refinement이며 정의 저장과 실제 실행은 별개다.
+
+    Goal과 Refinement — 실행 소유권 없이 목적과 개선 제안을 관리::
+
+        goals = await project.components.aget("goals")
+        goal_id = await goals.acreate({"title": "검증", "objective": "검증된 변경만 적용",
+            "scope": {"type": "project"}, "status": "active"})
+        view = await goals.asnapshot(goal_id)
+        await goals.alink_run(goal_id, session.id, run.id, relation="contributes_to",
+                              expected_version=view["version"])
+        refinement = await project.components.aget("refinement")
+        proposals = await refinement.alist()
+
+    Refinement는 create → validate → approve → apply로 대상을 변경하며 rollback에도
+    CAS를 적용한다. 자동 모델 호출은 없다. 모델의 제안은 일반 Run의 refinement_propose
+    Tool로 저장하며, apply_tools 정책을 켠 적용 Tool은 기존 ToolExecutor 승인 경계를 따른다.
+    상세 예제는 각 Component README에 있다.
 
     Vision — 등록된 이미지 전처리·OCR·모델 해석::
 
@@ -732,7 +750,7 @@ class LargeLanguageModel:
         # 제공 가능한 종류와 Project에서 선택한 종류는 다르다. 선택 시에만 디렉토리를 만든다.
         available = [ToolComponent(), SkillComponent(), MCPComponent(), RAGComponent(),
                      AgentComponent(), WorkflowComponent(), MemoryComponent(), PromptComponent(),
-                     VisionComponent()] if components is None else components
+                     VisionComponent(), GoalComponent(), RefinementComponent()] if components is None else components
         self.project_manager, self.run_repository, self.step_manager = self.services.build(
             self.workspace, available)
         self.project_manager.usage_counters = dict(getattr(self.policy_resolver, "token_counters", {}))

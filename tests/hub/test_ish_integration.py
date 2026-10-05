@@ -1,3 +1,4 @@
+from tests.hub.test_mockup import minimize
 """Use the reference host's real set_float, set_key and prompt_async contracts."""
 
 import asyncio
@@ -17,7 +18,7 @@ from ish.ui.prompt import Prompt
 
 class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_alt_navigation_and_mouse_scroll_preserve_input_focus_and_cursor(self):
-        from hub.ui.chat.conversation import ChatMessage
+        from hub.widget.conversation import ChatMessage
         from prompt_toolkit.data_structures import Point
         from prompt_toolkit.mouse_events import MouseEvent, MouseEventType, MouseButton
         with create_pipe_input() as pipe:
@@ -119,7 +120,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(view._details.filter(), columns >= 116)
                         self.assertIs(app.layout.current_control, view.composer.control)
                         self.assertEqual(view.composer.text, "keep this draft")
-                pipe.send_text("\x11")
+                await minimize(pipe, view)
                 await eventually(lambda: not view.visible)
                 self.assertEqual(prompt.default_buffer.text, "shell draft")
                 self.assertIs(app.current_buffer, prompt.default_buffer)
@@ -173,11 +174,11 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 for control in (view.composer.control, view._session_control):
                     pipe.send_text("\t" if control == view.composer.control else "\x1b")
                     await eventually(lambda: prompt.app.layout.current_control == control)
-                pipe.send_text("\x11")
+                await minimize(pipe, replacement.view)
                 await eventually(lambda: not replacement.view.visible)
                 self.assertIs(prompt.app.current_buffer, prompt.default_buffer)
                 self.assertEqual(prompt.default_buffer.text, "shell draft")
-                pipe.send_text("\x13")
+                pipe.send_text("\x11\x13")
                 await eventually(lambda: replacement.view.settings_open)
                 view.settings.choose("appearance")
                 self.assertIn(prompt.app.layout.current_control, [view.settings.global_list, view.settings.project_list])
@@ -186,7 +187,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\t\x1b[Z\x03")  # Preview has no settings backend; close without saving.
                 await eventually(lambda: not view.settings_open)
                 self.assertEqual(view.composer.text, "ui draft")
-                pipe.send_text("\x11")
+                await minimize(pipe, view)
                 await eventually(lambda: not view.visible)
                 self.assertEqual(prompt.default_buffer.text, "shell draft")
                 replacement.close()

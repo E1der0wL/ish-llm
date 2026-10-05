@@ -30,9 +30,21 @@ class MemoryData(ComponentData):
             raise MemoryConflictError("Memory configuration or storage changed during processing")
 
     @workspace_locked
+    def _goal_references(self, session_id, identifiers):
+        """명시된 Goal만 참조한다. Goal의 소유권과 버전 검사는 GoalData에 남긴다."""
+        if not identifiers:
+            return []
+        refs = self.related("goals").context_references(session_id, identifiers=identifiers)
+        return [{key: deepcopy(ref[key]) for key in ("goal_id", "version", "objective", "success_criteria") if key in ref}
+                for ref in refs]
+
+    @workspace_locked
     def _publish_summary(self, snapshot, record, *, session_id, source):
         project, component = self._current()
         self._check_snapshot(project, component, snapshot)
+        if "goal_references" in snapshot and self._goal_references(session_id, snapshot["goal_ids"]) != snapshot["goal_references"]:
+            from .component import MemoryConflictError
+            raise MemoryConflictError("Goal changed during summary processing")
         prior = snapshot["summary"]
         record = {**deepcopy(record), "source": deepcopy(source)}
         return component.publish_summary(project, session_id, record, expected_revision=prior["revision"] if prior else 0,

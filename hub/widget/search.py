@@ -3,8 +3,9 @@
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.widgets import Dialog, Label
-from ..widgets import Button, TextArea
+from prompt_toolkit.widgets import Label
+from .dialog import Dialog
+from .controls import Button, TextArea
 
 
 class SessionSearch:
@@ -33,7 +34,6 @@ class SessionSearch:
             app.layout.focus(self.input)
             return
         view.composer.buffer.cancel_completion()
-        view._dialog_focus = app.layout.current_control
         self.input = TextArea(text=view.transcript.control.search_query, multiline=False, height=1)
         def changed(_):
             view.transcript.control.set_search(self.input.text)
@@ -49,6 +49,5 @@ class SessionSearch:
                      Button(view.t("search_next"), handler=self.move),
                      Button(view.t("search_close"), handler=view.close_dialog)],
             width=Dimension(preferred=58, max=70), with_background=False, modal=False)
-        view._dialog = self.dialog
-        app.layout.focus(self.input)
+        view.dialogs.show(self.dialog, self.input)
         app.invalidate()

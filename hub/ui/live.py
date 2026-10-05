@@ -4,7 +4,9 @@ import asyncio
 from dataclasses import replace
 
 from .mockup import HubMockup, SampleSession
-from ..backend.runtime import HubConfig, HubSnapshot
+from ..backend.runtime import HubConfig
+from ..model import HubSnapshot
+from .presentation import present
 from ..backend.worker import BackendWorker
 from ..config.view_state import ViewStateStore
 from ..config.preferences import PreferencesStore
@@ -28,6 +30,8 @@ class LiveHubView(HubMockup):
         self.notice = self.t("connecting_notice")
 
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=None) -> None:
+        self._last_snapshot = snapshot
+        display = present(snapshot, self.t)
         current_id = self.sessions[self.selected].id
         empty_draft_key = self._draft_key(self.selected) if self.no_sessions else None
         changing_project = bool(self.project_id) and self.project_id != snapshot.project_id
@@ -38,13 +42,13 @@ class LiveHubView(HubMockup):
         self.sessions = [SampleSession(s.title, s.status,
                                       cached[s.id].messages if s.id in cached else (),
                                       cached[s.id].detail if s.id in cached else "", s.id)
-                         for s in snapshot.sessions]
+                         for s in display.sessions]
         self.no_sessions = not bool(self.sessions)
         if self.no_sessions:
             self.sessions = [SampleSession(self.t("welcome_title"), "", (), "", "")]
         for index, session in enumerate(self.sessions):
             if session.id == snapshot.selected_id:
-                self.sessions[index] = replace(session, messages=snapshot.messages, detail=snapshot.detail)
+                self.sessions[index] = replace(session, messages=display.messages, detail=display.detail)
         target = select_id or (snapshot.selected_id if changing_project else current_id) or snapshot.selected_id
         self.selected = next((i for i, s in enumerate(self.sessions) if s.id == target), 0)
         changed = current_id != self.sessions[self.selected].id
@@ -87,8 +91,13 @@ class LiveHubView(HubMockup):
             self.file_root = snapshot.file_root
             self.transcript.control.file_root = snapshot.file_root
         if self.sessions[self.selected].id == snapshot.selected_id:
-            self.notice = snapshot.notice
-            self.activity = snapshot.activity
+            self.notice = display.notice
+            self.activity = display.activity
+
+    def set_theme(self, theme):
+        super().set_theme(theme)
+        if getattr(self, "_last_snapshot", None) is not None:
+            self.apply_snapshot(self._last_snapshot)
 
 
 class LiveController:
@@ -319,7 +328,7 @@ class LiveController:
             if not state["run_id"]:
                 follow_up()
                 return
-            from .widgets import RadioList
+            from ..widget.controls import RadioList
             choices = RadioList([("steer", view.t("send_steering")), ("follow_up", view.t("send_follow_up"))],
                                 default="follow_up", select_on_focus=True)
             def accept():
@@ -328,19 +337,16 @@ class LiveController:
                 else:
                     follow_up()
             view.open_dialog(view.t("send_while_running"), choices, accept, choices)
-            # Enter confirms the highlighted choice; arrows only change selection.
-            from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
-            keys = KeyBindings()
-            @keys.add("enter", eager=True)
+            # This override and its hint share the choice widget's registry.
             def confirm(event):
                 view.close_dialog()
                 accept()
-            choices.control.key_bindings = merge_key_bindings([choices.control.key_bindings, keys])
+            choices.control.hub_shortcuts.add(["enter"], "", "confirm", confirm)
         self._call("submission_state", session_id, completed=ready)
 
     def choose_engine(self, name=""):
         from prompt_toolkit.widgets import Label
-        from .chat.execution import ExecutionChooser
+        from ..widget.execution import ExecutionChooser
         view = self.view
         identity = (view.project_id, view.sessions[view.selected].id)
         view.open_dialog(view.t("execution_title"), Label(view.t("settings_loading")))
@@ -370,7 +376,7 @@ class LiveController:
             if len(targets) == 1:
                 self._send("steer", session_id, text, run_id, text, [targets[0][0]])
             else:
-                from .widgets import RadioList
+                from ..widget.controls import RadioList
                 choices = RadioList(list(targets), select_on_focus=True)
                 self.view.open_dialog(self.view.t("choose_target"), choices,
                     lambda: self._send("steer", session_id, text, run_id, text, [choices.current_value]), choices)

@@ -27,10 +27,6 @@ def create_application(config, *, theme=None, input=None, output=None, worker_fa
     def toggle(event):
         view.toggle(event)
 
-    @keys.add("c-s", filter=Condition(lambda: not view.visible), eager=True)
-    def settings(event):
-        view.toggle_settings(event)
-
     @keys.add("c-c", filter=Condition(lambda: not view.visible))
     @keys.add("c-d", filter=Condition(lambda: not view.visible))
     def close(event):

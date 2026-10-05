@@ -50,6 +50,13 @@ Project별로 선택합니다. [실행 예제](../examples/llm/developer_assista
 Tool과 직접 API에서 사용할 수 있습니다. OCR backend나 모델은 명시적으로 선택하며,
 추출 결과는 출처가 있는 문서로 RAG에 전달할 수 있습니다.
 
+장시간 작업은 [Goals](components/goals/README.md)로 목적·진행·관련 Run을 관리하고,
+[Memory 작업 요약](../docs/llm/memory-processing.md)으로 오래된 입력을 줄일 수 있습니다.
+Goal은 Run의 부모가 아닌 참조 리소스입니다. 원본 대화·Tool Step·checkpoint는 보존합니다.
+[Refinement](components/refinement/README.md)는 실패/검증 기록을 근거로 Skill·Prompt·Agent·Memory
+개선안을 저장합니다. 제안만으로 대상은 바뀌지 않으며, 명시적 승인과 버전 확인 뒤에 적용합니다.
+모든 자동 문맥 처리는 컴포넌트 정책에서 켜야 하고, 자동 refinement 모델 호출은 없습니다.
+
 ## ish에서 실행하기
 
 ### 설치

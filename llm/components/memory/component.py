@@ -35,10 +35,10 @@ class MemoryComponent(Component):
         config=("cache_records", "search_status", "search_limit"),
         policy=("tool_write_status", "max_search_results"),
         paths={**{"processing." + key: "config.processing." + key for key in
-                  ("completion", "priority", "extract_scope", "summary_chars", "recall_limit", "recall_query_chars")},
+                  ("completion", "priority", "extract_scope", "summary_chars", "recall_limit", "recall_query_chars", "summary_format", "goal_ids")},
                **{"processing." + key: "policy.processing." + key for key in
                   ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active",
-                   "keep_turns", "summary_after_chars", "context_chars", "tool_result_chars", "model_input_chars",
+                   "keep_turns", "summary_after_chars", "summary_after_tokens", "context_chars", "tool_result_chars", "model_input_chars",
                    "max_candidates", "active_keep_iterations", "max_summary_calls", "max_output_chars",
                    "context_tokens", "recall_every", "failure_mode", "timeout_seconds", "provider")}})
     _managed = frozenset({"id", "revision", "created_at", "updated_at", "deleted", "source"})
@@ -81,6 +81,11 @@ class MemoryComponent(Component):
         if not isinstance(value.get("content"), str) or not value["content"].strip():
             raise ValueError("Invalid Session summary content")
         metadata = value.get("metadata", {})
+        if "work_state" in metadata:
+            from .work_state import SUMMARY_FORMAT_VERSION, validate_work_state
+            if metadata.get("summary_format_version") != SUMMARY_FORMAT_VERSION:
+                raise ValueError("Invalid work state format version")
+            validate_work_state(metadata["work_state"])
         if not isinstance(metadata, dict) or type(metadata.get("coverage_count")) is not int or metadata["coverage_count"] < 0:
             raise ValueError("Invalid Session summary coverage")
         partial = metadata.get("partial")
@@ -266,10 +271,12 @@ class MemoryComponent(Component):
         from llm.providers.requests import provider_schema
         properties = {name: field("boolean") for name in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active")}
         properties.update({name: field("integer", minimum=1) for name in (
-            "keep_turns", "summary_after_chars", "summary_chars", "context_chars", "recall_limit",
+            "keep_turns", "summary_after_chars", "summary_after_tokens", "summary_chars", "context_chars", "recall_limit",
             "tool_result_chars", "model_input_chars", "max_candidates", "active_keep_iterations",
             "max_summary_calls", "recall_query_chars", "max_output_chars")})
         properties.update(priority=field("integer"), recall_every=field("integer", minimum=0),
+            summary_format=field("string", enum=["text", "work_state"]),
+            goal_ids={"type": "array", "uniqueItems": True, "items": field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$")},
             context_tokens=field(["integer", "null"], minimum=1), completion=completion_schema(),
             provider={**provider_schema(), "type": ["object", "null"]},
             extract_scope=field("string", enum=["session", "project"]),

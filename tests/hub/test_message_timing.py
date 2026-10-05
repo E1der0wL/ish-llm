@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, patch
 
-from hub.ui.chat.conversation import ChatMessage, render_messages
+from hub.widget.conversation import ChatMessage, render_messages
 from hub.locales import Language
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.config.theme import HubTheme
@@ -23,21 +23,21 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
                                   created_at="2026-10-04T00:00:00+00:00", run_id=None, metadata={})
         response = SimpleNamespace(id="assistant", role="assistant", content="Answer", status="streaming",
                                    created_at=request.created_at, run_id=run.id, metadata={})
-        with patch("hub.backend.runtime.datetime", wraps=datetime) as clock:
+        with patch("hub.backend.snapshot.datetime", wraps=datetime) as clock:
             clock.now.return_value = datetime(2026, 10, 4, 0, 1, 2, tzinfo=timezone.utc)
-            first = await runtime._messages(session, [request, response])
+            first = await runtime.snapshot_reader.messages(session, [request, response])
             self.assertEqual(first[-1].elapsed_seconds, 2)
             self.assertEqual(first[-1].time, "")
             self.assertTrue(first[0].time)
             self.assertEqual(first[1].role, "reasoning")
             clock.now.return_value = datetime(2026, 10, 4, 0, 1, 4, tzinfo=timezone.utc)
-            self.assertEqual((await runtime._messages(session, [response]))[-1].elapsed_seconds, 4)
+            self.assertEqual((await runtime.snapshot_reader.messages(session, [response]))[-1].elapsed_seconds, 4)
             run.status, run.ended_at = "completed", "2026-10-04T00:01:03.250000+00:00"
             response.status = "completed"
-            self.assertEqual((await runtime._messages(session, [response]))[-1].elapsed_seconds, 3.25)
+            self.assertEqual((await runtime.snapshot_reader.messages(session, [response]))[-1].elapsed_seconds, 3.25)
             reads = read.await_count
             clock.now.return_value = datetime(2026, 10, 5, tzinfo=timezone.utc)
-            self.assertEqual((await runtime._messages(session, [response]))[-1].elapsed_seconds, 3.25)
+            self.assertEqual((await runtime.snapshot_reader.messages(session, [response]))[-1].elapsed_seconds, 3.25)
             self.assertEqual(read.await_count, reads)
 
     async def test_terminal_states_and_missing_history_do_not_keep_counting(self):
@@ -49,14 +49,14 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
                 read = AsyncMock(return_value=run)
                 session = SimpleNamespace(run=SimpleNamespace(aload=AsyncMock(
                     return_value=SimpleNamespace(aget_data=read))))
-                self.assertEqual(await runtime._run_display(session, "run"), ("", 12.5))
+                self.assertEqual(await runtime.snapshot_reader.run_display(session, "run"), ("", 12.5))
                 run.ended_at = None
-                self.assertEqual(await runtime._run_display(session, "no-end"), ("", None))
+                self.assertEqual(await runtime.snapshot_reader.run_display(session, "no-end"), ("", None))
                 session.run.aload.side_effect = FileNotFoundError
-                self.assertEqual(await runtime._run_display(session, "removed"), ("", None))
+                self.assertEqual(await runtime.snapshot_reader.run_display(session, "removed"), ("", None))
                 message = SimpleNamespace(id="clone", role="assistant", content="Copied", status="completed",
                                           created_at="2026-10-04T00:00:00+00:00", run_id=None, metadata={})
-                result = (await runtime._messages(session, [message]))[0]
+                result = (await runtime.snapshot_reader.messages(session, [message]))[0]
                 self.assertIsNone(result.elapsed_seconds)
                 self.assertEqual(result.time, "")
 

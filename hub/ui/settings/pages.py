@@ -3,58 +3,33 @@
 from copy import deepcopy
 from dataclasses import replace
 
-from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
-from prompt_toolkit.layout.dimension import Dimension
+from prompt_toolkit.layout import HSplit
 from prompt_toolkit.widgets import Label
 
-from ...asset import icon
+from ...widget.section import section
+from ...widget.buttons import SaveButton
+from ...widget.actions import ActionBar
 from ...config.profile import UserProfile
 from ...config.general import GeneralSettings
-from .form import SchemaForm
-from .viewport import SettingsBody
+from ...widget.settings import SchemaForm
+from ...widget.settings_viewport import SettingsBody
 from ...config.theme import HubTheme
-from ..widgets import Button, TextArea
-
-
-def section(title):
-    return HSplit([Label(title, style="class:hub.accent bold"),
-                   Window(height=1, char=icon.RULE, style="class:hub.divider")])
-
-
-class SaveButton(Button):
-    def __init__(self, page):
-        self.page = page
-        super().__init__(page.screen.t("settings_save"), handler=page.submit, width=10)
-
-    def _get_text_fragments(self):
-        self.text = ("* " if self.page.dirty else "") + self.page.screen.t("settings_save")
-        return super()._get_text_fragments()
+from ...widget.controls import Button, TextArea
 
 
 class Page:
     def actions(self, extra=()):
-        self.save = SaveButton(self)
+        self.save = SaveButton(lambda: self.screen.t("settings_save"), lambda: self.dirty, self.submit)
         self.reload = Button(self.screen.t("settings_reload"), handler=lambda: self.screen.reload(self), width=10)
         self.cancel = Button(self.screen.t("cancel"), handler=lambda: self.screen.cancel(self), width=10)
         self.buttons = [self.save, self.reload, self.cancel, *extra]
-        self.bottom = DynamicContainer(lambda: HSplit([
-            VSplit([Window(width=Dimension(weight=1)),
-                    VSplit(row, padding=1, width=Dimension.exact(sum(button.width for button in row) + len(row) - 1)),
-                    Window(width=Dimension(weight=1))]) for row in self.button_rows()]))
+        self.bottom = ActionBar(self.buttons, lambda: max(1, self.screen.main_width() - 2))
         for field in self.all_fields():
             field.enabled = lambda: not self.screen.busy
+            field.on_edit = self.screen.edit_field
 
     def button_rows(self):
-        available = max(1, self.screen.main_width() - 2)
-        rows, row, used = [], [], 0
-        for button in self.buttons:
-            if row and used + button.width + 1 > available:
-                rows.append(row)
-                row, used = [], 0
-            used += button.width + bool(row)
-            row.append(button)
-        return [*rows, row]
+        return self.bottom.rows()
 
     def all_fields(self):
         return [field for form in self.forms() for field in form.fields.values()]
@@ -90,7 +65,7 @@ class ProjectPage(Page):
         schema["properties"].pop("components")
         self.form = SchemaForm(schema, values, screen.t)
         self.component_forms, self.engine_forms = {}, {}
-        self.activate_button = Button(screen.t("settings_open_project"), handler=lambda: screen.activate(self), width=12)
+        self.activate_button = Button(screen.t("settings_open_project"), handler=lambda: screen.activate(self), width=10)
         body = list(self.form.children)
         for key in dict.fromkeys(self.engine_keys.values()):
             effective = {name: view for name, view in record.get("effective_engines", {}).items()
@@ -145,6 +120,8 @@ class ProjectPage(Page):
 class GlobalPage(Page):
     def __init__(self, screen, name, values):
         self.screen, self.name = screen, name
+        if name == "appearance":
+            values = {"icon_style": "nerd", **values}
         self.original = deepcopy(values)
         descriptions = ({"display_name": screen.t("settings_profile_description"),
                          "email": screen.t("settings_email_description"),
@@ -154,6 +131,9 @@ class GlobalPage(Page):
                          ("background", "foreground", "accent1", "accent2", "accent3", "comment")})
         properties = {key: {"type": "string", "description": description} for key, description in descriptions.items()}
         if name == "appearance":
+            properties["icon_style"] = {"type": "string", "enum": ["nerd", "unicode"],
+                "title": screen.t("settings_icon_style"), "description": screen.t("settings_icon_description"),
+                "x-hub-choices": {"nerd": "Nerd Font", "unicode": screen.t("settings_icon_unicode")}}
             for key in ("background", "foreground", "accent1", "accent2", "accent3", "comment"):
                 properties[key]["title"] = screen.t("settings_theme_" + key)
             properties["sidebar_width"] = {"type": "integer", "minimum": 18, "maximum": 60,
@@ -161,7 +141,7 @@ class GlobalPage(Page):
         self.form = SchemaForm({"type": "object", "properties": properties}, values, screen.t)
         self.general_form = None
         if name == "general":
-            from .general_form import GeneralForm
+            from ...widget.general_settings import GeneralForm
             self.general_form = GeneralForm(screen, values)
             self.form = self.general_form.form
         self.container = HSplit([section(screen.t("settings_" + name)), self.form.container])

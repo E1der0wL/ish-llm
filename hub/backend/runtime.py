@@ -3,14 +3,13 @@
 import asyncio
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
-from ..ui.chat.conversation import ChatMessage
+from ..model import HubSnapshot, SessionNotification
 from ..locales import Language
 from ..config.profile import UserProfile
-from .engine_selection import selected_engines
+from .engine_selection import requires_model, selected_engines
 from ..config.general import GeneralSettings
 from ..config.view_state import ViewStateStore
 
@@ -44,40 +43,6 @@ class HubConfig:
             if any(not name.strip() or name.startswith("_hub_") or not callable(factory)
                    for name, factory in self.engine_factories.items()):
                 raise ValueError("Use nonempty engine names and callable factories; _hub_ is reserved")
-
-
-@dataclass(frozen=True, slots=True)
-class SessionSummary:
-    id: str
-    title: str
-    status: str
-
-
-@dataclass(frozen=True, slots=True)
-class SessionNotification:
-    sequence: int
-    project_id: str
-    session_id: str
-    title: str
-    status: str
-
-
-@dataclass(frozen=True, slots=True)
-class HubSnapshot:
-    project_id: str
-    project_title: str
-    model: str
-    storage: str
-    sessions: tuple[SessionSummary, ...]
-    selected_id: str
-    messages: tuple[ChatMessage, ...]
-    detail: str
-    notice: str
-    engines: tuple[str, ...] = ()
-    activity: str = ""
-    file_root: str = ""
-    notifications: tuple[SessionNotification, ...] = ()
-    components: tuple[str, ...] = ()
 
 
 def create_backend(config: HubConfig):
@@ -127,7 +92,8 @@ class HubRuntime:
         self.dirty = asyncio.Event()
         self.lock = asyncio.Lock()
         self._subscriptions = []
-        self._run_display_cache: dict[str, tuple[str, float | None]] = {}
+        from .snapshot import SnapshotReader
+        self.snapshot_reader = SnapshotReader()
         self._opened_sessions = set()
         self._notification_sessions = {}
         self._notifications = deque(maxlen=64)
@@ -136,7 +102,8 @@ class HubRuntime:
         self._observed_runs = {}
         from .settings_service import SettingsService
         self.settings_service = SettingsService(self)
-        self.general = GeneralSettings(**self.settings_service.preferences.load().get("general", {}))
+        preferences = self.settings_service.preferences.load()
+        self.general = GeneralSettings(**preferences.get("general", {}))
         from .naming import SessionNamer
         self.namer = SessionNamer(self)
 
@@ -159,69 +126,6 @@ class HubRuntime:
         self._notification_sequence += 1
         self._notifications.append(SessionNotification(self._notification_sequence,
             project_id, run.session_id, title, str(run.status)))
-
-    async def _run_display(self, session, run_id: str) -> tuple[str, float | None]:
-        cached = self._run_display_cache.get(run_id)
-        if cached is not None:
-            return cached
-        try:
-            run = await (await session.run.aload(run_id)).aget_data()
-        except FileNotFoundError:
-            return "", None  # Retention can remove old execution history.
-        reasoning = "\n\n".join(item.get("reasoning_content", "")
-            for item in run.metadata.get("completions", []) if item.get("reasoning_content"))
-        elapsed = None
-        active = str(run.status) in ("pending", "running")
-        if run.started_at and (run.ended_at or str(run.status) == "running"):
-            end = datetime.fromisoformat(run.ended_at) if run.ended_at else datetime.now(timezone.utc)
-            elapsed = max(0.0, (end - datetime.fromisoformat(run.started_at)).total_seconds())
-        result = reasoning, elapsed
-        if not active:
-            self._run_display_cache[run_id] = result
-        return result
-
-    async def _messages(self, session, messages):
-        visible = []
-        for message in messages:
-            role = str(message.role)
-            if role not in ("user", "assistant"):
-                continue
-            elapsed = None
-            if role == "assistant" and message.run_id:
-                reasoning, elapsed = await self._run_display(session, message.run_id)
-                if reasoning:
-                    visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning"))
-            status = str(message.metadata.get("steering", {}).get("status", message.status))
-            timestamp = (datetime.fromisoformat(message.created_at).astimezone().strftime("%Y-%m-%d %H:%M:%S")
-                         if role == "user" else "")
-            visible.append(ChatMessage(role, message.content or self.t("waiting"), timestamp,
-                                       status=status, id=message.id,
-                                       author=self.config.user_profile.display_name if role == "user" else "",
-                                       elapsed_seconds=elapsed))
-        return tuple(visible)
-
-    def _model(self, config, engine, session_config=None):
-        if engine not in self.backend.engines.names():
-            return ""
-        implementation = self.backend.engines.resolve(engine)
-        describe = getattr(implementation, "configuration", None)
-        if describe:
-            return describe(config, engine, session_config=session_config).get("values", {}).get("config", {}).get("completion", {}).get("model", "")
-        return ""
-
-    def _requires_model(self, config, engine, session_config=None):
-        from llm.engines.loop import LoopEngine
-        if engine not in self.backend.engines.names():
-            return False
-        implementation = self.backend.engines.resolve(engine)
-        # Graph/사용자 엔진에는 LLM 모델이 필요하다고 추정하지 않는다.
-        if not isinstance(implementation, LoopEngine):
-            return False
-        view = implementation.configuration(config, engine, session_config=session_config)
-        # JSON으로 표현하지 않은 host client/factory는 조회만으로 모델 누락을 판정하지 않는다.
-        if "completion" in view.get("runtime", ()):
-            return False
-        return not view["values"].get("config", {}).get("completion", {}).get("model")
 
     def _saved_selection(self, project_id=None):
         try:
@@ -267,6 +171,7 @@ class HubRuntime:
         if selected:
             await candidates[selected].run.start()
         self.project, self.sessions, self.selected_id = project, candidates, selected
+        self.snapshot_reader.clear()
         for session in sessions:
             self._notification_sessions[session.id] = (project.id, (await session.aget_data()).title)
         if selected:
@@ -328,7 +233,7 @@ class HubRuntime:
             request = group[0]
             assistants = [m for m in group if m.role == "assistant"]
             run = await (await session.run.aload(request.run_id)).aget_data() if request.run_id else None
-            elapsed = (await self._run_display(session, run.id))[1] if run else None
+            elapsed = (await self.snapshot_reader.run_display(session, run.id))[1] if run else None
             rows.append({"id": request.id, "text": request.content, "time": request.created_at,
                          "status": str(run.status if run else assistants[-1].status if assistants else request.status),
                          "engine": run.engine if run else "", "elapsed": elapsed,
@@ -344,6 +249,7 @@ class HubRuntime:
         await session.run.shutdown()
         try:
             await session.adelete_turn(request_id)
+            self.snapshot_reader.clear()
         finally:
             await session.run.start()
         self.dirty.set()
@@ -437,7 +343,7 @@ class HubRuntime:
         session = self.sessions[session_id]
         selected = engine if engine is not None else self.config.engine
         project = await session.project.aget_data()
-        if self._requires_model(project.config, selected, (await session.aget_data()).config):
+        if requires_model(self.backend.engines, project.config, selected, (await session.aget_data()).config):
             raise ValueError(self.t("model_required"))
         if selected not in selected_engines(project.config, self.backend.engines.names()):
             raise ValueError(self.t("settings_engine_unavailable", name=selected))
@@ -474,90 +380,31 @@ class HubRuntime:
         self.dirty.set()
         return result
 
-    async def snapshot(self) -> HubSnapshot:
-        from llm.services.query import Query
-        project = await self.project.aget_data()
-        model = self._model(project.config, self.config.engine)
-        if not self.sessions:
-            return HubSnapshot(project.id, project.title, model,
-                project.conversation_storage, (), "", (), "", self.t("session_required"),
-                selected_engines(project.config, self.backend.engines.names()),
-                file_root=str(self.config.file_root or self.project.paths.root),
-                notifications=tuple(self._notifications), components=tuple(project.components))
-        summaries = []
-        for identifier, session in self.sessions.items():
-            record = await session.aget_data()
-            self._notification_sessions[identifier] = (project.id, record.title)
-            runtime = await session.run.astatus(queued_limit=0)
-            # Reconcile dropped observation events from authoritative Run records.
-            latest = await session.run.alist(query=Query(descending=True, limit=1))
-            if latest:
-                run = await latest[0].aget_data()
+    def _reconcile_snapshot(self, project_id, observations):
+        for item in observations:
+            identifier, record, runtime, run = item.session_id, item.record, item.runtime, item.run
+            self._notification_sessions[identifier] = (project_id, record.title)
+            if run is not None:
                 state = (run.id, str(run.status))
-                previous = self._observed_runs.get(identifier)
-                if identifier in self._observed_runs and previous != state:
-                    self._record_notification((project.id, record.title), run)
+                if identifier in self._observed_runs and self._observed_runs[identifier] != state:
+                    self._record_notification((project_id, record.title), run)
                 else:
                     self._observed_runs[identifier] = state
             elif identifier not in self._observed_runs:
                 self._observed_runs[identifier] = None
-            summaries.append(SessionSummary(identifier, record.title,
-                                            self.t("queued", status=self.t.status(runtime.status), count=runtime.queued_count)))
             if record.metadata.get("hub_auto_title") and not runtime.active_run_id:
-                if latest and str((await latest[0].aget_data()).status) == "completed":
-                    self.namer.schedule(session, latest[0].id)
-                elif not latest and record.metadata.get("hub_title_engine"):
-                    self.namer.schedule(session, "clone")
-        session = self.sessions[self.selected_id]
-        session_config = (await session.aget_data()).config
-        model = self._model(project.config, self.config.engine, session_config)
-        messages = await session.aconversation()
-        visible = await self._messages(session, messages)
-        runtime = await session.run.astatus(queued_limit=0)
-        runs = await session.run.alist(query=Query(descending=True, limit=1))
-        detail = f"  {self.t('workspace')}\n  {project.id}\n\n  {self.t('session')}\n  {session.id}\n"
-        notice = self.t("queued", status=self.t.status(runtime.status), count=runtime.queued_count)
-        activity = ""
-        if runs:
-            handle = runs[0]
-            run = await handle.aget_data()
-            steps = await handle.steps.alist()
-            if runtime.active_run_id:
-                seconds = int((datetime.now(timezone.utc) - datetime.fromisoformat(run.started_at)).total_seconds()) if run.started_at else 0
-                activity = self.t("run_progress", status=self.t.status(run.status), engine=run.engine,
-                                  seconds=seconds, count=runtime.queued_count)
-                if steps:
-                    step = steps[-1]
-                    activity += "\n " + self.t("phase", name=step.name, status=self.t.status(step.status))
-            reasoning = "\n\n".join(item.get("reasoning_content", "") for item in run.metadata.get("completions", [])
-                                     if item.get("reasoning_content"))
-            if not reasoning and runtime.active_run_id:
-                detail += "\n" + self.t("no_reasoning")
-            detail += f"\n\n  {self.t('run')} / {self.t.status(run.status)}\n  {run.id}\n\n  {self.t('steps')}\n"
-            detail += "\n".join(f"  {self.t.status(step.status)} · {step.name}" for step in steps)
-            completions = run.metadata.get("completions", [])
-            if completions:
-                last = completions[-1]
-                tokens = last.get("usage", {}).get("total_tokens")
-                detail += "\n\n" + self.t("completion_detail", model=last.get("model") or self.config.model or "—",
-                                           count=len(completions), tokens=tokens if tokens is not None else "—")
-            if run.error:
-                notice = f"{self.t.status(run.status)}: {run.error}"
-                detail += f"\n\n  {run.error}"
-            elif str(run.status) == "paused":
-                notice = self.t("paused")
-        if project.conversation_storage == "memory":
-            notice += " · " + self.t("memory")
-        if session.id in self.namer.errors:
-            notice = self.t("title_failed", error=self.namer.errors[session.id])
-        if self._requires_model(project.config, self.config.engine, session_config):
-            notice = self.t("model_required")
-        return HubSnapshot(project.id, project.title, model,
-                           project.conversation_storage, tuple(summaries), self.selected_id,
-                           visible, detail, notice,
-                           selected_engines(project.config, self.backend.engines.names()),
-                           activity, str(self.config.file_root or self.project.paths.root), tuple(self._notifications),
-                           tuple(project.components))
+                if run is not None and str(run.status) == "completed":
+                    self.namer.schedule(self.sessions[identifier], run.id)
+                elif run is None and record.metadata.get("hub_title_engine"):
+                    self.namer.schedule(self.sessions[identifier], "clone")
+
+    async def snapshot(self) -> HubSnapshot:
+        from dataclasses import replace
+        snapshot, observations = await self.snapshot_reader.read(
+            self.project, self.sessions, self.selected_id, config=self.config,
+            engines=self.backend.engines, title_errors=self.namer.errors)
+        self._reconcile_snapshot(snapshot.project_id, observations)
+        return replace(snapshot, notifications=tuple(self._notifications))
 
     async def close(self) -> None:
         await self.namer.close()

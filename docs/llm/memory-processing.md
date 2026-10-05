@@ -12,24 +12,53 @@ Memory의 config.processing.priority는 자동 처리를 사용할 때 명시하
 
 ## 활성화와 설정
 
-Memory 컴포넌트를 선택하면 기본적으로 관련된 **confirmed 기억 자동 검색**과 **큰 Tool
-결과의 입력용 미리보기**를 제공한다. 추가 모델 호출이 필요한 요약·추출은 기본적으로 꺼져 있다.
+Memory 선택만으로 자동 검색·미리보기·요약·추출이 활성화되지는 않는다.
+각 동작은 `policy.processing`에 명시하며 필요한 입력/한도도 함께 지정한다.
 아래 설정에서 사용하는 보조 모델은 메인 Loop 모델과 독립적으로 지정한다.
 
 ```python
 project = await backend.projects.acreate("업무", components=["memory"])
 memory = await project.components.aget("memory")
-await memory.aconfigure({'policy': {'processing': {'recall': True, 'summarize': True, 'extract': True, 'keep_turns': 8, 'summary_after_chars': 12000, 'context_chars': 6000, 'compress_tools': True, 'tool_result_chars': 4000, 'model_input_chars': 24000, 'max_candidates': 5, 'timeout_seconds': 60, 'failure_mode': 'raise'}}, 'config': {'processing': {'completion': {'model': model_name, 'api_key': api_key}, 'summary_chars': 3000, 'recall_limit': 8, 'extract_scope': 'session'}}})
+await memory.aconfigure({
+    "config": {"processing": {"priority": 100, "completion": {"model": model_name, "api_key": api_key},
+        "summary_chars": 3000, "summary_format": "work_state", "recall_limit": 8,
+        "recall_query_chars": 2000, "extract_scope": "session"}},
+    "policy": {"processing": {"recall": True, "summarize": True, "extract": True,
+        "keep_turns": 8, "summary_after_chars": 12000, "context_chars": 6000,
+        "compress_tools": True, "tool_result_chars": 4000, "model_input_chars": 24000,
+        "max_summary_calls": 4, "max_candidates": 5, "timeout_seconds": 60, "failure_mode": "continue"}},
+})
 session = await project.sessions.acreate()
 run = await (await session.run.submit("작업을 계속해줘", engine="loop")).wait()
 ```
 
-`configure`는 전체 설정 교체다. 생략한 동작 설정에는 기본값을 적용하고 모르는 JSON 필드는
-보존한다. `completion`에는 LiteLLM의 일반 인자를 전달할 수 있지만 messages/tools/stream/n은
+`configure`는 전체 설정 교체다. 생략한 동작 설정은 생성하지 않는다.
+`completion`에는 LiteLLM의 일반 인자를 전달할 수 있지만 messages/tools/stream/n은
 Memory의 보조 호출 계약을 따른다. 기본 보조 호출은 자동 재시도하지 않는다. 보조 모델은
 도구를 실행하지 않는다. `MemoryComponent(completion_fn=...)`로 모델 호출을 교체할 수 있다.
 
 ## 각 처리의 동작
+
+`config.processing.summary_format="work_state"`를 명시하면 기존 문자열 `content`와 함께
+`metadata.work_state`에 objective, constraints, decisions, completed, failures, pending,
+next_actions, unresolved, references를 기록한다. `metadata.summary_format_version=1`은
+이 파생 형식의 불변식이며 Project/Run 저장 버전을 바꾸지 않는다. 미설정은 기존 text 요약이다.
+
+출처는 모델이 생성하지 않는다. 코드가 `metadata.sources`에 대화 범위의 양 끝 메시지 ID,
+해당 Run ID, coverage hash를 기록한다. 전체 메시지 ID를 중복 저장하지 않고
+`messages_are_range_boundaries=true` 및 coverage_count로 원본 범위를 표시한다.
+현재 실행의 완료 Tool 교환은 요약 Step에 tool_call_ids/Run ID/digest를 기록한다.
+상세 결과의 원본은 해당 Run의 Tool Step이며 요약으로 대신 읽은 것으로 간주하면 안 된다.
+
+`config.processing.goal_ids=["work"]`는 선택된 goals의 활성 목표를 명시적으로 연결한다.
+요약에는 id/version/objective/success_criteria 참조만 보존한다. Goal 변경은 캐시 profile을
+무효화하며, 요약 모델 호출 도중 변경되면 저장 CAS가 거부한다. Goal CRUD는 Memory가 수행하지 않는다.
+
+`policy.processing.summary_after_tokens`는 해당 Loop의 CompletionPolicy.counter로 전체 요청
+(messages/tools/모델 옵션)을 세어 압축 여부를 판단한다. 계산기가 없으면 명시된
+summary_after_chars를 사용하고, 둘 다 사용할 수 없으면 설정 오류다. 문자/토큰 비율을 추측하지 않는다.
+failure_mode="continue"는 요약 실패를 degraded Step으로 남기고 원문을 유지한다.
+실패한 응답은 정상 요약 캐시에 저장하지 않는다. checkpoint/Tool receipt는 수정하지 않는다.
 
 **기억 검색:** 현재 입력으로 프로젝트 공통 기억과 현재 Session의 기억을 검색한다. candidate와
 만료된 기억은 자동 주입에서 제외한다. 기억 ID/revision과 내용을 구분된 참고 데이터로
@@ -61,7 +90,7 @@ tool_call_id·SHA256으로 바꾼다. Tool 호출/결과 메시지의 쌍, ID, �
 active_keep_iterations로 조절한다. [장시간 작업 API](long-running.md)에 예제를 설명한다.
 
 **기억 후보 추출:** 정상적인 최종 모델 응답 뒤에 현재 요청·답변과 제한된 기존 기억을
-검토한다. 생성 결과는 항상 candidate이며, 기본 범위는 현재 Session다. 프로젝트 공통 지식으로
+검토한다. 생성 결과는 항상 candidate이며, 범위는 명시된 extract_scope다. 프로젝트 공통 지식으로
 수집하려면 `extract_scope="project"`를 선택한다. 이미 존재하거나 삭제한 동일 내용은 다시
 생성하지 않는다. 모델은 기존 ID/revision을 참조하는 `metadata.replaces`로 병합·모순 해결을
 제안할 수 있다. 해당 revision을 저장 직전에 다시 확인한다. 제안만으로 기존 confirmed

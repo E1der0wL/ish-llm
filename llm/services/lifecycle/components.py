@@ -32,6 +32,8 @@ class ComponentData:
         self._model_usage = None
         self._provider_calls = None
         self._observability = None
+        self._sessions = None
+        self._steps = None
 
     async def _async_call(self, operation, *args, **kwargs):
         if self._async_runner is not None:
@@ -53,6 +55,51 @@ class ComponentData:
         return project, self.registry.get(self.name)
 
     # 공개 API
+    def bind_resources(self, sessions, steps):
+        """Component의 참조 조회에도 실행과 같은 저장소를 사용한다. 특정 기능은 해석하지 않는다."""
+        self._sessions, self._steps = sessions, steps
+        return self
+
+    @workspace_locked
+    def reference(self, session_id, run_id=None, step_id=None):
+        """소유 Project 안의 영속 참조를 검증하고 원본 레코드 사본을 반환한다."""
+        from llm.services.infrastructure.storage import record
+        project, _ = self._current()
+        if self._sessions is None:
+            raise RuntimeError("Component domain references are not bound")
+        session = self._sessions.load(project, session_id)
+        result = {"session": record(session)}
+        if run_id is not None:
+            run = self._sessions.run_repository.load(session, run_id)
+            result["run"] = record(run)
+            if step_id is not None:
+                if self._steps is None:
+                    raise RuntimeError("Component Step references are not bound")
+                result["step"] = record(self._steps.load(run, step_id))
+        elif step_id is not None:
+            raise ValueError("Step reference requires a Run")
+        return deepcopy(result)
+
+    @workspace_locked
+    def related(self, name):
+        """같은 Project의 다른 선택 Component에 수명·저장소·비동기 경계를 전달한다."""
+        project, _ = self._current()
+        if name not in project.components:
+            raise ValueError("Component is not enabled for this Project")
+        component = self.registry.get(name)
+        handle = (getattr(component, "data_class", None) or ComponentData)(self.access, self.registry, project, name)
+        handle.bind_resources(self._sessions, self._steps)
+        if self._async_runner is not None:
+            handle.bind_runtime(runner=self._async_runner, access_check=self._access_check,
+                                history_reader=self.history_reader, provider_calls=self._provider_calls,
+                                observability=self._observability)
+        if self._model_usage is not None:
+            handle.bind_model_usage(self._model_usage.sessions, self._model_usage.counters)
+        return handle
+
+    areference = async_method(reference)
+    arelated = async_method(related)
+
     def bind_model_usage(self, sessions, counters):
         from llm.services.runtime.usage import ComponentUsage
         self._model_usage = ComponentUsage(self, sessions, counters)

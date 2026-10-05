@@ -1,6 +1,7 @@
 """Settings navigation: two panels with fields and actions."""
 
 from dataclasses import asdict
+import subprocess
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import DynamicContainer, HSplit, Window
@@ -9,12 +10,15 @@ from prompt_toolkit.widgets import Frame, Label
 
 from ...config.profile import UserProfile
 from ...config.general import GeneralSettings
-from .pages import GlobalPage, ProjectPage, section
+from .pages import GlobalPage, ProjectPage
+from ...widget.section import section
 from ...config.theme import HubTheme
-from ..widgets import TextArea
-from .viewport import SettingsPane
-from ..sidebar import SidebarItem, SidebarList
+from ...widget.controls import TextArea
+from ...widget.settings_viewport import SettingsPane
+from .editor import edit_text
+from ...widget.sidebar import SidebarItem, SidebarList
 from ..layout import TwoPanelPage
+from ...widget.header import HeaderBar
 
 
 def control(widget):
@@ -53,15 +57,15 @@ class SettingsScreen:
                                   width=lambda: max(1, self.main_width() - 2))
         bottom = DynamicContainer(lambda: self.page.bottom if self.page else Label(""))
         self.layout = TwoPanelPage(
-            header=view._line(lambda: "  " + self.t("settings_title"), "hub.header"),
+            header=HeaderBar(lambda: self.t("settings_title")),
             sidebar=DynamicContainer(lambda: self._left),
             main=HSplit([
-                        Frame(self.main, title=lambda: self.t("settings_main"), width=self.main_width,
+                        Frame(self.main, width=self.main_width,
                               height=Dimension(min=3, weight=1)),
                         Frame(bottom, width=self.main_width,
                               height=lambda: 2 + len(self.page.button_rows()) if self.page else 3)], width=self.main_width),
             progress=view.progress, notice=lambda: self.status,
-            footer=view._line(lambda: self.t("settings_footer"), "hub.footer"),
+            footer=view.shortcut_bar(),
             sidebar_controls=lambda: (self.global_list, self.project_list),
             focus_sidebar=self.switch_panel, focus_main=lambda: self._focus_zone(self._main_zone))
         self.container = self.layout.container
@@ -90,8 +94,7 @@ class SettingsScreen:
             self._left_key = "profile"
         self._left = HSplit([section(self.t("settings_global")), Window(self.global_list, height=len(self.global_keys)),
                              Window(height=1), section(self.t("settings_projects")),
-                             Window(self.project_list),
-                             Label(self.t("settings_project_keys"), style="class:hub.muted")],
+                             Window(self.project_list)],
                             width=self.view.sidebar_width)
         if previous and self.view.visible and self.view.settings_open:
             get_app().layout.focus(self.left_control())
@@ -142,6 +145,27 @@ class SettingsScreen:
             for field in self.page.all_fields():
                 field.finish()
         return editing
+
+    def edit_field(self, field):
+        if self.busy or field.readonly:
+            return
+        self.busy = field.editing = True
+        get_app().create_background_task(self._edit_field(field))
+
+    async def _edit_field(self, field):
+        try:
+            kind = field.schema.get("type")
+            kinds = kind if isinstance(kind, list) else [kind]
+            field.input.text = await edit_text(field.input.text, self.view.general,
+                                               suffix=".txt" if "string" in kinds else ".json")
+            self.status = ""
+        except subprocess.CalledProcessError as error:
+            self.error(self.t("settings_editor_failed", code=error.returncode))
+        except Exception as error:
+            self.error(error)
+        finally:
+            self.busy = False
+            field.finish()
 
     def switch_panel(self):
         if self._focused_key() is not None:

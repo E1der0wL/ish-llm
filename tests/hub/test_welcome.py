@@ -6,7 +6,7 @@ import unittest
 from prompt_toolkit.input import create_pipe_input
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.ui.application import create_application
-from hub.ui.chat.welcome import logo
+from hub.widget.welcome import logo
 from tests.hub.test_live import until
 from tests.hub.test_mockup import SizedOutput
 

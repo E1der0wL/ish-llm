@@ -47,7 +47,7 @@ class HTTPBackendTests(unittest.IsolatedAsyncioTestCase):
                     async with asyncio.timeout(20):
                         await runtime.sessions[runtime.selected_id].run.wait_idle()
                     snapshot = await runtime.snapshot()
-                    self.assertEqual(snapshot.messages[-1].text, "Hello **HTTP**", snapshot.notice)
+                    self.assertEqual(snapshot.messages[-1].text, "Hello **HTTP**", snapshot.status)
                     self.assertEqual(requests[0][0], "/v1/chat/completions")
                     self.assertEqual(requests[0][1]["model"], "test")
                     self.assertTrue(requests[0][1]["stream"])

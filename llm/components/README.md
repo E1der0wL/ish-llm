@@ -17,6 +17,8 @@ Component는 Project 안에서 특정 데이터와 기능을 소유합니다. �
 | [skills/](skills/README.md) | 재사용 지침과 참고 자료 설명 | skill_list/skill_read, 선택한 Agent의 지침 주입 |
 | [mcp/](mcp/README.md) | 서버 연결 정의 | 호스트가 주입한 connector |
 | [prompts/](prompts/README.md) | 시스템 지침·few-shot 메시지 | RAG 등의 소비자가 ID로 참조 |
+| [goals/](goals/README.md) | 장기 목적·진행·Run 참조 | CRUD, 읽기/승인 대상 쓰기 Tool, 선택적 문맥 주입 |
+| [refinement/](refinement/README.md) | 리소스 개선 제안·승인·적용 이력 | 일반 Run의 근거 분석, 단일 대상 CAS 적용/되돌리기 |
 
 기본 `LargeLanguageModel`은 위 종류를 등록합니다. `projects.acreate()`는 `components`로 선택한 종류만 연결합니다. 초기 선택 목록은 hub 등 호출 애플리케이션이 정합니다. 선택만으로 모델 인증, MCP connector, RAG 필수 설정까지 생성되지는 않습니다.
 

@@ -153,3 +153,9 @@ configure는 설정 전체 교체이므로 유지할 다른 설정도 전달한�
   설정·캐시·기한을 사용한다. 실행 결과의 의미적 정확성은 실제 Skill/MCP 구현과 모델로 따로 검증한다.
 
 회귀 검사: `tests/llm/test_completion_processing.py`, `tests/llm/test_memory_processing.py`.
+
+GoalProcessor도 같은 capability를 사용한다. `goals.policy.inject=true`와
+`goals.config.priority`를 명시해야 현재 user 입력 사본에 Goal reference를 추가한다.
+중첩 Agent에는 `goals.config.nested_agent_ids`로 지정한 Agent만 전달한다.
+Memory의 구조화 요약도 이 입력 처리 계약 안에서 실행되며 current input, steering,
+완료되지 않은 Tool pair를 제거하지 않는다. 최종 입력 예산은 여전히 CompletionPolicy가 검사한다.

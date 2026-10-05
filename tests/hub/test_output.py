@@ -11,7 +11,7 @@ from PIL import Image
 
 from hub.config.theme import HubTheme
 from hub.locales import Language
-from hub.ui.chat.conversation import ChatMessage, ConversationControl
+from hub.widget.conversation import ChatMessage, ConversationControl
 from hub.ui.output import OutputParser, OutputBlock, RenderContext, RendererRegistry, ImageRenderer
 from tests.hub.test_live import until
 

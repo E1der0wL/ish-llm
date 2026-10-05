@@ -1,3 +1,4 @@
+from tests.hub.test_mockup import minimize
 """Global preferences, public usage queries and settings-to-shell focus."""
 
 import asyncio
@@ -75,14 +76,14 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: app.is_running)
                 shell = app.layout.current_control
-                pipe.send_text("\x13")
+                pipe.send_text("\x11\x13")
                 await until(lambda: settings.page is not None and not settings.busy)
                 field = settings.page.form.fields[("email",)]
                 field.input.text = "unsaved@example.com"
                 app.layout.focus(settings.global_list)
                 app.invalidate()
                 await until(lambda: not app.renderer._last_screen.show_cursor)
-                pipe.send_text("\x11")
+                await minimize(pipe, view)
                 await until(lambda: not view.visible)
                 self.assertIs(app.layout.current_control, shell)
                 settings.loaded_catalog({"schema": settings.schema, "projects": settings.projects,

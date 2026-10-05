@@ -7,7 +7,7 @@ MESSAGES = {
     "output_image_limit": "현재 화면의 이미지 미리보기 한도(32개)에 도달했습니다.",
     "welcome_title": "아직 세션이 없습니다",
     "welcome_hint": "새 세션을 만들어 대화를 시작하세요.",
-    "welcome_keys": "F4 새 세션 · Ctrl+S 프로젝트 설정 · Ctrl+Q 셸로 돌아가기",
+    "welcome_keys": "ESC 패널 · Ctrl+S 프로젝트 설정 · F4 새 세션 · 패널에서 ESC 최소화",
     "session_required": "먼저 세션을 생성하세요. F4 또는 세션 목록에서 c를 누르세요.",
     "output_pending": "출력 블록 수신 중…",
     "output_image": "이미지 · {caption}",
@@ -46,7 +46,7 @@ MESSAGES = {
 
     "project_activity": "프로젝트 실행 이력", "activity_empty": "기록된 실행 이력이 없습니다.",
 
-    "activity_hint": "최근 300건 · Alt+방향키/PageUp/PageDown/Home/End 스크롤 · Enter/Esc/Ctrl+L 닫기",
+    "activity_hint": "최근 300건 · ESC 닫기 · Ctrl+L 닫기 · Alt + 이동키 스크롤 · Enter 닫기",
 
     "activity_source": "세션: {session_id} · Run: {run_id}",
 
@@ -144,7 +144,7 @@ MESSAGES = {
 
     "settings_loading": "불러오는 중…", "settings_empty": "프로젝트 없음",
 
-    "settings_footer": "ESC 좌측 패널 · Tab 영역 · 방향키 항목 · Enter 편집 · Ctrl+S 저장 후 대화 · Ctrl+Q 셸",
+    "settings_footer": "ESC 패널 · Ctrl+S 저장 후 대화 · e 에디터 · Enter 편집 · Tab 영역 · 방향키 항목",
 
     "settings_general": "일반",
 
@@ -168,7 +168,7 @@ MESSAGES = {
 
     "general_restore_last_session": "프로젝트를 열 때 마지막 세션 복원. 명시적으로 지정한 세션 우선. 삭제된 세션은 활성 세션으로 대체.",
 
-    "general_auto_scroll": "새 응답이 올 때 맨 아래를 보고 있었다면 자동 스크롤. false는 읽던 위치 유지. Alt+방향키 수동 이동은 항상 가능.",
+    "general_auto_scroll": "새 응답이 올 때 맨 아래를 보고 있었다면 자동 스크롤. false는 읽던 위치 유지. Alt + 이동키 수동 이동은 항상 가능.",
 
     "general_editor": "외부 에디터 명령: vim, nano, code --wait 등. 비우면 VISUAL → EDITOR → vi 순서로 선택.",
 
@@ -209,9 +209,7 @@ MESSAGES = {
     "settings_usage_row": "{title} ({period})\n  호출 {call_count}회 · 확인된 토큰 {known_tokens} · 예약 토큰 {reserved_tokens} · 사용량 미확인 {unknown_calls}회",
 
     "settings_no_description": "스키마에 별도 설명이 없습니다.", "settings_no_fields": "공개된 설정 항목이 없습니다.",
-    "settings_stored": "저장값 (편집 대상)",
-    "settings_effective": "현재 적용값 [{name}]: {value} · 출처: {source}",
-    "settings_unset": "미설정", "settings_runtime_value": "실행 시 호스트에서 결정",
+    "settings_editor_failed": "에디터 종료 코드 {code}. 기존 입력을 유지합니다.",
     "settings_host_locked": "호스트 고정값: 읽기 전용입니다.",
     "settings_host_partial": "일부 하위 키는 호스트 고정값입니다. 해당 키의 저장값을 변경할 수 없습니다.",
 
@@ -255,9 +253,9 @@ MESSAGES = {
 
     "session_hint": "c 생성 · d 삭제\ne 이름 · r 복제", "input_hint": "Enter 전송 · Ctrl+Space 줄바꿈 · ↑↓ 후보 선택 · Tab 확정",
 
-    "footer": "Ctrl+Q 셸 · Ctrl+S 설정 · ESC 패널 · Ctrl+F 찾기 · Alt+이동키 스크롤 · Ctrl+E 엔진 · Ctrl+X 중단 · Enter 전송 방식",
+    "footer": "ESC 패널 · Ctrl+E 엔진 · Ctrl+F 찾기 · Ctrl+S 설정 · Ctrl+X 중단 · Alt + 이동키 스크롤 · Enter 전송 방식",
 
-    "footer_short": "ESC 패널 · Ctrl+F 찾기 · Alt+이동키 스크롤",
+    "footer_short": "ESC 패널 · Ctrl+F 찾기 · Alt + 이동키 스크롤",
 
     "preview_notice": "샘플 데이터 · 모델 호출과 저장 기능은 연결되지 않았습니다.",
 
@@ -265,7 +263,7 @@ MESSAGES = {
 
     "details_narrow": "실행 상세는 너비 116칸 이상에서 표시됩니다.", "details_open": "실행 상세를 표시합니다.",
 
-    "details_closed": "실행 상세를 접었습니다.", "close_hint": "Ctrl+Q로 셸로 돌아갑니다.",
+    "details_closed": "실행 상세를 접었습니다.", "close_hint": "패널에서 ESC로 최소화하여 셸로 돌아갑니다.",
 
     "error": "오류: {error}", "not_connected": "백엔드 연결을 먼저 완료하세요.",
 
@@ -313,7 +311,7 @@ MESSAGES = {
 
     "help_title": "Hub 도움말",
 
-    "help": "Enter: 선택한 엔진으로 전송\nCtrl+Space: 줄바꿈\nCtrl+S: 설정 화면\nCtrl+F: 현재 세션 출력 찾기\n명령·엔진·@파일 경로: 입력 중 자동완성\n↑↓: 자동완성 후보 선택 · Tab: 확정 (미선택 시 첫 후보)\n목록이 닫혀 있으면 Tab: 자동완성 목록 열기\nESC: 좌측 패널로 이동 (패널에서는 유지)\n패널에서 Tab / Space / Enter: 메인 영역으로 이동\n세션 목록: c 생성 · d 삭제 · e 이름 변경 · r 복제\n/컴포넌트: 활성 컴포넌트의 데이터·설정 (help로 사용법)\nAlt+↑↓: 줄 스크롤 · Alt+←→: 가로 스크롤 (넘친 내용)\nAlt+PageUp/PageDown: 페이지 스크롤 · Alt+Home/End: 처음/끝\n실행 중 Enter: 추가 지시 / 후속 지시 선택\nCtrl+X: 현재 실행 중단\n팝업에서는 ESC: 닫기\nF2: 다음 대화 · Ctrl+E: 엔진 선택\nF4: 이름을 지정하여 대화 생성/복제\nF5: 입력 마크다운 미리보기 · F6: 실행 상세\nCtrl+Q: 셸로 돌아가기\n설정: ESC 좌측 패널 · Tab 영역 이동 · Enter 편집/완료\n대화상자: Tab / Shift+Tab 항목 이동\n\n추가 지시는 엔진의 다음 처리 시점에 반영됩니다.\n파일 경로는 텍스트로 삽입하며 파일을 자동 첨부하지 않습니다.",
+    "help": '# Hub 도움말\n\n## 패널과 화면\n\n| 키 | 동작 |\n| --- | --- |\n| ESC | 메인 영역에서 패널로 이동 |\n| ESC (패널) | Hub 최소화, 셸로 복귀 |\n| Ctrl+Q (셸) | Hub 열기 |\n| Ctrl+S (Hub) | 설정 열기; 설정 메인에서는 저장 후 대화 |\n| Tab / Space / Enter (패널) | 메인 영역으로 이동 |\n\n셸의 Ctrl+S는 Hub가 변경하지 않습니다.\n\n## 대화 입력\n\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청을 선택합니다.\n- **Ctrl+Space**: 줄바꿈.\n- **↑↓**: 자동완성 후보 선택. **Tab**: 확정 또는 후보 열기.\n- **Ctrl+X**: 현재 실행 중단. 예약된 요청은 유지합니다.\n- **Ctrl+E**: 엔진과 Workflow 선택.\n- **Ctrl+F**: 현재 세션 내용 찾기. 검색창에서 Enter는 다음 결과, Alt+P는 이전 결과입니다.\n- **Ctrl+G**: 요청·응답 목록과 삭제·복제.\n- **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤\n\n**Alt + 이동키**는 다음 키 전체를 뜻합니다.\n\n| 이동키 | 동작 |\n| --- | --- |\n| ↑ / ↓ | 한 줄 위 / 아래 |\n| ← / → | 가로 이동 (넘치는 내용) |\n| Home / End | 처음 / 끝 |\n| PgUp / PgDn | 한 화면 위 / 아래 |\n\n대화 출력과 읽기 전용 팝업에서 같은 조작법을 사용합니다.\n설정 화면에서는 방향키로 항목을 이동하며 Alt 스크롤은 사용하지 않습니다.\n\n## 도움말·로그·조회 결과\n\n내용은 포커스를 받지 않습니다. **Alt + 이동키**로 스크롤합니다.\n**ESC**, **Enter**, **Ctrl+L** 중 하나로 닫고 이전 위치로 돌아갑니다.\n\n## 세션 패널\n\n**c** 생성 · **d** 삭제 · **e** 이름 변경 · **r** 복제.\n`← / →`는 패널 너비를 조절합니다. 이름을 비우면 자동 제목을 사용합니다.\n복제 시 대화 시점을 선택할 수 있습니다.\n\n## 설정\n\n- **Tab / Shift+Tab**: 설정 항목과 버튼 영역 이동.\n- **방향키**: 항목 선택.\n- **Enter**: 직접 편집 시작 / 완료.\n- **e**: 일반 설정에 지정한 외부 에디터로 편집.\n- **Ctrl+Space / Alt+Enter**: 직접 편집 중 줄바꿈.\n- 아이콘 스타일처럼 선택형 항목은 Enter → 방향키 → Enter로 변경합니다.\n- 프로젝트 패널의 c / d / e / r은 생성 / 삭제 / 이름 변경 / 복제입니다.\n\n## 명령과 표시\n\n`/`를 입력하면 현재 활성 컴포넌트 명령이 나타납니다.\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`을 사용할 수 있습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n\n**F1** 도움말 · **F2** 다음 세션 · **F4** 생성/복제 · **F5** 입력 미리보기 · **F6** 실행 상세.\n',
 
     "status_idle": "{icon_idle} 유휴", "status_running": "{icon_running} 실행 중", "status_queued": "{icon_queued} 예약",
 
@@ -325,4 +323,44 @@ MESSAGES = {
 
     "status_unapplied": "{icon_unapplied} 미반영", "status_partially_applied": "{icon_partially_applied} 일부 반영",
 
+    'settings_icon_style': '아이콘 스타일',
+    'settings_icon_description': 'Enter로 선택을 시작하고 방향키로 변경한 뒤 Enter로 완료합니다.',
+    'settings_icon_unicode': '일반 (Unicode/이모지)',
+    'shortcut_close': '닫기',
+    'shortcut_move': '이동',
+    'shortcut_next_match': '다음 결과',
+    'shortcut_previous_match': '이전 결과',
+    'shortcut_activate': '실행',
+    'shortcut_select': '선택',
+    'shortcut_confirm': '확정',
+    'shortcut_delete': '삭제',
+    'shortcut_clone': '복제',
+    'shortcut_main': '메인 영역',
+    'shortcut_width': '너비',
+    'shortcut_create': '생성',
+    'shortcut_rename': '이름',
+    'shortcut_shell': '셸',
+    'shortcut_chat': '대화',
+    'shortcut_settings': '설정',
+    'shortcut_done': '완료',
+    'shortcut_edit': '편집',
+    'shortcut_newline': '줄바꿈',
+    'shortcut_editor': '에디터',
+    'shortcut_items': '항목',
+    'shortcut_regions': '영역',
+    'shortcut_sidebar': '패널',
+    'shortcut_save_chat': '저장 후 대화',
+    'shortcut_engine': '엔진',
+    'shortcut_find': '찾기',
+    'shortcut_history': '요청 목록',
+    'shortcut_logs': '로그',
+    'shortcut_scroll': '스크롤',
+    'shortcut_stop': '중단',
+    'shortcut_preview': '미리보기',
+    'shortcut_details': '상세',
+    'shortcut_help': '도움말',
+    'shortcut_alt_movement': 'Alt + 이동키',
+    'shortcut_minimize': '최소화',
+    'shortcut_next_session': '다음 세션',
+    'shortcut_send': '전송',
 }
