@@ -37,7 +37,7 @@ async with LargeLanguageModel(workspace, engines={"graph": graph_engine}) as bac
         "policy": {"timeout_seconds": 120},
         "input_schema": {"type": "object", "required": ["request"]},
         "output_schema": {"type": "object", "required": ["text"]},
-        "ui": {"label": "검토 담당"},  # 확장 키도 보존한다.
+        "metadata": {"ui": {"label": "검토 담당"}},  # Application 표시용 데이터.
     }, identifier="reviewer")
     workflow = (WorkflowGraph(entry="review", inputs={"request": "/prompt"},
                               outputs={"answer": "/answer"})
@@ -93,7 +93,7 @@ Skill.resources의 URI는 참고 정보이며 파일 읽기나 스크립트 실�
 ## Graph-backed Agent와 behavioral Agent
 
 이 문서의 모델·리소스·Agent policy는 behavioral Agent에 해당한다. Graph-backed Agent는
-다른 GraphEngine/handler environment로 Workflow를 보내는 이름이며 purpose/engine/
+다른 GraphEngine/handler environment로 Workflow를 보내는 이름이며 purpose/description/engine/
 engine_options 및 비실행 metadata만 받는다. completion/system_prompt/tools/resources/
 policy/input_schema/output_schema/output_format은 존재 자체를 for_agent에서 거부한다.
 Workflow 노드 inputs/outputs/input_schema/output_schema는 계속 유효하다. Graph Agent 노드의

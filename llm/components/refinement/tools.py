@@ -1,7 +1,7 @@
 """분석 Run의 읽기/제안 Tool과 선택적 승인 대상 apply Tool을 연결한다."""
 
 from llm.components.tools import Tool, ToolContract, ToolRegistry
-from .component import TARGET, EVIDENCE, IDENTIFIER, PARENT
+from .component import TARGET, EVIDENCE, IDENTIFIER, PARENT, RefinementComponent
 
 
 def refinement_tools(data, *, apply=False, operations=()):
@@ -65,7 +65,7 @@ def refinement_tools(data, *, apply=False, operations=()):
         reads.append(item("refinement_propose", "Save an explicitly enabled proposal. Does NOT modify the target or bind created Skills. Requires later approval.",
              {"target": TARGET, "operation": {"enum": list(operations)}, "expected_version": {"type": ["string", "null"]},
               "parent": PARENT,
-              "reason": {"type": "string", "minLength": 1}, "patch": {"type": "object", "minProperties": 1},
+              "reason": {"type": "string", "minLength": 1}, "patch": RefinementComponent.schema["properties"]["patch"],
               "evidence": {"type": "array", "minItems": 1, "items": EVIDENCE}},
              ["target", "operation", "expected_version", "reason", "patch", "evidence"], propose, mutation=True))
     if apply:

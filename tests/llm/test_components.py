@@ -34,6 +34,10 @@ class Notes(Component):
     name = "notes"
     directory = "knowledge"
 
+    def configuration_schema(self):
+        from llm.core.schema import implementation_schema, open_schema
+        return implementation_schema(config=open_schema("test Notes implementation", category="implementation"))
+
 
 class ComponentTests(unittest.TestCase):
     def setUp(self):
@@ -147,8 +151,8 @@ class ComponentTests(unittest.TestCase):
         agents = self.projects.component(self.project, "agents")
         graphs = self.projects.component(self.project, "workflows")
         agents.create({"engine": "loop", "purpose": "Review code", "completion": {"model": "openai/test", "temperature": 0.2},
-                       "system_prompt": "Review code", "custom": [1]}, identifier="reviewer")
-        graphs.create(WorkflowGraph(entry="review", future_graph_option=True)
+                       "system_prompt": "Review code", "metadata": {"custom": [1]}}, identifier="reviewer")
+        graphs.create(WorkflowGraph(entry="review", metadata={"future_graph_option": True})
                       .node("review", "agent", agent="reviewer").node("end", "end")
                       .connect("review", "end").to_dict(), identifier="review")
         self.data.configure({'config': {'format_version': 3}})
@@ -160,8 +164,8 @@ class ComponentTests(unittest.TestCase):
             target = self.projects.component(clone, name)
             self.assertEqual(source.configuration(), target.configuration())
             self.assertEqual(source.list(), target.list())
-        self.projects.component(clone, "agents").update("reviewer", {"custom": []})
-        self.assertEqual(agents.load("reviewer")["custom"], [1])
+        self.projects.component(clone, "agents").update("reviewer", {"metadata": {"custom": []}})
+        self.assertEqual(agents.load("reviewer")["metadata"]["custom"], [1])
         self.assertFalse((clone.paths.root / "knowledge" / "artifact.bin").exists())
 
     def test_component_initialization_preserves_unmanaged_files(self):
@@ -252,7 +256,7 @@ class ToolDataTests(unittest.IsolatedAsyncioTestCase):
                           "strict": True}}
             source = {"source": 'from llm.components.tools import tool\n@tool(strict=True)\nasync def main(a: float):\n    """new"""\n    return "result"\n'}
             self.assertEqual(data.create(source, identifier="add"), "add")
-            data.configure({'config': {'enabled': [], 'future_policy': {'label': 'test'}}})
+            data.configure({'config': {'enabled': []}})
             data.enable("add")
             resolved = ComponentToolResolver(registry).resolve_tools(projects.load(project.id))
             self.assertEqual(resolved.definitions(), [definition])

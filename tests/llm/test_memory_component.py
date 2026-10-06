@@ -50,11 +50,11 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         return run, model, session
 
     async def test_crud_open_json_revision_and_history(self):
-        identifier = await self.memory.acreate({"content": "설명은 한국어로", "future": {"x": [1]}}, identifier="language")
+        identifier = await self.memory.acreate({"content": "설명은 한국어로", "metadata": {"future": {"x": [1]}}}, identifier="language")
         record = await self.memory.aload(identifier)
         self.assertEqual((record["revision"], record["status"], record["scope"]), (1, "confirmed", "project"))
         updated = await self.memory.aupdate(identifier, {"tags": ["응답"]}, expected_revision=1)
-        self.assertEqual(updated["future"], {"x": [1]})
+        self.assertEqual(updated["metadata"]["future"], {"x": [1]})
         with self.assertRaises(MemoryConflictError):
             await self.memory.aupdate(identifier, {"content": "stale"}, expected_revision=1)
         self.assertEqual(await self.memory.aload(identifier), updated)
@@ -95,7 +95,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(await self.memory.asearch("PYTHON")), 1)
         self.assertEqual(len(await self.memory.asearch("python", status="all")), 2)
         self.assertEqual((await self.memory.asearch("한국어"))[0]["memory"]["id"], "confirmed")
-        await self.memory.aconfigure({'config': {'search_strategy': 'keyword', 'search_status': 'candidate', 'search_limit': 1, 'ui': {'color': 'blue'}}, 'policy': {'max_search_results': 2}})
+        await self.memory.aconfigure({'config': {'search_strategy': 'keyword', 'search_status': 'candidate', 'search_limit': 1}, 'policy': {'max_search_results': 2}})
         self.assertEqual((await self.memory.asearch("python"))[0]["memory"]["id"], "candidate")
         for args in ({"limit": 3}, {"limit": True}, {"status": "unknown"}):
             with self.assertRaises(ValueError):
@@ -117,11 +117,11 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(await self.memory.ahistory("m")), 1)
 
     async def test_full_save_cannot_bypass_revision(self):
-        await self.memory.acreate({"content": "before", "extension": True}, identifier="m")
+        await self.memory.acreate({"content": "before", "metadata": {"extension": True}}, identifier="m")
         data = {"content": "after", "kind": "note", "scope": "project", "status": "confirmed", "tags": []}
         result = await self.memory.asave("m", data, expected_revision=1)
         self.assertEqual(result["revision"], 2)
-        self.assertNotIn("extension", result)
+        self.assertNotIn("extension", result.get("metadata", {}))
         with self.assertRaises(TypeError):
             await self.memory.asave("m", data)
 

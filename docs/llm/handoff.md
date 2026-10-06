@@ -1,3 +1,41 @@
+## 2026-10-06 Closed contracts · semantic ownership
+
+- 기준 main: `f25a84de6759b9d723baf402f79ed451de1e84e8`. 최신 원격을 다시 fetch해 같은 commit임을 확인했다.
+- Backend definition/config는 알려진 필드만 허용한다. Application 확장은 metadata 또는
+  Project/Session.config.data에 둔다. Graph Agent allow-list와 Graph SettingsLayout을 사용한다.
+- Graph action은 기존 flat node 형식을 유지하고 선택 handler의 configuration_schema/validate에
+  private 필드 검증을 위임한다. RAG는 모델 schema와 identity/vector/cache 공개 계약을 사용한다.
+  provider schema는 llm/providers/schema.py에 있으며 core 호환 import는 없다.
+- Memory metadata.replaces는 권한으로 사용하지 않는다. 명시적 replaces로 옮겼으며 extraction,
+  Refinement, review/consolidation은 이 계약을 공유한다. 기존 데이터 자동 변환은 없다.
+- Linux Python 3.12.14: 집중 175 passed / 0 failed / 0 skipped (72.457초),
+  전체 LLM 1,308 passed / 0 failed / 0 skipped (466.383초).
+  snapshot `/home/user/.cache/ish-provider-nobi1r8k`; 로그 `tests/llm/reports/ish-provider-nobi1r8k/`.
+  llm/tests/llm/examples/llm Python 276개가 검증 스냅샷 해시와 일치한다.
+- Hub 경계 수정 후보: Skill hub_template_version을 metadata로 이동, naming의
+  completion_schema import를 provider로 변경, Workflow 설명을 metadata.description에서 읽기.
+  관련 tests/hub/test_live.py와 test_execution.py fixture도 후보에 포함된다. 사용자가 Hub 수정을
+  보류하도록 결정하여 원본은 변경하지 않는다. 후보 patch와 script는 배포 제외 tests/llm/reports에 있다.
+- 최종 후보 snapshot `/home/user/.cache/ish-hub-contract-candidate-fp6chokr`에서 Hub
+  110 passed / 0 failed / 0 skipped (105.592초). 이 결과는 원본 Hub가 아닌 후보 검증이다.
+  중간 실행에서 읽기 위치 UI timeout 1회가 있었으나 최종 전체에서는 재현되지 않았다.
+- [소유권 inventory](schema-ownership.md), [47개 결과 항목](schema-ownership-review.md),
+  [handler 예제](../../examples/llm/owned_handler.md)를 참고한다.
+- AGENTS.md, reports/manual, ish.platform은 게시 대상에 추가하지 않는다. 게시용 체크아웃은
+  `.devtools/llm-publish`이며 사용자 요청에 따라 검증된 llm 코드·문서·예제·테스트와 CI 변경만 게시한다.
+
+검증 명령:
+
+```sh
+wsl -e /home/user/.cache/ish-provider-sdk-fbmj8dmh/.venv-linux312/bin/python \
+  /mnt/d/WorkSpace/ish/tests/llm/run_linux.py --source /mnt/d/WorkSpace/ish \
+  --modules tests.llm.test_schema_ownership tests.llm.test_definition_components \
+  tests.llm.test_graph_agent_contract tests.llm.test_domain_hardening \
+  tests.llm.test_operational_storage tests.llm.test_operations_schema \
+  tests.llm.test_rag_components tests.llm.test_refinement \
+  tests.llm.test_memory_processing tests.llm.test_tool_constraints --full
+```
+
 ## 2026-10-06 Graph orchestration · Host Tool constraints · Skill integrity
 
 - 기준 main은 `b761917dc9abd46e6b042e7cf410cf737d31c591`. 요청한 27개 보고 항목과 파일 목록은

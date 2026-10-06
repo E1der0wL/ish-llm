@@ -34,13 +34,13 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate(components=["memory", "tools"])
         memory = await project.components.aget("memory")
         before = await project.aconfiguration()
-        await memory.aconfigure({'config': {'search_limit': 3, 'extra': {'custom': True}}})
+        await memory.aconfigure({'config': {'search_limit': 3}})
         tools = await project.components.aget("tools")
         await tools.acreate({"source": "# editable source"}, identifier="offline_definition")
         await tools.aenable("offline_definition")
         saved = json.loads((project.paths.root / "project.json").read_text())
         self.assertEqual(saved["config"]["parameters"]["components"], {
-            "memory": {"config": {"search_limit": 3, "extra": {"custom": True}}},
+            "memory": {"config": {"search_limit": 3}},
             "tools": {"config": {"enabled": ["offline_definition"]}}})
         self.assertEqual(list(project.paths.root.rglob("component.json")), [])
         self.assertNotIn("component_configurations", (await project.aconfiguration())["values"])

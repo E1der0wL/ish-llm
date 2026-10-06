@@ -1,5 +1,7 @@
 """Project 소유 이미지 자료와 명시적 Vision 설정. 이미지/변환 자료는 불변이며 메타데이터만 편집한다."""
 
+from llm.providers.schema import completion_schema
+
 from copy import deepcopy
 import hashlib
 import os
@@ -9,7 +11,7 @@ from pathlib import Path
 from llm.components.base import Component, validate_name
 from llm.core.models import new_id, now, ProjectConfig
 from llm.core.settings import SettingsLayout
-from llm.core.schema import object_schema, completion_schema, checked_schema
+from llm.core.schema import object_schema, checked_schema
 from llm.providers.requests import provider_schema, resolve_provider_options
 from llm.services.infrastructure.storage import (
     atomic_json, make_directory, prepare_replace, temporary_file, sync_directory, revision_token,
@@ -103,6 +105,10 @@ class VisionComponent(Component):
                                "backends": {key: value.revision for key, value in self.ocr_backends.items()}})
 
     def validate_record(self, identifier, data):
+        unknown = set(data) - {"id", "format_version", "mime_type", "width", "height", "bytes",
+                               "sha256", "title", "metadata", "created_at", "deleted", "deleted_at", "origin"}
+        if unknown:
+            raise ValueError(f"vision/{identifier}: unsupported fields {sorted(unknown)}")
         if (data.get("id") != identifier or data.get("format_version") != 1
                 or data.get("mime_type") not in ("image/png", "image/jpeg")
                 or any(type(data.get(key)) is not int or data[key] < 1 for key in ("width", "height", "bytes"))

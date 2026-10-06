@@ -3,9 +3,59 @@
 from collections import deque
 from copy import deepcopy
 from typing import Optional
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import ValidationError
 
 from llm.components.base import Component
+from llm.core.schema import object_schema, open_schema, metadata_schema, field
 from .bindings import pointer_parts, validate_contract
+
+
+COMMON_NODE_FIELDS = {"type", "inputs", "outputs", "input_schema", "output_schema",
+                      "pause_before", "resume_schema", "timeout_seconds", "metadata"}
+
+
+def workflow_schema():
+    """제어 구조는 닫고 action 확장은 선택된 handler가 실행 전에 검증한다."""
+    contract = {name: object_schema(additionalProperties=field("string")) for name in ("inputs", "outputs")}
+    contract.update({name: {"anyOf": [field("boolean"), open_schema("Workflow value contract author", category="schema")]}
+                     for name in ("input_schema", "output_schema", "resume_schema")})
+    common = {**contract, "type": field("string", minLength=1), "metadata": metadata_schema(),
+              "pause_before": field("boolean"), "timeout_seconds": field(["number", "null"], exclusiveMinimum=0)}
+    condition = object_schema({"path": field("string"), "op": field("string", enum=["eq", "ne", "lt", "le", "gt", "ge", "in", "exists"]),
+                               "value": {"x-schema-owner": "Workflow condition literal", "x-open-kind": "data"}}, required=["path", "op"])
+    fields = {
+        "branch": {"cases": field("array", items=object_schema({"port": field("string"), "when": condition}, required=["port", "when"])), "default": field("string")},
+        "parallel": {"join": field("string")}, "join": {"wait": field("string", enum=["all"])},
+        "loop": {"body": {"$ref": "#"}, "max_iterations": field("integer", minimum=1), "while": condition,
+                 "on_limit": field("string", enum=["continue", "fail"])},
+        "end": {}, "workflow": {"workflow": field("string", minLength=1)},
+    }
+    variants = [object_schema({**common, **options, "type": {"const": kind}}, required=["type"])
+                for kind, options in fields.items()]
+    variants.append(open_schema("selected Workflow action handler", category="implementation", properties={
+        **common, "type": field("string", minLength=1, **{"not": {"enum": list(fields)}})}, required=["type"]))
+    return object_schema({"schema_version": {"const": 1}, "entry": field("string", minLength=1),
+        "nodes": object_schema(additionalProperties={"oneOf": variants}, minProperties=1),
+        "edges": field("array", items=object_schema({"source": field("string"), "target": field("string"), "port": field("string")}, required=["source", "target"])),
+        "initial_state": open_schema("Workflow state/input author", category="data"),
+        **{key: value for key, value in contract.items() if key != "resume_schema"},
+        "metadata": metadata_schema()}, required=["schema_version", "entry", "nodes", "edges"])
+
+
+def validate_handler_options(node, handler):
+    """Graph는 handler 필드의 의미를 모른다. 선택 구현체의 스키마에 위임한다."""
+    describe = getattr(handler, "configuration_schema", None)
+    if describe is None and callable(getattr(handler, "validate", None)):
+        return  # 기존 validate(node, context)가 자신의 추가 필드 계약을 소유한다.
+    schema = describe() if describe is not None else object_schema()
+    Draft202012Validator.check_schema(schema)
+    values = {key: value for key, value in node.items() if key not in COMMON_NODE_FIELDS}
+    try:
+        Draft202012Validator(schema).validate(values)
+    except ValidationError as error:
+        path = "/".join(map(str, error.absolute_path))
+        raise ValueError(f"Workflow handler {node['type']}/{path}: {error.message}") from error
 
 
 def _text(value, label: str) -> str:
@@ -30,11 +80,16 @@ def _condition(value) -> None:
 
 
 def validate_graph(data: dict, *, _depth: int = 0) -> None:
-    """도달성·연결·제어 노드·합류·반복 상한을 검사한다. 사용자 정의 키는 유지한다."""
+    """닫힌 그래프 구조와 도달성·연결·합류·반복 상한을 검사한다."""
     if not isinstance(data, dict) or type(data.get("schema_version")) is not int or data["schema_version"] != 1:
         raise ValueError("Workflow requires schema_version 1")
     if _depth == 0:
         Component.serialize(data)  # 런타임 객체와 비유한 수는 그래프에도 저장할 수 없다.
+        errors = list(Draft202012Validator(workflow_schema()).iter_errors(data))
+        if errors:
+            error = errors[0]
+            path = "/".join(map(str, error.absolute_path)) or "workflow"
+            raise ValueError(f"{path}: {error.message}") from error
     validate_contract(data)
     if _depth and any(key in data for key in ("inputs", "outputs", "input_schema", "output_schema")):
         raise ValueError("Loop bodies share parent state; put bindings on their action nodes")
@@ -174,7 +229,7 @@ def validate_graph(data: dict, *, _depth: int = 0) -> None:
 
 
 class WorkflowGraph:
-    """열린 dict 형식을 유지하면서 노드와 연결을 단계적으로 조립하는 빌더."""
+    """검증된 JSON 노드와 연결을 단계적으로 조립하는 빌더."""
 
     def __init__(self, *, entry: str, **metadata) -> None:
         if {"schema_version", "nodes", "edges"} & metadata.keys():

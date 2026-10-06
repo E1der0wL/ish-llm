@@ -247,8 +247,8 @@ class RefinementData(ComponentData):
             candidate = {key: deepcopy(replacement[key]) for key in ("content", "kind", "tags", "scope")}
             if "session_id" in replacement:
                 candidate["session_id"] = replacement["session_id"]
-            candidate.update(status="candidate", metadata={"replaces": [{"id": target_id, "revision": current["revision"]}],
-                             "refinement_proposal": identifier})
+            candidate.update(status="candidate", replaces=[{"id": target_id, "revision": current["revision"]}],
+                             metadata={"refinement_proposal": identifier})
             applied_id = handle.create(candidate, source=source)
         elif component == "agents":
             handle.revise(target_id, replacement, expected_revision=value["expected_version"])

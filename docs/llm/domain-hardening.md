@@ -109,7 +109,7 @@ pending = await memory.apending_consolidations()
 receipts = await memory.arecover_consolidations()
 ```
 
-후보 metadata.replaces의 {id, revision}들을 모두 검증한 후 후보를 confirmed로 바꾸고
+후보 replaces의 {id, revision}들을 모두 검증한 후 후보를 confirmed로 바꾸고
 대체 기록을 soft delete한다. 프로젝트/Session 범위를 넘는 통합은 거부한다. 원문과 이력은 남는다.
 `memory/consolidations/pending/<id>.json`에 계획을 먼저 저장하고 각 변경을 원자적으로 쓴다.
 중간 실패 시 일반 기억 CRUD/검색을 막고 명시적 복구만 허용한다. 복구는 각 레코드가 변경 전이나

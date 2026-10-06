@@ -21,6 +21,7 @@ from .files import copy_file
 from llm.core.configuration import resolve_configuration, required_setting
 from llm.core.models import ProjectConfig
 from llm.core.settings import SettingsLayout
+from llm.core.schema import object_schema, metadata_schema
 from llm.providers.requests import provider_schema, error_code
 from llm.providers.embeddings import extract_single_embedding
 from llm.providers.runtime import diagnostic, diagnostic_scope
@@ -32,12 +33,14 @@ class RAGConflictError(RuntimeError):
 
 
 class RAGComponent(DefinitionComponent):
-    """열린 정의 CRUD와 문서 색인 API를 분리한다. 모델 객체/인증은 런타임에만 둔다."""
+    """Application 메모 CRUD와 문서 색인 API를 분리하고 모델 인자는 선택 구현체에 위임한다."""
 
     name = "rag"
     directory = "rag"
     capabilities = ("rag", "tools")
     data_class = RAGData
+    # 일반 record CRUD는 Application 메모만 보관한다. 문서 색인은 document API가 소유한다.
+    schema = object_schema({"metadata": metadata_schema()})
     settings_layout = SettingsLayout(
         config=("chunk_size", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
                 "index_batch_size", "search", "graph", "document_kwargs", "query_kwargs",
@@ -79,7 +82,8 @@ class RAGComponent(DefinitionComponent):
     def _identity(self):
         if self.embedding is None:
             raise ValueError("Configure RAGComponent(embedding=EmbeddingModel(...)) first")
-        identifier = self.embedding_id or self.document_kwargs.get("model", getattr(self.embedding, "params", {}).get("model"))
+        identity = getattr(self.embedding, "identity", None)
+        identifier = self.embedding_id or (identity(**self.document_kwargs) if identity else None)
         if not isinstance(identifier, str) or not identifier:
             raise ValueError("Custom embedding clients require embedding_id")
         return identifier
@@ -102,8 +106,9 @@ class RAGComponent(DefinitionComponent):
             client_values["extraction"] = deepcopy(self.extractor.extraction)
         layers = [("client", self.settings_layout.pack(client_values)), *self.configuration_layers(project)]
         view = resolve_configuration(layers, schema=self.configuration_schema())
-        view["enforced"] = {"config": {"embedding_params": {"caching": False,
-            "cache": {"no-cache": True, "no-store": True}}}}
+        from .embedding import EmbeddingModel
+        selected = EmbeddingModel if self.embedding is None else self.embedding
+        view["enforced"] = {"config": {"embedding_params": deepcopy(getattr(selected, "enforced_configuration", {}))}}
         view["model_providers"] = {name: resolve_configuration([
             ("client", getattr(getattr(self, name), "provider_options", {})),
             ("project", view["values"].get("policy", {}).get("provider", {}))], schema=provider_schema())
@@ -149,7 +154,7 @@ class RAGComponent(DefinitionComponent):
             if prompt is None and getattr(worker.extractor, "prompt", None) is not None:
                 worker.extraction_prompt = deepcopy(worker.extractor.prompt)
             worker.extractor = bind_extraction(worker.extraction_options, worker.extraction_prompt)
-        elif worker.extractor is not None and any(key in worker.extraction_options for key in ("repair_attempts", "prompt_id", "relation_types", "json_mode")):
+        elif worker.extractor is not None and worker.extraction_options.keys() - {"failure_policy"}:
             raise ValueError("Custom extractor requires with_extraction(options, prompt) to apply extraction policies")
         worker._configuration_version = revision_token({"configuration": values,
             "model_providers": {k: v["values"] for k, v in view["model_providers"].items()}, "prompt": worker.extraction_prompt,
@@ -157,10 +162,15 @@ class RAGComponent(DefinitionComponent):
         return worker
 
     def configuration_schema(self):
-        from llm.core.schema import object_schema, field, completion_schema
-        model_params = object_schema({key: value for key, value in completion_schema()["properties"].items()
-                                      if key in ("model", "api_key", "api_base", "timeout", "num_retries")},
-                                     **{"x-open-parameters": True})
+        from llm.core.schema import object_schema, open_schema, field
+        from .embedding import EmbeddingModel
+        from .extraction import TripleExtractor
+        from .rerank import RerankModel
+        def child_schema(client, factory):
+            selected = factory if client is None else client
+            describe = getattr(selected, "configuration_schema", None)
+            return describe() if describe else open_schema(type(selected).__qualname__ + ".configured", category="implementation")
+        embedding_schema = child_schema(self.embedding, EmbeddingModel)
         return self.settings_layout.schema(object_schema({
             "chunk_size": field("integer", minimum=1),
             "embedding_concurrency": field("integer", minimum=1),
@@ -170,11 +180,11 @@ class RAGComponent(DefinitionComponent):
             "index_batch_size": field("integer", minimum=1), "search": search_schema(),
             "graph": object_schema({"buffer_pool_size": field("integer", minimum=1),
                                     "max_num_threads": field("integer", minimum=1)}),
-            "document_kwargs": object_schema(), "query_kwargs": object_schema(),
-            "embedding_params": deepcopy(model_params), "extraction_params": completion_schema(),
+            "document_kwargs": deepcopy(embedding_schema), "query_kwargs": deepcopy(embedding_schema),
+            "embedding_params": embedding_schema, "extraction_params": child_schema(self.extractor, TripleExtractor),
             "extraction": extraction_schema(),
             "provider": provider_schema(),
-            "rerank_params": deepcopy(model_params),
+            "rerank_params": child_schema(self.reranker, RerankModel),
             "ingestion": object_schema({"max_active": field("integer", "동시 색인 작업 수", minimum=1)}),
             "retention": object_schema({"job_max_age_seconds": field(["number", "null"],
                 "완료·취소한 색인 작업의 입력/영수증 보관 기간. null은 무제한", exclusiveMinimum=0)})},
@@ -194,8 +204,10 @@ class RAGComponent(DefinitionComponent):
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "index_batch_size"):
             if name in data and type(data[name]) is not int:
                 raise ValueError(f"{name} requires an integer")
-        if "repair_attempts" in data.get("extraction", {}) and type(data["extraction"]["repair_attempts"]) is not int:
-            raise ValueError("extraction.repair_attempts requires an integer")
+        for client, key in ((self.embedding, "embedding_params"), (self.extractor, "extraction_params"), (self.reranker, "rerank_params")):
+            validate = getattr(client, "validate_configuration", None)
+            if validate is not None and key in data:
+                validate(deepcopy(data[key]))
 
     def maintenance(self, project, *, apply=False, expected_version=None):
         """활성 코퍼스와 실패 작업의 재개 자료를 보존하고, 만료된 종료 작업만 정리한다."""
@@ -307,11 +319,13 @@ class RAGComponent(DefinitionComponent):
         if not isinstance(texts, list) or len(texts) != 1:
             raise ValueError("RAG embedding requires one chunk per request")
         self._identity()
-        if query and self.query_kwargs.get("model", self._identity()) != self._identity():
+        identity = getattr(self.embedding, "identity", None)
+        if query and identity is not None and identity(**self.query_kwargs) != identity(**self.document_kwargs):
             raise ValueError("Query embedding model differs from indexed model")
-        response = await self.embedding.embed(texts, **(self.query_kwargs if query else self.document_kwargs))
-        params = {**getattr(self.embedding, "params", {}), **(self.query_kwargs if query else self.document_kwargs)}
-        vector = extract_single_embedding(response, dimensions=params.get("dimensions"))
+        kwargs = self.query_kwargs if query else self.document_kwargs
+        response = await self.embedding.embed(texts, **kwargs)
+        extract = getattr(self.embedding, "extract_vector", None)
+        vector = extract(response, **kwargs) if extract else extract_single_embedding(response)
         from llm.providers.embeddings import validate_vectors
         return validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))
 

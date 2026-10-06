@@ -2,23 +2,27 @@
 
 from llm.components.definitions import DefinitionComponent
 from .data import SkillData
+from llm.core.schema import object_schema, metadata_schema
 
 
 class SkillComponent(DefinitionComponent):
-    """instructions를 중심으로 한 열린 JSON Skill 문서를 관리한다."""
+    """지침과 참고 URI를 저장한다. metadata는 실행 권한을 부여하지 않는다."""
 
     name = "skills"
     directory = "skills"
     capabilities = ("skills", "tools")
     data_class = SkillData
     schema = {
-        "type": "object", "required": ["instructions"],
+        "type": "object", "required": ["instructions"], "additionalProperties": False,
         "properties": {
             "instructions": {"type": "string", "minLength": 1},
             "description": {"type": "string"},
             "title": {"type": "string"},
             "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
-            "resources": {"type": "array", "items": {"type": "object"}},
+            "metadata": metadata_schema(),
+            "resources": {"type": "array", "items": object_schema({
+                "uri": {"type": "string", "minLength": 1}, "description": {"type": "string"},
+                "metadata": metadata_schema()}, required=["uri"])},
             "lineage": {"type": "object", "required": ["parent", "parent_revision"],
                         "properties": {"parent": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"},
                                        "parent_revision": {"type": "string", "pattern": "^[a-f0-9]{64}$"}},

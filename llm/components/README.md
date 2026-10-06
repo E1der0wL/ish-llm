@@ -70,7 +70,7 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 - `resolve_runtime(project, capability, *, data_factory)`: 수명 검사 핸들이 필요한 기능을 연결. 기본 구현은 resolve에 위임.
 - `data_class`: 필요할 때 지정하는 ComponentData 하위 클래스.
 
-직렬화 가능한 JSON만 레코드에 저장하고 client/함수/lock은 capability에 둡니다. 공통 직렬화는 문자열 키와 유한한 값을 확인하며 열린 JSON 키를 보존합니다. `data_class` 없이 Component에 메서드만 추가해도 Facade로 자동 전달되지는 않습니다.
+직렬화 가능한 JSON만 레코드에 저장하고 client/함수/lock은 capability에 둡니다. 공통 직렬화는 문자열 키와 유한한 값을 확인하며, 선택 Component가 record schema를 소유합니다. 내장 정의는 알려진 필드만 허용하고 Application 확장은 `metadata`에 둡니다. `data_class` 없이 Component에 메서드만 추가해도 Facade로 자동 전달되지는 않습니다.
 
 설정 schema는 `llm.core.schema.implementation_schema(config=..., policy=...)`로 선언합니다.
 두 section은 object이며 선택 사항입니다. 기능 입력·SDK 인자는 config, 구현체가 집행하는

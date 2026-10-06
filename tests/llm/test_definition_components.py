@@ -14,8 +14,8 @@ from llm.services.infrastructure.storage import atomic_json
 
 
 def serial_graph():
-    return (WorkflowGraph(entry="work", label="예제")
-            .node("work", "agent", agent="reviewer", future={"x": 1})
+    return (WorkflowGraph(entry="work", metadata={"label": "예제"})
+            .node("work", "agent", agent="reviewer", metadata={"future": {"x": 1}})
             .node("done", "end").connect("work", "done").to_dict())
 
 
@@ -44,10 +44,10 @@ def definitions():
                    "system_prompt": "Review code", "resources": {"skills": ["review"]}},
         "skills": {"instructions": "정확성을 확인한다.", "resources": [{"uri": "docs/design.md"}]},
         "mcp": {"transport": "stdio", "command": "never-run-this", "args": ["--server"], "env": {"X": "1"}},
-        "rag": {"sources": [{"id": "doc", "text": "Alice works on ish"}],
+        "rag": {"metadata": {"sources": [{"id": "doc", "text": "Alice works on ish"}],
                      "entities": [{"id": "alice", "source_ids": ["doc"]}, {"id": "ish"}],
                      "relations": [{"source": "alice", "target": "ish", "type": "works_on"}],
-                     "embedding": {"model": "test/embedding", "dimensions": 256}},
+                     "embedding": {"model": "test/embedding", "dimensions": 256}}},
         "workflows": control_graph(),
     }
 
@@ -72,14 +72,15 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
     async def test_all_components_crud_roundtrip_unknown_keys_and_clone(self):
         for name, definition in definitions().items():
             data = self.project.components[name]
-            record = {**definition, "custom": {"label": "한글", "values": [1, None]}}
-            data.configure({'config': {'future_setting': {'v': 1}}})
+            record = {**definition, "metadata": {"custom": {"label": "한글", "values": [1, None]}}}
+            with self.assertRaises(ValueError):
+                data.configure({'config': {'future_setting': {'v': 1}}})
             data.create(record, identifier="example")
             loaded = data.load("example")
             self.assertEqual(loaded, record)
-            loaded["custom"]["values"].append("detached")
+            loaded["metadata"]["custom"]["values"].append("detached")
             self.assertEqual(data.load("example"), record)
-            data.update("example", {"extra": True})
+            data.update("example", {"metadata": {"extra": True}})
         clone = self.project.clone()
         for name in definitions():
             data, copied = self.project.components[name], clone.components[name]
@@ -94,8 +95,8 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
             handle = await self.project.components.aget(name)
             identifier = await handle.acreate(value)
             self.assertEqual(await handle.aload(identifier), value)
-            await handle.aupdate(identifier, {"future": 2})
-            replacement = {**value, "replacement": True}
+            await handle.aupdate(identifier, {"metadata": {"future": 2}})
+            replacement = {**value, "metadata": {"replacement": True}}
             await handle.asave(identifier, replacement)
             self.assertEqual(await handle.alist(), {identifier: replacement})
             await handle.adelete(identifier)
@@ -106,7 +107,7 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_invalid_records_do_not_replace_saved_values(self):
         invalid = {
-            "agents": [{"engine": "loop", "purpose": "x", "completion": {"model": ""}}, {"completion": {"model": "x"}},
+            "agents": [{"engine": "loop", "purpose": "x", "system_promt": "typo"}, {"completion": {"model": "x"}},
                        {"engine": "loop", "purpose": "x", "completion": {"model": "x"}, "resources": {"skills": [1]}}],
             "skills": [{}, {"instructions": ""}, {"instructions": 1}],
             "mcp": [{"transport": "stdio"}, {"transport": "http", "url": "https://example.test"},
@@ -129,7 +130,7 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
         with patch("subprocess.Popen", side_effect=AssertionError("must not launch")):
             for transport in ("stdio", "streamable_http", "sse"):
                 value = {"transport": transport, "command": "unavailable",
-                         "url": "https://example.invalid/mcp", "extra": {"timeout": 1}}
+                         "url": "https://example.invalid/mcp", "metadata": {"extra": {"timeout": 1}}}
                 data.create(value, identifier=transport)
             with self.app.project_manager.ownership.scope():
                 snapshots = self.app.project_manager.components.resolve(self.project.data, "mcp")
@@ -137,7 +138,7 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_rag_definitions_remain_open_and_do_not_index_documents(self):
         handle = self.project.components.rag
-        value = {"sources": [{"id": "x"}], "custom": {"policy": "future"}}
+        value = {"metadata": {"sources": [{"id": "x"}], "custom": {"policy": "future"}}}
         identifier = handle.create(value)
         self.assertEqual(handle.load(identifier), value)
         self.assertEqual(await handle.alist_documents(), [])
@@ -280,6 +281,7 @@ class WorkflowValidationTests(unittest.TestCase):
             validate_graph(graph)
         graph = serial_graph()
         graph["nodes"]["work"]["type"] = "join"
+        del graph["nodes"]["work"]["agent"]
         with self.assertRaisesRegex(ValueError, "belong"):
             validate_graph(graph)
 
@@ -296,7 +298,7 @@ class WorkflowValidationTests(unittest.TestCase):
         graph = serial_graph()
         graph["nodes"]["work"]["type"] = "company.custom_operation"
         graph["nodes"]["work"]["new_setting"] = {"nested": [True, None]}
-        graph["new_graph_option"] = "future"
+        graph["metadata"]["new_graph_option"] = "future"
         self.assertEqual(WorkflowGraph.from_dict(graph).to_dict(), graph)
 
     def test_nested_parallel_and_loop_are_valid(self):

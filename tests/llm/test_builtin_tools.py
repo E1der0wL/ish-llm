@@ -319,14 +319,14 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         async with LargeLanguageModel(self.root / "backend", components=[AgentComponent()]) as backend:
             project = await backend.projects.acreate("prompts", components=["agents"])
             agents = await project.components.aget("agents")
-            original = {"engine": "loop", "purpose": "test", "system_prompt": "old", "completion": {"model": "demo"}, "policies": {"limit": 3}}
+            original = {"engine": "loop", "purpose": "test", "system_prompt": "old", "completion": {"model": "demo"}, "policy": {"max_tool_calls": 3}}
             await agents.acreate(original, identifier="a")
             self.tools.bind_prompts(agents)
             read = await self.invoke("prompt_read", agent_id="a")
             self.assertNotIn("prompt_update", self.tools.registry.names())
             updated = await agents.aupdate_prompt("a", "new", expected_revision=read["revision"])
             self.assertEqual(updated["applies_to"], "subsequent_runs")
-            self.assertEqual((await agents.aload("a"))["policies"], original["policies"])
+            self.assertEqual((await agents.aload("a"))["policy"], original["policy"])
             with self.assertRaises(ValueError):
                 await agents.aupdate_prompt("a", "stale", expected_revision=read["revision"])
         with self.assertRaises(RuntimeError):

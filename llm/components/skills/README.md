@@ -1,6 +1,6 @@
 # Skills — 재사용할 지침과 참고 자료
 
-특정 작업에 사용할 instructions와 선택적인 리소스 설명을 열린 JSON 레코드로 저장합니다. Skill 자체가 별도 실행기나 Python 함수 패키지는 아닙니다.
+특정 작업에 사용할 instructions와 선택적인 리소스 설명을 닫힌 JSON 계약으로 저장합니다. Skill 자체가 별도 실행기나 Python 함수 패키지는 아닙니다. Application 데이터는 `metadata` 안에 두며 실행 권한을 만들지 않습니다. `resources` 항목은 필수 `uri`, 선택 `description`과 `metadata`만 허용합니다.
 
 ## 파일 안내
 

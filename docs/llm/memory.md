@@ -1,7 +1,7 @@
 # 프로젝트 장기 기억
 
 `MemoryComponent`는 프로젝트에서 반복해서 참고할 선호, 사실, 업무 지침 등을 저장한다.
-일반 컴포넌트와 같이 선택한 프로젝트에만 `memory/`를 만들고, 데이터는 열린 JSON 사전으로
+일반 컴포넌트와 같이 선택한 프로젝트에만 `memory/`를 만들고, 데이터는 닫힌 content 계약으로
 관리한다. API 호출만으로 Run을 만들거나 LLM을 호출하지 않는다.
 
 `conversation_storage="memory"`는 프로세스 종료 시 사라지는 **대화 저장 옵션**이다.
@@ -22,8 +22,7 @@ async with LargeLanguageModel(workspace) as backend:
         "kind": "preference",
         "tags": ["언어", "코드"],
         "status": "confirmed",
-        "metadata": {"owner": "user"},
-        "custom_field": {"enabled": True},
+        "metadata": {"owner": "user", "custom_field": {"enabled": True}},
     })
     record = await memory.aload(identifier)
     hits = await memory.asearch("한국어", limit=5)  # [{"score": ..., "memory": {...}}]
@@ -36,7 +35,8 @@ async with LargeLanguageModel(workspace) as backend:
 ```
 
 API의 생성 기본값은 `status="confirmed"`, `kind="note"`, `scope="project"`, `tags=[]`다.
-`kind`는 임의 문자열이며 사용자 필드도 추가할 수 있다. Session 전용 기억은
+`kind`는 임의 문자열이며 사용자 필드는 `metadata` 안에 추가한다. 교체 대상은 `metadata`가 아닌
+검증된 `replaces=[{"id": ..., "revision": ...}]` 계약에 둔다. Session 전용 기억은
 `scope="session", session_id=session.id`로 생성한다. 조회·수정·삭제에도 같은 `session_id`를 전달해야 하며,
 기본 목록/검색은 프로젝트 공통 기억만 반환하고 `session_id` 지정 시 해당 Session의 기억도 포함한다.
 모델 Tool의 session_id는 실행 문맥에서 결정한다. 전역 범위는 지원하지 않는다.

@@ -295,7 +295,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         await self.setup_graph(agent_graph(), ScriptedCompletion(answer("ok")))
         snapshot = await self.agents.asnapshot("writer")
         definition = snapshot["definition"]
-        definition["ui"] = {"color": "blue"}
+        definition["metadata"] = {"ui": {"color": "blue"}}
         changed = await self.agents.arevise("writer", definition, expected_revision=snapshot["revision"])
         self.assertNotEqual(snapshot["revision"], changed["revision"])
         with self.assertRaisesRegex(ValueError, "changed"):
@@ -303,7 +303,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         run = await self.run_graph()
         step = next(s for s in await run.steps.alist() if s.kind == "agent")
         self.assertEqual(step.metadata["agent_revision"], changed["revision"])
-        self.assertEqual(step.metadata["agent"]["ui"], {"color": "blue"})
+        self.assertEqual(step.metadata["agent"]["metadata"]["ui"], {"color": "blue"})
 
     async def test_skill_prompt_and_changed_skill_blocks_checkpoint_resume(self):
         self.profile["resources"] = {"skills": ["review"]}

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence
 
 from llm.components.tools.registry import Tool, ToolRegistry
+from llm.core.schema import open_schema
 from llm.services.infrastructure.storage import drain_on_cancel
 from .files import FileTools
 from .processes import ProcessTools
@@ -129,11 +130,11 @@ class BuiltinTools:
             "web_fetch": schema({"url": string(pattern="^https?://")}, ["url"]),
             "browser_open": schema({"url": string(pattern="^https?://")}, ["url"]),
             "browser_snapshot": schema({"session_id": string()}, ["session_id"]),
-            "browser_act": schema({"session_id": string(), "action": {"type": "object"}}, ["session_id", "action"]),
+            "browser_act": schema({"session_id": string(), "action": open_schema("host browser adapter", category="adapter")}, ["session_id", "action"]),
             "kernel_execute": schema({"session_id": string(), "code": string()}, ["session_id", "code"]),
             "kernel_reset": schema({"session_id": string()}, ["session_id"]),
-            "external_rag_search": schema({"corpus": string(), "query": string(minLength=1), "options": {"type": "object"}}, ["corpus", "query"]),
-            "external_graphrag_search": schema({"corpus": string(), "query": string(minLength=1), "options": {"type": "object"}}, ["corpus", "query"]),
+            "external_rag_search": schema({"corpus": string(), "query": string(minLength=1), "options": open_schema("host RAG adapter", category="adapter")}, ["corpus", "query"]),
+            "external_graphrag_search": schema({"corpus": string(), "query": string(minLength=1), "options": open_schema("host GraphRAG adapter", category="adapter")}, ["corpus", "query"]),
             "context_expand": schema({"reference": string(), "scope": {"enum": ["chunk", "section", "topic", "document"]}}, ["reference", "scope"]),
         }
         for name, handler in (adapters or {}).items():

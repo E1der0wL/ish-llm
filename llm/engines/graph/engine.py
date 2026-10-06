@@ -21,7 +21,7 @@ from typing import Annotated, Awaitable, Callable, Literal, Mapping, Optional, T
 
 from asyncio import timeout
 from llm.components.base import Component
-from llm.components.workflows.graph import validate_graph
+from llm.components.workflows.graph import validate_graph, validate_handler_options
 from llm.components.workflows.bindings import bind, read_pointer, validate_value
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
@@ -730,6 +730,11 @@ class GraphEngine:
         graph = self._definition(capabilities)
         yield self, graph, context
         for node in self._nodes(graph):
+            if node["type"] not in ("branch", "parallel", "join", "end", "loop", "workflow"):
+                handler = self.handlers.get(node["type"])
+                if handler is None:
+                    raise GraphExecutionError(f"Unregistered node type: {node['type']}")
+                validate_handler_options(node, handler)
             child = self._nested_engine(node, capabilities)
             if child is not None:
                 child_context = context
@@ -824,8 +829,7 @@ class GraphEngine:
         if options.keys() - allowed:
             raise ValueError("Unsupported Graph Agent engine_options")
         # 빈 resources/tools도 의미 없는 별도 behavior/authority 계층이다.
-        unsupported = set(definition) & {"completion", "system_prompt", "tools", "resources", "policy",
-                                         "input_schema", "output_schema", "output_format"}
+        unsupported = set(definition) - {"purpose", "description", "engine", "engine_options", "metadata"}
         if unsupported:
             raise ValueError("Graph Agent only orchestrates Workflows; unsupported fields: " + ", ".join(sorted(unsupported)))
         worker = self.for_request({"workflow": options.pop("workflow", None)})

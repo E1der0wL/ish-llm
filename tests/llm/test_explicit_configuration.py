@@ -334,7 +334,9 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 for name, item in view["components"].items():
                     self.assertEqual(item["configuration"], {}, name)
                     self.assertEqual(item["effective"]["values"], {}, name)
-                self.assertNotIn('"default":', __import__("json").dumps(view["schema"]))
+                # Workflow branch의 properties.default는 필드 이름이며 Schema default가 아니다.
+                from llm.core.schema import checked_schema
+                checked_schema(view["schema"])
 
     async def test_memory_empty_processing_does_not_recall_or_call_model(self):
         from llm.components.memory.processing import processing_settings

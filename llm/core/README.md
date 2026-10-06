@@ -24,7 +24,7 @@ Project → Session → Run → Step의 저장 모델과, Engine·서비스·UI�
 
 - 영속 모델에 asyncio.Task, Queue, lock, live client를 넣지 않습니다.
 - 저장 버전은 `storage_version=1`입니다. 이전 Task 형식을 자동 변환하지 않습니다.
-- `ProjectConfig`는 열린 JSON 설정입니다. 미설정 leaf 값을 만들어 넣지 않습니다.
+- `ProjectConfig`는 policies/parameters/data로 닫힌 계약입니다. Application 확장은 data, 구현체 인자는 대상 parameters에 둡니다. 미설정 leaf 값을 만들어 넣지 않습니다.
 - `policies`는 서비스가 집행하고 `parameters.engines/components`는 해당 구현체에만 전달합니다. SDK 옵션은 구현체의 하위 설정이며 Project 공용 completion은 없습니다.
 - `EngineDelta`는 진행 중 변경, `EngineOutput`은 출력, `ExecutionResult`는 Run 결과 조회입니다. 서로를 새 저장 도메인으로 만들지 않습니다.
 - Interaction의 권한 판정·응답 저장은 서비스 책임입니다. 선택지 해석 함수 자체가 승인 권한을 부여하지 않습니다.

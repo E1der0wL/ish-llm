@@ -100,7 +100,7 @@ active_keep_iterations로 조절한다. [장시간 작업 API](long-running.md)�
 **기억 후보 추출:** 정상적인 최종 모델 응답 뒤에 현재 요청·답변과 제한된 기존 기억을
 검토한다. 생성 결과는 항상 candidate이며, 범위는 명시된 extract_scope다. 프로젝트 공통 지식으로
 수집하려면 `extract_scope="project"`를 선택한다. 이미 존재하거나 삭제한 동일 내용은 다시
-생성하지 않는다. 모델은 기존 ID/revision을 참조하는 `metadata.replaces`로 병합·모순 해결을
+생성하지 않는다. 모델은 기존 ID/revision을 참조하는 `replaces`로 병합·모순 해결을
 제안할 수 있다. 해당 revision을 저장 직전에 다시 확인한다. 제안만으로 기존 confirmed
 기억을 덮어쓰거나 삭제하지 않는다. 사실의 정확성/의미적 중복 판별은 모델 품질에 달려 있다.
 
@@ -146,7 +146,7 @@ if summary:
 review = await memory.areview(session_id=session.id)
 # review["duplicates"]: 같은 범위의 정규화된 동일 내용 ID 그룹
 # review["expired"]: 만료된 기억 ID
-# review["proposals"]: metadata.replaces가 있는 검토 대상 기억
+# review["proposals"]: replaces가 있는 검토 대상 기억
 ```
 
 ```text

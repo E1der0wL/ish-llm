@@ -124,11 +124,11 @@ class SettingsContractTests(unittest.TestCase):
 
     def test_nested_open_configuration_extensions_survive_resolution(self):
         component = MemoryComponent()
-        value = {"config": {"processing": {"future_extension": {"enabled": False}}},
+        value = {"config": {"processing": {"completion": {"future_extension": {"enabled": False}}}},
                  "policy": {"processing": {"timeout_seconds": None}}}
         component.validate_configuration(value)
         options = component.settings_layout.unpack(value)
-        self.assertEqual(options["processing"], {"future_extension": {"enabled": False}, "timeout_seconds": None})
+        self.assertEqual(options["processing"], {"completion": {"future_extension": {"enabled": False}}, "timeout_seconds": None})
         self.assertEqual(component.settings_layout.pack(options), value)
         self.assertFalse(Draft202012Validator(component.configuration_schema()).is_valid(
             {"config": {"processing": {"timeout_seconds": 10}}}))
@@ -149,11 +149,11 @@ class SettingsContractTests(unittest.TestCase):
                     engine.settings_layout.unpack(supplied)
                 with self.assertRaises(ValueError):
                     engine.configuration(ProjectConfig(parameters={"engines": {"loop": supplied}}), "loop")
-        supplied = {"config": {"completion": {"input_policy": "provider-extension"}, "custom": 3},
+        supplied = {"config": {"completion": {"input_policy": "provider-extension"}},
                     "policy": {"completion": None}}
         self.assertTrue(Draft202012Validator(engine.configuration_schema()).is_valid(supplied))
         self.assertEqual(engine.settings_layout.unpack(supplied),
-                         {"completion": {"input_policy": "provider-extension"}, "custom": 3, "input_policy": None})
+                         {"completion": {"input_policy": "provider-extension"}, "input_policy": None})
 
     def test_layout_required_and_local_references_keep_their_meaning(self):
         layout = SettingsLayout(config=("connection", "peers"), policy=("limit",))

@@ -41,3 +41,4 @@ jobs:
           tests.llm.test_refinement tests.llm.test_completion_processing
           tests.llm.test_interaction_decisions tests.llm.test_observability
           tests.llm.test_error_boundaries
+          tests.llm.test_schema_ownership tests.llm.test_definition_components

@@ -125,8 +125,8 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
         tools.disable("search")
         tools.set_enabled(["search"])
         self.assertFalse(hasattr(self.app.project_manager.components.get("tools"), "catalog"))
-        workflow = self.project.components.workflows.create(WorkflowGraph(entry="end", custom=42).node("end", "end").to_dict())
-        self.assertEqual(self.project.components["workflows"].load(workflow)["custom"], 42)
+        workflow = self.project.components.workflows.create(WorkflowGraph(entry="end", metadata={"custom": 42}).node("end", "end").to_dict())
+        self.assertEqual(self.project.components["workflows"].load(workflow)["metadata"]["custom"], 42)
         self.project.components.remove("tools")
         with self.assertRaises(ValueError):
             tools.create(definition, identifier="another")
@@ -134,10 +134,10 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
             tools.enable("search")
 
     async def test_project_and_session_lifecycle(self):
-        self.project.save(title="renamed", config={"custom": 7, "parameters": {"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}})
-        self.session.save(title="new title", config={"custom": 8})
+        self.project.save(title="renamed", config={"data": {"custom": 7}, "parameters": {"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}})
+        self.session.save(title="new title", config={"data": {"custom": 8}})
         self.assertEqual(self.app.projects.load(self.project.id).data.title, "renamed")
-        self.assertEqual(self.project.sessions.load(self.session.id).data.config["custom"], 8)
+        self.assertEqual(self.project.sessions.load(self.session.id).data.config["data"]["custom"], 8)
         cloned_session = self.session.clone()
         self.assertNotEqual(cloned_session.id, self.session.id)
         cloned_session.delete()

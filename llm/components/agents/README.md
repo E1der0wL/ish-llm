@@ -33,11 +33,11 @@ Prompt messages의 role은 지침 안의 라벨로 보존합니다. purpose는 �
 자동 시스템 프롬프트 대체값이 아닙니다. host의 고정 system_prompt는 기존 우선순위를 유지합니다.
 Graph를 실행하는 조율 Agent는 하위 Agent의 지침을 덮어쓰지 않습니다.
 Graph-backed Agent는 다른 GraphEngine/handler 환경의 선택만 소유합니다. 위 모델 설정은
-behavioral Agent에만 해당합니다. Graph Agent는 purpose/engine/engine_options와 비실행
+behavioral Agent에만 해당합니다. Graph Agent는 purpose/description/engine/engine_options와 비실행
 metadata만 허용하고 completion/system_prompt/tools/resources/policy/input_schema/
 output_schema/output_format은 빈 값도 거부합니다. Component가 Engine 이름을 검사하지 않고
 GraphEngine.for_agent가 리소스 조회 전에 검증합니다. 같은 환경은 workflow 노드로 중첩합니다.
-Prompt·Skill의 JSON 확장 필드는 Tool/MCP/RAG 권한이나 Engine 설정으로 해석하지 않습니다.
+Agent·Prompt·Skill의 임의 Application 필드는 `metadata` 안에서만 허용하며 Tool/MCP/RAG 권한이나 Engine 설정으로 해석하지 않습니다.
 Run의 capability 사본과 Agent Step binding에 정의와 revision을 기록합니다.
 실행 중 저장소 수정은 다음 Run에만 반영되며, 바뀐 정의로 과거 checkpoint를 재개하지 않습니다.
 

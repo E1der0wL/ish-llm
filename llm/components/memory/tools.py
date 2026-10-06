@@ -1,6 +1,7 @@
 """선택된 Memory의 Tool 정의. 실행 출처는 모델 인자가 아닌 ToolExecutor에서 받는다."""
 
 from llm.components.tools import Tool, ToolRegistry
+from llm.core.schema import metadata_schema
 
 
 def memory_tools(data) -> ToolRegistry:
@@ -11,7 +12,7 @@ def memory_tools(data) -> ToolRegistry:
     fields = {"content": {"type": "string", "minLength": 1},
               "kind": {"type": "string", "minLength": 1},
               "tags": {"type": "array", "items": {"type": "string", "minLength": 1}},
-              "metadata": {"type": "object", "additionalProperties": True}}
+              "metadata": metadata_schema()}
 
     def schema(properties, required):
         return {"type": "object", "properties": properties, "required": required,

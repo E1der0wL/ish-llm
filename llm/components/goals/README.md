@@ -35,7 +35,7 @@ Project clone은 project-scope 목표만 복제하고 run_refs를 비운다. Ses
 복제하지 않는다. 원본 위치는 metadata.cloned_from으로 남는다. Component 선택 해제는
 자료를 보존하고 재선택하면 다시 사용할 수 있다. 영구 제거는 기존 Component API를 따른다.
 
-- component.py: 열린 레코드/설정 schema, clone, capability 제공.
+- component.py: 닫힌 레코드/설정 schema, Application metadata, clone, capability 제공.
 - data.py: 잠금·버전 검사·진행 상태·검증된 Run 참조.
 - processing.py: 명시적 completion_processors 참고자료 주입.
 - tools.py: 현재 Run 범위의 읽기/승인 대상 쓰기 Tool.

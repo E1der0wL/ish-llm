@@ -568,7 +568,7 @@ class MemorySession(CompletionSession):
                    ref.get("id") not in visible or visible[ref["id"]] != ref["revision"] for ref in refs):
                 raise ValueError("Invalid memory consolidation references")
             record = {"content": value["content"], "kind": kind, "tags": tags, "status": "candidate",
-                      "scope": self.config["extract_scope"], "metadata": {"replaces": refs,
+                      "scope": self.config["extract_scope"], "replaces": refs, "metadata": {
                       "extract_prompt": {key: self.extraction_prompt[key] for key in ("source", "version")}}}
             if record["scope"] == "session":
                 record["session_id"] = self.context.session.id

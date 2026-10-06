@@ -1,5 +1,22 @@
 # Architecture
 
+## 설정과 정의의 의미 소유권
+
+ish-llm contracts are closed by default. Every configurable value has exactly one
+semantic owner. Backend-owned definition과 config/policy는 미지의 필드를 거부한다.
+Parent는 child의 선택 ID·capability·입출력·검증 인터페이스를 알아도 되지만
+child-private configuration을 복제하거나 해석하지 않는다. 그 설정은 선택된
+child가 검증한다. Open objects require an explicit owner. Metadata is non-authoritative.
+
+의존 방향은 high-level domain → public abstraction → selected implementation →
+adapter → external SDK다. RAG는 모델 클라이언트의 schema/identity/vector 검사 계약을
+사용하며 SDK model/dimensions/transport 옵션의 의미를 직접 해석하지 않는다.
+Graph는 handler의 추가 설정 schema 또는 validate 계약에 위임한다.
+분할·색인처럼 교체 경계가 아닌 내부 함수에는 새 registry/interface를 만들지 않는다.
+An open dictionary is not itself an architectural goal.
+
+정의별 필드, 열린 경계 inventory, 수동 변경 예시는 [schema-ownership.md](schema-ownership.md)에 있다.
+
 ## Backend / Application 경계와 Skill 진화
 
 [Architecture boundaries](architecture-boundaries.md)는 Contract/Invariant/Execution policy/
@@ -284,7 +301,7 @@ Project 생성·저장·백업 복원 및 Session 생성·저장 시
 공유하는 Engine의 UI 스키마는 allOf로 결합하여 모든 소비자의 조건을 만족해야 한다.
 독립적으로 사용하는 ProjectManager에는 configuration_validator를 주입해야 Engine 검증이
 연결된다. 미등록 Engine이나 계약을 선언하지 않은 확장의 임의 의미까지 추론하지 않는다.
-자유 JSON 키는 열린 영역으로 유지하며 호스트 실행 객체는 Project 설정으로 가장하지 않는다.
+자유 JSON 키는 명시적인 Application data/metadata 및 선택 구현체·SDK 인자 경계에서만 허용하며 호스트 실행 객체는 Project 설정으로 가장하지 않는다.
 Engine 설정은 입력 스키마와 최종 적용값을 차례로 검증한다. 호스트 고정값이 있어도
 스키마가 선언된 잘못된 Project/Session 입력을 저장하지 않는다. 확장 Engine의 입력 스키마는
 UI에 제공되는 것과 같으며, 상속 가능한 옵션은 입력 스키마에서 선택 필드로 선언한다.
@@ -542,7 +559,7 @@ SessionManager 대화 팩토리는 파일 모드의 증분 읽기 상태를 제�
 ## 현재 구현으로 통일
 
 재사용 업무 정의는 agents, 그래프는 Workflow v1, 검색은 통합 rag를 사용한다.
-ProjectConfig의 열린 키는 보존하지만 구형 모델 설정을 자동 변환하지 않는다.
+ProjectConfig의 최상위 필드는 policies/parameters/data로 닫고 Application 키는 data에 둔다. 구형 모델 설정을 자동 변환하지 않는다.
 ProjectManager의 initializers 인자는 제거했으며 Session 초기화와 선택된 Component.initialize로
 초기화를 구성한다. 과거 구현을 위한 별칭·데이터 이전·누락 필드 보정은 제공하지 않는다.
 SDK dict/object 처리, Tool 카탈로그 기본 정의와 프로젝트 재정의,
@@ -806,11 +823,11 @@ DomainLogger는 workspace 잠금 범위의 ContextVar로 전달되어 백엔드�
 ## 정의 컴포넌트와 Workflow 그래프
 
 Skill/MCP/Agent/Workflow와 RAG의 records API는 Component를 상속하는 정의 저장소이며 새 실행
-계층이 아니다. DefinitionComponent는 열린 JSON 검증과 configuration/records capability
+계층이 아니다. DefinitionComponent는 구현체 소유 JSON 검증과 configuration/records capability
 스냅샷을 제공한다. 기본 백엔드는 Tools, RAG, Skill, MCP, Agent, Workflow를 등록하되 Project에서 선택한
 디렉토리만 생성한다. 명시적인 backend components 목록은 기본 등록을 대체한다.
 
-Agent는 엔진/정책/입출력 계약을 가진 업무 정의, Skill은 지침, MCP는 연결 설정을 관리한다. RAG는 열린 정의와
+Agent는 엔진/정책/입출력 계약을 가진 업무 정의, Skill은 지침, MCP는 연결 설정을 관리한다. RAG는 metadata 레코드와
 별도의 문서 API를 제공한다. 정의 CRUD가 모델 호출, 프로세스 실행, 네트워크 연결이나 인덱싱을
 일으키지 않는다. 목적별 모델 정의는 AgentComponent 하나로 통일하며 별도 Subagent 저장소는 없다.
 

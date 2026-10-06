@@ -1,6 +1,6 @@
 # Prompts — 시스템 지침과 few-shot 정의
 
-모델에 전달할 메시지 묶음을 열린 JSON 레코드로 저장합니다. 실행·템플릿 평가·RAG 검증은 소비하는 Engine/Component가 담당합니다. 저장만으로 모든 모델 호출에 자동 적용되지는 않습니다.
+모델에 전달할 메시지 묶음을 `messages`, `description`, `metadata`의 닫힌 JSON 계약으로 저장합니다. 실행·템플릿 평가·RAG 검증은 소비하는 Engine/Component가 담당합니다. 저장만으로 모든 모델 호출에 자동 적용되지는 않습니다. Application 확장은 `metadata`에 둡니다.
 
 ## 파일 안내
 

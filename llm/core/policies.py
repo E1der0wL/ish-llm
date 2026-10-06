@@ -11,7 +11,7 @@ def policy_schema() -> dict:
         return {"type": kind, "description": description, **constraints}
     def section(properties):
         return {"type": "object", "additionalProperties": False, "properties": properties}
-    return {"type": "object", "additionalProperties": True,
+    return {"type": "object", "additionalProperties": False,
         "not": {"anyOf": [{"required": [name]} for name in ("completion", "provider_retry")]},
         "properties": {
         "approval": section({
@@ -48,7 +48,8 @@ def policy_schema() -> dict:
             "max_tokens": field(["integer", "null"], "보관된 대화 본문의 토큰 상한", minimum=1),
             "counter": field("string", "보관 토큰 계산기 이름", minLength=1),
             "counter_params": field("object", "보관 계산기에 전달할 명시적 인자. messages는 서비스가 소유한다",
-                                    **{"not": {"required": ["messages"]}})}),
+                                    **{"additionalProperties": True, "x-schema-owner": "selected token counter",
+                                       "x-open-kind": "adapter", "not": {"required": ["messages"]}})}),
         "run": section({
             "max_queued": field(["integer", "null"], "Session별 대기 요청 수 상한", minimum=1),
             "timeout_seconds": field(["number", "null"], "문맥 준비 포함 Run 기한(초)", exclusiveMinimum=0),

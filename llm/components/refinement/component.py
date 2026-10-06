@@ -1,7 +1,7 @@
 """제안은 실행 기록의 참조 데이터다. 자동 모델 호출이나 Run 수명은 소유하지 않는다."""
 
 from llm.components.definitions import DefinitionComponent
-from llm.core.schema import object_schema, implementation_schema, field
+from llm.core.schema import object_schema, implementation_schema, field, open_schema, metadata_schema
 from .data import RefinementData
 
 
@@ -15,11 +15,21 @@ PARENT = object_schema({"identifier": IDENTIFIER, "version": field("string", pat
     required=["identifier", "version"], additionalProperties=False)
 EVALUATION = object_schema({
     "evaluator": field("string", minLength=1), "baseline_version": field(["string", "null"]),
-    "candidate_version": field("string", pattern="^[a-f0-9]{64}$"), "results": object_schema(),
-    "regressions": {"type": "array"}, "improvements": {"type": "array"},
+    "candidate_version": field("string", pattern="^[a-f0-9]{64}$"),
+    "results": open_schema("external evaluator", category="result"),
+    "regressions": {"type": "array", "x-schema-owner": "external evaluator"},
+    "improvements": {"type": "array", "x-schema-owner": "external evaluator"},
     "evidence": {"type": "array", "items": EVIDENCE}},
     required=["evaluator", "baseline_version", "candidate_version", "results", "regressions", "improvements"],
     additionalProperties=False)
+
+SOURCE = object_schema({"kind": field("string", minLength=1), "session_id": IDENTIFIER,
+    "run_id": IDENTIFIER, "step_id": IDENTIFIER, "proposal_id": IDENTIFIER,
+    "reason": field("string"), "metadata": metadata_schema()}, required=["kind"])
+HISTORY = object_schema({"status": field("string"), "at": field("string"), "source": SOURCE},
+                        required=["status", "at", "source"])
+STORED_EVALUATION = object_schema({**EVALUATION["properties"], "source": SOURCE, "at": field("string")},
+    required=[*EVALUATION["required"], "source", "at"])
 
 
 class RefinementComponent(DefinitionComponent):
@@ -31,9 +41,13 @@ class RefinementComponent(DefinitionComponent):
         "expected_version": field(["string", "null"], minLength=1), "parent": PARENT,
         "reason": field("string", minLength=1),
         "evidence": {"type": "array", "minItems": 1, "items": EVIDENCE},
-        "patch": object_schema(minProperties=1),
+        "patch": open_schema("Refinement target EDITABLE and selected target validator", category="implementation", minProperties=1),
         "status": field("string", enum=["proposed", "approved", "rejected", "applied", "rolled_back", "failed"]),
-        "before": object_schema(), "source": object_schema(), "history": {"type": "array", "items": object_schema()},
+        "before": open_schema("selected target record snapshot", category="implementation"),
+        "metadata": metadata_schema(), "source": SOURCE, "history": {"type": "array", "items": HISTORY},
+        "evaluations": {"type": "array", "items": STORED_EVALUATION},
+        "applied_target": object_schema({"identifier": IDENTIFIER, "version": field("string")}, required=["identifier", "version"]),
+        "skill_versions": object_schema(additionalProperties=field("string", pattern="^[a-f0-9]{64}$")),
     }, required=["target", "operation", "expected_version", "reason", "evidence", "patch", "status", "before", "source", "history"])
 
     def configuration_schema(self):

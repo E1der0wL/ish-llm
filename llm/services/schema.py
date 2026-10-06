@@ -1,7 +1,7 @@
 """등록 객체가 선언한 Project 편집 스키마를 조합한다. 저장 파일이나 모델은 읽지 않는다."""
 
 from llm.core.models import ProjectConfig
-from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema
+from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema, metadata_schema
 
 
 def effective_engines(app, config, *, session_config=None):
@@ -66,7 +66,7 @@ def project_schema(app, components=None):
             # UI values에는 명시적으로 설정한 값만 제공한다. 중첩/배열/ref의 조건을 보존한다.
         project_components[name] = spec
     config = object_schema({
-        "policies": policies, "data": object_schema(),
+        "policies": policies, "data": metadata_schema(),
         "parameters": object_schema({
             "engines": object_schema(engines),
             "components": object_schema(project_components, additionalProperties=False,

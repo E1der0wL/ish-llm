@@ -236,6 +236,10 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
     async def test_retention_protects_active_usage_and_component_references(self):
         class Referencing(Component):
             name = directory = "refs"
+            def configuration_schema(self):
+                from llm.core.schema import object_schema
+                return implementation_schema(config=object_schema({"runs": {
+                    "type": "array", "items": {"type": "string"}}}))
             def history_references(self, project):
                 return {"run_ids": self.configuration(project).get("config", {}).get("runs", [])}
         app, _ = await self.app(responses=[[chunk(str(i), finish="stop")] for i in range(2)], components=[Referencing()])

@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
 `submit()`의 결과는 **RequestHandle**입니다. `await request.wait()`가 요청의 종료를 기다려 **RunHandle**을 반환합니다. 완료 여부는 `ExecutionResult.status`로 확인합니다. Graph의 구조화된 최종 결과는 `result.output`의 `data`로 조회할 수 있습니다.
 
-`ProjectConfig`는 열린 JSON 설정 객체입니다. 여기에 넣은 API 키도 Project 설정 JSON에 저장됩니다. 별도 비밀값 저장소는 없으며, 원한다면 키를 저장하지 않고 SDK의 환경변수 인증을 사용할 수 있습니다.
+`ProjectConfig`의 최상위 계약은 `policies`, `parameters`, `data`로 닫혀 있습니다. 구현체 인자는 `parameters.engines`/`parameters.components`의 선택 구현체가 검증하고, Application 데이터는 `data`에 둡니다. 여기에 넣은 API 키도 Project 설정 JSON에 저장됩니다. 별도 비밀값 저장소는 없으며, 원한다면 키를 저장하지 않고 SDK의 환경변수 인증을 사용할 수 있습니다. [설정 소유권과 확장 경계](../docs/llm/schema-ownership.md)를 참고하세요.
 
 공통 실행·사용량·보관 정책은 `policies`, 구현체별 인자는 `parameters`에 둡니다.
 Loop 입력 예산은 `parameters.engines[이름].policy.completion`, 모델 호출 재시도는

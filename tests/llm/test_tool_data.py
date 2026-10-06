@@ -49,7 +49,7 @@ class ToolSelectionTests(unittest.TestCase):
     def test_selection_is_ordered_idempotent_and_preserves_extensions(self):
         for name in ("first", "add", "search"):
             self.tools.create({"source": "# editable"}, identifier=name)
-        self.tools.configure({'config': {'enabled': ['first'], 'future_policy': {'timeout': 30}}})
+        self.tools.configure({'config': {'enabled': ['first']}})
         self.tools.enable("add", "search", "add")
         self.tools.enable("first", "add")
         self.assertEqual(self.tools.enabled(), ["first", "add", "search"])
@@ -64,7 +64,7 @@ class ToolSelectionTests(unittest.TestCase):
         snapshot = self.tools.enabled()
         snapshot.append("reader")
         self.assertEqual(self.tools.configuration(), {"config": {
-            "enabled": ["search", "add"], "future_policy": {"timeout": 30}}})
+            "enabled": ["search", "add"]}})
         self.tools.set_enabled(())
         self.assertEqual(self.tools.enabled(), [])
         self.assertFalse(hasattr(self.component, "catalog"))
@@ -72,7 +72,7 @@ class ToolSelectionTests(unittest.TestCase):
     def test_invalid_selection_never_changes_persisted_configuration(self):
         for name in ("duplicate", "new"):
             self.tools.create({"source": "# editable"}, identifier=name)
-        self.tools.configure({'config': {'enabled': ['kept'], 'extra': 1}})
+        self.tools.configure({'config': {'enabled': ['kept']}})
         before = self.tools.configuration()
         for names in ("add", None, ["duplicate", "duplicate"], [1], [""], ["  "], [None]):
             with self.subTest(names=names), self.assertRaises(ValueError):
@@ -118,7 +118,7 @@ class ToolSelectionTests(unittest.TestCase):
                 action()
 
     def test_complete_selection_update_is_locked(self):
-        self.tools.configure({'config': {'enabled': [], 'extra': {'kept': True}}})
+        self.tools.configure({'config': {'enabled': []}})
         for i in range(12):
             self.tools.create({"source": "# editable"}, identifier="tool_" + str(i))
         with ThreadPoolExecutor(max_workers=4) as pool:
@@ -132,7 +132,7 @@ class ToolSelectionTests(unittest.TestCase):
                 with self.assertRaises(WorkspaceBusyError):
                     action()
         self.assertEqual(len(self.tools.enabled()), 12)
-        self.assertEqual(self.tools.configuration()["config"]["extra"], {"kept": True})
+        self.assertEqual(set(self.tools.configuration()["config"]["enabled"]), {"tool_" + str(i) for i in range(12)})
 
     def test_other_components_can_opt_in_and_invalid_handle_registration_is_rejected(self):
         class NotesData(ComponentData):

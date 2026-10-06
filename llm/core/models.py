@@ -100,11 +100,11 @@ class StepStatus(StrEnum):
 # Project: Session/Engine에 전달할 확장 가능한 JSON 설정
 # ---------------------------------------------------------------------------
 
-# 고정 필드에 제한되지 않는 JSON 설정. 실행 시 Session 설정과 병합한다.
+# 정책/대상 인자는 닫힌 공용 외형이며 Application 확장은 data가 소유한다.
 class ProjectConfig(dict):
-    """Open JSON workspace settings with mapping access and attribute shortcuts.
+    """Workspace settings with mapping access and attribute shortcuts.
 
-    Unknown top-level keys round-trip unchanged. Reserved sections are validated
+    Application fields belong to data. Implementation fields are validated
     when constructing or saving; nested mutation is allowed between saves.
     """
 
@@ -175,6 +175,9 @@ class ProjectConfig(dict):
     @classmethod
     def validate_session(cls, config: dict, *, project: bool = False) -> None:
         cls.validate_settings(config)
+        unknown = config.keys() - ({"parameters", "data", "policies"} if project else {"parameters", "data"})
+        if unknown:
+            raise ValueError(f"Unsupported configuration sections: {sorted(unknown)}; use data for Application metadata")
         if not project and "policies" in config:
             raise ValueError("Execution policies belong to ProjectConfig, not Session configuration")
         removed = {"completion", "engines", "component_configurations", "session_defaults", "default_engine"} & config.keys()
@@ -184,6 +187,9 @@ class ProjectConfig(dict):
             if name in config and not isinstance(config[name], dict):
                 raise TypeError("Session configuration sections must be dictionaries")
         parameters = config.get("parameters", {})
+        unknown = parameters.keys() - {"engines", "components"}
+        if unknown:
+            raise ValueError(f"Unsupported parameter targets: {sorted(unknown)}")
         if not project and "components" in parameters:
             raise ValueError("Component parameters belong to ProjectConfig, not Session configuration")
         for category in ("engines", "components"):

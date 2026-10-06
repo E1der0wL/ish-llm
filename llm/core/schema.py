@@ -9,7 +9,21 @@ def field(kind, description="", **constraints):
 
 
 def object_schema(properties=None, **extra):
-    return {"type": "object", "properties": properties or {}, "additionalProperties": True, **extra}
+    return {"type": "object", "properties": properties or {}, "additionalProperties": False, **extra}
+
+
+def open_schema(owner, *, category, properties=None, **extra):
+    """교체 가능한 구현/외부 데이터의 소유자를 명시한다. backend 설정 기본값은 아니다."""
+    if not isinstance(owner, str) or not owner.strip() or category not in (
+            "metadata", "provider", "implementation", "adapter", "result", "schema", "data"):
+        raise ValueError("Open schema requires an explicit semantic owner and category")
+    return object_schema(properties, additionalProperties=True,
+                         **{"x-schema-owner": owner, "x-open-kind": category}, **extra)
+
+
+def metadata_schema():
+    """Application 데이터. 실행 권한이나 구현체 설정으로 읽지 않는다."""
+    return open_schema("application.metadata", category="metadata")
 
 
 def implementation_schema(*, config=None, policy=None, **metadata):
@@ -31,28 +45,12 @@ def validate_implementation_settings(value, *, scope="implementation"):
             raise TypeError(f"{scope}.{key} must be an object; omit an unset section")
 
 
-def completion_schema():
-    return object_schema({
-        "model": {"type": "string", "minLength": 1, "description": "공급자/모델 이름"},
-        "api_key": {"type": ["string", "null"], "description": "공급자 인증 인자"},
-        "api_base": {"type": ["string", "null"], "description": "공급자 API 주소"},
-        "temperature": {"type": ["number", "null"], "description": "공급자가 지원하는 생성 온도"},
-        "max_tokens": {"type": ["integer", "null"], "minimum": 1, "description": "최대 출력 토큰"},
-        "max_completion_tokens": {"type": ["integer", "null"], "minimum": 1},
-        "top_p": {"type": ["number", "null"]}, "seed": {"type": ["integer", "null"]},
-        "timeout": {"type": ["number", "null"], "exclusiveMinimum": 0},
-        "num_retries": {"type": ["integer", "null"], "minimum": 0},
-        "max_retries": {"type": ["integer", "null"], "minimum": 0},
-        "response_format": object_schema(type=["object", "null"]),
-    }, description="알려진 공통 인자와 추가 JSON 인자를 허용한다. 실제 지원 여부는 공급자/모델에 따른다.",
-       **{"x-open-parameters": True})
-
-
 def mark_host_overrides(schema, values):
     """병합과 같은 leaf 단위로 고정값을 표시한다. 빈 dict는 덮어쓰는 값이 없다."""
     if isinstance(values, dict):
         if values and "type" not in schema and not any(key in schema for key in ("$ref", "allOf", "anyOf", "oneOf")):
-            schema["type"] = "object"
+            # 선택 구현체의 opaque 인자에 대한 UI 관찰이다. Backend가 새 옵션 계약을 만들지 않는다.
+            schema.update(open_schema("host-supplied selected implementation value", category="implementation"))
         for key, value in values.items():
             mark_host_overrides(schema.setdefault("properties", {}).setdefault(key, {}), value)
     else:

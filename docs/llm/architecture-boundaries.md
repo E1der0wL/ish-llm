@@ -17,6 +17,10 @@ UI의 effective values는 관찰 결과이며 새 사용자 설정으로 저장�
 
 ## 개발자 체크리스트
 
+- Backend-owned contract는 기본적으로 닫고 unknown field를 거부한다.
+- 각 설정의 semantic owner를 하나로 정한다. Parent는 child의 공개 계약만 사용하며 private 옵션을 해석하지 않는다.
+- 교체 가능한 구현체가 자신의 설정을 검증한다. 고정 내부 helper를 위해 새 registry/adapter를 만들지 않는다.
+- 열린 객체는 Application metadata, 선택 구현체/SDK/adapter 인자, 외부 결과 등 명시적 소유 경계만 허용한다. 열린 dict 자체가 설계 목표는 아니다.
 - 제공하는 mechanism과 입출력 계약을 먼저 정의한다.
 - 무결성 invariant와 조정 가능한 execution policy를 구분한다.
 - 프롬프트/Skill의 내용은 권한이 아니다. Tool·MCP·RAG·Engine 권한을 늘리지 않는다.

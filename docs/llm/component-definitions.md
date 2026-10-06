@@ -24,7 +24,7 @@ async with LargeLanguageModel("workspace") as backend:
         "system_prompt": "근거와 함께 개선안을 제안하세요.",
         "completion": {"model": "gemini/gemini-2.5-flash", "temperature": 0.2},
         "resources": {"skills": ["code_review"]},
-        "custom": {"team": "backend"},
+        "metadata": {"team": "backend"},
     }, identifier="reviewer")
 ```
 
@@ -39,7 +39,7 @@ ish에서는 `llm_plugin = plugin.get("llm")`로 얻은 모듈의 `LargeLanguage
 | --- | --- | --- |
 | `SkillComponent` / `llm.components.skills` | `skills` | 작업 지침과 참고 리소스 |
 | `MCPComponent` / `llm.components.mcp` | `mcp` | 서버 연결 설정 |
-| `RAGComponent` / `llm.components.rag` | `rag` | 열린 정의 (문서는 별도 문서 API로 등록) |
+| `RAGComponent` / `llm.components.rag` | `rag` | metadata 레코드 (문서는 별도 문서 API로 등록) |
 | `AgentComponent` / `llm.components.agents` | `agents` | 엔진·리소스·정책·입출력 계약을 가진 업무 정의 |
 | `WorkflowComponent` / `llm.components.workflows` | `workflows` | 노드와 연결로 구성한 작업 그래프 |
 
@@ -49,7 +49,8 @@ ish에서는 `llm_plugin = plugin.get("llm")`로 얻은 모듈의 `LargeLanguage
 아래의 `project` CRUD 예제들은 위 `async with`가 종료되기 전에 실행하는 코드 조각이다.
 비동기 UI에서는 앞 예제처럼 `a` 접두사 메서드로 파일 I/O를 실행 루프 밖에서 처리한다.
 `update`는 최상위 키를 병합하며 중첩 dict는 통째로 교체한다. `configure`도 전체 교체다.
-알려진 필수 필드의 타입과 의미는 검증하지만, 사용자 정의 키는 삭제하지 않는다.
+Backend가 소유한 정의는 알려진 필드만 허용한다. Application 확장 키는 `metadata`에 둔다.
+선택 Engine/handler/model 인자는 해당 구현체가 검증한다. [계약 inventory](schema-ownership.md)를 참고한다.
 
 ```python
 agent = project.components.agents.load("reviewer")
@@ -68,7 +69,7 @@ Skill은 `instructions`가 필수다. 리소스는 참고 정보이며 경로를
 project.components.skills.create({
     "description": "코드 검토 규칙",
     "instructions": "정확성, 오류 처리, 테스트를 차례로 확인하세요.",
-    "resources": [{"uri": "docs/llm/architecture.md", "role": "reference"}],
+    "resources": [{"uri": "docs/llm/architecture.md", "description": "reference"}],
 }, identifier="code_review")
 ```
 

@@ -2,6 +2,8 @@
 
 A BaseEngine subclass: complete, execute requested tools, then repeat."""
 
+from llm.providers.schema import completion_schema, validate_model_params
+
 import math
 from itertools import count
 import asyncio
@@ -12,7 +14,6 @@ import json
 import hashlib
 from collections.abc import AsyncIterator, Callable, Iterator, Mapping
 from typing import Any, Optional, Union
-from urllib.parse import urlsplit
 
 from contextlib import aclosing
 from llm.components.processing import CompletionMessage, CompletionRequest, CompletionObservation, CompletionPipeline
@@ -146,7 +147,7 @@ class LoopEngine(BaseEngine):
         self._agent_settings = {}
 
     def configuration_schema(self):
-        from llm.core.schema import object_schema, field, completion_schema, mark_host_overrides
+        from llm.core.schema import object_schema, field, mark_host_overrides
         names = self._option_names
         properties = {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0, **{"x-host-override": name in self._overrides}) for name in names}
         properties["system_prompt"] = {"type": ["string", "null"], "description": "기본 시스템 프롬프트",
@@ -210,12 +211,7 @@ class LoopEngine(BaseEngine):
             "stream": True,
         }
         request.update(self.copy_params(params))
-        if not isinstance(request.get("model"), str) or not request["model"].strip():
-            raise ValueError("Completion model is required")
-        if request.get("api_base") is not None:
-            url = urlsplit(request["api_base"])
-            if (url.scheme not in ("http", "https") or not url.hostname):
-                raise ValueError("api_base must be an HTTP URL")
+        validate_model_params(request, require_model=True, json_contract=False)
         definitions = context.tools.definitions(constraints=context.tool_scope.policy.argument_constraints if context.tool_scope else None)
         if definitions:
             request["tools"] = definitions
@@ -232,8 +228,7 @@ class LoopEngine(BaseEngine):
         params = self.copy_params(definition.get("completion", {}))
         # Agent는 부분 설정이다. 누락된 model은 Project/Session/host에서 상속한다.
         # 모든 계층에 없으면 최종 request 검증에서 provider 호출 전에 거부한다.
-        if "model" in params and (not isinstance(params["model"], str) or not params["model"].strip()):
-            raise ValueError("Agent completion.model must be nonempty text")
+        validate_model_params(params)
         if any(key in params for key in ("messages", "tools", "functions", "function_call")):
             raise ValueError("Loop Agent owns messages and registered tools")
         if params.get("stream", True) is not True or params.get("n", 1) != 1:

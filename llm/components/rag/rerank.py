@@ -9,6 +9,8 @@ from ._client import ModelClient
 
 
 class RerankModel(ModelClient):
+    operation = "arerank"
+
     def __init__(self, *, rerank_fn: Optional[Callable[..., Awaitable[Any]]] = None,
                  **params: Any) -> None:
         super().__init__("arerank", rerank_fn, params)

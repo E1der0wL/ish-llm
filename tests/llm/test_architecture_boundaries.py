@@ -256,7 +256,7 @@ class AgentCompositionTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(answer("done"))
         await self.setup_graph(agent_graph(), model, extra_components=[PromptComponent(), SkillComponent()])
         await self.project.components.prompts.acreate({"messages": [{"role": "system", "content": "Reference prompt"}]}, identifier="base")
-        await self.project.components.skills.acreate({"instructions": "Skill instruction", "tools": ["forbidden"], "engine": "other"}, identifier="guide")
+        await self.project.components.skills.acreate({"instructions": "Skill instruction", "metadata": {"tools": ["forbidden"], "engine": "other"}}, identifier="guide")
         run = await self.run_graph()
         self.assertEqual(str(run.data.status), "completed", run.data.error)
         prompt = model.requests[0]["messages"][0]["content"]

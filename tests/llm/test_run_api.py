@@ -284,13 +284,13 @@ class OpenComponentTests(unittest.TestCase):
         self.project = self.projects.create("Project", components=("tools", "agents", "workflows"))
 
     def test_open_config_roundtrip_clone_session_overrides_and_field_names(self):
-        config = ProjectConfig({"editor": {"font_size": 14}}, theme="dark")
+        config = ProjectConfig(data={"editor": {"font_size": 14}, "theme": "dark"})
         self.assertFalse(is_dataclass(config))
-        config["password"] = "ordinary-example-value"
+        config.data["password"] = "ordinary-example-value"
         config.parameters["engines"] = {"loop": {"config": {"completion": {"model": "example", "api_key": "example-value"}}}}
-        config["new_section"] = {"custom": [1, True]}
-        config["model"] = {"workspace_setting": True}
-        config["__deepcopy__"] = "ordinary mapping key"
+        config.data["new_section"] = {"custom": [1, True]}
+        config.data["model"] = {"workspace_setting": True}
+        config.data["__deepcopy__"] = "ordinary mapping key"
         self.project.config = config
         self.assertEqual(asdict(self.project)["config"], config)
         self.projects.save(self.project)
@@ -298,10 +298,10 @@ class OpenComponentTests(unittest.TestCase):
         self.assertEqual(loaded, config)
         self.assertEqual(ProjectConfig.deserialize(config.serialize()), config)
         self.assertEqual(self.projects.clone(self.project).config, config)
-        settings = config.for_engine("loop", {"editor": {"font_size": 18}})
-        self.assertEqual(settings["editor"]["font_size"], 18)
-        self.assertEqual(config["editor"]["font_size"], 14)
-        self.assertEqual(settings["theme"], "dark")
+        settings = config.for_engine("loop", {"data": {"editor": {"font_size": 18}}})
+        self.assertEqual(settings["data"]["editor"]["font_size"], 18)
+        self.assertEqual(config.data["editor"]["font_size"], 14)
+        self.assertEqual(settings["data"]["theme"], "dark")
         encoded = Component.serialize({"properties": {"password": {"type": "string"}}})
         self.assertIn("password", Component.deserialize(encoded)["properties"])
 
@@ -318,9 +318,9 @@ class OpenComponentTests(unittest.TestCase):
         }
         for name, definition in definitions.items():
             records = self.projects.component(self.project, name)
-            records.create({**definition, "unknown": {"future": [1]}}, identifier="example")
-            records.update("example", {"new": True})
-            self.assertTrue(records.load("example")["new"])
+            records.create({**definition, "metadata": {"unknown": {"future": [1]}}}, identifier="example")
+            records.update("example", {"metadata": {"new": True}})
+            self.assertTrue(records.load("example")["metadata"]["new"])
         clone = self.projects.clone(self.project)
         for name in self.project.components:
             self.assertEqual(self.projects.component(clone, name).list(), self.projects.component(self.project, name).list())

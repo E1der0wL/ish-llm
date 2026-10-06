@@ -1,5 +1,7 @@
 """기억의 현재 값·출처·수정 이력을 한 JSON 파일로 원자적으로 저장한다."""
 
+from llm.providers.schema import completion_schema
+
 from copy import deepcopy
 from datetime import datetime, timezone
 import re
@@ -9,6 +11,8 @@ from collections import OrderedDict
 from llm.components.base import Component, validate_name
 from llm.core.models import new_id
 from llm.core.settings import SettingsLayout
+from llm.core.schema import object_schema, metadata_schema, field
+from jsonschema import Draft202012Validator
 from llm.errors import CodedError
 from .data import MemoryData
 from llm.services.infrastructure.storage import atomic_json, read_json
@@ -42,6 +46,12 @@ class MemoryComponent(Component):
                    "max_candidates", "active_keep_iterations", "max_summary_calls", "max_output_chars",
                    "context_tokens", "recall_every", "failure_mode", "timeout_seconds", "provider")}})
     _managed = frozenset({"id", "revision", "created_at", "updated_at", "deleted", "source"})
+    content_schema = object_schema({"content": field("string", minLength=1), "kind": field("string", minLength=1),
+        "scope": field("string", enum=["project", "session"]), "session_id": field(["string", "null"]),
+        "status": field("string", enum=["candidate", "confirmed"]), "tags": field("array", items=field("string", minLength=1)),
+        "expires_at": field(["string", "null"]), "metadata": metadata_schema(),
+        "replaces": field("array", items=object_schema({"id": field("string", minLength=1), "revision": field("integer", minimum=1)},
+                                                       required=["id", "revision"]))})
 
     def __init__(self, *, completion_fn=None, token_counter=None, search_fn=None, extract_prompt=None):
         """보조 모델과 토큰 계수기는 런타임에 주입한다. 설정/레코드에는 저장하지 않는다."""
@@ -117,6 +127,9 @@ class MemoryComponent(Component):
         value = self.deserialize(self.serialize(data))
         if self._managed.intersection(value):
             raise ValueError("Memory lifecycle fields cannot be supplied as content")
+        error = next(Draft202012Validator(self.content_schema).iter_errors(value), None)
+        if error:
+            raise ValueError(f"Memory content: {error.message}") from error
         return value
 
     def _read(self, project, identifier):
@@ -168,6 +181,7 @@ class MemoryComponent(Component):
             raise ValueError("Invalid memory status")
 
     def _validate_memory(self, identifier, record):
+        self._payload({key: value for key, value in record.items() if key not in self._managed})
         if record.get("id") != identifier or type(record.get("revision")) is not int or record["revision"] < 1:
             raise ValueError("Invalid memory identity or revision")
         for key in ("content", "kind", "created_at", "updated_at"):
@@ -270,7 +284,7 @@ class MemoryComponent(Component):
         processing_settings(original, token_counter=self.token_counter)
 
     def configuration_schema(self):
-        from llm.core.schema import object_schema, completion_schema, field
+        from llm.core.schema import object_schema, field
         from llm.providers.requests import provider_schema
         properties = {name: field("boolean") for name in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active")}
         properties.update({name: field("integer", minimum=1) for name in (
@@ -296,6 +310,8 @@ class MemoryComponent(Component):
             "processing": object_schema(properties)}))
 
     def validate_record(self, identifier, data):
+        if data.keys() - {"record", "history"}:
+            raise ValueError("Memory envelope requires only record/history")
         record, history = data.get("record"), data.get("history")
         if not isinstance(record, dict) or not isinstance(history, list) or not history:
             raise ValueError("Memory requires a record and revision history")
@@ -305,6 +321,8 @@ class MemoryComponent(Component):
         for revision, entry in enumerate(history, 1):
             if not isinstance(entry, dict) or not isinstance(entry.get("data"), dict):
                 raise ValueError("Invalid memory history entry")
+            if entry.keys() - {"revision", "operation", "at", "source", "data"}:
+                raise ValueError("Unsupported Memory history fields")
             self._validate_memory(identifier, entry["data"])
             if entry.get("revision") != revision or entry["data"]["revision"] != revision or (
                     entry.get("operation") not in {"create", "save", "update", "delete", "restore"}

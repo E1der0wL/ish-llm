@@ -26,6 +26,13 @@ Markdown 문서를 분할하고 임베딩과 관계를 추출하여 Chroma/BM25/
 
 ## 시작하기
 
+RAG는 분할·검색·세대 공개를 소유하고, 모델 요청 인자는 선택 모델 클라이언트가 소유합니다.
+`embedding_params`, `document_kwargs`, `query_kwargs`, `rerank_params`, `extraction_params`는
+해당 클라이언트의 `configuration_schema()`/`configured()` 계약으로 검증·전달합니다.
+RAG는 `model`, `dimensions`, `api_base` 같은 child-private 필드를 직접 해석하지 않습니다.
+새 클라이언트는 자체 schema와 공개 메서드를 제공하면 되며 중앙 registry는 필요 없습니다.
+일반 record CRUD는 `metadata`만 허용합니다. 문서는 아래 document API로 등록합니다.
+
 백엔드에 RAGComponent를 등록하고 Project에서 `rag`를 선택합니다. 모델과 문서 처리·검색 설정도 명시해야 합니다. 처음에는 개발 저장소의 [실행 가이드](../../../examples/llm/graph_rag.md)와 [설정 예제](../../../examples/llm/graph_rag.config.example.json)를 사용하세요. 이 예제는 Graph, RAG, reranker를 함께 검증합니다.
 
 필수 모델·설정이 연결된 Project의 API는 다음과 같습니다.

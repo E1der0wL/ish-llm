@@ -6,6 +6,12 @@ Host의 `ServiceConfig(tool_policy=ToolPolicy(argument_constraints=...))`로 모
 
 ish-llm은 사용자가 설정하지 않은 정책을 대신 결정하지 않는다. SDK 옵션을 생략하면 SDK의 native behavior를 사용하며, 프로토콜·저장 무결성·취소 회수에 필요한 강제값만 예외로 둔다.
 
+Backend가 소유한 설정은 closed by default다. ProjectConfig 최상위는 `policies`, `parameters`,
+`data`이며, Application 확장은 `data`에 둔다. 각 구현체는 자기 설정만 해석한다.
+선택 child의 인자와 provider SDK pass-through는 해당 child/adapter가 검증하며 상위 구현체는
+private 옵션을 복제하지 않는다. 모든 열린 객체에는 명시적인 소유자가 있어야 한다.
+[소유권 inventory와 수동 변경 예](../docs/llm/schema-ownership.md)를 참고한다.
+
 ## 해석과 출처
 
 - **missing**: 현재 계층에는 키가 없다. 상위 명시값을 상속하고, 모든 계층에서 없으면 최종 `values`에도 없다.

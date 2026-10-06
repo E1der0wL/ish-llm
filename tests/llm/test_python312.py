@@ -71,8 +71,8 @@ class Python312Tests(unittest.TestCase):
         with self.assertRaises(FrozenInstanceError):
             event.delta.text = "changed"
         self.assertIsInstance(config, dict)
-        config.new_key = {"enabled": True}
-        self.assertEqual(config.to_dict()["new_key"], {"enabled": True})
+        config.data["new_key"] = {"enabled": True}
+        self.assertEqual(config.to_dict()["data"]["new_key"], {"enabled": True})
 
     def test_real_symlink_cannot_be_followed_by_permanent_delete(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

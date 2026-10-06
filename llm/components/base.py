@@ -94,7 +94,7 @@ class Component:
         return data
 
     def configuration_schema(self) -> dict:
-        """선언한 필드만 UI에 열거한다. 열린 사용자 설정은 계속 허용한다."""
+        """미선언 설정은 받지 않는다. 확장 구현체가 자신의 설정 계약을 선언한다."""
         from llm.core.schema import implementation_schema
         return implementation_schema()
 

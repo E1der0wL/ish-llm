@@ -5,29 +5,30 @@ import json
 from jsonschema import Draft202012Validator
 from llm.components.definitions import DefinitionComponent
 from .data import AgentData
+from llm.core.schema import open_schema, metadata_schema
 
 
 class AgentComponent(DefinitionComponent):
-    """엔진 선택, 업무 계약, 리소스와 정책을 열린 JSON으로 저장한다."""
+    """공통 업무 계약은 닫고 선택 Engine의 인자는 해당 Engine에 위임한다."""
 
     name = "agents"
     directory = "agents"
     capabilities = ("agents",)
     data_class = AgentData
     schema = {
-        "type": "object", "required": ["purpose", "engine"],
+        "type": "object", "required": ["purpose", "engine"], "additionalProperties": False,
         "properties": {
             "purpose": {"type": "string", "minLength": 1},
+            "description": {"type": "string"}, "metadata": metadata_schema(),
             "engine": {"type": "string", "minLength": 1},
             "system_prompt": {"type": ["string", "null"]},
-            "completion": {
-                "type": "object",
-                "properties": {"model": {"type": "string", "minLength": 1}},
-            },
-            "engine_options": {"type": "object"},
+            "completion": open_schema("selected Agent Engine completion adapter", category="provider"),
+            "engine_options": open_schema("selected Agent Engine.for_agent", category="implementation"),
+            "input_schema": {"anyOf": [{"type": "boolean"}, open_schema("Agent input JSON Schema", category="schema")]},
+            "output_schema": {"anyOf": [{"type": "boolean"}, open_schema("Agent output JSON Schema", category="schema")]},
             "tools": {"type": "array", "uniqueItems": True,
                       "items": {"type": "string", "minLength": 1}},
-            "resources": {"type": "object", "properties": {
+            "resources": {"type": "object", "additionalProperties": False, "properties": {
                 "prompt": {"type": "string", "minLength": 1},
                 "skills": {"type": "array", "uniqueItems": True,
                            "items": {"type": "string", "minLength": 1}},
@@ -38,7 +39,7 @@ class AgentComponent(DefinitionComponent):
                     "propertyNames": {"pattern": "^[A-Za-z0-9_-]{1,64}$"},
                     "additionalProperties": {"type": "string", "minLength": 1}}},
             }},
-            "policy": {"type": "object", "properties": {
+            "policy": {"type": "object", "additionalProperties": False, "properties": {
                 "timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
                 "max_tool_calls": {"type": "integer", "minimum": 1},
                 "require_tool": {"type": "boolean"},

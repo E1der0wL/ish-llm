@@ -6,9 +6,23 @@ from collections.abc import Awaitable, Callable
 from typing import Any, Optional
 
 from ._client import ModelClient
+from llm.providers.embeddings import extract_single_embedding, validate_vectors
 
 
 class EmbeddingModel(ModelClient):
+    operation = "aembedding"
+    enforced_configuration = {"caching": False, "cache": {"no-cache": True, "no-store": True}}
+
+    def identity(self, **kwargs):
+        return {**self.params, **kwargs}.get("model")
+
+    def extract_vector(self, response, **kwargs):
+        """모델 출력 계약은 클라이언트가 소유하고 코퍼스 차원 계약은 RAG가 소유한다."""
+        return extract_single_embedding(response, dimensions={**self.params, **kwargs}.get("dimensions"))
+
+    def validate_vectors(self, vectors, **kwargs):
+        return validate_vectors(vectors, dimensions={**self.params, **kwargs}.get("dimensions"))
+
     def __init__(self, *, embedding_fn: Optional[Callable[..., Awaitable[Any]]] = None,
                  **params: Any) -> None:
         super().__init__("aembedding", embedding_fn, params)

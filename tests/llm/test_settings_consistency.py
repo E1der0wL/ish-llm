@@ -182,14 +182,14 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         app = self.backend(components=[RAGComponent()])
         project = await app.projects.acreate(components=["rag"], config=rag_project())
         rag = await project.components.aget("rag")
-        await rag.aconfigure(rag_settings({'config': {'chunk_size': 64, 'new_option': {'enabled': True}}}))
+        await rag.aconfigure(rag_settings({'config': {'chunk_size': 64}}))
         view = await rag.aeffective_configuration()
         self.assertEqual(view["values"]["config"]["chunk_size"], 64)
         self.assertTrue(view["editable"]["/config/chunk_size"])
         for config in ({"chunk_size": 2}, {"search": {"limit": 0}}, {"embedding_concurrency": True}):
             with self.assertRaises(ValueError):
                 await rag.aconfigure(rag_settings(config))
-        self.assertEqual((await rag.aconfiguration())["config"]["new_option"], {"enabled": True})
+        self.assertEqual((await rag.aconfiguration())["config"]["chunk_size"], 64)
 
     async def test_prepared_job_cannot_publish_after_settings_change(self):
         from llm.components.rag.jobs import RAGJobs

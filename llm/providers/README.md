@@ -9,6 +9,7 @@ Engine과 RAG 모델 클라이언트가 LiteLLM을 사용할 때 공유하는 �
 | [__init__.py](__init__.py) | provider 패키지의 역할을 설명합니다. 함수·클래스는 각 모듈에서 import합니다. |
 | [runtime.py](runtime.py) | LiteLLM 지연 초기화, compatibility/runtime isolation 불변식, SDK 로그·진단 라우팅입니다. |
 | [parameters.py](parameters.py) | 설정 컨테이너를 복사·병합하며 주입된 runtime client의 identity를 유지합니다. |
+| [schema.py](schema.py) | provider 소유 Completion/Embedding/Rerank 설정 계약과 검증입니다. SDK 확장 인자는 변형하지 않고 전달합니다. |
 | [requests.py](requests.py) | 비스트리밍 호출, 명시적 wall timeout/outer retry와 ProviderError 분류입니다. |
 | [retry.py](retry.py) | 일시적 오류와 명시적 SDK retry를 판단하고 중첩 retry를 방지합니다. |
 | [calls.py](calls.py) | ProviderCalls/ProviderLimits가 호스트의 명시적 동시 호출·대기 제한을 적용합니다. |

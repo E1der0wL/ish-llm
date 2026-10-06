@@ -270,8 +270,8 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
     async def test_ui_definition_is_one_json_document_with_nodes_and_layout(self):
         async def work(node):
             return {}
-        graph = straight(pause_before=True, ui={"position": {"x": 100, "y": 200}})
-        graph["ui"] = {"zoom": 1.5}
+        graph = straight(pause_before=True, metadata={"ui": {"position": {"x": 100, "y": 200}}})
+        graph["metadata"] = {"ui": {"zoom": 1.5}}
         await self.setup_graph(graph, work)
         path = self.project.paths.root / "workflows" / "records" / "flow.json"
         self.assertEqual(json.loads(path.read_text(encoding="utf-8")), graph)
@@ -449,7 +449,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         await self.session.run.submit("block", engine="wait")
         await asyncio.wait_for(entered.wait(), 10)
         queued = await self.session.run.resume(paused.id, engine="graph")
-        await self.workflows.asave("flow", straight(pause_before=True, label="changed after queue"))
+        await self.workflows.asave("flow", straight(pause_before=True, metadata={"label": "changed after queue"}))
         release.set()
         rejected = await queued.wait()
         self.assertEqual(rejected.data.status, RunStatus.FAILED)

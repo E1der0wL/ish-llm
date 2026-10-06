@@ -52,7 +52,7 @@ class MemoryConsolidation:
         component._check_revision(candidate, expected_revision)
         if candidate["status"] != "candidate" or component._expired(candidate):
             raise ValueError("Consolidation requires an unexpired candidate")
-        references = candidate.get("metadata", {}).get("replaces", [])
+        references = candidate.get("replaces", [])
         if not isinstance(references, list) or any(not isinstance(r, dict) for r in references):
             raise ValueError("Invalid consolidation references")
         names = [r.get("id") for r in references]

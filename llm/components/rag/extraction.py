@@ -83,6 +83,9 @@ class TripleExtractor(ModelClient):
 
     def with_extraction(self, options: dict, prompt: dict):
         """호출별 정책/프롬프트 사본. 등록 클라이언트나 다른 Project는 변경하지 않는다."""
+        from jsonschema import Draft202012Validator
+        from .prompts import extraction_schema
+        Draft202012Validator(extraction_schema()).validate(options)
         worker = copy(self)
         worker.extraction, worker.prompt = deepcopy(options), deepcopy(prompt)
         return worker

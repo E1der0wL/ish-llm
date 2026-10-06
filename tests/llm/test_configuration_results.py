@@ -264,21 +264,18 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         data["config"] = {"model": "old-model", "temperature": 0.1,
                           "credential_ref": "env:OLD", "custom": {"mode": "personal"}}
         atomic_json(path, data)
-        loaded = self.projects.load(self.project.id)
-        self.assertEqual(loaded.config.parameters, {})
-        self.assertEqual(loaded.config["model"], "old-model")
-        self.assertEqual(loaded.config["temperature"], 0.1)
-        self.assertEqual(loaded.config["custom"], {"mode": "personal"})
-        self.projects.save(loaded)
+        with self.assertRaises(ValueError):
+            self.projects.load(self.project.id)
+        # 거부 시 파일을 변경하거나 자동으로 SDK 인자/metadata로 변환하지 않는다.
         self.assertEqual(read_json(path)["config"]["credential_ref"], "env:OLD")
 
     async def test_configuration_validation_runs_before_create_and_save(self):
         for data in ({"bad": object()}, {1: "bad"}, {"n": float("nan")}):
             with self.subTest(data=data), self.assertRaises((TypeError, ValueError)):
                 ProjectConfig(data=data)
-        self.project.config["custom_flag"] = True
+        self.project.config.data["custom_flag"] = True
         self.projects.save(self.project)
-        self.assertTrue(self.projects.load(self.project.id).config["custom_flag"])
+        self.assertTrue(self.projects.load(self.project.id).config.data["custom_flag"])
         self.session.config = {"parameters": {"engines": []}}
         with self.assertRaises(TypeError):
             self.sessions.save(self.session)

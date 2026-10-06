@@ -64,18 +64,19 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
     fingerprint = revision_token({"contract": "single-chunk-v1", "model": component._identity(),
         "params": getattr(component.embedding, "params", {}), "document_kwargs": component.document_kwargs,
         "query_kwargs": component.query_kwargs, "client": type(component.embedding).__qualname__})
+    identity = getattr(component.embedding, "cache_identity", None)
     cache_prefix = (getattr(component, "_cache_namespace", "standalone") + fingerprint
-        + str(id(getattr(component.embedding, "_call_fn", type(component.embedding))))
-        + str(id(component.embedding.__dict__.get("embed", type(component.embedding).embed))))
+                    + str(identity() if identity else id(component.embedding)))
     maximum = component.embedding_cache_max_bytes
     # No configured cache capacity means the optional cache is inactive.
     maximum = 0 if maximum is None else maximum
     dimensions = getattr(component, "_embedding_dimensions", None)
-    if dimensions is None:
-        dimensions = {**getattr(component.embedding, "params", {}), **component.document_kwargs}.get("dimensions")
 
     def checked(vector):
         nonlocal dimensions
+        validate = getattr(component.embedding, "validate_vectors", None)
+        if validate:
+            vector = validate([vector], **component.document_kwargs)[0]
         vector = validate_vectors([vector], dimensions=dimensions)[0]
         dimensions = len(vector)
         return vector

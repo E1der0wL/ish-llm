@@ -274,7 +274,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
         await run.arespond(request.respond("approve"))
         await self.session.run.shutdown()
         config = self.project.data.config.to_dict()
-        config["ui_color"] = "blue"
+        config.setdefault("data", {})["ui_color"] = "blue"
         await self.project.asave(config=config)
         self.assertTrue((await self.session.run.resume_plan(run.id, engine="graph")).can_resume)
         config["parameters"]["engines"] = {"loop": {"config": {"completion": {"model": "changed/model"}}}}
@@ -309,7 +309,7 @@ class MemoryHardeningTests(unittest.IsolatedAsyncioTestCase):
     async def proposals(self):
         await self.memory.acreate({"content": "old specification"}, identifier="old")
         await self.memory.acreate({"content": "reviewed specification", "status": "candidate",
-            "metadata": {"replaces": [{"id": "old", "revision": 1}]}}, identifier="proposal")
+            "replaces": [{"id": "old", "revision": 1}]}, identifier="proposal")
 
     async def test_consolidation_applies_review_and_keeps_history(self):
         await self.proposals()

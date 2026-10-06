@@ -98,7 +98,7 @@ ToolExecutor가 승인한 뒤에만 proposal approval와 apply를 수행합니�
 - evidence/분석 Run은 history_references로 보관 참조를 제공합니다. 원본 Run/Step이 source of truth입니다.
 
 Memory 적용은 **새 candidate**를 만들며 before의 확정 기억은 바꾸지 않습니다.
-`metadata.replaces=[{id, revision}]`와 refinement_proposal을 저장하므로 기존 review/consolidate로
+실행 계약인 `replaces=[{id, revision}]`와 관찰용 `metadata.refinement_proposal`을 저장하므로 기존 review/consolidate로
 검토·통합합니다. rollback은 아직 바뀌지 않은 candidate만 soft-delete합니다.
 이미 통합/수정된 candidate를 과거 상태로 강제 복원하지 않습니다.
 

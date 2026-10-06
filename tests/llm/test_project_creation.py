@@ -18,6 +18,10 @@ class Notes(DefinitionComponent):
     name = "notes"
     directory = "custom_notes"
 
+    def configuration_schema(self):
+        from llm.core.schema import implementation_schema, open_schema
+        return implementation_schema(config=open_schema("test Notes implementation", category="implementation"))
+
 
 class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):

@@ -388,7 +388,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(await self.rag.asearch_documents("backup", method="bm25"))
 
     async def test_generic_definition_crud_does_not_change_indexed_documents(self):
-        await self.rag.acreate({"arbitrary": True}, identifier="definition")
+        await self.rag.acreate({"metadata": {"arbitrary": True}}, identifier="definition")
         await self.add(identifier="doc")
         await self.rag.adelete("definition")
         self.assertTrue(await self.rag.asearch_documents("backup"))

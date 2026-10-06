@@ -155,7 +155,7 @@ class ComponentExtractionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len([r for r in await self.data.amodel_usage() if r["operation"] == "acompletion"]), 4)
 
     async def test_prompt_crud_project_settings_and_conflict(self):
-        custom = {"messages": [{"role": "system", "content": "Custom instructions"}], "extra": {"v": 1}}
+        custom = {"messages": [{"role": "system", "content": "Custom instructions"}], "metadata": {"extra": {"v": 1}}}
         await self.prompts.acreate(custom, identifier="extract")
         await self.data.aconfigure(rag_settings({'policy': {'extraction': {'repair_attempts': 0}}, 'config': {'extraction': {'prompt_id': 'extract', 'relation_types': ['USES', 'CUSTOM']}, 'extraction_params': {'temperature': 0.8}}}))
         await self.add()

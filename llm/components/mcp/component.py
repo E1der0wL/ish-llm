@@ -1,6 +1,7 @@
 """MCP 서버 연결 정의를 저장한다. 프로세스 시작과 네트워크 연결은 실행 어댑터의 책임이다."""
 
 from llm.components.definitions import DefinitionComponent
+from llm.core.schema import metadata_schema
 
 
 class MCPComponent(DefinitionComponent):
@@ -10,9 +11,10 @@ class MCPComponent(DefinitionComponent):
     directory = "mcp"
     capabilities = ("mcp",)
     schema = {
-        "type": "object", "required": ["transport"],
+        "type": "object", "required": ["transport"], "additionalProperties": False,
         "properties": {
             "transport": {"enum": ["stdio", "streamable_http", "sse"]},
+            "metadata": metadata_schema(),
             "command": {"type": "string", "minLength": 1},
             "args": {"type": "array", "items": {"type": "string"}},
             "env": {"type": "object", "additionalProperties": {"type": "string"}},

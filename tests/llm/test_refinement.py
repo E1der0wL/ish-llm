@@ -109,7 +109,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         candidate_id = applied["data"]["applied_target"]["identifier"]
         candidate = await memory.aload(candidate_id)
         self.assertEqual(candidate["status"], "candidate")
-        self.assertEqual(candidate["metadata"]["replaces"], [{"id": "guide", "revision": 1}])
+        self.assertEqual(candidate["replaces"], [{"id": "guide", "revision": 1}])
         self.assertIn(candidate, (await memory.areview())["proposals"])
         await self.refine.arollback(identifier, expected_version=applied["version"])
         self.assertTrue((await memory.aload(candidate_id, include_deleted=True))["deleted"])

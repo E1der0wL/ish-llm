@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from llm.components.definitions import DefinitionComponent
-from llm.core.schema import implementation_schema, object_schema, field
+from llm.core.schema import implementation_schema, object_schema, field, metadata_schema
 from .data import GoalData
 
 
@@ -22,7 +22,7 @@ class GoalComponent(DefinitionComponent):
             "session_id": field("string", pattern="^[A-Za-z0-9_-]{1,64}$"),
             "run_id": field("string", pattern="^[A-Za-z0-9_-]{1,64}$"),
             "relation": field("string", minLength=1)}, required=["session_id", "run_id", "relation"], additionalProperties=False)},
-        "metadata": object_schema(),
+        "metadata": metadata_schema(),
     }, required=["title", "objective", "scope", "status"])
 
     def configuration_schema(self):

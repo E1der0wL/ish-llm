@@ -27,6 +27,13 @@ graph = WorkflowGraph(entry="finish").node("finish", "end").to_dict()
 
 ## 저장·실행 계약
 
+최상위 및 제어 노드는 알려진 필드만 허용합니다. UI 라벨 등은 `metadata` 안에 저장합니다.
+action 노드의 `type`은 선택 handler를 식별합니다. 공통 binding/timeout 필드 이외의 설정은
+handler의 `configuration_schema()` 또는 기존 `validate(node, context)`가 검증합니다.
+GraphEngine은 handler 내부 옵션을 복제하거나 해석하지 않습니다. schema/validator가 없는
+단순 함수 handler에는 공통 필드만 전달할 수 있습니다. AgentNode와 ToolNode는 닫힌 schema를 제공합니다.
+[handler 확장 계약과 예](../../../docs/llm/schema-ownership.md)를 참고하세요.
+
 - 정의는 `<project>/workflows/records/<id>.json`에 저장합니다. 함수·client·asyncio 객체는 저장하지 않습니다.
 - `branch`는 조건별 port, `parallel`은 지정된 `join`, `loop`는 body와 명시적 max_iterations/on_limit을 사용합니다.
 - 임의의 순환 간선은 거부합니다. 반복은 bounded loop 노드로 표현합니다.

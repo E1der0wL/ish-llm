@@ -37,7 +37,7 @@ class PersistenceTests(unittest.TestCase):
             names = {item.name for item in fields(model)}
             self.assertTrue(names.isdisjoint({"queue", "worker", "execution", "lock"}))
             self.assertIn("__slots__", model.__dict__)
-        self.assertEqual(ProjectConfig(custom_option=True)["custom_option"], True)
+        self.assertEqual(ProjectConfig(data={"custom_option": True}).data["custom_option"], True)
 
     def test_conversation_replays_all_event_types_and_appends_deltas(self) -> None:
         user = self.store.create(MessageRole.USER, "안녕하세요", MessageStatus.QUEUED)

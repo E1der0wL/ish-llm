@@ -4,6 +4,7 @@ import json
 
 from contextlib import aclosing
 from llm.services.runtime.tools import ToolExecutor
+from llm.core.schema import object_schema, open_schema, field
 
 
 class ToolNode:
@@ -13,6 +14,12 @@ class ToolNode:
 
     def __init__(self, *, timeout_seconds=None, max_output_chars=None):
         self.executor = ToolExecutor(timeout_seconds=timeout_seconds, max_output_chars=max_output_chars)
+
+    @staticmethod
+    def configuration_schema():
+        return object_schema({"tool": field("string", minLength=1),
+            "arguments": open_schema("selected Tool parameter schema", category="implementation"),
+            "arguments_key": field("string", minLength=1), "result_key": field("string", minLength=1)}, required=["tool"])
 
     def validate(self, definition, context):
         context.tools.get(definition["tool"])

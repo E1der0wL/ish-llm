@@ -67,7 +67,7 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
         session = await project.sessions.acreate()
         await self.answer(session, "file")
         self.assertTrue(session.paths.conversation.exists())
-        await project.asave(title="renamed", config={"arbitrary": 1}, conversation_storage="file")
+        await project.asave(title="renamed", config={"data": {"arbitrary": 1}}, conversation_storage="file")
         with self.assertRaisesRegex(ValueError, "Sessions"):
             await project.asave(conversation_storage="memory")
         await session.run.shutdown()
@@ -80,7 +80,7 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "Sessions"):
             app.project_manager.save(model)
         self.assertEqual(project.data.conversation_storage, "file")
-        self.assertEqual(project.data.config["arbitrary"], 1)
+        self.assertEqual(project.data.config.data["arbitrary"], 1)
 
     async def test_clone_preserves_project_mode_and_uses_destination_store(self):
         app = self.backend()

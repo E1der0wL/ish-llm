@@ -394,11 +394,11 @@ class BackupTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((backup / "project" / "project.json").read_bytes(), original)
         def change(root):
             data = read_json(root / "project.json")
-            data["config"]["future_setting"] = True
+            data["config"].setdefault("data", {})["future_setting"] = True
             atomic_json(root / "project.json", data)
         upgraded = await self.app.projects.aupgrade_backup(backup, self.root / "upgraded", transform=change)
         DirectoryBackups().verify(upgraded)
-        self.assertTrue(read_json(upgraded / "project" / "project.json")["config"]["future_setting"])
+        self.assertTrue(read_json(upgraded / "project" / "project.json")["config"]["data"]["future_setting"])
         self.assertEqual((backup / "project" / "project.json").read_bytes(), original)
 
     async def test_unknown_version_refuses_load_and_stale_repository_save(self):

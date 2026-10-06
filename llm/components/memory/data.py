@@ -73,7 +73,7 @@ class MemoryData(ComponentData):
         records = component.list(project, include_deleted=True, session_id=session_id)
         # 모든 참조를 쓰기 전에 검사한다. 모델에게 다른 Session의 ID/버전을 선택하게 하지 않는다.
         for candidate in candidates:
-            for ref in candidate.get("metadata", {}).get("replaces", []):
+            for ref in candidate.get("replaces", []):
                 if ref["id"] not in snapshot["records"] or ref["id"] not in records:
                     raise MemoryConflictError("Consolidation reference is unavailable")
                 if (ref["revision"] != records[ref["id"]]["revision"] or
@@ -150,7 +150,7 @@ class MemoryData(ComponentData):
             groups.setdefault((record["scope"], record.get("session_id"), content_key(record["content"])), []).append(identifier)
             if component._expired(record):
                 expired.append(identifier)
-            if record.get("metadata", {}).get("replaces"):
+            if record.get("replaces"):
                 proposals.append(deepcopy(record))
         return {"duplicates": [ids for ids in groups.values() if len(ids) > 1],
                 "expired": expired, "proposals": proposals}

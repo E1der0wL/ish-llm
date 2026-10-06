@@ -18,6 +18,7 @@ from llm.core.results import EngineOutput
 from llm.services.runtime.tools import ToolExecutionScope, ToolPolicy
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities, steering_mode
 from llm.core.steering import SteeringMode
+from llm.core.schema import object_schema, field
 from llm.engines.registry import EngineRegistry
 from .engine import GraphEngine, _GraphPause
 from .checkpoints import EngineCheckpointScope
@@ -35,6 +36,11 @@ class AgentNode:
     required_capabilities = ("agents", "tools")
     # Graph 모드의 준비/매핑은 외부 효과를 수행하지 않고 자식 작업만 조율한다.
     resumable_container = True
+
+    @staticmethod
+    def configuration_schema():
+        return object_schema({"agent": field("string", minLength=1), "emit_text": field("boolean"),
+                              "output_format": field("string", enum=["text", "json"])}, required=["agent"])
 
     def __init__(self, *, engines, revision: str = "1"):
         if not isinstance(revision, str) or not revision:
