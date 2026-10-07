@@ -31,7 +31,7 @@ class OperationRepository:
         return path
 
     def _complete(self, session, value, result, evidence):
-        ProjectConfig.validate_settings({"result": result})
+        ProjectConfig.validate_json({"result": result})
         value.update(status="completed", result=deepcopy(result), ended_at=now(), evidence=evidence)
         atomic_json(self._path(session, value["key"]), value)
 
@@ -49,7 +49,7 @@ class OperationRepository:
         request = {"name": call.name, "arguments": call.arguments}
         if call.contract is not None:
             request["contract"] = call.contract
-        ProjectConfig.validate_settings(request)
+        ProjectConfig.validate_json(request)
         digest = hashlib.sha256(json.dumps(request, sort_keys=True, ensure_ascii=False,
                                           allow_nan=False).encode()).hexdigest()
         if path.exists():
@@ -107,7 +107,7 @@ class OperationRepository:
         value = self.load(session, key)
         if revision_token(value) != expected_version or value["status"] != "started":
             raise ValueError("Operation changed during verification")
-        ProjectConfig.validate_settings(observation)
+        ProjectConfig.validate_json(observation)
         status = observation.get("status")
         if status not in ("completed", "not_applied", "uncertain"):
             raise ValueError("Invalid external operation observation")

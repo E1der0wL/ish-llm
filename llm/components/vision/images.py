@@ -74,7 +74,7 @@ def preprocess(raw: bytes, operations: list[dict], limits: dict) -> tuple[bytes,
     """각 연산은 직전 결과 좌표를 사용한다. 가공본 기본 저장 표현은 손실 없는 PNG다."""
     from PIL import Image, ImageEnhance, ImageOps
     from llm.core.models import ProjectConfig
-    ProjectConfig.validate_settings({"operations": operations})
+    ProjectConfig.validate_json({"operations": operations})
     Draft202012Validator(operation_schema()).validate(operations)
     inspect_image(raw, limits)
     with Image.open(BytesIO(raw)) as original:

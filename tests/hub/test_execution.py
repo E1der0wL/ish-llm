@@ -65,7 +65,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 runs = [await run.aget_data() for run in await session.run.alist()]
                 self.assertEqual([r.metadata["engine_options"]["workflow"] for r in runs], ["alpha", "beta"])
                 self.assertTrue(all(str(r.status) == "completed" for r in runs))
-                self.assertIsNone(runtime.backend.engines.resolve("graph").workflow)
+                self.assertIsNone(runtime.backend.engines.get("graph").workflow)
             finally:
                 gate.set()
                 await runtime.close()

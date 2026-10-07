@@ -30,7 +30,7 @@ class GraphAgentContractTests(unittest.TestCase):
         options = {"workflow": "flow", "config": {"buffer_size": 2, "cleanup_timeout": .1},
                    "policy": {"max_steps": 20, "max_parallelism": 2, "timeout_seconds": 3, "max_nested_depth": 100}}
         worker = engine.for_agent({"purpose": "Review", "engine": "review", "engine_options": options})
-        self.assertEqual(worker.configuration(ProjectConfig(), "review")["values"], {k: v for k, v in options.items() if k != "workflow"})
+        self.assertEqual(worker.resolve_config(ProjectConfig(), "review")["values"], {k: v for k, v in options.items() if k != "workflow"})
         profile = {"purpose": "Review", "engine": "review", "engine_options": {"workflow": "flow"}}
         handler = AgentNode(engines={"review": engine})
         context = SimpleNamespace(capabilities={"agents": [{"records": {"review": profile}}]})
@@ -39,9 +39,9 @@ class GraphAgentContractTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 handler.validate({"agent": "review", key: value}, context)
         self.assertIsNone(engine.cleanup_timeout)
-        self.assertNotIn("enforced", engine.configuration(ProjectConfig(), "graph"))
+        self.assertNotIn("enforced", engine.resolve_config(ProjectConfig(), "graph"))
         self.assertIsNone(GraphEngine(handlers={}).max_nested_depth)
-        self.assertEqual(GraphEngine(handlers={}).configuration(ProjectConfig(parameters={"engines": {
+        self.assertEqual(GraphEngine(handlers={}).resolve_config(ProjectConfig(parameters={"engines": {
             "graph": {"policy": {"max_nested_depth": 100}}}}), "graph")["values"]["policy"]["max_nested_depth"], 100)
 
 

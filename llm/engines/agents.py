@@ -16,7 +16,7 @@ from llm.components.tools import Tool, ToolRegistry
 from llm.core.models import new_id
 from llm.services.infrastructure.storage import revision_token
 from llm.core.results import EngineOutput
-from llm.services.runtime.tools import ToolExecutionScope, ToolPolicy
+from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime
 from llm.policies import ExecutionLimitError
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities, steering_mode
 from llm.core.steering import SteeringMode
@@ -40,7 +40,7 @@ class AgentExecution:
     resumable_container = True
 
     @staticmethod
-    def configuration_schema():
+    def describe_config():
         return object_schema({"agent": field("string", minLength=1), "emit_text": field("boolean"),
                               "output_format": field("string", enum=["text", "json"])}, required=["agent"])
 
@@ -73,7 +73,7 @@ class AgentExecution:
 
     def _engine(self, profile):
         try:
-            engine = self.engines.resolve(profile["engine"])
+            engine = self.engines.get(profile["engine"])
         except KeyError:
             raise ValueError(f"Unregistered Agent engine: {profile['engine']}") from None
         factory = getattr(engine, "for_agent", None)
@@ -154,7 +154,7 @@ class AgentExecution:
         """재개 검사와 Step에 런타임 핸들 없이 재현 가능한 정의를 남긴다."""
         profile = self._profile(definition, context.capabilities)
         engine = self._engine(profile)
-        describe = getattr(engine, "configuration", None)
+        describe = getattr(engine, "resolve_config", None)
         binding = {"agent_id": definition["agent"], "agent": profile,
                 "agent_revision": AgentComponent.revision(profile), "engine": profile["engine"],
                 "handler_revision": self.revision,
@@ -257,7 +257,7 @@ class AgentExecution:
                     parts.extend(f"Skill {name}:\n{skill['instructions']}" for name, skill in resources["skills"].items())
                     prompt = "\n\n".join(parts)
                     engine = self._engine({**profile, "system_prompt": prompt})
-                scope = (node.context.tool_scope or ToolExecutionScope(ToolPolicy())).child(
+                scope = (node.context.tool_scope or ToolExecutionScope(ToolRuntime())).child(
                     allowed_tools=tools.names(), max_calls=policy.get("max_tool_calls"))
                 if node.context.checkpoint:
                     # 완료된 자식 노드를 재사용해도 Agent의 호출 예산/필수 Tool 이력은 보존한다.

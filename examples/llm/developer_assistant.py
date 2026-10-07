@@ -55,17 +55,17 @@ async def install_guides(project):
 
 
 async def run_request(args):
-    settings = json.loads(args.config.read_text(encoding="utf-8"))
+    config = json.loads(args.config.read_text(encoding="utf-8"))
     work, workspace = args.workdir.resolve(), args.workspace.resolve()
     if workspace == work or work in workspace.parents:
         raise ValueError("Place the backend workspace outside the editable workdir")
-    async with BuiltinTools(work, **settings.get("builtin", {})) as toolkit:
+    async with BuiltinTools(work, **config.get("builtin", {})) as toolkit:
         async with LargeLanguageModel(workspace,
                 components=[BuiltinToolComponent(toolkit, name="computer"), SkillComponent()],
                 engines={"loop": LoopEngine()}, on_event=print_event) as backend:
             project = (await backend.projects.aload(args.project_id) if args.project_id else
                        await backend.projects.acreate("Developer assistant", components=["computer", "skills"],
-                           config=ProjectConfig(settings["project_config"])))
+                           config=ProjectConfig(config["project_config"])))
             if args.install_guides:
                 await install_guides(project)
             session = await project.sessions.acreate("Programming / diagnosis")

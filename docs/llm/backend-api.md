@@ -296,9 +296,9 @@ Session configuration/lifecycle guards remain: await session.run.shutdown() befo
 cloning or deleting an attached Session.
 
 LoopEngine reads `config.parameters.engines[registered_engine_name]`, including
-Session overrides. EngineContext.settings() uses the owning Run's engine name.
+Session overrides. EngineContext.resolve_config() uses the owning Run's engine name.
 For stages in a PipelineEngine, that is the pipeline's registered name. To use
-another section explicitly, construct `LoopEngine(settings_name="loop")` (or any
+another section explicitly, construct `LoopEngine(parameter_key="loop")` (or any
 other section name). Execution settings use Project → Session → Agent and child limits
 cannot widen their parent. Constructors supply implementations, not policy values. Reusing the
 same LoopEngine under multiple names does not mutate its shared settings.
@@ -426,7 +426,7 @@ there is persisted, so choose SDK environment authentication if persistence is u
 Application limits belong to `parameters.engines[name].policy`: max_iterations,
 request_timeout, tool_timeout, max_tool_calls, max_argument_chars and max_output_chars.
 Queue sizing belongs to config.buffer_size. Missing limits add no deadline or ceiling.
-The constructor accepts settings_name and completion_fn only; LoopOptions/options and
+The constructor accepts parameter_key and completion_fn only; LoopOptions/options and
 constructor product overrides are not supported.
 Provider `timeout` is separate from the total per-round `request_timeout` limit;
 configure both when necessary. Explicit SDK num_retries affects completion calls
@@ -453,7 +453,7 @@ sections are rejected rather than migrated. Component settings live in parameter
 Session creation does not copy Project settings. At execution, nested dictionaries merge;
 explicit null overrides where supported. Missing keys remain missing. Loop reads completion
 inside its own parameters.engines target. Project → Session → Agent owns execution values; child limits cannot widen their parent. Host constructors inject implementations, not product-policy ceilings.
-EngineContext.settings(name) returns a detached view and the selected `engine` mapping.
+EngineContext.resolve_config(name) returns a detached view and the selected `engine` mapping.
 Project changes affect future Runs, while active Run snapshots stay unchanged.
 See [the configuration contract](../../llm/CONFIGURATION.md) for sources and UI metadata.
 Persisted Projects require components/conversation_storage; Sessions require config.
@@ -564,8 +564,8 @@ config.parameters.setdefault("engines", {})["retrieval"] = {
 # Session.config["parameters"]["engines"]["retrieval"] may explicitly override them.
 
 async def prepare(context):
-    settings = context.settings("retrieval")["engine"]
-    result = await EmbeddingModel(**settings["embedding"]).embed(["document text"])
+    config = context.resolve_config("retrieval")["engine"]
+    result = await EmbeddingModel(**config["embedding"]).embed(["document text"])
     context.state["embeddings"] = result.data
 
 # Wrap prepare with PreparationStep(..., kind="embedding") or self.step(...).
@@ -640,7 +640,7 @@ from llm.engines import BaseEngine
 class AnswerEngine(BaseEngine):
     def run(self, context):
         return self.stream_completion({
-            "model": context.settings()["engine"]["config"]["completion"]["model"],
+            "model": context.resolve_config()["engine"]["config"]["completion"]["model"],
             "messages": [{"role": "user", "content": context.messages[-1].content}],
             "max_tokens": 1024,
             "timeout": 30,
@@ -707,7 +707,7 @@ async def prepare(context):
 
 engines.register("prepared_loop", PipelineEngine(stages=[
     PreparationStep("Read instructions", prepare, kind="retrieval"),
-    LoopEngine(settings_name="loop"),
+    LoopEngine(parameter_key="loop"),
 ]))
 
 # Configure parameters.engines.loop.config.completion.model on the Project.

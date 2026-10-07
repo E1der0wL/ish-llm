@@ -90,7 +90,7 @@ class UnifiedRAGTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_vector_only_document_cannot_replace_the_active_generation(self):
         await self.data.aadd_document(identifier="kept", title="Kept", content="needle Alice links Atlas")
-        document = await self.rag.configured(self.project.data).prepare("invalid", "Invalid", "needle", {}, 1)
+        document = await self.rag.with_config(self.project.data).prepare("invalid", "Invalid", "needle", {}, 1)
         document.pop("graph")
         manager = self.backend.project_manager
         project = manager.load(self.project.id)

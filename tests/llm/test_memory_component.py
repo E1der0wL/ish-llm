@@ -18,8 +18,8 @@ from llm.engines.graph import GraphEngine
 from llm.engines.graph.agent import AgentNode
 from llm.engines.graph.tool import ToolNode
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
-from llm.services.runtime.tools import ToolPolicy, current_tool_call
+from llm.services.composition import BackendServices
+from llm.services.runtime.tools import ToolRuntime, current_tool_call
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
 
@@ -43,7 +43,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
     async def run_tool(self, name, arguments, *, project=None):
         model = completion_for(name, arguments)
         engine = "test_" + str(len(self.app.engines.names()))
-        self.app.engines.register(engine, LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})}))
+        self.app.engines.register(engine, LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
         session = await (project or self.project).sessions.acreate()
         run = await (await session.run.submit("기억을 관리해줘", engine=engine)).wait(timeout=20)
         return run, model, session
@@ -249,9 +249,9 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_policy_denial_prevents_memory_effects(self):
         async with LargeLanguageModel(self.root / "denied", components=[MemoryComponent()], engines={},
-                                      services=ServiceConfig()) as app:
+                                      services=BackendServices()) as app:
             model = completion_for("memory_create", {"content": "denied"})
-            app.engines.register("loop", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})}))
+            app.engines.register("loop", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
             project = await app.projects.acreate(components=["memory"], config={"policies": {"tools": {"allowed_tools": ["memory_search"]}}})
             session = await project.sessions.acreate()
             run = await (await session.run.submit("save", engine="loop")).wait(timeout=20)

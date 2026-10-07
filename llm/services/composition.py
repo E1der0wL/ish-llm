@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from llm.providers.calls import ProviderCalls, ProviderLimits
-from llm.services.runtime.output import OutputPolicy
+from llm.services.runtime.output import OutputBuffer
 from typing import Callable, Optional, Union
 from llm.core.models import Session
 from llm.services.history.context import ConversationContextBuilder
@@ -15,11 +15,11 @@ from llm.services.runtime.runs import RunRepository
 from llm.services.lifecycle.steps import StepManager, StepRepository
 from llm.services.lifecycle.sessions import SessionManager, SessionRepository
 from llm.services.runtime.policies import ProjectPolicyResolver
-from llm.services.runtime.tools import ToolPolicy
+from llm.services.runtime.tools import ToolRuntime
 
 
 @dataclass
-class ServiceConfig:
+class BackendServices:
     """서비스를 한 번 구성한다. conversations는 프로젝트 저장의 기본값 또는 주입 팩토리다."""
     project_repository: Optional[ProjectRepository] = None
     session_repository: Optional[SessionRepository] = None
@@ -31,32 +31,32 @@ class ServiceConfig:
     policy_resolver: Optional[ProjectPolicyResolver] = None
     event_handlers: EventHandlers = field(default_factory=EventHandlers)
     logger: DomainLogger = field(default_factory=DomainLogger)
-    tool_policy: ToolPolicy = field(default_factory=ToolPolicy)
+    tool_runtime: ToolRuntime = field(default_factory=ToolRuntime)
     conversation_cache_size: int = 32
     provider_limits: ProviderLimits = field(default_factory=ProviderLimits)
     provider_calls: Optional[ProviderCalls] = None
-    output_policy: OutputPolicy = field(default_factory=OutputPolicy)
+    output_buffer: OutputBuffer = field(default_factory=OutputBuffer)
     output_index_stride: int = 128
     backups: Optional[DirectoryBackups] = None
     observability_sink: Optional[Callable] = None
 
-    def configuration(self):
+    def describe(self):
         """Host 자원의 읽기 전용 투영. callable/client/인증값을 직렬화하지 않는다."""
         from dataclasses import fields, asdict
         def identity(value):
             return {"configured": value is not None,
                     "implementation": type(value).__module__ + "." + type(value).__qualname__ if value is not None else None}
         values = {item.name: identity(getattr(self, item.name)) for item in fields(self)}
-        for key in ("provider_limits", "output_policy"):
+        for key in ("provider_limits", "output_buffer"):
             value = getattr(self, key)
             values[key] = asdict(value) if value is not None else None
         for key in ("conversation_cache_size", "output_index_stride"):
             values[key] = getattr(self, key)
-        policy = self.tool_policy or ToolPolicy()
-        values["tool_policy"] = {name: identity(getattr(policy, name)) for name in
+        runtime = self.tool_runtime or ToolRuntime()
+        values["tool_runtime"] = {name: identity(getattr(runtime, name)) for name in
             ("authorize", "runner", "operation_key", "operation_probe", "classify")}
-        values["tool_policy"].update(revision=policy.revision,
-                                     retry_safe_tools=list(policy.retry_safe_tools))
+        values["tool_runtime"].update(revision=runtime.revision,
+                                     retry_safe_tools=list(runtime.retry_safe_tools))
         return {"values": values, "x-owner": "host", "x-scope": "infrastructure"}
 
     def build(self, workspace, components):

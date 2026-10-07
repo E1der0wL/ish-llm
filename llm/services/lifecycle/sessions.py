@@ -125,7 +125,7 @@ class SessionManager:
                                                   file_cache_size=conversation_cache_size)
         self.context_builder = context_builder if context_builder is not None else ConversationContextBuilder()
         self.run_repository = runs
-        self.configuration_validator = None
+        self.config_validator = None
 
     def _conversation_storage(self, session: Session) -> Optional[str]:
         """오래된 핸들의 복사본 대신 소유 프로젝트의 현재 선택을 조회한다."""
@@ -160,11 +160,11 @@ class SessionManager:
         self.repository.save(session)
 
     # 공개 API
-    def bind_configuration_validator(self, validator) -> None:
+    def bind_config_validator(self, validator) -> None:
         """실행 없이 설정을 검사하는 백엔드 공통 검증기를 연결한다."""
         if validator is not None and not callable(validator):
             raise TypeError("Configuration validator must be callable")
-        self.configuration_validator = validator
+        self.config_validator = validator
 
     @property
     def results(self):
@@ -193,7 +193,7 @@ class SessionManager:
                 raise TypeError("Session title must be a string")
             current.title = title
         if metadata is not None:
-            ProjectConfig.validate_settings(metadata)
+            ProjectConfig.validate_json(metadata)
             current.metadata = deepcopy(metadata)
         self.repository.save(current)
 
@@ -254,13 +254,13 @@ class SessionManager:
                config: Optional[dict] = None) -> Session:
         project = self.require_project(project)
         ProjectConfig.validate_session(config if config is not None else {})
-        settings = deepcopy(config) if config is not None else {}
-        if self.configuration_validator is not None:
-            self.configuration_validator(project.config, session_config=settings)
+        config = deepcopy(config) if config is not None else {}
+        if self.config_validator is not None:
+            self.config_validator(project.config, session_config=config)
         self.initialize(project)
         session_id = new_id()
         session = Session(session_id, project.id, title, self.repository.paths(project, session_id),
-                    config=settings)
+                    config=config)
         self.repository.save(session)
         log_event(session.paths.logs, "session.created", entity_id=session.id,
                   related_id=project.id)
@@ -269,8 +269,8 @@ class SessionManager:
     @workspace_locked
     def save(self, session: Session) -> None:
         project = self._owner(session)
-        if self.configuration_validator is not None:
-            self.configuration_validator(project.config, session_config=session.config)
+        if self.config_validator is not None:
+            self.config_validator(project.config, session_config=session.config)
         current = self.require_inactive(session)
         if current.status == SessionStatus.DELETED:
             raise ValueError("Session is deleted")
@@ -328,8 +328,8 @@ class SessionManager:
         if source.status == SessionStatus.DELETED:
             raise ValueError("Session is deleted")
         destination_project = self.require_project(project)
-        if self.configuration_validator is not None:
-            self.configuration_validator(destination_project.config, session_config=source.config)
+        if self.config_validator is not None:
+            self.config_validator(destination_project.config, session_config=source.config)
         messages = self.conversations(source).list()
         if through_message_id is not None:
             from llm.services.history.turns import through_turn

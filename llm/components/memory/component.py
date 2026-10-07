@@ -10,7 +10,7 @@ from collections import OrderedDict
 
 from llm.components.base import Component, validate_name
 from llm.core.models import new_id
-from llm.core.settings import SettingsLayout
+from llm.core.parameters import ParameterLayout
 from llm.core.schema import object_schema, metadata_schema, field
 from jsonschema import Draft202012Validator
 from llm.errors import CodedError
@@ -35,7 +35,7 @@ class MemoryComponent(Component):
     directory = "memory"
     capabilities = ("memory", "tools", "completion_processors")
     data_class = MemoryData
-    settings_layout = SettingsLayout(
+    parameter_layout = ParameterLayout(
         config=("cache_records", "search_status", "search_limit", "search_strategy", "min_score"),
         policy=("tool_write_status", "max_search_results"),
         paths={**{"processing." + key: "config.processing." + key for key in
@@ -268,19 +268,19 @@ class MemoryComponent(Component):
             source(value.get("source"))
         return {"run_ids": sorted(runs), "message_ids": sorted(messages), "session_ids": sorted(sessions)}
 
-    def validate_configuration(self, data):
+    def validate_config(self, data):
         from jsonschema import Draft202012Validator
-        error = next(Draft202012Validator(self.configuration_schema()).iter_errors(data), None)
+        error = next(Draft202012Validator(self.describe_config()).iter_errors(data), None)
         if error is not None:
             raise ValueError("Invalid memory configuration: " + error.message)
         original = data
-        data = self.settings_layout.unpack(data)
+        data = self.parameter_layout.unpack(data)
         if data.get("search_limit") is not None and data.get("max_search_results") is not None and data["search_limit"] > data["max_search_results"]:
             raise ValueError("Memory search_limit exceeds max_search_results")
-        from .processing import processing_settings
-        processing_settings(original, token_counter=self.token_counter)
+        from .processing import resolve_processing_config
+        resolve_processing_config(original, token_counter=self.token_counter)
 
-    def configuration_schema(self):
+    def describe_config(self):
         from llm.core.schema import object_schema, field
         from llm.providers.requests import provider_schema
         properties = {name: field("boolean") for name in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active")}
@@ -297,7 +297,7 @@ class MemoryComponent(Component):
             extract_prompt_id=field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$"),
             failure_mode=field("string", enum=["raise", "continue"]),
             timeout_seconds=field(["number", "null"], exclusiveMinimum=0))
-        return self.settings_layout.schema(object_schema({
+        return self.parameter_layout.schema(object_schema({
             "cache_records": field("integer", minimum=0),
             "tool_write_status": field("string", enum=["candidate", "confirmed"]),
             "search_status": field("string", enum=["candidate", "confirmed", "all"]),
@@ -424,7 +424,7 @@ class MemoryComponent(Component):
         return [path.stem for path in MemoryConsolidation(self, project).pending()]
 
     def validate_backup(self, project):
-        self.configuration(project)
+        self.get_config(project)
         list(self._all_records(project))
         for path in self._checked(self.root(project) / "contexts").glob("*.json"):
             self.summary(project, path.stem)
@@ -441,11 +441,11 @@ class MemoryComponent(Component):
 
     def resolve_runtime(self, project, capability, *, data_factory):
         if capability == "completion_processors":
-            from .processing import MemoryProcessor, processing_settings
+            from .processing import MemoryProcessor, resolve_processing_config
             data = data_factory(self.name)
-            settings = processing_settings(data.configuration(), token_counter=self.token_counter)
+            config = resolve_processing_config(data.get_config(), token_counter=self.token_counter)
             return MemoryProcessor(data, completion_fn=self.completion_fn,
-                                   token_counter=self.token_counter, priority=settings.get("priority", 0))
+                                   token_counter=self.token_counter, priority=config.get("priority", 0))
         if capability == "memory":
             return data_factory(self.name)
         if capability == "tools":

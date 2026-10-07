@@ -9,11 +9,11 @@ from ..asset.guides import SKILLS, SYSTEM_PROMPT
 
 
 async def create_project(backend, title, *, config, components, conversation_storage):
-    settings = ProjectConfig(deepcopy(config))
-    engines = backend.project_schema()["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]
+    project_config = ProjectConfig(deepcopy(config))
+    engines = backend.describe_project_config()["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]
     if "system_prompt" in engines.get("loop", {}).get("properties", {}).get("config", {}).get("properties", {}):
-        settings.parameters.setdefault("engines", {}).setdefault("loop", {}).setdefault("config", {}).setdefault("system_prompt", SYSTEM_PROMPT)
-    project = await backend.projects.acreate(title, config=settings, components=components,
+        project_config.parameters.setdefault("engines", {}).setdefault("loop", {}).setdefault("config", {}).setdefault("system_prompt", SYSTEM_PROMPT)
+    project = await backend.projects.acreate(title, config=project_config, components=components,
                                              conversation_storage=conversation_storage)
     try:
         if "skills" in components:

@@ -16,7 +16,7 @@ class RuntimeTools(Component):
     def initialize(self, project):
         make_directory(self.root(project))
 
-    def configuration_schema(self):
+    def describe_config(self):
         return implementation_schema(config={'type': 'object', 'properties': {'enabled': {'type': 'array', 'items': {'type': 'string'}, 'uniqueItems': True, 'x-suggestions': list(self.registry.names())}}})
 
     @staticmethod
@@ -25,7 +25,7 @@ class RuntimeTools(Component):
         return [validate_name(n) for n in names]
 
     def enabled(self, project):
-        return self.configuration(project).get("config", {}).get("enabled", [])
+        return self.get_config(project).get("config", {}).get("enabled", [])
 
     def load(self, project, name):
         return ToolRegistry((self.registry.get(name),)).definitions()[0]

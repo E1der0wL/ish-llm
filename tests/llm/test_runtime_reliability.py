@@ -21,14 +21,14 @@ from llm.engines.graph.tool import ToolNode
 from llm.engines.graph.agent import AgentNode
 from tests.llm.configuration_fixtures import configure_engine
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
+from llm.services.composition import BackendServices
 from llm.policies import CompletionPolicy
 from llm.services.history.conversation import ConversationStore, MemoryConversationStore
 from llm.services.runtime.events import EventSubscriptions
 from llm.policies import ExecutionLimitError
 from llm.services.runtime.policies import RunPolicy
 from llm.services.runtime.runs import RunRequestError
-from llm.services.runtime.tools import ToolPolicy
+from llm.services.runtime.tools import ToolRuntime
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 from tests.llm.test_graph_engine import parallel
 
@@ -67,7 +67,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
     def loop(self, *responses):
         completion = ScriptedCompletion(*responses)
-        return LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})}), completion
+        return LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}), completion
 
     async def test_queue_limit_cancel_and_status_do_not_interrupt_active_run(self):
         entered, release = asyncio.Event(), asyncio.Event()
@@ -175,7 +175,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         loop, _ = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")],
                             [chunk("answer"), chunk(finish="stop")])
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
-            services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize, runner=runner)))
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize, runner=runner)))
         request = await session.run.submit("hello", engine="loop")
         await asyncio.wait_for(entered.wait(), 5)
         active = await request.aget_run()
@@ -192,9 +192,9 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.Event().wait()
 
         completion = ScriptedCompletion([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
-        loop = LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'tool_timeout': .1, 'completion': {"model": "test/model"}})})
+        loop = LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'tool_timeout': .1, 'completion': {"model": "test/model"}})})
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
-            services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         run = await self.execute(session, "loop")
         self.assertEqual(run.result.error_code, "tool_timeout")
         self.assertEqual(self.effects, [])
@@ -230,7 +230,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
         loop, _ = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
-            services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         request = await session.run.submit("hello", engine="loop")
         await asyncio.wait_for(entered.wait(), 5)
         self.assertTrue(await session.run.interrupt())
@@ -241,7 +241,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.effects, [])
 
     async def test_file_cache_reuses_projection_and_evicts_without_losing_history(self):
-        app, project, session = await self.backend(services=ServiceConfig(conversation_cache_size=1))
+        app, project, session = await self.backend(services=BackendServices(conversation_cache_size=1))
         run = await self.execute(session)
         factory = app.project_manager.sessions.conversations
         store = factory(session.data)
@@ -290,7 +290,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         loop, completion = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         counter = lambda request: 100 if any(item["role"] == "tool" for item in request["messages"]) else 1
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
-            services=ServiceConfig(token_counters={"test": counter}))
+            services=BackendServices(token_counters={"test": counter}))
         await configure_engine(session.project, "loop", input_policy={"max_tokens": 10, "counter": "test"})
         run = await self.execute(session, "loop")
         self.assertEqual(run.result.error_code, "context_budget_exceeded")
@@ -306,7 +306,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             return 1
         loop, _ = self.loop([chunk("answer"), chunk(finish="stop")])
         _, _, session = await self.backend(engines={"loop": loop},
-            services=ServiceConfig(token_counters={"test": count}))
+            services=BackendServices(token_counters={"test": count}))
         await configure_engine(session.project, "loop", input_policy={"max_tokens": 10, "counter": "test"})
         run = await self.execute(session, "loop")
         self.assertEqual(run.data.status, RunStatus.COMPLETED)
@@ -661,7 +661,7 @@ class BudgetAndProjectionTests(unittest.TestCase):
 
     def test_invalid_limits_fail_early(self):
         for construct in (lambda: RunPolicy(max_queued=0), lambda: RunPolicy(timeout_seconds=float("nan")),
-                          lambda: ToolPolicy(max_calls=True), lambda: ToolPolicy(allowed_tools=["tool"]),
+                          lambda: ToolRuntime(max_calls=True), lambda: ToolRuntime(allowed_tools=["tool"]),
                           lambda: CompletionPolicy(10, counter=None), lambda: CompletionPolicy(10, reserve_tokens=10, counter=len)):
             with self.assertRaises((ValueError, TypeError)):
                 construct()

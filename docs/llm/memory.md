@@ -75,7 +75,7 @@ run = await request.wait()
 승인 상태를 받지 않는다. 도메인 레코드는 열린 JSON이지만 모델에는 자주 쓰는 필드와 열린
 `metadata` 사전만 노출한다. Agent가 이 Tool을 쓰려면 Agent의 `tools` 허용 목록에도 지정한다.
 
-ToolExecutor는 기존 ToolPolicy의 허용 목록·승인·예산·시간 제한을 적용하고, 승인 Step 이벤트를
+ToolExecutor는 Project의 Tool 허용 목록·승인·예산·시간 제한과 ToolRuntime의 기술적 허가를 적용하고, 승인 Step 이벤트를
 저장한 뒤 핸들러를 실행한다. Tool 결과는 LiteLLM의 tool 메시지로 전달되고 Step에도 남는다.
 출처의 Project/Session/Run/입력 Message/Tool Step ID는 `current_tool_call()` 실행 문맥에서 가져온다.
 같은 Run 안의 Agent/Graph도 같은 계약을 사용하며 Memory 전용 Run은 만들지 않는다.

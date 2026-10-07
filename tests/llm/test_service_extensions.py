@@ -16,10 +16,10 @@ from llm.core.paths import RunPaths, StepPaths
 from llm.engines.base import BaseEngine, EngineEvent
 from llm.engines.registry import EngineRegistry
 from llm.engines.pipeline import PipelineEngine, PreparationStep
-from llm.services.configuration import ServiceConfig
+from llm.services.composition import BackendServices
 from llm.services.history.context import ContextPolicy, ConversationContextBuilder
 from llm.services.runtime.events import EventHandlers
-from llm.services.infrastructure.logging import DomainLogger, LogSettings
+from llm.services.infrastructure.logging import DomainLogger, LogConfig
 from llm.services.query import Query
 from llm.services.runtime.runs import RunRepository
 from llm.services.lifecycle.steps import StepRepository
@@ -101,7 +101,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             await context.update_metadata({"validation": event.metadata["subject"]})
             context.engine_context.state["validated"] = "approved"
         handlers.register("validation.request", validate)
-        app, _, session = await self.backend(engines={"validate": Validate()}, services=ServiceConfig(event_handlers=handlers))
+        app, _, session = await self.backend(engines={"validate": Validate()}, services=BackendServices(event_handlers=handlers))
         seen = []
         app.events.subscribe(lambda run, event: seen.append((event.type, run.metadata.copy())))
         run = await self.run_one(session, engine="validate")
@@ -136,7 +136,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             await context.update_metadata({"validation": {"accepted": True}})
         handlers.register("custom.metadata", inspect)
         _, _, session = await self.backend(engines={"inspect": Inspect()},
-                                            services=ServiceConfig(event_handlers=handlers))
+                                            services=BackendServices(event_handlers=handlers))
         run = await self.run_one(session, engine="inspect")
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
         data = (await run.aget_data()).metadata
@@ -161,7 +161,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
                 await context.update_metadata({"policies": {}})
         handlers.register("custom.metadata", inspect)
         _, project, session = await self.backend(engines={"twice": Twice(completion_fn=completion)},
-                                                 services=ServiceConfig(event_handlers=handlers))
+                                                 services=BackendServices(event_handlers=handlers))
         await project.aconfigure_policies({"usage": {"max_calls": 1}})
         run = await self.run_one(session, engine="twice")
         self.assertEqual((await run.aresult()).error_code, "usage_limit")
@@ -200,7 +200,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             await context.update_metadata({"checked": True})
         handlers.register("custom.metadata", inspect)
         _, _, session = await self.backend(engines={"inspect": Inspect()},
-                                            services=ServiceConfig(event_handlers=handlers))
+                                            services=BackendServices(event_handlers=handlers))
         run = await self.run_one(session, engine="inspect")
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
         data = (await run.aget_data()).metadata
@@ -218,7 +218,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             await context.update_metadata({"validation": "rejected"})
             raise ValueError("Rejected input")
         handlers.register("validate.input", reject)
-        app, _, session = await self.backend(engines={"validate": Validate()}, services=ServiceConfig(event_handlers=handlers))
+        app, _, session = await self.backend(engines={"validate": Validate()}, services=BackendServices(event_handlers=handlers))
         states = []
         app.events.subscribe(lambda event: states.append(event.type), channel="run")
         run = await self.run_one(session, engine="validate")
@@ -258,7 +258,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await asyncio.Event().wait()
         handlers.register("approval.request", approval)
-        _, _, session = await self.backend(engines={"approval": AwaitApproval()}, services=ServiceConfig(event_handlers=handlers))
+        _, _, session = await self.backend(engines={"approval": AwaitApproval()}, services=BackendServices(event_handlers=handlers))
         request = await session.run.submit("hello", engine="approval")
         await asyncio.wait_for(entered.wait(), 5)
         await session.run.interrupt()
@@ -298,7 +298,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
     async def test_observer_failure_does_not_stop_other_observers(self):
         logs, seen = [], []
         logger = DomainLogger(sink=lambda path, event, fields: logs.append(event))
-        app, _, session = await self.backend(services=ServiceConfig(logger=logger))
+        app, _, session = await self.backend(services=BackendServices(logger=logger))
         def broken(*args):
             raise ValueError("observer failed")
         app.events.subscribe(broken, delivery="queued")
@@ -340,7 +340,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             def list(self, run):
                 return [self.load(run, path.parent.name) for path in (run.paths.steps / "custom").glob("*/step.json")]
         runs, steps = CustomRuns(), CustomSteps()
-        app, project, session = await self.backend(services=ServiceConfig(run_repository=runs, step_repository=steps))
+        app, project, session = await self.backend(services=BackendServices(run_repository=runs, step_repository=steps))
         run = await self.run_one(session)
         self.assertIs(app.run_repository, runs)
         self.assertEqual((await session.run.aload(run.id)).id, run.id)
@@ -390,7 +390,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_logger_injection_is_isolated_and_file_defaults_remain(self):
         seen = []
-        app, project, session = await self.backend(services=ServiceConfig(logger=DomainLogger(sink=lambda *args: seen.append(args))))
+        app, project, session = await self.backend(services=BackendServices(logger=DomainLogger(sink=lambda *args: seen.append(args))))
         other, default_project, _ = await self.backend(name="other")
         await self.run_one(session)
         self.assertTrue(seen)
@@ -433,4 +433,4 @@ class ContextPolicyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ContextPolicy("unknown")
         with self.assertRaises(ValueError):
-            LogSettings(backup_count=0)
+            LogConfig(backup_count=0)

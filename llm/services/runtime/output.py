@@ -108,7 +108,7 @@ class RunOutputState:
 
 
 @dataclass(frozen=True)
-class OutputPolicy:
+class OutputBuffer:
     """기본값 1은 즉시 저장. 묶음 모드는 다음 델타까지 Engine을 미리 진행할 수 있다."""
 
     batch_size: int = 1
@@ -123,20 +123,20 @@ class OutputPolicy:
                 or not math.isfinite(self.max_delay) or self.max_delay <= 0):
             raise ValueError("max_delay must be positive and finite")
 
-    def for_project(self, settings):
+    def for_project(self, policy):
         """Run 시작 시 저장한 프로젝트 정책을 적용한다. null은 호스트 기본값을 유지한다."""
-        return OutputPolicy(**{name: settings[name] if settings.get(name) is not None else getattr(self, name)
+        return OutputBuffer(**{name: policy[name] if policy.get(name) is not None else getattr(self, name)
                                for name in ("batch_size", "max_delay", "max_chars")})
 
 
-async def consume_events(events, policy, handle):
+async def consume_events(events, batching, handle):
     """유한 버퍼와 시간 경계. Tool 승인/Step/체크포인트는 절대 미리 ACK하지 않는다."""
-    if policy.batch_size == 1:
+    if batching.batch_size == 1:
         async for event in events:
             await handle([event])
         return
     # generator 전체를 하나의 asyncio.Task에서 실행해야 timeout/context manager의 소유 Task가 유지된다.
-    queue = asyncio.Queue(maxsize=policy.batch_size)
+    queue = asyncio.Queue(maxsize=batching.batch_size)
     buffer, chars, deadline = [], 0, None
     loop = asyncio.get_running_loop()
 
@@ -188,8 +188,8 @@ async def consume_events(events, policy, handle):
                 buffer.append(event)
                 chars += len(getattr(event.delta, "text", ""))
                 if deadline is None:
-                    deadline = loop.time() + policy.max_delay
-                if len(buffer) >= policy.batch_size or chars >= policy.max_chars:
+                    deadline = loop.time() + batching.max_delay
+                if len(buffer) >= batching.batch_size or chars >= batching.max_chars:
                     await flush()
             else:
                 await flush()

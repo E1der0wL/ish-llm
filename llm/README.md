@@ -2,7 +2,7 @@
 
 Backend는 mechanism·contract·persistence를 제공하고 Application이 자원 한도·검색 전략·
 모델의 Tool 인자 자유도를 정합니다. [Tool 인자 제약](../docs/llm/tool-constraints.md)은
-fixed/bounded/selectable을 공통 ToolPolicy에서 집행합니다. GraphEngine은 저장된 Workflow의
+fixed/bounded/selectable을 ToolExecutionScope와 ToolExecutor에서 집행합니다. GraphEngine은 저장된 Workflow의
 실행 전략이며, 같은 환경은 workflow 노드로 중첩하고 다른 handler 환경은 Graph Agent로
 선택합니다. [아키텍처 경계](../docs/llm/architecture-boundaries.md)에 상세 계약이 있습니다.
 
@@ -225,8 +225,8 @@ llm은 기본 Project·Session을 생성하거나 선택하지 않습니다. `ac
 | Project 실행 이력 | `project.aactivity(limit=300)` — 상세 내용은 참조된 Run·Step에서 조회 |
 | Component 핸들 획득 | `await project.components.aget("prompts")` |
 | JSON 정의 CRUD | `component.acreate(...)`, `aload(id)`, `asave(id, data)`, `adelete(id)` |
-| Component 설정 조회·교체 | `component.aconfiguration()`, `aconfigure(settings)` |
-| 설정 화면 구성 | `backend.project_schema()`, `project.aconfiguration()` |
+| Component 설정 조회·교체 | `component.aget_config()`, `aconfigure(configuration)` |
+| 설정 화면 구성 | `backend.describe_project_config()`, `project.adescribe_config()` |
 | Project/Session 결과 모음 | `project.results.alist()`, `session.results.alist()` |
 
 Project/Session의 `adelete()`는 기본적으로 소프트 삭제이며 `arestore()`로 복원합니다. 영구 삭제는 `permanent=True`를 명시합니다. Component 레코드 삭제는 해당 레코드를 제거합니다.
@@ -263,11 +263,11 @@ Graph는 `await run.ainstruction_targets()`의 실행 목록을 UI에 표시하�
 
 ### 설정과 UI 연결
 
-- `policies`: 문맥, 완료 토큰, Run, 조건부 Tool 재시도, 사용량·보관 등의 정책. 호스트의 Tool 실행 권한은 ServiceConfig/ToolPolicy가 별도로 소유합니다.
-- `parameters.engines.<설정 이름>`: 해당 Engine이 해석할 전달 인자. Loop는 이 안의 `completion`에서 LiteLLM 모델·인증·추론 옵션을 읽습니다.
-- `parameters.components.<이름>`: 해당 Component가 해석할 전달 인자. RAG 모델 설정은 `rag.embedding_params` 등 RAG의 스키마를 따릅니다.
+- `policies`: 문맥, Run, Tool 허용·승인·조건부 재시도, 사용량·보관·출력 정책. Host의 기술적 허가·실행 어댑터는 BackendServices/ToolRuntime로 연결합니다.
+- `parameters.engines.<parameter_key 또는 등록 이름>`: 해당 Engine이 해석할 전달 인자. Loop는 `config.completion`에서 LiteLLM 모델·인증·추론 옵션을, `policy.completion`에서 입력·완료 토큰 정책을 읽습니다.
+- `parameters.components.<이름>`: 해당 Component가 해석할 전달 인자. RAG 모델 설정은 `rag.config.embedding_params` 등 RAG의 스키마를 따릅니다.
 
-최상위 공용 `completion`은 없습니다. 같은 `model` 키라도 다른 엔진·컴포넌트에 자동 전달하지 않습니다. `project.components.rag.aconfigure(...)`와 `project.asave(config=...)`는 동일한 ProjectConfig 저장 위치를 수정합니다. `await project.aconfiguration()`으로 선택한 모든 컴포넌트의 설정·스키마·출처와 엔진별 최종 설정을 계속 한 번에 조회할 수 있습니다.
+최상위 공용 `completion`은 없습니다. 같은 `model` 키라도 다른 엔진·컴포넌트에 자동 전달하지 않습니다. `project.components.rag.aconfigure(...)`와 `project.asave(config=...)`는 동일한 ProjectConfig 저장 위치를 수정합니다. `await project.adescribe_config()`으로 선택한 모든 컴포넌트의 설정·스키마·출처와 엔진별 최종 설정을 계속 한 번에 조회할 수 있습니다.
 
 설정이 없으면 임의의 사용자 정책을 만들지 않습니다. SDK 옵션은 생략하여 SDK 동작에 맡깁니다. 설정 누락은 상위 명시값을 상속하고, 지원되는 필드의 명시적 `null`은 상위 값을 덮어씁니다. 상세 우선순위와 강제 불변식은 [설정 계약](CONFIGURATION.md)에 있습니다.
 
@@ -299,7 +299,7 @@ class EchoEngine(BaseEngine):
 4. 실행 상태를 공유 Engine 인스턴스에 누적하지 않습니다. 여러 Session에서 같은 등록 객체를 사용할 수 있습니다.
 5. Tool은 공통 `context.execute_tool(..., checkpoint_key=...)`로 연결합니다. 승인·재시도·영수증은 ToolExecutor가 소유합니다.
 6. 취소를 삼키지 않고 자원을 정리합니다. 명시하지 않은 timeout/retry/출력 제한을 추가하지 않습니다.
-7. 공개 설정이 있다면 `configuration_schema()`와 `configuration(...)` 계약을 구현해 검증·UI·실행 해석을 일치시킵니다.
+7. 공개 설정이 있다면 `describe_config()`와 `resolve_config(...)` 계약을 구현해 검증·UI·실행 해석을 일치시킵니다. [명명 규칙](../docs/llm/naming-conventions.md)을 따릅니다.
 
 Graph Agent용으로도 사용하려면 `for_agent(definition)` 계약과 AgentNode 등록을 추가합니다. 체크포인트 기반 재개는 별도의 생성·검증 구현이 필요합니다. 단순 Engine에 이러한 기능이 자동 부여되지는 않습니다.
 
@@ -338,7 +338,7 @@ record = await notes.aload(identifier)
 3. 설정은 `ProjectConfig.parameters["components"]`로 관리합니다. 별도 `component.json`을 만들지 않습니다.
 4. UI/앱은 잠금과 수명 검사를 제공하는 `ComponentData` 핸들을 사용합니다. 전용 API가 필요하면 `data_class`에 하위 클래스를 지정합니다.
 5. 실행 기능이 필요하면 `capabilities`와 `resolve/resolve_runtime`을 구현합니다. Component가 Run/Step 수명을 직접 관리하지 않습니다.
-6. `configuration_schema()`는 허용 형식을 설명합니다. 사용자 미설정 값을 schema default로 생성하지 않습니다.
+6. `describe_config()`는 허용 형식을 설명합니다. 사용자 미설정 값을 schema default로 생성하지 않습니다.
 
 Tool은 Python 패키지, RAG는 색인 세대 등 별도 저장 구조를 가질 수 있습니다. [Component 개발 안내](components/README.md)에서 공통 CRUD와 전문 Component의 차이를 확인하세요.
 

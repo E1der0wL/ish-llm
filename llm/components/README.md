@@ -69,7 +69,7 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 
 - `name`: 등록과 선택에 사용할 고유 이름.
 - `directory`: Project 루트의 직접 하위 디렉터리. 핵심 경로 sessions/logs/state/cache나 다른 Component와 겹치지 않아야 합니다.
-- `configuration_schema()` / `validate_configuration(data)`: 사용자 설정의 형태와 의미.
+- `describe_config()` / `validate_config(data)`: 사용자 설정의 형태와 의미.
 - `validate_record(identifier, data)`: 데이터 레코드의 의미 검증.
 - `capabilities`: 제공하는 실행 기능의 이름들.
 - `resolve(project, capability)`: 요청한 기능의 런타임 값을 반환.

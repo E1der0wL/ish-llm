@@ -26,6 +26,7 @@ ish에 배치할 때 `tests/`, `examples/`, `docs/`, `ish.platform/`을 플러�
 - [llm 사용 안내](llm/README.md), [Backend API](docs/llm/backend-api.md)
 - [hub 사용 안내](hub/README.md), [hub 설계](docs/hub/README.md)
 - [아키텍처](docs/llm/architecture.md), [최신 작업 인계](docs/llm/handoff.md)
+- [명명 규칙과 API 변경표](docs/llm/naming-conventions.md)
 - [테스트 실행](tests/README.md), [예제 실행](examples/README.md)
 
 전체 llm 회귀 검사는 저장소 루트에서 실행합니다. 실행기는 소스를 Linux 파일시스템에

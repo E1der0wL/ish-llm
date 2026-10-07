@@ -3,7 +3,7 @@
 from dataclasses import asdict, replace
 
 from llm.components.base import Component, validate_name
-from llm.core.settings import SettingsLayout
+from llm.core.parameters import ParameterLayout
 from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.services.infrastructure.storage import revision_token
 
@@ -12,14 +12,14 @@ class BuiltinToolComponent(Component):
     """Toolkit 수명은 호스트의 async with가 소유하고, 선택 목록은 ProjectConfig가 소유한다."""
 
     capabilities = ("tools",)
-    settings_layout = SettingsLayout(config=("enabled",))
+    parameter_layout = ParameterLayout(config=("enabled",))
 
     def __init__(self, toolkit, *, name: str):
         self.name = self.directory = validate_name(name)
         self.toolkit = toolkit
 
-    def configuration_schema(self):
-        return self.settings_layout.schema({"type": "object", "properties": {"enabled": {
+    def describe_config(self):
+        return self.parameter_layout.schema({"type": "object", "properties": {"enabled": {
             "type": "array", "uniqueItems": True,
             "items": {"type": "string", "enum": list(self.toolkit.registry.names())},
         }}, "additionalProperties": False})

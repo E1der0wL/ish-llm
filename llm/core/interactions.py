@@ -13,7 +13,7 @@ from .schema import checked_schema
 
 def same_interaction_value(left: Any, right: Any) -> bool:
     """JSON 응답을 강제 변환 없이 비교한다. 중첩된 true/1과 1/1.0도 구분한다."""
-    ProjectConfig.validate_settings({"left": left, "right": right})
+    ProjectConfig.validate_json({"left": left, "right": right})
     return json.dumps(left, sort_keys=True, allow_nan=False) == json.dumps(right, sort_keys=True, allow_nan=False)
 
 
@@ -32,11 +32,11 @@ class InteractionOption:
             raise ValueError("Interaction options require an ID and label")
         if not isinstance(self.description, str) or not isinstance(self.effect, str):
             raise TypeError("Invalid interaction option text")
-        ProjectConfig.validate_settings({"value": self.value})
+        ProjectConfig.validate_json({"value": self.value})
 
     def to_dict(self) -> dict:
         value = asdict(self)
-        ProjectConfig.validate_settings(value)
+        ProjectConfig.validate_json(value)
         return deepcopy(value)
 
     @classmethod
@@ -87,7 +87,7 @@ class InteractionRequest:
         if len(ids) != len(set(ids)) or self.recommended_option_id is not None and self.recommended_option_id not in ids:
             raise ValueError("Invalid or duplicate interaction option selection")
         for value in (self.source, self.action, self.binding):
-            ProjectConfig.validate_settings(value)
+            ProjectConfig.validate_json(value)
         for value in (self.created_at, self.expires_at):
             if value is not None and datetime.fromisoformat(value).utcoffset() is None:
                 raise ValueError("Interaction timestamps require a timezone")
@@ -105,7 +105,7 @@ class InteractionRequest:
     def to_dict(self) -> dict:
         value = asdict(self)
         value["options"] = [asdict(o) for o in self.options]
-        ProjectConfig.validate_settings(value)
+        ProjectConfig.validate_json(value)
         return deepcopy(value)
 
     @classmethod
@@ -123,7 +123,7 @@ class InteractionRequest:
     def decision_for(self, option_id: str, *, value: Any = None) -> Any:
         """선택지와 입력의 순수 형식 변환. 요청 수명/응답 지문 검증이나 승인을 대신하지 않는다."""
         from jsonschema import Draft202012Validator, ValidationError
-        ProjectConfig.validate_settings({"value": value})
+        ProjectConfig.validate_json({"value": value})
         option = next((o for o in self.options if o.id == option_id), None)
         if option is None:
             raise ValueError("Unknown interaction option")
@@ -153,7 +153,7 @@ class InteractionRequest:
         빈 confirmation은 명시적 확인 경로에서만 승인 선택으로 해석한다. 일반 approval,
         choice에는 적용하지 않는다. 반환값은 사본이며 응답 영수증을 생성하지 않는다.
         """
-        ProjectConfig.validate_settings({"decision": decision})
+        ProjectConfig.validate_json({"decision": decision})
         value = deepcopy(decision)
         input_key = self.binding.get("input_key")
         supplied = value.pop(input_key, None) if input_key and isinstance(value, dict) else None
@@ -199,7 +199,7 @@ class InteractionResponse:
             raise ValueError("Invalid interaction response actor")
         if datetime.fromisoformat(self.created_at).utcoffset() is None:
             raise ValueError("Interaction timestamps require a timezone")
-        ProjectConfig.validate_settings({"value": self.value})
+        ProjectConfig.validate_json({"value": self.value})
         if self.policy_id is not None and (not isinstance(self.policy_id, str) or not self.policy_id):
             raise ValueError("Invalid interaction policy ID")
 
@@ -209,7 +209,7 @@ class InteractionResponse:
 
     def to_dict(self) -> dict:
         value = asdict(self)
-        ProjectConfig.validate_settings(value)
+        ProjectConfig.validate_json(value)
         return deepcopy(value)
 
     def decision(self, request: InteractionRequest) -> Any:

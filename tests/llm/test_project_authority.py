@@ -5,7 +5,7 @@ from llm.core.interactions import approval_request
 from llm.core.models import ProjectConfig
 from llm.engines.loop import LoopEngine
 from llm.components.tools import ToolClassification, ToolContract
-from llm.services.runtime.tools import ToolPolicy, ToolApprovalRequired
+from llm.services.runtime.tools import ToolRuntime, ToolApprovalRequired
 from tests.llm import test_long_running as long_running
 from tests.llm.test_loop import call, chunk
 
@@ -17,7 +17,7 @@ class OwnershipTests(unittest.TestCase):
                 LoopEngine(**kwargs)
         for kwargs in ({"max_calls": 1}, {"allowed_tools": ()}, {"max_retries": 1}, {"auto_approve_categories": ()}):
             with self.assertRaises(TypeError):
-                ToolPolicy(**kwargs)
+                ToolRuntime(**kwargs)
 
     def test_session_narrowing_and_prompt_null(self):
         engine = LoopEngine()
@@ -25,13 +25,13 @@ class OwnershipTests(unittest.TestCase):
             "config": {"system_prompt": "project"}, "policy": {"request_timeout": 300}}}}}
         session = {"parameters": {"engines": {"loop": {
             "config": {"system_prompt": None}, "policy": {"request_timeout": 60}}}}}
-        view = engine.configuration(project, "loop", session_config=session)
+        view = engine.resolve_config(project, "loop", session_config=session)
         self.assertEqual(view["sources"]["/policy/request_timeout"], "session")
         self.assertIsNone(view["values"]["config"]["system_prompt"])
         for value in (301, None):
             session["parameters"]["engines"]["loop"]["policy"]["request_timeout"] = value
             with self.assertRaisesRegex(ValueError, "widens"):
-                engine.configuration(project, "loop", session_config=session)
+                engine.resolve_config(project, "loop", session_config=session)
 
     def test_numeric_risk_is_exact_nonnegative_integer(self):
         for risk in (0, 42, 999999):
@@ -63,7 +63,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                         stopped.set()
                 _, session, _ = await self.setup_app(act, [
                     [chunk(calls=[call("{}", name="act")], finish="tool_calls")]],
-                    ToolPolicy(classify=classify), tool_contract=ToolContract(approval_required=True))
+                    ToolRuntime(classify=classify), tool_contract=ToolContract(approval_required=True))
                 handle = await session.run.submit("go", engine="loop")
                 await asyncio.wait_for(started.wait(), 10)
                 if interrupted:
@@ -85,7 +85,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
         app, first, model = await self.setup_app(act, [
             [chunk(calls=[call("{}", name="act")], finish="tool_calls")],
             [chunk(calls=[call("{}", name="act")], finish="tool_calls")]],
-            ToolPolicy(authorize=ask, classify=lambda call: ToolClassification("read", "app", 10)),
+            ToolRuntime(authorize=ask, classify=lambda call: ToolClassification("read", "app", 10)),
             policies={"approval": {"enabled": True, "risk_scheme": "app", "rules": [
                 {"id": "read", "category": "read", "max_risk": 10}]}})
         project = await app.projects.acreate(components=["tools"], config={"parameters": {
@@ -109,7 +109,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                     return not state["deny"]
                 app, session, _ = await self.setup_app(act, [
                     [chunk(calls=[call("{}", name="act")], finish="tool_calls")],
-                    [chunk("done", finish="stop")]], ToolPolicy(authorize=authorize if change == "deny" else None,
+                    [chunk("done", finish="stop")]], ToolRuntime(authorize=authorize if change == "deny" else None,
                         classify=lambda call: ToolClassification("execute", "app", state["risk"])),
                     tool_contract=ToolContract(approval_required=True),
                     policies={"approval": {"enabled": True, "risk_scheme": "app", "rules": [
@@ -142,7 +142,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                     return ToolClassification("file.write", scheme, risk)
                 app, session, _ = await self.setup_app(act, [
                     [chunk(calls=[call('{"risk":0}', name="act")], finish="tool_calls")],
-                    [chunk("done", finish="stop")]], ToolPolicy(classify=classify), policies={
+                    [chunk("done", finish="stop")]], ToolRuntime(classify=classify), policies={
                         "approval": {"enabled": True, "risk_scheme": "test-v1", "rules": [
                             {"id": "write", "category": "file.write", "max_risk": 20}]},
                         "tools": {"argument_constraints": {"act": {"command": {"mode": "fixed", "value": "x"}}}}},

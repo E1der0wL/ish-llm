@@ -131,8 +131,8 @@ Graph의 Loop Agent에는 동일한 검색·Tool 압축이 적용된다. 다른 
 completion 처리기를 실행하지 않으며 기존 Memory Tools를 사용할 수 있다.
 
 자동 요약·추출의 실행 권한은 프로젝트의 processing 설정으로 부여한다. 이는 Tool 호출이
-아니므로 ToolPolicy로 끄는 기능은 아니다. 모델이 직접 호출하는 Memory Tools에는 기존
-ToolPolicy가 그대로 적용된다. 양쪽 모두 소유 Step과 출처를 기록한다.
+아니므로 ToolRuntime로 끄는 기능은 아니다. 모델이 직접 호출하는 Memory Tools에는 기존
+ToolRuntime가 그대로 적용된다. 양쪽 모두 소유 Step과 출처를 기록한다.
 
 ## UI용 조회와 저장 구조
 

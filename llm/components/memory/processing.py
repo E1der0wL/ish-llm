@@ -30,10 +30,10 @@ def summary_id(session_id: str) -> str:
     return "summary_" + digest(validate_name(session_id))[:40]
 
 
-def processing_settings(configuration: dict, *, token_counter=None) -> dict:
+def resolve_processing_config(configuration: dict, *, token_counter=None) -> dict:
     """모든 자동 처리는 프로젝트 설정으로 조절한다. 추가 모델 호출은 명시적으로 켠다."""
     from .component import MemoryComponent
-    value = MemoryComponent.settings_layout.unpack(configuration).get("processing", {})
+    value = MemoryComponent.parameter_layout.unpack(configuration).get("processing", {})
     if not isinstance(value, dict):
         raise ValueError("Memory processing must be an object")
     config = deepcopy(value)
@@ -334,6 +334,7 @@ class MemorySession(CompletionSession):
         valid = self._history()
         signatures = [self._signature(message) for message in valid]
         cached = self.snapshot["summary"]
+        # Keep the established fingerprint input stable across Python API renames.
         profile = digest({"format": 5, "settings": self.config, "goals": self.goal_references})
         previous, covered = "", 0
         cache_usable = False
@@ -580,7 +581,7 @@ class MemorySession(CompletionSession):
     async def prepare(self, request):
         if not self.prepared:
             self.snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.session.id, include_records=False)
-            self.config = processing_settings(self.snapshot["configuration"], token_counter=self.processor.token_counter)
+            self.config = resolve_processing_config(self.snapshot["configuration"], token_counter=self.processor.token_counter)
             if self.config.get("extract"):
                 self.extraction_prompt = await self.data._async_call(
                     self.data._extraction_prompt, self.config.get("extract_prompt_id"))

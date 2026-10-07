@@ -71,13 +71,13 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
 
     async def setup_graph(self, graph, work, **options):
         self.events = []
-        host = {key: options.pop(key) for key in ("revision", "config_keys", "settings_name") if key in options}
+        host = {key: options.pop(key) for key in ("revision", "config_keys", "parameter_key") if key in options}
         self.engine = GraphEngine(handlers={"work": work}, **host)
         self.app = LargeLanguageModel(self.root, engines={"graph": self.engine},
                                      on_run_event=lambda event: self.events.append(event))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("test", components=["workflows"], config={
-            "parameters": {"engines": {"graph": GraphEngine.settings_layout.pack(options)}}})
+            "parameters": {"engines": {"graph": GraphEngine.parameter_layout.pack(options)}}})
         self.workflows = await self.project.components.aget("workflows")
         await self.workflows.acreate(graph, identifier="flow")
         self.session = await self.project.sessions.acreate()

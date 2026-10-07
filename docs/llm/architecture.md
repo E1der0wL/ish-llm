@@ -1,5 +1,9 @@
 # Architecture
 
+코드/API의 용어는 [Naming conventions](naming-conventions.md)를 따른다. 설정 조회는
+get_config / resolve_config / describe_config로 구분하고 Host 실행 조립은
+BackendServices / ToolRuntime / OutputBuffer로 표현한다. 실행·승인·저장 책임은 동일하다.
+
 현재 설정의 최상위 영속 권한은 Project다. Host는 구현·공유 자원·기술적 거절만 제공하며
 제품 정책 ceiling을 덮어쓰지 않는다. 수치 위험 분류, 저장 Agent 위임, Component dependency의
 현재 계약과 예제는 [Project authority](project-authority.md)에 정리한다.
@@ -60,7 +64,8 @@ skill_list는 요약 목록, skill_read는 선택한 레코드를 반환한다. 
 Run별 사본을 만들고 전체 정의 지문을 ToolContract revision에 넣어 변경된 지침으로 옛
 체크포인트를 재개하지 않는다. 기존 resources.skills의 Agent 지침 주입은 유지한다.
 Tool을 호출했다는 것과 지침의 검증 절차를 완료했다는 것은 다르며 강제 절차는 기존
-Workflow/ToolPolicy가 소유한다. 일반 Engine/RunManager에 Skill 전용 분기를 넣지 않는다.
+Workflow와 Project 정책·ToolContract의 실행 경계가 소유한다. Host의 기술적 허가는
+ToolRuntime로 연결한다. 일반 Engine/RunManager에 Skill 전용 분기를 넣지 않는다.
 
 BuiltinToolComponent는 호스트가 생성한 BuiltinTools와 ProjectConfig의 enabled 목록을
 연결한다. Project Python Tool 소스 저장소와 별개이며 Toolkit 수명은 호스트가 소유한다.
@@ -291,19 +296,19 @@ policies.output은 Run 시작 시 복사하여 델타 저장 묶음 설정을 �
 
 ## 운영 계약과 UI 설정 스키마
 
-`LargeLanguageModel.project_schema()`는 Component/Engine의 `configuration_schema()`와
+`LargeLanguageModel.describe_project_config()`는 Component/Engine의 `describe_config()`와
 ProjectConfig 정책 스키마를 합친다. Component 기록 스키마는 설정 스키마와 분리한다.
-Facade의 `configuration()`은 원본 값·편집 버전·폼용 values/schema를 함께 제공한다.
+Facade의 `describe_config()`는 원본 값·편집 버전·폼용 values/schema를 함께 제공한다.
 폼의 `values.config`와 `project.config`는 같은 저장 원본의 독립 사본이다. 미설정 값을
 만들지 않으며 적용값·출처는 effective 조회로 분리한다. JSON Schema의 required/ref/배열 제약은 제거하지 않는다.
-`ProjectHandle.validate_configuration(config)`와 비동기 API는 저장 경로와 같은 검증으로
+`ProjectHandle.validate_config(config)`와 비동기 API는 저장 경로와 같은 검증으로
 전체 ProjectConfig 후보를 미리 확인한다. 반환 버전은 미리보기 당시 저장 원본의 버전이다.
 백엔드는 EngineRegistry의 동기 설정 검증 계약을 ProjectManager/SessionManager에 주입한다.
 Project 생성·저장·백업 복원 및 Session 생성·저장 시
 등록 Engine의 configuration을 검사하며 Engine 실행이나 모델/준비 함수는 호출하지 않는다.
 설정 해석 계약이 없는 확장 Engine은 선언된 스키마로 전달값을 검사한다. 같은 설정 키를
 공유하는 Engine의 UI 스키마는 allOf로 결합하여 모든 소비자의 조건을 만족해야 한다.
-독립적으로 사용하는 ProjectManager에는 configuration_validator를 주입해야 Engine 검증이
+독립적으로 사용하는 ProjectManager에는 config_validator를 주입해야 Engine 검증이
 연결된다. 미등록 Engine이나 계약을 선언하지 않은 확장의 임의 의미까지 추론하지 않는다.
 자유 JSON 키는 명시적인 Application data/metadata 및 선택 구현체·SDK 인자 경계에서만 허용하며 호스트 실행 객체는 Project 설정으로 가장하지 않는다.
 Engine 설정은 입력 스키마와 최종 적용값을 차례로 검증한다. 호스트 고정값이 있어도
@@ -315,7 +320,7 @@ RunOutputState는 runtime/output.py에서 출력 소유권·확정 상태·순�
 구독자에게 알린다. 확정 출력은 런타임 검증에 필요한 식별 정보만 남기며 큰 결과 원본은
 Run/Step 저장소에서 조회한다. Tool/체크포인트 이벤트의 ACK 경계는 변경하지 않는다.
 
-ToolContract와 ToolPolicy revision은 승인/격리/업무 키의 신뢰한 호스트 계약이며 재개
+ToolContract와 ToolRuntime revision은 승인/격리/업무 키의 신뢰한 호스트 계약이며 재개
 fingerprint에 포함된다. OperationRepository는 외부 확인 증거를 CAS로 반영한다.
 ProjectRecovery와 RunManager 시작 복구는 같은 stale 상태 정리 함수를 사용한다.
 HistoryRetention은 비활성 Session의 완료 Run을 명시적 저널 아래 정리하고, SessionManager는
@@ -332,7 +337,7 @@ API/정확한 범위는 [운영 및 UI 설정](operations-and-ui-settings.md)을
 
 ProjectConfig.policies는 tool_retry/usage/retention도 소유한다. 미설정 재시도와
 사용량/보관 상한은 활성화하지 않는다. 실행 정책은 Run 시작 시 복사하고,
-조건부 Tool 재시도의 안전성은 신뢰한 호스트 ToolPolicy/핸들러만 선언한다. 정상 None 반환은
+조건부 Tool 재시도의 안전성은 신뢰한 호스트 ToolRuntime/핸들러만 선언한다. 정상 None 반환은
 완료로 저장하며 일반 예외·timeout·취소·저장 실패로 외부 효과를 자동 반복하지 않는다.
 
 Loop는 회차와 Tool 영수증을 CHECKPOINT 이벤트로 전달하고 RunRepository가 저장한다.
@@ -376,7 +381,7 @@ ProjectManager/Facade의 configure_policies는 잠금 아래 최신 설정에 �
 configuration은 UI용 policy_schema도 제공한다. 다른 열린 설정과 컴포넌트 소유권은 유지한다.
 Run 시작 시 정책 사본을 metadata.policies에 저장하고 ContextPolicy/RunPolicy로 해석한다.
 실행 중 변경은 다음 Run부터 적용한다. Session 설정에는 policies를 허용하지 않는다.
-ServiceConfig는 토큰 계산기 registry/resolver와 runtime 구현·공유 자원 한도를 제공한다.
+BackendServices는 토큰 계산기 registry/resolver와 runtime 구현·공유 자원 한도를 제공한다.
 공통 usage.counter의 미등록 계산기는 큐 수락 전에 거부한다.
 
 Loop의 입력 선택은 parameters.engines[등록 이름].policy.completion이 소유한다. CompletionPolicy는
@@ -399,8 +404,8 @@ Project 저장 경계로 쓴다. 엔진은 Project → Session → Agent(제한 
 
 CompletionPolicy와 공통 실행 정책 오류는 llm/policies에 있다. 이 패키지는 Engine,
 Component, services를 import하지 않는다. 알고리즘의 선택과 설정 소유권은 호출자에
-남는다. RunPolicy/ContextPolicy/ToolPolicy처럼 수명 관리와 결합된 정책은 서비스가
-소유한다. SettingsLayout은 인자 경로만 연결하며 정책을 실행하거나 저장하지 않는다.
+남는다. RunPolicy/ContextPolicy는 수명 관리 정책이고 ToolRuntime는 Host 실행 어댑터다.
+모두 해당 실행 서비스와 연결한다. ParameterLayout은 인자 경로만 연결하며 정책을 실행하거나 저장하지 않는다.
 
 평면 설정의 자동 변환이나 옛 import 별칭은 제공하지 않는다. 정의 레코드, 요청별
 Workflow 선택, Project → Session → Run → Step, 이벤트 저장 ACK와 재개 계약은 유지한다.
@@ -413,7 +418,7 @@ Workflow 선택, Project → Session → Run → Step, 이벤트 저장 ACK와 �
 만들지 않는다. 대화의 휘발성 memory 저장 옵션과는 독립적인 영속 컴포넌트다.
 선택 시 `tools` capability에 memory_search/get/create/update/delete를 제공한다.
 ToolExecutor의 실행 문맥은 소유 Project/Session/Run/Message/Step 출처만 전달하며 엔진이나
-RunManager에 기억 저장 책임을 추가하지 않는다. ToolPolicy와 Step 저장 경계를 유지한다.
+RunManager에 기억 저장 책임을 추가하지 않는다. ToolRuntime와 Step 저장 경계를 유지한다.
 현재 값·변경 이력은 단일 JSON 원자 교체, 수정은 expected_revision 비교, 삭제는 복원 가능한
 형태가 기본이다. 모델 작성은 candidate, 기본 검색은 confirmed이며 프로젝트 설정으로 조절한다.
 BaseEngine에 Memory 전용 로직을 추가하지 않는다. [Memory API](memory.md)를 참고한다.
@@ -435,13 +440,13 @@ Memory가 Session 범위 기억, 증분 요약, 예산 내 검색 주입, Tool �
 
 ## 실행 자원·저장·백업 정책
 
-ServiceConfig의 ProviderLimits/주입 ProviderCalls는 백엔드의 동기 completion 스트림
+BackendServices의 ProviderLimits/주입 ProviderCalls는 백엔드의 동기 completion 스트림
 슬롯을 공유한다. 취소된 Run도 실제 공급자 호출과 close가 끝날 때까지 슬롯을 유지한다.
 EngineContext나 영속 도메인에 실행 핸들을 추가하지 않으며 호출 문맥으로 전달한다.
 독립 RAG의 사용량은 ComponentData의 관찰 계약으로 연결하며 provider 슬롯과는 별도다.
 사용자 코드가 직접 SDK를 호출한 경우에는 명시적 관찰 계약이 필요하다.
 
-OutputPolicy는 RunManager의 델타 저장 경계를 조절한다. 기본값은 매 이벤트 저장이다.
+OutputBuffer는 RunManager의 델타 저장 경계를 조절한다. 기본값은 매 이벤트 저장이다.
 선택적인 묶음 처리는 Engine 생산자를 하나의 asyncio.Task에서 유지하고 TEXT_DELTA만 모은다.
 다른 이벤트는 ACK 경계이며 승인/체크포인트를 저장하기 전에 효과를 진행하지 않는다.
 RunRepository와 Conversation에 각각 append/fsync한 후 개별 알림을 전송한다.
@@ -531,13 +536,13 @@ cgroup 기반 전체 프로세스 수/합산 메모리 제한은 제공하지 �
 
 ## Tool 프로세스 실행과 작업 원장
 
-ToolPolicy.runner에는 ProcessToolRunner를 주입할 수 있다. 등록된 argv의 JSON worker를
+ToolRuntime.runner에는 ProcessToolRunner를 주입할 수 있다. 등록된 argv의 JSON worker를
 유한 프로세스로 실행하며 Linux sandbox는 Bubblewrap을 요구하고 실패 시 실행을 거부한다.
 Linux 전용이다. process 모드는 그룹 종료와 부모 사망 신호를 사용하고, sandbox는
 Bubblewrap을 사용한다. 기본 프로세스 Tool과 Runner는 공통 그룹 종료 함수를 사용한다.
 Engine은 프로세스·경로·OS API를 알 필요가 없다. 기본 Tool 핸들러는 자동 이동하지 않는다.
 
-ToolPolicy.operation_key는 동일 Session의 논리적 업무 키를 선택한다. ToolExecutionScope의
+ToolRuntime.operation_key는 동일 Session의 논리적 업무 키를 선택한다. ToolExecutionScope의
 ToolOperations 서비스가 공유 RunRepository를 통해 Session.state/tool_operations에 예약/결과를
 저장한다. OS workspace 잠금 안에서 먼저 started를 기록하고 완료 결과는 원자적으로 저장한다.
 완료 결과는 재사용하고 started는 불확실하므로 재실행을 거부한다. 서로 다른 인자/Tool로 키를
@@ -548,7 +553,7 @@ ToolOperations 서비스가 공유 RunRepository를 통해 Session.state/tool_op
 ## 운영 정책과 UI 관찰
 
 ProjectPolicyResolver는 프로젝트별 ContextPolicy/RunPolicy를 구성한다.
-ServiceConfig는 ToolPolicy의 호스트 실행 계약과 파일 대화 캐시 크기를 조립한다.
+BackendServices는 ToolRuntime의 호스트 실행 계약과 파일 대화 캐시 크기를 조립한다.
 RunManager는 Session 대기열 admission/취소와 Run 실행 시간 한도를 담당한다. EngineContext의
 ToolExecutionScope는 중첩 Agent/Graph 분기에서 공유하는 Run 전용 런타임 객체이며 저장하지
 않는다. LoopEngine/ToolNode는 공통 ToolExecutor를 통해 승인·호출 예산·선택적 실행 어댑터를
@@ -556,7 +561,7 @@ ToolExecutionScope는 중첩 Agent/Graph 분기에서 공유하는 Run 전용 �
 CompletionPolicy는 Loop가 자신의 policy.completion와 호스트 counter로 구성하며 요청의 과거 턴만 선택한다.
 
 EventSubscriptions의 queued/drop_oldest 전달은 UI 관찰용이다. 저장은 먼저 완료되고,
-누락 통계를 보고 UI가 재조회한다. 실행에 필요한 요청/검증은 EventHandlers/ToolPolicy에 둔다.
+누락 통계를 보고 UI가 재조회한다. 실행에 필요한 요청/검증은 EventHandlers/ToolRuntime에 둔다.
 SessionManager 대화 팩토리는 파일 모드의 증분 읽기 상태를 제한된 LRU로 공유하며, 메모리
 대화와 주입된 저장소의 소유권/수명은 유지한다. 상세 계약은 [runtime-reliability.md](runtime-reliability.md).
 
@@ -777,7 +782,7 @@ Conversation은 Session 소유를 유지하고 저장 방식만 선택한다. �
 append-only JSONL/fsync이며 MemoryConversationStore는 동일한 Conversation 상태 API를
 메모리에 구현한다. projects.create/acreate(conversation_storage="file"|"memory")로
 프로젝트별로 선택하고 Project.conversation_storage를 project.json에 저장한다.
-LargeLanguageModel(conversation_storage=...) 또는 ServiceConfig(conversations=...)는
+LargeLanguageModel(conversation_storage=...) 또는 BackendServices(conversations=...)는
 새 프로젝트의 기본값이다. 저장된 선택이 우선하며, conversation_storage 필드가 없는
 프로젝트는 오류다. 기존 프로젝트를 읽는 것만으로 설정/대화를 이전하지 않는다.
 
@@ -801,7 +806,7 @@ Project/Session/Run/Step 파일과 로그는 유지한다. 메모리 모드는 �
 
 ## 서비스 확장 계약
 
-`ServiceConfig`에서 저장소, 대화 문맥, 이벤트 처리기, 로그 출력을 구성한다.
+`BackendServices`에서 저장소, 대화 문맥, 이벤트 처리기, 로그 출력을 구성한다.
 LargeLanguageModel의 실행과 Facade/Project/Session 조회는 같은 Run/Step 저장소를 사용한다.
 Engine은 `required_capabilities` 튜플을 선언하며 기본값은 빈 튜플이다. LoopEngine만
 기본적으로 tools를 요청하고, PipelineEngine은 단계별 요구를 합친다. 일반 capability는
@@ -1194,7 +1199,7 @@ no terminal callback claims a terminal save that failed. Notifications are not a
 persisted subscription log and a reconnect should query the Run repository.
 
 ProjectConfig is an open dict subclass, not a dataclass. Arbitrary top-level keys
-survive save/load/clone and are included in EngineContext.settings with Session
+survive save/load/clone and are included in EngineContext.resolve_config with Session
 merging. Constructor kwargs, mapping access, existing attribute shortcuts and
 JSON to_dict/serialize/deserialize are supported. Reserved execution sections
 retain semantic validation; no field-name-specific secret policy remains.
@@ -1212,7 +1217,7 @@ Project → Session → Run → Step의 소유권과 저장 형식은 바꾸지 
 
 | 경로 | 책임 |
 | --- | --- |
-| `api.py`, `configuration.py` | 공개 Facade와 서비스 의존성 조립 |
+| `api.py`, `composition.py` | 공개 Facade와 서비스 의존성 조립 |
 | `query.py`, `results.py` | 목록 필터와 Run 결과 조회 |
 | `lifecycle/projects.py`, `sessions.py`, `steps.py` | 도메인 Repository/Manager, StepEventRecorder |
 | `lifecycle/access.py`, `components.py` | Project 접근 검사와 ComponentData |
@@ -1288,11 +1293,11 @@ settings are parameters.engines[name]; Component settings are parameters.compone
 Only the selected implementation interprets its options. Loop consumes its own completion
 mapping; Graph, RAG and Vision never inherit Loop SDK options by matching argument names.
 Session.config persists explicit engine overrides without copying Project settings at creation.
-EngineContext.settings(name) returns a detached merged view and the selected `engine` mapping.
+EngineContext.resolve_config(name) returns a detached merged view and the selected `engine` mapping.
 Nested dictionaries merge; explicit null replaces inherited values where supported, but child
 overrides cannot remove or widen a parent execution limit. Project/Session/Agent own execution
 settings; constructors inject implementations and technical identities. Runtime clients remain host-owned.
-Loop uses its registration name unless settings_name explicitly selects another configuration.
+Loop uses its registration name unless parameter_key explicitly selects another configuration.
 Pipeline stages can select a named target or their own stages mapping. RunManager still reloads
 Project/Session and snapshots policies at Run start. Active Run policy protection is unchanged.
 Removed Project-level SDK/default sections are rejected without rewriting stored files.
@@ -1346,7 +1351,7 @@ neither Engines, services nor core domains. Model results and exceptions retain
 SDK types; cancellation propagates, subject to provider cleanup behavior.
 
 RAG model options live in ProjectConfig.parameters.components.rag; custom Engines
-declare their own targeted parameters and read context.settings(name)["engine"].
+declare their own targeted parameters and read context.resolve_config(name)["engine"].
 Callers own mapping configuration into clients,
 inputs, output/index persistence and observability. Within a Run, self.step or
 PreparationStep can record embedding/rerank lifecycle; Tool handlers may call the
@@ -1427,7 +1432,7 @@ the event loop.
 LoopEngine resolves max_iterations, request_timeout, tool_timeout, max_tool_calls,
 max_argument_chars and max_output_chars from its Project/Session/Agent policy.
 buffer_size and LiteLLM completion parameters belong to its config section. The
-constructor injects completion_fn/settings_name only. Configuration containers are
+constructor injects completion_fn/parameter_key only. Configuration containers are
 copied once per Loop execution and again per provider request. Runtime SDK clients
 belong to the injected completion implementation, not persisted JSON. Explicit JSON
 api_key settings are persisted; SDK environment authentication remains available.
@@ -1438,10 +1443,10 @@ response formats may still require Engine changes. Provider timeout is independe
 of the application per-round deadline. config.system_prompt is an explicit string
 or null, prepended once to the in-memory provider transcript when present.
 
-LoopEngine.settings_name defaults to None, selecting context.run.engine rather
-than a hard-coded "loop" section. EngineContext.settings() shares that default;
+LoopEngine.parameter_key defaults to None, selecting context.run.engine rather
+than a hard-coded "loop" section. EngineContext.resolve_config() shares that default;
 an explicit section name overrides it. Pipeline stages therefore use the owning
-pipeline's registered name unless configured with settings_name="stage-name".
+pipeline's registered name unless configured with parameter_key="stage-name".
 Each Run-local Loop copy preserves that explicit choice. Registering a shared
 LoopEngine under different names does not mutate the shared Engine instance.
 
@@ -1451,7 +1456,7 @@ models nor repositories acquire this field. Do not copy these outputs to event
 metadata by default, because they may contain documents or runtime-only values.
 
 engines/pipeline/engine.py supplies PipelineEngine(stages) and PreparationStep(name,
-action, kind=..., settings_name=...). PreparationStep emits lifecycle events
+action, kind=..., parameter_key=...). PreparationStep emits lifecycle events
 around an async action(context). Only explicit policy.timeout_seconds adds a
 deadline. Pipeline passes one context through its sequential stages, including nested
 pipelines. A failure, cancellation event, or unfinished Step prevents the next

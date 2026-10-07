@@ -24,4 +24,4 @@ class DefinitionComponent(Component):
         """요청된 정의를 분리된 dict로 전달한다. 실행 핸들은 영속 데이터가 아니다."""
         if capability not in self.capabilities:
             return super().resolve(project, capability)
-        return {"configuration": self.configuration(project), "records": self.list(project)}
+        return {"configuration": self.get_config(project), "records": self.list(project)}

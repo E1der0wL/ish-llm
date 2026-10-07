@@ -38,9 +38,9 @@ class Projects(AsyncFacade):
                conversation_storage: Optional[str] = None) -> "ProjectHandle":
         """대화 저장 방식을 프로젝트에 고정한다. 생략하면 백엔드 기본값을 사용한다."""
         self.app._check_open()
-        settings = ProjectConfig(config) if config is not None else None
+        config = ProjectConfig(config) if config is not None else None
         return ProjectHandle(self.app, self.app.project_manager.create(
-            title, config=settings, components=components, conversation_storage=conversation_storage))
+            title, config=config, components=components, conversation_storage=conversation_storage))
 
     def recover_deletions(self):
         self.app._check_open()
@@ -84,11 +84,11 @@ class ProjectHandle(AsyncFacade):
         self.components = Components(self)
         self.results = Results(self)
 
-    def _configuration(self, config=None, *, expected_version=None) -> dict:
+    def _describe_config(self, config=None, *, expected_version=None) -> dict:
         self.app._check_open()
-        value = self.app.project_manager.configuration(self._snapshot, config=config,
+        value = self.app.project_manager.describe_config(self._snapshot, config=config,
                                                        expected_version=expected_version)
-        value["schema"] = self.app.project_schema(components=list(value["components"]))
+        value["schema"] = self.app.describe_project_config(components=list(value["components"]))
         form_config = deepcopy(value["project"]["config"])
         value["values"] = {"title": value["project"]["title"],
                            "conversation_storage": value["project"]["conversation_storage"],
@@ -129,15 +129,15 @@ class ProjectHandle(AsyncFacade):
         self.app.project_manager.save(current, expected_version=expected_version,
                                       components=components, expected_components=expected_components)
 
-    def configuration(self) -> dict:
+    def describe_config(self) -> dict:
         """저장된 명시값·UI 스키마·Engine별 적용값을 반환한다. 기본값을 생성하지 않는다."""
-        return self._configuration()
+        return self._describe_config()
 
-    def validate_configuration(self, config: dict, *, expected_version=None) -> dict:
+    def validate_config(self, config: dict, *, expected_version=None) -> dict:
         """전체 ProjectConfig 후보를 저장 없이 검증한다. 버전은 현재 저장 원본을 가리킨다."""
-        return self._configuration(config, expected_version=expected_version)
+        return self._describe_config(config, expected_version=expected_version)
 
-    avalidate_configuration = async_method(validate_configuration)
+    avalidate_config = async_method(validate_config)
 
     def recovery(self, *, apply=False, expected_version=None) -> Union[RecoveryPlan, RecoveryResult]:
         self.app._check_open()
@@ -207,7 +207,7 @@ class ProjectHandle(AsyncFacade):
         return await self._async_call(lambda: self.data)
 
     asave = async_method(save)
-    aconfiguration = async_method(configuration)
+    adescribe_config = async_method(describe_config)
     aconfigure_policies = async_method(configure_policies)
     adelete = async_method(delete)
     arestore = async_method(restore)
@@ -304,7 +304,7 @@ class SessionHandle(AsyncFacade):
 
     aturns = async_method(turns)
 
-    def configuration(self) -> dict:
+    def describe_config(self) -> dict:
         """Session 덮어쓰기까지 적용한 설정 조회. 실행 중 Run의 설정을 변경하지 않는다."""
         from llm.services.schema import effective_engines
         with self.app.project_manager.ownership.scope():
@@ -312,7 +312,7 @@ class SessionHandle(AsyncFacade):
             return {"config": deepcopy(session.config), "effective_engines":
                     effective_engines(self.app, project.config, session_config=session.config)}
 
-    aconfiguration = async_method(configuration)
+    adescribe_config = async_method(describe_config)
 
     def conversation(self, *, query: Optional[Query] = None, include_deleted: bool = False) -> list[Message]:
         self.app._check_open()
@@ -419,9 +419,9 @@ class Runs(AsyncFacade):
     async def verify_operation(self, key: str, *, apply=False):
         """호스트 operation_probe로 외부 결과를 조회한다. apply=True만 원장에 반영한다."""
         from llm.services.infrastructure.storage import revision_token
-        probe = self.app.services.tool_policy.operation_probe
+        probe = self.app.services.tool_runtime.operation_probe
         if probe is None:
-            raise ValueError("Configure ToolPolicy.operation_probe first")
+            raise ValueError("Configure ToolRuntime.operation_probe first")
         def snapshot():
             session = self.app.project_manager.sessions.require_inactive(self.session.data)
             value = self.app.run_repository.tool_operation(session, key)

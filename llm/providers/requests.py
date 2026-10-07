@@ -28,7 +28,7 @@ def resolve_provider_options(options):
     if "max_attempts" in result and type(result["max_attempts"]) is not int:
         raise ValueError("Provider max_attempts requires an integer")
     if any(result.get(key) is not None and not math.isfinite(result[key]) for key in ("wall_timeout", "delay_seconds", "max_delay_seconds")):
-        raise ValueError("Provider timing settings must be finite")
+        raise ValueError("Provider timing configuration must be finite")
     return result
 
 

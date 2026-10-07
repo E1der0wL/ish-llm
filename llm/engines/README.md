@@ -55,7 +55,7 @@ engines = {"assistant": LoopEngine()}
 - `context`에는 도메인 스냅샷, 메시지, Run별 state/capabilities와 공유 실행 범위가 있습니다. 실행 상태를 Engine 인스턴스에 누적하지 않습니다.
 - Step/Run/Session/대화/체크포인트 파일을 직접 쓰지 않습니다.
 - 이벤트 소비자는 조기 종료에도 generator를 닫도록 `aclosing`을 사용합니다. 취소는 자원을 정리한 뒤 전달합니다.
-- 사용자 설정은 명시한 값만 적용합니다. `configuration_schema()`는 UI·사전 검증에, `configuration(config, name, *, session_config=None)`는 출처를 포함한 유효 설정 조회에 사용합니다. 동일 해석을 실행에서도 사용해야 합니다.
+- 사용자 설정은 명시한 값만 적용합니다. `describe_config()`는 UI·사전 검증에, `resolve_config(config, name, *, session_config=None)`는 출처를 포함한 유효 설정 조회에 사용합니다. 동일 해석을 실행에서도 사용해야 합니다.
 
 Graph AgentNode에서도 사용할 Engine은 `for_agent(definition)`이 호출별 Engine을 반환하도록 구현하고 AgentNode의 엔진 맵에 등록합니다. 일반 `execute` 계약만 구현했다고 Agent 설정이 자동 적용되지는 않습니다. 명시적 재개까지 지원하려면 Engine별 체크포인트 생성과 `validate_resume` 검증도 구현해야 합니다. BaseEngine의 Tool helper가 체크포인트를 대신 생성하지는 않습니다.
 
@@ -92,7 +92,7 @@ BaseEngine을 상속하지 않는 처리기는 `context.execute_tool(...)`을 �
 decision 생략 시 waiting Tool approval의 Interaction 선택지 값과 effect에서만 해석합니다.
 Loop bool과 Graph object를 호출자가 별도로 해석할 필요가 없습니다.
 `GraphNodeContext.decision`은 노드 확인일 수도 있으므로 Tool 승인으로 전달하지 않습니다.
-`pause_before` 승인 후에도 ToolPolicy.authorize를 실행하며, ASK이면 별도의 Tool 승인을
+`pause_before` 승인 후에도 ToolRuntime.authorize를 실행하며, ASK이면 별도의 Tool 승인을
 기다립니다. 명시적 Tool decision은 실제 waiting Tool 요청과 저장 응답에 일치해야 합니다.
 confirmation이나 started 기록에 decision을 붙이면 실행 전에 거부합니다.
 같은 Tool/인자를 사용하는 반복/병렬 노드도 각자의 기존 key를 씁니다.

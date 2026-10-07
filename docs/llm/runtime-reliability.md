@@ -5,17 +5,18 @@ Loop 재개·영속 승인·조건부 재시도·누적 사용량·보관·편�
 
 후속 추가된 ProcessToolRunner, 작업 키 원장과 명시적 외부 결과 확인 API는
 [프로세스 격리·중복 방지 안내](process-isolation.md)를 참고한다. 아래 기본 in-process 실행의
-한계는 그대로이며 새 기능은 ToolPolicy를 통해 선택적으로 연결한다.
+한계는 그대로이며 새 기능은 ToolRuntime를 통해 선택적으로 연결한다.
 
 Project → Session → Run → Step 구조를 유지한다. 서비스가 저장과 실행 정책을
 담당하고, Engine은 이벤트를 보고한다. 프로젝트 정책은 ProjectConfig로 저장하고
-공유 자원·어댑터는 ServiceConfig로 구성한다. Tool/RAG/Workflow의 열린 JSON은 유지한다.
+공유 자원·어댑터는 BackendServices로 구성한다. Backend 정의의 닫힌 schema와
+명시적 metadata/선택 구현체의 설정 경계를 유지한다.
 
 ## 장시간 작업과 실행 한도
 
 ```python
 import litellm
-from llm.llm import LargeLanguageModel, LoopEngine, ServiceConfig, ToolPolicy
+from llm.llm import LargeLanguageModel, LoopEngine, BackendServices, ToolRuntime
 
 def count_request(request):
     return litellm.token_counter(
@@ -23,8 +24,8 @@ def count_request(request):
         tools=request.get("tools"), tool_choice=request.get("tool_choice"),
     )
 
-services = ServiceConfig(
-    tool_policy=ToolPolicy(),
+services = BackendServices(
+    tool_runtime=ToolRuntime(),
     token_counters={"custom": count_request},
     conversation_cache_size=32,
 )
@@ -54,7 +55,7 @@ counter는 동시 Session에서도 사용할 수 있게 스레드 안전하게 �
 삭제하지 않는다. Memory 처리기를 명시적으로 설정하면 현재 작업의 오래된 Tool 교환도
 요약할 수 있다. Loop는 저장된 회차/Tool 영수증으로 명시적 재개를 지원한다.
 Graph Agent는 선택한 Engine의 policy.completion을 상속·재정의한다. 새 Engine은 필요할 때
-`CompletionPolicy.from_settings(명시한_설정, context.token_counters)`로 알고리즘을 구성한다.
+`CompletionPolicy.from_config(명시한_설정, context.token_counters)`로 알고리즘을 구성한다.
 서비스가 모든 Engine에 같은 CompletionPolicy를 주입하지 않는다.
 
 RunPolicy는 Engine 종류와 무관하게 적용된다. max_queued는 Session별 QUEUED 수로,
@@ -77,7 +78,7 @@ async def authorize(call):
         name=call.name, arguments=call.arguments,
     )
 
-services = ServiceConfig(tool_policy=ToolPolicy(
+services = BackendServices(tool_runtime=ToolRuntime(
     allowed_tools=("rag_search",),  # None이면 등록된 Tool을 허용
     max_calls=30,
     authorize=authorize,
@@ -136,7 +137,7 @@ queued/drop_oldest는 큐가 차면 오래된 **관찰 알림**만 버린다. �
 그대로이며 UI는 dropped 증가, 재접속, 화면 전환 때 저장소를 다시 조회해야 한다.
 TEXT_DELTA를 유실 가능 모드에서 단순히 붙이기만 하면 화면 내용이 불완전해진다.
 Run 최종 알림도 이 모드에서 누락될 수 있으므로 request.wait/상태 재조회로 확정한다.
-중요한 검증/승인은 관찰 콜백이 아니라 ToolPolicy 또는 EventHandlers에 연결한다.
+중요한 검증/승인은 관찰 콜백이 아니라 ToolRuntime 또는 EventHandlers에 연결한다.
 
 기본 overflow=block은 기존 backpressure 동작이다. callback_timeout은 멈춘 구독을
 비활성화해 후속 호출과 무한 종료 대기를 막는다. callback은 취소에 협조해야 한다.

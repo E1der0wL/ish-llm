@@ -20,8 +20,8 @@ from llm.engines.graph.tool import ToolNode
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from contextlib import aclosing
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
-from llm.services.runtime.tools import ToolCall, ToolExecutor, ToolPolicy
+from llm.services.composition import BackendServices
+from llm.services.runtime.tools import ToolCall, ToolExecutor, ToolRuntime
 from llm.services.runtime.processes import ProcessToolRunner
 from llm.policies import ExecutionLimitError
 
@@ -74,7 +74,7 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
 
         self.engine = ToolEngine()
         self.tools = RuntimeTools(ToolRegistry([Tool("external", "external", {"type": "object"}, handler)]))
-        self.services = ServiceConfig(tool_policy=ToolPolicy(operation_key=lambda call: call.arguments["operation"]))
+        self.services = BackendServices(tool_runtime=ToolRuntime(operation_key=lambda call: call.arguments["operation"]))
         self.app = self.open()
         self.project = await self.app.projects.acreate("test", components=["tools"])
         await (await self.project.components.aget("tools")).aenable("external")
@@ -137,7 +137,7 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
         async def runner(tool, call):
             self.calls.append(call.idempotency_key)
             await asyncio.Event().wait()
-        self.app.services.tool_policy = ToolPolicy(operation_key=lambda call: "same", runner=runner)
+        self.app.services.tool_runtime = ToolRuntime(operation_key=lambda call: "same", runner=runner)
         self.app.project_manager.components.register(WorkflowComponent())
         await self.project.components.aselect(["tools", "workflows"])
         graph = (WorkflowGraph(entry="fork").node("fork", "parallel", join="join")
@@ -168,7 +168,7 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
         async def runner(tool, call):
             tokens.append(call.idempotency_key)
             return {"receipt": "remote-receipt"}
-        self.app.services.tool_policy = ToolPolicy(operation_key=lambda call: "business-key", runner=runner)
+        self.app.services.tool_runtime = ToolRuntime(operation_key=lambda call: "business-key", runner=runner)
         await self.execute()
         await self.execute()
         self.assertEqual(tokens, [(await self.session.run.aoperation("business-key"))["idempotency_key"]])
@@ -176,7 +176,7 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
     async def test_process_runner_uses_same_run_and_step_path(self):
         code = "import json,sys; x=json.load(sys.stdin); print(json.dumps({'receipt':x['idempotency_key']}))"
         runner = ProcessToolRunner({"external": [sys.executable, "-I", "-c", code]}, cwd=self.root, isolation="process", allow_network=False)
-        self.app.services.tool_policy = ToolPolicy(operation_key=lambda call: "integrated", runner=runner)
+        self.app.services.tool_runtime = ToolRuntime(operation_key=lambda call: "integrated", runner=runner)
         run = await self.execute()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         steps = await run.steps.alist()

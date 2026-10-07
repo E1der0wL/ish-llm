@@ -26,7 +26,7 @@ class ProjectAuthorityTests(unittest.TestCase):
     def test_dependency_catalog_and_atomic_selection(self):
         with tempfile.TemporaryDirectory() as directory:
             app = LargeLanguageModel(Path(directory), components=[A(), B()])
-            schema = app.project_schema()
+            schema = app.describe_project_config()
             self.assertEqual(schema["x-components"]["a"]["required_components"], ["b"])
             project = app.projects.create(components=["a", "b"])
             with self.assertRaises(ComponentDependencyError) as error:

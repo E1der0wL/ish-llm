@@ -49,7 +49,7 @@ EventSubscriptions는 활성/정리 중인 구독 통계와 종료된 구독의 
   실패한다. 이는 관측 장애가 아닌 Engine 호출 계약 오류로, observer 없이도 검증한다.
   key 없는 일반 호출은 허용한다. Graph pause_before 확인은 Tool 승인/중복 집계 근거가
   아니며, 해당 checkpoint의 확인 decision을 Tool 승인으로 전달하면 거부한다.
-  확인 후 ToolPolicy.authorize가 ASK하면 새 논리 Tool 요청 1건으로 기록하고,
+  확인 후 ToolRuntime.authorize가 ASK하면 새 논리 Tool 요청 1건으로 기록하고,
   그 Tool approval을 재개할 때는 같은 요청으로 센다. 같은 Tool/인자의 과거 승인 후보로
   키를 추측하지 않으며 모호한 durable 재개는 거부한다. key는 승인 권한 자체가 아니다.
 - tools.executions: 실제 handler/runner 시도 시작 수. retries는 그중 첫 시도 이후의 추가 실행 수다.
@@ -74,7 +74,7 @@ recent는 중립적인 최근 관찰 캐시로 최대 256개다. 누적 count와
 failure-code 종류 수나 label 길이에 임의 상한을 두지 않는다. ID는 recent의 값일 뿐 aggregate key가 아니다.
 prompt, arguments/results, source/requirements, 원문 evidence, 환경, traceback 필드를 받지 않는다.
 
-`ServiceConfig(observability_sink=callback)`은 정규화된 안전한 fact 사본을 받을 수 있다.
+`BackendServices(observability_sink=callback)`은 정규화된 안전한 fact 사본을 받을 수 있다.
 callback은 thread-safe이고 빠른 동기 함수여야 한다. core는 디스크/네트워크에 기록하지 않으며
 외부 exporter는 별도 adapter 책임이다. callback 예외는 Run/Step 결과에 영향을 주지 않는다.
 

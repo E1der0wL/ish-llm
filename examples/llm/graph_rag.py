@@ -210,7 +210,7 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
         if not content.strip():
             raise ValueError("Markdown document is empty")
         checks = AnswerChecks(content)
-        loop = LoopEngine(settings_name="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
+        loop = LoopEngine(parameter_key="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
         graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": loop}), "tool": ToolNode(),
             "validate_answer": checks.validate, "feedback": checks.feedback, "publish_answer": checks.publish})
         config = ProjectConfig(**config.to_dict())

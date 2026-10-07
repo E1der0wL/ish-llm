@@ -114,7 +114,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
             kwargs["completion"] = kwargs.pop("completion_kwargs")
         config = self.project.config
         config.parameters["engines"]["loop"] = ProjectConfig.merge(
-            config.parameters["engines"]["loop"], LoopEngine.settings_layout.pack(kwargs))
+            config.parameters["engines"]["loop"], LoopEngine.parameter_layout.pack(kwargs))
         self.projects.save(self.project)
         engine = LoopEngine(completion_fn=completion_fn)
         self.registry.register("loop", engine)
@@ -610,7 +610,7 @@ class ConfigurationTests(unittest.TestCase):
                        {"max_tool_calls": 0}, {"max_output_chars": False},
                        {"max_argument_chars": 0}):
             with self.subTest(kwargs=kwargs), self.assertRaises((ValueError, ValidationError)):
-                LoopEngine().for_agent({"engine": "loop", "engine_options": LoopEngine.settings_layout.pack(kwargs)})
+                LoopEngine().for_agent({"engine": "loop", "engine_options": LoopEngine.parameter_layout.pack(kwargs)})
 
 
     def test_schema_and_nonfinite_arguments_rejected(self) -> None:

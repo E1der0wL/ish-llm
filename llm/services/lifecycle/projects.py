@@ -10,7 +10,7 @@ from llm.services.infrastructure.backups import DirectoryBackups
 from pathlib import Path
 
 from llm.core.models import Project, ProjectConfig, new_id
-from llm.core.configuration import component_configuration
+from llm.core.configuration import resolve_component_config
 from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.storage import child, record, remove_owned_tree
 from llm.services.lifecycle.sessions import SessionManager
@@ -84,12 +84,12 @@ class ProjectRepository:
 class ProjectManager:
     def __init__(self, repository: ProjectRepository, sessions: Optional[SessionManager] = None, *,
                  components: Optional[Union[ComponentRegistry, Iterable[ProjectComponent]]] = None,
-                 backups=None, backup_steps=None, configuration_validator=None) -> None:
+                 backups=None, backup_steps=None, config_validator=None) -> None:
         registry = (components if isinstance(components, ComponentRegistry)
                     else ComponentRegistry(tuple(components) if components is not None else ()))
         self.repository = repository
         self.sessions = sessions if sessions is not None else SessionManager()
-        self.bind_configuration_validator(configuration_validator)
+        self.bind_config_validator(config_validator)
         if self.sessions.run_repository is None:
             from llm.services.runtime.runs import RunRepository
             self.sessions.run_repository = RunRepository()
@@ -104,10 +104,10 @@ class ProjectManager:
         from llm.services.lifecycle.steps import StepRepository
         self.backup_steps = backup_steps if backup_steps is not None else StepRepository()
 
-    def _validate_configuration(self, project) -> None:
-        self.components.validate_configuration(project)
-        if self.configuration_validator is not None:
-            self.configuration_validator(project.config)
+    def _validate_config(self, project) -> None:
+        self.components.validate_config(project)
+        if self.config_validator is not None:
+            self.config_validator(project.config)
 
     def _create(self, project_id: str, title: str, *, config: Optional[ProjectConfig] = None,
                 components: tuple[str, ...] = (),
@@ -117,7 +117,7 @@ class ProjectManager:
         project = Project(project_id, title, self.repository.paths(project_id),
                           config=deepcopy(config) if config else ProjectConfig(), components=selected,
                           conversation_storage=storage)
-        self._validate_configuration(project)
+        self._validate_config(project)
         self.repository.save(project)
         self.sessions.initialize(deepcopy(project))
         self.components.initialize(project)
@@ -129,15 +129,15 @@ class ProjectManager:
         if project.conversation_storage != "file":
             raise ValueError("Portable backup requires file conversation storage")
         self.components.validate(project.components)
-        self._validate_configuration(project)
+        self._validate_config(project)
         for name in project.components:
             validator = getattr(self.components.get(name), "validate_backup", None)
             if validator is None:
                 raise ValueError("Component must implement validate_backup for portable backup")
             validator(project)
         for session in self.sessions.repository.read_backup(project):
-            if self.configuration_validator is not None:
-                self.configuration_validator(project.config, session_config=session.config)
+            if self.config_validator is not None:
+                self.config_validator(project.config, session_config=session.config)
             for run in self.sessions.run_repository.read_backup(session):
                 self.backup_steps.read_backup(run)
         return project
@@ -150,12 +150,12 @@ class ProjectManager:
         return target
 
     # 공개 API
-    def bind_configuration_validator(self, validator) -> None:
+    def bind_config_validator(self, validator) -> None:
         """Project/Session 설정 검증을 같은 계약에 연결한다. 저장소와 Engine 실행은 분리한다."""
         if validator is not None and not callable(validator):
             raise TypeError("Configuration validator must be callable")
-        self.configuration_validator = validator
-        self.sessions.bind_configuration_validator(validator)
+        self.config_validator = validator
+        self.sessions.bind_config_validator(validator)
 
     @workspace_locked
     def activity(self, project, *, limit=None, newest_first=True):
@@ -246,31 +246,31 @@ class ProjectManager:
                             conversation_storage=conversation_storage)
 
     @workspace_locked
-    def configuration(self, project: Project, *, config=None, expected_version=None) -> dict:
+    def describe_config(self, project: Project, *, config=None, expected_version=None) -> dict:
         """UI용 설정 스냅샷. Component 설정을 중복 저장하지 않고 담당 객체에 조회를 위임한다."""
         current = self.access.require(project)
         check_revision(current.config.to_dict(), expected_version)
         version = revision_token(current.config.to_dict())
-        configurations = {name: self.components.get(name).configuration(deepcopy(current))
+        configurations = {name: self.components.get(name).get_config(deepcopy(current))
                           for name in current.components}
         versions = {name: revision_token(value) for name, value in configurations.items()}
         if config is not None:
             current.config = ProjectConfig(config)
-            self._validate_configuration(current)
+            self._validate_config(current)
             configurations = {}
         self.components.validate(current.components)
         for name in dict.fromkeys((*current.components, *current.config.parameters.get("components", {}))):
             if name not in configurations:
-                configurations[name] = self.components.get(name).configuration(deepcopy(current))
+                configurations[name] = self.components.get(name).get_config(deepcopy(current))
         return {"project": {"id": current.id, "title": current.title,
                             "conversation_storage": current.conversation_storage,
                             "config": current.config.to_dict()},
-                "policy_schema": ProjectConfig.policy_schema(),
+                "policy_schema": ProjectConfig.describe_policies(),
                 "config_version": version,
                 "component_versions": versions,
                 "components": {name: {"directory": self.components.get(name).directory,
                     "configuration": deepcopy(configurations[name]),
-                    "effective": component_configuration(self.components.get(name), deepcopy(current))}
+                    "effective": resolve_component_config(self.components.get(name), deepcopy(current))}
                     for name in current.components}}
 
     @workspace_locked
@@ -279,7 +279,7 @@ class ProjectManager:
         current = self.access.require(project)
         check_revision(current.config.to_dict(), expected_version)
         policies = current.config.configure_policies(changes)
-        self._validate_configuration(current)
+        self._validate_config(current)
         self.repository.save(current)
         return policies
 
@@ -288,7 +288,7 @@ class ProjectManager:
         current = self.access.require(project)
         check_revision(current.config.to_dict(), expected_version)
         if expected_components is not None and tuple(expected_components) != current.components:
-            raise ValueError("Project components changed; reload settings")
+            raise ValueError("Project components changed; reload configuration")
         if project.deleted != current.deleted or project.components != current.components:
             raise ValueError("Use lifecycle or component APIs to change managed Project state")
         previous_components = current.components
@@ -300,10 +300,10 @@ class ProjectManager:
                 raise ValueError("Cannot change conversation storage after Sessions have been created")
             current.conversation_storage = storage
         current.title, current.config = project.title, deepcopy(project.config)
-        self._validate_configuration(current)
+        self._validate_config(current)
         if current.components != previous_components:
             # Prepare component-owned storage before publishing one metadata update.
-            # Initialization is idempotent; a failure must not publish draft settings.
+            # Initialization is idempotent; a failure must not publish draft configuration.
             self.components.initialize(current)
         self.repository.save(current)
 

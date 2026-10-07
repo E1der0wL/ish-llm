@@ -31,7 +31,7 @@ class ComponentRegistry:
             self.register(component)
 
     def register(self, component: ProjectComponent) -> None:
-        describe = getattr(component, "configuration_schema", None)
+        describe = getattr(component, "describe_config", None)
         if callable(describe):
             from llm.core.schema import checked_implementation_schema
             checked_implementation_schema(describe())
@@ -83,7 +83,7 @@ class ComponentRegistry:
         return tuple(names)
 
     def initialize(self, project: Project) -> None:
-        self.validate_configuration(project)
+        self.validate_config(project)
         for name in self.validate(project.components):
             root = project.paths.root / self._components[name].directory
             if not root.exists():
@@ -92,15 +92,15 @@ class ComponentRegistry:
         log_event(project.paths.logs, "components.initialized", entity_id=project.id,
                   count=len(project.components))
 
-    def validate_configuration(self, project: Project) -> None:
+    def validate_config(self, project: Project) -> None:
         """등록된 컴포넌트에만 Project 설정을 전달한다. 비활성 자료는 생성하지 않는다."""
         project.config.validate()
         self.validate(project.components)
         for name in project.config.parameters.get("components", {}):
             component = self.get(name)
-            validate = getattr(component, "validate_project_configuration", None)
+            validate = getattr(component, "validate_project_config", None)
             if validate is None:
-                raise ValueError(f"Component {name} does not support ProjectConfig settings")
+                raise ValueError(f"Component {name} does not support ProjectConfig parameters")
             validate(deepcopy(project))
 
     def resolve(self, project: Project, capability: str, *, data_factory=None) -> tuple[Any, ...]:
@@ -119,5 +119,5 @@ class ComponentRegistry:
 
     def clone(self, source: Project, destination: Project) -> None:
         for name in self.validate(source.components):
-            self._components[name].configuration(deepcopy(source))
+            self._components[name].get_config(deepcopy(source))
             self._components[name].clone(deepcopy(source), deepcopy(destination))

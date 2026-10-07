@@ -56,7 +56,7 @@ class DefinitionOwnershipTests(unittest.TestCase):
                 with self.subTest(key=key, value=value), self.assertRaises(ValueError):
                     engine.for_agent({**profile, key: value})
         for options in ({"foo": 1}, {"config": {"foo": 1}}, {"config": {"revision": "x"}},
-                        {"config": {"settings_name": "other"}}, {"policy": {"foo": 1}}):
+                        {"config": {"parameter_key": "other"}}, {"policy": {"foo": 1}}):
             with self.subTest(options=options), self.assertRaises((ValueError, ValidationError)):
                 engine.for_agent({**profile, "engine_options": {"workflow": "flow", **options}})
 
@@ -98,7 +98,7 @@ class DefinitionOwnershipTests(unittest.TestCase):
     def test_selected_handler_owns_additional_fields(self):
         class Handler:
             @staticmethod
-            def configuration_schema():
+            def describe_config():
                 return object_schema({"new_option": {"type": "integer", "minimum": 1}}, required=["new_option"])
         validate_handler_options({"type": "custom", "new_option": 8, "metadata": {"timeout": 1}}, Handler())
         for value in ({"type": "custom", "new_option": "bad"}, {"type": "custom", "new_option": 8, "typo": True}):
@@ -110,13 +110,13 @@ class DefinitionOwnershipTests(unittest.TestCase):
         from llm.components.vision import VisionComponent
         from llm.components.tools import ToolComponent
         from llm.engines.loop import LoopEngine
-        from llm.core.policies import policy_schema
-        schemas = [policy_schema(), LoopEngine().configuration_schema(), GraphEngine(handlers={}).configuration_schema(),
-                   LoopEngine().for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"extra_body": {"adapter_private": 3}}})}).configuration_schema(),
+        from llm.core.policies import describe_policies
+        schemas = [describe_policies(), LoopEngine().describe_config(), GraphEngine(handlers={}).describe_config(),
+                   LoopEngine().for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"extra_body": {"adapter_private": 3}}})}).describe_config(),
                    MemoryComponent.content_schema]
         for component in (AgentComponent(), SkillComponent(), PromptComponent(), GoalComponent(), MCPComponent(),
                           WorkflowComponent(), RefinementComponent(), RAGComponent(), MemoryComponent(), VisionComponent(), ToolComponent()):
-            schemas.append(component.configuration_schema())
+            schemas.append(component.describe_config())
             if hasattr(component, "schema"):
                 schemas.append(component.schema)
         def visit(spec, path):
@@ -155,7 +155,7 @@ class DefinitionOwnershipTests(unittest.TestCase):
                         continue
                     if "additionalProperties" not in values:
                         # not/anyOf 아래 key 존재 여부를 검사하는 조건식이며 설정 계약이 아니다.
-                        if path.relative_to(root).as_posix() == "core/settings.py" and definition.name == "_presence":
+                        if path.relative_to(root).as_posix() == "core/parameters.py" and definition.name == "_presence":
                             continue
                         unowned.append(f"{path.relative_to(root)}:{definition.name}:{node.lineno}")
         self.assertEqual(unowned, [])
@@ -166,7 +166,7 @@ class OwnershipIntegrationTests(unittest.IsolatedAsyncioTestCase):
         seen = []
         class Handler:
             @staticmethod
-            def configuration_schema():
+            def describe_config():
                 return object_schema({"new_option": {"type": "integer"}}, required=["new_option"])
             async def __call__(self, node):
                 seen.append(node.definition["new_option"])
@@ -193,10 +193,10 @@ class OwnershipIntegrationTests(unittest.IsolatedAsyncioTestCase):
         class Child:
             params = {}
             @staticmethod
-            def configuration_schema():
+            def describe_config():
                 return object_schema({"dialect": {"enum": ["alpha", "beta"]}})
-            def configured(self, params):
-                Draft202012Validator(self.configuration_schema()).validate(params)
+            def with_config(self, params):
+                Draft202012Validator(self.describe_config()).validate(params)
                 clone = copy(self)
                 clone.params = deepcopy(params)
                 return clone
@@ -209,10 +209,10 @@ class OwnershipIntegrationTests(unittest.IsolatedAsyncioTestCase):
             async with LargeLanguageModel(root, components=[component]) as backend:
                 project = await backend.projects.acreate("child", components=["rag"], config=ProjectConfig(parameters={
                     "components": {"rag": {"config": {"embedding_params": {"dialect": "beta"}}}}}))
-                worker = component.configured(project.data)
+                worker = component.with_config(project.data)
                 self.assertEqual(await worker.embed(["text"]), [[1, 3]])
                 with self.assertRaises(ValueError):
-                    component.validate_configuration({"config": {"embedding_params": {"api_base": "parent-must-not-accept-this"}}})
+                    component.validate_config({"config": {"embedding_params": {"api_base": "parent-must-not-accept-this"}}})
 
     async def test_provider_specific_options_survive_parent_boundary(self):
         calls = []
@@ -225,7 +225,7 @@ class OwnershipIntegrationTests(unittest.IsolatedAsyncioTestCase):
             async with LargeLanguageModel(root, components=[component]) as backend:
                 project = await backend.projects.acreate("provider", components=["rag"], config=ProjectConfig(parameters={
                     "components": {"rag": {"config": {"embedding_params": opaque}}}}))
-                await component.configured(project.data).embed(["text"])
+                await component.with_config(project.data).embed(["text"])
         self.assertEqual(calls[0]["custom_route"], opaque["custom_route"])
         self.assertNotIn("timeout", calls[0])
         self.assertEqual(calls[0]["cache"], {"no-cache": True, "no-store": True})

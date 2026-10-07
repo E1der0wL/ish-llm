@@ -12,7 +12,7 @@ from llm.llm import LargeLanguageModel
 
 class ReviewNode:
     @staticmethod
-    def configuration_schema():
+    def describe_config():
         return object_schema({"review_mode": {"enum": ["syntax", "logic"]}},
                              required=["review_mode"])
 

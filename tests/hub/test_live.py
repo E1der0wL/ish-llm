@@ -29,12 +29,12 @@ async def until(predicate):
 
 
 class ControlledEngine(BaseEngine):
-    def configuration(self, config, registered_name=None, *, session_config=None):
-        from llm.core.configuration import engine_configuration
-        return engine_configuration(config, registered_name, session_config=session_config,
-                                    schema=self.configuration_schema())
+    def resolve_config(self, config, registered_name=None, *, session_config=None):
+        from llm.core.configuration import resolve_engine_config
+        return resolve_engine_config(config, registered_name, session_config=session_config,
+                                    schema=self.describe_config())
 
-    def configuration_schema(self):
+    def describe_config(self):
         from llm.core.schema import object_schema, implementation_schema
         from llm.providers.schema import completion_schema
         return implementation_schema(config=object_schema({"completion": completion_schema()}))

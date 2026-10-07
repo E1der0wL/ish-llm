@@ -9,9 +9,9 @@ class GoalProcessor:
     name = "goals"
     close_timeout = None  # 자원을 소유하지 않는 CompletionSession.aclose no-op.
 
-    def __init__(self, data, settings):
-        self.data, self.settings = data, deepcopy(settings)
-        self.priority = settings.get("config", {}).get("priority", 0)  # 비활성 처리기의 중립 순서
+    def __init__(self, data, config):
+        self.data, self.config = data, deepcopy(config)
+        self.priority = config.get("config", {}).get("priority", 0)  # 비활성 처리기의 중립 순서
 
     def session(self, context):
         return GoalSession(self, context)
@@ -22,8 +22,8 @@ class GoalSession(CompletionSession):
         self.processor, self.context = processor, context
 
     async def prepare(self, request):
-        config = self.processor.settings.get("config", {})
-        if not self.processor.settings.get("policy", {}).get("inject"):
+        config = self.processor.config.get("config", {})
+        if not self.processor.config.get("policy", {}).get("inject"):
             return
         if self.context.output_step_id is not None and self.context.state.get("agent", {}).get("agent_id") not in config.get("nested_agent_ids", []):
             return

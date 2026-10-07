@@ -49,7 +49,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         for model in models.values():
             self.addAsyncCleanup(self.release_model, model)
         self.project = await self.app.projects.acreate("steering", components=["workflows", "agents"], config={
-            "parameters": {"engines": {name: LoopEngine.settings_layout.pack(value) for name, value in (options or {}).items()}}})
+            "parameters": {"engines": {name: LoopEngine.parameter_layout.pack(value) for name, value in (options or {}).items()}}})
         workflows = await self.project.components.aget("workflows")
         for name, definition in {"flow": graph or agent_graph(), **(graphs or {})}.items():
             await workflows.acreate(definition, identifier=name)
@@ -263,7 +263,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         # 같은 저장 Session을 일반 Loop로 열어도 노드 전용 지시는 사용자 공통 문맥이 아니다.
         ids = self.project.id, self.session.id
         await self.app.shutdown()
-        reopened = LargeLanguageModel(self.root, engines={"loop": LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})})})
+        reopened = LargeLanguageModel(self.root, engines={"loop": LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})})
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(ids[0])).sessions.aload(ids[1])
         next_run = await (await session.run.submit("next", engine="loop")).wait(timeout=15)
@@ -321,8 +321,8 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         from tests.llm.test_loop import call
         from tests.llm.support.runtime_tools import RuntimeTools
         from llm.components.tools import Tool, ToolRegistry
-        from llm.services.runtime.tools import ToolPolicy, ToolApprovalRequired
-        from llm.services.configuration import ServiceConfig
+        from llm.services.runtime.tools import ToolRuntime, ToolApprovalRequired
+        from llm.services.composition import BackendServices
         effects = []
         async def act(arguments):
             effects.append(1)
@@ -334,7 +334,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         self.app = LargeLanguageModel(folder.name, components=[WorkflowComponent(), AgentComponent(), component],
-            services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)),
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)),
             engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})})})
         self.addAsyncCleanup(self.app.shutdown)
         self.addAsyncCleanup(self.release_model, model)

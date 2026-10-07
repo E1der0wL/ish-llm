@@ -63,7 +63,7 @@ class ToolSelectionTests(unittest.TestCase):
         names.append("caller")
         snapshot = self.tools.enabled()
         snapshot.append("reader")
-        self.assertEqual(self.tools.configuration(), {"config": {
+        self.assertEqual(self.tools.get_config(), {"config": {
             "enabled": ["search", "add"]}})
         self.tools.set_enabled(())
         self.assertEqual(self.tools.enabled(), [])
@@ -73,20 +73,20 @@ class ToolSelectionTests(unittest.TestCase):
         for name in ("duplicate", "new"):
             self.tools.create({"source": "# editable"}, identifier=name)
         self.tools.configure({'config': {'enabled': ['kept']}})
-        before = self.tools.configuration()
+        before = self.tools.get_config()
         for names in ("add", None, ["duplicate", "duplicate"], [1], [""], ["  "], [None]):
             with self.subTest(names=names), self.assertRaises(ValueError):
                 self.tools.set_enabled(names)
-            self.assertEqual(self.tools.configuration(), before)
+            self.assertEqual(self.tools.get_config(), before)
         for method in (self.tools.enable, self.tools.disable):
             for name in (None, 1, [], "", "  "):
                 with self.subTest(method=method.__name__, name=name), self.assertRaises(ValueError):
                     method("valid", name)
-                self.assertEqual(self.tools.configuration(), before)
+                self.assertEqual(self.tools.get_config(), before)
         with patch("llm.services.infrastructure.storage.os.replace", side_effect=OSError("disk error")):
             with self.assertRaises(OSError):
                 self.tools.enable("new")
-        self.assertEqual(self.tools.configuration(), before)
+        self.assertEqual(self.tools.get_config(), before)
 
     def test_selection_survives_reload_and_clone_without_cross_project_changes(self):
         self.tools.create({"source": "# editable"}, identifier="offline_definition")
@@ -132,7 +132,7 @@ class ToolSelectionTests(unittest.TestCase):
                 with self.assertRaises(WorkspaceBusyError):
                     action()
         self.assertEqual(len(self.tools.enabled()), 12)
-        self.assertEqual(set(self.tools.configuration()["config"]["enabled"]), {"tool_" + str(i) for i in range(12)})
+        self.assertEqual(set(self.tools.get_config()["config"]["enabled"]), {"tool_" + str(i) for i in range(12)})
 
     def test_other_components_can_opt_in_and_invalid_handle_registration_is_rejected(self):
         class NotesData(ComponentData):

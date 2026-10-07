@@ -396,7 +396,7 @@ ConditionalContainer로 활성화 상태에 따라 표시합니다. 동적 페�
 Tab/Shift+Tab은 Application 수준 navigation_keys에서 처리합니다.
 
 SettingsService는 기존 BackendWorker의 직렬 명령 경로에서 실행합니다.
-project_schema/aconfiguration으로 입력 폼을 만들고 공개 validate/save API로
+describe_project_config/aconfiguration으로 입력 폼을 만들고 공개 validate/save API로
 설정 버전을 검증해 저장합니다. 선택된 컴포넌트는 components.aselect로 별도 적용합니다.
 폼은 빈 값/명시적 null/기존 알 수 없는 키를 보존하며 스키마 기본값을 합성하지 않습니다.
 스키마의 복합 분기는 JSON textarea로 편집합니다. 실행 정책이나 컴포넌트 데이터를

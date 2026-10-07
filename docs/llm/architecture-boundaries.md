@@ -83,7 +83,7 @@ maintenance를 preview로 시작하는 것은 비파괴 API 계약이며 제품 
 - Refinement의 Agent update는 purpose/description만 허용한다. resources.skills는 별도 bind_skills다.
 - CREATE/FORK는 Skill만 지원하며 target 부재, 부모 CAS, lineage와 평가·승인 경계를 검사한다.
 - require_evaluation은 기록 존재를 요구한다. 평가 결과의 합격 판정은 host가 소유한다.
-- trusted Python CRUD는 관리 API다. 모델에게 내보낼 때에는 ToolPolicy/Refinement 경계를 사용한다.
+- trusted Python CRUD는 관리 API다. 모델에게 내보낼 때에는 ToolRuntime/Refinement 경계를 사용한다.
 - Skill의 열린 resources/추가 JSON은 데이터다. 이를 실행 권한으로 재해석하는 커스텀 소비자는
   자체 권한 검증을 구현해야 한다. 기본 AgentNode는 그 필드를 권한으로 읽지 않는다.
 

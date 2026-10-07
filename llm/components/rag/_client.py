@@ -27,12 +27,12 @@ class ModelClient:
         self.provider_options = {}
 
     @classmethod
-    def configuration_schema(cls):
+    def describe_config(cls):
         from llm.providers.schema import model_schema
         return model_schema(cls.operation)
 
     @classmethod
-    def validate_configuration(cls, params):
+    def validate_config(cls, params):
         from llm.providers.schema import validate_model_params
         validate_model_params(params, operation=cls.operation)
 
@@ -45,11 +45,11 @@ class ModelClient:
         worker.provider_options = dict(options)
         return worker
 
-    def configured(self, params):
+    def with_config(self, params):
         """호스트 함수를 유지한 호출별 사본. 프로젝트에서 전달한 인자를 클라이언트 기본값 위에 적용한다."""
         worker = copy(self)
         worker.params = merge_params(self.params, params)
-        worker.validate_configuration(params)
+        worker.validate_config(params)
         return worker
 
     async def _invoke(self, **kwargs: Any) -> Any:

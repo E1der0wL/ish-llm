@@ -18,7 +18,7 @@ print(project.data.conversation_storage)  # "memory"
 복제하면 대상 프로젝트의 저장소에 메시지의 독립 사본을 만든다.
 
 생략하면 `LargeLanguageModel(conversation_storage=...)` 또는
-`ServiceConfig(conversations=...)`의 기본값을 새 프로젝트에 기록한다. 아무것도 지정하지
+`BackendServices(conversations=...)`의 기본값을 새 프로젝트에 기록한다. 아무것도 지정하지
 않으면 `file`이다. 백엔드 기본값을 바꿔도 이미 선택을 기록한 프로젝트에는 영향이 없다.
 저장된 프로젝트에서 이 필드가 누락되면 오류다. 읽는 것만으로 필드를 추가하거나
 대화를 다른 저장소로 옮기지 않는다. 사용자 팩토리는 명시적인 null 선택을 사용한다.
@@ -86,30 +86,30 @@ metadata 등에 텍스트를 넣으면 해당 텍스트도 그 도메인 파일�
 메시지는 명시적으로 정리하기 전까지 메모리에 보관한다. ContextPolicy는 모델에 전달할
 문맥만 고르며 저장소의 오래된 메시지를 자동으로 지우지 않는다.
 
-## ServiceConfig 및 직접 주입
+## BackendServices 및 직접 주입
 
 다음 설정은 새 프로젝트의 기본값을 지정한다.
 
 ```python
-from llm.llm import LargeLanguageModel, ServiceConfig
+from llm.llm import LargeLanguageModel, BackendServices
 
 backend = LargeLanguageModel(
     "./workspace",
-    services=ServiceConfig(conversations="memory"),
+    services=BackendServices(conversations="memory"),
 )
 ```
 
-같은 ServiceConfig를 재사용해도 각 백엔드는 별도 메모리 팩토리를 만든다. 이미 별도
+같은 BackendServices를 재사용해도 각 백엔드는 별도 메모리 팩토리를 만든다. 이미 별도
 conversations 설정을 지정했다면 Facade의 conversation_storage를 동시에 지정하지 않는다.
 이 규칙은 사용자 팩토리를 조용히 기본 구현으로 덮어쓰는 것을 방지한다.
 
 호스트가 여러 백엔드의 순차 재생성 동안 대화를 유지하고 싶다면 팩토리를 직접 소유한다.
 
 ```python
-from llm.llm import LargeLanguageModel, ServiceConfig, MemoryConversations
+from llm.llm import LargeLanguageModel, BackendServices, MemoryConversations
 
 conversations = MemoryConversations()
-services = ServiceConfig(conversations=conversations)
+services = BackendServices(conversations=conversations)
 backend = LargeLanguageModel("./workspace", services=services)
 # backend 종료 후 같은 services로 새 백엔드를 만들면 같은 Session 대화를 다시 사용한다.
 # 모든 사용자가 종료했을 때 호스트가 conversations.clear()를 호출한다.

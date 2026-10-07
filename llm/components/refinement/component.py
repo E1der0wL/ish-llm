@@ -50,7 +50,7 @@ class RefinementComponent(DefinitionComponent):
         "skill_versions": object_schema(additionalProperties=field("string", pattern="^[a-f0-9]{64}$")),
     }, required=["target", "operation", "expected_version", "reason", "evidence", "patch", "status", "before", "source", "history"])
 
-    def configuration_schema(self):
+    def describe_config(self):
         return implementation_schema(config=object_schema(additionalProperties=False),
             policy=object_schema({"apply_tools": field("boolean"), "require_evaluation": field("boolean"),
                 "proposal_operations": {"type": "array", "uniqueItems": True,
@@ -76,7 +76,7 @@ class RefinementComponent(DefinitionComponent):
             return data
         if capability == "tools":
             from .tools import refinement_tools
-            policy = self.configuration(project).get("policy", {})
+            policy = self.get_config(project).get("policy", {})
             return refinement_tools(data, apply=policy.get("apply_tools") is True,
                                     operations=policy.get("proposal_operations", ()))
         return super().resolve_runtime(project, capability, data_factory=data_factory)

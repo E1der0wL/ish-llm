@@ -24,7 +24,7 @@ def _supported(annotation):
             _supported(item)
         return
     if origin is typing.Literal and args and all(type(v) in (str, int, float, bool, type(None)) for v in args):
-        ProjectConfig.validate_settings({"values": list(args)})
+        ProjectConfig.validate_json({"values": list(args)})
         return
     if origin is list and len(args) == 1:
         _supported(args[0])
@@ -59,7 +59,7 @@ def function_tool(name, main) -> Tool:
         if parameter.default is inspect.Parameter.empty:
             required.append(key)
         else:
-            ProjectConfig.validate_settings({"default": parameter.default})
+            ProjectConfig.validate_json({"default": parameter.default})
             # 실제 Python 기본값을 변환 없이 provider에 공개하는 동일 schema로 검증한다.
             try:
                 Draft202012Validator(schema).validate(parameter.default)

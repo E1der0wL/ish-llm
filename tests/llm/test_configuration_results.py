@@ -47,7 +47,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.session.config["parameters"] = {"engines": {"loop": {'config': {'completion': {'top_p': 0.6, 'extra_body': {'setting': 1}}, 'system_prompt': 'session prompt'}, 'policy': {'max_iterations': 1}}}}
         self.sessions.save(self.session)
         provider = ScriptedCompletion([chunk("answer", finish="stop")])
-        self.engines.register("loop", LoopEngine(completion_fn=provider).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"top_p": 0.4}})}))
+        self.engines.register("loop", LoopEngine(completion_fn=provider).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"top_p": 0.4}})}))
         self.assertEqual(self.sessions.load(self.project, self.session.id).config, self.session.config)
         self.assertEqual(self.project.config, self.projects.load(self.project.id).config)
         run = await self.submit()
@@ -57,7 +57,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(request["messages"][0]["content"], "session prompt")
         self.assertEqual(run.status, RunStatus.COMPLETED)
         self.assertEqual(self.session.config["data"]["language"], "ko")
-        settings = self.project.config.for_engine("loop", self.session.config)
+        settings = self.project.config.resolve_engine_config("loop", self.session.config)
         settings["parameters"]["engines"]["loop"]["config"]["completion"]["extra_body"]["setting"] = 99
         self.assertEqual(self.session.config["parameters"]["engines"]["loop"]["config"]["completion"]["extra_body"]["setting"], 1)
 
@@ -96,15 +96,15 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
     async def test_pipeline_aggregates_all_completion_calls_and_missing_usage_is_unknown(self):
         provider = ScriptedCompletion([chunk("one", finish="stop"), self.usage_chunk()],
                                       [chunk("two", finish="stop"), self.usage_chunk(4, 6)])
-        self.engines.register("pipeline", PipelineEngine([LoopEngine(completion_fn=provider, settings_name="loop"),
-                                                          LoopEngine(completion_fn=provider, settings_name="loop")]))
+        self.engines.register("pipeline", PipelineEngine([LoopEngine(completion_fn=provider, parameter_key="loop"),
+                                                          LoopEngine(completion_fn=provider, parameter_key="loop")]))
         run = await self.submit("pipeline")
         result = self.projects.results.load(self.project, run.id)
         self.assertEqual(result.engine, "pipeline")
         self.assertEqual(result.total_tokens, 15)
         self.assertEqual(result.finish_reasons, ["stop", "stop"])
         self.assertEqual(len({c.id for c in result.completions}), 2)
-        self.engines.register("missing", LoopEngine(settings_name="loop", completion_fn=ScriptedCompletion([chunk("none", finish="stop")])))
+        self.engines.register("missing", LoopEngine(parameter_key="loop", completion_fn=ScriptedCompletion([chunk("none", finish="stop")])))
         missing = self.projects.results.load(self.project, (await self.submit("missing")).id)
         self.assertIsNone(missing.total_tokens)
         self.assertFalse(missing.completions[0].usage_complete)

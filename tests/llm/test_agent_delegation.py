@@ -4,11 +4,11 @@ import json
 import tempfile
 import unittest
 
-from llm.llm import LargeLanguageModel, ServiceConfig
+from llm.llm import LargeLanguageModel, BackendServices
 from llm.components.agents import AgentComponent
 from llm.components.tools import Tool, ToolRegistry, ToolContract, ToolClassification
 from llm.engines.loop import LoopEngine
-from llm.services.runtime.tools import ToolPolicy
+from llm.services.runtime.tools import ToolRuntime
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
@@ -123,7 +123,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
             time.sleep(.1)
             yield chunk("late", finish="stop")
         app, session, _, _ = await self.setup(definition={"policy": {"timeout_seconds": .01}})
-        app.engines.resolve("child").completion_fn = slow
+        app.engines.get("child").completion_fn = slow
         run = await (await session.run.submit("go", engine="parent")).wait(timeout=10)
         self.assertEqual(run.data.status, "failed")
         self.assertNotEqual(run.data.metadata.get("output", {}).get("text"), "late")

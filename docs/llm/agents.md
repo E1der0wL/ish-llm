@@ -84,7 +84,7 @@ Workflow는 `<project>/workflows/records/<id>.json`이다. Component 설정은 P
 단위 corpus 검색이다. corpus 내용은 검색 시점에 읽으며 검색 결과/근거는 Tool Step에 남는다.
 
 Loop에 숨은 반복/모델/Tool 시간 제한은 없다. Project → Session → Agent의 명시값만
-적용한다. policy와 부모 Run/ToolPolicy 한도는
+적용한다. Agent policy와 부모 Run/ToolExecutionScope의 Project 한도는
 동시에 적용하며 Agent가 부모 권한이나 예산을 늘릴 수 없다. require_tool이 설정되면 Loop는
 첫 성공 전 tool_choice=required를 사용하고, 모델이 무시하면 성공으로 처리하지 않는다.
 출력 검증 실패나 정책 위반 후 자동 모델/Tool 재시도는 없다. 업무상 재수정은 Workflow의
@@ -119,7 +119,7 @@ Agent 정의의 다음 설정은 docs 서버의 read_document만 read_docs라는
 ```
 
 반환 ToolRegistry의 handler는 비동기이며 JSON 결과를 반환한다. Agent는 등록된 별칭만
-허용하고 중복 이름을 거부한다. 실제 Tool 호출은 부모 ToolPolicy 승인/실행기/원장을 거친다.
+허용하고 중복 이름을 거부한다. 실제 Tool 호출은 부모 ToolRuntime 승인/실행기/원장을 거친다.
 연결/도구 발견 자체는 호스트 어댑터의 책임이며 Tool 실행 승인을 대신하지 않는다.
 등록된 연결기가 없으면 Workflow 실행 전 실패한다. 실행 중 취소에도 Tool 정리 후 세션을 닫는다.
 MCPComponent를 명시적으로 주입할 때 LargeLanguageModel.components는 기본 목록을 대체하므로

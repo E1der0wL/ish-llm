@@ -57,7 +57,7 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
                                   amodel_usage=AsyncMock(side_effect=OSError("unreadable receipts")))
             runtime = SimpleNamespace(config=HubConfig(directory, "loop", "test/model"), project=good,
                 backend=SimpleNamespace(projects=SimpleNamespace(alist=AsyncMock(return_value=[good, bad])),
-                                        host_configuration=lambda: {"values": {}}))
+                                        describe_host=lambda: {"values": {}}))
             service = SettingsService(runtime)
             with patch.object(service, "_schema", return_value={}):
                 catalog = await service.catalog()

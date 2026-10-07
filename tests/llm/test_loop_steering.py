@@ -9,7 +9,7 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from llm.llm import LargeLanguageModel, LoopEngine, ProjectConfig, EngineEventType, ServiceConfig
+from llm.llm import LargeLanguageModel, LoopEngine, ProjectConfig, EngineEventType, BackendServices
 from llm.core.steering import InstructionStatus
 from llm.services.runtime.runs import RunRequestError
 from tests.llm.test_loop import chunk, call
@@ -47,7 +47,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(model.release.set)
         project = await app.projects.acreate("test", config=ProjectConfig(ProjectConfig.merge(
             {"parameters": {"engines": {"worker": ProjectConfig.merge({'config': {'completion': {'model': 'test/model'}}},
-                LoopEngine.settings_layout.pack(options or {}))}}}, config or {})),
+                LoopEngine.parameter_layout.pack(options or {}))}}}, config or {})),
             components=[v.name for v in (components or [])])
         for component in components or []:
             if isinstance(component, RuntimeTools):
@@ -148,7 +148,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_current_turn_cannot_be_trimmed_to_only_latest_instruction(self):
         model = Model([chunk("x" * 50, finish="stop")])
-        services = ServiceConfig(token_counters={"chars": lambda request: sum(len(m.get("content") or "") for m in request["messages"])})
+        services = BackendServices(token_counters={"chars": lambda request: sum(len(m.get("content") or "") for m in request["messages"])})
         _, session, request, run = await self.setup_backend(model, services=services,
             config={"parameters": {"engines": {"worker": {'policy': {'completion': {'max_tokens': 20, 'counter': 'chars'}}}}}})
         await session.run.steer(run.id, "new")
@@ -194,7 +194,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_memory_store_uses_same_delivery_contract(self):
         model = Model([chunk("draft", finish="stop")], [chunk("done", finish="stop")])
-        _, session, request, run = await self.setup_backend(model, services=ServiceConfig(conversations="memory"))
+        _, session, request, run = await self.setup_backend(model, services=BackendServices(conversations="memory"))
         await session.run.steer(run.id, "correction")
         model.release.set()
         result = await request.wait(timeout=10)
@@ -279,10 +279,10 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(value.status, "unapplied")
 
     async def test_output_batching_keeps_instruction_checkpoint_barrier(self):
-        from llm.services.runtime.output import OutputPolicy
+        from llm.services.runtime.output import OutputBuffer
         model = Model([chunk("draft"), chunk(finish="stop")], [chunk("revised", finish="stop")])
         app, session, request, run = await self.setup_backend(model,
-            services=ServiceConfig(output_policy=OutputPolicy(batch_size=8)))
+            services=BackendServices(output_buffer=OutputBuffer(batch_size=8)))
         value = await session.run.steer(run.id, "correction")
         model.release.set()
         result = await request.wait(timeout=10)
@@ -406,7 +406,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         model = Model([chunk("draft", finish="stop")], [ConnectionError("offline")],
                       [chunk("fresh answer", finish="stop")])
         app, session, request, run = await self.setup_backend(model,
-            services=ServiceConfig(conversations="memory"))
+            services=BackendServices(conversations="memory"))
         await session.run.steer(run.id, "old instruction")
         model.release.set()
         failed = await request.wait(timeout=10)
@@ -549,7 +549,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_completion_budget_removes_entire_prior_steered_turn(self):
         counter = lambda r: sum(len(m.get("content") or "") for m in r["messages"])
-        services = ServiceConfig(token_counters={"chars": counter})
+        services = BackendServices(token_counters={"chars": counter})
         model = Model([chunk("draft", finish="stop")], [chunk("answer", finish="stop")],
                       [chunk("done", finish="stop")])
         _, session, request, run = await self.setup_backend(model, services=services,

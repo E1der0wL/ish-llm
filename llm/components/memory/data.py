@@ -19,7 +19,7 @@ class MemoryData(ComponentData):
     @workspace_locked
     def _processing_snapshot(self, session_id, *, include_records=True):
         project, component = self._current()
-        return {"identity": component.identity(project), "configuration": component.configuration(project),
+        return {"identity": component.identity(project), "configuration": component.get_config(project),
                 "has_search": component.search_fn is not None or component._options(project).get("search_strategy") is not None,
                 "records": component.list(project, include_deleted=True, session_id=session_id) if include_records else {},
                 "summary": component.summary(project, session_id)}
@@ -36,7 +36,7 @@ class MemoryData(ComponentData):
 
     def _check_snapshot(self, project, component, snapshot):
         if (component.identity(project) != snapshot["identity"] or
-                component.configuration(project) != snapshot["configuration"]):
+                component.get_config(project) != snapshot["configuration"]):
             from .component import MemoryConflictError
             raise MemoryConflictError("Memory configuration or storage changed during processing")
 

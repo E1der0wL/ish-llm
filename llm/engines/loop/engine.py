@@ -19,8 +19,8 @@ from contextlib import aclosing
 from llm.components.processing import CompletionMessage, CompletionRequest, CompletionObservation, CompletionPipeline
 from llm.core.models import MessageRole, MessageStatus
 from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record
-from llm.core.configuration import engine_configuration, UNSET
-from llm.core.settings import SettingsLayout
+from llm.core.configuration import resolve_engine_config, UNSET
+from llm.core.parameters import ParameterLayout
 from llm.core.results import EngineOutput
 from llm.providers.litellm import completion
 from llm.providers.parameters import merge_params
@@ -62,9 +62,10 @@ class LoopEngine(BaseEngine):
             if value is None or isinstance(value, (str, int, float, bool)):
                 return value
             return {"runtime_type": type(value).__module__ + "." + type(value).__qualname__}
-        values = portable({"settings": context.settings(self.settings_name),
+        # Persisted binding vocabulary stays byte-compatible; these are not runtime API aliases.
+        values = portable({"settings": context.resolve_config(self.parameter_key),
                          "completion": self.completion_kwargs,
-                         "prompt": self.system_prompt, "agent": self._agent_settings, "tools": context.tools.definitions(),
+                         "prompt": self.system_prompt, "agent": self._agent_options, "tools": context.tools.definitions(),
                          "tool_contracts": context.tools.contracts(),
                          "tool_policy": context.tool_scope.binding() if context.tool_scope else None})
         return hashlib.sha256(json.dumps(values, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()).hexdigest()
@@ -81,7 +82,7 @@ class LoopEngine(BaseEngine):
         if len(set(retry_nodes)) != len(retry_nodes) or set(retry_nodes) != uncertain:
             raise ValueError(f"Explicit retry_nodes must match uncertain Tool keys: {sorted(uncertain)}")
         if context is not None and checkpoint["header"]["binding"] != self._binding(context):
-            raise ValueError("Loop settings or Tool definitions changed; start a new request")
+            raise ValueError("Loop configuration or Tool definitions changed; start a new request")
         decisions = decisions or {}
         waiting = {key for key, value in checkpoint["records"].items() if value["status"] == "waiting"}
         if set(decisions) - waiting:
@@ -98,7 +99,7 @@ class LoopEngine(BaseEngine):
         return EngineEvent(EngineEventType.CHECKPOINT, interaction=interaction, metadata={"name": "loop", "operation": "record",
                                                                "key": key, "value": deepcopy(value)})
 
-    settings_layout = SettingsLayout(
+    parameter_layout = ParameterLayout(
         config=("completion", "system_prompt", "buffer_size"),
         policy=("max_iterations", "request_timeout", "tool_timeout", "max_tool_calls",
                 "max_argument_chars", "max_output_chars", "provider"),
@@ -107,11 +108,11 @@ class LoopEngine(BaseEngine):
     _option_names = ("max_iterations", "request_timeout", "tool_timeout", "buffer_size",
                      "max_tool_calls", "max_argument_chars", "max_output_chars")
 
-    def __init__(self, *, settings_name=None, completion_fn=completion) -> None:
+    def __init__(self, *, parameter_key=None, completion_fn=completion) -> None:
         """Host는 구현을 등록한다. 실행값은 Project/Session/Agent 설정에서만 읽는다."""
-        if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
-            raise ValueError("settings_name must be a nonempty string or None")
-        self.settings_name, self._agent_settings = settings_name, {}
+        if parameter_key is not None and (not isinstance(parameter_key, str) or not parameter_key.strip()):
+            raise ValueError("parameter_key must be a nonempty string or None")
+        self.parameter_key, self._agent_options = parameter_key, {}
         self.completion_fn = completion_fn
         self._configure({})
 
@@ -137,31 +138,31 @@ class LoopEngine(BaseEngine):
         self.completion_kwargs = self.copy_params(values.get("completion", {}))
         self.system_prompt = values.get("system_prompt")
 
-    def configuration_schema(self):
+    def describe_config(self):
         from llm.core.schema import object_schema, field
         names = self._option_names
         properties = {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0) for name in names}
         properties["system_prompt"] = {"type": ["string", "null"], "description": "시스템 프롬프트"}
         properties["completion"] = completion_schema()
-        properties["input_policy"] = CompletionPolicy.configuration_schema()
+        properties["input_policy"] = CompletionPolicy.describe_config()
         properties["provider"] = {**provider_schema(), "type": ["object", "null"]}
         for key in self._option_names:
             if key != "buffer_size":
                 properties[key]["x-narrowing"] = "maximum"
-        return self.settings_layout.schema(object_schema(properties, **({"x-settings-key": self.settings_name} if self.settings_name else {})))
+        return self.parameter_layout.schema(object_schema(properties, **({"x-parameter-key": self.parameter_key} if self.parameter_key else {})))
 
-    def configuration(self, config, name, *, session_config=None):
+    def resolve_config(self, config, name, *, session_config=None):
         """실행과 UI가 공유하는 Project → Session → Agent 설정."""
-        key = self.settings_name or name
-        agent = self._agent_settings
-        overrides = self.settings_layout.unpack(agent.get("engine_options", {}))
+        key = self.parameter_key or name
+        agent = self._agent_options
+        overrides = self.parameter_layout.unpack(agent.get("engine_options", {}))
         if "system_prompt" in agent:
             overrides["system_prompt"] = agent["system_prompt"]
         if agent.get("completion"):
             overrides["completion"] = agent["completion"]
-        view = engine_configuration(config, key, session_config=session_config,
-            agent=self.settings_layout.pack(overrides), schema=self.configuration_schema())
-        CompletionPolicy.validate_settings(view["values"].get("policy", {}).get("completion"))
+        view = resolve_engine_config(config, key, session_config=session_config,
+            agent=self.parameter_layout.pack(overrides), schema=self.describe_config())
+        CompletionPolicy.validate_config(view["values"].get("policy", {}).get("completion"))
         resolve_provider_options(view["values"].get("policy", {}).get("provider") or {})
         view["runtime"] = []
         return view
@@ -195,24 +196,24 @@ class LoopEngine(BaseEngine):
             raise ValueError("Loop Agent requires stream=True and n=1")
         options = definition.get("engine_options", {})
         from jsonschema import Draft202012Validator
-        Draft202012Validator(self.configuration_schema()).validate(options)
-        copy(self)._configure(self.settings_layout.unpack(options))
+        Draft202012Validator(self.describe_config()).validate(options)
+        copy(self)._configure(self.parameter_layout.unpack(options))
         worker = copy(self)
-        worker._agent_settings = {"engine_options": deepcopy(options), "completion": params,
+        worker._agent_options = {"engine_options": deepcopy(options), "completion": params,
                                   **({"system_prompt": definition["system_prompt"]} if "system_prompt" in definition else {})}
-        worker.settings_name = self.settings_name or definition["engine"]
+        worker.parameter_key = self.parameter_key or definition["engine"]
         worker._require_tool = definition.get("policy", {}).get("require_tool", False)
         return worker
 
     async def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
-        resolved = self.settings_layout.unpack(self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"])
+        resolved = self.parameter_layout.unpack(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)["values"])
         # A Run-local instance keeps shared defaults immutable and preserves
-        # subclass methods. Only Loop-owned settings are reinitialized.
+        # subclass methods. Only Loop-owned configuration are reinitialized.
         worker = copy(self)
         worker._resume_binding = self._binding(context)
         worker._configure(resolved)
         # 다른 Agent/Engine의 입력 예산을 상속하지 않는다. 처리기는 이 호출의 선택기만 전달받는다.
-        context = replace(context, completion_policy=CompletionPolicy.from_settings(
+        context = replace(context, completion_policy=CompletionPolicy.from_config(
             resolved.get("input_policy"), context.token_counters))
         async with aclosing(worker._execute(context)) as events:
             async for event in events:
@@ -248,7 +249,7 @@ class LoopEngine(BaseEngine):
                 retry_nodes=context.run.metadata.get("resume", {}).get("retry_nodes", ()),
                 decisions=context.run.metadata.get("resume", {}).get("decisions"))
             if context.checkpoint["header"]["binding"] != self._resume_binding:
-                raise ValueError("Loop settings or Tool definitions changed; start a new request")
+                raise ValueError("Loop configuration or Tool definitions changed; start a new request")
         if (context.output_step_id is None or context.checkpoint_scope is not None) and context.checkpoint is None:
             yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": "loop", "operation": "initialize",
                 "header": {"format": "loop-iterations-v1", "binding": self._resume_binding,

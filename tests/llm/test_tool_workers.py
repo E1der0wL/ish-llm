@@ -12,7 +12,7 @@ from unittest.mock import patch
 from llm.components.tools import ToolComponent
 from llm.components.tools import process
 from llm.components.tools.packages import ToolPaths, load_tool
-from llm.services.runtime.tools import ToolExecutionError, ToolApprovalRequired, ToolPolicy
+from llm.services.runtime.tools import ToolExecutionError, ToolApprovalRequired, ToolRuntime
 from tests.llm import test_tool_packages as packages_tests
 
 
@@ -126,7 +126,7 @@ async def main(limit: int = count):
             raise ToolApprovalRequired()
         for approve in (True, False):
             project, session, _ = await self.setup_runtime(source('return "approved"',
-                decorator='@tool(approval_required=True)'), policy=ToolPolicy(authorize=ask))
+                decorator='@tool(approval_required=True)'), runtime=ToolRuntime(authorize=ask))
             executed = []
             original = process.invoke_worker
             async def observe(request):
@@ -144,7 +144,7 @@ async def main(limit: int = count):
                 self.assertEqual(len(executed), 1 if approve else 0)
 
     async def test_graph_confirmation_cannot_spawn_before_tool_approval(self):
-        from llm.llm import LargeLanguageModel, ServiceConfig
+        from llm.llm import LargeLanguageModel, BackendServices
         from llm.components.workflows import WorkflowComponent, WorkflowGraph
         from llm.engines.graph import GraphEngine
         from llm.engines.graph.tool import ToolNode
@@ -154,7 +154,7 @@ async def main(limit: int = count):
             with self.subTest(approve=approve), tempfile.TemporaryDirectory() as directory:
                 async with LargeLanguageModel(directory, components=[ToolComponent(), WorkflowComponent()],
                     engines={'graph': GraphEngine(handlers={'tool': ToolNode()})},
-                    services=ServiceConfig(tool_policy=ToolPolicy(authorize=ask))) as app:
+                    services=BackendServices(tool_runtime=ToolRuntime(authorize=ask))) as app:
                     project = await app.projects.acreate(components=['tools', 'workflows'])
                     await project.components.tools.acreate({'source': source('return None',
                         decorator='@tool(approval_required=True)')}, identifier='act')
@@ -238,7 +238,7 @@ async def main(limit: int = count):
         async def ask(call):
             raise ToolApprovalRequired()
         text = source('return 1', decorator='@tool(approval_required=True)')
-        project, session, _ = await self.setup_runtime(text, policy=ToolPolicy(authorize=ask))
+        project, session, _ = await self.setup_runtime(text, runtime=ToolRuntime(authorize=ask))
         paused = await (await session.run.submit('act', engine='loop')).wait()
         request, = await paused.ainteractions()
         await paused.arespond(request.respond('approve'))
@@ -249,7 +249,7 @@ async def main(limit: int = count):
     async def test_tool_call_provenance_and_operation_key_reach_child(self):
         text = source('call = current_tool_call()\nreturn {"run": call.run_id, "key": call.operation_key, "idempotency": call.idempotency_key}',
                       'from llm.services.runtime.tools import current_tool_call')
-        _, session, _ = await self.setup_runtime(text, policy=ToolPolicy(operation_key=lambda _: 'operation'))
+        _, session, _ = await self.setup_runtime(text, runtime=ToolRuntime(operation_key=lambda _: 'operation'))
         run = await (await session.run.submit('act', engine='loop')).wait()
         self.assertEqual(run.data.status, 'completed', run.data.error)
         step, = [step for step in await run.steps.alist() if step.kind == 'tool']

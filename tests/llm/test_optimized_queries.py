@@ -121,7 +121,7 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
             "results": [{"index": 0, "relevance_score": 0.9}]}))
         for method in (self.data.asearch, self.data.asearch_documents):
             with patch.object(implementation, "read_json", wraps=implementation.read_json) as read, \
-                 patch.object(self.component, "search", wraps=self.component.configured(self.project.data).search) as search:
+                 patch.object(self.component, "search", wraps=self.component.with_config(self.project.data).search) as search:
                 result = await method("Alice", method="bm25", rerank=True)
                 self.assertTrue(result)
                 self.assertEqual(search.call_count, 1)
@@ -134,7 +134,7 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
             return {"results": [{"index": 0, "relevance_score": 1.0}]}
         self.component.reranker = SimpleNamespace(rerank=change)
         for method in (self.data.asearch, self.data.asearch_documents):
-            with patch.object(self.component, "search", wraps=self.component.configured(self.project.data).search) as search:
+            with patch.object(self.component, "search", wraps=self.component.with_config(self.project.data).search) as search:
                 with self.assertRaises(RAGConflictError):
                     await method("Alice", method="bm25", rerank=True)
                 self.assertEqual(search.call_count, 1)

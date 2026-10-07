@@ -177,7 +177,7 @@ class GraphPreparationTests(unittest.TestCase):
             project=SimpleNamespace(config=ProjectConfig(), components=["workflows"]),
             session=SimpleNamespace(config={}), run=SimpleNamespace(engine="graph"),
             tools=ToolRegistry(), tool_scope=None)
-        engine = GraphEngine(handlers={}).for_request({"workflow": "main"}).configured(context)
+        engine = GraphEngine(handlers={}).for_request({"workflow": "main"}).with_config(context)
         calls = []
         original = GraphEngine._definition
         def tracked(owner, capabilities):

@@ -9,7 +9,7 @@ from copy import copy, deepcopy
 from collections.abc import Mapping
 from contextlib import aclosing
 from llm.core.models import ProjectConfig
-from llm.core.configuration import engine_configuration
+from llm.core.configuration import resolve_engine_config
 from llm.core.schema import object_schema, field, implementation_schema
 from llm.errors import CodedError
 
@@ -34,26 +34,26 @@ class PreparationStep(BaseEngine):
     """Convenience BaseEngine for async preparation; a deadline is applied only when configured."""
 
     def __init__(self, name: str, action: Callable[[EngineContext], Awaitable[None]], *,
-                 kind: str = "preparation", settings_name=None) -> None:
+                 kind: str = "preparation", parameter_key=None) -> None:
         if not callable(action):
             raise TypeError("Preparation action must be callable")
-        if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
-            raise ValueError("settings_name must be nonempty text")
-        self.settings_name = settings_name
+        if parameter_key is not None and (not isinstance(parameter_key, str) or not parameter_key.strip()):
+            raise ValueError("parameter_key must be nonempty text")
+        self.parameter_key = parameter_key
         super().__init__(name, kind=kind, action=action,
                          error_message="Preparation failed")
 
-    def configuration_schema(self):
+    def describe_config(self):
         return implementation_schema(policy=object_schema({"timeout_seconds": field(["number", "null"],
             exclusiveMinimum=0, **{"x-narrowing": "maximum"})}, additionalProperties=False),
-            **({"x-settings-key": self.settings_name} if self.settings_name else {}))
+            **({"x-parameter-key": self.parameter_key} if self.parameter_key else {}))
 
-    def configuration(self, config, name, *, session_config=None):
-        return engine_configuration(config, self.settings_name or name,
-            session_config=session_config, schema=self.configuration_schema())
+    def resolve_config(self, config, name, *, session_config=None):
+        return resolve_engine_config(config, self.parameter_key or name,
+            session_config=session_config, schema=self.describe_config())
 
     async def execute(self, context):
-        deadline = self.configuration(context.project.config, context.run.engine,
+        deadline = self.resolve_config(context.project.config, context.run.engine,
             session_config=context.session.config)["values"].get("policy", {}).get("timeout_seconds")
         async with aclosing(self._execute(context, publish_output=True, timeout_seconds=deadline)) as events:
             async for event in events:
@@ -64,10 +64,10 @@ class PreparationStep(BaseEngine):
 class PipelineEngine:
     """Ordered Engine composition; all stages share the same Run context."""
 
-    def __init__(self, stages: Sequence[Engine], *, settings_name=None) -> None:
-        if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
-            raise ValueError("settings_name must be nonempty text")
-        self.settings_name = settings_name
+    def __init__(self, stages: Sequence[Engine], *, parameter_key=None) -> None:
+        if parameter_key is not None and (not isinstance(parameter_key, str) or not parameter_key.strip()):
+            raise ValueError("parameter_key must be nonempty text")
+        self.parameter_key = parameter_key
         self.stage_names = tuple(stages) if isinstance(stages, Mapping) else tuple(str(i) for i in range(len(stages)))
         if any(not isinstance(name, str) or not name.strip() for name in self.stage_names):
             raise ValueError("Stage names must be nonempty text")
@@ -77,12 +77,12 @@ class PipelineEngine:
         self.required_capabilities = tuple(dict.fromkeys(
             name for stage in self.stages for name in required_capabilities(stage)))
 
-    def _stage_settings(self, config, session_config, name, index):
+    def _resolve_stage(self, config, session_config, name, index):
         """단계 설정을 호출별 사본에만 연결한다. 저장된 Project/Session은 변경하지 않는다."""
         config, session = ProjectConfig(config), deepcopy(session_config or {})
-        pipeline_key, stage = self.settings_name or name, self.stages[index]
-        explicit = getattr(stage, "settings_name", None)
-        key = explicit or (pipeline_key + ":" + self.stage_names[index] if hasattr(stage, "settings_name") else pipeline_key)
+        pipeline_key, stage = self.parameter_key or name, self.stages[index]
+        explicit = getattr(stage, "parameter_key", None)
+        key = explicit or (pipeline_key + ":" + self.stage_names[index] if hasattr(stage, "parameter_key") else pipeline_key)
         for owner in (config, session):
             engines = owner.setdefault("parameters", {}).setdefault("engines", {})
             stages = engines.get(pipeline_key, {}).get("config", {}).get("stages", {})
@@ -94,17 +94,17 @@ class PipelineEngine:
             base = engines.get(explicit, {}) if explicit else {}
             engines[key] = ProjectConfig.merge(base, options)
         worker = stage
-        if hasattr(stage, "settings_name"):
+        if hasattr(stage, "parameter_key"):
             worker = copy(stage)
-            worker.settings_name = key
+            worker.parameter_key = key
         return worker, config, session, key
 
-    def configuration_schema(self):
+    def describe_config(self):
         def stage_schema(stage):
             from llm.core.schema import checked_implementation_schema
             import hashlib
             import json
-            describe = getattr(stage, "configuration_schema", None)
+            describe = getattr(stage, "describe_config", None)
             spec = checked_implementation_schema(describe() if callable(describe) else
                                                  implementation_schema(**{"x-runtime-only": True}))
             # 하위 Engine의 로컬 $ref는 해당 스키마 루트 기준이다. Pipeline에
@@ -115,15 +115,15 @@ class PipelineEngine:
             return spec
         return implementation_schema(config=object_schema({"stages": object_schema({name:
             stage_schema(stage) for name, stage in zip(self.stage_names, self.stages)},
-            additionalProperties=False)}, additionalProperties=False), **({"x-settings-key": self.settings_name} if self.settings_name else {}))
+            additionalProperties=False)}, additionalProperties=False), **({"x-parameter-key": self.parameter_key} if self.parameter_key else {}))
 
-    def configuration(self, config, name, *, session_config=None):
-        view = engine_configuration(config, self.settings_name or name,
-            session_config=session_config, schema=self.configuration_schema())
+    def resolve_config(self, config, name, *, session_config=None):
+        view = resolve_engine_config(config, self.parameter_key or name,
+            session_config=session_config, schema=self.describe_config())
         stages = {}
         for index, stage_name in enumerate(self.stage_names):
-            stage, project, session, key = self._stage_settings(config, session_config, name, index)
-            describe = getattr(stage, "configuration", None)
+            stage, project, session, key = self._resolve_stage(config, session_config, name, index)
+            describe = getattr(stage, "resolve_config", None)
             stages[stage_name] = describe(project, key, session_config=session) if describe else {"runtime_only": True}
             effective = stages[stage_name]
             # 단계 호스트 고정값도 Pipeline의 UI 경로에서 같은 값·출처로 보인다.
@@ -141,7 +141,7 @@ class PipelineEngine:
     async def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
         final_output = None
         for index, stage in enumerate(self.stages):
-            stage, project, session, key = self._stage_settings(context.project.config, context.session.config, context.run.engine, index)
+            stage, project, session, key = self._resolve_stage(context.project.config, context.session.config, context.run.engine, index)
             active = set()
             stage_id = new_id()
             stage_output = None

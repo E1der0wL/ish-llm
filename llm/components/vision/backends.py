@@ -22,14 +22,14 @@ class VisionError(CodedError, ValueError):
 
 class OCRBackend(Protocol):
     revision: str
-    def configuration_schema(self) -> dict: ...
+    def describe_config(self) -> dict: ...
     async def recognize(self, image: bytes, *, options: dict) -> dict: ...
 
 
 def validate_ocr(result: dict, width: int, height: int) -> dict:
     """backend confidence는 그대로 보존하며 backend 간 비교 점수로 변환하지 않는다."""
     from llm.core.models import ProjectConfig
-    ProjectConfig.validate_settings(result)
+    ProjectConfig.validate_json(result)
     if not isinstance(result, dict) or not isinstance(result.get("text"), str) or not isinstance(result.get("blocks"), list):
         raise VisionError("vision_invalid_response", "OCR requires text and blocks")
     for block in result["blocks"]:
@@ -55,7 +55,7 @@ class TesseractBackend:
         self.executable = executable
         self.revision = self.revision + ":" + executable
 
-    def configuration_schema(self) -> dict:
+    def describe_config(self) -> dict:
         return {"type": "object", "additionalProperties": False, "properties": {
             "language": {"type": "string", "minLength": 1},
             "page_segmentation": {"type": "integer", "minimum": 0, "maximum": 13},
@@ -64,7 +64,7 @@ class TesseractBackend:
 
     async def recognize(self, image: bytes, *, options: dict) -> dict:
         from jsonschema import Draft202012Validator
-        Draft202012Validator(self.configuration_schema()).validate(options)
+        Draft202012Validator(self.describe_config()).validate(options)
         argv = [self.executable, "stdin", "stdout"]
         if "language" in options:
             argv += ["-l", options["language"]]

@@ -36,7 +36,7 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
         self.app = LargeLanguageModel(self.root, engines={"graph": GraphEngine(handlers=handlers)})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("graph", components=["workflows"], config={
-            "parameters": {"engines": {"graph": GraphEngine.settings_layout.pack(options)}}})
+            "parameters": {"engines": {"graph": GraphEngine.parameter_layout.pack(options)}}})
         self.workflows = await self.project.components.aget("workflows")
         await self.workflows.acreate(graph, identifier="flow")
         self.session = await self.project.sessions.acreate("session")
@@ -179,7 +179,7 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, RunStatus.FAILED)
         async def fast(node):
             return {}
-        self.app.engines.resolve("graph").handlers["work"] = fast
+        self.app.engines.get("graph").handlers["work"] = fast
         await self.workflows.asave("flow", straight())
         failed = await self.run_graph()
         self.assertIn("execution limit", failed.data.error)

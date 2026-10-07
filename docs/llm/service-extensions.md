@@ -4,18 +4,18 @@
 Session에 속하고, Engine은 이벤트만 생성한다. 서비스 구성을 바꾸어도 이 소유 관계와
 기본 JSON/JSONL 파일 형식은 유지된다. 대화만 메모리에 보관하려면
 `backend.projects.create(..., conversation_storage="memory")`로 프로젝트별로 선택한다.
-백엔드의 `conversation_storage` 또는 `ServiceConfig.conversations`는 새 프로젝트의 기본값이다. 저장된 프로젝트 선택을 덮어쓰지 않는다.
+백엔드의 `conversation_storage` 또는 `BackendServices.conversations`는 새 프로젝트의 기본값이다. 저장된 프로젝트 선택을 덮어쓰지 않는다.
 수명과 복구 범위는 [대화 저장 방식](conversation-storage.md)을 참고한다.
 
 ## 서비스 구성을 한 번 지정하기
 
 ```python
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
-from llm.services.infrastructure.logging import DomainLogger, LogSettings
+from llm.services.composition import BackendServices
+from llm.services.infrastructure.logging import DomainLogger, LogConfig
 
-services = ServiceConfig(
-    logger=DomainLogger(LogSettings(
+services = BackendServices(
+    logger=DomainLogger(LogConfig(
         max_bytes=2 * 1024 * 1024,
         backup_count=5,
         log_reads=False,
@@ -28,11 +28,11 @@ project = await backend.projects.acreate(config={
 })
 ```
 
-`ServiceConfig`에는 `project_repository`, `session_repository`, `run_repository`,
+`BackendServices`에는 `project_repository`, `session_repository`, `run_repository`,
 `step_repository`, `conversations`, `context_builder`, `token_counters`, `policy_resolver`,
 `event_handlers`, `logger`를 지정할 수 있다. 미지정 저장소는 백엔드 구성 시 생성한다.
 실행, Facade 조회, Project/Session 결과 조회는 같은 저장소 인스턴스를 사용한다.
-사용자 policy_resolver의 `resolve(settings)`는 `(ContextPolicy 또는 None, RunPolicy)`를
+사용자 policy_resolver의 `resolve(policies)`는 `(ContextPolicy 또는 None, RunPolicy)`를
 반환하고 `token_counters`에 등록된 계산기만 제공한다. 모델 입력 정책이나 Engine/Component
 재시도 객체를 만들어 반환하지 않는다. 기본 resolver도 같은 계약을 사용한다.
 주입 context_builder의 for_run은 keyword policy로 해당 Run의 프로젝트 정책을 받는다.
@@ -95,7 +95,7 @@ class ValidatedEngine(BaseEngine):
         )
         yield "검증 완료"
 
-# ServiceConfig(event_handlers=handlers)로 백엔드에 전달한다.
+# BackendServices(event_handlers=handlers)로 백엔드에 전달한다.
 ```
 
 처리기는 동기 함수 또는 async 함수다. RunManager는 처리 완료를 기다린 후 다음 이벤트로
@@ -176,7 +176,7 @@ worker 종료 후 콜백/큐 참조를 회수한다. `Subscription.stats`는 해
 현재 입력 자체가 문자 예산을 넘으면 잘라내지 않고 오류를 반환한다. 문자 예산은 토큰 예산이
 아니며, 시스템 프롬프트/Tool 정의/공급자 포맷 비용을 포함하지 않는다.
 정책은 모델 입력에만 적용되며 저장된 대화와 복제 내용은 삭제하거나 요약하지 않는다.
-토큰 계산은 ServiceConfig.token_counters와 프로젝트 completion 정책, 요약은 Memory로 구성한다.
+토큰 계산은 BackendServices.token_counters와 프로젝트 completion 정책, 요약은 Memory로 구성한다.
 
 ## 조건 조회
 
@@ -212,7 +212,7 @@ def host_log(path, event, fields):
     # 호스트 로거로 전달. 여러 저장 스레드에서 호출될 수 있다.
     print(path, event, fields)
 
-services = ServiceConfig(logger=DomainLogger(sink=host_log))
+services = BackendServices(logger=DomainLogger(sink=host_log))
 
 # 실행 중에도 가능: metadata는 전체 교체
 await session.asave(title="새 제목", metadata={"label": "리뷰"})

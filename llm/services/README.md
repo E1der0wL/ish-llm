@@ -16,7 +16,7 @@ LargeLanguageModel → api.py의 핸들
 | --- | --- |
 | [__init__.py](__init__.py) | 서비스 패키지 설명입니다. |
 | [api.py](api.py) | Project/Session/Request/Run/Step/Component를 탐색하는 공개 Facade입니다. |
-| [configuration.py](configuration.py) | ServiceConfig로 저장소·factory·호스트 자원을 한 번 구성합니다. |
+| [composition.py](composition.py) | BackendServices로 저장소·factory·호스트 자원을 한 번 구성합니다. |
 | [schema.py](schema.py) | 등록된 Engine/Component를 반영한 UI 설정 schema와 유효 설정을 계산합니다. |
 | [query.py](query.py) | Query의 상태·위치·개수 등 목록 필터 계약입니다. |
 | [results.py](results.py) | Project/Session에서 Run 소유 결과를 모아 조회합니다. 별도 결과 파일을 만들지 않습니다. |
@@ -31,7 +31,7 @@ LargeLanguageModel → api.py의 핸들
 
 반환되는 핸들은 실행 서비스를 연결하는 객체이며 JSON으로 저장하는 도메인 모델이 아닙니다. `aget_data()`는 독립된 도메인 스냅샷을 반환하고, 그 객체를 변경해도 저장되지 않습니다. 명시적 저장 API를 사용하세요.
 
-설정은 [ProjectConfig 계약](../CONFIGURATION.md)을 따릅니다. ServiceConfig는 구현체와 호스트 공유 자원을 주입하는 곳이며 Project의 정책 값을 대신 생성하지 않습니다.
+설정은 [ProjectConfig 계약](../CONFIGURATION.md)을 따릅니다. BackendServices는 구현체와 호스트 공유 자원을 주입하는 곳이며 Project의 정책 값을 대신 생성하지 않습니다.
 
 ## Run 상태 전이
 
@@ -54,7 +54,7 @@ RunManager는 종료 상태와 오류의 조합, Session의 current_run_id를 �
 - Engine은 이벤트만 발생시키고, StepEventRecorder/StepManager가 Step을 저장합니다.
 - 사용자 이벤트 처리기는 기존 EventContext API를 사용합니다. 정책·출력·체크포인트 등 소유자가 정해진 메타데이터를 덮어쓰지 않습니다.
 - UI 구독은 관찰용입니다. 저장소 원본과 누락 복구 경로를 유지하세요.
-- Repository 교체 시 Facade 조회와 runtime이 같은 인스턴스를 사용하도록 ServiceConfig에서 구성합니다.
+- Repository 교체 시 Facade 조회와 runtime이 같은 인스턴스를 사용하도록 BackendServices에서 구성합니다.
 - 새 코드는 책임별 하위 패키지에 둡니다. 단순 폴더 분류를 새 실행 계층으로 만들지 않습니다.
 
 [이벤트·구독 예제](runtime/README.md), [서비스 확장 계약](../../docs/llm/service-extensions.md), [공통 데이터 API](../../docs/llm/data-contracts.md)에 세부 계약이 있습니다.

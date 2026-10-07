@@ -48,8 +48,8 @@ class HubConfig:
 
 def create_backend(config: HubConfig):
     # Heavy imports and construction happen on the backend thread, not in .ishrc.
-    from llm.llm import LargeLanguageModel, ServiceConfig
-    from llm.services.runtime.tools import ToolPolicy
+    from llm.llm import LargeLanguageModel, BackendServices
+    from llm.services.runtime.tools import ToolRuntime
     from llm.engines.loop import LoopEngine
     from llm.engines.graph import GraphEngine
     from llm.engines.graph.agent import AgentNode
@@ -78,7 +78,7 @@ def create_backend(config: HubConfig):
         component = factory()
         components[component.name] = component
     return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
-                              services=ServiceConfig(tool_policy=ToolPolicy(classify=config.tool_classifier)))
+                              services=BackendServices(tool_runtime=ToolRuntime(classify=config.tool_classifier)))
 
 
 class HubRuntime:
@@ -266,7 +266,7 @@ class HubRuntime:
         from llm.engines.graph import GraphEngine
         project = self.sessions[session_id].project if session_id else self.project
         record = await project.aget_data()
-        engines = {name: {"kind": "graph" if isinstance(self.backend.engines.resolve(name), GraphEngine)
+        engines = {name: {"kind": "graph" if isinstance(self.backend.engines.get(name), GraphEngine)
                           else "plain"}
                    for name in selected_engines(record.config, self.backend.engines.names())}
         if not engines:

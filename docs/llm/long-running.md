@@ -46,7 +46,7 @@ finish 등 외부 쓰기 훅은 재개/실패를 고려하여 멱등하게 구�
 ## Tool 조건부 재시도와 영속 승인
 
 ```python
-from llm.llm import ToolPolicy, ToolExecutionError, ToolApprovalRequired, ServiceConfig
+from llm.llm import ToolRuntime, ToolExecutionError, ToolApprovalRequired, BackendServices
 
 async def authorize(call):
     raise ToolApprovalRequired("이 작업을 승인해 주세요")
@@ -55,7 +55,7 @@ async def tool_handler(arguments):
     # 외부 효과가 전혀 발생하지 않았음을 핸들러가 보장할 수 있을 때만 사용한다.
     raise ToolExecutionError("아직 실행하지 못함", effect="none", retryable=True)
 
-services = ServiceConfig(tool_policy=ToolPolicy(authorize=authorize))
+services = BackendServices(tool_runtime=ToolRuntime(authorize=authorize))
 await project.aconfigure_policies({"tool_retry": {"max_retries": 2, "delay_seconds": 1}})
 
 # 승인 대기인 Loop Run은 PAUSED로 종료되어 Session worker를 해제한다.
@@ -64,7 +64,7 @@ request = await session.run.resume(paused_run.id, engine="loop",
 ```
 
 일반 예외·timeout·취소는 재시도하지 않는다. retryable=True이며 effect=none이거나,
-호스트 ToolPolicy.retry_safe_tools에 해당 이름이 등록된 경우에만 재시도한다.
+호스트 ToolRuntime.retry_safe_tools에 해당 이름이 등록된 경우에만 재시도한다.
 모델이 안전성을 선언할 수 없다. 재시도는 동일한 논리 호출/작업 키/총 Tool 기한을 사용하고
 각 시도 전 Step 업데이트를 저장한다. 정상 결과 검증/직렬화/완료 저장 실패는 재시도 대상이 아니다.
 SDK/외부 서비스의 중복 방지는 어댑터가 idempotency_key를 실제 전달해야 한다.
@@ -213,7 +213,7 @@ view는 같은 잠금 아래 Run 상태·전체 출력·cursor·이벤트 페이
 snapshot = await project.components.workflows.asnapshot("flow")
 definition = snapshot["data"]
 await project.components.workflows.asave("flow", definition, expected_version=snapshot["version"])
-view = await project.aconfiguration()
+view = await project.adescribe_config()
 await project.aconfigure_policies({"context": {"max_turns": 20}}, expected_version=view["config_version"])
 ```
 

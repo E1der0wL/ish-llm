@@ -49,6 +49,6 @@ Run의 capability 사본과 Agent Step binding에 정의와 revision을 기록�
 
 저장 위치는 `<project>/agents/records/<id>.json`입니다. 레코드를 저장한다고 실행되지는 않습니다. Workflow 노드에서 Agent ID를 참조하고 [AgentNode](../../engines/graph/README.md)가 등록된 Engine을 실행합니다. 중첩 Graph도 같은 소유 Run 안에서 실행됩니다.
 
-Agent의 Tool 허용 목록은 Run의 ToolPolicy나 승인 검사를 우회하지 않습니다. 정의·리소스 변경은 재개 binding에 영향을 줄 수 있습니다. [Agent 상세 계약](../../../docs/llm/agents.md)을 참고하세요.
+Agent의 Tool 허용 목록은 Run의 ToolRuntime나 승인 검사를 우회하지 않습니다. 정의·리소스 변경은 재개 binding에 영향을 줄 수 있습니다. [Agent 상세 계약](../../../docs/llm/agents.md)을 참고하세요.
 
 [상위 안내](../README.md)

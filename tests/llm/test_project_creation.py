@@ -18,7 +18,7 @@ class Notes(DefinitionComponent):
     name = "notes"
     directory = "custom_notes"
 
-    def configuration_schema(self):
+    def describe_config(self):
         from llm.core.schema import implementation_schema, open_schema
         return implementation_schema(config=open_schema("test Notes implementation", category="implementation"))
 
@@ -58,7 +58,7 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
     async def test_component_entry_points_share_config_and_cas(self):
         project = await self.app.projects.acreate(components=["notes"], config=ProjectConfig(
             parameters={"components": {"notes": {'config': {'language': 'ko', 'future': {'limit': 3}}}}}))
-        view = await project.aconfiguration()
+        view = await project.adescribe_config()
         self.assertEqual(view["values"]["config"], (await project.aget_data()).config)
         self.assertEqual(view["components"]["notes"]["effective"]["sources"]["/config/language"], "project")
         notes = await project.components.aget("notes")
@@ -68,7 +68,7 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
             await notes.aconfigure({'config': {'language': 'stale'}}, expected_version=view["component_versions"]["notes"])
         self.assertFalse((project.paths.root / "custom_notes/component.json").exists())
         await project.components.aremove("notes")
-        self.assertNotIn("notes", (await project.aconfiguration())["components"])
+        self.assertNotIn("notes", (await project.adescribe_config())["components"])
 
     async def test_removed_sections_rejected_without_rewriting_persisted_data(self):
         project = await self.app.projects.acreate()
@@ -121,7 +121,7 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
                         "reviewer": {'config': {'completion': {'model': 'test/reviewer', 'temperature': 0.8}}}},
             "components": {"notes": {'config': {'model': 'notes/data', 'temperature': 999}}},
         }))
-        view = await project.aconfiguration()
+        view = await project.adescribe_config()
         effective = view["effective_engines"]["writer"]
         for path in ("/config/system_prompt", "/config/completion/temperature"):
             self.assertEqual(effective["sources"][path], "project")
@@ -146,7 +146,7 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("other", LoopEngine(completion_fn=provider))
         project = await self.app.projects.acreate(config=ProjectConfig(parameters={
             "engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
-        self.assertEqual((await project.aconfiguration())["effective_engines"]["other"]["values"], {})
+        self.assertEqual((await project.adescribe_config())["effective_engines"]["other"]["values"], {})
         session = await project.sessions.acreate()
         run = await (await session.run.submit("go", engine="other")).wait()
         result = await run.aresult()
@@ -164,4 +164,4 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(RuntimeError):
             await self.app.projects.acreate()
         with self.assertRaises(RuntimeError):
-            await project.aconfiguration()
+            await project.adescribe_config()

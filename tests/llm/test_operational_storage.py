@@ -16,11 +16,11 @@ from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.llm import LargeLanguageModel
 from llm.providers.calls import ProviderCalls, ProviderLimits, ProviderCapacityError
 from llm.providers.litellm import stream_completion
-from llm.services.configuration import ServiceConfig
+from llm.services.composition import BackendServices
 from llm.services.infrastructure.backups import DirectoryBackups
 from llm.services.infrastructure.journal import OutputJournal
 from llm.services.infrastructure.storage import atomic_json, read_json
-from llm.services.runtime.output import OutputPolicy, consume_events
+from llm.services.runtime.output import OutputBuffer, consume_events
 from llm.services.runtime.runs import RunRepository
 
 
@@ -39,7 +39,7 @@ class ProviderCapacityTests(unittest.IsolatedAsyncioTestCase):
                     yield text
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, engines={"test": BaseEngine(action=work)},
-                    services=ServiceConfig(provider_calls=pool)) as app:
+                    services=BackendServices(provider_calls=pool)) as app:
                 project = await app.projects.acreate()
                 first, second = await project.sessions.acreate(), await project.sessions.acreate()
                 original = await first.run.submit("first", engine="test")
@@ -166,7 +166,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
             yield "more"
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, engines={"test": BaseEngine(action=work)}, on_event=observe,
-                    services=ServiceConfig(output_policy=OutputPolicy(batch_size=2))) as app:
+                    services=BackendServices(output_buffer=OutputBuffer(batch_size=2))) as app:
                 session = await (await app.projects.acreate()).sessions.acreate()
                 request = await session.run.submit("go", engine="test")
                 await asyncio.wait_for(entered.wait(), 3)
@@ -183,7 +183,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.Event().wait()
         async def handle(batch):
             saved.extend(batch)
-        worker_future = asyncio.create_task(consume_events(events(), OutputPolicy(batch_size=8, max_delay=60), handle))
+        worker_future = asyncio.create_task(consume_events(events(), OutputBuffer(batch_size=8, max_delay=60), handle))
         await delivered.wait()
         await asyncio.sleep(0.02)
         self.assertEqual(saved, [])
@@ -203,7 +203,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
         async def handle(batch):
             pass
         with self.assertRaisesRegex(RuntimeError, "close failed"):
-            await asyncio.wait_for(consume_events(Events(), OutputPolicy(batch_size=2), handle), 2)
+            await asyncio.wait_for(consume_events(Events(), OutputBuffer(batch_size=2), handle), 2)
 
     async def test_graph_pause_backup_restore_and_resume_does_not_repeat_effects(self):
         from llm.components.workflows import WorkflowGraph
@@ -218,7 +218,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             async with LargeLanguageModel(root / "source", engines={"graph": engine},
-                    services=ServiceConfig(output_policy=OutputPolicy(batch_size=16))) as app:
+                    services=BackendServices(output_buffer=OutputBuffer(batch_size=16))) as app:
                 project = await app.projects.acreate(components=["workflows"])
                 await project.components.workflows.acreate(graph, identifier="flow")
                 session = await project.sessions.acreate()
@@ -227,7 +227,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                 await session.run.shutdown()
                 backup = await project.abackup(root / "backup")
             async with LargeLanguageModel(root / "restored", engines={"graph": engine},
-                    services=ServiceConfig(output_policy=OutputPolicy(batch_size=16))) as app:
+                    services=BackendServices(output_buffer=OutputBuffer(batch_size=16))) as app:
                 restored = await app.projects.arestore_backup(backup)
                 session = await restored.sessions.aload(session.id)
                 resumed = await (await session.run.resume(paused.id, engine="graph")).wait(timeout=10)
@@ -246,7 +246,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
         async def handle(batch):
             batches.append(len(batch))
             saved.extend(batch)
-        await consume_events(events(), OutputPolicy(batch_size=4), handle)
+        await consume_events(events(), OutputBuffer(batch_size=4), handle)
         self.assertEqual(batches, [4, 4, 2, 1])
         self.assertEqual(len(set(owner)), 1)
         self.assertEqual(effects, ["executed"])
@@ -259,7 +259,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.Event().wait()
         async def handle(batch):
             saved.extend(batch)
-        worker_future = asyncio.create_task(consume_events(events(), OutputPolicy(batch_size=8, max_delay=0.01), handle))
+        worker_future = asyncio.create_task(consume_events(events(), OutputBuffer(batch_size=8, max_delay=0.01), handle))
         await entered.wait()
         for _ in range(100):
             if saved:
@@ -279,7 +279,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
         async def handle(batch):
             raise OSError("disk unavailable")
         with self.assertRaises(OSError):
-            await consume_events(events(), OutputPolicy(batch_size=8), handle)
+            await consume_events(events(), OutputBuffer(batch_size=8), handle)
         self.assertEqual(effects, [])
 
     async def test_integrated_batches_preserve_sequence_replace_and_durable_notifications(self):
@@ -289,7 +289,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
             yield EngineDelta(text="final", operation="replace")
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, engines={"test": BaseEngine(action=action)},
-                    services=ServiceConfig(output_policy=OutputPolicy(batch_size=8))) as backend:
+                    services=BackendServices(output_buffer=OutputBuffer(batch_size=8))) as backend:
                 project = await backend.projects.acreate()
                 session = await project.sessions.acreate()
                 errors = []
@@ -318,7 +318,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(10)
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, engines={"test": BaseEngine(action=action)},
-                    services=ServiceConfig(output_policy=OutputPolicy(batch_size=8))) as backend:
+                    services=BackendServices(output_buffer=OutputBuffer(batch_size=8))) as backend:
                 session = await (await backend.projects.acreate(config={"policies": {
                     "run": {"timeout_seconds": .1}}})).sessions.acreate()
                 first = await session.run.submit("slow", engine="test")
@@ -462,7 +462,7 @@ class PolicyValidationTests(unittest.TestCase):
 
     def test_policy_and_index_limits(self):
         for build in (lambda: ProviderLimits(max_active=0), lambda: ProviderLimits(max_waiting=-1),
-                      lambda: ProviderLimits(wait_seconds=float("nan")), lambda: OutputPolicy(batch_size=True),
-                      lambda: OutputPolicy(max_delay=0), lambda: RunRepository(output_index_stride=-1)):
+                      lambda: ProviderLimits(wait_seconds=float("nan")), lambda: OutputBuffer(batch_size=True),
+                      lambda: OutputBuffer(max_delay=0), lambda: RunRepository(output_index_stride=-1)):
             with self.assertRaises(ValueError):
                 build()

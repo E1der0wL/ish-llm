@@ -73,7 +73,7 @@ await project.components.agents.acreate({
 
 `engine_options`는 workflow, config.buffer_size/cleanup_timeout,
 policy.max_steps/max_parallelism/timeout_seconds/max_nested_depth를 받는다.
-GraphEngine의 SettingsLayout을 그대로 사용하며 별도 schema를 복제하지 않는다.
+GraphEngine의 ParameterLayout을 그대로 사용하며 별도 schema를 복제하지 않는다.
 `workflow`는 반드시 명시하며 부모 요청이나 등록 객체에서 추측하지 않는다.
 나머지 실행 설정은 Project/Session/Agent 순서로 해석하며 child가 부모 한계를 확대하지 못한다.
 Host 생성자는 handler environment와 기술 identity만 제공한다.
@@ -95,7 +95,7 @@ RAG는 내부의 Loop Agent resources.rag 또는 rag_search Tool 노드로 선�
 - 실제 작업 처리기는 조상 순서로 실행 슬롯을 얻는다. workflow/Graph Agent 조율 노드는
   슬롯을 차지하지 않으므로 max_parallelism=1에서도 자식을 기다리며 교착되지 않는다.
 - 부모 실행 시간, 호출 노드 timeout, 자식 Graph timeout은 명시했을 때 함께 적용된다.
-- ToolPolicy와 작업 원장은 같은 Run에서 공유한다. behavioral Agent만 추가 Agent 정책을 적용한다.
+- ToolRuntime와 작업 원장은 같은 Run에서 공유한다. behavioral Agent만 추가 Agent 정책을 적용한다.
 - 중단/시간 초과는 실행 중 자식까지 전달한다. cleanup_timeout 명시 시 그 기간을 기다리며,
   미설정이면 남은 정리를 기존 PendingWork로 즉시 넘긴다. Tool scope를 먼저 revoke하며
   정리 완료 전 Session 소유권과 후속 실행 보호를 유지한다. 다음 queued 요청은 보존한다.

@@ -110,7 +110,7 @@ class RAGJobs:
         project, component = self.data._current()
         snapshot = component.snapshot(project)
         if document.get("preparation_configuration") != component._configuration_version:
-            raise ValueError("RAG settings changed since preparation; enqueue a new job")
+            raise ValueError("RAG configuration changed since preparation; enqueue a new job")
         if document["profile"]["model"] != component._identity():
             raise ValueError("Embedding model changed since the job was prepared")
         existing = snapshot["documents"].get(document["id"])
@@ -183,7 +183,7 @@ class RAGJobs:
             return None
         saved = read_json(path)
         if saved["signature"] != signature:
-            raise ValueError("Prepared batch settings changed; enqueue a new job")
+            raise ValueError("Prepared batch configuration changed; enqueue a new job")
         return saved["value"]
 
     async def run(self, identifier, *, retry=False):

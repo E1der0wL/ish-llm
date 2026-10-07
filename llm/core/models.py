@@ -9,7 +9,7 @@ from enum import StrEnum
 from uuid import uuid4
 
 from .paths import ProjectPaths, RunPaths, StepPaths, SessionPaths
-from .policies import normalize_policies, policy_schema
+from .policies import normalize_policies, describe_policies
 
 if TYPE_CHECKING:
     from .results import EngineOutput
@@ -102,17 +102,17 @@ class StepStatus(StrEnum):
 
 # 정책/대상 인자는 닫힌 공용 외형이며 Application 확장은 data가 소유한다.
 class ProjectConfig(dict):
-    """Workspace settings with mapping access and attribute shortcuts.
+    """Workspace configuration with mapping access and attribute shortcuts.
 
     Application fields belong to data. Implementation fields are validated
     when constructing or saving; nested mutation is allowed between saves.
     """
 
-    def __init__(self, values: Optional[dict] = None, **settings) -> None:
+    def __init__(self, values: Optional[dict] = None, **config) -> None:
         sections = {"policies": {}, "parameters": {}, "data": {}}
         if values is not None:
             sections.update(deepcopy(dict(values)))
-        sections.update(deepcopy(settings))
+        sections.update(deepcopy(config))
         super().__init__(sections)
         self.validate()
 
@@ -128,26 +128,26 @@ class ProjectConfig(dict):
         self[name] = value
 
     @staticmethod
-    def validate_settings(value: dict) -> None:
+    def validate_json(value: dict) -> None:
         """Check JSON compatibility without restricting application field names."""
         if not isinstance(value, dict):
-            raise TypeError("Settings must be a dictionary")
+            raise TypeError("JSON data must be a dictionary")
         def check(item):
             if isinstance(item, dict):
                 for key, nested in item.items():
                     if not isinstance(key, str):
-                        raise TypeError("Settings keys must be strings")
+                        raise TypeError("JSON keys must be strings")
                     check(nested)
             elif isinstance(item, list):
                 for nested in item:
                     check(nested)
             elif item is not None and not isinstance(item, (str, bool, int, float)):
-                raise TypeError("Settings must contain only JSON values")
+                raise TypeError("JSON data must contain only JSON values")
         check(value)
         json.dumps(value, allow_nan=False)
 
     def validate(self) -> None:
-        self.validate_settings(self)
+        self.validate_json(self)
         self["policies"] = normalize_policies(self.get("policies", {}))
         for section in ("parameters", "data"):
             if not isinstance(self.get(section), dict):
@@ -155,9 +155,9 @@ class ProjectConfig(dict):
         self.validate_session(self, project=True)
 
     @staticmethod
-    def policy_schema() -> dict:
+    def describe_policies() -> dict:
         """UI용 정책 필드·허용 형식·설명. 실행 객체나 계산기 함수는 포함하지 않는다."""
-        return policy_schema()
+        return describe_policies()
 
     def configure_policies(self, changes: dict) -> dict:
         """정책 일부를 병합·검증한 뒤 반영하고 독립 사본을 반환한다.
@@ -165,7 +165,7 @@ class ProjectConfig(dict):
         검증 실패 시 기존 설정은 그대로 유지한다. 파일 저장과 잠금은
         ProjectManager가 담당하며 이 메서드는 메모리의 설정만 변경한다.
         """
-        self.validate_settings(changes)
+        self.validate_json(changes)
         candidate = deepcopy(self)
         candidate["policies"] = self.merge(candidate.get("policies", {}), changes)
         candidate.validate()
@@ -174,7 +174,7 @@ class ProjectConfig(dict):
 
     @classmethod
     def validate_session(cls, config: dict, *, project: bool = False) -> None:
-        cls.validate_settings(config)
+        cls.validate_json(config)
         unknown = config.keys() - ({"parameters", "data", "policies"} if project else {"parameters", "data"})
         if unknown:
             raise ValueError(f"Unsupported configuration sections: {sorted(unknown)}; use data for Application metadata")
@@ -196,9 +196,9 @@ class ProjectConfig(dict):
             targets = parameters.get(category, {})
             if not isinstance(targets, dict) or any(not isinstance(options, dict) for options in targets.values()):
                 raise TypeError(f"parameters.{category} must map target names to dictionaries")
-            from .schema import validate_implementation_settings
+            from .schema import validate_parameters
             for name, options in targets.items():
-                validate_implementation_settings(options, scope=f"parameters.{category}.{name}")
+                validate_parameters(options, scope=f"parameters.{category}.{name}")
 
     def to_dict(self) -> dict:
         self.validate()
@@ -221,8 +221,8 @@ class ProjectConfig(dict):
                            else deepcopy(value))
         return result
 
-    def for_engine(self, name: str, session_config: Optional[dict] = None) -> dict:
-        """Detached settings including arbitrary workspace and Session keys."""
+    def resolve_engine_config(self, name: str, session_config: Optional[dict] = None) -> dict:
+        """Detached configuration including arbitrary workspace and Session keys."""
         self.validate()
         session_config = session_config if session_config is not None else {}
         self.validate_session(session_config)
@@ -232,7 +232,7 @@ class ProjectConfig(dict):
 
     @classmethod
     def from_dict(cls, data: dict) -> "ProjectConfig":
-        cls.validate_settings(data)
+        cls.validate_json(data)
         return cls(data)
 
 

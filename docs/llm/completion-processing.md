@@ -135,7 +135,7 @@ class InstructionsComponent(Component):
 연결하는 resolve_runtime을 사용하면 잠금/수명 검사를 유지할 수 있다.
 
 Memory의 순서는 현재 설정을 읽어 `config.processing.priority`를 수정한 뒤
-`memory.aconfigure(settings)`로 저장한다. policy.processing의 명시적 활성화 설정도 보존한다.
+`memory.aconfigure(config)`로 저장한다. policy.processing의 명시적 활성화 설정도 보존한다.
 configure는 설정 전체 교체이므로 유지할 다른 설정도 전달한다. 낮은 priority가 먼저 실행된다.
 기존 사용자 정의 처리기는 새 CompletionRequest/CompletionObservation 계약으로 갱신해야 한다.
 과거 dict 기반 prepare 및 finish(messages, response)의 호환 별칭은 제공하지 않는다.

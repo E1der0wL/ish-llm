@@ -203,7 +203,7 @@ class RetrievalNode:
         self.search = search
 
     @staticmethod
-    def configuration_schema():
+    def describe_config():
         return object_schema({"query": field("string", minLength=1)}, required=["query"])
 
     async def __call__(self, node):
@@ -213,7 +213,7 @@ class RetrievalNode:
 
 Graph는 common node 필드(type/inputs/outputs/input_schema/output_schema/pause_before/
 resume_schema/timeout_seconds/metadata)를 소유한다. action 고유 필드는 선택된 handler가
-configuration_schema() 또는 validate(node, context)로 실행 전에 검증한다. action variant의 열린
+describe_config() 또는 validate(node, context)로 실행 전에 검증한다. action variant의 열린
 경계는 **선택 handler가 의미를 소유하기 때문**이며 미래의 임의 키를 무조건 허용하기 위해서가 아니다.
 위 query는 RetrievalNode의 계약이며 GraphEngine이나 RAG record의 필드가 아니다.
 예를 들어 같은 Project의 `rag = await project.components.aget("rag")` 핸들을 얻고

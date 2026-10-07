@@ -1,0 +1,191 @@
+{
+  "base": "607310f528c3efe82e5d14d9e6ae2ed34a4fe917",
+  "schemas": {
+    "RAGComponent": "67683a3eb280693eff98c0e32e71738abc10e98440fa8f024df7200675bc80a7",
+    "MemoryComponent": "776c71c7bddac97ee60acd5a4aef5806948cac409793330de086d4d4f4d84f23",
+    "VisionComponent": "4d16bd070bcd9fad9924b3278cedcb7ada210d53944fc3631a4ddeea788e856e",
+    "SkillComponent": "35a5b42e53ef88c944a4b63a3ae5514db5a458d5a23774b0233beabd5172fc01",
+    "AgentComponent": "35a5b42e53ef88c944a4b63a3ae5514db5a458d5a23774b0233beabd5172fc01",
+    "PromptComponent": "35a5b42e53ef88c944a4b63a3ae5514db5a458d5a23774b0233beabd5172fc01",
+    "MCPComponent": "35a5b42e53ef88c944a4b63a3ae5514db5a458d5a23774b0233beabd5172fc01",
+    "GoalComponent": "5d0e1a529247ad82e793d353e435546b7cc4d281cf636d926d20e3dc0414d9a7",
+    "RefinementComponent": "71b7b0572999ec900269fabd9f8b159a708aff5b4f4ea7f20a471ec650fc8452",
+    "WorkflowComponent": "35a5b42e53ef88c944a4b63a3ae5514db5a458d5a23774b0233beabd5172fc01",
+    "LoopEngine": "6bd8efcf9c880aa6403c5501026120aaadff1474871691958244d037abe4cf58",
+    "GraphEngine": "c6e095f93b8bbdc97d43a85c1c5fc583bb75b596f8409e2836560f4619e45d1a",
+    "ProjectPolicy": "8dbacc699b7fe945ba66dd2d05b71a74db7a9bb5b01897e216f17862714a8279"
+  },
+  "project_config": {
+    "policies": {
+      "tools": {
+        "max_calls": 5
+      }
+    },
+    "parameters": {
+      "engines": {
+        "loop": {
+          "config": {
+            "completion": {
+              "model": "test/model",
+              "temperature": null
+            }
+          },
+          "policy": {
+            "max_iterations": 3
+          }
+        }
+      }
+    },
+    "data": {}
+  },
+  "fields": {
+    "Project": [
+      "id",
+      "title",
+      "paths",
+      "config",
+      "created_at",
+      "deleted",
+      "components",
+      "conversation_storage",
+      "storage_version"
+    ],
+    "Session": [
+      "id",
+      "project_id",
+      "title",
+      "paths",
+      "status",
+      "current_run_id",
+      "created_at",
+      "metadata",
+      "config",
+      "storage_version"
+    ],
+    "Run": [
+      "id",
+      "session_id",
+      "input_message_id",
+      "assistant_message_id",
+      "engine",
+      "paths",
+      "status",
+      "created_at",
+      "started_at",
+      "ended_at",
+      "error",
+      "metadata",
+      "error_code",
+      "storage_version"
+    ],
+    "Step": [
+      "id",
+      "run_id",
+      "kind",
+      "name",
+      "paths",
+      "status",
+      "created_at",
+      "started_at",
+      "ended_at",
+      "error",
+      "metadata",
+      "storage_version"
+    ]
+  },
+  "scope_binding": {
+    "revision": "host-1",
+    "allowed_tools": null,
+    "max_calls": 5,
+    "approval": false,
+    "timeout_seconds": null,
+    "max_output_chars": null,
+    "classifier": false,
+    "isolated_runner": false,
+    "operation_key": false,
+    "retry_safe_tools": [],
+    "max_retries": null,
+    "retry_delay": null,
+    "argument_constraints": {}
+  },
+  "loop_binding": "53147bd99b9dbc26aa3c0c0ff31f9814d717adbd4ff2500044f2d8c0813a7c40",
+  "graph_binding": {
+    "workflow": {
+      "metadata": {
+        "title": "Review"
+      },
+      "schema_version": 1,
+      "entry": "end",
+      "nodes": {
+        "end": {
+          "type": "end"
+        }
+      },
+      "edges": []
+    },
+    "workflow_id": "flow",
+    "revision": "1",
+    "handler_bindings": [],
+    "nested_graphs": [],
+    "handlers": [],
+    "max_steps": null,
+    "max_parallelism": null,
+    "timeout_seconds": null,
+    "project_config": {
+      "policies": {
+        "tools": {
+          "max_calls": 5
+        }
+      },
+      "parameters": {
+        "engines": {
+          "loop": {
+            "config": {
+              "completion": {
+                "model": "test/model",
+                "temperature": null
+              }
+            },
+            "policy": {
+              "max_iterations": 3
+            }
+          }
+        }
+      },
+      "data": {}
+    },
+    "session_config": {},
+    "components": [],
+    "agents": [],
+    "tools": [],
+    "tool_contracts": {},
+    "tool_policy": {
+      "revision": "host-1",
+      "allowed_tools": null,
+      "max_calls": 5,
+      "approval": false,
+      "timeout_seconds": null,
+      "max_output_chars": null,
+      "classifier": false,
+      "isolated_runner": false,
+      "operation_key": false,
+      "retry_safe_tools": [],
+      "max_retries": null,
+      "retry_delay": null,
+      "argument_constraints": {}
+    }
+  },
+  "workflow": {
+    "metadata": {
+      "title": "Review"
+    },
+    "schema_version": 1,
+    "entry": "end",
+    "nodes": {
+      "end": {
+        "type": "end"
+      }
+    },
+    "edges": []
+  }
+}

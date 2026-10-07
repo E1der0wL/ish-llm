@@ -16,17 +16,17 @@ class TitleEngine(BaseEngine):
     def __init__(self, **kwargs):
         super().__init__("Conversation title", kind="llm", **kwargs)
 
-    def configuration_schema(self):
+    def describe_config(self):
         from llm.core.schema import object_schema, implementation_schema
         from llm.providers.schema import completion_schema
         return implementation_schema(config=object_schema({"completion": completion_schema()}, additionalProperties=False))
 
-    def configuration(self, config, name, *, session_config=None):
-        from llm.core.configuration import engine_configuration
-        return engine_configuration(config, name, session_config=session_config, schema=self.configuration_schema())
+    def resolve_config(self, config, name, *, session_config=None):
+        from llm.core.configuration import resolve_engine_config
+        return resolve_engine_config(config, name, session_config=session_config, schema=self.describe_config())
 
     async def run(self, context):
-        request = self.copy_params(context.settings()["engine"].get("config", {}).get("completion", {}))
+        request = self.copy_params(context.resolve_config()["engine"].get("config", {}).get("completion", {}))
         request.pop("tools", None)
         request.pop("tool_choice", None)
         request["messages"] = [
@@ -53,8 +53,8 @@ class SessionNamer:
         for name in dict.fromkeys((source_engine, "loop")):
             if name not in self.runtime.backend.engines.names():
                 continue
-            implementation = self.runtime.backend.engines.resolve(name)
-            describe = getattr(implementation, "configuration", None)
+            implementation = self.runtime.backend.engines.get(name)
+            describe = getattr(implementation, "resolve_config", None)
             if describe is not None:
                 values = describe(project.config, name, session_config=record.config).get("values", {})
                 candidate = values.get("config", {}).get("completion")
@@ -64,8 +64,8 @@ class SessionNamer:
         for key in ("messages", "tools", "tool_choice", "parallel_tool_calls", "functions", "function_call",
                     "response_format", "json_schema", "stop", "n", "max_tokens", "max_completion_tokens"):
             params.pop(key, None)
-        title = self.runtime.backend.engines.resolve(TITLE_ENGINE)
-        configured = title.configuration(project.config, TITLE_ENGINE, session_config=record.config)
+        title = self.runtime.backend.engines.get(TITLE_ENGINE)
+        configured = title.resolve_config(project.config, TITLE_ENGINE, session_config=record.config)
         params.update(deepcopy(configured["values"].get("config", {}).get("completion", {})))
         return params
 

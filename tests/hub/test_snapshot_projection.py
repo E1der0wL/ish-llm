@@ -27,7 +27,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
                      run=NS(astatus=AsyncMock(return_value=status), alist=AsyncMock(return_value=[handle]), aload=AsyncMock()))
         project = NS(aget_data=AsyncMock(return_value=NS(id="p", title="Project", config={}, components=["tools"], conversation_storage="file")),
                      paths=NS(root="/workspace"))
-        engines = NS(names=lambda: ("loop",), resolve=lambda _: NS(configuration=lambda *a, **kw: {"values": {"config": {"completion": {"model": "test/model"}}}}))
+        engines = NS(names=lambda: ("loop",), get=lambda _: NS(resolve_config=lambda *a, **kw: {"values": {"config": {"completion": {"model": "test/model"}}}}))
         reader = SnapshotReader()
         snapshot, observations = await reader.read(project, {"s": session}, "s", config=config, engines=engines, title_errors={})
         json.dumps(asdict(snapshot))  # No handles, tasks or UI controls cross threads.

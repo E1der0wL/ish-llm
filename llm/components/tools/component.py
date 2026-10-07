@@ -3,7 +3,7 @@
 from copy import deepcopy
 from typing import Sequence
 from llm.components.base import Component, validate_name
-from llm.core.settings import SettingsLayout
+from llm.core.parameters import ParameterLayout
 from llm.services.infrastructure.storage import make_directory, remove_named_tree
 from .registry import ToolRegistry
 from .data import ToolData
@@ -15,7 +15,7 @@ class ToolComponent(Component):
     directory = "tools"
     capabilities = ("tools",)
     data_class = ToolData
-    settings_layout = SettingsLayout(config=("enabled",))
+    parameter_layout = ParameterLayout(config=("enabled",))
 
     @staticmethod
     def _selection_names(names: Sequence[str]) -> list[str]:
@@ -23,27 +23,27 @@ class ToolComponent(Component):
             raise ValueError("Tool names must be a sequence")
         return [validate_name(name) for name in names]
 
-    def configuration_schema(self):
+    def describe_config(self):
         from llm.core.schema import object_schema
-        return self.settings_layout.schema(object_schema({"enabled": {"type": "array", "items": {"type": "string"},
+        return self.parameter_layout.schema(object_schema({"enabled": {"type": "array", "items": {"type": "string"},
             "uniqueItems": True, "description": "Run에 노출할 Project Python Tool 이름"}}))
 
-    def validate_configuration(self, configuration):
-        super().validate_configuration(configuration)
+    def validate_config(self, configuration):
+        super().validate_config(configuration)
         names = configuration.get("config", {}).get("enabled", [])
         if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
             raise ValueError("Enabled tools must be a list of names")
         if len(set(names)) != len(names):
             raise ValueError("Duplicate enabled tool")
 
-    def configuration(self, project):
+    def get_config(self, project):
         data = deepcopy(project.config.parameters.get("components", {}).get(self.name, {}))
         self.serialize(data)
-        self.validate_configuration(data)
+        self.validate_config(data)
         return data
 
     def initialize(self, project):
-        self.configuration(project)
+        self.get_config(project)
         make_directory(ToolPaths.for_project(project).root)
 
     def enabled(self, project):

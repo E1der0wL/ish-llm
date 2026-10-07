@@ -10,7 +10,7 @@ import unittest
 from jsonschema import Draft202012Validator
 from llm.core.models import ProjectConfig
 from llm.core.schema import checked_implementation_schema
-from llm.core.settings import SettingsLayout
+from llm.core.parameters import ParameterLayout
 from llm.components.rag import RAGComponent, EmbeddingModel
 from llm.components.memory import MemoryComponent
 from llm.components.vision import VisionComponent
@@ -29,15 +29,15 @@ class SettingsContractTests(unittest.TestCase):
             RAGComponent(), MemoryComponent(), VisionComponent(), ToolComponent(), SkillComponent()]
         for item in implementations:
             with self.subTest(implementation=type(item).__name__):
-                schema = checked_implementation_schema(item.configuration_schema())
+                schema = checked_implementation_schema(item.describe_config())
                 self.assertEqual(set(schema["properties"]), {"config", "policy"})
                 validator = Draft202012Validator(schema)
                 self.assertTrue(validator.is_valid({}))
                 self.assertFalse(validator.is_valid({"timeout": 5}))
                 self.assertFalse(validator.is_valid({"policy": None}))
                 self.assertFalse(validator.is_valid({"config": None}))
-        self.assertEqual(LoopEngine().configuration({}, "loop")["values"], {})
-        self.assertEqual(GraphEngine(handlers={}).configuration({}, "graph")["values"], {})
+        self.assertEqual(LoopEngine().resolve_config({}, "loop")["values"], {})
+        self.assertEqual(GraphEngine(handlers={}).resolve_config({}, "graph")["values"], {})
 
     def test_project_session_agent_sources_and_limits_are_identical(self):
         project = ProjectConfig(parameters={"engines": {"writer": {
@@ -47,7 +47,7 @@ class SettingsContractTests(unittest.TestCase):
         session = {"parameters": {"engines": {"writer": {"policy": {"request_timeout": 60}}}}}
         engine = LoopEngine().for_agent({"engine": "writer", "system_prompt": None,
             "engine_options": {"policy": {"completion": {"max_tokens": 50}}}})
-        view = engine.configuration(project, "writer", session_config=session)
+        view = engine.resolve_config(project, "writer", session_config=session)
         self.assertIsNone(view["values"]["config"]["system_prompt"])
         self.assertEqual(view["values"]["policy"]["request_timeout"], 60)
         self.assertEqual(view["values"]["config"]["completion"], {"timeout": 70})
@@ -55,7 +55,7 @@ class SettingsContractTests(unittest.TestCase):
         for path in ("/config/system_prompt", "/policy/completion/max_tokens"):
             self.assertEqual(view["sources"][path], "agent")
             self.assertTrue(view["editable"][path])
-            schema = engine.configuration_schema()
+            schema = engine.describe_config()
             for part in path.strip("/").split("/"):
                 schema = schema["properties"][part]
             self.assertNotIn("x-host-override", schema)
@@ -71,7 +71,7 @@ class SettingsContractTests(unittest.TestCase):
         for item, value in ((LoopEngine(), {"config": {"request_timeout": 1}}),
                             (RAGComponent(), {"config": {"embedding_concurrency": 2}}),
                             (VisionComponent(), {"config": {"provider": {"max_attempts": 2}}})):
-            self.assertFalse(Draft202012Validator(item.configuration_schema()).is_valid(value))
+            self.assertFalse(Draft202012Validator(item.describe_config()).is_valid(value))
 
     def test_component_client_source_and_snapshot_detachment(self):
         component = RAGComponent(embedding=EmbeddingModel(model="injected", timeout=7))
@@ -80,8 +80,8 @@ class SettingsContractTests(unittest.TestCase):
             "policy": {"provider": {"max_attempts": 2}},
         }}}))
         # No project files are needed for this pure resolution contract.
-        component.configuration_layers = lambda p: [("project", p.config.parameters["components"]["rag"])]
-        view = component.effective_configuration(project)
+        component.get_config_layers = lambda p: [("project", p.config.parameters["components"]["rag"])]
+        view = component.resolve_config(project)
         self.assertEqual(view["sources"]["/config/embedding_params/timeout"], "client")
         self.assertEqual(view["sources"]["/config/embedding_params/model"], "project")
         self.assertEqual(view["model_providers"]["embedding"]["sources"]["/max_attempts"], "project")
@@ -108,7 +108,7 @@ class SettingsContractTests(unittest.TestCase):
     def test_layout_roundtrip_preserves_explicit_null_and_sdk_options(self):
         options = {"completion": {"timeout": None, "num_retries": 3, "custom": {"x": 1}},
                    "input_policy": None, "request_timeout": None}
-        layout = LoopEngine.settings_layout
+        layout = LoopEngine.parameter_layout
         self.assertEqual(layout.unpack(layout.pack(options)), options)
         self.assertEqual(layout.pack({}), {})
         self.assertEqual(layout.unpack({}), {})
@@ -117,7 +117,7 @@ class SettingsContractTests(unittest.TestCase):
         engine = PipelineEngine({"writer": LoopEngine()})
         config = ProjectConfig(parameters={"engines": {"pipeline": {"config": {"stages": {
             "writer": {"config": {"system_prompt": None}}}}}}})
-        view = engine.configuration(config, "pipeline")
+        view = engine.resolve_config(config, "pipeline")
         self.assertIsNone(view["values"]["config"]["stages"]["writer"]["config"]["system_prompt"])
         path = "/config/stages/writer/config/system_prompt"
         self.assertEqual(view["sources"][path], "project")
@@ -127,37 +127,37 @@ class SettingsContractTests(unittest.TestCase):
         component = MemoryComponent()
         value = {"config": {"processing": {"completion": {"future_extension": {"enabled": False}}}},
                  "policy": {"processing": {"timeout_seconds": None}}}
-        component.validate_configuration(value)
-        options = component.settings_layout.unpack(value)
+        component.validate_config(value)
+        options = component.parameter_layout.unpack(value)
         self.assertEqual(options["processing"], {"completion": {"future_extension": {"enabled": False}}, "timeout_seconds": None})
-        self.assertEqual(component.settings_layout.pack(options), value)
-        self.assertFalse(Draft202012Validator(component.configuration_schema()).is_valid(
+        self.assertEqual(component.parameter_layout.pack(options), value)
+        self.assertFalse(Draft202012Validator(component.describe_config()).is_valid(
             {"config": {"processing": {"timeout_seconds": 10}}}))
 
     def test_declared_settings_require_explicit_classification(self):
         with self.assertRaisesRegex(ValueError, "classification.*timeout"):
-            SettingsLayout().schema({"type": "object", "properties": {"timeout": {"type": "number"}}})
+            ParameterLayout().schema({"type": "object", "properties": {"timeout": {"type": "number"}}})
         with self.assertRaisesRegex(ValueError, "belong to config/policy"):
-            SettingsLayout(paths={"timeout": "timeout"})
+            ParameterLayout(paths={"timeout": "timeout"})
 
     def test_internal_policy_names_cannot_enter_through_open_config(self):
         engine = LoopEngine()
         for value in (None, {"max_tokens": 10, "counter": "test"}):
             with self.subTest(value=value):
                 supplied = {"config": {"input_policy": value}}
-                self.assertFalse(Draft202012Validator(engine.configuration_schema()).is_valid(supplied))
+                self.assertFalse(Draft202012Validator(engine.describe_config()).is_valid(supplied))
                 with self.assertRaisesRegex(ValueError, "declared config/policy"):
-                    engine.settings_layout.unpack(supplied)
+                    engine.parameter_layout.unpack(supplied)
                 with self.assertRaises(ValueError):
-                    engine.configuration(ProjectConfig(parameters={"engines": {"loop": supplied}}), "loop")
+                    engine.resolve_config(ProjectConfig(parameters={"engines": {"loop": supplied}}), "loop")
         supplied = {"config": {"completion": {"input_policy": "provider-extension"}},
                     "policy": {"completion": None}}
-        self.assertTrue(Draft202012Validator(engine.configuration_schema()).is_valid(supplied))
-        self.assertEqual(engine.settings_layout.unpack(supplied),
+        self.assertTrue(Draft202012Validator(engine.describe_config()).is_valid(supplied))
+        self.assertEqual(engine.parameter_layout.unpack(supplied),
                          {"completion": {"input_policy": "provider-extension"}, "input_policy": None})
 
     def test_layout_required_and_local_references_keep_their_meaning(self):
-        layout = SettingsLayout(config=("connection", "peers"), policy=("limit",))
+        layout = ParameterLayout(config=("connection", "peers"), policy=("limit",))
         original = {"type": "object", "additionalProperties": False, "required": ["connection", "limit"],
             "$defs": {"address": {"type": "object", "required": ["host"],
                                   "properties": {"host": {"type": "string", "minLength": 1}}}},
@@ -178,24 +178,24 @@ class SettingsContractTests(unittest.TestCase):
         self.assertEqual(layout.unpack(valid), {"connection": {"host": "local"}, "peers": [{"host": "peer"}], "limit": 1})
 
     def test_layout_rejects_constraints_it_cannot_relocate(self):
-        layout = SettingsLayout(config=("value",))
+        layout = ParameterLayout(config=("value",))
         for extra in ({"allOf": [{"required": ["value"]}]}, {"dependentRequired": {"value": ["other"]}},
                       {"minProperties": 1}, {"$id": "urn:custom"}):
             with self.subTest(extra=extra), self.assertRaisesRegex(ValueError, "implementation_schema"):
                 layout.schema({"type": "object", "properties": {"value": {"type": "string"}}, **extra})
         with self.assertRaisesRegex(ValueError, "overlap"):
-            SettingsLayout(paths={"x": "config.x", "y": "config.x.y"})
+            ParameterLayout(paths={"x": "config.x", "y": "config.x.y"})
         # A mapped subtree is copied whole, so its own conditions remain valid.
         spec = layout.schema({"type": "object", "properties": {"value": {"type": "object",
             "allOf": [{"required": ["a"]}], "properties": {"a": {"type": "integer"}}}}})
         self.assertFalse(Draft202012Validator(spec).is_valid({"config": {"value": {}}}))
 
     def test_nested_agent_metadata_matches_leaf_merge_including_empty_null_and_array(self):
-        engine = LoopEngine().for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"extra_body": {"a": 1, "unset": None, "items": [1], "empty": {}}}})})
+        engine = LoopEngine().for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"extra_body": {"a": 1, "unset": None, "items": [1], "empty": {}}}})})
         config = ProjectConfig(parameters={"engines": {"loop": {"config": {"completion": {
             "extra_body": {"b": 2, "unset": 3, "items": [2], "empty": {"inherited": True}}}}}}})
-        view = engine.configuration(config, "loop")
-        self.assertNotIn("x-host-override", json.dumps(engine.configuration_schema()))
+        view = engine.resolve_config(config, "loop")
+        self.assertNotIn("x-host-override", json.dumps(engine.describe_config()))
         for name in ("a", "unset", "items"):
             self.assertEqual(view["sources"]["/config/completion/extra_body/" + name], "agent")
             self.assertTrue(view["editable"]["/config/completion/extra_body/" + name])
@@ -204,26 +204,26 @@ class SettingsContractTests(unittest.TestCase):
 
     def test_pipeline_preserves_child_reference_scope(self):
         class RefEngine:
-            settings_name = None
-            def configuration_schema(self):
-                return SettingsLayout(config=("address",)).schema({"type": "object",
+            parameter_key = None
+            def describe_config(self):
+                return ParameterLayout(config=("address",)).schema({"type": "object",
                     "$defs": {"address": {"type": "string", "minLength": 1}},
                     "properties": {"address": {"$ref": "#/$defs/address"}}})
-            def configuration(self, config, name, *, session_config=None):
-                from llm.core.configuration import engine_configuration
-                return engine_configuration(config, self.settings_name or name,
-                    session_config=session_config, schema=self.configuration_schema())
+            def resolve_config(self, config, name, *, session_config=None):
+                from llm.core.configuration import resolve_engine_config
+                return resolve_engine_config(config, self.parameter_key or name,
+                    session_config=session_config, schema=self.describe_config())
             async def execute(self, context):
                 yield
         engine = PipelineEngine({"nested": PipelineEngine({"call": RefEngine()})})
         settings = {"config": {"stages": {"nested": {"config": {"stages": {"call": {"config": {"address": "host"}}}}}}}}
         config = ProjectConfig(parameters={"engines": {"pipeline": settings}})
-        self.assertEqual(engine.configuration(config, "pipeline")["values"], settings)
+        self.assertEqual(engine.resolve_config(config, "pipeline")["values"], settings)
         settings["config"]["stages"]["nested"]["config"]["stages"]["call"]["config"]["address"] = ""
-        self.assertFalse(Draft202012Validator(engine.configuration_schema()).is_valid(settings))
+        self.assertFalse(Draft202012Validator(engine.describe_config()).is_valid(settings))
 
     def test_mapped_subtree_not_constraint_is_not_replaced_by_policy_guard(self):
-        layout = SettingsLayout(config=("options",), paths={"policy_options": "policy.options"})
+        layout = ParameterLayout(config=("options",), paths={"policy_options": "policy.options"})
         schema = layout.schema({"type": "object", "properties": {
             "options": {"type": "object", "not": {"required": ["forbidden"]}},
             "policy_options": {"type": "object", "properties": {"limit": {"type": "integer"}}}}})

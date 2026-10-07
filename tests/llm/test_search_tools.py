@@ -42,7 +42,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         self.graph = await self.project.components.aget("rag")
 
     async def run_loop(self, project, completion, *, name="loop"):
-        self.app.engines.register(name, LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})}))
+        self.app.engines.register(name, LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
         session = await project.sessions.acreate("Question")
         return await (await session.run.submit("설명서에서 검색해 주세요.", engine=name)).wait(timeout=20)
 
@@ -100,7 +100,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_selected_components_always_expose_tools_despite_legacy_flags(self):
         for data in (self.rag,):
-            self.assertEqual((await data.aconfiguration())["config"]["search"]["method"], "hybrid")
+            self.assertEqual((await data.aget_config())["config"]["search"]["method"], "hybrid")
             self.assertFalse(hasattr(data, "enable_search_tools"))
             self.assertFalse(hasattr(data, "aenable_search_tools"))
             # 제거된 실행 설정을 보존하거나 자동 변환하지 않는다.
@@ -111,13 +111,13 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
         self.assertEqual({item["function"]["name"] for item in completion.requests[0]["tools"]},
                          {"rag_search"})
-        self.assertNotIn("search_tools_enabled", (await self.rag.aconfiguration())["config"])
+        self.assertNotIn("search_tools_enabled", (await self.rag.aget_config())["config"])
 
     async def test_project_selection_controls_tools_on_subsequent_runs(self):
         project = await self.app.projects.acreate("Selection", components=[])
         session = await project.sessions.acreate()
         model = ScriptedCompletion(*([chunk("done"), chunk(finish="stop")] for _ in range(4)))
-        self.app.engines.register("loop", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})}))
+        self.app.engines.register("loop", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
         for names in ([], ["rag"], ["rag"], []):
             await project.components.aselect(names)
             run = await (await session.run.submit("hello", engine="loop")).wait(timeout=20)
@@ -197,7 +197,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         completion = completion_for("rag_search", {"query": "backup", "method": "bm25"})
         async with LargeLanguageModel(Path(self.temp.name),
                                       components=[self.rag_component],
-                                      engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})})}) as app:
+                                      engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})}) as app:
             project = await app.projects.aload(project_id)
             rag = await project.components.aget("rag")
             self.assertTrue(await rag.asearch("backup", method="bm25"))
@@ -218,7 +218,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
                 cancelled.set()
 
         completion = completion_for("rag_search", {"query": "backup"})
-        self.app.engines.register("loop", LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})}))
+        self.app.engines.register("loop", LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
         session = await self.project.sessions.acreate()
         with patch.object(self.embedding, "_call_fn", blocked):
             request = await session.run.submit("search", engine="loop")

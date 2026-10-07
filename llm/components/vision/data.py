@@ -6,7 +6,7 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
-from llm.core.configuration import UNSET, required_setting
+from llm.core.configuration import UNSET, require_config
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import revision_token
@@ -83,17 +83,17 @@ class VisionData(ComponentData):
 
     async def aocr(self, image_id: str, *, backend=UNSET, options: dict | None = None) -> dict:
         component, config, record, raw = await self._async_call(self._snapshot, image_id)
-        settings = config.get("ocr", {})
+        ocr_config = config.get("ocr", {})
         if backend is UNSET:
-            backend = required_setting(settings, "backend", scope="vision.ocr")
+            backend = require_config(ocr_config, "backend", scope="vision.ocr")
         if not isinstance(backend, str) or backend not in component.ocr_backends:
             raise ValueError("Select a registered OCR backend; auto is unsupported")
         implementation = component.ocr_backends[backend]
-        parameters = {**settings.get("backends", {}).get(backend, {}), **({} if options is None else options)}
-        Draft202012Validator(implementation.configuration_schema()).validate(parameters)
+        parameters = {**ocr_config.get("backends", {}).get(backend, {}), **({} if options is None else options)}
+        Draft202012Validator(implementation.describe_config()).validate(parameters)
         component.serialize(parameters)
         await asyncio.to_thread(images.inspect_image, raw, config.get("limits", {}))
-        async with asyncio.timeout(settings.get("timeout")):
+        async with asyncio.timeout(ocr_config.get("timeout")):
             result = await implementation.recognize(raw, options=deepcopy(parameters))
         result = deepcopy(validate_ocr(result, record["width"], record["height"]))
         await self._async_call(self._finish, config, record)

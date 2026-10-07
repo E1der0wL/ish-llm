@@ -17,7 +17,7 @@ examples/llm/domain_performance.md에 기록했다. 사내 규모의 운영 보�
 최근 보강: ToolContract 사전 검증과 정책 revision, 외부 결과 probe/CAS, Project 무결성
 검사·명시적 복구, Run 단위 보관 정리·중단 복구, Component maintenance를 추가했다.
 독립 RAG 모델 호출도 사용량을 예약하여 Run과 같은 Project 한도에 참여한다.
-UI는 `project_schema()`와 `aconfiguration()`으로 등록별 타입·기본값·제약·실제 값을 받는다.
+UI는 `describe_project_config()`와 `adescribe_config()`으로 등록별 타입·기본값·제약·실제 값을 받는다.
 상세 범위와 사용법은 [운영 및 UI 설정](operations-and-ui-settings.md)을 참고한다.
 
 현재 구현은 Linux에서 동작하는 로컬 `ish` 플러그인이다. 기능 회귀 검사를 통과해도

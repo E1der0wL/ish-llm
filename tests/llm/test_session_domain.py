@@ -52,7 +52,7 @@ class SessionDomainTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse((session.paths.root / 'task.json').exists())
                 self.assertEqual(DOMAIN_STORAGE_VERSION, 1)
                 self.assertNotIn('tasks', vars(project))
-                schema = app.project_schema()['properties']['config']['properties']
+                schema = app.describe_project_config()['properties']['config']['properties']
                 self.assertNotIn('session_defaults', schema)
                 self.assertNotIn('task_defaults', schema)
                 ids = (project.id, session.id, run.id)
@@ -104,4 +104,4 @@ class SessionDomainTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ModuleNotFoundError):
             importlib.import_module('llm.services.lifecycle.tasks')
         config = ProjectConfig()
-        self.assertEqual(config.for_engine('loop', session_config={'data': {'request': 1}})['data'], {'request': 1})
+        self.assertEqual(config.resolve_engine_config('loop', session_config={'data': {'request': 1}})['data'], {'request': 1})

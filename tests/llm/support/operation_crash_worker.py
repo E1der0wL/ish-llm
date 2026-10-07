@@ -7,8 +7,8 @@ import sys
 from tests.llm.support.runtime_tools import RuntimeTools
 from llm.components.tools import Tool, ToolComponent, ToolRegistry
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
-from llm.services.runtime.tools import ToolPolicy
+from llm.services.composition import BackendServices
+from llm.services.runtime.tools import ToolRuntime
 from tests.llm.test_isolated_tools import ToolEngine
 
 
@@ -22,7 +22,7 @@ async def main():
         os._exit(23)
     tools = RuntimeTools(ToolRegistry([Tool("external", "external", {"type": "object"}, effect)]))
     async with LargeLanguageModel(root, components=[tools], engines={"tool": ToolEngine()},
-            services=ServiceConfig(tool_policy=ToolPolicy(operation_key=lambda call: call.arguments["operation"]))) as app:
+            services=BackendServices(tool_runtime=ToolRuntime(operation_key=lambda call: call.arguments["operation"]))) as app:
         session = await (await app.projects.aload(project_id)).sessions.aload(session_id)
         await (await session.run.submit("perform", engine="tool")).wait()
 

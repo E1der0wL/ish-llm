@@ -7,8 +7,8 @@ from pathlib import Path
 
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.configuration_fixtures import configure_engine
-from llm.llm import LargeLanguageModel, ProjectConfig, LoopEngine, Tool, ToolRegistry, ToolComponent, ServiceConfig
-from llm.services.runtime.tools import ToolPolicy, ToolExecutionError, ToolApprovalRequired
+from llm.llm import LargeLanguageModel, ProjectConfig, LoopEngine, Tool, ToolRegistry, ToolComponent, BackendServices
+from llm.services.runtime.tools import ToolRuntime, ToolExecutionError, ToolApprovalRequired
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
@@ -34,7 +34,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             calls.append(1)
             raise ToolExecutionError('retry', effect='uncertain' if len(calls) == 1 else 'none', retryable=True)
         app, session, _ = await self.setup_app(act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]],
-            ToolPolicy(operation_key=lambda call: 'work', retry_safe_tools=('act',)),
+            ToolRuntime(operation_key=lambda call: 'work', retry_safe_tools=('act',)),
             policies={"tool_retry": {"max_retries": 1, "delay_seconds": 0}})
         failed = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual((await session.run.aoperation('work'))['status'], 'started')
@@ -123,7 +123,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(Path(temporary.name),
             components=[RuntimeTools(ToolRegistry((Tool('act', 'action', {'type': 'object'}, act),))), WorkflowComponent()],
             engines={'graph': GraphEngine(handlers={'tool': ToolNode()})},
-            services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=['tools', 'workflows'])
         project.components.tools.enable('act')
@@ -218,7 +218,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             effects.append(1)
         app, session, model = await self.setup_app(act, [
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]],
-            ToolPolicy(authorize=authorize))
+            ToolRuntime(authorize=authorize))
         paused = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual(paused.data.status, 'paused')
         self.assertEqual(effects, [])
@@ -249,13 +249,13 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, 'edit_conflict'):
             await tools.aconfigure({'config': {'enabled': ['act']}}, expected_version=snapshot['version'])
 
-    async def setup_app(self, handler, responses, policy=None, *, policies=None, tool_schema=None, tool_contract=None):
+    async def setup_app(self, handler, responses, runtime=None, *, policies=None, tool_schema=None, tool_contract=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         model = ScriptedCompletion(*responses)
         tools = ToolRegistry((Tool("act", "action", tool_schema or {"type": "object"}, handler, contract=tool_contract),))
         app = LargeLanguageModel(Path(temporary.name), components=[RuntimeTools(tools)],
-            engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy or ToolPolicy()))
+            engines={"loop": LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=runtime or ToolRuntime()))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate("resume", config=ProjectConfig(policies=policies or {}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}), components=["tools"])
         project.components.tools.enable("act")
@@ -292,7 +292,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             return None
         app, session, model = await self.setup_app(act, [
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]],
-            ToolPolicy(operation_key=lambda call: 'same-work'))
+            ToolRuntime(operation_key=lambda call: 'same-work'))
         failed = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual((await session.run.aoperation('same-work'))['status'], 'not_applied')
         resumed = await (await session.run.resume(failed.id, engine='loop')).wait()

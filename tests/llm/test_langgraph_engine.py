@@ -27,7 +27,7 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
             handlers={"work": work})})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("test", components=["workflows"], config={"parameters": {
-            "engines": {"graph": GraphEngine.settings_layout.pack(options)}}})
+            "engines": {"graph": GraphEngine.parameter_layout.pack(options)}}})
         self.workflows = await self.project.components.aget("workflows")
         await self.workflows.acreate(graph, identifier="flow")
         self.session = await self.project.sessions.acreate()
@@ -166,7 +166,7 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
         async def fail(node):
             called.append(node.node_id)
             raise ConnectionError("no automatic retry")
-        self.app.engines.resolve("graph").handlers["work"] = fail
+        self.app.engines.get("graph").handlers["work"] = fail
         await self.workflows.asave("flow", straight())
         failed = await self.run_graph()
         self.assertEqual(failed.data.status, RunStatus.FAILED)

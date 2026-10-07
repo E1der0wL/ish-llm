@@ -7,8 +7,8 @@ import unittest
 from unittest.mock import patch
 
 from llm.core.interactions import InteractionOption, InteractionRequest, InteractionResponse, approval_request
-from llm.llm import LargeLanguageModel, ServiceConfig
-from llm.services.runtime.tools import ToolPolicy, ToolApprovalRequired
+from llm.llm import LargeLanguageModel, BackendServices
+from llm.services.runtime.tools import ToolRuntime, ToolApprovalRequired
 from tests.llm import test_long_running
 from tests.llm import test_graph_checkpoints
 from tests.llm.test_graph_engine import straight
@@ -73,7 +73,7 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
             raise ToolApprovalRequired(request=request)
         app, session, model = await self.setup_app(act, [
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]],
-            ToolPolicy(authorize=authorize))
+            ToolRuntime(authorize=authorize))
         def observe(run, event):
             if event.interaction is not None:
                 checkpoint = app.run_repository.checkpoint(run, event.interaction.binding['checkpoint'])
@@ -123,12 +123,12 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
         request, = await run.ainteractions()
         saved = await run.arespond(request.respond('approve'))
         root, project_id, session_id, run_id = session.project.paths.root.parent.parent, session.project.id, session.id, run.id
-        engine = app.engines.resolve('loop')
-        policy = app._manager(session._snapshot).tool_policy
+        engine = app.engines.get('loop')
+        runtime = app._manager(session._snapshot).tool_runtime
         component = app.project_manager.components.get('tools')
         await app.shutdown()
         reopened = LargeLanguageModel(root, engines={'loop': engine}, components=[component],
-                                      services=ServiceConfig(tool_policy=policy))
+                                      services=BackendServices(tool_runtime=runtime))
         self.addAsyncCleanup(reopened.shutdown)
         session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
         run = await session.run.aload(run_id)
@@ -146,7 +146,7 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
             await run.arespond(replace(request, action={'tool': 'other'}).respond('approve'))
         await run.arespond(request.respond('approve'))
         manager = app._manager(session._snapshot)
-        manager.tool_policy = replace(manager.tool_policy, revision='2')
+        manager.tool_runtime = replace(manager.tool_runtime, revision='2')
         with self.assertRaisesRegex(Exception, 'changed'):
             await session.run.resume(run.id, engine='loop')
         self.assertEqual(self.effects, [])
@@ -232,7 +232,7 @@ class GraphInteractionTests(unittest.IsolatedAsyncioTestCase):
         self.app = LargeLanguageModel(self.root, components=[WorkflowComponent(), RuntimeTools(
             ToolRegistry((Tool('act', 'action', {'type': 'object'}, act),)))],
             engines={'graph': GraphEngine(handlers={'tool': ToolNode()})},
-            services=ServiceConfig(tool_policy=ToolPolicy(authorize=checked)))
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=checked)))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate(components=['tools', 'workflows'])
         await self.project.components.tools.aenable('act')

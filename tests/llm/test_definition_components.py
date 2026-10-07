@@ -125,7 +125,7 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
         for name in definitions():
             data, copied = self.project.components[name], clone.components[name]
             self.assertEqual(data.list(), copied.list())
-            self.assertEqual(data.configuration(), copied.configuration())
+            self.assertEqual(data.get_config(), copied.get_config())
             data.delete("example")
             self.assertEqual(data.list(), {})
             self.assertIn("example", copied.list())

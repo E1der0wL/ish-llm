@@ -20,8 +20,8 @@ from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
 from llm.engines.graph.tool import ToolNode
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
-from llm.services.runtime.tools import ToolPolicy
+from llm.services.composition import BackendServices
+from llm.services.runtime.tools import ToolRuntime
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
@@ -66,10 +66,10 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                 model = ScriptedCompletion([chunk(calls=[call(json.dumps(args), name="file_create")], finish="tool_calls")],
                                            [chunk("done", finish="stop")])
                 component = BuiltinToolComponent(self.tools, name="builtin")
-                policy = ToolPolicy(classify=lambda call: ToolClassification("file.write", "test-v1", risk))
-                self.assertIsNone(policy.authorize)
+                runtime = ToolRuntime(classify=lambda call: ToolClassification("file.write", "test-v1", risk))
+                self.assertIsNone(runtime.authorize)
                 async with LargeLanguageModel(self.root / f"backend-{risk}-{change_environment}", components=[component],
-                        engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy)) as backend:
+                        engines={"loop": LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=runtime)) as backend:
                     project = await backend.projects.acreate(components=["builtin"], config={
                         "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test/model"}}}},
                                        "components": {"builtin": {"config": {"enabled": ["file_create"]}}}},
@@ -401,7 +401,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         completion = ScriptedCompletion([chunk(calls=[call(json.dumps(arguments), name="file_create")]), chunk(finish="tool_calls")],
                                          [chunk("done"), chunk(finish="stop")])
         async with LargeLanguageModel(self.root / "backend", components=[RuntimeTools(self.tools.registry)],
-                                      engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "demo"}})})}) as backend:
+                                      engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "demo"}})})}) as backend:
             project = await backend.projects.acreate("tools", components=["tools"])
             selected = await project.components.aget("tools")
             await selected.aenable("file_create")

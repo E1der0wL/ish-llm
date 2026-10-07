@@ -27,11 +27,11 @@ await prompts.asave("rag-triples", record)
 
 # configure는 전체 교체이므로 현재 RAG 설정을 읽어 변경한다.
 rag = await project.components.aget("rag")
-settings = await rag.aconfiguration()
-settings.setdefault("extraction", {}).update(
+configuration = await rag.aget_config()
+configuration.setdefault("extraction", {}).update(
     prompt_id="rag-triples", repair_attempts=2,
 )
-await rag.aconfigure(settings)
+await rag.aconfigure(configuration)
 ```
 
 레코드의 `messages`는 비어 있지 않은 배열입니다. 각 항목은 system/user/assistant 중 하나의 role과 비어 있지 않은 문자열 content를 가집니다. 최상위에 description·라벨 등 JSON 메타데이터를 추가할 수 있습니다.

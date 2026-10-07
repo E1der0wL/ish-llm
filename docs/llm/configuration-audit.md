@@ -25,7 +25,7 @@ RAG/Memory/Tool의 임의 제품 상한을 제거하고 프로토콜/메모리/�
 
 ## 2026-10-05 설정 변환·호스트 표시·Hub 연결 경계
 
-- SettingsLayout은 config.input_policy 등 내부 정책 이름과 공개 경로의 충돌을 schema와
+- ParameterLayout은 config.input_policy 등 내부 정책 이름과 공개 경로의 충돌을 schema와
   unpack 양쪽에서 거부한다. SDK dict의 같은 이름은 해당 SDK 소유이므로 보존한다.
 - 직접 매핑한 루트 required와 로컬 정의/참조를 유지한다. 통째로 옮기는 하위 schema의
   not/allOf 등도 유지하며 정책 위치 검사로 기존 not을 덮어쓰지 않는다. 분할 컨테이너의
@@ -46,9 +46,9 @@ RAG/Memory/Tool의 임의 제품 상한을 제거하고 프로토콜/메모리/�
   기능 입력·SDK 인자, policy는 ish가 집행하는 실행 판단·제한·실패 처리로 분류한다.
   SDK timeout/retry와 wrapper 정책을 합치거나 전역으로 전파하지 않는다.
 - `CompletionPolicy`와 계층 공용 `ExecutionLimitError`를 `llm/policies/`에 둔다.
-  RunPolicy/ContextPolicy/ToolPolicy와 provider의 SDK 재시도 경계는 기존 owner에 남긴다.
+  RunPolicy/ContextPolicy/ToolRuntime와 provider의 SDK 재시도 경계는 기존 owner에 남긴다.
   저장소·Engine 실행·Run/Step 전이를 새 정책 폴더로 옮기지 않았다.
-- `implementation_schema`와 등록/저장 검증이 공통 외형을 검사한다. SettingsLayout은
+- `implementation_schema`와 등록/저장 검증이 공통 외형을 검사한다. ParameterLayout은
   생성자의 명시 인자, schema, 실행 사본을 같은 경로에 연결하며 분류 누락을 거부한다.
   열린 중첩 config/SDK 확장값은 보존한다. 옛 JSON reader/alias/migration은 추가하지 않는다.
 - 설정 부재는 빈 상태로 유지하고 허용된 leaf null은 명시적 override로 유지한다.
@@ -127,7 +127,7 @@ SDK 인자, 시간 제한과 이벤트 저장 ACK, 설정 변경 후 재개 거�
 | Memory cache0/priority0 | 미설정 cache 비활성; 비활성 processor의 중립 순서. 실제 처리 기능 활성화 시 priority 명시 필요 |
 | Graph buffer32/Loop·provider buffer8/Event buffer64 | 유실 없는 backpressure queue. timeout·drop·호출 거절 없음 |
 | Graph/Memory/Goal/process cleanup5 | 자동 기한 제거. Graph 명시 대기 후 또는 미설정 시 PendingWork로 이전; SIGKILL·OS 회수·cancel 전파·scope revoke 유지 |
-| OutputPolicy batch1/delay.025/chars65536 | flush 시점만 조정, 출력 자르지 않음 |
+| OutputBuffer batch1/delay.025/chars65536 | flush 시점만 조정, 출력 자르지 않음 |
 | index_stride128 / catalog4096 / conversation cache32 / log handle16 | 파생 인덱스·projection·핸들 eviction. 영속 원본은 유지 |
 | log maxBytes0/backupCount0 | 회전 설정 없을 때 Python logging의 비회전 모드. 자동 삭제 없음 |
 | stream/n fallbackTrue/1 | 다른 값을 거부하는 프로토콜 검증. request timeout 등과 무관 |

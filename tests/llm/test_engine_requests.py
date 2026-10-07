@@ -53,7 +53,7 @@ class RequestBindingTests(unittest.TestCase):
         worker = registry.resolve_request("custom", source)
         self.assertEqual(source, {"label": ["user"]})
         self.assertEqual(worker.label, ["user", "bound"])
-        self.assertIs(registry.resolve_request("plain", {}), registry.resolve("plain"))
+        self.assertIs(registry.resolve_request("plain", {}), registry.get("plain"))
         with self.assertRaisesRegex(ValueError, "does not support"):
             registry.resolve_request("plain", {"workflow": "a"})
 

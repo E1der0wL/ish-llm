@@ -460,7 +460,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await run.steps.alist(), [])
         self.profile["engine"] = "plain"
         await self.agents.asave("writer", self.profile)
-        handler = self.backend.engines.resolve("graph").handlers["agent"]
+        handler = self.backend.engines.get("graph").handlers["agent"]
         handler.engines.register("plain", BaseEngine())
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)

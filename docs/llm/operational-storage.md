@@ -5,14 +5,14 @@ Project → Session → Run → Step 관계는 바뀌지 않는다. Engine은 �
 ProjectConfig에 Python 객체를 직렬화하지 않는다.
 
 ```python
-from llm.llm import LargeLanguageModel, LoopEngine, ServiceConfig, ProviderLimits, OutputPolicy, RunPolicy
+from llm.llm import LargeLanguageModel, LoopEngine, BackendServices, ProviderLimits, OutputBuffer, RunPolicy
 
 backend = LargeLanguageModel(
     "workspace",
     engines={"loop": LoopEngine()},
-    services=ServiceConfig(
+    services=BackendServices(
         provider_limits=ProviderLimits(max_active=4, max_waiting=16, wait_seconds=10),
-        output_policy=OutputPolicy(batch_size=32, max_delay=0.025, max_chars=65536),
+        output_buffer=OutputBuffer(batch_size=32, max_delay=0.025, max_chars=65536),
         output_index_stride=128,
     ),
 )
@@ -28,7 +28,7 @@ project = await backend.projects.acreate(config={"policies": {
 유한하며 한도 초과는 `provider_capacity` Run 오류 코드로 조회한다.
 `backend.provider_calls.stats`는 `active`, `waiting` 스냅샷이다.
 
-active/waiting/wait_seconds는 명시한 경우에만 제한한다. `ServiceConfig.provider_calls`로
+active/waiting/wait_seconds는 명시한 경우에만 제한한다. `BackendServices.provider_calls`로
 공유 객체/서브클래스를 주입하면 provider_limits 대신 그 객체가 정책을 소유한다.
 Session와 중첩 Engine은 같은 객체를 사용한다. ContextVar는 호출 문맥만 전달하며
 프로세스 전역 세마포어나 영속 필드가 아니다. 독립 스트림 사용자는
@@ -103,7 +103,7 @@ RAG는 작업별 DB 연결을 닫으며 현재 세대의 corpus/Chroma/Kuzu를 �
 QUEUED 요청은 나중에 Session 런타임을 명시적으로 시작하면 기존 큐 복구 정책을 따른다.
 
 현재 휴대 가능한 백업은 file 대화 저장만 지원한다. memory나 외부 주입 대화를 조용히
-누락한 불완전한 백업을 만들지 않는다. `ServiceConfig.backups`로 복사/검증 구현을
+누락한 불완전한 백업을 만들지 않는다. `BackendServices.backups`로 복사/검증 구현을
 교체할 수 있지만 다른 대화 저장소의 내보내기 계약은 별도로 구현해야 한다.
 
 Project/Session/Run/Step metadata는 `storage_version=1`를 명시한다. 지원하지 않거나
@@ -122,11 +122,11 @@ Project/Session/Run/Step metadata는 `storage_version=1`를 명시한다. 지원
 | 책임 | 구현 위치 | 확장/설정 |
 | --- | --- | --- |
 | 모델 호출 슬롯 | providers/calls.py | ProviderLimits, ProviderCalls 주입 |
-| 델타 저장 경계 | services/runtime/output.py | OutputPolicy |
+| 델타 저장 경계 | services/runtime/output.py | OutputBuffer |
 | Run 출력 저장/조회 | RunRepository → infrastructure/journal.py | 저장소 주입, 인덱스 간격 |
 | 대화 저장 | Conversation/ConversationStore | 기존 파일·메모리·주입 팩토리 |
 | 백업 조율 | ProjectManager | Component 문맥/검증, Repository 검증 |
-| 복사/체크섬/공개 | infrastructure/backups.py | ServiceConfig.backups |
+| 복사/체크섬/공개 | infrastructure/backups.py | BackendServices.backups |
 
 Core는 서비스/UI에 의존하지 않고 Engine은 영속 파일을 쓰지 않는다. 실행과 조회는
 동일한 주입 저장소를 유지한다. 저수준 ProjectManager/RunManager의 기본 Run 저장소도

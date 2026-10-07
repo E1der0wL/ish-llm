@@ -64,7 +64,7 @@ class RefinementData(ComponentData):
         return {key: handle.snapshot(key)["version"] for key in skills}
 
     def _require_evaluation(self, proposal):
-        if self.configuration().get("policy", {}).get("require_evaluation") is True and not proposal.get("evaluations"):
+        if self.get_config().get("policy", {}).get("require_evaluation") is True and not proposal.get("evaluations"):
             raise ValueError("Proposal requires evaluation before approval")
 
     def _proposal(self, identifier, expected_version, statuses):

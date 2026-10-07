@@ -84,7 +84,7 @@ def current_tool_call() -> Optional[ToolCall]:
 
 
 @dataclass(frozen=True, slots=True)
-class ToolPolicy:
+class ToolRuntime:
     """Host 실행 어댑터. 실행 선택·예산·재시도·승인 임계값은 Project가 소유한다.
 
     authorize(call)는 정확히 True를 반환해야 실행한다. runner(tool, call)는
@@ -105,7 +105,7 @@ class ToolPolicy:
 
     def __post_init__(self):
         if not isinstance(self.revision, str) or not self.revision.strip():
-            raise ValueError("Tool policy revision must be nonempty")
+            raise ValueError("Tool runtime revision must be nonempty")
         if not isinstance(self.retry_safe_tools, tuple) or any(not isinstance(n, str) or not n for n in self.retry_safe_tools):
             raise ValueError("retry_safe_tools must be a tuple of names")
         if any(value is not None and not callable(value) for value in (
@@ -116,37 +116,37 @@ class ToolPolicy:
 class ToolExecutionScope:
     """한 Run의 Graph 분기·Agent가 공유하는 호출 예산. asyncio 루프에서만 접근한다."""
 
-    def __init__(self, policy: ToolPolicy, *, settings=None, retry=None, operations=None, parent=None):
+    def __init__(self, runtime: ToolRuntime, *, policy=None, retry=None, operations=None, parent=None):
         # 외부 dict 편집으로 실행 중 승인/제약의 사본이 바뀌지 않게 한다.
         from llm.components.tools.constraints import narrow_constraints
         from llm.core.policies import normalize_policies
-        settings, retry = deepcopy(settings or {}), deepcopy(retry or {})
-        normalize_policies({"tools": settings, "tool_retry": retry})
-        constraints = settings.get("argument_constraints", {})
+        policy, retry = deepcopy(policy or {}), deepcopy(retry or {})
+        normalize_policies({"tools": policy, "tool_retry": retry})
+        constraints = policy.get("argument_constraints", {})
         self.argument_constraints = (constraints if parent is None else
                                      narrow_constraints(parent.argument_constraints, constraints))
-        selected = settings.get("allowed_tools")
+        selected = policy.get("allowed_tools")
         self.allowed_tools = tuple(selected) if selected is not None else None
         if parent is not None and parent.allowed_tools is not None:
             if self.allowed_tools is None:
                 self.allowed_tools = parent.allowed_tools
             elif not set(self.allowed_tools).issubset(parent.allowed_tools):
                 raise ValueError("Child Tool selection widens its parent")
-        self.max_calls = settings.get("max_calls")
+        self.max_calls = policy.get("max_calls")
         if parent is not None and parent.max_calls is not None:
             if self.max_calls is not None and self.max_calls > parent.max_calls:
                 raise ValueError("Child Tool budget widens its parent")
             if self.max_calls is None:
                 self.max_calls = parent.max_calls
-        self.timeout_seconds = settings.get("timeout_seconds")
-        self.max_output_chars = settings.get("max_output_chars")
+        self.timeout_seconds = policy.get("timeout_seconds")
+        self.max_output_chars = policy.get("max_output_chars")
         if parent is not None:
             for key in ("timeout_seconds", "max_output_chars"):
                 inherited, chosen = getattr(parent, key), getattr(self, key)
                 if inherited is not None:
                     setattr(self, key, inherited if chosen is None else min(inherited, chosen))
         self.max_retries, self.retry_delay = retry.get("max_retries"), retry.get("delay_seconds")
-        self.policy = policy
+        self.runtime = runtime
         self.calls = 0
         self.operations = operations
         self.parent = parent
@@ -178,13 +178,13 @@ class ToolExecutionScope:
         root = self
         while root.parent is not None:
             root = root.parent
-        return {"revision": root.policy.revision, "allowed_tools": list(self.allowed_tools) if self.allowed_tools is not None else None,
-                "max_calls": self.max_calls, "approval": root.policy.authorize is not None,
+        return {"revision": root.runtime.revision, "allowed_tools": list(self.allowed_tools) if self.allowed_tools is not None else None,
+                "max_calls": self.max_calls, "approval": root.runtime.authorize is not None,
                 "timeout_seconds": self.timeout_seconds, "max_output_chars": self.max_output_chars,
-                "classifier": root.policy.classify is not None,
-                "isolated_runner": root.policy.runner is not None,
-                "operation_key": root.policy.operation_key is not None,
-                "retry_safe_tools": list(self.policy.retry_safe_tools), "max_retries": self.max_retries,
+                "classifier": root.runtime.classify is not None,
+                "isolated_runner": root.runtime.runner is not None,
+                "operation_key": root.runtime.operation_key is not None,
+                "retry_safe_tools": list(self.runtime.retry_safe_tools), "max_retries": self.max_retries,
                 "retry_delay": self.retry_delay, "argument_constraints": deepcopy(self.argument_constraints)}
 
     def restore(self, records):
@@ -197,8 +197,8 @@ class ToolExecutionScope:
 
     def child(self, *, allowed_tools, max_calls=None, argument_constraints=None):
         """Agent 한도를 추가하되 부모의 승인, 실행기, 원장과 예산을 유지한다."""
-        return ToolExecutionScope(self.policy,
-            settings={"allowed_tools": list(allowed_tools), "max_calls": max_calls,
+        return ToolExecutionScope(self.runtime,
+            policy={"allowed_tools": list(allowed_tools), "max_calls": max_calls,
                       "argument_constraints": {} if argument_constraints is None else argument_constraints},
             retry={"max_retries": self.max_retries, "delay_seconds": self.retry_delay},
             operations=self.operations, parent=self)
@@ -214,10 +214,10 @@ class ToolExecutionScope:
         root = self
         while root.parent is not None:
             root = root.parent
-        if contract.operation_key_required and self.policy.operation_key is None:
+        if contract.operation_key_required and self.runtime.operation_key is None:
             raise ExecutionLimitError("tool_contract", "Tool requires an operation key adapter")
         if contract.isolation != "none":
-            validate = getattr(self.policy.runner, "validate_tool", None)
+            validate = getattr(self.runtime.runner, "validate_tool", None)
             if validate is None:
                 raise ExecutionLimitError("tool_contract", "Tool requires a compatible isolated runner")
             validate(tool.name, contract.isolation)
@@ -250,9 +250,9 @@ class ToolExecutionScope:
                 raise ExecutionLimitError("tool_denied", f"Tool authorization denied: {call.name}")
             if self.parent is None:
                 # 기술적인 거부는 저장된 승인으로도 우회할 수 없다. ASK만 기존 결정을 소비한다.
-                if self.policy.authorize is not None:
+                if self.runtime.authorize is not None:
                     try:
-                        allowed = await self.policy.authorize(deepcopy(call))
+                        allowed = await self.runtime.authorize(deepcopy(call))
                     except ToolApprovalRequired:
                         if decision is not True:
                             raise
@@ -352,9 +352,9 @@ class ToolExecutor:
 
     async def _execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None, classification=None,
                        request_key=None):
-        ProjectConfig.validate_settings(arguments)
+        ProjectConfig.validate_json(arguments)
         step_id = new_id()
-        scope = getattr(context, "tool_scope", None) or ToolExecutionScope(ToolPolicy())
+        scope = getattr(context, "tool_scope", None) or ToolExecutionScope(ToolRuntime())
         scope.validate(tool)
         call = ToolCall(tool.name, deepcopy(arguments), step_id,
                         context.project.id if context else None, context.session.id if context else None,
@@ -367,8 +367,8 @@ class ToolExecutor:
             return min(v for v in (left, right) if v is not None) if left is not None or right is not None else None
         seconds = narrow(self.timeout_seconds, scope.timeout_seconds)
         output_limit = narrow(self.max_output_chars, scope.max_output_chars)
-        if scope.policy.operation_key is not None:
-            key = scope.policy.operation_key(deepcopy(call))
+        if scope.runtime.operation_key is not None:
+            key = scope.runtime.operation_key(deepcopy(call))
             if key is not None:
                 if scope.operations is None:
                     raise ValueError("Operation keys require a Session-bound operation service")
@@ -439,17 +439,17 @@ class ToolExecutor:
                             async with timeout(remaining):
                                 token = _tool_call.set(call)
                                 try:
-                                    if scope.policy.runner is None:
+                                    if scope.runtime.runner is None:
                                         value = await tool.handler(deepcopy(arguments))
                                     else:
-                                        value = await scope.policy.runner(tool, deepcopy(call))
+                                        value = await scope.runtime.runner(tool, deepcopy(call))
                                 finally:
                                     _tool_call.reset(token)
                         break
                     except Exception as error:
                         uncertain_attempt = uncertain_attempt or not (isinstance(error, ToolExecutionError) and error.effect == "none")
                         safe = (isinstance(error, ToolExecutionError) and error.effect == "none"
-                                or tool.name in scope.policy.retry_safe_tools)
+                                or tool.name in scope.runtime.retry_safe_tools)
                         retryable = isinstance(error, ToolExecutionError) and error.retryable
                         if not safe or not retryable or scope.max_retries is None or attempt >= scope.max_retries:
                             if isinstance(error, ToolExecutionError) and error.effect == "none" and uncertain_attempt:
@@ -470,7 +470,7 @@ class ToolExecutor:
                         async with timeout(remaining):
                             if scope.retry_delay is not None:
                                 await asyncio.sleep(scope.retry_delay)
-            ProjectConfig.validate_settings({"result": value})
+            ProjectConfig.validate_json({"result": value})
             content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)
             if output_limit is not None and len(content) > output_limit:
                 raise ValueError("Tool output limit exceeded")
@@ -517,8 +517,8 @@ class ToolExecutor:
             scope.argument_constraints.get(tool.name, {}) if scope is not None else {})
         from llm.components.tools.registry import ToolClassification
         classification = tool.classification or ToolClassification()
-        if scope is not None and scope.policy.classify is not None:
-            classification = scope.policy.classify(ToolCall(tool.name, deepcopy(arguments), "",
+        if scope is not None and scope.runtime.classify is not None:
+            classification = scope.runtime.classify(ToolCall(tool.name, deepcopy(arguments), "",
                 context.project.id, context.session.id, context.run.id,
                 contract=asdict(tool.contract) if tool.contract else None))
             if inspect.isawaitable(classification):

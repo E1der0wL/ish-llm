@@ -128,7 +128,7 @@ Tesseract 취소 시 Linux 프로세스 그룹을 종료하고 pipe를 회수합
 취소된 호출은 그 결과를 등록하지 않습니다. 원자적 등록 확정이 시작된 뒤의 취소는 기존
 StorageIO의 commit 완료 계약을 따릅니다.
 
-새 OCR은 `OCRBackend`의 revision, configuration_schema(), async recognize(bytes, options=...)
+새 OCR은 `OCRBackend`의 revision, describe_config(), async recognize(bytes, options=...)
 계약을 구현한 뒤 `VisionComponent(ocr_backends={"custom": backend})`에 등록합니다.
 결과는 text와 blocks를 포함하는 JSON이며 각 block은 text와 유효한 box를 가져야 합니다.
 confidence는 선택 사항이며 유한한 수여야 합니다. backend가 직접 취소를 지원해야 합니다.

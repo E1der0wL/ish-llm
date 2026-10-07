@@ -6,7 +6,7 @@ from jsonschema import Draft202012Validator
 from .models import ProjectConfig
 
 
-def resolve_configuration(layers, *, schema=None, host=None):
+def resolve_config(layers, *, schema=None, host=None):
     """뒤의 계층이 우선한다. 호스트 지정 필드는 JSON 경로별로 편집 불가를 표시한다."""
     values, sources, overridden = {}, {}, {}
 
@@ -29,7 +29,7 @@ def resolve_configuration(layers, *, schema=None, host=None):
                         del sources[child]
 
     for source, data in [*layers, ("host", host or {})]:
-        ProjectConfig.validate_settings(data)
+        ProjectConfig.validate_json(data)
         merge(values, data, source)
     if schema is not None:
         error = next(Draft202012Validator(schema).iter_errors(values), None)
@@ -39,7 +39,7 @@ def resolve_configuration(layers, *, schema=None, host=None):
             "editable": {path: source != "host" for path, source in sources.items()}}
 
 
-def engine_configuration(config, name, *, session_config=None, agent=None, schema=None):
+def resolve_engine_config(config, name, *, session_config=None, agent=None, schema=None):
     """Project → Session → Agent. child는 schema가 지정한 authority를 넓힐 수 없다."""
     config = ProjectConfig(config)
     session = session_config or {}
@@ -67,24 +67,24 @@ def engine_configuration(config, name, *, session_config=None, agent=None, schem
                         check(parent[key], child.get(key) if isinstance(child, dict) else None, sub, path + "/" + key)
         check(prior, merged, schema)
         prior = merged
-    view = resolve_configuration(layers, schema=schema)
+    view = resolve_config(layers, schema=schema)
     view["configuration_key"] = name
     return view
 
 
-def component_configuration(component, project):
+def resolve_component_config(component, project):
     """선택적인 설정 조회 계약. 사용자 컴포넌트에 새 필수 메서드를 강요하지 않는다."""
-    describe = getattr(component, "effective_configuration", None)
+    describe = getattr(component, "resolve_config", None)
     if callable(describe):
         return describe(project)
-    return resolve_configuration([("project", component.configuration(project))])
+    return resolve_config([("project", component.get_config(project))])
 
 
 # Public/configuration boundaries use this only where explicit None must override inheritance.
 UNSET = object()
 
 
-def required_setting(values, key, *, scope="configuration"):
+def require_config(values, key, *, scope="configuration"):
     if key not in values or values[key] is None:
         raise ValueError(f"Missing required setting: {scope}.{key}")
     return values[key]

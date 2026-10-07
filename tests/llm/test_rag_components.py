@@ -358,7 +358,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
     async def test_removed_recreated_component_rejects_prepared_write(self):
         entered, release = asyncio.Event(), asyncio.Event()
         component = self.rag_component
-        original = component.configured(self.project.data).prepare
+        original = component.with_config(self.project.data).prepare
         async def block(*args, **kwargs):
             document = await original(*args, **kwargs)
             entered.set()

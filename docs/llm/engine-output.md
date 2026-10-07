@@ -146,7 +146,7 @@ outputs 계약도 구현해야 한다. 예전 event.text와 Step metadata의 raw
 ## 출력 저장과 조회의 운영 설정
 
 출력 저널의 커서 조회에 재생성 가능한 희소 위치 인덱스를 사용한다.
-ServiceConfig.output_index_stride로 간격을 지정한다(0은 비활성화).
-OutputPolicy는 기본 즉시 저장 또는 제한된 델타 묶음 저장을 선택한다.
+BackendServices.output_index_stride로 간격을 지정한다(0은 비활성화).
+OutputBuffer는 기본 즉시 저장 또는 제한된 델타 묶음 저장을 선택한다.
 외부 알림은 해당 저장이 끝난 뒤 전송한다. 자세한 계약과 설정은
 [실행 자원과 저장 정책](operational-storage.md)을 참고한다.

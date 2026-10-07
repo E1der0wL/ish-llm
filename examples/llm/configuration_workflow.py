@@ -29,7 +29,7 @@ from llm.engines.graph.agent import AgentNode
 from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
 from llm.engines.graph.tool import ToolNode
-from llm.llm import LargeLanguageModel, ProjectConfig, RunStatus, ServiceConfig, ToolPolicy
+from llm.llm import LargeLanguageModel, ProjectConfig, RunStatus, BackendServices, ToolRuntime
 from llm.services.infrastructure.locking import WorkspaceOwnership
 from llm.services.infrastructure.storage import (atomic_json, drain_on_cancel, make_directory,
     prepare_replace, reject_links, sync_directory, temporary_file)
@@ -94,7 +94,7 @@ def relative_path(root, name):
     return reject_links(root / path)
 
 
-def settings(value):
+def build_config(value):
     """예제 호스트 설정을 검사한다. 모델·RAG 설정은 ProjectConfig가 검증한다."""
     value = deepcopy(value)
     validate_config(ProjectConfig.from_dict(value["project_config"]))
@@ -370,7 +370,7 @@ class ReviewTools(Component):
 
 
 def backend(workspace, config, review, *, completion_fn=None, rag_component=None):
-    loop = LoopEngine(settings_name="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
+    loop = LoopEngine(parameter_key="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
     registry = ToolRegistry((Tool("apply_configuration", "Apply exactly the reviewed configuration after approval.",
         {"type": "object", "required": ["package"], "properties": {"package": {"type": "object"}},
          "additionalProperties": False}, review.apply,
@@ -379,7 +379,7 @@ def backend(workspace, config, review, *, completion_fn=None, rag_component=None
         "snapshot": review.snapshot, "validate_candidate": review.validate, "tool": ToolNode()})
     return LargeLanguageModel(workspace, engines={"graph": graph, "loop": loop}, components=[
         rag_component or RAGComponent(), AgentComponent(), WorkflowComponent(), ReviewTools(registry)],
-        services=ServiceConfig(tool_policy=ToolPolicy(authorize=review.authorize, revision=review.binding,
+        services=BackendServices(tool_runtime=ToolRuntime(authorize=review.authorize, revision=review.binding,
             operation_key=lambda call: digest(call.arguments) if call.name == "apply_configuration" else None)))
 
 
@@ -395,7 +395,7 @@ async def describe_run(run, report):
 
 async def plan(workspace, config, request, *, report_only=False, completion_fn=None, rag_component=None):
     """별도 Project에 문서를 색인하고 변경 승인 전까지 실행한다. 승인 없이 원본은 쓰지 않는다."""
-    config = settings({**config, "report_only": report_only})
+    config = build_config({**config, "report_only": report_only})
     if not isinstance(request, str) or not request.strip():
         raise ValueError("Request must be nonempty")
     workspace = reject_links(Path(workspace).expanduser().absolute())
@@ -435,7 +435,7 @@ async def plan(workspace, config, request, *, report_only=False, completion_fn=N
 async def decide(report_path, config, decision, *, expected_package, completion_fn=None, rag_component=None):
     """저장된 공통 승인에 답하고 새 Run으로 재개한다. expected_package는 검토한 변경안의 해시다."""
     report = load_json(report_path)
-    config = settings({**config, "report_only": report["report_only"]})
+    config = build_config({**config, "report_only": report["report_only"]})
     snapshot = load_json(Path(report["bundle"]) / "snapshot.json")
     review = ConfigurationReview(config, report["bundle"], snapshot["source"], snapshot["documents"])
     if review.binding != snapshot["binding"]:

@@ -21,8 +21,8 @@ from llm.engines.loop import LoopEngine
 from llm.engines.graph.tool import ToolNode
 from llm.llm import LargeLanguageModel
 from llm.services.runtime.runs import RunRequestError
-from llm.services.configuration import ServiceConfig
-from llm.services.runtime.tools import ToolPolicy
+from llm.services.composition import BackendServices
+from llm.services.runtime.tools import ToolRuntime
 from tests.llm.test_loop import ScriptedCompletion, chunk
 
 
@@ -51,7 +51,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             WorkflowComponent(), AgentComponent(), RuntimeTools(self.tools), SkillComponent()])
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("nested", components=["workflows", "agents", "tools", "skills"], config={
-            "policies": policies or {}, "parameters": {"engines": {"graph": GraphEngine.settings_layout.pack(options)}}})
+            "policies": policies or {}, "parameters": {"engines": {"graph": GraphEngine.parameter_layout.pack(options)}}})
         self.workflows = await self.project.components.aget("workflows")
         for name, graph in graphs.items():
             await self.workflows.acreate(graph, identifier=name)
@@ -80,7 +80,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             [chunk('done', finish='stop')])
         handler = AgentNode(engines={'loop': LoopEngine(completion_fn=model)})
         await self.setup({'main': action_graph('agent', agent='worker')}, handlers={'agent': handler},
-                         services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
+                         services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         await self.agents.acreate({'purpose':'work', 'engine':'loop', 'completion':{'model':'test'},
             'tools':['effect'], 'policy':{'max_tool_calls':2, 'require_tool':True}}, identifier='worker')
         paused = await self.request()
@@ -93,7 +93,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         await self.app.shutdown()
         reopened = LargeLanguageModel(self.root, engines={'graph': self.engine}, components=[
             WorkflowComponent(), AgentComponent(), RuntimeTools(self.tools), SkillComponent()],
-            services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         self.addAsyncCleanup(reopened.shutdown)
         session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
         paused = await session.run.aload(run_id)
@@ -145,7 +145,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
                                    [chunk('done', finish='stop')])
         await self.setup({'main': action_graph('agent', agent='worker')},
             handlers={'agent': AgentNode(engines={'loop': LoopEngine(completion_fn=model)})},
-            services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         await self.agents.acreate({'purpose': 'work', 'engine': 'loop', 'completion': {'model': 'test'},
                                   'tools': ['effect']}, identifier='worker')
         paused = await self.request()
@@ -174,7 +174,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call('{}', name='effect')], finish='tool_calls')])
         handler = AgentNode(engines={'loop': LoopEngine(completion_fn=model)})
         await self.setup({'main': action_graph('agent', agent='worker')}, handlers={'agent': handler},
-                         services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
+                         services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         await self.agents.acreate({'purpose':'work', 'engine':'loop', 'completion':{'model':'test'},
                                   'tools':['effect']}, identifier='worker')
         paused = await self.request()
@@ -431,7 +431,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             raise ToolApprovalRequired('Nested Tool approval')
         await self.setup({'main': action_graph('workflow', workflow='child'),
                           'child': action_graph('tool', tool='effect', pause_before=True)},
-                         handlers={'tool': ToolNode()}, services=ServiceConfig(tool_policy=ToolPolicy(authorize=ask)))
+                         handlers={'tool': ToolNode()}, services=BackendServices(tool_runtime=ToolRuntime(authorize=ask)))
         confirmation = await self.request()
         paused = await (await self.session.run.resume(confirmation.id, engine='graph')).wait()
         self.assertEqual(paused.data.status, 'paused', paused.data.error)

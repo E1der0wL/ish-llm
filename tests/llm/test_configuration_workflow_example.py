@@ -183,7 +183,7 @@ class ConfigurationWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("legacy", (self.source / "settings.conf").read_text())
 
     async def test_multiple_file_apply_rolls_back_on_later_write_failure(self):
-        config = example.settings(self.config)
+        config = example.build_config(self.config)
         source = example.read_snapshot(config)
         documents = example.read_documents(config)
         bundle = self.root / "review"

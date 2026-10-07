@@ -25,7 +25,7 @@ class ProjectComponent(Protocol):
     directory: str
 
     def initialize(self, project: Project) -> None: ...
-    def configuration(self, project: Project) -> dict: ...
+    def get_config(self, project: Project) -> dict: ...
     def create(self, project: Project, data: dict, *, identifier: Optional[str] = None) -> str: ...
     def load(self, project: Project, identifier: str) -> dict: ...
     def list(self, project: Project) -> dict[str, dict]: ...
@@ -65,7 +65,7 @@ class Component:
 
     def validate_backup(self, project: Project) -> None:
         """자신이 소유한 데이터만 검증한다. ProjectManager는 내부 레이아웃을 모른다."""
-        self.configuration(project)
+        self.get_config(project)
         self.list(project)
 
     def root(self, project: Project) -> Path:
@@ -87,33 +87,33 @@ class Component:
     @staticmethod
     def serialize(data: dict) -> str:
         """Encode an open JSON object without dropping unknown keys."""
-        ProjectConfig.validate_settings(data)
+        ProjectConfig.validate_json(data)
         return json.dumps(data, ensure_ascii=False, allow_nan=False)
 
     @staticmethod
     def deserialize(value: str) -> dict:
         data = json.loads(value)
-        ProjectConfig.validate_settings(data)
+        ProjectConfig.validate_json(data)
         return data
 
-    def configuration_schema(self) -> dict:
+    def describe_config(self) -> dict:
         """미선언 설정은 받지 않는다. 확장 구현체가 자신의 설정 계약을 선언한다."""
         from llm.core.schema import implementation_schema
         return implementation_schema()
 
-    def effective_configuration(self, project) -> dict:
+    def resolve_config(self, project) -> dict:
         """명시된 설정값과 출처를 UI에 제공한다. 실행 객체는 직렬화하지 않는다."""
-        from llm.core.configuration import resolve_configuration
-        return resolve_configuration(self.configuration_layers(project), schema=self.configuration_schema())
+        from llm.core.configuration import resolve_config
+        return resolve_config(self.get_config_layers(project), schema=self.describe_config())
 
-    def configuration_layers(self, project):
+    def get_config_layers(self, project):
         """설정 원본은 ProjectConfig뿐이다. 컴포넌트 파일을 대체 설정으로 읽지 않는다."""
-        self.configuration(project)
+        self.get_config(project)
         return [("project", project.config.parameters.get("components", {}).get(self.name, {}))]
 
-    def validate_project_configuration(self, project):
+    def validate_project_config(self, project):
         """검증을 컴포넌트에 위임하되 Project 저장은 서비스가 담당한다."""
-        self.configuration(project)
+        self.get_config(project)
 
     def maintenance(self, project, *, apply=False, expected_version=None) -> dict:
         """컴포넌트 소유 정리 후보. 기본은 무삭제이며 내부 경로를 서비스에 노출하지 않는다."""
@@ -168,14 +168,14 @@ class Component:
         return self.resolve(project, capability)
 
     def _options(self, project):
-        """구현 내부 인자 사본. 공개 configuration()은 config/policy 형태를 보존한다."""
-        return self.settings_layout.unpack(self.configuration(project))
+        """구현 내부 인자 사본. 공개 get_config()는 config/policy 형태를 보존한다."""
+        return self.parameter_layout.unpack(self.get_config(project))
 
-    def validate_configuration(self, data: dict) -> None:
-        from llm.core.schema import validate_implementation_settings
-        validate_implementation_settings(data, scope=self.name)
+    def validate_config(self, data: dict) -> None:
+        from llm.core.schema import validate_parameters
+        validate_parameters(data, scope=self.name)
         from jsonschema import Draft202012Validator
-        error = next(Draft202012Validator(self.configuration_schema()).iter_errors(data), None)
+        error = next(Draft202012Validator(self.describe_config()).iter_errors(data), None)
         if error:
             raise ValueError(f"Invalid {self.name} configuration: {error.message}")
 
@@ -184,16 +184,16 @@ class Component:
 
     def initialize(self, project: Project) -> None:
         from llm.services.infrastructure.storage import make_directory
-        self.configuration(project)
+        self.get_config(project)
         make_directory(self._checked(self.root(project) / "records"))
 
-    def configuration(self, project: Project) -> dict:
+    def get_config(self, project: Project) -> dict:
         # 기존 파일은 무시해서 설정을 잃지 않도록 명시적으로 거부한다. 변환/삭제는 하지 않는다.
         if self._checked(self.root(project) / "component.json").exists():
             raise ValueError("Legacy component.json is unsupported; configure ProjectConfig.parameters.components")
         data = deepcopy(project.config.parameters.get("components", {}).get(self.name, {}))
         self.serialize(data)
-        self.validate_configuration(data)
+        self.validate_config(data)
         return data
 
     def create(self, project: Project, data: dict, *, identifier: Optional[str] = None) -> str:

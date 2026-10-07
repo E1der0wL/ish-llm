@@ -9,19 +9,19 @@ Application은 제품의 한계값·프리셋·위험 분류를 선택한다. Ba
 | 범위 | PROJECT: 저장·해석되는 값 | HOST: 주입하는 구현/공유 자원 |
 | --- | --- | --- |
 | 서비스 | policies.context/run/approval/tools/tool_retry/usage/retention/output, conversation_storage | 저장소, Conversation factory, context builder, token counter, policy resolver, logger, events, backups, observability sink |
-| Tool | allowed_tools, max_calls, timeout_seconds, max_output_chars, argument_constraints, retry 횟수/지연 | ToolPolicy.authorize/runner/operation_key/operation_probe/classify/retry_safe_tools/revision |
-| Loop | config.completion/system_prompt/buffer_size; policy.max_iterations/request_timeout/tool_timeout/max_tool_calls/max_argument_chars/max_output_chars/completion/provider | completion_fn, settings_name |
-| Graph | workflow 선택; config.buffer_size/cleanup_timeout; policy.max_steps/max_parallelism/timeout_seconds/max_nested_depth | handlers, revision, config_keys, settings_name |
-| PreparationStep | policy.timeout_seconds | action, name, kind, settings_name |
+| Tool | allowed_tools, max_calls, timeout_seconds, max_output_chars, argument_constraints, retry 횟수/지연 | ToolRuntime.authorize/runner/operation_key/operation_probe/classify/retry_safe_tools/revision |
+| Loop | config.completion/system_prompt/buffer_size; policy.max_iterations/request_timeout/tool_timeout/max_tool_calls/max_argument_chars/max_output_chars/completion/provider | completion_fn, parameter_key |
+| Graph | workflow 선택; config.buffer_size/cleanup_timeout; policy.max_steps/max_parallelism/timeout_seconds/max_nested_depth | handlers, revision, config_keys, parameter_key |
+| PreparationStep | policy.timeout_seconds | action, name, kind, parameter_key |
 | RAG | chunk/search/extraction/ingestion/cache/index 값; model params, provider 정책 | embedding/reranker/extractor, schema/validator/factory 구현 |
 | Memory | 검색·처리·추출·보관 정책, config.processing.extract_prompt_id | completion_fn/token_counter/search_fn |
-| 다른 Component | 각 configuration_schema의 config/policy, 정의 레코드 | OCR/backend/MCP connector/Tool dependency installer 등 선택 구현 |
+| 다른 Component | 각 describe_config의 config/policy, 정의 레코드 | OCR/backend/MCP connector/Tool dependency installer 등 선택 구현 |
 | BuiltinTools | Tool 인자로 전달하는 max_file_bytes, timeout_seconds, max_output_bytes 등; 정책 제약으로 고정/축소 가능 | 작업 root, shell, checks, 기능 가용성, 외부 adapters |
 | ProviderCalls | caller의 SDK/outer timeout/retry는 각 Project 구현 설정 | ProviderLimits.max_active/max_waiting/wait_seconds: Backend 전체 공유 슬롯 용량 |
-| 저장/출력 | 결과 의미를 제한하는 retention/output 정책 | OutputPolicy.batch_size/max_delay/max_chars는 flush 기준이며 출력 삭제·절단이 아님; cache/index stride |
+| 저장/출력 | 결과 의미를 제한하는 retention/output 정책 | OutputBuffer.batch_size/max_delay/max_chars는 flush 기준이며 출력 삭제·절단이 아님; cache/index stride |
 | 프로세스 | Tool 시간 제한은 Project scope | interpreter, command/root, worker pool/IPC/memory 용량, OS 격리 구현 |
 
-`backend.host_configuration()`은 서비스 자원의 읽기 전용 설명이다. callable/client/인증값을
+`backend.describe_host()`은 서비스 자원의 읽기 전용 설명이다. callable/client/인증값을
 직렬화하지 않으며 Project에 저장하거나 변경하는 API가 아니다. 공유 admission 대기 용량은
 Project 요청 시간 제한과 다르다. ProviderLimits는 미설정이면 제한을 추가하지 않는다.
 
@@ -29,7 +29,7 @@ Project 요청 시간 제한과 다르다. ProviderLimits는 미설정이면 제
 max_output_chars=...)`는 호출별 집행 도구다. 호출자가 자신의 Project 설정에서 해석한 값을
 넘기며 BaseEngine 생성자에 전역 실행 제한을 저장하지 않는다. ToolExecutor의 호출별 제한도
 Run의 ToolExecutionScope와 더 좁은 쪽으로 결합한다. helper 직접 호출은 서비스 설정 해석을
-자동 수행하지 않으므로 custom Engine은 자기 configuration_schema와 해석 책임을 유지한다.
+자동 수행하지 않으므로 custom Engine은 자기 describe_config와 해석 책임을 유지한다.
 
 ## 계층과 UI
 
@@ -63,7 +63,7 @@ Project/client가 명시한 값이며 불변식으로 승격하지 않는다.
 ## Tool 승인·위험 분류
 
 `ToolContract.approval_required=True`는 실행 전에 승인 **결정**이 필요하다는 불변식이다.
-사람만 승인할 수 있다는 의미는 아니다. Host `ToolPolicy.authorize=None`이어도 독립적으로
+사람만 승인할 수 있다는 의미는 아니다. Host `ToolRuntime.authorize=None`이어도 독립적으로
 동작한다. 최종 schema/Project 인자 제약 검증 → trusted classification → contract 승인 요구 →
 요청 영속화/Run PAUSED → Project 자동 응답 또는 사용자 대기 → 명시적 resume → 효과 순서다.
 Project 정책과 classifier는 승인 대상 자체를 만들지 않는다. classifier는 분류 데이터만 제공한다.
@@ -75,8 +75,8 @@ Project `policies.approval`은 enabled, risk_scheme, rules를 가진다. rule의
 
 ```python
 from llm.components.tools import ToolClassification, ToolContract
-from llm.services.runtime.tools import ToolPolicy
-from llm.services.configuration import ServiceConfig
+from llm.services.runtime.tools import ToolRuntime
+from llm.services.composition import BackendServices
 
 def classify(call):
     # 실제 프로그램에서는 Application이 검토한 기준을 사용한다.
@@ -85,7 +85,7 @@ def classify(call):
 
 contract = ToolContract(effect="external", approval_required=True)  # custom Tool 등록 시 전달
 # 내장 file_create 등은 이 계약을 이미 선언한다.
-services = ServiceConfig(tool_policy=ToolPolicy(classify=classify, revision="2"))
+services = BackendServices(tool_runtime=ToolRuntime(classify=classify, revision="2"))
 policies = {
     "tools": {"allowed_tools": ["file_create"], "max_calls": 5},
     "approval": {"enabled": True, "risk_scheme": "my-app-v1", "rules": [
@@ -94,7 +94,7 @@ policies = {
 ```
 
 숫자는 Application 예시다. Backend는 shell 문자열 위험도를 추정하거나 low/medium/high 구간을
-정하지 않는다. Tool.classification은 정적 fallback, ToolPolicy.classify는 동기/비동기 신뢰
+정하지 않는다. Tool.classification은 정적 fallback, ToolRuntime.classify는 동기/비동기 신뢰
 callback이다. 둘 다 없으면 unknown이다. callback은 최종 인자를 받으며 모델이 보낸 `risk`
 필드를 자동 신뢰하지 않는다. low/medium/high 표시는 Hub의 `hub-risk-v1` presentation에만 있다.
 
@@ -144,7 +144,7 @@ checkpoint/EngineEvent 계약을 구현해야 한다. container Tool에 business
 
 Project create/save/selection/remove/backup/restore는 선택 집합을 검사한다. 누락 시
 `ComponentDependencyError(code="component_dependency_missing", missing={...}, unavailable=(...))`
-를 제공하고 디렉터리 변경 전에 실패한다. discovery는 `project_schema()["x-components"]`의
+를 제공하고 디렉터리 변경 전에 실패한다. discovery는 `describe_project_config()["x-components"]`의
 required_components다. Hub는 의존성과 누락 항목을 표시한다. Backend는 설치·자동 선택·설정
 생성·cascade 삭제·자동 migration을 하지 않는다.
 
@@ -155,7 +155,7 @@ DefinitionComponent의 기본 schema는 닫힌 빈 object다. custom plugin이 �
 
 ## 수동 변경 안내
 
-- ToolPolicy(allowed_tools/max_calls/argument_constraints/max_retries/...) → Project policies.tools/tool_retry.
+- 과거 Host Tool 설정의 allowed_tools/max_calls/argument_constraints/max_retries/... → Project policies.tools/tool_retry. 현재 ToolRuntime는 이 값들을 받지 않는다.
 - LoopEngine/GraphEngine/PreparationStep 실행 scalar → parameters.engines.<name>.config/policy.
 - BaseEngine의 limit constructor → 구현체 설정에서 해석 후 step/stream_completion 호출에 전달.
 - MemoryComponent(extract_prompt=...) → Prompt 레코드 + config.processing.extract_prompt_id.

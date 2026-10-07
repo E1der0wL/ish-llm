@@ -66,7 +66,7 @@ def constrained_parameters(schema: dict, fields: dict) -> dict:
 
 
 def constrained_arguments(schema: dict, values: dict, fields: dict) -> dict:
-    ProjectConfig.validate_settings(values)
+    ProjectConfig.validate_json(values)
     if not isinstance(values, dict):
         raise ValueError("Tool arguments must be an object")
     result = deepcopy(values)

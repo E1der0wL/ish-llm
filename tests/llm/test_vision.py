@@ -23,8 +23,8 @@ from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
 from llm.engines.graph.tool import ToolNode
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
-from llm.llm import LargeLanguageModel, ServiceConfig
-from llm.services.runtime.tools import ToolPolicy, ToolApprovalRequired
+from llm.llm import LargeLanguageModel, BackendServices
+from llm.services.runtime.tools import ToolRuntime, ToolApprovalRequired
 from tests.llm.configuration_fixtures import rag_settings
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 from tests.llm.test_rag_components import fake_embedding
@@ -48,7 +48,7 @@ class OCR:
     def __init__(self):
         self.calls = []
 
-    def configuration_schema(self):
+    def describe_config(self):
         return {"type": "object", "properties": {"language": {"type": "string"}}, "additionalProperties": False}
 
     async def recognize(self, image, *, options):
@@ -111,7 +111,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
         self.image = await self.vision.aimport_image(picture(), title="Probe", identifier="probe")
 
     async def test_missing_explicit_selection_overrides_and_schema(self):
-        self.assertEqual((await self.vision.aeffective_configuration())["values"], {})
+        self.assertEqual((await self.vision.aresolve_config())["values"], {})
         with self.assertRaisesRegex(ValueError, "vision.ocr.backend"):
             await self.vision.aocr("probe")
         await self.vision.aconfigure({'config': {'ocr': {'backend': 'first', 'backends': {'first': {'language': 'eng'}}}}})
@@ -198,7 +198,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(TimeoutError):
             await self.vision.aocr("probe")
         await self.vision.aconfigure({'config': {'ocr': {'backend': 'first'}}, 'policy': {'ocr': {'timeout': None}}})
-        self.assertIsNone((await self.vision.aeffective_configuration())["values"]["policy"]["ocr"]["timeout"])
+        self.assertIsNone((await self.vision.aresolve_config())["values"]["policy"]["ocr"]["timeout"])
 
     async def test_configuration_change_and_deletion_during_ocr_fail_closed(self):
         for change in ("config", "delete"):
@@ -297,7 +297,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 async with LargeLanguageModel(root,
                         components=[VisionComponent(ocr_backends={"local": ocr}), WorkflowComponent()],
                         engines={"graph": GraphEngine(handlers={"tool": ToolNode()})},
-                        services=ServiceConfig(tool_policy=ToolPolicy(authorize=ask))) as app:
+                        services=BackendServices(tool_runtime=ToolRuntime(authorize=ask))) as app:
                     project = await app.projects.acreate("Graph", components=["vision", "workflows"],
                         config=ProjectConfig(parameters={"components": {"vision": {'config': {'ocr': {'backend': 'local'}}}}}))
                     await project.components.vision.aimport_image(picture(), title="Probe", identifier="probe")
@@ -328,7 +328,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 [chunk(calls=[call('{"image_id":"probe"}', name="image_ocr", call_id="ocr")]), chunk(finish="tool_calls")],
                 [chunk("Check the server."), chunk(finish="stop")])
             async with LargeLanguageModel(root, components=[VisionComponent(ocr_backends={"local": OCR()})],
-                    engines={"loop": LoopEngine(completion_fn=complete).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'max_iterations': 2})})}) as app:
+                    engines={"loop": LoopEngine(completion_fn=complete).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'max_iterations': 2})})}) as app:
                 project = await app.projects.acreate("Images", components=["vision"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"vision": {'config': {'ocr': {'backend': 'local'}}}}}))
                 await project.components.vision.aimport_image(picture(), title="Probe", identifier="probe")
                 session = await project.sessions.acreate()

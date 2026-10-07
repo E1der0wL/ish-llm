@@ -21,7 +21,7 @@ from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
 from tests.llm.configuration_fixtures import configure_engine
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
+from llm.services.composition import BackendServices
 from llm.policies import CompletionPolicy
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
@@ -353,7 +353,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(model.requests[0]["messages"][-1]["content"], "budget")
         await self.app.shutdown()
         self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, PromptComponent()], engines={},
-            services=ServiceConfig(token_counters={"test": lambda request: sum(
+            services=BackendServices(token_counters={"test": lambda request: sum(
                 len(m.get("content") or "") for m in request["messages"])}))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.aload(self.project.id)
@@ -414,7 +414,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
                        {"extract": "yes"}, {"completion": {"messages": []}}):
             with self.assertRaises(ValueError):
                 await self.memory.aconfigure(memory_settings({'processing': config}))
-        self.assertEqual((await self.memory.aconfiguration())["policy"]["tool_write_status"], "candidate")
+        self.assertEqual((await self.memory.aget_config())["policy"]["tool_write_status"], "candidate")
 
     async def test_interrupt_auxiliary_model_does_not_publish_partial_summary(self):
         await self.configure(summarize=True, keep_turns=1, summary_after_chars=1)
@@ -427,7 +427,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             yield from self.aux(**request)
         self.component.completion_fn = slow
         model = ScriptedCompletion(answer())
-        self.app.engines.register("interrupt", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("interrupt", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
         request = await self.session.run.submit("third", engine="interrupt")
         try:
             self.assertTrue(await asyncio.to_thread(entered.wait, 5))

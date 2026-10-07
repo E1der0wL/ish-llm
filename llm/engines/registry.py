@@ -28,7 +28,7 @@ class EngineRegistry:
     def names(self) -> tuple[str, ...]:
         return tuple(self._engines)
 
-    def validate_configuration(self, config, *, session_config=None) -> None:
+    def validate_config(self, config, *, session_config=None) -> None:
         """저장 전 공개 설정 계약만 호출한다. execute/capability/모델 함수는 호출하지 않는다."""
         from llm.core.models import ProjectConfig
         from llm.core.schema import checked_implementation_schema
@@ -39,10 +39,10 @@ class EngineRegistry:
         session = deepcopy(session_config) if session_config is not None else {}
         ProjectConfig.validate_session(session)
         for name, engine in self._engines.items():
-            schema = getattr(engine, "configuration_schema", None)
+            schema = getattr(engine, "describe_config", None)
             if callable(schema):
                 spec = checked_implementation_schema(schema())
-                key = spec.get("x-settings-key", name) if isinstance(spec, dict) else name
+                key = spec.get("x-parameter-key", name) if isinstance(spec, dict) else name
                 if not isinstance(key, str) or not key.strip():
                     raise ValueError("Engine configuration key must be nonempty text")
                 # 호스트 고정값이 잘못된 입력을 가리지 않게 UI와 같은 입력 스키마부터 검사한다.
@@ -52,7 +52,7 @@ class EngineRegistry:
                         error = next(Draft202012Validator(spec).iter_errors(supplied[key]), None)
                         if error:
                             raise ValueError(f"Invalid Engine configuration ({name}, {source}): {error.message}")
-            describe = getattr(engine, "configuration", None)
+            describe = getattr(engine, "resolve_config", None)
             if callable(describe):
                 try:
                     result = describe(ProjectConfig(config), name, session_config=deepcopy(session))
@@ -63,7 +63,7 @@ class EngineRegistry:
                 except (ValueError, TypeError) as error:
                     raise ValueError(f"Invalid Engine configuration ({name}): {error}") from error
 
-    def resolve(self, name: str) -> Engine:
+    def get(self, name: str) -> Engine:
         return self._engines[name]
 
     def resolve_request(self, name: str, options: dict) -> Engine:
@@ -74,8 +74,8 @@ class EngineRegistry:
         """
         if not isinstance(options, dict):
             raise TypeError("engine_options must be a JSON object")
-        ProjectConfig.validate_settings(options)
-        engine = self.resolve(name)
+        ProjectConfig.validate_json(options)
+        engine = self.get(name)
         factory = getattr(engine, "for_request", None)
         if factory is None:
             if options:

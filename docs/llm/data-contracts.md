@@ -51,7 +51,7 @@ except Exception as error:
 
 진단은 설명과 UI 분류를 위한 것이다. severity는 info/warning/error이고 code는 확장 가능한
 문자열이다. ToolExecutionError의 effect/retryable 정보는 details에 표시하지만 이 값만으로
-Tool을 재실행하지 않는다. 기존 ToolPolicy·효과 원장·명시적 승인 검사가 계속 실행을 결정한다.
+Tool을 재실행하지 않는다. 기존 ToolRuntime·효과 원장·명시적 승인 검사가 계속 실행을 결정한다.
 ResourceRef를 역직렬화한 것만으로 대상 조회·수정 권한을 얻지 않는다. 대상 API가 소유권을 검사한다.
 
 ## 검토와 실행 분리

@@ -10,7 +10,7 @@ def validate_tool_constraints(constraints: dict) -> None:
     """Project 소유 제약 문법. 실제 값의 Tool schema 검증은 선택된 Tool이 소유한다."""
     from .models import ProjectConfig
     from .interactions import same_interaction_value
-    ProjectConfig.validate_settings(constraints)
+    ProjectConfig.validate_json(constraints)
     if not isinstance(constraints, dict):
         raise ValueError("argument_constraints must be an object")
     for name, fields in constraints.items():
@@ -58,7 +58,7 @@ def tool_constraints_schema():
         "type": "object", "propertyNames": {"minLength": 1}, "additionalProperties": {"oneOf": rules}}}
 
 
-def policy_schema() -> dict:
+def describe_policies() -> dict:
     """UI용 필드·설명을 포함한 독립 JSON Schema를 만든다."""
     def field(kind, description, **constraints):
         return {"type": kind, "description": description, **constraints}
@@ -119,7 +119,7 @@ def policy_schema() -> dict:
 
 def normalize_policies(value: dict) -> dict:
     """명시된 키만 검증한다. 생략한 정책과 leaf는 그대로 생략한다."""
-    schema = policy_schema()
+    schema = describe_policies()
     json.dumps(value, allow_nan=False)
     errors = sorted(Draft202012Validator(schema).iter_errors(value), key=lambda e: str(list(e.path)))
     if errors:

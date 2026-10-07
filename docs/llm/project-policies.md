@@ -53,7 +53,7 @@ context_budget_exceeded로 실패한다. 저장된 Conversation은 변경하지 
 
 usage.counter는 누적 사용량 예약용 계산기다. Engine의 입력 계산기·예산을 바꾸거나
 해제해도 공통 usage 상한을 우회하지 않는다. 토큰 사용량 제한을 켜면 SDK 출력 상한도
-명시해야 한다. 계산기는 ServiceConfig.token_counters에 이름으로 등록한다.
+명시해야 한다. 계산기는 BackendServices.token_counters에 이름으로 등록한다.
 
 ## 수정과 통합 조회
 
@@ -62,7 +62,7 @@ usage.counter는 누적 사용량 예약용 계산기다. Engine의 입력 계�
 await project.aconfigure_policies({"run": {"timeout_seconds": 900}})
 
 # 구현체 설정은 동일 ProjectConfig 원본에 저장한다. UI는 편집 버전을 함께 전달한다.
-view = await project.aconfiguration()
+view = await project.adescribe_config()
 config = view["project"]["config"]
 config["parameters"]["engines"]["assistant"]["policy"]["completion"] = None
 await project.asave(config=config, expected_version=view["config_version"])

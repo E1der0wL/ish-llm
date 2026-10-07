@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
+from llm.services.composition import BackendServices
 from llm.services.history.conversation import MemoryConversations
 from llm.services.infrastructure.storage import atomic_json, read_json
 from tests.llm.test_facade_requests import ControlledEngine
@@ -136,7 +136,7 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
         atomic_json(path, data)
         session = await project.sessions.acreate()
         await app.shutdown()
-        custom = self.backend(services=ServiceConfig(conversations=MemoryConversations()))
+        custom = self.backend(services=BackendServices(conversations=MemoryConversations()))
         for mode in ("file", "memory"):
             with self.assertRaisesRegex(ValueError, "custom conversation factory"):
                 await custom.projects.acreate(conversation_storage=mode)

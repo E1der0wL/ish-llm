@@ -12,7 +12,7 @@ from llm.core.models import RunStatus
 from llm.engines.loop import LoopEngine
 from tests.llm.configuration_fixtures import configure_engine
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
+from llm.services.composition import BackendServices
 from llm.policies import CompletionPolicy
 from tests.llm import test_memory_processing as memory_tests
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
@@ -296,7 +296,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
                     yield
         feature = Feature("observe", Processor("observe", lambda _: Session()))
         self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, feature, memory_tests.PromptComponent()], engines={},
-            services=ServiceConfig(token_counters={"test": lambda r: len(r["messages"])}))
+            services=BackendServices(token_counters={"test": lambda r: len(r["messages"])}))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.aload(self.project.id)
         await configure_engine(self.project, "loop" + str(self.serial), input_policy={"max_tokens": 1, "counter": "test"})
@@ -353,7 +353,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.add_feature("waiting", lambda _: Session())
         await self.project.components.aselect(["waiting"])
         model = ScriptedCompletion(memory_tests.answer())
-        self.app.engines.register("interruptible", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("interruptible", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
         request = await self.session.run.submit("stop", engine="interruptible")
         await asyncio.wait_for(entered.wait(), 5)
         await self.session.run.interrupt()

@@ -14,7 +14,7 @@ class SettingsService:
         self.preferences = PreferencesStore(runtime.config.workspace)
 
     def _schema(self):
-        schema = self.runtime.backend.project_schema()
+        schema = self.runtime.backend.describe_project_config()
         config = schema["properties"]["config"]["properties"]
         # Provider arguments are open JSON in llm. Describe this common option
         # for Hub's form without modifying the backend schema or inventing a default.
@@ -33,7 +33,7 @@ class SettingsService:
     def _validate(self, values):
         from jsonschema import Draft202012Validator
         from llm.core.models import ProjectConfig
-        ProjectConfig.validate_settings(values)
+        ProjectConfig.validate_json(values)
         Draft202012Validator(self._schema()).validate(values)
         if not values.get("title", "").strip():
             raise ValueError(self.runtime.t("settings_title_required"))
@@ -66,7 +66,7 @@ class SettingsService:
             except Exception as error:
                 usage.append({"id": data.id, "title": data.title, "error": str(error)})
         return {"projects": projects, "schema": self._schema(),
-                "host": self.runtime.backend.host_configuration(),
+                "host": self.runtime.backend.describe_host(),
                 "usage": usage,
                 "active_project": self.runtime.project.id,
                 "preferences": {"profile": asdict(self.runtime.config.user_profile),
@@ -74,7 +74,7 @@ class SettingsService:
 
     async def load_project(self, identifier):
         project = await self._project(identifier)
-        result = await project.aconfiguration()
+        result = await project.adescribe_config()
         # Keep the full registered catalog available for activation controls.
         result["schema"] = self._schema()
         return result

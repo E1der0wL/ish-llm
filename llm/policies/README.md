@@ -13,7 +13,7 @@ Project 설정 저장·상속, Run/Step 수명, 승인, 재시도 실행을 중�
 from llm.policies import CompletionPolicy
 
 # 구현체가 자신의 policy.completion을 해석하고 호스트 계산기와 연결합니다.
-policy = CompletionPolicy.from_settings(settings.get("policy", {}).get("completion"), counters)
+policy = CompletionPolicy.from_config(configuration.get("policy", {}).get("completion"), counters)
 if policy is not None:
     request = policy.prepare(request)
 ```
@@ -23,5 +23,5 @@ if policy is not None:
 예산을 넘으면 `context_budget_exceeded`를 발생시킵니다. SDK의 출력 토큰 제한을 설정하지 않습니다.
 
 공용으로 옮길 기준은 실제 여러 계층에서 재사용할 수 있고 저장·실행 수명에 독립적인가입니다.
-RunPolicy와 ToolPolicy는 해당 실행 서비스에 남습니다. Component 전용 처리 정책은 그
+RunPolicy와 ToolRuntime는 해당 실행 서비스에 남습니다. Component 전용 처리 정책은 그
 Component에 둡니다. 설정 소유권과 상속 순서는 [공통 설정 계약](../CONFIGURATION.md)을 따릅니다.

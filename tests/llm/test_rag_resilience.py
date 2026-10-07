@@ -26,7 +26,7 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
     def component(self, call=embedding):
         from types import SimpleNamespace
         return RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=call),
-                            extractor=TripleExtractor(model="test", completion_fn=extract)).configured(
+                            extractor=TripleExtractor(model="test", completion_fn=extract)).with_config(
                                 SimpleNamespace(id="fixture", config=rag_project(), paths=SimpleNamespace(root=Path(tempfile.gettempdir()) / "ish-rag-test-fixture")))
 
     async def test_bounded_workers_order_and_admission(self):
@@ -134,11 +134,11 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
         component = self.component()
         for value in (0, 33, True, 2.5):
             with self.assertRaises(ValueError):
-                component.validate_configuration({"embedding_concurrency": value})
+                component.validate_config({"embedding_concurrency": value})
         for key in ("embedding_batch_size", "embedding_batching"):
             with self.assertRaisesRegex(ValueError, "removed"):
-                component.validate_configuration({key: 128})
-        self.assertNotIn("default", component.configuration_schema()["properties"]["policy"]["properties"]["embedding_concurrency"])
+                component.validate_config({key: 128})
+        self.assertNotIn("default", component.describe_config()["properties"]["policy"]["properties"]["embedding_concurrency"])
 
     async def test_partial_content_cache_and_durable_unchanged_reuse(self):
         call = AsyncMock(side_effect=embedding)
@@ -231,7 +231,7 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
 
 class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
     async def test_facade_admission_and_cancelled_job_preserves_checkpoints_and_active_generation(self):
-        from llm.services.configuration import ServiceConfig
+        from llm.services.composition import BackendServices
         from llm.providers.calls import ProviderLimits
         active = peak = 0
         block = False
@@ -257,7 +257,7 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=provider))
             async with LargeLanguageModel(root, components=[component],
-                    services=ServiceConfig(provider_limits=ProviderLimits(max_active=2))) as backend:
+                    services=BackendServices(provider_limits=ProviderLimits(max_active=2))) as backend:
                 project = await backend.projects.acreate("bounded", components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'policy': {'embedding_concurrency': 4, 'extraction': {'failure_policy': 'disabled'}}}}})))
                 rag = await project.components.aget("rag")
                 await rag.aadd_document(title="active", content="a\n\nb\n\nc\n\nd", identifier="active")
@@ -309,11 +309,11 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
                 project = await backend.projects.acreate("settings", components=["rag"],
                     config=rag_project(ProjectConfig(parameters={"components": {"rag": {"config": values}}})))
                 rag = await project.components.aget("rag")
-                effective = rag.effective_configuration()["values"]["config"]
+                effective = rag.resolve_config()["values"]["config"]
                 for name in values:
                     self.assertEqual(effective[name]["num_retries"], 2)
                     self.assertEqual(effective[name]["max_retries"], 3)
-                enforced = rag.effective_configuration()["enforced"]["config"]["embedding_params"]
+                enforced = rag.resolve_config()["enforced"]["config"]["embedding_params"]
                 self.assertFalse(enforced["caching"])
                 self.assertEqual(enforced["cache"], {"no-cache": True, "no-store": True})
                 self.assertNotIn("caching", effective["rerank_params"])

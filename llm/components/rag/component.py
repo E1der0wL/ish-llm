@@ -18,9 +18,9 @@ from .prompts import extraction_schema
 from .graph_indexing import build_graph, update_graph
 from .graph_search import graph_search, related_graph
 from .files import copy_file
-from llm.core.configuration import resolve_configuration, required_setting
+from llm.core.configuration import resolve_config, require_config
 from llm.core.models import ProjectConfig
-from llm.core.settings import SettingsLayout
+from llm.core.parameters import ParameterLayout
 from llm.core.schema import object_schema, metadata_schema
 from llm.providers.requests import provider_schema, error_code
 from llm.providers.embeddings import extract_single_embedding
@@ -41,7 +41,7 @@ class RAGComponent(DefinitionComponent):
     data_class = RAGData
     # 일반 record CRUD는 Application 메모만 보관한다. 문서 색인은 document API가 소유한다.
     schema = object_schema({"metadata": metadata_schema()})
-    settings_layout = SettingsLayout(
+    parameter_layout = ParameterLayout(
         config=("chunk_size", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
                 "index_batch_size", "search", "graph", "document_kwargs", "query_kwargs",
                 "embedding_params", "extraction_params", "rerank_params"),
@@ -89,9 +89,9 @@ class RAGComponent(DefinitionComponent):
         return identifier
 
     # 공개 API: 직접 호출 시 workspace 소유권은 호출자가 보장해야 한다.
-    def effective_configuration(self, project):
+    def resolve_config(self, project):
         if getattr(self, "_configuration_source", None) is not None:
-            return self._configuration_source.effective_configuration(project)
+            return self._configuration_source.resolve_config(project)
         client_values = {}
         runtime = []
         for name, client in (("embedding_params", self.embedding), ("extraction_params", self.extractor), ("rerank_params", self.reranker)):
@@ -104,25 +104,25 @@ class RAGComponent(DefinitionComponent):
                     runtime.append(name)
         if getattr(self.extractor, "extraction", None):
             client_values["extraction"] = deepcopy(self.extractor.extraction)
-        layers = [("client", self.settings_layout.pack(client_values)), *self.configuration_layers(project)]
-        view = resolve_configuration(layers, schema=self.configuration_schema())
+        layers = [("client", self.parameter_layout.pack(client_values)), *self.get_config_layers(project)]
+        view = resolve_config(layers, schema=self.describe_config())
         from .embedding import EmbeddingModel
         selected = EmbeddingModel if self.embedding is None else self.embedding
         view["enforced"] = {"config": {"embedding_params": deepcopy(getattr(selected, "enforced_configuration", {}))}}
-        view["model_providers"] = {name: resolve_configuration([
+        view["model_providers"] = {name: resolve_config([
             ("client", getattr(getattr(self, name), "provider_options", {})),
             ("project", view["values"].get("policy", {}).get("provider", {}))], schema=provider_schema())
             for name in ("embedding", "extractor", "reranker")}
         view["runtime"] = runtime
         return view
 
-    def configured(self, project, *, prompt=None):
+    def with_config(self, project, *, prompt=None):
         """저장 설정을 작업별 사본으로 바인딩한다. 등록된 객체와 SDK 함수를 변경하지 않는다."""
         from .embedding import EmbeddingModel
         from .extraction import TripleExtractor
         from .rerank import RerankModel
-        view = self.effective_configuration(project)
-        values = self.settings_layout.unpack(view["values"])
+        view = self.resolve_config(project)
+        values = self.parameter_layout.unpack(view["values"])
         worker = copy(self)
         worker._configuration_source = self
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
@@ -140,11 +140,11 @@ class RAGComponent(DefinitionComponent):
             if client is None and params:
                 client = factory(**params)
             elif client is not None and params:
-                configure = getattr(client, "configured", None)
+                configure = getattr(client, "with_config", None)
                 if configure is not None:
                     client = configure(params)
                 elif self._options(project).get(key):
-                    raise ValueError(f"Custom {name} requires configured(params) to apply project parameters")
+                    raise ValueError(f"Custom {name} requires with_config(params) to apply project parameters")
             if client is not None and callable(getattr(client, "with_provider", None)):
                 client = client.with_provider(view["model_providers"][name]["values"])
             setattr(worker, name, client)
@@ -161,17 +161,17 @@ class RAGComponent(DefinitionComponent):
                                                        "prompt_resolved": worker._extraction_error is None})
         return worker
 
-    def configuration_schema(self):
+    def describe_config(self):
         from llm.core.schema import object_schema, open_schema, field
         from .embedding import EmbeddingModel
         from .extraction import TripleExtractor
         from .rerank import RerankModel
         def child_schema(client, factory):
             selected = factory if client is None else client
-            describe = getattr(selected, "configuration_schema", None)
-            return describe() if describe else open_schema(type(selected).__qualname__ + ".configured", category="implementation")
+            describe = getattr(selected, "describe_config", None)
+            return describe() if describe else open_schema(type(selected).__qualname__ + ".with_config", category="implementation")
         embedding_schema = child_schema(self.embedding, EmbeddingModel)
-        return self.settings_layout.schema(object_schema({
+        return self.parameter_layout.schema(object_schema({
             "chunk_size": field("integer", minimum=1),
             "embedding_concurrency": field("integer", minimum=1),
             "embedding_cache_max_bytes": field("integer", minimum=0),
@@ -190,14 +190,14 @@ class RAGComponent(DefinitionComponent):
                 "완료·취소한 색인 작업의 입력/영수증 보관 기간. null은 무제한", exclusiveMinimum=0)})},
             **{"x-runtime-configuration": ["embedding", "extractor", "reranker", "embedding_id"]}))
 
-    def validate_configuration(self, data):
+    def validate_config(self, data):
         if any(key in data for key in ("embedding_batch_size", "embedding_batching")):
-            raise ValueError("Embedding batch settings were removed; use embedding_concurrency and embedding_cache_max_bytes")
+            raise ValueError("Embedding batch configuration were removed; use embedding_concurrency and embedding_cache_max_bytes")
         from jsonschema import Draft202012Validator
-        error = next(Draft202012Validator(self.configuration_schema()).iter_errors(data), None)
+        error = next(Draft202012Validator(self.describe_config()).iter_errors(data), None)
         if error:
             raise ValueError("Invalid RAG configuration: " + error.message)
-        data = self.settings_layout.unpack(data)
+        data = self.parameter_layout.unpack(data)
         for value in (data.get("ingestion", {}).get("max_active"),):
             if value is not None and type(value) is not int:
                 raise ValueError("ingestion.max_active requires an integer")
@@ -211,7 +211,7 @@ class RAGComponent(DefinitionComponent):
                                     (self.extractor, TripleExtractor, "extraction_params"),
                                     (self.reranker, RerankModel, "rerank_params")):
             selected = factory if client is None else client
-            validate = getattr(selected, "validate_configuration", None)
+            validate = getattr(selected, "validate_config", None)
             if validate is not None and key in data:
                 validate(deepcopy(data[key]))
 
@@ -336,7 +336,7 @@ class RAGComponent(DefinitionComponent):
         return validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))
 
     async def prepare(self, identifier, title, content, metadata, revision, *, progress=None, previous=None, telemetry=None):
-        policy = required_setting(self.extraction_options, "failure_policy", scope="rag.extraction")
+        policy = require_config(self.extraction_options, "failure_policy", scope="rag.extraction")
         if self.chunk_size is None:
             raise ValueError("Missing required setting: rag.chunk_size")
         if policy != "disabled" and self.extraction_batch_size is None:
@@ -454,8 +454,8 @@ class RAGComponent(DefinitionComponent):
             return []
         path = self._checked_tree(self._generation_path(project, snapshot["generation"]))
         return search(path, snapshot["documents"], query, vector, lexical_cache=self.search_cache,
-                      cache_chars=self.search_cache_chars, candidate_count=required_setting(self.search_options, "candidate_count", scope="rag.search"),
-                      rrf_constant=required_setting(self.search_options, "rrf_constant", scope="rag.search"), **options)
+                      cache_chars=self.search_cache_chars, candidate_count=require_config(self.search_options, "candidate_count", scope="rag.search"),
+                      rrf_constant=require_config(self.search_options, "rrf_constant", scope="rag.search"), **options)
 
     def graph_search(self, project, *, seed, max_hops, limit):
         snapshot = self.snapshot(project)
@@ -502,4 +502,4 @@ class RAGComponent(DefinitionComponent):
         snapshot = self.snapshot(source)
         if snapshot["generation"] is not None:
             # 불변 원문/벡터/관계를 복제해 DB를 재구축한다. 인증/모델 호출은 필요 없다.
-            self.configured(destination).publish(destination, self.snapshot(destination), snapshot["documents"])
+            self.with_config(destination).publish(destination, self.snapshot(destination), snapshot["documents"])

@@ -1,7 +1,7 @@
 """UI/Tool에서 사용하는 문서 API. 모델 준비는 잠금 밖, 공개/조회는 잠금 안에서 수행한다."""
 
 from copy import deepcopy
-from llm.core.configuration import required_setting
+from llm.core.configuration import require_config
 from uuid import uuid4
 
 from llm.components.base import validate_name
@@ -19,7 +19,7 @@ def document_view(document: dict) -> dict:
 class RAGData(ComponentData):
     def _current(self):
         project, component = super()._current()
-        worker = component.configured(project)
+        worker = component.with_config(project)
         prompt_id = worker.extraction_options.get("prompt_id")
         if prompt_id is not None:
             try:
@@ -28,7 +28,7 @@ class RAGData(ComponentData):
                 prompts = self.registry.get("prompts")
                 if "prompts" not in prompts.capabilities:
                     raise ValueError("Selected prompts component must provide prompts capability")
-                worker = component.configured(project, prompt=prompts.load(project, prompt_id))
+                worker = component.with_config(project, prompt=prompts.load(project, prompt_id))
             except (FileNotFoundError, ValueError) as error:
                 # 깨진 참조가 있어도 설정 수정·기존 자료 조회·실패 작업 정리는 가능해야 한다.
                 # 새 문서 준비는 모델 호출 전에 실패한다.
@@ -108,7 +108,7 @@ class RAGData(ComponentData):
             raise ValueError("Query must be nonempty text")
         component, snapshot = await self._async_call(self._snapshot)
         options = {"method": method, "expand": expand, "limit": limit, "rerank": rerank}
-        options = {key: (component.search_options.get(key, False) if key == "rerank" else required_setting(component.search_options, key, scope="rag.search")) if value is None else value for key, value in options.items()}
+        options = {key: (component.search_options.get(key, False) if key == "rerank" else require_config(component.search_options, key, scope="rag.search")) if value is None else value for key, value in options.items()}
         method, expand, limit, rerank = (options[key] for key in ("method", "expand", "limit", "rerank"))
         if type(rerank) is not bool:
             raise ValueError("rerank must be boolean")
@@ -245,8 +245,8 @@ class RAGData(ComponentData):
             if value is not None and (type(value) is not int or value < 1):
                 raise ValueError("Invalid graph search limit")
         snapshot, hits = await self._retrieve(query, method=method, expand=expand, limit=limit, rerank=rerank)
-        max_hops = required_setting(snapshot["search_options"], "max_hops", scope="rag.search") if max_hops is None else max_hops
-        relation_limit = required_setting(snapshot["search_options"], "relation_limit", scope="rag.search") if relation_limit is None else relation_limit
+        max_hops = require_config(snapshot["search_options"], "max_hops", scope="rag.search") if max_hops is None else max_hops
+        relation_limit = require_config(snapshot["search_options"], "relation_limit", scope="rag.search") if relation_limit is None else relation_limit
         if type(max_hops) is not int or max_hops < 1:
             raise ValueError("max_hops must be a positive integer")
         if type(relation_limit) is not int or relation_limit < 1:
@@ -260,8 +260,8 @@ class RAGData(ComponentData):
         if not isinstance(seed, str) or not seed.strip():
             raise ValueError("Seed must be a nonempty entity name")
         project, component = self._current()
-        max_hops = required_setting(component.search_options, "max_hops", scope="rag.search") if max_hops is None else max_hops
-        limit = required_setting(component.search_options, "relation_limit", scope="rag.search") if limit is None else limit
+        max_hops = require_config(component.search_options, "max_hops", scope="rag.search") if max_hops is None else max_hops
+        limit = require_config(component.search_options, "relation_limit", scope="rag.search") if limit is None else limit
         if type(max_hops) is not int or max_hops < 1:
             raise ValueError("max_hops must be a positive integer")
         if type(limit) is not int or limit < 1:

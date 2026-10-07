@@ -51,5 +51,7 @@ jobs:
           tests.llm.test_project_authority tests.llm.test_component_dependencies
           tests.llm.test_agent_delegation
           tests.llm.test_builtin_tools
+          tests.llm.test_naming_contract tests.llm.test_settings_contract
+          tests.llm.test_settings_consistency tests.llm.test_configuration_validation
       - name: Hub regression
         run: python -m unittest discover -s tests/hub -t . -v

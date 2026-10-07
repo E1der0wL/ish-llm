@@ -298,7 +298,7 @@ class OpenComponentTests(unittest.TestCase):
         self.assertEqual(loaded, config)
         self.assertEqual(ProjectConfig.deserialize(config.serialize()), config)
         self.assertEqual(self.projects.clone(self.project).config, config)
-        settings = config.for_engine("loop", {"data": {"editor": {"font_size": 18}}})
+        settings = config.resolve_engine_config("loop", {"data": {"editor": {"font_size": 18}}})
         self.assertEqual(settings["data"]["editor"]["font_size"], 18)
         self.assertEqual(config.data["editor"]["font_size"], 14)
         self.assertEqual(settings["data"]["theme"], "dark")

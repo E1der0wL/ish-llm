@@ -52,7 +52,7 @@ async def dispatch(request):
                 _tool_call.reset(token)
         else:
             raise ValueError("Unknown Tool worker operation")
-        ProjectConfig.validate_settings({"value": value})
+        ProjectConfig.validate_json({"value": value})
         return {"ok": True, "value": value}
     except asyncio.CancelledError:
         raise

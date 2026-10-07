@@ -21,7 +21,7 @@ Backend는 계약·검증·집행을 제공하고 Application은 프리셋·한�
 | Session config | parameters, data. engine override만 허용 |
 | Agent | purpose, description, engine, system_prompt, completion, engine_options, tools, resources, policy, input_schema, output_schema, output_format, metadata |
 | Graph-backed Agent | purpose, description, engine, engine_options, metadata만 허용. GraphEngine.for_agent가 선택 후 검증 |
-| Graph engine_options | workflow + config(buffer_size, cleanup_timeout) + policy(max_steps, max_parallelism, timeout_seconds, max_nested_depth). SettingsLayout schema 사용 |
+| Graph engine_options | workflow + config(buffer_size, cleanup_timeout) + policy(max_steps, max_parallelism, timeout_seconds, max_nested_depth). ParameterLayout schema 사용 |
 | Skill | instructions, description, title, tags, resources, lineage, metadata. resources 원소는 uri/description/metadata; lineage는 parent/parent_revision |
 | Prompt | messages, description, metadata. message는 role/content |
 | MCP | transport, command, args, env, url, headers, metadata. transport protocol은 MCPComponent, 연결 구현은 주입 connector |
@@ -42,10 +42,10 @@ foo/system_promt/instructions/permissions/resources2/future_option/ui도 거부�
 | --- | --- |
 | definition.metadata, config.data | Application. JSON-safe 검증; Backend는 Tool/Engine/timeout/권한으로 읽지 않음 |
 | completion, model client params | 선택된 provider adapter/SDK. providers/schema.py의 알려진 JSON 필드 + provider 미래 kwargs; 실제 forwarding은 provider/model client |
-| Agent.engine_options | 선택 Engine.for_agent + 해당 configuration_schema. AgentComponent가 Engine별 schema를 복제하지 않음 |
-| RAG embedding/extraction/rerank_params | 주입된 client.configuration_schema/validate_configuration/configured. 기본 클라이언트는 LiteLLM schema를 공개 |
+| Agent.engine_options | 선택 Engine.for_agent + 해당 describe_config. AgentComponent가 Engine별 schema를 복제하지 않음 |
+| RAG embedding/extraction/rerank_params | 주입된 client.describe_config/validate_config/with_config. 기본 클라이언트는 LiteLLM schema를 공개 |
 | document_kwargs/query_kwargs | 선택 Embedding client의 요청 계약. RAG는 객체를 그대로 전달 |
-| custom Workflow action fields | type으로 선택한 handler. configuration_schema 또는 validate(node, context)에서 검증 |
+| custom Workflow action fields | type으로 선택한 handler. describe_config 또는 validate(node, context)에서 검증 |
 | host browser action / external RAG options | 명시적 host adapter. 자체 인터페이스에서 검증/소비 |
 | retention.counter_params | 선택된 host token counter. 서비스가 소유한 messages override는 금지 |
 | Refinement.patch / before | EDITABLE allow-list와 선택 target validator / 실제 target snapshot. lifecycle authority로 쓰지 않음 |
@@ -56,7 +56,7 @@ foo/system_promt/instructions/permissions/resources2/future_option/ui도 거부�
 
 `x-schema-owner`, `x-open-kind`는 schema 설명이며 runtime 권한이 아니다. Typed map인 env,
 headers, MCP alias map, 노드 ID map, binding map은 값의 계약을 가진 map이며 무소유 open object가 아니다.
-`SettingsLayout._presence`의 object는 `not/anyOf` 안의 존재 여부 조건식이다. 설정 객체 schema가 아니므로
+`ParameterLayout._presence`의 object는 `not/anyOf` 안의 존재 여부 조건식이다. 설정 객체 schema가 아니므로
 additionalProperties를 닫으면 오히려 검사 의미가 바뀐다.
 
 저장된 Run/Step/checkpoint의 backend-managed metadata는 서비스의 내부 영수증이다. Application
@@ -79,7 +79,7 @@ timeout_seconds, metadata다. 제어 노드는 다음 필드만 추가한다.
 | end | 없음 |
 
 기존 flat action 형식은 유지한다. `type`이 소유 handler를 명시하므로 options wrapper를 추가하지 않는다.
-Graph는 공통 필드를 제외한 사본을 선택 handler의 `configuration_schema()`에 검증한다.
+Graph는 공통 필드를 제외한 사본을 선택 handler의 `describe_config()`에 검증한다.
 기존 `validate(node, context)`도 지원하며 이 경우 handler가 자신의 추가 필드 allow-list를 책임진다.
 schema/validator가 없는 단순 함수는 공통 필드만 받는다. AgentNode와 ToolNode는 닫힌 schema를 제공한다.
 공통 필드와의 교차 조건·참조·Tool 인자 검사는 기존 validate 계약이 소유한다.
@@ -89,7 +89,7 @@ from llm.core.schema import object_schema
 
 class ReviewNode:
     @staticmethod
-    def configuration_schema():
+    def describe_config():
         return object_schema({"review_mode": {"enum": ["syntax", "logic"]}}, required=["review_mode"])
 
     async def __call__(self, node):

@@ -5,7 +5,7 @@ from llm.services.infrastructure.storage import read_domain_record, atomic_domai
 from llm.services.query import FileCatalog, Query, select
 from llm.services.infrastructure.journal import OutputJournal
 from llm.providers.calls import ProviderCalls, ProviderCapacityError
-from llm.services.runtime.output import OutputPolicy, OutputProjection, RunOutputState, consume_events
+from llm.services.runtime.output import OutputBuffer, OutputProjection, RunOutputState, consume_events
 from typing import Optional, Union
 import asyncio
 import inspect
@@ -50,7 +50,7 @@ from enum import StrEnum
 from asyncio import timeout
 from llm.policies import ExecutionLimitError
 from llm.services.runtime.policies import ProjectPolicyResolver
-from llm.services.runtime.tools import ToolPolicy, ToolExecutionScope
+from llm.services.runtime.tools import ToolRuntime, ToolExecutionScope
 from llm.services.runtime.operations import OperationRepository, ToolOperations
 from llm.services.runtime.events import EventHandlers, EventContext, EventSubscriptions
 from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_digest, checkpoint_message_ids
@@ -460,8 +460,8 @@ class RunManager:
                  context_builder: Optional[ConversationContextBuilder] = None,
                  event_handlers: Optional[EventHandlers] = None,
                  subscriptions: Optional[EventSubscriptions] = None,
-                 tool_policy: Optional[ToolPolicy] = None,
-                 policy_resolver=None, provider_calls=None, output_policy=None, observability=None) -> None:
+                 tool_runtime: Optional[ToolRuntime] = None,
+                 policy_resolver=None, provider_calls=None, output_buffer=None, observability=None) -> None:
         if not isinstance(session, Session):
             raise TypeError("RunManager requires a Session")
         self._session = deepcopy(session)
@@ -494,9 +494,9 @@ class RunManager:
         self._store_instance: Optional[Conversation] = None
         self._request_changed: Optional[asyncio.Event] = None
         self.policy_resolver = policy_resolver if policy_resolver is not None else ProjectPolicyResolver()
-        self.tool_policy = tool_policy if tool_policy is not None else ToolPolicy()
+        self.tool_runtime = tool_runtime if tool_runtime is not None else ToolRuntime()
         self.provider_calls = provider_calls if provider_calls is not None else ProviderCalls()
-        self.output_policy = output_policy or OutputPolicy()
+        self.output_buffer = output_buffer or OutputBuffer()
         self.pending_work = PendingWork()
         from llm.services.infrastructure.observability import Observability
         self.observability = observability if observability is not None else Observability()
@@ -585,7 +585,7 @@ class RunManager:
 
     def _open_resumed_steering(self, run: Run, checkpoint: dict) -> None:
         """재개 원본 검증 뒤에만 접수한다. 검증 실패도 기존 Run 종료 경계에서 처리한다."""
-        run.metadata["steering"] = initial_channel(run, steering_mode(self.engines.resolve(run.engine)),
+        run.metadata["steering"] = initial_channel(run, steering_mode(self.engines.get(run.engine)),
                                                   checkpoint["header"]["input_message_id"])
         self.repository.save(run)
 
@@ -873,7 +873,7 @@ class RunManager:
         run.metadata["engine_options"] = deepcopy(message.metadata.get("engine_options", {}))
         if "resume" in message.metadata:
             run.metadata["resume"] = deepcopy(message.metadata["resume"])
-        strategy = self.engines.resolve(engine) if engine in self.engines.names() else None
+        strategy = self.engines.get(engine) if engine in self.engines.names() else None
         if steering_mode(strategy) != SteeringMode.UNSUPPORTED:
             run.metadata["steering"] = ({"accepting": False} if "resume" in run.metadata
                                         else initial_channel(run, steering_mode(strategy), message.id))
@@ -957,7 +957,7 @@ class RunManager:
                 raise ValueError("Capability resolver omitted a required capability")
             values.update(resolved)
         retries = run.metadata["policies"].get("tool_retry", {})
-        tool_scope = ToolExecutionScope(self.tool_policy, settings=run.metadata["policies"].get("tools", {}), retry=retries,
+        tool_scope = ToolExecutionScope(self.tool_runtime, policy=run.metadata["policies"].get("tools", {}), retry=retries,
               operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
         if checkpoint:
             tool_scope.restore([value["runtime_tool_usage"] for value in checkpoint["records"].values()
@@ -1092,8 +1092,8 @@ class RunManager:
                 await self.subscriptions.publish("engine", run, event, on_error=lambda: self._observer_failed(run))
 
         try:
-            output_policy = self.output_policy.for_project(run.metadata["policies"].get("output", {}))
-            await consume_events(events, output_policy, handle)
+            output_buffer = self.output_buffer.for_project(run.metadata["policies"].get("output", {}))
+            await consume_events(events, output_buffer, handle)
 
         finally:
             close = getattr(events, "aclose", None)
@@ -1314,7 +1314,7 @@ class RunManager:
         from llm.core.models import ProjectConfig
         if not isinstance(options, dict):
             raise TypeError("engine_options must be a JSON object")
-        ProjectConfig.validate_settings(options)
+        ProjectConfig.validate_json(options)
         return await drain_on_cancel(self._submit(content, engine, options))
 
     async def steer(self, run_id: str, content: str, *, targets=None) -> RunInstruction:

@@ -8,13 +8,13 @@ def effective_engines(app, config, *, session_config=None):
     """등록 엔진의 공개 설정 계약을 사용한다. 조회 중 모델/준비 함수를 호출하지 않는다."""
     result = {}
     for name in app.engines.names():
-        engine = app.engines.resolve(name)
-        describe = getattr(engine, "configuration", None)
+        engine = app.engines.get(name)
+        describe = getattr(engine, "resolve_config", None)
         result[name] = describe(config, name, session_config=session_config) if describe else {"runtime_only": True}
     return result
 
 
-def project_schema(app, components=None):
+def describe_project_config(app, components=None):
     registry = app.project_manager.components
     selected = registry.names() if components is None else registry.validate(components)
     catalog = {}
@@ -23,7 +23,7 @@ def project_schema(app, components=None):
         catalog[name] = {"directory": component.directory, "capabilities": list(component.capabilities),
                          "required_components": list(getattr(component, "required_components", ())),
                          "record_schema": checked_schema(getattr(component, "schema", object_schema())),
-                         "project_configuration": callable(getattr(component, "validate_project_configuration", None))}
+                         "project_configuration": callable(getattr(component, "validate_project_config", None))}
     # 선언한 런타임 자원의 선택지만 보강한다. 정책값이나 Engine별 기본값은 생성하지 않는다.
     def resources(spec):
         if isinstance(spec, dict):
@@ -37,18 +37,18 @@ def project_schema(app, components=None):
 
     engines, engine_catalog = {}, {}
     for name in app.engines.names():
-        engine = app.engines.resolve(name)
-        describe = getattr(engine, "configuration_schema", None)
+        engine = app.engines.get(name)
+        describe = getattr(engine, "describe_config", None)
         spec = checked_implementation_schema(describe() if describe else implementation_schema())
         resources(spec)
-        key = spec.get("x-settings-key", name) if isinstance(spec, dict) else name
+        key = spec.get("x-parameter-key", name) if isinstance(spec, dict) else name
         if not isinstance(key, str) or not key.strip():
             raise ValueError("Engine configuration key must be nonempty text")
         if isinstance(spec, dict):
             spec["$id"] = "urn:ish:engine:" + name + ":configuration"
         engines[key] = {"allOf": [engines[key], spec]} if key in engines else spec
         engine_catalog[name] = {"configuration_key": key}
-    policies = ProjectConfig.policy_schema()
+    policies = ProjectConfig.describe_policies()
     for section in ("usage", "retention"):
         names = sorted(getattr(app.policy_resolver, "token_counters", {}))
         if names:
@@ -57,10 +57,10 @@ def project_schema(app, components=None):
     project_components = {}
     for name in registry.names():
         component = registry.get(name)
-        if not callable(getattr(component, "validate_project_configuration", None)):
+        if not callable(getattr(component, "validate_project_config", None)):
             project_components[name] = False
             continue
-        describe = getattr(component, "configuration_schema", None)
+        describe = getattr(component, "describe_config", None)
         spec = checked_implementation_schema(describe() if describe else implementation_schema())
         if isinstance(spec, dict):
             spec["$id"] = "urn:ish:project-component:" + name + ":configuration"

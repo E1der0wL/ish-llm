@@ -36,7 +36,7 @@ if plan.can_resume:
 
 ```python
 # 백엔드 구성: classify는 최종 인자에서 신뢰한 Application 분류를 반환한다.
-services = ServiceConfig(tool_policy=ToolPolicy(
+services = BackendServices(tool_runtime=ToolRuntime(
     authorize=authorize, classify=classify))
 
 await project.aconfigure_policies({"approval": {
@@ -48,7 +48,7 @@ await project.aconfigure_policies({"approval": {
 카테고리는 정확히 일치해야 한다. unknown 위험도와 불확실 효과 재시도는 자동 승인하지 않는다.
 호스트의 Tool 허용 목록/실행 계약/거절을 덮어쓰지 않는다. 응답에는 actor=policy와 policy_id가
 남는다. 정책 응답 저장 실패는 PAUSED를 유지하고 운영 로그를 남긴다.
-이 정책 스키마는 `backend.project_schema()`에도 포함된다.
+이 정책 스키마는 `backend.describe_project_config()`에도 포함된다.
 
 공통 choice/input 데이터는 사용자 정의 엔진에서도 사용할 수 있다. 기본 중첩 Loop Agent의
 Tool 승인은 bool, Graph 확인은 approved/state 계약을 사용한다. 임의 사용자 정의 엔진의

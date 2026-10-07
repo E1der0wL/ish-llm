@@ -15,8 +15,8 @@ from llm.components.agents import AgentComponent
 from llm.components.memory import MemoryComponent
 from llm.components.goals import GoalComponent
 from llm.engines.loop import LoopEngine
-from llm.services.configuration import ServiceConfig
-from llm.services.runtime.tools import ToolPolicy, ToolApprovalRequired
+from llm.services.composition import BackendServices
+from llm.services.runtime.tools import ToolRuntime, ToolApprovalRequired
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 from tests.llm.test_goals import goal
 from tests.llm.test_work_state import work_state
@@ -38,8 +38,8 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
                 raise ToolApprovalRequired("Review exact resource change")
             return True
         self.model = ScriptedCompletion(*[[chunk("work", finish="stop")] for _ in range(20)])
-        self.app = LargeLanguageModel(self.root, components=self.parts, engines={"loop": LoopEngine(completion_fn=self.model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})})},
-            services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
+        self.app = LargeLanguageModel(self.root, components=self.parts, engines={"loop": LoopEngine(completion_fn=self.model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})},
+            services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("work", components=[p.name for p in self.parts])
         self.session = await self.project.sessions.acreate()
@@ -180,7 +180,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": identifier,
             "expected_version": view["version"]}), name="refinement_apply")], finish="tool_calls")],
             [chunk("applied", finish="stop")])
-        self.app.engines.register("refine", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})}))
+        self.app.engines.register("refine", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
         paused = await (await self.session.run.submit("apply", engine="refine")).wait()
         self.assertEqual(str(paused.data.status), "paused", paused.data.error)
         self.assertEqual(await self.refine.atarget_snapshot(data["target"]), original)
@@ -210,7 +210,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         view = await self.refine.asnapshot(identifier)
         failed = await self.refine.afail(identifier, expected_version=view["version"], reason="Validator rejected this approach")
         self.assertEqual(failed["data"]["status"], "failed")
-        self.assertEqual(await self.refine.aconfiguration(), {})
+        self.assertEqual(await self.refine.aget_config(), {})
         tool_names = [tool["function"]["name"] for tool in self.model.requests[0]["tools"]]
         self.assertNotIn("refinement_apply", tool_names)
 
@@ -220,7 +220,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         await goals.acreate(goal(), identifier="work")
         read_call = [chunk(calls=[call('{"identifier":"guide"}', name="skill_read")], finish="tool_calls")]
         first_model = ScriptedCompletion(read_call, [chunk("first completed", finish="stop")])
-        self.app.engines.register("first", LoopEngine(completion_fn=first_model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("first", LoopEngine(completion_fn=first_model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
         first = await (await self.session.run.submit("first work", engine="first")).wait()
         self.assertEqual(str(first.data.status), "completed", first.data.error)
         original_steps = deepcopy(await first.steps.alist())
@@ -236,7 +236,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(str(second.data.status), "completed", second.data.error)
         self.assertIsNotNone(await self.project.components.memory.asummary(self.session.id))
         bad = ScriptedCompletion([chunk(calls=[call('{"identifier":"missing"}', name="skill_read")], finish="tool_calls")])
-        self.app.engines.register("bad", LoopEngine(completion_fn=bad).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("bad", LoopEngine(completion_fn=bad).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
         third = await (await self.session.run.submit("invalid lookup", engine="bad")).wait()
         self.assertEqual(str(third.data.status), "failed")
         failed_steps = [step for step in await third.steps.alist() if step.kind == "tool"]
@@ -247,7 +247,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
             "evidence": [{"session_id": self.session.id, "run_id": third.id, "step_id": failed_steps[0].id}]}
         proposer = ScriptedCompletion([chunk(calls=[call(json.dumps(arguments), name="refinement_propose")], finish="tool_calls")],
                                      [chunk("Proposal ready for review", finish="stop")])
-        self.app.engines.register("propose", LoopEngine(completion_fn=proposer).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/refiner"}})}))
+        self.app.engines.register("propose", LoopEngine(completion_fn=proposer).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/refiner"}})}))
         analysis = await (await self.session.run.submit("refine observed failure", engine="propose")).wait()
         self.assertEqual(str(analysis.data.status), "completed", analysis.data.error)
         records = await self.refine.alist()
@@ -258,7 +258,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         approved = await self.approve(identifier)
         await self.refine.aapply(identifier, expected_version=approved["version"])
         followup = ScriptedCompletion(read_call, [chunk("followup", finish="stop")])
-        self.app.engines.register("followup", LoopEngine(completion_fn=followup).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("followup", LoopEngine(completion_fn=followup).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
         fourth = await (await self.session.run.submit("use updated guide", engine="followup")).wait()
         self.assertEqual(str(fourth.data.status), "completed", fourth.data.error)
         tool_result = next(m for m in followup.requests[-1]["messages"] if m["role"] == "tool")

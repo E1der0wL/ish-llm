@@ -147,8 +147,8 @@ class EngineContext:
     output_visibility: str = "user"
     steering: Optional[SteeringInbox] = None
 
-    def settings(self, engine: Optional[str] = None) -> dict:
-        return self.project.config.for_engine(self.run.engine if engine is None else engine, self.session.config)
+    def resolve_config(self, engine: Optional[str] = None) -> dict:
+        return self.project.config.resolve_engine_config(self.run.engine if engine is None else engine, self.session.config)
 
     def execute_tool(self, tool, arguments, *, checkpoint_key: str, result: dict,
                      executor=None, metadata=None, decision=UNSET) -> AsyncIterator[EngineEvent]:

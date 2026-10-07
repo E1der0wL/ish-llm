@@ -50,7 +50,7 @@ Project에서 `skills`를 선택하면 tools capability에 읽기 전용 Tool �
 일반 Loop는 이 Tool들을 바로 사용할 수 있습니다. Graph 안의 behavioral Agent에서는 `tools` 허용
 목록에 이름을 추가해야 하며, 추가하면 해당 Project의 전체 Skill 목록·본문 조회를 허용합니다.
 특정 Skill만 정적으로 적용하려면 기존 `resources.skills`를 사용합니다. 두 경로 모두 기존
-ToolPolicy·승인과 Run/Step 경계를 유지하며 Skill은 Tool 권한을 추가하지 않습니다.
+ToolRuntime·승인과 Run/Step 경계를 유지하며 Skill은 Tool 권한을 추가하지 않습니다.
 
 Run 시작 시 정의를 복사합니다. 실행 중 편집은 다음 Run에 반영되며 같은 Run의 목록/본문에
 다른 버전이 섞이지 않습니다. 전체 지침 지문은 ToolContract revision에 포함되어 변경 후

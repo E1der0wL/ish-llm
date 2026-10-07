@@ -216,7 +216,7 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await tools.aenabled(), ["offline"])
         await tools.adisable("offline")
         await tools.aset_enabled([])
-        self.assertEqual((await tools.aconfiguration())["config"]["enabled"], [])
+        self.assertEqual((await tools.aget_config())["config"]["enabled"], [])
         graphs = await self.project.components.aget("workflows")
         identifier = await graphs.acreate(WorkflowGraph(entry="end").node("end", "end").to_dict())
         await graphs.aupdate(identifier, {"metadata": {"custom": 1}})
@@ -291,7 +291,7 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual({r["messages"][0]["content"] for r in provider.requests},
                          {"session alpha", "project beta"})
         self.assertTrue(all("timeout" not in r for r in provider.requests))
-        self.assertIsNone(shared.settings_name)
+        self.assertIsNone(shared.parameter_key)
         for run in runs:
             result = await run.aresult()
             self.assertEqual(result.total_tokens, 5)
@@ -306,7 +306,7 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
             "stage": {'config': {'system_prompt': 'inner', 'completion': {'model': 'openai/test'}}}}}})
         self.app.engines.register("pipeline", PipelineEngine([
             LoopEngine(completion_fn=provider),
-            LoopEngine(completion_fn=provider, settings_name="stage"),
+            LoopEngine(completion_fn=provider, parameter_key="stage"),
         ]))
         run = await (await self.session.run.submit("go", engine="pipeline")).wait(timeout=5)
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
@@ -315,4 +315,4 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([step.kind for step in await run.steps.alist()], ["engine", "llm", "engine", "llm"])
         for invalid in ("", " ", 1):
             with self.assertRaises(ValueError):
-                LoopEngine(settings_name=invalid)
+                LoopEngine(parameter_key=invalid)

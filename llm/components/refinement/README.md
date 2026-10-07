@@ -76,9 +76,10 @@ await refine.aconfigure({"policy": {"proposal_operations": ["update"], "apply_to
 ```
 
 이 경우 `refinement_apply`, `refinement_rollback`을 추가합니다. 둘 다
-`ToolContract.approval_required=True`이며 호스트 ToolPolicy.authorize가 필요합니다.
-ASK이면 적용 전에 Run이 멈춥니다. 기존 InteractionResponse/명시적 resume를 거쳐
-ToolExecutor가 승인한 뒤에만 proposal approval와 apply를 수행합니다.
+`ToolContract.approval_required=True`이므로 Host ASK 함수 없이도 적용 전에 Run이 멈춥니다.
+Project 승인 정책 또는 사용자가 InteractionResponse를 저장하고 명시적으로 resume한 뒤에만
+ToolExecutor가 proposal approval와 apply를 허용합니다. 선택적 ToolRuntime.authorize의
+기술적 거부는 저장된 승인으로도 우회할 수 없습니다.
 모델에 독립적인 approve Tool을 노출하지 않으며 권한·receipt·재시도를 구현하지 않습니다.
 직접 Python approve/apply는 신뢰하는 UI/호스트 API입니다. 사용자 확인 없이 호출하지 마세요.
 
@@ -163,5 +164,5 @@ proposal.parent.version에 보존됩니다. evidence Run/Step 참조는 보관 �
 `policy.require_evaluation=True`이면 평가 기록 없이 승인·적용할 수 없습니다. 점수 임계값,
 자동 합격/승인, 평가 결과에 따른 자동 UPDATE/CREATE/FORK는 없습니다. 평가 결과의 신뢰는
 호출한 host/evaluator의 책임입니다. 모델에 평가/approve 위조 Tool을 제공하지 않습니다.
-Tool apply는 기존 approval_required/ToolPolicy/Interaction 경계를 사용하고, trusted Python
+Tool apply는 기존 approval_required/ToolRuntime/Interaction 경계를 사용하고, trusted Python
 approve/apply는 UI·host API로 유지합니다. 구조 검사 통과가 승인이나 평가 통과를 의미하지 않습니다.

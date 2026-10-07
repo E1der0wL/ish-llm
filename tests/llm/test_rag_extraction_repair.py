@@ -162,7 +162,7 @@ class ComponentExtractionTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(any(m["content"] == "Custom instructions" for m in self.requests[-1]["messages"]))
         self.assertEqual(self.requests[-1]["temperature"], 0.8)
         self.assertIn("CUSTOM", self.requests[-1]["messages"][0]["content"])
-        effective = await self.data.aeffective_configuration()
+        effective = await self.data.aresolve_config()
         self.assertEqual(effective["values"]["config"]["extraction_params"]["temperature"], 0.8)
         self.assertEqual(effective["sources"]["/config/extraction_params/temperature"], "project")
         async def change():

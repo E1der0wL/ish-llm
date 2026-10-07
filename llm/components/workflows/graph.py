@@ -45,7 +45,7 @@ def workflow_schema():
 
 def validate_handler_options(node, handler):
     """Graph는 handler 필드의 의미를 모른다. 선택 구현체의 스키마에 위임한다."""
-    describe = getattr(handler, "configuration_schema", None)
+    describe = getattr(handler, "describe_config", None)
     if describe is None and callable(getattr(handler, "validate", None)):
         return  # 기존 validate(node, context)가 자신의 추가 필드 계약을 소유한다.
     schema = describe() if describe is not None else object_schema()

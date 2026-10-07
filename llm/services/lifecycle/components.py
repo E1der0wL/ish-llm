@@ -121,7 +121,7 @@ class ComponentData:
         from llm.policies import ExecutionLimitError
         project, _ = self._current()
         scope = current_usage()
-        policies = [project.config.policies.get("usage", {}), scope.settings if scope else {}]
+        policies = [project.config.policies.get("usage", {}), scope.policy if scope else {}]
         limited = any(policy.get(key) is not None for policy in policies
                       for key in ("max_calls", "max_tokens", "project_max_calls", "project_max_tokens"))
         if limited and (self._model_usage is None or any(c is not None and getattr(c, "observes_model_calls", False) is not True for c in clients)):
@@ -145,26 +145,26 @@ class ComponentData:
         return self
 
     @workspace_locked
-    def configuration(self) -> dict:
+    def get_config(self) -> dict:
         project, component = self._current()
-        return component.configuration(project)
+        return component.get_config(project)
 
     @workspace_locked
     def configure(self, data: dict, *, expected_version=None) -> None:
         project, component = self._current()
-        check_revision(component.configuration(project), expected_version)
+        check_revision(component.get_config(project), expected_version)
         project.config.parameters.setdefault("components", {})[self.name] = deepcopy(data)
-        self.registry.validate_configuration(project)
+        self.registry.validate_config(project)
         self.access.repository.save(project)
         log_event(project.paths.logs, "component.configured", entity_id=project.id)
 
     @workspace_locked
-    def effective_configuration(self) -> dict:
-        from llm.core.configuration import component_configuration
+    def resolve_config(self) -> dict:
+        from llm.core.configuration import resolve_component_config
         project, component = self._current()
-        return component_configuration(component, project)
+        return resolve_component_config(component, project)
 
-    aeffective_configuration = async_method(effective_configuration)
+    aresolve_config = async_method(resolve_config)
 
     @workspace_locked
     def create(self, data: dict, *, identifier: Optional[str] = None) -> str:
@@ -182,7 +182,7 @@ class ComponentData:
     def snapshot(self, identifier=None) -> dict:
         """UI 편집용 데이터와 충돌 검사용 버전을 함께 조회한다. None이면 Component 설정이다."""
         project, component = self._current()
-        data = component.configuration(project) if identifier is None else component.load(project, identifier)
+        data = component.get_config(project) if identifier is None else component.load(project, identifier)
         return {"data": deepcopy(data), "version": revision_token(data)}
 
     @workspace_locked
@@ -215,7 +215,7 @@ class ComponentData:
         component.delete(project, identifier)
         log_event(project.paths.logs, "component.record_deleted", entity_id=project.id)
 
-    aconfiguration = async_method(configuration)
+    aget_config = async_method(get_config)
 
     aconfigure = async_method(configure)
 

@@ -65,7 +65,7 @@ class ComponentDependencyTests(unittest.TestCase):
                     project.components.remove("b", permanent=permanent)
                 self.assertTrue((project.paths.root / "b").is_dir())
             self.assertEqual(project.data.components, ("a", "b"))
-            self.assertEqual(backend.project_schema()["x-components"]["a"]["required_components"], ["b"])
+            self.assertEqual(backend.describe_project_config()["x-components"]["a"]["required_components"], ["b"])
 
     def test_backup_restore_revalidates_dependencies_without_mutation(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -89,4 +89,4 @@ class ComponentDependencyTests(unittest.TestCase):
         for key in ("embedding_params", "extraction_params", "rerank_params"):
             for params in ({"model": "   "}, {"api_base": "file:///private"}):
                 with self.subTest(child=key, params=params), self.assertRaises(ValueError):
-                    RAGComponent().validate_configuration({"config": {key: params}})
+                    RAGComponent().validate_config({"config": {key: params}})

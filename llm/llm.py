@@ -40,7 +40,7 @@ from llm.core.plans import ResumePlan, RecoveryPlan, RetentionPlan, RecoveryResu
 from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult
 from llm.core.interactions import InteractionRequest, InteractionOption, InteractionResponse, InteractionView
 from llm.providers.calls import ProviderCalls, ProviderLimits
-from llm.services.runtime.output import OutputPolicy
+from llm.services.runtime.output import OutputBuffer
 from llm.engines.base import Engine, EngineEvent, EngineEventType
 from llm.core.steering import RunInstruction, InstructionStatus, SteeringMode, SteeringTarget, SteeringRoute
 from llm.engines.registry import EngineRegistry
@@ -66,12 +66,12 @@ from llm.components.base import ProjectComponent
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.runtime.runs import RunEvent, RunManager, RunErrorCode, RunRequestError
 from llm.services.runtime.policies import RunPolicy, ProjectPolicyResolver
-from llm.services.runtime.tools import ToolPolicy, ToolCall, ToolExecutionError, ToolApprovalRequired
+from llm.services.runtime.tools import ToolRuntime, ToolCall, ToolExecutionError, ToolApprovalRequired
 from llm.services.runtime.processes import ProcessToolRunner
 from llm.policies import CompletionPolicy
 from llm.services.api import Projects
 from llm.services.infrastructure.storage import StorageIO, drain_on_cancel
-from llm.services.configuration import ServiceConfig
+from llm.services.composition import BackendServices
 from llm.services.history.conversation import MemoryConversations, MemoryConversationStore, conversation_store
 from llm.services.runtime.events import EventSubscriptions
 
@@ -89,7 +89,7 @@ class LargeLanguageModel:
 
     누적 통계는 backend 수명 동안만 유지한다. 현재 gauge는 기존 runtime owner에서 읽으며
     snapshot은 모델/Tool/파일 쓰기를 수행하지 않는다. privacy-safe fact만
-    ServiceConfig(observability_sink=callback)으로 받을 수 있다. callback은 빠른 thread-safe
+    BackendServices(observability_sink=callback)으로 받을 수 있다. callback은 빠른 thread-safe
     동기 함수여야 하며 예외는 실행 결과에 영향을 주지 않는다.
 
     하나의 프로세스와 이벤트 루프에서 사용한다. 생성자는 파일을 쓰거나 모델을
@@ -123,9 +123,9 @@ class LargeLanguageModel:
 
     장시간 실행/출력 저장 조율::
 
-        services = ServiceConfig(
+        services = BackendServices(
             provider_limits=ProviderLimits(max_active=4, max_waiting=16, wait_seconds=10),
-            output_policy=OutputPolicy(batch_size=32, max_delay=0.025, max_chars=65536),
+            output_buffer=OutputBuffer(batch_size=32, max_delay=0.025, max_chars=65536),
             output_index_stride=128,
         )
         backend = LargeLanguageModel("workspace", services=services)
@@ -175,7 +175,7 @@ class LargeLanguageModel:
         항상 engine을 지정해야 한다. 모델명과 인증은 사용하는 공급자에 맞게 설정한다.
         components는 제공할 Component 인스턴스 목록이며 명시하면 기본 목록을 대체한다.
         실제로 사용할 종류는 Project 생성의 components=["tools", ...]에서 선택한다.
-        services=ServiceConfig(...)로 저장소·계산기·로그·이벤트 처리기를 주입한다.
+        services=BackendServices(...)로 저장소·계산기·로그·이벤트 처리기를 주입한다.
         실행 정책은 ProjectConfig.policies, 구현체 인자는 parameters에 저장한다.
         conversation_storage는 새 Project의 저장 방식이며 기존 Project의 명시된 선택은 보존한다.
         on_event(run, event), on_run_event(event)는 실행 관찰 콜백이다.
@@ -200,11 +200,11 @@ class LargeLanguageModel:
         )
         # 명시된 client 설정 위에 Project 설정을 적용한다.
         # configure() 편의 API도 항상 같은 Project 설정을 갱신한다.
-        view = await project.aconfiguration()
+        view = await project.adescribe_config()
         print(view["components"]["rag"]["effective"]["sources"])
-        settings = ProjectConfig(view["project"]["config"])
-        settings.parameters["components"]["rag"]["config"]["search"]["limit"] = 10
-        await project.asave(config=settings, expected_version=view["config_version"])
+        config = ProjectConfig(view["project"]["config"])
+        config.parameters["components"]["rag"]["config"]["search"]["limit"] = 10
+        await project.asave(config=config, expected_version=view["config_version"])
 
         # 기본 Project/Session과 마지막 선택은 호출 애플리케이션이 소유한다.
         # acreate는 매번 새 Project를 만들며 재사용은 아래 aload(id)로 명시한다.
@@ -217,9 +217,9 @@ class LargeLanguageModel:
         project = await backend.projects.aload(project.id)
         projects = await backend.projects.alist(include_deleted=True, query=Query(limit=20))
         await project.asave(title="연구 노트")
-        settings = (await project.aget_data()).config
-        settings["parameters"]["engines"]["loop"]["config"]["completion"]["temperature"] = 0.2
-        await project.asave(config=settings)
+        config = (await project.aget_data()).config
+        config["parameters"]["engines"]["loop"]["config"]["completion"]["temperature"] = 0.2
+        await project.asave(config=config)
         project_copy = await project.aclone(title="연구 사본")
         await project.adelete()                 # 소프트 삭제
         await project.arestore()                # 복원
@@ -312,8 +312,8 @@ class LargeLanguageModel:
 
     운영 한도 / UI 대기열::
 
-        services = ServiceConfig(
-            tool_policy=ToolPolicy(),
+        services = BackendServices(
+            tool_runtime=ToolRuntime(),
             conversation_cache_size=32,
         )
         backend = LargeLanguageModel("./workspace", services=services, engines={"loop": LoopEngine()})
@@ -323,14 +323,14 @@ class LargeLanguageModel:
             "run": {"max_queued": 20, "timeout_seconds": 1800},
         }, parameters={"engines": {"loop": {'policy': {'completion': {'max_tokens': 32000, 'reserve_tokens': 4000, 'counter': 'model_default'}, 'provider': {'max_attempts': 2}}}}}))
         await project.aconfigure_policies({"context": {"mode": "recent", "max_turns": 10}})
-        settings = await project.aconfiguration()  # project/components와 UI용 policy_schema
+        config = await project.adescribe_config()  # project/components와 UI용 policy_schema
         status = await session.run.astatus(queued_limit=20)
         cancelled = await request.cancel()  # 실행 전 요청만 취소; 실행 중이면 False
 
-    RunPolicy의 기본값은 무제한이다. ToolPolicy에는 async authorize(call),
+    RunPolicy의 기본값은 무제한이다. ToolRuntime에는 async authorize(call),
     runner(tool, call), classify를 주입할 수 있다. allowed_tools는 Project 정책이다. Loop와 Graph Agent/Tool이
     Run 단위 예산을 공유한다. parameters.engines[등록 이름].policy.completion는 매 Loop 호출 전에
-    CompletionPolicy로 과거 턴을 선택한다. 토큰 계산 함수는 ServiceConfig.token_counters에
+    CompletionPolicy로 과거 턴을 선택한다. 토큰 계산 함수는 BackendServices.token_counters에
     이름으로 등록한다. 공통 사용량 제한은 policies.usage.counter를 별도로 선택한다.
     공통 정책 사본은 Run.metadata.policies에 남으며 변경은 다음 Run부터 반영한다.
     현재 Tool 문맥까지
@@ -359,7 +359,7 @@ class LargeLanguageModel:
         runner = ProcessToolRunner(
             {"external_job": ["/usr/bin/python3", "-I", "/opt/tools/worker.py"]},
             cwd="/srv/tool-work", read_only_paths=["/opt/tools"], isolation="sandbox")
-        services = ServiceConfig(tool_policy=ToolPolicy(
+        services = BackendServices(tool_runtime=ToolRuntime(
             runner=runner, operation_key=lambda call: call.arguments["operation_id"]))
         record = await session.run.aoperation("business-id")
         await session.run.shutdown()
@@ -418,7 +418,7 @@ class LargeLanguageModel:
         backend.engines.register("review", LoopEngine())
         # 반복 한도는 Project parameters.engines.review.policy.max_iterations에 저장한다.
         names = backend.engines.names()
-        engine = backend.engines.resolve("review")
+        engine = backend.engines.get("review")
         request = await session.run.submit("검토해줘.", engine="review")
 
     이름은 중복 등록할 수 없다. GraphEngine 등 개발자가 만든 Engine도 같은 방식으로
@@ -461,7 +461,7 @@ class LargeLanguageModel:
         await skills.asave(identifier, data)          # 전체 데이터 교체
         updated = await skills.aupdate(identifier, {"description": "새 리뷰 지침"})
         await skills.aconfigure({"config": {"ui": {"label": "검토"}}})
-        configuration = await skills.aconfiguration()
+        configuration = await skills.aget_config()
         await skills.adelete(identifier)              # 정의 파일 삭제
         await project.components.aremove("skills")   # 선택 해제; 데이터는 유지
         # await project.components.aremove("skills", permanent=True)
@@ -691,19 +691,19 @@ class LargeLanguageModel:
 
     Project 설정 폼과 운영 API::
 
-        schema = backend.project_schema(components=["tools", "rag", "memory"])
+        schema = backend.describe_project_config(components=["tools", "rag", "memory"])
         # properties.config / properties.config.properties.parameters.properties.components에서 타입·허용값·제약 조회
-        settings = await project.aconfiguration()
-        values, schema = settings["values"], settings["schema"]
+        config = await project.adescribe_config()
+        values, schema = config["values"], config["schema"]
         # values.config.parameters["components"]는 명시된 값만 포함한다. 없는 키는 미설정이다.
-        # settings.project.config는 저장 원본이다. 전체 설정 후보를 저장 전에 검증한다.
-        preview = await project.avalidate_configuration(settings["project"]["config"],
-                                                       expected_version=settings["config_version"])
+        # config.project.config는 저장 원본이다. 전체 설정 후보를 저장 전에 검증한다.
+        preview = await project.avalidate_config(config["project"]["config"],
+                                                       expected_version=config["config_version"])
         await project.asave(config=preview["project"]["config"], expected_version=preview["config_version"])
-        effective = settings["effective_engines"]  # 적용값·출처·호스트 고정/가려진 값
+        effective = config["effective_engines"]  # 적용값·출처·호스트 고정/가려진 값
         # effective["loop"]["values"], ["sources"], ["editable"], ["overridden"]
-        session_settings = await session.aconfiguration()  # Session 설정까지 적용한 Engine 값
-        # RAG/Memory: settings["components"][name]["effective"]
+        session_view = await session.adescribe_config()  # Session 설정까지 적용한 Engine 값
+        # RAG/Memory: config["components"][name]["effective"]
         # config_version/component_versions로 UI 편집 충돌을 검사한다.
         usage = await project.amodel_usage()  # Run + 독립 Component 모델 호출
         plan = await project.arecovery()     # 무결성/복구 미리보기; 자동 재실행 없음
@@ -715,9 +715,9 @@ class LargeLanguageModel:
 
     선언된 설정과 등록 Component별 설정이 스키마에 포함된다. 열린 JSON 영역과
     공급자 고유 인자는 additionalProperties=True로 표시하며 모든 가능한 키를 추측하지 않는다.
-    호스트 실행 객체의 설정은 별도다. 사용법은 docs/llm/operations-and-ui-settings.md에 있다.
+    호스트 실행 객체의 설정은 별도다. 사용법은 docs/llm/operations-and-ui-config.md에 있다.
     Engine 설정 우선순위는 Project → Session → Agent → 명시적 호스트 값이다. missing은 상속하고 null은 상위 값을 덮어쓴다. 정책은 Project에만 저장한다.
-    Graph·Loop·Pipeline과 RAG의 적용 규칙 및 변경점은 docs/llm/settings-consistency.md를 따른다.
+    Graph·Loop·Pipeline과 RAG의 적용 규칙 및 변경점은 docs/llm/config-consistency.md를 따른다.
 
     관찰 콜백 안에서 같은 백엔드의 wait/shutdown을 기다리지 않는다. 사용자 정의 실행
     이벤트는 backend.event_handlers.register("custom_event", handler)로 연결한다.
@@ -732,13 +732,13 @@ class LargeLanguageModel:
                  engines: Optional[Mapping[str, Engine]] = None,
                  on_event: Optional[Callable[[Run, EngineEvent], None]] = None,
                  on_run_event: Optional[Callable[[RunEvent], None]] = None,
-                 services: Optional[ServiceConfig] = None,
+                 services: Optional[BackendServices] = None,
                  conversation_storage: Optional[str] = None) -> None:
         require_linux()
         self.workspace = Path(workspace).absolute()
         from llm.providers.runtime import configure_logging
         configure_logging(self.workspace)
-        self.services = services if services is not None else ServiceConfig()
+        self.services = services if services is not None else BackendServices()
         self.policy_resolver = (self.services.policy_resolver if self.services.policy_resolver is not None
                                 else ProjectPolicyResolver(self.services.token_counters))
         self.provider_calls = (self.services.provider_calls if self.services.provider_calls is not None
@@ -747,7 +747,7 @@ class LargeLanguageModel:
             if conversation_storage not in ("file", "memory"):
                 raise ValueError("conversation_storage must be 'file' or 'memory'")
             if self.services.conversations not in (conversation_store, "file"):
-                raise ValueError("Choose conversation_storage or ServiceConfig.conversations, not both")
+                raise ValueError("Choose conversation_storage or BackendServices.conversations, not both")
             self.services = replace(self.services, conversations=conversation_storage)
         self.engines = EngineRegistry()
         for name, engine in ({"loop": LoopEngine()} if engines is None else engines).items():
@@ -767,7 +767,7 @@ class LargeLanguageModel:
                                               self.provider_calls, self.events)
         self.event_handlers = self.services.event_handlers
         self.projects = Projects(self)
-        self.project_manager.bind_configuration_validator(self.engines.validate_configuration)
+        self.project_manager.bind_config_validator(self.engines.validate_config)
         self.on_event = on_event
         self.on_run_event = on_run_event
         self._managers: dict[tuple[str, str], RunManager] = {}
@@ -874,8 +874,8 @@ class LargeLanguageModel:
                 capabilities=self.project_manager.components,
                 on_event=self.on_event, on_run_event=self.on_run_event,
                 event_handlers=self.event_handlers, subscriptions=self.events,
-                tool_policy=self.services.tool_policy, policy_resolver=self.policy_resolver,
-                provider_calls=self.provider_calls, output_policy=self.services.output_policy,
+                tool_runtime=self.services.tool_runtime, policy_resolver=self.policy_resolver,
+                provider_calls=self.provider_calls, output_buffer=self.services.output_buffer,
                 observability=self._observability)
         return self._managers[key]
 
@@ -899,12 +899,12 @@ class LargeLanguageModel:
 
         await drain_on_cancel(stop())
 
-    def host_configuration(self) -> dict:
+    def describe_host(self) -> dict:
         """Host 실행 구현/공유 용량을 조회한다. Project 정책이나 SDK 인증값은 포함하지 않는다."""
         self._check_open()
-        return self.services.configuration()
+        return self.services.describe()
 
-    def project_schema(self, *, components=None) -> dict:
+    def describe_project_config(self, *, components=None) -> dict:
         """UI용 Project 설정 JSON Schema의 독립 사본을 반환한다.
 
         components=None은 현재 등록된 모든 컴포넌트, []는 선택 없음이다.
@@ -912,11 +912,11 @@ class LargeLanguageModel:
         선택 컴포넌트의 설정 스키마가 있다. type/enum/minimum/description으로
         폼을 만들고 additionalProperties=True인 영역은 추가 JSON 키 입력을 허용한다.
         파일/모델을 읽지 않으며 런타임 함수·실제 인증값을 반환하지 않는다.
-        저장된 값과 편집 버전은 await project.aconfiguration()으로 별도 조회한다.
+        저장된 값과 편집 버전은 await project.adescribe_config()으로 별도 조회한다.
         """
         self._check_open()
-        from llm.services.schema import project_schema
-        return project_schema(self, components)
+        from llm.services.schema import describe_project_config
+        return describe_project_config(self, components)
 
     async def shutdown(self) -> None:
         """모든 Session/I/O를 종료한다. 파일 대기는 보존하고 소유한 메모리 대화는 해제한다."""

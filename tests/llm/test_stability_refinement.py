@@ -12,8 +12,8 @@ from contextlib import contextmanager
 from llm.core.results import EngineDelta, EngineOutput
 from llm.engines.base import EngineEvent, EngineEventType
 from llm.services.query import FileCatalog, Query
-from llm.services.runtime.output import RunOutputState, OutputPolicy
-from llm.llm import LargeLanguageModel, ServiceConfig
+from llm.services.runtime.output import RunOutputState, OutputBuffer
+from llm.llm import LargeLanguageModel, BackendServices
 from tests.llm.support.fake_engine import FakeStreamingEngine
 
 
@@ -113,7 +113,7 @@ class PersistenceBoundaryTests(unittest.IsolatedAsyncioTestCase):
             observed = []
             async with LargeLanguageModel(root, components=[], engines={"echo": FakeStreamingEngine(chunks=("a", "b"))},
                     on_event=lambda run, event: observed.append((run.id, event.type)),
-                    services=ServiceConfig(output_policy=OutputPolicy(batch_size=8))) as backend:
+                    services=BackendServices(output_buffer=OutputBuffer(batch_size=8))) as backend:
                 project = await backend.projects.acreate()
                 session = await project.sessions.acreate()
                 with patch.object(backend.run_repository, "record_outputs", side_effect=OSError("disk full")):

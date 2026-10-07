@@ -30,14 +30,14 @@ async def select_or_create(backend, config):
         if projects:
             records = [(await project.aget_data(), project) for project in projects]
             return min(records, key=lambda item: (item[0].created_at, item[0].id))[1]
-        settings = ProjectConfig(config.project_config)
+        project_config = ProjectConfig(config.project_config)
         supplied = {key: value for key, value in (("model", config.model), ("api_base", config.api_base)) if value is not None}
         if supplied:
             # Title generation resolves the current source settings at execution
             # time; copying them here would leave a stale, independent title model.
-            engines = settings.parameters.setdefault("engines", {})
+            engines = project_config.parameters.setdefault("engines", {})
             engines.setdefault("loop", {}).setdefault("config", {}).setdefault("completion", {}).update(supplied)
-        return await create_project(backend, "Hub", config=settings,
-            components=list(backend.project_schema()["x-components"]), conversation_storage="file")
+        return await create_project(backend, "Hub", config=project_config,
+            components=list(backend.describe_project_config()["x-components"]), conversation_storage="file")
     finally:
         os.close(descriptor)

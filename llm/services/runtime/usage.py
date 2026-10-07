@@ -19,8 +19,8 @@ def current_usage():
 
 
 class UsageScope:
-    def __init__(self, settings, counter, source=None):
-        self.settings, self.counter = settings, counter
+    def __init__(self, policy, counter, source=None):
+        self.policy, self.counter = policy, counter
         self.source = source
 
     @contextmanager
@@ -33,7 +33,7 @@ class UsageScope:
 
     async def reservation(self, request):
         """토큰 상한 사용 시 입력 계수와 명시적 출력 상한이 필요하다. 누락 사용량은 예약을 유지한다."""
-        if self.settings.get("max_tokens") is None and self.settings.get("project_max_tokens") is None:
+        if self.policy.get("max_tokens") is None and self.policy.get("project_max_tokens") is None:
             return None
         output = request.get("max_completion_tokens", request.get("max_tokens"))
         if type(output) is not int or output < 1:
@@ -89,7 +89,7 @@ class ComponentUsage:
     def __init__(self, data, sessions, counters):
         self.data, self.sessions, self.counters = data, sessions, counters
 
-    def _settings(self):
+    def _get_policies(self):
         project, _ = self.data._current()
         return deepcopy(project.config.policies)
 
@@ -141,12 +141,12 @@ class ComponentUsage:
         component.save_model_usage(project, entry)
 
     async def __call__(self, operation, request, call):
-        policies = await self.data._async_call(self._settings)
+        policies = await self.data._async_call(self._get_policies)
         scope = current_usage()
         source = deepcopy(scope.source) if scope else None
-        settings = scope.settings if source else policies.get("usage", {})
+        policy = scope.policy if source else policies.get("usage", {})
         reservation = None
-        if settings.get("project_max_tokens") is not None or source and settings.get("max_tokens") is not None:
+        if policy.get("project_max_tokens") is not None or source and policy.get("max_tokens") is not None:
             counter = scope.counter if source else self.counters.get(policies.get("usage", {}).get("counter"))
             if counter is None:
                 raise ExecutionLimitError("usage_configuration", "Component model quota requires a token counter")

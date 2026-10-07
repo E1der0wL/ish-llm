@@ -87,7 +87,7 @@ LangGraph 스케줄링, 병렬 합류, 취소 정리와 이벤트 ACK는 실행�
 AgentNode는 `for_agent()`가 반환한 실제 Engine을 사전 탐색에서 검사하여, 계약 오류가 있을 때
 앞선 Tool이나 MCP 연결이 먼저 실행되지 않도록 합니다. 미지원 Engine의 기존 계약은 유지합니다.
 
-`pause_before`는 노드 실행 전 대기 기록을 저장합니다. 노드 확인은 Tool 실행 승인을 대신하지 않으며 ToolPolicy가 ASK를 반환하면 별도 Tool 승인이 필요합니다.
+`pause_before`는 노드 실행 전 대기 기록을 저장합니다. 노드 확인은 Tool 실행 승인을 대신하지 않으며 ToolRuntime가 ASK를 반환하면 별도 Tool 승인이 필요합니다.
 
 명시적 재개는 새 Run을 만듭니다. 완료 노드는 저장 결과를 재사용하고, 시작했지만 완료되지 않은 동작은 명시적 `retry_nodes` 검증을 거칩니다. 중첩 체크포인트도 원래 Interaction과 binding을 검증합니다. [재개 계약](../../../docs/llm/graph-checkpoints.md)을 참고하세요.
 

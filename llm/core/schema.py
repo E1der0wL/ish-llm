@@ -33,13 +33,13 @@ def implementation_schema(*, config=None, policy=None, **metadata):
                          additionalProperties=False, **metadata)
 
 
-def validate_implementation_settings(value, *, scope="implementation"):
+def validate_parameters(value, *, scope="implementation"):
     """저장·직접 설정 경계에서 평면 설정과 null 컨테이너를 거부한다."""
     if not isinstance(value, dict):
-        raise TypeError(f"{scope} settings must be an object")
+        raise TypeError(f"{scope} configuration must be an object")
     extra = value.keys() - {"config", "policy"}
     if extra:
-        raise ValueError(f"{scope}: settings belong under config/policy: {sorted(extra)}")
+        raise ValueError(f"{scope}: configuration belong under config/policy: {sorted(extra)}")
     for key in ("config", "policy"):
         if key in value and not isinstance(value[key], dict):
             raise TypeError(f"{scope}.{key} must be an object; omit an unset section")

@@ -275,10 +275,10 @@ async def main(''' + parameter + '''):
 
 
 class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
-    async def setup_runtime(self, source, *, policy=None, responses=None, policies=None):
+    async def setup_runtime(self, source, *, runtime=None, responses=None, policies=None):
         from llm.llm import LargeLanguageModel
         from llm.engines.loop import LoopEngine
-        from llm.services.configuration import ServiceConfig
+        from llm.services.composition import BackendServices
         from tests.llm.test_loop import ScriptedCompletion, chunk, call
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
@@ -286,7 +286,7 @@ class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')],
             [chunk('done', finish='stop')]]))
         app = LargeLanguageModel(temporary.name, components=[ToolComponent()],
-            engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy))
+            engines={"loop": LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=runtime))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(config={"policies": policies or {}, "parameters": {"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}}, components=["tools"])
         await project.components.tools.acreate({"source": source}, identifier="act")
@@ -295,7 +295,7 @@ class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
         return project, await project.sessions.acreate(), model
 
     async def test_file_tool_retry_step_and_normal_none_completion(self):
-        from llm.services.runtime.tools import ToolPolicy
+        from llm.services.runtime.tools import ToolRuntime
         source = '''from llm.components.tools import tool
 from llm.services.runtime.tools import ToolExecutionError
 from pathlib import Path
@@ -334,7 +334,7 @@ async def main():
         self.assertEqual(steps[0].status, "failed")
 
     async def test_file_tool_approval_and_operation_receipt(self):
-        from llm.services.runtime.tools import ToolPolicy
+        from llm.services.runtime.tools import ToolRuntime
         approvals = []
         async def approve(call):
             approvals.append(call)
@@ -345,7 +345,7 @@ async def main():
     """Return a recorded result after authorization."""
     return {"done": True}
 '''
-        _, session, _ = await self.setup_runtime(source, policy=ToolPolicy(
+        _, session, _ = await self.setup_runtime(source, runtime=ToolRuntime(
             authorize=approve, operation_key=lambda call: "file-tool-operation"))
         run = await (await session.run.submit("act", engine="loop")).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)

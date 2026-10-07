@@ -1,7 +1,7 @@
 # 명시적 설정 계약
 
 `ProjectConfig.policies.tools.argument_constraints`로 Tool 인자를 fixed/bounded/selectable로
-제한한다. ToolPolicy는 Host의 실행·분류 어댑터만 주입한다.
+제한한다. ToolRuntime는 Host의 실행·분류 어댑터만 주입한다.
 [소유권 inventory](../docs/llm/project-authority.md), [Tool 제약](../docs/llm/tool-constraints.md).
 
 ish-llm은 사용자가 설정하지 않은 정책을 대신 결정하지 않는다. SDK 옵션을 생략하면 SDK의 native behavior를 사용하며, 프로토콜·저장 무결성·취소 회수에 필요한 강제값만 예외로 둔다.
@@ -20,11 +20,11 @@ private 옵션을 복제하지 않는다. 모든 열린 객체에는 명시적�
 
 ProjectConfig는 `policies`와 대상별 전달용 `parameters`를 구분한다. `parameters.engines.<설정 이름>`은 Engine, `parameters.components.<이름>`은 Component가 검증·해석한다. 동일한 이름의 인자도 다른 대상으로 자동 전달하지 않는다. Loop의 SDK 인자는 `parameters.engines.<설정 이름>.config.completion`에 둔다. Project의 최상위 completion은 없다.
 
-Engine 옵션의 순서는 **Project → Session → Agent**다. 제한은 child가 더 좁힐 수만 있다. Host constructor는 구현 함수·handler·기술 revision만 제공한다. Session에는 명시한 override만 저장하고 실행 시 최신 Project 사본을 상속한다. 일반 `resolve_configuration`의 host 관찰 기능은 외부 adapter용이며 내장 Engine의 정책 계층에 사용하지 않는다.
+Engine 옵션의 순서는 **Project → Session → Agent**다. 제한은 child가 더 좁힐 수만 있다. Host constructor는 구현 함수·handler·기술 revision만 제공한다. Session에는 명시한 override만 저장하고 실행 시 최신 Project 사본을 상속한다. 일반 `resolve_config`의 host 관찰 기능은 외부 adapter용이며 내장 Engine의 정책 계층에 사용하지 않는다.
 
 Agent completion은 model 없는 부분 설정도 허용한다. 모델이 모든 계층에서 없으면 호출 전에 오류다. Agent purpose를 system_prompt로 자동 변환하지 않으며, 명시적으로 선택한 Skill만 상속된 프롬프트에 결합한다. system_prompt=null은 상위 프롬프트를 해제한다. prompt 조회 API도 누락 키를 빈 문자열로 바꾸지 않으며 update_prompt(None)으로 명시적 해제가 가능하다.
 
-Component의 설정은 **주입 client.params → ProjectConfig.parameters["components"][name]**이다. 주입 client는 Project보다 낮은 명시적 baseline이며 숨은 ceiling이 아니다. Component는 Session 소유가 아니다. 서비스 정책은 Run 시작 시 스냅샷으로 저장한다. Tool 재시도는 Project policies.tool_retry만 사용한다. ProviderLimits는 Backend 전체 공유 자원 용량으로 별도 적용되며 host_configuration()에서 읽기 전용으로 조회한다.
+Component의 설정은 **주입 client.params → ProjectConfig.parameters["components"][name]**이다. 주입 client는 Project보다 낮은 명시적 baseline이며 숨은 ceiling이 아니다. Component는 Session 소유가 아니다. 서비스 정책은 Run 시작 시 스냅샷으로 저장한다. Tool 재시도는 Project policies.tool_retry만 사용한다. ProviderLimits는 Backend 전체 공유 자원 용량으로 별도 적용되며 describe_host()에서 읽기 전용으로 조회한다.
 
 `values/sources/overridden/editable`은 유지한다. 사용자 설정 출처 `default`는 없다. 강제값은 `enforced`에 따로 표시할 수 있다. Schema는 허용 형식만 설명하며 값 생성에 사용하지 않는다. `ProjectConfig()`는 빈 section만 가진다.
 
@@ -71,21 +71,22 @@ JSON 설정에 저장하지 않는다.
 
 재사용 정책 **알고리즘만** [policies/](policies/README.md)에 둔다. CompletionPolicy는
 설정 계층이나 저장소를 모르며 구성한 호출자에게 선택된 입력 또는 정책 오류를 반환한다.
-RunPolicy/ContextPolicy/ToolPolicy처럼 실행 수명과 결합된 정책은 해당 서비스에 남는다.
+RunPolicy/ContextPolicy처럼 실행 수명과 결합된 정책은 해당 서비스에 남는다.
+ToolRuntime는 정책 객체가 아닌 Host 실행 어댑터이며 같은 서비스 경계에 연결한다.
 새로운 dict마다 Policy 클래스를 만들거나 여러 정책을 하나의 만능 객체로 합치지 않는다.
 
-설정 분류 선언 `SettingsLayout`은 생성자 명시값, 공개 schema, 내부 인자 사본의 경로를
+설정 분류 선언 `ParameterLayout`은 생성자 명시값, 공개 schema, 내부 인자 사본의 경로를
 맞춘다. 저장된 평면 설정을 변환하는 호환 계층이 아니다. 평면 설정은 거부한다.
 열린 config의 사용자 확장 필드와 SDK dict는 보존하되 이미 알려진 policy 필드를
 config에 잘못 배치하면 검증 오류다.
 분류를 선언하지 않은 schema 필드는 생성 시 거부한다. 중첩 config의 확장 허용 여부도
 원래 선언을 따르며 알려진 키를 옮길 때 같은 컨테이너의 사용자 확장값을 제거하지 않는다.
 새 구현체는 `implementation_schema(config=..., policy=...)`로 직접 schema를 작성해도 된다.
-SettingsLayout을 상속하거나 내부 실행 알고리즘을 공통 클래스로 바꾸는 것은 필수가 아니다.
+ParameterLayout을 상속하거나 내부 실행 알고리즘을 공통 클래스로 바꾸는 것은 필수가 아니다.
 
 `config.input_policy`처럼 내부 정책 인자 이름을 확장 키로 넣어 우회할 수 없다.
 선언된 경로와 충돌하지 않는 확장 키와 SDK dict 내부 키는 계속 보존한다.
-SettingsLayout은 직접 매핑한 필드의 루트 `required`, `$defs`/`definitions`와 로컬
+ParameterLayout은 직접 매핑한 필드의 루트 `required`, `$defs`/`definitions`와 로컬
 JSON Pointer 참조를 공개 경로에 맞춰 보존한다. 통째로 매핑한 하위 schema의 조건도 유지한다.
 Pipeline은 하위 Engine schema의 참조 루트를 분리해 중첩 단계에서도 로컬 `$ref`의 의미를 유지한다.
 분할하는 컨테이너의 `allOf`/조건부 제약, 중첩 `required`/정의, 별도 schema resource/anchor 등
@@ -193,7 +194,7 @@ llm은 기본 Project/Session·마지막 선택·UI 엔진 선택 정책을 소�
 
 보관 토큰 계산에는 `policies.retention.counter`와 계산기에 필요한 `counter_params`를 명시한다. 예: `{"counter": "model_default", "counter_params": {"model": "openai/my-model"}}`. 여러 엔진이 사용하는 모델 중 하나를 임의로 선택하지 않는다. 보관할 messages는 서비스가 전달하므로 counter_params에서 덮어쓸 수 없다.
 
-미설정 재시도에서 최초 호출 한 번, 지연 없음, 예약 토큰 없음, 보존 개수 추가 보호 없음 등의 중립 동작은 settings에 `1/0`을 생성하는 것이 아니다. 코드의 `get(..., 0/1)`이 이런 수학적 중립값인지 별도 감사한다.
+미설정 재시도에서 최초 호출 한 번, 지연 없음, 예약 토큰 없음, 보존 개수 추가 보호 없음 등의 중립 동작은 config에 `1/0`을 생성하는 것이 아니다. 코드의 `get(..., 0/1)`이 이런 수학적 중립값인지 별도 감사한다.
 
 ## 이전 데이터와 사용 예
 

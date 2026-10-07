@@ -1,4 +1,4 @@
-"""도메인별 운영 로그를 기록한다. 파일 로그는 명시적 회전 설정이 있을 때만 회전하며 LogSettings와 DomainLogger sink로 호스트 출력에 연결할 수 있다.
+"""도메인별 운영 로그를 기록한다. 파일 로그는 명시적 회전 설정이 있을 때만 회전하며 LogConfig와 DomainLogger sink로 호스트 출력에 연결할 수 있다.
 
 Domain-scoped operational logs using Python's logging library."""
 from typing import Optional
@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class LogSettings:
+class LogConfig:
     """기본 파일 로그의 크기/보관 개수와 조회 로그 여부를 설정한다."""
     max_bytes: Optional[int] = None
     backup_count: Optional[int] = None
@@ -37,17 +37,17 @@ class LogSettings:
 
 class DomainLogger:
     """sink(logs_path, event_name, fields)를 주입하면 호스트의 로거로 연결할 수 있다."""
-    def __init__(self, settings: Optional[LogSettings] = None, *, sink: Optional[Callable] = None):
-        self.settings = settings if settings is not None else LogSettings()
+    def __init__(self, config: Optional[LogConfig] = None, *, sink: Optional[Callable] = None):
+        self.config = config if config is not None else LogConfig()
         if sink is not None and not callable(sink):
             raise TypeError("Log sink must be callable")
         self.sink = sink
 
     def write(self, logs: Path, event: str, **fields):
-        if self.settings.enabled is False or (event.endswith(".loaded") and self.settings.log_reads is False):
+        if self.config.enabled is False or (event.endswith(".loaded") and self.config.log_reads is False):
             return
         if self.sink is None:
-            _file_log_event(logs, event, settings=self.settings, **fields)
+            _file_log_event(logs, event, config=self.config, **fields)
         else:
             try:
                 self.sink(logs, event, fields)
@@ -80,7 +80,7 @@ class _RaisingFileHandler(RotatingFileHandler):
         raise OSError("Operational log write failed")
 
 
-def _file_log_event(logs: Path, event: str, *, settings: LogSettings, entity_id: Optional[str] = None,
+def _file_log_event(logs: Path, event: str, *, config: LogConfig, entity_id: Optional[str] = None,
               related_id: Optional[str] = None, status: Optional[str] = None,
               count: Optional[int] = None, permanent: Optional[bool] = None) -> None:
     """Write only allowlisted operational fields; never accept arbitrary metadata.
@@ -113,10 +113,10 @@ def _file_log_event(logs: Path, event: str, *, settings: LogSettings, entity_id:
                 raise OSError("Linked log directory")
         logs.mkdir(mode=0o700, exist_ok=True)
         path = logs / "service.log"
-        for candidate in (path, *(logs / f"service.log.{i}" for i in range(1, (settings.backup_count or 0) + 1))):
+        for candidate in (path, *(logs / f"service.log.{i}" for i in range(1, (config.backup_count or 0) + 1))):
             if candidate.is_symlink():
                 raise OSError("Linked log file")
-        handler = _RaisingFileHandler(path, maxBytes=settings.max_bytes or 0, backupCount=settings.backup_count or 0, encoding="utf-8")
+        handler = _RaisingFileHandler(path, maxBytes=config.max_bytes or 0, backupCount=config.backup_count or 0, encoding="utf-8")
         handler.setFormatter(logging.Formatter("%(message)s"))
         logger.addHandler(handler)
         level = logging.ERROR if event.endswith(".failed") else logging.INFO

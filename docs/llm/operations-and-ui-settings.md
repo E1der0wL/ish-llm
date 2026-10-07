@@ -2,16 +2,16 @@
 
 ## Project 설정 폼
 
-`LargeLanguageModel.project_schema()`는 JSON Schema Draft 2020-12 형식의 독립 사본을
+`LargeLanguageModel.describe_project_config()`는 JSON Schema Draft 2020-12 형식의 독립 사본을
 반환한다. 파일 조회나 모델 호출은 하지 않는다. 등록된 Component와 Engine이 스키마를
 제공하고 백엔드는 이를 조합한다.
 
 ```python
-schema = backend.project_schema()  # 현재 등록된 전체 Component
-schema = backend.project_schema(components=["tools", "rag", "memory"])
+schema = backend.describe_project_config()  # 현재 등록된 전체 Component
+schema = backend.describe_project_config(components=["tools", "rag", "memory"])
 
 # 저장값, 스키마와 충돌 검사 버전을 한 번에 가져온다.
-settings = await project.aconfiguration()
+settings = await project.adescribe_config()
 schema = settings["schema"]
 form_values = settings["values"]  # schema와 같은 구조
 fields = schema["properties"]["config"]["properties"]
@@ -37,20 +37,20 @@ print(fields["policies"]["properties"]["retention"]["properties"]["max_bytes"])
 **임의로 추가 가능한 모든 키나 미래 LiteLLM 인자를 미리 열거할 수는 없다.**
 API는 선언된 항목을 열거하고, 열린 영역을 명시한다. Loop completion 인자는 해당 엔진의 힌트이며
 공급자별 인자·지원 여부와 Loop의 stream=True/n=1 및 messages/tools 소유 규칙은 별도다.
-등록 이름이 바뀌면 Engine 선택지도 바뀐다. `LoopEngine(settings_name="shared")`이면
+등록 이름이 바뀌면 Engine 선택지도 바뀐다. `LoopEngine(parameter_key="shared")`이면
 `x-engines[등록명].configuration_key`는 `shared`다.
 
-Component는 `configuration_schema()`를 재정의하여 자료형·설명·제약을 제공한다.
+Component는 `describe_config()`를 재정의하여 자료형·설명·제약을 제공한다.
 스키마가 없으면 열린 JSON 설정을 유지하며 기본값을 추측하거나 생성하지 않는다.
 이 힌트는 런타임 검증을 대체하지 않으므로
-사용자 Component의 `validate_configuration()`도 같은 계약에 맞춰 구현한다.
+사용자 Component의 `validate_config()`도 같은 계약에 맞춰 구현한다.
 Agent/Workflow/Skill/MCP의 **개별 레코드** 형식은 컴포넌트 공통 설정과 다르며
 `x-components[name].record_schema`에 있다.
 
 호스트 함수, Tool 승인/격리 어댑터, RAG 모델 클라이언트처럼 JSON으로 바꿀 수 없는
 런타임 주입 항목은 Project 편집 필드로 가장하지 않는다. RAG의
 `x-runtime-configuration`에 해당 생성자 인자를 안내한다. 내장 Loop에는 Project를 덮는
-생성자 제한이 없다. `backend.host_configuration()`은 공유 인프라의 읽기 전용 설명이다.
+생성자 제한이 없다. `backend.describe_host()`은 공유 인프라의 읽기 전용 설명이다.
 
 저장은 기존 API를 사용한다. 각 저장은 별도 트랜잭션이며 설정 전체를 한 번에 커밋하는 API는 아니다.
 
@@ -68,31 +68,31 @@ await project.components.memory.aconfigure(
 
 # 선택 변경 후 최신 값/스키마를 다시 조회한다.
 await project.components.aselect(["tools", "rag", "memory"])
-settings = await project.aconfiguration()
+settings = await project.adescribe_config()
 ```
 
 ## Tool 실행 계약과 외부 결과 확인
 
 ```python
-from llm.llm import Tool, ToolContract, ToolPolicy
+from llm.llm import Tool, ToolContract, ToolRuntime
 
 tool = Tool("deploy", "Deploy approved artifact", parameters, handler,
     contract=ToolContract(revision="2", effect="external",
         isolation="sandbox", approval_required=True, operation_key_required=True))
 
-policy = ToolPolicy(authorize=authorize, runner=process_runner,
+runtime = ToolRuntime(authorize=authorize, runner=process_runner,
                     operation_key=operation_key, operation_probe=probe,
-                    revision="policy-3")
+                    revision="runtime-3")
 ```
 
 계약은 신뢰한 개발자가 등록한다. Tool 레코드 편집으로 승인/격리 요구를 완화할 수 없다.
 실행 전 승인·작업 키 어댑터 및 ProcessToolRunner의 명령/격리 수준을 검사한다.
 `effect`는 개발자의 선언이며 실행 코드의 부작용을 자동 증명하는 기능은 아니다.
-기존 Tool은 계약이 없으면 기존 ToolPolicy 규칙을 유지한다. sandbox는 Bubblewrap을
+기존 Tool은 계약이 없으면 기존 ToolRuntime 규칙을 유지한다. sandbox는 Bubblewrap을
 요구하며 사용할 수 없을 때 process 모드로 몰래 전환하지 않는다.
 
-Tool 계약과 ToolPolicy fingerprint를 Loop/Graph 재개 검증에 포함한다.
-승인 함수/runner 내부 코드를 변경했다면 개발자가 `ToolPolicy.revision`을 올려야 한다.
+Tool 계약과 ToolRuntime fingerprint를 Loop/Graph 재개 검증에 포함한다.
+승인 함수/runner 내부 코드를 변경했다면 개발자가 `ToolRuntime.revision`을 올려야 한다.
 이번 변경 이전의 체크포인트는 새 실행 계약 fingerprint와 달라 재개가 거부될 수 있다.
 기존 Run/대화 조회는 유지되며, 이 경우 실행 설정을 확인한 후 새 요청으로 시작한다.
 

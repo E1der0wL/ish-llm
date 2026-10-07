@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from llm.llm import LargeLanguageModel, ProjectConfig, ServiceConfig, RunPolicy, CompletionPolicy
+from llm.llm import LargeLanguageModel, ProjectConfig, BackendServices, RunPolicy, CompletionPolicy
 from llm.engines.base import BaseEngine
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
@@ -30,36 +30,36 @@ class PolicySettingsTests(unittest.TestCase):
         self.assertFalse(hasattr(api, "RunLimits"))
         self.assertFalse(hasattr(history, "CompletionPolicy"))
         self.assertIsNone(RunPolicy().timeout_seconds)
-        self.assertIsNone(CompletionPolicy.from_settings(None, {}))
+        self.assertIsNone(CompletionPolicy.from_config(None, {}))
         with self.assertRaises(ValueError):
             RunPolicy(timeout_seconds=0)
 
     def test_engine_empty_inheritance_and_agent_cannot_clear_parent_budget(self):
         engine = LoopEngine()
-        self.assertEqual(engine.configuration(ProjectConfig(), "writer")["values"], {})
+        self.assertEqual(engine.resolve_config(ProjectConfig(), "writer")["values"], {})
         project = ProjectConfig(parameters={"engines": {"writer": {'policy': {'completion': {'max_tokens': 100, 'counter': 'words'}, 'provider': {'max_attempts': 2, 'wall_timeout': 30}}}}})
         session = {"parameters": {"engines": {"writer": {'policy': {'completion': {'max_tokens': 80}}}}}}
-        self.assertEqual(engine.configuration(project, "writer", session_config=session)["values"]["policy"]["completion"]["max_tokens"], 80)
+        self.assertEqual(engine.resolve_config(project, "writer", session_config=session)["values"]["policy"]["completion"]["max_tokens"], 80)
         agent = engine.for_agent({"engine": "writer", "engine_options": {'policy': {'completion': {'max_tokens': 60}}}})
-        view = agent.configuration(project, "writer", session_config=session)
+        view = agent.resolve_config(project, "writer", session_config=session)
         self.assertEqual(view["sources"]["/policy/completion/max_tokens"], "agent")
         self.assertEqual(view["values"]["policy"]["completion"]["max_tokens"], 60)
         child = LoopEngine().for_agent({"engine": "writer", "engine_options": {"policy": {"completion": None}}})
         with self.assertRaisesRegex(ValueError, "widens"):
-            child.configuration(project, "writer", session_config=session)
+            child.resolve_config(project, "writer", session_config=session)
         null_session = {"parameters": {"engines": {"writer": {'policy': {'completion': None, 'provider': None}}}}}
         with self.assertRaisesRegex(ValueError, "widens"):
-            engine.configuration(project, "writer", session_config=null_session)
-        self.assertIsNone(engine.configuration({}, "writer", session_config=null_session)["values"]["policy"]["completion"])
+            engine.resolve_config(project, "writer", session_config=null_session)
+        self.assertIsNone(engine.resolve_config({}, "writer", session_config=null_session)["values"]["policy"]["completion"])
 
     def test_invalid_input_policies(self):
         for settings in ({"max_tokens": True}, {"max_tokens": 1.0}, {"max_tokens": 0},
                          {"max_tokens": 10, "reserve_tokens": 10}, {"reserve_tokens": 1},
                          {"counter": " "}, {"unknown": 1}):
             with self.subTest(settings=settings), self.assertRaises((ValueError, TypeError)):
-                CompletionPolicy.validate_settings(settings)
+                CompletionPolicy.validate_config(settings)
         with self.assertRaisesRegex(Exception, "not registered"):
-            CompletionPolicy.from_settings({"max_tokens": 100, "counter": "missing"}, {})
+            CompletionPolicy.from_config({"max_tokens": 100, "counter": "missing"}, {})
 
 
 class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
@@ -67,7 +67,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         app = LargeLanguageModel(Path(temp.name), engines=engines, components=components,
-            services=ServiceConfig(token_counters=counters or {"count": lambda request: 1}))
+            services=BackendServices(token_counters=counters or {"count": lambda request: 1}))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=[c.name for c in components])
         return app, project, await project.sessions.acreate()
@@ -82,7 +82,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
         run = await (await session.run.submit("hello", engine="writer")).wait(timeout=10)
         self.assertEqual(run.data.error_code, "usage_limit")
         self.assertEqual(model.requests, [])
-        schema = app.project_schema()["properties"]["config"]["properties"]
+        schema = app.describe_project_config()["properties"]["config"]["properties"]
         self.assertNotIn("completion", schema["policies"]["properties"])
         fields = schema["parameters"]["properties"]["engines"]["properties"]["writer"]["properties"]
         self.assertIn("input", fields["policy"]["properties"]["completion"]["properties"]["counter"]["enum"])
@@ -132,7 +132,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
         run = await (await session.run.submit("hello", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=10)
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(seen, [(200, {"max_attempts": 2}), (300, {"max_attempts": 2})])
-        self.assertNotIn("input_policy", implementation.configuration(ProjectConfig(), "writer")["values"].get("completion", {}))
+        self.assertNotIn("input_policy", implementation.resolve_config(ProjectConfig(), "writer")["values"].get("completion", {}))
 
     async def test_changed_engine_policy_rejects_checkpoint_resume(self):
         def offline(**request):

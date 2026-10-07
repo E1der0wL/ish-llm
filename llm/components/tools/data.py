@@ -20,12 +20,12 @@ class ToolData(ComponentData):
 
     @workspace_locked
     def enable(self, *names: str) -> None:
-        """Add names once, preserving existing selection and other settings."""
+        """Add names once, preserving existing selection and other configuration."""
         project, component = self._current()
         names = component._selection_names(names)
         for name in names:
             component.load(project, name)
-        configuration = self.configuration()
+        configuration = self.get_config()
         configuration.setdefault("config", {})
         configuration["config"]["enabled"] = list(dict.fromkeys(configuration["config"].get("enabled", []) + names))
         self.configure(configuration)
@@ -35,16 +35,16 @@ class ToolData(ComponentData):
         """Remove selected names; already disabled names are harmless."""
         _, component = self._current()
         names = component._selection_names(names)
-        configuration = self.configuration()
+        configuration = self.get_config()
         configuration.setdefault("config", {})
         configuration["config"]["enabled"] = [name for name in configuration["config"].get("enabled", []) if name not in names]
         self.configure(configuration)
 
     @workspace_locked
     def set_enabled(self, names: Sequence[str]) -> None:
-        """Replace selection, preserving all other component settings."""
+        """Replace selection, preserving all other component configuration."""
         _, component = self._current()
-        configuration = self.configuration()
+        configuration = self.get_config()
         configuration.setdefault("config", {})
         configuration["config"]["enabled"] = component._selection_names(names)
         project, _ = self._current()

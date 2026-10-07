@@ -34,7 +34,7 @@ class Notes(Component):
     name = "notes"
     directory = "knowledge"
 
-    def configuration_schema(self):
+    def describe_config(self):
         from llm.core.schema import implementation_schema, open_schema
         return implementation_schema(config=open_schema("test Notes implementation", category="implementation"))
 
@@ -54,7 +54,7 @@ class ComponentTests(unittest.TestCase):
     def test_declaration_and_selection_own_directory_creation(self):
         root = self.project.paths.root
         self.assertTrue((root / "knowledge" / "records").is_dir())
-        self.assertEqual(self.data.configuration(), {})
+        self.assertEqual(self.data.get_config(), {})
         self.assertFalse((root / "agents").exists())
         self.projects.set_components(self.project, ("notes", "agents", "workflows"))
         for directory in ("knowledge", "agents", "workflows"):
@@ -85,7 +85,7 @@ class ComponentTests(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             self.data.save(identifier, {})
         self.data.configure({'config': {'future_setting': {'label': 'anything'}}})
-        self.assertEqual(self.data.configuration(), {"config": {"future_setting": {"label": "anything"}}})
+        self.assertEqual(self.data.get_config(), {"config": {"future_setting": {"label": "anything"}}})
 
     def test_invalid_json_and_failed_atomic_replacement_keep_original_data(self):
         identifier = self.data.create({"kept": True})
@@ -142,7 +142,7 @@ class ComponentTests(unittest.TestCase):
         self.assertTrue(sessions_root.exists())
         self.projects.set_components(self.project, ("notes",))
         self.assertEqual(self.data.list(), {})
-        self.assertEqual(self.data.configuration(), {})
+        self.assertEqual(self.data.get_config(), {})
         with self.assertRaises(TypeError):
             self.projects.remove_component(self.project, "notes", permanent="yes")
 
@@ -162,7 +162,7 @@ class ComponentTests(unittest.TestCase):
         for name in self.project.components:
             source = self.projects.component(self.project, name)
             target = self.projects.component(clone, name)
-            self.assertEqual(source.configuration(), target.configuration())
+            self.assertEqual(source.get_config(), target.get_config())
             self.assertEqual(source.list(), target.list())
         self.projects.component(clone, "agents").update("reviewer", {"metadata": {"custom": []}})
         self.assertEqual(agents.load("reviewer")["metadata"]["custom"], [1])
@@ -183,7 +183,7 @@ class ComponentTests(unittest.TestCase):
         path.write_text('{"legacy": true}', encoding="utf-8")
         graphs = self.projects.component(self.projects.load(self.project.id), "workflows")
         with self.assertRaisesRegex(ValueError, "Legacy component.json"):
-            graphs.configuration()
+            graphs.get_config()
         with self.assertRaisesRegex(ValueError, "Legacy component.json"):
             self.projects.clone(self.project)
         self.assertEqual(path.read_text(encoding="utf-8"), '{"legacy": true}')

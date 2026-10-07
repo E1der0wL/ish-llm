@@ -28,7 +28,7 @@ Markdown 문서를 분할하고 임베딩과 관계를 추출하여 Chroma/BM25/
 
 RAG는 분할·검색·세대 공개를 소유하고, 모델 요청 인자는 선택 모델 클라이언트가 소유합니다.
 `embedding_params`, `document_kwargs`, `query_kwargs`, `rerank_params`, `extraction_params`는
-해당 클라이언트의 `configuration_schema()`/`configured()` 계약으로 검증·전달합니다.
+해당 클라이언트의 `describe_config()`/`with_config()` 계약으로 검증·전달합니다.
 RAG는 `model`, `dimensions`, `api_base` 같은 child-private 필드를 직접 해석하지 않습니다.
 새 클라이언트는 자체 schema와 공개 메서드를 제공하면 되며 중앙 registry는 필요 없습니다.
 일반 record CRUD는 `metadata`만 허용합니다. 문서는 아래 document API로 등록합니다.
@@ -58,7 +58,7 @@ await rag.adelete_document("manual")
 ## 설정과 임베딩
 
 설정은 `ProjectConfig.parameters.components.rag`에 저장한다.
-`configuration_schema()`는 허용 형식만 제공한다. [전역 설정 계약](../../CONFIGURATION.md)을 따른다.
+`describe_config()`는 허용 형식만 제공한다. [전역 설정 계약](../../CONFIGURATION.md)을 따른다.
 
 | 키 | 미설정 동작 |
 |---|---|

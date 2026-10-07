@@ -32,10 +32,10 @@ Project의 최상위 completion/engines/component_configurations/session_default
 Component는 자신의 디렉토리 아래 자료를 관리하고 별도 설정 파일은 만들지 않는다.
 
 ```python
-view = await project.aconfiguration()
-settings = ProjectConfig(view["project"]["config"])
-settings.parameters["engines"]["loop"]["config"]["completion"]["temperature"] = 0.1
-await project.asave(config=settings, expected_version=view["config_version"])
+view = await project.adescribe_config()
+config = ProjectConfig(view["project"]["config"])
+config.parameters["engines"]["loop"]["config"]["completion"]["temperature"] = 0.1
+await project.asave(config=config, expected_version=view["config_version"])
 
 vision = await project.components.aget("vision")
 await vision.aconfigure(
@@ -51,8 +51,8 @@ await vision.aconfigure(
 
 ## 통합 조회
 
-`backend.project_schema()`는 등록된 Engine/Component 스키마를 조합한다.
-`project.aconfiguration()`은 잠금 아래 읽은 다음 정보를 함께 반환한다.
+`backend.describe_project_config()`는 등록된 Engine/Component 스키마를 조합한다.
+`project.adescribe_config()`은 잠금 아래 읽은 다음 정보를 함께 반환한다.
 
 | 항목 | 내용 |
 |---|---|
@@ -65,7 +65,7 @@ await vision.aconfigure(
 
 조회가 없는 값을 채우거나 모델·준비 작업을 실행하지 않는다. JSON Schema default도 없다.
 동적 host factory는 runtime/host_runtime으로 표시하며 실행 전 값을 추측하지 않는다.
-Session override까지 보고 싶으면 `session.aconfiguration()`을 사용한다.
+Session override까지 보고 싶으면 `session.adescribe_config()`을 사용한다.
 자세한 상속·강제값은 [설정 계약](../../llm/CONFIGURATION.md)에 있다.
 
 ## 애플리케이션의 생성·선택 정책

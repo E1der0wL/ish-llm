@@ -71,7 +71,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": identifier,
             "expected_version": view["version"]}), name="refinement_apply")], finish="tool_calls")],
             [chunk("applied", finish="stop")])
-        self.app.engines.register(engine, LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/refiner"}})}))
+        self.app.engines.register(engine, LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/refiner"}})}))
         paused = await (await self.session.run.submit("apply proposal", engine=engine)).wait()
         self.assertEqual(str(paused.data.status), "paused", paused.data.error)
         self.assertEqual((await self.refine.aload(identifier))["status"], "proposed")
@@ -184,7 +184,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         await self.project.components.agents.arevise("guide", profile, expected_revision=view["revision"])
         model = ScriptedCompletion([chunk(calls=[call('{}', name="not_allowed")], finish="tool_calls")], answer("success"))
         self.app.engines.register("graph", GraphEngine(handlers={"agent": AgentNode(engines={
-            "loop": LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/worker"}})})})}))
+            "loop": LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/worker"}})})})}))
         workflow = agent_graph()
         workflow["nodes"]["agent"]["agent"] = "guide"
         await self.project.components.workflows.acreate(workflow, identifier="flow")
@@ -199,7 +199,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
             "expected_version": None, "parent": {"identifier": "guide", "version": parent["version"]},
             "patch": {"instructions": "Check allowed Tools before working"}, "reason": "Observed failure", "evidence": self.evidence}
         refiner = ScriptedCompletion([chunk(calls=[call(json.dumps(proposal), name="refinement_propose")], finish="tool_calls")], answer("Review proposal"))
-        self.app.engines.register("refiner", LoopEngine(completion_fn=refiner).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/refiner"}})}))
+        self.app.engines.register("refiner", LoopEngine(completion_fn=refiner).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/refiner"}})}))
         analysis = await (await self.session.run.submit("Analyze failure and propose a fork", engine="refiner")).wait()
         self.assertEqual(str(analysis.data.status), "completed", analysis.data.error)
         identifier, saved = next(iter((await self.refine.alist()).items()))
@@ -281,7 +281,7 @@ class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
         await memory.acreate({"content": "Last"}, identifier="z")
         await memory.acreate({"content": "First"}, identifier="a")
         # No retrieval tuning/recall limit: extraction owns only its explicit input budget.
-        await memory.aconfigure(MemoryComponent.settings_layout.pack({"processing": {
+        await memory.aconfigure(MemoryComponent.parameter_layout.pack({"processing": {
             "priority": 1, "extract": True, "extract_prompt_id": "guide", "extract_scope": "session",
             "completion": {"model": "test/extract"}, "model_input_chars": 24000,
             "max_candidates": 2, "summary_chars": 2000}}))
@@ -315,7 +315,7 @@ class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_missing_strategy_custom_zero_score_and_explicit_cutoff(self):
         memory = self.project.components.memory
-        self.assertEqual(await memory.aconfiguration(), {})
+        self.assertEqual(await memory.aget_config(), {})
         with self.assertRaisesRegex(ValueError, "search_strategy"):
             await memory.asearch("Before")
         await memory.aconfigure({"config": {"search_strategy": "keyword"}})
@@ -350,7 +350,7 @@ class GraphRankingTests(unittest.TestCase):
         from llm.components.rag import RAGComponent
         from llm.components.rag.splitting import split_markdown
         from llm.providers.requests import resolve_provider_options
-        schema = RAGComponent().configuration_schema()
+        schema = RAGComponent().describe_config()
         settings = {"config": {"chunk_size": 1, "search": {"limit": 101, "max_hops": 6, "relation_limit": 1001}},
                     "policy": {"embedding_concurrency": 33}}
         Draft202012Validator(schema).validate(settings)

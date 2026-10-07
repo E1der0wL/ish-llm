@@ -48,7 +48,7 @@ class CheckpointRepository:
     # 공개 API
     def record(self, run, event) -> None:
         data = deepcopy(event.metadata)
-        ProjectConfig.validate_settings(data)
+        ProjectConfig.validate_json(data)
         root = self._root(run, data["name"])
         manifest = self._checked(root / "checkpoint.json")
         if data["operation"] == "initialize":

@@ -11,7 +11,7 @@ from unittest.mock import patch
 from llm.core.models import MessageRole, MessageStatus, RunStatus
 from llm.engines.loop import LoopEngine
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
+from llm.services.composition import BackendServices
 from llm.services.history.conversation import ConversationStore, MemoryConversations, MemoryConversationStore
 from llm.services.query import Query
 from llm.services.infrastructure.storage import atomic_json, read_json
@@ -65,7 +65,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
         return project, await project.sessions.acreate("conversation")
 
     async def test_configuration_is_explicit_validated_and_does_not_mutate_services(self):
-        services = ServiceConfig()
+        services = BackendServices()
         app = self.backend(services=services, conversation_storage="memory")
         self.assertIsNot(app.services, services)
         self.assertEqual(app.project_manager.sessions.conversations.default_storage, "memory")
@@ -73,16 +73,16 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(ValueError):
                 self.backend(conversation_storage=mode)
         with self.assertRaises(ValueError):
-            self.backend(services=ServiceConfig(conversations="memory"), conversation_storage="file")
+            self.backend(services=BackendServices(conversations="memory"), conversation_storage="file")
         with self.assertRaises(TypeError):
-            self.backend(services=ServiceConfig(conversations=None))
+            self.backend(services=BackendServices(conversations=None))
         self.assertEqual(list(self.root.iterdir()), [])
 
     async def test_loop_and_facade_share_history_across_runtime_shutdown(self):
         completion = ScriptedCompletion([chunk("first answer", finish="stop")],
                                         [chunk("second answer", finish="stop")])
         app = LargeLanguageModel(self.root, conversation_storage="memory",
-                                engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test"}})})})
+                                engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test"}})})})
         self.addAsyncCleanup(app.shutdown)
         project, session = await self.session(app)
         first = await session.run.submit("first", engine="loop")
@@ -103,7 +103,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
     async def test_stream_queue_interrupt_and_other_sessions_are_isolated(self):
         app = self.backend(conversation_storage="memory")
         project, session = await self.session(app)
-        engine = app.engines.resolve("test")
+        engine = app.engines.get("test")
         engine.gates["held"] = asyncio.Event()
         streaming = asyncio.Event()
 
@@ -128,10 +128,10 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(list(self.root.rglob("conversation.jsonl")))
 
     async def test_shutdown_drops_pending_memory_queue_and_new_backend_starts_empty(self):
-        services = ServiceConfig(conversations="memory")
+        services = BackendServices(conversations="memory")
         app = self.backend(services=services)
         project, session = await self.session(app)
-        engine = app.engines.resolve("test")
+        engine = app.engines.get("test")
         engine.gates["held"] = asyncio.Event()
         await session.run.submit("held", engine="test")
         await asyncio.wait_for(engine.entered["held"].wait(), 10)
@@ -200,7 +200,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_custom_memory_factory_lifetime_is_owned_by_caller(self):
         factory = MemoryConversations()
-        services = ServiceConfig(conversations=factory)
+        services = BackendServices(conversations=factory)
         app = self.backend(services=services)
         project, session = await self.session(app)
         await (await session.run.submit("retained", engine="test")).wait(timeout=10)

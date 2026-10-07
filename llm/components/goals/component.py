@@ -25,14 +25,14 @@ class GoalComponent(DefinitionComponent):
         "metadata": metadata_schema(),
     }, required=["title", "objective", "scope", "status"])
 
-    def configuration_schema(self):
+    def describe_config(self):
         return implementation_schema(config=object_schema({"priority": field("integer"),
             "identifiers": {"type": "array", "uniqueItems": True, "items": field("string", pattern="^[A-Za-z0-9_-]{1,64}$")},
             "nested_agent_ids": {"type": "array", "items": field("string", minLength=1)}}, additionalProperties=False),
             policy=object_schema({"inject": field("boolean"), "write_tools": field("boolean")}, additionalProperties=False))
 
-    def validate_configuration(self, data):
-        super().validate_configuration(data)
+    def validate_config(self, data):
+        super().validate_config(data)
         if data.get("policy", {}).get("inject") and "priority" not in data.get("config", {}):
             raise ValueError("Goal context injection requires config.priority")
 
@@ -60,8 +60,8 @@ class GoalComponent(DefinitionComponent):
             return data
         if capability == "tools":
             from .tools import goal_tools
-            return goal_tools(data, write=self.configuration(project).get("policy", {}).get("write_tools") is True)
+            return goal_tools(data, write=self.get_config(project).get("policy", {}).get("write_tools") is True)
         if capability == "completion_processors":
             from .processing import GoalProcessor
-            return GoalProcessor(data, self.configuration(project))
+            return GoalProcessor(data, self.get_config(project))
         return super().resolve_runtime(project, capability, data_factory=data_factory)

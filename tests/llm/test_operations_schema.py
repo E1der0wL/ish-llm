@@ -11,12 +11,12 @@ from pathlib import Path
 from unittest.mock import patch
 
 from jsonschema import Draft202012Validator
-from llm.llm import LargeLanguageModel, LoopEngine, ProjectConfig, Tool, ToolRegistry, ToolComponent, ToolContract, ServiceConfig
+from llm.llm import LargeLanguageModel, LoopEngine, ProjectConfig, Tool, ToolRegistry, ToolComponent, ToolContract, BackendServices
 from llm.components.base import Component
 from llm.components.memory import MemoryComponent
 from llm.components.rag import RAGComponent, EmbeddingModel, TripleExtractor
 from llm.core.models import MessageStatus
-from llm.services.runtime.tools import ToolPolicy, ToolCall
+from llm.services.runtime.tools import ToolRuntime, ToolCall
 from llm.services.runtime.operations import operation_token
 from llm.services.infrastructure.storage import atomic_json, read_json
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
@@ -37,12 +37,12 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         return ToolCall("act", arguments, step.id, project.id, session.id, run.id, "work",
                         operation_token(project.id, session.id, "work"))
 
-    async def app(self, *, responses=None, components=(), policy=None):
+    async def app(self, *, responses=None, components=(), runtime=None):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         model = ScriptedCompletion(*(responses or [[chunk("answer", finish="stop")]]))
         app = LargeLanguageModel(directory.name, components=components,
-            engines={"custom": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy or ToolPolicy()))
+            engines={"custom": LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=runtime or ToolRuntime()))
         self.addAsyncCleanup(app.shutdown)
         return app, model
 
@@ -61,24 +61,24 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         class Custom(Component):
             name = directory = "custom"
             capabilities = ()
-            def configuration_schema(self):
+            def describe_config(self):
                 return implementation_schema(config={'type': 'object', '$defs': {'positive': {'type': 'integer', 'minimum': 1}}, 'properties': {'limit': {'$ref': '#/properties/config/$defs/positive'}}, 'additionalProperties': True})
         app, _ = await self.app(components=[Custom(), MemoryComponent(), RAGComponent()])
-        schema = app.project_schema(components=["custom"])
+        schema = app.describe_project_config(components=["custom"])
         self.assertEqual(set(schema["properties"]["config"]["properties"]["parameters"]["properties"]["components"]["properties"]), {"custom", "memory", "rag"})
         validator = Draft202012Validator(schema)
         validator.validate({"config": {"parameters": {"components": {"custom": {'config': {'limit': 2, 'new': {'key': True}}}}}}})
         self.assertTrue(list(validator.iter_errors({"config": {"parameters": {"components": {"custom": {'config': {'limit': 0}}}}}})))
         schema["properties"].clear()
-        self.assertIn("config", app.project_schema()["properties"])
+        self.assertIn("config", app.describe_project_config()["properties"])
         with self.assertRaises(ValueError):
-            app.project_schema(components=["missing"])
-        all_schema = app.project_schema()
+            app.describe_project_config(components=["missing"])
+        all_schema = app.describe_project_config()
         self.assertNotIn("default_engine", all_schema["properties"]["config"]["properties"])
         for name, spec in all_schema["properties"]["config"]["properties"]["parameters"]["properties"]["components"]["properties"].items():
             Draft202012Validator(spec).validate({})
         project = await app.projects.acreate(components=["memory"])
-        value = await project.aconfiguration()
+        value = await project.adescribe_config()
         self.assertEqual(value["schema"]["x-selected-components"], ["memory"])
         Draft202012Validator(value["schema"]).validate(value["values"])
         self.assertIn("memory", value["component_versions"])
@@ -87,11 +87,11 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
     async def test_engine_configuration_key_and_default_component_fields_are_discoverable(self):
         class Notes(Component):
             name = directory = "notes"
-            def configuration_schema(self):
+            def describe_config(self):
                 return implementation_schema(config={'type': 'object', 'properties': {'language': {'type': 'string'}, 'format': {'type': 'object', 'properties': {'width': {'type': 'integer'}}}, 'optional': {}}})
         app, _ = await self.app(components=[Notes()])
-        app.engines.register("other", LoopEngine(settings_name="shared"))
-        schema = app.project_schema()
+        app.engines.register("other", LoopEngine(parameter_key="shared"))
+        schema = app.describe_project_config()
         self.assertEqual(schema["x-engines"]["other"]["configuration_key"], "shared")
         self.assertIn("shared", schema["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"])
         fields = schema["properties"]["config"]["properties"]["parameters"]["properties"]["components"]["properties"]["notes"]["properties"]
@@ -101,7 +101,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_empty_registry_cannot_offer_unknown_component(self):
         app, _ = await self.app()
-        validator = Draft202012Validator(app.project_schema())
+        validator = Draft202012Validator(app.describe_project_config())
         validator.validate({"components": []})
         self.assertTrue(list(validator.iter_errors({"components": ["unknown"]})))
 
@@ -123,7 +123,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         async def probe(value):
             self.assertEqual(value["arguments"], {"id": 1})
             return {"status": "completed", "result": None, "evidence": "external receipt 7"}
-        app, _ = await self.app(policy=ToolPolicy(operation_probe=probe))
+        app, _ = await self.app(runtime=ToolRuntime(operation_probe=probe))
         project = await app.projects.acreate()
         session = await project.sessions.acreate()
         tool_call = self.operation_call(app, project, session, {"id": 1})
@@ -142,7 +142,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         async def probe(value):
             await session.run.areconcile_operation("work", result=7, evidence="manual result")
             return {"status": "not_applied", "evidence": "late answer"}
-        app, _ = await self.app(policy=ToolPolicy(operation_probe=probe))
+        app, _ = await self.app(runtime=ToolRuntime(operation_probe=probe))
         project = await app.projects.acreate()
         session = await project.sessions.acreate()
         value = self.operation_call(app, project, session, {})
@@ -236,12 +236,12 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
     async def test_retention_protects_active_usage_and_component_references(self):
         class Referencing(Component):
             name = directory = "refs"
-            def configuration_schema(self):
+            def describe_config(self):
                 from llm.core.schema import object_schema
                 return implementation_schema(config=object_schema({"runs": {
                     "type": "array", "items": {"type": "string"}}}))
             def history_references(self, project):
-                return {"run_ids": self.configuration(project).get("config", {}).get("runs", [])}
+                return {"run_ids": self.get_config(project).get("config", {}).get("runs", [])}
         app, _ = await self.app(responses=[[chunk(str(i), finish="stop")] for i in range(2)], components=[Referencing()])
         project, session, runs = await self.completed(app, 2, ["refs"])
         await project.components.refs.aconfigure({'config': {'runs': [runs[0].id]}})
@@ -414,7 +414,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
             self.fail("old approval must not execute")
         app, _ = await self.app(components=[RuntimeTools(ToolRegistry((
             Tool("act", "Act", {"type": "object"}, effect, contract=ToolContract(approval_required=True)),)))],
-            responses=[[chunk(calls=[call('{}', name="act")], finish="tool_calls")]], policy=ToolPolicy(authorize=approve))
+            responses=[[chunk(calls=[call('{}', name="act")], finish="tool_calls")]], runtime=ToolRuntime(authorize=approve))
         project = await app.projects.acreate(components=["tools"], config={"parameters": {"engines": {"custom": {'config': {'completion': {'model': 'test'}}}}}})
         await project.components.tools.aenable("act")
         session = await project.sessions.acreate()
@@ -423,6 +423,6 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         checkpoint = await run.acheckpoint("loop")
         decisions = {k: True for k, v in checkpoint["records"].items() if v["status"] == "waiting"}
         await session.run.shutdown()
-        app.services = replace(app.services, tool_policy=ToolPolicy(authorize=approve, revision="2"))
+        app.services = replace(app.services, tool_runtime=ToolRuntime(authorize=approve, revision="2"))
         with self.assertRaisesRegex(Exception, "changed"):
             await session.run.resume(run.id, engine="custom", decisions=decisions)

@@ -146,10 +146,10 @@ class HistoryRetention:
         return intent["id"]
 
     def plan(self, project) -> RetentionPlan:
-        settings = project.config.policies.get("retention", {})
-        if any(settings.get(k) is not None for k in ("max_age_seconds", "max_bytes", "max_tokens")) and "unit" not in settings:
+        policy = project.config.policies.get("retention", {})
+        if any(policy.get(k) is not None for k in ("max_age_seconds", "max_bytes", "max_tokens")) and "unit" not in policy:
             raise ValueError("Retention requires an explicit unit")
-        if settings.get("unit") == "run":
+        if policy.get("unit") == "run":
             return self._run_plan(project)
         policy = project.config.policies.get("retention", {})
         refs = self._references(project)

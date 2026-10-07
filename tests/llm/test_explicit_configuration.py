@@ -8,7 +8,7 @@ import time
 import unittest
 from unittest.mock import AsyncMock, patch
 
-from llm.core.configuration import resolve_configuration
+from llm.core.configuration import resolve_config
 from llm.core.models import ProjectConfig
 from llm.core.policies import normalize_policies
 from llm.engines.loop import LoopEngine
@@ -38,18 +38,18 @@ class ConfigurationTests(unittest.TestCase):
             with self.subTest(engine=type(engine).__name__, key=key):
                 section = "config" if key == "system_prompt" else "policy"
                 config = {"parameters": {"engines": {"test": {section: {key: "project prompt" if key == "system_prompt" else 300}}}}}
-                view = engine.configuration(config, "test")
+                view = engine.resolve_config(config, "test")
                 self.assertEqual(view["values"][section][key], value)
                 self.assertEqual(view["sources"]["/" + section + "/" + key], "project")
                 self.assertTrue(view["editable"]["/" + section + "/" + key])
-                self.assertNotIn("x-host-override", engine.configuration_schema()["properties"][section]["properties"][key])
+                self.assertNotIn("x-host-override", engine.describe_config()["properties"][section]["properties"][key])
 
     def test_pipeline_and_runtime_prompt_override_metadata(self):
         engine = PipelineEngine({"explicit": LoopEngine(), "dynamic": LoopEngine()})
         config = {"parameters": {"engines": {"pipeline": {'config': {'stages': {
             "explicit": {"config": {"system_prompt": None}}, "dynamic": {"config": {"system_prompt": "project prompt"}}}}}}}}
-        view = engine.configuration(config, "pipeline")["stages"]
-        schema = engine.configuration_schema()["properties"]["config"]["properties"]["stages"]["properties"]
+        view = engine.resolve_config(config, "pipeline")["stages"]
+        schema = engine.describe_config()["properties"]["config"]["properties"]["stages"]["properties"]
         self.assertIsNone(view["explicit"]["values"]["config"]["system_prompt"])
         self.assertEqual(view["explicit"]["sources"]["/config/system_prompt"], "project")
         self.assertEqual(view["dynamic"]["values"]["config"]["system_prompt"], "project prompt")
@@ -63,10 +63,10 @@ class ConfigurationTests(unittest.TestCase):
                 ({"timeout": 60}, {}, 60, "session"),
                 ({"timeout": None}, {}, None, "session"),
                 ({"timeout": None}, {"timeout": 10}, 10, "host")):
-            result = resolve_configuration([("project", {"timeout": 300}), ("session", session)], host=host)
+            result = resolve_config([("project", {"timeout": 300}), ("session", session)], host=host)
             self.assertEqual(result["values"], {"timeout": expected})
             self.assertEqual(result["sources"]["/timeout"], source)
-        result = resolve_configuration([("project", {}), ("session", {}), ("agent", {})])
+        result = resolve_config([("project", {}), ("session", {}), ("agent", {})])
         self.assertEqual(result["values"], {})
         self.assertEqual(result["sources"], {})
 
@@ -76,10 +76,10 @@ class ConfigurationTests(unittest.TestCase):
         loop = LoopEngine()
         self.assertIsNone(loop.request_timeout)
         self.assertIsNone(loop.tool_timeout)
-        self.assertEqual(loop.configuration({}, "loop")["values"], {})
-        self.assertEqual(GraphEngine(handlers={}).configuration({}, "graph")["values"], {})
+        self.assertEqual(loop.resolve_config({}, "loop")["values"], {})
+        self.assertEqual(GraphEngine(handlers={}).resolve_config({}, "graph")["values"], {})
         self.assertIsNone(GraphEngine(handlers={}).timeout_seconds)
-        self.assertEqual(LoopEngine().configuration(
+        self.assertEqual(LoopEngine().resolve_config(
             {"parameters": {"engines": {"loop": {'policy': {'request_timeout': None}}}}}, "loop")["values"], {"policy": {"request_timeout": None}})
 
     def test_limits_are_inactive_without_host_settings(self):
@@ -93,7 +93,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine()}) as app:
                 project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'config': {'system_prompt': None}}}}})
-                view = await project.aconfiguration()
+                view = await project.adescribe_config()
                 effective = view["effective_engines"]["loop"]
                 self.assertIsNone(effective["values"]["config"]["system_prompt"])
                 self.assertEqual(effective["sources"]["/config/system_prompt"], "project")
@@ -198,11 +198,11 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 project = await app.projects.acreate(components=["rag", "memory"])
                 for name in ("rag", "memory"):
                     data = await project.components.aget(name)
-                    self.assertEqual((await data.aeffective_configuration())["values"], {})
+                    self.assertEqual((await data.aresolve_config())["values"], {})
                 rag = await project.components.aget("rag")
                 with self.assertRaisesRegex(ValueError, "Missing required setting"):
                     await rag.aadd_document(title="doc", content="hello")
-                view = await project.aconfiguration()
+                view = await project.adescribe_config()
                 def check(value):
                     if isinstance(value, dict):
                         self.assertNotIn("default", value)
@@ -234,7 +234,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 engine = GraphEngine(handlers={"slow": slow})
                 async with LargeLanguageModel(root, components=[WorkflowComponent()], engines={"graph": engine}) as app:
                     project = await app.projects.acreate(components=["workflows"], config={
-                        "parameters": {"engines": {"graph": GraphEngine.settings_layout.pack(graph_options)}}})
+                        "parameters": {"engines": {"graph": GraphEngine.parameter_layout.pack(graph_options)}}})
                     graph = WorkflowGraph(entry="work").node("work", "slow", **node_options).node("end", "end").connect("work", "end")
                     await project.components.workflows.acreate(graph.to_dict(), identifier="flow")
                     session = await project.sessions.acreate()
@@ -277,9 +277,9 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         definition = {"engine": "loop", "purpose": "business purpose", "completion": {"model": "test"}}
         engine = LoopEngine().for_agent(definition)
         config = {"parameters": {"engines": {"loop": {'config': {'system_prompt': 'project prompt'}}}}}
-        self.assertEqual(engine.configuration(config, "loop")["values"]["config"]["system_prompt"], "project prompt")
+        self.assertEqual(engine.resolve_config(config, "loop")["values"]["config"]["system_prompt"], "project prompt")
         host = LoopEngine().for_agent({**definition, "system_prompt": None})
-        self.assertIsNone(host.configuration(config, "loop")["values"]["config"]["system_prompt"])
+        self.assertIsNone(host.resolve_config(config, "loop")["values"]["config"]["system_prompt"])
 
     async def test_graph_agent_inherits_partial_completion_and_does_not_invent_prompt(self):
         from llm.components.agents import AgentComponent
@@ -321,8 +321,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_registered_components_and_policies_have_no_implicit_leaf_values(self):
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root) as app:
-                project = await app.projects.acreate(components=list(app.project_schema()["x-components"]))
-                view = await project.aconfiguration()
+                project = await app.projects.acreate(components=list(app.describe_project_config()["x-components"]))
+                view = await project.adescribe_config()
                 self.assertEqual(project.data.config.policies, {})
                 for name, item in view["components"].items():
                     self.assertEqual(item["configuration"], {}, name)
@@ -332,10 +332,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 checked_schema(view["schema"])
 
     async def test_memory_empty_processing_does_not_recall_or_call_model(self):
-        from llm.components.memory.processing import processing_settings
-        self.assertEqual(processing_settings({}), {})
+        from llm.components.memory.processing import resolve_processing_config
+        self.assertEqual(resolve_processing_config({}), {})
         with self.assertRaisesRegex(ValueError, "Missing required setting"):
-            processing_settings({"policy": {"processing": {"recall": True}}})
+            resolve_processing_config({"policy": {"processing": {"recall": True}}})
 
     async def test_schema_rejects_default_annotation_but_allows_field_named_default(self):
         from llm.core.schema import checked_schema
@@ -349,17 +349,17 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         client = EmbeddingModel(model="test").with_provider({"max_attempts": 3, "wall_timeout": 20})
         component = RAGComponent(embedding=client)
         project = SimpleNamespace(id="one", paths=SimpleNamespace(root=Path("unused")), config=rag_project())
-        self.assertEqual(component.configured(project).embedding.provider_options, {"max_attempts": 3, "wall_timeout": 20})
+        self.assertEqual(component.with_config(project).embedding.provider_options, {"max_attempts": 3, "wall_timeout": 20})
         project.config.parameters.setdefault("components", {})["rag"]['policy']['provider'] = {"wall_timeout": None}
-        view = component.effective_configuration(project)["model_providers"]["embedding"]
+        view = component.resolve_config(project)["model_providers"]["embedding"]
         self.assertEqual(view["values"], {"max_attempts": 3, "wall_timeout": None})
         self.assertEqual(view["sources"], {"/max_attempts": "client", "/wall_timeout": "project"})
-        self.assertIsNone(component.configured(project).embedding.provider_options["wall_timeout"])
+        self.assertIsNone(component.with_config(project).embedding.provider_options["wall_timeout"])
         self.assertEqual(client.provider_options["wall_timeout"], 20)
 
     async def test_host_tool_retry_none_overrides_project_and_missing_inherits(self):
-        from llm.services.configuration import ServiceConfig
-        from llm.services.runtime.tools import ToolPolicy
+        from llm.services.composition import BackendServices
+        from llm.services.runtime.tools import ToolRuntime
         from llm.engines.base import BaseEngine
         for expected in (3, None, 1):
             observed = []
@@ -368,7 +368,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                     observed.append(context.tool_scope.max_retries)
                     yield "ok"
             with tempfile.TemporaryDirectory() as root:
-                async with LargeLanguageModel(root, components=[], engines={"inspect": Inspect()}, services=ServiceConfig(tool_policy=ToolPolicy())) as app:
+                async with LargeLanguageModel(root, components=[], engines={"inspect": Inspect()}, services=BackendServices(tool_runtime=ToolRuntime())) as app:
                     project = await app.projects.acreate(config={"policies": {"tool_retry": {"max_retries": expected}}})
                     session = await project.sessions.acreate()
                     run = await (await session.run.submit("go", engine="inspect")).wait(timeout=5)

@@ -335,4 +335,4 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         self.projects.save(self.project)
         await manager.submit("test", engine="fake")
         await manager.wait_idle()
-        self.assertEqual(self.engines.resolve("fake").contexts[0].project.config.parameters["engines"]["loop"]["config"]["completion"]["model"], "updated")
+        self.assertEqual(self.engines.get("fake").contexts[0].project.config.parameters["engines"]["loop"]["config"]["completion"]["model"], "updated")

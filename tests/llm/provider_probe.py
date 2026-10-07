@@ -139,7 +139,7 @@ async def probe(root):
         server.fail = True
         start = time.monotonic()
         try:
-            await async_client.configured({"num_retries": 0, "max_retries": 1}).with_provider(
+            await async_client.with_config({"num_retries": 0, "max_retries": 1}).with_provider(
                 {"max_attempts": 4, "delay_seconds": .01}).embed(inputs)
         except ProviderError as error:
             output["transient_failure_code"] = error.code
@@ -150,7 +150,7 @@ async def probe(root):
         for retry_params in ({}, {"num_retries": 0, "max_retries": 0}):
             before = len(server.calls)
             try:
-                await async_client.configured(retry_params).with_provider(
+                await async_client.with_config(retry_params).with_provider(
                     {"max_attempts": 2, "delay_seconds": 0}).embed(inputs)
             except ProviderError:
                 pass

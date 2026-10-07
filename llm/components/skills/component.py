@@ -36,6 +36,6 @@ class SkillComponent(DefinitionComponent):
             from .tools import skill_tools
             # capability 해석의 잠금 경계에서 복사한다. 실행 도중 편집된 지침을
             # 섞지 않으며, 재개 시 정의 지문 변경은 기존 Tool binding 검사로 거부한다.
-            self.configuration(project)
+            self.get_config(project)
             return skill_tools(self.list(project))
         return super().resolve(project, capability)

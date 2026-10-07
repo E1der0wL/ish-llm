@@ -174,7 +174,7 @@ class StepEventRecorder:
         if event.metadata:
             if "output" in event.metadata:
                 raise ValueError("Use EngineEvent.output for Step results")
-            ProjectConfig.validate_settings(event.metadata)
+            ProjectConfig.validate_json(event.metadata)
             step.metadata.update(deepcopy(event.metadata))
         if event.output is not None:
             if not isinstance(event.output, EngineOutput) or event.output.step_id != step.id:

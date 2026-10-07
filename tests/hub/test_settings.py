@@ -31,7 +31,7 @@ from tests.hub.test_mockup import SizedOutput
 class DemoComponent(Component):
     name = directory = "demo"
 
-    def configuration_schema(self):
+    def describe_config(self):
         return implementation_schema(config={'type': 'object', 'properties': {'count': {'type': 'integer', 'minimum': 1, 'description': 'Number of results'}, 'enabled': {'type': 'boolean', 'description': 'Enable processing'}, 'label': {'type': ['string', 'null'], 'description': 'Optional label'}}, 'additionalProperties': True})
 
 
@@ -48,13 +48,13 @@ class SettingsFormTests(unittest.TestCase):
         config = ProjectConfig(parameters={"engines": {"loop": {"config": {
             "system_prompt": "stored prompt", "completion": {"extra_body": {"sibling": 2}}}}}})
         original = config.parameters["engines"]["loop"]
-        view = engine.configuration(config, "loop")
+        view = engine.resolve_config(config, "loop")
         # Generic adapter observations may still mark infrastructure leaves read-only.
         view["values"]["config"]["completion"]["extra_body"]["fixed"] = 1
         for path in ("/config/system_prompt", "/config/completion/extra_body/fixed"):
             view["sources"][path] = "host"
             view["editable"][path] = False
-        schema = engine.configuration_schema()
+        schema = engine.describe_config()
         schema["properties"]["config"]["properties"]["completion"]["properties"]["extra_body"] = {
             "type": "object", "properties": {"fixed": {"type": "integer"}, "sibling": {"type": "integer"}}}
         form = SchemaForm(schema, original, Language("en"), effective={"adapter": view})
@@ -81,10 +81,10 @@ class SettingsFormTests(unittest.TestCase):
         config = ProjectConfig(parameters={"engines": {"loop": {"config": {
             "completion": {"response_format": {"type": "text", "other": 1}}}}}})
         original = config.parameters["engines"]["loop"]
-        view = engine.configuration(config, "loop")
+        view = engine.resolve_config(config, "loop")
         view["sources"]["/config/completion/response_format/type"] = "host"
         view["editable"]["/config/completion/response_format/type"] = False
-        form = SchemaForm(engine.configuration_schema(), original, Language("en"), effective={"adapter": view})
+        form = SchemaForm(engine.describe_config(), original, Language("en"), effective={"adapter": view})
         field = form.fields[("config", "completion", "response_format")]
         self.assertFalse(field.readonly)
         self.assertIn("nested keys", " ".join(field.observations))
@@ -107,8 +107,8 @@ class SettingsFormTests(unittest.TestCase):
 
     def test_runtime_host_and_client_values_are_not_materialized(self):
         engine = LoopEngine(completion_fn=lambda **kwargs: iter(()))
-        view = engine.configuration({}, "loop")
-        form = SchemaForm(engine.configuration_schema(), {}, Language("en"), effective={"loop": view})
+        view = engine.resolve_config({}, "loop")
+        form = SchemaForm(engine.describe_config(), {}, Language("en"), effective={"loop": view})
         model = form.fields[("config", "completion", "model")]
         self.assertFalse(model.readonly)
         self.assertEqual(model.observations, ())
@@ -122,12 +122,12 @@ class SettingsFormTests(unittest.TestCase):
         self.assertEqual(component.fields[("config", "a/b~c")].observations, ())
 
     def test_shared_settings_key_uses_all_engine_locks_and_views(self):
-        engines = {"a": LoopEngine(settings_name="shared"), "b": LoopEngine(settings_name="shared")}
+        engines = {"a": LoopEngine(parameter_key="shared"), "b": LoopEngine(parameter_key="shared")}
         from llm.core.models import ProjectConfig
         project = ProjectConfig(parameters={"engines": {"shared": {"config": {"system_prompt": "stored"}}}})
-        schema = {"allOf": [engine.configuration_schema() for engine in engines.values()]}
+        schema = {"allOf": [engine.describe_config() for engine in engines.values()]}
         original = project.parameters["engines"]["shared"]
-        views = {name: engine.configuration(project, "shared") for name, engine in engines.items()}
+        views = {name: engine.resolve_config(project, "shared") for name, engine in engines.items()}
         form = SchemaForm(schema, {"shared": original}, Language("en"), prefix=("shared",), effective=views)
         field = form.fields[("shared",)]
         self.assertEqual(field.observations, ())

@@ -202,5 +202,5 @@ class PipelineConfigurationTests(unittest.TestCase):
             pass
         for seconds in (0, -1, float("inf"), True):
             with self.assertRaises(ValueError):
-                PreparationStep("Prepare", action).configuration({"parameters": {"engines": {"prepare": {
+                PreparationStep("Prepare", action).resolve_config({"parameters": {"engines": {"prepare": {
                     "policy": {"timeout_seconds": seconds}}}}}, "prepare")

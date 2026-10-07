@@ -86,7 +86,7 @@ class EventContext:
     async def update_metadata(self, changes: dict) -> None:
         """사용자 메타데이터만 갱신한다. 서비스 소유 키가 섞이면 전체 변경을 거부한다."""
         from llm.core.models import ProjectConfig
-        ProjectConfig.validate_settings(changes)
+        ProjectConfig.validate_json(changes)
         protected = self._managed_metadata.intersection(changes)
         if protected:
             raise ValueError("Run metadata is managed by RunManager: " + ", ".join(sorted(protected)))

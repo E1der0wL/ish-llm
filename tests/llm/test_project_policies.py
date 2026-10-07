@@ -13,7 +13,7 @@ from llm.core.models import ProjectConfig, RunStatus
 from llm.engines.base import BaseEngine
 from llm.engines.loop import LoopEngine
 from llm.llm import LargeLanguageModel
-from llm.services.configuration import ServiceConfig
+from llm.services.composition import BackendServices
 from llm.services.runtime.runs import RunRequestError
 from llm.services.runtime.policies import model_token_count
 from tests.llm.test_loop import ScriptedCompletion, chunk
@@ -68,7 +68,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
                 yield "answer"
         self.engine = Inspect()
         self.app = LargeLanguageModel(self.root, components=[], engines={"inspect": self.engine},
-            services=ServiceConfig(token_counters={"length": lambda r: sum(len(m.get("content") or "") for m in r["messages"])}))
+            services=BackendServices(token_counters={"length": lambda r: sum(len(m.get("content") or "") for m in r["messages"])}))
         self.addAsyncCleanup(self.app.shutdown)
 
     async def create(self, policies=None):
@@ -80,9 +80,9 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_defaults_schema_and_partial_update_preserve_other_settings(self):
         project, _ = await self.create()
-        before = await project.aconfiguration()
+        before = await project.adescribe_config()
         self.assertEqual(before["project"]["config"]["policies"], {})
-        self.assertEqual(before["policy_schema"], ProjectConfig.policy_schema())
+        self.assertEqual(before["policy_schema"], ProjectConfig.describe_policies())
         config = before["project"]["config"]
         config["parameters"]["engines"] = {"loop": {"config": {"completion": {"model": "test/model"}}}}
         config["data"] = {"future": {"value": 1}}
@@ -128,7 +128,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         small, one = await self.create()
         large, two = await self.create()
         model = ScriptedCompletion([chunk("ok", finish="stop")])
-        self.app.engines.register("loop", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("loop", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
         await configure_engine(small, "loop", input_policy={"max_tokens": 2, "counter": "length"})
         await configure_engine(large, "loop", input_policy={"max_tokens": 100, "counter": "length"})
         failed, passed = await asyncio.gather(self.execute(one, "hello", "loop"), self.execute(two, "hello", "loop"))
@@ -187,14 +187,14 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         await project.abackup(destination)
         await self.app.shutdown()
         self.app = LargeLanguageModel(self.root, components=[], engines={"inspect": self.engine},
-            services=ServiceConfig(token_counters={"length": lambda r: 1}))
+            services=BackendServices(token_counters={"length": lambda r: 1}))
         self.addAsyncCleanup(self.app.shutdown)
         reopened = await self.app.projects.aload(project.id)
         self.assertEqual((await reopened.aget_data()).config.policies, expected)
         session = await reopened.sessions.aload(session.id)
         self.assertEqual((await self.execute(session)).data.metadata["policies"], expected)
         restored_app = LargeLanguageModel(self.root / "restored", components=[], engines={"inspect": self.engine},
-            services=ServiceConfig(token_counters={"length": lambda r: 1}))
+            services=BackendServices(token_counters={"length": lambda r: 1}))
         self.addAsyncCleanup(restored_app.shutdown)
         restored = await restored_app.projects.arestore_backup(destination)
         self.assertEqual((await restored.aget_data()).config.policies, expected)

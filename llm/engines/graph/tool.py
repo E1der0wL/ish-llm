@@ -34,7 +34,7 @@ class ToolNode:
         self.executor = ToolExecutor()
 
     @staticmethod
-    def configuration_schema():
+    def describe_config():
         return object_schema({"tool": field("string", minLength=1),
             "arguments": open_schema("selected Tool parameter schema", category="implementation"),
             "arguments_key": field("string", minLength=1), "result_key": field("string", minLength=1)}, required=["tool"])

@@ -30,7 +30,7 @@ for cls in (EngineRegistry, LoopEngine, GraphEngine, GraphNodeContext, AgentNode
 assert not any(name == 'langgraph' or name.startswith('langgraph.') for name in sys.modules)
 registry = EngineRegistry()
 registry.register('loop', LoopEngine())
-assert isinstance(registry.resolve('loop'), LoopEngine)
+assert isinstance(registry.get('loop'), LoopEngine)
 for old in ('llm.engines.agent', 'llm.engines.tool', 'llm.engines.checkpoints'):
     assert importlib.util.find_spec(old) is None
 assert not hasattr(importlib.import_module('llm.engines.base'), 'EngineRegistry')

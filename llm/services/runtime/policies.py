@@ -49,10 +49,10 @@ class ProjectPolicyResolver:
                for name, counter in self.token_counters.items()):
             raise ValueError("Token counters require nonempty names and callable implementations")
 
-    def resolve(self, settings: dict):
+    def resolve(self, policies: dict):
         from llm.core.policies import normalize_policies
         from llm.services.history.context import ContextPolicy
-        values = normalize_policies(settings)
+        values = normalize_policies(policies)
         usage = values.get("usage", {})
         if (usage.get("max_tokens") is not None or usage.get("project_max_tokens") is not None) and usage.get("counter") not in self.token_counters:
             raise errors.ExecutionLimitError("policy_unavailable", "Usage quota requires a registered token counter")

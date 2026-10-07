@@ -99,7 +99,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 await invoke_model(model)
                 self.assertNotIn("num_retries", call.call_args.kwargs)
                 self.assertNotIn("max_retries", call.call_args.kwargs)
-                await invoke_model(model.configured({"num_retries": 2, "max_retries": 3}))
+                await invoke_model(model.with_config({"num_retries": 2, "max_retries": 3}))
                 self.assertEqual(call.call_args.kwargs["num_retries"], 2)
                 self.assertEqual(call.call_args.kwargs["max_retries"], 3)
         with patch.object(sdk, "completion", Mock(return_value=iter(()))) as call:
@@ -145,7 +145,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         from tests.llm.configuration_fixtures import rag_settings
         for present in (False, True):
             data = SimpleNamespace(name="rag", has_reranker=lambda: present,
-                effective_configuration=lambda: {"values": {"config": {"search": {**rag_settings()["config"]["search"], "rerank": True}}}},
+                resolve_config=lambda: {"values": {"config": {"search": {**rag_settings()["config"]["search"], "rerank": True}}}},
                 asearch=AsyncMock(return_value={"documents": []}))
             tool = search_tools(data).get("rag_search")
             spec = tool.parameters["properties"]["rerank"]

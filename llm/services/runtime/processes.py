@@ -1,4 +1,4 @@
-"""ToolPolicy에 주입하는 유한 프로세스 실행기. 등록 명령만 실행하며 모델 인자는 JSON stdin이다."""
+"""ToolRuntime에 주입하는 유한 프로세스 실행기. 등록 명령만 실행하며 모델 인자는 JSON stdin이다."""
 
 import asyncio
 from dataclasses import asdict

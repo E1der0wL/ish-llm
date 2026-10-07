@@ -1,6 +1,6 @@
 # Tool 프로세스 격리와 외부 작업 중복 방지
 
-`ProcessToolRunner`를 `ToolPolicy.runner`에 주입하면 등록된 Tool을 별도 프로세스에서
+`ProcessToolRunner`를 `ToolRuntime.runner`에 주입하면 등록된 Tool을 별도 프로세스에서
 실행할 수 있다. 기본 Python 핸들러와 기존 BuiltinTools의 shell/process 구현을 자동으로
 변경하지 않는다. 격리할 명령을 명시적으로 등록하고 JSON 입출력 worker를 연결한다.
 클로저, 살아 있는 RAG/DB 연결, asyncio 객체를 자식으로 직렬화하지 않는다.
@@ -8,7 +8,7 @@
 ## 실행기 설정
 
 ```python
-from llm.llm import LargeLanguageModel, ServiceConfig, ToolPolicy, ProcessToolRunner
+from llm.llm import LargeLanguageModel, BackendServices, ToolRuntime, ProcessToolRunner
 
 runner = ProcessToolRunner(
     {"external_job": ["/usr/bin/python3", "-I", "/opt/my-tools/worker.py"]},
@@ -21,7 +21,7 @@ runner = ProcessToolRunner(
     max_concurrency=4,
     env={"LANG": "C.UTF-8"},
 )
-services = ServiceConfig(tool_policy=ToolPolicy(
+services = BackendServices(tool_runtime=ToolRuntime(
     runner=runner,
     operation_key=lambda call: "external-job:v1:" + call.arguments["operation_id"],
 ))
@@ -31,7 +31,7 @@ backend = LargeLanguageModel("./workspace", services=services)
 프로젝트에는 `external_job` Tool 정의도 등록하고 선택해야 한다. 모델에는 일반적인
 Tool schema를 제공하며, 실제 실행기는 등록된 argv만 선택한다. 인자를 명령 문자열에
 이어 붙이거나 shell=True로 실행하지 않는다. 등록하지 않은 Tool 이름은 거절한다.
-ToolPolicy 전체에 runner를 지정하면 모든 Tool이 이 runner를 통과하므로, 다른 Tool도
+ToolRuntime 전체에 runner를 지정하면 모든 Tool이 이 runner를 통과하므로, 다른 Tool도
 등록하거나 개발자가 별도의 명시적 라우터를 제공해야 한다.
 
 Worker는 stdin의 ToolCall JSON을 읽고 stdout에 UTF-8 JSON 값 하나를 출력한다.

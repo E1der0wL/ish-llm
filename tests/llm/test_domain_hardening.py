@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from llm.components.memory import MemoryConflictError
 from llm.components.workflows import WorkflowGraph
-from llm.services.runtime.tools import ToolPolicy, ToolApprovalRequired
+from llm.services.runtime.tools import ToolRuntime, ToolApprovalRequired
 from llm.core.interactions import approval_request
 from tests.llm import test_interactions
 from tests.llm import test_graph_checkpoints
@@ -176,7 +176,7 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
                 raise ToolApprovalRequired("read")
             app, session, _ = await self.setup_app(act, [
                 [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]],
-                ToolPolicy(authorize=authorize, classify=lambda call: ToolClassification("file.read", "test", 10)))
+                ToolRuntime(authorize=authorize, classify=lambda call: ToolClassification("file.read", "test", 10)))
             await session.project.aconfigure_policies({"approval": {"enabled": host_allows, "risk_scheme": "test", "rules": [
                 {"id": "read-only", "category": "file.read", "max_risk": 10}]}})
             run = await (await session.run.submit("read", engine="loop")).wait()
@@ -282,7 +282,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
         await self.project.asave(config=config)
         plan = await self.session.run.resume_plan(run.id, engine="graph")
         self.assertFalse(plan.can_resume)
-        self.assertIn("settings changed", str(plan.blockers))
+        self.assertIn("configuration changed", str(plan.blockers))
 
     async def test_uncertain_node_retry_is_a_common_interaction(self):
         calls = []

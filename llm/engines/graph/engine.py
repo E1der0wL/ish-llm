@@ -11,8 +11,8 @@ import json
 import math
 import operator
 from copy import copy, deepcopy
-from llm.core.configuration import engine_configuration
-from llm.core.settings import SettingsLayout
+from llm.core.configuration import resolve_engine_config
+from llm.core.parameters import ParameterLayout
 from contextlib import AsyncExitStack, aclosing
 from llm.core.interactions import InteractionRequest, approval_request
 from contextvars import ContextVar
@@ -197,7 +197,7 @@ class _WorkflowRuntime:
         self.visited = 0
         self.semaphore = None if engine.max_parallelism is None else asyncio.Semaphore(engine.max_parallelism)
         # 제어용 gate도 super-step을 사용한다. 실제 예산은 모든 하위 그래프가 공유한다.
-        self.config = {} if engine.max_steps is None else {"recursion_limit": engine.max_steps * 3 + 10}
+        self.invoke_options = {} if engine.max_steps is None else {"recursion_limit": engine.max_steps * 3 + 10}
         self.records = parent.records if parent is not None else (
             deepcopy(context.checkpoint["records"]) if context.checkpoint else {})
         self.resuming = context.checkpoint is not None
@@ -212,7 +212,7 @@ class _WorkflowRuntime:
 
     async def _nested(self, engine, context, inputs, scope, path, parent_step_id, emit):
         """루트 저장소/예산을 공유하되 상태와 입출력 계약은 호출마다 분리한다."""
-        engine = engine.configured(context)
+        engine = engine.with_config(context)
         graph, _ = engine._prepare(context)
         state = deepcopy(graph.get("initial_state", {}))
         state.update(bind(graph["inputs"], inputs) if "inputs" in graph else deepcopy(inputs))
@@ -305,7 +305,7 @@ class _WorkflowRuntime:
                 token = self._context.set(replace(self._context.get(), state={}))
                 try:
                     result = await child.ainvoke({"data": deepcopy(frame["data"]), "path": frame["path"],
-                                                 "port": "", "scope": frame["scope"] + ["branch", start]}, self.config)
+                                                 "port": "", "scope": frame["scope"] + ["branch", start]}, self.invoke_options)
                     return {"branches": {start: result["data"]}}
                 finally:
                     self._context.reset(token)
@@ -330,7 +330,7 @@ class _WorkflowRuntime:
         async def advance(frame):
             count = frame["count"] + 1
             result = await body.ainvoke({"data": frame["data"], "path": f"{frame['path']}[{count}]",
-                                         "port": "", "scope": frame["scope"] + [count]}, self.config)
+                                         "port": "", "scope": frame["scope"] + [count]}, self.invoke_options)
             return {"data": result["data"], "count": count}
 
         # LangGraph의 조건부 후방 간선으로 반복하며 Python while 실행기는 두지 않는다.
@@ -411,10 +411,10 @@ class _WorkflowRuntime:
             port = _branch_port(definition, state)
             detail["port"] = port
         elif kind == "parallel":
-            result = await child.ainvoke({"data": state, "path": path, "branches": {}, "scope": scope}, self.config)
+            result = await child.ainvoke({"data": state, "path": path, "branches": {}, "scope": scope}, self.invoke_options)
             state["branches"] = result["branches"]
         elif kind == "loop":
-            result = await child.ainvoke({"data": state, "path": path, "count": 0, "scope": scope}, self.config)
+            result = await child.ainvoke({"data": state, "path": path, "count": 0, "scope": scope}, self.invoke_options)
             state = result["data"]
             detail["iterations"] = result["count"]
         elif kind not in ("end", "join"):
@@ -551,7 +551,7 @@ class _WorkflowRuntime:
         """컴파일한 LangGraph를 실행하고 JSON 상태만 반환한다."""
         graph = self._compile(document)
         try:
-            result = await graph.ainvoke({"data": state, "path": path, "port": "", "scope": scope or []}, self.config)
+            result = await graph.ainvoke({"data": state, "path": path, "port": "", "scope": scope or []}, self.invoke_options)
         except Exception as error:
             _propagate_cancellation(error)
             raise
@@ -571,10 +571,10 @@ class GraphEngine:
 
     def __init__(self, *, handlers: Mapping[str, Callable],
                  revision: str = "1", config_keys: Optional[tuple[str, ...]] = None,
-                 settings_name: Optional[str] = None) -> None:
-        if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
-            raise ValueError("settings_name must be nonempty text")
-        self.settings_name, self._agent_options, self._configured = settings_name, {}, False
+                 parameter_key: Optional[str] = None) -> None:
+        if parameter_key is not None and (not isinstance(parameter_key, str) or not parameter_key.strip()):
+            raise ValueError("parameter_key must be nonempty text")
+        self.parameter_key, self._agent_options, self._configured = parameter_key, {}, False
         if config_keys is not None and (not isinstance(config_keys, tuple) or any(not isinstance(k, str) or not k for k in config_keys)):
             raise ValueError("config_keys must be a tuple of project setting names")
         self.config_keys = config_keys
@@ -606,12 +606,12 @@ class GraphEngine:
         if self.max_nested_depth is not None and (type(self.max_nested_depth) is not int or self.max_nested_depth < 0):
             raise ValueError("max_nested_depth must be a nonnegative integer or None")
 
-    settings_layout = SettingsLayout(config=("buffer_size", "cleanup_timeout"),
+    parameter_layout = ParameterLayout(config=("buffer_size", "cleanup_timeout"),
         policy=("max_steps", "max_parallelism", "timeout_seconds", "max_nested_depth"))
 
     _option_names = ("max_steps", "max_parallelism", "timeout_seconds", "buffer_size", "max_nested_depth", "cleanup_timeout")
 
-    def configuration_schema(self):
+    def describe_config(self):
         from llm.core.schema import object_schema, field
         properties = {key: field(["integer", "null"], minimum=1) for key in self._option_names}
         properties["buffer_size"]["type"] = "integer"
@@ -620,19 +620,19 @@ class GraphEngine:
             properties[key] = field(["number", "null"] if key == "timeout_seconds" else "number", exclusiveMinimum=0)
         for key in ("max_steps", "max_parallelism", "timeout_seconds", "max_nested_depth"):
             properties[key]["x-narrowing"] = "maximum"
-        return self.settings_layout.schema(object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
-            **({"x-settings-key": self.settings_name} if self.settings_name else {})}))
+        return self.parameter_layout.schema(object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
+            **({"x-parameter-key": self.parameter_key} if self.parameter_key else {})}))
 
-    def configuration(self, config, name, *, session_config=None):
-        view = engine_configuration(config, self.settings_name or name, session_config=session_config,
-            agent=self._agent_options, schema=self.configuration_schema())
+    def resolve_config(self, config, name, *, session_config=None):
+        view = resolve_engine_config(config, self.parameter_key or name, session_config=session_config,
+            agent=self._agent_options, schema=self.describe_config())
         return view
 
-    def configured(self, context):
+    def with_config(self, context):
         """등록 인스턴스를 변경하지 않는 실행별 설정 사본. 중첩 실행에도 동일하게 적용한다."""
         if self._configured:
             return self
-        values = self.settings_layout.unpack(self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"])
+        values = self.parameter_layout.unpack(self.resolve_config(context.project.config, context.run.engine, session_config=context.session.config)["values"])
         worker = copy(self)
         worker._configure(values)
         worker._configured = True
@@ -647,7 +647,7 @@ class GraphEngine:
     def _binding(self, context, graph, prepared):
         """코드의 버전은 개발자가 revision으로 관리한다. 저장 가능한 실행 설정은 직접 비교한다."""
         if not self._configured:
-            return self.configured(context)._binding(context, graph, prepared)
+            return self.with_config(context)._binding(context, graph, prepared)
         bindings, nested_graphs = [], []
         for engine, document, child_context in prepared:
             nested_graphs.append({"workflow_id": engine.workflow, "definition": document,
@@ -669,7 +669,7 @@ class GraphEngine:
                 "project_config": self._execution_config(context), "session_config": context.session.config,
                 "components": list(context.project.components), "agents": list(context.capabilities.get("agents", ())),
                 "tools": context.tools.definitions(), "tool_contracts": context.tools.contracts(),
-                "tool_policy": context.tool_scope.binding() if context.tool_scope else None}
+                "tool_policy": context.tool_scope.binding() if context.tool_scope else None}  # persisted binding key
 
     @staticmethod
     def _deadline(value) -> None:
@@ -709,7 +709,7 @@ class GraphEngine:
     def _walk(self, capabilities, context=None, ancestors=(), remaining=None):
         """참조 전체를 사전 탐색한다. 호출 위치별 정의를 유지하고 순환/깊이를 거부한다."""
         if context is not None and not self._configured:
-            yield from self.configured(context)._walk(capabilities, context, ancestors, remaining)
+            yield from self.with_config(context)._walk(capabilities, context, ancestors, remaining)
             return
         # capability 탐색에는 Project 문맥이 없다. 실제 깊이는 문맥을 받은 사전 검증에서 제한한다.
         depth = self.max_nested_depth
@@ -828,10 +828,10 @@ class GraphEngine:
             raise ValueError("Graph Agent only orchestrates Workflows; unsupported fields: " + ", ".join(sorted(unsupported)))
         worker = self.for_request({"workflow": options.pop("workflow", None)})
         from jsonschema import Draft202012Validator
-        Draft202012Validator(self.configuration_schema()).validate(options)
-        copy(self)._configure(self.settings_layout.unpack(options))
+        Draft202012Validator(self.describe_config()).validate(options)
+        copy(self)._configure(self.parameter_layout.unpack(options))
         worker._agent_options, worker._configured = options, False
-        worker.settings_name = self.settings_name or definition["engine"]
+        worker.parameter_key = self.parameter_key or definition["engine"]
         return worker
 
     def additional_capabilities(self, capabilities) -> tuple[str, ...]:
@@ -881,7 +881,7 @@ class GraphEngine:
         if context is not None:
             graph, prepared = self._prepare(context)
             if self._binding(context, graph, prepared) != header["binding"]:
-                raise ValueError("Workflow, Agent, Tool or execution settings changed; start a new request")
+                raise ValueError("Workflow, Agent, Tool or execution configuration changed; start a new request")
         controls = {"branch", "parallel", "join", "loop", "end"}
         uncertain = {key for key, value in records.items()
                      if value["status"] == "started" and value["node_type"] not in controls
@@ -893,7 +893,7 @@ class GraphEngine:
             raise ValueError("Invalid checkpoint node status")
 
     async def execute(self, context: EngineContext):
-        worker = self.configured(context)
+        worker = self.with_config(context)
         async with aclosing(worker._execute(context)) as events:
             async for event in events:
                 yield event
@@ -907,7 +907,7 @@ class GraphEngine:
                                  decisions=context.run.metadata["resume"].get("decisions"))
             header = deepcopy(context.checkpoint["header"])
             if binding != header["binding"]:
-                raise GraphExecutionError("Workflow, Agent, Tool or execution settings changed; start a new request")
+                raise GraphExecutionError("Workflow, Agent, Tool or execution configuration changed; start a new request")
         else:
             message = next(item for item in context.messages if item.id == context.run.input_message_id)
             state = deepcopy(graph.get("initial_state", {}))

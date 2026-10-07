@@ -22,7 +22,7 @@ class CompletionPolicy:
         self.max_tokens, self.reserve_tokens, self.counter = max_tokens, reserve_tokens, counter
 
     @staticmethod
-    def configuration_schema() -> dict:
+    def describe_config() -> dict:
         """설정값을 생성하지 않고 입력 선택기의 허용 형태만 제공한다."""
         from llm.core.schema import object_schema, field
         return {**object_schema({
@@ -33,35 +33,35 @@ class CompletionPolicy:
         }, additionalProperties=False), "type": ["object", "null"]}
 
     @classmethod
-    def validate_settings(cls, settings):
+    def validate_config(cls, policy):
         from llm.core.models import ProjectConfig
         from jsonschema import Draft202012Validator
-        ProjectConfig.validate_settings({"completion": settings})
-        error = next(Draft202012Validator(cls.configuration_schema()).iter_errors(settings), None)
+        ProjectConfig.validate_json({"completion": policy})
+        error = next(Draft202012Validator(cls.describe_config()).iter_errors(policy), None)
         if error:
             raise ValueError("Invalid completion policy: " + error.message)
-        if settings is None:
+        if policy is None:
             return
         for key in ("max_tokens", "reserve_tokens"):
-            if settings.get(key) is not None and type(settings[key]) is not int:
+            if policy.get(key) is not None and type(policy[key]) is not int:
                 raise ValueError(f"completion policy.{key} requires an integer")
-        if "counter" in settings and not settings["counter"].strip():
+        if "counter" in policy and not policy["counter"].strip():
             raise ValueError("completion policy.counter must be a nonempty name")
-        maximum, reserve = settings.get("max_tokens"), settings.get("reserve_tokens")
+        maximum, reserve = policy.get("max_tokens"), policy.get("reserve_tokens")
         if reserve and (maximum is None or reserve >= maximum):
             raise ValueError("completion policy.reserve_tokens requires max_tokens and must be smaller")
 
     @classmethod
-    def from_settings(cls, settings, counters):
+    def from_config(cls, policy, counters):
         """정책을 사용하는 구현체가 실행별 사본을 구성한다. 계산기는 호스트의 공유 자원이다."""
-        cls.validate_settings(settings)
-        if settings is None or settings.get("max_tokens") is None:
+        cls.validate_config(policy)
+        if policy is None or policy.get("max_tokens") is None:
             return None
-        name = settings.get("counter")
+        name = policy.get("counter")
         if name not in counters:
             raise ExecutionLimitError("policy_unavailable", f"Token counter is not registered: {name}")
-        return cls(settings["max_tokens"], counter=counters[name],
-                   **({"reserve_tokens": settings["reserve_tokens"]} if "reserve_tokens" in settings else {}))
+        return cls(policy["max_tokens"], counter=counters[name],
+                   **({"reserve_tokens": policy["reserve_tokens"]} if "reserve_tokens" in policy else {}))
 
     def prepare(self, request: dict) -> dict:
         return self.prepare_turn(request)

@@ -1,10 +1,10 @@
 """구현체 설정의 공개 경로와 내부 인자 이름을 연결한다. 값이나 정책을 생성하지 않는다."""
 
 from copy import deepcopy
-from .schema import implementation_schema, object_schema, validate_implementation_settings
+from .schema import implementation_schema, object_schema, validate_parameters
 
 
-class SettingsLayout:
+class ParameterLayout:
     """명시적 인자/스키마를 config·policy로 분류하는 선언. 과거 JSON 변환기는 아니다.
 
     pack은 생성자·주입된 client의 명시값에만 사용한다. 저장/API 입력은 항상
@@ -17,21 +17,21 @@ class SettingsLayout:
         targets = list(self.paths.values())
         for names in (list(self.paths), targets):
             if any(not isinstance(path, str) or not all(path.split(".")) for path in names):
-                raise ValueError("Settings paths require nonempty segments")
+                raise ValueError("Parameter paths require nonempty segments")
             if any(other.startswith(path + ".") for path in names for other in names if path != other):
-                raise ValueError("Settings paths cannot overlap")
+                raise ValueError("Parameter paths cannot overlap")
         if len(targets) != len(set(targets)):
-            raise ValueError("Settings paths must be unique")
+            raise ValueError("Parameter paths must be unique")
         if any(not path.startswith(("config.", "policy.")) for path in targets):
-            raise ValueError("Settings paths must belong to config/policy")
+            raise ValueError("Parameter paths must belong to config/policy")
 
     def _misplaced_paths(self):
         """열린 config 확장이 내부 정책 인자를 우회하지 않게 예약 경로만 제외한다."""
-        config = [path[7:] for path in self.paths.values() if path.startswith("config.")]
+        config_paths = [path[7:] for path in self.paths.values() if path.startswith("config.")]
         candidates = {*self.paths, *(path[7:] for path in self.paths.values() if path.startswith("policy."))}
         return sorted(path for path in candidates
-                      if not any(path == allowed or path.startswith(allowed + ".") for allowed in config)
-                      and not any(allowed.startswith(path + ".") for allowed in config))
+                      if not any(path == allowed or path.startswith(allowed + ".") for allowed in config_paths)
+                      and not any(allowed.startswith(path + ".") for allowed in config_paths))
 
     @staticmethod
     def _presence(path):
@@ -64,7 +64,7 @@ class SettingsLayout:
         if not rest:
             del data[key]
         elif isinstance(data[key], dict):
-            SettingsLayout._remove(data[key], rest)
+            ParameterLayout._remove(data[key], rest)
             if not data[key]:
                 del data[key]
 
@@ -81,9 +81,9 @@ class SettingsLayout:
                 self._write(result, target, value)
         return result
 
-    def unpack(self, settings):
-        validate_implementation_settings(settings)
-        result = deepcopy(settings.get("config", {}))
+    def unpack(self, config):
+        validate_parameters(config)
+        result = deepcopy(config.get("config", {}))
         for path in self._misplaced_paths():
             if self._read(result, path)[0]:
                 raise ValueError(f"Setting config.{path} belongs at its declared config/policy path")
@@ -91,7 +91,7 @@ class SettingsLayout:
             if path.startswith("config."):
                 self._remove(result, path.split(".")[1:])
         for target, source in self.paths.items():
-            exists, value = self._read(settings, source)
+            exists, value = self._read(config, source)
             if exists:
                 self._write(result, target, value)
         return result
@@ -108,7 +108,7 @@ class SettingsLayout:
             if (spec.get("type") != "object" or unsupported
                     or not isinstance(spec.get("additionalProperties", True), bool)
                     or (prefix and any(spec.get(key) for key in ("required", "$defs", "definitions")))):
-                raise ValueError(f"SettingsLayout cannot safely relocate constraints at {prefix or '<root>'}; use implementation_schema")
+                raise ValueError(f"ParameterLayout cannot safely relocate constraints at {prefix or '<root>'}; use implementation_schema")
             for name, child in spec.get("properties", {}).items():
                 path = prefix + name
                 if path in self.paths:
@@ -118,7 +118,7 @@ class SettingsLayout:
                 classified(child, path + ".")
         classified(schema)
         if any(key not in self.paths for key in schema.get("required", ())):
-            raise ValueError("SettingsLayout required fields must have a direct mapping; use implementation_schema")
+            raise ValueError("ParameterLayout required fields must have a direct mapping; use implementation_schema")
         result = implementation_schema(config=object_schema(additionalProperties=schema.get("additionalProperties", True)),
                                        policy=object_schema(additionalProperties=False))
         for source, target in self.paths.items():
@@ -156,14 +156,14 @@ class SettingsLayout:
         def relocate(node, mapping=False):
             if isinstance(node, dict):
                 if not mapping and any(key in node for key in ("$id", "$anchor", "$dynamicAnchor", "$dynamicRef")):
-                    raise ValueError("SettingsLayout cannot relocate schema resource scopes; use implementation_schema")
+                    raise ValueError("ParameterLayout cannot relocate schema resource scopes; use implementation_schema")
                 for key, value in tuple(node.items()):
                     if key == "$ref" and not mapping:
                         match = next((old for old in locations if value == old or value.startswith(old + "/")), None)
                         if match:
                             node[key] = locations[match] + value[len(match):]
                         elif not value.startswith(("#/$defs/", "#/definitions/")):
-                            raise ValueError("SettingsLayout cannot relocate this reference; use implementation_schema")
+                            raise ValueError("ParameterLayout cannot relocate this reference; use implementation_schema")
                     elif mapping or key not in ("const", "enum", "examples"):
                         relocate(value, not mapping and key in ("properties", "patternProperties", "$defs", "definitions", "dependentSchemas"))
             elif isinstance(node, list):
