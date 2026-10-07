@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 1 | Base commit | `865c738b85ff354ce6160a99c7289ab9251c6e96`; 원격 main 재확인 후 같은 기준에서 작업 |
 | 2 | Final commit | 자기 자신의 해시는 보고서 내용에 넣을 수 없으므로 최종 응답에 원격 main의 정확한 SHA를 기록 |
-| 3 | Commits created | 최종 응답의 게시 commit 참조. 코드·회귀 fixture·문서가 같은 계약으로 배포됨 |
+| 3 | Commits created | `7666779` 구현·문서, 후속 CI fixture/dependency 수정 commit(최종 응답 참조). 코드·회귀 fixture·문서가 같은 계약으로 배포됨 |
 | 4 | Ownership inventory | [설정 inventory](project-authority.md#설정-inventory). 서비스, Engine, Tool, Component, Provider, 저장/출력, worker를 PROJECT/HOST/INVARIANT로 구분 |
 | 5 | PROJECT | 서비스 policies, Engine config/policy, Component parameters, Tool 선택·호출/시간/출력 예산·인자 제약·재시도·승인 threshold |
 | 6 | HOST | repositories/factories, handlers, completion 함수, connectors, classifier/authorize/runner/operation adapters, 기술 revision, token counter, logger/observability, 공유 Provider/worker 자원 |
@@ -119,10 +119,16 @@ Engine의 checkpoint 프로토콜을 자동 추정하지 않는다. container To
 | 63 | Full LLM | 1,331 passed / 0 failed / 0 skipped, 582.798초 |
 | 64 | Full Hub | 112 passed / 0 failed / 0 skipped, 109.079초 |
 | 65 | Integration | 위 focused/full에 포함. 별도 사내 endpoint/실제 모델 실험 아님 |
-| 66 | Remote CI | 업로드 후 workflow 결과를 최종 응답에 기록. 로컬 통과를 원격 성공으로 간주하지 않음 |
+| 66 | Remote CI | 최초 실행 핵심 검사는 성공, Hub는 pyfiglet/ascii-magic 및 비배포 참조 Host 부재로 실패. PLUGIN_META 의존성 설치와 참조 Host 전용 검사 skip을 보강. 후속 workflow 실제 결과는 최종 응답 참조 |
 
 명령은 Linux Python 3.12.14로 실행했다. `tests/llm/run_linux.py`가 Linux 파일시스템에
 hash inventory를 갖는 source snapshot을 생성한다. reports/manual은 배포·자동 discovery에서 제외된다.
+GitHub checkout에는 참조 ish.platform이 없으므로 실제 Host를 사용하는 검사만 명시적으로
+skip한다. 일반 Hub 검사나 production 오류는 skip하지 않는다. 로컬 전체 검사는 참조 Host를
+포함하며 skip 없이 통과했다. Hub dependency는 literal PLUGIN_META에서 읽어 설치한다.
+CI fixture 보완 후 `ish-provider-2k885rdr`에서 focused 5개 및 Hub 전체 112개도
+통과했다(실패/skip 0). 참조 Host가 없는 게시 checkout에서 별도 실행한 Host 검사 5개는
+예상대로 skip됐다. 이 후속 변경은 테스트/CI/문서에만 있으며 LLM·Hub production 코드는 동일하다.
 
 ```sh
 python tests/llm/run_linux.py --source /mnt/d/WorkSpace/ish \
@@ -158,7 +164,7 @@ helper로만 남으며 내장 Engine product policy에는 쓰지 않는다. 새�
 
 ### Modified file manifest
 
-변경된 기존 파일 126개다. AGENTS.md, ish.platform/, reports/, manual/은 업로드 대상이 아니다.
+변경된 기존 파일 128개다. AGENTS.md, ish.platform/, reports/, manual/은 업로드 대상이 아니다.
 
 - .github/workflows/tests.yml
 - docs/hub/README.md
@@ -243,7 +249,9 @@ helper로만 남으며 내장 Engine product policy에는 쓰지 않는다. 새�
 - tests/hub/test_bootstrap.py
 - tests/hub/test_execution.py
 - tests/hub/test_global_preferences.py
+- tests/hub/test_ish_integration.py
 - tests/hub/test_live.py
+- tests/hub/test_plugin.py
 - tests/hub/test_settings.py
 - tests/llm/test_architecture_boundaries.py
 - tests/llm/test_base_engine.py

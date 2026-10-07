@@ -12,6 +12,8 @@ import unittest
 class PluginTests(unittest.TestCase):
     def test_real_loader_resolves_llm_dependency_from_deployment_tree(self):
         root = Path(__file__).resolve().parents[2]
+        if not (root / "ish.platform/src/ish/plugin/manager.py").is_file():
+            self.skipTest("Reference ish.platform host is not part of the plugin checkout")
         with tempfile.TemporaryDirectory() as directory:
             scripts = Path(directory) / "script"
             for name in ("hub", "llm"):

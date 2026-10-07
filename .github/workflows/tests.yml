@@ -25,10 +25,16 @@ jobs:
       - name: Install test dependencies (not the plugin)
         run: |
           python - <<'PY'
-          import subprocess, sys, tomllib
+          import ast, subprocess, sys, tomllib
           from pathlib import Path
           project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
-          dependencies = project["dependencies"] + project["optional-dependencies"]["rag"] + project["optional-dependencies"]["vision"] + ["prompt-toolkit"]
+          module = ast.parse(Path("hub/hub.py").read_text())
+          meta = next(ast.literal_eval(node.value) for node in module.body
+              if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name)
+                  and target.id == "PLUGIN_META" for target in node.targets))
+          dependencies = (project["dependencies"] + project["optional-dependencies"]["rag"]
+              + project["optional-dependencies"]["vision"] + ["prompt-toolkit"]
+              + [spec.split("|", 1)[0] for spec in meta["dependencies"]])
           subprocess.check_call([sys.executable, "-m", "pip", "install", *dependencies])
           PY
       - name: Core runtime and architecture boundaries

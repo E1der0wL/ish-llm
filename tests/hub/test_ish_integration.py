@@ -12,8 +12,17 @@ from prompt_toolkit.widgets import Label
 from hub.hub import install
 from tests.hub.test_mockup import SizedOutput, eventually
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "ish.platform/src"))
-from ish.ui.prompt import Prompt
+HOST = Path(__file__).resolve().parents[2] / "ish.platform/src"
+
+
+def Prompt(*args, **kwargs):
+    """참조 Host가 없는 배포 checkout에서는 실제 Host를 요구하는 검사만 skip한다."""
+    if not (HOST / "ish/ui/prompt.py").is_file():
+        raise unittest.SkipTest("Reference ish.platform host is not part of the plugin checkout")
+    if str(HOST) not in sys.path:
+        sys.path.insert(0, str(HOST))
+    from ish.ui.prompt import Prompt as HostPrompt
+    return HostPrompt(*args, **kwargs)
 
 
 class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):

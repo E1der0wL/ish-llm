@@ -16,6 +16,10 @@ Component 설정 화면은 schema의 required_components와 선택 집합의 누
 사용자가 전체 선택 집합을 저장하면 Backend가 검증합니다. 자동 추가나 cascade 삭제는 없습니다.
 공유 Host 자원은 읽기 전용 catalog이며 Project 설정에 복제하지 않습니다.
 
+GitHub CI는 Hub의 literal PLUGIN_META에서 UI 의존성을 설치합니다. 참조 `ish.platform/`이
+없는 checkout에서는 실제 Host가 필요한 검사만 사유와 함께 skip합니다. 로컬 전체 검사에는
+참조 Host를 포함하며, 일반 Hub 동작 검사나 실행 오류를 skip으로 숨기지 않습니다.
+
 실제 대화와 백엔드 없는 미리보기를 지원합니다. [사용법](../../hub/README.md)과
 [독립 미리보기](../../examples/hub/preview.py)를 참고하세요.
 
