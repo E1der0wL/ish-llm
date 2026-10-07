@@ -275,7 +275,7 @@ async def main(''' + parameter + '''):
 
 
 class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
-    async def setup_runtime(self, source, *, policy=None, responses=None):
+    async def setup_runtime(self, source, *, policy=None, responses=None, policies=None):
         from llm.llm import LargeLanguageModel
         from llm.engines.loop import LoopEngine
         from llm.services.configuration import ServiceConfig
@@ -288,7 +288,7 @@ class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
         app = LargeLanguageModel(temporary.name, components=[ToolComponent()],
             engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy))
         self.addAsyncCleanup(app.shutdown)
-        project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}}, components=["tools"])
+        project = await app.projects.acreate(config={"policies": policies or {}, "parameters": {"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}}, components=["tools"])
         await project.components.tools.acreate({"source": source}, identifier="act")
         await project.components.tools.aprepare("act")
         await project.components.tools.aenable("act")
@@ -308,7 +308,7 @@ async def main():
         raise ToolExecutionError("temporary", effect="none", retryable=True)
     return None
 '''
-        project, session, model = await self.setup_runtime(source, policy=ToolPolicy(max_retries=1))
+        project, session, model = await self.setup_runtime(source, policies={"tool_retry": {"max_retries": 1}})
         run = await (await session.run.submit("act", engine="loop")).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)
         steps = [s for s in await run.steps.alist() if s.kind == "tool"]
@@ -348,8 +348,12 @@ async def main():
         _, session, _ = await self.setup_runtime(source, policy=ToolPolicy(
             authorize=approve, operation_key=lambda call: "file-tool-operation"))
         run = await (await session.run.submit("act", engine="loop")).wait()
+        self.assertEqual(run.data.status, "paused", run.data.error)
+        request, = await run.ainteractions(pending_only=True)
+        await run.arespond(request.respond("approve"))
+        run = await (await session.run.resume(run.id, engine="loop")).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)
-        self.assertEqual(len(approvals), 1)
+        self.assertEqual(len(approvals), 2)
         self.assertEqual(approvals[0].contract["approval_required"], True)
         receipt = await session.run.aoperation("file-tool-operation")
         self.assertEqual(receipt["status"], "completed")

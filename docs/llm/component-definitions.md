@@ -6,7 +6,12 @@
 
 ## 등록과 선택
 
-`LargeLanguageModel`은 Tool을 포함한 일곱 종류를 기본 등록한다. Project를 만들거나
+DefinitionComponent의 schema 기본값은 닫힌 빈 object입니다. custom plugin이 열린 레코드를
+필요로 하면 open_schema로 소유자를 명시해야 합니다. required_components tuple은 정확한 ID
+의존성이며 Project create/save/select/remove에서 누락을 거부합니다. capability 의존성과는
+다르고 자동 설치/선택하지 않습니다. [현재 계약과 예제](project-authority.md)를 참고하세요.
+
+`LargeLanguageModel`은 [Component 목록](../../llm/components/README.md)의 종류를 기본 등록한다. Project를 만들거나
 수정할 때 선택한 컴포넌트만 디렉토리를 생성한다. `components=[인스턴스, ...]`를
 백엔드 생성자에 직접 전달하면 그 목록으로 기본 등록을 **대체**한다.
 
@@ -87,14 +92,14 @@ project.components.mcp.create({
 }, identifier="local_docs")
 project.components.mcp.create({
     "transport": "streamable_http", "url": "https://example.com/mcp",
-    "headers": {}, "timeout": 30,
+    "headers": {},
 }, identifier="remote_docs")
 ```
 
-RAG의 records API는 임의의 JSON 정의를 보존하며 자동 색인하지 않는다.
+RAG의 records API는 metadata만 보존하며 자동 색인하지 않는다.
 
 ```python
-project.components.rag.create({"description": "제품 설명서", "ui": {"label": "설명서"}}, identifier="product_docs")
+project.components.rag.create({"metadata": {"description": "제품 설명서", "ui": {"label": "설명서"}}}, identifier="product_docs")
 ```
 
 실제 문서는 `aadd_document/aupdate_document/adelete_document`로 관리한다.

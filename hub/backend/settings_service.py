@@ -26,6 +26,8 @@ class SettingsService:
                     "description": self.runtime.t("settings_reasoning_effort"),
                 })
         schema["properties"]["conversation_storage"]["description"] = self.runtime.t("settings_storage_description")
+        from .approval import RISK_SCHEME
+        schema["x-hub-risk-scheme"] = RISK_SCHEME
         return schema
 
     def _validate(self, values):
@@ -64,6 +66,7 @@ class SettingsService:
             except Exception as error:
                 usage.append({"id": data.id, "title": data.title, "error": str(error)})
         return {"projects": projects, "schema": self._schema(),
+                "host": self.runtime.backend.host_configuration(),
                 "usage": usage,
                 "active_project": self.runtime.project.id,
                 "preferences": {"profile": asdict(self.runtime.config.user_profile),

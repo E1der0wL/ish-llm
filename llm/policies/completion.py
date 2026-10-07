@@ -26,7 +26,7 @@ class CompletionPolicy:
         """설정값을 생성하지 않고 입력 선택기의 허용 형태만 제공한다."""
         from llm.core.schema import object_schema, field
         return {**object_schema({
-            "max_tokens": field(["integer", "null"], minimum=1),
+            "max_tokens": field(["integer", "null"], minimum=1, **{"x-narrowing": "maximum"}),
             "reserve_tokens": field("integer", minimum=0,
                 description="입력 예산에서 제외할 출력 여유. SDK 출력 제한을 설정하지 않는다"),
             "counter": field("string", minLength=1, **{"x-resource": "token_counters"}),

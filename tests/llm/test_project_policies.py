@@ -128,7 +128,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         small, one = await self.create()
         large, two = await self.create()
         model = ScriptedCompletion([chunk("ok", finish="stop")])
-        self.app.engines.register("loop", LoopEngine(completion_fn=model, completion_kwargs={"model": "test/main"}))
+        self.app.engines.register("loop", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/main"}})}))
         await configure_engine(small, "loop", input_policy={"max_tokens": 2, "counter": "length"})
         await configure_engine(large, "loop", input_policy={"max_tokens": 100, "counter": "length"})
         failed, passed = await asyncio.gather(self.execute(one, "hello", "loop"), self.execute(two, "hello", "loop"))

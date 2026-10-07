@@ -17,7 +17,7 @@ from tests.llm.test_loop import chunk, call
 
 class InteractionModelTests(unittest.TestCase):
     def test_roundtrip_metadata_and_no_implicit_recommended_approval(self):
-        request = replace(approval_request("파일 수정", risk="high"),
+        request = replace(approval_request("파일 수정", risk_scheme="test", risk=80),
                           priority="urgent", recommended_option_id="approve").bind("loop", "tool:1:a")
         restored = InteractionRequest.from_dict(request.to_dict())
         self.assertEqual(restored, request)
@@ -276,7 +276,7 @@ class GraphInteractionTests(unittest.IsolatedAsyncioTestCase):
         completed = await self.answer_and_resume(paused)
         self.assertEqual(completed.data.status, 'completed', completed.data.error)
         self.assertEqual(self.effects, [{}])
-        self.assertEqual(len(self.authorizations), 1)
+        self.assertEqual(len(self.authorizations), 2)  # 재개 때도 Host 기술적 거부를 다시 검사한다.
         counts = self.app.observability.snapshot()['tools']
         self.assertEqual((counts['requests'], counts['approval_required'], counts['executions']), (1, 1, 1))
 

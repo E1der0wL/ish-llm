@@ -82,8 +82,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
         completion = ScriptedCompletion([chunk("first answer", finish="stop")],
                                         [chunk("second answer", finish="stop")])
         app = LargeLanguageModel(self.root, conversation_storage="memory",
-                                engines={"loop": LoopEngine(completion_fn=completion,
-                                                             completion_kwargs={"model": "test"})})
+                                engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test"}})})})
         self.addAsyncCleanup(app.shutdown)
         project, session = await self.session(app)
         first = await session.run.submit("first", engine="loop")

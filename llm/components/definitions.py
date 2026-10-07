@@ -3,14 +3,14 @@
 from jsonschema import Draft202012Validator
 
 from llm.core.models import Project
-from llm.core.schema import open_schema
+from llm.core.schema import object_schema
 from .base import Component
 
 
 class DefinitionComponent(Component):
     """선택 구현체의 record contract를 검증한다. 연결이나 모델 호출은 하지 않는다."""
 
-    schema: dict = open_schema("selected component record implementation", category="implementation")
+    schema: dict = object_schema()
 
     def validate_record(self, identifier: str, data: dict) -> None:
         errors = sorted(Draft202012Validator(self.schema).iter_errors(data),

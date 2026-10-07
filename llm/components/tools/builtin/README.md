@@ -15,12 +15,16 @@
 
 ## 연결 방법
 
+파일 크기·출력 크기·명령 시간은 생성자 제한이 아닙니다. Tool의 max_file_bytes,
+max_output_bytes, timeout_seconds에 명시하고, 변경 불가/범위 제한이 필요하면
+Project policies.tools.argument_constraints의 fixed/bounded/selectable을 사용합니다.
+
 `BuiltinToolComponent(toolkit, name="computer")`를 등록하고 Project에서 `computer`를 선택합니다.
-`ProjectConfig.parameters.components.computer.enabled`에 제공할 이름을 명시합니다.
+`ProjectConfig.parameters.components.computer.config.enabled`에 제공할 이름을 명시합니다.
 enabled가 없으면 Tool을 노출하지 않습니다. 기존처럼 호스트의 사용자 정의 Component에서
 Toolkit registry를 반환해도 됩니다. ToolComponent는 Project Python 소스만 담당합니다.
 
-Component가 반환하는 Tool 계약에는 작업 루트·셸·검증 명령·호스트 제한의 지문이 들어갑니다.
+Component가 반환하는 Tool 계약에는 작업 루트·셸·검증 명령의 지문이 들어갑니다.
 이 값이 바뀌면 옛 체크포인트의 실행 환경과 다르므로 재개를 거부합니다. 외부 어댑터의 내부
 구현/상태 변경은 호스트의 계약이며 카탈로그가 자동 추론하지 않습니다.
 

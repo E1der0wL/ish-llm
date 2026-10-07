@@ -295,7 +295,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 if False:
                     yield
         feature = Feature("observe", Processor("observe", lambda _: Session()))
-        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, feature], engines={},
+        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, feature, memory_tests.PromptComponent()], engines={},
             services=ServiceConfig(token_counters={"test": lambda r: len(r["messages"])}))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.aload(self.project.id)
@@ -353,8 +353,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.add_feature("waiting", lambda _: Session())
         await self.project.components.aselect(["waiting"])
         model = ScriptedCompletion(memory_tests.answer())
-        self.app.engines.register("interruptible", LoopEngine(completion_fn=model,
-            completion_kwargs={"model": "test/main"}))
+        self.app.engines.register("interruptible", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/main"}})}))
         request = await self.session.run.submit("stop", engine="interruptible")
         await asyncio.wait_for(entered.wait(), 5)
         await self.session.run.interrupt()

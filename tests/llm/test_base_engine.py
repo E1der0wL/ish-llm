@@ -234,7 +234,10 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             finally:
                 closed.set()
-        self.engines.register("simple", BaseEngine("Wait", action=action, timeout_seconds=0.02))
+        class Operation(BaseEngine):
+            def execute(self, context):
+                return self.step(context, action, name="Wait", timeout_seconds=.02)
+        self.engines.register("simple", Operation())
         await self.manager.submit("request", engine="simple")
         await self.idle()
         run, = self.manager.repository.list(self.session)
@@ -406,9 +409,9 @@ class CompletionHelperTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(limits=limits, chunks=chunks):
                 response = {}
                 provider = ScriptedCompletion(chunks)
-                engine = BaseEngine(completion_fn=provider, **limits)
+                engine = BaseEngine(completion_fn=provider)
                 with self.assertRaises(ValueError):
-                    async for _ in engine.stream_completion(include_events=False, request={}, response=response):
+                    async for _ in engine.stream_completion(include_events=False, request={}, response=response, **limits):
                         pass
                 self.assertEqual(response, {})
 

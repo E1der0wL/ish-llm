@@ -1,5 +1,9 @@
 # Architecture
 
+현재 설정의 최상위 영속 권한은 Project다. Host는 구현·공유 자원·기술적 거절만 제공하며
+제품 정책 ceiling을 덮어쓰지 않는다. 수치 위험 분류, 저장 Agent 위임, Component dependency의
+현재 계약과 예제는 [Project authority](project-authority.md)에 정리한다.
+
 ## 설정과 정의의 의미 소유권
 
 ish-llm contracts are closed by default. Every configurable value has exactly one
@@ -389,7 +393,7 @@ Engine policy.completion/policy.provider는 기존 설정 fingerprint에 포함�
 
 Engine/Component의 공개 설정은 config(기능·SDK 인자)와 policy(구현체 실행 결정)로
 구분한다. 저장 위치는 ProjectConfig.parameters뿐이며 ComponentData.configure도 같은
-Project 저장 경계로 쓴다. 엔진은 Project → Session → Agent → host, 모델 클라이언트를
+Project 저장 경계로 쓴다. 엔진은 Project → Session → Agent(제한 확대 금지), 모델 클라이언트를
 주입한 컴포넌트는 client → Project의 명시값만 병합한다. Component에 Session/Agent
 상속을 추가하지 않는다. UI schema/values/sources/editable도 같은 분류와 해석기를 쓴다.
 
@@ -1285,8 +1289,9 @@ Only the selected implementation interprets its options. Loop consumes its own c
 mapping; Graph, RAG and Vision never inherit Loop SDK options by matching argument names.
 Session.config persists explicit engine overrides without copying Project settings at creation.
 EngineContext.settings(name) returns a detached merged view and the selected `engine` mapping.
-Nested dictionaries merge; explicit null replaces inherited values where supported. Constructor
-settings override Project/Session/Agent settings. Runtime clients remain host-owned.
+Nested dictionaries merge; explicit null replaces inherited values where supported, but child
+overrides cannot remove or widen a parent execution limit. Project/Session/Agent own execution
+settings; constructors inject implementations and technical identities. Runtime clients remain host-owned.
 Loop uses its registration name unless settings_name explicitly selects another configuration.
 Pipeline stages can select a named target or their own stages mapping. RunManager still reloads
 Project/Session and snapshots policies at Run start. Active Run policy protection is unchanged.
@@ -1403,8 +1408,8 @@ StepManager/StepEventRecorder still persist lifecycle events, and RunManager sti
 owns queues, Runs, streaming conversation writes, cancellation and recovery.
 
 This is a public API rename: engines/step.py and engines/_completion.py were removed.
-Use BaseEngine instead of StepEngine, and direct LoopEngine constructor limits
-instead of LoopOptions/options=. LoopEngineError/_Turn/_ToolCall are removed;
+Use BaseEngine instead of StepEngine, and Project Engine policy settings
+instead of LoopOptions/options= or constructor product limits. LoopEngineError/_Turn/_ToolCall are removed;
 validation uses ValueError/TypeError and wrapped execution retains contextual
 RuntimeError. LLM Step errors stay 'LLM iteration failed' and tool errors stay
 'Tool execution failed'. The Engine protocol remains usable without inheritance.
@@ -1419,19 +1424,19 @@ is introduced. providers/litellm.py is the existing thread/stream transport; its
 worker directly calls litellm.completion so synchronous network reads do not block
 the event loop.
 
-LoopEngine directly accepts max_iterations, request_timeout, tool_timeout,
-buffer_size, max_tool_calls, max_argument_chars and max_output_chars. LiteLLM
-options such as max_tokens belong in the open-ended completion_kwargs mapping. A synchronous context factory may supply that mapping.
-Project config supplies defaults; explicit kwargs override them. Builtin option
-containers are copied once per Loop execution and again per provider request,
-while SDK clients/callbacks retain identity. These objects are runtime configuration,
-not persisted JSON. Runtime api_key or SDK environment authentication is used.
+LoopEngine resolves max_iterations, request_timeout, tool_timeout, max_tool_calls,
+max_argument_chars and max_output_chars from its Project/Session/Agent policy.
+buffer_size and LiteLLM completion parameters belong to its config section. The
+constructor injects completion_fn/settings_name only. Configuration containers are
+copied once per Loop execution and again per provider request. Runtime SDK clients
+belong to the injected completion implementation, not persisted JSON. Explicit JSON
+api_key settings are persisted; SDK environment authentication remains available.
 No parameter allowlist attempts to mirror every LiteLLM release. Loop transcript
 and tool-registry ownership remain reserved (messages/tools/functions/function_call),
 and stream=True/n=1 are required. All other options are passed to LiteLLM; newer
 response formats may still require Engine changes. Provider timeout is independent
-of the application per-round deadline. system_prompt is a string or synchronous
-context factory, prepended once to the in-memory provider transcript.
+of the application per-round deadline. config.system_prompt is an explicit string
+or null, prepended once to the in-memory provider transcript when present.
 
 LoopEngine.settings_name defaults to None, selecting context.run.engine rather
 than a hard-coded "loop" section. EngineContext.settings() shares that default;
@@ -1446,9 +1451,9 @@ models nor repositories acquire this field. Do not copy these outputs to event
 metadata by default, because they may contain documents or runtime-only values.
 
 engines/pipeline/engine.py supplies PipelineEngine(stages) and PreparationStep(name,
-action, kind=..., timeout_seconds=...). PreparationStep emits lifecycle events
-around an async action(context), with a 60-second default deadline (None disables
-it). Pipeline passes one context through its sequential stages, including nested
+action, kind=..., settings_name=...). PreparationStep emits lifecycle events
+around an async action(context). Only explicit policy.timeout_seconds adds a
+deadline. Pipeline passes one context through its sequential stages, including nested
 pipelines. A failure, cancellation event, or unfinished Step prevents the next
 stage. Iterator cleanup is propagated; RunManager still owns Run cancellation,
 StepEventRecorder persistence, and queue/recovery semantics. Pipeline creates no
@@ -1457,7 +1462,7 @@ non-success terminal events without cancellation fail the pipeline.
 
 Preparation runs after Run creation, before the Loop. Document/RAG/environment
 work delegates to developer callbacks and component services. Per-Run values use
-context.state and can be consumed by Loop parameter/prompt factories. Callbacks
+context.state and can be consumed by custom Engines or completion processors. Callbacks
 must cooperate with cancellation and offload blocking work; arbitrary side effects
 cannot be rolled back. Never mutate process-global environment for one Session.
 Use a Run-local env dictionary for subprocesses. Existing stale Runs, including
@@ -1483,12 +1488,13 @@ as individual tool Steps. Their observations are added to the next LLM request.
 A normal `stop` response ends the Run. A `tool_calls` response starts another
 round when budget remains. Missing/abnormal finish reasons, malformed tools,
 tool failures, timeouts, and exhausted iteration budgets fail the Run. No
-engine retries are performed. LiteLLM defaults to `num_retries=0`; developers may
-override SDK request retries through completion_kwargs without enabling tool or
-stale-Run replay. Calls on the
+unconfigured outer retries are performed. LiteLLM DEFAULT_MAX_RETRIES=0 remains a
+compatibility invariant; explicit SDK retry parameters are passed unchanged through
+config.completion. Loop policy.provider configures outer retry without multiplying
+SDK retry. Neither enables automatic Tool or stale-Run replay. Calls on the
 last permitted iteration are not executed without a follow-up LLM round.
-Defaults are eight LLM rounds, 60 seconds per whole LLM round, and 30 seconds
-per async tool. Tool handlers must propagate cancellation and avoid blocking.
+Missing Loop round/time limits remain unlimited by ish-llm. Tool handlers must
+propagate cancellation and avoid blocking.
 
 The Engine still writes no files. RunManager and StepEventRecorder persist its
 events through the existing services. RunManager's optional synchronous
@@ -1504,7 +1510,7 @@ outputs remain in the Run output journal. Tool arguments are Step metadata and
 Tool results are exposed as Step.output.data. Raw provider response objects are
 not persisted. Stale Runs remain interrupted and are never automatically resumed.
 
-Authentication is delegated to the SDK environment or runtime completion_kwargs.
+Authentication is delegated to the SDK environment or explicit completion parameters.
 There is no application credential service, reserved secret directory, key-name
 blocking or error-message masking. Runtime objects are rejected by JSON validation.
 

@@ -17,9 +17,8 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
         from tests.llm.test_loop import ScriptedCompletion, chunk
         provider = ScriptedCompletion([chunk("hello", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
-            runtime = HubRuntime(HubConfig(root, auto_title=False, engine_factories={
-                "loop": lambda: LoopEngine(completion_fn=provider,
-                    completion_kwargs={"model": "test/host", "client": object()})}))
+            runtime = HubRuntime(HubConfig(root, model="test/host", auto_title=False, engine_factories={
+                "loop": lambda: LoopEngine(completion_fn=provider)}))
             try:
                 await runtime.start()
                 await runtime.new_session()
@@ -30,7 +29,8 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(str((await run.aresult()).status), "completed")
                 self.assertEqual(provider.requests[0]["model"], "test/host")
                 self.assertEqual((await runtime.project.aget_data()).config.parameters,
-                                 {"engines": {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}}}})
+                                 {"engines": {"loop": {'config': {'system_prompt': SYSTEM_PROMPT,
+                                     'completion': {'model': 'test/host'}}}}})
             finally:
                 await runtime.close()
 

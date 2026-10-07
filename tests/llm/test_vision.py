@@ -328,7 +328,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 [chunk(calls=[call('{"image_id":"probe"}', name="image_ocr", call_id="ocr")]), chunk(finish="tool_calls")],
                 [chunk("Check the server."), chunk(finish="stop")])
             async with LargeLanguageModel(root, components=[VisionComponent(ocr_backends={"local": OCR()})],
-                    engines={"loop": LoopEngine(completion_fn=complete, max_iterations=2)}) as app:
+                    engines={"loop": LoopEngine(completion_fn=complete).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'max_iterations': 2})})}) as app:
                 project = await app.projects.acreate("Images", components=["vision"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"vision": {'config': {'ocr': {'backend': 'local'}}}}}))
                 await project.components.vision.aimport_image(picture(), title="Probe", identifier="probe")
                 session = await project.sessions.acreate()

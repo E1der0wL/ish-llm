@@ -11,8 +11,13 @@ from llm.engines.base import EngineEvent, EngineEventType
 class EngineCheckpointScope:
     """Step ID와 독립적인 호출 경로. 내부 payload 형식은 자식 Engine이 소유한다."""
 
-    def __init__(self, owner, name, records):
+    def __init__(self, owner, name, records, *, parent_name="graph"):
         self.owner, self.name, self.records = owner, name, records
+        self.parent_name = parent_name
+
+    def _bind(self, request, local):
+        return request.bind(self.parent_name, self.key(local),
+                            decision_key="approved" if self.parent_name == "graph" else None)
 
     def key(self, local):
         return json.dumps([*json.loads(self.owner), "engine", self.name, local], ensure_ascii=False, separators=(",", ":"))
@@ -37,7 +42,7 @@ class EngineCheckpointScope:
             local = record["local_key"]
             parent = InteractionRequest.from_dict(record["interaction"])
             child = InteractionRequest.from_dict(record["payload"]["interaction"])
-            expected = child.bind("graph", self.key(local), decision_key="approved")
+            expected = self._bind(child, local)
             if (key != self.key(local) or child.binding.get("checkpoint") != self.name
                     or child.binding.get("key") != local or parent.fingerprint != expected.fingerprint):
                 raise ValueError("Child interaction does not match its checkpoint scope")
@@ -70,7 +75,7 @@ class EngineCheckpointScope:
                 raise ValueError("Unsupported child checkpoint status")
             # 자식의 responded/not_applied는 부모에서 외부 효과 재시도를 요구하지 않는다.
             status = state if state in ("started", "completed", "waiting") else "completed"
-            container = state != "started"
+            container = state != "started" or payload.get("container") is True
         else:
             raise ValueError("Unsupported child checkpoint operation")
         value = {"node_type": "engine_record", "engine_scope": self.owner, "checkpoint_name": self.name,
@@ -80,9 +85,9 @@ class EngineCheckpointScope:
             value.update(approval_required=True, name=payload.get("name"), arguments=payload.get("arguments"), prompt=payload.get("prompt"))
         request = None
         if "interaction" in payload:
-            request = InteractionRequest.from_dict(payload["interaction"]).bind("graph", self.key(local), decision_key="approved")
+            request = self._bind(InteractionRequest.from_dict(payload["interaction"]), local)
             value["interaction"] = request.to_dict()
-        return EngineEvent(EngineEventType.CHECKPOINT, interaction=request, metadata={"name": "graph", "operation": "record",
+        return EngineEvent(EngineEventType.CHECKPOINT, interaction=request, metadata={"name": self.parent_name, "operation": "record",
                           "key": self.key(local), "value": value})
 
     def accepted(self, event):
@@ -98,7 +103,7 @@ class EngineCheckpointScope:
         local = data["boundary"]
         envelope = {"node_type": "engine_record", "engine_scope": self.owner, "checkpoint_name": self.name,
                     "local_key": local, "status": "completed", "container": True, "requires_retry": False}
-        return replace(event, metadata={**data, "checkpoint": "graph", "boundary": self.key(local), "envelope": envelope})
+        return replace(event, metadata={**data, "checkpoint": self.parent_name, "boundary": self.key(local), "envelope": envelope})
 
     def accepted_instruction(self, event, inbox):
         if event.metadata["operation"] == "select" and not inbox.closed:

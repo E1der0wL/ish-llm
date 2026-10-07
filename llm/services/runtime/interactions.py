@@ -33,7 +33,7 @@ class InteractionRepository:
         ids = set()
         for key, record in checkpoint["records"].items():
             if record.get("status") == "started" and record.get("requires_retry"):
-                request = approval_request("결과가 불확실한 작업 재실행", category="execution.retry_uncertain", risk="high",
+                request = approval_request("결과가 불확실한 작업 재실행", category="execution.retry_uncertain",
                     source={"run_id": run.id, "session_id": run.session_id}, action={"checkpoint_record": deepcopy(record)})
                 identity = hashlib.sha256(json.dumps([run.id, checkpoint.get("name"), key]).encode()).hexdigest()[:32]
                 request = replace(request, id=identity, created_at=run.created_at,

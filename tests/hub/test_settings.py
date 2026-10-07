@@ -43,13 +43,21 @@ def settings_backend(config, gate=None):
 
 class SettingsFormTests(unittest.TestCase):
     def test_effective_values_are_observation_only_and_host_leaves_are_readonly(self):
-        engine = LoopEngine(system_prompt=None, completion_kwargs={"extra_body": {"fixed": 1}})
+        engine = LoopEngine()
         from llm.core.models import ProjectConfig
         config = ProjectConfig(parameters={"engines": {"loop": {"config": {
             "system_prompt": "stored prompt", "completion": {"extra_body": {"sibling": 2}}}}}})
         original = config.parameters["engines"]["loop"]
         view = engine.configuration(config, "loop")
-        form = SchemaForm(engine.configuration_schema(), original, Language("en"), effective={"loop": view})
+        # Generic adapter observations may still mark infrastructure leaves read-only.
+        view["values"]["config"]["completion"]["extra_body"]["fixed"] = 1
+        for path in ("/config/system_prompt", "/config/completion/extra_body/fixed"):
+            view["sources"][path] = "host"
+            view["editable"][path] = False
+        schema = engine.configuration_schema()
+        schema["properties"]["config"]["properties"]["completion"]["properties"]["extra_body"] = {
+            "type": "object", "properties": {"fixed": {"type": "integer"}, "sibling": {"type": "integer"}}}
+        form = SchemaForm(schema, original, Language("en"), effective={"adapter": view})
         prompt = form.fields[("config", "system_prompt")]
         fixed = form.fields[("config", "completion", "extra_body", "fixed")]
         self.assertTrue(prompt.readonly)
@@ -69,12 +77,14 @@ class SettingsFormTests(unittest.TestCase):
 
     def test_partial_host_json_is_guarded_without_locking_unrelated_keys(self):
         from llm.core.models import ProjectConfig
-        engine = LoopEngine(completion_kwargs={"response_format": {"type": "json_object"}})
+        engine = LoopEngine()
         config = ProjectConfig(parameters={"engines": {"loop": {"config": {
             "completion": {"response_format": {"type": "text", "other": 1}}}}}})
         original = config.parameters["engines"]["loop"]
-        form = SchemaForm(engine.configuration_schema(), original, Language("en"),
-                          effective={"loop": engine.configuration(config, "loop")})
+        view = engine.configuration(config, "loop")
+        view["sources"]["/config/completion/response_format/type"] = "host"
+        view["editable"]["/config/completion/response_format/type"] = False
+        form = SchemaForm(engine.configuration_schema(), original, Language("en"), effective={"adapter": view})
         field = form.fields[("config", "completion", "response_format")]
         self.assertFalse(field.readonly)
         self.assertIn("nested keys", " ".join(field.observations))
@@ -96,12 +106,12 @@ class SettingsFormTests(unittest.TestCase):
             form.values()
 
     def test_runtime_host_and_client_values_are_not_materialized(self):
-        engine = LoopEngine(completion_kwargs=lambda ctx: {"model": "runtime"})
+        engine = LoopEngine(completion_fn=lambda **kwargs: iter(()))
         view = engine.configuration({}, "loop")
         form = SchemaForm(engine.configuration_schema(), {}, Language("en"), effective={"loop": view})
         model = form.fields[("config", "completion", "model")]
-        self.assertTrue(model.readonly)
-        self.assertEqual(model.observations, (Language("en")("settings_host_locked"),))
+        self.assertFalse(model.readonly)
+        self.assertEqual(model.observations, ())
         self.assertEqual(form.values(), {})
         schema = implementation_schema(config={"type": "object", "properties": {"a/b~c": {"type": "number"}}})
         view = {"values": {"config": {"a/b~c": 3}}, "sources": {"/config/a~1b~0c": "client"},
@@ -112,7 +122,7 @@ class SettingsFormTests(unittest.TestCase):
         self.assertEqual(component.fields[("config", "a/b~c")].observations, ())
 
     def test_shared_settings_key_uses_all_engine_locks_and_views(self):
-        engines = {"a": LoopEngine(system_prompt=None), "b": LoopEngine(tool_timeout=5)}
+        engines = {"a": LoopEngine(settings_name="shared"), "b": LoopEngine(settings_name="shared")}
         from llm.core.models import ProjectConfig
         project = ProjectConfig(parameters={"engines": {"shared": {"config": {"system_prompt": "stored"}}}})
         schema = {"allOf": [engine.configuration_schema() for engine in engines.values()]}
@@ -120,12 +130,11 @@ class SettingsFormTests(unittest.TestCase):
         views = {name: engine.configuration(project, "shared") for name, engine in engines.items()}
         form = SchemaForm(schema, {"shared": original}, Language("en"), prefix=("shared",), effective=views)
         field = form.fields[("shared",)]
-        self.assertEqual(field.observations, (Language("en")("settings_host_partial"),))
+        self.assertEqual(field.observations, ())
         self.assertEqual(form.values(), {"shared": original})
         field.input.text = '{"config":{"system_prompt":"changed"}}'
-        with self.assertRaisesRegex(ValueError, "Host override"):
-            form.values()
-        self.assertIn(("shared", "policy", "tool_timeout"), form.locked)
+        self.assertEqual(form.values()["shared"]["config"]["system_prompt"], "changed")
+        self.assertNotIn(("shared", "policy", "tool_timeout"), form.locked)
 
     def test_missing_null_nested_and_unknown_values_survive(self):
         schema = {"type": "object", "properties": {
@@ -221,7 +230,7 @@ class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
 
 
 class SettingsUITests(unittest.IsolatedAsyncioTestCase):
-    async def test_host_locked_project_form_saves_only_editable_values(self):
+    async def test_project_form_policy_is_editable_and_reaches_engine(self):
         calls = []
         def provider(**kwargs):
             calls.append(kwargs)
@@ -229,7 +238,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             config = HubConfig(directory, model="test/model", auto_title=False,
                 project_config={"parameters": {"engines": {"loop": {"config": {"system_prompt": "stored prompt"}}}}},
-                engine_factories={"loop": lambda: LoopEngine(system_prompt=None, completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
@@ -245,26 +254,22 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 page = screen.page
                 prefix = ("config", "parameters", "engines", "loop", "config")
                 field = page.engine_forms["loop"].fields[(*prefix, "system_prompt")]
-                self.assertTrue(field.readonly)
+                self.assertFalse(field.readonly)
                 self.assertEqual(field.input.text, "stored prompt")
-                self.assertEqual(field.observations, (screen.t("settings_host_locked"),))
-                app.layout.focus(field.input)
-                pipe.send_text("e\rSHOULD_NOT_EDIT")
-                await asyncio.sleep(0.05)
-                self.assertFalse(field.editing)
-                self.assertEqual(field.input.text, "stored prompt")
+                self.assertEqual(field.observations, ())
+                field.input.text = "edited prompt"
                 page.engine_forms["loop"].fields[(*prefix, "completion", "temperature")].input.text = "0.3"
                 page.submit()
                 await until(lambda: screen.page is not page and not screen.busy)
                 stored = screen.page.record["project"]["config"]["parameters"]["engines"]["loop"]["config"]
-                self.assertEqual(stored["system_prompt"], "stored prompt")
+                self.assertEqual(stored["system_prompt"], "edited prompt")
                 self.assertEqual(stored["completion"]["temperature"], 0.3)
                 pipe.send_text("\x13")
                 await until(lambda: not view.settings_open)
                 pipe.send_text("hello\r")
                 await until(lambda: any(m.role == "assistant" and m.status == "completed" for m in view.transcript.control.messages))
                 self.assertEqual(calls[0]["temperature"], 0.3)
-                self.assertFalse(any(message.get("role") == "system" for message in calls[0]["messages"]))
+                self.assertEqual(calls[0]["messages"][0], {"role": "system", "content": "edited prompt"})
             finally:
                 app.exit()
                 await task

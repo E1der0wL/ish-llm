@@ -2,7 +2,7 @@
 
 python -m examples.llm.rag_components --model gemini/gemini-3.1-flash-lite
 --ask를 주면 내장 검색 Tool을 사용하는 LoopEngine도 실행한다.
-키는 GEMINI_API_KEY 환경변수에서 읽어 런타임 객체에만 전달한다.
+키는 GEMINI_API_KEY 환경변수에서 읽는다. --ask 실행 시에는 명시 Loop Project 설정에도 저장한다.
 """
 
 import argparse
@@ -26,8 +26,7 @@ async def run(args: argparse.Namespace) -> dict:
         extractor=TripleExtractor(model=args.model, api_key=key, temperature=0),
     )
     # rag 한 곳에서 문서·벡터·관계를 관리하고 함께 검색한다.
-    engines = ({"loop": LoopEngine(completion_kwargs={"model": args.model, "api_key": key},
-                                   max_iterations=8)} if args.ask else {})
+    engines = ({"loop": LoopEngine()} if args.ask else {})
     async with LargeLanguageModel(args.workspace, components=[component], engines=engines) as backend:
         project = await backend.projects.acreate("RAG Component demo", components=["rag"], config={"parameters": {"components": {"rag": {'config': {'chunk_size': 2000, 'extraction_batch_size': 32, 'graph': {'buffer_pool_size': 64 * 1024 * 1024, 'max_num_threads': 2}, 'search': {'method': 'hybrid', 'expand': 'section', 'limit': 5, 'candidate_count': 20, 'rrf_constant': 60, 'max_hops': 2, 'relation_limit': 30}, 'document_kwargs': {'session_type': 'RETRIEVAL_DOCUMENT'}, 'query_kwargs': {'session_type': 'RETRIEVAL_QUERY'}}, 'policy': {'embedding_concurrency': 2, 'extraction': {'failure_policy': 'required'}}}}}})
         rag = await project.components.aget("rag")
@@ -40,6 +39,10 @@ async def run(args: argparse.Namespace) -> dict:
         report = {"project_id": project.id, "document_id": document["id"],
                   "search": search, "hits": search["documents"], "graph": graph}
         if args.ask:
+            config = (await project.aget_data()).config
+            config.parameters.setdefault("engines", {})["loop"] = {
+                "config": {"completion": {"model": args.model, "api_key": key}}, "policy": {"max_iterations": 8}}
+            await project.asave(config=config)
             session = await project.sessions.acreate("Document question")
             run = await (await session.run.submit(args.ask, engine="loop")).wait()
             result = await run.aresult()

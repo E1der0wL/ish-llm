@@ -15,6 +15,18 @@ class AgentComponent(DefinitionComponent):
     directory = "agents"
     capabilities = ("agents",)
     data_class = AgentData
+
+    def __init__(self, *, engines=None):
+        """위임 Tool을 제공할 Host Engine environment를 명시적으로 연결한다."""
+        self.engines = engines
+        self.capabilities = ("agents", "tools") if engines is not None else ("agents",)
+
+    def resolve(self, project, capability):
+        if capability == "tools" and self.engines is not None:
+            from .tools import agent_tools
+            return agent_tools(self.engines, self.list(project))
+        return super().resolve(project, capability)
+
     schema = {
         "type": "object", "required": ["purpose", "engine"], "additionalProperties": False,
         "properties": {

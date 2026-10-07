@@ -33,23 +33,17 @@ class BuiltinTools:
     def __init__(self, root, *, allow_commands: bool = False, git: bool = False, diagnostics: bool = False,
                  checks: Optional[Mapping[str, Sequence[str]]] = None,
                  adapters: Optional[Mapping[str, Callable]] = None,
-                 max_file_bytes: Optional[int] = None, max_output_bytes: Optional[int] = None,
-                 max_seconds: Optional[float] = None, shell: Optional[Sequence[str]] = None):
-        if any(value is not None and (type(value) is not int or value < 1) for value in (max_file_bytes, max_output_bytes)):
-            raise ValueError("Byte limits must be positive integers")
-        if max_seconds is not None and (isinstance(max_seconds, bool) or not isinstance(max_seconds, (int, float)) or not math.isfinite(max_seconds) or max_seconds <= 0):
-            raise ValueError("max_seconds must be positive and finite")
+                 shell: Optional[Sequence[str]] = None):
         if any(type(value) is not bool for value in (allow_commands, git, diagnostics)):
             raise TypeError("Tool feature switches must be booleans")
-        self.files = FileTools(Path(root), max_file_bytes)
-        self.processes = ProcessTools(self.files, max_seconds=max_seconds, max_output_bytes=max_output_bytes)
+        self.files = FileTools(Path(root))
+        self.processes = ProcessTools(self.files)
         self.registry = ToolRegistry()
         self.closed = False
         # 재개 binding에 필요한 호스트 실행 환경. client/함수나 숨은 사용자 설정을
         # 저장하지 않는다. 외부 어댑터의 내부 상태는 여전히 해당 호스트가 관리한다.
         self._execution_binding = {"root": str(self.files.root), "shell": list(shell) if shell is not None else None,
-            "checks": deepcopy(dict(checks or {})), "max_file_bytes": max_file_bytes,
-            "max_output_bytes": max_output_bytes, "max_seconds": max_seconds}
+            "checks": deepcopy(dict(checks or {}))}
         path = string(minLength=1)
         digest = string(pattern="^[0-9a-f]{64}$")
         patterns = {"type": "array", "items": string(minLength=1), "minItems": 1}
@@ -65,13 +59,14 @@ class BuiltinTools:
             "file_restore": ("Restore a trash item to an unused relative path.", schema({"path": path, "trash_id": string(pattern="^[0-9a-f]{32}$")}, ["path", "trash_id"])),
         }
         for name, (description, parameters) in specs.items():
-            operation = getattr(self.files, name)
-            async def file_call(args, operation=operation):
+            parameters["properties"]["max_file_bytes"] = {"type": "integer", "minimum": 1}
+            async def file_call(args, operation=name):
                 # 승인된 파일 변경은 완료를 기다린 뒤 취소를 전달한다.
-                return await drain_on_cancel(asyncio.to_thread(operation, args))
+                return await drain_on_cancel(asyncio.to_thread(getattr(self.files.for_arguments(args), operation), args))
             self._register(name, description, parameters, file_call)
 
-        limits = {"timeout_seconds": {"type": "number", "exclusiveMinimum": 0, **({"maximum": max_seconds} if max_seconds is not None else {})}}
+        limits = {"timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
+                  "max_output_bytes": {"type": "integer", "minimum": 1}}
         commands = dict(checks or {})
         for name, argv in commands.items():
             if not isinstance(name, str) or not name or isinstance(argv, str) or not argv or any(not isinstance(item, str) or not item for item in argv):

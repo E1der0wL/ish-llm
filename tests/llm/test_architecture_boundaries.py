@@ -71,7 +71,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": identifier,
             "expected_version": view["version"]}), name="refinement_apply")], finish="tool_calls")],
             [chunk("applied", finish="stop")])
-        self.app.engines.register(engine, LoopEngine(completion_fn=model, completion_kwargs={"model": "test/refiner"}))
+        self.app.engines.register(engine, LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/refiner"}})}))
         paused = await (await self.session.run.submit("apply proposal", engine=engine)).wait()
         self.assertEqual(str(paused.data.status), "paused", paused.data.error)
         self.assertEqual((await self.refine.aload(identifier))["status"], "proposed")
@@ -178,12 +178,13 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         self.app.project_manager.components.register(WorkflowComponent())
         await self.project.asave(components=[*self.project.data.components, "workflows"])
         profile = {"engine": "loop", "purpose": "Check work", "system_prompt": "Inline instruction",
+                   "completion": {"model": "test/worker"},
                    "resources": {"prompt": "guide", "skills": ["guide"]}, "tools": []}
         view = await self.project.components.agents.asnapshot("guide")
         await self.project.components.agents.arevise("guide", profile, expected_revision=view["revision"])
         model = ScriptedCompletion([chunk(calls=[call('{}', name="not_allowed")], finish="tool_calls")], answer("success"))
         self.app.engines.register("graph", GraphEngine(handlers={"agent": AgentNode(engines={
-            "loop": LoopEngine(completion_fn=model, completion_kwargs={"model": "test/worker"})})}))
+            "loop": LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/worker"}})})})}))
         workflow = agent_graph()
         workflow["nodes"]["agent"]["agent"] = "guide"
         await self.project.components.workflows.acreate(workflow, identifier="flow")
@@ -198,7 +199,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
             "expected_version": None, "parent": {"identifier": "guide", "version": parent["version"]},
             "patch": {"instructions": "Check allowed Tools before working"}, "reason": "Observed failure", "evidence": self.evidence}
         refiner = ScriptedCompletion([chunk(calls=[call(json.dumps(proposal), name="refinement_propose")], finish="tool_calls")], answer("Review proposal"))
-        self.app.engines.register("refiner", LoopEngine(completion_fn=refiner, completion_kwargs={"model": "test/refiner"}))
+        self.app.engines.register("refiner", LoopEngine(completion_fn=refiner).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/refiner"}})}))
         analysis = await (await self.session.run.submit("Analyze failure and propose a fork", engine="refiner")).wait()
         self.assertEqual(str(analysis.data.status), "completed", analysis.data.error)
         identifier, saved = next(iter((await self.refine.alist()).items()))
@@ -338,8 +339,9 @@ class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
         second = await memory._async_call(memory._extraction_prompt, "guide")
         self.assertIn("Before", first["text"])
         self.assertNotEqual(first["version"], second["version"])
-        self.memory_component.extract_prompt = "Host policy"
-        self.assertEqual((await memory._async_call(memory._extraction_prompt, "guide"))["source"], "host")
+        with self.assertRaises(TypeError):
+            type(self.memory_component)(extract_prompt="Host policy")
+        self.assertEqual(second["source"], "guide")
 
 
 class GraphRankingTests(unittest.TestCase):

@@ -246,16 +246,16 @@ class RunRepository:
         """정책 응답만 저장한다. 실행 재개와 호스트 허용 여부 검사는 별도다."""
         if not policy.get("enabled", False):
             return []
-        ranks = {"low": 0, "medium": 1, "high": 2}
         answered = {r.request_id for r in self.interaction_responses(session, run)}
         saved = []
         for request in self.interaction_requests(session, run):
-            if (request.id in answered or request.expired or request.risk not in ranks
-                    or request.category == "execution.retry_uncertain" or not request.action.get("auto_approval_allowed")
+            if (request.id in answered or request.expired or request.risk is None
+                    or request.risk_scheme != policy.get("risk_scheme")
+                    or request.category == "execution.retry_uncertain"
                     or InteractionRepository().envelope(run, request).get("cancelled")):
                 continue
             for rule in policy.get("rules", []):
-                if rule["category"] == request.category and ranks[request.risk] <= ranks[rule["max_risk"]]:
+                if rule["category"] == request.category and request.risk <= rule["max_risk"]:
                     option = next((o for o in request.options if o.effect == "approve"), None)
                     if option is not None:
                         response = replace(request.respond(option.id), actor="policy", policy_id=rule["id"])
@@ -957,11 +957,11 @@ class RunManager:
                 raise ValueError("Capability resolver omitted a required capability")
             values.update(resolved)
         retries = run.metadata["policies"].get("tool_retry", {})
-        tool_policy = replace(self.tool_policy, **{
-            target: retries[source] for source, target in (("max_retries", "max_retries"), ("delay_seconds", "retry_delay"))
-            if source in retries and target not in self.tool_policy._explicit_retry})
-        tool_scope = ToolExecutionScope(tool_policy,
-            operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
+        tool_scope = ToolExecutionScope(self.tool_policy, settings=run.metadata["policies"].get("tools", {}), retry=retries,
+              operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
+        if checkpoint:
+            tool_scope.restore([value["runtime_tool_usage"] for value in checkpoint["records"].values()
+                                if "runtime_tool_usage" in value])
         for name in values.get("tools", ToolRegistry()).names():
             tool_scope.validate(values["tools"].get(name))
         inbox = (SteeringInbox(history=checkpoint_messages(store, checkpoint) if checkpoint else {})
@@ -1024,6 +1024,11 @@ class RunManager:
                 if paused:
                     raise ValueError("Engine emitted events after pause")
                 event, change = outputs.accept(event, active_steps, has_result="output" in run.metadata)
+                if event.type == EngineEventType.CHECKPOINT and event.metadata.get("operation") == "record":
+                    # Run 전체 예산은 서비스 스코프가 소유한다. Engine payload를 해석하지 않고
+                    # 같은 durable 저장 경계에 스냅샷을 붙여 명시적 재개가 예산을 초기화하지 않게 한다.
+                    event = replace(event, metadata={**event.metadata, "value": {
+                        **event.metadata["value"], "runtime_tool_usage": context.tool_scope.checkpoint()}})
                 value = event.delta if event.type == EngineEventType.TEXT_DELTA else event.output
                 if event.type == EngineEventType.STEERING:
                     if context.steering is None:

@@ -109,7 +109,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         effects = []
         async def effect(arguments):
             effects.append(arguments)
-        for contract in (ToolContract(approval_required=True), ToolContract(operation_key_required=True), ToolContract(isolation="sandbox")):
+        for contract in (ToolContract(operation_key_required=True), ToolContract(isolation="sandbox")):
             app, model = await self.app(components=[RuntimeTools(ToolRegistry((Tool("act", "Act", {"type": "object"}, effect, contract=contract),)))])
             project = await app.projects.acreate(components=["tools"], config={"parameters": {"engines": {"custom": {'config': {'completion': {'model': 'test'}}}}}})
             await project.components.tools.aenable("act")

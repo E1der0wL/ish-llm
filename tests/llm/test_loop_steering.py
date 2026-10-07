@@ -42,11 +42,12 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         app = LargeLanguageModel(Path(folder.name), components=components or [], services=services,
-            engines={"worker": LoopEngine(completion_fn=model, **(options or {}))}, on_event=on_event)
+            engines={"worker": LoopEngine(completion_fn=model)}, on_event=on_event)
         self.addAsyncCleanup(app.shutdown)
         self.addCleanup(model.release.set)
         project = await app.projects.acreate("test", config=ProjectConfig(ProjectConfig.merge(
-            {"parameters": {"engines": {"worker": {'config': {'completion': {'model': 'test/model'}}}}}}, config or {})),
+            {"parameters": {"engines": {"worker": ProjectConfig.merge({'config': {'completion': {'model': 'test/model'}}},
+                LoopEngine.settings_layout.pack(options or {}))}}}, config or {})),
             components=[v.name for v in (components or [])])
         for component in components or []:
             if isinstance(component, RuntimeTools):

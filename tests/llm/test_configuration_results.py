@@ -47,7 +47,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.session.config["parameters"] = {"engines": {"loop": {'config': {'completion': {'top_p': 0.6, 'extra_body': {'setting': 1}}, 'system_prompt': 'session prompt'}, 'policy': {'max_iterations': 1}}}}
         self.sessions.save(self.session)
         provider = ScriptedCompletion([chunk("answer", finish="stop")])
-        self.engines.register("loop", LoopEngine(completion_fn=provider, completion_kwargs={"top_p": 0.4}))
+        self.engines.register("loop", LoopEngine(completion_fn=provider).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"top_p": 0.4}})}))
         self.assertEqual(self.sessions.load(self.project, self.session.id).config, self.session.config)
         self.assertEqual(self.project.config, self.projects.load(self.project.id).config)
         run = await self.submit()

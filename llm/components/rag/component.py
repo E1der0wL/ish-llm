@@ -204,8 +204,14 @@ class RAGComponent(DefinitionComponent):
         for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "index_batch_size"):
             if name in data and type(data[name]) is not int:
                 raise ValueError(f"{name} requires an integer")
-        for client, key in ((self.embedding, "embedding_params"), (self.extractor, "extraction_params"), (self.reranker, "rerank_params")):
-            validate = getattr(client, "validate_configuration", None)
+        from .embedding import EmbeddingModel
+        from .extraction import TripleExtractor
+        from .rerank import RerankModel
+        for client, factory, key in ((self.embedding, EmbeddingModel, "embedding_params"),
+                                    (self.extractor, TripleExtractor, "extraction_params"),
+                                    (self.reranker, RerankModel, "rerank_params")):
+            selected = factory if client is None else client
+            validate = getattr(selected, "validate_configuration", None)
             if validate is not None and key in data:
                 validate(deepcopy(data[key]))
 

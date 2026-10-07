@@ -25,6 +25,7 @@ class HubConfig:
     language: str = "ko"
     engine_factories: dict[str, Callable] | None = None
     component_factories: tuple[Callable, ...] | None = None
+    tool_classifier: Callable | None = None
     project_config: dict = field(default_factory=dict)
     file_root: str | Path | None = None
     auto_title: bool = True
@@ -47,7 +48,8 @@ class HubConfig:
 
 def create_backend(config: HubConfig):
     # Heavy imports and construction happen on the backend thread, not in .ishrc.
-    from llm.llm import LargeLanguageModel
+    from llm.llm import LargeLanguageModel, ServiceConfig
+    from llm.services.runtime.tools import ToolPolicy
     from llm.engines.loop import LoopEngine
     from llm.engines.graph import GraphEngine
     from llm.engines.graph.agent import AgentNode
@@ -71,11 +73,12 @@ def create_backend(config: HubConfig):
         engines[TITLE_ENGINE] = TitleEngine()
     components = {component.name: component for component in
                   (ToolComponent(), SkillComponent(), MCPComponent(), RAGComponent(),
-                   AgentComponent(), WorkflowComponent(), MemoryComponent(), PromptComponent())}
+                   AgentComponent(engines=engines), WorkflowComponent(), MemoryComponent(), PromptComponent())}
     for factory in config.component_factories or ():
         component = factory()
         components[component.name] = component
-    return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines)
+    return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
+                              services=ServiceConfig(tool_policy=ToolPolicy(classify=config.tool_classifier)))
 
 
 class HubRuntime:

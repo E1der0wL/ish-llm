@@ -74,7 +74,8 @@ await project.components.agents.acreate({
 policy.max_steps/max_parallelism/timeout_seconds/max_nested_depth를 받는다.
 GraphEngine의 SettingsLayout을 그대로 사용하며 별도 schema를 복제하지 않는다.
 `workflow`는 반드시 명시하며 부모 요청이나 등록 객체에서 추측하지 않는다.
-나머지 실행 설정은 기존 Project/Session/Agent/host 순서로 해석한다.
+나머지 실행 설정은 Project/Session/Agent 순서로 해석하며 child가 부모 한계를 확대하지 못한다.
+Host 생성자는 handler environment와 기술 identity만 제공한다.
 등록 객체를 변경하지 않고 호출별 복사본을 만든다.
 Graph Agent는 behavioral Agent가 아닌 **다른 GraphEngine/handler environment의 이름**이다.
 같은 환경에서 중첩하려면 workflow 노드를 사용한다. Graph Agent 정의에는 purpose, engine,

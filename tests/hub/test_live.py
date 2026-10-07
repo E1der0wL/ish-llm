@@ -35,7 +35,8 @@ class ControlledEngine(BaseEngine):
                                     schema=self.configuration_schema())
 
     def configuration_schema(self):
-        from llm.core.schema import completion_schema, object_schema, implementation_schema
+        from llm.core.schema import object_schema, implementation_schema
+        from llm.providers.schema import completion_schema
         return implementation_schema(config=object_schema({"completion": completion_schema()}))
 
     def __init__(self, gate):

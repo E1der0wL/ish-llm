@@ -299,8 +299,8 @@ LoopEngine reads `config.parameters.engines[registered_engine_name]`, including
 Session overrides. EngineContext.settings() uses the owning Run's engine name.
 For stages in a PipelineEngine, that is the pipeline's registered name. To use
 another section explicitly, construct `LoopEngine(settings_name="loop")` (or any
-other section name). Constructor limits/system_prompt still override JSON settings;
-completion_kwargs still overrides Project/Session completion arguments. Reusing the
+other section name). Execution settings use Project → Session → Agent and child limits
+cannot widen their parent. Constructors supply implementations, not policy values. Reusing the
 same LoopEngine under multiple names does not mutate its shared settings.
 
 ## Install and test with Python 3.12.14
@@ -383,19 +383,23 @@ To attach the engine to your own services:
 
 ```python
 from llm.engines.loop import LoopEngine
+from llm.core.models import ProjectConfig
 
-engines.register("loop", LoopEngine(
-    max_iterations=8,
-    completion_kwargs={"top_p": 0.9, "max_tokens": 4096},
-    system_prompt="Answer accurately and concisely.",
-))
+engines.register("loop", LoopEngine())
+config = ProjectConfig(parameters={"engines": {"loop": {
+    "config": {"completion": {"model": model_name, "top_p": 0.9, "max_tokens": 4096},
+               "system_prompt": "Answer accurately and concisely."},
+    "policy": {"max_iterations": 8},
+}}})
+# Pass config when creating/saving the Project.
 # Select the registered Engine explicitly on every request:
 # await manager.submit(content, engine="loop").
 ```
 
 ProjectConfig.parameters.engines[name].config.completion stores explicit JSON-compatible Loop/LiteLLM options, including
 model, temperature, api_base and provider-specific options. Authentication uses
-the provider SDK environment or runtime-only completion_kwargs. There is no application credential resolver or field-name blocking.
+the provider SDK environment or explicit JSON completion parameters. A custom completion_fn
+may own runtime SDK clients. There is no application credential resolver or field-name blocking.
 
 LoopEngine calls `litellm.completion` with `stream=True`. SDK timeout/retry kwargs
 are forwarded only when explicitly configured; DEFAULT_MAX_RETRIES=0 remains a
@@ -414,21 +418,16 @@ Output and tool arguments use only explicitly configured limits; a bounded strea
 bridge applies backpressure without dropping content. Missing Loop request/tool
 timeouts add no deadlines. SDK completion.timeout and Loop request_timeout are independent.
 
-`completion_kwargs` is a mapping of LiteLLM completion arguments or a synchronous
-`factory(context) -> mapping`. Values override Project model/temperature/API base
-and default provider options. New provider-specific parameters pass through
-without a new dataclass field; unsupported values are reported by LiteLLM.
-Runtime SDK clients and callbacks are supported and retained by reference. Plain
-dict/list/tuple containers are copied at configuration/snapshot/request boundaries.
-These runtime parameters are not serialized to Project/Run metadata or service
-logs. SDK environment and completion arguments remain available for provider options;
-there is no application key-name filter or masking.
+`config.completion` is the provider-owned JSON parameter mapping under the selected Engine.
+New provider parameters pass through without a new dataclass field; the adapter/SDK validates
+them. Values are copied at configuration/snapshot/request boundaries. Authentication configured
+there is persisted, so choose SDK environment authentication if persistence is unwanted.
 
-Application limits are direct keyword arguments: `max_iterations=8`,
-`request_timeout=60.0`, `tool_timeout=30.0`, `buffer_size=8`, `max_tool_calls=16`,
-`max_argument_chars=65536`, and `max_output_chars=1_000_000`. `LoopOptions` and
-`options=` were removed. For model options use `completion_kwargs`, for example
-`completion_kwargs={"max_tokens": 100}`.
+Application limits belong to `parameters.engines[name].policy`: max_iterations,
+request_timeout, tool_timeout, max_tool_calls, max_argument_chars and max_output_chars.
+Queue sizing belongs to config.buffer_size. Missing limits add no deadline or ceiling.
+The constructor accepts settings_name and completion_fn only; LoopOptions/options and
+constructor product overrides are not supported.
 Provider `timeout` is separate from the total per-round `request_timeout` limit;
 configure both when necessary. Explicit SDK num_retries affects completion calls
 only, never automatic tool or stale-Run replay. The Loop requires streaming and
@@ -453,7 +452,7 @@ attribute shortcuts are provided; nested values use dictionary access. Removed S
 sections are rejected rather than migrated. Component settings live in parameters.components.
 Session creation does not copy Project settings. At execution, nested dictionaries merge;
 explicit null overrides where supported. Missing keys remain missing. Loop reads completion
-inside its own parameters.engines target. Host constructor values override inherited settings.
+inside its own parameters.engines target. Project → Session → Agent owns execution values; child limits cannot widen their parent. Host constructors inject implementations, not product-policy ceilings.
 EngineContext.settings(name) returns a detached view and the selected `engine` mapping.
 Project changes affect future Runs, while active Run snapshots stay unchanged.
 See [the configuration contract](../../llm/CONFIGURATION.md) for sources and UI metadata.
@@ -677,7 +676,7 @@ non-LLM engines can use only its Step event support without invoking LiteLLM.
 Migration: import `BaseEngine` from `llm.engines` or `llm.engines.base` instead of
 `StepEngine`/`llm.engines.step`. The old module, `_completion.py`, `LoopOptions`,
 `LoopEngineError`, `_Turn`, and `_ToolCall` are removed. LoopEngine is a single
-BaseEngine subclass with direct constructor options. Validation raises standard
+BaseEngine subclass with Project-resolved execution settings. Validation raises standard
 ValueError/TypeError; execution failures retain Step error details and
 RuntimeError through the common lifecycle. Existing event/persistence formats and
 RunManager ownership are unchanged.
@@ -686,8 +685,8 @@ RunManager ownership are unchanged.
 
 PipelineEngine runs Engine stages in order inside the same Run. PreparationStep
 wraps an async callback as an observable Step. All stages receive the same
-EngineContext and its fresh, runtime-only state dictionary. The Loop evaluates
-completion_kwargs/system_prompt factories after preparation, once per execution.
+EngineContext and its fresh, runtime-only state dictionary. Custom Engine code or a
+completion processor may consume prepared state; built-in Loop settings remain Project JSON.
 A system prompt is prepended to the provider transcript and is not appended as a
 new durable conversation message each round.
 
@@ -708,19 +707,17 @@ async def prepare(context):
 
 engines.register("prepared_loop", PipelineEngine(stages=[
     PreparationStep("Read instructions", prepare, kind="retrieval"),
-    LoopEngine(
-        max_iterations=8,
-        completion_kwargs={"top_p": 0.9, "max_tokens": 4096},
-        system_prompt=lambda context: context.state["instructions"],
-    ),
+    LoopEngine(settings_name="loop"),
 ]))
 
-# The caller creates instructions.txt in the Project before submitting.
+# Configure parameters.engines.loop.config.completion.model on the Project.
+# The caller creates instructions.txt before submitting. This example reads it into
+# context.state only; a custom Engine/processor decides how to consume that data.
 await manager.submit("Help with this workspace", engine="prepared_loop")
 ```
 
-PreparationStep adds a deadline only for explicit timeout_seconds;
-missing or None adds no deadline. Callbacks/factories are developer code on the event
+PreparationStep adds a deadline only for explicit policy.timeout_seconds in its resolved settings;
+missing or None adds no deadline. Callbacks are developer code on the event
 loop: avoid blocking calls, propagate cancellation, keep per-Run values in
 context.state, and do not mutate global os.environ. A copied environment reflects
 this process's current environment; it cannot automatically read changes from an

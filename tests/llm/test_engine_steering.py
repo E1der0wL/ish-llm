@@ -39,7 +39,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         self.root = Path(folder.name)
-        engines = {name: LoopEngine(completion_fn=model, **(options or {}).get(name, {})) for name, model in models.items()}
+        engines = {name: LoopEngine(completion_fn=model) for name, model in models.items()}
         self.handler = AgentNode(engines=engines)
         self.engine = GraphEngine(handlers=handlers or {"agent": self.handler})
         self.events = []
@@ -48,7 +48,8 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         for model in models.values():
             self.addAsyncCleanup(self.release_model, model)
-        self.project = await self.app.projects.acreate("steering", components=["workflows", "agents"])
+        self.project = await self.app.projects.acreate("steering", components=["workflows", "agents"], config={
+            "parameters": {"engines": {name: LoopEngine.settings_layout.pack(value) for name, value in (options or {}).items()}}})
         workflows = await self.project.components.aget("workflows")
         for name, definition in {"flow": graph or agent_graph(), **(graphs or {})}.items():
             await workflows.acreate(definition, identifier=name)
@@ -262,8 +263,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         # 같은 저장 Session을 일반 Loop로 열어도 노드 전용 지시는 사용자 공통 문맥이 아니다.
         ids = self.project.id, self.session.id
         await self.app.shutdown()
-        reopened = LargeLanguageModel(self.root, engines={"loop": LoopEngine(completion_fn=model,
-                                       completion_kwargs={"model": "test/model"})})
+        reopened = LargeLanguageModel(self.root, engines={"loop": LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})})})
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(ids[0])).sessions.aload(ids[1])
         next_run = await (await session.run.submit("next", engine="loop")).wait(timeout=15)

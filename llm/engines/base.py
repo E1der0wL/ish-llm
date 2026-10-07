@@ -283,21 +283,14 @@ class BaseEngine:
     def __init__(self, name: str = "Step", *, kind: str = "custom",
                  action: Optional[Callable[[EngineContext],
                      Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]]] = None,
-                 timeout_seconds: Optional[float] = None,
                  metadata: Optional[dict] = None,
                  error_message: str = "Step execution failed",
                  completion_fn: Callable[..., Iterator[Any]] = completion,
-                 buffer_size: int = 8, max_tool_calls: Optional[int] = None,
-                 max_argument_chars: Optional[int] = None,
-                 max_output_chars: Optional[int] = None) -> None:
+                 buffer_size: int = 8) -> None:
         if not isinstance(name, str) or not name.strip() or not isinstance(kind, str) or not kind.strip():
             raise ValueError("Step requires a name and kind")
         if action is not None and not callable(action):
             raise TypeError("Step action must be callable")
-        if timeout_seconds is not None and (
-            isinstance(timeout_seconds, bool) or not math.isfinite(timeout_seconds) or timeout_seconds <= 0
-        ):
-            raise ValueError("Step timeout must be positive and finite, or None")
         if not isinstance(error_message, str) or not error_message.strip():
             raise ValueError("Step error message must be a nonempty string")
         if metadata is not None and not isinstance(metadata, dict):
@@ -305,21 +298,14 @@ class BaseEngine:
         json.dumps(metadata or {}, allow_nan=False)
         self.name, self.kind = name, kind
         self.action = action
-        self.timeout_seconds = timeout_seconds
         self.metadata = deepcopy(metadata or {})
         self.error_message = error_message
-        for value in (buffer_size, max_tool_calls, max_argument_chars, max_output_chars):
-            if value is not None and (type(value) is not int or value < 1):
-                raise ValueError("Completion limits must be positive integers")
         if not callable(completion_fn):
             raise TypeError("completion_fn must be callable")
         self.completion_fn = completion_fn
         self.buffer_size = buffer_size
         if type(buffer_size) is not int or buffer_size < 1:
             raise ValueError("buffer_size must be a positive integer")
-        self.max_tool_calls = max_tool_calls
-        self.max_argument_chars = max_argument_chars
-        self.max_output_chars = max_output_chars
 
     def step(self, context: EngineContext,
              action: Callable[[EngineContext], Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]], *,
@@ -331,8 +317,13 @@ class BaseEngine:
         Consume under aclosing() so early exit closes the operation promptly.
         Only events are emitted; RunManager and StepManager own persistence.
         """
-        return BaseEngine(name, kind=kind, action=action, timeout_seconds=timeout_seconds,
-                          metadata=metadata, error_message=error_message)._execute(context, publish_output=False)
+        if timeout_seconds is not None and (
+            isinstance(timeout_seconds, bool) or not math.isfinite(timeout_seconds) or timeout_seconds <= 0
+        ):
+            raise ValueError("Step timeout must be positive and finite, or None")
+        return BaseEngine(name, kind=kind, action=action,
+                          metadata=metadata, error_message=error_message)._execute(
+                              context, publish_output=False, timeout_seconds=timeout_seconds)
 
     @staticmethod
     def _bind_output(context: EngineContext, value: _OutputValue, *,
@@ -409,7 +400,10 @@ class BaseEngine:
     async def stream_completion(self, request: Mapping[str, Any], *,
                                 response: Optional[dict] = None,
                                 include_events: bool = True,
-                                provider: Optional[dict] = None) -> AsyncIterator[Union[str, EngineEvent]]:
+                                provider: Optional[dict] = None,
+                                max_tool_calls: Optional[int] = None,
+                                max_argument_chars: Optional[int] = None,
+                                max_output_chars: Optional[int] = None) -> AsyncIterator[Union[str, EngineEvent]]:
         """Yield text and completion observations; inherited execute() routes both.
 
         include_events=False is for standalone text consumers without persistence.
@@ -420,6 +414,10 @@ class BaseEngine:
         """
         from llm.providers.retry import transient, effective_attempts
         from llm.providers.requests import resolve_provider_options, ProviderError
+        # 호출자가 자신의 Project-owned 설정에서 해석한 제한만 이 호출에 전달한다.
+        for value in (max_tool_calls, max_argument_chars, max_output_chars):
+            if value is not None and (type(value) is not int or value < 1):
+                raise ValueError("Completion limits must be positive integers")
         policy = resolve_provider_options(provider if provider is not None else {})
         maximum = effective_attempts(request, policy.get("max_attempts", 1),
                                      sdk_defaults=self.completion_fn is completion) - 1
@@ -445,7 +443,8 @@ class BaseEngine:
             if include_events:
                 yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
             try:
-                async with aclosing(self._stream_completion(request, response, result, progress)) as stream:
+                async with aclosing(self._stream_completion(request, response, result, progress,
+                        max_tool_calls, max_argument_chars, max_output_chars)) as stream:
                     while True:
                         try:
                             # 이벤트 저장 중인 소비자는 취소하지 않는다. 다음 진행 시 같은 절대 기한을 검사한다.
@@ -506,7 +505,8 @@ class BaseEngine:
         return result
 
     async def _stream_completion(self, request: Mapping[str, Any], response: Optional[dict],
-                                 result: CompletionResult, progress: dict) -> AsyncIterator[Union[str, EngineEvent]]:
+                                 result: CompletionResult, progress: dict,
+                                 max_tool_calls, max_argument_chars, max_output_chars) -> AsyncIterator[Union[str, EngineEvent]]:
         params = self.copy_params(dict(request))
         if params.get("stream", True) is not True or params.get("n", 1) != 1:
             raise ValueError("Completion requires stream=True and n=1")
@@ -556,7 +556,7 @@ class BaseEngine:
                     if not isinstance(reasoning, str):
                         raise ValueError("Expected reasoning text delta")
                     size += len(reasoning)
-                    if self.max_output_chars is not None and size > self.max_output_chars:
+                    if max_output_chars is not None and size > max_output_chars:
                         raise ValueError("Completion output limit exceeded")
                     if reasoning:
                         result.reasoning_content += reasoning
@@ -565,13 +565,13 @@ class BaseEngine:
                     if not isinstance(content, str):
                         raise ValueError("Expected text delta")
                     size += len(content)
-                    if self.max_output_chars is not None and size > self.max_output_chars:
+                    if max_output_chars is not None and size > max_output_chars:
                         raise ValueError("Completion output limit exceeded")
                     if content:
                         content_parts.append(content)
                 for fragment in fragments:
                     index = get(fragment, "index")
-                    if type(index) is not int or index < 0 or (self.max_tool_calls is not None and index >= self.max_tool_calls):
+                    if type(index) is not int or index < 0 or (max_tool_calls is not None and index >= max_tool_calls):
                         raise ValueError("Invalid tool call index or too many calls")
                     if get(fragment, "type") not in (None, "function"):
                         raise ValueError("Unsupported tool call type")
@@ -589,8 +589,8 @@ class BaseEngine:
                             target[key] += value
                     # LiteLLM은 Gemini의 thought signature를 호출 ID에 담을 수 있다.
                     # ID는 불투명 값으로 그대로 전달하며 인자와 같은 유한 크기 제한을 쓴다.
-                    if ((self.max_argument_chars is not None and
-                         (len(call["function"]["arguments"]) > self.max_argument_chars or len(call["id"]) > self.max_argument_chars))
+                    if ((max_argument_chars is not None and
+                         (len(call["function"]["arguments"]) > max_argument_chars or len(call["id"]) > max_argument_chars))
                             or len(call["function"]["name"]) > 64):
                         raise ValueError("Tool call size limit exceeded")
                 reason = get(choice, "finish_reason")
@@ -631,7 +631,7 @@ class BaseEngine:
             async for event in events:
                 yield event
 
-    async def _execute(self, context: EngineContext, *, publish_output: bool) -> AsyncIterator[EngineEvent]:
+    async def _execute(self, context: EngineContext, *, publish_output: bool, timeout_seconds=None) -> AsyncIterator[EngineEvent]:
         step_id = new_id()
         parts = []
         visibility = None
@@ -640,10 +640,10 @@ class BaseEngine:
                           kind=self.kind, name=self.name, metadata=deepcopy(self.metadata))
         termination = None
         try:
-            deadline = None if self.timeout_seconds is None else asyncio.get_running_loop().time() + self.timeout_seconds
+            deadline = None if timeout_seconds is None else asyncio.get_running_loop().time() + timeout_seconds
             operation = self.run(context)
             if inspect.isawaitable(operation):
-                async with timeout(self.timeout_seconds):
+                async with timeout(timeout_seconds):
                     result = await operation
                 if result is not None and not isinstance(result, EngineOutput):
                     raise TypeError("Return EngineOutput or None, or yield text")

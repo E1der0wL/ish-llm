@@ -1,8 +1,8 @@
 # 명시적 설정 계약
 
-Host의 `ServiceConfig(tool_policy=ToolPolicy(argument_constraints=...))`로 모든 Tool의 인자
-권한을 fixed/bounded/selectable로 제한할 수 있다. Component 설정과 별개인 명시적 host
-권한이며 모델 인자로 변경하지 못한다. [계약과 예제](../docs/llm/tool-constraints.md).
+`ProjectConfig.policies.tools.argument_constraints`로 Tool 인자를 fixed/bounded/selectable로
+제한한다. ToolPolicy는 Host의 실행·분류 어댑터만 주입한다.
+[소유권 inventory](../docs/llm/project-authority.md), [Tool 제약](../docs/llm/tool-constraints.md).
 
 ish-llm은 사용자가 설정하지 않은 정책을 대신 결정하지 않는다. SDK 옵션을 생략하면 SDK의 native behavior를 사용하며, 프로토콜·저장 무결성·취소 회수에 필요한 강제값만 예외로 둔다.
 
@@ -15,16 +15,16 @@ private 옵션을 복제하지 않는다. 모든 열린 객체에는 명시적�
 ## 해석과 출처
 
 - **missing**: 현재 계층에는 키가 없다. 상위 명시값을 상속하고, 모든 계층에서 없으면 최종 `values`에도 없다.
-- **null**: null을 허용하는 필드의 명시값이다. 상위 값을 덮어쓴다. 자체 timeout에서 null은 제한 해제다. SDK 옵션의 null은 그대로 전달한다(지원 여부는 SDK 계약에 따른다).
+- **null**: null을 허용하는 필드의 명시값이다. Project timeout에서는 제한 없음이다. Session/Agent는 유한한 부모 제한을 null로 해제할 수 없다. 일반 설정과 SDK 옵션의 null은 그대로 전달한다(지원 여부는 SDK 계약에 따른다).
 - **value**: 검증한 명시값을 사용한다. 0/False/빈 문자열을 truthiness fallback으로 바꾸지 않는다.
 
 ProjectConfig는 `policies`와 대상별 전달용 `parameters`를 구분한다. `parameters.engines.<설정 이름>`은 Engine, `parameters.components.<이름>`은 Component가 검증·해석한다. 동일한 이름의 인자도 다른 대상으로 자동 전달하지 않는다. Loop의 SDK 인자는 `parameters.engines.<설정 이름>.config.completion`에 둔다. Project의 최상위 completion은 없다.
 
-Engine 옵션의 순서는 **Project → Session → Agent → host constructor/factory**다. Session에는 명시한 override만 저장하고 실행 시 최신 Project 사본을 상속한다. Session 생성 시 Project 값을 복사하는 계층은 없다. 일반 `resolve_configuration`은 호출자가 제공한 명시적 계층 순서와 마지막 host만 병합한다.
+Engine 옵션의 순서는 **Project → Session → Agent**다. 제한은 child가 더 좁힐 수만 있다. Host constructor는 구현 함수·handler·기술 revision만 제공한다. Session에는 명시한 override만 저장하고 실행 시 최신 Project 사본을 상속한다. 일반 `resolve_configuration`의 host 관찰 기능은 외부 adapter용이며 내장 Engine의 정책 계층에 사용하지 않는다.
 
 Agent completion은 model 없는 부분 설정도 허용한다. 모델이 모든 계층에서 없으면 호출 전에 오류다. Agent purpose를 system_prompt로 자동 변환하지 않으며, 명시적으로 선택한 Skill만 상속된 프롬프트에 결합한다. system_prompt=null은 상위 프롬프트를 해제한다. prompt 조회 API도 누락 키를 빈 문자열로 바꾸지 않으며 update_prompt(None)으로 명시적 해제가 가능하다.
 
-Component의 설정은 **주입 client.params → ProjectConfig.parameters["components"][name]**이다. 주입 client의 provider 정책은 `model_providers`에 client→project 출처와 함께 표시하며, 추출 정책도 client→project 순서다. Component는 Session 소유가 아니다. 실행 정책은 ProjectConfig.policies의 명시 설정을 Run 시작 시 스냅샷으로 저장한다. 정책과 Component 설정은 Project 소유이며 Session에 저장하려 하면 오류다. Tool 재시도에서는 명시된 host ToolPolicy가 최우선이며 host의 null도 정책을 해제한다. host 자원 한도(ProviderLimits)는 공유 실행 자원에 별도로 적용된다.
+Component의 설정은 **주입 client.params → ProjectConfig.parameters["components"][name]**이다. 주입 client는 Project보다 낮은 명시적 baseline이며 숨은 ceiling이 아니다. Component는 Session 소유가 아니다. 서비스 정책은 Run 시작 시 스냅샷으로 저장한다. Tool 재시도는 Project policies.tool_retry만 사용한다. ProviderLimits는 Backend 전체 공유 자원 용량으로 별도 적용되며 host_configuration()에서 읽기 전용으로 조회한다.
 
 `values/sources/overridden/editable`은 유지한다. 사용자 설정 출처 `default`는 없다. 강제값은 `enforced`에 따로 표시할 수 있다. Schema는 허용 형식만 설명하며 값 생성에 사용하지 않는다. `ProjectConfig()`는 빈 section만 가진다.
 
@@ -66,7 +66,7 @@ ish가 집행하는 제한이므로 policy에 둔다. 서로 복사하거나 자
 Agent/Workflow의 **정의 레코드**, Tool parameter schema, 요청별 engine_options.workflow는
 이 envelope의 적용 대상이 아니다. Agent.engine_options에는 선택한 Engine의 config/policy를
 넣으며 Graph Agent의 workflow 선택은 같은 engine_options의 workflow에 둔다.
-직접 생성자의 명시적 개별 인자는 같은 경로의 host 값으로 표시한다. 함수/client/runner는
+내장 생성자는 구현 함수/client/runner와 자원을 주입한다. Project 실행 값의 host override는 없으며
 JSON 설정에 저장하지 않는다.
 
 재사용 정책 **알고리즘만** [policies/](policies/README.md)에 둔다. CompletionPolicy는
@@ -92,10 +92,10 @@ Pipeline은 하위 Engine schema의 참조 루트를 분리해 중첩 단계에�
 안전하게 재배치할 수 없는 제약은 명시적으로 거부한다. 복합 조건은 변환 도우미를 거치지 않고
 `implementation_schema()`의 최종 config/policy 경로에 직접 선언한다. 조건을 조용히 버리지 않는다.
 
-호스트가 SDK dict 일부를 지정하면 해당 leaf만 `x-host-override`와 `editable=false`로
-표시한다. null·배열은 교체 값이고 빈 dict는 하위 값을 덮어쓰지 않는다.
-Hub는 저장값과 현재 적용값/출처를 구분한다. 고정 필드는 읽기 전용이며, 일부 경로만 고정된
-JSON 편집기는 나머지 경로만 변경할 수 있다. 적용값·client 값·runtime 추정값을 저장값에
+내장 Project 설정은 editable이며 Host 인프라는 별도 읽기 전용 투영이다.
+null·배열은 교체 값이고 빈 dict는 하위 값을 덮어쓰지 않는다.
+Hub는 저장값과 현재 적용값/출처를 구분한다. 외부 adapter가 읽기 전용 경로를 선언하는 경우의
+generic form 지원은 유지한다. 적용값·client 값·runtime 추정값을 저장값에
 자동으로 복사하지 않는다. 여러 Engine이 설정 키를 공유하면 각 Engine의 적용값을 표시한다.
 
 공통 `policies`는 서비스가 집행하는 context/run/approval/tool_retry/usage/retention/output만
@@ -227,7 +227,7 @@ config = ProjectConfig(parameters={
 })
 ```
 
-숫자는 이 예제의 명시적 선택이며 라이브러리 기본값이 아니다. Session에서 request_timeout=null을 설정하면 300초를 해제한다. 사용자가 Engine constructor에 값을 명시하면 host 우선으로 고정된다.
+숫자는 이 예제의 명시적 선택이며 라이브러리 기본값이 아니다. Session/Agent는 Project의 유한한 request_timeout을 더 좁힐 수만 있고 null로 해제할 수 없다. Project가 자신의 제한을 변경한다.
 
 ## 감사와 검증
 

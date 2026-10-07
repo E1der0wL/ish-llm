@@ -50,8 +50,8 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await app.projects.alist(), [])
         self.assertFalse((app.project_manager.repository.root / "default-project.json").exists())
 
-    async def test_host_override_cannot_hide_invalid_project_or_session_input(self):
-        app = self.backend(engines={"loop": LoopEngine(max_iterations=4)})
+    async def test_project_and_session_validate_before_persistence(self):
+        app = self.backend(engines={"loop": LoopEngine()})
         invalid = {"parameters": {"engines": {"loop": {'policy': {'max_iterations': 0}}}}}
         with self.assertRaisesRegex(ValueError, "project"):
             await app.projects.acreate(config=invalid)
@@ -63,7 +63,7 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((project.paths.root / "project.json").read_bytes(), before)
         view = await project.aconfiguration()
         Draft202012Validator(view["schema"]).validate(view["values"])
-        self.assertEqual(view["effective_engines"]["loop"]["values"]["policy"]["max_iterations"], 4)
+        self.assertEqual(view["effective_engines"]["loop"]["values"]["policy"]["max_iterations"], 2)
 
     async def test_invalid_save_preserves_project_and_session_records(self):
         app = self.backend()

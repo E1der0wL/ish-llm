@@ -39,15 +39,35 @@ def resolve_configuration(layers, *, schema=None, host=None):
             "editable": {path: source != "host" for path, source in sources.items()}}
 
 
-def engine_configuration(config, name, *, session_config=None, agent=None, host=None, schema=None):
-    """Project → Session → Agent → host를 Engine과 UI가 같은 함수로 해석한다."""
+def engine_configuration(config, name, *, session_config=None, agent=None, schema=None):
+    """Project → Session → Agent. child는 schema가 지정한 authority를 넓힐 수 없다."""
     config = ProjectConfig(config)
     session = session_config or {}
     ProjectConfig.validate_session(session)
-    view = resolve_configuration([
+    layers = [
         ("project", config.parameters.get("engines", {}).get(name, {})),
         ("session", session.get("parameters", {}).get("engines", {}).get(name, {})),
-        ("agent", agent or {})], host=host, schema=schema)
+        ("agent", agent or {})]
+    prior = {}
+    for source, value in layers:
+        merged = ProjectConfig.merge(prior, value)
+        if schema is not None:
+            error = next(Draft202012Validator(schema).iter_errors(merged), None)
+            if error is not None:
+                raise ValueError("Invalid configuration: " + error.message)
+        def check(parent, child, spec, path=""):
+            if not isinstance(spec, dict):
+                return
+            if spec.get("x-narrowing") == "maximum" and parent is not None:
+                if child is None or child > parent:
+                    raise ValueError(f"{source} configuration widens parent limit: {path}")
+            if isinstance(parent, dict):
+                for key, sub in spec.get("properties", {}).items():
+                    if key in parent:
+                        check(parent[key], child.get(key) if isinstance(child, dict) else None, sub, path + "/" + key)
+        check(prior, merged, schema)
+        prior = merged
+    view = resolve_configuration(layers, schema=schema)
     view["configuration_key"] = name
     return view
 

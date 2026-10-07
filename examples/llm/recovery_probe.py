@@ -266,7 +266,8 @@ async def connection_failure(root, spec):
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     config = ProjectConfig(parameters={"engines": {"loop": {'policy': {'provider': {'max_attempts': 1}}, 'config': {'completion': {'model': 'openai/probe', 'api_key': 'local-test-only', 'api_base': f'http://127.0.0.1:{server.server_port}/v1', 'num_retries': 0}}}}})
-    engine = LoopEngine(request_timeout=spec["timeout"], max_iterations=2)
+    config.parameters["engines"]["loop"]["policy"].update(request_timeout=spec["timeout"], max_iterations=2)
+    engine = LoopEngine()
     observed = []
     try:
         # SDK 최초 import/클라이언트 준비가 단절 검사의 실행 시간에 섞이지 않게 한다.

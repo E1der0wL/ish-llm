@@ -20,10 +20,14 @@ if hub_plugin is not None:
             file_root=Path.cwd(),
             engine_factories={
                 "loop": LoopEngine,
-                "review": lambda: LoopEngine(system_prompt="Review the user's work and explain concrete improvements."),
+                "review": LoopEngine,
             },
+            project_config={"parameters": {"engines": {"review": {"config": {
+                "completion": {"model": "openai/YOUR_MODEL"},
+                "system_prompt": "Review the user's work and explain concrete improvements."
+            }}}}},
             # For a Gemini model that exposes reasoning, use e.g.
-            # "loop": lambda: LoopEngine(completion_kwargs={"reasoning_effort": "low"})
+            # Set parameters.engines.loop.config.completion.reasoning_effort explicitly.
             # auto_title=False,  # Disable the extra title-generation model call.
             # api_base="https://YOUR_SERVER/v1",
             # project_id="PROJECT_ID",

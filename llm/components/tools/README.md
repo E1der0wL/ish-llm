@@ -10,7 +10,7 @@ Project가 소유하는 Python Tool 소스를 저장하고 준비·활성화합�
 | [decorator.py](decorator.py) | @tool 메타데이터와 불변 실행 계약을 함수에 붙입니다. |
 | [function.py](function.py) | 함수 signature·annotation을 JSON Schema로 변환하고 Python default도 검증합니다. |
 | [registry.py](registry.py) | Tool/ToolContract와 실행용 ToolRegistry, 인자·definition 검증입니다. |
-| [constraints.py](constraints.py) | Host-owned fixed/bounded/selectable을 원본 schema와 교차 검증하고 child 범위 확대를 거부합니다. |
+| [constraints.py](constraints.py) | Project 정책의 fixed/bounded/selectable을 원본 schema와 교차 검증하고 child 범위 확대를 거부합니다. |
 | [component.py](component.py) | Project Python 패키지 저장 구조와 선택된 Tool capability를 관리합니다. |
 | [data.py](data.py) | ToolData의 source CRUD, prepare, enable/disable 편의 API입니다. |
 | [packages.py](packages.py) | 패키지 파일·requirements 검사, 호스트 의존성 준비와 inspector 연결입니다. |
@@ -21,7 +21,7 @@ Project가 소유하는 Python Tool 소스를 저장하고 준비·활성화합�
 
 ## 패키지 작성
 
-Host의 `ToolPolicy.argument_constraints`는 Project Tool뿐 아니라 RAG/Memory/builtin에도
+Project의 `policies.tools.argument_constraints`는 Project Tool뿐 아니라 RAG/Memory/builtin에도
 동일하게 적용됩니다. 모델용 effective schema와 실행 전 재검증, 승인/checkpoint binding을
 연결하며 원본 Tool 정의는 변경하지 않습니다. [인자 제약 안내](../../../docs/llm/tool-constraints.md).
 

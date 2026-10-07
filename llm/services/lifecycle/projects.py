@@ -341,6 +341,8 @@ class ProjectManager:
             raise TypeError("permanent must be a bool")
         current = self.access.require(project)
         component = self.components.get(name)
+        # 파괴적 디렉토리 삭제보다 먼저 선택 불변식을 검증한다.
+        self.components.validate(tuple(item for item in current.components if item != name))
         if permanent:
             from datetime import datetime, timezone, timedelta
             usage = current.config.policies.get("usage", {})

@@ -27,12 +27,9 @@ class MemoryData(ComponentData):
     @workspace_locked
     def _extraction_prompt(self, identifier):
         """한 처리기 실행에서 사용할 명시적 추출 지침과 버전만 읽는다."""
-        _, component = self._current()
-        if component.extract_prompt is not None:
-            from llm.services.infrastructure.storage import revision_token
-            return {"text": component.extract_prompt, "version": revision_token(component.extract_prompt), "source": "host"}
+        self._current()
         if identifier is None:
-            raise ValueError("Memory extraction requires processing.extract_prompt_id or host extract_prompt")
+            raise ValueError("Memory extraction requires config.processing.extract_prompt_id")
         snapshot = self.related("prompts").snapshot(identifier)
         return {"text": "\n\n".join(f"{m['role']}: {m['content']}" for m in snapshot["data"]["messages"]),
                 "version": snapshot["version"], "source": identifier}

@@ -21,6 +21,7 @@ def project_schema(app, components=None):
     for name in selected:
         component = registry.get(name)
         catalog[name] = {"directory": component.directory, "capabilities": list(component.capabilities),
+                         "required_components": list(getattr(component, "required_components", ())),
                          "record_schema": checked_schema(getattr(component, "schema", object_schema())),
                          "project_configuration": callable(getattr(component, "validate_project_configuration", None))}
     # 선언한 런타임 자원의 선택지만 보강한다. 정책값이나 Engine별 기본값은 생성하지 않는다.
@@ -74,6 +75,7 @@ def project_schema(app, components=None):
         }, description="대상별 전달 인자. 같은 이름의 인자를 다른 대상으로 자동 전달하지 않는다."),
     }, **{"not": {"anyOf": [{"required": [name]} for name in
           ("completion", "engines", "component_configurations", "session_defaults", "default_engine")]}})
+    config.update({"x-owner": "project", "x-scope": "execution-policy"})
     return checked_schema(object_schema({
         "title": {"type": "string"},
         "conversation_storage": {"type": ["string", "null"], "enum": ["file", "memory", None],

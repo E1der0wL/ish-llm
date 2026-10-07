@@ -53,15 +53,12 @@ class MemoryComponent(Component):
         "replaces": field("array", items=object_schema({"id": field("string", minLength=1), "revision": field("integer", minimum=1)},
                                                        required=["id", "revision"]))})
 
-    def __init__(self, *, completion_fn=None, token_counter=None, search_fn=None, extract_prompt=None):
+    def __init__(self, *, completion_fn=None, token_counter=None, search_fn=None):
         """보조 모델과 토큰 계수기는 런타임에 주입한다. 설정/레코드에는 저장하지 않는다."""
         if any(value is not None and not callable(value) for value in (completion_fn, token_counter, search_fn)):
             raise TypeError("Memory model and token counter must be callable")
         self.completion_fn, self.token_counter = completion_fn, token_counter
         self.search_fn = search_fn
-        if extract_prompt is not None and (not isinstance(extract_prompt, str) or not extract_prompt.strip()):
-            raise ValueError("extract_prompt must be nonempty host instructions")
-        self.extract_prompt = extract_prompt
         self._record_cache = OrderedDict()
 
     def _assert_ready(self, project):

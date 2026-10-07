@@ -58,7 +58,7 @@ run = await request.wait()
 
 생성자는 Workflow를 받지 않습니다. 요청의 `workflow`는 필수이며 기본값이나
 Project 설정으로 추측하지 않습니다. `engine_options`는 JSON 객체이고 Graph 요청은
-`workflow`만 받습니다. 시간·병렬 제한 등은 기존 Project/Session/host 설정 경로를 사용합니다.
+`workflow`만 받습니다. 시간·병렬 제한 등은 Project/Session 설정 경로를 사용하며 child는 부모 제한을 넓힐 수 없습니다.
 요청 선택은 QUEUED 메시지와 Run에 저장되며 등록 Engine은 변경하지 않습니다.
 정의는 Run 시작 시 읽습니다. 대기 중 편집은 다음 실행에 반영되고 시작한 실행은
 자신의 스냅샷을 사용합니다. 존재하지 않는 ID나 잘못된 정의는 실행 전 검증에서 실패합니다.

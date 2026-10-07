@@ -1,5 +1,21 @@
 # hub 설계 문서
 
+## Project 정책과 risk/dependency 표시
+
+Hub의 모델·prompt·실행 한계는 새 Project의 명시 설정으로 작성합니다. Engine factory는
+구현 주입만 담당하며 저장값을 덮는 Host ceiling을 만들지 않습니다. template 버전과 화면용
+description은 definition.metadata에 있습니다. 이전 레코드를 자동 변환하지 않습니다.
+
+`backend/approval.py`는 hub-risk-v1의 숫자→label 표시와 명시 threshold를 Project 승인
+규칙으로 만드는 함수를 제공합니다. 낮음/중간/높음 구간은 Hub 소유이고 Backend는 모릅니다.
+미분류 위험은 unknown이며 기본 classifier/자동 승인은 만들지 않습니다. 기존 Hub는 paused
+Run의 승인·재개를 llm API에 안내하며 별도 승인 대화상자는 이번 범위에 추가하지 않았습니다.
+정책 JSON은 Project 설정 폼에서 편집할 수 있습니다.
+
+Component 설정 화면은 schema의 required_components와 선택 집합의 누락을 표시합니다.
+사용자가 전체 선택 집합을 저장하면 Backend가 검증합니다. 자동 추가나 cascade 삭제는 없습니다.
+공유 Host 자원은 읽기 전용 catalog이며 Project 설정에 복제하지 않습니다.
+
 실제 대화와 백엔드 없는 미리보기를 지원합니다. [사용법](../../hub/README.md)과
 [독립 미리보기](../../examples/hub/preview.py)를 참고하세요.
 

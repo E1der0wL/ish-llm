@@ -24,9 +24,10 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
 
     async def setup_graph(self, graph, work, **options):
         self.app = LargeLanguageModel(self.root, engines={"graph": GraphEngine(
-            handlers={"work": work}, **options)})
+            handlers={"work": work})})
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate("test", components=["workflows"])
+        self.project = await self.app.projects.acreate("test", components=["workflows"], config={"parameters": {
+            "engines": {"graph": GraphEngine.settings_layout.pack(options)}}})
         self.workflows = await self.project.components.aget("workflows")
         await self.workflows.acreate(graph, identifier="flow")
         self.session = await self.project.sessions.acreate()

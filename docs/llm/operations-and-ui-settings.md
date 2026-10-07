@@ -49,8 +49,8 @@ Agent/Workflow/Skill/MCP의 **개별 레코드** 형식은 컴포넌트 공통 �
 
 호스트 함수, Tool 승인/격리 어댑터, RAG 모델 클라이언트처럼 JSON으로 바꿀 수 없는
 런타임 주입 항목은 Project 편집 필드로 가장하지 않는다. RAG의
-`x-runtime-configuration`에 해당 생성자 인자를 안내한다. Loop의 명시적 생성자 제한은
-`x-host-override`로 표시되며 UI 변경보다 우선한다.
+`x-runtime-configuration`에 해당 생성자 인자를 안내한다. 내장 Loop에는 Project를 덮는
+생성자 제한이 없다. `backend.host_configuration()`은 공유 인프라의 읽기 전용 설명이다.
 
 저장은 기존 API를 사용한다. 각 저장은 별도 트랜잭션이며 설정 전체를 한 번에 커밋하는 API는 아니다.
 

@@ -296,9 +296,9 @@ class MemorySession(CompletionSession):
         params["messages"] = [{"role": "system", "content": instruction},
                               {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
         response = {}
-        model = BaseEngine(completion_fn=self.processor.completion_fn, max_output_chars=self.config.get("max_output_chars"))
+        model = BaseEngine(completion_fn=self.processor.completion_fn)
         async with aclosing(model.stream_completion(params, response=response,
-                provider=self.config.get("provider"))) as events:
+                provider=self.config.get("provider"), max_output_chars=self.config.get("max_output_chars"))) as events:
             async for event in events:
                 if isinstance(event, EngineEvent):
                     yield event  # 요약 텍스트를 사용자 답변으로 스트리밍하지 않는다.

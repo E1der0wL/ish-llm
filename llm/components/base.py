@@ -34,6 +34,7 @@ class ProjectComponent(Protocol):
     def delete(self, project: Project, identifier: str) -> None: ...
     def delete_directory(self, project: Project) -> None: ...
     capabilities: tuple[str, ...]
+    required_components: tuple[str, ...]
     def resolve(self, project: Project, capability: str) -> Any: ...
     def clone(self, source: Project, destination: Project) -> None: ...
     def backup_scope(self, project: Project): ...
@@ -53,6 +54,8 @@ class Component:
     name: str
     directory: str
     capabilities: tuple[str, ...] = ()
+    # 영속 도메인의 정확한 identity 의존성이다. runtime capability와 별개다.
+    required_components: tuple[str, ...] = ()
     # Optional ComponentData subclass; None keeps the generic service handle.
     data_class: Optional[type] = None
 

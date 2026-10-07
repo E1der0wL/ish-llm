@@ -290,12 +290,12 @@ class ConfigurationReview:
                     raise ValueError("Edits require a trusted configuration validator; none configured")
                 await asyncio.to_thread(self._stage, candidate, proposal)
                 expected = {name: digest(relative_path(candidate, name).read_bytes()) for name in self.source["files"]}
-                processes = ProcessTools(FileTools(candidate), max_seconds=self.config["validator_timeout"],
-                                         max_output_bytes=self.config["validator_output_bytes"])
+                processes = ProcessTools(FileTools(candidate))
                 try:
                     for validator in self.config["validators"]:
                         argv = [arg.replace("{candidate}", str(candidate)) for arg in validator["argv"]]
-                        result = await processes.execute({"argv": argv})
+                        result = await processes.execute({"argv": argv, "timeout_seconds": self.config["validator_timeout"],
+                                                          "max_output_bytes": self.config["validator_output_bytes"]})
                         checks.append({"name": validator["name"], "argv": argv, **result})
                         if result["status"] != "completed" or result["returncode"] != 0 or result["truncated"]:
                             errors.append(f"Validator failed or output truncated: {validator['name']}")
@@ -322,7 +322,8 @@ class ConfigurationReview:
         package = call.arguments["package"]
         self._check_package(package)
         raise ToolApprovalRequired(request=approval_request("검증된 설정 변경 적용", category="configuration.apply",
-            risk="high", description=self._review_text(package["proposal"], package["validation"])))
+            risk_scheme="configuration-review-v1", risk=80,
+            description=self._review_text(package["proposal"], package["validation"])))
 
     def _check_package(self, package):
         if package.get("binding") != self.binding:

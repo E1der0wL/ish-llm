@@ -34,7 +34,7 @@ class PolicySettingsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             RunPolicy(timeout_seconds=0)
 
-    def test_engine_empty_inheritance_agent_and_host_null(self):
+    def test_engine_empty_inheritance_and_agent_cannot_clear_parent_budget(self):
         engine = LoopEngine()
         self.assertEqual(engine.configuration(ProjectConfig(), "writer")["values"], {})
         project = ProjectConfig(parameters={"engines": {"writer": {'policy': {'completion': {'max_tokens': 100, 'counter': 'words'}, 'provider': {'max_attempts': 2, 'wall_timeout': 30}}}}})
@@ -44,16 +44,13 @@ class PolicySettingsTests(unittest.TestCase):
         view = agent.configuration(project, "writer", session_config=session)
         self.assertEqual(view["sources"]["/policy/completion/max_tokens"], "agent")
         self.assertEqual(view["values"]["policy"]["completion"]["max_tokens"], 60)
-        host = LoopEngine(input_policy=None, provider=None).for_agent({
-            "engine": "writer", "engine_options": {'policy': {'completion': {'max_tokens': 50}}}})
-        view = host.configuration(project, "writer", session_config=session)
-        for name in ("completion", "provider"):
-            self.assertIsNone(view["values"]["policy"][name])
-            self.assertEqual(view["sources"]["/policy/" + name], "host")
-            self.assertFalse(view["editable"]["/policy/" + name])
-            self.assertTrue(host.configuration_schema()["properties"]["policy"]["properties"][name]["x-host-override"])
+        child = LoopEngine().for_agent({"engine": "writer", "engine_options": {"policy": {"completion": None}}})
+        with self.assertRaisesRegex(ValueError, "widens"):
+            child.configuration(project, "writer", session_config=session)
         null_session = {"parameters": {"engines": {"writer": {'policy': {'completion': None, 'provider': None}}}}}
-        self.assertIsNone(engine.configuration(project, "writer", session_config=null_session)["values"]["policy"]["completion"])
+        with self.assertRaisesRegex(ValueError, "widens"):
+            engine.configuration(project, "writer", session_config=null_session)
+        self.assertIsNone(engine.configuration({}, "writer", session_config=null_session)["values"]["policy"]["completion"])
 
     def test_invalid_input_policies(self):
         for settings in ({"max_tokens": True}, {"max_tokens": 1.0}, {"max_tokens": 0},
@@ -121,11 +118,11 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
                 async with aclosing(super()._execute(context)) as events:
                     async for event in events:
                         yield event
-        implementation = InspectLoop(completion_fn=model, input_policy={"counter": "count"})
+        implementation = InspectLoop(completion_fn=model)
         graph = GraphEngine(handlers={"agent": AgentNode(engines={"writer": implementation})})
         _, project, session = await self.backend({"graph": graph}, components=[AgentComponent(), WorkflowComponent()])
         await configure_engine(project, "writer", completion={"model": "test"},
-            input_policy={"max_tokens": 100}, provider={"max_attempts": 1})
+            input_policy={"max_tokens": 400, "counter": "count"}, provider={"max_attempts": 2})
         for name, size in (("a", 200), ("b", 300)):
             await project.components.agents.acreate({"engine": "writer", "purpose": name,
                 "engine_options": {'policy': {'completion': {'max_tokens': size}, 'provider': {'max_attempts': 2}}}}, identifier=name)
@@ -171,7 +168,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
     async def test_stream_wall_timeout_is_separate_and_does_not_cancel_event_storage(self):
         stored = []
         class Stream(BaseEngine):
-            async def _stream_completion(self, request, response, result, progress):
+            async def _stream_completion(self, request, response, result, progress, *limits):
                 yield "first"
                 await asyncio.Event().wait()
         async with aclosing(Stream().stream_completion({"model": "test"}, include_events=False,
@@ -188,7 +185,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
         from llm.services.runtime.usage import UsageScope
         calls = []
         class Stream(BaseEngine):
-            async def _stream_completion(self, request, response, result, progress):
+            async def _stream_completion(self, request, response, result, progress, *limits):
                 calls.append("provider")
                 await asyncio.Event().wait()
                 yield "unreachable"

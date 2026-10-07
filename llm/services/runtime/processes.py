@@ -30,13 +30,12 @@ class ProcessToolRunner:
 
     def __init__(self, commands: Mapping[str, Sequence[str]], *, cwd: Union[str, Path],
                  isolation: str, env: Optional[Mapping[str, str]] = None,
-                 read_only_paths: Sequence[Union[str, Path]] = (), timeout_seconds: Optional[float] = None,
+                 read_only_paths: Sequence[Union[str, Path]] = (),
                  max_output_bytes: Optional[int] = None, memory_bytes: Optional[int] = None,
                  max_concurrency: Optional[int] = None,
                  allow_network: Optional[bool] = None,
                  python_executable: Optional[Union[str, Path]] = None):
         require_linux()
-        positive_seconds(timeout_seconds, "Process timeout")
         if isolation not in ("sandbox", "process"):
             raise ValueError("Choose sandbox or process")
         if isolation == "sandbox" and type(allow_network) is not bool:
@@ -58,7 +57,7 @@ class ProcessToolRunner:
         if any(not isinstance(k, str) or not isinstance(v, str) or "=" in k or "\0" in k + v for k, v in self.env.items()):
             raise ValueError("Invalid process environment")
         self.read_only_paths = tuple(Path(path).resolve(strict=True) for path in read_only_paths)
-        self.timeout_seconds, self.max_output_bytes = timeout_seconds, max_output_bytes
+        self.max_output_bytes = max_output_bytes
         self.memory_bytes = memory_bytes
         self.max_concurrency = max_concurrency
         self.python = str(Path(python_executable or sys.executable).resolve(strict=True))
@@ -170,7 +169,8 @@ class ProcessToolRunner:
             self._loop, self._slots = loop, None if self.max_concurrency is None else asyncio.Semaphore(self.max_concurrency)
         if self._loop is not loop:
             raise RuntimeError("Use ProcessToolRunner on its original event loop")
-        async with timeout(self.timeout_seconds):
+        # 실행 기한은 ToolExecutor의 Project 정책이 집행한다. runner는 취소를 회수한다.
+        async with timeout(None):
             if self._slots is None:
                 return await self._execute(call)
             async with self._slots:

@@ -1,6 +1,7 @@
 """Engine 간에 공유하는 Tool 호출기. 실행 인자·결과·실패를 Step 이벤트로 보고한다."""
 
 import asyncio
+import inspect
 import json
 import math
 import time
@@ -36,6 +37,7 @@ class ToolCall:
     idempotency_key: Optional[str] = None
     input_message_id: Optional[str] = None
     contract: Optional[dict] = None
+    classification: Optional[dict] = None
 
 
 _tool_call = ContextVar("llm_tool_call", default=None)
@@ -83,7 +85,7 @@ def current_tool_call() -> Optional[ToolCall]:
 
 @dataclass(frozen=True, slots=True)
 class ToolPolicy:
-    """허용 목록, Run 전체 호출 한도, 비동기 승인/실행 어댑터.
+    """Host 실행 어댑터. 실행 선택·예산·재시도·승인 임계값은 Project가 소유한다.
 
     authorize(call)는 정확히 True를 반환해야 실행한다. runner(tool, call)는
     별도 프로세스/호스트에 위임할 수 있는 async 함수다. 기본 실행은 OS sandbox가 아니다.
@@ -92,64 +94,65 @@ class ToolPolicy:
     동일 키의 완료 결과만 재사용하며 불확실한 작업은 명시적인 외부 결과 확인이 필요하다.
     """
 
-    allowed_tools: Optional[tuple[str, ...]] = None
-    max_calls: Optional[int] = None
     authorize: Optional[Callable] = None
     runner: Optional[Callable] = None
     operation_key: Optional[Callable] = None
     operation_probe: Optional[Callable] = None
     # 실행 안전성은 신뢰한 개발자가 등록한다. 모델이 JSON으로 권한을 승격할 수 없다.
     retry_safe_tools: tuple[str, ...] = ()
-    max_retries: Optional[int] = UNSET
-    retry_delay: Optional[float] = UNSET
-    _explicit_retry: frozenset = field(init=False, repr=False, compare=False)
     revision: str = "1"
-    auto_approve_categories: tuple[str, ...] = ()
-    argument_constraints: dict = field(default_factory=dict)
+    classify: Optional[Callable] = None
 
     def __post_init__(self):
-        from llm.components.tools.constraints import validate_constraints
-        validate_constraints(self.argument_constraints)
-        object.__setattr__(self, "argument_constraints", deepcopy(self.argument_constraints))
-        explicit = frozenset(k for k in ("max_retries", "retry_delay") if getattr(self, k) is not UNSET)
-        object.__setattr__(self, "_explicit_retry", explicit)
-        for key in ("max_retries", "retry_delay"):
-            if key not in explicit:
-                object.__setattr__(self, key, None)
         if not isinstance(self.revision, str) or not self.revision.strip():
             raise ValueError("Tool policy revision must be nonempty")
-        if not isinstance(self.auto_approve_categories, tuple) or any(not isinstance(v, str) or not v for v in self.auto_approve_categories):
-            raise ValueError("auto_approve_categories must be a tuple of category names")
-        if self.max_retries is not None and (type(self.max_retries) is not int or self.max_retries < 0):
-            raise ValueError("Tool max_retries must be a nonnegative integer")
-        if self.retry_delay is not None and (isinstance(self.retry_delay, bool) or not isinstance(self.retry_delay, (int, float))
-                or not math.isfinite(self.retry_delay) or self.retry_delay < 0):
-            raise ValueError("Tool retry_delay must be finite and nonnegative")
         if not isinstance(self.retry_safe_tools, tuple) or any(not isinstance(n, str) or not n for n in self.retry_safe_tools):
             raise ValueError("retry_safe_tools must be a tuple of names")
-        if self.allowed_tools is not None and (not isinstance(self.allowed_tools, tuple)
-                or any(not isinstance(name, str) or not name for name in self.allowed_tools)):
-            raise ValueError("allowed_tools must be a tuple of names")
-        if self.max_calls is not None and (type(self.max_calls) is not int or self.max_calls < 1):
-            raise ValueError("max_calls must be positive")
-        if any(value is not None and not callable(value) for value in (self.authorize, self.runner, self.operation_key, self.operation_probe)):
+        if any(value is not None and not callable(value) for value in (
+                self.authorize, self.runner, self.operation_key, self.operation_probe, self.classify)):
             raise TypeError("Tool adapters must be callable")
 
 
 class ToolExecutionScope:
     """한 Run의 Graph 분기·Agent가 공유하는 호출 예산. asyncio 루프에서만 접근한다."""
 
-    def __init__(self, policy: ToolPolicy, *, operations=None, parent=None):
+    def __init__(self, policy: ToolPolicy, *, settings=None, retry=None, operations=None, parent=None):
         # 외부 dict 편집으로 실행 중 승인/제약의 사본이 바뀌지 않게 한다.
         from llm.components.tools.constraints import narrow_constraints
-        constraints = (deepcopy(policy.argument_constraints) if parent is None else
-                       narrow_constraints(parent.policy.argument_constraints, policy.argument_constraints))
-        self.policy = replace(policy, argument_constraints=constraints)
+        from llm.core.policies import normalize_policies
+        settings, retry = deepcopy(settings or {}), deepcopy(retry or {})
+        normalize_policies({"tools": settings, "tool_retry": retry})
+        constraints = settings.get("argument_constraints", {})
+        self.argument_constraints = (constraints if parent is None else
+                                     narrow_constraints(parent.argument_constraints, constraints))
+        selected = settings.get("allowed_tools")
+        self.allowed_tools = tuple(selected) if selected is not None else None
+        if parent is not None and parent.allowed_tools is not None:
+            if self.allowed_tools is None:
+                self.allowed_tools = parent.allowed_tools
+            elif not set(self.allowed_tools).issubset(parent.allowed_tools):
+                raise ValueError("Child Tool selection widens its parent")
+        self.max_calls = settings.get("max_calls")
+        if parent is not None and parent.max_calls is not None:
+            if self.max_calls is not None and self.max_calls > parent.max_calls:
+                raise ValueError("Child Tool budget widens its parent")
+            if self.max_calls is None:
+                self.max_calls = parent.max_calls
+        self.timeout_seconds = settings.get("timeout_seconds")
+        self.max_output_chars = settings.get("max_output_chars")
+        if parent is not None:
+            for key in ("timeout_seconds", "max_output_chars"):
+                inherited, chosen = getattr(parent, key), getattr(self, key)
+                if inherited is not None:
+                    setattr(self, key, inherited if chosen is None else min(inherited, chosen))
+        self.max_retries, self.retry_delay = retry.get("max_retries"), retry.get("delay_seconds")
+        self.policy = policy
         self.calls = 0
         self.operations = operations
         self.parent = parent
         self.completed = 0
         self.pending_approvals = []
+        self.invocations = set()
         self.revision = 0
         self.revoked = False
 
@@ -167,47 +170,50 @@ class ToolExecutionScope:
 
     def checkpoint(self):
         self.revision += 1
-        return {"calls": self.calls, "completed": self.completed, "pending_approvals": list(self.pending_approvals), "revision": self.revision}
+        return {"calls": self.calls, "completed": self.completed, "pending_approvals": list(self.pending_approvals),
+                "invocations": sorted(self.invocations), "revision": self.revision}
 
     def binding(self):
         """실행 코드/승인 어댑터 변경 시 호스트가 revision을 올려 이전 승인의 재사용을 막는다."""
         root = self
         while root.parent is not None:
             root = root.parent
-        return {"revision": root.policy.revision, "auto_approve_categories": list(root.policy.auto_approve_categories), "allowed_tools": list(self.policy.allowed_tools) if self.policy.allowed_tools is not None else None,
-                "max_calls": self.policy.max_calls, "approval": root.policy.authorize is not None,
+        return {"revision": root.policy.revision, "allowed_tools": list(self.allowed_tools) if self.allowed_tools is not None else None,
+                "max_calls": self.max_calls, "approval": root.policy.authorize is not None,
+                "timeout_seconds": self.timeout_seconds, "max_output_chars": self.max_output_chars,
+                "classifier": root.policy.classify is not None,
                 "isolated_runner": root.policy.runner is not None,
                 "operation_key": root.policy.operation_key is not None,
-                "retry_safe_tools": list(self.policy.retry_safe_tools), "max_retries": self.policy.max_retries,
-                "argument_constraints": deepcopy(self.policy.argument_constraints)}
+                "retry_safe_tools": list(self.policy.retry_safe_tools), "max_retries": self.max_retries,
+                "retry_delay": self.retry_delay, "argument_constraints": deepcopy(self.argument_constraints)}
 
     def restore(self, records):
         if records:
             latest = max(records, key=lambda item: (item.get("revision", 0), item.get("calls", 0)))
             self.calls, self.completed = latest.get("calls", 0), latest.get("completed", 0)
             self.pending_approvals = list(latest.get("pending_approvals", []))
+            self.invocations = set(latest.get("invocations", []))
             self.revision = latest.get("revision", 0)
 
     def child(self, *, allowed_tools, max_calls=None, argument_constraints=None):
         """Agent 한도를 추가하되 부모의 승인, 실행기, 원장과 예산을 유지한다."""
-        return ToolExecutionScope(replace(self.policy, allowed_tools=tuple(allowed_tools),
-                                         max_calls=max_calls, authorize=None,
-                                         argument_constraints={} if argument_constraints is None else argument_constraints),
-                                  operations=self.operations, parent=self)
+        return ToolExecutionScope(self.policy,
+            settings={"allowed_tools": list(allowed_tools), "max_calls": max_calls,
+                      "argument_constraints": {} if argument_constraints is None else argument_constraints},
+            retry={"max_retries": self.max_retries, "delay_seconds": self.retry_delay},
+            operations=self.operations, parent=self)
 
     def validate(self, tool):
         """모델/효과 호출 전에 호스트 실행 계약을 검사한다."""
         self.require_active()
         from llm.components.tools.constraints import constrained_parameters
-        constrained_parameters(tool.parameters, self.policy.argument_constraints.get(tool.name, {}))
+        constrained_parameters(tool.parameters, self.argument_constraints.get(tool.name, {}))
         contract = tool.contract
         if contract is None:
             return
         root = self
         while root.parent is not None:
             root = root.parent
-        if contract.approval_required and root.policy.authorize is None:
-            raise ExecutionLimitError("tool_contract", "Tool requires an authorization adapter")
         if contract.operation_key_required and self.policy.operation_key is None:
             raise ExecutionLimitError("tool_contract", "Tool requires an operation key adapter")
         if contract.isolation != "none":
@@ -221,26 +227,40 @@ class ToolExecutionScope:
         if self.parent is not None:
             self.parent.record_completion()
 
-    async def authorize(self, call: ToolCall, *, decision=None):
+    async def authorize(self, call: ToolCall, *, decision=None, invocation=None):
         self.require_active()
-        if self.policy.allowed_tools is not None and call.name not in self.policy.allowed_tools:
+        if self.allowed_tools is not None and call.name not in self.allowed_tools:
             raise ExecutionLimitError("tool_denied", f"Tool is not allowed: {call.name}")
         identity = json.dumps([call.name, call.arguments], sort_keys=True, ensure_ascii=False)
-        reserved = decision is not None and identity in self.pending_approvals
-        if not reserved and self.policy.max_calls is not None and self.calls >= self.policy.max_calls:
+        pending = decision is not None and identity in self.pending_approvals
+        reserved = pending or invocation is not None and invocation in self.invocations
+        if not reserved and self.max_calls is not None and self.calls >= self.max_calls:
             raise ExecutionLimitError("tool_budget_exceeded", "Run Tool call budget exceeded")
         # await 이전에 예약하므로 동시에 진행되는 Graph 분기도 한도를 공유한다.
-        if reserved:
+        if pending:
             self.pending_approvals.remove(identity)
-        else:
+        if not reserved:
             self.calls += 1
+        if invocation is not None:
+            self.invocations.add(invocation)
         try:
             if self.parent is not None:
-                await self.parent.authorize(call, decision=decision)
+                await self.parent.authorize(call, decision=decision, invocation=invocation)
             if decision is False:
                 raise ExecutionLimitError("tool_denied", f"Tool authorization denied: {call.name}")
-            if decision is not True and self.policy.authorize is not None and await self.policy.authorize(deepcopy(call)) is not True:
-                raise ExecutionLimitError("tool_denied", f"Tool authorization denied: {call.name}")
+            if self.parent is None:
+                # 기술적인 거부는 저장된 승인으로도 우회할 수 없다. ASK만 기존 결정을 소비한다.
+                if self.policy.authorize is not None:
+                    try:
+                        allowed = await self.policy.authorize(deepcopy(call))
+                    except ToolApprovalRequired:
+                        if decision is not True:
+                            raise
+                    else:
+                        if allowed is not True:
+                            raise ExecutionLimitError("tool_denied", f"Tool authorization denied: {call.name}")
+                if decision is not True and (call.contract or {}).get("approval_required"):
+                    raise ToolApprovalRequired()
         except ToolApprovalRequired:
             self.pending_approvals.append(identity)
             raise
@@ -262,7 +282,7 @@ class ToolExecutor:
             raise ValueError("Tool output limit must be a positive integer")
         self.timeout_seconds, self.max_output_chars = timeout_seconds, max_output_chars
 
-    def _request_state(self, tool, arguments, context, decision, request_key):
+    def _request_state(self, tool, arguments, context, decision, request_key, classification):
         """권한을 부여하지 않고 기존 체크포인트 연결만 검증한다. 계측 여부와 무관하다."""
         if request_key is not None and (not isinstance(request_key, str) or not request_key.strip()):
             raise ToolInvocationError("Tool request_key must be a nonempty string")
@@ -297,8 +317,14 @@ class ToolExecutor:
         if durable_approval:
             action = interaction.get("action", {})
             scope = getattr(context, "tool_scope", None)
+            if not same_interaction_value(action.get("classification"), classification):
+                raise ToolInvocationError("Durable Tool approval classification changed")
+            if scope is not None and not same_interaction_value(action.get("policy"), scope.binding()):
+                raise ToolInvocationError("Durable Tool approval policy/adapter binding changed")
+            if not same_interaction_value(action.get("contract"), asdict(tool.contract) if tool.contract else None):
+                raise ToolInvocationError("Durable Tool approval Tool contract changed")
             if scope is not None and not same_interaction_value(
-                    action.get("policy", {}).get("argument_constraints", {}), scope.policy.argument_constraints):
+                    action.get("policy", {}).get("argument_constraints", {}), scope.argument_constraints):
                 raise ToolInvocationError("Durable Tool approval argument constraints changed")
             if (request_key not in decisions or type(stored_decision) is not bool
                     or type(decision) is not bool or decision != stored_decision
@@ -324,7 +350,8 @@ class ToolExecutor:
         # 다른 노드의 pause_before는 같은 인자의 pending 요청과 합치지 않는다.
         return decision, False if request_key in records else resumed
 
-    async def _execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None):
+    async def _execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None, classification=None,
+                       request_key=None):
         ProjectConfig.validate_settings(arguments)
         step_id = new_id()
         scope = getattr(context, "tool_scope", None) or ToolExecutionScope(ToolPolicy())
@@ -333,7 +360,13 @@ class ToolExecutor:
                         context.project.id if context else None, context.session.id if context else None,
                         context.run.id if context else None,
                         input_message_id=context.run.input_message_id if context else None,
-                        contract=asdict(tool.contract) if tool.contract is not None else None)
+                        contract=asdict(tool.contract) if tool.contract is not None else None,
+                        classification=classification)
+        # Project의 제한은 모든 엔진이 공유하며 로컬 호출은 좁히기만 한다.
+        def narrow(left, right):
+            return min(v for v in (left, right) if v is not None) if left is not None or right is not None else None
+        seconds = narrow(self.timeout_seconds, scope.timeout_seconds)
+        output_limit = narrow(self.max_output_chars, scope.max_output_chars)
         if scope.policy.operation_key is not None:
             key = scope.policy.operation_key(deepcopy(call))
             if key is not None:
@@ -349,9 +382,11 @@ class ToolExecutor:
                                     "idempotency_key": call.idempotency_key})
         authorized = False
         try:
-            deadline = None if self.timeout_seconds is None else asyncio.get_running_loop().time() + self.timeout_seconds
-            async with timeout(self.timeout_seconds):
-                await scope.authorize(call, decision=decision)
+            deadline = None if seconds is None else asyncio.get_running_loop().time() + seconds
+            async with timeout(seconds):
+                invocation = (json.dumps([getattr(context, "checkpoint_scope", None), request_key])
+                              if request_key is not None else None)
+                await scope.authorize(call, decision=decision, invocation=invocation)
             authorized = True
             # yield 바깥 서비스 I/O까지 timeout context가 취소하지 않도록 분리한다.
             yield EngineEvent(EngineEventType.STEP_UPDATED, step_id=step_id,
@@ -372,25 +407,51 @@ class ToolExecutor:
                     if remaining is not None and remaining <= 0:
                         raise asyncio.TimeoutError()
                     try:
-                        async with timeout(remaining):
-                            token = _tool_call.set(call)
-                            try:
-                                scope.require_active()
-                                record("tools", "executions", retry=attempt > 0, name=tool.name,
-                                       run_id=call.run_id, step_id=call.step_id)
-                                if scope.policy.runner is None:
-                                    value = await tool.handler(deepcopy(arguments))
-                                else:
-                                    value = await scope.policy.runner(tool, deepcopy(call))
-                            finally:
-                                _tool_call.reset(token)
+                        scope.require_active()
+                        record("tools", "executions", retry=attempt > 0, name=tool.name,
+                               run_id=call.run_id, step_id=call.step_id)
+                        stream = getattr(tool.handler, "execute_events", None)
+                        if getattr(tool.handler, "resumable_container", False) is True and callable(stream):
+                            if call.operation_key is not None:
+                                raise ValueError("An orchestration Tool uses child operation receipts, not a container operation key")
+                            from contextlib import aclosing
+                            nested = {}
+                            async with aclosing(stream(context, deepcopy(arguments), request_key=request_key,
+                                    checkpoint_name=(metadata or {}).get("checkpoint_name"),
+                                    step_id=step_id, result=nested)) as events:
+                                while True:
+                                    try:
+                                        left = None if deadline is None else deadline - asyncio.get_running_loop().time()
+                                        # 저장 소비자를 취소하지 않고 다음 자식 이벤트 대기만 제한한다.
+                                        async with timeout(left):
+                                            event = await anext(events)
+                                    except StopAsyncIteration:
+                                        break
+                                    if event.type == EngineEventType.PAUSED:
+                                        yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
+                                            metadata={"phase": "waiting_child"})
+                                        result["paused"] = True
+                                        yield event
+                                        return
+                                    yield event
+                            value = nested["value"]
+                        else:
+                            async with timeout(remaining):
+                                token = _tool_call.set(call)
+                                try:
+                                    if scope.policy.runner is None:
+                                        value = await tool.handler(deepcopy(arguments))
+                                    else:
+                                        value = await scope.policy.runner(tool, deepcopy(call))
+                                finally:
+                                    _tool_call.reset(token)
                         break
                     except Exception as error:
                         uncertain_attempt = uncertain_attempt or not (isinstance(error, ToolExecutionError) and error.effect == "none")
                         safe = (isinstance(error, ToolExecutionError) and error.effect == "none"
                                 or tool.name in scope.policy.retry_safe_tools)
                         retryable = isinstance(error, ToolExecutionError) and error.retryable
-                        if not safe or not retryable or scope.policy.max_retries is None or attempt >= scope.policy.max_retries:
+                        if not safe or not retryable or scope.max_retries is None or attempt >= scope.max_retries:
                             if isinstance(error, ToolExecutionError) and error.effect == "none" and uncertain_attempt:
                                 raise ToolExecutionError(str(error), effect="uncertain") from error
                             if isinstance(error, ToolExecutionError) and error.effect == "none" and call.operation_key is not None:
@@ -407,11 +468,11 @@ class ToolExecutor:
                         if remaining is not None and remaining <= 0:
                             raise asyncio.TimeoutError()
                         async with timeout(remaining):
-                            if scope.policy.retry_delay is not None:
-                                await asyncio.sleep(scope.policy.retry_delay)
+                            if scope.retry_delay is not None:
+                                await asyncio.sleep(scope.retry_delay)
             ProjectConfig.validate_settings({"result": value})
             content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)
-            if self.max_output_chars is not None and len(content) > self.max_output_chars:
+            if output_limit is not None and len(content) > output_limit:
                 raise ValueError("Tool output limit exceeded")
             if call.operation_key is not None and not reservation["reused"]:
                 await scope.operations.complete(call, value)
@@ -426,12 +487,12 @@ class ToolExecutor:
                     metadata={"phase": "failed", "error_code": "tool_failed"})
                 raise error from request
             # 표시용 문구와 실제 실행 대상은 분리한다. 호출자 제공 source/action은 신뢰하지 않는다.
-            request.request = replace(request.request,
+            request.request = replace(request.request, **call.classification,
                 source={"project_id": call.project_id, "session_id": call.session_id,
                         "run_id": call.run_id, "step_id": call.step_id},
                 action={"tool": call.name, "arguments": deepcopy(call.arguments),
                         "contract": deepcopy(call.contract), "policy": scope.binding(),
-                        "auto_approval_allowed": request.request.category in scope.binding()["auto_approve_categories"]})
+                        "classification": deepcopy(call.classification)})
             yield EngineEvent(EngineEventType.STEP_CANCELLED, step_id=step_id,
                               metadata={"phase": "waiting_approval", "arguments": deepcopy(arguments)})
             raise
@@ -453,22 +514,42 @@ class ToolExecutor:
         from llm.components.tools.constraints import constrained_arguments
         scope = getattr(context, "tool_scope", None)
         arguments = constrained_arguments(tool.parameters, arguments,
-            scope.policy.argument_constraints.get(tool.name, {}) if scope is not None else {})
-        decision, resumed = self._request_state(tool, arguments, context, decision, request_key)
+            scope.argument_constraints.get(tool.name, {}) if scope is not None else {})
+        from llm.components.tools.registry import ToolClassification
+        classification = tool.classification or ToolClassification()
+        if scope is not None and scope.policy.classify is not None:
+            classification = scope.policy.classify(ToolCall(tool.name, deepcopy(arguments), "",
+                context.project.id, context.session.id, context.run.id,
+                contract=asdict(tool.contract) if tool.contract else None))
+            if inspect.isawaitable(classification):
+                classification = await classification
+        if not isinstance(classification, ToolClassification):
+            raise TypeError("Trusted classifier must return ToolClassification")
+        classification = asdict(classification)
+        decision, resumed = self._request_state(tool, arguments, context, decision, request_key, classification)
+        if scope is not None and request_key is not None:
+            invocation = json.dumps([getattr(context, "checkpoint_scope", None), request_key])
+            resumed = resumed or invocation in scope.invocations
         if not resumed:
             record("tools", "requests", name=tool.name)
         started = time.monotonic()
         status, code = "completed", None
         try:
             async with aclosing(self._execute(tool, arguments, result=result, metadata=metadata,
-                                              context=context, decision=decision)) as events:
+                                              context=context, decision=decision, classification=classification,
+                                              request_key=request_key)) as events:
                 async for event in events:
+                    if event.type == EngineEventType.PAUSED:
+                        status = "paused"
                     yield event
+            if result.get("paused"):
+                status = "paused"
         except ToolApprovalRequired:
             status = "approval_required"
             raise
         except (asyncio.CancelledError, GeneratorExit):
-            status = "cancelled"
+            if not result.get("paused"):
+                status = "cancelled"
             raise
         except Exception as error:
             status, code = "failed", stable_error_code(error) or "tool_failed"

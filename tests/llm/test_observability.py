@@ -43,7 +43,7 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
             if attempts == 1:
                 raise ToolExecutionError("private", effect="none", retryable=True)
             return "private result"
-        snapshot = await self.execute(handler, scope=ToolExecutionScope(ToolPolicy(max_retries=1)))
+        snapshot = await self.execute(handler, scope=ToolExecutionScope(ToolPolicy(), retry={"max_retries": 1}))
         self.assertEqual({k: snapshot["tools"][k] for k in ("requests", "executions", "retries", "failed")},
                          {"requests": 1, "executions": 2, "retries": 1, "failed": 0})
         self.assertNotIn("private", json.dumps(snapshot))
@@ -145,7 +145,9 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
             tool_scope=ToolExecutionScope(ToolPolicy()),
             checkpoint={'records': {
                 'a': {'status': 'waiting', 'interaction': approval_request('Tool',
-                    action={'tool': 'act', 'arguments': {}}).bind('custom', 'a').to_dict()},
+                    action={'tool': 'act', 'arguments': {}, 'contract': None,
+                            'classification': {'category': 'tool.execute', 'risk_scheme': None, 'risk': None},
+                            'policy': ToolExecutionScope(ToolPolicy()).binding()}).bind('custom', 'a').to_dict()},
                 'b': {'status': 'waiting', 'interaction': approval_request('Pause',
                     action={'node_id': 'b'}).bind('custom', 'b').to_dict()}}})
         async def handler(arguments):
@@ -222,7 +224,9 @@ class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
             (), checkpoint={'records': records or {}}, tool_scope=scope or ToolExecutionScope(ToolPolicy()))
 
     def waiting(self, key, *, tool='act', arguments=None, graph=False):
-        request = approval_request('Tool', action={'tool': tool, 'arguments': arguments or {}})
+        request = approval_request('Tool', action={'tool': tool, 'arguments': arguments or {}, 'contract': None,
+            'classification': {'category': 'tool.execute', 'risk_scheme': None, 'risk': None},
+            'policy': ToolExecutionScope(ToolPolicy()).binding()})
         return {'status': 'waiting', 'interaction': request.bind('custom', key,
             decision_key='approved' if graph else None).to_dict()}
 
@@ -247,12 +251,12 @@ class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
         engine = CustomEngine()
         with observer.scope():
             with self.assertRaises(ToolApprovalRequired) as pending:
-                async for _ in engine.execute(self.context(scope=ToolExecutionScope(ToolPolicy(authorize=ask)))):
+                async for _ in engine.execute(self.context(scope=ToolExecutionScope(ToolPolicy(authorize=ask), retry={"max_retries": 1}))):
                     pass
             key = 'node/iteration:3'
             waiting = {'status': 'waiting', 'interaction': pending.exception.request.bind('custom', key).to_dict()}
             fresh = self.context(records={key: waiting}, decisions={key: True},
-                                 scope=ToolExecutionScope(ToolPolicy(authorize=ask, max_retries=1)))
+                                 scope=ToolExecutionScope(ToolPolicy(authorize=ask), retry={"max_retries": 1}))
             async for _ in engine.execute(fresh):
                 pass
         tools = observer.snapshot()['tools']

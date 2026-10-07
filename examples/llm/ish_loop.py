@@ -18,17 +18,19 @@ async def run_request(args: argparse.Namespace, *, workspace: Path,
                       completion: Mapping[str, Any], max_iterations: int,
                       request_timeout: float) -> int:
     """Project ID가 없으면 새 Project를 생성한다. 이전 작업 선택은 호출자가 소유한다."""
-    # 모델 인자는 이 테스트 실행의 명시적인 호스트 설정이다.
-    # 기존 Project의 컴포넌트·정책·모델 설정을 덮어쓰지 않는다.
+    # 이 예제의 명시적인 실행 선택을 Project에 저장한다.
     async with LargeLanguageModel(
         workspace,
-        engines={"loop": LoopEngine(completion_kwargs=completion,
-                                    max_iterations=max_iterations,
-                                    request_timeout=request_timeout)},
+        engines={"loop": LoopEngine()},
         on_event=print_event,
     ) as backend:
         project = (await backend.projects.aload(args.project_id) if args.project_id
                    else await backend.projects.acreate("ish LoopEngine test", conversation_storage="file"))
+        config = (await project.aget_data()).config
+        config.parameters.setdefault("engines", {})["loop"] = {
+            "config": {"completion": dict(completion)},
+            "policy": {"max_iterations": max_iterations, "request_timeout": request_timeout}}
+        await project.asave(config=config)
         session = (await project.sessions.aload(args.session_id) if args.session_id
                 else await project.sessions.acreate("ish LoopEngine test"))
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)

@@ -8,6 +8,7 @@ Engine은 하나의 Run을 어떻게 실행할지 정의합니다. 모델을 반
 | --- | --- |
 | [__init__.py](__init__.py) | BaseEngine, EngineContext, EngineRegistry와 Graph 타입의 공개 import입니다. |
 | [base.py](base.py) | Engine protocol, EngineContext/EngineEvent, BaseEngine과 Step·출력·Tool helper입니다. |
+| [agents.py](agents.py) | Graph AgentNode와 agent_run Tool이 공유하는 Agent 실행·중첩 checkpoint 경계입니다. |
 | [../policies/](../policies/README.md) | Engine/Component가 재사용하는 CompletionPolicy 알고리즘입니다. |
 | [registry.py](registry.py) | 실행 객체 등록, 이름 조회와 실행 전 설정 검증입니다. |
 | [loop/](loop/README.md) | LiteLLM completion → Tool → 다음 completion을 반복합니다. |

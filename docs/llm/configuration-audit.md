@@ -1,5 +1,18 @@
 # 설정 정적 감사 기록
 
+## 2026-10-07 Project authority 감사
+
+[현재 inventory](project-authority.md)가 아래 과거 감사의 Host policy 우선순위를 대체한다.
+내장 Engine은 Project → Session → Agent이며 제한 확대/null 해제는 거부한다.
+Tool 허용/예산/제약/retry와 승인 임계값은 Project, classifier/runner와 공유 capacity는 Host다.
+Memory의 host 추출 지침, BuiltinTools 생성자의 파일/시간/출력 제한을 제거했다.
+BaseEngine constructor limit도 호출별 helper 인자로 옮겨 전역 ceiling을 만들지 않는다.
+rg의 constructor/host/x-host-override/default 패턴을 검사했다. generic host schema observer와
+외부 adapter 표시 기능은 제품 정책을 해석하지 않는 재사용 도구로 남긴다.
+stored/invariant version은 1이며 별칭/자동 migration은 추가하지 않았다.
+
+아래는 당시의 검사 기록이며 현재 API 사용법은 위 문서와 llm/CONFIGURATION.md를 따른다.
+
 ## Architecture boundary / Skill evolution 감사
 
 [새 경계 분류와 상한 표](architecture-boundaries.md), [구현 결과](boundary-evolution-review.md)를

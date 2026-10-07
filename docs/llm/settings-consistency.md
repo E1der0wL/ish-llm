@@ -8,9 +8,9 @@
 | 대상 | 저장·전달 경로 | 해석 순서 |
 |---|---|---|
 | Run 문맥·토큰·사용량·보관 정책 | ProjectConfig.policies | Run 시작 사본, 서비스 집행 |
-| Loop/Graph/사용자 Engine | parameters.engines[설정 키] | Project → Session → Agent → host |
+| Loop/Graph/사용자 Engine | parameters.engines[설정 키] | Project → Session → Agent; child 제한 확대 금지 |
 | RAG/Memory/Vision/사용자 Component | parameters.components[이름] | 주입 client의 명시값 → Project |
-| 런타임 자원·권한·함수 | ServiceConfig, 생성자 | host 소유; JSON 저장 안 함 |
+| 런타임 자원·기술 검증·함수 | ServiceConfig, 생성자 | host 소유; JSON 저장 안 함. 제품 실행 권한/예산은 Project 정책 |
 
 모든 구현체는 `config`(기능 입력·SDK 인자), `policy`(자체 실행 판단·제한)를 공개한다.
 Loop의 `config.completion`은 Loop 구현체의 입력이다. Graph는 Workflow 조율에 모델을 요구하지 않는다.
@@ -26,7 +26,7 @@ Session에는 명시된 override만 저장한다. Project 값은 실행 시 상�
 ## 소비자 스키마와 실제 실행
 
 EngineRegistry는 등록 엔진이 선언한 입력 스키마와 effective configuration을 검증한다.
-잘못된 Project/Session 값은 host override가 있어도 저장하지 않는다. 설정 키를 명시적으로
+잘못된 Project/Session 값은 저장하지 않는다. 설정 키를 명시적으로
 공유한 엔진들의 스키마는 allOf로 합쳐 모든 소비자의 제약을 지킨다.
 계약을 선언하지 않은 사용자 엔진의 임의 JSON 의미를 서비스가 추측하지 않는다.
 
@@ -46,7 +46,7 @@ RAG는 `aconfigure`에 명시된 분할·동시성·검색·모델 옵션을 해
 원본·잠금·버전 비교를 사용한다. Component별 설정 파일이나 이중 저장소는 없다.
 
 Engine view의 sources/editable/overridden은 `/policy/request_timeout`, `/config/completion/model`처럼
-구현체 기준 JSON Pointer다. 동적 completion factory는 runtime 목록과 host_runtime으로
+구현체 기준 JSON Pointer다. Host 구현 객체는 별도 읽기 전용 host_configuration으로
 표시하고 실행하지 않는다. Component 모델 클라이언트는 client 출처로 구분한다.
 관련 회귀는 test_project_creation, test_configuration_validation, test_settings_consistency,
 test_project_component_settings, test_explicit_configuration 및 hub의 설정 UI 테스트에 있다.

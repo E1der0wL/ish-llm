@@ -570,33 +570,14 @@ class GraphEngine:
     """
 
     def __init__(self, *, handlers: Mapping[str, Callable],
-                 max_steps=_UNSET, max_parallelism=_UNSET,
-                 timeout_seconds=_UNSET, buffer_size=_UNSET,
-                 revision: str = "1", max_nested_depth=_UNSET,
-                 cleanup_timeout=_UNSET, config_keys: Optional[tuple[str, ...]] = None,
+                 revision: str = "1", config_keys: Optional[tuple[str, ...]] = None,
                  settings_name: Optional[str] = None) -> None:
-        supplied = dict(max_steps=max_steps, max_parallelism=max_parallelism, timeout_seconds=timeout_seconds,
-                        buffer_size=buffer_size, max_nested_depth=max_nested_depth, cleanup_timeout=cleanup_timeout)
-        self._overrides = {key: value for key, value in supplied.items() if value is not _UNSET}
-        values = self._overrides
-        max_steps, max_parallelism, timeout_seconds = (values.get(k) for k in ("max_steps", "max_parallelism", "timeout_seconds"))
-        # Buffer size only controls backpressure; cleanup waiting is host-owned.
-        buffer_size, max_nested_depth, cleanup_timeout = values.get("buffer_size", 32), values.get("max_nested_depth"), values.get("cleanup_timeout")
         if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
             raise ValueError("settings_name must be nonempty text")
         self.settings_name, self._agent_options, self._configured = settings_name, {}, False
-        if any(value is not None and (type(value) is not int or value < 1) for value in (max_steps, max_parallelism, buffer_size)):
-            raise ValueError("Graph limits must be positive integers")
-        self._deadline(timeout_seconds)
-        self._deadline(cleanup_timeout)
-        if cleanup_timeout is None and "cleanup_timeout" in values:
-            raise ValueError("cleanup_timeout must be finite")
         if config_keys is not None and (not isinstance(config_keys, tuple) or any(not isinstance(k, str) or not k for k in config_keys)):
             raise ValueError("config_keys must be a tuple of project setting names")
-        self.cleanup_timeout, self.config_keys = cleanup_timeout, config_keys
-        if max_nested_depth is not None and (type(max_nested_depth) is not int or max_nested_depth < 0):
-            raise ValueError("max_nested_depth must be a nonnegative integer or None")
-        self.max_nested_depth = max_nested_depth
+        self.config_keys = config_keys
         if not isinstance(revision, str) or not revision:
             raise ValueError("GraphEngine revision must be nonempty text")
         self.revision = revision
@@ -608,8 +589,22 @@ class GraphEngine:
         self.required_capabilities = tuple(dict.fromkeys(
             ("workflows",) + tuple(name for handler in self.handlers.values()
                                    for name in required_capabilities(handler))))
-        self.max_steps, self.max_parallelism = max_steps, max_parallelism
-        self.timeout_seconds, self.buffer_size = timeout_seconds, buffer_size
+        self._configure({})
+
+    def _configure(self, values):
+        for key in self._option_names:
+            setattr(self, key, values.get(key))
+        # 큐는 출력 유실/실행 제한 없이 backpressure만 제공한다.
+        self.buffer_size = values.get("buffer_size", 32)
+        if any(value is not None and (type(value) is not int or value < 1)
+               for value in (self.max_steps, self.max_parallelism, self.buffer_size)):
+            raise ValueError("Graph limits must be positive integers")
+        self._deadline(self.timeout_seconds)
+        self._deadline(self.cleanup_timeout)
+        if self.cleanup_timeout is None and "cleanup_timeout" in values:
+            raise ValueError("cleanup_timeout must be finite")
+        if self.max_nested_depth is not None and (type(self.max_nested_depth) is not int or self.max_nested_depth < 0):
+            raise ValueError("max_nested_depth must be a nonnegative integer or None")
 
     settings_layout = SettingsLayout(config=("buffer_size", "cleanup_timeout"),
         policy=("max_steps", "max_parallelism", "timeout_seconds", "max_nested_depth"))
@@ -618,18 +613,19 @@ class GraphEngine:
 
     def configuration_schema(self):
         from llm.core.schema import object_schema, field
-        properties = {key: field(["integer", "null"], minimum=1,
-                      **{"x-host-override": key in self._overrides}) for key in self._option_names}
+        properties = {key: field(["integer", "null"], minimum=1) for key in self._option_names}
         properties["buffer_size"]["type"] = "integer"
         properties["max_nested_depth"].update(minimum=0)
         for key in ("timeout_seconds", "cleanup_timeout"):
-            properties[key] = field(["number", "null"] if key == "timeout_seconds" else "number", exclusiveMinimum=0, **{"x-host-override": key in self._overrides})
+            properties[key] = field(["number", "null"] if key == "timeout_seconds" else "number", exclusiveMinimum=0)
+        for key in ("max_steps", "max_parallelism", "timeout_seconds", "max_nested_depth"):
+            properties[key]["x-narrowing"] = "maximum"
         return self.settings_layout.schema(object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
             **({"x-settings-key": self.settings_name} if self.settings_name else {})}))
 
     def configuration(self, config, name, *, session_config=None):
         view = engine_configuration(config, self.settings_name or name, session_config=session_config,
-            agent=self._agent_options, host=self.settings_layout.pack(self._overrides), schema=self.configuration_schema())
+            agent=self._agent_options, schema=self.configuration_schema())
         return view
 
     def configured(self, context):
@@ -638,10 +634,8 @@ class GraphEngine:
             return self
         values = self.settings_layout.unpack(self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"])
         worker = copy(self)
-        GraphEngine.__init__(worker, handlers=self.handlers, revision=self.revision,
-            config_keys=self.config_keys, settings_name=self.settings_name,
-            **{key: values[key] for key in self._option_names if key in values})
-        worker._overrides, worker._agent_options, worker._configured = self._overrides, self._agent_options, True
+        worker._configure(values)
+        worker._configured = True
         worker.workflow = self.workflow
         return worker
 
@@ -835,7 +829,7 @@ class GraphEngine:
         worker = self.for_request({"workflow": options.pop("workflow", None)})
         from jsonschema import Draft202012Validator
         Draft202012Validator(self.configuration_schema()).validate(options)
-        GraphEngine(handlers=self.handlers, **{**self.settings_layout.unpack(options), **self._overrides})
+        copy(self)._configure(self.settings_layout.unpack(options))
         worker._agent_options, worker._configured = options, False
         worker.settings_name = self.settings_name or definition["engine"]
         return worker

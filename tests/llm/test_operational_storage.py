@@ -317,9 +317,10 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
             if context.messages[-1].content == "slow":
                 await asyncio.sleep(10)
         with tempfile.TemporaryDirectory() as root:
-            async with LargeLanguageModel(root, engines={"test": BaseEngine(action=action, timeout_seconds=0.1)},
+            async with LargeLanguageModel(root, engines={"test": BaseEngine(action=action)},
                     services=ServiceConfig(output_policy=OutputPolicy(batch_size=8))) as backend:
-                session = await (await backend.projects.acreate()).sessions.acreate()
+                session = await (await backend.projects.acreate(config={"policies": {
+                    "run": {"timeout_seconds": .1}}})).sessions.acreate()
                 first = await session.run.submit("slow", engine="test")
                 second = await session.run.submit("fast", engine="test")
                 self.assertEqual((await (await first.wait(timeout=5)).aresult()).status, RunStatus.FAILED)

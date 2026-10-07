@@ -80,7 +80,14 @@ class ProjectPage(Page):
                               prefix=("config", "parameters", "components", name),
                               effective={name: view} if view is not None else None)
             self.component_forms[name] = form
-            body.extend([section(name), *(form.children or [form.container])])
+            required = record["schema"].get("x-components", {}).get(name, {}).get("required_components", [])
+            missing = [item for item in required if item not in self.components]
+            body.extend([section(name)])
+            if required:
+                body.append(Label(screen.t("settings_dependencies", names=", ".join(required))))
+            if missing:
+                body.append(Label(screen.t("settings_dependencies_missing", names=", ".join(missing))))
+            body.extend(form.children or [form.container])
         self.container = SettingsBody(body, self.all_fields())
         self.actions(extra=() if new else (self.activate_button,))
 

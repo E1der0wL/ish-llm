@@ -3,6 +3,8 @@
 
 
 MESSAGES = {
+    "settings_dependencies": "필수 컴포넌트: {names}",
+    "settings_dependencies_missing": "선택되지 않은 필수 컴포넌트: {names} — 선택 후 저장하세요.",
     "title_model_required": "자동 제목 모델이 없습니다. 대화 엔진 또는 parameters.engines._hub_title.completion.model을 설정하세요.",
     "output_image_limit": "현재 화면의 이미지 미리보기 한도(32개)에 도달했습니다.",
     "welcome_title": "아직 세션이 없습니다",

@@ -1,3 +1,15 @@
+## 2026-10-07 Project authority · numeric risk · Agent delegation
+
+- 기준 main: `865c738b85ff354ce6160a99c7289ab9251c6e96`.
+- 현재 계약/소유권/수동 변경 안내: [project-authority.md](project-authority.md).
+- Project 정책 snapshot과 Engine local narrowing; Host는 기술 구현과 공유 자원.
+- 수치 risk_scheme/risk와 신뢰한 invocation classifier; 승인 response는 자동 실행하지 않음.
+- AgentNode와 agent_run은 engines/agents.py를 공유. 같은 Run, child Tool 예산/승인/재개 유지.
+- required_components는 선택 집합을 저장 전 검증. 자동 의존성 선택/설치 없음.
+- DefinitionComponent 기본 closed, RAG 기본 child도 저장 단계 의미 검증.
+- 검증 결과와 잔여 제한은 [작업 보고](project-authority-review.md)에 기록한다.
+- 이전 기록의 Host scalar override나 문자열 risk 예제는 현행 계약이 아니다.
+
 ## 2026-10-06 Closed contracts · semantic ownership
 
 - 기준 main: `f25a84de6759b9d723baf402f79ed451de1e84e8`. 최신 원격을 다시 fetch해 같은 commit임을 확인했다.

@@ -40,8 +40,9 @@ class GraphAgentContractTests(unittest.TestCase):
                 handler.validate({"agent": "review", key: value}, context)
         self.assertIsNone(engine.cleanup_timeout)
         self.assertNotIn("enforced", engine.configuration(ProjectConfig(), "graph"))
-        self.assertIsNone(GraphEngine(handlers={}, max_nested_depth=None).max_nested_depth)
-        self.assertEqual(GraphEngine(handlers={}, max_nested_depth=100).max_nested_depth, 100)
+        self.assertIsNone(GraphEngine(handlers={}).max_nested_depth)
+        self.assertEqual(GraphEngine(handlers={}).configuration(ProjectConfig(parameters={"engines": {
+            "graph": {"policy": {"max_nested_depth": 100}}}}), "graph")["values"]["policy"]["max_nested_depth"], 100)
 
 
 class GraphEnvironmentTests(unittest.IsolatedAsyncioTestCase):

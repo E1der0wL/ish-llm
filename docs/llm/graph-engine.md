@@ -85,7 +85,7 @@ Project의 `rag_search`를 자동 추가한다. Skill 지침을 프롬프트에 
 
 Loop의 `engine_options`는 max_iterations/request_timeout/tool_timeout/buffer_size/
 max_tool_calls/max_argument_chars/max_output_chars를 config/policy 외형으로 받는다.
-Project → Session → Agent → host의 명시된 값만 적용한다. 미설정 실행 한도나 timeout을 생성하지 않는다.
+Project → Session → Agent의 명시된 값만 적용하고 child는 부모의 제한을 넓힐 수 없다. 미설정 실행 한도나 timeout을 생성하지 않는다.
 max_tool_calls는 한 모델 응답의 Tool 개수 제한이고 policy.max_tool_calls는 Agent 전체
 호출 예산이다. 부모 Run의 한도와 권한은 항상 함께 적용한다. require_tool을 만족하지
 못하거나 입력/출력 schema 검증이 실패하면 Agent/Graph Run이 실패하며 자동 재시도하지 않는다.
@@ -208,11 +208,10 @@ async def inspect(node: GraphNodeContext) -> dict:
     issues = await my_analyzer(source)
     return {"passed": not issues, "validation": {"issues": issues}}
 
-engine = GraphEngine(handlers={"inspect": inspect},
-    max_steps=1000,
-    max_parallelism=8,
-    timeout_seconds=300,
-)
+engine = GraphEngine(handlers={"inspect": inspect})
+# ProjectConfig(parameters={"engines": {"graph": {"policy": {
+#     "max_steps": 1000, "max_parallelism": 8, "timeout_seconds": 300,
+# }}}})
 ```
 
 `GraphNodeContext`는 다음 정보를 제공한다.

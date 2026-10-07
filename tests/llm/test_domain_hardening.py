@@ -167,17 +167,18 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
 
     async def test_auto_approval_requires_host_ceiling_and_explicit_resume(self):
+        from llm.components.tools import ToolClassification
         for host_allows in (False, True):
             effects = []
             async def act(arguments):
                 effects.append(1)
             async def authorize(call):
-                raise ToolApprovalRequired(request=approval_request("read", category="file.read", risk="low"))
+                raise ToolApprovalRequired("read")
             app, session, _ = await self.setup_app(act, [
                 [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]],
-                ToolPolicy(authorize=authorize, auto_approve_categories=("file.read",) if host_allows else ()))
-            await session.project.aconfigure_policies({"approval": {"enabled": True, "rules": [
-                {"id": "read-only", "category": "file.read", "max_risk": "low"}]}})
+                ToolPolicy(authorize=authorize, classify=lambda call: ToolClassification("file.read", "test", 10)))
+            await session.project.aconfigure_policies({"approval": {"enabled": host_allows, "risk_scheme": "test", "rules": [
+                {"id": "read-only", "category": "file.read", "max_risk": 10}]}})
             run = await (await session.run.submit("read", engine="loop")).wait()
             self.assertEqual(run.data.status, "paused", run.data.error)
             responses = await run.ainteraction_responses()

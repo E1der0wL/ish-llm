@@ -34,30 +34,28 @@ class PreparationStep(BaseEngine):
     """Convenience BaseEngine for async preparation; a deadline is applied only when configured."""
 
     def __init__(self, name: str, action: Callable[[EngineContext], Awaitable[None]], *,
-                 kind: str = "preparation", timeout_seconds=_UNSET, settings_name=None) -> None:
+                 kind: str = "preparation", settings_name=None) -> None:
         if not callable(action):
             raise TypeError("Preparation action must be callable")
-        self._overrides = {} if timeout_seconds is _UNSET else {"timeout_seconds": timeout_seconds}
         if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
             raise ValueError("settings_name must be nonempty text")
         self.settings_name = settings_name
-        super().__init__(name, kind=kind, action=action, timeout_seconds=None if timeout_seconds is _UNSET else timeout_seconds,
+        super().__init__(name, kind=kind, action=action,
                          error_message="Preparation failed")
 
     def configuration_schema(self):
         return implementation_schema(policy=object_schema({"timeout_seconds": field(["number", "null"],
-            exclusiveMinimum=0, **{"x-host-override": "timeout_seconds" in self._overrides})}, additionalProperties=False),
+            exclusiveMinimum=0, **{"x-narrowing": "maximum"})}, additionalProperties=False),
             **({"x-settings-key": self.settings_name} if self.settings_name else {}))
 
     def configuration(self, config, name, *, session_config=None):
         return engine_configuration(config, self.settings_name or name,
-            session_config=session_config, host=({"policy": self._overrides} if self._overrides else {}), schema=self.configuration_schema())
+            session_config=session_config, schema=self.configuration_schema())
 
     async def execute(self, context):
-        worker = copy(self)
-        worker.timeout_seconds = self.configuration(context.project.config, context.run.engine,
+        deadline = self.configuration(context.project.config, context.run.engine,
             session_config=context.session.config)["values"].get("policy", {}).get("timeout_seconds")
-        async with aclosing(BaseEngine.execute(worker, context)) as events:
+        async with aclosing(self._execute(context, publish_output=True, timeout_seconds=deadline)) as events:
             async for event in events:
                 yield event
 

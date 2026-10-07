@@ -38,6 +38,20 @@ class LoopEngine(BaseEngine):
     checkpoint_name = "loop"
     steering_mode = SteeringMode.CONSUME
 
+    def additional_capabilities(self, capabilities):
+        """선택 Tool의 공개 runtime dependency 선언만 전달한다."""
+        names = []
+        tools = capabilities.get("tools")
+        for name in tools.names() if tools is not None else ():
+            handler = tools.get(name).handler
+            if getattr(handler, "resumable_container", False) is not True:
+                continue
+            names.extend(getattr(handler, "required_capabilities", ()))
+            describe = getattr(handler, "additional_capabilities", None)
+            if describe is not None:
+                names.extend(describe(capabilities))
+        return tuple(dict.fromkeys(names))
+
     def _binding(self, context):
         """설정·Tool 계약을 비교한다. 실행 함수 교체 시에는 프로젝트 engine revision을 변경한다."""
         def portable(value):
@@ -49,7 +63,7 @@ class LoopEngine(BaseEngine):
                 return value
             return {"runtime_type": type(value).__module__ + "." + type(value).__qualname__}
         values = portable({"settings": context.settings(self.settings_name),
-                         "overrides": self._overrides, "completion": self.completion_kwargs,
+                         "completion": self.completion_kwargs,
                          "prompt": self.system_prompt, "agent": self._agent_settings, "tools": context.tools.definitions(),
                          "tool_contracts": context.tools.contracts(),
                          "tool_policy": context.tool_scope.binding() if context.tool_scope else None})
@@ -63,15 +77,15 @@ class LoopEngine(BaseEngine):
             if key.startswith("steering:"):
                 validate_instruction_record(value)
         uncertain = {key for key, value in checkpoint["records"].items()
-                     if key.startswith("tool:") and value["status"] == "started"}
+                     if value["status"] == "started" and value.get("requires_retry", key.startswith("tool:"))}
         if len(set(retry_nodes)) != len(retry_nodes) or set(retry_nodes) != uncertain:
             raise ValueError(f"Explicit retry_nodes must match uncertain Tool keys: {sorted(uncertain)}")
         if context is not None and checkpoint["header"]["binding"] != self._binding(context):
             raise ValueError("Loop settings or Tool definitions changed; start a new request")
         decisions = decisions or {}
         waiting = {key for key, value in checkpoint["records"].items() if value["status"] == "waiting"}
-        if set(decisions) - waiting or any(type(v) is not bool for v in decisions.values()):
-            raise ValueError("Loop decisions must be booleans for waiting Tool keys")
+        if set(decisions) - waiting:
+            raise ValueError("Loop decisions require waiting checkpoint keys")
         if waiting - decisions.keys():
             raise ValueError(f"Tool approval decisions required: {sorted(waiting)}")
         for key in waiting:
@@ -93,36 +107,24 @@ class LoopEngine(BaseEngine):
     _option_names = ("max_iterations", "request_timeout", "tool_timeout", "buffer_size",
                      "max_tool_calls", "max_argument_chars", "max_output_chars")
 
-    def __init__(self, *, max_iterations=UNSET, request_timeout=UNSET, tool_timeout=UNSET,
-                 buffer_size=UNSET, max_tool_calls=UNSET, max_argument_chars=UNSET,
-                 max_output_chars=UNSET, completion_kwargs=None, system_prompt=UNSET,
-                 settings_name=None, completion_fn=completion, input_policy=UNSET, provider=UNSET) -> None:
-        supplied = dict(max_iterations=max_iterations, request_timeout=request_timeout,
-                        tool_timeout=tool_timeout, buffer_size=buffer_size, max_tool_calls=max_tool_calls,
-                        max_argument_chars=max_argument_chars, max_output_chars=max_output_chars)
-        self._overrides = {key: value for key, value in supplied.items() if value is not UNSET}
+    def __init__(self, *, settings_name=None, completion_fn=completion) -> None:
+        """Host는 구현을 등록한다. 실행값은 Project/Session/Agent 설정에서만 읽는다."""
+        if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
+            raise ValueError("settings_name must be a nonempty string or None")
+        self.settings_name, self._agent_settings = settings_name, {}
+        self.completion_fn = completion_fn
+        self._configure({})
+
+    def _configure(self, values):
+        """검증된 실행별 값으로 사본을 준비한다. 저장/공개 설정에 기본값을 만들지 않는다."""
         max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars = (
-            self._overrides.get(key) for key in self._option_names if key != "buffer_size")
+            values.get(key) for key in self._option_names if key != "buffer_size")
         # Queue capacity changes backpressure only; it never drops output or limits execution.
-        buffer_size = 8 if buffer_size is UNSET else buffer_size
-        if system_prompt is not UNSET and not callable(system_prompt):
-            self._overrides["system_prompt"] = system_prompt
-        system_prompt = None if system_prompt is UNSET else system_prompt
-        from jsonschema import Draft202012Validator
-        from llm.core.models import ProjectConfig
-        for name, value, spec in (("input_policy", input_policy, CompletionPolicy.configuration_schema()),
-                                 ("provider", provider, {**provider_schema(), "type": ["object", "null"]})):
-            if value is not UNSET:
-                ProjectConfig.validate_settings({name: value})
-                error = next(Draft202012Validator(spec).iter_errors(value), None)
-                if error:
-                    raise ValueError(f"Invalid {name}: {error.message}")
-                self._overrides[name] = deepcopy(value)
-        self.input_policy = None if input_policy is UNSET else deepcopy(input_policy)
-        self.provider = None if provider is UNSET else deepcopy(provider)
-        super().__init__("Loop", completion_fn=completion_fn, buffer_size=buffer_size,
-                         max_tool_calls=max_tool_calls, max_argument_chars=max_argument_chars,
-                         max_output_chars=max_output_chars)
+        buffer_size = values.get("buffer_size", 8)
+        self.input_policy = deepcopy(values.get("input_policy"))
+        self.provider = deepcopy(values.get("provider"))
+        super().__init__("Loop", completion_fn=self.completion_fn, buffer_size=buffer_size)
+        self.max_tool_calls, self.max_argument_chars, self.max_output_chars = max_tool_calls, max_argument_chars, max_output_chars
         if max_iterations is not None and (type(max_iterations) is not int or max_iterations < 1):
             raise ValueError("max_iterations must be a positive integer")
         for value in (request_timeout, tool_timeout):
@@ -132,78 +134,36 @@ class LoopEngine(BaseEngine):
         self.max_iterations = max_iterations
         self.request_timeout = request_timeout
         self.tool_timeout = tool_timeout
-        if completion_kwargs is not None and not (
-            isinstance(completion_kwargs, Mapping) or callable(completion_kwargs)
-        ):
-            raise TypeError("completion_kwargs must be a mapping or context factory")
-        if system_prompt is not None and not isinstance(system_prompt, str) and not callable(system_prompt):
-            raise TypeError("system_prompt must be a string or context factory")
-        self.completion_kwargs = (self.copy_params(dict(completion_kwargs))
-                                  if isinstance(completion_kwargs, Mapping) else completion_kwargs)
-        self.system_prompt = system_prompt
-        if settings_name is not None and (not isinstance(settings_name, str) or not settings_name.strip()):
-            raise ValueError("settings_name must be a nonempty string or None")
-        self.settings_name = settings_name
-        self._agent_settings = {}
+        self.completion_kwargs = self.copy_params(values.get("completion", {}))
+        self.system_prompt = values.get("system_prompt")
 
     def configuration_schema(self):
-        from llm.core.schema import object_schema, field, mark_host_overrides
+        from llm.core.schema import object_schema, field
         names = self._option_names
-        properties = {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0, **{"x-host-override": name in self._overrides}) for name in names}
-        properties["system_prompt"] = {"type": ["string", "null"], "description": "기본 시스템 프롬프트",
-                                        "x-host-override": "system_prompt" in self._overrides or callable(self.system_prompt)}
+        properties = {name: field((["number", "null"] if name.endswith("timeout") else "integer" if name == "buffer_size" else ["integer", "null"]), exclusiveMinimum=0) for name in names}
+        properties["system_prompt"] = {"type": ["string", "null"], "description": "시스템 프롬프트"}
         properties["completion"] = completion_schema()
         properties["input_policy"] = CompletionPolicy.configuration_schema()
         properties["provider"] = {**provider_schema(), "type": ["object", "null"]}
-        for name in ("input_policy", "provider"):
-            if name in self._overrides:
-                mark_host_overrides(properties[name], self._overrides[name])
-        supplied = self.completion_kwargs
-        if isinstance(supplied, Mapping):
-            mark_host_overrides(properties["completion"], supplied)
-        elif callable(supplied):
-            properties["completion"]["x-host-override"] = True
+        for key in self._option_names:
+            if key != "buffer_size":
+                properties[key]["x-narrowing"] = "maximum"
         return self.settings_layout.schema(object_schema(properties, **({"x-settings-key": self.settings_name} if self.settings_name else {})))
 
     def configuration(self, config, name, *, session_config=None):
-        """실행과 UI가 공유하는 최종 설정. 동적 호스트 함수는 미리 실행하지 않는다."""
-        from llm.core.models import ProjectConfig
+        """실행과 UI가 공유하는 Project → Session → Agent 설정."""
         key = self.settings_name or name
         agent = self._agent_settings
-        host = dict(self._overrides)
-        if isinstance(self.system_prompt, str):
-            host["system_prompt"] = self.system_prompt
-        supplied, runtime = self.completion_kwargs, []
-        try:
-            ProjectConfig.validate_settings(dict(supplied or {}))
-        except (TypeError, ValueError):
-            supplied, runtime = {}, ["completion"]
-        if supplied:
-            host["completion"] = dict(supplied)
         overrides = self.settings_layout.unpack(agent.get("engine_options", {}))
         if "system_prompt" in agent:
             overrides["system_prompt"] = agent["system_prompt"]
         if agent.get("completion"):
             overrides["completion"] = agent["completion"]
         view = engine_configuration(config, key, session_config=session_config,
-            agent=self.settings_layout.pack(overrides), host=self.settings_layout.pack(host), schema=self.configuration_schema())
+            agent=self.settings_layout.pack(overrides), schema=self.configuration_schema())
         CompletionPolicy.validate_settings(view["values"].get("policy", {}).get("completion"))
         resolve_provider_options(view["values"].get("policy", {}).get("provider") or {})
-        if runtime:
-            # 런타임 client/함수를 JSON 값으로 가장하지 않는다. 실행 때만 host 값을 해석한다.
-            view["values"].get("config", {}).pop("completion", None)
-            for name in ("sources", "editable"):
-                for path in tuple(view[name]):
-                    if path.startswith("/config/completion/"):
-                        del view[name][path]
-            view["sources"]["/config/completion"] = "host_runtime"
-            view["editable"]["/config/completion"] = False
-        if callable(self.system_prompt):
-            runtime.append("system_prompt")
-            view["values"].get("config", {}).pop("system_prompt", None)
-            view["sources"]["/config/system_prompt"] = "host_runtime"
-            view["editable"]["/config/system_prompt"] = False
-        view["runtime"] = runtime
+        view["runtime"] = []
         return view
 
     def _request(self, context: EngineContext, params: dict[str, Any]) -> dict[str, Any]:
@@ -212,7 +172,7 @@ class LoopEngine(BaseEngine):
         }
         request.update(self.copy_params(params))
         validate_model_params(request, require_model=True, json_contract=False)
-        definitions = context.tools.definitions(constraints=context.tool_scope.policy.argument_constraints if context.tool_scope else None)
+        definitions = context.tools.definitions(constraints=context.tool_scope.argument_constraints if context.tool_scope else None)
         if definitions:
             request["tools"] = definitions
             if getattr(self, "_require_tool", False) and not context.tool_scope.completed:
@@ -226,23 +186,17 @@ class LoopEngine(BaseEngine):
         등록할 수 있다. 준비 작업을 구현한 Loop 서브클래스의 메서드도 유지한다.
         """
         params = self.copy_params(definition.get("completion", {}))
-        # Agent는 부분 설정이다. 누락된 model은 Project/Session/host에서 상속한다.
+        # Agent는 부분 설정이다. 누락된 model은 Project/Session에서 상속한다.
         # 모든 계층에 없으면 최종 request 검증에서 provider 호출 전에 거부한다.
         validate_model_params(params)
         if any(key in params for key in ("messages", "tools", "functions", "function_call")):
             raise ValueError("Loop Agent owns messages and registered tools")
         if params.get("stream", True) is not True or params.get("n", 1) != 1:
             raise ValueError("Loop Agent requires stream=True and n=1")
-        limits = {}
         options = definition.get("engine_options", {})
         from jsonschema import Draft202012Validator
         Draft202012Validator(self.configuration_schema()).validate(options)
-        limits.update(self.settings_layout.unpack(options))
-        if "completion" in limits:
-            limits["completion_kwargs"] = limits.pop("completion")
-        limits.update(self._overrides)
-        # 등록 시 잘못된 Agent 옵션을 거부하되, 기본값을 호스트 override로 바꾸지는 않는다.
-        LoopEngine(**limits)
+        copy(self)._configure(self.settings_layout.unpack(options))
         worker = copy(self)
         worker._agent_settings = {"engine_options": deepcopy(options), "completion": params,
                                   **({"system_prompt": definition["system_prompt"]} if "system_prompt" in definition else {})}
@@ -251,26 +205,12 @@ class LoopEngine(BaseEngine):
         return worker
 
     async def execute(self, context: EngineContext) -> AsyncIterator[EngineEvent]:
-        settings = context.settings(self.settings_name)
-        supplied = self.completion_kwargs(context) if callable(self.completion_kwargs) else self.completion_kwargs
-        if supplied is not None and (not isinstance(supplied, Mapping)
-                                     or any(not isinstance(key, str) for key in supplied)):
-            raise ValueError("Completion parameters must be a string-keyed mapping")
-        params = merge_params(settings["engine"].get("config", {}).get("completion", {}),
-                              self._agent_settings.get("engine_options", {}).get("config", {}).get("completion", {}))
-        params = merge_params(params, self._agent_settings.get("completion", {}))
-        params = merge_params(params, dict(supplied or {}))
         resolved = self.settings_layout.unpack(self.configuration(context.project.config, context.run.engine, session_config=context.session.config)["values"])
-        params = merge_params(resolved.get("completion", params), dict(supplied or {}))
-        limits = {name: resolved[name] for name in (*self._option_names, "input_policy", "provider") if name in resolved}
-        prompt = self.system_prompt if self.system_prompt is not None else resolved.get("system_prompt")
         # A Run-local instance keeps shared defaults immutable and preserves
         # subclass methods. Only Loop-owned settings are reinitialized.
         worker = copy(self)
         worker._resume_binding = self._binding(context)
-        LoopEngine.__init__(worker, **limits, completion_kwargs=params,
-                            system_prompt=prompt, settings_name=self.settings_name,
-                            completion_fn=self.completion_fn)
+        worker._configure(resolved)
         # 다른 Agent/Engine의 입력 예산을 상속하지 않는다. 처리기는 이 호출의 선택기만 전달받는다.
         context = replace(context, completion_policy=CompletionPolicy.from_settings(
             resolved.get("input_policy"), context.token_counters))
@@ -372,7 +312,9 @@ class LoopEngine(BaseEngine):
                             boundary=instruction_key, details={"iteration": iteration})) as events:
                         async for event in events:
                             yield event
-                async with aclosing(self.stream_completion(prepared_request, response=response, provider=self.provider)) as deltas:
+                async with aclosing(self.stream_completion(prepared_request, response=response, provider=self.provider,
+                        max_tool_calls=self.max_tool_calls, max_argument_chars=self.max_argument_chars,
+                        max_output_chars=self.max_output_chars)) as deltas:
                     async for text in deltas:
                         yield text
                 calls = response.get("tool_calls", [])
@@ -383,7 +325,7 @@ class LoopEngine(BaseEngine):
                 # Validate the whole batch before any tool can have side effects.
                 prepared = [context.tools.prepare(
                     call["function"]["name"], call["function"]["arguments"],
-                    constraints=context.tool_scope.policy.argument_constraints if context.tool_scope else None,
+                    constraints=context.tool_scope.argument_constraints if context.tool_scope else None,
                 ) for call in calls]
 
             if not saved:
@@ -398,7 +340,7 @@ class LoopEngine(BaseEngine):
             else:
                 calls = response.get("tool_calls", [])
                 prepared = [context.tools.prepare(c["function"]["name"], c["function"]["arguments"],
-                    constraints=context.tool_scope.policy.argument_constraints if context.tool_scope else None) for c in calls]
+                    constraints=context.tool_scope.argument_constraints if context.tool_scope else None) for c in calls]
             observation = CompletionObservation(iteration, prepared_request, response,
                                                 [m.value for m in messages])
             if not saved:
@@ -438,19 +380,26 @@ class LoopEngine(BaseEngine):
                 result = deepcopy(stored.get("result", {}))
                 executor = ToolExecutor(timeout_seconds=self.tool_timeout, max_output_chars=self.max_output_chars)
                 if stored.get("status") != "completed":
+                    container = getattr(tool.handler, "resumable_container", False) is True
                     if durable:
-                        yield self._record(key, {"status": "started", "requires_retry": True, "name": tool.name, "arguments": arguments})
+                        yield self._record(key, {"status": "started", "requires_retry": not container,
+                                                "container": container, "name": tool.name, "arguments": arguments})
                     try:
+                        outer_step = None
                         async with aclosing(self.execute_tool(
                             context, tool, arguments, result=result, executor=executor,
-                            metadata={"iteration": iteration, "tool_call_id": call["id"]},
+                            metadata={"iteration": iteration, "tool_call_id": call["id"], "checkpoint_name": "loop"},
                             checkpoint_key=key,
                         )) as events:
                             async for event in events:
-                                if durable and event.type == EngineEventType.STEP_COMPLETED:
+                                if outer_step is None and event.type == EngineEventType.STEP_STARTED:
+                                    outer_step = event.step_id
+                                if durable and event.type == EngineEventType.STEP_COMPLETED and event.step_id == outer_step:
                                     yield self._record(key, {"status": "completed", "result": result,
                                                            "step_id": event.step_id, "run_id": context.run.id})
                                 yield event
+                                if event.type == EngineEventType.PAUSED:
+                                    return
                     except ToolApprovalRequired as error:
                         if not durable:
                             raise

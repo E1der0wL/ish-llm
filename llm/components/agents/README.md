@@ -2,6 +2,11 @@
 
 특정 목적의 업무를 Engine, 모델, 프롬프트, 리소스, 입출력 계약의 조합으로 저장합니다. 실행은 Graph의 AgentNode가 담당하고 실행 상태는 소유 Run/Step에 남습니다.
 
+`AgentComponent(engines=registry)`는 저장 ID로 실행하는 agent_run Tool도 제공합니다.
+기본 LargeLanguageModel은 이 registry를 연결합니다. AgentNode와 agent_run은
+engines/agents.py의 AgentExecution을 공유하며 같은 Run의 승인·Tool 예산·취소·Step을
+사용합니다. [위임과 재개 계약](../../../docs/llm/project-authority.md#저장-agent-위임)을 참고하세요.
+
 ## 파일 안내
 
 | 파일 | 역할 |
@@ -9,6 +14,7 @@
 | [__init__.py](__init__.py) | AgentComponent와 공개 데이터 핸들을 노출합니다. |
 | [component.py](component.py) | Agent JSON schema, 필수 purpose/engine, 참조·정책 검증과 정의 지문을 계산합니다. |
 | [data.py](data.py) | AgentData가 잠금·버전 검사를 유지하며 프롬프트 변경 등의 전용 API를 제공합니다. |
+| [tools.py](tools.py) | agent_id/input만 받는 agent_run Tool schema와 공통 실행 경계 연결입니다. |
 
 ## 정의 저장 예
 
@@ -30,7 +36,7 @@ await agents.acreate({
 `resources.prompt="saved-prompt-id"`로 선택한 Prompt를 참조할 수 있습니다.
 모델 실행 Agent의 조합 순서는 **참조 Prompt → 명시 inline/상속 system_prompt → resources.skills 순서**입니다.
 Prompt messages의 role은 지침 안의 라벨로 보존합니다. purpose는 업무 메타데이터이며
-자동 시스템 프롬프트 대체값이 아닙니다. host의 고정 system_prompt는 기존 우선순위를 유지합니다.
+자동 시스템 프롬프트 대체값이 아닙니다. 설정은 Project → Session → Agent 순서이며 Host 프롬프트 override는 없습니다.
 Graph를 실행하는 조율 Agent는 하위 Agent의 지침을 덮어쓰지 않습니다.
 Graph-backed Agent는 다른 GraphEngine/handler 환경의 선택만 소유합니다. 위 모델 설정은
 behavioral Agent에만 해당합니다. Graph Agent는 purpose/description/engine/engine_options와 비실행

@@ -153,11 +153,11 @@ class LargeLanguageModel:
         async def example(model: str):
             async with LargeLanguageModel(
                 "./workspace",
-                engines={"chat": LoopEngine(max_iterations=5)},
+                engines={"chat": LoopEngine()},
             ) as backend:
                 project = await backend.projects.acreate(
                     "도우미",
-                    config=ProjectConfig(parameters={"engines": {"chat": {'config': {'completion': {'model': model}}}}}),
+                    config=ProjectConfig(parameters={"engines": {"chat": {'config': {'completion': {'model': model}}, 'policy': {'max_iterations': 5}}}}),
                     conversation_storage="file",
                 )
                 session = await project.sessions.acreate("첫 대화")
@@ -313,11 +313,12 @@ class LargeLanguageModel:
     운영 한도 / UI 대기열::
 
         services = ServiceConfig(
-            tool_policy=ToolPolicy(max_calls=80),
+            tool_policy=ToolPolicy(),
             conversation_cache_size=32,
         )
         backend = LargeLanguageModel("./workspace", services=services, engines={"loop": LoopEngine()})
         project = await backend.projects.acreate(config=ProjectConfig(policies={
+            "tools": {"max_calls": 80},
             "context": {"mode": "full"},
             "run": {"max_queued": 20, "timeout_seconds": 1800},
         }, parameters={"engines": {"loop": {'policy': {'completion': {'max_tokens': 32000, 'reserve_tokens': 4000, 'counter': 'model_default'}, 'provider': {'max_attempts': 2}}}}}))
@@ -327,7 +328,7 @@ class LargeLanguageModel:
         cancelled = await request.cancel()  # 실행 전 요청만 취소; 실행 중이면 False
 
     RunPolicy의 기본값은 무제한이다. ToolPolicy에는 async authorize(call),
-    runner(tool, call), allowed_tools를 주입할 수 있다. Loop와 Graph Agent/Tool이
+    runner(tool, call), classify를 주입할 수 있다. allowed_tools는 Project 정책이다. Loop와 Graph Agent/Tool이
     Run 단위 예산을 공유한다. parameters.engines[등록 이름].policy.completion는 매 Loop 호출 전에
     CompletionPolicy로 과거 턴을 선택한다. 토큰 계산 함수는 ServiceConfig.token_counters에
     이름으로 등록한다. 공통 사용량 제한은 policies.usage.counter를 별도로 선택한다.
@@ -405,7 +406,7 @@ class LargeLanguageModel:
         # 만료/취소 요청은 acancel_interaction/arenew_interaction으로 관리한다.
 
     응답 저장은 실행을 시작하지 않는다. Project policies.approval의 기본값은 비활성이다.
-    자동 승인은 호스트 ToolPolicy.auto_approve_categories 상한을 지키고 정책 ID를 남긴다.
+    자동 승인은 Project의 동일 risk_scheme 임계값으로 판단하고 정책 ID를 남긴다.
     INTERACTION_CHANGED 알림 유실 시 ainteraction_views로 다시 조회한다.
     Graph cleanup_timeout 초과 작업은 astatus().unfinished_work로 조회하고 실제 종료까지
     Session 소유권을 유지한다. Memory의 aconsolidate는 검토된 후보를 버전 검사 후 통합하며
@@ -414,7 +415,8 @@ class LargeLanguageModel:
 
     Engine — 전략 등록과 명시적 선택::
 
-        backend.engines.register("review", LoopEngine(max_iterations=3))
+        backend.engines.register("review", LoopEngine())
+        # 반복 한도는 Project parameters.engines.review.policy.max_iterations에 저장한다.
         names = backend.engines.names()
         engine = backend.engines.resolve("review")
         request = await session.run.submit("검토해줘.", engine="review")
@@ -747,9 +749,12 @@ class LargeLanguageModel:
             if self.services.conversations not in (conversation_store, "file"):
                 raise ValueError("Choose conversation_storage or ServiceConfig.conversations, not both")
             self.services = replace(self.services, conversations=conversation_storage)
+        self.engines = EngineRegistry()
+        for name, engine in ({"loop": LoopEngine()} if engines is None else engines).items():
+            self.engines.register(name, engine)
         # 제공 가능한 종류와 Project에서 선택한 종류는 다르다. 선택 시에만 디렉토리를 만든다.
         available = [ToolComponent(), SkillComponent(), MCPComponent(), RAGComponent(),
-                     AgentComponent(), WorkflowComponent(), MemoryComponent(), PromptComponent(),
+                     AgentComponent(engines=self.engines), WorkflowComponent(), MemoryComponent(), PromptComponent(),
                      VisionComponent(), GoalComponent(), RefinementComponent()] if components is None else components
         self.project_manager, self.run_repository, self.step_manager = self.services.build(
             self.workspace, available)
@@ -762,9 +767,6 @@ class LargeLanguageModel:
                                               self.provider_calls, self.events)
         self.event_handlers = self.services.event_handlers
         self.projects = Projects(self)
-        self.engines = EngineRegistry()
-        for name, engine in ({"loop": LoopEngine()} if engines is None else engines).items():
-            self.engines.register(name, engine)
         self.project_manager.bind_configuration_validator(self.engines.validate_configuration)
         self.on_event = on_event
         self.on_run_event = on_run_event
@@ -897,6 +899,11 @@ class LargeLanguageModel:
 
         await drain_on_cancel(stop())
 
+    def host_configuration(self) -> dict:
+        """Host 실행 구현/공유 용량을 조회한다. Project 정책이나 SDK 인증값은 포함하지 않는다."""
+        self._check_open()
+        return self.services.configuration()
+
     def project_schema(self, *, components=None) -> dict:
         """UI용 Project 설정 JSON Schema의 독립 사본을 반환한다.
 
@@ -965,10 +972,11 @@ async def run_request(args: argparse.Namespace) -> int:
     async with LargeLanguageModel(
         args.workspace, components=[ToolComponent()], on_event=print_event,
         conversation_storage=args.conversation_storage,
-        engines={"loop": LoopEngine(**{key: value for key, value in {
-            "max_iterations": args.max_iterations, "request_timeout": args.timeout}.items() if value is not None})},
+        engines={"loop": LoopEngine()},
     ) as backend:
-        project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {key: value for key, value in {'model': args.model, 'temperature': args.temperature, 'api_base': args.api_base}.items() if value is not None}}}}}),
+        project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(parameters={"engines": {"loop": {
+            'policy': {key: value for key, value in {'max_iterations': args.max_iterations, 'request_timeout': args.timeout}.items() if value is not None},
+            'config': {'completion': {key: value for key, value in {'model': args.model, 'temperature': args.temperature, 'api_base': args.api_base}.items() if value is not None}}}}}),
             components=["tools"] if args.with_tools else [])
         session = await project.sessions.acreate("Streaming request")
         if args.with_tools:

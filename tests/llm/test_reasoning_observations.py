@@ -30,10 +30,10 @@ class ReasoningObservationTests(unittest.IsolatedAsyncioTestCase):
         def provider(**kwargs):
             yield chunk({"reasoning_content": "12345"})
             yield chunk({"reasoning_content": "6"})
-        engine = BaseEngine(completion_fn=provider, max_output_chars=5)
+        engine = BaseEngine(completion_fn=provider)
         values = []
         with self.assertRaisesRegex(ValueError, "limit"):
-            async for value in engine.stream_completion({}):
+            async for value in engine.stream_completion({}, max_output_chars=5):
                 values.append(value)
         self.assertEqual(values[-1].completion.reasoning_content, "12345")
         self.assertEqual(str(values[-1].completion.status), "failed")

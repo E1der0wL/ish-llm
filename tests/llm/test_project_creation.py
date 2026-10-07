@@ -93,7 +93,7 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("writer", LoopEngine(completion_fn=provider))
         config = ProjectConfig(parameters={"engines": {"writer": {'config': {'completion': {'model': 'test', 'temperature': 0.3}}, 'policy': {'request_timeout': 300}}}})
         project = await self.app.projects.acreate(config=config)
-        session = await project.sessions.acreate(config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': None}}}}})
+        session = await project.sessions.acreate(config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 60}}}}})
         self.assertNotIn("completion", (await session.aget_data()).config["parameters"]["engines"]["writer"])
         first = await (await session.run.submit("one", engine="writer")).wait()
         self.assertEqual(str((await first.aresult()).status), "completed")
@@ -114,24 +114,22 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
     async def test_target_parameters_are_not_broadcast_and_host_metadata_matches(self):
         first = ScriptedCompletion([chunk("first", finish="stop")])
         second = ScriptedCompletion([chunk("second", finish="stop")])
-        self.app.engines.register("writer", LoopEngine(completion_fn=first, system_prompt=None,
-                                                      completion_kwargs={"temperature": None}))
+        self.app.engines.register("writer", LoopEngine(completion_fn=first))
         self.app.engines.register("reviewer", LoopEngine(completion_fn=second))
         project = await self.app.projects.acreate(components=["notes"], config=ProjectConfig(parameters={
-            "engines": {"writer": {'config': {'system_prompt': 'project prompt', 'completion': {'model': 'test/writer', 'temperature': 0.3}}},
+            "engines": {"writer": {'config': {'system_prompt': None, 'completion': {'model': 'test/writer', 'temperature': None}}},
                         "reviewer": {'config': {'completion': {'model': 'test/reviewer', 'temperature': 0.8}}}},
             "components": {"notes": {'config': {'model': 'notes/data', 'temperature': 999}}},
         }))
         view = await project.aconfiguration()
         effective = view["effective_engines"]["writer"]
         for path in ("/config/system_prompt", "/config/completion/temperature"):
-            self.assertEqual(effective["sources"][path], "host")
-            self.assertFalse(effective["editable"][path])
+            self.assertEqual(effective["sources"][path], "project")
+            self.assertTrue(effective["editable"][path])
         self.assertIsNone(effective["values"]["config"]["system_prompt"])
         self.assertIsNone(effective["values"]["config"]["completion"]["temperature"])
         fields = view["schema"]["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]["writer"]["properties"]
-        self.assertTrue(fields["config"]["properties"]["system_prompt"]["x-host-override"])
-        self.assertTrue(fields["config"]["properties"]["completion"]["properties"]["temperature"]["x-host-override"])
+        self.assertNotIn("x-host-override", fields["config"]["properties"]["system_prompt"])
         session = await project.sessions.acreate()
         for name in ("writer", "reviewer"):
             run = await (await session.run.submit(name, engine=name)).wait()

@@ -55,7 +55,8 @@ class InteractionRequest:
     kind: str = "approval"
     category: str = "tool.execute"
     priority: str = "normal"
-    risk: str = "unknown"
+    risk: Optional[int] = None
+    risk_scheme: Optional[str] = None
     description: str = ""
     recommended_option_id: Optional[str] = None
     input_schema: Optional[dict] = None
@@ -75,8 +76,9 @@ class InteractionRequest:
             raise ValueError("Interaction title/description must be text")
         if self.kind not in ("approval", "confirmation", "choice", "input") or self.status not in ("pending", "answered", "expired", "cancelled"):
             raise ValueError("Invalid interaction kind/status")
-        if self.priority not in ("low", "normal", "high", "urgent") or self.risk not in ("low", "medium", "high", "unknown"):
-            raise ValueError("Invalid interaction priority/risk")
+        if self.priority not in ("low", "normal", "high", "urgent"):
+            raise ValueError("Invalid interaction priority")
+        validate_risk(self.risk_scheme, self.risk)
         if not isinstance(self.category, str) or not self.category:
             raise ValueError("Interaction category is required")
         if not isinstance(self.options, tuple) or not self.options or any(not isinstance(o, InteractionOption) for o in self.options):
@@ -222,13 +224,22 @@ class InteractionResponse:
         return request.decision_for(self.option_id, value=self.value)
 
 
+def validate_risk(scheme, risk):
+    """Application의 순서 있는 척도만 비교한다. 미분류는 자동 승인 근거가 아니다."""
+    if scheme is not None and (not isinstance(scheme, str) or not scheme.strip()):
+        raise ValueError("risk_scheme must be nonempty text")
+    if risk is not None and (type(risk) is not int or risk < 0 or scheme is None):
+        raise ValueError("risk requires a nonnegative integer and risk_scheme")
+
+
 def approval_request(title: str, *, description: str = "", source: Optional[dict] = None,
                      action: Optional[dict] = None, category: str = "tool.execute",
-                     risk: str = "unknown") -> InteractionRequest:
+                     risk: Optional[int] = None, risk_scheme: Optional[str] = None) -> InteractionRequest:
     return InteractionRequest(title, (
         InteractionOption("approve", "승인", effect="approve", value=True),
         InteractionOption("deny", "거절", effect="deny", value=False)),
-        description=description, source=source or {}, action=action or {}, category=category, risk=risk)
+        description=description, source=source or {}, action=action or {}, category=category,
+        risk=risk, risk_scheme=risk_scheme)
 
 
 @dataclass(frozen=True, slots=True)

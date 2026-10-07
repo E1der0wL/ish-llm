@@ -24,17 +24,18 @@ def count_request(request):
     )
 
 services = ServiceConfig(
-    tool_policy=ToolPolicy(max_calls=80),
+    tool_policy=ToolPolicy(),
     token_counters={"custom": count_request},
     conversation_cache_size=32,
 )
 backend = LargeLanguageModel(
     "./workspace", services=services,
-    engines={"loop": LoopEngine(max_iterations=40)},
+    engines={"loop": LoopEngine()},
 )
 project = await backend.projects.acreate(config={"policies": {
+    "tools": {"max_calls": 80},
     "run": {"max_queued": 20, "timeout_seconds": 1800},
-}, "parameters": {"engines": {"loop": {'policy': {'completion': {'max_tokens': 32000, 'reserve_tokens': 4000, 'counter': 'custom'}}}}}})
+}, "parameters": {"engines": {"loop": {'policy': {'max_iterations': 40, 'completion': {'max_tokens': 32000, 'reserve_tokens': 4000, 'counter': 'custom'}}}}}})
 ```
 
 숫자는 예시다. 선택한 모델의 문맥 한도, 출력 한도, 작업 성격에 맞춘다.

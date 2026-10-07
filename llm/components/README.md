@@ -4,6 +4,12 @@ Component는 Project 안에서 특정 데이터와 기능을 소유합니다. �
 
 설정은 [명시적 설정 계약](../CONFIGURATION.md)에 따라 `ProjectConfig.parameters.components.<이름>`에만 저장합니다. 레코드는 Component가 관리하는 데이터이며 설정과 구분합니다.
 
+`required_components=("id", ...)`로 정확한 Component 의존성을 선언할 수 있습니다.
+Project 선택에 누락되면 저장 전에 component_dependency_missing 오류를 반환합니다.
+Backend는 자동 선택·설치하지 않습니다. capability 의존성과는 별개입니다.
+DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는 open_schema로
+소유자를 명시해야 합니다. [전체 계약](../../docs/llm/project-authority.md)을 참고하세요.
+
 ## 제공하는 Component
 
 | 폴더 | 저장하는 데이터 | 실행 시 연결 |
@@ -12,7 +18,7 @@ Component는 Project 안에서 특정 데이터와 기능을 소유합니다. �
 | [rag/](rag/README.md) | 문서·청크·벡터·관계와 출처 | 검색 Tool, embedding/rerank/관계 추출 |
 | [vision/](vision/README.md) | 이미지 원본·가공본·출처 | 전처리/OCR/VLM Tool, RAG 문서 추출 |
 | [memory/](memory/README.md) | 장기 기억·후보·출처·요약 | Memory Tool, completion processor |
-| [agents/](agents/README.md) | 목적·Engine·모델·리소스·정책 | Graph AgentNode |
+| [agents/](agents/README.md) | 목적·Engine·모델·리소스·정책 | Graph AgentNode, 저장 ID 기반 agent_run Tool |
 | [workflows/](workflows/README.md) | 노드·간선·입출력 mapping | GraphEngine |
 | [skills/](skills/README.md) | 재사용 지침과 참고 자료 설명 | skill_list/skill_read, 선택한 Agent의 지침 주입 |
 | [mcp/](mcp/README.md) | 서버 연결 정의 | 호스트가 주입한 connector |

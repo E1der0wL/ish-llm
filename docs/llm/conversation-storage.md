@@ -37,11 +37,11 @@ from llm.llm import LargeLanguageModel, LoopEngine
 async def main():
     async with LargeLanguageModel(
         "./workspace",
-        engines={"loop": LoopEngine(
-            completion_kwargs={"model": "gemini/gemini-3.8-flash"},
-        )},
+        engines={"loop": LoopEngine()},
     ) as backend:
-        project = await backend.projects.acreate("메모리 대화", conversation_storage="memory")
+        project = await backend.projects.acreate("메모리 대화", conversation_storage="memory",
+            config={"parameters": {"engines": {"loop": {"config": {
+                "completion": {"model": model_name}}}}}})
         session = await project.sessions.acreate("대화 세션")
         request = await session.run.submit("내 이름은 민수야.", engine="loop")
         run = await request.wait()

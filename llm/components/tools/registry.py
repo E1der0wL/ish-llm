@@ -13,6 +13,21 @@ from jsonschema import Draft202012Validator
 
 
 @dataclass(frozen=True, slots=True)
+class ToolClassification:
+    """신뢰한 Application/구현체가 제공하는 분류. Tool 인자에서 추측하지 않는다."""
+
+    category: str = "tool.execute"
+    risk_scheme: Optional[str] = None
+    risk: Optional[int] = None
+
+    def __post_init__(self):
+        from llm.core.interactions import validate_risk
+        if not isinstance(self.category, str) or not self.category.strip():
+            raise ValueError("Tool classification category must be nonempty")
+        validate_risk(self.risk_scheme, self.risk)
+
+
+@dataclass(frozen=True, slots=True)
 class ToolContract:
     """신뢰한 개발자의 실행 선언. 모델용 함수 정의나 Project 레코드로 권한을 바꿀 수 없다."""
     revision: str = "1"
@@ -39,6 +54,7 @@ class Tool:
     # Optional native definition preserves provider extensions such as strict.
     definition: Optional[dict[str, Any]] = None
     contract: Optional[ToolContract] = None
+    classification: Optional[ToolClassification] = None
 
 
 # 런타임 함수와 인자 Schema를 등록한다. 저장된 Tool 선택과 분리된다.
@@ -49,6 +65,8 @@ class ToolRegistry:
             self.register(tool)
 
     def register(self, tool: Tool) -> None:
+        if tool.classification is not None and not isinstance(tool.classification, ToolClassification):
+            raise TypeError("Tool classification must be ToolClassification")
         if tool.contract is not None and not isinstance(tool.contract, ToolContract):
             raise TypeError("Tool contract must be ToolContract")
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", tool.name) or tool.name in self._tools:
@@ -76,13 +94,15 @@ class ToolRegistry:
                     or function.get("description", "") != tool.description):
                 raise ValueError("Tool definition does not match its runtime binding")
             json.dumps(definition, allow_nan=False)
-        self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition, tool.contract)
+        self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition, tool.contract, tool.classification)
 
     def contracts(self):
         contracts = {}
         for name, tool in self._tools.items():
+            if tool.classification is not None:
+                contracts[name] = {"classification": asdict(tool.classification)}
             if tool.contract is not None:
-                contracts[name] = asdict(tool.contract)
+                contracts.setdefault(name, {}).update(asdict(tool.contract))
                 # 신뢰한 실행 adapter의 immutable binding도 승인/재개 fingerprint에 포함한다.
                 binding = getattr(tool.handler, "execution_binding", None)
                 if binding is not None:
@@ -112,7 +132,7 @@ class ToolRegistry:
         except KeyError:
             raise ValueError("Tool handler is unavailable") from None
         return Tool(tool.name, tool.description, deepcopy(tool.parameters), tool.handler,
-                    deepcopy(tool.definition), tool.contract)
+                    deepcopy(tool.definition), tool.contract, tool.classification)
 
     def select(self, names: tuple[str, ...]) -> "ToolRegistry":
         if len(set(names)) != len(names):

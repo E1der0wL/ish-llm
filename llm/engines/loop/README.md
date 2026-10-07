@@ -33,7 +33,7 @@ engines = {"assistant": LoopEngine()}
 
 같은 등록 이름의 `policy.completion`는 CompletionPolicy의 max_tokens/reserve_tokens/counter를,
 `policy.provider`는 스트리밍 외부 호출의 max_attempts/wall_timeout/delay_seconds/max_delay_seconds를
-설정합니다. Project → Session → Agent → 명시적 host 순으로 해석하며 각 section 전체의
+설정합니다. Project → Session → Agent 순으로 해석하며 각 section 전체의
 null은 상속된 정책을 해제합니다. 미설정이면 입력 예산이나 외부 재시도·기한을 추가하지 않습니다.
 SDK 인자는 `config.completion`에 그대로 두며 provider 설정과 서로 복사하지 않습니다.
 공통 Run/usage 정책은 입력 정책을 해제해도 계속 적용됩니다. [설정 예](../../../docs/llm/project-policies.md)

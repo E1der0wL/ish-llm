@@ -207,9 +207,10 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
                 await self.runner(code, max_output_bytes=1000)(None, self.call)
 
     async def test_timeout_kills_a_noncooperative_worker(self):
-        runner = self.runner("import time; time.sleep(60)", timeout_seconds=.3)
+        runner = self.runner("import time; time.sleep(60)")
         with self.assertRaises(asyncio.TimeoutError):
-            await asyncio.wait_for(runner(None, self.call), 8)
+            async with asyncio.timeout(.3):
+                await runner(None, self.call)
 
     async def test_cancel_kills_descendant_even_if_it_outlives_its_parent(self):
         marker = self.root / "escaped.txt"

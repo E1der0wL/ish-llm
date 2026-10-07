@@ -34,7 +34,8 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             calls.append(1)
             raise ToolExecutionError('retry', effect='uncertain' if len(calls) == 1 else 'none', retryable=True)
         app, session, _ = await self.setup_app(act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]],
-            ToolPolicy(operation_key=lambda call: 'work', retry_safe_tools=('act',), max_retries=1, retry_delay=0))
+            ToolPolicy(operation_key=lambda call: 'work', retry_safe_tools=('act',)),
+            policies={"tool_retry": {"max_retries": 1, "delay_seconds": 0}})
         failed = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual((await session.run.aoperation('work'))['status'], 'started')
         with self.assertRaisesRegex(Exception, 'uncertain Tool'):
@@ -248,15 +249,15 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, 'edit_conflict'):
             await tools.aconfigure({'config': {'enabled': ['act']}}, expected_version=snapshot['version'])
 
-    async def setup_app(self, handler, responses, policy=None):
+    async def setup_app(self, handler, responses, policy=None, *, policies=None, tool_schema=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         model = ScriptedCompletion(*responses)
-        tools = ToolRegistry((Tool("act", "action", {"type": "object"}, handler),))
+        tools = ToolRegistry((Tool("act", "action", tool_schema or {"type": "object"}, handler),))
         app = LargeLanguageModel(Path(temporary.name), components=[RuntimeTools(tools)],
             engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy or ToolPolicy()))
         self.addAsyncCleanup(app.shutdown)
-        project = await app.projects.acreate("resume", config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}), components=["tools"])
+        project = await app.projects.acreate("resume", config=ProjectConfig(policies=policies or {}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}), components=["tools"])
         project.components.tools.enable("act")
         session = await project.sessions.acreate()
         return app, session, model
@@ -322,7 +323,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
                 return 'ok'
             app, session, model = await self.setup_app(act, [
                 [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]],
-                ToolPolicy(max_retries=2))
+                policies={"tool_retry": {"max_retries": 2}})
             run = await (await session.run.submit('go', engine='loop')).wait()
             self.assertEqual(run.data.status, 'completed' if safe else 'failed')
             self.assertEqual(len(effects), 2 if safe else 1)

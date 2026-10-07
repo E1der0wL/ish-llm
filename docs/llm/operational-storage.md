@@ -9,7 +9,7 @@ from llm.llm import LargeLanguageModel, LoopEngine, ServiceConfig, ProviderLimit
 
 backend = LargeLanguageModel(
     "workspace",
-    engines={"loop": LoopEngine(request_timeout=180)},
+    engines={"loop": LoopEngine()},
     services=ServiceConfig(
         provider_limits=ProviderLimits(max_active=4, max_waiting=16, wait_seconds=10),
         output_policy=OutputPolicy(batch_size=32, max_delay=0.025, max_chars=65536),
@@ -18,7 +18,7 @@ backend = LargeLanguageModel(
 )
 project = await backend.projects.acreate(config={"policies": {
     "run": {"timeout_seconds": 600, "max_capability_rounds": 32},
-}})
+}, "parameters": {"engines": {"loop": {"policy": {"request_timeout": 180}}}}})
 ```
 
 ## 공급자 호출

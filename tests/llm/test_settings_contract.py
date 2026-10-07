@@ -1,6 +1,7 @@
 """구현체 공통 외형·정책 소유권·UI 출처·실제 실행 인자를 함께 검사한다."""
 
 import ast
+import json
 from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
@@ -38,26 +39,26 @@ class SettingsContractTests(unittest.TestCase):
         self.assertEqual(LoopEngine().configuration({}, "loop")["values"], {})
         self.assertEqual(GraphEngine(handlers={}).configuration({}, "graph")["values"], {})
 
-    def test_signature_host_and_ui_paths_are_identical(self):
+    def test_project_session_agent_sources_and_limits_are_identical(self):
         project = ProjectConfig(parameters={"engines": {"writer": {
             "config": {"system_prompt": "project", "completion": {"timeout": 70}},
             "policy": {"request_timeout": 300, "completion": {"max_tokens": 100, "counter": "test"}},
         }}})
-        session = {"parameters": {"engines": {"writer": {"policy": {"request_timeout": None}}}}}
-        engine = LoopEngine(system_prompt=None, input_policy={"max_tokens": 50}).for_agent({
-            "engine": "writer", "engine_options": {"policy": {"completion": {"max_tokens": 80}}}})
+        session = {"parameters": {"engines": {"writer": {"policy": {"request_timeout": 60}}}}}
+        engine = LoopEngine().for_agent({"engine": "writer", "system_prompt": None,
+            "engine_options": {"policy": {"completion": {"max_tokens": 50}}}})
         view = engine.configuration(project, "writer", session_config=session)
         self.assertIsNone(view["values"]["config"]["system_prompt"])
-        self.assertIsNone(view["values"]["policy"]["request_timeout"])
+        self.assertEqual(view["values"]["policy"]["request_timeout"], 60)
         self.assertEqual(view["values"]["config"]["completion"], {"timeout": 70})
         self.assertEqual(view["values"]["policy"]["completion"], {"max_tokens": 50, "counter": "test"})
         for path in ("/config/system_prompt", "/policy/completion/max_tokens"):
-            self.assertEqual(view["sources"][path], "host")
-            self.assertFalse(view["editable"][path])
+            self.assertEqual(view["sources"][path], "agent")
+            self.assertTrue(view["editable"][path])
             schema = engine.configuration_schema()
             for part in path.strip("/").split("/"):
                 schema = schema["properties"][part]
-            self.assertTrue(schema["x-host-override"])
+            self.assertNotIn("x-host-override", schema)
         self.assertEqual(view["sources"]["/policy/request_timeout"], "session")
 
     def test_misclassified_known_policy_and_flat_storage_rejected(self):
@@ -112,15 +113,15 @@ class SettingsContractTests(unittest.TestCase):
         self.assertEqual(layout.pack({}), {})
         self.assertEqual(layout.unpack({}), {})
 
-    def test_pipeline_stage_effective_values_and_sources_include_host_override(self):
-        engine = PipelineEngine({"writer": LoopEngine(system_prompt=None)})
+    def test_pipeline_stage_effective_values_and_sources_are_project_owned(self):
+        engine = PipelineEngine({"writer": LoopEngine()})
         config = ProjectConfig(parameters={"engines": {"pipeline": {"config": {"stages": {
-            "writer": {"config": {"system_prompt": "project"}}}}}}})
+            "writer": {"config": {"system_prompt": None}}}}}}})
         view = engine.configuration(config, "pipeline")
         self.assertIsNone(view["values"]["config"]["stages"]["writer"]["config"]["system_prompt"])
         path = "/config/stages/writer/config/system_prompt"
-        self.assertEqual(view["sources"][path], "host")
-        self.assertFalse(view["editable"][path])
+        self.assertEqual(view["sources"][path], "project")
+        self.assertTrue(view["editable"][path])
 
     def test_nested_open_configuration_extensions_survive_resolution(self):
         component = MemoryComponent()
@@ -189,18 +190,15 @@ class SettingsContractTests(unittest.TestCase):
             "allOf": [{"required": ["a"]}], "properties": {"a": {"type": "integer"}}}}})
         self.assertFalse(Draft202012Validator(spec).is_valid({"config": {"value": {}}}))
 
-    def test_nested_host_metadata_matches_leaf_merge_including_empty_null_and_array(self):
-        engine = LoopEngine(completion_kwargs={"extra_body": {"a": 1, "unset": None, "items": [1], "empty": {}}})
+    def test_nested_agent_metadata_matches_leaf_merge_including_empty_null_and_array(self):
+        engine = LoopEngine().for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"extra_body": {"a": 1, "unset": None, "items": [1], "empty": {}}}})})
         config = ProjectConfig(parameters={"engines": {"loop": {"config": {"completion": {
             "extra_body": {"b": 2, "unset": 3, "items": [2], "empty": {"inherited": True}}}}}}})
         view = engine.configuration(config, "loop")
-        schema = engine.configuration_schema()["properties"]["config"]["properties"]["completion"]["properties"]["extra_body"]
-        self.assertNotIn("x-host-override", schema)
+        self.assertNotIn("x-host-override", json.dumps(engine.configuration_schema()))
         for name in ("a", "unset", "items"):
-            self.assertTrue(schema["properties"][name]["x-host-override"])
-            self.assertEqual(view["sources"]["/config/completion/extra_body/" + name], "host")
-            self.assertFalse(view["editable"]["/config/completion/extra_body/" + name])
-        self.assertNotIn("x-host-override", schema["properties"]["empty"])
+            self.assertEqual(view["sources"]["/config/completion/extra_body/" + name], "agent")
+            self.assertTrue(view["editable"]["/config/completion/extra_body/" + name])
         self.assertTrue(view["editable"]["/config/completion/extra_body/b"])
         self.assertTrue(view["editable"]["/config/completion/extra_body/empty/inherited"])
 

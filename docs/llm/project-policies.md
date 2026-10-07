@@ -9,7 +9,7 @@ ProjectConfig는 설정의 저장 원본이다. `policies`에는 서비스가 �
 | --- | --- |
 | policies.context | Run에 전달할 대화의 공통 선택. ContextPolicy/ConversationContextBuilder |
 | policies.run | 대기열·실행 기한·capability 확장 한도. RunPolicy/RunManager |
-| policies.approval, tool_retry | 공통 승인과 조건부 Tool 재시도. 기존 ToolExecutor 계약 |
+| policies.approval, tools, tool_retry | 공통 승인, Tool 선택·호출 예산·인자 제약, 조건부 Tool 재시도. 기존 ToolExecutor 계약 |
 | policies.usage | Run/Project의 누적 호출·토큰 사용량. 입력 선택과 독립된 counter |
 | policies.retention | 영속 기록의 명시적 보관·정리 |
 | policies.output | 서비스의 델타 저장 batching |
@@ -71,10 +71,10 @@ await project.asave(config=config, expected_version=view["config_version"])
 # await project.components.memory.aconfigure({"policy": {"processing": {"provider": {"max_attempts": 2}}}})
 ```
 
-Engine 상속은 **Project → Session → Agent → 명시적 host** 순서다. missing은 상위의
-명시값을 상속한다. Loop policy.completion/policy.provider 전체의 null은 상위 설정을 해제한다.
-provider.wall_timeout=null은 시간 제한만 해제한다. 미설정 SDK 옵션은 전달하지 않는다.
-각 Engine의 values/sources/overridden/editable과 schema x-host-override는 같은 계약을 따른다.
+Engine 상속은 **Project → Session → Agent** 순서다. 제한 확대는 거부한다. missing은 상위의
+명시값을 상속한다. 상위에 제한이 있다면 child의 null로 전체 정책이나 개별 한계를 해제할 수 없다.
+Project가 직접 nullable 정책을 null로 바꾸는 것은 가능하다. 미설정 SDK 옵션은 전달하지 않는다.
+각 Engine의 values/sources/overridden/editable은 같은 계약을 따르며 Host product override는 없다.
 공통 policies와 Component 설정은 Session/Agent가 덮어쓰지 못한다.
 
 ## 실행 객체와 수명

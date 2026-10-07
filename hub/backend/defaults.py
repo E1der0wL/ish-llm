@@ -20,7 +20,7 @@ async def create_project(backend, title, *, config, components, conversation_sto
             skills = await project.components.aget("skills")
             for identifier, title, description, instructions in SKILLS:
                 await skills.acreate({"title": title, "description": description, "instructions": instructions,
-                                      "hub_template_version": 1}, identifier=identifier)
+                                      "metadata": {"hub_template_version": 1}}, identifier=identifier)
     except BaseException:
         # Do not leave a partially seeded project as the next startup selection.
         await asyncio.shield(project.adelete())

@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 import threading
+from copy import copy
 from uuid import uuid4
 
 
@@ -12,13 +13,21 @@ from uuid import uuid4
 class FileTools:
     """실행 루트는 개발자가 지정한다. 심볼릭 링크과 상위 경로는 따라가지 않는다."""
 
-    def __init__(self, root: Path, max_bytes=None):
+    def __init__(self, root: Path):
         self.root = Path(root).absolute()
-        self.max_bytes = max_bytes
+        self.max_bytes = None
         self.lock = threading.RLock()
         self.path(".")
         if not self.root.is_dir():
             raise ValueError("Tool working root must be an existing directory")
+
+    def for_arguments(self, arguments):
+        """호출별 Project argument constraint를 적용하며 파일 잠금은 공유한다."""
+        selected = copy(self)
+        selected.max_bytes = arguments.get("max_file_bytes")
+        if selected.max_bytes is not None and (type(selected.max_bytes) is not int or selected.max_bytes < 1):
+            raise ValueError("max_file_bytes must be a positive integer")
+        return selected
 
     def path(self, value: str, *, internal=False) -> Path:
         if not isinstance(value, str) or not value or "\x00" in value:

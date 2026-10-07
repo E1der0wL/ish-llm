@@ -6,12 +6,21 @@
       "-c"
     ],
     "diagnostics": true,
-    "git": true,
-    "max_file_bytes": 2000000,
-    "max_output_bytes": 1000000,
-    "max_seconds": 300
+    "git": true
   },
   "project_config": {
+    "policies": {
+      "tools": {
+        "timeout_seconds": 300,
+        "argument_constraints": {
+          "file_read": {"max_file_bytes": {"mode": "fixed", "value": 2000000}},
+          "file_create": {"max_file_bytes": {"mode": "fixed", "value": 2000000}},
+          "file_patch": {"max_file_bytes": {"mode": "fixed", "value": 2000000}},
+          "shell_execute": {"timeout_seconds": {"mode": "fixed", "value": 300}, "max_output_bytes": {"mode": "fixed", "value": 1000000}},
+          "process_start": {"timeout_seconds": {"mode": "fixed", "value": 300}, "max_output_bytes": {"mode": "fixed", "value": 1000000}}
+        }
+      }
+    },
     "parameters": {
       "engines": {
         "loop": {

@@ -18,9 +18,19 @@ component = RAGComponent(
 )
 async with LargeLanguageModel(
     workspace, components=[component],
-    engines={"loop": LoopEngine(completion_kwargs={"model": completion_model, "api_key": api_key})},
+    engines={"loop": LoopEngine()},
 ) as backend:
-    project = await backend.projects.acreate("설명서", components=["rag"])
+    project = await backend.projects.acreate("설명서", components=["rag"], config={
+        "parameters": {"engines": {"loop": {"config": {"completion": {
+            "model": completion_model, "api_key": api_key}}}}, "components": {"rag": {
+            "config": {"chunk_size": 1000,
+                "extraction_batch_size": 4, "search_cache_chars": 200000,
+                "index_batch_size": 64,
+                "search": {"method": "hybrid", "expand": "section", "limit": 5,
+                    "rerank": False, "max_hops": 2, "relation_limit": 30,
+                    "candidate_count": 20, "rrf_constant": 60}},
+            "policy": {"embedding_concurrency": 2,
+                       "extraction": {"failure_policy": "required"}}}}}})
     rag = await project.components.aget("rag")
     document = await rag.aadd_document(
         title="운영 설명서", content=markdown_text,
@@ -38,7 +48,7 @@ async with LargeLanguageModel(
 사용한다. SLM 또는 LLM을 선택하거나 `async extract(chunks)` 구현을 주입할 수 있다.
 관계의 양 끝 엔티티와 원문에 실제로 있는 인용을 검증한 다음 저장한다. 오류나 취소가
 준비 단계에서 발생하면 이전 버전을 유지한다. 모델 준비 중 다른 작업은 계속 진행할 수 있다.
-문서를 수정하면 해당 문서의 임베딩과 트리플을 모두 다시 만든다.
+문서 수정 시 동일 chunk vector는 재사용하고 변경 chunk와 트리플을 준비한 뒤 세대를 교체한다.
 
 `create/save/update/delete`와 그 비동기 별칭은 `records/`의 열린 JSON **정의 CRUD**다.
 문서 API와 별개이며 정의 저장은 임베딩을 호출하지 않는다. 예전 records 파일을 자동으로

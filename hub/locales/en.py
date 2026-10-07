@@ -3,6 +3,8 @@
 
 
 MESSAGES = {
+    "settings_dependencies": "Required components: {names}",
+    "settings_dependencies_missing": "Missing required components: {names} — select them before saving.",
     "title_model_required": "No title model is configured. Set the conversation engine model or parameters.engines._hub_title.completion.model.",
     "output_image_limit": "Image preview limit reached for this view (32 images).",
     "welcome_title": "No sessions yet",

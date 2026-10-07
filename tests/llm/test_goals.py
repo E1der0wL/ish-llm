@@ -27,7 +27,7 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         self.provider = ScriptedCompletion(*[[chunk("done", finish="stop")] for _ in range(10)])
         self.app = LargeLanguageModel(Path(self.temp.name), components=[GoalComponent()],
-            engines={"loop": LoopEngine(completion_fn=self.provider, completion_kwargs={"model": "test/model"})})
+            engines={"loop": LoopEngine(completion_fn=self.provider).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})})})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("goals", components=["goals"])
         self.session = await self.project.sessions.acreate("session")

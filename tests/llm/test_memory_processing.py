@@ -10,6 +10,7 @@ import unittest
 
 from tests.llm.configuration_fixtures import memory_processing
 from llm.components.memory import MemoryComponent, MemoryConflictError
+from llm.components.prompts import PromptComponent
 from llm.components.base import Component
 from llm.components.processing import CompletionSession
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
@@ -115,23 +116,30 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.aux = Auxiliary()
-        self.component = MemoryComponent(completion_fn=self.aux, extract_prompt="Retain reusable facts and preferences.")
-        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component], engines={})
+        self.component = MemoryComponent(completion_fn=self.aux)
+        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, PromptComponent()], engines={})
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate("Long work", components=["memory"])
+        self.project = await self.app.projects.acreate("Long work", components=["memory", "prompts"])
+        await self.project.components.prompts.acreate({"messages": [{"role": "system", "content":
+            "Retain reusable facts and preferences."}]}, identifier="extract")
         self.memory = await self.project.components.aget("memory")
         await self.configure(recall=True)
         self.session = await self.project.sessions.acreate()
         self.serial = 0
+        self.config_lock = asyncio.Lock()
 
     async def configure(self, **options):
-        await self.memory.aconfigure(memory_settings({'tool_write_status': 'candidate', 'processing': memory_processing({'recall': False, 'completion': {'model': 'test/aux'}, **options})}))
+        await self.memory.aconfigure(memory_settings({'tool_write_status': 'candidate', 'processing': memory_processing({'recall': False,
+            'extract_prompt_id': 'extract', 'completion': {'model': 'test/aux'}, **options})}))
 
     async def run_loop(self, prompt="request", *, model=None, session=None):
         model = model or ScriptedCompletion(answer())
         name = "loop" + str(self.serial)
         self.serial += 1
-        self.app.engines.register(name, LoopEngine(completion_fn=model, completion_kwargs={"model": "test/main"}))
+        self.app.engines.register(name, LoopEngine(completion_fn=model))
+        # 테스트가 생성하는 Engine별 Project 설정의 read-modify-save만 직렬화한다.
+        async with self.config_lock:
+            await configure_engine(self.project, name, completion={"model": "test/main"})
         run = await (await (session or self.session).run.submit(prompt, engine=name)).wait(timeout=20)
         return run, model
 
@@ -252,7 +260,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         await self.configure(summarize=True, keep_turns=1, summary_after_chars=1)
         await self.build_history()
         await self.app.shutdown()
-        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component], engines={})
+        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, PromptComponent()], engines={})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.aload(self.project.id)
         self.session = await self.project.sessions.aload(self.session.id)
@@ -344,7 +352,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(model.requests[0]["messages"][-1]["content"], "budget")
         await self.app.shutdown()
-        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component], engines={},
+        self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, PromptComponent()], engines={},
             services=ServiceConfig(token_counters={"test": lambda request: sum(
                 len(m.get("content") or "") for m in request["messages"])}))
         self.addAsyncCleanup(self.app.shutdown)
@@ -361,7 +369,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
     async def test_graph_agent_uses_processor_without_reusing_session_summary(self):
         for component in (AgentComponent(), WorkflowComponent()):
             self.app.project_manager.components.register(component)
-        await self.project.components.aselect(["memory", "agents", "workflows"])
+        await self.project.components.aselect(["memory", "prompts", "agents", "workflows"])
         await self.memory.acreate({"content": "Python guidelines"})
         await self.configure(recall=True, summarize=True, extract=True)
         agents = await self.project.components.aget("agents")
@@ -419,7 +427,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             yield from self.aux(**request)
         self.component.completion_fn = slow
         model = ScriptedCompletion(answer())
-        self.app.engines.register("interrupt", LoopEngine(completion_fn=model, completion_kwargs={"model": "test/main"}))
+        self.app.engines.register("interrupt", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/main"}})}))
         request = await self.session.run.submit("third", engine="interrupt")
         try:
             self.assertTrue(await asyncio.to_thread(entered.wait, 5))
@@ -462,7 +470,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         original = stale["summary"]
         await self.session.run.shutdown()
         backup = await self.project.abackup(self.root / "backup")
-        async with LargeLanguageModel(self.root / "destination", components=[MemoryComponent()]) as app:
+        async with LargeLanguageModel(self.root / "destination", components=[MemoryComponent(), PromptComponent()]) as app:
             project = await app.projects.arestore_backup(backup)
             self.assertEqual(await (await project.components.aget("memory")).asummary(self.session.id), original)
         await self.memory.aclear_summary(self.session.id, expected_revision=original["revision"])

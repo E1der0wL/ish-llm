@@ -28,7 +28,7 @@ jobs:
           import subprocess, sys, tomllib
           from pathlib import Path
           project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
-          dependencies = project["dependencies"] + project["optional-dependencies"]["rag"]
+          dependencies = project["dependencies"] + project["optional-dependencies"]["rag"] + project["optional-dependencies"]["vision"] + ["prompt-toolkit"]
           subprocess.check_call([sys.executable, "-m", "pip", "install", *dependencies])
           PY
       - name: Core runtime and architecture boundaries
@@ -42,3 +42,7 @@ jobs:
           tests.llm.test_interaction_decisions tests.llm.test_observability
           tests.llm.test_error_boundaries
           tests.llm.test_schema_ownership tests.llm.test_definition_components
+          tests.llm.test_project_authority tests.llm.test_component_dependencies
+          tests.llm.test_agent_delegation
+      - name: Hub regression
+        run: python -m unittest discover -s tests/hub -t . -v

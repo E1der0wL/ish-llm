@@ -8,7 +8,7 @@ Component는 선택된 기능과 그 데이터를 소유한다. Hub는 생성 �
 |---|---|---|
 | Contract | backend | JSON 형태, Tool 인자, 참조와 revision, 이벤트 |
 | Invariant | backend | atomic/CAS, 정확한 evidence, 승인 binding, 권한 비상승 |
-| Execution policy | 명시한 사용자/host, backend 집행 | timeout, retry, 허용 Tool, 보관 제한 |
+| Execution policy | Project 저장, backend 집행 | timeout, retry, 허용 Tool, 보관 제한 |
 | Product policy | Application | 무엇을 기억할지, 검색 전략, Skill 생성/분기 시점, 평가 기준 |
 
 설정 부재를 제품 선택으로 바꾸지 않는다. 필요한 알고리즘 인자가 없으면 해당
@@ -25,7 +25,7 @@ UI의 effective values는 관찰 결과이며 새 사용자 설정으로 저장�
 - 무결성 invariant와 조정 가능한 execution policy를 구분한다.
 - 프롬프트/Skill의 내용은 권한이 아니다. Tool·MCP·RAG·Engine 권한을 늘리지 않는다.
 - 모델 출력은 저장 전에 구조를 검증하며, 버전 확인과 승인은 별개다.
-- host의 명시된 ceiling을 하위 설정이 완화하지 못하게 한다.
+- Project/parent의 명시된 정책 제한을 하위 설정이 완화하지 못하게 한다. Host 공유 자원은 별도다.
 - 추천값·점수 임계값·자동 선택은 예제/Hub에 둔다.
 - `tests/llm/audit_configuration.py`는 후보 수집기다. 검색 결과만으로 적합 판정하지 않는다.
 
@@ -55,7 +55,7 @@ ORDER BY/score 비교, auto/fallback, 직접 영속 변경이다. 범위는 llm 
 | embedding concurrency 32 | 임의 상한 제거. 명시한 worker 수와 host ProviderCalls 제한으로 실행 |
 | chunk_size 최소 64 | 품질 취향 제거. 알고리즘에 필요한 최소 1만 유지 |
 | provider attempts 10 | 임의 상한 제거. 명시한 시도 수, SDK retry 중첩 방지 유지 |
-| file_read 5000 / file_list 1000 / file_search 500 / web_search 20 | schema 제품 상한 제거. host 파일/출력/시간 한도는 유지 |
+| file_read 5000 / file_list 1000 / file_search 500 / web_search 20 | schema 제품 상한 제거. 파일/출력/시간 한도는 명시 Tool 인자 및 Project 제약 |
 | Memory Tool 원문 slice 64000 | 임의 상한 제거. 명시적 페이지 크기만 적용 |
 | Tool worker IPC 8 MiB / stderr 1 MiB | worker IPC frame/capture 계약. 양쪽 wire 경계에서 초과 실패, 무음 자르기 없음 |
 | interaction renewal 128 | 임의 chain 길이 상한 제거. visited identity로 cycle 검증 유지 |
@@ -99,8 +99,8 @@ Graph Agent의 purpose/engine/engine_options만 실행 의미를 가지며 behav
 GraphEngine.for_agent에서 리소스 조회 전에 거부한다. Tool scope를 새로 만들지 않고 부모 것을
 전달한다. Workflow 노드의 JSON 입출력 계약과 Run/Step 이벤트 저장 경로는 유지한다.
 
-Host가 ToolPolicy.argument_constraints를 지정하면 원본 schema와 교집합을 모델에 보여주고
-ToolExecutor에서 다시 검증한다. fixed만 생략 인자에 **명시된 host 값**을 주입한다.
+Project가 policies.tools.argument_constraints를 지정하면 원본 schema와 교집합을 모델에 보여주고
+ToolExecutor에서 다시 검증한다. fixed만 생략 인자에 **명시된 Project 값**을 주입한다.
 bounded/selectable은 값 추천이나 default를 만들지 않는다. child는 좁힐 수만 있고
 effective 제약은 승인/checkpoint binding에 들어간다. [사용법](tool-constraints.md).
 

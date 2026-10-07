@@ -30,10 +30,14 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         self.root = Path(self.temp.name)
         self.work = self.root / "work"
         self.work.mkdir()
-        self.tools = BuiltinTools(self.work, allow_commands=True, max_seconds=5, max_output_bytes=500, shell=["/bin/sh", "-c"])
+        self.tools = BuiltinTools(self.work, allow_commands=True, shell=["/bin/sh", "-c"])
         self.addAsyncCleanup(self.tools.close)
 
     async def invoke(self, name, **args):
+        fields = self.tools.registry.get(name).parameters["properties"]
+        for key, value in (("timeout_seconds", 5), ("max_output_bytes", 500)):
+            if key in fields:
+                args.setdefault(key, value)
         tool, values = self.tools.registry.prepare(name, json.dumps(args))
         return await tool.handler(values)
 
@@ -83,8 +87,8 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             link.unlink()
 
     async def test_bounded_file_reads_and_paging(self):
-        async with BuiltinTools(self.work, max_file_bytes=8) as limited:
-            handler, args = limited.registry.prepare("file_create", json.dumps({"path": "large", "content": "x" * 9}))
+        async with BuiltinTools(self.work) as limited:
+            handler, args = limited.registry.prepare("file_create", json.dumps({"path": "large", "content": "x" * 9, "max_file_bytes": 8}))
             with self.assertRaises(ValueError):
                 await handler.handler(args)
         await self.invoke("file_create", path="lines", content="a\nb\nc\n")
@@ -337,7 +341,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         completion = ScriptedCompletion([chunk(calls=[call(json.dumps(arguments), name="file_create")]), chunk(finish="tool_calls")],
                                          [chunk("done"), chunk(finish="stop")])
         async with LargeLanguageModel(self.root / "backend", components=[RuntimeTools(self.tools.registry)],
-                                      engines={"loop": LoopEngine(completion_fn=completion, completion_kwargs={"model": "demo"})}) as backend:
+                                      engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "demo"}})})}) as backend:
             project = await backend.projects.acreate("tools", components=["tools"])
             selected = await project.components.aget("tools")
             await selected.aenable("file_create")

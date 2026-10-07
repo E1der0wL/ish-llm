@@ -67,7 +67,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
     def loop(self, *responses):
         completion = ScriptedCompletion(*responses)
-        return LoopEngine(completion_kwargs={"model": "test/model"}, completion_fn=completion), completion
+        return LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'completion': {"model": "test/model"}})}), completion
 
     async def test_queue_limit_cancel_and_status_do_not_interrupt_active_run(self):
         entered, release = asyncio.Event(), asyncio.Event()
@@ -144,7 +144,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
     async def test_loop_tool_denial_is_persisted_without_effects(self):
         loop, completion = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
-            services=ServiceConfig(tool_policy=ToolPolicy(allowed_tools=())))
+            policies={"tools": {"allowed_tools": []}})
         run = await self.execute(session, "loop")
         self.assertEqual(run.result.error_code, "tool_denied")
         step = next(item for item in run.steps.list() if item.kind == "tool")
@@ -192,7 +192,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.Event().wait()
 
         completion = ScriptedCompletion([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
-        loop = LoopEngine(tool_timeout=.1, completion_kwargs={"model": "test/model"}, completion_fn=completion)
+        loop = LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.settings_layout.pack({'tool_timeout': .1, 'completion': {"model": "test/model"}})})
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
             services=ServiceConfig(tool_policy=ToolPolicy(authorize=authorize)))
         run = await self.execute(session, "loop")
@@ -266,7 +266,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             graph["nodes"][name] = {"type": "tool", "tool": "act", "arguments": {}}
         _, project, session = await self.backend(components=[self.tools, WorkflowComponent()],
             engines={"graph": GraphEngine(handlers={"tool": ToolNode()})},
-            services=ServiceConfig(tool_policy=ToolPolicy(max_calls=1)))
+            policies={"tools": {"max_calls": 1}})
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
         run = await self.execute(session, "graph", engine_options={"workflow": "flow"})
         self.assertEqual(run.result.error_code, "tool_budget_exceeded")
@@ -277,7 +277,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         completion = ScriptedCompletion([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         _, project, session = await self.backend(components=[self.tools, WorkflowComponent(), AgentComponent()],
             engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=completion)})})},
-            services=ServiceConfig(tool_policy=ToolPolicy(allowed_tools=())))
+            policies={"tools": {"allowed_tools": []}})
         await (await project.components.aget("agents")).acreate({"engine": "loop", "purpose": "test", "completion": {"model": "test/model"},
             "tools": ["act"], "engine_options": {'policy': {'max_iterations': 2}}}, identifier="worker")
         graph = WorkflowGraph(entry="a").node("a", "agent", agent="worker").node("end", "end").connect("a", "end").to_dict()

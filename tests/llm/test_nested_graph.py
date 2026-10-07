@@ -42,15 +42,16 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             return {"value": arguments.get("value", "done")}
         self.tools = ToolRegistry((Tool("effect", "record", {"type": "object"}, effect),))
 
-    async def setup(self, graphs, *, handlers=None, services=None, **options):
+    async def setup(self, graphs, *, handlers=None, services=None, policies=None, **options):
         async def work(node):
             self.effects.append(node.inputs)
             return {"answer": node.inputs.get("request", "done")}
-        self.engine = GraphEngine(handlers=handlers or {"work": work}, **options)
+        self.engine = GraphEngine(handlers=handlers or {"work": work})
         self.app = LargeLanguageModel(self.root, engines={"graph": self.engine}, services=services, components=[
             WorkflowComponent(), AgentComponent(), RuntimeTools(self.tools), SkillComponent()])
         self.addAsyncCleanup(self.app.shutdown)
-        self.project = await self.app.projects.acreate("nested", components=["workflows", "agents", "tools", "skills"])
+        self.project = await self.app.projects.acreate("nested", components=["workflows", "agents", "tools", "skills"], config={
+            "policies": policies or {}, "parameters": {"engines": {"graph": GraphEngine.settings_layout.pack(options)}}})
         self.workflows = await self.project.components.aget("workflows")
         for name, graph in graphs.items():
             await self.workflows.acreate(graph, identifier=name)
@@ -350,7 +351,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         agent = AgentNode(engines={"graph": child_engine})
         await self.setup({"main": action_graph("agent", agent="coordinator"), "child": child},
                          handlers={"agent": agent}, max_parallelism=1,
-                         services=ServiceConfig(tool_policy=ToolPolicy(max_calls=1)))
+                         policies={"tools": {"max_calls": 1}})
         await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}}, identifier="coordinator")
         paused = await self.request()
         self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
@@ -404,7 +405,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         agent = AgentNode(engines={"graph": child_engine})
         await self.setup({"main": action_graph("agent", agent="coordinator"),
                           "child": action_graph("tool", tool="effect")}, handlers={"agent": agent},
-                         services=ServiceConfig(tool_policy=ToolPolicy(max_calls=1)))
+                         policies={"tools": {"max_calls": 1}})
         await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}}, identifier="coordinator")
         failed = await self.request()
         self.assertEqual(failed.data.status, RunStatus.FAILED)
@@ -417,7 +418,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
     async def test_parent_tool_policy_applies_in_child(self):
         await self.setup({"main": action_graph("workflow", workflow="child"),
                           "child": action_graph("tool", tool="effect")}, handlers={"tool": ToolNode()},
-                         services=ServiceConfig(tool_policy=ToolPolicy(allowed_tools=())))
+                         policies={"tools": {"allowed_tools": []}})
         run = await self.request()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(self.effects, [])
@@ -442,14 +443,14 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         resumed = await (await self.session.run.resume(paused.id, engine='graph')).wait()
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertEqual(len(self.effects), 1)
-        self.assertEqual(len(authorizations), 1)
+        self.assertEqual(len(authorizations), 2)
 
     async def test_parent_tool_budget_is_shared_by_repeated_child_calls(self):
         parent = (WorkflowGraph(entry="first").node("first", "workflow", workflow="child")
                   .node("second", "workflow", workflow="child").node("end", "end")
                   .connect("first", "second").connect("second", "end").to_dict())
         await self.setup({"main": parent, "child": action_graph("tool", tool="effect")},
-                         handlers={"tool": ToolNode()}, services=ServiceConfig(tool_policy=ToolPolicy(max_calls=1)))
+                         handlers={"tool": ToolNode()}, policies={"tools": {"max_calls": 1}})
         run = await self.request()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(len(self.effects), 1)

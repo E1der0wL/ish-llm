@@ -80,7 +80,7 @@ Workflow는 `<project>/workflows/records/<id>.json`이다. Component 설정은 P
 특정 Tool 이름의 사용을 강제하는 정책은 아니다. RAG는 문서 ID별 접근 제한이 아닌 Project
 단위 corpus 검색이다. corpus 내용은 검색 시점에 읽으며 검색 결과/근거는 Tool Step에 남는다.
 
-Loop에 숨은 반복/모델/Tool 시간 제한은 없다. Project → Session → Agent → host의 명시값만
+Loop에 숨은 반복/모델/Tool 시간 제한은 없다. Project → Session → Agent의 명시값만
 적용한다. policy와 부모 Run/ToolPolicy 한도는
 동시에 적용하며 Agent가 부모 권한이나 예산을 늘릴 수 없다. require_tool이 설정되면 Loop는
 첫 성공 전 tool_choice=required를 사용하고, 모델이 무시하면 성공으로 처리하지 않는다.

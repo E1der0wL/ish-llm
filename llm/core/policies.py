@@ -2,7 +2,60 @@
 
 from copy import deepcopy
 import json
+import math
 from jsonschema import Draft202012Validator
+
+
+def validate_tool_constraints(constraints: dict) -> None:
+    """Project 소유 제약 문법. 실제 값의 Tool schema 검증은 선택된 Tool이 소유한다."""
+    from .models import ProjectConfig
+    from .interactions import same_interaction_value
+    ProjectConfig.validate_settings(constraints)
+    if not isinstance(constraints, dict):
+        raise ValueError("argument_constraints must be an object")
+    for name, fields in constraints.items():
+        if not isinstance(name, str) or not name or not isinstance(fields, dict):
+            raise ValueError("Tool constraints require named argument objects")
+        for key, rule in fields.items():
+            if not isinstance(key, str) or not key or not isinstance(rule, dict):
+                raise ValueError("Invalid Tool argument constraint")
+            mode = rule.get("mode")
+            if mode == "fixed":
+                valid = rule.keys() == {"mode", "value"}
+            elif mode == "selectable":
+                values = rule.get("values")
+                valid = rule.keys() == {"mode", "values"} and isinstance(values, list) and bool(values)
+                if valid:
+                    valid = all(not any(same_interaction_value(v, other) for other in values[:i])
+                                for i, v in enumerate(values))
+            elif mode == "bounded":
+                bounds = {k: v for k, v in rule.items() if k != "mode"}
+                valid = bool(bounds) and not bounds.keys() - {"minimum", "maximum"} and all(
+                    type(v) in (int, float) and math.isfinite(v) for v in bounds.values())
+                if valid and bounds.keys() == {"minimum", "maximum"}:
+                    valid = bounds["minimum"] <= bounds["maximum"]
+            else:
+                valid = False
+            if not valid:
+                raise ValueError(f"Invalid argument constraint: {name}.{key}")
+
+
+def tool_constraints_schema():
+    """제약 값은 Tool의 원본 schema로 다시 검증한다. 제약 문법은 닫혀 있다."""
+    value_schema = {"x-schema-owner": "selected Tool parameter schema", "x-open-kind": "data"}
+    rules = []
+    for mode, properties, required in (
+        ("fixed", {"value": value_schema}, ["value"]),
+        ("selectable", {"values": {"type": "array", "items": value_schema, "minItems": 1, "uniqueItems": True}}, ["values"]),
+        ("bounded", {"minimum": {"type": "number"}, "maximum": {"type": "number"}}, []),
+    ):
+        rule = {"type": "object", "additionalProperties": False,
+                "properties": {"mode": {"const": mode}, **properties}, "required": ["mode", *required]}
+        if mode == "bounded":
+            rule["anyOf"] = [{"required": ["minimum"]}, {"required": ["maximum"]}]
+        rules.append(rule)
+    return {"type": "object", "propertyNames": {"minLength": 1}, "additionalProperties": {
+        "type": "object", "propertyNames": {"minLength": 1}, "additionalProperties": {"oneOf": rules}}}
 
 
 def policy_schema() -> dict:
@@ -15,12 +68,20 @@ def policy_schema() -> dict:
         "not": {"anyOf": [{"required": [name]} for name in ("completion", "provider_retry")]},
         "properties": {
         "approval": section({
-            "enabled": field("boolean", "호스트가 위임한 요청에만 프로젝트 자동 승인 규칙 적용"),
+            "enabled": field("boolean", "프로젝트 자동 승인 규칙 적용"),
+            "risk_scheme": field("string", "Application이 소유한 위험도 척도 identity", minLength=1),
             "rules": field("array", "카테고리·위험도별 승인 규칙; 불확실한 재실행은 제외", items={
                 "type": "object", "additionalProperties": False, "required": ["id", "category", "max_risk"],
                 "properties": {"id": {"type": "string", "minLength": 1},
                     "category": {"type": "string", "minLength": 1},
-                    "max_risk": {"type": "string", "enum": ["low", "medium", "high"]}}})}),
+                    "max_risk": {"type": "integer", "minimum": 0}}})}),
+        "tools": section({
+            "allowed_tools": field(["array", "null"], "Project에서 허용할 Tool 이름", uniqueItems=True,
+                items={"type": "string", "minLength": 1}),
+            "max_calls": field(["integer", "null"], "Run 전체 Tool 호출 한도", minimum=1),
+            "timeout_seconds": field(["number", "null"], "각 Tool 호출 기한; Engine은 더 좁힐 수 있다", exclusiveMinimum=0),
+            "max_output_chars": field(["integer", "null"], "각 Tool 결과 문자 한도", minimum=1),
+            "argument_constraints": tool_constraints_schema()}),
         "context": section({
             "mode": field("string", "엔진에 전달할 과거 대화 선택 방식",
                           enum=["full", "recent", "completed", "recent_completed", "budget"]),
@@ -66,6 +127,7 @@ def normalize_policies(value: dict) -> dict:
         path = ".".join(str(part) for part in error.path)
         raise ValueError(f"Invalid project policy {path}: {error.message}")
     result = deepcopy(value)
+    validate_tool_constraints(result.get("tools", {}).get("argument_constraints", {}))
     # 존재하는 키만 검증·보존한다. missing은 정책 활성화나 기본값 생성을 뜻하지 않는다.
     for name, section in schema["properties"].items():
         for key, spec in section["properties"].items():
@@ -77,6 +139,11 @@ def normalize_policies(value: dict) -> dict:
     rule_ids = [rule["id"] for rule in result.get("approval", {}).get("rules", [])]
     if len(rule_ids) != len(set(rule_ids)):
         raise ValueError("Approval rule IDs must be unique")
+    approval = result.get("approval", {})
+    if approval.get("rules") and not str(approval.get("risk_scheme", "")).strip():
+        raise ValueError("Approval rules require risk_scheme")
+    if any(type(rule["max_risk"]) is not int for rule in approval.get("rules", [])):
+        raise ValueError("Approval max_risk must be a nonnegative integer")
     context = result.get("context", {})
     if context.get("mode") == "budget" and context.get("max_chars") is None:
         raise ValueError("Context budget mode requires max_chars")

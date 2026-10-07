@@ -43,11 +43,13 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(context.state["document"], "retrieved material")
             context.state["model"] = "openai/prepared"
         completion = ScriptedCompletion([chunk("answer", finish="stop")])
-        loop = LoopEngine(
-            completion_fn=completion,
-            completion_kwargs=lambda ctx: {"model": ctx.state["model"], "top_p": 0.8},
-            system_prompt=lambda ctx: "Use: " + ctx.state["document"],
-        )
+        class PreparedLoop(LoopEngine):
+            async def _execute(self, context):
+                self.completion_kwargs = {"model": context.state["model"], "top_p": 0.8}
+                self.system_prompt = "Use: " + context.state["document"]
+                async for event in super()._execute(context):
+                    yield event
+        loop = PreparedLoop(completion_fn=completion)
         self.engines.register("pipeline", PipelineEngine([
             PreparationStep("Read documents", read, kind="retrieval"),
             PreparationStep("Prepare environment", configure, kind="shell"), loop,
@@ -109,8 +111,10 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 closed.set()
         self.engines.register("pipeline", PipelineEngine([
-            PreparationStep("Prepare", prepare, timeout_seconds=0.02), self.fake,
+            PreparationStep("Prepare", prepare), self.fake,
         ]))
+        self.project.config.parameters["engines"] = {"pipeline": {"config": {"stages": {"0": {"policy": {"timeout_seconds": .02}}}}}}
+        self.projects.save(self.project)
         await self.manager.submit("request", engine="pipeline")
         await self.idle()
         run, = self.manager.repository.list(self.session)
@@ -129,10 +133,15 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 entered.set()
             await release.wait()
         completion = ScriptedCompletion(*[[chunk("done", finish="stop")] for _ in range(3)])
+        class PreparedLoop(LoopEngine):
+            async def _execute(self, context):
+                self.completion_kwargs = {"model": "openai/test"}
+                self.system_prompt = context.state["input"]
+                async for event in super()._execute(context):
+                    yield event
         self.engines.register("pipeline", PipelineEngine([
             PreparationStep("Prepare", prepare),
-            LoopEngine(completion_fn=completion, completion_kwargs={"model": "openai/test"},
-                       system_prompt=lambda ctx: ctx.state["input"]),
+            PreparedLoop(completion_fn=completion),
         ]))
         other = self.sessions.create(self.project, "Other")
         other_manager = RunManager(self.sessions, self.engines, session=other)
@@ -176,7 +185,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         async def prepare(context):
             order.append("prepare")
         self.engines.register("pipeline", PipelineEngine([
-            PipelineEngine([PreparationStep("Prepare", prepare, timeout_seconds=None)]), self.fake,
+            PipelineEngine([PreparationStep("Prepare", prepare)]), self.fake,
         ]))
         await self.manager.submit("request", engine="pipeline")
         await self.idle()
@@ -193,4 +202,5 @@ class PipelineConfigurationTests(unittest.TestCase):
             pass
         for seconds in (0, -1, float("inf"), True):
             with self.assertRaises(ValueError):
-                PreparationStep("Prepare", action, timeout_seconds=seconds)
+                PreparationStep("Prepare", action).configuration({"parameters": {"engines": {"prepare": {
+                    "policy": {"timeout_seconds": seconds}}}}}, "prepare")

@@ -40,6 +40,25 @@ class ServiceConfig:
     backups: Optional[DirectoryBackups] = None
     observability_sink: Optional[Callable] = None
 
+    def configuration(self):
+        """Host 자원의 읽기 전용 투영. callable/client/인증값을 직렬화하지 않는다."""
+        from dataclasses import fields, asdict
+        def identity(value):
+            return {"configured": value is not None,
+                    "implementation": type(value).__module__ + "." + type(value).__qualname__ if value is not None else None}
+        values = {item.name: identity(getattr(self, item.name)) for item in fields(self)}
+        for key in ("provider_limits", "output_policy"):
+            value = getattr(self, key)
+            values[key] = asdict(value) if value is not None else None
+        for key in ("conversation_cache_size", "output_index_stride"):
+            values[key] = getattr(self, key)
+        policy = self.tool_policy or ToolPolicy()
+        values["tool_policy"] = {name: identity(getattr(policy, name)) for name in
+            ("authorize", "runner", "operation_key", "operation_probe", "classify")}
+        values["tool_policy"].update(revision=policy.revision,
+                                     retry_safe_tools=list(policy.retry_safe_tools))
+        return {"values": values, "x-owner": "host", "x-scope": "infrastructure"}
+
     def build(self, workspace, components):
         """RunManager와 Facade가 같은 저장소/문맥/로그 설정을 공유하도록 연결한다."""
         projects = self.project_repository if self.project_repository is not None else ProjectRepository(workspace / "projects")

@@ -35,13 +35,13 @@ if plan.can_resume:
 프로젝트 자동 승인 기본값은 꺼짐이다. 호스트와 프로젝트가 모두 허용한 범위에서만 사용한다.
 
 ```python
-# 백엔드 구성: authorize가 category/risk를 명시한 ToolApprovalRequired를 발생시킨다.
+# 백엔드 구성: classify는 최종 인자에서 신뢰한 Application 분류를 반환한다.
 services = ServiceConfig(tool_policy=ToolPolicy(
-    authorize=authorize, auto_approve_categories=("file.read",)))
+    authorize=authorize, classify=classify))
 
 await project.aconfigure_policies({"approval": {
-    "enabled": True,
-    "rules": [{"id": "read-only", "category": "file.read", "max_risk": "low"}],
+    "enabled": True, "risk_scheme": "my-app-v1",
+    "rules": [{"id": "read-only", "category": "file.read", "max_risk": 10}],
 }})
 ```
 

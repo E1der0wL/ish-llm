@@ -39,27 +39,26 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         result["values"]["a"]["extra"].append(2)
         self.assertEqual(stored["a"]["extra"], [1])
 
-    async def test_agent_uses_same_loop_defaults_and_host_precedence(self):
-        engine = LoopEngine(max_iterations=4)
+    async def test_agent_narrows_project_and_session_limits(self):
+        engine = LoopEngine()
         agent = engine.for_agent({"engine": "writer", "purpose": "write", "completion": {"model": "fake"},
-                                  "engine_options": {'policy': {'max_iterations': 9}}})
-        view = agent.configuration({"parameters": {"engines": {"writer": {'policy': {'max_iterations': 2}}}}}, "writer",
-                                   session_config={"parameters": {"engines": {"writer": {'policy': {'max_iterations': 3}}}}})
+                                  "engine_options": {'policy': {'max_iterations': 4}}})
+        view = agent.configuration({"parameters": {"engines": {"writer": {'policy': {'max_iterations': 9}}}}}, "writer",
+                                   session_config={"parameters": {"engines": {"writer": {'policy': {'max_iterations': 6}}}}})
         self.assertEqual(view["values"]["policy"]["max_iterations"], 4)
         self.assertNotIn("request_timeout", view["values"])
-        self.assertEqual(view["sources"]["/policy/max_iterations"], "host")
-        self.assertEqual(view["overridden"]["/policy/max_iterations"][-1]["source"], "agent")
+        self.assertEqual(view["sources"]["/policy/max_iterations"], "agent")
+        self.assertEqual(view["overridden"]["/policy/max_iterations"][-1]["source"], "session")
 
     async def test_ui_does_not_invoke_runtime_factories(self):
         def factory(context):
             raise AssertionError("UI must not call an Engine factory")
-        app = self.backend(engines={"loop": LoopEngine(completion_kwargs=factory, system_prompt=factory)})
+        app = self.backend(engines={"loop": LoopEngine(completion_fn=factory)})
         project = await app.projects.acreate()
         view = await project.aconfiguration()
-        self.assertEqual(view["effective_engines"]["loop"]["runtime"], ["completion", "system_prompt"])
+        self.assertEqual(view["effective_engines"]["loop"]["runtime"], [])
         json.dumps(view, allow_nan=False)
-        self.assertFalse("completion" not in view["effective_engines"]["loop"]["runtime"])
-        self.assertFalse(view["effective_engines"]["loop"]["editable"]["/config/system_prompt"])
+        self.assertEqual(view["effective_engines"]["loop"]["values"], {})
 
     async def test_graph_project_session_limits_and_schema_control_actual_execution(self):
         effects = []
@@ -67,10 +66,10 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
             effects.append(node.node_id)
             return {}
         app = self.backend(engines={"graph": GraphEngine(handlers={"work": work})}, components=[WorkflowComponent()])
-        project = await app.projects.acreate(components=["workflows"], config={"parameters": {"engines": {"graph": {'policy': {'max_steps': 1, 'timeout_seconds': None}}}}})
+        project = await app.projects.acreate(components=["workflows"], config={"parameters": {"engines": {"graph": {'policy': {'max_steps': 3, 'timeout_seconds': None}}}}})
         await (await project.components.aget("workflows")).acreate(
             WorkflowGraph(entry="a").node("a", "work").node("end", "end").connect("a", "end").to_dict(), identifier="flow")
-        first = await project.sessions.acreate()
+        first = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {"policy": {"max_steps": 1}}}}})
         failed = await (await first.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual((await failed.aget_data()).status, "failed")
         second = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {'policy': {'max_steps': 3}}}}})
@@ -81,10 +80,10 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(effects, ["a", "a"])
         self.assertIsNone(app.engines.resolve("graph").max_steps)
 
-    async def test_graph_agent_keeps_host_limits_and_inherits_project_settings(self):
-        engine = GraphEngine(handlers={}, max_parallelism=2)
-        agent = engine.for_agent({"engine": "nested", "engine_options": {'policy': {'max_parallelism': 8}, 'workflow': 'child'}})
-        view = agent.configuration({"parameters": {"engines": {"nested": {'policy': {'timeout_seconds': None, 'max_steps': 42}}}}}, "nested")
+    async def test_graph_agent_narrows_limits_and_inherits_project_settings(self):
+        engine = GraphEngine(handlers={})
+        agent = engine.for_agent({"engine": "nested", "engine_options": {'policy': {'max_parallelism': 2}, 'workflow': 'child'}})
+        view = agent.configuration({"parameters": {"engines": {"nested": {'policy': {'max_parallelism': 8, 'timeout_seconds': None, 'max_steps': 42}}}}}, "nested")
         self.assertEqual(view["values"]["policy"]["max_steps"], 42)
         self.assertEqual(view["values"]["policy"]["max_parallelism"], 2)
         self.assertIsNone(view["values"]["policy"]["timeout_seconds"])
@@ -92,7 +91,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_agent_actual_completion_matches_project_session_agent_host_order(self):
         provider = ScriptedCompletion([chunk("ok", finish="stop")])
-        worker = LoopEngine(completion_fn=provider, completion_kwargs={"temperature": 0.1})
+        worker = LoopEngine(completion_fn=provider)
         app = self.backend(engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"writer": worker})})},
                            components=[WorkflowComponent(), AgentComponent()])
         project = await app.projects.acreate(components=["workflows", "agents"], config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 7}, 'config': {'completion': {'model': 'project', 'temperature': 0.9}}}}}})
@@ -103,7 +102,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'temperature': 0.5}}}}}})
         run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual((await run.aget_data()).status, "completed")
-        self.assertEqual(provider.requests[0]["temperature"], 0.1)
+        self.assertEqual(provider.requests[0]["temperature"], 0.3)
         self.assertEqual(provider.requests[0]["model"], "agent")
         self.assertNotIn("timeout", provider.requests[0])
 
@@ -120,8 +119,8 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         run = await (await session.run.submit("go", engine="pipeline")).wait()
         self.assertEqual((await run.aget_data()).status, "failed")
         self.assertEqual(provider.requests, [])
-        fixed = PreparationStep("Fixed", slow, timeout_seconds=None)
-        self.assertIsNone(fixed.configuration({"parameters": {"engines": {"fixed": {'policy': {'timeout_seconds': 0.01}}}}}, "fixed")["values"]["policy"]["timeout_seconds"])
+        fixed = PreparationStep("Fixed", slow)
+        self.assertEqual(fixed.configuration({"parameters": {"engines": {"fixed": {'policy': {'timeout_seconds': 0.01}}}}}, "fixed")["values"]["policy"]["timeout_seconds"], .01)
 
     async def test_rag_project_settings_isolate_chunking_batches_and_search_defaults(self):
         calls = []

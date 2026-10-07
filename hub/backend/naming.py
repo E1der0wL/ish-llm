@@ -17,7 +17,8 @@ class TitleEngine(BaseEngine):
         super().__init__("Conversation title", kind="llm", **kwargs)
 
     def configuration_schema(self):
-        from llm.core.schema import object_schema, completion_schema, implementation_schema
+        from llm.core.schema import object_schema, implementation_schema
+        from llm.providers.schema import completion_schema
         return implementation_schema(config=object_schema({"completion": completion_schema()}, additionalProperties=False))
 
     def configuration(self, config, name, *, session_config=None):

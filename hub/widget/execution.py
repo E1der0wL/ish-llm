@@ -48,7 +48,7 @@ class ExecutionChooser:
         record = self.catalog["workflows"].get(self.workflows.current_value)
         if record is None:
             return self.view.t("execution_workflows_hint")
-        description = record.get("description", "")
+        description = record.get("metadata", {}).get("description", "")
         summary = self.view.t("execution_summary", entry=record["entry"], count=len(record["nodes"]))
         return (description.splitlines()[0][:120] + "\n" if isinstance(description, str) and description else "") + summary
 

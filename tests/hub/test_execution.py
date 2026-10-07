@@ -25,7 +25,7 @@ def config(directory, handlers=None):
 async def prepare(runtime):
     workflows = await runtime.project.components.aget("workflows")
     for name in ("alpha", "beta"):
-        await workflows.acreate(WorkflowGraph(entry="finish", description=name + " description")
+        await workflows.acreate(WorkflowGraph(entry="finish", metadata={"description": name + " description"})
                                 .node("finish", "end").to_dict(), identifier=name)
 
 

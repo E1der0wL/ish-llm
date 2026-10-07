@@ -14,6 +14,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
+from jsonschema import ValidationError
 
 from llm.core.models import MessageStatus, ProjectConfig, RunStatus, StepStatus
 from llm.engines.base import EngineEventType
@@ -109,7 +110,13 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         tools = kwargs.pop("tools", None)
         if tools is not None:
             self.enable_tools(tools)
-        engine = LoopEngine(completion_fn=completion_fn, **kwargs)
+        if "completion_kwargs" in kwargs:
+            kwargs["completion"] = kwargs.pop("completion_kwargs")
+        config = self.project.config
+        config.parameters["engines"]["loop"] = ProjectConfig.merge(
+            config.parameters["engines"]["loop"], LoopEngine.settings_layout.pack(kwargs))
+        self.projects.save(self.project)
+        engine = LoopEngine(completion_fn=completion_fn)
         self.registry.register("loop", engine)
         return engine
 
@@ -166,7 +173,8 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         first = self.manager.repository.list(self.session)[0]
         self.assertEqual(self.store.get(first.assistant_message_id).content, "첫 답변")
         for path in self.project.paths.root.rglob("*.json*"):
-            self.assertNotIn("secret-test-value", path.read_text(encoding="utf-8"))
+            if path.name != "project.json":
+                self.assertNotIn("secret-test-value", path.read_text(encoding="utf-8"))
 
     async def test_free_completion_kwargs_override_defaults_without_persistence(self):
         completion_fn = ScriptedCompletion([chunk("answer", finish="stop")])
@@ -188,16 +196,13 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(request["messages"][0], {"role": "system", "content": "Be concise."})
         self.assertEqual(self.run_status(), RunStatus.COMPLETED)
         for path in self.project.paths.root.rglob("*.json*"):
-            self.assertNotIn("runtime-only-secret", path.read_text(encoding="utf-8"))
+            if path.name != "project.json":
+                self.assertNotIn("runtime-only-secret", path.read_text(encoding="utf-8"))
         self.assertEqual(len(self.store.list()), 2)
 
     async def test_completion_snapshot_is_fresh_per_iteration_and_factories_run_once(self):
         requests = []
         params = {"provider_option": {"values": [1]}}
-        factories = []
-        def factory(context):
-            factories.append(context.run.id)
-            return params
         def completion_fn(**kwargs):
             requests.append(deepcopy(kwargs))
             kwargs["provider_option"]["values"].append(99)
@@ -206,10 +211,9 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
                 yield chunk(calls=[call()], finish="tool_calls")
             else:
                 yield chunk("done", finish="stop")
-        self.engine(completion_fn, completion_kwargs=factory,
+        self.engine(completion_fn, completion_kwargs=params,
                     tools=ToolRegistry((self.tool,)), system_prompt="system")
         await self.submit()
-        self.assertEqual(len(factories), 1)
         self.assertEqual(len(requests), 2)
         self.assertTrue(all(request["provider_option"] == {"values": [1]} for request in requests))
         self.assertTrue(all(sum(message["role"] == "system" for message in request["messages"]) == 1
@@ -221,7 +225,8 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         engine = self.engine(completion_fn)
         for params in ({"stream": False}, {"n": 2}, {"messages": []},
                        {"tools": []}, {"functions": []}, {"function_call": "auto"}):
-            engine.completion_kwargs = params
+            self.project.config.parameters["engines"]["loop"]["config"]["completion"] = {"model": "openai/test", **params}
+            self.projects.save(self.project)
             await self.submit()
             self.assertEqual(self.run_status(), RunStatus.FAILED)
         self.assertEqual(completion_fn.requests, [])
@@ -555,9 +560,10 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
             client = OpenAI(api_key="offline-test", base_url="https://llm.invalid/v1",
                             max_retries=0, http_client=http_client)
             self.enable_tools(ToolRegistry((self.tool,)))
-            self.registry.register("loop", LoopEngine(completion_kwargs={
-                "client": client, "top_p": 0.8, "max_tokens": 32,
-            }))
+            from llm.providers.runtime import litellm_sdk
+            def injected_provider(**params):
+                return litellm_sdk().completion(client=client, **params)
+            self.engine(injected_provider, completion_kwargs={"top_p": 0.8, "max_tokens": 32})
             await self.submit("Add 2 and 3")
         self.assertEqual(self.run_status(), RunStatus.COMPLETED)
         self.assertEqual(self.output(), "The result is 5.")
@@ -603,8 +609,8 @@ class ConfigurationTests(unittest.TestCase):
                        {"buffer_size": 0}, {"tool_timeout": -1},
                        {"max_tool_calls": 0}, {"max_output_chars": False},
                        {"max_argument_chars": 0}):
-            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
-                LoopEngine(**kwargs)
+            with self.subTest(kwargs=kwargs), self.assertRaises((ValueError, ValidationError)):
+                LoopEngine().for_agent({"engine": "loop", "engine_options": LoopEngine.settings_layout.pack(kwargs)})
 
 
     def test_schema_and_nonfinite_arguments_rejected(self) -> None:

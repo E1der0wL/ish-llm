@@ -5,15 +5,33 @@ import json
 from contextlib import aclosing
 from llm.services.runtime.tools import ToolExecutor
 from llm.core.schema import object_schema, open_schema, field
+from llm.engines.base import EngineEventType
+from .engine import _GraphPause
 
 
 class ToolNode:
     """Workflow inputs 매핑, 정적 arguments 또는 state의 arguments_key를 실행 인자로 쓴다."""
 
     required_capabilities = ("tools",)
+    resumable_container = True
 
-    def __init__(self, *, timeout_seconds=None, max_output_chars=None):
-        self.executor = ToolExecutor(timeout_seconds=timeout_seconds, max_output_chars=max_output_chars)
+    def checkpoint_engine(self, definition, context):
+        handler = context.tools.get(definition["tool"]).handler
+        return handler if getattr(handler, "resumable_container", False) is True else None
+
+    def additional_capabilities(self, definition, capabilities):
+        tools = capabilities.get("tools")
+        if tools is None:
+            return ()
+        handler = tools.get(definition["tool"]).handler
+        if getattr(handler, "resumable_container", False) is not True:
+            return ()
+        discover = getattr(handler, "additional_capabilities", None)
+        return tuple(dict.fromkeys((*getattr(handler, "required_capabilities", ()),
+            *(discover(capabilities) if discover else ()))))
+
+    def __init__(self):
+        self.executor = ToolExecutor()
 
     @staticmethod
     def configuration_schema():
@@ -30,7 +48,7 @@ class ToolNode:
             raise ValueError("Choose inputs, arguments or arguments_key")
         if "arguments_key" not in definition and "inputs" not in definition:
             context.tools.prepare(definition["tool"], json.dumps(definition.get("arguments", {})),
-                                  constraints=context.tool_scope.policy.argument_constraints if context.tool_scope else None)
+                                  constraints=context.tool_scope.argument_constraints if context.tool_scope else None)
 
     async def __call__(self, node):
         definition = node.definition
@@ -39,13 +57,15 @@ class ToolNode:
         else:
             arguments = node.state[definition["arguments_key"]] if "arguments_key" in definition else definition.get("arguments", {})
         tool, values = node.context.tools.prepare(definition["tool"], json.dumps(arguments),
-            constraints=node.context.tool_scope.policy.argument_constraints if node.context.tool_scope else None)
+            constraints=node.context.tool_scope.argument_constraints if node.context.tool_scope else None)
         result = {}
         # node.decision은 pause_before 확인일 수도 있다. Tool 승인만 공통 helper가
         # 원본 checkpoint의 interaction/action과 연결해 해석하도록 위임한다.
         async with aclosing(node.context.execute_tool(tool, values, result=result, executor=self.executor,
-                                                 metadata={"node_id": node.node_id},
+                                                 metadata={"node_id": node.node_id, "checkpoint_name": "graph"},
                                                  checkpoint_key=node.checkpoint_key)) as events:
             async for event in events:
+                if event.type == EngineEventType.PAUSED:
+                    raise _GraphPause(node.checkpoint_key)
                 await node.emit(event)
         return {definition.get("result_key", node.node_id): result["value"]}
