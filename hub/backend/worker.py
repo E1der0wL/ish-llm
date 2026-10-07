@@ -20,6 +20,9 @@ class BackendWorker:
         self._failure = None
         self._shutdown_error = None
         self._commands = set()
+        self._snapshot_task = None
+        self._output_interval = 0.1
+        self._interval_changed = None
         self._thread = threading.Thread(target=self._thread_main, name="hub-backend", daemon=True)
         self._thread.start()
         self._ready.wait()
@@ -30,6 +33,7 @@ class BackendWorker:
                 self.loop = runner.get_loop()
                 self._initialized = asyncio.Event()
                 self._stop = asyncio.Event()
+                self._interval_changed = asyncio.Event()
                 self._ready.set()
                 runner.run(self._serve())
         except BaseException as error:
@@ -60,6 +64,10 @@ class BackendWorker:
                 await asyncio.gather(refresher, return_exceptions=True)
             await self.runtime.close()
 
+    async def _read_snapshot(self):
+        async with self.runtime.lock:
+            return await self.runtime.snapshot()
+
     async def _refresh(self) -> None:
         last = None
         while True:
@@ -71,10 +79,28 @@ class BackendWorker:
             except TimeoutError:
                 pass
             self.runtime.dirty.clear()
-            await asyncio.sleep(0.1)
+            # Changing the interval wakes the coalescer, including when a long
+            # interval was configured before a shorter one was saved.
+            while True:
+                self._interval_changed.clear()
+                try:
+                    async with asyncio.timeout(self._output_interval):
+                        await self._interval_changed.wait()
+                except TimeoutError:
+                    break
             try:
-                async with self.runtime.lock:
-                    snapshot = await self.runtime.snapshot()
+                self._snapshot_task = asyncio.create_task(self._read_snapshot())
+                try:
+                    snapshot = await self._snapshot_task
+                except asyncio.CancelledError:
+                    if asyncio.current_task().cancelling():
+                        raise
+                    # An input command preempted this observation. Retry after
+                    # admission rather than making the user wait for all history.
+                    self.runtime.dirty.set()
+                    continue
+                finally:
+                    self._snapshot_task = None
                 if snapshot != last:
                     self.publish(snapshot)
                     last = snapshot
@@ -90,9 +116,13 @@ class BackendWorker:
         task = asyncio.current_task()
         self._commands.add(task)
         try:
+            if operation in {"submit_input", "submit", "steer", "interrupt", "submission_state", "instruction_targets"}:
+                if self._snapshot_task is not None:
+                    self._snapshot_task.cancel()
             async with self.runtime.lock:
                 result = await getattr(self.runtime, operation)(*args)
-                self.runtime.dirty.set()
+                if operation not in {"submission_state", "instruction_targets", "snapshot"}:
+                    self.runtime.dirty.set()
                 return result
         finally:
             self._commands.discard(task)
@@ -101,6 +131,15 @@ class BackendWorker:
         if self._closed or self.loop.is_closed():
             raise RuntimeError("Hub backend is closed")
         return asyncio.run_coroutine_threadsafe(self._execute(operation, args), self.loop)
+
+    def set_output_interval(self, seconds: float) -> None:
+        """Change only observation batching on the backend loop."""
+        def apply():
+            if self._output_interval != seconds:
+                self._output_interval = seconds
+                self._interval_changed.set()
+        if not self._closed and not self.loop.is_closed():
+            self.loop.call_soon_threadsafe(apply)
 
     def close(self) -> None:
         if self._closed:

@@ -296,6 +296,7 @@ class HubView:
     def set_theme(self, theme):
         self.theme, self.style = theme, theme.style()
         self.transcript.control.theme = self.draft_preview.control.theme = theme
+        self.progress.close()
         get_app().invalidate()
 
     def show(self, app):

@@ -128,7 +128,8 @@ class GlobalPage(Page):
     def __init__(self, screen, name, values):
         self.screen, self.name = screen, name
         if name == "appearance":
-            values = {"icon_style": "nerd", **values}
+            values = {"icon_style": "nerd", "output_refresh_interval": 0.1,
+                      "progress_refresh_interval": 0.1, **values}
         self.original = deepcopy(values)
         descriptions = ({"display_name": screen.t("settings_profile_description"),
                          "email": screen.t("settings_email_description"),
@@ -145,6 +146,9 @@ class GlobalPage(Page):
                 properties[key]["title"] = screen.t("settings_theme_" + key)
             properties["sidebar_width"] = {"type": "integer", "minimum": 18, "maximum": 60,
                 "title": screen.t("settings_sidebar_width_title"), "description": screen.t("settings_sidebar_width")}
+            for key in ("output_refresh_interval", "progress_refresh_interval"):
+                properties[key] = {"type": "number", "minimum": 0.01, "maximum": 10,
+                    "title": screen.t("settings_" + key), "description": screen.t("settings_" + key + "_description")}
         self.form = SchemaForm({"type": "object", "properties": properties}, values, screen.t)
         self.general_form = None
         if name == "general":

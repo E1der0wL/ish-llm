@@ -222,6 +222,11 @@ MESSAGES = {
     "settings_theme_accent1": "강조 색 1", "settings_theme_accent2": "강조 색 2",
     "settings_theme_accent3": "강조 색 3", "settings_theme_comment": "주석 색",
     "settings_sidebar_width_title": "좌측 패널 너비",
+    "settings_output_refresh_interval": "출력창 갱신 간격 (초)",
+    "settings_output_refresh_interval_description": "응답 스트리밍을 묶어 갱신하는 간격. 0.01~10초, 기본 0.1초. 저장 즉시 적용하며 요청 접수와 키 입력은 지연시키지 않습니다.",
+    "settings_progress_refresh_interval": "로딩 바 갱신 간격 (초)",
+    "settings_progress_refresh_interval_description": "로딩 바·스피너 애니메이션 갱신 간격. 0.01~10초, 기본 0.1초. 설정·대화 화면에 저장 즉시 적용됩니다.",
+    "response_failed": "응답에 실패했습니다. 오류 원인은 실행 상세 또는 프로젝트 로그(Ctrl+L)에서 확인할 수 있습니다.",
 
     "settings_value_hint": "빈칸=미설정 · 문자열은 그대로, 숫자/불리언/배열/객체는 JSON · null은 명시적 값 · 불러오기는 입력 초기화",
 

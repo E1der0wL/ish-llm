@@ -24,6 +24,10 @@ class ProgressControl(UIControl):
             return UIContent(get_line=lambda _: [("class:hub.notice", text)] if text else [], line_count=1, show_cursor=False)
         owner.schedule_refresh()
         theme = owner.view.theme
+        key = (width, theme)
+        if key in owner._render_cache:
+            line = owner._render_cache[key]
+            return UIContent(get_line=lambda _: line, line_count=1, show_cursor=False)
         owner.bar.style = theme.muted
         owner.bar.complete_style = owner.bar.finished_style = owner.bar.pulse_style = theme.accent
         task = tasks[-1]
@@ -35,7 +39,9 @@ class ProgressControl(UIControl):
                           force_terminal=True, highlight=False)
         console.print(owner.progress.make_tasks_table([task]), end="")
         lines = [to_formatted_text(ANSI(line)) for line in stream.getvalue().splitlines()]
-        return UIContent(get_line=lambda _: lines[0] if lines else [], line_count=1, show_cursor=False)
+        line = lines[0] if lines else []
+        owner._render_cache[key] = line
+        return UIContent(get_line=lambda _: line, line_count=1, show_cursor=False)
 
 
 class TaskProgress:
@@ -49,6 +55,7 @@ class TaskProgress:
                                  auto_refresh=False, expand=False)
         self._timer = None
         self._loop = None
+        self._render_cache = {}
 
     @property
     def active(self) -> bool:
@@ -70,13 +77,15 @@ class TaskProgress:
             app = get_app()
             def refresh():
                 self._timer = None
+                self._render_cache.clear()
                 app.invalidate()
-            self._timer = loop.call_later(0.1, refresh)
+            self._timer = loop.call_later(self.view.theme.progress_refresh_interval, refresh)
 
     def start(self, description: str, *, total: float | None = None) -> int:
         # Treat identifiers and user titles as text, including Rich markup.
         description = " ".join(description.split())
         task = self.progress.add_task(description, total=total, label=description, percent="", elapsed="")
+        self._render_cache.clear()
         self.update(task, completed=0)
         return task
 
@@ -87,6 +96,7 @@ class TaskProgress:
         get_app().invalidate()
 
     def finish(self, task: int) -> None:
+        self._render_cache.clear()
         if task in self.progress.task_ids:
             self.progress.remove_task(task)
         if not self.active:
@@ -94,6 +104,7 @@ class TaskProgress:
         get_app().invalidate()
 
     def close(self) -> None:
+        self._render_cache.clear()
         if self._timer is not None:
             self._timer.cancel()
             self._timer = None

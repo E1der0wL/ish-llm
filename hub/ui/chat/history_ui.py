@@ -52,6 +52,7 @@ class HistoryUI:
 
     def show(self, session_id, rows):
         view, t = self.view, self.view.t
+        project_id = view.project_id
         if not rows:
             view.open_dialog(t("history_title"), Label(t("history_empty")))
             return
@@ -73,6 +74,10 @@ class HistoryUI:
             def confirmed():
                 def removed(result):
                     if result:
+                        # A turn may be deleted before the first full refresh
+                        # catches up with its admission receipt.
+                        pending = view._submitted_messages.get((project_id, session_id), {})
+                        pending.pop(request_id, None)
                         self.controller._call("snapshot", completed=self.controller._snapshot)
                         self.open()
                 self.controller._call("delete_turn", session_id, request_id, completed=removed)

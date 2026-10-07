@@ -5,8 +5,8 @@ from dataclasses import replace
 
 from .mockup import HubMockup, SampleSession
 from ..backend.runtime import HubConfig
-from ..model import HubSnapshot
-from .presentation import present
+from ..model import HubSnapshot, SubmissionResult
+from .presentation import present, present_message
 from ..backend.worker import BackendWorker
 from ..config.view_state import ViewStateStore
 from ..config.preferences import PreferencesStore
@@ -28,9 +28,38 @@ class LiveHubView(HubMockup):
         self.engine = ""
         self.connected = False
         self.notice = self.t("connecting_notice")
+        self._submitted_messages = {}
+
+    def show_submitted(self, project_id, session_id, message):
+        """Bridge a durable receipt to the next authoritative conversation read."""
+        key = (project_id, session_id)
+        if project_id != self.project_id:
+            return
+        for index, session in enumerate(self.sessions):
+            if session.id == session_id:
+                if any(item.id == message.id for item in session.messages):
+                    return
+                self._submitted_messages.setdefault(key, {})[message.id] = message
+                messages = (*session.messages, present_message(message, self.t))
+                self.sessions[index] = replace(session, messages=messages)
+                if index == self.selected:
+                    self.transcript.control.messages = messages
+                return
 
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=None) -> None:
         self._last_snapshot = snapshot
+        key = (snapshot.project_id, snapshot.selected_id)
+        known = {message.id for message in snapshot.messages}
+        pending = self._submitted_messages.get(key, {})
+        pending = {identifier: message for identifier, message in pending.items() if identifier not in known}
+        if pending:
+            self._submitted_messages[key] = pending
+            snapshot = replace(snapshot, messages=(*snapshot.messages, *pending.values()))
+        else:
+            self._submitted_messages.pop(key, None)
+        sessions = {session.id for session in snapshot.sessions}
+        self._submitted_messages = {key: value for key, value in self._submitted_messages.items()
+                                    if key[0] == snapshot.project_id and key[1] in sessions}
         display = present(snapshot, self.t)
         current_id = self.sessions[self.selected].id
         empty_draft_key = self._draft_key(self.selected) if self.no_sessions else None
@@ -96,6 +125,9 @@ class LiveHubView(HubMockup):
 
     def set_theme(self, theme):
         super().set_theme(theme)
+        callback = getattr(self, "on_output_interval", None)
+        if callback:
+            callback(theme.output_refresh_interval)
         if getattr(self, "_last_snapshot", None) is not None:
             self.apply_snapshot(self._last_snapshot)
 
@@ -112,6 +144,7 @@ class LiveController:
         self.config = config
         self.worker_factory = worker_factory
         self.worker = None
+        self.view.on_output_interval = self._set_output_interval
         self.app = None
         self.loop = None
         self.closed = False
@@ -265,6 +298,10 @@ class LiveController:
             self._dispatch(apply)
         future.add_done_callback(finished)
 
+    def _set_output_interval(self, seconds):
+        if self.worker:
+            self.worker.set_output_interval(seconds)
+
     def open(self, app):
         self.app = app
         self.view.toasts.app = app
@@ -273,6 +310,7 @@ class LiveController:
             self.worker = self.worker_factory(
                 self.config, lambda snapshot: self._dispatch(self._snapshot, snapshot),
                 lambda error: self._dispatch(self._error, error))
+            self._set_output_interval(self.view.theme.output_refresh_interval)
         else:
             self._call("select", self.view.sessions[self.view.selected].id)
 
@@ -285,24 +323,36 @@ class LiveController:
             if self.worker:
                 self._call("snapshot", completed=self._snapshot)
 
+    def _accept_input(self, project_id, session_id, text, result, operation):
+        if result is None or self.closed:
+            return
+        view = self.view
+        if isinstance(result, SubmissionResult):
+            if result.message is None:
+                return
+            view.show_submitted(project_id, session_id, result.message)
+        if view._drafts.get(session_id) == text:
+            view._drafts[session_id] = ""
+        if view.project_id != project_id:
+            return
+        current_id = view.sessions[view.selected].id
+        if current_id == session_id and view.composer.text == text:
+            view.composer.text = ""
+        if current_id == session_id:
+            view.notice = view.t("instruction_saved" if operation == "steer" else "saved")
+            if view.general.auto_scroll:
+                view.transcript.control.restore_position(None)
+                view.transcript.control.follow_tail = True
+        self.app.invalidate()
+
     def _send(self, operation, session_id, text, *args):
         if not text.strip() or session_id in self._submitting or not self.view.connected:
             return
         self._submitting.add(session_id)
+        project_id = self.view.project_id
         def accepted(request_id):
             self._submitting.discard(session_id)
-            if request_id is None or self.closed:
-                return
-            current_id = self.view.sessions[self.view.selected].id
-            if current_id == session_id and self.view.composer.text == text:
-                self.view.composer.text = ""
-            if self.view._drafts.get(session_id) == text:
-                self.view._drafts[session_id] = ""
-            self.view.notice = self.view.t("instruction_saved" if operation == "steer" else "saved")
-            if current_id == session_id and self.view.general.auto_scroll:
-                self.view.transcript.control.restore_position(None)
-                self.view.transcript.control.follow_tail = True
-            self.app.invalidate()
+            self._accept_input(project_id, session_id, text, request_id, operation)
         self._call(operation, session_id, *args, completed=accepted)
 
     def submit(self, session_id: str, text: str):
@@ -316,24 +366,26 @@ class LiveController:
         identity = (view.project_id, session_id)
         engine, options = view.engine, dict(view.engine_options)
         self._choosing_submission = True
+        self._submitting.add(session_id)
 
         def ready(state):
             self._choosing_submission = False
+            self._submitting.discard(session_id)
+            if state is not None and state.message is not None:
+                self._accept_input(identity[0], session_id, text, state, "submit")
+                return
             if (state is None or self.closed or not view.visible or view.settings_open or view._dialog is not None
                     or identity != (view.project_id, view.sessions[view.selected].id)
                     or view.composer.text != text):
                 return
             def follow_up():
-                self._send("submit", session_id, text, text, engine, options)
-            if not state["run_id"]:
-                follow_up()
-                return
+                self._send("submit_input", session_id, text, text, engine, options, False)
             from ..widget.controls import RadioList
             choices = RadioList([("steer", view.t("send_steering")), ("follow_up", view.t("send_follow_up"))],
                                 default="follow_up", select_on_focus=True)
             def accept():
                 if choices.current_value == "steer":
-                    self.steer(session_id, text, expected_run_id=state["run_id"])
+                    self.steer(session_id, text, expected_run_id=state.run_id)
                 else:
                     follow_up()
             view.open_dialog(view.t("send_while_running"), choices, accept, choices)
@@ -342,7 +394,7 @@ class LiveController:
                 view.close_dialog()
                 accept()
             choices.control.hub_shortcuts.add(["enter"], "", "confirm", confirm)
-        self._call("submission_state", session_id, completed=ready)
+        self._call("submit_input", session_id, text, engine, options, completed=ready)
 
     def choose_engine(self, name=""):
         from prompt_toolkit.widgets import Label

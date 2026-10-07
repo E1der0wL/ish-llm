@@ -15,10 +15,19 @@ class Presentation:
     activity: str
 
 
+def present_message(item: ChatMessage, t) -> ChatMessage:
+    text = item.text
+    if item.role == "assistant" and item.status == "failed":
+        text = (text.rstrip() + "\n\n" if text.strip() else "") + t("response_failed")
+    elif not text:
+        text = t("status_" + item.status) if item.status in ("interrupted", "cancelled", "paused", "completed") else t("waiting")
+    return replace(item, text=text,
+        time=datetime.fromisoformat(item.time).astimezone().strftime("%Y-%m-%d %H:%M:%S") if item.time else "")
+
+
 def present(snapshot: HubSnapshot, t) -> Presentation:
     sessions = tuple(replace(item, status=t("queued", status=t.status(item.status), count=item.queued_count)) for item in snapshot.sessions)
-    messages = tuple(replace(item, text=item.text or t("waiting"),
-        time=datetime.fromisoformat(item.time).astimezone().strftime("%Y-%m-%d %H:%M:%S") if item.time else "") for item in snapshot.messages)
+    messages = tuple(present_message(item, t) for item in snapshot.messages)
     if not sessions:
         return Presentation((), messages, "", t("session_required"), "")
     detail = f"  {t('workspace')}\n  {snapshot.project_id}\n\n  {t('session')}\n  {snapshot.selected_id}\n"

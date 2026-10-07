@@ -88,15 +88,22 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("appearance")
                     screen.layout.focus_main()
                 self.assertEqual(set(screen.page.form.fields), {(key,) for key in
-                    ("background", "foreground", "accent1", "accent2", "accent3", "comment", "sidebar_width", "icon_style")})
+                    ("background", "foreground", "accent1", "accent2", "accent3", "comment", "sidebar_width", "icon_style",
+                     "output_refresh_interval", "progress_refresh_interval")})
                 screen.page.form.fields[("accent1",)].input.text = "invalid"
                 pipe.send_text("\x13")
                 await until(lambda: "accent1" in screen.status)
                 self.assertTrue(view.settings_open)
                 screen.page.form.fields[("accent1",)].input.text = "#abcdef"
+                screen.page.form.fields[("output_refresh_interval",)].input.text = "0.23"
+                screen.page.form.fields[("progress_refresh_interval",)].input.text = "0.41"
                 pipe.send_text("\x13")
                 await until(lambda: not view.settings_open)
+                await until(lambda: controller.worker._output_interval == 0.23)
                 self.assertEqual(view.theme.accent1, "#abcdef")
+                self.assertEqual(view.theme.progress_refresh_interval, 0.41)
+                self.assertEqual(PreferencesStore(directory).load()["appearance"]["output_refresh_interval"], 0.23)
+                self.assertEqual(PreferencesStore(directory).load()["appearance"]["progress_refresh_interval"], 0.41)
                 self.assertEqual(PreferencesStore(directory).load()["appearance"]["accent1"], "#abcdef")
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertEqual(view.composer.text, "preserved draft")

@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from ..model import HubSnapshot, SessionNotification
+from ..model import ChatMessage, HubSnapshot, SessionNotification, SubmissionResult
 from ..locales import Language
 from ..config.profile import UserProfile
 from .engine_selection import requires_model, selected_engines
@@ -356,8 +356,23 @@ class HubRuntime:
         self.dirty.set()
         return request.id
 
+    async def submit_input(self, session_id: str, text: str, engine: str,
+                           engine_options: dict, check_running: bool = True) -> SubmissionResult:
+        """Check and admit in one UI command; acknowledge only persisted input."""
+        from datetime import datetime, timezone
+        if check_running:
+            state = await self.submission_state(session_id)
+            if state["run_id"]:
+                return SubmissionResult(run_id=state["run_id"])
+        timestamp = datetime.now(timezone.utc).isoformat()
+        identifier = await self.submit(session_id, text, engine, engine_options)
+        # No extra reads after admission: a later read failure must not make a
+        # durable request look rejected. The next snapshot supplies exact state.
+        return SubmissionResult(message=ChatMessage("user", text, timestamp,
+            status="queued", id=identifier, author=self.config.user_profile.display_name))
+
     async def submission_state(self, session_id: str) -> dict:
-        status = await self.sessions[session_id].run.astatus()
+        status = await self.sessions[session_id].run.astatus(queued_limit=0)
         return {"run_id": status.active_run_id}
 
     async def instruction_targets(self, session_id: str) -> tuple[str, tuple[tuple[str, str], ...]]:

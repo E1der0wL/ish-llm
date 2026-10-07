@@ -15,6 +15,12 @@ class ChatMessage:
 
 
 @dataclass(frozen=True, slots=True)
+class SubmissionResult:
+    run_id: str | None = None
+    message: ChatMessage | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class SessionSummary:
     id: str
     title: str

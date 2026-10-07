@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, fields
 import re
+import math
 
 from prompt_toolkit.styles import Style
 
@@ -10,6 +11,8 @@ from prompt_toolkit.styles import Style
 class HubTheme:
     sidebar_width: int = 26
     icon_style: str = "nerd"
+    output_refresh_interval: float = 0.1
+    progress_refresh_interval: float = 0.1
     foreground: str = "default"
     background: str = "default"
     accent1: str = "#46b59e"
@@ -73,6 +76,10 @@ class HubTheme:
     def __post_init__(self) -> None:
         for field in fields(self):
             value = getattr(self, field.name)
+            if field.name in ("output_refresh_interval", "progress_refresh_interval"):
+                if type(value) not in (int, float) or not math.isfinite(value) or not 0.01 <= value <= 10:
+                    raise ValueError(f"{field.name} must be a number between 0.01 and 10 seconds")
+                continue
             if field.name == "icon_style":
                 from ..asset.icon import for_style
                 for_style(value)

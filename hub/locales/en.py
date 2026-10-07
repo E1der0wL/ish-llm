@@ -222,6 +222,11 @@ MESSAGES = {
     "settings_theme_accent1": "Accent 1", "settings_theme_accent2": "Accent 2",
     "settings_theme_accent3": "Accent 3", "settings_theme_comment": "Comment",
     "settings_sidebar_width_title": "Sidebar width",
+    "settings_output_refresh_interval": "Output refresh interval (seconds)",
+    "settings_output_refresh_interval_description": "Interval for batching streamed response updates: 0.01–10 seconds, default 0.1. Applies on save without delaying request acknowledgements or keyboard input.",
+    "settings_progress_refresh_interval": "Progress refresh interval (seconds)",
+    "settings_progress_refresh_interval_description": "Refresh interval for progress bars and spinner animation: 0.01–10 seconds, default 0.1. Applies on save to both settings and chat.",
+    "response_failed": "The response failed. Check Run details or project activity (Ctrl+L) for the error.",
 
     "settings_value_hint": "Blank=unset · strings as text; numbers/booleans/arrays/objects as JSON · null is explicit · Reload discards edits",
 
