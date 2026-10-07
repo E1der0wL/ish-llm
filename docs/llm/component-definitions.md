@@ -1,27 +1,39 @@
 # Skill · MCP · RAG · Agent · Workflow · Memory
 
-이 컴포넌트들은 Project에 속하는 **정의와 데이터 저장소**다. 정의 CRUD만으로는
-모델 호출, 서버 연결, 인덱싱, 그래프 스케줄링을 시작하지 않는다. 실제 실행은 Engine/Tool/실행 어댑터에서
-담당하고, 관찰 결과는 기존 Run → Step 경로로 저장한다.
+이 컴포넌트들은 Project에 속하는 정의와 데이터를 소유한다. 정의 CRUD만으로는 모델 호출,
+서버 연결, 인덱싱, Workflow 실행을 시작하지 않는다. RAG 문서 등록처럼 명시적으로 실행하는
+Component API는 자체 처리를 수행한다. Engine/Tool에서 호출한 작업의 관찰 결과는 기존
+Run → Step 경로를 이용하며 별도 실행 도메인을 만들지 않는다.
 
 ## 등록과 선택
 
-DefinitionComponent의 schema 기본값은 닫힌 빈 object입니다. custom plugin이 열린 레코드를
-필요로 하면 open_schema로 소유자를 명시해야 합니다. required_components tuple은 정확한 ID
-의존성이며 Project create/save/select/remove에서 누락을 거부합니다. capability 의존성과는
-다르고 자동 설치/선택하지 않습니다. [현재 계약과 예제](project-authority.md)를 참고하세요.
+`LargeLanguageModel`은 [Component 목록](../../llm/components/README.md)의 구현을 기본 등록한다.
+Project는 `components`에서 선택한 구현만 연결한다. backend 생성자에 `components=[인스턴스, ...]`를
+넘기면 기본 등록 목록을 대체한다. 등록·선택만으로 모델 설정이나 MCP connector가 생기지 않는다.
 
-`LargeLanguageModel`은 [Component 목록](../../llm/components/README.md)의 종류를 기본 등록한다. Project를 만들거나
-수정할 때 선택한 컴포넌트만 디렉토리를 생성한다. `components=[인스턴스, ...]`를
-백엔드 생성자에 직접 전달하면 그 목록으로 기본 등록을 **대체**한다.
+`DefinitionComponent`의 기본 schema는 닫힌 빈 object다. 일반 `Component`의 JSON 저장/직렬화
+기능과 정의의 허용 필드는 별개다. 열린 plugin 레코드가 필요한 구현은
+`open_schema("plugin-owned record", category="implementation")`로 소유자를 명시한다.
+내장 정의의 Application 확장 필드는 `metadata`에 둔다. metadata는 실행 권한이나 설정이 아니다.
+
+`required_components = ("component_id", ...)`는 정확한 영속 Component ID 의존성이다.
+capability 의존성이나 개별 Agent의 선택적 리소스 참조와 다르다. Project 생성·설정 저장·선택·제거
+경계에서 누락을 거부한다. Backend는 의존성을 자동 설치하거나 선택하지 않는다.
+[설정 소유권과 의존성 계약](project-authority.md)을 참고한다.
+
+다음 함수는 정의만 저장하며 모델을 호출하지 않는다. 열린 backend에서 호출한다.
 
 ```python
 from llm.llm import LargeLanguageModel
 
-async with LargeLanguageModel("workspace") as backend:
+async def create_definitions(backend):
     project = await backend.projects.acreate(
-        "Research", components=["tools", "skills", "mcp", "rag", "agents", "workflows", "memory"]
-    )
+        "Research", components=["tools", "skills", "mcp", "rag", "agents", "workflows", "memory"])
+    skills = await project.components.aget("skills")
+    await skills.acreate({
+        "instructions": "정확성, 오류 처리, 테스트를 차례로 확인하세요.",
+        "resources": [{"uri": "docs/llm/architecture.md", "description": "reference"}],
+    }, identifier="code_review")
     agents = await project.components.aget("agents")
     await agents.acreate({
         "purpose": "코드 검토와 개선안 작성",
@@ -31,209 +43,249 @@ async with LargeLanguageModel("workspace") as backend:
         "resources": {"skills": ["code_review"]},
         "metadata": {"team": "backend"},
     }, identifier="reviewer")
+    return project
+
+# 호출 애플리케이션의 async 진입점에서:
+# async with LargeLanguageModel("workspace") as backend:
+#     project = await create_definitions(backend)
 ```
 
-위 모델 이름은 설정 예시이며 사용 가능 여부를 검증하거나 실제 API를 호출하지 않는다.
-Memory는 영속 기억 CRUD·revision·이력과 모델용 Tool을 제공한다. 대화의 휘발성 저장 옵션과는
-별개이며 사용법과 승인/검색 설정은 [Memory 안내](memory.md)를 참고한다.
-ish에서는 `llm_plugin = plugin.get("llm")`로 얻은 모듈의 `LargeLanguageModel`,
-`SkillComponent`, `MCPComponent`, `RAGComponent`, `AgentComponent`,
-`WorkflowComponent`, `WorkflowGraph`도 사용할 수 있다.
+모델 이름은 설정 예시이며 실제 사용 가능 여부를 보증하지 않는다. 실행할 때 선택 Engine에
+유효한 모델/인증을 명시한다. default Project/Session이나 자동 Engine 선택은 없다.
 
-| 클래스 / import | 선택 이름·디렉토리·capability | 레코드 하나의 의미 |
+| 클래스 / import | 선택 이름·디렉토리 | 제공 capability / 레코드 의미 |
 | --- | --- | --- |
-| `SkillComponent` / `llm.components.skills` | `skills` | 작업 지침과 참고 리소스 |
-| `MCPComponent` / `llm.components.mcp` | `mcp` | 서버 연결 설정 |
-| `RAGComponent` / `llm.components.rag` | `rag` | metadata 레코드 (문서는 별도 문서 API로 등록) |
-| `AgentComponent` / `llm.components.agents` | `agents` | 엔진·리소스·정책·입출력 계약을 가진 업무 정의 |
-| `WorkflowComponent` / `llm.components.workflows` | `workflows` | 노드와 연결로 구성한 작업 그래프 |
+| `SkillComponent` / `llm.components.skills` | skills | skills, tools / 지침과 참고 리소스 |
+| `MCPComponent` / `llm.components.mcp` | mcp | mcp / 서버 연결 정의 |
+| `RAGComponent` / `llm.components.rag` | rag | rag, tools / metadata 레코드; 실제 문서는 문서 API |
+| `AgentComponent` / `llm.components.agents` | agents | agents, EngineRegistry 연결 시 tools / 업무 정의 |
+| `WorkflowComponent` / `llm.components.workflows` | workflows | workflows / 실행할 그래프 정의 |
 
-공통 API는 `create`, `load`, `list`, `save`, `update`, `delete`,
-`configure`, `configuration`이고 비동기 API에는 `a` 접두사가 붙는다.
-동기 코드에서는 `project.components.agents.create(...)`처럼 사용할 수 있다.
-아래의 `project` CRUD 예제들은 위 `async with`가 종료되기 전에 실행하는 코드 조각이다.
-비동기 UI에서는 앞 예제처럼 `a` 접두사 메서드로 파일 I/O를 실행 루프 밖에서 처리한다.
-`update`는 최상위 키를 병합하며 중첩 dict는 통째로 교체한다. `configure`도 전체 교체다.
-Backend가 소유한 정의는 알려진 필드만 허용한다. Application 확장 키는 `metadata`에 둔다.
-선택 Engine/handler/model 인자는 해당 구현체가 검증한다. [계약 inventory](schema-ownership.md)를 참고한다.
+Memory의 영속 기억과 대화의 `conversation_storage="memory"`는 별개다.
+[Memory 안내](memory.md)를 참고한다. ish에서는 `plugin.get("llm")` 모듈에서
+LargeLanguageModel과 공개 Component/WorkflowGraph 클래스를 가져올 수 있다.
 
-```python
-agent = project.components.agents.load("reviewer")
-agent["completion"]["temperature"] = 0.1
-project.components.agents.save("reviewer", agent)
-project.components.agents.update("reviewer", {"description": "검토 담당"})
-all_agents = project.components.agents.list()  # {id: dict}
-```
+## 정의 CRUD와 설정
 
-## 컴포넌트별 데이터
-
-Skill은 `instructions`가 필수다. 리소스는 참고 정보이며 경로를 열거나 스크립트를
-실행하지 않는다. SKILL.md 파일 자동 탐색/가져오기 기능은 포함하지 않는다.
+핸들의 공통 API는 `create/load/list/save/update/delete`, `configure/configuration`이며
+비동기 API에는 `a` 접두사가 붙는다. UI에서는 `await project.components.aget(name)`으로 핸들을
+얻고 비동기 API를 사용한다. 동기 코드는 `project.components.agents.load(...)`도 지원한다.
+`update`는 최상위 키를 병합하므로 중첩 dict는 통째로 교체한다. `save`와 `configure`는 전체 교체다.
+CAS 편집에는 snapshot과 expected_version을 사용한다.
 
 ```python
-project.components.skills.create({
-    "description": "코드 검토 규칙",
-    "instructions": "정확성, 오류 처리, 테스트를 차례로 확인하세요.",
-    "resources": [{"uri": "docs/llm/architecture.md", "description": "reference"}],
-}, identifier="code_review")
+async def edit_definitions(project):
+    agents = await project.components.aget("agents")
+    agent = await agents.aload("reviewer")
+    agent["completion"]["temperature"] = 0.1
+    await agents.asave("reviewer", agent)
+    await agents.aupdate("reviewer", {"description": "검토 담당"})
+    all_agents = await agents.alist()  # {id: dict}
+
+    skills = await project.components.aget("skills")
+    await skills.aupdate("code_review", {"description": "코드 검토 규칙"})
+    await skills.acreate({"instructions": "임시 지침"}, identifier="temporary")
+    await skills.adelete("temporary")
+
+    mcp = await project.components.aget("mcp")
+    await mcp.acreate({
+        "transport": "stdio", "command": "python",
+        "args": ["my_mcp_server.py"], "env": {"MODE": "read_only"},
+    }, identifier="local_docs")
+    await mcp.acreate({
+        "transport": "streamable_http", "url": "https://example.com/mcp", "headers": {},
+    }, identifier="remote_docs")
+    await mcp.aupdate("remote_docs", {"metadata": {"ui": {"label": "원격 설명서"}}})
+    await mcp.adelete("remote_docs")
+
+    rag = await project.components.aget("rag")
+    await rag.acreate({"metadata": {"description": "제품 설명서"}}, identifier="product_docs")
+    return all_agents
 ```
 
-MCP는 서버별 `transport`를 지정한다. 이 라이브러리의 정의 형식은 `stdio`일 때
-`command`를, `streamable_http` 또는 `sse`일 때 HTTP(S) `url`을 요구한다.
-`args`는 문자열 배열, `env`/`headers`는 문자열 값의 객체다. 접속·인증·도구 발견·도구 호출은
-MCPComponent(connector=...)에 주입하는 연결 어댑터에서 구현한다. AgentNode는 저장된 서버
-정의와 허용 Tool 별칭을 해석해 세션을 열고 닫는다. 레코드 생성만으로 연결하거나
-ToolRegistry에 등록하지 않는다. 자세한 계약은 [Agent 안내](agents.md)를 참고한다.
+Skill은 instructions가 필수다. 허용 필드는 instructions/description/title/tags/resources/lineage/metadata다.
+resources 항목은 uri, 선택 description/metadata만 허용하며 파일을 열거나 실행하지 않는다.
+lineage는 parent/parent_revision의 불변 참조다. 다른 Skill 또는 Agent가 참조하면 삭제를 거부한다.
+SKILL.md 자동 탐색/가져오기와는 별개다.
 
-```python
-project.components.mcp.create({
-    "transport": "stdio", "command": "python",
-    "args": ["my_mcp_server.py"], "env": {"MODE": "read_only"},
-}, identifier="local_docs")
-project.components.mcp.create({
-    "transport": "streamable_http", "url": "https://example.com/mcp",
-    "headers": {},
-}, identifier="remote_docs")
+MCP의 최상위 필드는 transport/command/args/env/url/headers/metadata다. stdio는 command,
+streamable_http/sse는 HTTP(S) url이 필수다. args는 문자열 배열이고 env/headers는 문자열 값의
+객체다. `timeout`이나 범용 `options` 필드는 없다. 실제 접속/인증/발견/호출은
+`MCPComponent(connector=...)`의 호스트 어댑터가 소유한다. AgentExecution은 선택 서버를 연결하고
+정리하며, 레코드 CRUD는 연결하거나 Tool을 실행하지 않는다.
+
+RAG records API는 **metadata만** 저장하며 색인하지 않는다. 실제 문서는
+`aadd_document/aupdate_document/adelete_document`로 관리한다. 분할·임베딩·관계 추출과
+Chroma/BM25/Kuzu 색인은 문서 API 책임이며 `asearch`는 같은 generation의 문서·관계·출처를 반환한다.
+[필수 설정과 문서 API](rag-components.md)를 참고한다.
+
+## Agent 실행 계약
+
+Agent 최상위는 닫힌 계약이며 purpose와 engine이 필수다. 허용 필드는
+purpose/description/engine/system_prompt/completion/engine_options/tools/resources/policy/
+input_schema/output_schema/output_format/metadata다. 알 수 없는 키나 오타는 저장 시 실패한다.
+Application 확장은 metadata에 둔다. completion은 선택 Engine의 provider 인자,
+engine_options는 선택 Engine이 소유·검증하는 설정 경계다. 이를 이유로 Agent 전체가 열리지 않는다.
+
+behavioral Agent의 resources는 prompt/skills/rag/mcp만 받는다. skills는 저장 ID 목록,
+rag는 Project 검색 사용 여부, mcp는 `{서버 ID: {공개 Tool 별칭: 원격 Tool 이름}}`이다.
+Loop 기반 Agent는 실행 시 유효한 completion.model이 필요하다. Graph-backed Agent는
+purpose/description/engine/engine_options/metadata만 허용하고 behavioral 필드는 빈 값도 거부한다.
+다른 Graph/handler 환경 선택은 Graph-backed Agent, 같은 환경의 Workflow 재사용은 workflow 노드를 쓴다.
+상세 내용은 [Agent 안내](agents.md)와 [중첩 Workflow](nested-workflows.md)를 참고한다.
+
+실행 consumer는 두 가지다.
+
+- `AgentNode`: Workflow 노드에서 저장 Agent ID를 실행한다.
+- `agent_run`: Tool을 사용할 수 있는 Engine이 저장 agent_id와 input으로 업무를 위임한다.
+
+둘 다 `engines/agents.py::AgentExecution`을 사용한다. 별도 Run을 만들지 않고 같은 Run의
+자식 Step으로 실행한다. agent_run에는 inline Engine/model/prompt/tools/권한 override를 넣을 수 없다.
+
+```json
+{"agent_id": "reviewer", "input": {"request": "이 변경을 검토해줘"}}
 ```
 
-RAG의 records API는 metadata만 보존하며 자동 색인하지 않는다.
-
-```python
-project.components.rag.create({"metadata": {"description": "제품 설명서", "ui": {"label": "설명서"}}}, identifier="product_docs")
-```
-
-실제 문서는 `aadd_document/aupdate_document/adelete_document`로 관리한다.
-RAGComponent가 분할·임베딩·트리플 추출·Chroma/BM25/Kuzu 색인을 함께 수행한다.
-`asearch`는 문서·관계·출처를 함께 반환한다. 모델 설정과 사용법은
-[RAG Component 안내](rag-components.md)를 참고한다. 정의 저장과 문서 등록은 별개다.
-
-Agent는 `purpose`와 `engine`이 필수이며 나머지는 열린 JSON 설정이다. LoopEngine은
-completion.model을 요구한다. resources.skills는 Skill ID 목록, resources.rag는 Project
-검색 사용 여부, resources.mcp는 서버 ID별 {모델에 공개할 별칭: 원격 Tool 이름}이다.
-AgentNode는 이를 실행 시 검증/연결한다. 정의 생성 자체는 연결하지 않는다.
-Workflow 안에서 호출되는 Agent도 동일한 정의를 참조한다. 상세 정책과 UI 편집 API는
-[Agent 업무 정의](agents.md)에 정리했다.
+기본 backend는 AgentComponent에 EngineRegistry를 연결한다. 사용자 정의 등록 목록에서는
+`AgentComponent(engines=registry)`를 명시해야 agent_run을 제공한다. Component 선택만으로
+Agent가 자동 실행되지는 않는다. 부모 Tool 허용 목록과 인자 제약을 자식이 넓힐 수 없다.
+중첩 Tool도 ToolContract와 동일 Project 승인 정책을 사용한다. 승인이 필요하면 Run은 PAUSED가
+되며 policy/user 응답을 저장한 뒤 명시적으로 재개한다. 자동 응답도 즉시 효과를 실행하지 않는다.
 
 ## Workflow 조립과 JSON 저장
 
-`WorkflowGraph`는 선택적인 빌더다. 같은 형식의 dict를 직접 만들어 저장해도 된다.
-`schema_version: 1`, `entry`, `nodes` 객체와 `edges` 배열이 기본 형식이다.
+Workflow 최상위는 schema_version/entry/nodes/edges/initial_state/inputs/outputs/input_schema/
+output_schema/metadata만 허용한다. schema_version은 1이다. 사용자 제목 등은 metadata에 둔다.
+`WorkflowGraph`는 선택적인 빌더이며 같은 계약의 dict를 직접 저장해도 된다.
+생성자는 알려진 최상위 인자만 받고 nodes/edges는 node/connect로 조립한다. 잘못된 최상위 키는
+생성 시 거부하고, 완성된 구조는 to_dict에서 검증한다.
 
 ```python
 from llm.components.workflows import WorkflowGraph
 
-body = (WorkflowGraph(entry="revise")
-    .node("revise", "agent", agent="reviewer")
-    .node("finish", "end")
-    .connect("revise", "finish")
-    .to_dict())
+async def create_workflow(project):
+    body = (WorkflowGraph(entry="revise")
+        .node("revise", "agent", agent="reviewer")
+        .node("finish", "end").connect("revise", "finish").to_dict())
 
-graph = (WorkflowGraph(entry="route", title="검토 Workflow")
-    .node("route", "branch", cases=[{
-        "port": "review", "when": {"path": "/needs_review", "op": "eq", "value": True}
-    }], default="skip")
-    .node("fork", "parallel", join="joined")
-    .node("review", "agent", agent="reviewer")
-    .node("search", "retrieval", corpus="product_docs")
-    .node("joined", "join", wait="all")
-    .node("refine", "loop", max_iterations=3, on_limit="continue", body=body,
-          **{"while": {"path": "/needs_revision", "op": "eq", "value": True}})
-    .node("done", "end")
-    .connect("route", "fork", port="review")
-    .connect("route", "done", port="skip")
-    .connect("fork", "review")
-    .connect("fork", "search")
-    .connect("review", "joined")
-    .connect("search", "joined")
-    .connect("joined", "refine")
-    .connect("refine", "done")
-    .to_dict())
+    graph = (WorkflowGraph(entry="route", metadata={"title": "검토 Workflow"})
+        .node("route", "branch", cases=[{
+            "port": "review", "when": {"path": "/needs_review", "op": "eq", "value": True}
+        }], default="skip")
+        .node("fork", "parallel", join="joined")
+        .node("review", "agent", agent="reviewer")
+        .node("search", "retrieval", query="제품 설명서")
+        .node("joined", "join", wait="all")
+        .node("refine", "loop", max_iterations=3, on_limit="continue", body=body,
+              **{"while": {"path": "/needs_revision", "op": "eq", "value": True}})
+        .node("done", "end")
+        .connect("route", "fork", port="review").connect("route", "done", port="skip")
+        .connect("fork", "review").connect("fork", "search")
+        .connect("review", "joined").connect("search", "joined")
+        .connect("joined", "refine").connect("refine", "done").to_dict())
 
-identifier = project.components.workflows.create(graph, identifier="review_flow")
-project.components.workflows.validate(identifier)
-editable = project.components.workflows.graph(identifier)  # 저장 원본과 분리된 빌더
-project.components.workflows.save(identifier, editable.to_dict())
+    workflows = await project.components.aget("workflows")
+    identifier = await workflows.acreate(graph, identifier="review_flow")
+    await workflows.avalidate(identifier)
+    editable = await workflows.agraph(identifier)
+    await workflows.asave(identifier, editable.to_dict())
+    return graph
 ```
 
-`to_dict`와 버전 1 레코드의 create/save/update/load에서 구조를 검증한다.
-`WorkflowGraph.from_dict(data)`와 `validate_graph(data)`로 저장 없이 검증할 수도 있다.
-`validate/graph` 핸들 메서드에는 `avalidate/agraph`가 있다.
+이 예제는 저장·구조 검증 예제다. 실행하려면 GraphEngine에 AgentNode와 아래 retrieval handler를
+명시적으로 등록하고, Agent의 Engine 및 RAG 문서/필수 설정을 준비한다.
 
-### 그래프의 제어 계약
+```python
+from llm.core.schema import object_schema, field
 
-다음은 GraphEngine이 실행하는 제어 계약이다. 처리 노드의 실행 함수를 등록하여
-사용한다. 실제 코드 수정/검증 예제는 [GraphEngine 안내](graph-engine.md)를 참고한다.
+class RetrievalNode:
+    def __init__(self, search):
+        self.search = search
 
-| 노드 type | 정의 및 실행기가 구현할 의미 |
+    @staticmethod
+    def configuration_schema():
+        return object_schema({"query": field("string", minLength=1)}, required=["query"])
+
+    async def __call__(self, node):
+        result = await self.search(node.definition["query"])
+        return {"evidence": result}
+```
+
+Graph는 common node 필드(type/inputs/outputs/input_schema/output_schema/pause_before/
+resume_schema/timeout_seconds/metadata)를 소유한다. action 고유 필드는 선택된 handler가
+configuration_schema() 또는 validate(node, context)로 실행 전에 검증한다. action variant의 열린
+경계는 **선택 handler가 의미를 소유하기 때문**이며 미래의 임의 키를 무조건 허용하기 위해서가 아니다.
+위 query는 RetrievalNode의 계약이며 GraphEngine이나 RAG record의 필드가 아니다.
+예를 들어 같은 Project의 `rag = await project.components.aget("rag")` 핸들을 얻고
+`RetrievalNode(rag.asearch)`로 연결한다. handler는 GraphNodeContext 한 개를 받고 반환 dict를
+상태에 병합한다. Project가 바뀌면 해당 Project 핸들을 연결한다. 더 일반적인 capability
+주입이 필요하면 handler의 required_capabilities/validate 공개 계약을 사용한다.
+
+### 제어 구조
+
+| 노드 type | 계약 |
 | --- | --- |
-| 사용자 정의 처리 노드 (`agent`, `tool`, `retrieval` 등) | 임의 설정을 저장하며 다음 노드는 하나. 타입별 처리기는 Engine에서 등록 |
-| `branch` | 순서 있는 `cases` 중 처음 참인 port 선택, 없으면 필수 `default` port. port마다 간선 하나 |
-| `parallel` | 연결된 둘 이상의 경로를 병렬 실행. 각 경로는 같은 입력의 독립 복사본으로 시작 |
-| `join` | 소유 parallel의 모든 경로 완료를 기다림(`wait: all`). 기존 상태의 branches 키에 `{시작노드ID: 결과상태}`를 저장 |
-| `loop` | `body` 그래프를 최대 `max_iterations`회 반복. 이전 회차 출력을 다음 입력으로 사용 |
-| `end` | 현재 그래프를 종료. loop의 body 안에서는 해당 회차만 종료 |
+| 등록한 action (`agent`, `tool`, `retrieval` 등) | 공통 필드는 Graph, 고유 필드는 선택 handler가 검증. 다음 노드는 하나 |
+| branch | 순서대로 처음 참인 case의 port 선택, 없으면 필수 default. port마다 간선 하나 |
+| parallel | 연결된 둘 이상의 경로를 독립 상태 복사본으로 실행하고 지정 join에서 합류 |
+| join | 소유 parallel의 모든 경로를 기다림(wait=all). branches에 시작 노드 ID별 결과 저장 |
+| loop | 유한 max_iterations와 on_limit, body Workflow. 이전 회차 결과를 다음 입력으로 전달 |
+| workflow | 같은 Graph 환경에서 저장 workflow ID 실행. 중첩 binding/checkpoint는 소유 Run에 연결 |
+| end | 현재 그래프 종료. loop.body 안에서는 해당 회차 종료 |
 
-`loop.while`은 회차 시작 전 검사하는 선택 조건이다. 없으면 정해진 횟수만큼 반복한다.
-조건이 참인 상태에서 상한에 도달하면 `on_limit: continue`는 다음 노드로 진행,
-`fail`은 Run 실패를 뜻한다. 조건 없는 횟수 반복은 정해진 횟수를 완료하면 정상 종료한다.
-루프 안에 분기/병렬/다른 루프를 둘 수 있고 중첩 깊이는 32까지다.
+loop.while은 회차 시작 전 검사한다. 없으면 지정 횟수 반복이다. 조건이 참인데 상한에 도달하면
+on_limit=continue는 다음 노드로 진행하고 fail은 실패한다. 중첩 loop/parallel/branch를 지원한다.
+Backend는 임의의 고정 중첩 깊이 제한을 추가하지 않는다. 명시적으로 설정한 Graph
+policy.max_nested_depth는 실행 정책이며 loop.body/cycle 구조 검증과 구분한다.
 
-조건은 `{"path": "/state/key", "op": "eq", "value": ...}`처럼 JSON Pointer와
-비교 값을 저장한다. 연산자는 `eq/ne/lt/le/gt/ge/in/exists`다. `in`은 배열 값이 필요하고
-`exists`에는 비교 값이 필요 없다. 경로가 없으면 exists와 일반 비교는 거짓으로,
-타입이 맞지 않는 순서 비교는 실행 오류로 처리하는 계약이다. Python 코드 문자열이나
-eval을 사용하지 않는다. 이 컴포넌트는 조건을 평가하지 않고 형태만 검증한다.
+조건은 JSON Pointer의 path와 eq/ne/lt/le/gt/ge/in/exists다. in은 배열 value가 필요하고 exists에는
+value가 필요 없다. 경로가 없으면 거짓이며, 비교할 수 없는 타입의 순서 비교는 실행 오류다.
+Python 코드나 eval을 사용하지 않는다. WorkflowComponent는 조건 형태와 구조를 검증하고
+GraphEngine이 실제 상태에서 평가한다.
 
-검증기는 없는 노드 참조, 도달 불가능한 노드, 중복 연결, 조건 port 누락, 합류 전
-병렬 경로의 합침, 병렬 영역 외부에서의 진입, 합류 우회/조기 종료를 거부한다.
-일반 간선은 DAG이며 순환은 상한이 명시된 `loop.body`로만 표현한다. 사용자 정의
-처리 노드의 설정 의미나 처리기 등록, Agent/Tool 참조, 런타임 조건 결과는 검증하지 않는다.
+없는 노드, 도달 불가능한 노드, 중복 간선, 조건 port 누락, 잘못된 병렬 합류를 거부한다.
+일반 간선은 DAG이며 순환은 유한 loop.body로 표현한다. Component는 handler 등록/고유 설정이나
+Agent/Tool 리소스를 실행하지 않는다. 이 검증은 Graph 실행 준비와 선택 handler가 소유한다.
+create/save/update/load와 WorkflowGraph.from_dict/validate_graph도 구조 검증을 수행한다.
+최상위 title/ui 같은 확장을 metadata로 자동 이동하는 migration은 없다.
 
-Workflow는 저장·조회·수정·복제 모두 schema_version 1과 유효한 nodes/entry/edges를 요구한다.
-버전 없는 임의 JSON을 보존하는 우회 경로는 없다. 추가 사용자 필드는 그대로 유지한다.
-임의의 비그래프 데이터를 관리하려면 별도 Component를 정의한다.
-
-## Engine에서 사용
+## Capability를 읽는 Engine
 
 ```python
 from llm.engines.base import BaseEngine
 
-class MyEngine(BaseEngine):
+class DescribeEngine(BaseEngine):
     required_capabilities = ("agents", "skills", "workflows")
 
     async def run(self, context):
-        agent_source = context.capabilities["agents"][0]
-        reviewer = agent_source["records"]["reviewer"]
-        workflows = context.capabilities["workflows"][0]["records"]
-        graph = workflows["review_flow"]
-        # 여기서 개발자가 노드 처리기/실행 정책을 적용한다.
-        yield reviewer["purpose"]
+        reviewer = context.capabilities["agents"][0]["records"]["reviewer"]
+        yield self.delta_event(context, reviewer["purpose"])
 ```
 
-일반 capability는 제공자별 튜플이고 각 제공자는
-`{"configuration": {...}, "records": {id: {...}}}` 스냅샷을 반환한다.
-필요한 것만 선언하면 해당 데이터만 읽는다. 스냅샷 수정은 저장 데이터에 반영되지 않는다.
-다음 Run에서 새 설정을 읽으며 사용 중인 Run의 스냅샷은 바뀌지 않는다.
-LoopEngine은 자동으로 Agent를 선택하거나 Workflow를 실행하지 않는다.
+정의 capability는 제공자별 tuple이며 제공자는 configuration/records 사본을 반환한다.
+실행 어댑터가 있는 capability는 자체 공개 인터페이스를 가지므로 모든 capability가 같은 dict는 아니다.
+Engine은 EngineEvent로 관찰을 전달하며 영속 도메인 파일을 직접 쓰지 않는다.
+Loop는 모델이 agent_run을 선택할 수 있게 하지만 Agent나 Workflow를 임의로 자동 선택하지 않는다.
 
-## 디렉토리
+## 저장과 수명
 
 ```text
 <Project>/
   project.json
-  tools/       records/<id>.json
-  skills/      records/<id>.json
-  mcp/         records/<id>.json
-  rag/         records/<definition-id>.json, generations/<id>/
-  agents/      records/<agent-id>.json
-  workflows/   records/<workflow-id>.json
-  sessions/       ... 기존 Session → Run → Step 및 대화 저장 구조
-  logs/        ... 기존 도메인 로그
+  tools/<tool-id>/<tool-id>.py       # Project Python Tool 패키지
+  skills/records/<id>.json
+  mcp/records/<id>.json
+  rag/records/<id>.json             # metadata만
+  rag/generations/<id>/             # 실제 문서·벡터·그래프 색인
+  agents/records/<id>.json
+  workflows/records/<id>.json
+  memory/                          # 전용 기억·이력 구조
+  sessions/                        # Session → Run → Step와 대화
+  logs/
 ```
 
-컴포넌트 파일의 생성/수정/삭제는 기존 잠금, 원자적 교체와 Project 수명 검사를 사용한다.
-Project 복제는 설정과 JSON 레코드의 ID/연결을 보존한다. 외부 문서와 원격 서버 데이터,
-런타임 연결, 재생성 가능한 인덱스는 자동 복제하지 않는다.
-
-컴포넌트 설정은 `project.json`의 `config.parameters["components"]`에만 저장한다.
-ComponentData.configure 편의 API도 이 설정을 갱신한다.
+ComponentData는 Project 수명 검사·잠금·원자적 저장 경계를 이용한다. 설정은 project.json의
+config.parameters.components에만 저장하고 configure도 이 원본을 갱신한다. component.json은 없다.
+일반 JSON 정의의 clone은 ID/참조를 보존한다. RAG clone은 불변 원문·벡터·관계를 복제하여
+색인을 재구축하며 모델을 재호출하지 않는다. 외부 서버나 살아 있는 연결은 복제하지 않는다.
+특수 데이터는 각 Component의 clone 계약을 따른다.

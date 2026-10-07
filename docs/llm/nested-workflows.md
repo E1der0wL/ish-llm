@@ -17,7 +17,8 @@ from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
 
 agents = AgentNode(engines={"loop": LoopEngine()})
-engine = GraphEngine(handlers={"agent": agents}, max_nested_depth=16)
+engine = GraphEngine(handlers={"agent": agents})
+# 깊이 제한이 필요하면 Project parameters.engines.graph.policy.max_nested_depth에 명시한다.
 # engine을 LargeLanguageModel(..., engines={"graph": engine})에 등록한다.
 # Project에서 workflows/agents/tools를 선택하고 writer Agent를 별도로 저장한다.
 
@@ -78,7 +79,7 @@ GraphEngine의 SettingsLayout을 그대로 사용하며 별도 schema를 복제�
 Host 생성자는 handler environment와 기술 identity만 제공한다.
 등록 객체를 변경하지 않고 호출별 복사본을 만든다.
 Graph Agent는 behavioral Agent가 아닌 **다른 GraphEngine/handler environment의 이름**이다.
-같은 환경에서 중첩하려면 workflow 노드를 사용한다. Graph Agent 정의에는 purpose, engine,
+같은 환경에서 중첩하려면 workflow 노드를 사용한다. Graph Agent 정의에는 purpose, description, engine,
 engine_options와 비실행 metadata만 둔다. completion/system_prompt/tools/resources/policy/
 input_schema/output_schema/output_format은 빈 객체나 null이어도 존재 자체가 오류다.
 검증은 Prompt/Skill/MCP/RAG 조회 전에 수행한다. Workflow Agent-node의 inputs/outputs/

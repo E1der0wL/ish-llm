@@ -231,14 +231,21 @@ def validate_graph(data: dict, *, _depth: int = 0) -> None:
 class WorkflowGraph:
     """검증된 JSON 노드와 연결을 단계적으로 조립하는 빌더."""
 
-    def __init__(self, *, entry: str, **metadata) -> None:
-        if {"schema_version", "nodes", "edges"} & metadata.keys():
-            raise ValueError("Reserved workflow metadata key")
-        self._data = {**deepcopy(metadata), "schema_version": 1,
+    def __init__(self, *, entry: str, **fields) -> None:
+        # 미완성 nodes/edges는 to_dict에서 검증하되, 최상위 키는 생성 즉시 검증한다.
+        # 사용자 확장은 metadata 객체에만 속한다. 저장 스키마를 그대로 재사용한다.
+        properties = {key: value for key, value in workflow_schema()["properties"].items()
+                      if key not in {"schema_version", "entry", "nodes", "edges"}}
+        Component.serialize(fields)
+        try:
+            Draft202012Validator(object_schema(properties)).validate(fields)
+        except ValidationError as error:
+            raise ValueError(f"Workflow constructor: {error.message}") from error
+        self._data = {**deepcopy(fields), "schema_version": 1,
                       "entry": _text(entry, "entry"), "nodes": {}, "edges": []}
 
     def node(self, identifier: str, kind: str, **options) -> "WorkflowGraph":
-        """처리 내용을 열린 dict로 보존하고 제어 구조는 to_dict에서 검증한다."""
+        """공통/제어 구조는 to_dict, action 고유 필드는 선택 handler가 검증한다."""
         _text(identifier, "Node ID")
         _text(kind, "Node type")
         if identifier in self._data["nodes"] or "type" in options:

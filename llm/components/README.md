@@ -63,7 +63,7 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 
 구현 전에 [Backend/Application 경계](../../docs/llm/architecture-boundaries.md)를 확인하세요.
 제공하는 알고리즘, 불변식, 명시적 입력, 집행할 policy, 앱이 고를 전략을 구분합니다.
-숨은 추천값을 넣지 않고 host ceiling을 하위 설정으로 완화하지 않습니다.
+숨은 추천값을 넣지 않고 Project 정책을 자식 실행에서 완화하지 않습니다. Host는 기술 구현과 자원을 제공합니다.
 
 [메인 README의 NotesComponent](../README.md#새-component-만들기)가 최소 예제입니다. 데이터 검증에 JSON Schema를 사용하려면 `DefinitionComponent`도 사용할 수 있습니다.
 

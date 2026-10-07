@@ -15,6 +15,12 @@
 
 ## 연결 방법
 
+파일 변경, 프로세스 시작/입력/종료, shell/check/test 실행, 브라우저 이동/조작,
+커널 실행/초기화는 ToolContract.approval_required=True입니다. 조회 Tool은 그대로입니다.
+Host ASK 없이도 Run이 PAUSED가 되고, Project의 scheme/category/risk rule에 따라
+policy 응답 또는 사용자 승인을 기다립니다. 자동 응답도 명시적 resume 전에는 실행하지 않습니다.
+계약과 작업 환경 지문은 함께 binding되어 재개 시 변경을 거부합니다.
+
 파일 크기·출력 크기·명령 시간은 생성자 제한이 아닙니다. Tool의 max_file_bytes,
 max_output_bytes, timeout_seconds에 명시하고, 변경 불가/범위 제한이 필요하면
 Project policies.tools.argument_constraints의 fixed/bounded/selectable을 사용합니다.

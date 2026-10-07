@@ -62,26 +62,34 @@ Project/client가 명시한 값이며 불변식으로 승격하지 않는다.
 
 ## Tool 승인·위험 분류
 
+`ToolContract.approval_required=True`는 실행 전에 승인 **결정**이 필요하다는 불변식이다.
+사람만 승인할 수 있다는 의미는 아니다. Host `ToolPolicy.authorize=None`이어도 독립적으로
+동작한다. 최종 schema/Project 인자 제약 검증 → trusted classification → contract 승인 요구 →
+요청 영속화/Run PAUSED → Project 자동 응답 또는 사용자 대기 → 명시적 resume → 효과 순서다.
+Project 정책과 classifier는 승인 대상 자체를 만들지 않는다. classifier는 분류 데이터만 제공한다.
+
 Project `policies.approval`은 enabled, risk_scheme, rules를 가진다. rule의 category는 정확히
 일치하며 max_risk는 0 이상의 정확한 integer다. bool/float/문자열/음수는 거부한다.
 같은 scheme이고 risk ≤ max_risk일 때만 자동 응답을 기록한다. scheme 불일치나 unknown(null),
 불확실한 효과의 재시도는 자동 승인하지 않는다. 응답 저장은 resume를 자동 호출하지 않는다.
 
 ```python
-from llm.components.tools import ToolClassification
+from llm.components.tools import ToolClassification, ToolContract
 from llm.services.runtime.tools import ToolPolicy
 from llm.services.configuration import ServiceConfig
 
 def classify(call):
     # 실제 프로그램에서는 Application이 검토한 기준을 사용한다.
     # call.arguments는 fixed/bounded/selectable 적용과 schema 검증을 마친 사본이다.
-    return ToolClassification(category="file.read", risk_scheme="my-app-v1", risk=10)
+    return ToolClassification(category="file.write", risk_scheme="my-app-v1", risk=10)
 
+contract = ToolContract(effect="external", approval_required=True)  # custom Tool 등록 시 전달
+# 내장 file_create 등은 이 계약을 이미 선언한다.
 services = ServiceConfig(tool_policy=ToolPolicy(classify=classify, revision="2"))
 policies = {
-    "tools": {"allowed_tools": ["file_read"], "max_calls": 5},
+    "tools": {"allowed_tools": ["file_create"], "max_calls": 5},
     "approval": {"enabled": True, "risk_scheme": "my-app-v1", "rules": [
-        {"id": "read", "category": "file.read", "max_risk": 10}]},
+        {"id": "write", "category": "file.write", "max_risk": 10}]},
 }
 ```
 
@@ -95,6 +103,10 @@ scope binding은 Project 제약·예산·retry와 Host adapter revision을 포�
 달라지면 fail-fast한다. classifier/실행기 코드의 의미가 바뀌면 Host가 revision을 올려야 한다.
 authorize의 기술적 거절은 저장된 approve로도 우회할 수 없다. ToolContract.approval_required는
 신뢰한 구현의 요구이며 일반 authorize=True가 이를 자동 승인하지 않는다.
+authorize는 기술적 거부/외부 runtime authorization용이며 Project 승인 정책의 필수 ASK 단계가
+아니다. 기존 adapter가 ToolApprovalRequired를 발생시키는 경로는 유지한다.
+동일 scheme의 threshold 이하이면 actor=policy 응답을 저장하고, 초과/unknown/scheme 불일치면
+사용자 응답을 기다린다. 어느 경우에도 명시적 resume 전 Tool 효과는 발생하지 않는다.
 
 ## 저장 Agent 위임
 

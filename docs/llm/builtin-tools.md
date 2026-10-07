@@ -9,7 +9,7 @@ Project-owned Python 소스를 관리하는 ToolComponent와 저장소·수명�
 1. BuiltinTools(workdir, ...)를 async with로 만든다.
 2. BuiltinToolComponent(toolkit, name="computer")를 LargeLanguageModel components에 등록한다.
 3. Project components에서 computer를 선택한다.
-4. ProjectConfig.parameters.components.computer.enabled에 제공할 Tool 이름을 저장한다.
+4. ProjectConfig.parameters.components.computer.config.enabled에 제공할 Tool 이름을 저장한다.
 
 enabled가 없으면 builtin Tool을 노출하지 않는다. toolkit.registry.names()와 definitions()로
 이름과 인자 schema를 조회한다. 호스트의 사용자 정의 Component가 registry를 반환하는 확장도
@@ -34,6 +34,23 @@ enabled가 없으면 builtin Tool을 노출하지 않는다. toolkit.registry.na
 
 Project에서 선택한 SkillComponent는 skill_list/skill_read를 별도로 제공한다.
 내장 rag_search 및 Memory Tool도 각 Component가 제공하며 외부 검색 어댑터와 다르다.
+
+## 승인 결정
+
+파일 변경(file_create/patch/move/delete/restore), 프로세스 시작·입력·종료, shell_execute,
+check_run/test_run, browser_open/browser_act, kernel_execute/kernel_reset은
+ToolContract.approval_required=True다. 등록된 검사 명령도 파일 생성 등 효과를 낼 수 있고,
+브라우저 이동/커널 초기화도 세션 상태를 변경하므로 결정이 필요하다.
+읽기·목록·검색, git_status/diff, 프로세스 조회/출력, 시스템 진단과 조회형 외부 어댑터는
+일괄 승인 대상으로 바꾸지 않는다. 조회 adapter는 호스트가 해당 조회 계약을 지켜야 한다.
+
+Host ASK callback 없이도 승인 요청을 저장하고 Run을 PAUSED로 끝낸다. trusted classifier의
+scheme/category/risk가 Project policies.approval의 rule과 맞으면 actor=policy 응답을 저장한다.
+초과·unknown·scheme 불일치는 사용자 대기다. 자동 응답도 명시적 resume 전에는 실행하지 않는다.
+Host 기술적 거부는 승인 뒤에도 유효하다. [승인 계약](project-authority.md#tool-승인위험-분류)을 참고한다.
+ToolContract와 작업 root/shell/checks는 기존 durable binding에 함께 포함한다.
+process_cancel의 모델 호출에는 승인 결정이 필요하지만 Run 취소·Toolkit.close의 자원 회수는
+사용자 Tool 호출과 별개이며 승인 대기로 차단하지 않는다.
 
 ## 소스·로그와 파일 변경
 
@@ -81,7 +98,7 @@ allow_commands=True일 때 shell=["/bin/sh", "-c"]처럼 셸 argv를 명시한�
   status=completed는 프로세스 종료이며 검증 성공은 returncode와 출력으로 판단한다.
 - git_status/git_diff: 상태와 변경을 읽고 외부 diff/textconv를 끈다.
 
-max_seconds/max_output_bytes를 명시하면 실행 시간/보관 출력에 적용한다. 미설정이면 추가
+timeout_seconds/max_output_bytes를 명시하면 실행 시간/보관 출력에 적용한다. 미설정이면 추가
 제한을 만들지 않는다. 출력 제한에 도달해도 pipe는 계속 비우고 truncated=true를 반환한다.
 잃은 출력은 cursor로 복구되지 않는다. max_chars는 보관 데이터가 아닌 조회 페이지만 제한한다.
 

@@ -3,6 +3,8 @@
 import asyncio
 from pathlib import Path
 import tempfile
+import re
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -53,6 +55,44 @@ def definitions():
 
 
 class DefinitionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_component_document_examples_match_production_contracts(self):
+        document = Path(__file__).resolve().parents[2] / "docs/llm/component-definitions.md"
+        blocks = re.findall(r"```python\n(.*?)\n```", document.read_text(encoding="utf-8-sig"), re.DOTALL)
+        namespace = {}
+        for block in blocks:
+            exec(compile(block, str(document), "exec"), namespace)
+        project = await namespace["create_definitions"](self.app)
+        agents = await namespace["edit_definitions"](project)
+        self.assertEqual(agents["reviewer"]["completion"]["temperature"], 0.1)
+        graph = await namespace["create_workflow"](project)
+        self.assertEqual(graph, await project.components.workflows.aload("review_flow"))
+        self.assertEqual(graph["metadata"]["title"], "검토 Workflow")
+        from llm.components.workflows.graph import validate_handler_options
+        seen = []
+        async def search(query):
+            seen.append(query)
+            return {"documents": []}
+        handler = namespace["RetrievalNode"](search)
+        validate_handler_options(graph["nodes"]["search"], handler)
+        self.assertEqual(await handler(SimpleNamespace(definition=graph["nodes"]["search"])),
+                         {"evidence": {"documents": []}})
+        self.assertEqual(seen, ["제품 설명서"])
+        for field in ("system_promt", "ui"):
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                await project.components.agents.aupdate("reviewer", {field: "invalid"})
+        self.assertEqual(await project.components.rag.alist_documents(), [])
+
+    def test_workflow_constructor_requires_explicit_metadata_container(self):
+        metadata = {"title": "검토 Workflow", "ui": {"label": "검토"}}
+        builder = WorkflowGraph(entry="done", metadata=metadata)
+        metadata["title"] = "not saved"
+        graph = builder.node("done", "end").to_dict()
+        self.assertEqual(graph["metadata"]["title"], "검토 Workflow")
+        self.assertEqual(WorkflowGraph.from_dict(graph).to_dict(), graph)
+        for fields in ({"title": "invalid"}, {"foo": 1}, {"metadata": "invalid"}, {"nodes": {}}, {"schema_version": 1}):
+            with self.subTest(fields=fields), self.assertRaises(ValueError):
+                WorkflowGraph(entry="done", **fields)
+
     async def asyncSetUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)

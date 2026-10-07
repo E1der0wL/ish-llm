@@ -2046,8 +2046,10 @@ RunHandle의 interactions/interaction_responses/respond 및 대응하는 비동�
 조회와 답변 저장을 제공한다. 응답 저장은 실행을 시작하지 않으며 기존 명시적 resume가
 새 Run을 만든다. 응답은 요청 버전/지문과 결합되고 중복·상충 응답/만료를 검사한다.
 재개 전 Tool/Engine/Workflow/호스트 정책 변경 검증과 불확실 효과 재시도 승인은 유지한다.
-추천 선택지와 UI 우선순위는 자동 승인 권한이 아니다. Project approval 정책은 호스트가
-명시적으로 허용한 카테고리/위험도 안에서 응답만 저장한다. InteractionView는 응답과 실행
+추천 선택지와 UI 우선순위는 자동 승인 권한이 아니다. ToolContract.approval_required는
+Host ASK 없이도 승인 결정을 요구한다. Project approval 정책은 trusted classification의
+scheme/category/risk와 Project rule을 비교하여 PAUSED 이후 응답만 저장한다. 효과는 명시적
+resume 이후에 실행하며 Host의 기술적 거부는 승인 뒤에도 유효하다. InteractionView는 응답과 실행
 상태의 공통 투영이다. 취소/갱신/불확실 효과 재시도도 Run 소유권 아래서 처리한다.
 
 Graph의 제한 시간 이후 남은 취소 정리는 RunManager PendingWork가 추적한다. Session 소유권과

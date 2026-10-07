@@ -1,6 +1,6 @@
 # Agents — 재사용할 업무 정의
 
-특정 목적의 업무를 Engine, 모델, 프롬프트, 리소스, 입출력 계약의 조합으로 저장합니다. 실행은 Graph의 AgentNode가 담당하고 실행 상태는 소유 Run/Step에 남습니다.
+특정 목적의 업무를 Engine, 모델, 프롬프트, 리소스, 입출력 계약의 조합으로 저장합니다. 닫힌 최상위 계약을 사용하고 Application 확장은 metadata에 둡니다. AgentNode와 agent_run의 실행 상태는 소유 Run/Step에 남습니다.
 
 `AgentComponent(engines=registry)`는 저장 ID로 실행하는 agent_run Tool도 제공합니다.
 기본 LargeLanguageModel은 이 registry를 연결합니다. AgentNode와 agent_run은

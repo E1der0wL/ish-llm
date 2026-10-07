@@ -52,6 +52,15 @@ Run 마감 전의 요청은 제외한다. 이미 재개된 원본 Run에는 응�
 
 ## Tool 승인 연결
 
+일반 승인 경로는 Tool 등록 시 `ToolContract(approval_required=True)`를 전달한다.
+`ToolPolicy(authorize=None, classify=classify)`여도 ToolExecutor가 요청을 저장한다.
+Run이 PAUSED로 확정된 뒤 Project의 approval rule은 policy 응답 또는 사용자 대기를
+결정하며, policy 응답도 명시적 resume 전에는 효과를 실행하지 않는다.
+unknown risk와 risk_scheme 불일치는 자동 승인하지 않는다.
+
+아래 authorize는 사용자 정의 표시/외부 runtime authorization을 위한 선택적 adapter 예다.
+Project 승인 정책을 동작시키기 위한 필수 선행 단계가 아니다.
+
 ```python
 from llm.llm import InteractionRequest, InteractionOption, ToolApprovalRequired, ToolPolicy
 from llm.components.tools import ToolClassification
@@ -88,8 +97,9 @@ category/risk_scheme/risk도 최종 ToolClassification으로 덮어쓴다. 표�
 Graph의 `pause_before`는 confirmation 요청, ToolNode와 Loop의 승인 예외는
 approval 요청이 된다. 중첩 Agent 요청은 부모 Graph의 경로로 연결된다.
 confirmation은 **노드를 계속 진행한다는 확인**이며 Tool 실행 권한이 아니다.
-ToolNode는 확인 이후에도 호스트 ToolPolicy.authorize를 거친다. 호스트가 거절하면
-`tool_denied`로 실패하고, ASK이면 별도의 approval 요청으로 다시 PAUSED가 된다.
+ToolNode는 확인 이후에도 ToolContract와 선택적 호스트 ToolPolicy.authorize를 검사한다.
+호스트가 거절하면 `tool_denied`로 실패하고, contract가 승인을 요구하거나 adapter가 ASK를
+요청하면 별도의 approval 요청으로 다시 PAUSED가 된다.
 Tool approval에 응답한 뒤 명시적으로 재개해야 효과/실행 worker가 시작된다.
 두 요청이 같은 노드 키를 사용해도 원본 Run·요청 ID·action은 구분된다.
 Graph 확인 노드에 `resume_schema`를 정의한 경우만

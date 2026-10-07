@@ -1,8 +1,11 @@
 # Agent: 재사용 가능한 업무 정의
 
 Agent는 목적, 사용할 엔진, 모델/프롬프트, 리소스, 허용 Tool, 입출력 계약과 실행 정책을
-저장한다. 진행 상태와 결과는 Agent JSON에 쓰지 않는다. Workflow의 AgentNode가 정의를
-읽어 같은 Run 안에서 실행하고 Agent/LLM/Tool Step으로 기록한다.
+저장한다. 최상위는 알려진 필드만 허용하고 Application 확장은 metadata에 둔다.
+진행 상태와 결과는 Agent JSON에 쓰지 않는다. Workflow의 AgentNode와 Tool-capable Engine의
+agent_run이 공통 AgentExecution으로 정의를 읽어 같은 Run 안에서 실행하고 Step으로 기록한다.
+agent_run은 저장 agent_id와 input만 받으며 inline 권한 override를 받지 않는다.
+부모 Tool/인자 제약을 넓히지 못하고 중첩 Tool 승인도 동일 Project 정책을 사용한다.
 
 ## 등록, 저장, 실행
 
