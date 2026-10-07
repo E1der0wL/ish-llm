@@ -3,12 +3,13 @@ import json
 import tempfile
 import unittest
 from copy import deepcopy
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 from jsonschema import Draft202012Validator, ValidationError
-from llm.components.tools import Tool, ToolRegistry
+from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.components.tools.constraints import constrained_parameters
 from llm.components.tools.builtin import BuiltinTools
 from llm.components.rag.tools import search_tools
@@ -124,19 +125,22 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(authorize.await_args.args[0].arguments, {"query": "q", "limit": 5, "method": "hybrid", "max_hops": 2})
 
     async def test_durable_approval_binding_rejects_changed_constraints(self):
-        async def ask(call):
-            raise ToolApprovalRequired()
         handler = AsyncMock(return_value=None)
-        tool = Tool("rag_search", "test", SCHEMA, handler)
-        policy = ToolPolicy(authorize=ask)
+        tool = Tool("rag_search", "test", SCHEMA, handler, contract=ToolContract(approval_required=True))
+        policy = ToolPolicy()
         with self.assertRaises(ToolApprovalRequired) as pending:
             await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, self.context(policy, constraints={"rag_search": FIELDS}), request_key="tool-1")
         saved = {"records": {"tool-1": {"status": "waiting", "interaction": pending.exception.request.bind("custom", "tool-1").to_dict()}}}
         changed = deepcopy(FIELDS)
         changed["limit"]["maximum"] = 10  # supplied arguments still valid; binding itself must reject.
         with self.assertRaisesRegex(ToolInvocationError, "binding changed"):
-            await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, self.context(ToolPolicy(authorize=ask),
+            await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, self.context(policy,
                 constraints={"rag_search": changed}, checkpoint=saved, decisions={"tool-1": True}), request_key="tool-1")
+        for contract in (ToolContract(revision="2", approval_required=True), ToolContract()):
+            with self.subTest(contract=contract), self.assertRaisesRegex(ToolInvocationError, "contract changed"):
+                await self.execute(replace(tool, contract=contract), {"query": "q", "limit": 5, "method": "hybrid"},
+                    self.context(policy, constraints={"rag_search": FIELDS}, checkpoint=saved,
+                                 decisions={"tool-1": True}), request_key="tool-1")
         handler.assert_not_awaited()
         await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, self.context(policy, constraints={"rag_search": FIELDS}, checkpoint=saved,
             decisions={"tool-1": True}), request_key="tool-1")

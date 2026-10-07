@@ -4,7 +4,7 @@ import unittest
 from llm.core.interactions import approval_request
 from llm.core.models import ProjectConfig
 from llm.engines.loop import LoopEngine
-from llm.components.tools import ToolClassification
+from llm.components.tools import ToolClassification, ToolContract
 from llm.services.runtime.tools import ToolPolicy, ToolApprovalRequired
 from tests.llm import test_long_running as long_running
 from tests.llm.test_loop import call, chunk
@@ -61,11 +61,9 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                         return ToolClassification("read", "app", 10)
                     finally:
                         stopped.set()
-                async def ask(call):
-                    raise ToolApprovalRequired("review")
                 _, session, _ = await self.setup_app(act, [
                     [chunk(calls=[call("{}", name="act")], finish="tool_calls")]],
-                    ToolPolicy(authorize=ask, classify=classify))
+                    ToolPolicy(classify=classify), tool_contract=ToolContract(approval_required=True))
                 handle = await session.run.submit("go", engine="loop")
                 await asyncio.wait_for(started.wait(), 10)
                 if interrupted:
@@ -108,16 +106,22 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                 async def act(args):
                     effects.append(args)
                 async def authorize(call):
-                    if state["deny"]:
-                        return False
-                    raise ToolApprovalRequired("review")
+                    return not state["deny"]
                 app, session, _ = await self.setup_app(act, [
                     [chunk(calls=[call("{}", name="act")], finish="tool_calls")],
-                    [chunk("done", finish="stop")]], ToolPolicy(authorize=authorize,
-                        classify=lambda call: ToolClassification("execute", "app", state["risk"])))
+                    [chunk("done", finish="stop")]], ToolPolicy(authorize=authorize if change == "deny" else None,
+                        classify=lambda call: ToolClassification("execute", "app", state["risk"])),
+                    tool_contract=ToolContract(approval_required=True),
+                    policies={"approval": {"enabled": True, "risk_scheme": "app", "rules": [
+                        {"id": "execute", "category": "execute", "max_risk": 20}]}} if change == "deny" else {})
                 run = await (await session.run.submit("go", engine="loop")).wait()
-                request, = await run.ainteractions(pending_only=True)
-                await run.arespond(request.respond("approve"))
+                self.assertEqual(run.data.status, "paused", run.data.error)
+                self.assertEqual(effects, [])
+                if change == "deny":
+                    self.assertEqual([r.actor for r in await run.ainteraction_responses()], ["policy"])
+                else:
+                    request, = await run.ainteractions(pending_only=True)
+                    await run.arespond(request.respond("approve"))
                 state["risk" if change == "classification" else "deny"] = 50 if change == "classification" else True
                 resumed = await (await session.run.resume(run.id, engine="loop")).wait()
                 self.assertEqual(resumed.data.status, "failed")
@@ -128,31 +132,38 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn("classification changed", resumed.data.error)
 
     async def test_scheme_risk_and_final_arguments_control_project_autoapproval(self):
-        for scheme, risk, expected in (("app", 20, 1), ("app", 40, 1), ("app", 41, 0), ("other", 1, 0), ("app", None, 0)):
+        for scheme, risk, expected in (("test-v1", 10, 1), ("test-v1", 20, 1), ("test-v1", 21, 0), ("other", 1, 0), ("test-v1", None, 0)):
             with self.subTest(scheme=scheme, risk=risk):
                 effects, seen = [], []
                 async def act(args):
                     effects.append(args)
-                async def ask(call):
-                    raise ToolApprovalRequired("review")
                 def classify(call):
                     seen.append(call.arguments)
-                    return ToolClassification("file.read", scheme, risk)
+                    return ToolClassification("file.write", scheme, risk)
                 app, session, _ = await self.setup_app(act, [
                     [chunk(calls=[call('{"risk":0}', name="act")], finish="tool_calls")],
-                    [chunk("done", finish="stop")]], ToolPolicy(authorize=ask, classify=classify), policies={
-                        "approval": {"enabled": True, "risk_scheme": "app", "rules": [
-                            {"id": "read", "category": "file.read", "max_risk": 40}]},
+                    [chunk("done", finish="stop")]], ToolPolicy(classify=classify), policies={
+                        "approval": {"enabled": True, "risk_scheme": "test-v1", "rules": [
+                            {"id": "write", "category": "file.write", "max_risk": 20}]},
                         "tools": {"argument_constraints": {"act": {"command": {"mode": "fixed", "value": "x"}}}}},
-                    tool_schema={"type": "object", "properties": {"risk": {"type": "integer"}, "command": {"type": "string"}}})
+                    tool_schema={"type": "object", "properties": {"risk": {"type": "integer"}, "command": {"type": "string"}}},
+                    tool_contract=ToolContract(approval_required=True))
                 run = await (await session.run.submit("go", engine="loop")).wait()
                 self.assertEqual(run.data.status, "paused", run.data.error)
                 self.assertEqual(effects, [])
                 self.assertEqual(seen, [{"risk": 0, "command": "x"}])
                 responses = await run.ainteraction_responses()
                 self.assertEqual(len(responses), expected)
+                request, = await run.ainteractions()
+                self.assertEqual((request.category, request.risk_scheme, request.risk), ("file.write", scheme, risk))
+                self.assertEqual(len(await run.ainteractions(pending_only=True)), 0 if expected else 1)
                 if expected:
                     self.assertEqual(responses[0].actor, "policy")
+                    resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+                    self.assertEqual(resumed.data.status, "completed", resumed.data.error)
+                    self.assertEqual(len(effects), 1)
+                else:
+                    await run.arespond(request.respond("approve"))
                     resumed = await (await session.run.resume(run.id, engine="loop")).wait()
                     self.assertEqual(resumed.data.status, "completed", resumed.data.error)
                     self.assertEqual(len(effects), 1)

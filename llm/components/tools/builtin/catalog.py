@@ -6,7 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence
 
-from llm.components.tools.registry import Tool, ToolRegistry
+from llm.components.tools.registry import Tool, ToolContract, ToolRegistry
 from llm.core.schema import open_schema
 from llm.services.infrastructure.storage import drain_on_cancel
 from .files import FileTools
@@ -48,6 +48,11 @@ class BuiltinTools:
         digest = string(pattern="^[0-9a-f]{64}$")
         patterns = {"type": "array", "items": string(minLength=1), "minItems": 1}
         filters = {"include": patterns, "exclude": patterns}
+        # 효과를 낼 수 있는 Tool은 항상 결정이 필요하다. 자동 응답의 위험 기준은
+        # Project가 소유하며, 이 계약은 사람의 승인만을 강제하는 정책이 아니다.
+        mutation = ToolContract(effect="external", approval_required=True)
+        execution = ToolContract(approval_required=True)
+        file_mutations = {"file_create", "file_patch", "file_move", "file_delete", "file_restore"}
         specs = {
             "file_read": ("Read UTF-8 source or logs and the whole-file SHA-256. Use line ranges or tail_lines (mutually exclusive). expected_sha256 rejects a changed file.", schema({"path": path, "start_line": {"type": "integer", "minimum": 1}, "max_lines": {"type": "integer", "minimum": 1}, "tail_lines": {"type": "integer", "minimum": 1}, "expected_sha256": digest}, ["path"])),
             "file_list": ("List working directory entries without following links. include/exclude are pathlib relative-path glob patterns; excluded directories are not traversed.", schema({"path": path, "recursive": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1}, **filters}, ["recursive"])),
@@ -63,7 +68,8 @@ class BuiltinTools:
             async def file_call(args, operation=name):
                 # 승인된 파일 변경은 완료를 기다린 뒤 취소를 전달한다.
                 return await drain_on_cancel(asyncio.to_thread(getattr(self.files.for_arguments(args), operation), args))
-            self._register(name, description, parameters, file_call)
+            self._register(name, description, parameters, file_call,
+                           contract=mutation if name in file_mutations else None)
 
         limits = {"timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
                   "max_output_bytes": {"type": "integer", "minimum": 1}}
@@ -77,12 +83,15 @@ class BuiltinTools:
                 return await self.processes.execute({"argv": commands[args["name"]], **{key: args[key] for key in limits if key in args}})
             for name in ("check_run", "test_run"):
                 self._register(name, "Run a developer-configured validation command.",
-                               schema({"name": {"enum": list(commands)}, **limits}, ["name"]), check)
+                               schema({"name": {"enum": list(commands)}, **limits}, ["name"]), check,
+                               contract=execution)
         if allow_commands:
             process_schema = schema({"argv": {"type": "array", "minItems": 1, "items": string(minLength=1)}, "cwd": path, "stdin": {"type": "boolean", "description": "Explicitly open an input pipe for process_write. This is not a PTY."}, **limits}, ["argv"])
-            self._register("process_start", "Start an argv command; returns an ID for polling/cancellation.", process_schema, self.processes.start)
+            self._register("process_start", "Start an argv command; returns an ID for polling/cancellation.", process_schema, self.processes.start,
+                           contract=execution)
             self._register("process_write", "Send exact text to a process started here with stdin=true, or close its input. No automatic newline. Do not replay uncertain writes.",
-                           schema({"process_id": string(), "text": string(), "close": {"type": "boolean"}}, ["process_id"]), self.processes.write)
+                           schema({"process_id": string(), "text": string(), "close": {"type": "boolean"}}, ["process_id"]), self.processes.write,
+                           contract=execution)
             prefix = list(shell) if shell is not None else []
             if isinstance(shell, str) or not prefix or any(not isinstance(item, str) or not item for item in prefix):
                 raise ValueError("shell must be a nonempty argv prefix")
@@ -90,10 +99,12 @@ class BuiltinTools:
                 return await self.processes.execute({"argv": prefix + [args["command"]],
                     **{key: value for key, value in args.items() if key != "command"}})
             self._register("shell_execute", "Execute a host shell command and wait for its result.",
-                           schema({"command": string(minLength=1), "cwd": path, **limits}, ["command"]), execute_shell)
+                           schema({"command": string(minLength=1), "cwd": path, **limits}, ["command"]), execute_shell,
+                           contract=execution)
         if allow_commands or commands or git:
             for name, method in (("process_status", self.processes.status), ("process_cancel", self.processes.cancel)):
-                self._register(name, "Inspect or cancel a process started by this Tool collection.", schema({"process_id": string()}, ["process_id"]), method)
+                self._register(name, "Inspect or cancel a process started by this Tool collection.", schema({"process_id": string()}, ["process_id"]), method,
+                               contract=mutation if name == "process_cancel" else None)
             self._register("process_output", "Read retained process output incrementally. Offsets count decoded Unicode characters independently in stdout/stderr. Use next offsets to avoid duplicate text. truncated means configured capture discarded output; stream ordering is not a global event timeline.",
                 schema({"process_id": string(), "stdout_offset": {"type": "integer", "minimum": 0},
                         "stderr_offset": {"type": "integer", "minimum": 0}, "max_chars": {"type": "integer", "minimum": 1, "description": "Maximum characters per stream in this page."}},
@@ -143,14 +154,16 @@ class BuiltinTools:
                            "The host interprets corpus/query/options; this does not search the current Project's local RAG."
                            if name in ("external_rag_search", "external_graphrag_search")
                            else f"Invoke the configured host adapter: {name}.")
-            self._register(name, description, adapter_specs[name], handler)
+            # 브라우저 이동/조작과 커널 코드/초기화는 외부 세션을 변경한다.
+            self._register(name, description, adapter_specs[name], handler,
+                           contract=execution if name in {"browser_open", "browser_act", "kernel_execute", "kernel_reset"} else None)
 
-    def _register(self, name, description, parameters, handler):
+    def _register(self, name, description, parameters, handler, *, contract=None):
         async def guarded(args):
             if self.closed:
                 raise RuntimeError("BuiltinTools is closed")
             return await handler(args)
-        self.registry.register(Tool(name, description, parameters, guarded))
+        self.registry.register(Tool(name, description, parameters, guarded, contract=contract))
 
     def bind_prompts(self, agents) -> None:
         """조회만 공개한다. 영속 지침 변경은 별도의 Refinement 승인 경계를 사용한다."""

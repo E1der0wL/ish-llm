@@ -12,14 +12,16 @@ from unittest.mock import patch
 
 from tests.llm.support.runtime_tools import RuntimeTools
 from llm.components.agents import AgentComponent
-from llm.components.tools import ToolComponent
-from llm.components.tools.builtin import BuiltinTools
+from llm.components.tools import ToolComponent, ToolClassification
+from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.core.models import RunStatus
 from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
 from llm.engines.graph.tool import ToolNode
 from llm.llm import LargeLanguageModel
+from llm.services.configuration import ServiceConfig
+from llm.services.runtime.tools import ToolPolicy
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
@@ -40,6 +42,64 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                 args.setdefault(key, value)
         tool, values = self.tools.registry.prepare(name, json.dumps(args))
         return await tool.handler(values)
+
+    async def test_effect_contracts_cover_mutations_but_not_read_only_tools(self):
+        async def adapter(args):
+            return args
+        async with BuiltinTools(self.work, allow_commands=True, shell=["/bin/sh", "-c"],
+                                git=True, diagnostics=True, checks={"unit": [sys.executable, "-V"]},
+                                adapters={name: adapter for name in ("browser_open", "browser_act", "browser_snapshot",
+                                    "kernel_execute", "kernel_reset", "web_search", "web_fetch")}) as toolkit:
+            mutations = {"file_create", "file_patch", "file_move", "file_delete", "file_restore",
+                         "process_start", "process_write", "process_cancel", "shell_execute", "check_run", "test_run",
+                         "browser_open", "browser_act", "kernel_execute", "kernel_reset"}
+            for name in toolkit.registry.names():
+                with self.subTest(tool=name):
+                    contract = toolkit.registry.get(name).contract
+                    self.assertEqual(bool(contract and contract.approval_required), name in mutations)
+
+    async def test_builtin_project_threshold_without_host_ask_and_environment_binding(self):
+        for risk, change_environment in ((20, False), (21, False), (20, True)):
+            with self.subTest(risk=risk, change_environment=change_environment):
+                filename = f"approved-{risk}-{change_environment}.txt"
+                args = {"path": filename, "content": "approved effect"}
+                model = ScriptedCompletion([chunk(calls=[call(json.dumps(args), name="file_create")], finish="tool_calls")],
+                                           [chunk("done", finish="stop")])
+                component = BuiltinToolComponent(self.tools, name="builtin")
+                policy = ToolPolicy(classify=lambda call: ToolClassification("file.write", "test-v1", risk))
+                self.assertIsNone(policy.authorize)
+                async with LargeLanguageModel(self.root / f"backend-{risk}-{change_environment}", components=[component],
+                        engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy)) as backend:
+                    project = await backend.projects.acreate(components=["builtin"], config={
+                        "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test/model"}}}},
+                                       "components": {"builtin": {"config": {"enabled": ["file_create"]}}}},
+                        "policies": {"approval": {"enabled": True, "risk_scheme": "test-v1", "rules": [
+                            {"id": "write", "category": "file.write", "max_risk": 20}]}}})
+                    session = await project.sessions.acreate()
+                    run = await (await session.run.submit("create", engine="loop")).wait()
+                    self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
+                    self.assertFalse((self.work / filename).exists())
+                    responses = await run.ainteraction_responses()
+                    self.assertEqual([r.actor for r in responses], ["policy"] if risk == 20 else [])
+                    request, = await run.ainteractions()
+                    self.assertTrue(request.action["contract"]["approval_required"])
+                    if risk > 20:
+                        self.assertEqual(len(await run.ainteractions(pending_only=True)), 1)
+                        await run.arespond(request.respond("approve"))
+                    if change_environment:
+                        (self.root / "changed-root").mkdir()
+                        component.toolkit = BuiltinTools(self.root / "changed-root")
+                        self.addAsyncCleanup(component.toolkit.close)
+                    if change_environment:
+                        with self.assertRaisesRegex(ValueError, "changed"):
+                            await session.run.resume(run.id, engine="loop")
+                        self.assertFalse((self.work / filename).exists())
+                        self.assertFalse((self.root / "changed-root" / filename).exists())
+                        self.assertEqual(len(await session.run.alist()), 1)
+                    else:
+                        resumed = await (await session.run.resume(run.id, engine="loop")).wait()
+                        self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
+                        self.assertEqual((self.work / filename).read_text(), "approved effect")
 
     async def test_file_crud_versions_search_and_restore(self):
         created = await self.invoke("file_create", path="src/a.py", content="print('한글')\n")
@@ -347,6 +407,11 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             await selected.aenable("file_create")
             session = await project.sessions.acreate()
             run = await (await session.run.submit("create", engine="loop")).wait()
+            self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
+            self.assertFalse((self.work / "loop.txt").exists())
+            request, = await run.ainteractions(pending_only=True)
+            await run.arespond(request.respond("approve"))
+            run = await (await session.run.resume(run.id, engine="loop")).wait()
             self.assertEqual(run.data.status, RunStatus.COMPLETED)
             step = next(step for step in await run.steps.alist() if step.kind == "tool")
             self.assertEqual(step.metadata["arguments"], arguments)
@@ -364,6 +429,11 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             await (await project.components.aget("workflows")).acreate(graph, identifier="g")
             session = await project.sessions.acreate()
             run = await (await session.run.submit("create", engine="graph", engine_options={"workflow": "g"})).wait()
+            self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
+            self.assertFalse((self.work / "graph.txt").exists())
+            request, = await run.ainteractions(pending_only=True)
+            await run.arespond(request.respond("approve"))
+            run = await (await session.run.resume(run.id, engine="graph")).wait()
             self.assertEqual(run.data.status, RunStatus.COMPLETED)
             steps = await run.steps.alist()
             tool = next(step for step in steps if step.kind == "tool")

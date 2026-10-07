@@ -249,11 +249,11 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, 'edit_conflict'):
             await tools.aconfigure({'config': {'enabled': ['act']}}, expected_version=snapshot['version'])
 
-    async def setup_app(self, handler, responses, policy=None, *, policies=None, tool_schema=None):
+    async def setup_app(self, handler, responses, policy=None, *, policies=None, tool_schema=None, tool_contract=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         model = ScriptedCompletion(*responses)
-        tools = ToolRegistry((Tool("act", "action", tool_schema or {"type": "object"}, handler),))
+        tools = ToolRegistry((Tool("act", "action", tool_schema or {"type": "object"}, handler, contract=tool_contract),))
         app = LargeLanguageModel(Path(temporary.name), components=[RuntimeTools(tools)],
             engines={"loop": LoopEngine(completion_fn=model)}, services=ServiceConfig(tool_policy=policy or ToolPolicy()))
         self.addAsyncCleanup(app.shutdown)
