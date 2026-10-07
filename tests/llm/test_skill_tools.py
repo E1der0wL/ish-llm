@@ -132,7 +132,18 @@ class SkillIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await project.components.skills.acreate(guide, identifier="code")
                 session = await project.sessions.acreate()
                 run = await (await session.run.submit("Fix addition", engine="loop")).wait(timeout=20)
+                for expected in ("file_patch", "test_run"):
+                    self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
+                    self.assertEqual((work / "sample.py").read_text(),
+                                     source if expected == "file_patch" else source.replace("a - b", "a + b"))
+                    request, = await run.ainteractions(pending_only=True)
+                    self.assertEqual(request.action["tool"], expected)
+                    await run.arespond(request.respond("approve"))
+                    run = await (await session.run.resume(run.id, engine="loop")).wait(timeout=20)
                 self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+                self.assertEqual(len(await session.run.alist()), 3)
+                self.assertEqual(len(completion.requests), 7)
+                # 재개 Run에는 완료 receipt의 Step 사본도 있으므로 최종 Run을 조회한다.
                 steps = [s for s in await run.steps.alist() if s.kind == "tool"]
                 self.assertEqual([s.name for s in steps], ["skill_list", "skill_read", "file_search", "file_read", "file_patch", "test_run"])
                 self.assertTrue(all(s.status == StepStatus.COMPLETED for s in steps))
