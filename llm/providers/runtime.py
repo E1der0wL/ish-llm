@@ -13,6 +13,7 @@ from logging.handlers import RotatingFileHandler
 
 _observer = ContextVar("provider_diagnostics", default=None)
 _directory = ContextVar("provider_log_directory", default=None)
+_source = ContextVar("provider_log_source", default=None)
 _lock = threading.RLock()
 _handler = None
 _sdk = None
@@ -96,13 +97,17 @@ def configure_logging(workspace=None, *, refresh=False):
 
 
 @contextmanager
-def logging_scope(workspace):
+def logging_scope(workspace, *, project_id=None, session_id=None, run_id=None, engine=None):
     """동시에 사용하는 백엔드가 서로의 로그 경로를 덮어쓰지 않게 한다."""
     token = _directory.set(Path(workspace).absolute() / "logs")
+    source_token = _source.set({key: value for key, value in (
+        ("project_id", project_id), ("session_id", session_id), ("run_id", run_id),
+        ("engine", engine)) if value is not None})
     try:
         configure_logging()
         yield
     finally:
+        _source.reset(source_token)
         _directory.reset(token)
 
 
@@ -115,7 +120,11 @@ def litellm_sdk():
         os.environ["DEFAULT_MAX_RETRIES"] = "0"
         if _sdk is None:
             configure_logging(refresh=True)
-            _sdk = importlib.import_module("litellm")
+            try:
+                _sdk = importlib.import_module("litellm")
+            except Exception as error:
+                diagnostic_failure(error, operation="initialize", stage="sdk_import")
+                raise
             # Host owns the terminal: SDK help banners must not corrupt its input UI.
             _sdk.suppress_debug_info = True
             configure_logging(refresh=True)
@@ -145,7 +154,8 @@ def diagnostic_scope(callback):
 
 def diagnostic(code, *, severity="info", **details):
     from llm.core.contracts import Diagnostic
-    event = Diagnostic(code, code.replace("_", " "), severity=severity, details=details)
+    event = Diagnostic(code, code.replace("_", " "), severity=severity,
+                       details={**(_source.get() or {}), **details})
     configure_logging()
     logging.getLogger("llm.provider").log(getattr(logging, severity.upper()), event.message,
                                          extra={"provider_diagnostic": event.to_dict()})
@@ -156,3 +166,42 @@ def diagnostic(code, *, severity="info", **details):
         except Exception:
             pass
     return event
+
+
+def diagnostic_failure(error, *, operation, stage, **details):
+    """원문/locals/source 없이 실패 위치를 기록한다. 진단 실패는 실행 오류를 바꾸지 않는다.
+
+    SDK 예외 메시지에는 인증·본문이 섞일 수 있으므로 포맷된 traceback 대신
+    파일/행/함수만 수집한다. 사용자 요청의 성공·재시도·취소 판단에는 관여하지 않는다.
+    """
+    try:
+        from llm.errors import exception_chain
+        from .requests import error_code
+        chain = []
+        for current in exception_chain(error):
+            entry = {"type": f"{type(current).__module__}.{type(current).__qualname__}", "frames": []}
+            status = getattr(current, "status_code", None)
+            if type(status) is int:
+                entry["status_code"] = status
+            if isinstance(current, OSError) and type(current.errno) is int:
+                entry["errno"] = current.errno
+            if isinstance(current, AttributeError) and isinstance(current.name, str) and current.name.isidentifier():
+                entry["attribute"] = current.name
+            if isinstance(current, ImportError) and isinstance(current.name, str):
+                # ImportError.name은 Python import identity다. args/message/path는 기록하지 않는다.
+                if all(part.isidentifier() for part in current.name.split(".")):
+                    entry["module"] = current.name
+            trace = current.__traceback__
+            while trace is not None:
+                code = trace.tb_frame.f_code
+                entry["frames"].append({"file": code.co_filename, "line": trace.tb_lineno,
+                                        "function": code.co_name})
+                trace = trace.tb_next
+            chain.append(entry)
+        return diagnostic(error_code(error), severity="error", operation=operation,
+                          stage=stage, exceptions=chain, **details)
+    except Exception:
+        # 파일/observer/예외 객체가 고장나도 원래 실패와 cleanup 순서를 보존한다.
+        if _handler is not None:
+            _handler.failed_writes += 1
+        return None

@@ -131,6 +131,27 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         run = self.manager.repository.list(self.session)[-1]
         return self.store.get(run.assistant_message_id).content
 
+    async def test_failed_provider_log_is_correlated_with_persisted_run(self):
+        from llm.providers import runtime
+        from llm.providers.litellm import completion
+        failure = ModuleNotFoundError("PRIVATE-SDK-MESSAGE", name="missing_provider_dependency")
+        def fail(**request):
+            raise failure
+        self.engine(completion)
+        events = []
+        with patch.object(runtime, "_sdk", SimpleNamespace(completion=fail)), runtime.diagnostic_scope(events.append):
+            await self.submit()
+        run = self.manager.repository.list(self.session)[-1]
+        self.assertEqual(run.status, RunStatus.FAILED)
+        self.assertEqual(run.error_code, "provider_failed")
+        self.assertNotIn("PRIVATE", run.error)
+        details = next(event.details for event in events if event.details.get("stage") == "request")
+        self.assertEqual(details["project_id"], self.project.id)
+        self.assertEqual(details["session_id"], self.session.id)
+        self.assertEqual(details["run_id"], run.id)
+        self.assertEqual(details["engine"], "loop")
+        self.assertEqual(details["exceptions"][0]["module"], "missing_provider_dependency")
+
     async def test_real_time_deltas_and_request_configuration(self) -> None:
         release = threading.Event()
         closed = threading.Event()

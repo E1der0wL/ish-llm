@@ -209,6 +209,154 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("PRIVATE", content)
         self.assertIn('"logger": "dotenv.main"', content)
 
+    async def test_import_failure_logs_original_chain_and_positions_without_payload(self):
+        from llm.providers import runtime
+        from llm.providers.litellm import stream_completion, StreamError
+        events = []
+        def broken_import(name):
+            try:
+                raise ModuleNotFoundError("PRIVATE-KEY PRIVATE-DOCUMENT", name="missing_sdk_module")
+            except ModuleNotFoundError as cause:
+                raise RuntimeError("PRIVATE-RESPONSE") from cause
+        out, err = io.StringIO(), io.StringIO()
+        with runtime.logging_scope(self.temp.name, project_id="project", session_id="session", run_id="run", engine="loop"), \
+                diagnostic_scope(events.append), patch.object(runtime, "_sdk", None), \
+                patch.object(runtime.importlib, "import_module", broken_import), \
+                redirect_stdout(out), redirect_stderr(err):
+            with self.assertRaises(StreamError) as caught:
+                async for _ in stream_completion({"api_key": "PRIVATE-KEY", "messages": ["PRIVATE-DOCUMENT"],
+                                                   "tools": [{"description": "PRIVATE-TOOL"}]}):
+                    pass
+        self.assertEqual(caught.exception.code, "provider_failed")
+        self.assertIsInstance(caught.exception.__cause__, RuntimeError)
+        self.assertEqual([e.details["stage"] for e in events], ["sdk_import", "request"])
+        for event in events:
+            self.assertEqual(event.details["run_id"], "run")
+            self.assertEqual(event.details["engine"], "loop")
+            chain = event.details["exceptions"]
+            self.assertEqual([e["type"] for e in chain], ["builtins.RuntimeError", "builtins.ModuleNotFoundError"])
+            self.assertEqual(chain[-1]["module"], "missing_sdk_module")
+            self.assertEqual(chain[-1]["frames"][-1]["function"], "broken_import")
+            self.assertGreater(chain[-1]["frames"][-1]["line"], 0)
+            self.assertTrue(chain[-1]["frames"][-1]["file"].endswith("test_provider_runtime.py"))
+        self.assertEqual(events[-1].details["tool_count"], 1)
+        self.assertEqual(events[-1].details["chunks_received"], 0)
+        content = next((Path(self.temp.name) / "logs").glob("providers-*.log")).read_text()
+        self.assertIn("missing_sdk_module", content)
+        self.assertNotIn("PRIVATE", content)
+        self.assertEqual(out.getvalue() + err.getvalue(), "")
+
+    async def test_stream_failure_stages_and_secondary_cleanup_preserve_original(self):
+        from llm.providers.litellm import stream_completion, StreamError
+        class BrokenStream:
+            def __init__(self, stage):
+                self.stage, self.reads, self.closed = stage, 0, False
+            def __iter__(self):
+                if self.stage == "stream_open":
+                    raise TypeError("PRIVATE open")
+                return self
+            def __next__(self):
+                self.reads += 1
+                if self.reads == 1:
+                    return {"choices": []}
+                if self.stage == "stream_read":
+                    raise ValueError("PRIVATE read")
+                raise StopIteration
+            def close(self):
+                self.closed = True
+                if self.stage in ("stream_read", "stream_close"):
+                    raise OSError("PRIVATE close")
+        for stage, expected_type in (("stream_open", TypeError), ("stream_read", ValueError), ("stream_close", OSError)):
+            with self.subTest(stage=stage):
+                stream, events = BrokenStream(stage), []
+                with diagnostic_scope(events.append), self.assertRaises(StreamError) as caught:
+                    async for _ in stream_completion({}, completion_fn=lambda **_: stream):
+                        pass
+                self.assertIsInstance(caught.exception.__cause__, expected_type)
+                self.assertTrue(stream.closed)
+                self.assertEqual(events[0].details["stage"], stage)
+                self.assertEqual(events[0].details["chunks_received"], 0 if stage == "stream_open" else 1)
+                if stage == "stream_read":
+                    self.assertEqual(len(events), 2)
+                    self.assertTrue(events[-1].details["secondary"])
+
+    async def test_invoke_diagnostics_keep_attempt_status_and_implicit_context(self):
+        events, calls = [], []
+        async def failure(**request):
+            calls.append(request)
+            try:
+                raise TypeError("PRIVATE body")
+            except TypeError:
+                error = RuntimeError("PRIVATE provider response")
+                error.status_code = 503
+                raise error
+        with diagnostic_scope(events.append), self.assertRaises(ProviderError):
+            await invoke("arerank", {"api_key": "PRIVATE key"}, failure, {"max_attempts": 2})
+        failures = [e for e in events if e.code == "provider_unavailable"]
+        self.assertEqual(len(calls), 2)
+        self.assertEqual([e.details["attempt"] for e in failures], [1, 2])
+        self.assertEqual(failures[0].details["exceptions"][0]["status_code"], 503)
+        self.assertEqual(failures[0].details["exceptions"][1]["type"], "builtins.TypeError")
+        self.assertNotIn("PRIVATE", json.dumps([e.to_dict() for e in events]))
+
+    async def test_failure_logs_keep_worker_run_context_isolated(self):
+        from llm.providers.runtime import logging_scope, diagnostic
+        from llm.providers.litellm import stream_completion, StreamError
+        def fail(**kwargs):
+            raise ValueError("PRIVATE")
+        async def run(name):
+            with logging_scope(Path(self.temp.name) / name, run_id=name):
+                with self.assertRaises(StreamError):
+                    async for _ in stream_completion({}, completion_fn=fail):
+                        pass
+        events = []
+        with diagnostic_scope(events.append):
+            await asyncio.gather(run("first"), run("second"))
+            diagnostic("outside")
+        self.assertEqual({e.details["run_id"] for e in events[:-1]}, {"first", "second"})
+        self.assertNotIn("run_id", events[-1].details)
+        for name in ("first", "second"):
+            content = next((Path(self.temp.name) / name / "logs").glob("*.log")).read_text()
+            row = json.loads(content[content.index("{"):])
+            self.assertEqual(row["details"]["run_id"], name)
+
+    async def test_failure_logging_errors_never_replace_provider_failure(self):
+        from llm.providers import runtime
+        from llm.providers.litellm import stream_completion, StreamError
+        failure = ValueError("original")
+        def fail(**kwargs):
+            raise failure
+        with patch.object(runtime, "diagnostic", side_effect=OSError("disk full")), self.assertRaises(StreamError) as caught:
+            async for _ in stream_completion({}, completion_fn=fail):
+                pass
+        self.assertIs(caught.exception.__cause__, failure)
+
+    async def test_cancelled_stream_does_not_become_logged_failure(self):
+        from llm.providers.litellm import stream_completion
+        entered, released, closed = threading.Event(), threading.Event(), threading.Event()
+        def stream(**kwargs):
+            try:
+                entered.set()
+                released.wait(3)
+                yield {}
+            finally:
+                closed.set()
+        async def consume():
+            async for _ in stream_completion({}, completion_fn=stream):
+                pass
+        events = []
+        with diagnostic_scope(events.append):
+            task = asyncio.create_task(consume())
+            try:
+                self.assertTrue(await asyncio.to_thread(entered.wait, 2))
+                task.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+            finally:
+                released.set()
+                self.assertTrue(await asyncio.to_thread(closed.wait, 2))
+        self.assertEqual(events, [])
+
     def test_all_integer_5xx_and_wrapped_causes_are_unavailable(self):
         for status in (*range(500, 600), 499, 600, "500", None):
             with self.subTest(status=status):

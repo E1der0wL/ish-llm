@@ -982,7 +982,7 @@ class RunManager:
             async with guard:
                 counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"].get("usage", {}).get("counter"))
                 source = {"project_id": runtime.project.id, "session_id": runtime.session.id, "run_id": run.id}
-                with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope():
+                with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent, **source, engine=run.engine), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope():
                     await self._consume(runtime, run, policies)
         except asyncio.TimeoutError as error:
             expired = guard.expired() if callable(guard.expired) else guard.expired

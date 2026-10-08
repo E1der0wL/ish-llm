@@ -6,7 +6,7 @@ import math
 
 from .observations import observed_call
 from .parameters import copy_params
-from .runtime import diagnostic
+from .runtime import diagnostic, diagnostic_failure
 from .retry import effective_attempts
 from llm.errors import CodedError
 
@@ -120,8 +120,8 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
             return await asyncio.wait_for(observed_call(operation, copy_params(request), checked), remaining)
         except Exception as error:
             code = error_code(error)
-            diagnostic(code, severity="warning", operation=operation, attempt=attempt + 1,
-                       model=request.get("model"), elapsed_seconds=time.monotonic() - started)
+            diagnostic_failure(error, operation=operation, stage="invoke", attempt=attempt + 1,
+                               model=request.get("model"), elapsed_seconds=time.monotonic() - started)
             if code not in TRANSIENT or attempt + 1 >= attempts:
                 if code == "provider_failed" or not code.startswith("provider_"):
                     raise

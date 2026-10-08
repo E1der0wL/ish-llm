@@ -78,7 +78,33 @@ provider `wall_timeout`은 독립이다. 동기 SDK worker는
 중첩 scope의 관찰자도 호출된다. 엔진 응답은 기존 EngineEvent 흐름을 유지한다.
 
 SDK 임의 로그는 요청 본문·인증을 포함할 수 있으므로 원문 대신 logger/등급/모듈/행을
-기록한다. 모델 호출 실패는 별도로 operation/model/오류 코드/시도/경과 시간을 기록한다.
+기록한다. 호출 실패는 `diagnostic_failure()`가 오류 코드, operation, stage, 경과 시간,
+예외 체인과 각 예외의 파일·행·함수를 기록한다. cause 또는 숨겨지지 않은 context를 따라간다.
+HTTP status와 OS errno가 있으면 포함하고, import 실패의 module 및 AttributeError의 attribute도
+기록한다. 비스트리밍 호출에는 model과 시도 번호, 스트리밍에는 수신 chunk 수와 Tool 개수를
+포함한다. 원래 예외 메시지, 소스 줄, 지역 변수, 요청·응답 본문, 인증/URL은 추가로 기록하지 않는다.
+`provider_failed`는 미분류 오류이며 서버 장애라는 뜻이 아니다. Run/Step의 오류 코드는 그대로 유지한다.
+
+RunManager는 Project/Session/Run ID와 engine을 로그 문맥에 연결한다. 스트림 worker도 그 문맥을
+상속하며, 다른 Run/workspace와 섞이지 않는다. 별도 Run이 없는 직접 모델 호출에는 ID가 없다.
+동기 SDK 초기화 실패는 `initialize/sdk_import`, completion 호출 실패는 `completion/request`,
+iterator 생성은 `stream_open`, 수신은 `stream_read`, 종료는 `stream_close`로 구분한다.
+SDK import 실패는 초기화 경계와 이를 호출한 요청 경계에 각각 기록될 수 있다.
+`chunks_received=0`은 bridge가 chunk를 받지 못했다는 뜻이며 HTTP 요청이 없었다는 보장은 아니다.
+SDK가 첫 `next()`에서 HTTP 요청을 시작할 수도 있다. 비스트리밍은 `invoke` 단계로 기록한다.
+기존 오류 뒤의 cleanup 오류는 `secondary=true`이며 원래 실패를 대체하지 않는다.
+취소를 provider 실패로 바꾸지 않고, 로그 기록 장애도 원래 실행 결과를 바꾸지 않는다.
+
+Hub 기본 workspace를 사용하는 Linux 환경에서 최근 오류 위치는 다음으로 확인한다.
+
+```bash
+tail -n 30 ~/.ish/hub-workspace/logs/providers-*.log
+```
+
+workspace를 지정했다면 그 경로의 `logs/`를 확인한다. 로그 한 줄은 시간·등급 뒤의 JSON이며
+`details.run_id`로 해당 Run을 찾고 `details.exceptions`의 마지막 예외/마지막 frame부터 확인한다.
+기존 로그에 없던 traceback은 복구되지 않으므로 변경 적용 후 재현한 오류부터 상세 위치가 남는다.
+
 `py.warnings`, LiteLLM, Router, Proxy, httpx/httpcore, `dotenv` 및 하위 logger가 콘솔로 전파되지 않는다.
 애플리케이션의 stdout/stderr 전체를 전역 redirect하지 않는다.
 

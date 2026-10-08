@@ -68,26 +68,41 @@ async def stream_completion(
     def produce() -> None:
         from llm.services.infrastructure.observability import record
         from .requests import error_code
+        from .runtime import diagnostic_failure
         started = time.monotonic()
         invoked = False
         stream = None
         failure = None
+        stage = "request"
+        chunks_received = 0
+
+        def report(error, stage, **details):
+            definitions = request.get("tools")
+            diagnostic_failure(error, operation="completion", stage=stage,
+                               chunks_received=chunks_received,
+                               tool_count=len(definitions) if isinstance(definitions, (list, tuple)) else 0,
+                               elapsed_seconds=time.monotonic() - started, **details)
         try:
             if stopped.is_set():
                 return
             invoked = True
             record("providers", "calls", name="completion")
             stream = completion_fn(**request)
+            stage = "stream_open"
             iterator = iter(stream)
+            stage = "stream_read"
             while not stopped.is_set():
                 try:
                     chunk = next(iterator)
                 except StopIteration:
                     break
+                chunks_received += 1
                 if not send("chunk", chunk):
                     break
         except BaseException as error:
             failure = error
+            if not isinstance(error, (asyncio.CancelledError, GeneratorExit)):
+                report(error, stage)
         finally:
             # Cleanup is never performed concurrently with next(stream).
             if stream is not None:
@@ -98,6 +113,8 @@ async def stream_completion(
                         if inspect.isawaitable(result):
                             asyncio.run(result)
                 except BaseException as error:
+                    if not isinstance(error, (asyncio.CancelledError, GeneratorExit)):
+                        report(error, "stream_close", secondary=failure is not None)
                     if failure is None:
                         failure = error
             try:
