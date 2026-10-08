@@ -34,6 +34,7 @@ class HubView:
         self.sessions = list(sessions)
         self.on_open = self.on_submit = self.on_select = self.on_new = None
         self.on_interrupt = self.on_steer = None
+        self.on_answer = None
         self.on_choose_engine = None
         self.on_history = self.on_activity = None
         self.on_turns = None
@@ -77,8 +78,15 @@ class HubView:
         self.composer = TextArea(
             multiline=True, height=Dimension(min=1, max=8), dont_extend_height=True,
             wrap_lines=True, prompt=f" {icon.PROMPT} ", style="class:hub.composer",
-            completer=ThreadedCompleter(completer), complete_while_typing=True,
+            completer=ThreadedCompleter(completer), complete_while_typing=Condition(
+                lambda: self.question.item is None and not self.input_history.browsing),
         )
+        from ..widget.question import QuestionComposer
+        self.question = QuestionComposer(self)
+        from ..widget.preparing import PreparingResponse
+        self.preparing = PreparingResponse(self)
+        from .input.history import ComposerHistory
+        self.input_history = ComposerHistory(self)
         self.transcript = ConversationView(self.sessions[0].messages, self.theme, language=self.t)
         self.output_renderers = self.transcript.control.renderers
         self.image_renderer = self.transcript.control.images
@@ -103,6 +111,7 @@ class HubView:
             style="class:hub.preview-frame", height=lambda: 3 if self._rows() < 32 else 5),
             Condition(lambda: self.show_preview and bool(self.composer.text) and self._rows() >= 24))
         self._composer_frame = Frame(HSplit([
+            self.question.container,
             self.composer,
             ConditionalContainer(self._line(lambda: " " + self.t("input_hint"), "hub.muted"),
                                  Condition(lambda: self._rows() >= 18)),
@@ -111,6 +120,7 @@ class HubView:
         conversation = HSplit([
             self._line(self._conversation_header, "hub.title"),
             DynamicContainer(lambda: self.welcome if self.no_sessions else self.transcript),
+            self.preparing.container,
             ConditionalContainer(self._line(lambda: " " + self.activity, "hub.muted"),
                                  Condition(lambda: bool(self.activity) and self._rows() >= 18)),
             self._preview_container,
@@ -280,6 +290,7 @@ class HubView:
         self._positions[self._draft_key(self.selected)] = self.transcript.control.reading_position()
 
     def select(self, index):
+        self.question.leave()
         self.tags.visible = False
         if self.search.active:
             self.close_dialog()

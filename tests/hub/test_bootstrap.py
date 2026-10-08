@@ -28,9 +28,9 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 run = (await runtime.sessions[runtime.selected_id].run.alist())[-1]
                 self.assertEqual(str((await run.aresult()).status), "completed")
                 self.assertEqual(provider.requests[0]["model"], "test/host")
-                self.assertEqual((await runtime.project.aget_data()).config.parameters,
-                                 {"engines": {"loop": {'config': {'system_prompt': SYSTEM_PROMPT,
-                                     'completion': {'model': 'test/host'}}}}})
+                self.assertEqual((await runtime.project.aget_data()).config.parameters["engines"],
+                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT,
+                                     'completion': {'model': 'test/host'}}}})
             finally:
                 await runtime.close()
 
@@ -52,8 +52,8 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.submit(session.id, "hello")
                 await runtime.sessions[session.id].run.wait_idle()
                 self.assertEqual(provider.requests[0]["model"], "test/session")
-                self.assertEqual((await runtime.project.aget_data()).config.parameters,
-                                 {"engines": {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}}}})
+                self.assertEqual((await runtime.project.aget_data()).config.parameters["engines"],
+                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}}})
             finally:
                 await runtime.close()
 
@@ -85,8 +85,8 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
                         await select_or_create(app, config)
                 self.assertEqual(await app.projects.alist(), [])
                 project = await select_or_create(app, config)
-                self.assertEqual((await project.aget_data()).config.parameters,
-                                 {"engines": {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}}}})
+                self.assertEqual((await project.aget_data()).config.parameters["engines"],
+                                 {"loop": {'config': {'system_prompt': SYSTEM_PROMPT}}})
                 self.assertEqual(await project.sessions.alist(), [])
 
     async def test_cancelled_lock_wait_does_not_create_and_future_start_works(self):

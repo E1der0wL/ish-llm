@@ -76,3 +76,4 @@ class HubSnapshot:
     file_root: str = ""
     notifications: tuple[SessionNotification, ...] = ()
     components: tuple[str, ...] = ()
+    questions: tuple[dict, ...] = ()

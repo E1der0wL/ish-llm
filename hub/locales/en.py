@@ -3,6 +3,16 @@
 
 
 MESSAGES = {
+    'shortcut_cancel': 'Cancel queued',
+    'preparing_response': 'Preparing…',
+    'history_cancel': 'Cancel queued',
+    'history_cancel_confirm': 'Cancel this queued request? The active Run will continue.',
+    'history_cancel_unavailable': 'Only queued requests can be cancelled. Use Ctrl+X to interrupt an active Run.',
+    'history_checkpoint_protected': 'An unfinished Run checkpoint references this turn. Choose delete again to review and confirm abandoning its dependent resumes.',
+    'history_abandon_delete': 'Abandon resumes and delete',
+    'history_delete_changed': 'The conversation or dependent Runs changed after review. Choose delete again to review the current plan.',
+    'history_abandon_confirm': 'Abandon resume for the following {count} Runs and delete this turn?\nPreviously performed effects will not be undone.\nThe turn is excluded from future context; execution records and checkpoints are retained.',
+
     'shortcut_movement': 'Navigation',
     'shortcut_clear': 'Clear',
     'shortcut_tags': 'Tags',
@@ -19,10 +29,10 @@ MESSAGES = {
     'component_manager_unavailable': 'The {name} manager is not available yet. Use settings or data commands.',
     'tags_title': 'Output tags',
     'tags_empty': 'No output objects.',
-    'tools_title': 'Tool packages',
+    'tools_title': 'Tools',
     'tools_import_hint': 'Directory path → Enter to import <name>/<name>.py and optional requirements.txt',
     'tools_columns': 'Name / Last modified / Description',
-    'tools_hint': 'Tab: region · ↑↓: select · Enter: file manager · d: delete',
+    'tools_hint': 'Tab: region · ↑↓: select · Space: toggle built-in · Enter: folder · d: delete',
     'tools_empty': 'No tools registered.',
     'tools_imported': 'Tool imported. Prepare dependencies and enable it separately before use.',
     'tools_failed': 'Operation failed; see the error notification.',
@@ -32,7 +42,7 @@ MESSAGES = {
     'session_required': 'Create a session first: ESC, then c in the session list.',
     'command_details': 'Output tag bar',
     'activity_hint': 'Last 300 entries · Navigation: scroll · ESC / Enter / Ctrl+L: close',
-    'help': '# Hub help\n\n## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+E** chooses an engine/Workflow. **Ctrl+R** toggles Markdown preview.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T** closes it. **Tab / Space / Enter** opens an enlarged popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **Arrows** selects fields.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config` imports, lists, opens and deletes Tool packages.\nPath completion inserts text; it does not attach files.\n',
+    'help': '# Hub help\n\n## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+E** chooses an engine/Workflow. **Ctrl+R** toggles Markdown preview.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **Arrows** selects fields.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** does nothing in the composer.\nPath completion inserts text; it does not attach files.\n',
     "settings_dependencies": "Required components: {names}",
     "settings_dependencies_missing": "Missing required components: {names} — select them before saving.",
     "title_model_required": "No title model is configured. Set the conversation engine model or parameters.engines._hub_title.completion.model.",
@@ -64,7 +74,7 @@ MESSAGES = {
 
     "history_title": "Requests and work", "history_empty": "No saved requests.",
 
-    "history_hint": "↑↓ select · d delete · r clone through here · Tab buttons",
+    "history_hint": "↑↓ select · c cancel queued · d delete · r clone through here · Tab buttons",
 
     "history_response": "Response", "history_delete": "Delete turn", "history_clone": "Clone through here",
 
@@ -396,4 +406,10 @@ MESSAGES = {
     'shortcut_minimize': 'minimize',
     'shortcut_next_session': 'next session',
     'shortcut_send': 'send',
+    'tools_builtin': 'Built-in tool',
+    'shortcut_tools_toggle': 'enable/disable',
+    'question_waiting': 'Question · waiting for your answer',
+    'question_action_hint': 'Review the full action in the output with Alt + Navigation.',
+    'question_text_hint': 'Type an answer or choice number, then press Enter.',
+    'question_choice_hint': 'Type a choice number, then Enter. Append an input value after the number if required.',
 }

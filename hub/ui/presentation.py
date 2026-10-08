@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass, replace
 from datetime import datetime
+import json
+import re
 
 from ..model import ChatMessage, HubSnapshot, SessionSummary
 
@@ -28,6 +30,15 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
 def present(snapshot: HubSnapshot, t) -> Presentation:
     sessions = tuple(replace(item, status=t("queued", status=t.status(item.status), count=item.queued_count)) for item in snapshot.sessions)
     messages = tuple(present_message(item, t) for item in snapshot.messages)
+    # Keep the complete action reviewable with the existing output scrollbar
+    # and tag viewer, even when it cannot fit above the answer field.
+    for item in snapshot.questions:
+        request = item["request"]
+        if request.get("action"):
+            action = json.dumps(request["action"], ensure_ascii=False, indent=2)
+            fence = "`" * max(3, max((len(part) for part in re.findall(r"`+", action)), default=0) + 1)
+            text = request["title"] + "\n\n" + request.get("description", "") + f"\n\n{fence}json\n{action}\n{fence}"
+            messages += (ChatMessage("assistant", text, id="interaction:" + request["id"]),)
     if not sessions:
         return Presentation((), messages, "", t("session_required"), "")
     detail = f"  {t('workspace')}\n  {snapshot.project_id}\n\n  {t('session')}\n  {snapshot.selected_id}\n"

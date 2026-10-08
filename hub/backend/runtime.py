@@ -63,6 +63,8 @@ def create_backend(config: HubConfig):
     from llm.components.mcp import MCPComponent
     from llm.components.rag import RAGComponent
     from .naming import TitleEngine, TITLE_ENGINE
+    from .builtin_tools import HubBuiltinTools
+    from .context import HubContextBuilder
     factories = {"loop": LoopEngine, **(config.engine_factories or {})}
     if config.engine not in factories and config.engine != "graph":
         raise ValueError("Register the selected engine in HubConfig.engine_factories")
@@ -73,12 +75,14 @@ def create_backend(config: HubConfig):
         engines[TITLE_ENGINE] = TitleEngine()
     components = {component.name: component for component in
                   (ToolComponent(), SkillComponent(), MCPComponent(), RAGComponent(),
-                   AgentComponent(engines=engines), WorkflowComponent(), MemoryComponent(), PromptComponent())}
+                   AgentComponent(engines=engines), WorkflowComponent(), MemoryComponent(), PromptComponent(),
+                   HubBuiltinTools(config.file_root))}
     for factory in config.component_factories or ():
         component = factory()
         components[component.name] = component
     return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
-                              services=BackendServices(tool_runtime=ToolRuntime(classify=config.tool_classifier)))
+                              services=BackendServices(context_builder=HubContextBuilder(),
+                                  tool_runtime=ToolRuntime(classify=config.tool_classifier)))
 
 
 class HubRuntime:
@@ -104,6 +108,7 @@ class HubRuntime:
         self._notification_keys = deque(maxlen=128)
         self._notification_sequence = 0
         self._observed_runs = {}
+        self.builtin_tools = None
         from .settings_service import SettingsService
         self.settings_service = SettingsService(self)
         preferences = self.settings_service.preferences.load()
@@ -116,6 +121,7 @@ class HubRuntime:
         self.dirty.set()
 
     async def _run_event(self, event) -> None:
+        self.snapshot_reader.invalidate(event.run.session_id)
         session = self._notification_sessions.get(event.run.session_id)
         if session is not None and not event.run.engine.startswith("_hub_"):
             self._record_notification(session, event.run)
@@ -142,6 +148,12 @@ class HubRuntime:
     async def start(self) -> None:
         from .bootstrap import select_or_create
         self.backend = self._factory(self.config)
+        from .builtin_tools import HubBuiltinTools
+        if "builtin_tools" in self.backend.project_manager.components.names():
+            component = self.backend.project_manager.components.get("builtin_tools")
+            if isinstance(component, HubBuiltinTools):
+                self.builtin_tools = component
+                component.questions.changed = self.dirty.set
         await self.backend.__aenter__()
         for channel, callback in (("engine", self._engine_event), ("run", self._run_event)):
             self._subscriptions.append(self.backend.events.subscribe(
@@ -160,6 +172,8 @@ class HubRuntime:
         return await self.settings_service.execute(operation, *args)
 
     async def activate_project(self, project, *, session_id=None):
+        if self.builtin_tools:
+            await self.builtin_tools.ensure_selected(project)
         data = await project.aget_data()
         sessions = []
         for session in await project.sessions.alist():
@@ -246,18 +260,38 @@ class HubRuntime:
                          "run_id": request.run_id or "", "error": str(run.error or "") if run else ""})
         return rows
 
-    async def delete_turn(self, session_id, request_id):
+    async def delete_turn_plan(self, session_id, request_id):
+        return (await self.sessions[session_id].adelete_turn_plan(request_id)).to_dict()
+
+    async def delete_turn(self, session_id, request_id, abandon_runs=(), expected_revision=None):
         session = self.sessions[session_id]
         status = await session.run.astatus()
         if status.active_run_id or status.queued_count or session_id in self.namer.tasks:
             raise ValueError(self.t("history_busy"))
         await session.run.shutdown()
         try:
-            await session.adelete_turn(request_id)
+            try:
+                await session.adelete_turn(request_id, abandon_runs=abandon_runs, expected_revision=expected_revision)
+            except ValueError as error:
+                if str(error) == "Turn deletion plan changed; reload and confirm again":
+                    raise ValueError(self.t("history_delete_changed")) from error
+                if str(error) == "Conversation turn is required by an unfinished resumable Run":
+                    raise ValueError(self.t("history_checkpoint_protected")) from error
+                raise
             self.snapshot_reader.clear()
         finally:
             await session.run.start()
         self.dirty.set()
+        return True
+
+    async def cancel_request(self, session_id, request_id):
+        session = self.sessions[session_id]
+        request = await session.run.arequest(request_id)
+        cancelled = await request.cancel()
+        self.snapshot_reader.invalidate(session_id)
+        self.dirty.set()
+        if not cancelled:
+            raise ValueError(self.t("history_cancel_unavailable"))
         return True
 
     async def project_activity(self):
@@ -292,6 +326,7 @@ class HubRuntime:
         await session.asave(title=title.strip(), metadata={**data.metadata, "hub_auto_title": False})
         self.namer.errors.pop(session_id, None)
         self._notification_sessions[session_id] = (self.project.id, title.strip())
+        self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
         return session_id
 
@@ -342,7 +377,8 @@ class HubRuntime:
     async def manage_tools(self, project_id, action, argument="", expected_version=None):
         from .tool_management import manage_tools
         project = await self.backend.projects.aload(project_id)
-        return await manage_tools(project, action, argument, expected_version, root=self.config.file_root)
+        return await manage_tools(project, action, argument, expected_version, root=self.config.file_root,
+                                  builtin=self.builtin_tools)
 
     async def submit(self, session_id: str, text: str, engine: str | None = None,
                      engine_options: dict | None = None) -> str:
@@ -360,6 +396,7 @@ class HubRuntime:
         if selected.startswith("_hub_"):
             raise ValueError("Internal engine cannot receive conversation requests")
         request = await session.run.submit(text, engine=selected, engine_options=engine_options or {})
+        self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
         return request.id
 
@@ -405,6 +442,26 @@ class HubRuntime:
         self.dirty.set()
         return result
 
+    async def answer_question(self, project_id, session_id, run_id, request_data, option_id, value):
+        from llm.core.interactions import InteractionRequest
+        if project_id != self.project.id:
+            raise ValueError("Project changed; reload the question")
+        request = InteractionRequest.from_dict(request_data)
+        if self.builtin_tools and request.id in self.builtin_tools.questions.pending:
+            self.builtin_tools.questions.answer(project_id, session_id, run_id, request, option_id, value)
+        else:
+            session = self.sessions[session_id]
+            run = await session.run.aload(run_id)
+            await run.arespond(request.respond(option_id, value=value))
+            if not await run.ainteractions(pending_only=True):
+                engine = (await run.aget_data()).engine
+                plan = await session.run.resume_plan(run_id, engine=engine)
+                if not plan.can_resume or plan.retry_nodes:
+                    raise ValueError("Response saved; this Run requires explicit recovery before resuming")
+                await session.run.resume(run_id, engine=engine)
+        self.dirty.set()
+        return True
+
     def _reconcile_snapshot(self, project_id, observations):
         for item in observations:
             identifier, record, runtime, run = item.session_id, item.record, item.runtime, item.run
@@ -429,18 +486,24 @@ class HubRuntime:
             # A missing text delta makes a cached thinking phase unreliable.
             # Rebuild the display from durable messages/completions below.
             self.snapshot_reader.thinking.runs.clear()
+            self.snapshot_reader.observations.clear()
             self._dropped_observations = dropped
         from dataclasses import replace
         snapshot, observations = await self.snapshot_reader.read(
             self.project, self.sessions, self.selected_id, config=self.config,
             engines=self.backend.engines, title_errors=self.namer.errors)
         self._reconcile_snapshot(snapshot.project_id, observations)
-        return replace(snapshot, notifications=tuple(self._notifications))
+        questions = self.builtin_tools.questions.views(self.project.id, self.selected_id) if self.builtin_tools else ()
+        return replace(snapshot, notifications=tuple(self._notifications), questions=questions + snapshot.questions)
 
     async def close(self) -> None:
+        if self.builtin_tools:
+            self.builtin_tools.questions.close()
         await self.namer.close()
         for subscription in self._subscriptions:
             await subscription.aclose()
         self._subscriptions.clear()
         if self.backend is not None:
             await self.backend.shutdown()
+        if self.builtin_tools:
+            await self.builtin_tools.close()

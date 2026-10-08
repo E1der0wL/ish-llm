@@ -25,15 +25,16 @@ from .controls import ScrollbarMargin
 
 
 def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubTheme, language=None, *, anchors=None,
-                    renderers=None, root=None, invalidate=None, objects=None):
+                    renderers=None, root=None, invalidate=None, objects=None, index_offset=0):
     """Return already-wrapped fragment lines using terminal-cell widths."""
     inner = max(1, width - 4)
     t = language or Language(icons=for_style(theme.icon_style))
     console = make_console(inner, theme)
     lines = []
     account_name = UserProfile().display_name
-    for index, message in enumerate(messages):
-        if index and message.role == "user" and messages[index - 1].role in ("assistant", "reasoning"):
+    for local_index, message in enumerate(messages):
+        index = local_index + index_offset
+        if local_index and message.role == "user" and messages[local_index - 1].role in ("assistant", "reasoning"):
             lines.extend([[('', '')], [('', '')]])
         if anchors is not None:
             anchors.append((message.id or f"index:{index}", len(lines)))
@@ -114,6 +115,8 @@ class ConversationControl(UIControl):
         self._height = 1
         self.follow_tail = False
         self._cache_key = None
+        from .message_cache import MessageRenderCache
+        self._message_cache = MessageRenderCache()
         self._lines = [[("", "")]]
         self._anchors = []
         self.objects = []
@@ -193,6 +196,9 @@ class ConversationControl(UIControl):
         return result
 
     def scroll(self, key: str) -> None:
+        # A snapshot can arrive between paints. Apply navigation to its current
+        # layout, not the previous session's empty or differently wrapped rows.
+        self.create_content(self._width, self._height)
         if key in ("left", "right"):
             limit = max(0, max(map(fragment_list_width, self._lines), default=0) - self._width)
             self.left_column = max(0, min(limit, self.left_column + (-1 if key == "left" else 1)))
@@ -239,11 +245,9 @@ class ConversationControl(UIControl):
         if self._cache_key != key:
             # Keep the same message in view across wrapping/theme changes.
             position = self.reading_position() if self._cache_key is not None else None
-            self._anchors = []
-            self.objects = []
-            self._lines = render_messages(self.messages, width, self.theme, self.language, anchors=self._anchors,
-                                          renderers=self.renderers, root=self.file_root, invalidate=get_app().invalidate,
-                                          objects=self.objects)
+            self._lines, self._anchors, self.objects = self._message_cache.render(
+                self.messages, width, self.theme, self.language, render=render_messages,
+                renderers=self.renderers, root=self.file_root, invalidate=get_app().invalidate)
             self._cache_key = key
             self.left_column = min(self.left_column, max(0,
                 max(map(fragment_list_width, self._lines), default=0) - self._width))
@@ -268,6 +272,7 @@ class ConversationControl(UIControl):
 
     def mouse_handler(self, mouse_event):
         if mouse_event.event_type in (MouseEventType.SCROLL_UP, MouseEventType.SCROLL_DOWN):
+            self.create_content(self._width, self._height)
             self.follow_tail = False
             delta = -3 if mouse_event.event_type == MouseEventType.SCROLL_UP else 3
             self._scroll_to(self.top_line + delta)

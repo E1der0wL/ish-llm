@@ -16,7 +16,7 @@ def description(source):
         return ""
 
 
-async def manage_tools(project, action, argument="", expected_version=None, *, root=None):
+async def manage_tools(project, action, argument="", expected_version=None, *, root=None, builtin=None):
     from llm.components.tools.packages import ToolPaths, read_package
     from llm.components.tools.data import ToolData
 
@@ -25,6 +25,21 @@ async def manage_tools(project, action, argument="", expected_version=None, *, r
         raise ValueError("This manager requires the Python Tool package component")
     record = await project.aget_data()
     paths = ToolPaths.for_project(record)
+    if argument.startswith("builtin:"):
+        if builtin is None or action != "toggle":
+            raise ValueError("Built-in Tools can only be enabled or disabled")
+        name = argument.removeprefix("builtin:")
+        if name not in builtin.toolkit.registry.names():
+            raise ValueError("Unknown built-in Tool")
+        settings = await project.components.aget(builtin.name)
+        current = await settings.asnapshot()
+        if current["version"] != expected_version:
+            raise ValueError("Tool settings changed; reload the list")
+        values = current["data"]
+        enabled = values.setdefault("config", {}).setdefault("enabled", [])
+        enabled.remove(name) if name in enabled else enabled.append(name)
+        await settings.aconfigure(values, expected_version=expected_version)
+        action = "list"
     if action == "import":
         source = Path(argument).expanduser()
         if not source.is_absolute():
@@ -48,6 +63,15 @@ async def manage_tools(project, action, argument="", expected_version=None, *, r
     packages = await data.alist()
     enabled = await data.aenabled()
     entries = []
+    if builtin is not None and builtin.name in record.components:
+        settings = await project.components.aget(builtin.name)
+        snapshot = await settings.asnapshot()
+        selected = snapshot["data"].get("config", {}).get("enabled", [])
+        for name in builtin.toolkit.registry.names():
+            tool = builtin.toolkit.registry.get(name)
+            entries.append({"name": "builtin:" + name, "label": name, "builtin": True,
+                            "description": tool.description, "modified": "", "enabled": name in selected,
+                            "version": snapshot["version"]})
     for name in packages:
         snapshot = await data.asnapshot(name)
         def modified(name=name):

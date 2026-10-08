@@ -45,7 +45,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     self.assertFalse(prompt.key_bindings.get_bindings_for_keys(("c-q",))[0].filter())
                     self.assertEqual([key for key, _ in view.bindings.hints()], [
-                        "ESC", "Ctrl+C", "Ctrl+E", "Ctrl+F", "Ctrl+R", "Ctrl+S", "Ctrl+T", "Alt + 이동키"])
+                        "ESC", "Ctrl+E", "Ctrl+F", "Ctrl+R", "Ctrl+S", "Ctrl+T", "Alt + 이동키"])
                     self.assertEqual(view.bindings.hints()[0], ("ESC", "패널"))
                 await paint()
                 chat_header = next(w for w in app.renderer._last_screen.visible_windows if isinstance(w, HeaderBar))

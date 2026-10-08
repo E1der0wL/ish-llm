@@ -3,7 +3,7 @@
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.widgets import Label
+from prompt_toolkit.widgets import Label, TextArea
 from ...widget.reader import ReadOnlyDialog
 from ...widget.summary import clipped_summary
 
@@ -76,24 +76,67 @@ class HistoryUI:
         def delete():
             request_id = choices.current_value
             view.close_dialog()
+            view.open_dialog(t("history_delete"), Label(t("settings_loading")))
+            pending_dialog = view._dialog
+            def ready(plan):
+                if view._dialog is not pending_dialog:
+                    return
+                view.close_dialog()
+                if (plan is None or view.project_id != project_id or not view.sessions
+                        or view.sessions[view.selected].id != session_id):
+                    return
+                blockers = plan["blockers"]
+                run_ids = [item["source"]["run_id"] for item in blockers]
+                def confirmed():
+                    if (view.project_id != project_id or not view.sessions
+                            or view.sessions[view.selected].id != session_id):
+                        return
+                    def removed(result):
+                        if result:
+                            pending = view._submitted_messages.get((project_id, session_id), {})
+                            pending.pop(request_id, None)
+                            self.controller._call("snapshot", completed=self.controller._snapshot)
+                            if view.project_id == project_id and view.sessions[view.selected].id == session_id:
+                                self.open()
+                    self.controller._call("delete_turn", session_id, request_id, run_ids,
+                                          plan["revision"], completed=removed)
+                if blockers:
+                    rows = [f"{item['source']['run_id']} · {item['details']['engine']} · {t.status(item['details']['status'])}"
+                            for item in blockers]
+                    body = HSplit([Label(t("history_abandon_confirm", count=len(rows))),
+                        TextArea(text="\n".join(rows), read_only=True, scrollbar=True,
+                                 height=Dimension(min=2, max=8))], padding=1)
+                else:
+                    body = Label(t("history_delete_confirm"))
+                view.open_dialog(t("history_delete"), body, confirmed,
+                    accept_text=t("history_abandon_delete") if blockers else None)
+            self.controller._call("delete_turn_plan", session_id, request_id, completed=ready)
+        def cancel():
+            request_id = choices.current_value
+            if by_id[request_id]["status"] != "queued":
+                view.notice = t("history_cancel_unavailable")
+                return
+            view.close_dialog()
             def confirmed():
-                def removed(result):
+                def cancelled(result):
                     if result:
-                        # A turn may be deleted before the first full refresh
-                        # catches up with its admission receipt.
-                        pending = view._submitted_messages.get((project_id, session_id), {})
-                        pending.pop(request_id, None)
+                        view._submitted_messages.get((project_id, session_id), {}).pop(request_id, None)
+                        view.preparing.finish((project_id, session_id))
                         self.controller._call("snapshot", completed=self.controller._snapshot)
+                    # Re-read also on a promotion race; never interrupt that Run.
+                    if view.project_id == project_id and view.sessions[view.selected].id == session_id:
                         self.open()
-                self.controller._call("delete_turn", session_id, request_id, completed=removed)
-            view.open_dialog(t("history_delete"), Label(t("history_delete_confirm")), confirmed)
+                self.controller._call("cancel_request", session_id, request_id, completed=cancelled)
+            view.open_dialog(t("history_cancel"), Label(t("history_cancel_confirm")), confirmed)
         choices.control.hub_shortcuts.add(["d"], "d", "delete", lambda e: delete())
         choices.control.hub_shortcuts.add(["r"], "r", "clone", lambda e: clone())
+        choices.control.hub_shortcuts.add(["c"], "c", "cancel", lambda e: cancel())
         details = Label(detail)
         details.window.height = 3
         body = HSplit([Label(lambda: clipped_summary(t("history_hint"), popup_width() - 6)), choices, details,
                        VSplit([Button(t("history_delete"), handler=delete, width=14),
-                               Button(t("history_clone"), handler=clone, width=20)], padding=2)], padding=1,
+                               Button(t("history_clone"), handler=clone, width=20),
+                               Button(t("history_cancel"), handler=cancel, width=14)], padding=2)], padding=1,
                       width=lambda: Dimension.exact(max(1, popup_width() - 4)))
         view.open_dialog(t("history_title"), body, focus=choices,
                          width=lambda: Dimension.exact(popup_width()))

@@ -26,6 +26,18 @@ from examples.hub.preview import create_preview
 
 
 class ReadingPositionTests(unittest.TestCase):
+    def test_scroll_after_snapshot_before_paint_uses_new_content(self):
+        control = ConversationControl((), HubTheme())
+        control.create_content(80, 10)
+        control.messages = (ChatMessage("assistant", "paragraph\n\n" * 70, id="new"),)
+        control.follow_tail = True
+        control.scroll("home")
+        for _ in range(5):
+            control.scroll("down")
+        self.assertEqual(control.top_line, 5)
+        control.create_content(80, 10)
+        self.assertEqual(control.top_line, 5)
+
     def test_anchor_survives_wrapping_changes_and_inserted_messages(self):
         messages = (ChatMessage("assistant", "long content " * 150, id="before"),
                     ChatMessage("assistant", "target\n\n" * 30, id="target"))

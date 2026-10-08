@@ -5,6 +5,8 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,3 +65,48 @@ class ViewStateStore:
         finally:
             if temporary is not None:
                 temporary.unlink(missing_ok=True)
+
+
+class ViewStateWriter:
+    """Coalesce UI position writes outside the PTK and backend execution loops."""
+
+    def __init__(self, store, on_error):
+        self.store, self.on_error = store, on_error
+        self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="hub-view-state")
+        self.lock = Lock()
+        self.pending = {}
+        self.latest = {}
+        self.running = False
+
+    def save(self, project_id, selected, positions):
+        with self.lock:
+            # Moving a project to the end preserves the latest active project.
+            previous = self.pending.pop(project_id, (selected, {}))[1]
+            self.pending[project_id] = (selected, {**previous, **positions})
+            self.latest[project_id] = (selected, {**self.latest.get(project_id, (selected, {}))[1], **positions})
+            if not self.running:
+                self.running = True
+                self.executor.submit(self._write)
+
+    def load(self, project_id):
+        with self.lock:
+            cached = self.latest.get(project_id)
+            if cached is not None:
+                return cached[0], dict(cached[1])
+        return self.store.load(project_id)
+
+    def _write(self):
+        while True:
+            with self.lock:
+                if not self.pending:
+                    self.running = False
+                    return
+                project_id = next(iter(self.pending))
+                selected, positions = self.pending.pop(project_id)
+            try:
+                self.store.save(project_id, selected, positions)
+            except Exception as error:
+                self.on_error(error)
+
+    def close(self):
+        self.executor.shutdown(wait=True)

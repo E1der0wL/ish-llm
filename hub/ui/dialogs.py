@@ -5,6 +5,7 @@ from prompt_toolkit.layout import Window
 from prompt_toolkit.layout.containers import to_container
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.dimension import Dimension
+from prompt_toolkit.utils import get_cwidth
 
 from ..widget.controls import Button, RadioList
 from ..widget.dialog import Dialog
@@ -25,14 +26,15 @@ class DialogController:
         app.layout.focus(focus)
         app.invalidate()
 
-    def open(self, title, body, accept=None, focus=None, *, validate=None, width=None):
+    def open(self, title, body, accept=None, focus=None, *, validate=None, width=None, accept_text=None):
         def confirm():
             if validate and not validate():
                 return
             self.close()
             if accept:
                 accept()
-        buttons = [Button(self.view.t("confirm"), handler=confirm)]
+        buttons = [Button(accept_text or self.view.t("confirm"), handler=confirm,
+                          **({"width": get_cwidth(accept_text) + 2} if accept_text else {}))]
         if accept:
             buttons.append(Button(self.view.t("cancel"), handler=self.close))
         dialog = Dialog(title=title, body=body, buttons=buttons,

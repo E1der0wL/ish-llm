@@ -26,6 +26,7 @@ class ToolManager(Dialog):
         registry.add(["up", "down"], "↑↓", "select", lambda e: self.move(-1 if e.key_sequence[-1].key == "up" else 1))
         registry.add(["enter"], "Enter", "open_directory", lambda e: self.open_directory(), when=lambda: not self.busy)
         registry.add(["d"], "d", "delete", lambda e: self.delete(), when=lambda: not self.busy)
+        registry.add([" "], "Space", "tools_toggle", lambda e: self.toggle(), when=lambda: not self.busy)
         self.list = SidebarList(self.items, lambda: self.selected, self.select, key_bindings=registry.bindings)
         self.list.hub_shortcuts = registry
         super().__init__(title=view.t("tools_title"), body=HSplit([
@@ -38,8 +39,9 @@ class ToolManager(Dialog):
             width=lambda: Dimension(preferred=100, max=max(1, view._columns() - 4)))
 
     def items(self):
-        return [SidebarItem(item["name"], item["name"],
-            datetime.fromisoformat(item["modified"]).astimezone().strftime("%Y-%m-%d %H:%M") + " · " +
+        return [SidebarItem(item["name"], ("[x] " if item.get("enabled") else "[ ] ") + item.get("label", item["name"]),
+            (self.view.t("tools_builtin") if item.get("builtin") else
+             datetime.fromisoformat(item["modified"]).astimezone().strftime("%Y-%m-%d %H:%M")) + " · " +
             (item["description"].splitlines()[0] if item["description"] else "—")) for item in self.entries] or [
             SidebarItem("", self.view.t("tools_empty"))]
 
@@ -87,6 +89,8 @@ class ToolManager(Dialog):
         return True
 
     def open_directory(self):
+        if self.selected.startswith("builtin:"):
+            return
         if self.selected:
             self.call("open", self.selected,
                       completed=lambda path: get_app().create_background_task(self.launch(path)))
@@ -104,7 +108,7 @@ class ToolManager(Dialog):
 
     def delete(self):
         item = next((item for item in self.entries if item["name"] == self.selected), None)
-        if item is None:
+        if item is None or item.get("builtin"):
             return
         def restore(delete=False):
             self.view.dialogs.show(self, self.list)
@@ -118,3 +122,8 @@ class ToolManager(Dialog):
             buttons=buttons)
         confirmation.on_close = restore
         self.view.dialogs.show(confirmation, buttons[1])
+
+    def toggle(self):
+        item = next((item for item in self.entries if item["name"] == self.selected), None)
+        if item and item.get("builtin"):
+            self.call("toggle", item["name"], item["version"])

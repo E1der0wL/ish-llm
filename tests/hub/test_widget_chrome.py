@@ -50,7 +50,8 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view._header()[0][1], " •  demo-project")
                 # Keep the input help, remove only the separate sidebar hint row.
                 self.assertEqual(len(view._sidebar.content.children), 2)
-                self.assertEqual(len(view._composer_frame.body.children), 2)
+                self.assertEqual(len(view._composer_frame.body.children), 3)
+                self.assertFalse(view.question.container.filter())
                 pipe.send_text("\x1b")
                 await eventually(lambda: app.layout.current_control == view._session_control)
                 self.assertTrue({"c", "d", "e", "r", "Ctrl+←→", "Tab/Space/Enter/→"} <= keys().keys())

@@ -2,8 +2,7 @@
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.filters import Condition
-from prompt_toolkit.layout import ConditionalContainer, Window
-from prompt_toolkit.widgets import Frame
+from prompt_toolkit.layout import ConditionalContainer, VSplit, Window
 
 from .sidebar import SidebarItem, SidebarList
 from .clipboard import copy_text
@@ -18,14 +17,17 @@ class TagBar:
         self.view, self.visible, self.selected = view, False, ""
         registry = ShortcutRegistry()
         registry.add(["c-t"], "Ctrl+T", "close", lambda e: self.close())
+        registry.add(["escape"], "ESC", "close", lambda e: self.close())
         registry.add(["tab", " ", "enter"], "Tab/Space/Enter", "expand", lambda e: self.expand())
         registry.add(["up", "down"], "↑↓", "select", lambda e: self.move(-1 if e.key_sequence[-1].key == "up" else 1))
         registry.add(["c"], "c", "copy", lambda e: e.app.create_background_task(self.copy()))
         self.control = SidebarList(self.items, lambda: self.selected, self.select, key_bindings=registry.bindings)
         self.control.hub_shortcuts = registry
         self.control.modal = True
-        self.container = ConditionalContainer(Frame(Window(self.control, wrap_lines=True),
-            title=lambda: view.t("tags_title"), width=lambda: max(14, min(32, view._columns() // 3))),
+        self.container = ConditionalContainer(VSplit([
+            Window(width=1, char="│", style="class:hub.divider"),
+            Window(self.control, wrap_lines=True, style="class:hub.sidebar")],
+            width=lambda: max(14, min(32, view._columns() // 3))),
             Condition(lambda: self.visible))
 
     def items(self):
@@ -65,7 +67,7 @@ class TagBar:
             return
         view = self.view
         popup = ReadOnlyDialog(item.title, item.raw, view._rows, view._columns,
-                               view.close_dialog, view.t, output=OutputViewport(item, view))
+                               view.close_dialog, view.t, output=OutputViewport(item, view), full_screen=True)
         view.dialogs.show(popup, popup.receiver)
 
     async def copy(self):

@@ -8,7 +8,8 @@ ACTIONS = ("list", "get", "create", "update", "delete", "settings", "config", "h
 
 
 def component_commands(names: tuple[str, ...]) -> dict[str, str]:
-    return {("component:" + name if name in BUILTINS else name): name for name in names}
+    commands = {("component:" + name if name in BUILTINS else name): name for name in names}
+    return commands
 
 
 def parse_arguments(argument: str, language) -> tuple[str, str, dict]:

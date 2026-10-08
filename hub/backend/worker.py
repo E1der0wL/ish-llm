@@ -70,24 +70,21 @@ class BackendWorker:
 
     async def _refresh(self) -> None:
         last = None
+        deadline = asyncio.get_running_loop().time() + self._output_interval
         while True:
-            # Events coalesce; periodic reads also reconcile dropped notifications
-            # and output batches flushed after the last observed engine event.
-            try:
-                async with asyncio.timeout(1):
-                    await self.runtime.dirty.wait()
-            except TimeoutError:
-                pass
             self.runtime.dirty.clear()
-            # Changing the interval wakes the coalescer, including when a long
-            # interval was configured before a shorter one was saved.
+            # One cadence for events AND reconciliation. Previously a 1-second
+            # event wait preceded the configured delay, yielding 1.1s idle ticks.
+            # Subtract read time rather than sleeping another interval after it.
             while True:
                 self._interval_changed.clear()
                 try:
-                    async with asyncio.timeout(self._output_interval):
+                    async with asyncio.timeout(max(0, deadline - asyncio.get_running_loop().time())):
                         await self._interval_changed.wait()
                 except TimeoutError:
                     break
+                deadline = min(deadline, asyncio.get_running_loop().time() + self._output_interval)
+            deadline = asyncio.get_running_loop().time() + self._output_interval
             try:
                 self._snapshot_task = asyncio.create_task(self._read_snapshot())
                 try:
@@ -116,7 +113,7 @@ class BackendWorker:
         task = asyncio.current_task()
         self._commands.add(task)
         try:
-            if operation in {"submit_input", "submit", "steer", "interrupt", "submission_state", "instruction_targets"}:
+            if operation in {"submit_input", "submit", "steer", "interrupt", "submission_state", "instruction_targets", "answer_question", "cancel_request"}:
                 if self._snapshot_task is not None:
                     self._snapshot_task.cancel()
             async with self.runtime.lock:

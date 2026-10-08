@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
+from time import monotonic
 
 from ..model import ChatMessage, HubSnapshot, SessionSummary, RunSummary, StepSummary
 from .engine_selection import model_name, requires_model, selected_engines
@@ -20,11 +21,16 @@ class SessionObservation:
 class SnapshotReader:
     def __init__(self):
         self.cache = {}
+        self.observations = {}
         from .thinking import ThinkingPhases
         self.thinking = ThinkingPhases()
 
     def clear(self):
         self.cache.clear()
+        self.observations.clear()
+
+    def invalidate(self, session_id):
+        self.observations.pop(session_id, None)
 
     async def run_display(self, session, run_id: str, *, run=None) -> tuple[str, float | None]:
         cached = self.cache.get(run_id)
@@ -77,15 +83,21 @@ class SnapshotReader:
         data = await project.aget_data()
         observations, summaries = [], []
         for identifier, session in tuple(sessions.items()):
-            record = await session.aget_data()
-            runtime = await session.run.astatus(queued_limit=0)
-            latest = await session.run.alist(query=Query(descending=True, limit=1))
-            handle = latest[0] if latest else None
-            run = await handle.aget_data() if handle else None
-            observations.append(SessionObservation(identifier, record, runtime, run, handle))
-            summaries.append(SessionSummary(identifier, record.title, str(runtime.status), runtime.queued_count))
+            cached = self.observations.get(identifier)
+            if identifier != selected_id and cached and monotonic() - cached[0] < 2:
+                item = cached[1]
+            else:
+                record = await session.aget_data()
+                runtime = await session.run.astatus(queued_limit=0)
+                latest = await session.run.alist(query=Query(descending=True, limit=1))
+                handle = latest[0] if latest else None
+                run = await handle.aget_data() if handle else None
+                item = SessionObservation(identifier, record, runtime, run, handle)
+                self.observations[identifier] = (monotonic(), item)
+            observations.append(item)
+            summaries.append(SessionSummary(identifier, item.record.title, str(item.runtime.status), item.runtime.queued_count))
         selected = next((item for item in observations if item.session_id == selected_id), None)
-        messages, summary = (), None
+        messages, summary, questions = (), None, ()
         session_config = selected.record.config if selected else None
         if selected:
             session = sessions[selected_id]
@@ -93,6 +105,9 @@ class SnapshotReader:
                                            latest=selected.run)
             if selected.run:
                 run = selected.run
+                if str(run.status) == "paused":
+                    questions = tuple({"run_id": run.id, "live": False, "request": request.to_dict()}
+                                      for request in await selected.handle.ainteractions(pending_only=True))
                 steps = await selected.handle.steps.alist()
                 completions = run.metadata.get("completions", [])
                 last = completions[-1] if completions else {}
@@ -113,5 +128,5 @@ class SnapshotReader:
             model_required=requires_model(engines, data.config, config.engine, session_config) if selected else False,
             title_error=title_errors.get(selected_id, ""),
             engines=selected_engines(data.config, engines.names()),
-            file_root=str(config.file_root or project.paths.root), components=tuple(data.components))
+            file_root=str(config.file_root or project.paths.root), components=tuple(data.components), questions=questions)
         return snapshot, tuple(observations)

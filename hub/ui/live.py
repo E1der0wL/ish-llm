@@ -8,7 +8,7 @@ from ..backend.runtime import HubConfig
 from ..model import HubSnapshot, SubmissionResult
 from .presentation import present, present_message
 from ..backend.worker import BackendWorker
-from ..config.view_state import ViewStateStore
+from ..config.view_state import ViewStateStore, ViewStateWriter
 from ..config.preferences import PreferencesStore
 from ..config.profile import UserProfile
 from ..config.general import GeneralSettings
@@ -48,6 +48,7 @@ class LiveHubView(HubMockup):
 
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=None) -> None:
         self._last_snapshot = snapshot
+        self.preparing.observe(snapshot)
         key = (snapshot.project_id, snapshot.selected_id)
         known = {message.id for message in snapshot.messages}
         pending = self._submitted_messages.get(key, {})
@@ -66,7 +67,10 @@ class LiveHubView(HubMockup):
         changing_project = bool(self.project_id) and self.project_id != snapshot.project_id
         if not changing_project:
             self.remember_position()
-        self._drafts[self._draft_key(self.selected)] = self.composer.text
+        if changing_project or (select_id and select_id != current_id) or current_id not in sessions:
+            self.question.leave()
+        if self.question.item is None:
+            self._drafts[self._draft_key(self.selected)] = self.composer.text
         cached = {session.id: session for session in self.sessions}
         self.sessions = [SampleSession(s.title, s.status,
                                       cached[s.id].messages if s.id in cached else (),
@@ -98,7 +102,8 @@ class LiveHubView(HubMockup):
             info = self.transcript.window.render_info
             messages = self.sessions[self.selected].messages
             following = not control.restoring and (
-                not control.messages or (info is not None and info.last_visible_line() >= info.content_height - 2))
+                not control.messages or (info is not None and
+                    control.top_line + control._height >= info.content_height - 1))
             changed_messages = control.messages != messages
             control.messages = messages
             if self.general.auto_scroll and following and changed_messages and not control.search_query:
@@ -120,6 +125,7 @@ class LiveHubView(HubMockup):
             self.file_root = snapshot.file_root
             self.transcript.control.file_root = snapshot.file_root
         if self.sessions[self.selected].id == snapshot.selected_id:
+            self.question.sync(snapshot.project_id, snapshot.selected_id, snapshot.questions)
             self.notice = display.notice
             self.activity = display.activity
 
@@ -152,12 +158,14 @@ class LiveController:
         self._choosing_submission = False
         self._select_new = None
         self._view_state = ViewStateStore(config.workspace)
+        self._view_writer = ViewStateWriter(self._view_state, lambda error: self._dispatch(self._error, error))
         self._state_project = None
         self._save_timer = None
         self._last_notification = 0
         self.view.engine = config.engine
         self.view.on_open = self.open
         self.view.on_submit = self.submit
+        self.view.on_answer = self.answer_question
         self.view.on_select = self.select
         self.view.on_new = self.new_session
         self.view.on_delete = self.delete_session
@@ -202,7 +210,7 @@ class LiveController:
                 self.view._positions.clear()
             self._state_project = snapshot.project_id
             try:
-                selected, positions = self._view_state.load(snapshot.project_id)
+                selected, positions = self._view_writer.load(snapshot.project_id)
                 self.view._positions.update(positions)
                 explicit = self.config.session_id and self.config.project_id == snapshot.project_id
                 if self.view.general.restore_last_session and not explicit and any(session.id == selected for session in snapshot.sessions):
@@ -255,10 +263,10 @@ class LiveController:
         if self._save_timer:
             self._save_timer.cancel()
             self._save_timer = None
-        if not self.view.project_id:
+        if self.closed or not self.view.project_id:
             return
         try:
-            self._view_state.save(self.view.project_id, self.view.sessions[self.view.selected].id,
+            self._view_writer.save(self.view.project_id, self.view.sessions[self.view.selected].id,
                                   {key: value for key, value in self.view._positions.items() if not key.startswith("sample:")})
         except (OSError, ValueError, TypeError) as error:
             self.view.notice = self.view.t("view_state_error", error=error)
@@ -331,6 +339,7 @@ class LiveController:
             if result.message is None:
                 return
             view.show_submitted(project_id, session_id, result.message)
+            view.preparing.accepted((project_id, session_id), result.message.id)
         if view._drafts.get(session_id) == text:
             view._drafts[session_id] = ""
         if view.project_id != project_id:
@@ -350,10 +359,30 @@ class LiveController:
             return
         self._submitting.add(session_id)
         project_id = self.view.project_id
+        if operation == "submit_input":
+            self.view.preparing.start((project_id, session_id))
         def accepted(request_id):
             self._submitting.discard(session_id)
+            if request_id is None:
+                self.view.preparing.finish((project_id, session_id))
             self._accept_input(project_id, session_id, text, request_id, operation)
         self._call(operation, session_id, *args, completed=accepted)
+
+    def answer_question(self, item, option_id, value):
+        question = self.view.question
+        if question.busy:
+            return
+        identity = question.identity
+        question.busy = True
+        def answered(result):
+            if question.identity == identity:
+                question.busy = False
+                if result:
+                    question.leave()
+                    question.drafts.pop(identity, None)
+                    self._call("snapshot", completed=self._snapshot)
+        self._call("answer_question", identity[0], identity[1], item["run_id"], item["request"],
+                   option_id, value, completed=answered)
 
     def submit(self, session_id: str, text: str):
         if not session_id:
@@ -367,6 +396,7 @@ class LiveController:
         engine, options = view.engine, dict(view.engine_options)
         self._choosing_submission = True
         self._submitting.add(session_id)
+        view.preparing.start(identity)
 
         def ready(state):
             self._choosing_submission = False
@@ -374,6 +404,7 @@ class LiveController:
             if state is not None and state.message is not None:
                 self._accept_input(identity[0], session_id, text, state, "submit")
                 return
+            view.preparing.finish(identity)
             if (state is None or self.closed or not view.visible or view.settings_open or view._dialog is not None
                     or identity != (view.project_id, view.sessions[view.selected].id)
                     or view.composer.text != text):
@@ -468,10 +499,13 @@ class LiveController:
         self._call("delete_session", session_id, completed=deleted)
 
     def close(self):
+        if self.closed:
+            return
         self.view.output_renderers.close()
         self.view.progress.close()
         self.view.remember_position()
         self._save_view()
         self.closed = True
+        self._view_writer.close()
         if self.worker:
             self.worker.close()

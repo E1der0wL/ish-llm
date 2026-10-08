@@ -47,6 +47,9 @@ class HubBindings:
         r.add(["tab", " ", "enter", "right"], "Tab/Space/Enter/→", "main", lambda e: view.active_page.focus_main(), when=lambda: c.sidebar)
         r.add(["tab"], "", "confirm", self.complete, when=lambda: c.composing)
         r.add(["s-tab"], "", "", lambda e: None, when=lambda: c.composing)
+        r.add(["up", "down"], "", "", lambda e: view.input_history.move(
+            -1 if e.key_sequence[-1].key == "up" else 1),
+            when=lambda: c.composing and view.input_history.available)
         r.scroll(self.scroll, when=lambda: c.chat)
         # Settings uses its item navigator. Never let an Alt prefix escape into
         # the chat page or trigger the standalone ESC panel action.
@@ -59,7 +62,8 @@ class HubBindings:
         # The composer's own hint row already shows send/completion/newline.
         r.add(["enter"], "", "send", self.submit, when=lambda: c.composing, eager=False)
         r.add(["c-space"], "", "newline", self.newline, when=lambda: c.composing)
-        r.add(["c-c"], "Ctrl+C", "close", self.close, when=lambda: view.visible, global_=True, eager=False)
+        r.add(["c-c"], "Ctrl+C", "close", self.close, when=lambda: view.visible and not c.composing, global_=True, eager=False)
+        r.add(["c-c"], "", "", lambda e: None, when=lambda: c.composing, global_=True)
 
     def hints(self):
         local = getattr(self.context.control, "hub_shortcuts", None)
@@ -104,6 +108,8 @@ class HubBindings:
             self.view.session_actions.perform(key)
 
     def complete(self, event):
+        if self.view.question.item:
+            return
         buffer = self.view.composer.buffer
         if buffer.complete_state:
             completion = buffer.complete_state.current_completion
@@ -120,6 +126,9 @@ class HubBindings:
 
     def submit(self, event):
         view, buffer = self.view, self.view.composer.buffer
+        if view.question.item:
+            view.question.answer()
+            return
         if buffer.complete_state and buffer.complete_state.current_completion:
             buffer.apply_completion(buffer.complete_state.current_completion)
             return

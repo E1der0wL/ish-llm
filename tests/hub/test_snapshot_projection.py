@@ -48,6 +48,12 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn(NERD.statuses["running"], korean.activity)
         self.assertIn(UNICODE.statuses["running"], english.activity)
         self.assertEqual(snapshot.status, "running")
+        # Other sessions don't compete for the persistence lane on every delta.
+        await reader.read(project, {"s": session}, "", config=config, engines=engines, title_errors={})
+        session.aget_data.assert_awaited_once()
+        reader.invalidate("s")
+        await reader.read(project, {"s": session}, "", config=config, engines=engines, title_errors={})
+        self.assertEqual(session.aget_data.await_count, 2)
         view = LiveHubView()
         view.apply_snapshot(snapshot)
         view.composer.text = "draft"

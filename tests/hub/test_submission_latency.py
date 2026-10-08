@@ -88,6 +88,7 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 view.composer.text = "hello"
                 controller.submit("s", "hello")
                 controller.submit("s", "hello")
+                self.assertTrue(view.preparing.visible())
                 self.assertEqual(len(calls), 1)
                 self.assertEqual(calls[0][0], "submit_input")
                 # No loss or false success before persistence acknowledges.
@@ -104,6 +105,7 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual([m.id for m in view.transcript.control.messages], ["m", "a"])
                 self.assertEqual(view.transcript.control.messages[0].status, "committed")
                 self.assertFalse(view._submitted_messages)
+                self.assertFalse(view.preparing.visible())
 
                 # Typing while admission runs must not lose the newer draft.
                 view.composer.text = "second"

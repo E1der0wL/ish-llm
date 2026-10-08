@@ -3,6 +3,16 @@
 
 
 MESSAGES = {
+    'shortcut_cancel': '예약 취소',
+    'preparing_response': '준비 중…',
+    'history_cancel': '예약 취소',
+    'history_cancel_confirm': '선택한 예약 요청을 취소할까요? 현재 실행 중인 작업은 계속됩니다.',
+    'history_cancel_unavailable': '예약 상태의 요청만 취소할 수 있습니다. 이미 실행 중이면 Ctrl+X로 중단하세요.',
+    'history_checkpoint_protected': '미완료 작업의 재개 체크포인트가 이 대화를 참조합니다. 삭제를 다시 선택하여 영향받는 작업의 재개 포기를 확인하세요.',
+    'history_abandon_delete': '재개 포기 후 삭제',
+    'history_delete_changed': '삭제 확인 이후 관련 작업이나 대화가 변경되었습니다. 삭제를 다시 선택하여 확인하세요.',
+    'history_abandon_confirm': '이 대화를 참조하는 아래 {count}개 작업의 재개를 포기하고 삭제할까요?\n이미 수행된 작업은 되돌리지 않습니다.\n대화는 이후 문맥에서 제외되며 실행 기록과 체크포인트는 보존됩니다.',
+
     'shortcut_movement': '이동키',
     'shortcut_clear': '비우기',
     'shortcut_tags': '태그 바',
@@ -22,7 +32,7 @@ MESSAGES = {
     'tools_title': 'Tool 패키지 관리',
     'tools_import_hint': '디렉토리 경로 → Enter: <이름>/<이름>.py와 선택적인 requirements.txt 가져오기',
     'tools_columns': '이름 / 마지막 수정 / 설명',
-    'tools_hint': 'Tab 영역 · ↑↓ 선택 · Enter 파일 탐색기 · d 삭제',
+    'tools_hint': 'Tab 영역 · ↑↓ 선택 · Space 내장 도구 활성/비활성 · Enter 폴더 · d 삭제',
     'tools_empty': '등록된 Tool이 없습니다.',
     'tools_imported': 'Tool을 가져왔습니다. 사용 전 의존성 준비와 활성화는 별도로 해주세요.',
     'tools_failed': '처리에 실패했습니다. 오류 알림을 확인하세요.',
@@ -32,7 +42,7 @@ MESSAGES = {
     'session_required': '먼저 세션을 생성하세요. ESC 후 세션 목록에서 c를 누르세요.',
     'command_details': '출력 태그 바',
     'activity_hint': '최근 300건 · 이동키 스크롤 · ESC / Enter / Ctrl+L 닫기',
-    'help': '# Hub 도움말\n\n## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+E**: 엔진·Workflow 선택. **Ctrl+R**: Markdown 미리보기.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T**로 닫습니다. **Tab / Space / Enter**로 확대 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **방향키**: 항목 선택.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 패키지 가져오기·목록·폴더 열기·삭제.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
+    'help': '# Hub 도움말\n\n## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+E**: 엔진·Workflow 선택. **Ctrl+R**: Markdown 미리보기.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **방향키**: 항목 선택.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n입력창의 **Ctrl+C**는 아무 동작도 하지 않습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
     "settings_dependencies": "필수 컴포넌트: {names}",
     "settings_dependencies_missing": "선택되지 않은 필수 컴포넌트: {names} — 선택 후 저장하세요.",
     "title_model_required": "자동 제목 모델이 없습니다. 대화 엔진 또는 parameters.engines._hub_title.completion.model을 설정하세요.",
@@ -64,7 +74,7 @@ MESSAGES = {
 
     "history_title": "요청·작업 목록", "history_empty": "저장된 요청이 없습니다.",
 
-    "history_hint": "↑↓ 선택 · d 삭제 · r 이 시점에서 복제 · Tab 버튼 이동",
+    "history_hint": "↑↓ 선택 · c 예약 취소 · d 삭제 · r 복제 · Tab 버튼 이동",
 
     "history_response": "응답", "history_delete": "대화 삭제", "history_clone": "이 시점에서 복제",
 
@@ -81,7 +91,7 @@ MESSAGES = {
 
     "activity_step": "Step: {step_id}", "activity_code": "코드: {code}",
 
-    "help_history": "Ctrl+G: 요청·작업 쌍 목록 (d 삭제 · r 선택 시점 복제)\nCtrl+L: 프로젝트 실행 이력\n세션 목록 Ctrl+←→: 패널 너비 조절\n복제 창에서 마지막으로 포함할 요청·응답을 선택할 수 있습니다.",
+    "help_history": "Ctrl+G: 요청·작업 쌍 목록 (c 예약 취소 · d 삭제 · r 선택 시점 복제)\nCtrl+L: 프로젝트 실행 이력\n세션 목록 Ctrl+←→: 패널 너비 조절\n복제 창에서 마지막으로 포함할 요청·응답을 선택할 수 있습니다.",
 
     "settings_registration": "추가 기능", "settings_engines": "엔진",
 
@@ -396,4 +406,10 @@ MESSAGES = {
     'shortcut_minimize': '최소화',
     'shortcut_next_session': '다음 세션',
     'shortcut_send': '전송',
+    'tools_builtin': '내장 도구',
+    'shortcut_tools_toggle': '활성/비활성',
+    'question_waiting': '질문 · 답변 대기 중',
+    'question_action_hint': '실행할 작업 내용은 출력창에서 Alt + 이동키로 확인할 수 있습니다.',
+    'question_text_hint': '답변 또는 선택지 번호를 입력하고 Enter를 누르세요.',
+    'question_choice_hint': '선택지 번호를 입력하고 Enter를 누르세요. 추가 값이 필요하면 번호 뒤에 입력하세요.',
 }
