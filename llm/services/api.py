@@ -3,7 +3,7 @@
 Navigable service handles; these objects are never persisted domain models."""
 
 from llm.core.views import SessionRuntimeView, RunView
-from llm.core.plans import ResumePlan, RecoveryPlan, RecoveryResult, RetentionPlan
+from llm.core.plans import ResumePlan, RecoveryPlan, RecoveryResult, RetentionPlan, TurnDeletionPlan
 
 from copy import deepcopy
 from typing import TYPE_CHECKING, Optional, Sequence, Union
@@ -291,10 +291,24 @@ class SessionHandle(AsyncFacade):
         return SessionHandle(self.project, self.app.project_manager.sessions.clone(
             self._snapshot, self.project._snapshot, title=title, through_message_id=through_message_id))
 
-    def delete_turn(self, request_id: str) -> None:
-        """일반 대화에서 턴을 숨긴다. 미완료 재개가 참조하는 턴과 실행 중 Session은 보호한다."""
+    def delete_turn_plan(self, request_id: str) -> TurnDeletionPlan:
+        """영향받는 재개 Run과 변경 확인 revision. 조회 자체는 실행/대화를 변경하지 않는다."""
         self.app._check_open()
-        self.app.project_manager.sessions.delete_turn(self._snapshot, request_id)
+        return self.app.project_manager.sessions.delete_turn_plan(self._snapshot, request_id)
+
+    adelete_turn_plan = async_method(delete_turn_plan)
+
+    def delete_turn(self, request_id: str, *, abandon_runs=(), expected_revision=None) -> None:
+        """일반 대화에서 턴을 숨긴다. 재개 포기는 조회 후 확인한 Run ID와 revision이 필요하다."""
+        self.app._check_open()
+        with self.app.project_manager.ownership.scope():
+            self.app.project_manager.sessions.delete_turn(self._snapshot, request_id,
+                abandon_runs=abandon_runs, expected_revision=expected_revision)
+            session = self.data
+            store = self.app.project_manager.sessions.conversations(session)
+            for identifier in abandon_runs:
+                run = self.app.run_repository.load(session, identifier)
+                self.app._interaction_changed(run, self.app.run_repository.interaction_views(session, run, store))
 
     adelete_turn = async_method(delete_turn)
 

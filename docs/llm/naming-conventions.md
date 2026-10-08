@@ -16,6 +16,8 @@ public callable은 가능하면 동사로 시작한다. receiver가 이미 제�
 명확한 관용 조회/직렬화 계약은 유지한다. 명사형이라는 이유만으로 모든 API를 바꾸지 않는다.
 `with_config()`는 원본을 변경하지 않는 사본 생성을 표현하는 관용적 fluent API다.
 동기/비동기 facade는 `create/acreate`, `load/aload`, `list/alist` 규칙을 유지한다.
+`delete_turn_plan/adelete_turn_plan`은 기존 `delete_turn` 동작의 사전 검토 결과다.
+`resume_plan`과 같은 `_plan` 관례를 사용하며, Session 전체 삭제와 혼동하지 않도록 `turn`을 유지한다.
 
 ## Config와 설정 API
 

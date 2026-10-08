@@ -151,7 +151,9 @@ class ProjectActivityEvent(JsonValue):
         states = {"run.started": "running", "run.completed": "completed",
                   "run.failed": "failed", "run.interrupted": "interrupted",
                   "run.paused": "paused", "step.failed": "failed"}
-        if self.event not in states or self.status != states[self.event]:
+        valid = (self.status in {"paused", "failed", "interrupted"} if self.event == "run.resume_abandoned"
+                 else self.event in states and self.status == states[self.event])
+        if not valid:
             raise ValueError("Invalid activity lifecycle")
         ref = self.source
         kind = self.event.split(".")[0]

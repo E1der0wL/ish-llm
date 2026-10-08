@@ -172,14 +172,16 @@ class InteractionRepository:
         return decisions, receipts, tuple(retries)
 
 
-    def views(self, run, requests, responses, *, resume_message=None, resumed_run=None):
+    def views(self, run, requests, responses, *, resume_message=None, resumed_run=None, resume_abandoned=False):
         answers = {v.request_id: v for v in responses}
         views = []
         for request in requests:
             response = answers.get(request.id)
             control = self.envelope(run, request)
             reason = None
-            if resumed_run is not None or resume_message is not None:
+            if resume_abandoned:
+                status, reason = "unavailable", "resume_abandoned"
+            elif resumed_run is not None or resume_message is not None:
                 status, reason = "submitted", "already_resumed"
             elif str(run.status) not in ("paused", "interrupted", "failed"):
                 status, reason = "unavailable", "run_active_or_finished"

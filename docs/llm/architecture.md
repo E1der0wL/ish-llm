@@ -2092,6 +2092,19 @@ completed이면 과거 체크포인트는 삭제를 차단하지 않는다. 마�
 체크포인트가 있으면 header의 문맥·입력 ID 및 직접/중첩 추가 지시 ID가 포함된 턴만 보호한다.
 초기 체크포인트 복사 전에 실패한 재개도 RunRepository.resolve_checkpoint로 원본 참조를 보호한다.
 다른 미완료 체인이 같은 메시지를 참조하면 보호를 유지한다. 체크포인트가 없는 실패는 차단하지 않는다.
+사용자가 재개를 포기하고 삭제할 때는 SessionHandle.delete_turn_plan/adelete_turn_plan으로
+TurnDeletionPlan(source, message_ids, blockers, revision)을 먼저 조회한다. blockers는 각 체인의
+마지막 Run 참조와 status/engine/실제로 겹치는 message_ids를 가진 Diagnostic이다.
+조회는 Session runtime을 해제하지 않아도 가능하며 실행이나 대화를 변경하지 않는다.
+delete_turn/adelete_turn의 abandon_runs에는 확인한 모든 blocker Run ID를 정확히 전달하고
+expected_revision을 필수로 전달한다. 누락/추가 대상 또는 변경된 계획은 쓰기 전에 거부한다.
+같은 workspace 트랜잭션에서 Run.metadata.resume_abandonment의 abandoned_at/reason/request_id를
+기록하고 대화의 conversation_deleted를 저장한다. reason은 conversation_deleted이며 포기 기록은
+서비스가 소유한다. 기존 Run.status/종료 시각/오류/체크포인트/Step/승인·Tool 효과 영수증은 유지한다.
+재개 계획·접수·실행과 승인 응답/취소/갱신은 포기한 Run을 거부하며, 승인 조회는 unavailable /
+blocked_reason=resume_abandoned를 반환한다. 포기는 되돌리지 않으며 새 작업은 새 submit으로 접수한다.
+Activity의 run.resume_abandoned와 INTERACTION_CHANGED 알림은 commit 이후의 파생 관찰이다.
+보관 정책이나 물리 삭제 대상을 확대하지 않는다. 이 삭제는 이력 보존형 논리 삭제다.
 손상된 참조/재개 순환/필수 체크포인트 소실은 추측하지 않고 삭제를 거부한다.
 재개 접수·실행의 기존 검사 경계에서도 필수 메시지의 삭제 표시를 거부한다. 삭제된 내용을 몰래
 되살리거나 체크포인트에서 제외하지 않는다. 새 submit은 삭제를 반영한 현재 문맥으로 실행한다.

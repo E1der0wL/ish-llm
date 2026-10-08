@@ -16,6 +16,7 @@ JSON dict를 유지한다. 모든 dict를 고정 스키마로 바꾸지 않는�
 | SessionRuntimeView | session.run.status/astatus | session_id, status, active_run_id, engine, started_at, queued_count, queued_request_ids, unfinished_work |
 | RunView | run.view/aview | run, outputs, cursor, events |
 | ResumePlan | session.run.resume_plan | source, engine, can_resume, interactions, reused, retry_nodes, blockers |
+| TurnDeletionPlan | session.delete_turn_plan | source, message_ids, blockers, revision |
 | RecoveryPlan | project.recovery/arecovery(apply=False) | source, issues, repair_sessions, version |
 | RecoveryResult | project.recovery/arecovery(apply=True) | applied, journal, remaining |
 | RetentionPlan | project.retention/aretention | source, policy, candidates, protected, bytes_before/after, tokens_before/after, version, estimated |
@@ -55,6 +56,25 @@ Tool을 재실행하지 않는다. 기존 ToolRuntime·효과 원장·명시적 
 ResourceRef를 역직렬화한 것만으로 대상 조회·수정 권한을 얻지 않는다. 대상 API가 소유권을 검사한다.
 
 ## 검토와 실행 분리
+
+`TurnDeletionPlan`은 `session.adelete_turn_plan(request_id)`가 반환한다.
+`source`는 턴의 사용자 메시지 참조, `message_ids`는 삭제 대상, `blockers`는 이를 참조하는
+미완료 체인의 마지막 Run 진단, `revision`은 조회 원본의 변경 식별자다.
+각 blocker의 `source.run_id`와 `details`의 `status`, `engine`, `message_ids`를 사용자에게 보여준다.
+계획은 실행 권한이 아니며 삭제 서비스가 실제 참조와 revision을 재검증한다.
+
+```python
+plan = await session.adelete_turn_plan(request_id)
+# 영향받는 Run 전부를 보여주고 재개 포기 확인을 받은 뒤:
+confirmed_run_ids = [issue.source.run_id for issue in plan.blockers]
+await session.run.shutdown()
+await session.adelete_turn(
+    request_id, abandon_runs=confirmed_run_ids, expected_revision=plan.revision,
+)
+```
+
+포기와 논리 삭제는 원자적으로 적용된다. 취소/확인 실패 시 이 API를 호출하지 않는다.
+`abandon_runs` 생략은 기존 참조 보호를 유지한다. 재개 포기는 이미 발생한 효과를 되돌리지 않는다.
 
 ```python
 plan = await session.run.resume_plan(run.id, engine=run.engine)

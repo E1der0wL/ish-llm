@@ -6,6 +6,15 @@ from .interactions import InteractionView
 
 
 @dataclass(frozen=True, slots=True)
+class TurnDeletionPlan(JsonValue):
+    """대화 삭제 영향의 조회 스냅샷. 실행 시 revision과 재개 참조를 다시 검증한다."""
+    source: ResourceRef
+    message_ids: list[str]
+    blockers: list[Diagnostic]
+    revision: str
+
+
+@dataclass(frozen=True, slots=True)
 class ResumePlan(JsonValue):
     source: ResourceRef
     engine: str

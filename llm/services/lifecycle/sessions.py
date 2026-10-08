@@ -14,12 +14,15 @@ from collections.abc import Callable
 
 from llm.core.models import Project, ProjectConfig, Session, SessionStatus, new_id
 from llm.core.paths import ProjectPaths, SessionPaths
+from llm.core.contracts import Diagnostic, ResourceRef
+from llm.core.plans import TurnDeletionPlan
 from llm.services.history.conversation import Conversation, ProjectConversations, conversation_store
 from llm.services.history.context import ConversationContextBuilder
 from llm.services.lifecycle.access import ProjectAccess
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.logging import log_event
-from llm.services.infrastructure.storage import atomic_json, child, read_json, record, remove_owned_tree
+from llm.services.infrastructure.activity import activity_event
+from llm.services.infrastructure.storage import atomic_json, child, read_json, record, remove_owned_tree, revision_token
 
 
 @dataclass(slots=True)
@@ -145,6 +148,37 @@ class SessionManager:
         if session.paths.root.absolute() != expected.root.absolute():
             raise ValueError("Session path ownership mismatch")
         return project
+
+    def _turn_deletion(self, session: Session, request_id: str):
+        """조회와 변경이 같은 턴/재개 참조를 계산한다. 호출자는 workspace 잠금을 소유한다."""
+        from llm.services.history.turns import conversation_turns
+        if session.status == SessionStatus.DELETED:
+            raise ValueError("Session is deleted")
+        store = self.conversations(session)
+        messages = store.list()
+        if any(m.status in ("queued", "streaming") for m in messages):
+            raise ValueError("Finish pending work before deleting conversation turns")
+        group = next((g for g in conversation_turns(messages) if g[0].id == request_id), None)
+        if group is None:
+            raise ValueError("Conversation turn does not exist")
+        if self.run_repository is None:
+            raise RuntimeError("Turn deletion requires the shared RunRepository")
+        identifiers = {m.id for m in group}
+        blockers, runs, snapshots = [], [], []
+        for run, protected, digest in self.run_repository.resume_references(session):
+            matched = sorted(identifiers & protected)
+            if not matched:
+                continue
+            runs.append(run)
+            blockers.append(Diagnostic("resume_required", "An unfinished Run requires this conversation turn",
+                source=ResourceRef("run", run.id, project_id=session.project_id, session_id=session.id, run_id=run.id),
+                details={"status": str(run.status), "engine": run.engine, "message_ids": matched}))
+            snapshots.append({"run": record(run), "checkpoint": digest,
+                "interactions": [v.to_dict() for v in self.run_repository.interaction_views(session, run, store)]})
+        source = ResourceRef("message", request_id, project_id=session.project_id, session_id=session.id)
+        revision = revision_token({"source": source.to_dict(), "messages": [record(m) for m in group],
+                                   "dependencies": snapshots})
+        return store, group, TurnDeletionPlan(source, [m.id for m in group], blockers, revision), runs
 
     @workspace_locked
     def _save_runtime(self, session: Session) -> None:
@@ -348,25 +382,32 @@ class SessionManager:
         return clone
 
     @workspace_locked
-    def delete_turn(self, session: Session, request_id: str) -> None:
-        """Append a soft-deletion marker; execution records remain inspectable."""
-        from llm.services.history.turns import conversation_turns
+    def delete_turn_plan(self, session: Session, request_id: str) -> TurnDeletionPlan:
+        """실행을 멈추거나 수정하지 않고 삭제 영향과 CAS revision을 조회한다."""
+        self._owner(session)
+        return self._turn_deletion(self.repository.reload(session), request_id)[2]
+
+    @workspace_locked
+    def delete_turn(self, session: Session, request_id: str, *, abandon_runs=(), expected_revision=None) -> None:
+        """확인된 재개 포기와 대화 논리 삭제를 하나의 트랜잭션으로 저장한다."""
+        if (not isinstance(abandon_runs, (tuple, list))
+                or any(not isinstance(value, str) or not value for value in abandon_runs)
+                or len(set(abandon_runs)) != len(abandon_runs)):
+            raise ValueError("abandon_runs requires distinct Run IDs")
+        if abandon_runs and (not isinstance(expected_revision, str) or not expected_revision):
+            raise ValueError("Resume abandonment requires expected_revision from delete_turn_plan")
         current = self.require_inactive(session)
-        if current.status == SessionStatus.DELETED:
-            raise ValueError("Session is deleted")
-        store = self.conversations(current)
-        messages = store.list()
-        if any(m.status in ("queued", "streaming") for m in messages):
-            raise ValueError("Finish pending work before deleting conversation turns")
-        group = next((g for g in conversation_turns(messages) if g[0].id == request_id), None)
-        if group is None:
-            raise ValueError("Conversation turn does not exist")
-        # paused 원본은 재개 완료 후에도 이력으로 남는다. 상태가 아닌 현재 체크포인트 참조를 보호한다.
-        if self.run_repository is None:
-            raise RuntimeError("Turn deletion requires the shared RunRepository")
-        protected = self.run_repository.resumable_message_ids(current)
-        if any(message.id in protected for message in group):
+        store, group, plan, runs = self._turn_deletion(current, request_id)
+        if expected_revision is not None and expected_revision != plan.revision:
+            raise ValueError("Turn deletion plan changed; reload and confirm again")
+        if runs and not abandon_runs:
             raise ValueError("Conversation turn is required by an unfinished resumable Run")
+        if set(abandon_runs) != {run.id for run in runs}:
+            raise ValueError("Confirm exactly the Run IDs reported by delete_turn_plan")
+        for run in runs:
+            self.run_repository.abandon_resume(run, request_id)
+            activity_event(self._owner(current), run, "run.resume_abandoned",
+                time=run.metadata["resume_abandonment"]["abandoned_at"], status=run.status)
         for message in group:
             store.update_metadata(message.id, {"conversation_deleted": True})
         log_event(current.paths.logs, "conversation.deleted", entity_id=request_id, count=len(group))

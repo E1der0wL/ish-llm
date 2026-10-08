@@ -231,10 +231,12 @@ class RunRepository:
         return InteractionRepository().responses(run, self.interaction_requests(session, run))
 
     def respond(self, session: Session, run: Run, response: InteractionResponse) -> InteractionResponse:
+        self.require_resume(run)
         return InteractionRepository().respond(run, self.interaction_requests(session, run), response)
 
     def interaction_decisions(self, session: Session, run: Run, checkpoint: dict, explicit: dict, *, retry_nodes=(), confirm=False):
         """조회와 실행이 같은 응답 저장소를 사용한다. 주입된 저장소도 이 경로를 공유한다."""
+        self.require_resume(run)
         interactions = InteractionRepository()
         requests = self.interaction_requests(session, run)
         if any(interactions.envelope(run, r).get("cancelled") for r in requests):
@@ -269,10 +271,35 @@ class RunRepository:
         resumed = next((r for r in self.list(session) if r.metadata.get("resume", {}).get("run_id") == run.id), None)
         return message, resumed
 
-    def resumable_message_ids(self, session: Session) -> set[str]:
-        """미완료 재개 체인의 마지막 실행만 보호한다. 완료 여부를 중복 저장하지 않는다.
+    def resume_abandoned(self, run: Run) -> bool:
+        """서비스가 기록한 재개 포기만 해석한다. 손상된 기록은 보호 해제로 추측하지 않는다."""
+        if "resume_abandonment" not in run.metadata:
+            return False
+        value = run.metadata["resume_abandonment"]
+        if (not isinstance(value, dict) or set(value) != {"abandoned_at", "reason", "request_id"}
+                or value["reason"] != "conversation_deleted"
+                or any(not isinstance(value[k], str) or not value[k] for k in ("abandoned_at", "request_id"))
+                or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED)):
+            raise ValueError("Invalid resume abandonment record")
+        return True
 
-        호출자는 비활성 Session의 workspace 잠금을 소유해야 한다. 체크포인트가 손상되면
+    def require_resume(self, run: Run) -> None:
+        if self.resume_abandoned(run):
+            raise ValueError("Resume was abandoned for conversation deletion")
+
+    def abandon_resume(self, run: Run, request_id: str) -> None:
+        """잠금/트랜잭션을 소유한 삭제 서비스 전용. 실행 결과나 효과 영수증은 변경하지 않는다."""
+        self.require_resume(run)
+        if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
+            raise ValueError("Only an inactive resumable Run can be abandoned")
+        run.metadata["resume_abandonment"] = {
+            "abandoned_at": now(), "reason": "conversation_deleted", "request_id": request_id}
+        self.save(run)
+
+    def resume_references(self, session: Session) -> list[tuple[Run, set[str], str]]:
+        """미완료 체인별 (마지막 Run, 보호 메시지 ID, 체크포인트 지문)을 반환한다.
+
+        호출자는 workspace 잠금을 소유해야 한다. 체크포인트가 손상되면
         보호할 참조를 추측하지 않고 거부한다. 초기 복사 전 실패도 resolve_checkpoint로 읽는다.
         """
         from graphlib import TopologicalSorter
@@ -285,23 +312,35 @@ class RunRepository:
         tuple(TopologicalSorter({identifier: (parents[identifier],) if identifier in parents else ()
                                 for identifier in runs}).static_order())
         superseded = set(parents.values())
-        protected = set()
+        references = []
         for run in runs.values():
             if run.id in superseded or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
                 continue
+            if self.resume_abandoned(run):
+                continue
             names = run.metadata.get("checkpoints", ()) or (
                 [run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else ())
+            protected, checkpoints = set(), []
             for name in names:
+                checkpoint = self.resolve_checkpoint(session, run, name)
                 protected.add(run.input_message_id)
-                protected.update(checkpoint_message_ids(self.resolve_checkpoint(session, run, name)))
-        return protected
+                protected.update(checkpoint_message_ids(checkpoint))
+                checkpoints.append([name, checkpoint])
+            if protected:
+                references.append((run, protected, checkpoint_digest({"checkpoints": checkpoints})))
+        return references
+
+    def resumable_message_ids(self, session: Session) -> set[str]:
+        return {identifier for _, identifiers, _ in self.resume_references(session) for identifier in identifiers}
 
     def interaction_views(self, session, run, store):
         message, resumed = self.resume_link(session, run, store)
         return InteractionRepository().views(run, self.interaction_requests(session, run),
-            self.interaction_responses(session, run), resume_message=message, resumed_run=resumed)
+            self.interaction_responses(session, run), resume_message=message, resumed_run=resumed,
+            resume_abandoned=self.resume_abandoned(run))
 
     def change_interaction(self, session, run, request, *, operation, expires_at=None):
+        self.require_resume(run)
         current = next((r for r in self.interaction_requests(session, run) if r.id == request.id), None)
         if current is None or current.fingerprint != request.fingerprint:
             raise ValueError("Interaction changed; reload before editing")
@@ -735,6 +774,7 @@ class RunManager:
             raise RunRequestError(RunErrorCode.RESUME_REJECTED, "Cancelled work is still finishing")
         self._check_queue(runtime.session)
         source = self.repository.load(runtime.session, run_id)
+        self.repository.require_resume(source)
         options = source.metadata.get("engine_options", {})
         self._validate_request(engine, options)
         if source.engine != engine or source.status not in (
@@ -896,6 +936,7 @@ class RunManager:
     def _resume_checkpoint(self, session, run):
         descriptor = run.metadata["resume"]
         source = self.repository.load(session, descriptor["run_id"])
+        self.repository.require_resume(source)
         if source.engine != run.engine or source.status not in (
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise ValueError("Resume source is no longer eligible")

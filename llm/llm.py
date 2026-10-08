@@ -36,7 +36,7 @@ from llm._platform import require_linux
 from llm.core.models import ProjectConfig, Run, RunStatus, Session
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent
 from llm.core.views import SessionRuntimeView, RunView
-from llm.core.plans import ResumePlan, RecoveryPlan, RetentionPlan, RecoveryResult
+from llm.core.plans import ResumePlan, RecoveryPlan, RetentionPlan, RecoveryResult, TurnDeletionPlan
 from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult
 from llm.core.interactions import InteractionRequest, InteractionOption, InteractionResponse, InteractionView
 from llm.providers.calls import ProviderCalls, ProviderLimits
@@ -384,13 +384,19 @@ class LargeLanguageModel:
             print(issue.code, issue.message, issue.source)
         recovery = await project.arecovery()      # RecoveryPlan
         retention = await project.aretention()    # RetentionPlan
+        deletion = await session.adelete_turn_plan(request_id)  # TurnDeletionPlan
+        # deletion.blockers의 Run을 사용자에게 보여주고 모두 확인받은 뒤:
+        await session.run.shutdown()
+        await session.adelete_turn(request_id,
+            abandon_runs=[item.source.run_id for item in deletion.blockers],
+            expected_revision=deletion.revision)
         # 검토 뒤 해당 작업 API에 expected_version=recovery.version 등을 전달한다.
         for step in await run.steps.alist():
             print(step.progress, step.diagnostic) # OperationProgress / Diagnostic 또는 None
         progress = await project.components.rag.ajob_progress(job_id)
 
     Diagnostic/ResourceRef/OperationProgress, SessionRuntimeView/RunView,
-    ResumePlan/RecoveryPlan/RecoveryResult/RetentionPlan은 공개 데이터 클래스다.
+    ResumePlan/RecoveryPlan/RecoveryResult/RetentionPlan/TurnDeletionPlan은 공개 데이터 클래스다.
     JSON은 to_dict/from_dict로 변환한다. dict 접근 별칭은 제공하지 않는다.
     진단의 severity나 진행률로 재시도·승인·완료를 결정하지 않는다. 도메인 상태와
     실행 정책이 원본이다. 프로젝트 설정, 컴포넌트 정의, 공급자 인자는 열린 dict를 유지한다.

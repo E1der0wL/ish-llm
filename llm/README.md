@@ -221,7 +221,7 @@ llm은 기본 Project·Session을 생성하거나 선택하지 않습니다. `ac
 | 미시작 Agent 실행에 한 번 예약 | `run.ainstruction_routes()`, `session.run.reserve_instruction(run_id, text, targets=selected_routes)` |
 | Run 조회·결과·Step | `session.run.aload(id)`, `run.aresult()`, `run.steps.alist()` |
 | 대화 조회 | `session.aconversation()` |
-| 대화 턴 조회·숨김·시점 복제 | `session.aturns()`, `adelete_turn(request_id)`, `aclone(through_message_id=request_id)` |
+| 대화 턴 조회·삭제 영향·숨김·시점 복제 | `session.aturns()`, `adelete_turn_plan(request_id)`, `adelete_turn(request_id)`, `aclone(through_message_id=request_id)` |
 | Project 실행 이력 | `project.aactivity(limit=300)` — 상세 내용은 참조된 Run·Step에서 조회 |
 | Component 핸들 획득 | `await project.components.aget("prompts")` |
 | JSON 정의 CRUD | `component.acreate(...)`, `aload(id)`, `asave(id, data)`, `adelete(id)` |
