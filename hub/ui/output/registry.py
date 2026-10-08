@@ -31,7 +31,10 @@ class OutputRenderer(Protocol):
 
 class RendererRegistry:
     def __init__(self):
-        self._renderers: dict[str, OutputRenderer] = {"markdown": MarkdownRenderer()}
+        self._renderers: dict[str, OutputRenderer] = {name: MarkdownRenderer() for name in ("markdown", "code", "table")}
+        from .structured import StructuredRenderer
+        self._renderers.update({name: StructuredRenderer() for name in
+                               ("hub-code", "hub-diff", "hub-table", "hub-card", "hub-chart")})
         self._version = 0
 
     @property
@@ -45,6 +48,9 @@ class RendererRegistry:
             raise ValueError(f"Renderer already registered: {tag}")
         self._renderers[tag] = renderer
         self._version += 1
+
+    def is_object(self, block):
+        return block.kind != "markdown" and block.kind in self._renderers
 
     def render(self, block: OutputBlock, context: RenderContext) -> FragmentLines:
         renderer = self._renderers.get(block.kind)

@@ -160,9 +160,33 @@ class SettingsService:
             self.runtime.general = GeneralSettings(**value)
         return value
 
+    async def save_all(self, requests):
+        # Validate every draft before the first write. Public Project APIs keep
+        # their own concurrency checks; report any partial success explicitly.
+        from ..config.theme import HubTheme
+        for operation, args in requests:
+            if operation == "save_global":
+                section, values = args
+                {"profile": UserProfile, "appearance": HubTheme, "general": GeneralSettings}[section](**values)
+            elif operation in ("save_project", "create_project"):
+                values = deepcopy(args[1] if operation == "save_project" else args[0])
+                if operation == "create_project":
+                    values.setdefault("conversation_storage", "file")
+                    values["components"] = list(self._schema()["properties"]["components"]["items"]["enum"])
+                self._validate(values)
+            else:
+                raise ValueError("Unsupported settings save operation")
+        results = []
+        for operation, args in requests:
+            try:
+                results.append(await getattr(self, operation)(*args))
+            except Exception as error:
+                return {"results": results, "error": str(error)}
+        return {"results": results, "error": None}
+
     async def execute(self, operation, *args):
         allowed = {"catalog", "load_project", "save_project", "create_project", "select_components",
-                   "clone_project", "delete_project", "rename_project", "activate_project", "save_global"}
+                   "clone_project", "delete_project", "rename_project", "activate_project", "save_global", "save_all"}
         if operation not in allowed:
             raise ValueError("Unknown settings operation")
         return await getattr(self, operation)(*args)

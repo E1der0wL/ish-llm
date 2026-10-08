@@ -53,7 +53,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len(view._composer_frame.body.children), 2)
                 pipe.send_text("\x1b")
                 await eventually(lambda: app.layout.current_control == view._session_control)
-                self.assertTrue({"c", "d", "e", "r", "←→", "Tab/Space/Enter"} <= keys().keys())
+                self.assertTrue({"c", "d", "e", "r", "Ctrl+←→", "Tab/Space/Enter/→"} <= keys().keys())
                 self.assertNotIn("Ctrl+Space", keys())
 
                 pipe.send_text("\x13")
@@ -115,7 +115,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                     view.close_dialog()
                     popup = ReadOnlyDialog("Activity", "line", view._rows, view._columns, view.close_dialog, view.t)
                     view.dialogs.show(popup, popup.receiver)
-                self.assertEqual(set(keys()), {"ESC", "Ctrl+L", "Enter", "Alt + 이동키"})
+                self.assertEqual(set(keys()), {"ESC", "Ctrl+L", "Enter", "이동키"})
                 pipe.send_text("\x0c")
                 await eventually(lambda: view._dialog is None)
                 with set_app(app):

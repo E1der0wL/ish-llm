@@ -58,7 +58,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                     while not any(m.role == "reasoning" for m in (await runtime.snapshot()).messages):
                         await asyncio.sleep(0.02)
                 snapshot = await runtime.snapshot()
-                self.assertIn("chat", present(snapshot, runtime.t).activity)
+                self.assertNotIn("\n", present(snapshot, runtime.t).activity)
                 self.assertIn("LLM completion", present(snapshot, runtime.t).activity)
                 run_id, targets = await runtime.instruction_targets(identifier)
                 instruction = await runtime.steer(identifier, run_id, "additional direction", [targets[0][0]])
@@ -77,7 +77,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 runs = await runtime.sessions[identifier].run.alist()
                 self.assertEqual([(await r.aget_data()).engine for r in runs], ["chat", "review"])
                 self.assertEqual(len(calls), 3)
-                self.assertTrue(any(m.role == "reasoning" for m in (await runtime.snapshot()).messages))
+                self.assertFalse(any(m.role == "reasoning" for m in (await runtime.snapshot()).messages))
                 clone = await runtime.new_session("clone", "Named copy", identifier)
                 self.assertEqual((await runtime.sessions[clone].aget_data()).title, "Named copy")
                 self.assertFalse(await runtime.sessions[clone].run.alist())
@@ -253,7 +253,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("start\r")
                 await until(lambda: any(m.role == "reasoning" for m in view.transcript.control.messages))
@@ -313,7 +313,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("first\r")
                 await until(lambda: any(m.role == "reasoning" for m in view.transcript.control.messages))
@@ -356,7 +356,8 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.transcript.window.vertical_scroll == 1)
                 pipe.send_text("\x1b\x1b[A")
                 await until(lambda: view.transcript.window.vertical_scroll == 0)
-                pipe.send_text("\x1bOS")
+                app.layout.focus(view._session_control)
+                pipe.send_text("c")
                 await until(lambda: view._dialog is not None)
                 pipe.send_text("Named session\r")
                 await until(lambda: view._dialog is None)
@@ -368,7 +369,8 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[B\t\r")  # review, Confirm
                 await until(lambda: view._dialog is None)
                 self.assertEqual(view.engine, "review")
-                pipe.send_text("\x1bOS")
+                app.layout.focus(view._session_control)
+                pipe.send_text("c")
                 await until(lambda: view._dialog is not None)
                 pipe.send_text("\x1b")
                 await until(lambda: view._dialog is None)

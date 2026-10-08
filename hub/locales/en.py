@@ -3,14 +3,42 @@
 
 
 MESSAGES = {
+    'shortcut_movement': 'Navigation',
+    'shortcut_clear': 'Clear',
+    'shortcut_tags': 'Tags',
+    'shortcut_expand': 'Expand',
+    'shortcut_copy': 'Copy raw',
+    'shortcut_open_directory': 'Open directory',
+    'settings_search': 'Find settings',
+    'settings_search_hint': 'Match a key, description or value. Leave empty to show all.',
+    'settings_search_empty': 'No matching settings.',
+    'settings_search_active': 'Filter: {query}',
+    'clipboard_copied': 'Raw text copied.',
+    'clipboard_terminal': 'Copy requested through the terminal (OSC 52); text also stored in the application clipboard.',
+    'component_action_config': 'Open component manager',
+    'component_manager_unavailable': 'The {name} manager is not available yet. Use settings or data commands.',
+    'tags_title': 'Output tags',
+    'tags_empty': 'No output objects.',
+    'tools_title': 'Tool packages',
+    'tools_import_hint': 'Directory path → Enter to import <name>/<name>.py and optional requirements.txt',
+    'tools_columns': 'Name / Last modified / Description',
+    'tools_hint': 'Tab: region · ↑↓: select · Enter: file manager · d: delete',
+    'tools_empty': 'No tools registered.',
+    'tools_imported': 'Tool imported. Prepare dependencies and enable it separately before use.',
+    'tools_failed': 'Operation failed; see the error notification.',
+    'tools_explorer_failed': 'File manager exited with code {code}',
+    'tools_delete_confirm': 'Delete {name}? If enabled, it will also be disabled.',
+    'welcome_keys': 'ESC Panel · c in panel: New session · Ctrl+S Settings',
+    'session_required': 'Create a session first: ESC, then c in the session list.',
+    'command_details': 'Output tag bar',
+    'activity_hint': 'Last 300 entries · Navigation: scroll · ESC / Enter / Ctrl+L: close',
+    'help': '# Hub help\n\n## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+E** chooses an engine/Workflow. **Ctrl+R** toggles Markdown preview.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T** closes it. **Tab / Space / Enter** opens an enlarged popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **Arrows** selects fields.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config` imports, lists, opens and deletes Tool packages.\nPath completion inserts text; it does not attach files.\n',
     "settings_dependencies": "Required components: {names}",
     "settings_dependencies_missing": "Missing required components: {names} — select them before saving.",
     "title_model_required": "No title model is configured. Set the conversation engine model or parameters.engines._hub_title.completion.model.",
     "output_image_limit": "Image preview limit reached for this view (32 images).",
     "welcome_title": "No sessions yet",
     "welcome_hint": "Create a session to start a conversation.",
-    "welcome_keys": "ESC Panel · Ctrl+S Project settings · F4 New session · ESC in panel to minimize",
-    "session_required": "Create a session first. Press F4, or c in the session list.",
     "output_pending": "Receiving output block…",
     "output_image": "Image · {caption}",
     "output_image_loading": "Converting image…",
@@ -48,13 +76,12 @@ MESSAGES = {
 
     "project_activity": "Project execution history", "activity_empty": "No execution history recorded.",
 
-    "activity_hint": "Latest 300 events · ESC close · Ctrl+L close · Alt + Navigation scroll · Enter close",
 
     "activity_source": "Session: {session_id} · Run: {run_id}",
 
     "activity_step": "Step: {step_id}", "activity_code": "Code: {code}",
 
-    "help_history": "Ctrl+G: Request/work pairs (d delete · r clone through selection)\nCtrl+L: Project execution history\nSession list ←→: Resize sidebar\nChoose the last request and response to include in the clone dialog.",
+    "help_history": "Ctrl+G: Request/work pairs (d delete · r clone through selection)\nCtrl+L: Project execution history\nSession list Ctrl+←→: Resize sidebar\nChoose the last request and response to include in the clone dialog.",
 
     "settings_registration": "Additional features", "settings_engines": "Engines",
 
@@ -310,7 +337,7 @@ MESSAGES = {
 
     "command_clone": "Clone this conversation", "command_preview": "Toggle Markdown preview",
 
-    "command_stop": "Interrupt the active Run", "command_details": "Toggle Run details",
+    "command_stop": "Interrupt the active Run", "command_details": "Output tag bar",
 
     "file": "File", "directory": "Directory", "engine": "Engine",
 
@@ -318,7 +345,6 @@ MESSAGES = {
 
     "help_title": "Hub help",
 
-    "help": "# Hub help\n\n## Panels and pages\n\n| Key | Action |\n| --- | --- |\n| ESC | Move from main content to the panel |\n| ESC in the panel | Minimize Hub and return to the shell |\n| Ctrl+Q in the shell | Open Hub |\n| Ctrl+S in Hub | Open settings; save and return to chat from settings content |\n| Tab / Space / Enter in the panel | Move to main content |\n\nHub leaves the shell's Ctrl+S binding unchanged.\n\n## Conversation input\n\n- **Enter** sends a request. During a Run, choose steering or a follow-up request.\n- **Ctrl+Space** inserts a newline.\n- **↑↓** selects completions; **Tab** confirms or opens the menu.\n- **Ctrl+X** interrupts the active Run, preserving queued requests.\n- **Ctrl+E** selects an engine and Workflow.\n- **Ctrl+F** searches this session. Enter goes to the next match; Alt+P goes to the previous match.\n- **Ctrl+G** opens the request/response list for deletion and cloning.\n- **Ctrl+L** opens project activity.\n\n## Scrolling\n\n**Alt + Navigation** always includes all of these keys:\n\n| Navigation key | Action |\n| --- | --- |\n| ↑ / ↓ | One line up / down |\n| ← / → | Horizontal overflow |\n| Home / End | Start / end |\n| PgUp / PgDn | One page up / down |\n\nConversation output and read-only dialogs share this behavior.\nSettings uses arrow-key item navigation; Alt scrolling is disabled there.\n\n## Help, activity and query results\n\nContent never receives focus. Scroll with **Alt + Navigation**.\nClose with **ESC**, **Enter** or **Ctrl+L** to restore your previous focus.\n\n## Session panel\n\n**c** create · **d** delete · **e** rename · **r** clone.\n`← / →` adjusts panel width. An empty name enables automatic naming.\nCloning lets you choose a conversation boundary.\n\n## Settings\n\n- **Tab / Shift+Tab** switches between fields and actions.\n- **Arrows** select a field.\n- **Enter** starts / finishes inline editing.\n- **e** opens the configured external editor.\n- **Ctrl+Space / Alt+Enter** inserts a newline while editing.\n- For choices such as icon style, use Enter → arrows → Enter.\n- Project panel c / d / e / r creates / deletes / renames / clones.\n\n## Commands and display\n\nType `/` for enabled component commands.\nUse `/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nPath completions insert text; they do not attach files automatically.\n\n**F1** help · **F2** next session · **F4** create/clone · **F5** draft preview · **F6** Run details.\n",
 
     "status_idle": "{icon_idle} Idle", "status_running": "{icon_running} Running", "status_queued": "{icon_queued} Queued",
 

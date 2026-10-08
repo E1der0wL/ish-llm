@@ -4,7 +4,7 @@ import json
 
 
 BUILTINS = ("help", "engine", "new", "clone", "preview", "stop", "details")
-ACTIONS = ("list", "get", "create", "update", "delete", "settings", "help")
+ACTIONS = ("list", "get", "create", "update", "delete", "settings", "config", "help")
 
 
 def component_commands(names: tuple[str, ...]) -> dict[str, str]:

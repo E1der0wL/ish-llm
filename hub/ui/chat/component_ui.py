@@ -29,6 +29,19 @@ class ComponentCommands:
         name = view.component_commands[command]
         original = view.composer.text
 
+        if action == "config":
+            if name != "tools":
+                view.notice = view.t("component_manager_unavailable", name=name)
+                return
+            from ...widget.tool_manager import ToolManager
+            def request(operation, argument, version, done):
+                self.controller._call("manage_tools", project_id, operation, argument, version, completed=done)
+            popup = ToolManager(view, request)
+            view.composer.text = ""
+            view.dialogs.show(popup, popup.path)
+            popup.reload()
+            return
+
         def execute():
             self.busy = True
             background = name == "rag" and action in ("create", "update")

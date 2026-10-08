@@ -7,6 +7,7 @@ import sys
 import unittest
 
 from prompt_toolkit.input import create_pipe_input
+from prompt_toolkit.application.current import set_app
 from prompt_toolkit.widgets import Label
 
 from hub.hub import install
@@ -110,7 +111,8 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view.visible)
                 pipe.send_text("keep this draft")
                 await eventually(lambda: view.composer.text == "keep this draft")
-                view.show_details = True
+                with set_app(app):
+                    view.tags.open()
                 for columns, rows in ((132, 40), (80, 24), (160, 60), (60, 14), (132, 40)):
                     with self.subTest(columns=columns, rows=rows):
                         output.columns, output.rows = columns, rows
@@ -126,8 +128,8 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                         self.assertIn(view.composer.window, positions)
                         self.assertIn(view.transcript.window, positions)
                         self.assertEqual(view._sidebar.filter(), columns >= 88)
-                        self.assertEqual(view._details.filter(), columns >= 116)
-                        self.assertIs(app.layout.current_control, view.composer.control)
+                        self.assertTrue(view._details.filter())
+                        self.assertIs(app.layout.current_control, view.tags.control)
                         self.assertEqual(view.composer.text, "keep this draft")
                 await minimize(pipe, view)
                 await eventually(lambda: not view.visible)

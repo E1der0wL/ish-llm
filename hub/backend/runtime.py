@@ -95,6 +95,7 @@ class HubRuntime:
         self.dirty = asyncio.Event()
         self.lock = asyncio.Lock()
         self._subscriptions = []
+        self._dropped_observations = 0
         from .snapshot import SnapshotReader
         self.snapshot_reader = SnapshotReader()
         self._opened_sessions = set()
@@ -111,6 +112,7 @@ class HubRuntime:
         self.namer = SessionNamer(self)
 
     async def _engine_event(self, run, event) -> None:
+        self.snapshot_reader.thinking.observe(run, event)
         self.dirty.set()
 
     async def _run_event(self, event) -> None:
@@ -337,6 +339,11 @@ class HubRuntime:
         self.dirty.set()
         return result
 
+    async def manage_tools(self, project_id, action, argument="", expected_version=None):
+        from .tool_management import manage_tools
+        project = await self.backend.projects.aload(project_id)
+        return await manage_tools(project, action, argument, expected_version, root=self.config.file_root)
+
     async def submit(self, session_id: str, text: str, engine: str | None = None,
                      engine_options: dict | None = None) -> str:
         if not text.strip():
@@ -417,6 +424,12 @@ class HubRuntime:
                     self.namer.schedule(self.sessions[identifier], "clone")
 
     async def snapshot(self) -> HubSnapshot:
+        dropped = sum(subscription.stats["dropped"] for subscription in self._subscriptions)
+        if dropped != self._dropped_observations:
+            # A missing text delta makes a cached thinking phase unreliable.
+            # Rebuild the display from durable messages/completions below.
+            self.snapshot_reader.thinking.runs.clear()
+            self._dropped_observations = dropped
         from dataclasses import replace
         snapshot, observations = await self.snapshot_reader.read(
             self.project, self.sessions, self.selected_id, config=self.config,

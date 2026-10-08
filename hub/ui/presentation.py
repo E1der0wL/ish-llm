@@ -40,7 +40,7 @@ def present(snapshot: HubSnapshot, t) -> Presentation:
                          seconds=int(run.elapsed_seconds or 0), count=snapshot.queued_count)
             if run.steps:
                 step = run.steps[-1]
-                activity += "\n " + t("phase", name=step.name, status=t.status(step.status))
+                activity = t("phase", name=step.name, status=t.status(step.status))
             if not run.has_reasoning:
                 detail += "\n" + t("no_reasoning")
         detail += f"\n\n  {t('run')} / {t.status(run.status)}\n  {run.id}\n\n  {t('steps')}\n"

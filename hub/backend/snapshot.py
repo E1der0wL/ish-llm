@@ -20,6 +20,8 @@ class SessionObservation:
 class SnapshotReader:
     def __init__(self):
         self.cache = {}
+        from .thinking import ThinkingPhases
+        self.thinking = ThinkingPhases()
 
     def clear(self):
         self.cache.clear()
@@ -33,8 +35,9 @@ class SnapshotReader:
                 run = await (await session.run.aload(run_id)).aget_data()
         except FileNotFoundError:
             return "", None  # Retention can remove old execution history.
-        reasoning = "\n\n".join(item.get("reasoning_content", "")
-            for item in run.metadata.get("completions", []) if item.get("reasoning_content"))
+        from .thinking import reasoning_text
+        completions = run.metadata.get("completions", [])
+        reasoning = reasoning_text(completions[-1].get("reasoning_content", "")) if completions else ""
         elapsed = None
         active = str(run.status) in ("pending", "running")
         if run.started_at and (run.ended_at or str(run.status) == "running"):
@@ -57,6 +60,8 @@ class SnapshotReader:
             if role == "assistant" and message.run_id:
                 reasoning, elapsed = await self.run_display(session, message.run_id,
                     run=latest if latest is not None and latest.id == message.run_id else None)
+                reasoning = self.thinking.visible(message.run_id, reasoning,
+                    active=str(message.status) in ("streaming", "committed"), content=message.content)
                 if reasoning:
                     visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning"))
             status = str(message.metadata.get("steering", {}).get("status", message.status))

@@ -24,7 +24,7 @@ class OutputTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([b.kind for b in blocks], ["markdown", "hub-image", "markdown"])
         self.assertEqual(dict(blocks[1].attributes)["src"], "a&b.png")
         for source in ('```xml\n<hub-image src="x" />\n```', '    <hub-image src="x" />', '`<hub-image src="x" />`'):
-            self.assertTrue(all(b.kind == "markdown" for b in parser.parse(source)))
+            self.assertTrue(all(b.kind in ("markdown", "code") for b in parser.parse(source)))
         self.assertEqual(parser.parse('<hub-image src="x"')[0].kind, "literal")
         self.assertEqual(parser.parse('<hub-image src="x"', final=False)[0].kind, "pending")
         source = '<hub-test><![CDATA[<nested>]]></hub-test>'

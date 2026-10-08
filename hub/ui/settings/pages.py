@@ -18,6 +18,17 @@ from ...widget.controls import Button, TextArea
 
 
 class Page:
+    query = ""
+
+    def filter(self, query):
+        if not hasattr(self, "_unfiltered"):
+            self._unfiltered = self.container
+        self.query = query.strip().casefold()
+        self._filtered_fields = self._matching_fields()
+        self.container = (SettingsBody([field.container for field in self.fields()] or
+                          [Label(self.screen.t("settings_search_empty"))], self.fields())
+                          if self.query else self._unfiltered)
+
     def actions(self, extra=()):
         self.save = SaveButton(lambda: self.screen.t("settings_save"), lambda: self.dirty, self.submit)
         self.reload = Button(self.screen.t("settings_reload"), handler=lambda: self.screen.reload(self), width=10)
@@ -35,7 +46,15 @@ class Page:
         return [field for form in self.forms() for field in form.fields.values()]
 
     def fields(self):
-        return self.all_fields()
+        # Keep the displayed rows and keyboard navigation identical while a
+        # matching value is edited. Re-evaluate matches on the next search.
+        return self._filtered_fields if self.query else self.all_fields()
+
+    def _matching_fields(self):
+        return [field for form in self.forms() for path, field in form.fields.items()
+                if not self.query or self.query in (".".join(path) + " " +
+                    str(field.schema.get("title", "")) + " " + str(field.schema.get("description", "")) +
+                    " " + field.input.text).casefold()]
 
     def body_widgets(self):
         return [field.input for field in self.fields()]
@@ -105,20 +124,29 @@ class ProjectPage(Page):
         values["components"] = self.components[:]
         return values
 
+    def save_request(self):
+        values = self.values()
+        operation = "create_project" if self.new else "save_project"
+        args = (values,) if self.new else (self.identifier, values, self.record["config_version"],
+                                         self.record["values"]["components"])
+        return operation, args
+
+    def accept_saved(self, record):
+        if record is not None and self.new:
+            self.screen.pages.pop("new", None)
+        self.screen.saved_project(record)
+
     def submit(self, *, on_saved=None):
         if self.screen.busy:
             return
         self.screen.finish_edit()
         try:
-            values = self.values()
+            operation, args = self.save_request()
         except (ValueError, TypeError) as error:
             self.screen.error(error)
             return
-        operation = "create_project" if self.new else "save_project"
-        args = (values,) if self.new else (self.identifier, values, self.record["config_version"],
-                                         self.record["values"]["components"])
         def saved(record):
-            self.screen.saved_project(record)
+            self.accept_saved(record)
             if record is not None and on_saved:
                 on_saved()
         self.screen.call(operation, *args, completed=saved)
@@ -198,32 +226,43 @@ class GlobalPage(Page):
             self.form.original.get("language_packs", {}) != self.original.get("language_packs", {}))
 
     def body_widgets(self):
+        if self.query:
+            return super().body_widgets()
         if self.general_form is not None:
             return self.general_form.widgets
         return [*super().body_widgets(), *([self.usage_output] if self.usage_output is not None else [])]
+
+    def save_request(self):
+        values = self.form.values()
+        {"profile": UserProfile, "appearance": HubTheme, "general": GeneralSettings}[self.name](**values)
+        return "save_global", (self.name, values)
+
+    def accept_saved(self, result):
+        if result is None:
+            return
+        self.screen.preferences[self.name] = result
+        page = self.screen.pages[self.name] = GlobalPage(self.screen, self.name, result)
+        self.screen.show_page(page)
+        self.screen.status = self.screen.t("settings_saved")
+        if self.name == "appearance":
+            self.screen.view.set_theme(HubTheme(**result))
+        elif self.name == "general":
+            self.screen.view.general = GeneralSettings(**result)
+            if not self.screen.view.general.auto_scroll:
+                self.screen.view.transcript.control.follow_tail = False
 
     def submit(self, *, on_saved=None):
         if self.screen.busy:
             return
         self.screen.finish_edit()
         try:
-            values = self.form.values()
-            {"profile": UserProfile, "appearance": HubTheme, "general": GeneralSettings}[self.name](**values)
+            operation, args = self.save_request()
         except (TypeError, ValueError) as error:
             self.screen.error(error)
             return
         def saved(result):
             if result is not None:
-                self.screen.preferences[self.name] = result
-                page = self.screen.pages[self.name] = GlobalPage(self.screen, self.name, result)
-                self.screen.show_page(page)
-                self.screen.status = self.screen.t("settings_saved")
-                if self.name == "appearance":
-                    self.screen.view.set_theme(HubTheme(**result))
-                elif self.name == "general":
-                    self.screen.view.general = GeneralSettings(**result)
-                    if not self.screen.view.general.auto_scroll:
-                        self.screen.view.transcript.control.follow_tail = False
+                self.accept_saved(result)
                 if on_saved:
                     on_saved()
-        self.screen.call("save_global", self.name, values, completed=saved)
+        self.screen.call(operation, *args, completed=saved)

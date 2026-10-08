@@ -139,7 +139,7 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                 app.invalidate()
                 await until(lambda: view.transcript.window.render_info is not None)
                 self.assertFalse(view._preview_container.filter())
-                pipe.send_text("\x1b[15~")  # F5
+                pipe.send_text("\x12")  # F5
                 await until(lambda: view.show_preview)
                 for rows in (24, 40, 18, 32):
                     rendered.clear()

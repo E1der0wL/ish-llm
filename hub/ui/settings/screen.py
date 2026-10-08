@@ -44,6 +44,7 @@ class SettingsScreen:
         self._zone_positions = [0, 0]
         self._left_key = "profile"
         self._pending_selection = None
+        self._engine_target = None
         self._left = HSplit([])
         self.global_list = SidebarList(
             lambda: [SidebarItem(key, self._caption(key, self.t("settings_" + key))) for key in self.global_keys],
@@ -116,6 +117,8 @@ class SettingsScreen:
 
     def _focus_zone(self, zone):
         widgets = self._groups()[zone]
+        if not widgets and zone == 0:
+            zone, widgets = 1, self._groups()[1]
         if widgets:
             self._main_zone = zone
             get_app().layout.focus(control(widgets[min(self._zone_positions[zone], len(widgets) - 1)]))
@@ -175,8 +178,76 @@ class SettingsScreen:
         get_app().layout.focus(self.left_control())
 
     def save_and_close(self):
-        if self.page is not None and not self.busy:
-            self.page.submit(on_saved=lambda: self.view.toggle_settings() if self.view.settings_open else None)
+        if self.busy:
+            return
+        self.finish_edit()
+        pages = [page for page in self.pages.values() if page.dirty]
+        try:
+            requests = [page.save_request() for page in pages]
+        except (ValueError, TypeError) as error:
+            self.error(error)
+            return
+        if not requests:
+            self.view.toggle_settings()
+            return
+        def saved(batch):
+            if batch is None:
+                return
+            for page, result in zip(pages, batch["results"]):
+                page.accept_saved(result)
+            if batch.get("error"):
+                failed = pages[len(batch["results"])]
+                self.selected = self._left_key = getattr(failed, "name", None) or failed.identifier or "new"
+                self.show_page(failed)
+                self.error(batch["error"])
+            elif self.view.settings_open:
+                self._pending_selection = None
+                self.view.toggle_settings()
+        self.call("save_all", requests, completed=saved)
+
+    def discard_and_close(self):
+        if self.busy:
+            return
+        self.finish_edit()
+        self.view.set_theme(HubTheme(**self.preferences.get("appearance", self._initial_appearance)))
+        self.pages.clear()
+        self.page = None
+        self._engine_target = self._pending_selection = None
+        self.view.toggle_settings()
+
+    def filter(self, query):
+        if self.page is None:
+            return
+        self.finish_edit()
+        self.page.filter(query)
+        self.main.vertical_scroll = 0
+        self._zone_positions = [0, 0]
+        self.status = self.t("settings_search_active", query=query) if query else ""
+        self._focus_zone(0)
+
+    def search(self):
+        if self.page is None or self.busy:
+            return
+        field = TextArea(text=self.page.query, height=1, multiline=False)
+        def accept():
+            self.filter(field.text)
+        self.view.open_dialog(self.t("settings_search"), HSplit([
+            Label(self.t("settings_search_hint")), field]), accept, field)
+        def entered(_):
+            self.view.close_dialog()
+            accept()
+            return True
+        field.buffer.accept_handler = entered
+
+    def open_engine(self):
+        project = getattr(self.view, "project_id", "")
+        if not project:
+            self.view.toggle_settings()
+            return
+        self._engine_target = (project, self.view.engine)
+        self.view.toggle_settings()
+        if self.schema is not None and not self.busy:
+            self.choose(project)
 
     def focus(self, reverse=False):
         if self._focused_key() is not None:
@@ -202,7 +273,8 @@ class SettingsScreen:
         left_key = self._focused_key()
         if left_key is not None:
             if key in ("left", "right"):
-                self.resize(-1 if key == "left" else 1)
+                if key == "right":
+                    self.layout.focus_main()
                 return
             items = self._left_items()
             index = items.index(left_key)
@@ -281,7 +353,9 @@ class SettingsScreen:
         self.preferences.setdefault("general", asdict(GeneralSettings()))
         self.preferences["appearance"] = asdict(HubTheme(**self.preferences.get("appearance", self._initial_appearance)))
         self._sidebar()
-        if self.page is None:
+        if self._engine_target:
+            self.choose(self._engine_target[0])
+        elif self.page is None:
             self.choose("profile")
 
     def choose(self, key):
@@ -315,6 +389,10 @@ class SettingsScreen:
         self.page = page
         self.main.vertical_scroll = 0
         self._zone_positions = [0, 0]
+        if self._engine_target and getattr(page, "identifier", None) == self._engine_target[0]:
+            _, engine = self._engine_target
+            self._engine_target = None
+            self.filter("config.parameters.engines." + page.engine_keys.get(engine, engine))
         if self.view.visible and self.view.settings_open and self.view._dialog is None and not left:
             self._focus_zone(self._main_zone)
         get_app().invalidate()
@@ -322,7 +400,10 @@ class SettingsScreen:
     def loaded_project(self, record):
         if record is not None:
             identifier = record["project"]["id"]
+            query = getattr(self.pages.get(identifier), "query", "")
             page = self.pages[identifier] = ProjectPage(self, record)
+            if query:
+                page.filter(query)
             self.selected = identifier
             self._left_key = identifier
             if self.view.visible and self._focused_key() is not None:
@@ -335,7 +416,6 @@ class SettingsScreen:
         self.loaded_project(record)
         identifier, title = record["project"]["id"], record["values"]["title"]
         self.projects = [item for item in self.projects if item["id"] != identifier] + [{"id": identifier, "title": title}]
-        self.pages.pop("new", None)
         self._sidebar()
         self.status = self.t("settings_saved")
 

@@ -13,7 +13,7 @@ class InputContext:
 
     @property
     def available(self):
-        return self.view.visible and self.view._dialog is None
+        return self.view.visible and self.view._dialog is None and not self.view.tags.visible
 
     @property
     def dialog(self):

@@ -34,7 +34,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("shell draft\x11")
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("hold finish\r")
                 await until(lambda: any(m.status == "streaming" for m in view.transcript.control.messages))
@@ -61,7 +61,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("question\r")
                 await until(lambda: any(m.status == "completed" for m in view.transcript.control.messages))

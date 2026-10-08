@@ -6,7 +6,7 @@ from bisect import bisect_right
 import re
 from pathlib import Path
 from prompt_toolkit.application.current import get_app
-from ..ui.output import OutputParser, RendererRegistry, ImageRenderer, RenderContext
+from ..ui.output import OutputParser, OutputObject, RendererRegistry, ImageRenderer, RenderContext
 
 from prompt_toolkit.data_structures import Point
 from prompt_toolkit.formatted_text.utils import fragment_list_width
@@ -25,7 +25,7 @@ from .controls import ScrollbarMargin
 
 
 def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubTheme, language=None, *, anchors=None,
-                    renderers=None, root=None, invalidate=None):
+                    renderers=None, root=None, invalidate=None, objects=None):
     """Return already-wrapped fragment lines using terminal-cell widths."""
     inner = max(1, width - 4)
     t = language or Language(icons=for_style(theme.icon_style))
@@ -69,9 +69,15 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
             context = RenderContext(message_width, theme, t, Path(root or Path.cwd()), invalidate or get_app().invalidate)
             body = []
             for block in blocks:
+                identifier = f"{message.id or f'index:{index}'}:block:{block.start}"
                 if anchors is not None and message.id:
-                    anchors.append((f"{message.id}:block:{block.start}", len(lines) + len(body)))
-                body.extend(renderers.render(block, context))
+                    anchors.append((identifier, len(lines) + len(body)))
+                rendered = renderers.render(block, context)
+                if objects is not None and renderers.is_object(block):
+                    title = dict(block.attributes).get("title") or dict(block.attributes).get("alt") or block.kind.removeprefix("hub-")
+                    objects.append(OutputObject(identifier, message.id, block, title,
+                        tuple(tuple(row) for row in rendered), len(lines) + len(body), len(lines) + len(body) + len(rendered)))
+                body.extend(rendered)
         else:
             body = markdown_lines(renderable)
         if user:
@@ -110,6 +116,7 @@ class ConversationControl(UIControl):
         self._cache_key = None
         self._lines = [[("", "")]]
         self._anchors = []
+        self.objects = []
         self._pending_position = None
         self.on_position_changed = None
         self.search_query = ""
@@ -233,8 +240,10 @@ class ConversationControl(UIControl):
             # Keep the same message in view across wrapping/theme changes.
             position = self.reading_position() if self._cache_key is not None else None
             self._anchors = []
+            self.objects = []
             self._lines = render_messages(self.messages, width, self.theme, self.language, anchors=self._anchors,
-                                          renderers=self.renderers, root=self.file_root, invalidate=get_app().invalidate)
+                                          renderers=self.renderers, root=self.file_root, invalidate=get_app().invalidate,
+                                          objects=self.objects)
             self._cache_key = key
             self.left_column = min(self.left_column, max(0,
                 max(map(fragment_list_width, self._lines), default=0) - self._width))
@@ -290,4 +299,5 @@ class ConversationView:
         self.window.vertical_scroll = 0
         self.control._cache_key = None
         self.control._anchors = []
+        self.control.objects = []
         self.control.restore_position(position)

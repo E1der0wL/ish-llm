@@ -88,7 +88,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("\x05")
                 await until(lambda: "alpha description" in rendered())

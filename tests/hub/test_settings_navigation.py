@@ -30,6 +30,9 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.connected)
                 pipe.send_text("\x13")
                 await until(lambda: screen.page is not None and not screen.busy)
+                with set_app(app):
+                    screen.choose("profile")
+                    screen.switch_panel()
                 profile = screen.page
                 profile.form.fields[("email",)].input.text = "draft@example.com"
                 for name in ("appearance", "general", view.project_id):
@@ -112,6 +115,9 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.connected)
                 pipe.send_text("\x13")
                 await until(lambda: screen.page is not None and not screen.busy)
+                with set_app(app):
+                    screen.choose("profile")
+                    screen.switch_panel()
                 self.assertIs(app.layout.current_control, screen.global_list)
                 pipe.send_text("\t")
                 field = screen.page.form.fields[("display_name",)]
@@ -132,7 +138,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(screen.page.form.fields[("display_name",)].input.text, before)
                 app.layout.focus(screen.global_list)
                 width = view.theme.sidebar_width
-                pipe.send_text("\x1b[C")
+                pipe.send_text("\x1b[1;5C")
                 await until(lambda: view.theme.sidebar_width == width + 1)
                 self.assertTrue(screen.pages["appearance"].dirty)
                 self.assertEqual(view.sidebar_width(), width + 1)

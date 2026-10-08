@@ -7,13 +7,14 @@ from prompt_toolkit.keys import Keys
 
 from .dialog import Dialog
 from .text_viewport import TextViewport
-from ..ui.input.registry import ShortcutRegistry
+from ..ui.input.registry import ShortcutRegistry, MOVEMENT_KEYS
 
 
 class ReadOnlyDialog(Dialog):
-    def __init__(self, title, text, rows, columns, close, t, *, markdown=False, theme=None):
-        self.output = TextViewport(text, height=lambda: Dimension.exact(max(1, min(30, rows() - 8))),
-                                   markdown=markdown, theme=theme, tail=not markdown)
+    def __init__(self, title, text, rows, columns, close, t, *, markdown=False, theme=None, output=None):
+        height = lambda: Dimension.exact(max(1, min(30, rows() - 8)))
+        self.output = output or TextViewport(text, markdown=markdown, theme=theme, tail=not markdown)
+        self.output.window.height = height
         self.shortcuts = registry = ShortcutRegistry()
         registry.bindings.add(Keys.Any)(lambda event: None)
         for key, label in (("escape", "ESC"), ("c-l", "Ctrl+L"), ("enter", "Enter")):
@@ -21,7 +22,7 @@ class ReadOnlyDialog(Dialog):
         def scroll(event):
             self.output.scroll(event.key_sequence[-1].key)
             event.app.invalidate()
-        registry.scroll(scroll)
+        registry.add(MOVEMENT_KEYS, t("shortcut_movement"), "scroll", scroll)
         self.receiver = FormattedTextControl("", focusable=True, show_cursor=False,
                                             key_bindings=registry.bindings, modal=True)
         self.receiver.hub_shortcuts = registry

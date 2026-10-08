@@ -163,7 +163,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 first_id = view.sessions[view.selected].id
                 pipe.send_text("hold first\r")
@@ -180,14 +180,16 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x11\x18")  # return; Ctrl+X interrupts only the active Run
                 await until(lambda: any(m.text == "**reply**: second" for m in view.transcript.control.messages))
                 self.assertTrue(any(m.status == "interrupted" for m in view.transcript.control.messages))
-                pipe.send_text("\x1bOS")  # F4 new Session
+                pipe.send_text("/new\r")  # F4 new Session
                 await until(lambda: view._dialog is not None)
                 pipe.send_text("Other session\r")
                 await until(lambda: view.sessions[view.selected].id != first_id)
                 self.assertEqual(len(view.sessions), 2)
                 pipe.send_text("other\r")
                 await until(lambda: any(m.text == "**reply**: other" for m in view.transcript.control.messages))
-                pipe.send_text("\x1bOQ")  # F2 returns to the first Session
+                pipe.send_text("\x1b")
+                await until(lambda: app.layout.current_control == view._session_control)
+                pipe.send_text("\x1b[A")  # F2 returns to the first Session
                 await until(lambda: view.sessions[view.selected].id == first_id)
                 await until(lambda: any(m.text == "**reply**: second" for m in view.transcript.control.messages))
             finally:
@@ -205,7 +207,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: controller.view.connected)
                 if controller.view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not controller.view.no_sessions and controller.view._dialog is None)
                 # Snapshots select an available engine; force an invalid choice at admission.
                 controller.view.composer.text = "keep this"
@@ -236,7 +238,7 @@ class HostLifecycleTests(unittest.TestCase):
                 pipe.send_text("\x11")
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("hold request\r")
                 await until(lambda: any("reply" in m.text for m in view.transcript.control.messages))

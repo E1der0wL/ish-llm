@@ -65,7 +65,9 @@ class ImageRenderer:
         if not source or set(attrs) - {"src", "alt"} or block.text.strip():
             raise ValueError("hub-image requires src and accepts optional alt")
         with self._lock:
-            scope = (str(context.root), context.width)
+            # Transcript and enlarged object popup render concurrently at
+            # different widths. A resize must not invalidate each other's work.
+            scope = str(context.root)
             if scope != self._scope:
                 self._scope = scope
                 self._cache.clear()
@@ -73,7 +75,7 @@ class ImageRenderer:
             artifact = self._artifacts.get(source[9:]) if source.startswith("artifact:") else None
             if source.startswith("artifact:") and artifact is None:
                 raise ValueError("Unknown image artifact")
-            key = (self._generation, *scope, source, str(artifact))
+            key = (self._generation, scope, context.width, source, str(artifact))
             result = self._cache.get(key)
             limited = result is None and key not in self._pending and len(self._cache) + len(self._pending) >= 32
             if result is not None:

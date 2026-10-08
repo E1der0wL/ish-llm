@@ -45,8 +45,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     self.assertFalse(prompt.key_bindings.get_bindings_for_keys(("c-q",))[0].filter())
                     self.assertEqual([key for key, _ in view.bindings.hints()], [
-                        "ESC", "Ctrl+C", "Ctrl+E", "Ctrl+F", "Ctrl+S", "Alt + 이동키",
-                        "F1", "F2", "F4", "F5", "F6"])
+                        "ESC", "Ctrl+C", "Ctrl+E", "Ctrl+F", "Ctrl+R", "Ctrl+S", "Ctrl+T", "Alt + 이동키"])
                     self.assertEqual(view.bindings.hints()[0], ("ESC", "패널"))
                 await paint()
                 chat_header = next(w for w in app.renderer._last_screen.visible_windows if isinstance(w, HeaderBar))
@@ -83,7 +82,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                         self.assertIs(app.layout.current_control, popup.receiver)
                         with set_app(app):
                             self.assertEqual(view.bindings.hints(), [
-                                ("ESC", "닫기"), ("Ctrl+L", "닫기"), ("Alt + 이동키", "스크롤"), ("Enter", "닫기")])
+                                ("ESC", "닫기"), ("Ctrl+L", "닫기"), ("Enter", "닫기"), ("이동키", "스크롤")])
                         if kind == "help":
                             self.assertTrue(popup.output.markdown)
                             text = "\n".join(popup.output.lines)
@@ -91,13 +90,13 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                             self.assertNotIn("**", text)
                             self.assertTrue(any("bold" in style for row in popup.output.fragments for style, _ in row))
                         # Every reader supports the same eight Alt navigation keys.
-                        pipe.send_text("\x1b\x1b[H")
+                        pipe.send_text("\x1b[H")
                         await eventually(lambda: popup.output.top_line == 0)
                         for sequence in ("\x1b[B", "\x1b[A", "\x1b[C", "\x1b[D", "\x1b[6~", "\x1b[5~"):
-                            pipe.send_text("\x1b" + sequence)
+                            pipe.send_text(sequence)
                             await paint()
                             self.assertIs(app.layout.current_control, popup.receiver)
-                        pipe.send_text("\x1b\x1b[F")
+                        pipe.send_text("\x1b[F")
                         await eventually(lambda: popup.output.top_line == max(0, len(popup.output.lines) - popup.output._height))
                         pipe.send_text(close_key)
                         await eventually(lambda: view._dialog is None)

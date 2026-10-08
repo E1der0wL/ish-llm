@@ -40,7 +40,7 @@ class HubView:
         self.on_delete = self.on_rename = self.on_component = None
         self.component_commands = {}
         self._execution_options = {}
-        self.visible = self.show_details = False
+        self.visible = False
         self.show_preview = False
         self.selected = 0
         self._session_focus = False
@@ -82,6 +82,8 @@ class HubView:
         self.transcript = ConversationView(self.sessions[0].messages, self.theme, language=self.t)
         self.output_renderers = self.transcript.control.renderers
         self.image_renderer = self.transcript.control.images
+        from ..widget.tag_bar import TagBar
+        self.tags = TagBar(self)
         from ..widget.welcome import welcome_window
         self.welcome = welcome_window(self)
         self.transcript.window.height = Dimension(min=5, weight=1)
@@ -94,11 +96,7 @@ class HubView:
             self._line(lambda: self._focus_heading(self._session_control, self.t("sessions")), "hub.muted", height=2),
             Window(self._session_control, style="class:hub.sidebar"),
         ], width=self.sidebar_width, style="class:hub.sidebar"), Condition(lambda: self._columns() >= 88 or self._session_focus))
-        self._details = ConditionalContainer(VSplit([
-            Window(width=1, char="│", style="class:hub.divider"),
-            Window(FormattedTextControl(lambda: self.sessions[self.selected].detail),
-                   width=25, style="class:hub.detail", wrap_lines=True),
-        ]), Condition(lambda: self.show_details and self._columns() >= 116))
+        self._details = self.tags.container
         self._preview_container = ConditionalContainer(Frame(
             self.draft_preview,
             title=lambda: self._focus_heading(self.draft_preview.control, self.t("preview")),
@@ -113,7 +111,7 @@ class HubView:
         conversation = HSplit([
             self._line(self._conversation_header, "hub.title"),
             DynamicContainer(lambda: self.welcome if self.no_sessions else self.transcript),
-            ConditionalContainer(self._line(lambda: " " + self.activity, "hub.muted", height=2),
+            ConditionalContainer(self._line(lambda: " " + self.activity, "hub.muted"),
                                  Condition(lambda: bool(self.activity) and self._rows() >= 18)),
             self._preview_container,
             self._composer_frame,
@@ -171,6 +169,10 @@ class HubView:
     def icons(self):
         return icon.for_style(self.theme.icon_style)
 
+    @property
+    def output_objects(self):
+        return tuple(self.transcript.control.objects)
+
     def shortcut_bar(self):
         return ShortcutBar(lambda: self.bindings.hints(), self._columns)
 
@@ -207,9 +209,7 @@ class HubView:
         self.select(next(i for i in range(len(self.sessions)) if self._draft_key(i) == key))
 
     def toggle_details(self):
-        self.show_details = not self.show_details
-        self.notice = self.t("details_narrow" if self.show_details and self._columns() < 116
-                             else "details_open" if self.show_details else "details_closed")
+        self.tags.close() if self.tags.visible else self.tags.open()
 
     @property
     def _dialog(self):
@@ -280,6 +280,7 @@ class HubView:
         self._positions[self._draft_key(self.selected)] = self.transcript.control.reading_position()
 
     def select(self, index):
+        self.tags.visible = False
         if self.search.active:
             self.close_dialog()
         self.remember_position()
@@ -318,6 +319,8 @@ class HubView:
         if not self.visible:
             return
         self.remember_position()
+        self.tags.visible = False
+        self.transcript.control.set_search("")
         if self.on_save_view:
             self.on_save_view()
         self.dialogs.current = None

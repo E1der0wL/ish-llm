@@ -75,6 +75,8 @@ class SettingField:
                      when=lambda: editable() and not self.editing)
         registry.add(["enter"], "Enter", lambda: "done" if self.editing else "edit",
                      lambda e: self.finish() if self.editing else self.begin(), when=editable)
+        registry.add(["d"], "d", "clear", lambda e: setattr(self.input, "text", ""),
+                     when=lambda: editable() and not self.editing)
         registry.add(["c-space"], "Ctrl+Space", "newline", lambda e: self.input.buffer.insert_text("\n"),
                      when=lambda: editable() and self.editing)
         registry.add([("escape", "enter")], "Alt+Enter", "newline", lambda e: self.input.buffer.insert_text("\n"),
@@ -98,6 +100,7 @@ class SettingField:
     def begin(self):
         if self.enabled() and not self.readonly:
             self.editing = True
+            self.input.buffer.cursor_position = len(self.input.text)
         get_app().invalidate()
 
     def finish(self):

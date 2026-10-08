@@ -3,14 +3,42 @@
 
 
 MESSAGES = {
+    'shortcut_movement': '이동키',
+    'shortcut_clear': '비우기',
+    'shortcut_tags': '태그 바',
+    'shortcut_expand': '확대',
+    'shortcut_copy': '원문 복사',
+    'shortcut_open_directory': '폴더 열기',
+    'settings_search': '설정 검색',
+    'settings_search_hint': '키·설명·값에 포함된 문자열로 검색합니다. 빈칸이면 전체 표시.',
+    'settings_search_empty': '일치하는 설정이 없습니다.',
+    'settings_search_active': '필터: {query}',
+    'clipboard_copied': '원문을 복사했습니다.',
+    'clipboard_terminal': '터미널에 복사를 요청했습니다(OSC 52). 앱 클립보드에도 저장했습니다.',
+    'component_action_config': '컴포넌트 관리 창',
+    'component_manager_unavailable': '{name} 관리 창은 아직 지원하지 않습니다. settings 또는 데이터 명령을 사용하세요.',
+    'tags_title': '출력 태그',
+    'tags_empty': '출력 객체가 없습니다.',
+    'tools_title': 'Tool 패키지 관리',
+    'tools_import_hint': '디렉토리 경로 → Enter: <이름>/<이름>.py와 선택적인 requirements.txt 가져오기',
+    'tools_columns': '이름 / 마지막 수정 / 설명',
+    'tools_hint': 'Tab 영역 · ↑↓ 선택 · Enter 파일 탐색기 · d 삭제',
+    'tools_empty': '등록된 Tool이 없습니다.',
+    'tools_imported': 'Tool을 가져왔습니다. 사용 전 의존성 준비와 활성화는 별도로 해주세요.',
+    'tools_failed': '처리에 실패했습니다. 오류 알림을 확인하세요.',
+    'tools_explorer_failed': '파일 탐색기 종료 코드: {code}',
+    'tools_delete_confirm': '{name}을 삭제할까요? 활성화되어 있다면 함께 비활성화합니다.',
+    'welcome_keys': 'ESC 패널 · 패널에서 c 새 세션 · Ctrl+S 설정',
+    'session_required': '먼저 세션을 생성하세요. ESC 후 세션 목록에서 c를 누르세요.',
+    'command_details': '출력 태그 바',
+    'activity_hint': '최근 300건 · 이동키 스크롤 · ESC / Enter / Ctrl+L 닫기',
+    'help': '# Hub 도움말\n\n## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+E**: 엔진·Workflow 선택. **Ctrl+R**: Markdown 미리보기.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T**로 닫습니다. **Tab / Space / Enter**로 확대 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **방향키**: 항목 선택.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 패키지 가져오기·목록·폴더 열기·삭제.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
     "settings_dependencies": "필수 컴포넌트: {names}",
     "settings_dependencies_missing": "선택되지 않은 필수 컴포넌트: {names} — 선택 후 저장하세요.",
     "title_model_required": "자동 제목 모델이 없습니다. 대화 엔진 또는 parameters.engines._hub_title.completion.model을 설정하세요.",
     "output_image_limit": "현재 화면의 이미지 미리보기 한도(32개)에 도달했습니다.",
     "welcome_title": "아직 세션이 없습니다",
     "welcome_hint": "새 세션을 만들어 대화를 시작하세요.",
-    "welcome_keys": "ESC 패널 · Ctrl+S 프로젝트 설정 · F4 새 세션 · 패널에서 ESC 최소화",
-    "session_required": "먼저 세션을 생성하세요. F4 또는 세션 목록에서 c를 누르세요.",
     "output_pending": "출력 블록 수신 중…",
     "output_image": "이미지 · {caption}",
     "output_image_loading": "이미지를 변환하는 중…",
@@ -48,13 +76,12 @@ MESSAGES = {
 
     "project_activity": "프로젝트 실행 이력", "activity_empty": "기록된 실행 이력이 없습니다.",
 
-    "activity_hint": "최근 300건 · ESC 닫기 · Ctrl+L 닫기 · Alt + 이동키 스크롤 · Enter 닫기",
 
     "activity_source": "세션: {session_id} · Run: {run_id}",
 
     "activity_step": "Step: {step_id}", "activity_code": "코드: {code}",
 
-    "help_history": "Ctrl+G: 요청·작업 쌍 목록 (d 삭제 · r 선택 시점 복제)\nCtrl+L: 프로젝트 실행 이력\n세션 목록 ←→: 패널 너비 조절\n복제 창에서 마지막으로 포함할 요청·응답을 선택할 수 있습니다.",
+    "help_history": "Ctrl+G: 요청·작업 쌍 목록 (d 삭제 · r 선택 시점 복제)\nCtrl+L: 프로젝트 실행 이력\n세션 목록 Ctrl+←→: 패널 너비 조절\n복제 창에서 마지막으로 포함할 요청·응답을 선택할 수 있습니다.",
 
     "settings_registration": "추가 기능", "settings_engines": "엔진",
 
@@ -310,7 +337,7 @@ MESSAGES = {
 
     "command_clone": "선택한 대화 복제", "command_preview": "마크다운 미리보기 전환",
 
-    "command_stop": "현재 실행 중단", "command_details": "실행 상세 전환",
+    "command_stop": "현재 실행 중단", "command_details": "출력 태그 바",
 
     "file": "파일", "directory": "폴더", "engine": "엔진",
 
@@ -318,7 +345,6 @@ MESSAGES = {
 
     "help_title": "Hub 도움말",
 
-    "help": '# Hub 도움말\n\n## 패널과 화면\n\n| 키 | 동작 |\n| --- | --- |\n| ESC | 메인 영역에서 패널로 이동 |\n| ESC (패널) | Hub 최소화, 셸로 복귀 |\n| Ctrl+Q (셸) | Hub 열기 |\n| Ctrl+S (Hub) | 설정 열기; 설정 메인에서는 저장 후 대화 |\n| Tab / Space / Enter (패널) | 메인 영역으로 이동 |\n\n셸의 Ctrl+S는 Hub가 변경하지 않습니다.\n\n## 대화 입력\n\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청을 선택합니다.\n- **Ctrl+Space**: 줄바꿈.\n- **↑↓**: 자동완성 후보 선택. **Tab**: 확정 또는 후보 열기.\n- **Ctrl+X**: 현재 실행 중단. 예약된 요청은 유지합니다.\n- **Ctrl+E**: 엔진과 Workflow 선택.\n- **Ctrl+F**: 현재 세션 내용 찾기. 검색창에서 Enter는 다음 결과, Alt+P는 이전 결과입니다.\n- **Ctrl+G**: 요청·응답 목록과 삭제·복제.\n- **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤\n\n**Alt + 이동키**는 다음 키 전체를 뜻합니다.\n\n| 이동키 | 동작 |\n| --- | --- |\n| ↑ / ↓ | 한 줄 위 / 아래 |\n| ← / → | 가로 이동 (넘치는 내용) |\n| Home / End | 처음 / 끝 |\n| PgUp / PgDn | 한 화면 위 / 아래 |\n\n대화 출력과 읽기 전용 팝업에서 같은 조작법을 사용합니다.\n설정 화면에서는 방향키로 항목을 이동하며 Alt 스크롤은 사용하지 않습니다.\n\n## 도움말·로그·조회 결과\n\n내용은 포커스를 받지 않습니다. **Alt + 이동키**로 스크롤합니다.\n**ESC**, **Enter**, **Ctrl+L** 중 하나로 닫고 이전 위치로 돌아갑니다.\n\n## 세션 패널\n\n**c** 생성 · **d** 삭제 · **e** 이름 변경 · **r** 복제.\n`← / →`는 패널 너비를 조절합니다. 이름을 비우면 자동 제목을 사용합니다.\n복제 시 대화 시점을 선택할 수 있습니다.\n\n## 설정\n\n- **Tab / Shift+Tab**: 설정 항목과 버튼 영역 이동.\n- **방향키**: 항목 선택.\n- **Enter**: 직접 편집 시작 / 완료.\n- **e**: 일반 설정에 지정한 외부 에디터로 편집.\n- **Ctrl+Space / Alt+Enter**: 직접 편집 중 줄바꿈.\n- 아이콘 스타일처럼 선택형 항목은 Enter → 방향키 → Enter로 변경합니다.\n- 프로젝트 패널의 c / d / e / r은 생성 / 삭제 / 이름 변경 / 복제입니다.\n\n## 명령과 표시\n\n`/`를 입력하면 현재 활성 컴포넌트 명령이 나타납니다.\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`을 사용할 수 있습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n\n**F1** 도움말 · **F2** 다음 세션 · **F4** 생성/복제 · **F5** 입력 미리보기 · **F6** 실행 상세.\n',
 
     "status_idle": "{icon_idle} 유휴", "status_running": "{icon_running} 실행 중", "status_queued": "{icon_queued} 예약",
 

@@ -29,7 +29,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(first[-1].elapsed_seconds, 2)
             self.assertEqual(first[-1].time, "")
             self.assertTrue(first[0].time)
-            self.assertEqual(first[1].role, "reasoning")
+            self.assertEqual(first[1].role, "assistant")
             clock.now.return_value = datetime(2026, 10, 4, 0, 1, 4, tzinfo=timezone.utc)
             self.assertEqual((await runtime.snapshot_reader.messages(session, [response]))[-1].elapsed_seconds, 4)
             run.status, run.ended_at = "completed", "2026-10-04T00:01:03.250000+00:00"

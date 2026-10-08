@@ -5,6 +5,7 @@ from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 from ...widget.reader import ReadOnlyDialog
+from ...widget.summary import clipped_summary
 
 from ...widget.controls import Button, RadioList
 
@@ -56,14 +57,18 @@ class HistoryUI:
         if not rows:
             view.open_dialog(t("history_title"), Label(t("history_empty")))
             return
-        choices = RadioList([(row["id"], turn_label(row, i, t)) for i, row in enumerate(rows)], select_on_focus=True)
+        popup_width = lambda: max(1, min(80, view._columns() - 4))
+        # Reserve frame, dialog padding, radio marker and scrollbar cells.
+        # Recompute on resize; CJK/emoji must be counted as terminal cells.
+        choices = RadioList([(row["id"], lambda row=row, i=i: clipped_summary(
+            turn_label(row, i, t), popup_width() - 11)) for i, row in enumerate(rows)], select_on_focus=True)
         choices.window.height = Dimension(min=1, max=max(1, min(8, view._rows() - 17)))
         by_id = {row["id"]: row for row in rows}
         def detail():
             row = by_id[choices.current_value]
-            return (f"{row['time']} · {row['engine']} · {t.elapsed(row['elapsed'])}\n"
-                    f"{t('history_response')}: {' '.join(row['response'].split())[:160]}\n"
-                    f"{row['error']}")
+            return "\n".join(clipped_summary(line, popup_width() - 6) for line in (
+                f"{row['time']} · {row['engine']} · {t.elapsed(row['elapsed'])}",
+                f"{t('history_response')}: {row['response']}", row['error']))
         def clone():
             boundary = choices.current_value
             view.close_dialog()
@@ -84,10 +89,14 @@ class HistoryUI:
             view.open_dialog(t("history_delete"), Label(t("history_delete_confirm")), confirmed)
         choices.control.hub_shortcuts.add(["d"], "d", "delete", lambda e: delete())
         choices.control.hub_shortcuts.add(["r"], "r", "clone", lambda e: clone())
-        body = HSplit([Label(t("history_hint")), choices, Label(detail),
+        details = Label(detail)
+        details.window.height = 3
+        body = HSplit([Label(lambda: clipped_summary(t("history_hint"), popup_width() - 6)), choices, details,
                        VSplit([Button(t("history_delete"), handler=delete, width=14),
-                               Button(t("history_clone"), handler=clone, width=20)], padding=2)], padding=1)
-        view.open_dialog(t("history_title"), body, focus=choices)
+                               Button(t("history_clone"), handler=clone, width=20)], padding=2)], padding=1,
+                      width=lambda: Dimension.exact(max(1, popup_width() - 4)))
+        view.open_dialog(t("history_title"), body, focus=choices,
+                         width=lambda: Dimension.exact(popup_width()))
         view._dialog.shortcut_context = "history"
 
     def activity(self):

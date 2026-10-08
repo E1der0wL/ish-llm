@@ -16,10 +16,12 @@ class HubBindings:
         r.add(["escape"], "ESC", "close", lambda e: view.close_dialog(), when=lambda: c.dialog)
         r.add(["tab", "s-tab"], "Tab/Shift+Tab", "move",
               lambda e: view.dialogs.cycle(e.key_sequence[0].key == "s-tab"), when=lambda: c.dialog)
-        r.add(["c-s"], "Ctrl+S", lambda: "save_chat" if c.settings and not c.sidebar else "chat" if c.settings else "settings",
+        r.add(["c-s"], "Ctrl+S", lambda: "save_chat" if c.settings else "settings",
               self.settings, when=lambda: c.available)
         r.add(["c-f"], "Ctrl+F", "find", lambda e: view.search.open(),
-              when=lambda: view.visible and not view.settings_open and (view._dialog is None or view.search.active))
+              when=lambda: view.visible and not view.settings_open and not view.tags.visible
+                           and (view._dialog is None or view.search.active))
+        r.add(["c-f"], "Ctrl+F", "find", lambda e: view.settings.search(), when=lambda: c.settings)
         r.add(["enter"], "Enter", "next_match", lambda e: view.search.move(),
               when=lambda: view.visible and view.search.active and c.control is view.search.input.control)
         r.add([("escape", "p")], "Alt+P", "previous_match", lambda e: view.search.move(-1),
@@ -36,13 +38,13 @@ class HubBindings:
         r.add(["up", "down", "left", "right"], "↑↓←→", "items",
               lambda e: view.settings.move(e.key_sequence[-1].key), when=lambda: c.settings and not c.sidebar and not view.settings.editing)
         r.add(["up", "down"], "↑↓", "select", self.select, when=lambda: c.sidebar)
-        r.add(["left", "right"], "←→", "width", self.resize, when=lambda: c.sidebar)
+        r.add(["c-left", "c-right"], "Ctrl+←→", "width", self.resize, when=lambda: c.sidebar)
         for key, action in (("c", "create"), ("d", "delete"), ("e", "rename"), ("r", "clone")):
             def enabled(key=key):
                 return c.sidebar and (not c.settings or view.settings.project_focused) and (
                     key == "c" or (view.settings._focused_key() != "new" if c.settings else not view.no_sessions))
             r.add([key], key, action, self.session_action, when=enabled)
-        r.add(["tab", " ", "enter"], "Tab/Space/Enter", "main", lambda e: view.active_page.focus_main(), when=lambda: c.sidebar)
+        r.add(["tab", " ", "enter", "right"], "Tab/Space/Enter/→", "main", lambda e: view.active_page.focus_main(), when=lambda: c.sidebar)
         r.add(["tab"], "", "confirm", self.complete, when=lambda: c.composing)
         r.add(["s-tab"], "", "", lambda e: None, when=lambda: c.composing)
         r.scroll(self.scroll, when=lambda: c.chat)
@@ -50,10 +52,10 @@ class HubBindings:
         # the chat page or trigger the standalone ESC panel action.
         r.scroll(lambda e: None, when=lambda: c.settings, visible=False)
         for key, label, callback in (
-            ("f1", "help", view.help_dialog), ("f2", "next_session", lambda: view.select((view.selected + 1) % len(view.sessions))),
-            ("c-e", "engine", view.engine_dialog), ("f4", "create", view.session_dialog),
-            ("f5", "preview", lambda: setattr(view, "show_preview", not view.show_preview)), ("f6", "details", view.toggle_details)):
-            r.add([key], "Ctrl+E" if key == "c-e" else key.upper(), label, lambda e, callback=callback: callback(), when=lambda: c.chat)
+            ("c-e", "engine", view.engine_dialog),
+            ("c-r", "preview", lambda: setattr(view, "show_preview", not view.show_preview)),
+            ("c-t", "tags", lambda: view.tags.open())):
+            r.add([key], "Ctrl+" + key[-1].upper(), label, lambda e, callback=callback: callback(), when=lambda: c.chat)
         # The composer's own hint row already shows send/completion/newline.
         r.add(["enter"], "", "send", self.submit, when=lambda: c.composing, eager=False)
         r.add(["c-space"], "", "newline", self.newline, when=lambda: c.composing)
@@ -77,8 +79,10 @@ class HubBindings:
 
     def settings(self, event):
         view = self.view
-        if self.context.settings and not self.context.sidebar:
+        if self.context.settings:
             view.settings.save_and_close()
+        elif self.context.composing:
+            view.settings.open_engine()
         else:
             view.toggle_settings()
 
@@ -89,7 +93,7 @@ class HubBindings:
             self.view.select((self.view.selected + (-1 if event.key_sequence[-1].key == "up" else 1)) % len(self.view.sessions))
 
     def resize(self, event):
-        self.view.settings.resize(-1 if event.key_sequence[-1].key == "left" else 1)
+        self.view.settings.resize(-1 if event.key_sequence[-1].key == "c-left" else 1)
         event.app.invalidate()
 
     def session_action(self, event):
@@ -136,6 +140,8 @@ class HubBindings:
         if view._dialog:
             view.close_dialog()
         elif view.settings_open:
-            view.toggle_settings()
+            view.settings.discard_and_close()
+        elif view.tags.visible:
+            view.tags.close()
         else:
             view.hide(event.app)

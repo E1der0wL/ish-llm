@@ -2,11 +2,31 @@
 
 import re
 from xml.etree import ElementTree
+from markdown_it import MarkdownIt
 
 from .model import OutputBlock
 
 
 class OutputParser:
+    def _markdown(self, text, start):
+        lines = text.splitlines(keepends=True)
+        offsets = [0]
+        for line in lines:
+            offsets.append(offsets[-1] + len(line))
+        cursor = 0
+        for token in MarkdownIt("commonmark").enable("table").parse(text):
+            if token.level or token.type not in ("fence", "code_block", "table_open") or token.map is None:
+                continue
+            left, right = (offsets[index] for index in token.map)
+            if left > cursor:
+                yield OutputBlock("markdown", text[cursor:left], start + cursor)
+            kind = "table" if token.type == "table_open" else "code"
+            raw = text[left:right]
+            yield OutputBlock(kind, raw, start + left, (("language", token.info.strip()),), raw)
+            cursor = right
+        if cursor < len(text):
+            yield OutputBlock("markdown", text[cursor:], start + cursor)
+
     def parse(self, text: str, *, final: bool = True) -> tuple[OutputBlock, ...]:
         lines = text.splitlines(keepends=True)
         blocks, offset, start, plain = [], 0, 0, []
@@ -14,7 +34,7 @@ class OutputParser:
         index = 0
         def flush():
             if plain:
-                blocks.append(OutputBlock("markdown", "".join(plain), start))
+                blocks.extend(self._markdown("".join(plain), start))
                 plain.clear()
         while index < len(lines):
             line = lines[index]

@@ -85,7 +85,7 @@ llm/ 및 ish 참조 Python 소스 205개도 검증 스냅샷과 일치하며 수
 
 `widget/header.py`의 HeaderBar로 설정/대화 상단 스타일을 통일하고 표식을 `•`로 바꿨습니다.
 `widget/reader.py`의 ReadOnlyDialog는 도움말·로그·컴포넌트 조회 결과에 재사용합니다.
-출력에는 포커스가 없고 공통 receiver에서 Alt + 이동키 전체를 처리하며 ESC·Enter·Ctrl+L로 닫습니다.
+출력에는 포커스가 없고 공통 receiver에서 이동키 전체를 처리하며 ESC·Enter·Ctrl+L로 닫습니다.
 도움말은 한국어/영어 언어팩의 Markdown 본문을 Rich로 렌더링하고, 너비·테마 변경 시 다시 그립니다.
 
 셸에는 Ctrl+Q 진입 바인딩만 설치하고 Ctrl+S는 수정하지 않습니다. Hub에서는 ESC로 패널에
@@ -304,7 +304,7 @@ HubTheme.sidebar_width는 설정 및 대화 좌측 패널의 공통 너비이며
 `hub.hub.install(prompt)`은 ish Application에 하나의 Float를 등록합니다.
 `HubMockup.container`는 `ConditionalContainer`이며 내부 모달 영역에 목록·대화·입력창을
 배치합니다. 표시 전환은 포커스만 바꾸고 Application이나 이벤트 루프를 새로 실행하지 않습니다.
-좁은 화면에서는 목록을 숨기고, 실행 상세는 사용자가 F6으로 켠 경우에만 표시합니다.
+좁은 화면에서는 목록을 숨기고, 출력 태그 바는 사용자가 Ctrl+T로 열 때 표시합니다.
 ish 입력 컨테이너의 높이는 한 줄일 수 있으므로 Float 높이는 렌더링마다 호스트
 output의 현재 PTY 행 수를 읽습니다. 너비는 좌우 앵커로 채우며, PTK의 resize 처리로
 크기 변경을 반영합니다.
@@ -382,7 +382,7 @@ _hub_title Engine Run으로 이름을 만들고 SessionHandle.asave()로 저장�
 배치합니다. 사용자 블록만 HubTheme.user_background를 사용합니다. ChatMessage는
 id/status/time/author를 분리하며, 시간은 원본 Message.created_at입니다. UserProfile의
 기본 display_name은 OS 계정명이며 HubConfig에서 교체합니다.
-입력 Markdown 미리보기는 F5로 여는 고정 높이 패널이며 초기 상태는 접힘입니다.
+입력 Markdown 미리보기는 Ctrl+R로 여는 고정 높이 패널이며 초기 상태는 접힘입니다.
 
 읽기 위치는 Hub 소유 ViewStateStore가 workspace/.hub/view-state.json에 원자적으로
 저장합니다. Project와 Session별 메시지 ID, 메시지 내 줄 오프셋 및 fallback 줄 위치만

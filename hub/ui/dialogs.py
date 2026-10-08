@@ -21,10 +21,11 @@ class DialogController:
         if self.current is None:
             self.previous_focus = app.layout.current_control
         self.current = dialog
+        app.layout.update_parents_relations()
         app.layout.focus(focus)
         app.invalidate()
 
-    def open(self, title, body, accept=None, focus=None, *, validate=None):
+    def open(self, title, body, accept=None, focus=None, *, validate=None, width=None):
         def confirm():
             if validate and not validate():
                 return
@@ -34,11 +35,18 @@ class DialogController:
         buttons = [Button(self.view.t("confirm"), handler=confirm)]
         if accept:
             buttons.append(Button(self.view.t("cancel"), handler=self.close))
-        dialog = Dialog(title=title, body=body, buttons=buttons, width=Dimension(preferred=64, max=80))
+        dialog = Dialog(title=title, body=body, buttons=buttons,
+                        width=width or (lambda: Dimension(preferred=64, max=max(1, min(80, self.view._columns() - 4)))))
         self.show(dialog, focus or buttons[0])
 
     def close(self):
         app, focus = get_app(), self.previous_focus
+        on_close = getattr(self.current, "on_close", None)
+        if on_close is not None:
+            on_close()
+            return
+        if self.view.search.active:
+            self.view.transcript.control.set_search("")
         self.current = None
         self.previous_focus = None
         if focus in list(app.layout.find_all_controls()):

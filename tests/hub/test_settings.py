@@ -245,7 +245,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("\x13")
                 await until(lambda: screen.page is not None and not screen.busy)
@@ -291,7 +291,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("\x13")
                 await until(lambda: screen.page is not None and not screen.busy)
@@ -316,7 +316,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: any(m.role == "assistant" and m.status == "completed"
                                        for m in view.transcript.control.messages))
                 self.assertEqual(calls[0]["reasoning_effort"], "low")
-                self.assertTrue(any(m.role == "reasoning" and m.text == "Provider summary"
+                self.assertFalse(any(m.role == "reasoning" and m.text == "Provider summary"
                                     for m in view.transcript.control.messages))
             finally:
                 app.exit()
@@ -365,10 +365,11 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: view.connected)
                 if view.no_sessions:
-                    pipe.send_text("\x1bOS\r")
+                    pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("keep chat draft\x13")
                 await until(lambda: view.settings_open and screen.page is not None and not screen.busy)
+                screen.choose("profile")
                 profile = screen.page
                 profile.form.fields[("display_name",)].input.text = "Configured User"
                 app.layout.focus(profile.save)

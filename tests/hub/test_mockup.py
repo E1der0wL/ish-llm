@@ -27,6 +27,9 @@ async def eventually(predicate):
 
 
 async def minimize(pipe, view):
+    if view.tags.visible:
+        pipe.send_text("\x14")
+        await eventually(lambda: not view.tags.visible)
     if view._dialog is not None:
         pipe.send_text("\x1b")
         await eventually(lambda: view._dialog is None)
@@ -81,7 +84,9 @@ class MockupTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_session_drafts_and_modal_focus_cycle(self):
         await self.open_hub()
-        self.pipe.send_text("first\x1bOQ")  # F2
+        self.pipe.send_text("first\x1b")
+        await eventually(lambda: self.app.layout.current_control == self.view._session_control)
+        self.pipe.send_text("\x1b[B\x1b[C")
         await eventually(lambda: self.view.selected == 1)
         self.assertEqual(self.view.composer.text, "")
         self.pipe.send_text("second\x1b")  # ESC
@@ -96,11 +101,12 @@ class MockupTests(unittest.IsolatedAsyncioTestCase):
         self.output.columns = 80
         self.output.rows = 24
         await self.open_hub()
-        self.pipe.send_text("\x1b[17~")  # F6
-        await eventually(lambda: self.view.show_details)
-        self.assertFalse(self.view._details.filter())
+        self.pipe.send_text("\x14")
+        await eventually(lambda: self.view.tags.visible)
+        self.assertTrue(self.view._details.filter())
         self.assertFalse(self.view._sidebar.filter())
-        self.assertIn("116", self.view.notice)
+        self.pipe.send_text("\x14")
+        await eventually(lambda: not self.view.tags.visible)
         self.pipe.send_text("\x1b")
         await eventually(lambda: self.app.layout.current_control == self.view._session_control)
         self.assertTrue(self.view._sidebar.filter())
