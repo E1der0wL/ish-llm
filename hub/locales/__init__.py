@@ -51,10 +51,10 @@ class Language:
     def elapsed(self, seconds: float | None) -> str:
         if seconds is None:
             return self("elapsed_unknown")
-        tenths = max(0, round(seconds * 10))
-        hours, remainder = divmod(tenths, 36000)
-        minutes, remainder = divmod(remainder, 600)
-        duration = self("duration_seconds", seconds=remainder / 10)
+        whole_seconds = max(0, int(seconds))
+        hours, remainder = divmod(whole_seconds, 3600)
+        minutes, remainder = divmod(remainder, 60)
+        duration = self("duration_seconds", seconds=remainder)
         if minutes or hours:
             duration = self("duration_minutes", minutes=minutes) + " " + duration
         if hours:

@@ -25,6 +25,8 @@ class BackendWorker:
         self.snapshot_count = 0
         self._output_interval = 0.1
         self._interval_changed = None
+        self._sidebar_width_pending = None
+        self._sidebar_width_task = None
         self._thread = threading.Thread(target=self._thread_main, name="hub-backend", daemon=True)
         self._thread.start()
         self._ready.wait()
@@ -157,6 +159,27 @@ class BackendWorker:
                 self._interval_changed.set()
         if not self._closed and not self.loop.is_closed():
             self.loop.call_soon_threadsafe(apply)
+
+    async def _write_sidebar_width(self):
+        await self._initialized.wait()
+        while self._sidebar_width_pending is not None:
+            width, self._sidebar_width_pending = self._sidebar_width_pending, None
+            try:
+                async with self.runtime.lock:
+                    await asyncio.to_thread(self.runtime.settings_service.preferences.save_sidebar_width, width)
+            except Exception as error:
+                self.report_error(error)
+
+    def set_sidebar_width(self, width: int) -> None:
+        """Coalesce only width writes, serialized with explicit settings saves."""
+        def queue():
+            self._sidebar_width_pending = width
+            if self._sidebar_width_task is None or self._sidebar_width_task.done():
+                self._sidebar_width_task = asyncio.create_task(self._write_sidebar_width())
+                self._commands.add(self._sidebar_width_task)
+                self._sidebar_width_task.add_done_callback(self._commands.discard)
+        if not self._closed and not self.loop.is_closed():
+            self.loop.call_soon_threadsafe(queue)
 
     def close(self) -> None:
         if self._closed:

@@ -46,7 +46,7 @@ class CacheTests(unittest.TestCase):
             self.prepare((replace(message, elapsed_seconds=index / 10),))
         self.assertEqual(self.cache.body_renders, 1)
         self.assertEqual(self.cache.parser.parsed_bytes, parsed)
-        self.assertGreater(self.cache.header_renders, 90)
+        self.assertEqual(self.cache.header_renders, 11)  # Unknown, then whole seconds 0–9.
 
     def test_199_historical_messages_reuse_body_and_prefix(self):
         history = tuple(ChatMessage("assistant", f"**history {i}**", id=str(i)) for i in range(199))

@@ -91,8 +91,8 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(view.preparing.visible())
                 self.assertEqual(len(calls), 1)
                 self.assertEqual(calls[0][0], "submit_input")
-                # No loss or false success before persistence acknowledges.
-                self.assertEqual(view.composer.text, "hello")
+                # Consume immediately; durable history still waits for admission.
+                self.assertEqual(view.composer.text, "")
                 self.assertEqual([m.status for m in view.transcript.control.messages], ["preparing"])
                 calls[0][2].set_result(SubmissionResult(message=message))
                 await asyncio.sleep(0)
@@ -106,6 +106,15 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view.transcript.control.messages[0].status, "committed")
                 self.assertFalse(view._submitted_messages)
                 self.assertFalse(view.preparing.visible())
+
+                # A new identical draft must survive the older acknowledgement.
+                view.composer.text = "same"
+                controller.submit("s", "same")
+                self.assertEqual(view.composer.text, "")
+                view.composer.text = "same"
+                calls[-1][2].set_result(SubmissionResult(message=replace(message, text="same", id="same")))
+                await asyncio.sleep(0)
+                self.assertEqual(view.composer.text, "same")
 
                 # Typing while admission runs must not lose the newer draft.
                 view.composer.text = "second"
@@ -157,6 +166,7 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
             try:
                 view.composer.text = "preserve me"
                 controller.submit("s", view.composer.text)
+                self.assertEqual(view.composer.text, "")
                 future.set_exception(ValueError("admission rejected"))
                 await asyncio.sleep(0)
                 self.assertEqual(view.composer.text, "preserve me")
@@ -164,6 +174,16 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(controller._submitting)
                 self.assertFalse(controller._choosing_submission)
                 self.assertIn("admission rejected", view.notice)
+                future = Future()
+                view.composer.text = "failed with new draft"
+                controller.submit("s", view.composer.text)
+                view.composer.text = "newer text"
+                future.set_exception(ValueError("second rejection"))
+                await asyncio.sleep(0)
+                self.assertEqual(view.composer.text, "newer text")
+                view.composer.text = ""
+                view.input_history.move(-1)
+                self.assertEqual(view.composer.text, "failed with new draft")
             finally:
                 view.output_renderers.close()
                 view.progress.close()

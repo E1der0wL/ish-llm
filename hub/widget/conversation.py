@@ -47,8 +47,8 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         label = (message.author or account_name) if user else t(
             "assistant" if message.role == "assistant" else
             "reasoning" if message.role == "reasoning" else "info")
-        if message.status:
-            label += " · " + t.status(message.status)
+        if message.phase or message.status:
+            label += " · " + t.status(message.phase or message.status)
         if message.role == "assistant":
             label += " · " + t.elapsed(message.elapsed_seconds)
         elif message.time:
@@ -106,6 +106,10 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
 
 class ConversationControl(UIControl):
     def __init__(self, messages: tuple[ChatMessage, ...], theme: HubTheme, language=None) -> None:
+        from .character_stream import CharacterStream
+        self.character_stream = CharacterStream()
+        self.animation_active = lambda: False
+        self.animation_follow = lambda: False
         self.messages = messages
         self.theme = theme
         self.language = language or Language(icons=lambda: for_style(self.theme.icon_style))
@@ -156,11 +160,16 @@ class ConversationControl(UIControl):
     @messages.setter
     def messages(self, value):
         if value is not getattr(self, "_messages", None):
+            if self.animation_active():
+                self.character_stream.observe(value)
+            else:
+                self.character_stream.reset(value)
             self._messages = value
             self._message_revision = getattr(self, "_message_revision", 0) + 1
 
     def _request_frame(self, width, key):
-        messages, theme, language, root = self.messages, self.theme, self.language, self.file_root
+        messages = self.character_stream.project(self.messages)
+        theme, language, root = self.theme, self.language, self.file_root
         language = copy(language)
         language.icon_source = for_style(theme.icon_style)
         app = self._application()
@@ -327,6 +336,7 @@ class ConversationControl(UIControl):
         self._width = max(1, width)
         app = self._application()
         loop_id = id(asyncio.get_running_loop()) if app.is_running else 0
+        self.character_stream.schedule(self, app)
         key = (width, self._message_revision, self.theme, id(self.language), str(self.file_root), self.renderers.version, loop_id)
         if self._requested_key != key:
             resized = self._requested_key is not None and self._requested_key[0] != width
@@ -401,6 +411,7 @@ class ConversationView:
         return self.window
 
     def set_messages(self, messages: tuple[ChatMessage, ...], position=None) -> None:
+        self.control.character_stream.reset(messages)
         self.control.images.reset()
         self.control.set_search("")
         self.control.messages = messages

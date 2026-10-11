@@ -106,8 +106,8 @@ class MessageRenderCache:
                 body = Frame(lines, tuple(anchors), tuple(objects), max(map(fragment_list_width, lines), default=0))
                 block_cache = used_blocks
                 self.body_renders += 1
-            header_key = (message.role, message.author, message.status, message.time,
-                          round(message.elapsed_seconds, 1) if message.elapsed_seconds is not None else None)
+            header_key = (message.role, message.author, message.status, message.phase, message.time,
+                          max(0, int(message.elapsed_seconds)) if message.elapsed_seconds is not None else None)
             header = previous.get("header")
             if header is None or previous.get("header_key") != header_key:
                 header = frozen_rows(render((message,), width, theme, language, section="header"))

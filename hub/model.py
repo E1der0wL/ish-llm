@@ -12,6 +12,7 @@ class ChatMessage:
     id: str = ""
     author: str = ""
     elapsed_seconds: float | None = None
+    phase: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,6 +52,7 @@ class SessionNotification:
 class StepSummary:
     name: str
     status: str
+    kind: str = ""
 
 
 @dataclass(frozen=True, slots=True)

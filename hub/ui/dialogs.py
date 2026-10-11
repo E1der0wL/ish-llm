@@ -27,11 +27,11 @@ class DialogController:
         app.layout.focus(focus)
         app.invalidate()
 
-    def open(self, title, body, accept=None, focus=None, *, validate=None, width=None, accept_text=None):
+    def open(self, title, body, accept=None, focus=None, *, validate=None, width=None, accept_text=None, on_cancel=None):
         def confirm():
             if validate and not validate():
                 return
-            self.close()
+            self.close(accepted=True)
             if accept:
                 accept()
         buttons = [Button(accept_text or self.view.t("confirm"), handler=confirm,
@@ -40,14 +40,16 @@ class DialogController:
             buttons.append(Button(self.view.t("cancel"), handler=self.close))
         dialog = Dialog(title=title, body=body, buttons=buttons,
                         width=width or (lambda: Dimension(preferred=64, max=max(1, min(80, self.view._columns() - 4)))))
+        dialog.on_cancel = on_cancel
         self.show(dialog, focus or buttons[0])
 
-    def close(self):
+    def close(self, *, accepted=False):
         app, focus = get_app(), self.previous_focus
         on_close = getattr(self.current, "on_close", None)
         if on_close is not None:
             on_close()
             return
+        on_cancel = getattr(self.current, "on_cancel", None)
         if self.view.search.active:
             self.view.transcript.control.set_search("")
         self._cancel_reader()
@@ -58,6 +60,8 @@ class DialogController:
         else:
             self.view.active_page.focus_main()
         app.invalidate()
+        if on_cancel and not accepted:
+            on_cancel()
 
     def _cancel_reader(self):
         if self.current is None:

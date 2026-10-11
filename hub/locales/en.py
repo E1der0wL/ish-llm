@@ -14,6 +14,7 @@ MESSAGES = {
     'shortcut_cancel': 'Cancel queued',
     'preparing_response': 'Preparing…',
     'status_preparing': '{icon_running} Preparing',
+    'status_thinking': '{icon_reasoning} Thinking',
     'followup_hint': '→ accept suggestion',
     'component_action_install': 'Install a built-in skill (preserve existing entries)',
     'skills_install_help': '/skills install hub-code-change [new_ID]\nCopy the built-in coding skill. Existing IDs are never overwritten; choose a new ID to preserve them.',
@@ -61,7 +62,7 @@ MESSAGES = {
     'activity_provider_workspace': 'Provider log · Workspace-wide',
     'status_waiting_input': '{icon_pending} Awaiting reply',
     'status_waiting_approval': '{icon_pending} Awaiting approval',
-    'help': '# Hub help\n\n## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+E** chooses an engine/Workflow. **Ctrl+R** toggles Markdown preview.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **Arrows** selects fields.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** does nothing in the composer.\nPath completion inserts text; it does not attach files.\n',
+    'help': '# Hub help\n\n## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts and automatically saves only panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+E** chooses an engine/Workflow. **Ctrl+R** toggles Markdown preview.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **↑↓** selects fields; **←** returns to the panel and **→** does nothing outside editing.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** does nothing in the composer.\nPath completion inserts text; it does not attach files.\n',
     "settings_dependencies": "Required components: {names}",
     "settings_dependencies_missing": "Missing required components: {names} — select them before saving.",
     "title_model_required": "No title model is configured. Set the conversation engine model or parameters.engines._hub_title.completion.model.",
@@ -78,7 +79,7 @@ MESSAGES = {
     "progress_component": "Processing {command}",
     "progress_component_done": "Completed: {identifier}",
     "settings_storage_description": "Conversation storage. Blank uses file for a new project. Cannot change while Sessions exist; null is reserved for an injected store.",
-    "settings_reasoning_effort": "Reasoning effort, for example low, medium or high (no quotes needed). Supported values depend on the model. Blank removes the project setting; it does not disable reasoning. Only returned reasoning text is displayed. The same option in .ishrc.py completion_kwargs takes precedence.",
+    "settings_reasoning_effort": "Model reasoning effort, e.g. low, medium or high. Supported values vary by model; blank uses the default.",
     'send_while_running': 'Send while running',
 
     'send_steering': 'Live instruction — steer the current Run',
@@ -118,7 +119,6 @@ MESSAGES = {
 
     "settings_sidebar_width": "Shared settings/chat sidebar width (terminal columns, 18–60)",
 
-    "settings_width_preview": "Width preview applied · Save or cancel under Appearance.",
 
     "settings_global_registration": "Select a project to choose its components and engines.",
 
@@ -330,6 +330,7 @@ MESSAGES = {
     "error": "Error: {error}", "not_connected": "Wait for the backend connection.",
 
     "saved": "Request saved.", "instruction_saved": "Instruction saved; it will be applied at the next boundary.",
+    "draft_recovered": "Clear the composer and press ↑ to recall the unsent input.",
 
     "empty_message": "Enter a message.", "no_active_run": "There is no active Run to instruct.",
 
@@ -351,7 +352,7 @@ MESSAGES = {
 
     "elapsed": "Elapsed {duration}", "elapsed_unknown": "Elapsed time unavailable",
 
-    "duration_seconds": "{seconds:.1f}s", "duration_minutes": "{minutes}m", "duration_hours": "{hours}h",
+    "duration_seconds": "{seconds}s", "duration_minutes": "{minutes}m", "duration_hours": "{hours}h",
 
     "phase": "Current step: {name} ({status})",
 

@@ -245,6 +245,7 @@ class GlobalPage(Page):
         self.screen.show_page(page)
         self.screen.status = self.screen.t("settings_saved")
         if self.name == "appearance":
+            self.screen._saved_sidebar_width = result["sidebar_width"]
             self.screen.view.set_theme(HubTheme(**result))
         elif self.name == "general":
             self.screen.view.general = GeneralSettings(**result)

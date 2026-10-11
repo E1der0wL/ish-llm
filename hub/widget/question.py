@@ -15,6 +15,7 @@ class QuestionComposer:
         self.identity = None
         self.drafts = {}
         self.busy = False
+        self._completed = {}
         self.container = ConditionalContainer(Window(FormattedTextControl(self.text), wrap_lines=True,
             height=lambda: Dimension(min=1, max=max(3, view._rows() // 3)), dont_extend_height=True,
             style="class:hub.composer"), Condition(lambda: self.item is not None))
@@ -26,8 +27,10 @@ class QuestionComposer:
         self.item, self.identity = None, None
 
     def sync(self, project_id, session_id, questions):
-        item = questions[0] if questions else None
-        identity = (project_id, session_id, item["request"]["id"]) if item else None
+        def key(item):
+            return project_id, session_id, item["request"]["id"], item["request"].get("revision", 1)
+        item = next((q for q in questions if key(q) not in self._completed), None)
+        identity = key(item) if item else None
         if identity == self.identity:
             return
         self.leave()
@@ -36,6 +39,11 @@ class QuestionComposer:
             self.item, self.identity, self.busy = item, identity, False
             self.view.composer.buffer.cancel_completion()
             self.view.composer.text = self.drafts.get(identity, "")
+
+    def completed(self, identity) -> None:
+        self._completed[identity] = None
+        if len(self._completed) > 128:
+            self._completed.pop(next(iter(self._completed)))
 
     def text(self):
         if not self.item:

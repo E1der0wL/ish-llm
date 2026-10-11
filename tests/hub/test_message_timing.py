@@ -75,7 +75,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
 
 class MessageTimingRenderTests(unittest.TestCase):
     def test_assistant_header_replaces_date_in_both_languages(self):
-        for language, expected in (("ko", "소요 1분 2.5초"), ("en", "Elapsed 1m 2.5s")):
+        for language, expected in (("ko", "소요 1분 2초"), ("en", "Elapsed 1m 2s")):
             messages = (ChatMessage("assistant", "Reply", "2026-10-04 12:00:00",
                                     status="completed", elapsed_seconds=62.5),)
             lines = render_messages(messages, 100, HubTheme(), Language(language))
@@ -83,8 +83,8 @@ class MessageTimingRenderTests(unittest.TestCase):
             self.assertIn(expected, header)
             self.assertNotIn("2026-10-04", header)
         ko = Language("ko")
-        self.assertEqual(ko.elapsed(0), "소요 0.0초")
-        self.assertEqual(ko.elapsed(3600), "소요 1시간 0분 0.0초")
+        self.assertEqual(ko.elapsed(0), "소요 0초")
+        self.assertEqual(ko.elapsed(3600), "소요 1시간 0분 0초")
         self.assertEqual(ko.elapsed(None), "소요 시간 알 수 없음")
         self.assertEqual(ko.status("queued"), "◷ 예약")
         self.assertEqual(ko.status("idle"), "○ 유휴")

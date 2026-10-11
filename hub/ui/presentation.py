@@ -21,7 +21,7 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
     if item.role == "assistant":
         text, _ = split_followup(text, final=item.status not in ("streaming", "committed"))
     if item.role == "assistant" and not text and item.status in ("streaming", "committed"):
-        return replace(item, text="", status="preparing")
+        return replace(item, text="", phase=item.phase or "preparing")
     if item.role == "assistant" and item.status == "failed":
         text = (text.rstrip() + "\n\n" if text.strip() else "") + t("response_failed")
     elif not text:
@@ -79,6 +79,10 @@ def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
             if run.steps:
                 step = run.steps[-1]
                 activity = t("phase", name=step.name, status=t.status(step.status))
+                if step.kind == "llm" and step.status == "running":
+                    phase = next((m.phase for m in reversed(snapshot.messages)
+                                  if m.role == "assistant" and m.phase), "thinking")
+                    activity = t.status(phase if phase != "preparing" else "thinking")
         if run.error:
             notice = f"{t.status(run.status)}: {run.error}"
         elif run.status == "paused":

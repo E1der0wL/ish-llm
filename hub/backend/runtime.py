@@ -497,7 +497,8 @@ class HubRuntime:
             session = self.sessions[session_id]
             run = await session.run.aload(run_id)
             await run.arespond(request.respond(option_id, value=value))
-            if not await run.ainteractions(pending_only=True):
+            denied = next(option for option in request.options if option.id == option_id).effect == "deny"
+            if not denied and not await run.ainteractions(pending_only=True):
                 engine = (await run.aget_data()).engine
                 plan = await session.run.resume_plan(run_id, engine=engine)
                 if not plan.can_resume or plan.retry_nodes:

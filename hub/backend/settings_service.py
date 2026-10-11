@@ -102,7 +102,7 @@ class SettingsService:
     async def create_project(self, values):
         values = deepcopy(values)
         values.setdefault("conversation_storage", "file")
-        values["components"] = list(self._schema()["properties"]["components"]["items"]["enum"])
+        values["components"] = list(self.runtime.backend.project_manager.components.names())
         self._validate(values)
         from .defaults import create_project
         project = await create_project(self.runtime.backend, values["title"], config=values["config"],

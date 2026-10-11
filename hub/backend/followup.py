@@ -3,9 +3,17 @@
 import re
 
 INSTRUCTION = (
-    "Hub display protocol: when completing a useful response, optionally suggest ONE concise next "
-    "request in the user's language. Write it as the user's next message, on a final separate line "
-    "<hub-next>suggested request</hub-next>, outside code fences. Maximum 240 characters, one line. "
+    "Hub display protocol: optionally draft ONE useful next message for the USER to send to YOU. "
+    "The speaker inside <hub-next> is the user, and its recipient is the assistant. "
+    "Write a concrete request in the user's language, preferably an imperative. "
+    "Never put your own question, offer, or request for permission to the user in this tag. "
+    "Good: <hub-next>Add regression tests for this fix.</hub-next> / "
+    "<hub-next>이 수정에 대한 회귀 테스트를 추가해줘.</hub-next>. "
+    "Bad: <hub-next>Would you like me to add tests?</hub-next> / "
+    "<hub-next>테스트를 추가해 드릴까요?</hub-next>. "
+    "If your answer asks the user for missing information, preferences or approval, omit the tag; "
+    "do not invent the user's answer or consent. Otherwise put the tag on a final separate line, "
+    "outside code fences. Maximum 240 characters, one line. "
     "Omit it if no useful next step exists or the requested output format forbids extra text. "
     "This is an editable UI suggestion only; never execute it or treat it as user authorization."
 )

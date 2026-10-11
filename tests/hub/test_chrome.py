@@ -18,6 +18,8 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
             theme = HubTheme(accent2="#123456")
             installation = install_preview(prompt, theme=theme)
             app, view = prompt.app, installation.view
+            widths = []
+            view.on_sidebar_width = widths.append
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: app.is_running and app.renderer._last_screen is not None)
@@ -31,11 +33,12 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[1;5C")
                 await eventually(lambda: view.theme.sidebar_width == theme.sidebar_width + 1)
                 self.assertIs(app.layout.current_control, view._session_control)
-                appearance = view.settings.pages["appearance"]
-                self.assertTrue(appearance.dirty)
-                self.assertEqual(appearance.form.values()["accent2"], "#123456")
+                self.assertNotIn("appearance", view.settings.pages)
+                self.assertEqual(view.theme.accent2, "#123456")
+                self.assertEqual(view.settings.preferences["appearance"]["sidebar_width"], theme.sidebar_width + 1)
                 pipe.send_text("\x1b[1;5D")
                 await eventually(lambda: view.theme.sidebar_width == theme.sidebar_width)
+                self.assertEqual(widths, [theme.sidebar_width + 1, theme.sidebar_width])
                 self.assertEqual(view.composer.text, "line\nline")
                 view.toggle_settings()
                 app.layout.focus(view.settings.project_list)

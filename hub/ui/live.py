@@ -31,6 +31,8 @@ class LiveHubView(HubView):
         self.notice = self.t("connecting_notice")
         self._submitted_messages = {}
         self._presentation_cache = MessagePresentationCache()
+        self.transcript.control.animation_active = lambda: self.visible and not self.settings_open
+        self.transcript.control.animation_follow = lambda: self.general.auto_scroll
 
     def show_submitted(self, project_id, session_id, message):
         """Bridge a durable receipt to the next authoritative conversation read."""
@@ -156,6 +158,8 @@ class LiveController:
         self.config = config
         self.worker_factory = worker_factory
         self.worker = None
+        self._sidebar_width_pending = None
+        self.view.on_sidebar_width = self._save_sidebar_width
         self.view.on_output_interval = self._set_output_interval
         self.app = None
         self.loop = None
@@ -355,6 +359,12 @@ class LiveController:
         if self.worker:
             self.worker.set_output_interval(seconds)
 
+    def _save_sidebar_width(self, width):
+        self._sidebar_width_pending = width
+        if self.worker:
+            self.worker.set_sidebar_width(width)
+            self._sidebar_width_pending = None
+
     def open(self, app):
         self.app = app
         self.view.toasts.app = app
@@ -364,6 +374,8 @@ class LiveController:
                 self.config, self._publish,
                 lambda error: self._dispatch(self._error, error))
             self._set_output_interval(self.view.theme.output_refresh_interval)
+            if self._sidebar_width_pending is not None:
+                self._save_sidebar_width(self._sidebar_width_pending)
         else:
             self._call("select", self.view.sessions[self.view.selected].id)
 
@@ -387,13 +399,9 @@ class LiveController:
                 return
             view.show_submitted(project_id, session_id, result.message)
             view.preparing.accepted((project_id, session_id), result.message.id)
-        if view._drafts.get(session_id) == text:
-            view._drafts[session_id] = ""
         if view.project_id != project_id:
             return
         current_id = view.sessions[view.selected].id
-        if current_id == session_id and view.composer.text == text:
-            view.composer.text = ""
         if current_id == session_id:
             view.notice = view.t("instruction_saved" if operation == "steer" else "saved")
             if view.general.auto_scroll:
@@ -401,17 +409,24 @@ class LiveController:
                 view.transcript.control.follow_tail = True
         self.app.invalidate()
 
-    def _send(self, operation, session_id, text, *args):
+    def _send(self, operation, session_id, text, *args, draft=None):
         if not text.strip() or session_id in self._submitting or not self.view.connected:
+            if draft:
+                draft.restore(self.view)
             return
         self._submitting.add(session_id)
         project_id = self.view.project_id
+        from .input.submission import SubmittedDraft
+        if draft is None:
+            draft = SubmittedDraft(project_id, session_id, text)
+            draft.consume(self.view)
         if operation == "submit_input":
             self.view.preparing.start((project_id, session_id))
         def accepted(request_id):
             self._submitting.discard(session_id)
             if request_id is None:
                 self.view.preparing.finish((project_id, session_id))
+                draft.restore(self.view)
             self._accept_input(project_id, session_id, text, request_id, operation)
         self._call(operation, session_id, *args, completed=accepted)
 
@@ -421,13 +436,22 @@ class LiveController:
             return
         identity = question.identity
         question.busy = True
+        text = self.view.composer.text
+        self.view.composer.text = ""
+        question.drafts[identity] = ""
         def answered(result):
+            if result:
+                question.completed(identity)
             if question.identity == identity:
                 question.busy = False
                 if result:
                     question.leave()
                     question.drafts.pop(identity, None)
                     self._call("snapshot", completed=self._snapshot)
+                elif not self.view.composer.text:
+                    self.view.composer.text = text
+            elif not result and not question.drafts.get(identity):
+                question.drafts[identity] = text
         self._call("answer_question", identity[0], identity[1], item["run_id"], item["request"],
                    option_id, value, completed=answered)
 
@@ -441,6 +465,9 @@ class LiveController:
         view = self.view
         identity = (view.project_id, session_id)
         engine, options = view.engine, dict(view.engine_options)
+        from .input.submission import SubmittedDraft
+        draft = SubmittedDraft(identity[0], session_id, text)
+        draft.consume(view)
         self._choosing_submission = True
         self._submitting.add(session_id)
         view.preparing.start(identity)
@@ -453,23 +480,24 @@ class LiveController:
                 return
             view.preparing.finish(identity)
             if (state is None or self.closed or not view.visible or view.settings_open or view._dialog is not None
-                    or identity != (view.project_id, view.sessions[view.selected].id)
-                    or view.composer.text != text):
+                    or identity != (view.project_id, view.sessions[view.selected].id)):
+                draft.restore(view)
                 return
             def follow_up():
-                self._send("submit_input", session_id, text, text, engine, options, False)
+                self._send("submit_input", session_id, text, text, engine, options, False, draft=draft)
             from ..widget.controls import RadioList
             choices = RadioList([("steer", view.t("send_steering")), ("follow_up", view.t("send_follow_up"))],
                                 default="follow_up", select_on_focus=True)
             def accept():
                 if choices.current_value == "steer":
-                    self.steer(session_id, text, expected_run_id=state.run_id)
+                    self.steer(session_id, text, expected_run_id=state.run_id, draft=draft)
                 else:
                     follow_up()
-            view.open_dialog(view.t("send_while_running"), choices, accept, choices)
+            view.open_dialog(view.t("send_while_running"), choices, accept, choices,
+                             on_cancel=lambda: draft.restore(view))
             # This override and its hint share the choice widget's registry.
             def confirm(event):
-                view.close_dialog()
+                view.dialogs.close(accepted=True)
                 accept()
             choices.control.hub_shortcuts.add(["enter"], "", "confirm", confirm)
         self._call("submit_input", session_id, text, engine, options, completed=ready)
@@ -493,23 +521,30 @@ class LiveController:
                 ExecutionChooser(view, catalog, name).open()
         self._call("execution_catalog", identity[1], completed=ready)
 
-    def steer(self, session_id: str, text: str, *, expected_run_id=None):
+    def steer(self, session_id: str, text: str, *, expected_run_id=None, draft=None):
         if not text.strip() or session_id in self._submitting:
+            if draft:
+                draft.restore(self.view)
             return
         def ready(value):
             if value is None:
+                if draft:
+                    draft.restore(self.view)
                 return
             run_id, targets = value
             if expected_run_id is not None and run_id != expected_run_id:
                 self._error(self.view.t("instruction_run_changed"))
+                if draft:
+                    draft.restore(self.view)
                 return
             if len(targets) == 1:
-                self._send("steer", session_id, text, run_id, text, [targets[0][0]])
+                self._send("steer", session_id, text, run_id, text, [targets[0][0]], draft=draft)
             else:
                 from ..widget.controls import RadioList
                 choices = RadioList(list(targets), select_on_focus=True)
                 self.view.open_dialog(self.view.t("choose_target"), choices,
-                    lambda: self._send("steer", session_id, text, run_id, text, [choices.current_value]), choices)
+                    lambda: self._send("steer", session_id, text, run_id, text, [choices.current_value], draft=draft), choices,
+                    on_cancel=lambda: draft and draft.restore(self.view))
         self._call("instruction_targets", session_id, completed=ready)
 
     def select(self, session_id: str):

@@ -19,8 +19,8 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         config = NS(engine="loop", model=None, file_root=None, user_profile=NS(display_name="Account"))
         record = NS(id="s", title="Session", config={}, metadata={"hub_auto_title": True})
         run = NS(id="r", session_id="s", status="running", engine="loop", started_at="2026-10-01T00:00:00+00:00",
-                 ended_at=None, error=None, metadata={"completions": [{"reasoning_content": "Summary", "model": "test/model"}]})
-        handle = NS(aget_data=AsyncMock(return_value=run), steps=NS(alist=AsyncMock(return_value=[NS(name="LLM", status="running")])))
+                 ended_at=None, error=None, metadata={"completions": [{"status": "running", "reasoning_content": "Summary", "model": "test/model"}]})
+        handle = NS(aget_data=AsyncMock(return_value=run), steps=NS(alist=AsyncMock(return_value=[NS(name="LLM", status="running", kind="llm")])))
         status = NS(status="running", queued_count=2, active_run_id="r")
         message = NS(id="m", role="assistant", content="", status="streaming", created_at=run.started_at, run_id="r", metadata={})
         session = NS(aget_data=AsyncMock(return_value=record), aconversation=AsyncMock(return_value=[message]),
@@ -45,8 +45,8 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         korean = present(snapshot, Language("ko", icons=NERD))
         english = present(snapshot, Language("en", icons=UNICODE))
         self.assertNotEqual(korean.activity, english.activity)
-        self.assertIn(NERD.statuses["running"], korean.activity)
-        self.assertIn(UNICODE.statuses["running"], english.activity)
+        self.assertIn(NERD.reasoning, korean.activity)
+        self.assertIn(UNICODE.reasoning, english.activity)
         self.assertEqual(snapshot.status, "running")
         # Other sessions don't compete for the persistence lane on every delta.
         await reader.read(project, {"s": session}, "", config=config, engines=engines, title_errors={})
@@ -59,5 +59,5 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         view.composer.text = "draft"
         view.set_theme(replace(HubTheme(), icon_style="unicode"))
         self.assertEqual(view.composer.text, "draft")
-        self.assertNotIn(NERD.statuses["running"], view.activity)
-        self.assertIn(UNICODE.statuses["running"], view.activity)
+        self.assertEqual(view.activity, present(snapshot, Language("ko", icons=UNICODE)).activity)
+        self.assertIn(UNICODE.reasoning, view.activity)

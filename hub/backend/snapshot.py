@@ -79,12 +79,16 @@ class SnapshotReader:
                 if reasoning:
                     visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning"))
             status = str(message.metadata.get("steering", {}).get("status", message.status))
+            phase = (self.thinking.activity(latest)
+                     if role == "assistant" and latest is not None and latest.id == message.run_id
+                     and status in ("streaming", "committed") else "")
             timestamp = message.created_at if role == "user" else ""
             visible.append(ChatMessage(role, message.content or "", timestamp,
                                        status=status, id=message.id,
                                        author=author if role == "user" else "",
-                                       elapsed_seconds=elapsed))
-        return tuple(visible)
+                                       elapsed_seconds=elapsed, phase=phase))
+        from .continuations import continued_messages
+        return continued_messages(messages, visible)
 
     async def read(self, project, sessions, selected_id, *, config, engines, title_errors):
         from llm.services.query import Query
@@ -123,7 +127,7 @@ class SnapshotReader:
                 _, elapsed = await self.run_display(session, run.id, run=run)
                 summary = RunSummary(run.id, str(run.status), run.engine, elapsed,
                     bool(selected.runtime.active_run_id),
-                    tuple(StepSummary(step.name, str(step.status)) for step in steps),
+                    tuple(StepSummary(step.name, str(step.status), str(step.kind)) for step in steps),
                     str(run.error) if run.error else "")
         snapshot = HubSnapshot(
             project_id=data.id, project_title=data.title,

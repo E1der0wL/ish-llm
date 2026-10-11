@@ -10,6 +10,7 @@ class ComposerHistory:
         self._items: tuple[str, ...] = ()
         self._index: int | None = None
         self._changing = False
+        self._recovered = {}
         view.composer.buffer.on_text_changed += self._edited
 
     @property
@@ -29,6 +30,12 @@ class ComposerHistory:
         if not self._changing:
             self._index = None
 
+    def recover(self, key: str, text: str) -> None:
+        items = self._recovered.setdefault(key, [])
+        if not items or items[-1] != text:
+            items.append(text)
+        del items[:-20]
+
     def move(self, direction: int):
         if not self.available:
             return
@@ -36,6 +43,7 @@ class ComposerHistory:
             self._key = self.view._draft_key(self.view.selected)
             self._items = tuple(message.text for message in self.view.sessions[self.view.selected].messages
                                 if message.role == "user" and message.text.strip())
+            self._items += tuple(self._recovered.get(self._key, ()))
             self._index = len(self._items)
         self._index = max(0, min(len(self._items), self._index + direction))
         value = self._items[self._index] if self._index < len(self._items) else ""

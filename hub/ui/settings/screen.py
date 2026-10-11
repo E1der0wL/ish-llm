@@ -1,6 +1,6 @@
 """Settings navigation: two panels with fields and actions."""
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import subprocess
 
 from prompt_toolkit.application.current import get_app
@@ -37,6 +37,7 @@ class SettingsScreen:
         self.usage = []
         self.global_keys = ("profile", "appearance", "general")
         self._initial_appearance = asdict(view.theme)
+        self._saved_sidebar_width = None
         self.pages = {}
         self.selected = "profile"
         self.page = None
@@ -283,6 +284,8 @@ class SettingsScreen:
             get_app().layout.focus(self.left_control())
             self.select_left(self._left_key)
         else:
+            if key == "right":
+                return
             self._remember_zone()
             widgets = self._groups()[self._main_zone]
             if not widgets:
@@ -294,12 +297,22 @@ class SettingsScreen:
     def resize(self, delta):
         if self.busy:
             return
-        if "appearance" not in self.pages:
-            values = self.preferences.get("appearance", asdict(self.view.theme))
-            self.pages["appearance"] = GlobalPage(self, "appearance", values)
-        page = self.pages["appearance"]
-        page.form.fields[("sidebar_width",)].input.text = str(max(18, min(60, self.view.theme.sidebar_width + delta)))
-        self.status = self.t("settings_width_preview")
+        width = max(18, min(60, self.view.theme.sidebar_width + delta))
+        if width == self.view.theme.sidebar_width:
+            return
+        self.view.set_theme(replace(self.view.theme, sidebar_width=width))
+        self._saved_sidebar_width = width
+        self._initial_appearance["sidebar_width"] = width
+        self.preferences.setdefault("appearance", self._initial_appearance.copy())["sidebar_width"] = width
+        page = self.pages.get("appearance")
+        if page is not None:
+            field = page.form.fields[("sidebar_width",)]
+            field.original = width
+            field.input.text = field.initial = str(width)
+            page.form.original["sidebar_width"] = page.original["sidebar_width"] = width
+        save = getattr(self.view, "on_sidebar_width", None)
+        if save:
+            save(width)
 
     def error(self, error):
         self.status = self.t("error", error=error)
@@ -352,6 +365,8 @@ class SettingsScreen:
             page.usage_output.text = page.usage_text()
         self.preferences.setdefault("general", asdict(GeneralSettings()))
         self.preferences["appearance"] = asdict(HubTheme(**self.preferences.get("appearance", self._initial_appearance)))
+        if self._saved_sidebar_width is not None:
+            self.preferences["appearance"]["sidebar_width"] = self._saved_sidebar_width
         self._sidebar()
         if self._engine_target:
             self.choose(self._engine_target[0])
@@ -427,6 +442,8 @@ class SettingsScreen:
             def loaded(value):
                 if value is not None:
                     self.preferences.update(value["preferences"])
+                    if self._saved_sidebar_width is not None:
+                        self.preferences.setdefault("appearance", self._initial_appearance.copy())["sidebar_width"] = self._saved_sidebar_width
                     self.usage = value.get("usage", [])
                     self.cancel(page)
             if self.request:
@@ -462,9 +479,8 @@ class SettingsScreen:
             return
         identifier = self._focused_key()
         if key == "c":
-            self.choose("new")
-            self._main_zone = 0
-            self._focus_zone(0)
+            self._name_dialog(self.t("settings_create"), "",
+                lambda title: self.call("create_project", {"title": title, "config": {}}, completed=self.saved_project))
             return
         if identifier in (None, "new", *self.global_keys):
             return

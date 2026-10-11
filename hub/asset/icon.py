@@ -9,7 +9,7 @@ HEADER_MARK = "•"
 SCROLL_UP = "△"
 SCROLL_DOWN = "▽"
 SESSIONS = ""
-REASONING = "💭"
+REASONING = "◌"
 WAITING = "⏳"
 PROMPT = "›"
 RULE = "─"
@@ -46,7 +46,7 @@ class IconSet:
                 **{"icon_" + key: value for key, value in self.statuses.items()}}
 
 
-NERD = IconSet(HEADER_MARK, SESSIONS, "󰧑", "", "", ALERT, MappingProxyType({
+NERD = IconSet(HEADER_MARK, SESSIONS, REASONING, "", "", ALERT, MappingProxyType({
     **STATUS, "running": "", "streaming": "", "failed": "",
 }))
 UNICODE = IconSet(HEADER_MARK, "☷", REASONING, WAITING, EDIT,

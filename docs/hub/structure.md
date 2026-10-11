@@ -47,6 +47,7 @@ flush/fsync, 원자적 교체, 실패 시 임시 파일 정리만 공통 Store�
 | Run 프로바이더 진단 | `projects/logs/providers-*.log` | llm RunManager의 로깅 범위 |
 | 직접 프로바이더 호출·초기화 진단 | `logs/providers-*.log` | llm workspace 로깅 범위 |
 | Hub 전역 설정 | `.hub/preferences.json` | `PreferencesStore` (로그 아님) |
+| 즉시 저장하는 패널 너비 | `.hub/sidebar-width.json` | `PreferencesStore` (다른 초안과 독립) |
 | Hub 읽기 위치·마지막 선택 | `.hub/view-state.json` | `ViewStateStore` (로그 아님) |
 
 명시적 로깅 범위가 없는 독립 프로바이더 사용은 llm의

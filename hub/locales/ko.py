@@ -14,6 +14,7 @@ MESSAGES = {
     'shortcut_cancel': '예약 취소',
     'preparing_response': '준비 중…',
     'status_preparing': '{icon_running} 준비 중',
+    'status_thinking': '{icon_reasoning} 생각 중',
     'followup_hint': '→ 추천 입력',
     'component_action_install': '내장 스킬 설치 (기존 항목 유지)',
     'skills_install_help': '/skills install hub-code-change [새_ID]\n내장 코딩 스킬을 복사합니다. 같은 ID가 있으면 덮어쓰지 않으므로 새 ID를 지정하세요.',
@@ -61,7 +62,7 @@ MESSAGES = {
     'activity_provider_workspace': '프로바이더 로그 · 워크스페이스 공통',
     'status_waiting_input': '{icon_pending} 답변 대기',
     'status_waiting_approval': '{icon_pending} 승인 대기',
-    'help': '# Hub 도움말\n\n## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+E**: 엔진·Workflow 선택. **Ctrl+R**: Markdown 미리보기.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **방향키**: 항목 선택.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n입력창의 **Ctrl+C**는 아무 동작도 하지 않습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
+    'help': '# Hub 도움말\n\n## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절 및 너비만 자동 저장.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+E**: 엔진·Workflow 선택. **Ctrl+R**: Markdown 미리보기.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **↑↓**: 항목 선택. 편집 중이 아닐 때 **←**: 패널 복귀, **→**: 동작 없음.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n입력창의 **Ctrl+C**는 아무 동작도 하지 않습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
     "settings_dependencies": "필수 컴포넌트: {names}",
     "settings_dependencies_missing": "선택되지 않은 필수 컴포넌트: {names} — 선택 후 저장하세요.",
     "title_model_required": "자동 제목 모델이 없습니다. 대화 엔진 또는 parameters.engines._hub_title.completion.model을 설정하세요.",
@@ -78,7 +79,7 @@ MESSAGES = {
     "progress_component": "{command} 처리 중",
     "progress_component_done": "{identifier} 처리 완료",
     "settings_storage_description": "대화 저장 방식. 새 프로젝트에서 비우면 file로 저장합니다. Session이 있으면 변경할 수 없으며, null은 주입 저장소 전용입니다.",
-    "settings_reasoning_effort": "생각 과정 강도. 예: low, medium, high (따옴표 없이 입력). 지원값은 모델마다 다릅니다. 빈칸은 프로젝트 설정 해제이며 비활성화를 뜻하지 않습니다. 제공된 생각 과정 텍스트만 표시합니다. .ishrc.py의 completion_kwargs에 같은 옵션이 있으면 그 값이 우선합니다.",
+    "settings_reasoning_effort": "모델의 추론 강도. 예: low, medium, high. 지원값은 모델마다 다르며, 빈칸은 기본값을 사용합니다.",
     'send_while_running': '실행 중 전송 방식',
 
     'send_steering': '실행 중 추가 지시 — 현재 작업에 반영',
@@ -118,7 +119,6 @@ MESSAGES = {
 
     "settings_sidebar_width": "설정·대화 화면의 좌측 패널 너비 (터미널 칸 수, 18~60)",
 
-    "settings_width_preview": "너비 미리보기 적용 · 모양에서 저장하거나 취소하세요.",
 
     "settings_global_registration": "프로젝트를 선택하면 컴포넌트와 엔진을 등록할 수 있습니다.",
 
@@ -330,6 +330,7 @@ MESSAGES = {
     "error": "오류: {error}", "not_connected": "백엔드 연결을 먼저 완료하세요.",
 
     "saved": "요청을 저장했습니다.", "instruction_saved": "추가 지시를 저장했습니다. 다음 처리 시점에 반영됩니다.",
+    "draft_recovered": "전송하지 않은 입력은 입력창을 비운 뒤 ↑로 불러올 수 있습니다.",
 
     "empty_message": "메시지를 입력하세요.", "no_active_run": "추가 지시를 보낼 실행이 없습니다.",
 
@@ -351,7 +352,7 @@ MESSAGES = {
 
     "elapsed": "소요 {duration}", "elapsed_unknown": "소요 시간 알 수 없음",
 
-    "duration_seconds": "{seconds:.1f}초", "duration_minutes": "{minutes}분", "duration_hours": "{hours}시간",
+    "duration_seconds": "{seconds}초", "duration_minutes": "{minutes}분", "duration_hours": "{hours}시간",
 
     "phase": "현재 단계: {name} ({status})",
 
