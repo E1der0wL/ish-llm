@@ -3,6 +3,14 @@
 
 
 MESSAGES = {
+    'object_query': 'Search / filter:',
+    'object_raw': 'Source',
+    'object_rendered': 'Rendered',
+    'object_empty': 'No matching rows.',
+    'object_loading': 'Preparing table…',
+    'object_table_count': 'Row {index}/{visible} · {total} total · Column {column}',
+    'shortcut_object_raw': 'Source/rendered',
+    'shortcut_object_sort': 'Sort column',
     'shortcut_cancel': 'Cancel queued',
     'preparing_response': 'Preparing…',
     'history_cancel': 'Cancel queued',
@@ -41,7 +49,14 @@ MESSAGES = {
     'welcome_keys': 'ESC Panel · c in panel: New session · Ctrl+S Settings',
     'session_required': 'Create a session first: ESC, then c in the session list.',
     'command_details': 'Output tag bar',
-    'activity_hint': 'Last 300 entries · Navigation: scroll · ESC / Enter / Ctrl+L: close',
+    'activity_hint': 'Last 300 activity / provider entries each · Navigation: scroll · ESC / Enter / Ctrl+L: close',
+    'activity_provider_project': 'Provider log · Current project',
+    'activity_provider_file': 'Log file: {path}',
+    'activity_provider_traceback': 'Traceback · Stored exceptions and frames (original error messages omitted)',
+    'activity_provider_run_details': 'Provider details for this Run:',
+    'activity_provider_workspace': 'Provider log · Workspace-wide',
+    'status_waiting_input': '{icon_pending} Awaiting reply',
+    'status_waiting_approval': '{icon_pending} Awaiting approval',
     'help': '# Hub help\n\n## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+E** chooses an engine/Workflow. **Ctrl+R** toggles Markdown preview.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **Arrows** selects fields.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** does nothing in the composer.\nPath completion inserts text; it does not attach files.\n',
     "settings_dependencies": "Required components: {names}",
     "settings_dependencies_missing": "Missing required components: {names} — select them before saving.",
@@ -285,7 +300,6 @@ MESSAGES = {
 
     "session": "SESSION", "run": "RUN", "steps": "STEPS",
 
-    "completion_detail": "Model: {model}\nCalls: {count}\nLatest call tokens: {tokens}",
 
     "connecting": "Connecting", "connecting_notice": "Connecting to the backend.",
 
@@ -335,7 +349,7 @@ MESSAGES = {
 
     "duration_seconds": "{seconds:.1f}s", "duration_minutes": "{minutes}m", "duration_hours": "{hours}h",
 
-    "phase": "Current step: {name} ({status})", "no_reasoning": "The provider has not supplied reasoning text.",
+    "phase": "Current step: {name} ({status})",
 
     "paused": "{icon_paused} Paused · approval/resume is available through the llm API.",
 

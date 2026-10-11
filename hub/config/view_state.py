@@ -1,12 +1,10 @@
 """Hub-owned reading positions; no changes to LLM domain records."""
 
-from dataclasses import asdict, dataclass
-import json
-import os
-from pathlib import Path
-import tempfile
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass
 from threading import Lock
+
+from .store import WorkspaceJSONStore
 
 
 @dataclass(frozen=True, slots=True)
@@ -16,15 +14,12 @@ class ReadingPosition:
     line: int = 0
 
 
-class ViewStateStore:
+class ViewStateStore(WorkspaceJSONStore):
     def __init__(self, workspace):
-        self.path = Path(workspace).expanduser() / ".hub" / "view-state.json"
+        super().__init__(workspace, "view-state.json")
 
     def _read(self):
-        try:
-            data = json.loads(self.path.read_text(encoding="utf-8"))
-        except FileNotFoundError:
-            return {"version": 1, "projects": {}}
+        data = self._read_json({"version": 1, "projects": {}})
         if not isinstance(data, dict) or data.get("version") != 1 or not isinstance(data.get("projects"), dict):
             raise ValueError("Invalid Hub view state")
         return data
@@ -52,19 +47,7 @@ class ViewStateStore:
         project = projects.setdefault(project_id, {})
         project["selected"] = selected
         project.setdefault("positions", {}).update({key: asdict(value) for key, value in positions.items()})
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = None
-        try:
-            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=self.path.parent,
-                                             prefix="view-state-", suffix=".tmp", delete=False) as stream:
-                temporary = Path(stream.name)
-                json.dump(data, stream, ensure_ascii=False)
-                stream.flush()
-                os.fsync(stream.fileno())
-            temporary.replace(self.path)
-        finally:
-            if temporary is not None:
-                temporary.unlink(missing_ok=True)
+        self._write_json(data)
 
 
 class ViewStateWriter:
@@ -77,6 +60,29 @@ class ViewStateWriter:
         self.pending = {}
         self.latest = {}
         self.running = False
+        self.loading = set()
+
+    def is_loaded(self, project_id):
+        with self.lock:
+            return project_id in self.latest
+
+    def load_background(self, project_id, ready):
+        """Use the existing writer lane for first-read filesystem work too."""
+        with self.lock:
+            if project_id in self.loading:
+                return
+            self.loading.add(project_id)
+        def read():
+            error = None
+            try:
+                selected, positions = self.store.load(project_id)
+            except Exception as caught:
+                selected, positions, error = "", {}, caught
+            with self.lock:
+                self.latest.setdefault(project_id, (selected, positions))
+                self.loading.discard(project_id)
+            ready(error)
+        self.executor.submit(read)
 
     def save(self, project_id, selected, positions):
         with self.lock:

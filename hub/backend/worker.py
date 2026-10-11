@@ -21,6 +21,7 @@ class BackendWorker:
         self._shutdown_error = None
         self._commands = set()
         self._snapshot_task = None
+        self.snapshot_count = 0
         self._output_interval = 0.1
         self._interval_changed = None
         self._thread = threading.Thread(target=self._thread_main, name="hub-backend", daemon=True)
@@ -66,25 +67,39 @@ class BackendWorker:
 
     async def _read_snapshot(self):
         async with self.runtime.lock:
+            self.snapshot_count = getattr(self, "snapshot_count", 0) + 1
             return await self.runtime.snapshot()
 
     async def _refresh(self) -> None:
         last = None
-        deadline = asyncio.get_running_loop().time() + self._output_interval
+        loop = asyncio.get_running_loop()
+        last_read = loop.time()
         while True:
+            dirty = self.runtime.dirty.is_set()
             self.runtime.dirty.clear()
-            # One cadence for events AND reconciliation. Previously a 1-second
-            # event wait preceded the configured delay, yielding 1.1s idle ticks.
-            # Subtract read time rather than sleeping another interval after it.
+            active = last is None or bool(getattr(getattr(last, "run", None), "active", False)) or bool(getattr(last, "queued_count", 0))
+            active = active or any(getattr(s, "status", "") in ("running", "streaming", "queued") or getattr(s, "queued_count", 0)
+                                   for s in getattr(last, "sessions", ()))
+            # Idle reconciliation is a safety net. Events wake it immediately,
+            # throttled only by the configured output interval.
+            deadline = last_read + (self._output_interval if active or dirty else max(.5, min(2., self._output_interval * 10)))
             while True:
                 self._interval_changed.clear()
-                try:
-                    async with asyncio.timeout(max(0, deadline - asyncio.get_running_loop().time())):
-                        await self._interval_changed.wait()
-                except TimeoutError:
+                if loop.time() >= deadline:
                     break
-                deadline = min(deadline, asyncio.get_running_loop().time() + self._output_interval)
-            deadline = asyncio.get_running_loop().time() + self._output_interval
+                wake = asyncio.create_task(self.runtime.dirty.wait())
+                changed = asyncio.create_task(self._interval_changed.wait())
+                try:
+                    done, _ = await asyncio.wait((wake, changed), timeout=max(0, deadline - loop.time()), return_when=asyncio.FIRST_COMPLETED)
+                    if not done:
+                        break
+                    self.runtime.dirty.clear()
+                    deadline = min(deadline, last_read + self._output_interval)
+                finally:
+                    wake.cancel()
+                    changed.cancel()
+                    await asyncio.gather(wake, changed, return_exceptions=True)
+            last_read = loop.time()
             try:
                 self._snapshot_task = asyncio.create_task(self._read_snapshot())
                 try:

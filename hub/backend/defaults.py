@@ -15,7 +15,7 @@ async def create_project(backend, title, *, config, components, conversation_sto
         builtin = backend.project_manager.components.get("builtin_tools")
         if isinstance(builtin, HubBuiltinTools):
             project_config.parameters.setdefault("components", {}).setdefault("builtin_tools", {}).setdefault(
-                "config", {}).setdefault("enabled", list(builtin.toolkit.registry.names()))
+                "config", {}).setdefault("enabled", builtin.select_tools())
     engines = backend.describe_project_config()["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]
     if "system_prompt" in engines.get("loop", {}).get("properties", {}).get("config", {}).get("properties", {}):
         project_config.parameters.setdefault("engines", {}).setdefault("loop", {}).setdefault("config", {}).setdefault("system_prompt", SYSTEM_PROMPT)

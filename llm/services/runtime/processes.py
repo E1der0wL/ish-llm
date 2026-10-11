@@ -1,4 +1,4 @@
-"""ToolRuntime에 주입하는 유한 프로세스 실행기. 등록 명령만 실행하며 모델 인자는 JSON stdin이다."""
+"""등록 Tool의 JSON 프로토콜과 일반 argv 실행이 공유하는 Linux 격리·회수 경계."""
 
 import asyncio
 from dataclasses import asdict
@@ -10,11 +10,9 @@ import sys
 from typing import Any, Mapping, Optional, Sequence, TYPE_CHECKING, Union
 
 from llm._platform import require_linux
-from asyncio import timeout
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.policies import ExecutionLimitError
-from llm.services.runtime.policies import positive_seconds
 
 if TYPE_CHECKING:
     from llm.services.runtime.tools import ToolCall
@@ -25,6 +23,7 @@ class ProcessToolRunner:
 
     commands={Tool명: 절대 실행 파일로 시작하는 argv}; 명령은 stdin의 ToolCall JSON을 읽고
     stdout에 JSON 결과 하나를 출력한다. 기존 Python 클로저를 자동 직렬화하지 않는다.
+    execute(argv)는 일반 명령용으로 stdin EOF와 stdout/stderr/returncode 결과를 사용한다.
     cwd는 전용 작업 디렉토리로 지정하고 workspace 메타데이터 디렉토리를 노출하지 않는다.
     """
 
@@ -68,6 +67,9 @@ class ProcessToolRunner:
             command = list(self.commands[name])
         except KeyError:
             raise ExecutionLimitError("process_failed", f"No process command registered for Tool: {name}") from None
+        return self._sandbox(command)
+
+    def _sandbox(self, command):
         if self.isolation == "process":
             return command
         bwrap = shutil.which("bwrap")
@@ -92,15 +94,15 @@ class ProcessToolRunner:
         args += ["--bind", str(self.cwd), str(self.cwd), "--chdir", str(self.cwd), "--", *command]
         return args
 
-    async def _execute(self, call):
-        command = self._command(call.name)
+    async def _launch(self, command, input_value, *, pass_fds=()):
         env = dict(self.env)
-        data = {"argv": command, "cwd": str(self.cwd), "env": env, "payload": asdict(call), "memory_bytes": self.memory_bytes}
+        data = {"argv": command, "cwd": str(self.cwd), "env": env, "payload": input_value, "memory_bytes": self.memory_bytes}
         payload = json.dumps(data, ensure_ascii=False, allow_nan=False).encode("utf-8")
         worker = Path(__file__).with_name("_worker.py")
         pending = asyncio.create_task(asyncio.create_subprocess_exec(
             self.python, "-I", "-S", str(worker), str(os.getpid()), stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, env=env, start_new_session=True))
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, env=env, start_new_session=True,
+            pass_fds=pass_fds))
         process, readers = None, []
         try:
             process = await asyncio.shield(pending)
@@ -124,12 +126,7 @@ class ProcessToolRunner:
             process.stdin.close()
             stdout, stderr = await asyncio.gather(*readers)
             code = await process.wait()
-            if code != 0:
-                raise ExecutionLimitError("process_failed", f"Tool process exited with {code}: {stderr.decode('utf-8', errors='replace')}")
-            try:
-                return json.loads(stdout.decode("utf-8"))
-            except (ValueError, UnicodeError) as error:
-                raise ExecutionLimitError("process_failed", "Tool process must return one UTF-8 JSON value") from error
+            return code, stdout, stderr
         finally:
             async def cleanup():
                 # 취소가 생성과 겹친 경우에도 프로세스 핸들을 회수한다. 입력 전 게이트는 실행하지 않는다.
@@ -155,6 +152,42 @@ class ProcessToolRunner:
                     process.stdin.close()
             await drain_on_cancel(cleanup())
 
+    async def _execute(self, call):
+        code, stdout, stderr = await self._launch(self._command(call.name), asdict(call))
+        if code != 0:
+            raise ExecutionLimitError("process_failed", f"Tool process exited with {code}: {stderr.decode('utf-8', errors='replace')}")
+        try:
+            return json.loads(stdout.decode("utf-8"))
+        except (ValueError, UnicodeError) as error:
+            raise ExecutionLimitError("process_failed", "Tool process must return one UTF-8 JSON value") from error
+
+    def _admission(self):
+        loop = asyncio.get_running_loop()
+        if self._loop is None:
+            self._loop, self._slots = loop, None if self.max_concurrency is None else asyncio.Semaphore(self.max_concurrency)
+        if self._loop is not loop:
+            raise RuntimeError("Use ProcessToolRunner on its original event loop")
+        return self._slots
+
+    async def execute(self, argv: Sequence[str], *, pass_fds: Sequence[int] = ()) -> dict:
+        """일반 명령의 출력과 종료 코드를 반환한다. 격리·회수는 JSON Tool 경로와 같다.
+
+        pass_fds는 호스트 수명 잠금이다. 시작 게이트만 상속하며 사용자 명령에는 전달하지 않는다.
+        """
+        if (not isinstance(argv, (list, tuple)) or not argv or not argv[0]
+                or any(not isinstance(arg, str) or "\0" in arg for arg in argv)
+                or not Path(argv[0]).is_absolute()):
+            raise ValueError("Command requires argv with an absolute executable")
+        slots = self._admission()
+        async def invoke():
+            code, stdout, stderr = await self._launch(self._sandbox(list(argv)), None, pass_fds=tuple(pass_fds))
+            return {"returncode": code, "stdout": stdout.decode("utf-8", errors="replace"),
+                    "stderr": stderr.decode("utf-8", errors="replace")}
+        if slots is None:
+            return await invoke()
+        async with slots:
+            return await invoke()
+
     def validate_tool(self, name, isolation):
         """실행 계약이 요구하는 격리 수준과 등록 명령을 사전 검증한다."""
         if name not in self.commands or isolation == "sandbox" and self.isolation != "sandbox":
@@ -164,14 +197,9 @@ class ProcessToolRunner:
 
     async def __call__(self, tool: Any, call: "ToolCall") -> Any:
         """큐 대기도 timeout에 포함한다. 호출별 프로세스 그룹은 완료·실패·취소 시 회수한다."""
-        loop = asyncio.get_running_loop()
-        if self._loop is None:
-            self._loop, self._slots = loop, None if self.max_concurrency is None else asyncio.Semaphore(self.max_concurrency)
-        if self._loop is not loop:
-            raise RuntimeError("Use ProcessToolRunner on its original event loop")
+        slots = self._admission()
         # 실행 기한은 ToolExecutor의 Project 정책이 집행한다. runner는 취소를 회수한다.
-        async with timeout(None):
-            if self._slots is None:
-                return await self._execute(call)
-            async with self._slots:
-                return await self._execute(call)
+        if slots is None:
+            return await self._execute(call)
+        async with slots:
+            return await self._execute(call)

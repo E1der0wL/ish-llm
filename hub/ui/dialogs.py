@@ -19,6 +19,7 @@ class DialogController:
 
     def show(self, dialog, focus):
         app = get_app()
+        self._cancel_reader()
         if self.current is None:
             self.previous_focus = app.layout.current_control
         self.current = dialog
@@ -49,6 +50,7 @@ class DialogController:
             return
         if self.view.search.active:
             self.view.transcript.control.set_search("")
+        self._cancel_reader()
         self.current = None
         self.previous_focus = None
         if focus in list(app.layout.find_all_controls()):
@@ -56,6 +58,19 @@ class DialogController:
         else:
             self.view.active_page.focus_main()
         app.invalidate()
+
+    def _cancel_reader(self):
+        if self.current is None:
+            return
+        dispose = getattr(self.current, "dispose", None)
+        if dispose:
+            dispose()
+        output = getattr(self.current, "output", None)
+        timer = getattr(output, "_resize_timer", None)
+        if timer:
+            timer.cancel()
+            output._resize_timer = None
+        self.view.render_worker.cancel("popup")
 
     def cycle(self, reverse=False):
         controls = [item.content for item in walk(to_container(self.current), skip_hidden=True)
@@ -70,7 +85,7 @@ class DialogController:
         from ..widget.reader import ReadOnlyDialog
         view = self.view
         popup = ReadOnlyDialog(view.t("help_title"), view.t("help"), view._rows, view._columns,
-                               self.close, view.t, markdown=True, theme=lambda: view.theme)
+                               self.close, view.t, markdown=True, theme=lambda: view.theme, render_worker=view.render_worker)
         self.show(popup, popup.receiver)
 
     def engine(self, name=""):

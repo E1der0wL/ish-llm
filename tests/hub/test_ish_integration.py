@@ -1,4 +1,4 @@
-from tests.hub.test_mockup import minimize
+from tests.hub.support import minimize
 """Use the reference host's real set_float, set_key and prompt_async contracts."""
 
 import asyncio
@@ -10,8 +10,8 @@ from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.widgets import Label
 
-from hub.hub import install
-from tests.hub.test_mockup import SizedOutput, eventually
+from examples.hub.preview import install_preview
+from tests.hub.support import SizedOutput, eventually
 
 HOST = Path(__file__).resolve().parents[2] / "ish.platform/src"
 
@@ -33,7 +33,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
         from prompt_toolkit.mouse_events import MouseEvent, MouseEventType, MouseButton
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             view.transcript.set_messages((ChatMessage("assistant", "\n\n".join(f"Line {i}" for i in range(150))),))
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
@@ -68,7 +68,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_escape_and_alt_scroll_cross_modal_binding_scope(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             # A widget can stop ancestor binding lookup at its own modal boundary.
             # Host-level navigation must still work when that widget has focus.
@@ -100,7 +100,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
         with create_pipe_input() as pipe:
             output = SizedOutput()
             prompt = Prompt(input=pipe, output=output)
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             rendered = asyncio.Event()
             app.after_render += lambda _: rendered.set()
@@ -151,8 +151,8 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
             prompt.set_key("c-q", handler=previous_q)
             prompt.set_key("c-s", handler=previous_s)
             other_float = prompt.set_float(Label("Other plugin"), right=0)
-            installation = install(prompt, preview=True)
-            replacement = install(prompt, preview=True)
+            installation = install_preview(prompt)
+            replacement = install_preview(prompt)
             replacement.view.show_preview = True
             self.assertTrue(installation._closed)
             self.assertEqual(len(prompt.floats), 3)

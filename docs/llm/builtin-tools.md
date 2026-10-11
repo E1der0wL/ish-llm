@@ -18,6 +18,7 @@ enabled가 없으면 builtin Tool을 노출하지 않는다. toolkit.registry.na
 
 [실행 가능한 개발·진단 예제](../../examples/llm/developer_assistant.md)와
 [Component 공개 계약](../../llm/components/tools/builtin/README.md)을 참고한다.
+빈 공간·선택 파일 복사와 OS 샌드박스 실행은 [테스트 공간 안내](test-workspaces.md)를 참고한다.
 
 ## 카탈로그
 
@@ -27,6 +28,7 @@ enabled가 없으면 builtin Tool을 노출하지 않는다. toolkit.registry.na
 | allow_commands=True | shell_execute, process_start, process_write |
 | 명령/검증/Git 기능 중 하나 사용 | process_status, process_output, process_cancel |
 | checks에 명령 등록 | check_run, test_run |
+| test_workspaces 주입 | test_workspace_create, test_workspace_list, test_workspace_execute, test_workspace_delete |
 | git=True | git_status, git_diff |
 | diagnostics=True | system_inspect, process_list, process_inspect |
 | bind_prompts(AgentData) | prompt_read |

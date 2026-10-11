@@ -7,6 +7,10 @@ from llm.core.interactions import InteractionOption, InteractionRequest
 from llm.services.runtime.tools import current_tool_call
 
 
+def waiting_status(questions):
+    return "waiting_approval" if any(item["request"].get("kind") == "approval" for item in questions) else "waiting_input"
+
+
 @dataclass(slots=True)
 class WaitingQuestion:
     project_id: str

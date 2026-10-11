@@ -14,8 +14,8 @@ runner = ProcessToolRunner(
     {"external_job": ["/usr/bin/python3", "-I", "/opt/my-tools/worker.py"]},
     cwd="/srv/llm-tool-work",       # 미리 만든 전용 작업 디렉토리
     read_only_paths=["/opt/my-tools"],
-    isolation="sandbox",          # 기본값: Linux Bubblewrap 필수
-    timeout_seconds=60,
+    isolation="sandbox",          # 명시적으로 선택; Linux Bubblewrap 필수
+    allow_network=False,
     max_output_bytes=1_000_000,
     memory_bytes=512 * 1024 * 1024,
     max_concurrency=4,
@@ -58,7 +58,8 @@ Python worker에 직접 -I를 지정하면 PYTHON* 환경변수도 무시하므�
 
 Linux sandbox 모드는 Bubblewrap의 사용자/PID/네트워크 등 namespace, capability 제거,
 읽기 전용 런타임 mount와 명시적인 작업 디렉토리 쓰기 mount를 사용한다. 네트워크는
-기본적으로 공유하지 않는다. 네트워크가 필요한 worker만 개발자가 `allow_network=True`로
+`allow_network=False`로 명시하면 공유하지 않는다. sandbox에서는 bool 값 지정이 필수다.
+네트워크가 필요한 worker만 개발자가 `allow_network=True`로
 구성하면 호스트 네트워크 전체를 공유한다(도메인별 allowlist는 아니다). process 모드는
 이 옵션과 무관하게 네트워크를 제한하지 않는다. `/usr`, `/bin`, `/lib`, `/lib64`의 존재하는 경로는 런타임 용도로
 읽기 전용 노출한다. 추가 read_only_paths는 개발자가 신뢰하는 의존성만 지정한다.
@@ -80,13 +81,19 @@ Bubblewrap 부모 사망/PID namespace 종료가 자손을 정리한다. process
 프로세스 트리 전체의 합산 메모리/개수 제한은 제공하지 않으며, Windows 전용이던
 max_processes 인자는 제거했다. 합산 제한이 필요하면 별도 cgroup 실행기를 주입해야 한다.
 
-실행 대기열 대기를 포함한 timeout, 전체 stdout+stderr 크기, 동시 실행 개수를 제한한다.
+명시적 timeout은 ToolExecutor가 실행 대기까지 포함해 집행한다. runner는 명시된
+전체 stdout+stderr 크기와 동시 실행 개수만 제한하며 자체 기본 deadline을 추가하지 않는다.
 정리는 최대 추가 시간이 필요하며 종료 확인에 실패하면 성공으로 처리하지 않는다.
 파이프가 출력 한도로 정지해도 버퍼를 비우며 종료한다. 이미 발생한 파일 변경이나
 원격 요청은 프로세스를 죽여도 취소/롤백되지 않는다. 기존 LiteLLM 스트림 스레드는
 이 Tool runner의 종료 대상이 아니다.
 
 ## 영속 작업 키
+
+빈 공간/선택 파일 사본에서 일반 argv 명령을 실행하려면
+[테스트 공간 Tool](test-workspaces.md)을 사용한다. 이 경로는 `ProcessToolRunner.execute()`의
+stdout/stderr/returncode 결과를 사용하며 기존 등록 Tool의 JSON stdin/stdout 계약과 분리된다.
+프로세스 생성·격리·취소·회수 구현은 공유한다.
 
 operation_key 콜백은 동기 함수이며 문자열 또는 None을 반환한다. None은 중복 방지를
 사용하지 않는 해당 호출이다. 키는 **같은 Session 안에서 같은 업무 요청을 식별하는 값**으로

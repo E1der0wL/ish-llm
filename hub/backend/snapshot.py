@@ -7,6 +7,7 @@ from time import monotonic
 
 from ..model import ChatMessage, HubSnapshot, SessionSummary, RunSummary, StepSummary
 from .engine_selection import model_name, requires_model, selected_engines
+from .questions import waiting_status
 
 
 @dataclass(slots=True)
@@ -16,6 +17,7 @@ class SessionObservation:
     runtime: Any
     run: Any
     handle: Any
+    questions: tuple = ()
 
 
 class SnapshotReader:
@@ -92,10 +94,14 @@ class SnapshotReader:
                 latest = await session.run.alist(query=Query(descending=True, limit=1))
                 handle = latest[0] if latest else None
                 run = await handle.aget_data() if handle else None
-                item = SessionObservation(identifier, record, runtime, run, handle)
+                pending = (tuple({"run_id": run.id, "live": False, "request": request.to_dict()}
+                           for request in await handle.ainteractions(pending_only=True))
+                           if run and str(run.status) == "paused" else ())
+                item = SessionObservation(identifier, record, runtime, run, handle, pending)
                 self.observations[identifier] = (monotonic(), item)
             observations.append(item)
-            summaries.append(SessionSummary(identifier, item.record.title, str(item.runtime.status), item.runtime.queued_count))
+            status = waiting_status(item.questions) if item.questions else str(item.runtime.status)
+            summaries.append(SessionSummary(identifier, item.record.title, status, item.runtime.queued_count))
         selected = next((item for item in observations if item.session_id == selected_id), None)
         messages, summary, questions = (), None, ()
         session_config = selected.record.config if selected else None
@@ -106,24 +112,19 @@ class SnapshotReader:
             if selected.run:
                 run = selected.run
                 if str(run.status) == "paused":
-                    questions = tuple({"run_id": run.id, "live": False, "request": request.to_dict()}
-                                      for request in await selected.handle.ainteractions(pending_only=True))
+                    questions = selected.questions
                 steps = await selected.handle.steps.alist()
-                completions = run.metadata.get("completions", [])
-                last = completions[-1] if completions else {}
                 _, elapsed = await self.run_display(session, run.id, run=run)
                 summary = RunSummary(run.id, str(run.status), run.engine, elapsed,
                     bool(selected.runtime.active_run_id),
                     tuple(StepSummary(step.name, str(step.status)) for step in steps),
-                    any(item.get("reasoning_content") for item in completions), len(completions),
-                    last.get("model") or config.model or "", last.get("usage", {}).get("total_tokens"),
                     str(run.error) if run.error else "")
         snapshot = HubSnapshot(
             project_id=data.id, project_title=data.title,
             model=model_name(engines, data.config, config.engine, session_config),
             storage=data.conversation_storage, sessions=tuple(summaries), selected_id=selected_id,
             messages=messages, run=summary,
-            status=str(selected.runtime.status) if selected else "idle",
+            status=(waiting_status(questions) if questions else str(selected.runtime.status)) if selected else "idle",
             queued_count=selected.runtime.queued_count if selected else 0,
             model_required=requires_model(engines, data.config, config.engine, session_config) if selected else False,
             title_error=title_errors.get(selected_id, ""),

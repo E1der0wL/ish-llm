@@ -1,4 +1,4 @@
-from tests.hub.test_mockup import minimize
+from tests.hub.support import minimize
 from hub.ui.presentation import present
 """Real LLM persistence and runtime integration, with deterministic model output."""
 
@@ -14,7 +14,7 @@ from prompt_toolkit.input import create_pipe_input
 from hub.ui.application import create_application
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.backend.worker import BackendWorker
-from tests.hub.test_mockup import SizedOutput
+from tests.hub.support import SizedOutput
 
 from llm.llm import LargeLanguageModel
 from llm.components.tools import ToolComponent
@@ -107,7 +107,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(snapshot.messages[-1].elapsed_seconds, elapsed)
                 self.assertEqual(snapshot.messages[-1].time, "")
                 self.assertEqual(calls[0]["model"], "openai/test")
-                self.assertIn("완료", present(snapshot, runtime.t).detail)
+                self.assertEqual(present(snapshot, runtime.t).messages[-1].status, "completed")
                 project_id = snapshot.project_id
             finally:
                 await runtime.close()

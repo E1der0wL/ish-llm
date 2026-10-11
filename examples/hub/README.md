@@ -12,4 +12,5 @@ ESC로 패널에 이동한 뒤 다시 ESC로 최소화하고, 모형 셸에서 C
 사용자 메시지는 오른쪽 정렬하고 Assistant 응답은 Rich Markdown으로 표시합니다.
 
 `ishrc.example.py`는 배포한 hub 플러그인을 실제 ish에 연결하는 설정 예제입니다.
-대화와 Run 상세는 샘플이며, 실제 모델이나 셸 명령은 실행하지 않습니다.
+이 설정은 백엔드 없이 빈 UI를 엽니다. 샘플 대화는 `sample_data.py`에 있으며
+`preview.py`가 명시적으로 주입합니다. 플러그인 실행 시 예제 패키지를 import하지 않습니다.

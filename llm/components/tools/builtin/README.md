@@ -12,6 +12,7 @@
 | [files.py](files.py) | 지정한 root 범위의 파일 조회·읽기·작성·수정·삭제를 구현합니다. |
 | [processes.py](processes.py) | 명령 실행·pipe 입력·출력 cursor와 프로세스 종료를 관리합니다. |
 | [diagnostics.py](diagnostics.py) | Linux 시스템·프로세스·표준 I/O 연결을 읽기 전용으로 조회합니다. |
+| [workspaces.py](workspaces.py) | Project별 테스트 파일 공간의 생성·복사·잠금·명시적 삭제와 sandbox 실행 라우팅을 담당합니다. |
 
 ## 연결 방법
 
@@ -21,7 +22,7 @@ Host ASK 없이도 Run이 PAUSED가 되고, Project의 scheme/category/risk rule
 policy 응답 또는 사용자 승인을 기다립니다. 자동 응답도 명시적 resume 전에는 실행하지 않습니다.
 계약과 작업 환경 지문은 함께 binding되어 재개 시 변경을 거부합니다.
 
-파일 크기·출력 크기·명령 시간은 생성자 제한이 아닙니다. Tool의 max_file_bytes,
+일반 파일/프로세스 Tool의 파일 크기·출력 크기·명령 시간은 생성자 제한이 아닙니다. Tool의 max_file_bytes,
 max_output_bytes, timeout_seconds에 명시하고, 변경 불가/범위 제한이 필요하면
 Project policies.tools.argument_constraints의 fixed/bounded/selectable을 사용합니다.
 
@@ -57,3 +58,9 @@ BuiltinTools의 async 수명을 닫아 자식 프로세스를 정리해야 합�
 등록 코드와 개별 Tool 목록은 [기본 Tool 안내](../../../../docs/llm/builtin-tools.md), Project Python Tool은 [상위 폴더](../README.md)를 참고하세요.
 
 [상위 안내](../README.md)
+
+`TestWorkspaces`를 `BuiltinTools(test_workspaces=...)`로 주입하고 `ToolRuntime.runner`에
+`BuiltinToolRunner()`를 연결하면 별도 테스트 공간에서 Bubblewrap 명령을 실행할 수 있습니다.
+기존 파일 Tool은 `workspace_id`로 그 공간을 선택합니다. 생성·실행·삭제는 승인 대상이며
+종료/취소 후 파일은 유지됩니다. 자세한 설정과 격리 범위는
+[테스트 공간 안내](../../../../docs/llm/test-workspaces.md)를 참고하세요.

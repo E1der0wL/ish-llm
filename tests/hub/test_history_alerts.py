@@ -1,4 +1,4 @@
-from tests.hub.test_mockup import minimize
+from tests.hub.support import minimize
 """Exercise dialogs and shell alerts through real host rendering and backend APIs."""
 
 import asyncio
@@ -9,13 +9,14 @@ import unittest
 
 from prompt_toolkit.input import create_pipe_input
 from hub.hub import install
+from examples.hub.preview import install_preview
 from hub.ui.application import create_application
 from hub.widget.conversation import ChatMessage
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.backend.worker import BackendWorker
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.test_live import controlled_backend, until
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_overlays import screen_text
 
 
@@ -84,12 +85,15 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
     async def test_output_scrollbar_tracks_top_and_bottom(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             view.transcript.control.messages = (ChatMessage("assistant", "\n\n".join(str(i) for i in range(180))),)
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: app.is_running and view.transcript.window.render_info is not None)
+                # Background rendering may initially paint an empty viewport.
+                await eventually(lambda: view.transcript.window.render_info.content_height >
+                                 view.transcript.window.render_info.window_height)
                 def thumb_at(bottom):
                     position = app.renderer._last_screen.visible_windows_to_write_positions[view.transcript.window]
                     y = position.ypos + position.height - 2 if bottom else position.ypos + 1
@@ -137,7 +141,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
     async def test_shell_alert_preserves_draft_and_uses_severity_colors(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             task = asyncio.create_task(prompt.prompt_async())
             try:

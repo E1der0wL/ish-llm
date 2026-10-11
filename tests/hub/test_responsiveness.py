@@ -20,7 +20,7 @@ from hub.ui.live import LiveHubView
 from hub.ui.chat.history_ui import HistoryUI
 from hub.widget.conversation import ConversationControl, render_messages
 from tests.hub.test_live import controlled_backend
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 
 
 class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
@@ -66,7 +66,7 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
         async def snapshot():
             reads.append(asyncio.get_running_loop().time())
             await asyncio.sleep(.04)
-            return len(reads)
+            return NS(run=NS(active=True), count=len(reads))
         worker = BackendWorker.__new__(BackendWorker)
         worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(), snapshot=snapshot)
         worker._output_interval = .1
@@ -113,18 +113,18 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
         try:
             with patch("hub.widget.conversation.render_messages", wraps=render_messages) as render:
                 control.create_content(80, 20)
-                self.assertEqual(render.call_count, 3)
+                self.assertEqual(control._message_cache.body_renders, 3)
                 control.messages = (*messages[:2], replace(messages[2], text="start and more"))
                 control.create_content(80, 20)
-                self.assertEqual(render.call_count, 4)
+                self.assertEqual(control._message_cache.body_renders, 4)
                 anchors, objects = [], []
                 expected = render_messages(control.messages, 80, theme, control.language, anchors=anchors,
                     objects=objects, renderers=control.renderers, root=control.file_root)
-                self.assertEqual(control._lines, expected)
+                self.assertEqual(list(control._lines), [tuple(row) for row in expected])
                 self.assertEqual(control._anchors, anchors)
                 self.assertEqual(control.objects, objects)
                 control.create_content(60, 20)
-                self.assertEqual(render.call_count, 7)
+                self.assertEqual(control._message_cache.body_renders, 7)
         finally:
             control.renderers.close()
 

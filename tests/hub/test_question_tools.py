@@ -1,6 +1,7 @@
 """Composer questions, built-in tool selection and nonblocking UI persistence."""
 
 import asyncio
+import json
 from dataclasses import replace
 from pathlib import Path
 import tempfile
@@ -21,12 +22,67 @@ from hub.ui.application import create_application
 from hub.ui.presentation import present
 from llm.core.interactions import InteractionRequest, InteractionOption
 from llm.engines.loop import LoopEngine
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_live import until
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
 class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
+    async def test_missing_bwrap_does_not_block_ordinary_hub_conversation(self):
+        model = ScriptedCompletion([chunk("ordinary conversation",finish="stop")])
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root,model="test/model",auto_title=False,
+                engine_factories={"loop":lambda:LoopEngine(completion_fn=model)}))
+            try:
+                with patch("hub.backend.builtin_tools.shutil.which",return_value=None):
+                    await runtime.start()
+                    project = await runtime.project.aget_data()
+                    registry = runtime.builtin_tools.resolve(project,"tools")
+                    self.assertNotIn("test_workspace_execute",registry.names())
+                    self.assertIn("test_workspace_execute",runtime.builtin_tools.toolkit.registry.names())
+                    session = await runtime.project.sessions.acreate("No sandbox runtime")
+                    result = await (await session.run.submit("hello",engine="loop")).wait()
+                    self.assertEqual(str(result.data.status),"completed",result.data.error)
+            finally:
+                await runtime.close()
+
+    async def test_hub_test_workspace_tools_use_approval_and_sandbox_runner(self):
+        from llm.core.models import RunStatus
+        from llm.components.tools.builtin import BuiltinToolRunner
+        model = ScriptedCompletion()
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
+                engine_factories={"loop":lambda:LoopEngine(completion_fn=model)}))
+            try:
+                await runtime.start()
+                self.assertIsInstance(runtime.backend.services.tool_runtime.runner, BuiltinToolRunner)
+                self.assertFalse((Path(root) / ".hub/test-workspaces").exists())
+                session = await runtime.project.sessions.acreate("Sandbox")
+                identifier = None
+                for name in ("test_workspace_create", "test_workspace_execute", "test_workspace_delete"):
+                    args = {"source_paths":[]} if identifier is None else {"workspace_id":identifier}
+                    if name == "test_workspace_execute":
+                        args["argv"] = ["/bin/sh","-c","printf isolated > result.txt; printf ok"]
+                    model.responses.extend([[chunk(calls=[call(json.dumps(args),name=name)],finish="tool_calls")],
+                                            [chunk("done",finish="stop")]])
+                    paused = await (await session.run.submit(name,engine="loop")).wait()
+                    self.assertEqual(paused.data.status,RunStatus.PAUSED,paused.data.error)
+                    request, = await paused.ainteractions()
+                    await paused.arespond(request.respond("approve"))
+                    done = await (await session.run.resume(paused.id,engine="loop")).wait()
+                    self.assertEqual(done.data.status,RunStatus.COMPLETED,done.data.error)
+                    output = next(s for s in await done.steps.alist() if s.kind=="tool").output.data
+                    if name == "test_workspace_create":
+                        identifier = output["workspace_id"]
+                    elif name == "test_workspace_execute":
+                        self.assertEqual(output["stdout"],"ok")
+                        stored = Path(root) / ".hub/test-workspaces" / runtime.project.id / identifier / "files/result.txt"
+                        self.assertEqual(stored.read_text(),"isolated")
+                    else:
+                        self.assertFalse(stored.exists())
+            finally:
+                await runtime.close()
+
     async def test_builtin_cache_is_detached_and_selection_invalidates_it(self):
         from llm.components.tools.builtin import BuiltinToolComponent
         from llm.components.tools import Tool
@@ -73,6 +129,9 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: not view.no_sessions)
                 pipe.send_text("Make a document\r")
                 await until(lambda: view.question.item is not None)
+                await until(lambda: any(item.status == "waiting_input" for item in view.toasts.items))
+                self.assertIn(view.t.status("waiting_input"), view.sessions[view.selected].status)
+                self.assertEqual(view.activity, view.t.status("waiting_input"))
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertIsNone(view._dialog)
                 pipe.send_text("2\r")
@@ -80,6 +139,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("Text", str(provider.requests[-1]["messages"]))
                 self.assertIsNone(view._dialog)
                 self.assertEqual(view.composer.text, "")
+                self.assertFalse(any(item.status == "waiting_input" for item in view.toasts.items))
             finally:
                 app.exit()
                 await task
@@ -100,6 +160,17 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 snapshot = await runtime.snapshot()
                 item = snapshot.questions[0]
                 self.assertEqual(snapshot.run.status, "running")
+                self.assertEqual(snapshot.status, "waiting_input")
+                self.assertEqual(snapshot.sessions[0].status, "waiting_input")
+                self.assertEqual(sum(n.status == "waiting_input" for n in snapshot.notifications), 1)
+                again = await runtime.snapshot()
+                self.assertEqual(sum(n.status == "waiting_input" for n in again.notifications), 1)
+                await runtime.new_session(title="Other session")
+                other = await runtime.snapshot()
+                self.assertFalse(other.questions)
+                self.assertEqual(next(s.status for s in other.sessions if s.id == session_id), "waiting_input")
+                self.assertEqual(sum(n.status == "waiting_input" for n in other.notifications), 1)
+                await runtime.select(session_id)
                 self.assertEqual(len(provider.requests), 1)
                 with self.assertRaises(ValueError):
                     await runtime.answer_question(runtime.project.id, "wrong-session", item["run_id"], item["request"], "reply", "Text")
@@ -134,6 +205,8 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.sessions[sid].run.wait_idle()
                 snapshot = await runtime.snapshot()
                 self.assertEqual(snapshot.run.status, "paused")
+                self.assertEqual(snapshot.status, "waiting_approval")
+                self.assertEqual(snapshot.notifications[-1].status, "waiting_approval")
                 self.assertFalse((Path(root) / "answer.txt").exists())
                 item = snapshot.questions[0]
                 action = present(snapshot, runtime.t).messages[-1]
@@ -191,8 +264,16 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view._dialog is not None and view._dialog.output.window.render_info is not None)
                 info = view._dialog.output.window.render_info
                 # Preview insets Hub by 1 row / 2 columns on each side.
-                self.assertEqual(info.window_height, output.rows - 4)
+                # The interactive viewer also owns status and shortcut rows;
+                # its enclosing frame still fills the complete Hub allocation.
+                self.assertEqual(info.window_height, output.rows - 6)
                 self.assertGreaterEqual(info.window_width, output.columns - 7)
+                from prompt_toolkit.layout.containers import to_container
+                from prompt_toolkit.layout.layout import walk
+                positions = app.renderer._last_screen.visible_windows_to_write_positions
+                allocated = [positions[window] for window in walk(to_container(view._dialog)) if window in positions]
+                self.assertEqual(max(p.ypos + p.height for p in allocated) - min(p.ypos for p in allocated), output.rows - 2)
+                self.assertEqual(max(p.xpos + p.width for p in allocated) - min(p.xpos for p in allocated), output.columns - 4)
                 pipe.send_text("\x1b")
                 await eventually(lambda: view._dialog is None)
                 self.assertIs(app.layout.current_control, view.tags.control)

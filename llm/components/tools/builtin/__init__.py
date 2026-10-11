@@ -2,5 +2,6 @@
 
 from .catalog import BuiltinTools
 from .component import BuiltinToolComponent
+from .workspaces import BuiltinToolRunner, TestWorkspaces
 
-__all__ = ["BuiltinTools", "BuiltinToolComponent"]
+__all__ = ["BuiltinTools", "BuiltinToolComponent", "BuiltinToolRunner", "TestWorkspaces"]

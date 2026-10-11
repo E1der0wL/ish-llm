@@ -1,7 +1,5 @@
 """Component command dialogs on the prompt-toolkit thread."""
 
-import json
-
 from prompt_toolkit.widgets import Label
 
 from ...backend.component_commands import parse_arguments
@@ -87,9 +85,8 @@ class ComponentCommands:
                         screen._main_zone = 0 if widgets else 1
                         self.controller.app.layout.focus(target)
                 else:
-                    text = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, indent=2)
-                    popup = ReadOnlyDialog(f"/{command} {action}", text, view._rows, view._columns,
-                                           view.close_dialog, view.t)
+                    popup = ReadOnlyDialog(f"/{command} {action}", result, view._rows, view._columns,
+                                           view.close_dialog, view.t, render_worker=view.render_worker)
                     view.dialogs.show(popup, popup.receiver)
                 self.controller.app.invalidate()
 

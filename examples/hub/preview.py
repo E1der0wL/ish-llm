@@ -8,12 +8,29 @@ from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.styles import DynamicStyle
 from prompt_toolkit.widgets import TextArea
 
-from hub.ui.mockup import HubMockup
+from hub.ui.view import HubView
+from hub.hub import install
+from .sample_data import SAMPLES
 from hub.config.theme import HubTheme
 
 
+def populate_preview(view):
+    """Inject demonstration content explicitly, outside the deployment root."""
+    view.sessions = list(SAMPLES)
+    view.project_title = "demo-project"
+    view.model = "sample/model"
+    view.transcript.set_messages(view.sessions[0].messages)
+    return view
+
+
+def install_preview(prompt, *, theme=None):
+    installation = install(prompt, theme=theme, preview=True)
+    populate_preview(installation.view)
+    return installation
+
+
 def create_preview(*, input=None, output=None, theme=None):
-    view = HubMockup(theme)
+    view = populate_preview(HubView(SAMPLES, theme))
     shell = TextArea(text="", prompt="ish ~/workspace ❯ ", multiline=False)
     background = HSplit([
         Window(FormattedTextControl(
@@ -52,7 +69,11 @@ def main() -> None:
     parser.add_argument("--theme", choices=("terminal", "dark"), default="terminal")
     args = parser.parse_args()
     app, view, _ = create_preview(theme=HubTheme.dark() if args.theme == "dark" else HubTheme())
-    app.run(pre_run=lambda: view.show(app))
+    try:
+        app.run(pre_run=lambda: view.show(app))
+    finally:
+        view.output_renderers.close()
+        view.progress.close()
 
 
 if __name__ == "__main__":

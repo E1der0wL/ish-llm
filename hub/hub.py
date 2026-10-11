@@ -15,7 +15,7 @@ from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout import ConditionalContainer
 from prompt_toolkit.styles import DynamicStyle, Style, merge_styles
 
-from .ui.mockup import HubMockup
+from .ui.view import HubView
 from .config.theme import HubTheme
 from .backend.runtime import HubConfig
 from .config.profile import UserProfile
@@ -35,7 +35,7 @@ class HubInstallation:
             self.view = LiveHubView(theme, config.language, config.language_packs)
             self.controller = LiveController(self.view, config)
         else:
-            self.view = HubMockup(theme)
+            self.view = HubView(theme=theme)
         self._closed = False
         self._terminal_screen = HubTerminalScreen(prompt.app, self.view)
         self._style = prompt.style
@@ -72,7 +72,7 @@ class HubInstallation:
         self.prompt.app.invalidate()
 
     def close(self) -> None:
-        """Detach this mockup without clearing other plugins' floats or keys."""
+        """Detach Hub without clearing other plugins' floats or keys."""
         if self._closed:
             return
         self.view.output_renderers.close()

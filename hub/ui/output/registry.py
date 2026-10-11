@@ -36,18 +36,44 @@ class RendererRegistry:
         self._renderers.update({name: StructuredRenderer() for name in
                                ("hub-code", "hub-diff", "hub-table", "hub-card", "hub-chart")})
         self._version = 0
+        self._interactions = {}
+        self.on_close = None
+
+    @property
+    def structure_version(self):
+        return self._version
+
+    def block_revision(self, block, context):
+        renderer = self._renderers.get(block.kind)
+        revision = getattr(renderer, "block_revision", None)
+        return revision(block, context) if revision else getattr(renderer, "revision", 0)
 
     @property
     def version(self):
         return self._version, tuple(getattr(renderer, "revision", 0) for renderer in self._renderers.values())
 
-    def register(self, tag: str, renderer: OutputRenderer) -> None:
+    def register(self, tag: str, renderer: OutputRenderer, *, interaction=None) -> None:
         if not re.fullmatch(r"hub-[a-z][a-z0-9-]*", tag):
             raise ValueError("Output tags must use the hub- prefix")
         if tag in self._renderers:
             raise ValueError(f"Renderer already registered: {tag}")
         self._renderers[tag] = renderer
+        if interaction is not None:
+            self._interactions[tag] = interaction
         self._version += 1
+
+    def create_interaction(self, item, context):
+        """Create a fresh expanded UI without mutating the transcript object."""
+        from ...widget.output_inspector import OutputInspector
+        from ...widget.table_inspector import TableInspector
+        factory = self._interactions.get(item.block.kind)
+        if factory is None:
+            factory = TableInspector if item.block.kind in ("table", "hub-table") else OutputInspector
+        try:
+            return factory(item, context)
+        except Exception as error:
+            # An extension failure must leave the source accessible and closable.
+            return OutputInspector(item, context, error=str(error))
 
     def is_object(self, block):
         return block.kind != "markdown" and block.kind in self._renderers
@@ -63,6 +89,8 @@ class RendererRegistry:
             return literal_lines(context.language("output_error", error=str(error)), context.width, "class:hub.notice")
 
     def close(self):
+        if self.on_close:
+            self.on_close()
         for renderer in self._renderers.values():
             close = getattr(renderer, "close", None)
             if close:

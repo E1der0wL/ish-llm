@@ -37,6 +37,12 @@ jobs:
               + [spec.split("|", 1)[0] for spec in meta["dependencies"]])
           subprocess.check_call([sys.executable, "-m", "pip", "install", *dependencies])
           PY
+      - name: Install Linux sandbox runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap
+          # Isolation tests must fail rather than silently use the host shell.
+          bwrap --unshare-all --ro-bind / / -- /usr/bin/true
       - name: Core runtime and architecture boundaries
         run: >-
           python -m unittest -v
@@ -51,6 +57,7 @@ jobs:
           tests.llm.test_project_authority tests.llm.test_component_dependencies
           tests.llm.test_agent_delegation
           tests.llm.test_builtin_tools
+          tests.llm.test_test_workspaces tests.llm.test_isolated_tools
           tests.llm.test_naming_contract tests.llm.test_settings_contract
           tests.llm.test_settings_consistency tests.llm.test_configuration_validation
       - name: Hub regression

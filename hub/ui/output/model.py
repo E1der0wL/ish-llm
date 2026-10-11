@@ -43,3 +43,19 @@ class RenderContext:
     language: Language
     root: Path
     invalidate: Callable[[], None]
+
+
+@dataclass(frozen=True, slots=True)
+class OutputUIContext:
+    """Host capabilities for trusted, locally registered expanded widgets.
+
+    Model output supplies data only. Factories run on the PTK thread; expensive
+    parsing/rendering belongs to render_worker. No backend execution is exposed.
+    """
+
+    language: Language
+    rows: Callable[[], int]
+    columns: Callable[[], int]
+    close: Callable[[], None]
+    viewport: Callable
+    render_worker: object

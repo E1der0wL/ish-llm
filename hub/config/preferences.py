@@ -1,11 +1,8 @@
 """Global Hub preferences shared by projects in one workspace."""
 
 from dataclasses import asdict, replace
-import json
-import os
-from pathlib import Path
-import tempfile
 
+from .store import WorkspaceJSONStore
 from .profile import UserProfile
 from .theme import HubTheme
 from .general import GeneralSettings
@@ -21,15 +18,12 @@ def configured_profile(config):
                    language_packs=packs)
 
 
-class PreferencesStore:
+class PreferencesStore(WorkspaceJSONStore):
     def __init__(self, workspace):
-        self.path = Path(workspace).expanduser() / ".hub" / "preferences.json"
+        super().__init__(workspace, "preferences.json")
 
     def load(self):
-        try:
-            value = json.loads(self.path.read_text(encoding="utf-8"))
-        except FileNotFoundError:
-            return {}
+        value = self._read_json({"version": 1})
         if not isinstance(value, dict) or value.get("version") != 1:
             raise ValueError("Invalid Hub preferences")
         result = {}
@@ -46,17 +40,5 @@ class PreferencesStore:
             raise ValueError("Unknown preference section")
         record = {"profile": UserProfile, "appearance": HubTheme, "general": GeneralSettings}[section](**values)
         data = {"version": 1, **self.load(), section: asdict(record)}
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = None
-        try:
-            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=self.path.parent,
-                                             prefix="preferences-", suffix=".tmp", delete=False) as stream:
-                temporary = Path(stream.name)
-                json.dump(data, stream, ensure_ascii=False, allow_nan=False)
-                stream.flush()
-                os.fsync(stream.fileno())
-            temporary.replace(self.path)
-        finally:
-            if temporary:
-                temporary.unlink(missing_ok=True)
+        self._write_json(data)
         return asdict(record)

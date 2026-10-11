@@ -1,4 +1,4 @@
-from tests.hub.test_mockup import minimize
+from tests.hub.support import minimize
 """ESC navigation must not swallow Alt sequences or interrupt a Run."""
 
 import asyncio
@@ -6,9 +6,9 @@ import unittest
 
 from prompt_toolkit.input import create_pipe_input
 
-from hub.hub import install
+from examples.hub.preview import install_preview
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 
 
 class EscapeNavigationTests(unittest.IsolatedAsyncioTestCase):
@@ -17,7 +17,7 @@ class EscapeNavigationTests(unittest.IsolatedAsyncioTestCase):
             prompt = Prompt(input=pipe, output=SizedOutput())
             app = prompt.app
             app.ttimeoutlen, app.timeoutlen = 0.4, 1.2
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             view = installation.view
             interrupts = []
             view.on_interrupt = interrupts.append

@@ -107,7 +107,7 @@ class HubTheme:
             "hub.composer": "",
             "hub.footer": f"fg:{self.bar_foreground} bg:{self.footer_background}",
             "hub frame.border": f"fg:{self.muted}",
-            "hub.notice": f"fg:{self.notice}", "hub.detail": "",
+            "hub.notice": f"fg:{self.notice}",
             "hub.user": f"fg:{self.user}",
             "hub.user-block": f"fg:{self.user} bg:{self.user_background}",
             "hub scrollbar.background": "bg:default",

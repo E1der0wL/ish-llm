@@ -3,44 +3,14 @@
 import asyncio
 import unittest
 
-from prompt_toolkit.data_structures import Size
 from prompt_toolkit.input import create_pipe_input
-from prompt_toolkit.output import DummyOutput
 
 from examples.hub.preview import create_preview
 from hub.config.theme import HubTheme
+from tests.hub.support import SizedOutput, eventually, minimize
 
 
-class SizedOutput(DummyOutput):
-    def __init__(self, columns=132, rows=40):
-        self.columns = columns
-        self.rows = rows
-
-    def get_size(self):
-        return Size(rows=self.rows, columns=self.columns)
-
-
-async def eventually(predicate):
-    async with asyncio.timeout(3):
-        while not predicate():
-            await asyncio.sleep(0.01)
-
-
-async def minimize(pipe, view):
-    if view.tags.visible:
-        pipe.send_text("\x14")
-        await eventually(lambda: not view.tags.visible)
-    if view._dialog is not None:
-        pipe.send_text("\x1b")
-        await eventually(lambda: view._dialog is None)
-    if not view.active_page.sidebar_focused:
-        pipe.send_text("\x1b")
-        await eventually(lambda: view.active_page.sidebar_focused)
-    pipe.send_text("\x1b")
-    await eventually(lambda: not view.visible)
-
-
-class MockupTests(unittest.IsolatedAsyncioTestCase):
+class PreviewTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.input_context = create_pipe_input()
         self.pipe = self.input_context.__enter__()

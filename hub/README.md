@@ -230,10 +230,11 @@ Hub가 열린 상태로 시작합니다. 뒤에 보이는 셸도 입력 보존�
 샘플은 완료 대화, 예약 요청 예시, 빈 대화 세 가지입니다. Session별 입력 초안은
 실행 중 메모리에만 유지됩니다. 실제 실행/중단/복구 동작은 연결하지 않았습니다.
 
-## ish에서 목업만 사용
+## ish에서 백엔드 없이 UI 확인
 
 `hub/` 폴더를 `<ish-home>/plugin/script/hub/`에 복사한 뒤 `.ishrc.py`에 추가합니다.
-`PLUGIN_META`는 llm 플러그인, PTK와 Rich 의존성을 선언합니다. `config`를 생략하면 백엔드를 만들지 않는 목업 모드입니다.
+`PLUGIN_META`는 llm 플러그인, PTK와 Rich 의존성을 선언합니다. `preview=True`를 명시하면 백엔드 없이 빈 UI를 엽니다. 기본 `install(prompt)`는 실제 백엔드를 연결합니다.
+샘플 대화는 배포 플러그인에 포함하지 않으며 `python -m examples.hub.preview`에서 확인합니다.
 
 ```python
 hub_plugin = plugin.get("hub")
@@ -440,7 +441,7 @@ ESC로 좌측 패널에 이동하면
 ## 메시지와 테마
 
 사용자 메시지는 오른쪽 정렬이며, 긴 문장은 대화 영역 폭의 약 78% 안에서 줄바꿈합니다.
-한글을 포함한 터미널 셀 너비로 계산하고, 창 크기나 상세 패널 폭이 바뀌면 다시 배치합니다.
+한글을 포함한 터미널 셀 너비로 계산하고, 창 크기나 태그 바 폭이 바뀌면 다시 배치합니다.
 전송한 사용자 메시지와 Assistant 응답 모두 기본적으로
 [Rich Markdown](https://rich.readthedocs.io/en/stable/markdown.html)을 적용합니다.
 제목, 강조, 목록, 코드 구문 강조, 표, 인용을 PTK의 스타일 fragment로 변환합니다.
@@ -707,7 +708,7 @@ Skill은 지침이며 실행 도구나 권한을 제공하지 않습니다. 파�
 - `ui/live.py`: 실제 대화 UI 상태, 요청 접수와 오류 처리.
 - `ui/application.py`, `__main__.py`: 독립 실행 Application과 CLI.
 - `ui/view.py`: 컨테이너, 입력창, 대화상자, 포커스와 키 동작.
-- `ui/mockup.py`: 백엔드 없는 샘플 데이터와 미리보기 뷰.
+- `../examples/hub/sample_data.py`, `../examples/hub/preview.py`: 배포 밖에서 관리하는 UI 샘플과 미리보기.
 - `ui/chat/completion.py`: 명령·엔진·프로젝트 경로 자동완성.
 - `backend/naming.py`: 분리된 Session/Run을 통한 모델 제목 생성.
 - `locales/`: 한국어/영어 언어팩과 문구 조회.
@@ -751,3 +752,11 @@ Skill은 지침이며 실행 도구나 권한을 제공하지 않습니다. 파�
 `ask_user` 질문이 오면 기존 입력창이 답변 모드가 되고, 텍스트나 선택지 번호를 입력한 뒤
 Enter를 누르면 같은 작업이 이어집니다. 도구 승인은 같은 입력창에서 명시적으로 선택합니다.
 자세한 수명·저장·실행 정책은 [질문·내장 도구](../docs/hub/questions-tools.md)를 참고하세요.
+
+`test_workspace_create/list/execute/delete`로 테스트 공간을 만들고 OS 샌드박스 명령을 실행할 수
+있습니다. 기존 Project에는 `/tools config`에서 필요한 새 도구를 선택하세요.
+파일 도구에 `workspace_id`를 주면 테스트 파일을 작성·확인합니다. 생성·실행·삭제는 기존
+승인 경로를 거치며, Run 종료 후에도 산출물은 명시적 삭제까지 남습니다. Linux Bubblewrap이
+필요하고 네트워크는 차단됩니다. [설정과 격리 범위](../docs/llm/test-workspaces.md)를 참고하세요.
+
+구조와 로그 경로의 책임 구분은 [Hub 구조 정리](../docs/hub/structure.md)를 참고하세요.

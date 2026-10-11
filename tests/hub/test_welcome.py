@@ -8,7 +8,7 @@ from hub.backend.runtime import HubConfig, HubRuntime
 from hub.ui.application import create_application
 from hub.widget.welcome import logo
 from tests.hub.test_live import until
-from tests.hub.test_mockup import SizedOutput
+from tests.hub.support import SizedOutput
 
 
 class WelcomeTests(unittest.IsolatedAsyncioTestCase):

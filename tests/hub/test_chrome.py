@@ -5,10 +5,10 @@ import unittest
 
 from prompt_toolkit.input import create_pipe_input
 
-from hub.hub import install
+from examples.hub.preview import install_preview
 from hub.config.theme import HubTheme
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 
 
 class ChromeTests(unittest.IsolatedAsyncioTestCase):
@@ -16,7 +16,7 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
             theme = HubTheme(accent2="#123456")
-            installation = install(prompt, theme=theme, preview=True)
+            installation = install_preview(prompt, theme=theme)
             app, view = prompt.app, installation.view
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
             try:
@@ -49,7 +49,7 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
         with create_pipe_input() as pipe:
             output = SizedOutput()
             prompt = Prompt(input=pipe, output=output)
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             view.composer.text = "**Draft**\n\n---\n\npreview"
             view.show_preview = True

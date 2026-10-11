@@ -28,7 +28,9 @@ def main():
     # 명시하지 않은 다른 자원 제한(core dump 등)은 부모 OS 설정을 상속한다.
     process = subprocess.Popen(data["argv"], cwd=data["cwd"], env=data["env"],
                                stdin=subprocess.PIPE, stdout=sys.stdout.buffer, stderr=sys.stderr.buffer)
-    process.communicate(json.dumps(data["payload"], ensure_ascii=True, allow_nan=False).encode("utf-8"))
+    # 일반 argv 실행에는 stdin EOF를 전달한다. 등록 Tool의 JSON 프로토콜은 유지한다.
+    payload = data["payload"]
+    process.communicate(None if payload is None else json.dumps(payload, ensure_ascii=True, allow_nan=False).encode("utf-8"))
     return process.returncode
 
 

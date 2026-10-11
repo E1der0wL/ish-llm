@@ -13,7 +13,7 @@ from hub.asset.icon import NERD, UNICODE
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.config.preferences import PreferencesStore
 from hub.config.theme import HubTheme
-from hub.hub import install
+from examples.hub.preview import install_preview
 from hub.locales import Language
 from hub.model import ChatMessage
 from hub.widget.reader import ReadOnlyDialog
@@ -21,14 +21,14 @@ from hub.widget.conversation import render_messages
 from hub.widget.controls import RadioList
 from hub.widget.settings import ChoiceField
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 
 
 class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
     async def test_focused_footers_and_icon_choice_dispatch(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             rendered = asyncio.Event()
             app.after_render += lambda _: rendered.set()
@@ -141,7 +141,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
             # A second view/language retains its own style; changing a theme has no globals.
             self.assertIs(Language().icons, NERD)
             prompt = Prompt(input=pipe, output=SizedOutput())
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             view = installation.view
             with set_app(prompt.app):
                 view.toasts.push("Session", "failed", "session")

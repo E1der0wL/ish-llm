@@ -10,6 +10,11 @@ BackendServices / ToolRuntime / OutputBuffer로 표현한다. 실행·승인·�
 
 ## 설정과 정의의 의미 소유권
 
+테스트 파일 공간은 호스트가 주입하는 BuiltinTools 자원이다. 소유권/생성 완료 기록과 공간별
+잠금은 `TestWorkspaces`가 관리하며 실행은 기존 ToolExecutor → ProcessToolRunner 경로다.
+Run/Step·승인·receipt·재개 책임과 저장 형식은 유지한다. 테스트 자원은 호스트 수명 밖에도
+남지만 명령을 자동 재생하지 않는다. [격리·정리 계약](test-workspaces.md)을 참고한다.
+
 ish-llm contracts are closed by default. Every configurable value has exactly one
 semantic owner. Backend-owned definition과 config/policy는 미지의 필드를 거부한다.
 Parent는 child의 선택 ID·capability·입출력·검증 인터페이스를 알아도 되지만

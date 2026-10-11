@@ -12,6 +12,7 @@ from llm.services.infrastructure.storage import drain_on_cancel
 from .files import FileTools
 from .processes import ProcessTools
 from .diagnostics import DiagnosticTools
+from .workspaces import TestWorkspaces
 
 
 def schema(properties, required=()):
@@ -33,17 +34,23 @@ class BuiltinTools:
     def __init__(self, root, *, allow_commands: bool = False, git: bool = False, diagnostics: bool = False,
                  checks: Optional[Mapping[str, Sequence[str]]] = None,
                  adapters: Optional[Mapping[str, Callable]] = None,
-                 shell: Optional[Sequence[str]] = None):
+                 shell: Optional[Sequence[str]] = None,
+                 test_workspaces: Optional[TestWorkspaces] = None):
         if any(type(value) is not bool for value in (allow_commands, git, diagnostics)):
             raise TypeError("Tool feature switches must be booleans")
         self.files = FileTools(Path(root))
         self.processes = ProcessTools(self.files)
         self.registry = ToolRegistry()
         self.closed = False
+        self.test_workspaces = test_workspaces
+        if test_workspaces is not None and test_workspaces.source.root != self.files.root:
+            raise ValueError("Test workspace source must match the builtin file root")
         # 재개 binding에 필요한 호스트 실행 환경. client/함수나 숨은 사용자 설정을
         # 저장하지 않는다. 외부 어댑터의 내부 상태는 여전히 해당 호스트가 관리한다.
         self._execution_binding = {"root": str(self.files.root), "shell": list(shell) if shell is not None else None,
             "checks": deepcopy(dict(checks or {}))}
+        if test_workspaces is not None:
+            self._execution_binding["test_workspaces"] = deepcopy(test_workspaces.execution_binding)
         path = string(minLength=1)
         digest = string(pattern="^[0-9a-f]{64}$")
         patterns = {"type": "array", "items": string(minLength=1), "minItems": 1}
@@ -65,11 +72,30 @@ class BuiltinTools:
         }
         for name, (description, parameters) in specs.items():
             parameters["properties"]["max_file_bytes"] = {"type": "integer", "minimum": 1}
+            if test_workspaces is not None:
+                parameters["properties"]["workspace_id"] = string(pattern="^[0-9a-f]{32}$",
+                    description="Operate on this Project's test workspace instead of the source tree.")
             async def file_call(args, operation=name):
                 # 승인된 파일 변경은 완료를 기다린 뒤 취소를 전달한다.
+                if "workspace_id" in args:
+                    return await self.test_workspaces.file_call(operation, args)
                 return await drain_on_cancel(asyncio.to_thread(getattr(self.files.for_arguments(args), operation), args))
             self._register(name, description, parameters, file_call,
                            contract=mutation if name in file_mutations else None)
+
+        if test_workspaces is not None:
+            identity = {"workspace_id": string(pattern="^[0-9a-f]{32}$")}
+            self._register("test_workspace_create", "Create an empty test workspace with source_paths=[], or independently copy selected relative files/directories. Never changes source files.",
+                schema({"source_paths": {"type": "array", "items": path, "uniqueItems": True}}, ["source_paths"]),
+                test_workspaces.create, contract=mutation)
+            self._register("test_workspace_list", "List this Project's retained test workspaces, including incomplete creations. Does not replay commands.",
+                schema({}), test_workspaces.list, contract=ToolContract(effect="read_only"))
+            self._register("test_workspace_delete", "Permanently delete a test workspace and its results. Rejects a busy workspace; source files are untouched.",
+                schema(identity, ["workspace_id"]), test_workspaces.delete, contract=mutation)
+            # 실행 handler의 타입/호스트 binding을 runner가 검사한다. 일반 guarded closure로 감싸지 않는다.
+            self.registry.register(Tool("test_workspace_execute", "Execute argv in a Linux OS sandbox inside a retained test workspace. Requires an absolute executable. Returns stdout, stderr and returncode; use file tools with workspace_id to inspect results. No host fallback.",
+                schema({**identity, "argv": {"type": "array", "minItems": 1, "items": string()}}, ["workspace_id", "argv"]),
+                test_workspaces, contract=ToolContract(approval_required=True, isolation="sandbox")))
 
         limits = {"timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
                   "max_output_bytes": {"type": "integer", "minimum": 1}}
@@ -175,6 +201,8 @@ class BuiltinTools:
         if not self.closed:
             self.closed = True
             await drain_on_cancel(self.processes.close())
+            if self.test_workspaces is not None:
+                await drain_on_cancel(self.test_workspaces.close())
 
     async def __aenter__(self):
         if self.closed:

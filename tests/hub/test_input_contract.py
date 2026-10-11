@@ -7,12 +7,12 @@ import unittest
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 
-from hub.hub import install
+from examples.hub.preview import install_preview
 from hub.ui.chat.history_ui import HistoryUI
 from hub.widget.header import HeaderBar
 from hub.widget.reader import ReadOnlyDialog
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.test_mockup import SizedOutput, eventually, minimize
+from tests.hub.support import SizedOutput, eventually, minimize
 
 
 class InputContractTests(unittest.IsolatedAsyncioTestCase):
@@ -22,7 +22,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
             shell_search = []
             prompt.set_key("c-s", handler=lambda e: shell_search.append(True))
             original_s = list(prompt.key_bindings.get_bindings_for_keys(("c-s",)))
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             task = asyncio.create_task(prompt.prompt_async())
             rendered = asyncio.Event()
@@ -79,6 +79,8 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                         self.assertIsInstance(popup, ReadOnlyDialog)
                         self.assertFalse(popup.output.is_focusable())
                         await paint()
+                        await eventually(lambda: popup.output._render_key is not None and
+                                         popup.output._render_key == popup.output._requested_key)
                         self.assertIs(app.layout.current_control, popup.receiver)
                         with set_app(app):
                             self.assertEqual(view.bindings.hints(), [

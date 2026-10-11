@@ -3,6 +3,14 @@
 
 
 MESSAGES = {
+    'object_query': '검색 / 필터:',
+    'object_raw': '원문',
+    'object_rendered': '렌더링',
+    'object_empty': '일치하는 행이 없습니다.',
+    'object_loading': '표를 준비하는 중…',
+    'object_table_count': '행 {index}/{visible} · 전체 {total}행 · 열 {column}',
+    'shortcut_object_raw': '원문/화면',
+    'shortcut_object_sort': '열 정렬',
     'shortcut_cancel': '예약 취소',
     'preparing_response': '준비 중…',
     'history_cancel': '예약 취소',
@@ -41,7 +49,14 @@ MESSAGES = {
     'welcome_keys': 'ESC 패널 · 패널에서 c 새 세션 · Ctrl+S 설정',
     'session_required': '먼저 세션을 생성하세요. ESC 후 세션 목록에서 c를 누르세요.',
     'command_details': '출력 태그 바',
-    'activity_hint': '최근 300건 · 이동키 스크롤 · ESC / Enter / Ctrl+L 닫기',
+    'activity_hint': '활동·프로바이더 각각 최근 300건 · 이동키 스크롤 · ESC / Enter / Ctrl+L 닫기',
+    'activity_provider_project': '프로바이더 로그 · 현재 프로젝트',
+    'activity_provider_file': '로그 파일: {path}',
+    'activity_provider_traceback': 'Traceback · 저장된 예외와 호출 경로 (오류 메시지 원문 제외)',
+    'activity_provider_run_details': '이 Run의 프로바이더 상세:',
+    'activity_provider_workspace': '프로바이더 로그 · 워크스페이스 공통',
+    'status_waiting_input': '{icon_pending} 답변 대기',
+    'status_waiting_approval': '{icon_pending} 승인 대기',
     'help': '# Hub 도움말\n\n## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+E**: 엔진·Workflow 선택. **Ctrl+R**: Markdown 미리보기.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **방향키**: 항목 선택.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n입력창의 **Ctrl+C**는 아무 동작도 하지 않습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
     "settings_dependencies": "필수 컴포넌트: {names}",
     "settings_dependencies_missing": "선택되지 않은 필수 컴포넌트: {names} — 선택 후 저장하세요.",
@@ -285,7 +300,6 @@ MESSAGES = {
 
     "session": "대화", "run": "실행", "steps": "단계",
 
-    "completion_detail": "모델: {model}\n호출: {count}회\n최근 호출 토큰: {tokens}",
 
     "connecting": "연결 중", "connecting_notice": "백엔드를 연결하고 있습니다.",
 
@@ -335,7 +349,7 @@ MESSAGES = {
 
     "duration_seconds": "{seconds:.1f}초", "duration_minutes": "{minutes}분", "duration_hours": "{hours}시간",
 
-    "phase": "현재 단계: {name} ({status})", "no_reasoning": "모델이 아직 생각 과정 텍스트를 제공하지 않았습니다.",
+    "phase": "현재 단계: {name} ({status})",
 
     "paused": "{icon_paused} 일시 정지됨 · 승인/재개는 llm API에서 처리하세요.",
 

@@ -1,0 +1,130 @@
+# Hub rendering pipeline
+
+The execution model and `llm/` contracts are unchanged. Rendering remains a
+Prompt Toolkit consumer of Hub snapshots and OutputBlock/OutputObject data.
+
+## Thread ownership
+
+- The PTK loop owns input, focus, scroll positions, layout and terminal paint.
+  `ConversationControl.create_content` requests preparation and consumes a ready
+  immutable frame. It does not wait for a Future or render Markdown.
+- One lazy `hub-render` thread per Hub owns transcript/preview Markdown, Rich,
+  Pygments, structured JSON rendering, reader popups and search indexing.
+- The existing backend thread owns execution and authoritative snapshots.
+  Approval review JSON is formatted there before publication.
+- The existing view-state writer also handles first-read position restoration;
+  project switching no longer reads the position file in a PTK callback.
+- Image conversion retains its existing two workers, four pending conversions
+  and 32 cached/pending image keys. No new CPU executor pool was introduced.
+
+The canonical `render_messages` function and unattached controls remain
+synchronous for standalone rendering and tests. All running Hub surfaces share
+the worker. The owner Application is remembered so a navigation callback outside
+PTK's context variable cannot accidentally enter the synchronous path.
+
+## Bounded work and delivery
+
+`RenderWorker` has one running job and one pending batch with four fixed slots:
+transcript, preview, popup and search. A slot holds only its latest request.
+The bound is independent of update count; separate slots ensure a draft preview
+cannot erase a pending final transcript. Slots share one CPU thread. Generations
+are checked both when work finishes and when the UI callback runs. Closing a
+reader or Hub discards its pending results. Render failures use plain text on
+the worker; no traceback is printed into the terminal.
+
+Resize requests debounce for 75ms. Old prepared rows remain usable while the
+new width is prepared. Reading anchors are resolved against the position at
+delivery time, including navigation performed during rendering. Navigation
+before the first frame is retained as a bounded position intent.
+
+Backend snapshot publication also keeps one latest pending snapshot/callback.
+Command completions are not dropped. Snapshot notifications retain the backend's
+existing bounded sequence history.
+
+## Cache boundaries
+
+`MessageRenderCache` separates header metadata from body content. Elapsed time,
+time labels and status labels do not reparse an unchanged body. The streaming
+versus final distinction remains a parsing input, so unfinished XML is handled
+correctly when a message completes.
+
+Each message retains its latest parsed blocks and rendered blocks. The parser
+instance is reused. Renderer registration changes invalidate the layout context;
+renderer completion revisions are checked per block. An image completion cannot
+invalidate unrelated Markdown bodies. Markdown renderers reuse their Console
+until width or theme changes.
+
+Transcript rows use immutable indexed concatenations. A stable prefix of past
+messages, its anchors, object offsets and widths is reused while the final
+message changes. Appending the current tail does not copy all historical rows,
+anchors or objects. Anchor lookup is binary search; named restoration uses a
+prefix/tail mapping. Message presentation caches avoid repeated datetime
+formatting and display transformations for unchanged historical messages.
+
+## Observation and progress clocks
+
+Active/queued work and dirty events use `output_refresh_interval` (default 0.1s).
+Idle safety reconciliation uses `max(0.5, min(2, interval * 10))` seconds (default
+1s). A dirty event wakes an idle observer, subject only to the active interval.
+Snapshot reads remain preemptible by submission/control commands. Dropped-event
+reconciliation and persisted state remain authoritative.
+
+Progress model updates are immediate. Repaint requests coalesce through the
+existing `progress_refresh_interval` timer; start/finish invalidate immediately.
+Only the small single-row progress frame is rendered on the UI thread.
+
+## Validation and instrumentation
+
+`tests.hub.test_render_pipeline` checks elapsed-only reuse, 199 historical
+messages with 100 tail updates, canonical final rows/anchors/objects, image-local
+invalidation, bounded hundreds-of-updates coalescing, stale delivery, one shared
+worker, fallback, resize anchoring, idle wakeup and input/focus/scroll while both
+rendering and a snapshot read are held unfinished. Existing PTK tests wait for
+the prepared frame before examining rendered cells rather than assuming the
+first paint already contains Markdown.
+
+Counters are available on `RenderWorker.stats`, `MessageRenderCache`,
+`ConversationControl.content_*` and `BackendWorker.snapshot_count`. They emit no
+per-frame logs. Tests assert work counts and synchronization, not machine-speed
+thresholds.
+
+Run `tests/hub/manual/benchmark_rendering.py` with Linux Python 3.12.14 and a
+hash-verified Linux source snapshot path. Its scenario is 200 historical messages,
+a 100KB active response, 100 updates and an 80x24 terminal (the sidebar reduces
+the actual content width). A gated burst makes coalescing deterministic. It
+reports retained historical bodies, actual render/parser work, pending slots,
+snapshot count and UI callback durations. This measures UI observation with a
+synthetic snapshot source, not provider/network/storage throughput.
+
+## Remaining costs
+
+The currently changing message is still parsed in full when its text changes.
+Unchanged parsed blocks reuse rendering, but there is no speculative incremental
+Markdown parser: reference definitions and unfinished constructs must preserve
+canonical final semantics. Very large active messages can therefore delay the
+next prepared frame; input does not await it. Python threads still share the GIL.
+
+Metadata scans over messages remain linear on the worker, and snapshot-to-view
+selection still walks message/session metadata on the UI thread. History rows
+are neither reparsed nor copied on each tail update. Width/theme changes require
+a full layout in the worker. Search indexes the current prepared transcript on
+that same bounded lane. Large settings-form construction remains outside this
+output-path optimization; existing full-suite diagnostics can still show its
+UI callback cost.
+
+## Validation record (2026-10-11)
+
+- Linux Python 3.12.14: final focused suite **38 passed**, complete Hub suite
+  **165 passed**, including 13 new pipeline tests. Reports:
+  `tests/llm/reports/ish-provider-d14rl7d0/`.
+- Complete `llm` suite: **1,357 passed** in
+  `tests/llm/reports/ish-provider-oxycef36/suite.txt`. Its 234 protected `llm/`
+  and reference-host source files remained hash-identical. All Python files
+  remained identical to the final Hub snapshot after validation.
+- Final gated benchmark: all **200** historical bodies reused; **1** additional
+  active body render for **100** updates; **1** prefix build; **209,901** total
+  parser input bytes (initial plus final); pending surface peak **1** of a
+  fixed maximum **4**. Measured UI content callback maximum **1.825ms** on this
+  workstation. See `tests/hub/reports/rendering-benchmark-d14rl7d0.json`.
+- Status: **OPTIMIZATION ALIGNED**. The remaining costs above are deliberately
+  documented; timings do not promise a particular provider response latency.

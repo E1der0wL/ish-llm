@@ -22,7 +22,7 @@ from hub.ui.output import ImageRenderer, OutputBlock, RenderContext
 from hub.config.theme import HubTheme
 from hub.locales import Language
 from tests.hub.test_live import until
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_settings import settings_backend
 
 

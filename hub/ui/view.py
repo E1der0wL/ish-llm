@@ -16,6 +16,7 @@ from ..widget.header import HeaderBar
 
 from .chat.completion import HubCompleter
 from ..widget.conversation import ChatMessage, ConversationView
+from ..model import SessionView
 from ..locales import Language
 from ..config.theme import HubTheme
 from ..widget.controls import TextArea
@@ -26,12 +27,12 @@ from .layout import TwoPanelPage
 
 
 class HubView:
-    def __init__(self, sessions, theme=None, language="ko", language_packs=None) -> None:
+    def __init__(self, sessions=(), theme=None, language="ko", language_packs=None) -> None:
         self.t = Language(language, language_packs, icons=lambda: self.icons)
         self.general = GeneralSettings()
         self.theme = theme or HubTheme()
         self.style = self.theme.style()
-        self.sessions = list(sessions)
+        self.sessions = list(sessions) or [SessionView(self.t("welcome_title"))]
         self.on_open = self.on_submit = self.on_select = self.on_new = None
         self.on_interrupt = self.on_steer = None
         self.on_answer = None
@@ -48,8 +49,8 @@ class HubView:
         self.engine = "loop"
         self.engines = ("loop",)
         self.file_root = Path.cwd()
-        self.project_title = "demo-project"
-        self.model = "sample/model"
+        self.project_title = "Hub"
+        self.model = ""
         self.notice = self.t("preview_notice")
         self.activity = ""
         self._previous_focus = None
@@ -88,7 +89,11 @@ class HubView:
         from .input.history import ComposerHistory
         self.input_history = ComposerHistory(self)
         self.transcript = ConversationView(self.sessions[0].messages, self.theme, language=self.t)
+        from .output.worker import RenderWorker
+        self.render_worker = RenderWorker()
+        self.transcript.control.render_worker = self.render_worker
         self.output_renderers = self.transcript.control.renderers
+        self.output_renderers.on_close = self.render_worker.close
         self.image_renderer = self.transcript.control.images
         from ..widget.tag_bar import TagBar
         self.tags = TagBar(self)
@@ -96,6 +101,8 @@ class HubView:
         self.welcome = welcome_window(self)
         self.transcript.window.height = Dimension(min=5, weight=1)
         self.draft_preview = ConversationView((), self.theme, language=self.t)
+        self.draft_preview.control.render_worker = self.render_worker
+        self.draft_preview.control.render_slot = "preview"
         self.composer.buffer.on_text_changed += self._update_preview
         self._session_control = SidebarList(
             lambda: [] if self.no_sessions else [SidebarItem(self._draft_key(i), session.title, session.status) for i, session in enumerate(self.sessions)],

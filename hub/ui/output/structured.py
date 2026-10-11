@@ -9,6 +9,7 @@ from rich.text import Text
 from rich.syntax import Syntax
 
 from .markdown import HubMarkdown, HubSyntaxTheme, make_console, _segment_style
+from .table import TableData
 
 
 class StructuredRenderer:
@@ -24,15 +25,11 @@ class StructuredRenderer:
             visual = Table(title=Text(attrs.get("title", "")), expand=True, border_style=theme.muted,
                            header_style=theme.accent)
             if block.kind == "hub-table":
-                columns, rows = data["columns"], data["rows"]
-                if not isinstance(columns, list) or not isinstance(rows, list) or not 1 <= len(columns) <= 32 or len(rows) > 500:
-                    raise ValueError("Expected 1–32 columns and at most 500 rows")
-                for column in columns:
-                    visual.add_column(Text(str(column)))
-                for row in rows:
-                    if not isinstance(row, list) or len(row) != len(columns):
-                        raise ValueError("Table rows must match columns")
-                    visual.add_row(*(Text(str(value)) for value in row))
+                table = TableData.from_block(block)
+                for column in table.columns:
+                    visual.add_column(Text(column))
+                for row in table.rows:
+                    visual.add_row(*(Text(value) for value in row))
             else:
                 items = data["values"]
                 if not isinstance(items, dict) or not 1 <= len(items) <= 100:

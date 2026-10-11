@@ -18,7 +18,7 @@ from hub.model import ChatMessage
 from hub.widget.conversation import ConversationControl
 from hub.widget.tool_manager import ToolManager
 from hub.ui.application import create_application
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_live import until
 from tests.hub.test_settings import settings_backend
 

@@ -1,3 +1,5 @@
+현재 구조와 로그 경로: [구조 정리](structure.md). 아래에는 기능별 개발 기록도 포함합니다.
+
 # hub 설계 문서
 
 ## Project 정책과 risk/dependency 표시
@@ -303,7 +305,7 @@ Loop와 Graph를 기본 제공하며 등록된 공개 엔진은 모두 선택할
 HubTheme.sidebar_width는 설정 및 대화 좌측 패널의 공통 너비이며, 미리보기 변경도 모양 초안에 포함됩니다.
 
 `hub.hub.install(prompt)`은 ish Application에 하나의 Float를 등록합니다.
-`HubMockup.container`는 `ConditionalContainer`이며 내부 모달 영역에 목록·대화·입력창을
+`HubView.container`는 `ConditionalContainer`이며 내부 모달 영역에 목록·대화·입력창을
 배치합니다. 표시 전환은 포커스만 바꾸고 Application이나 이벤트 루프를 새로 실행하지 않습니다.
 좁은 화면에서는 목록을 숨기고, 출력 태그 바는 사용자가 Ctrl+T로 열 때 표시합니다.
 ish 입력 컨테이너의 높이는 한 줄일 수 있으므로 Float 높이는 렌더링마다 호스트
@@ -311,7 +313,7 @@ output의 현재 PTY 행 수를 읽습니다. 너비는 좌우 앵커로 채우�
 크기 변경을 반영합니다.
 
 config 없이 설치해도 HubRuntime이 LargeLanguageModel 공개 Facade를 사용합니다.
-`preview=True`로 설치하면 샘플 데이터와 Session별 초안은 UI 인스턴스에만 존재합니다.
+`preview=True`로 설치하면 백엔드 없이 빈 UI를 표시합니다. 샘플 대화는 `examples/hub/preview.py`에서만 주입합니다.
 도메인 파일과 Run/Step 상태는 llm만 소유하며 Hub는 별도 이력 파일을 만들지 않습니다.
 
 ish의 prompt_async는 명령마다 끝나므로 백엔드를 Application background task에

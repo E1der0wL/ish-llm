@@ -16,12 +16,12 @@ from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import DummyInput, create_pipe_input
 from prompt_toolkit.layout import Layout
 
-from hub.hub import install
+from examples.hub.preview import install_preview
 from hub.config.general import GeneralSettings
 from hub.locales import Language
 from hub.ui.settings.editor import edit_text
 from hub.widget.settings import SchemaForm
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_ish_integration import Prompt
 
 
@@ -34,7 +34,7 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                 def fileno(self):
                     return sink.fileno()
             prompt = Prompt(input=pipe, output=EditorOutput())
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             view.general = GeneralSettings(editor=shlex.join([sys.executable, str(script)]))
             task = asyncio.create_task(prompt.prompt_async())
@@ -97,7 +97,7 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
     async def test_e_uses_applied_editor_and_preserves_draft_on_failure(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             task = asyncio.create_task(prompt.prompt_async())
             try:

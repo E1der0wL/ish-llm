@@ -2,6 +2,7 @@
 
 import hashlib
 import os
+import stat
 from pathlib import Path
 import tempfile
 import threading
@@ -49,7 +50,14 @@ class FileTools:
         return hashlib.sha256(value).hexdigest()
 
     def read_bytes(self, path: Path) -> bytes:
-        with path.open("rb") as stream:
+        # 샌드박스 산출물에도 사용한다. FIFO/device 또는 링크를 열어 block하지 않는다.
+        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+        with os.fdopen(fd, "rb") as stream:
+            mode = os.fstat(stream.fileno()).st_mode
+            if stat.S_ISDIR(mode):
+                raise IsADirectoryError(str(path))
+            if not stat.S_ISREG(mode):
+                raise ValueError("Expected a regular file")
             value = stream.read(-1 if self.max_bytes is None else self.max_bytes + 1)
         if self.max_bytes is not None and len(value) > self.max_bytes:
             raise ValueError("File exceeds Tool byte limit")

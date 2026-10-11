@@ -1,5 +1,5 @@
 from hub.ui.presentation import present
-from tests.hub.test_mockup import minimize
+from tests.hub.support import minimize
 """Durable UI positions, message metadata, and bounded draft preview."""
 
 import asyncio
@@ -21,7 +21,7 @@ from hub.config.theme import HubTheme
 from hub.config.view_state import ReadingPosition, ViewStateStore
 from hub.backend.worker import BackendWorker
 from tests.hub.test_live import controlled_backend, until
-from tests.hub.test_mockup import SizedOutput
+from tests.hub.support import SizedOutput
 from examples.hub.preview import create_preview
 
 

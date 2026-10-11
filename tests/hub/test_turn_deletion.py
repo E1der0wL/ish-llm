@@ -11,7 +11,7 @@ from examples.hub.preview import create_preview
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.ui.chat.history_ui import HistoryUI
 from llm.engines.loop import LoopEngine
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_overlays import screen_text
 from tests.llm.test_loop import ScriptedCompletion
 

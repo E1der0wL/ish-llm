@@ -3,10 +3,11 @@
 import asyncio
 from dataclasses import replace
 
-from .mockup import HubMockup, SampleSession
+from .view import HubView
 from ..backend.runtime import HubConfig
-from ..model import HubSnapshot, SubmissionResult
-from .presentation import present, present_message
+from ..model import HubSnapshot, SubmissionResult, SessionView
+from .presentation import present, present_message, MessagePresentationCache
+from threading import Lock
 from ..backend.worker import BackendWorker
 from ..config.view_state import ViewStateStore, ViewStateWriter
 from ..config.preferences import PreferencesStore
@@ -17,10 +18,10 @@ from ..backend.component_commands import component_commands
 from .chat.component_ui import ComponentCommands
 
 
-class LiveHubView(HubMockup):
+class LiveHubView(HubView):
     def __init__(self, theme=None, language="ko", language_packs=None):
-        super().__init__(theme, language, language_packs)
-        self.sessions = [SampleSession(self.t("connecting"), "", (), "")]
+        super().__init__(theme=theme, language=language, language_packs=language_packs)
+        self.sessions = [SessionView(self.t("connecting"))]
         self.transcript.set_messages(())
         self.project_title = self.t("connecting")
         self.project_id = ""
@@ -29,6 +30,7 @@ class LiveHubView(HubMockup):
         self.connected = False
         self.notice = self.t("connecting_notice")
         self._submitted_messages = {}
+        self._presentation_cache = MessagePresentationCache()
 
     def show_submitted(self, project_id, session_id, message):
         """Bridge a durable receipt to the next authoritative conversation read."""
@@ -48,6 +50,7 @@ class LiveHubView(HubMockup):
 
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=None) -> None:
         self._last_snapshot = snapshot
+        self.toasts.reconcile_waiting(snapshot.project_id, snapshot.sessions)
         self.preparing.observe(snapshot)
         key = (snapshot.project_id, snapshot.selected_id)
         known = {message.id for message in snapshot.messages}
@@ -61,7 +64,7 @@ class LiveHubView(HubMockup):
         sessions = {session.id for session in snapshot.sessions}
         self._submitted_messages = {key: value for key, value in self._submitted_messages.items()
                                     if key[0] == snapshot.project_id and key[1] in sessions}
-        display = present(snapshot, self.t)
+        display = present(snapshot, self.t, self._presentation_cache)
         current_id = self.sessions[self.selected].id
         empty_draft_key = self._draft_key(self.selected) if self.no_sessions else None
         changing_project = bool(self.project_id) and self.project_id != snapshot.project_id
@@ -72,16 +75,16 @@ class LiveHubView(HubMockup):
         if self.question.item is None:
             self._drafts[self._draft_key(self.selected)] = self.composer.text
         cached = {session.id: session for session in self.sessions}
-        self.sessions = [SampleSession(s.title, s.status,
+        self.sessions = [SessionView(s.title, s.status,
                                       cached[s.id].messages if s.id in cached else (),
-                                      cached[s.id].detail if s.id in cached else "", s.id)
+                                      s.id)
                          for s in display.sessions]
         self.no_sessions = not bool(self.sessions)
         if self.no_sessions:
-            self.sessions = [SampleSession(self.t("welcome_title"), "", (), "", "")]
+            self.sessions = [SessionView(self.t("welcome_title"))]
         for index, session in enumerate(self.sessions):
             if session.id == snapshot.selected_id:
-                self.sessions[index] = replace(session, messages=display.messages, detail=display.detail)
+                self.sessions[index] = replace(session, messages=display.messages)
         target = select_id or (snapshot.selected_id if changing_project else current_id) or snapshot.selected_id
         self.selected = next((i for i, s in enumerate(self.sessions) if s.id == target), 0)
         changed = current_id != self.sessions[self.selected].id
@@ -154,12 +157,16 @@ class LiveController:
         self.app = None
         self.loop = None
         self.closed = False
+        self._publish_lock = Lock()
+        self._pending_snapshot = None
+        self._publish_scheduled = False
         self._submitting = set()
         self._choosing_submission = False
         self._select_new = None
         self._view_state = ViewStateStore(config.workspace)
         self._view_writer = ViewStateWriter(self._view_state, lambda error: self._dispatch(self._error, error))
         self._state_project = None
+        self._restoring_snapshot = None
         self._save_timer = None
         self._last_notification = 0
         self.view.engine = config.engine
@@ -191,6 +198,21 @@ class LiveController:
         if not self.closed and self.loop and not self.loop.is_closed():
             self.loop.call_soon_threadsafe(callback, *args)
 
+    def _publish(self, snapshot):
+        with self._publish_lock:
+            self._pending_snapshot = snapshot
+            if self._publish_scheduled or self.closed or not self.loop or self.loop.is_closed():
+                return
+            self._publish_scheduled = True
+        self._dispatch(self._consume_snapshot)
+
+    def _consume_snapshot(self):
+        with self._publish_lock:
+            snapshot = self._pending_snapshot
+            self._pending_snapshot = None
+            self._publish_scheduled = False
+        self._snapshot(snapshot)
+
     def _error(self, error):
         if self.closed:
             return
@@ -203,6 +225,20 @@ class LiveController:
             return
         restore_selection = None
         changing_project = self._state_project != snapshot.project_id
+        if changing_project and not self._view_writer.is_loaded(snapshot.project_id):
+            self._restoring_snapshot = snapshot
+            def loaded(error):
+                def apply():
+                    if error:
+                        self._error(error)
+                    latest = self._restoring_snapshot
+                    if latest and latest.project_id == snapshot.project_id:
+                        self._restoring_snapshot = None
+                        self._snapshot(latest)
+                self._dispatch(apply)
+            self._view_writer.load_background(snapshot.project_id, loaded)
+            return
+        self._restoring_snapshot = None
         if changing_project:
             if self.view.project_id:
                 self.view.remember_position()
@@ -222,11 +258,17 @@ class LiveController:
         target = self._select_new
         self.view.apply_snapshot(snapshot, select_id=target)
         current = (self.view.project_id, self.view.sessions[self.view.selected].id)
+        displayed_status = {session.id: session.status for session in snapshot.sessions}
         for notification in snapshot.notifications:
             if notification.sequence <= self._last_notification:
                 continue
             self._last_notification = notification.sequence
-            if not self.view.visible or (notification.project_id, notification.session_id) != current:
+            if (notification.status in ("waiting_input", "waiting_approval")
+                    and notification.project_id == snapshot.project_id
+                    and displayed_status.get(notification.session_id) != notification.status):
+                continue  # A coalesced snapshot can already contain the answer.
+            if (notification.status in ("waiting_input", "waiting_approval") or not self.view.visible
+                    or (notification.project_id, notification.session_id) != current):
                 self.view.toasts.push(notification.title, notification.status,
                     (notification.project_id, notification.session_id))
         if target and any(s.id == target for s in snapshot.sessions):
@@ -316,7 +358,7 @@ class LiveController:
         self.loop = asyncio.get_running_loop()
         if self.worker is None:
             self.worker = self.worker_factory(
-                self.config, lambda snapshot: self._dispatch(self._snapshot, snapshot),
+                self.config, self._publish,
                 lambda error: self._dispatch(self._error, error))
             self._set_output_interval(self.view.theme.output_refresh_interval)
         else:
@@ -327,6 +369,8 @@ class LiveController:
         loop = asyncio.get_running_loop()
         if self.loop is not loop and not self.closed:
             self.app, self.loop = app, loop
+            with self._publish_lock:
+                self._publish_scheduled = False
             self.view.toasts.app = app
             if self.worker:
                 self._call("snapshot", completed=self._snapshot)

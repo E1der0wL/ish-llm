@@ -6,6 +6,7 @@ from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label, TextArea
 from ...widget.reader import ReadOnlyDialog
 from ...widget.summary import clipped_summary
+import json
 
 from ...widget.controls import Button, RadioList
 
@@ -15,18 +16,56 @@ def turn_label(row, index, t):
     return f"{index + 1}. {summary} · {t.status(row['status'])}"
 
 
+def provider_detail(row, t):
+    """Display stored frames, without inventing unavailable exception messages."""
+    value = row["details"]
+    details = value.get("details", {})
+    exceptions = details.get("exceptions", ()) if isinstance(details, dict) else ()
+    lines = [t("activity_provider_" + row["scope"]), str(row["time"])]
+    if row.get("log_path"):
+        lines.append(t("activity_provider_file", path=row["log_path"]))
+    if not isinstance(exceptions, (list, tuple)) or not exceptions:
+        lines.append(json.dumps(value, ensure_ascii=False, indent=2))
+        return "\n".join(lines)
+    # Retain other diagnostic fields (stage, elapsed, attempt, chunk count, ...).
+    summary = {**value, "details": {key: data for key, data in details.items() if key != "exceptions"}}
+    lines.append(json.dumps(summary, ensure_ascii=False, indent=2))
+    lines.append(t("activity_provider_traceback"))
+    for exception in exceptions:
+        if not isinstance(exception, dict):
+            lines.append(str(exception))
+            continue
+        label = str(exception.get("type", "Exception"))
+        if exception.get("status_code") is not None:
+            label += f" · HTTP {exception['status_code']}"
+        lines.append(label)
+        for key, data in exception.items():
+            if key not in ("type", "status_code", "frames"):
+                lines.append(f"  {key}: {data}")
+        for frame in exception.get("frames", ()):
+            if isinstance(frame, dict):
+                lines.append(f"  {frame.get('file', '?')}:{frame.get('line', '?')} · {frame.get('function', '?')}()")
+    return "\n".join(lines)
+
+
 def format_activity(rows, t):
     """Render the public activity contract, preserving its commit order."""
-    levels = {"failed": "error", "interrupted": "warning", "paused": "warning", "completed": "success"}
+    levels = {"failed": "error", "error": "error", "critical": "error", "warning": "warning",
+              "interrupted": "warning", "paused": "warning", "completed": "success"}
     blocks = []
     for row in rows:
         source = row["source"]
         lines = [f"{t.icons.alerts[levels.get(row['status'], 'info')]} {row['time']} · {t.status(row['status'])} · {row['event']}",
-                 t("activity_source", session_id=source["session_id"], run_id=source["run_id"])]
+                 t("activity_source", session_id=source.get("session_id", "—"), run_id=source.get("run_id", "—"))]
+        if row.get("provider"):
+            lines.append(provider_detail(row, t))
         if source.get("step_id"):
             lines.append(t("activity_step", step_id=source["step_id"]))
         if row.get("code"):
             lines.append(t("activity_code", code=row["code"]))
+        if row.get("provider_diagnostics"):
+            lines.append(t("activity_provider_run_details"))
+            lines.extend(provider_detail(record, t) for record in row["provider_diagnostics"])
         blocks.append("\n".join(lines))
     return "\n\n".join(blocks) or t("activity_empty")
 
@@ -153,13 +192,12 @@ class HistoryUI:
             view.close_dialog()
             if rows is None or view.project_id != project_id:
                 return
-            text = format_activity(rows, t)
-            self._activity_dialog(text)
+            self._activity_dialog(lambda: format_activity(rows, t))
         self.controller._call("project_activity", completed=ready)
 
     def _activity_dialog(self, text):
         view = self.view
         popup = ReadOnlyDialog(view.t("project_activity"), text, view._rows, view._columns,
-                               view.close_dialog, view.t)
+                               view.close_dialog, view.t, render_worker=view.render_worker)
         self.activity_output = popup.output
         view.dialogs.show(popup, popup.receiver)

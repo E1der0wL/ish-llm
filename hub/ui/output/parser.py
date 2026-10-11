@@ -8,13 +8,17 @@ from .model import OutputBlock
 
 
 class OutputParser:
+    def __init__(self):
+        self._parser = MarkdownIt("commonmark").enable("table")
+        self.parsed_bytes = 0
+
     def _markdown(self, text, start):
         lines = text.splitlines(keepends=True)
         offsets = [0]
         for line in lines:
             offsets.append(offsets[-1] + len(line))
         cursor = 0
-        for token in MarkdownIt("commonmark").enable("table").parse(text):
+        for token in self._parser.parse(text):
             if token.level or token.type not in ("fence", "code_block", "table_open") or token.map is None:
                 continue
             left, right = (offsets[index] for index in token.map)
@@ -28,6 +32,7 @@ class OutputParser:
             yield OutputBlock("markdown", text[cursor:], start + cursor)
 
     def parse(self, text: str, *, final: bool = True) -> tuple[OutputBlock, ...]:
+        self.parsed_bytes += len(text.encode("utf-8"))
         lines = text.splitlines(keepends=True)
         blocks, offset, start, plain = [], 0, 0, []
         fence = None

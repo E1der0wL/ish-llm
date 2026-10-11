@@ -25,7 +25,7 @@ from llm.components.tools import ToolComponent
 from llm.llm import LargeLanguageModel
 from llm.engines.loop import LoopEngine
 from tests.hub.test_live import ControlledEngine, until
-from tests.hub.test_mockup import SizedOutput
+from tests.hub.support import SizedOutput
 
 
 class DemoComponent(Component):

@@ -35,7 +35,9 @@ class HubBindings:
             r.add([key], "Ctrl+" + key[-1].upper(), label, invoke, when=lambda callback=callback: c.chat and callback() is not None)
         r.add(["tab", "s-tab"], "Tab/Shift+Tab", "regions",
               lambda e: view.settings.focus(e.key_sequence[0].key == "s-tab"), when=lambda: c.settings and not c.sidebar)
-        r.add(["up", "down", "left", "right"], "↑↓←→", "items",
+        r.add(["left"], "←", "sidebar", lambda e: view.settings.switch_panel(),
+              when=lambda: c.settings and not c.sidebar and not view.settings.editing)
+        r.add(["up", "down", "right"], "↑↓→", "items",
               lambda e: view.settings.move(e.key_sequence[-1].key), when=lambda: c.settings and not c.sidebar and not view.settings.editing)
         r.add(["up", "down"], "↑↓", "select", self.select, when=lambda: c.sidebar)
         r.add(["c-left", "c-right"], "Ctrl+←→", "width", self.resize, when=lambda: c.sidebar)

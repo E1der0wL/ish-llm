@@ -10,10 +10,51 @@ PTK 렌더링 행, 화면 시작/끝 행, 손실 없는 `raw` 원문이 있습�
 ↑↓로 선택하면 해당 객체로 스크롤하고, `c`는 마크업을 포함한 원문을 복사합니다.
 `Ctrl+T / ESC`로 닫고, `Tab / Space / Enter`로 선택한 객체를 전체 화면 팝업에서 봅니다.
 태그 바는 제목 없이 왼쪽 구분선만 표시합니다. 팝업은 호스트가 할당한 전체 Hub 영역을 채웁니다.
-확대 화면은 같은 렌더러를 팝업 너비에 맞게 다시 사용하며, 이동키로 스크롤하고
-ESC / Enter / Ctrl+L로 닫으면 태그 바에 포커스가 돌아옵니다. 복사는 PTK 클립보드와 사용 가능한
+확대 화면은 객체 종류에 맞는 상호작용 UI를 사용합니다. `ESC / Ctrl+T`로 닫으면
+태그 바에 포커스가 돌아옵니다. 복사는 PTK 클립보드와 사용 가능한
 wl-copy / xclip / xsel을 사용하며, 없으면 터미널 OSC 52에 요청합니다.
 OSC 52 실제 시스템 복사는 터미널의 지원·허용 설정에 따라 달라집니다.
+
+## 전체 화면에서 조작하기
+
+일반 Markdown 표와 `hub-table`은 같은 표 뷰어를 사용합니다.
+
+| 키 | 동작 |
+| --- | --- |
+| ↑ / ↓, Home / End, PgUp / PgDn | 행 선택 |
+| ← / → | 열 선택, 해당 열로 가로 이동 |
+| Enter / s | 선택한 열로 오름차순·내림차순 정렬 |
+| Ctrl+F 또는 / | 전체 열의 문자열을 대상으로 필터 입력 |
+| r | 표 화면과 원문 화면 전환 |
+| c | 필터·정렬 전의 원본 전체 복사 |
+
+숫자는 숫자 크기로 정렬하며, 문자열은 대소문자를 구분하지 않습니다.
+정렬 후에도 같은 원본 행을 선택합니다. 필터에서 선택한 행이 사라질 때만 첫 행으로 이동합니다.
+원본 행과 셀 값은 바꾸지 않으며, 표시가 긴 셀은 생략합니다. 전체 값은 원문 보기에서 확인합니다.
+표는 최대 32열·500행·UTF-8 256 KiB로 제한합니다. XML 파서는 별도로 기존 입력 길이 제한을 유지합니다.
+잘못된 표도 오류 안내와 원문 보기·복사는 사용할 수 있습니다.
+
+코드·diff·카드 본문 등은 기존 렌더러를 다시 사용하며 다음 기능을 제공합니다.
+
+| 키 | 동작 |
+| --- | --- |
+| 이동키 | 화면 스크롤 |
+| Ctrl+F 또는 / | 표시된 내용에서 검색 |
+| n / Ctrl+N, N / Ctrl+P | 다음·이전 일치 위치로 이동 |
+| r | 렌더링과 원문 보기 전환 |
+| c | 마크업을 포함한 원본 전체 복사 |
+
+검색·필터 입력 중 Enter / Tab은 적용 후 뷰어로 돌아가고, ESC는 입력 전 검색어를 복구합니다.
+뷰어에서 ESC를 한 번 더 누르면 닫힙니다. 원문 보기에서도 검색할 수 있습니다.
+검색·정렬·필터 상태는 열린 팝업에만 존재하며 닫을 때 폐기합니다. 대화 검색 하이라이트,
+대화 원문, 입력 초안, llm 상태에는 영향을 주지 않습니다.
+
+Rich 렌더링·검색 인덱싱·표 해석은 공유 렌더 작업자의 `popup` 슬롯에서 처리합니다.
+표는 화면에 보이는 행만 그립니다. 크기가 바뀌어도 선택·필터를 유지하며,
+팝업을 닫으면 대기 중인 렌더 결과가 이후 화면에 적용되지 않습니다.
+
+렌더 작업자, 캐시 수명, 최신 요청 병합과 성능 검증은
+[렌더링 파이프라인](rendering-performance.md)을 참고하세요.
 
 ## 기본 XML 렌더러
 
@@ -61,6 +102,48 @@ installation.view.output_renderers.register("hub-metric", MetricRenderer())
 `context.invalidate()`를 호출할 수 있습니다. `OutputParser`는 분리,
 `RendererRegistry`는 디스패치, `ConversationControl.objects`는 화면 객체 목록,
 `TagBar`는 탐색·복사만 담당합니다.
+
+### 태그 전용 확대 UI 등록
+
+렌더러와 별도로 `interaction` 팩토리를 등록할 수 있습니다. 팩토리는 **로컬 애플리케이션 코드**입니다.
+모델은 XML로 데이터만 전달하고, Python/HTML/JavaScript를 실행하거나 팩토리 이름을 지정하지 않습니다.
+대화 출력에는 렌더러의 결과를 표시하고, 태그 바에서 확대했을 때만 팩토리를 호출합니다.
+
+```python
+from prompt_toolkit.layout import Window
+from prompt_toolkit.layout.controls import FormattedTextControl
+from hub.widget.output_inspector import ExpandedOutputDialog
+
+class MetricInspector(ExpandedOutputDialog):
+    def __init__(self, item, context):
+        self.value = int(item.block.text)
+        body = Window(FormattedTextControl(lambda: str(self.value)))
+        super().__init__(item, context, context.viewport(item), body=body)
+        self.shortcuts.add(["+"], "+", "increment", lambda e: self.change(1))
+        self.shortcuts.add(["-"], "-", "decrement", lambda e: self.change(-1))
+
+    def change(self, amount):
+        self.value += amount
+
+installation.view.output_renderers.register(
+    "hub-metric", MetricRenderer(), interaction=MetricInspector,
+)
+```
+
+`item`은 원본 `OutputObject`이며 `raw`, `block`, `lines`, `message_id`, `id`를 그대로 제공합니다.
+`OutputUIContext`에는 `language`, `rows`, `columns`, `close`, 검색 가능한 `viewport(item)` 생성 함수,
+`render_worker`가 있습니다. 팩토리는 PTK UI 스레드에서 호출되므로 무거운 처리는 작업자로 넘깁니다.
+전체 화면 프레임·검색 입력·원문 복사·닫기·단축키 표시는 `ExpandedOutputDialog`로 재사용합니다.
+추가 단축키의 이름은 언어 팩에 등록해 제공합니다.
+
+별도 위젯을 구현할 경우 `__pt_container__()`, 최초 포커스 대상 `receiver`,
+`shortcut_context = "reader"`를 제공하세요. 필요한 경우 `dispose()`로 자체 자원을 해제할 수 있습니다.
+`dispose()`는 교체·닫기 시 호출되고 Hub가 예약된 `popup` 렌더를 취소합니다.
+팩토리가 생성 중 실패하면 오류 안내와 원문을 검색할 수 있는 기본 뷰어로 돌아갑니다.
+`interaction`을 생략한 태그는 기본 검색 뷰어를 사용합니다.
+
+이 단계의 상호작용은 표 탐색·검색·로컬 UI 상태 변경입니다. 입력 폼 제출이나 모델에
+후속 지시를 전송하는 액션은 아직 연결하지 않았습니다. 기존 백엔드에는 변경이 없습니다.
 
 ## Tool 관리
 

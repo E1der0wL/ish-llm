@@ -3,7 +3,9 @@
 from ..model import ChatMessage
 from ..asset.icon import for_style
 from bisect import bisect_right
-import re
+import asyncio
+from copy import copy
+from time import perf_counter
 from pathlib import Path
 from prompt_toolkit.application.current import get_app
 from ..ui.output import OutputParser, OutputObject, RendererRegistry, ImageRenderer, RenderContext
@@ -25,7 +27,8 @@ from .controls import ScrollbarMargin
 
 
 def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubTheme, language=None, *, anchors=None,
-                    renderers=None, root=None, invalidate=None, objects=None, index_offset=0):
+                    renderers=None, root=None, invalidate=None, objects=None, index_offset=0,
+                    section="all", blocks=None, render_block=None):
     """Return already-wrapped fragment lines using terminal-cell widths."""
     inner = max(1, width - 4)
     t = language or Language(icons=for_style(theme.icon_style))
@@ -36,7 +39,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         index = local_index + index_offset
         if local_index and message.role == "user" and messages[local_index - 1].role in ("assistant", "reasoning"):
             lines.extend([[('', '')], [('', '')]])
-        if anchors is not None:
+        if anchors is not None and section != "body":
             anchors.append((message.id or f"index:{index}", len(lines)))
         user = message.role == "user"
         inset = 1 if inner >= 3 else 0
@@ -51,35 +54,37 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         elif message.time:
             label += " · " + message.time
         label = Text(label, overflow="fold")
-        header_lines = ([] if message.role == "draft" else
+        header_lines = ([] if message.role == "draft" or section == "body" else
                         console.render_lines(label, console.options.update(width=inner), pad=False))
         for segments in header_lines:
             text = "".join(segment.text for segment in segments)
             pad = max(0, inner - get_cwidth(text)) if user else 0
             lines.append([("", "  " + " " * pad),
                           ("class:hub.user bold" if user else "class:hub.accent bold", text)])
-        renderable = (HubMarkdown(message.text, theme)
-                      if message.role in ("assistant", "user", "draft", "reasoning")
-                      else Text(message.text, overflow="fold"))
+        if section == "header":
+            continue
         def markdown_lines(value):
             rendered = console.render_lines(value, console.options.update(width=message_width), pad=False)
             return [_trim_right([(_segment_style(segment.style, theme.code_background), segment.text)
                                 for segment in segments if not segment.control]) for segments in rendered]
         if renderers is not None and message.role == "assistant":
-            blocks = OutputParser().parse(message.text, final=message.status not in ("streaming", "committed"))
+            parsed = blocks if blocks is not None else OutputParser().parse(message.text, final=message.status not in ("streaming", "committed"))
             context = RenderContext(message_width, theme, t, Path(root or Path.cwd()), invalidate or get_app().invalidate)
             body = []
-            for block in blocks:
+            for block in parsed:
                 identifier = f"{message.id or f'index:{index}'}:block:{block.start}"
                 if anchors is not None and message.id:
                     anchors.append((identifier, len(lines) + len(body)))
-                rendered = renderers.render(block, context)
+                rendered = (render_block or renderers.render)(block, context)
                 if objects is not None and renderers.is_object(block):
                     title = dict(block.attributes).get("title") or dict(block.attributes).get("alt") or block.kind.removeprefix("hub-")
                     objects.append(OutputObject(identifier, message.id, block, title,
                         tuple(tuple(row) for row in rendered), len(lines) + len(body), len(lines) + len(body) + len(rendered)))
                 body.extend(rendered)
         else:
+            renderable = (HubMarkdown(message.text, theme)
+                          if message.role in ("assistant", "user", "draft", "reasoning")
+                          else Text(message.text, overflow="fold"))
             body = markdown_lines(renderable)
         if user:
             body_width = max(1, max((sum(get_cwidth(text) for _, text in line) for line in body), default=0))
@@ -96,7 +101,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         else:
             lines.extend([("", "  "), *fragments] for fragments in body)
         lines.extend([[('', '')], [('', '')]])
-    return lines or [[("", "")]]
+    return lines if section == "header" else lines or [[("", "")]]
 
 
 class ConversationControl(UIControl):
@@ -119,6 +124,7 @@ class ConversationControl(UIControl):
         self._message_cache = MessageRenderCache()
         self._lines = [[("", "")]]
         self._anchors = []
+        self._anchor_starts = {}
         self.objects = []
         self._pending_position = None
         self.on_position_changed = None
@@ -127,6 +133,67 @@ class ConversationControl(UIControl):
         self.search_hits = []
         self._search_lines = {}
         self._search_key = None
+        self.render_worker = None
+        self.render_slot = "transcript"
+        self._requested_key = None
+        self._resize_timer = None
+        self._max_width = 0
+        self.content_calls = 0
+        self.content_seconds = self.content_max_seconds = 0.0
+        self._app = None
+        self._deferred_scroll = None
+
+    def _application(self):
+        app = get_app()
+        if app.is_running:
+            self._app = app
+        return self._app if self._app is not None and self._app.is_running else app
+
+    @property
+    def messages(self):
+        return self._messages
+
+    @messages.setter
+    def messages(self, value):
+        if value is not getattr(self, "_messages", None):
+            self._messages = value
+            self._message_revision = getattr(self, "_message_revision", 0) + 1
+
+    def _request_frame(self, width, key):
+        messages, theme, language, root = self.messages, self.theme, self.language, self.file_root
+        language = copy(language)
+        language.icon_source = for_style(theme.icon_style)
+        app = self._application()
+        def build():
+            return self._message_cache.prepare(messages, width, theme, language, render=render_messages,
+                renderers=self.renderers, root=root, invalidate=app.invalidate)
+        def fallback(error):
+            from .message_cache import Frame, frozen_rows
+            from ..ui.output.registry import literal_lines
+            rows = frozen_rows(literal_lines("\n\n".join(m.text for m in messages), max(1, width)))
+            return Frame(rows, (), (), max(map(fragment_list_width, rows), default=0))
+        def apply(frame):
+            if (key != self._requested_key or key[1] != self._message_revision or
+                    key[2] != self.theme or key[3] != id(self.language) or key[4] != str(self.file_root)):
+                return
+            position = self.reading_position() if self._cache_key is not None else None
+            self._lines, self._anchors, self.objects = frame.lines, frame.anchors, frame.objects
+            self._max_width = frame.max_width
+            self._anchor_starts = frame.starts
+            self._cache_key = key
+            if position is not None and not self.follow_tail and not self.restoring:
+                self._pending_position = position
+            self._resolve_position()
+            if self._deferred_scroll is not None:
+                base, vertical, horizontal = self._deferred_scroll
+                self._deferred_scroll = None
+                self._scroll_to((len(self._lines) - self._height if base == "end" else 0) + vertical)
+                self.left_column = max(0, min(max(0, self._max_width - self._width), horizontal))
+            app.invalidate()
+        if self.render_worker is not None and app.is_running:
+            self.render_worker.request(self.render_slot, build, apply, fallback)
+        else:
+            apply(build())
 
     def _index_search(self) -> None:
         key = (self._cache_key, self.search_query)
@@ -135,25 +202,26 @@ class ConversationControl(UIControl):
         self._search_key = key
         self.search_hits = []
         self._search_lines = {}
-        if self.search_query:
-            # A phrase may cross a wrapped line; whitespace in the query matches
-            # display whitespace while positions still refer to rendered rows.
-            pattern = re.compile(re.escape(self.search_query).replace(r"\ ", r"\s+"), re.IGNORECASE)
-            texts, starts, offset = [], [], 0
-            for row, fragments in enumerate(self._lines):
-                text = "".join(fragment[1] for fragment in fragments)
-                starts.append(offset)
-                texts.append(text)
-                offset += len(text) + 1
-            for match in pattern.finditer("\n".join(texts)):
-                first = max(0, bisect_right(starts, match.start()) - 1)
-                last = max(first, bisect_right(starts, match.end() - 1) - 1)
-                index = len(self.search_hits)
-                self.search_hits.append((first, match.start() - starts[first], match.end() - starts[first]))
-                for row in range(first, last + 1):
-                    start, end = max(0, match.start() - starts[row]), min(len(texts[row]), match.end() - starts[row])
-                    self._search_lines.setdefault(row, []).append((index, start, end))
-        self.search_index = min(self.search_index, len(self.search_hits) - 1)
+        if not self.search_query:
+            if self.render_worker:
+                self.render_worker.cancel("search")
+            return
+        from .search_index import index_lines
+        lines, query = self._lines, self.search_query
+        app = self._application()
+        def apply(result):
+            if self._search_key != key or self._cache_key != key[0]:
+                return
+            self.search_hits, self._search_lines = result
+            self.search_index = min(self.search_index, len(self.search_hits) - 1)
+            if self.search_index == -1 and self.search_hits:
+                self.move_search()
+            app.invalidate()
+        if self.render_worker and app.is_running:
+            self.render_worker.request("search", lambda: index_lines(lines, query), apply, lambda _: ((), {}))
+        else:
+            self.search_hits, self._search_lines = index_lines(lines, query)
+            self.search_index = min(self.search_index, len(self.search_hits) - 1)
 
     def set_search(self, query: str) -> None:
         self.search_query = query
@@ -199,14 +267,28 @@ class ConversationControl(UIControl):
         # A snapshot can arrive between paints. Apply navigation to its current
         # layout, not the previous session's empty or differently wrapped rows.
         self.create_content(self._width, self._height)
+        if self._cache_key is None:
+            base, vertical, horizontal = self._deferred_scroll or ("home", 0, 0)
+            if key in ("home", "end"):
+                base, vertical = key, 0
+            elif key in ("left", "right"):
+                horizontal += -1 if key == "left" else 1
+            else:
+                page = max(1, self._height - 2)
+                vertical += {"up": -1, "down": 1, "pageup": -page, "pagedown": page}[key]
+            self._deferred_scroll = base, vertical, horizontal
+            self._pending_position = None
+            self.follow_tail = False
+            return
         if key in ("left", "right"):
-            limit = max(0, max(map(fragment_list_width, self._lines), default=0) - self._width)
+            limit = max(0, self._max_width - self._width)
             self.left_column = max(0, min(limit, self.left_column + (-1 if key == "left" else 1)))
         elif key == "home":
             self._scroll_to(0)
         elif key == "end":
             self._scroll_to(len(self._lines))
             self.cursor_line = len(self._lines) - 1
+            self.follow_tail = self._cache_key != self._requested_key
         else:
             page = max(1, self._height - 2)
             delta = {"up": -1, "down": 1, "pageup": -page, "pagedown": page}[key]
@@ -227,8 +309,8 @@ class ConversationControl(UIControl):
     def reading_position(self):
         if self._pending_position is not None:
             return self._pending_position
-        message_id, start = next(((identifier, line) for identifier, line in reversed(self._anchors)
-                                 if line <= self.top_line), ("", 0))
+        index = bisect_right(self._anchors, self.top_line, key=lambda item: item[1]) - 1
+        message_id, start = self._anchors[index] if index >= 0 else ("", 0)
         return ReadingPosition(message_id, self.top_line - start, self.top_line)
 
     def restore_position(self, position):
@@ -239,23 +321,46 @@ class ConversationControl(UIControl):
         return False
 
     def create_content(self, width: int, height: int) -> UIContent:
+        started = perf_counter()
         self._height = max(1, height)
         self._width = max(1, width)
-        key = (width, self.messages, self.theme, self.language.code, str(self.file_root), self.renderers.version)
-        if self._cache_key != key:
-            # Keep the same message in view across wrapping/theme changes.
-            position = self.reading_position() if self._cache_key is not None else None
-            self._lines, self._anchors, self.objects = self._message_cache.render(
-                self.messages, width, self.theme, self.language, render=render_messages,
-                renderers=self.renderers, root=self.file_root, invalidate=get_app().invalidate)
-            self._cache_key = key
-            self.left_column = min(self.left_column, max(0,
-                max(map(fragment_list_width, self._lines), default=0) - self._width))
-            if position is not None and not self.follow_tail and not self.restoring:
-                self._pending_position = position
+        app = self._application()
+        loop_id = id(asyncio.get_running_loop()) if app.is_running else 0
+        key = (width, self._message_revision, self.theme, id(self.language), str(self.file_root), self.renderers.version, loop_id)
+        if self._requested_key != key:
+            resized = self._requested_key is not None and self._requested_key[0] != width
+            self._requested_key = key
+            if self._resize_timer and resized:
+                self._resize_timer.cancel()
+                self._resize_timer = None
+            if resized and self.render_worker is not None and app.is_running:
+                self.render_worker.cancel(self.render_slot)
+                def resized_frame():
+                    self._resize_timer = None
+                    self._request_frame(self._width, self._requested_key)
+                    app.invalidate()
+                self._resize_timer = asyncio.get_running_loop().call_later(.075, resized_frame)
+            elif self._resize_timer is None:
+                self._request_frame(width, key)
+        self._resolve_position()
+        self._index_search()
+        content = UIContent(get_line=self._search_line, line_count=len(self._lines),
+                            cursor_position=Point(x=self.left_column, y=self.cursor_line), show_cursor=False)
+        elapsed = perf_counter() - started
+        self.content_calls += 1
+        self.content_seconds += elapsed
+        self.content_max_seconds = max(self.content_max_seconds, elapsed)
+        return content
+
+    def _resolve_position(self):
+        self.left_column = min(self.left_column, max(0, self._max_width - self._width))
+        # Do not consume a saved anchor or follow-tail intent against an old
+        # frame while its replacement is still in flight.
+        if self._cache_key != self._requested_key:
+            return
         if self._pending_position is not None and self.messages:
             position = self._pending_position
-            starts = dict(self._anchors)
+            starts = self._anchor_starts
             self.top_line = (starts[position.message_id] + position.offset
                              if position.message_id in starts else position.line)
             self.cursor_line = self.top_line
@@ -266,9 +371,6 @@ class ConversationControl(UIControl):
             self.cursor_line = len(self._lines) - 1
             self.top_line = max(0, len(self._lines) - self._height)
             self.follow_tail = False
-        self._index_search()
-        return UIContent(get_line=self._search_line, line_count=len(self._lines),
-                         cursor_position=Point(x=self.left_column, y=self.cursor_line), show_cursor=False)
 
     def mouse_handler(self, mouse_event):
         if mouse_event.event_type in (MouseEventType.SCROLL_UP, MouseEventType.SCROLL_DOWN):
@@ -303,6 +405,11 @@ class ConversationView:
         self.control.left_column = 0
         self.window.vertical_scroll = 0
         self.control._cache_key = None
+        self.control._requested_key = None
+        self.control._deferred_scroll = None
+        if self.control.render_worker:
+            self.control.render_worker.cancel(self.control.render_slot)
+        self.control._lines = [[("", "")]]
         self.control._anchors = []
         self.control.objects = []
         self.control.restore_position(position)

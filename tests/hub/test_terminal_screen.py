@@ -1,4 +1,4 @@
-from tests.hub.test_mockup import minimize
+from tests.hub.support import minimize
 """Real ish/PTK rendering must never paint Hub over the shell's output."""
 
 import asyncio
@@ -9,9 +9,9 @@ from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.utils import get_cwidth
 
-from hub.hub import install
+from examples.hub.preview import install_preview
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 
 
 class ScreenOutput(SizedOutput):
@@ -105,7 +105,7 @@ class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
             output = ScreenOutput()
             history = dict(output.main)
             prompt = Prompt(input=pipe, output=output)
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             painted = asyncio.Event()
             app.after_render += lambda _: painted.set()
@@ -156,7 +156,7 @@ class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
                 output = ScreenOutput()
                 history = dict(output.main)
                 prompt = Prompt(input=pipe, output=output)
-                installation = install(prompt, preview=True)
+                installation = install_preview(prompt)
                 app, view = prompt.app, installation.view
                 task = asyncio.create_task(prompt.prompt_async())
                 try:
@@ -183,7 +183,7 @@ class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
             prompt = Prompt(input=pipe, output=output)
             app = prompt.app
             app.full_screen = app.renderer.full_screen = True
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             task = asyncio.create_task(prompt.prompt_async())
             try:
                 await eventually(lambda: output.in_alternate)

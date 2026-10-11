@@ -15,7 +15,7 @@ from hub.asset.guides import SKILLS, SYSTEM_PROMPT
 from llm.components.workflows import WorkflowGraph
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.test_live import until
-from tests.hub.test_mockup import SizedOutput
+from tests.hub.support import SizedOutput
 
 
 COMPONENTS = {"tools", "skills", "mcp", "rag", "agents", "workflows", "memory", "prompts", "builtin_tools"}

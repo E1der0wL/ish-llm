@@ -1,4 +1,4 @@
-from tests.hub.test_mockup import minimize
+from tests.hub.support import minimize
 """Assert visible renderer cells, not only popup state and key handling."""
 
 import asyncio
@@ -6,9 +6,9 @@ import unittest
 
 from prompt_toolkit.input import create_pipe_input
 
-from hub.hub import install
+from examples.hub.preview import install_preview
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.test_mockup import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually
 
 
 def screen_text(app, columns, rows):
@@ -24,7 +24,7 @@ class OverlayTests(unittest.IsolatedAsyncioTestCase):
         with create_pipe_input() as pipe:
             output = SizedOutput()
             prompt = Prompt(input=pipe, output=output)
-            installation = install(prompt, preview=True)
+            installation = install_preview(prompt)
             view, app = installation.view, prompt.app
             view.engines = ("loop", "review-overlay")
             task = asyncio.create_task(prompt.prompt_async())

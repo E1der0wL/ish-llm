@@ -1,10 +1,9 @@
 """Hub-local widget appearance without changing host or PTK defaults."""
 
-from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import ScrollablePane as PTKScrollablePane
 from prompt_toolkit.layout.margins import ScrollbarMargin as PTKScrollbarMargin
 from prompt_toolkit.layout.screen import Char
-from prompt_toolkit.widgets import Button as PTKButton, Checkbox as PTKCheckbox
+from prompt_toolkit.widgets import Button as PTKButton
 from prompt_toolkit.widgets import RadioList as PTKRadioList, TextArea as PTKTextArea
 from ..asset import icon
 from ..ui.input.registry import ShortcutRegistry
@@ -66,16 +65,6 @@ class Button(PTKButton):
         registry.add(["enter", " "], "Enter/Space", "activate", lambda e: self.handler and self.handler())
         self.control.hub_shortcuts = registry
         self.control.key_bindings = merge_key_bindings([self.control.key_bindings, registry.bindings])
-
-
-class Checkbox(PTKCheckbox):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.show_scrollbar = False
-        # A single-item list always has a selected row; use actual keyboard focus.
-        self.selected_style = ""
-        self.window.style = lambda: ("class:checkbox-list.focused" if get_app().layout.has_focus(self)
-                                     else "class:checkbox-list")
 
 
 class RadioList(PTKRadioList):

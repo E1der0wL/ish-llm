@@ -33,3 +33,6 @@
 보고서와 개인 수동 스크립트는 Git 제외 대상입니다. 자동 테스트는 실제 모델 API를 호출하지 않습니다.
 ish 설정 검사는 공개 `examples/llm/ishrc.example.py`를 사용합니다. 개인 `.ishrc.py`는
 테스트 입력이나 소스 snapshot에 포함하지 않습니다.
+
+Hub 공통 PTK 출력·비동기 입력 도우미는 `hub/support.py`, 독립 미리보기 검사는
+`hub/test_preview.py`에 있습니다. 이 도우미들은 개별 테스트 모듈에 의존하지 않습니다.

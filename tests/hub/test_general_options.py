@@ -24,7 +24,7 @@ from hub.model import HubSnapshot, SessionSummary
 from hub.config.view_state import ViewStateStore
 from hub.backend.worker import BackendWorker
 from tests.hub.test_live import until
-from tests.hub.test_mockup import SizedOutput
+from tests.hub.support import SizedOutput
 from tests.hub.test_settings import settings_backend
 
 

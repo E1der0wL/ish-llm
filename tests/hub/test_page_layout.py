@@ -18,7 +18,7 @@ from hub.backend.worker import BackendWorker
 from hub.ui.application import create_application
 from hub.ui.layout import TwoPanelPage
 from tests.hub.test_live import until
-from tests.hub.test_mockup import SizedOutput
+from tests.hub.support import SizedOutput
 from tests.hub.test_settings import settings_backend
 
 

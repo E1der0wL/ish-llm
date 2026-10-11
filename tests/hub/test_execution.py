@@ -12,7 +12,7 @@ from hub.backend.runtime import HubConfig, HubRuntime
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.engines.graph import GraphEngine
 from tests.hub.test_live import until
-from tests.hub.test_mockup import SizedOutput
+from tests.hub.support import SizedOutput
 from tests.hub.test_overlays import screen_text
 
 

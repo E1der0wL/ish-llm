@@ -58,8 +58,14 @@ class SessionToasts:
 
     def push(self, title, status, session_key):
         level = ("error" if status == "failed" else "success" if status == "completed" else
-                 "warning" if status in ("interrupted", "cancelled", "paused") else "info")
+                 "warning" if status in ("interrupted", "cancelled", "paused", "waiting_input", "waiting_approval") else "info")
         self.alert(title, self.view.t.status(status), level, session_key, status=status)
+
+    def reconcile_waiting(self, project_id, sessions):
+        waiting = {item.id for item in sessions if item.status in ("waiting_input", "waiting_approval")}
+        self.items = deque((item for item in self.items if not (
+            item.status in ("waiting_input", "waiting_approval") and isinstance(item.key, tuple)
+            and len(item.key) == 2 and item.key[0] == project_id and item.key[1] not in waiting)), maxlen=3)
 
     def alert(self, title, text, level="info", key=None, *, status=""):
         if level not in self.view.t.icons.alerts:

@@ -93,8 +93,16 @@ def make_console(inner, theme):
     return console
 
 class MarkdownRenderer:
+    def __init__(self):
+        self._console_key = None
+        self._console = None
+
     def render(self, block, context):
-        console = make_console(context.width, context.theme)
+        key = (context.width, context.theme)
+        if key != self._console_key:
+            self._console_key = key
+            self._console = make_console(*key)
+        console = self._console
         rendered = console.render_lines(HubMarkdown(block.text, context.theme), console.options, pad=False)
         return [_trim_right([(_segment_style(segment.style, context.theme.code_background), segment.text)
                              for segment in segments if not segment.control]) for segments in rendered]

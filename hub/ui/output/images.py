@@ -58,6 +58,16 @@ class ImageRenderer:
             cells = AsciiArt.from_pillow_image(thumbnail).to_character_list(columns=columns, width_ratio=1, full_color=True)
         return [[("fg:" + cell["full-hex-color"], cell["character"]) for cell in row] for row in cells]
 
+    def block_revision(self, block, context):
+        source = dict(block.attributes).get("src", "")
+        with self._lock:
+            artifact = self._artifacts.get(source[9:]) if source.startswith("artifact:") else None
+            key = (self._generation, str(context.root), context.width, source, str(artifact))
+            result = self._cache.get(key)
+            # Unscheduled images may retry when a conversion releases a slot.
+            revision = id(result) if result is not None else (0 if key in self._pending else self.revision)
+            return self._generation, revision
+
     def render(self, block, context):
         future = None
         attrs = dict(block.attributes)

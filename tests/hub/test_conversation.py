@@ -93,14 +93,14 @@ class ConversationTests(unittest.TestCase):
         with patch("hub.widget.conversation.render_messages", wraps=render_messages) as render:
             wide = control.create_content(90, 20)
             control.create_content(90, 20)
-            self.assertEqual(render.call_count, 1)
+            self.assertEqual(control._message_cache.body_renders, 1)
             narrow = control.create_content(30, 20)
             self.assertGreater(narrow.line_count, wide.line_count)
             control.theme = HubTheme.dark()
             control.create_content(30, 20)
             control.messages = (ChatMessage("assistant", "Updated"),)
             control.create_content(30, 20)
-            self.assertEqual(render.call_count, 4)
+            self.assertEqual(control._message_cache.body_renders, 4)
 
 
 if __name__ == "__main__":

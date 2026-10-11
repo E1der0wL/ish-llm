@@ -6,8 +6,8 @@ from prompt_toolkit.layout import ConditionalContainer, VSplit, Window
 
 from .sidebar import SidebarItem, SidebarList
 from .clipboard import copy_text
-from .reader import ReadOnlyDialog
-from .output_viewport import OutputViewport
+from .output_inspector import SearchableOutputViewport
+from ..ui.output import OutputUIContext
 from ..config.view_state import ReadingPosition
 from ..ui.input.registry import ShortcutRegistry
 
@@ -66,8 +66,9 @@ class TagBar:
         if item is None:
             return
         view = self.view
-        popup = ReadOnlyDialog(item.title, item.raw, view._rows, view._columns,
-                               view.close_dialog, view.t, output=OutputViewport(item, view), full_screen=True)
+        context = OutputUIContext(view.t, view._rows, view._columns, view.close_dialog,
+                                  lambda obj: SearchableOutputViewport(obj, view), view.render_worker)
+        popup = view.output_renderers.create_interaction(item, context)
         view.dialogs.show(popup, popup.receiver)
 
     async def copy(self):

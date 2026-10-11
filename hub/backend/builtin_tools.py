@@ -4,16 +4,19 @@ import asyncio
 from copy import deepcopy
 from pathlib import Path
 from threading import Lock
+import sys
+import shutil
 
 from llm.components.tools import Tool, ToolContract
-from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
+from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent, TestWorkspaces
 
 from .questions import QuestionBroker
 
 
 class HubBuiltinTools(BuiltinToolComponent):
-    def __init__(self, file_root=None):
+    def __init__(self, file_root=None, *, test_root=None):
         self.file_root = Path(file_root).expanduser().absolute() if file_root else None
+        self.test_root = Path(test_root).expanduser().absolute() if test_root is not None else None
         self.questions = QuestionBroker()
         self.toolkits = {}
         self._resolved = {}
@@ -22,7 +25,12 @@ class HubBuiltinTools(BuiltinToolComponent):
         super().__init__(self._create(self.file_root or Path.cwd()), name="builtin_tools")
 
     def _create(self, root):
-        toolkit = BuiltinTools(root, allow_commands=True, shell=["/bin/sh", "-c"], git=True, diagnostics=True)
+        # Hub 제품 preset: 네트워크 차단, 명시적으로 선택한 파일만 복사.
+        # Python 설치 경로는 실행에 필요한 read-only runtime이며 사용자 home 전체를 노출하지 않는다.
+        spaces = None if self.test_root is None else TestWorkspaces(self.test_root, source_root=root,
+            allow_network=False, read_only_paths=tuple(dict.fromkeys((sys.base_prefix, sys.prefix))))
+        toolkit = BuiltinTools(root, allow_commands=True, shell=["/bin/sh", "-c"], git=True, diagnostics=True,
+                               test_workspaces=spaces)
         toolkit.registry.register(Tool("ask_user",
             "Ask the user a necessary question and wait for their answer, then continue the SAME task. "
             "Use this instead of ending a response with a question when work needs user input. "
@@ -39,6 +47,13 @@ class HubBuiltinTools(BuiltinToolComponent):
             if key not in self.toolkits:
                 self.toolkits[key] = self._create(self.file_root or project.paths.root)
             return self.toolkits[key]
+
+    def select_tools(self):
+        """새 Project/최초 연결의 Hub 선택값. 이미 명시한 선택은 호출자가 보존한다."""
+        # 선택된 Tool은 Run 시작 전에 검증된다. 사용할 수 없는 선택적 sandbox가
+        # 일반 대화까지 막지 않도록 최초 preset에서만 설치 여부를 반영한다.
+        return [name for name in self.toolkit.registry.names()
+                if name != "test_workspace_execute" or shutil.which("bwrap") is not None]
 
     def resolve(self, project, capability):
         if capability != "tools":
@@ -71,7 +86,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         changed = self.name not in selected or "enabled" not in settings
         if self.name not in selected:
             selected.append(self.name)
-        settings.setdefault("enabled", list(self.toolkit.registry.names()))
+        settings.setdefault("enabled", self.select_tools())
         if changed:
             from llm.services.infrastructure.storage import revision_token
             await project.asave(config=config, components=selected, expected_components=list(record.components),

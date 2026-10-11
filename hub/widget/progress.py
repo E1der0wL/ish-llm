@@ -87,13 +87,14 @@ class TaskProgress:
         task = self.progress.add_task(description, total=total, label=description, percent="", elapsed="")
         self._render_cache.clear()
         self.update(task, completed=0)
+        get_app().invalidate()
         return task
 
     def update(self, task: int, *, completed: float, total: float | None = None) -> None:
         self.progress.update(task, completed=completed, total=total)
         current = self.progress.tasks[self.progress.task_ids.index(task)]
         current.fields["percent"] = f"{current.percentage:.0f}%" if current.total is not None else ""
-        get_app().invalidate()
+        self.schedule_refresh()
 
     def finish(self, task: int) -> None:
         self._render_cache.clear()

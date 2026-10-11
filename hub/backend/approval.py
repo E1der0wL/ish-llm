@@ -7,6 +7,15 @@ Backend는 이 이름/구간을 알지 않는다. shell 문자열의 안전성�
 RISK_SCHEME = "hub-risk-v1"
 
 
+def review_text(request):
+    """Prepare the complete review payload before it reaches the UI thread."""
+    import json
+    import re
+    action = json.dumps(request["action"], ensure_ascii=False, indent=2)
+    fence = "`" * max(3, max((len(part) for part in re.findall(r"`+", action)), default=0) + 1)
+    return request["title"] + "\n\n" + request.get("description", "") + f"\n\n{fence}json\n{action}\n{fence}"
+
+
 def risk_label(scheme, risk):
     if risk is None:
         return "unknown"

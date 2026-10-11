@@ -1,4 +1,4 @@
-"""Hub consumes the activity DTOs without operational-log or domain-file scans."""
+"""Hub preserves public activity order alongside provider diagnostic rows."""
 
 import asyncio
 import tempfile
@@ -15,7 +15,7 @@ from hub.locales import Language
 from hub.backend.runtime import HubConfig, HubRuntime
 from llm.core.contracts import ProjectActivityEvent, ResourceRef
 from tests.hub.test_live import until
-from tests.hub.test_mockup import SizedOutput
+from tests.hub.support import SizedOutput
 from tests.hub.test_overlays import screen_text
 
 
@@ -100,7 +100,7 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_only_public_activity_api_and_commit_order(self):
         runtime = HubRuntime(HubConfig("unused", "loop", "test/model", auto_title=False))
-        runtime.project = SimpleNamespace(aactivity=AsyncMock(return_value=events()))
+        runtime.project = SimpleNamespace(id="p", aactivity=AsyncMock(return_value=events()))
         rows = await runtime.project_activity()
         runtime.project.aactivity.assert_awaited_once_with(limit=300, newest_first=False)
         self.assertEqual(rows, [event.to_dict() for event in events()])

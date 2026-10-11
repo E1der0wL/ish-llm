@@ -15,6 +15,16 @@ class ChatMessage:
 
 
 @dataclass(frozen=True, slots=True)
+class SessionView:
+    """A sidebar entry and its cached conversation, independent of demo data."""
+
+    title: str
+    status: str = ""
+    messages: tuple[ChatMessage, ...] = ()
+    id: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class SubmissionResult:
     run_id: str | None = None
     message: ChatMessage | None = None
@@ -51,10 +61,6 @@ class RunSummary:
     elapsed_seconds: float | None
     active: bool
     steps: tuple[StepSummary, ...]
-    has_reasoning: bool
-    completion_count: int
-    model: str
-    tokens: int | None
     error: str
 
 
