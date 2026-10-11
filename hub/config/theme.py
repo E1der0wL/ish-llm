@@ -105,6 +105,7 @@ class HubTheme:
             "hub.settings-input": f"fg:{self._surface_text(self.user_background)} bg:{self.user_background}",
             "hub.divider": f"fg:{self.muted}", "hub.title": "bold",
             "hub.composer": "",
+            "hub auto-suggestion": f"fg:{self.muted} nobold",
             "hub.footer": f"fg:{self.bar_foreground} bg:{self.footer_background}",
             "hub frame.border": f"fg:{self.muted}",
             "hub.notice": f"fg:{self.notice}",

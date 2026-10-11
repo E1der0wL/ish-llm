@@ -173,7 +173,8 @@ class ConversationControl(UIControl):
             rows = frozen_rows(literal_lines("\n\n".join(m.text for m in messages), max(1, width)))
             return Frame(rows, (), (), max(map(fragment_list_width, rows), default=0))
         def apply(frame):
-            if (key != self._requested_key or key[1] != self._message_revision or
+            if (self._requested_key is None or key[0] != self._requested_key[0] or
+                    key[5:] != self._requested_key[5:] or
                     key[2] != self.theme or key[3] != id(self.language) or key[4] != str(self.file_root)):
                 return
             position = self.reading_position() if self._cache_key is not None else None
@@ -183,7 +184,7 @@ class ConversationControl(UIControl):
             self._cache_key = key
             if position is not None and not self.follow_tail and not self.restoring:
                 self._pending_position = position
-            self._resolve_position()
+            self._resolve_position(partial=True)
             if self._deferred_scroll is not None:
                 base, vertical, horizontal = self._deferred_scroll
                 self._deferred_scroll = None
@@ -191,7 +192,7 @@ class ConversationControl(UIControl):
                 self.left_column = max(0, min(max(0, self._max_width - self._width), horizontal))
             app.invalidate()
         if self.render_worker is not None and app.is_running:
-            self.render_worker.request(self.render_slot, build, apply, fallback)
+            self.render_worker.request(self.render_slot, build, apply, fallback, progressive=True)
         else:
             apply(build())
 
@@ -352,11 +353,14 @@ class ConversationControl(UIControl):
         self.content_max_seconds = max(self.content_max_seconds, elapsed)
         return content
 
-    def _resolve_position(self):
+    def _resolve_position(self, *, partial=False):
         self.left_column = min(self.left_column, max(0, self._max_width - self._width))
         # Do not consume a saved anchor or follow-tail intent against an old
         # frame while its replacement is still in flight.
-        if self._cache_key != self._requested_key:
+        if self._cache_key != self._requested_key and not partial:
+            return
+        if (self._cache_key != self._requested_key and self._pending_position is not None
+                and self._pending_position.message_id not in self._anchor_starts):
             return
         if self._pending_position is not None and self.messages:
             position = self._pending_position
@@ -370,7 +374,7 @@ class ConversationControl(UIControl):
         if self.follow_tail:
             self.cursor_line = len(self._lines) - 1
             self.top_line = max(0, len(self._lines) - self._height)
-            self.follow_tail = False
+            self.follow_tail = self._cache_key != self._requested_key
 
     def mouse_handler(self, mouse_event):
         if mouse_event.event_type in (MouseEventType.SCROLL_UP, MouseEventType.SCROLL_DOWN):

@@ -45,7 +45,7 @@ class LiveHubView(HubView):
                 messages = (*session.messages, present_message(message, self.t))
                 self.sessions[index] = replace(session, messages=messages)
                 if index == self.selected:
-                    self.transcript.control.messages = messages
+                    self.transcript.control.messages = self.preparing.project(key, messages)
                 return
 
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=None) -> None:
@@ -131,6 +131,9 @@ class LiveHubView(HubView):
             self.question.sync(snapshot.project_id, snapshot.selected_id, snapshot.questions)
             self.notice = display.notice
             self.activity = display.activity
+        self.preparing.paint()
+        if self.sessions[self.selected].id == snapshot.selected_id:
+            self.followup.refresh((snapshot.project_id, snapshot.selected_id), snapshot.messages)
 
     def set_theme(self, theme):
         super().set_theme(theme)

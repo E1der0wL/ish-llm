@@ -93,13 +93,13 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(calls[0][0], "submit_input")
                 # No loss or false success before persistence acknowledges.
                 self.assertEqual(view.composer.text, "hello")
-                self.assertEqual(view.transcript.control.messages, ())
+                self.assertEqual([m.status for m in view.transcript.control.messages], ["preparing"])
                 calls[0][2].set_result(SubmissionResult(message=message))
                 await asyncio.sleep(0)
                 self.assertEqual(view.composer.text, "")
-                self.assertEqual([m.id for m in view.transcript.control.messages], ["m"])
+                self.assertEqual([m.id for m in view.transcript.control.messages], ["m", "preparing:s"])
                 view.apply_snapshot(base)  # A stale projection cannot erase the receipt.
-                self.assertEqual([m.id for m in view.transcript.control.messages], ["m"])
+                self.assertEqual([m.id for m in view.transcript.control.messages], ["m", "preparing:s"])
                 committed = replace(message, status="committed")
                 view.apply_snapshot(replace(base, messages=(committed, ChatMessage("assistant", "reply", id="a"))))
                 self.assertEqual([m.id for m in view.transcript.control.messages], ["m", "a"])

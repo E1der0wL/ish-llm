@@ -14,6 +14,8 @@ from .questions import QuestionBroker
 
 
 class HubBuiltinTools(BuiltinToolComponent):
+    capabilities = ("tools", "completion_processors")
+
     def __init__(self, file_root=None, *, test_root=None):
         self.file_root = Path(file_root).expanduser().absolute() if file_root else None
         self.test_root = Path(test_root).expanduser().absolute() if test_root is not None else None
@@ -56,6 +58,9 @@ class HubBuiltinTools(BuiltinToolComponent):
                 if name != "test_workspace_execute" or shutil.which("bwrap") is not None]
 
     def resolve(self, project, capability):
+        if capability == "completion_processors":
+            from .completion import FollowupProcessor
+            return FollowupProcessor()
         if capability != "tools":
             return super().resolve(project, capability)
         toolkit = self.for_project(project)

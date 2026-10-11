@@ -5,6 +5,7 @@ from datetime import datetime
 from ..backend.approval import review_text
 
 from ..model import ChatMessage, HubSnapshot, SessionSummary
+from ..backend.followup import split_followup
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,6 +18,10 @@ class Presentation:
 
 def present_message(item: ChatMessage, t) -> ChatMessage:
     text = item.text
+    if item.role == "assistant":
+        text, _ = split_followup(text, final=item.status not in ("streaming", "committed"))
+    if item.role == "assistant" and not text and item.status in ("streaming", "committed"):
+        return replace(item, text="", status="preparing")
     if item.role == "assistant" and item.status == "failed":
         text = (text.rstrip() + "\n\n" if text.strip() else "") + t("response_failed")
     elif not text:
@@ -40,7 +45,11 @@ class MessagePresentationCache:
             key = item.id or index
             cached = previous.get(key)
             if cached is None or cached[0] != item:
-                cached = (item, present_message(item, t))
+                # A clock tick does not change Markdown/metadata parsing.
+                projected = (replace(cached[1], elapsed_seconds=item.elapsed_seconds)
+                    if cached and replace(cached[0], elapsed_seconds=item.elapsed_seconds) == item
+                    else present_message(item, t))
+                cached = (item, projected)
                 self.transformed += 1
             retained[key] = cached
             messages.append(cached[1])

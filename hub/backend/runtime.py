@@ -60,7 +60,7 @@ def create_backend(config: HubConfig):
     from llm.components.workflows import WorkflowComponent
     from llm.components.memory import MemoryComponent
     from llm.components.prompts import PromptComponent
-    from llm.components.skills import SkillComponent
+    from .skills import HubSkillComponent
     from llm.components.mcp import MCPComponent
     from llm.components.rag import RAGComponent
     from .naming import TitleEngine, TITLE_ENGINE
@@ -75,7 +75,7 @@ def create_backend(config: HubConfig):
     if config.auto_title:
         engines[TITLE_ENGINE] = TitleEngine()
     components = {component.name: component for component in
-                  (ToolComponent(), SkillComponent(), MCPComponent(), RAGComponent(),
+                  (ToolComponent(), HubSkillComponent(), MCPComponent(), RAGComponent(),
                    AgentComponent(engines=engines), WorkflowComponent(), MemoryComponent(), PromptComponent(),
                    HubBuiltinTools(config.file_root, test_root=Path(config.workspace).expanduser() / ".hub" / "test-workspaces"))}
     for factory in config.component_factories or ():
@@ -321,9 +321,10 @@ class HubRuntime:
     async def project_activity(self):
         """Keep public activity records and add bounded provider diagnostics."""
         from .provider_logs import read_provider_logs, associate_provider_logs
-        rows = [event.to_dict() for event in await self.project.aactivity(limit=300, newest_first=False)]
+        project = self.project
+        rows = [event.to_dict() for event in await project.aactivity(limit=300, newest_first=False)]
         workspace = getattr(self.backend, "workspace", self.config.workspace)
-        provider = await asyncio.to_thread(read_provider_logs, workspace, self.project.id)
+        provider = await asyncio.to_thread(read_provider_logs, workspace, project.id)
         return associate_provider_logs(rows, provider)
 
     async def execution_catalog(self, session_id: str) -> dict:
@@ -396,8 +397,20 @@ class HubRuntime:
             return {"catalog": await self.settings_service.catalog(),
                     "project": await self.settings_service.load_project(project_id)}
         if action == "help":
-            return self.t("component_help", command=command)
+            help_text = self.t("component_help", command=command)
+            return help_text + ("\n\n" + self.t("skills_install_help") if name == "skills" else "")
         data = await project.components.aget(name)
+        if action == "install":
+            from ..asset.guides import SKILLS
+            if name != "skills":
+                raise ValueError(self.t("component_usage_error"))
+            template = next((item for item in SKILLS if item[0] == identifier), None)
+            if template is None:
+                raise ValueError(self.t("component_usage_error"))
+            _, title, description, instructions = template
+            # Explicit create only: existing user-edited guides are never overwritten.
+            return {"created": await data.acreate({"title": title, "description": description,
+                "instructions": instructions, "metadata": {"hub_template_version": 2}}, identifier=payload["destination"])}
         result = await execute_data(data, action, identifier, payload)
         self.dirty.set()
         return result
@@ -432,12 +445,15 @@ class HubRuntime:
                            engine_options: dict, check_running: bool = True) -> SubmissionResult:
         """Check and admit in one UI command; acknowledge only persisted input."""
         from datetime import datetime, timezone
+        timestamp = datetime.now(timezone.utc).isoformat()
         if check_running:
             state = await self.submission_state(session_id)
             if state["run_id"]:
                 return SubmissionResult(run_id=state["run_id"])
-        timestamp = datetime.now(timezone.utc).isoformat()
         identifier = await self.submit(session_id, text, engine, engine_options)
+        self.snapshot_reader.submissions[identifier] = timestamp
+        if len(self.snapshot_reader.submissions) > 1024:
+            self.snapshot_reader.submissions.pop(next(iter(self.snapshot_reader.submissions)))
         # No extra reads after admission: a later read failure must not make a
         # durable request look rejected. The next snapshot supplies exact state.
         return SubmissionResult(message=ChatMessage("user", text, timestamp,

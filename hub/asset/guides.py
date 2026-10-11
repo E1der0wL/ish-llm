@@ -1,5 +1,7 @@
 """Versioned starter guidance copied into new Hub projects as editable data."""
 
+from pathlib import Path
+
 SYSTEM_PROMPT = """You are the assistant in Hub, working inside a persistent project with independent sessions.
 Respond in the user's language. Distinguish requests for information from requests to perform work.
 For authorized work, inspect the relevant context, make a short plan when useful, execute using available
@@ -19,13 +21,7 @@ Keep responses clear and concise; include evidence, file references or checks wh
 # Immutable definitions; callers construct fresh dictionaries for persistence.
 SKILLS = (
     ("hub-code-change", "코드 수정", "기존 코드의 동작과 경계를 확인하고 필요한 변경을 검증합니다.",
-     """Use for implementing or modifying code. First read the relevant project instructions and code,
-identify the caller and public contracts, and inspect existing tests and uncommitted work. Define the
-requested behavior and keep the change focused. Preserve unrelated edits and established architecture.
-Use available editing tools; if none exist, provide a precise patch or instructions rather than claiming
-to have changed files. Handle meaningful failure cases. Run checks appropriate to the change and the
-project's instructions. Do not weaken tests to hide failures. Review the final diff for accidental edits.
-Report what changed, the checks actually run, and any unresolved failure or unverified behavior."""),
+     Path(__file__).with_name("skills").joinpath("coding.md").read_text(encoding="utf-8")),
     ("hub-diagnose", "오류 진단", "오류를 재현하고 근거를 모아 원인과 해결책을 구분합니다.",
      """Use for errors, regressions and unexpected behavior. Capture the exact symptom, expected behavior,
 reproduction steps and relevant versions or configuration. Inspect only relevant logs and source using

@@ -1,6 +1,7 @@
 """Keep the LLM loop alive between ish's repeated prompt_async invocations."""
 
 import asyncio
+from contextlib import nullcontext
 from concurrent.futures import Future
 import threading
 
@@ -131,7 +132,11 @@ class BackendWorker:
             if operation in {"submit_input", "submit", "steer", "interrupt", "submission_state", "instruction_targets", "answer_question", "cancel_request"}:
                 if self._snapshot_task is not None:
                     self._snapshot_task.cancel()
-            async with self.runtime.lock:
+            # These operations capture explicit project handles and use service
+            # lifecycle/version locks. They never change UI selection. Long RAG
+            # writes and tool imports must not block unrelated output either.
+            independent = operation in {"project_activity", "execution_catalog", "component_command", "manage_tools"}
+            async with (nullcontext() if independent else self.runtime.lock):
                 result = await getattr(self.runtime, operation)(*args)
                 if operation not in {"submission_state", "instruction_targets", "snapshot"}:
                     self.runtime.dirty.set()

@@ -49,6 +49,7 @@ class HubBindings:
         r.add(["tab", " ", "enter", "right"], "Tab/Space/Enter/→", "main", lambda e: view.active_page.focus_main(), when=lambda: c.sidebar)
         r.add(["tab"], "", "confirm", self.complete, when=lambda: c.composing)
         r.add(["s-tab"], "", "", lambda e: None, when=lambda: c.composing)
+        r.add(["right"], "", "", self.suggest_or_move, when=lambda: c.composing)
         r.add(["up", "down"], "", "", lambda e: view.input_history.move(
             -1 if e.key_sequence[-1].key == "up" else 1),
             when=lambda: c.composing and view.input_history.available)
@@ -121,6 +122,12 @@ class HubBindings:
                 buffer.apply_completion(completion)
         else:
             buffer.start_completion(select_first=False)
+
+    def suggest_or_move(self, event):
+        if not self.view.followup.accept():
+            buffer = self.view.composer.buffer
+            buffer.suggestion = None
+            buffer.cursor_right(count=event.arg)
 
     def scroll(self, event):
         self.view.transcript.control.scroll(event.key_sequence[-1].key)

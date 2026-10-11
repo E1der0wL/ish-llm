@@ -92,7 +92,9 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
             view.preparing.start(("p", "s"))
             self.assertTrue(view.preparing.visible())
             self.assertIn(view.t("preparing_response"), view.preparing.text())
-            self.assertEqual(view.transcript.control.messages, ())
+            pending, = view.transcript.control.messages
+            self.assertEqual((pending.role, pending.status), ("assistant", "preparing"))
+            self.assertGreaterEqual(pending.elapsed_seconds, 0)
             view.preparing.accepted(("p", "s"), "request")
             view.apply_snapshot(base)
             self.assertTrue(view.preparing.visible())
@@ -101,6 +103,25 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(view.preparing.visible())
             view.apply_snapshot(replace(base, messages=(user, ChatMessage("assistant", "", id="answer", status="streaming"))))
             self.assertFalse(view.preparing.visible())
+        finally:
+            view.output_renderers.close()
+            view.progress.close()
+
+    def test_clock_keeps_advancing_without_backend_publication_and_stops_at_completion(self):
+        view = LiveHubView()
+        snapshot = HubSnapshot("p", "P", "model", "file", (SessionSummary("s", "S", "running"),), "s",
+            (ChatMessage("assistant", "Working", status="streaming", id="a", elapsed_seconds=2),))
+        try:
+            with patch("hub.widget.preparing.monotonic", return_value=10):
+                view.apply_snapshot(snapshot)
+            with patch("hub.widget.preparing.monotonic", return_value=13):
+                view.preparing.paint()
+                self.assertEqual(view.transcript.control.messages[-1].elapsed_seconds, 5)
+                view.apply_snapshot(replace(snapshot, messages=(replace(snapshot.messages[0], status="completed", elapsed_seconds=6),)))
+            with patch("hub.widget.preparing.monotonic", return_value=20):
+                view.preparing.paint()
+                self.assertEqual(view.transcript.control.messages[-1].elapsed_seconds, 6)
+            self.assertFalse(view.preparing.clocks)
         finally:
             view.output_renderers.close()
             view.progress.close()

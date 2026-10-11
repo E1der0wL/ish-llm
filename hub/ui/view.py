@@ -76,7 +76,10 @@ class HubView:
         self.toasts = SessionToasts(self)
         completer = HubCompleter(lambda: self.engines, lambda: self.file_root, self.t,
                                  components=lambda: self.component_commands)
+        from ..widget.followup import FollowupSuggestion
+        self.followup = FollowupSuggestion(self)
         self.composer = TextArea(
+            auto_suggest=self.followup,
             multiline=True, height=Dimension(min=1, max=8), dont_extend_height=True,
             wrap_lines=True, prompt=f" {icon.PROMPT} ", style="class:hub.composer",
             completer=ThreadedCompleter(completer), complete_while_typing=Condition(
@@ -120,7 +123,9 @@ class HubView:
         self._composer_frame = Frame(HSplit([
             self.question.container,
             self.composer,
-            ConditionalContainer(self._line(lambda: " " + self.t("input_hint"), "hub.muted"),
+            ConditionalContainer(self._line(lambda: " " + self.t("input_hint") + (
+                " · " + self.t("followup_hint") if self.followup.get_suggestion(
+                    self.composer.buffer, self.composer.buffer.document) else ""), "hub.muted"),
                                  Condition(lambda: self._rows() >= 18)),
         ]), title=lambda: self._focus_heading(self.composer.control, self.t("model_line", model=self.model)),
             style="class:hub.input-frame")
@@ -304,6 +309,7 @@ class HubView:
         self.remember_position()
         self._drafts[self._draft_key(self.selected)] = self.composer.text
         self.selected = index
+        self.composer.buffer.suggestion = None
         self.composer.text = self._drafts.get(self._draft_key(index), "")
         self.transcript.set_messages(self.sessions[index].messages, self._positions.get(self._draft_key(index)))
         if self.on_save_view:

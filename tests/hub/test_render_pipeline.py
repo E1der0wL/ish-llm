@@ -112,6 +112,92 @@ class CacheTests(unittest.TestCase):
 
 
 class WorkerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_conversation_displays_inflight_frame_while_newer_frame_is_rendering(self):
+        worker = RenderWorker()
+        first_gate, second_gate, started = Event(), Event(), Event()
+        control = ConversationControl((ChatMessage("assistant", "first", id="a"),), HubTheme())
+        control.render_worker = worker
+        prepare = control._message_cache.prepare
+        def slow(messages, *args, **kwargs):
+            started.set()
+            (first_gate if messages[0].text == "first" else second_gate).wait(5)
+            return prepare(messages, *args, **kwargs)
+        app = NS(is_running=True, invalidate=Mock())
+        try:
+            with set_app(app), patch.object(control._message_cache, "prepare", side_effect=slow):
+                control.create_content(80, 10)
+                await eventually(started.is_set)
+                first = control._requested_key
+                control.messages = (ChatMessage("assistant", "second", id="a"),)
+                control.create_content(80, 10)
+                first_gate.set()
+                await eventually(lambda: control._cache_key == first)
+                self.assertNotEqual(control._cache_key, control._requested_key)
+                self.assertIn("first", "".join(text for line in control._lines for _, text in line))
+                second_gate.set()
+                await eventually(lambda: control._cache_key == control._requested_key)
+        finally:
+            first_gate.set()
+            second_gate.set()
+            worker.close()
+            control.renderers.close()
+
+    async def test_progressive_render_publishes_before_newer_work_and_cancel_rejects_old_session(self):
+        worker, gate, newer, started = RenderWorker(), Event(), Event(), Event()
+        applied = []
+        def first():
+            started.set()
+            gate.wait(5)
+            return "first"
+        def second():
+            newer.wait(5)
+            return "second"
+        try:
+            worker.request("transcript", first, applied.append, str, progressive=True)
+            await eventually(started.is_set)
+            worker.request("transcript", second, applied.append, str, progressive=True)
+            gate.set()
+            await eventually(lambda: applied == ["first"])
+            worker.cancel("transcript")
+            newer.set()
+            worker.request("transcript", lambda: "new session", applied.append, str, progressive=True)
+            await eventually(lambda: applied[-1] == "new session")
+            self.assertEqual(applied, ["first", "new session"])
+        finally:
+            gate.set()
+            newer.set()
+            worker.close()
+
+    async def test_slow_component_read_does_not_block_snapshots(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def component_command(*args):
+            entered.set()
+            await release.wait()
+            return ["skill"]
+        worker = BackendWorker.__new__(BackendWorker)
+        worker._initialized = asyncio.Event()
+        worker._initialized.set()
+        worker._closed = False
+        worker._failure = None
+        worker._commands = set()
+        worker._snapshot_task = None
+        async def snapshot():
+            return "new output"
+        worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(),
+            component_command=component_command, snapshot=snapshot)
+        for arguments in (("p", "skills", "list"), ("p", "rag", 'create doc {"content":"sample"}')):
+            entered.clear()
+            release.clear()
+            command = asyncio.create_task(worker._execute("component_command", arguments))
+            try:
+                await entered.wait()
+                async with asyncio.timeout(1):
+                    self.assertEqual(await worker._read_snapshot(), "new output")
+                self.assertFalse(command.done())
+            finally:
+                release.set()
+                await command
+
     async def test_progress_updates_coalesce_repaints_but_keep_latest_value(self):
         progress = TaskProgress(NS(theme=HubTheme()))
         app = NS(invalidate=Mock())

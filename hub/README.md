@@ -760,3 +760,6 @@ Enter를 누르면 같은 작업이 이어집니다. 도구 승인은 같은 입
 필요하고 네트워크는 차단됩니다. [설정과 격리 범위](../docs/llm/test-workspaces.md)를 참고하세요.
 
 구조와 로그 경로의 책임 구분은 [Hub 구조 정리](../docs/hub/structure.md)를 참고하세요.
+
+코딩 스킬 설치(`/skills install hub-code-change coding-tested`), 실제 격리 테스트,
+준비 중 표시와 오른쪽 방향키 추천 입력은 [코딩 작업 안내](../docs/hub/coding-workflow.md)를 참고하세요.

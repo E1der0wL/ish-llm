@@ -24,6 +24,7 @@ class SnapshotReader:
     def __init__(self):
         self.cache = {}
         self.observations = {}
+        self.submissions = {}
         from .thinking import ThinkingPhases
         self.thinking = ThinkingPhases()
 
@@ -34,8 +35,9 @@ class SnapshotReader:
     def invalidate(self, session_id):
         self.observations.pop(session_id, None)
 
-    async def run_display(self, session, run_id: str, *, run=None) -> tuple[str, float | None]:
-        cached = self.cache.get(run_id)
+    async def run_display(self, session, run_id: str, *, run=None, requested_at=None) -> tuple[str, float | None]:
+        key = (run_id, requested_at)
+        cached = self.cache.get(key)
         if cached is not None:
             return cached
         try:
@@ -48,18 +50,21 @@ class SnapshotReader:
         reasoning = reasoning_text(completions[-1].get("reasoning_content", "")) if completions else ""
         elapsed = None
         active = str(run.status) in ("pending", "running")
-        if run.started_at and (run.ended_at or str(run.status) == "running"):
+        started_at = requested_at or run.started_at
+        if started_at and (run.ended_at or active):
             end = datetime.fromisoformat(run.ended_at) if run.ended_at else datetime.now(timezone.utc)
-            elapsed = max(0.0, (end - datetime.fromisoformat(run.started_at)).total_seconds())
+            elapsed = max(0.0, (end - datetime.fromisoformat(started_at)).total_seconds())
         result = reasoning, elapsed
         if not active:
-            self.cache[run_id] = result
+            self.cache[key] = result
             if len(self.cache) > 1024:
                 self.cache.pop(next(iter(self.cache)))
         return result
 
     async def messages(self, session, messages, author="", *, latest=None):
         visible = []
+        requests = {message.run_id: self.submissions.get(message.id, message.created_at) for message in messages
+                    if str(message.role) == "user" and message.run_id and not message.metadata.get("steering")}
         for message in messages:
             role = str(message.role)
             if role not in ("user", "assistant"):
@@ -67,7 +72,8 @@ class SnapshotReader:
             elapsed = None
             if role == "assistant" and message.run_id:
                 reasoning, elapsed = await self.run_display(session, message.run_id,
-                    run=latest if latest is not None and latest.id == message.run_id else None)
+                    run=latest if latest is not None and latest.id == message.run_id else None,
+                    requested_at=requests.get(message.run_id))
                 reasoning = self.thinking.visible(message.run_id, reasoning,
                     active=str(message.status) in ("streaming", "committed"), content=message.content)
                 if reasoning:

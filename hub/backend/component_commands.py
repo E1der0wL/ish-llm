@@ -16,8 +16,12 @@ def parse_arguments(argument: str, language) -> tuple[str, str, dict]:
     parts = argument.split(maxsplit=2)
     action = parts[0] if parts else "help"
     identifier = parts[1] if len(parts) > 1 else ""
-    if action not in ACTIONS:
+    if action not in (*ACTIONS, "install"):
         raise ValueError(language("component_usage_error"))
+    if action == "install":
+        if len(parts) not in (2, 3) or (len(parts) == 3 and len(parts[2].split()) != 1):
+            raise ValueError(language("component_usage_error"))
+        return action, identifier, {"destination": parts[2] if len(parts) == 3 else identifier}
     expected = 3 if action in ("create", "update") else 2 if action in ("get", "delete") else 1
     if parts and len(parts) != expected:
         raise ValueError(language("component_usage_error"))

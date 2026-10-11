@@ -3,6 +3,8 @@
 from llm.core.models import Message, MessageRole, MessageStatus
 from llm.core.steering import is_instruction
 from llm.services.history.context import ConversationContextBuilder, ContextPolicy
+from dataclasses import replace
+from .followup import split_followup
 
 
 class HubContextBuilder(ConversationContextBuilder):
@@ -20,4 +22,6 @@ class HubContextBuilder(ConversationContextBuilder):
         kept = [message for group in groups
                 if not any(item.status == MessageStatus.FAILED for item in group)
                 for message in group]
+        kept = [replace(item, content=split_followup(item.content)[0])
+                if item.role == MessageRole.ASSISTANT else item for item in kept]
         return self._select([*kept, history[-1]], policy)
