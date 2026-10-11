@@ -8,6 +8,11 @@ from llm.core.models import ProjectConfig
 from ..asset.guides import SKILLS, SYSTEM_PROMPT
 
 
+def provider_defaults():
+    """Retry only pre-output transient failures through llm's provider policy."""
+    return {"max_attempts": 4, "delay_seconds": 10, "max_delay_seconds": 60}
+
+
 async def create_project(backend, title, *, config, components, conversation_storage):
     project_config = ProjectConfig(deepcopy(config))
     if "builtin_tools" in components:
@@ -19,6 +24,10 @@ async def create_project(backend, title, *, config, components, conversation_sto
     engines = backend.describe_project_config()["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]
     if "system_prompt" in engines.get("loop", {}).get("properties", {}).get("config", {}).get("properties", {}):
         project_config.parameters.setdefault("engines", {}).setdefault("loop", {}).setdefault("config", {}).setdefault("system_prompt", SYSTEM_PROMPT)
+    for name in ("loop", "_hub_title"):
+        if "provider" in engines.get(name, {}).get("properties", {}).get("policy", {}).get("properties", {}):
+            project_config.parameters.setdefault("engines", {}).setdefault(name, {}).setdefault("policy", {}).setdefault(
+                "provider", provider_defaults())
     project = await backend.projects.acreate(title, config=project_config, components=components,
                                              conversation_storage=conversation_storage)
     try:

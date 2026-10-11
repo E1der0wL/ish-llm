@@ -31,6 +31,10 @@ class QuestionComposer:
             return project_id, session_id, item["request"]["id"], item["request"].get("revision", 1)
         item = next((q for q in questions if key(q) not in self._completed), None)
         identity = key(item) if item else None
+        if self.busy and self.identity and self.identity[:2] == (project_id, session_id) and item is None:
+            # A persisted decision can disappear from observations before
+            # resume admission finishes. Keep its sending feedback until ACK.
+            return
         if identity == self.identity:
             return
         self.leave()
@@ -49,7 +53,9 @@ class QuestionComposer:
         if not self.item:
             return ""
         request = self.item["request"]
-        lines = [self.view.t("question_waiting"), request["title"]]
+        if self.busy:
+            return request["title"]
+        lines = [request["title"]]
         if request.get("description"):
             lines.append(request["description"])
         if self.item["live"]:
@@ -62,6 +68,10 @@ class QuestionComposer:
             if request.get("action"):
                 lines.append(self.view.t("question_action_hint"))
         return "\n".join(lines)
+
+    def review(self):
+        if self.item and self.item["request"].get("action") and self.view.on_review:
+            self.view.on_review(self.item["request"])
 
     def answer(self):
         if self.busy or not self.item or not self.view.on_answer:

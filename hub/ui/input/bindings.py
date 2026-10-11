@@ -67,6 +67,8 @@ class HubBindings:
         # The composer's own hint row already shows send/completion/newline.
         r.add(["enter"], "", "send", self.submit, when=lambda: c.composing, eager=False)
         r.add(["c-space"], "", "newline", self.newline, when=lambda: c.composing)
+        r.add(["c-o"], "Ctrl+O", "approval_details", lambda e: view.question.review(),
+              when=lambda: c.composing and bool(view.question.item and view.question.item["request"].get("action")))
         r.add(["c-c"], "Ctrl+C", "close", self.close, when=lambda: view.visible and not c.composing, global_=True, eager=False)
         r.add(["c-c"], "", "", lambda e: None, when=lambda: c.composing, global_=True)
 

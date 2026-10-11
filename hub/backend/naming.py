@@ -19,14 +19,17 @@ class TitleEngine(BaseEngine):
     def describe_config(self):
         from llm.core.schema import object_schema, implementation_schema
         from llm.providers.schema import completion_schema
-        return implementation_schema(config=object_schema({"completion": completion_schema()}, additionalProperties=False))
+        from llm.providers.requests import provider_schema
+        return implementation_schema(config=object_schema({"completion": completion_schema()}, additionalProperties=False),
+            policy=object_schema({"provider": provider_schema()}, additionalProperties=False))
 
     def resolve_config(self, config, name, *, session_config=None):
         from llm.core.configuration import resolve_engine_config
         return resolve_engine_config(config, name, session_config=session_config, schema=self.describe_config())
 
     async def run(self, context):
-        request = self.copy_params(context.resolve_config()["engine"].get("config", {}).get("completion", {}))
+        settings = context.resolve_config()["engine"]
+        request = self.copy_params(settings.get("config", {}).get("completion", {}))
         request.pop("tools", None)
         request.pop("tool_choice", None)
         request["messages"] = [
@@ -35,7 +38,7 @@ class TitleEngine(BaseEngine):
         ]
         if context.completion_policy is not None:
             request = await asyncio.to_thread(context.completion_policy.prepare, request)
-        async with aclosing(self.stream_completion(request)) as stream:
+        async with aclosing(self.stream_completion(request, provider=settings.get("policy", {}).get("provider", {}))) as stream:
             async for item in stream:
                 yield item
 

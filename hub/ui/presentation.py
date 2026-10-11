@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, replace
 from datetime import datetime
-from ..backend.approval import review_text
+from ..backend.approval import review_summary
 
 from ..model import ChatMessage, HubSnapshot, SessionSummary
 from ..backend.followup import split_followup
@@ -60,12 +60,11 @@ class MessagePresentationCache:
 def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
     sessions = tuple(replace(item, status=t("queued", status=t.status(item.status), count=item.queued_count)) for item in snapshot.sessions)
     messages = cache.messages(snapshot, t) if cache else tuple(present_message(item, t) for item in snapshot.messages)
-    # Keep the complete action reviewable with the existing output scrollbar
-    # and tag viewer, even when it cannot fit above the answer field.
+    # Default output is a bounded card, never the entire tool argument payload.
     for item in snapshot.questions:
         request = item["request"]
         if request.get("action"):
-            text = item.get("review_text") or review_text(request)
+            text = item.get("review_text") or review_summary(request, t)
             messages += (ChatMessage("assistant", text, id="interaction:" + request["id"]),)
     if not sessions:
         return Presentation((), messages, t("session_required"), "")
@@ -78,17 +77,17 @@ def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
                          seconds=int(run.elapsed_seconds or 0), count=snapshot.queued_count)
             if run.steps:
                 step = run.steps[-1]
-                activity = t("phase", name=step.name, status=t.status(step.status))
+                activity = f"{t.status(step.status)} · {step.name}"
                 if step.kind == "llm" and step.status == "running":
                     phase = next((m.phase for m in reversed(snapshot.messages)
                                   if m.role == "assistant" and m.phase), "thinking")
-                    activity = t.status(phase if phase != "preparing" else "thinking")
+                    activity = f"{t.status(phase if phase != 'preparing' else 'thinking')} · {snapshot.model}"
         if run.error:
             notice = f"{t.status(run.status)}: {run.error}"
         elif run.status == "paused":
             notice = t("paused")
     if snapshot.status in ("waiting_input", "waiting_approval"):
-        activity = t.status(snapshot.status)
+        activity = f"{t.status(snapshot.status)} · {snapshot.questions[0]['request']['title']}" if snapshot.questions else t.status(snapshot.status)
         notice = t("queued", status=activity, count=snapshot.queued_count)
     if snapshot.storage == "memory":
         notice += " · " + t("memory")

@@ -180,6 +180,7 @@ class LiveController:
         self.view.on_open = self.open
         self.view.on_submit = self.submit
         self.view.on_answer = self.answer_question
+        self.view.on_review = self.review_approval
         self.view.on_select = self.select
         self.view.on_new = self.new_session
         self.view.on_delete = self.delete_session
@@ -430,6 +431,18 @@ class LiveController:
             self._accept_input(project_id, session_id, text, request_id, operation)
         self._call(operation, session_id, *args, completed=accepted)
 
+    def review_approval(self, request):
+        view = self.view
+        identity = view.question.identity
+        def ready(text):
+            if text is None or identity != view.question.identity or view._dialog is not None or not view.visible:
+                return
+            from ..widget.reader import ReadOnlyDialog
+            popup = ReadOnlyDialog(request["title"], text, view._rows, view._columns,
+                view.dialogs.close, view.t, markdown=True, theme=lambda: view.theme, render_worker=view.render_worker)
+            view.dialogs.show(popup, popup.receiver)
+        self._call("approval_details", request, completed=ready)
+
     def answer_question(self, item, option_id, value):
         question = self.view.question
         if question.busy:
@@ -439,6 +452,7 @@ class LiveController:
         text = self.view.composer.text
         self.view.composer.text = ""
         question.drafts[identity] = ""
+        self.app.invalidate()
         def answered(result):
             if result:
                 question.completed(identity)

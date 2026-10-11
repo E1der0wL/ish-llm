@@ -770,3 +770,6 @@ Enter를 누르면 같은 작업이 이어집니다. 도구 승인은 같은 입
 
 생각 중 상태, Gemini 생각 요약 설정과 청크 단위 출력 진단은
 [Completion 표시 안내](../docs/hub/completion-display.md)를 참고하세요.
+
+새 프로젝트의 일시적 공급자 오류 재시도, 샌드박스 명령 인자 피드백과 대화 화면의
+마우스 휠은 [응답 안정성 안내](../docs/hub/response-reliability.md)를 참고하세요.

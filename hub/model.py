@@ -56,6 +56,13 @@ class StepSummary:
 
 
 @dataclass(frozen=True, slots=True)
+class RetrySummary:
+    attempt: int
+    maximum: int
+    retry_at: float | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class RunSummary:
     id: str
     status: str
@@ -64,6 +71,7 @@ class RunSummary:
     active: bool
     steps: tuple[StepSummary, ...]
     error: str
+    retry: RetrySummary | None = None
 
 
 @dataclass(frozen=True, slots=True)

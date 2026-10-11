@@ -35,7 +35,7 @@ class HubView:
         self.sessions = list(sessions) or [SessionView(self.t("welcome_title"))]
         self.on_open = self.on_submit = self.on_select = self.on_new = None
         self.on_interrupt = self.on_steer = None
-        self.on_answer = None
+        self.on_answer = self.on_review = None
         self.on_choose_engine = None
         self.on_history = self.on_activity = None
         self.on_turns = None
@@ -129,12 +129,12 @@ class HubView:
                                  Condition(lambda: self._rows() >= 18)),
         ]), title=lambda: self._focus_heading(self.composer.control, self.t("model_line", model=self.model)),
             style="class:hub.input-frame")
+        from ..widget.activity import activity_text
         conversation = HSplit([
             self._line(self._conversation_header, "hub.title"),
             DynamicContainer(lambda: self.welcome if self.no_sessions else self.transcript),
-            self.preparing.container,
-            ConditionalContainer(self._line(lambda: " " + self.activity, "hub.muted"),
-                                 Condition(lambda: bool(self.activity) and self._rows() >= 18)),
+            ConditionalContainer(self._line(lambda: " " + activity_text(self), "hub.muted"),
+                                 Condition(lambda: bool(activity_text(self)))),
             self._preview_container,
             self._composer_frame,
         ])
@@ -144,7 +144,9 @@ class HubView:
             sidebar_visible=self._sidebar.filter, extra=(self._details,),
             sidebar_controls=lambda: (self._session_control,),
             focus_sidebar=self._focus_sessions, focus_main=self._focus_composer)
-        panel = self.chat_page.container
+        from ..widget.wheel import WheelRoutingContainer
+        panel = WheelRoutingContainer(self.chat_page.container, self.transcript.control.mouse_handler,
+            enabled=lambda: self._dialog is None and not self.tags.visible)
         # PTK defers cursor-positioned floats with an absolute drawing priority.
         # An enclosing host Float can inherit a later priority than our popups.
         # Paint the Hub body at this container's own base, then draw its overlays.

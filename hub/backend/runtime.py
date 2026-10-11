@@ -51,7 +51,7 @@ def create_backend(config: HubConfig):
     from llm.llm import LargeLanguageModel, BackendServices
     from llm.services.runtime.tools import ToolRuntime
     from llm.components.tools.builtin import BuiltinToolRunner
-    from llm.engines.loop import LoopEngine
+    from .retries import HubLoopEngine, RetryMonitor, RetryObservationMixin
     from llm.engines.graph import GraphEngine
     from llm.engines.graph.agent import AgentNode
     from llm.engines.graph.tool import ToolNode
@@ -66,7 +66,8 @@ def create_backend(config: HubConfig):
     from .naming import TitleEngine, TITLE_ENGINE
     from .builtin_tools import HubBuiltinTools
     from .context import HubContextBuilder
-    factories = {"loop": LoopEngine, **(config.engine_factories or {})}
+    monitor = RetryMonitor()
+    factories = {"loop": HubLoopEngine, **(config.engine_factories or {})}
     if config.engine not in factories and config.engine != "graph":
         raise ValueError("Register the selected engine in HubConfig.engine_factories")
     engines = {name: factory() for name, factory in factories.items()}
@@ -74,6 +75,9 @@ def create_backend(config: HubConfig):
         "agent": AgentNode(engines={"loop": engines["loop"]}), "tool": ToolNode()}))
     if config.auto_title:
         engines[TITLE_ENGINE] = TitleEngine()
+    for engine in engines.values():
+        if isinstance(engine, RetryObservationMixin):
+            engine.retry_monitor = monitor
     components = {component.name: component for component in
                   (ToolComponent(), HubSkillComponent(), MCPComponent(), RAGComponent(),
                    AgentComponent(engines=engines), WorkflowComponent(), MemoryComponent(), PromptComponent(),
@@ -82,7 +86,7 @@ def create_backend(config: HubConfig):
         component = factory()
         components[component.name] = component
     return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
-                              services=BackendServices(context_builder=HubContextBuilder(),
+                              services=BackendServices(context_builder=HubContextBuilder(), observability_sink=monitor,
                                   tool_runtime=ToolRuntime(classify=config.tool_classifier, runner=BuiltinToolRunner())))
 
 
@@ -486,6 +490,10 @@ class HubRuntime:
         self.dirty.set()
         return result
 
+    async def approval_details(self, request_data):
+        from .approval import review_text
+        return await asyncio.to_thread(review_text, request_data)
+
     async def answer_question(self, project_id, session_id, run_id, request_data, option_id, value):
         from llm.core.interactions import InteractionRequest
         if project_id != self.project.id:
@@ -500,9 +508,9 @@ class HubRuntime:
             denied = next(option for option in request.options if option.id == option_id).effect == "deny"
             if not denied and not await run.ainteractions(pending_only=True):
                 engine = (await run.aget_data()).engine
-                plan = await session.run.resume_plan(run_id, engine=engine)
-                if not plan.can_resume or plan.retry_nodes:
-                    raise ValueError("Response saved; this Run requires explicit recovery before resuming")
+                # resume performs the authoritative checkpoint/approval checks
+                # again under its lock. Avoid the expensive duplicate preview.
+                # No retry_nodes are supplied: uncertain work cannot be replayed.
                 await session.run.resume(run_id, engine=engine)
         self.dirty.set()
         return True
@@ -541,9 +549,13 @@ class HubRuntime:
             engines=self.backend.engines, title_errors=self.namer.errors)
         self._reconcile_snapshot(snapshot.project_id, observations)
         questions = self.builtin_tools.questions.views(self.project.id, self.selected_id) if self.builtin_tools else ()
-        from .approval import review_text
-        questions = tuple({**item, "review_text": review_text(item["request"])} if item["request"].get("action") else item
+        from .approval import review_summary
+        questions = tuple({**item, "review_text": review_summary(item["request"], self.t)} if item["request"].get("action") else item
                           for item in questions + snapshot.questions)
+        from .retries import RetryMonitor
+        monitor = getattr(self.backend.services, "observability_sink", None)
+        if snapshot.run and snapshot.run.active and isinstance(monitor, RetryMonitor):
+            snapshot = replace(snapshot, run=replace(snapshot.run, retry=monitor.view(snapshot.run.id)))
         from .questions import waiting_status
         waiting = {item.session_id for item in self.builtin_tools.questions.pending.values()
                    if item.project_id == snapshot.project_id} if self.builtin_tools else set()

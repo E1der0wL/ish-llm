@@ -137,7 +137,7 @@ class BackendWorker:
             # These operations capture explicit project handles and use service
             # lifecycle/version locks. They never change UI selection. Long RAG
             # writes and tool imports must not block unrelated output either.
-            independent = operation in {"project_activity", "execution_catalog", "component_command", "manage_tools"}
+            independent = operation in {"project_activity", "execution_catalog", "component_command", "manage_tools", "approval_details", "answer_question"}
             async with (nullcontext() if independent else self.runtime.lock):
                 result = await getattr(self.runtime, operation)(*args)
                 if operation not in {"submission_state", "instruction_targets", "snapshot"}:

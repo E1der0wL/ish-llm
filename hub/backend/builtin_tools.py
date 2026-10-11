@@ -8,7 +8,8 @@ import sys
 import shutil
 
 from llm.components.tools import Tool, ToolContract
-from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent, TestWorkspaces
+from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
+from .test_workspaces import HubTestWorkspaces
 
 from .questions import QuestionBroker
 
@@ -29,7 +30,7 @@ class HubBuiltinTools(BuiltinToolComponent):
     def _create(self, root):
         # Hub 제품 preset: 네트워크 차단, 명시적으로 선택한 파일만 복사.
         # Python 설치 경로는 실행에 필요한 read-only runtime이며 사용자 home 전체를 노출하지 않는다.
-        spaces = None if self.test_root is None else TestWorkspaces(self.test_root, source_root=root,
+        spaces = None if self.test_root is None else HubTestWorkspaces(self.test_root, source_root=root,
             allow_network=False, read_only_paths=tuple(dict.fromkeys((sys.base_prefix, sys.prefix))))
         toolkit = BuiltinTools(root, allow_commands=True, shell=["/bin/sh", "-c"], git=True, diagnostics=True,
                                test_workspaces=spaces)

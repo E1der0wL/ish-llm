@@ -59,7 +59,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                         await asyncio.sleep(0.02)
                 snapshot = await runtime.snapshot()
                 self.assertNotIn("\n", present(snapshot, runtime.t).activity)
-                self.assertEqual(runtime.t.status("thinking"), present(snapshot, runtime.t).activity)
+                self.assertEqual(runtime.t.status("thinking") + " · " + snapshot.model, present(snapshot, runtime.t).activity)
                 run_id, targets = await runtime.instruction_targets(identifier)
                 instruction = await runtime.steer(identifier, run_id, "additional direction", [targets[0][0]])
                 await runtime.submit(identifier, "second request", "review")

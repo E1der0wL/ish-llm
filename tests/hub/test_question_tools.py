@@ -131,7 +131,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.question.item is not None)
                 await until(lambda: any(item.status == "waiting_input" for item in view.toasts.items))
                 self.assertIn(view.t.status("waiting_input"), view.sessions[view.selected].status)
-                self.assertEqual(view.activity, view.t.status("waiting_input"))
+                self.assertEqual(view.activity, view.t.status("waiting_input") + " · " + view.question.item["request"]["title"])
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertIsNone(view._dialog)
                 pipe.send_text("2\r")
@@ -210,8 +210,9 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse((Path(root) / "answer.txt").exists())
                 item = snapshot.questions[0]
                 action = present(snapshot, runtime.t).messages[-1]
-                self.assertIn('"path": "answer.txt"', action.text)
-                self.assertIn('"content": "approved"', action.text)
+                self.assertIn("path: 'answer.txt'", action.text)
+                self.assertNotIn('"content": "approved"', action.text)
+                self.assertIn('"content": "approved"', await runtime.approval_details(item["request"]))
                 await runtime.answer_question(runtime.project.id, sid, item["run_id"], item["request"], "approve", None)
                 await runtime.sessions[sid].run.wait_idle()
                 self.assertEqual((Path(root) / "answer.txt").read_text(), "approved")

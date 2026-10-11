@@ -1,9 +1,6 @@
 """Immediate local submission feedback, separate from durable chat history."""
 
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.filters import Condition
-from prompt_toolkit.layout import ConditionalContainer, Window
-from prompt_toolkit.layout.controls import FormattedTextControl
 import asyncio
 from dataclasses import replace
 from time import monotonic
@@ -18,15 +15,13 @@ class PreparingResponse:
         self.started = {}
         self.clocks = {}
         self._ticker = None
-        self.container = ConditionalContainer(Window(FormattedTextControl(self.text),
-            height=1, style="class:hub.muted"), Condition(self.visible))
 
     def visible(self):
         view = self.view
         return (getattr(view, "project_id", ""), view.sessions[view.selected].id) in self.pending
 
     def text(self):
-        return "  " + self.view.t("assistant") + " · " + self.view.t("preparing_response")
+        return self.view.t("preparing_response") + " · " + self.view.model
 
     def start(self, key):
         self.pending[key] = None
