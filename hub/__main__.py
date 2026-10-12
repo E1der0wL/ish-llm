@@ -26,11 +26,18 @@ def main() -> None:
         parser.error("--session requires --project")
     config = HubConfig(args.workspace, args.engine, args.model, args.api_base, args.project, args.session,
                        language=args.language, file_root=args.file_root)
-    app, controller = create_application(config, theme=HubTheme.dark() if args.theme == "dark" else None)
-    try:
-        app.run(pre_run=lambda: controller.view.show(app))
-    finally:
-        controller.close()
+    from .config.restart import restart_config
+    from .ui.restart import RESTART
+    launch_config = config
+    while True:
+        app, controller = create_application(config, theme=HubTheme.dark() if args.theme == "dark" else None)
+        try:
+            result = app.run(pre_run=lambda: controller.view.show(app))
+        finally:
+            controller.close()
+        if result != RESTART:
+            break
+        config = restart_config(launch_config, controller.config)
 
 
 if __name__ == "__main__":

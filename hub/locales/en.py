@@ -3,6 +3,14 @@
 
 
 MESSAGES = {
+    "settings_requires_restart": "Restart required",
+    "settings_restart_title": "Restart Hub",
+    "settings_restart_now": "Restart",
+    "settings_restart_confirm": "Saved. Restart Hub to apply these settings:\n\n{fields}\n\nRestart now?\nEnter: restart · Esc: later (keep saved values)",
+    "settings_restart_busy": "Hub has running or queued work, or a command in progress. Retry saving after it finishes, or restart ish later. Your settings have been saved.",
+    "settings_restarting": "Restarting Hub",
+    "general_category_storage": "Data storage",
+    "general_workspace_root": "Hub data root. Enter an absolute path or ~/path. Takes effect after restarting Hub. Existing data is not moved; an empty directory starts a new workspace. Leave blank to use the original launch path.",
     'object_query': 'Search / filter:',
     'object_raw': 'Source',
     'object_rendered': 'Rendered',

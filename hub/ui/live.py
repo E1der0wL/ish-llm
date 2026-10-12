@@ -148,7 +148,9 @@ class LiveHubView(HubView):
 
 class LiveController:
     def __init__(self, view: LiveHubView, config: HubConfig, *, worker_factory=BackendWorker):
-        preferences = PreferencesStore(config.workspace).load()
+        from ..config.preferences import configured_workspace
+        config = configured_workspace(config)
+        preferences = PreferencesStore(config._workspace_anchor).load()
         if "profile" in preferences:
             config = replace(config, user_profile=UserProfile(**preferences["profile"]))
         if "appearance" in preferences:
@@ -197,6 +199,9 @@ class LiveController:
         self.view.on_turns = lambda session_id, ready: self._call("turns", session_id, completed=ready)
         self.view.on_save_view = self._save_view
         self.view.settings.request = self._settings_request
+        from ..config.restart import startup_settings
+        self.view.settings.applied_preferences = startup_settings(config, view.general)
+        self.view.settings.workspace_anchor = config._workspace_anchor
         self.view.transcript.control.on_position_changed = self._reading_changed
         self.view.file_root = config.file_root or config.workspace
         if config.engine_factories:
@@ -594,14 +599,25 @@ class LiveController:
             self._call("snapshot", completed=self._snapshot)
         self._call("delete_session", session_id, completed=deleted)
 
-    def close(self):
+    def _prepare_close(self):
         if self.closed:
-            return
+            return False
         self.view.output_renderers.close()
         self.view.progress.close()
         self.view.remember_position()
         self._save_view()
         self.closed = True
+        return True
+
+    def _finish_close(self):
         self._view_writer.close()
         if self.worker:
             self.worker.close()
+
+    async def aclose(self):
+        if self._prepare_close():
+            await asyncio.to_thread(self._finish_close)
+
+    def close(self):
+        if self._prepare_close():
+            self._finish_close()

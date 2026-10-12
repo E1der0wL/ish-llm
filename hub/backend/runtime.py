@@ -31,6 +31,7 @@ class HubConfig:
     auto_title: bool = True
     user_profile: UserProfile = field(default_factory=UserProfile)
     language_packs: dict[str, dict[str, str]] = field(default_factory=dict)
+    _workspace_anchor: str | Path | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         Language(self.language, self.language_packs)
@@ -94,6 +95,8 @@ class HubRuntime:
     """All handles, subscriptions and locks belong to one backend event loop."""
 
     def __init__(self, config: HubConfig, backend_factory: Callable = create_backend) -> None:
+        from ..config.preferences import configured_workspace
+        config = configured_workspace(config)
         self.config = config
         self.t = Language(config.language, config.language_packs)
         self._factory = backend_factory

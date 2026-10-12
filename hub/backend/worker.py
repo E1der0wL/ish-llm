@@ -18,6 +18,7 @@ class BackendWorker:
         self.runtime = None
         self._ready = threading.Event()
         self._closed = False
+        self._restarting = False
         self._failure = None
         self._shutdown_error = None
         self._commands = set()
@@ -124,7 +125,7 @@ class BackendWorker:
 
     async def _execute(self, operation: str, args):
         await self._initialized.wait()
-        if self._closed:
+        if self._closed or self._restarting:
             raise RuntimeError("Hub backend is closing")
         if self._failure:
             raise RuntimeError(str(self._failure))
@@ -146,10 +147,35 @@ class BackendWorker:
         finally:
             self._commands.discard(task)
 
+    async def _prepare_restart(self):
+        await self._initialized.wait()
+        async with self.runtime.lock:
+            if self._commands:
+                raise RuntimeError(self.runtime.t("settings_restart_busy"))
+            if self.runtime.backend is not None:
+                for project in await self.runtime.backend.projects.alist():
+                    for session in await project.sessions.alist():
+                        status = await session.run.astatus()
+                        if status.active_run_id or status.queued_count or session.id in self.runtime.namer.tasks:
+                            raise RuntimeError(self.runtime.t("settings_restart_busy"))
+            if self._commands:
+                raise RuntimeError(self.runtime.t("settings_restart_busy"))
+            self._restarting = True
+
     def call(self, operation: str, *args) -> Future:
         if self._closed or self.loop.is_closed():
             raise RuntimeError("Hub backend is closed")
         return asyncio.run_coroutine_threadsafe(self._execute(operation, args), self.loop)
+
+    def prepare_restart(self) -> Future:
+        """Freeze admission only when all projects and background commands are idle."""
+        if self._closed or self.loop.is_closed():
+            raise RuntimeError("Hub backend is closed")
+        return asyncio.run_coroutine_threadsafe(self._prepare_restart(), self.loop)
+
+    def cancel_restart(self) -> None:
+        if not self._closed and not self.loop.is_closed():
+            self.loop.call_soon_threadsafe(setattr, self, "_restarting", False)
 
     def set_output_interval(self, seconds: float) -> None:
         """Change only observation batching on the backend loop."""
@@ -173,6 +199,8 @@ class BackendWorker:
     def set_sidebar_width(self, width: int) -> None:
         """Coalesce only width writes, serialized with explicit settings saves."""
         def queue():
+            if self._restarting:
+                return
             self._sidebar_width_pending = width
             if self._sidebar_width_task is None or self._sidebar_width_task.done():
                 self._sidebar_width_task = asyncio.create_task(self._write_sidebar_width())

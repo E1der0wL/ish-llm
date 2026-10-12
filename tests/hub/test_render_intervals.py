@@ -105,6 +105,7 @@ class RenderIntervalTests(unittest.IsolatedAsyncioTestCase):
         worker = BackendWorker.__new__(BackendWorker)
         worker.loop = asyncio.get_running_loop()
         worker._closed = False
+        worker._restarting = False
         worker._output_interval = 10
         worker._interval_changed = asyncio.Event()
         worker._snapshot_task = None

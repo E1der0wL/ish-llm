@@ -7,7 +7,7 @@ from getpass import getuser
 @dataclass(frozen=True, slots=True)
 class UserProfile:
     display_name: str = field(default_factory=getuser)
-    language: str = ""
+    language: str = field(default="", metadata={"requires_restart": True})
     email: str = ""
     phone: str = ""
 

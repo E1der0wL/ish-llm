@@ -86,6 +86,8 @@ class SettingField:
         self.input.window.style = lambda: "class:hub.settings-input" + (
             " class:hub.focused" if get_app().layout.has_focus(self.input) else "")
         description = self.schema.get("description") or t("settings_no_description")
+        if self.schema.get("requires_restart"):
+            description += " · " + t("settings_requires_restart")
         constraints = {name: self.schema[name] for name in ("minimum", "maximum", "exclusiveMinimum",
                        "minLength", "maxLength", "pattern") if name in self.schema}
         if constraints:

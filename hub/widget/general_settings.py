@@ -8,6 +8,7 @@ from prompt_toolkit.widgets import Label
 
 from .section import section
 from ..locales import validate_packs
+from ..config.restart import setting_metadata
 from .settings import SchemaForm
 from .controls import Button, RadioList, TextArea
 
@@ -16,6 +17,7 @@ class GeneralForm:
     def __init__(self, screen, values):
         self.screen = screen
         self.groups = {
+            "storage": ("workspace_root",),
             "language": ("language",),
             "notifications": ("notification_kinds", "notification_seconds"),
             "startup": ("restore_last_project", "restore_last_session"),
@@ -26,6 +28,8 @@ class GeneralForm:
                  "restore_last_project": "boolean", "restore_last_session": "boolean", "auto_scroll": "boolean"}
         properties = {key: {"type": kinds.get(key, "string"), "description": screen.t("general_" + key)}
                       for keys in self.groups.values() for key in keys}
+        for key, schema in properties.items():
+            schema.update(setting_metadata("general")[key])
         properties["notification_kinds"].update(items={"type": "string", "enum": ["error", "info", "warning", "success"]})
         properties["notification_seconds"].update(minimum=1, maximum=120)
         self.form = SchemaForm({"type": "object", "properties": properties}, values, screen.t)

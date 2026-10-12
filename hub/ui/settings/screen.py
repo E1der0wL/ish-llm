@@ -34,6 +34,9 @@ class SettingsScreen:
         self.schema = None
         self.projects = []
         self.preferences = {}
+        self.applied_preferences = {}
+        self.workspace_anchor = None
+        self.on_restart = None
         self.usage = []
         self.global_keys = ("profile", "appearance", "general")
         self._initial_appearance = asdict(view.theme)
@@ -190,6 +193,7 @@ class SettingsScreen:
             return
         if not requests:
             self.view.toggle_settings()
+            self.prompt_restart(self.global_keys)
             return
         def saved(batch):
             if batch is None:
@@ -204,7 +208,20 @@ class SettingsScreen:
             elif self.view.settings_open:
                 self._pending_selection = None
                 self.view.toggle_settings()
+            if not batch.get("error"):
+                self.prompt_restart(self.global_keys)
         self.call("save_all", requests, completed=saved)
+
+    def prompt_restart(self, sections):
+        from ...config.restart import restart_changes
+        changed = [name for section in sections for name in restart_changes(section,
+            self.preferences.get(section, {}), self.applied_preferences.get(section, {}),
+            anchor=self.workspace_anchor)]
+        if not changed or self.on_restart is None:
+            return
+        self.view.open_dialog(self.t("settings_restart_title"),
+            Label(self.t("settings_restart_confirm", fields="\n".join(changed))),
+            self.on_restart, accept_text=self.t("settings_restart_now"))
 
     def discard_and_close(self):
         if self.busy:

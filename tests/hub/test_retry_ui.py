@@ -186,6 +186,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
         worker._initialized = asyncio.Event()
         worker._initialized.set()
         worker._closed, worker._failure, worker._snapshot_task = False, None, None
+        worker._restarting = False
         worker._commands = set()
         worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(), answer_question=AsyncMock(return_value=True))
         async with worker.runtime.lock:

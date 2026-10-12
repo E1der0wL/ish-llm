@@ -166,6 +166,10 @@ class GlobalPage(Page):
                         {key: screen.t("settings_color_description") for key in
                          ("background", "foreground", "accent1", "accent2", "accent3", "comment")})
         properties = {key: {"type": "string", "description": description} for key, description in descriptions.items()}
+        from ...config.restart import setting_metadata
+        for key, metadata in setting_metadata(name).items():
+            if key in properties:
+                properties[key].update(metadata)
         if name == "appearance":
             properties["icon_style"] = {"type": "string", "enum": ["nerd", "unicode"],
                 "title": screen.t("settings_icon_style"), "description": screen.t("settings_icon_description"),
@@ -266,4 +270,5 @@ class GlobalPage(Page):
                 self.accept_saved(result)
                 if on_saved:
                     on_saved()
+                self.screen.prompt_restart(self.screen.global_keys)
         self.screen.call(operation, *args, completed=saved)

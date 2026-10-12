@@ -178,6 +178,7 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
         worker._initialized = asyncio.Event()
         worker._initialized.set()
         worker._closed = False
+        worker._restarting = False
         worker._failure = None
         worker._commands = set()
         worker._snapshot_task = None
@@ -190,7 +191,8 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
             release.clear()
             command = asyncio.create_task(worker._execute("component_command", arguments))
             try:
-                await entered.wait()
+                async with asyncio.timeout(1):
+                    await entered.wait()
                 async with asyncio.timeout(1):
                     self.assertEqual(await worker._read_snapshot(), "new output")
                 self.assertFalse(command.done())

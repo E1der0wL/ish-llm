@@ -40,6 +40,7 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
         worker._initialized = asyncio.Event()
         worker._initialized.set()
         worker._closed = False
+        worker._restarting = False
         worker._failure = None
         worker._commands = set()
         worker._snapshot_task = None

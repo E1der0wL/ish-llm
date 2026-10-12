@@ -10,15 +10,18 @@ import shlex
 @dataclass(frozen=True, slots=True)
 class GeneralSettings:
     editor: str = ""
-    language: str = ""
-    language_packs: dict[str, dict[str, str]] = field(default_factory=dict)
+    language: str = field(default="", metadata={"requires_restart": True})
+    language_packs: dict[str, dict[str, str]] = field(default_factory=dict, metadata={"requires_restart": True})
     notification_kinds: list[str] = field(default_factory=lambda: ["error", "info", "warning", "success"])
     notification_seconds: float = 8
-    restore_last_project: bool = True
-    restore_last_session: bool = True
+    restore_last_project: bool = field(default=True, metadata={"requires_restart": True})
+    restore_last_session: bool = field(default=True, metadata={"requires_restart": True})
     auto_scroll: bool = True
+    workspace_root: str = field(default="", metadata={"requires_restart": True})
 
     def __post_init__(self):
+        from .workspace import workspace_path
+        workspace_path(self.workspace_root)
         from ..locales import Language, validate_packs
         validate_packs(self.language_packs)
         if self.language:

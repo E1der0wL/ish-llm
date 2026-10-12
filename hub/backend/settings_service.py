@@ -11,7 +11,7 @@ from ..config.general import GeneralSettings
 class SettingsService:
     def __init__(self, runtime):
         self.runtime = runtime
-        self.preferences = PreferencesStore(runtime.config.workspace)
+        self.preferences = PreferencesStore(runtime.config._workspace_anchor or runtime.config.workspace)
 
     def _schema(self):
         schema = self.runtime.backend.describe_project_config()
@@ -65,12 +65,15 @@ class SettingsService:
                                                             "unknown_calls", "period_seconds")}})
             except Exception as error:
                 usage.append({"id": data.id, "title": data.title, "error": str(error)})
+        preferences = {"profile": asdict(self.runtime.config.user_profile),
+                       "general": asdict(GeneralSettings()), **self.preferences.load()}
+        preferences["general"]["workspace_root"] = (preferences["general"].get("workspace_root")
+            or str(self.runtime.config._workspace_anchor or self.runtime.config.workspace))
         return {"projects": projects, "schema": self._schema(),
                 "host": self.runtime.backend.describe_host(),
                 "usage": usage,
                 "active_project": self.runtime.project.id,
-                "preferences": {"profile": asdict(self.runtime.config.user_profile),
-                                "general": asdict(GeneralSettings()), **self.preferences.load()}}
+                "preferences": preferences}
 
     async def load_project(self, identifier):
         project = await self._project(identifier)
@@ -153,7 +156,11 @@ class SettingsService:
         return await self.runtime.snapshot()
 
     async def save_global(self, section, values):
-        value = self.preferences.save(section, values)
+        import asyncio
+        if section == "general":
+            from ..config.workspace import validate_destination
+            await asyncio.to_thread(validate_destination, values.get("workspace_root", ""))
+        value = await asyncio.to_thread(self.preferences.save, section, values)
         if section == "profile":
             self.runtime.config = replace(self.runtime.config, user_profile=UserProfile(**value))
         elif section == "general":
@@ -168,6 +175,10 @@ class SettingsService:
             if operation == "save_global":
                 section, values = args
                 {"profile": UserProfile, "appearance": HubTheme, "general": GeneralSettings}[section](**values)
+                if section == "general":
+                    import asyncio
+                    from ..config.workspace import validate_destination
+                    await asyncio.to_thread(validate_destination, values.get("workspace_root", ""))
             elif operation in ("save_project", "create_project"):
                 values = deepcopy(args[1] if operation == "save_project" else args[0])
                 if operation == "create_project":

@@ -149,7 +149,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("general")
                     manager = screen.page.general_form
                     manager.add_pack()
-                self.assertEqual(tuple(manager.groups), ("language", "notifications", "startup", "output", "editor"))
+                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "editor"))
                 app.current_buffer.text = "custom"
                 pipe.send_text("\t")
                 await until(lambda: "settings_title" in app.current_buffer.text)

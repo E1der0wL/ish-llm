@@ -3,6 +3,14 @@
 
 
 MESSAGES = {
+    "settings_requires_restart": "재시작 필요",
+    "settings_restart_title": "Hub 재시작",
+    "settings_restart_now": "재시작",
+    "settings_restart_confirm": "저장되었습니다. 다음 설정을 적용하려면 Hub 재시작이 필요합니다.\n\n{fields}\n\n지금 재시작하시겠습니까?\nEnter: 재시작 · Esc: 나중에 (저장값 유지)",
+    "settings_restart_busy": "실행·예약 중인 작업 또는 처리 중인 명령이 있어 재시작할 수 없습니다. 작업이 끝난 뒤 다시 저장하거나 ish를 다시 시작하세요. 설정은 저장되어 있습니다.",
+    "settings_restarting": "Hub 재시작 중",
+    "general_category_storage": "데이터 저장 위치",
+    "general_workspace_root": "Hub 데이터 루트. 절대 경로 또는 ~/경로를 입력하세요. 저장 후 Hub를 재시작하면 적용됩니다. 기존 데이터는 자동으로 이동하지 않으며, 빈 폴더는 새 작업 공간으로 시작합니다. 비우면 시작 시 지정한 기본 경로를 사용합니다.",
     'object_query': '검색 / 필터:',
     'object_raw': '원문',
     'object_rendered': '렌더링',

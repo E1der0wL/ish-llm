@@ -50,6 +50,20 @@ flush/fsync, 원자적 교체, 실패 시 임시 파일 정리만 공통 Store�
 | 즉시 저장하는 패널 너비 | `.hub/sidebar-width.json` | `PreferencesStore` (다른 초안과 독립) |
 | Hub 읽기 위치·마지막 선택 | `.hub/view-state.json` | `ViewStateStore` (로그 아님) |
 
+일반 설정의 `workspace_root`를 변경하면 다음 Hub 시작부터 프로젝트·세션·Run·로그,
+읽기 위치 및 테스트 작업 공간은 선택한 데이터 루트를 사용합니다. 자동 데이터 이전은
+하지 않습니다. 프로필·모양·일반 설정과 패널 너비는 시작 시 지정한 원래 workspace의
+`.hub/`에 남아, 데이터 루트를 여러 번 바꿔도 시작 경로와 전역 설정을 찾을 수 있습니다.
+`config/preferences.py`가 시작 시 한 번만 경로를 확정하고 `HubConfig._workspace_anchor`로
+시작 설정 위치를 보존합니다. 설정 저장 중에는 활성 backend나 `ViewStateStore`를 교체하지 않습니다.
+
+전역 설정 dataclass 필드의 `metadata={"requires_restart": True}`를 `config/restart.py`에서
+조회해 폼 설명과 저장 후 재시작 판단에 공유합니다. 메타데이터는 사용자 저장값에 섞지 않습니다.
+UI는 마지막 저장값이 아니라 이번 시작 때 적용한 값과 비교하므로 재시작을 미룬 상태도 유지합니다.
+`ui/restart.py`가 확인 후 비동기 종료를 조정하고, BackendWorker는 모든 프로젝트의 실행·예약 및
+처리 중인 명령을 확인한 뒤 새 명령 진입을 막습니다. ish에서는 `HubInstallation`만 재설치해 셸과
+셸 입력을 유지하며, 독립 실행에서는 앱 종료 결과를 받아 `__main__`에서 새 앱을 엽니다.
+
 명시적 로깅 범위가 없는 독립 프로바이더 사용은 llm의
 `~/.ish/llm-provider-logs` fallback을 사용합니다. 이 전역 폴더는 프로젝트를
 구별할 수 없는 다른 실행의 기록도 포함할 수 있어 Hub가 임의로 합치지 않습니다.

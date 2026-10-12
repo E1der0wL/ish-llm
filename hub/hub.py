@@ -27,6 +27,8 @@ class HubInstallation:
 
     def __init__(self, prompt, theme: HubTheme | None = None, config: HubConfig | None = None) -> None:
         self.prompt = prompt
+        self._launch_config = config
+        self._launch_theme = theme
         self.controller = None
         if config is not None:
             from .ui.live import LiveController, LiveHubView
@@ -68,6 +70,21 @@ class HubInstallation:
             bottom=1, right=1, width=self.view.toasts.width, height=self.view.toasts.height, z_index=110)
         self._bind_loop = lambda app: self.controller and self.controller.bind_app(app)
         prompt.app.before_render += self._bind_loop
+        if self.controller:
+            from .ui.restart import bind_restart
+            bind_restart(self.controller, self._restart)
+
+    async def _restart(self):
+        import asyncio
+        from .config.restart import restart_config
+        config = await asyncio.to_thread(restart_config, self._launch_config, self.controller.config)
+        await self.controller.aclose()
+        self.close()
+        replacement = install(self.prompt, theme=self._launch_theme, config=config)
+        # Preserve the original launch defaults for subsequent restarts.
+        replacement._launch_config = self._launch_config
+        replacement.controller.bind_app(self.prompt.app)
+        replacement.view.show(self.prompt.app)
 
     def set_theme(self, theme: HubTheme) -> None:
         """Apply UI colors without reinstalling or touching conversation state."""

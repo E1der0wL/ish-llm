@@ -1,4 +1,4 @@
-"""Global Hub preferences shared by projects in one workspace."""
+"""Global Hub preferences anchored to the installation's initial workspace."""
 
 from dataclasses import asdict, replace
 
@@ -8,9 +8,26 @@ from .theme import HubTheme
 from .general import GeneralSettings
 
 
+def configured_workspace(config):
+    """Resolve once at startup; later saves only affect the next installation.
+
+    Keep preferences at the original launch root so selecting A -> B -> C
+    never requires redirect chains or loses global preferences on an empty root.
+    """
+    if config._workspace_anchor is not None:
+        return config
+    from pathlib import Path
+    from .workspace import workspace_path
+    anchor = Path(config.workspace).expanduser().absolute()
+    stored = PreferencesStore(anchor).load()
+    selected = workspace_path(stored.get("general", {}).get("workspace_root", ""))
+    return replace(config, workspace=selected or anchor, _workspace_anchor=anchor)
+
+
 def configured_profile(config):
     """Resolve persisted identity/language before constructing any UI labels."""
-    stored = PreferencesStore(config.workspace).load()
+    config = configured_workspace(config)
+    stored = PreferencesStore(config._workspace_anchor).load()
     profile = UserProfile(**stored["profile"]) if "profile" in stored else config.user_profile
     general = GeneralSettings(**stored.get("general", {}))
     packs = {**config.language_packs, **general.language_packs}

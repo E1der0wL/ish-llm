@@ -36,4 +36,8 @@ def create_application(config, *, theme=None, input=None, output=None, worker_fa
                       key_bindings=merge_key_bindings([keys, view.navigation_keys]),
                       style=DynamicStyle(lambda: view.style), full_screen=True,
                       mouse_support=True, input=input, output=output)
+    from .restart import RESTART, bind_restart
+    async def restart():
+        app.exit(result=RESTART)
+    bind_restart(controller, restart)
     return app, controller
