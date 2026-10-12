@@ -15,7 +15,7 @@ from hub.locales import Language
 from hub.model import ChatMessage, HubSnapshot, SessionSummary
 from hub.ui.live import LiveHubView
 from hub.ui.presentation import present_message
-from hub.widget.progress import ProgressControl
+from hub.widget.feedback.progress import ProgressControl
 from llm.llm import LargeLanguageModel
 from tests.hub.test_live import ControlledEngine
 
@@ -83,7 +83,7 @@ class RenderIntervalTests(unittest.IsolatedAsyncioTestCase):
             view.set_theme(HubTheme(progress_refresh_interval=0.4))
             progress.start("Loading")
             control = ProgressControl(progress, lambda: "")
-            with patch("hub.widget.progress.asyncio.get_running_loop", return_value=loop), \
+            with patch("hub.widget.feedback.progress.asyncio.get_running_loop", return_value=loop), \
                  patch.object(progress.progress, "make_tasks_table", wraps=progress.progress.make_tasks_table) as render:
                 control.create_content(100, 1)
                 control.create_content(100, 1)

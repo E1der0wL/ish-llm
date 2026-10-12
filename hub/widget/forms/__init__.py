@@ -1,0 +1,1 @@
+"""Hub widget forms responsibilities."""

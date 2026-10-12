@@ -34,6 +34,11 @@ assert info.module.__name__ == 'hub.hub'
 assert manager.get('llm') is not None
 assert info.module.PLUGIN_META['requirements'] == ['llm']
 assert callable(info.module.install)
+from hub.backend.runtime import HubConfig
+from hub.ui.output import OutputParser, RendererRegistry, OutputBlock, OutputUIContext
+from hub.widget.output_inspector import ExpandedOutputDialog
+assert info.module.HubConfig is HubConfig
+assert callable(ExpandedOutputDialog)
 settings = info.module.HubConfig('/tmp/hub-unused', engine='loop', model='openai/test')
 assert settings.engine == 'loop'
 assert not any(name.startswith(('examples.', 'tests.')) for name in sys.modules)

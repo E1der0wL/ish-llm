@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 
 from ..model import ChatMessage, HubSnapshot, SessionSummary
-from ..backend.followup import split_followup
+from ..backend.execution.followup import split_followup
 
 
 @dataclass(frozen=True, slots=True)

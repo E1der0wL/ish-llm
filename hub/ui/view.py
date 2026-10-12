@@ -15,7 +15,7 @@ from ..widget.shortcuts import ShortcutBar
 from ..widget.header import HeaderBar
 
 from .chat.completion import HubCompleter
-from ..widget.conversation import ChatMessage, ConversationView
+from ..widget.transcript.conversation import ChatMessage, ConversationView
 from ..model import SessionView
 from ..locales import Language
 from ..config.theme import HubTheme
@@ -66,17 +66,17 @@ class HubView:
         self.commands = HubCommands(self)
         self.settings_open = False
         self.no_sessions = False
-        from ..widget.progress import TaskProgress
+        from ..widget.feedback.progress import TaskProgress
         self.progress = TaskProgress(self)
         from .settings.screen import SettingsScreen
         self.settings = SettingsScreen(self)
-        from ..widget.search import SessionSearch
-        from ..widget.notifications import SessionToasts
+        from ..widget.transcript.search import SessionSearch
+        from ..widget.feedback.notifications import SessionToasts
         self.search = SessionSearch(self)
         self.toasts = SessionToasts(self)
         completer = HubCompleter(lambda: self.engines, lambda: self.file_root, self.t,
                                  components=lambda: self.component_commands)
-        from ..widget.followup import FollowupSuggestion
+        from ..widget.forms.followup import FollowupSuggestion
         self.followup = FollowupSuggestion(self)
         self.composer = TextArea(
             auto_suggest=self.followup,
@@ -85,11 +85,11 @@ class HubView:
             completer=ThreadedCompleter(completer), complete_while_typing=Condition(
                 lambda: self.question.item is None and not self.input_history.browsing),
         )
-        from ..widget.question import QuestionComposer
+        from ..widget.forms.question import QuestionComposer
         self.question = QuestionComposer(self)
-        from ..widget.preparing import PreparingResponse
+        from ..widget.feedback.preparing import PreparingResponse
         self.preparing = PreparingResponse(self)
-        from ..widget.interrupt_feedback import InterruptFeedback
+        from ..widget.feedback.interrupt_feedback import InterruptFeedback
         self.interrupting = InterruptFeedback(self)
         from .input.history import ComposerHistory
         self.input_history = ComposerHistory(self)
@@ -100,7 +100,7 @@ class HubView:
         self.output_renderers = self.transcript.control.renderers
         self.output_renderers.on_close = self.render_worker.close
         self.image_renderer = self.transcript.control.images
-        from ..widget.tag_bar import TagBar
+        from ..widget.output.tag_bar import TagBar
         self.tags = TagBar(self)
         from ..widget.welcome import welcome_window
         self.welcome = welcome_window(self)

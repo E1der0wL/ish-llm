@@ -6,10 +6,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from hub.backend.bootstrap import select_or_create
+from hub.backend.project.bootstrap import select_or_create
 from hub.backend.runtime import HubConfig, HubRuntime, create_backend
 from hub.asset.guides import SYSTEM_PROMPT
-from hub.backend.defaults import provider_defaults
+from hub.backend.project.defaults import provider_defaults
 
 
 class BootstrapTests(unittest.IsolatedAsyncioTestCase):

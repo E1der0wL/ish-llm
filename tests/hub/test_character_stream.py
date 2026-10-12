@@ -10,7 +10,7 @@ from prompt_toolkit.layout import Layout
 
 from hub.model import ChatMessage, HubSnapshot, SessionSummary
 from hub.ui.live import LiveHubView
-from hub.widget.character_stream import CharacterStream
+from hub.widget.transcript.character_stream import CharacterStream
 from tests.hub.support import SizedOutput, eventually
 
 

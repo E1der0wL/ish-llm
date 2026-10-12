@@ -65,7 +65,7 @@ class RendererRegistry:
     def create_interaction(self, item, context):
         """Create a fresh expanded UI without mutating the transcript object."""
         from ...widget.output_inspector import OutputInspector
-        from ...widget.table_inspector import TableInspector
+        from ...widget.output.table_inspector import TableInspector
         factory = self._interactions.get(item.block.kind)
         if factory is None:
             factory = TableInspector if item.block.kind in ("table", "hub-table") else OutputInspector

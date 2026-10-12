@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from hub.backend.approval import RISK_SCHEME, approval_preset, risk_label
+from hub.backend.interactions.approval import RISK_SCHEME, approval_preset, risk_label
 from llm.core.models import ProjectConfig
 from llm.components.registry import ComponentDependencyError
 from llm.llm import LargeLanguageModel

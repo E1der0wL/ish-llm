@@ -1,0 +1,95 @@
+"""Bind host execution context without changing llm's Engine or Tool APIs."""
+
+from contextlib import aclosing
+from dataclasses import replace
+import asyncio
+
+from llm.components.processing import CompletionMessage, CompletionSession
+from llm.components.tools import ToolRegistry
+from llm.services.infrastructure.storage import drain_on_cancel
+from ...config.environment import ENVIRONMENT_OPTION, ShellEnvironment
+
+
+class EnvironmentSession(CompletionSession):
+    def __init__(self, cwd):
+        self.cwd = cwd
+
+    async def prepare(self, request):
+        index = 1 if request.messages and request.messages[0].value.get("role") == "system" else 0
+        request.messages.insert(index, CompletionMessage({"role": "system", "content":
+            "The working directory captured from the user's ish shell for this request is "
+            f"{self.cwd!r}. Built-in file paths are relative to this directory. "
+            "Process tools inherit the captured shell environment unless an explicit env is supplied. "
+            "Sandbox commands still run inside their isolated test workspace."}))
+        if False:
+            yield
+
+
+class EnvironmentProcessor:
+    name = "hub.environment"
+    priority = 999
+    close_timeout = None
+
+    def __init__(self, cwd):
+        self.cwd = cwd
+
+    def session(self, context):
+        return EnvironmentSession(self.cwd)
+
+
+def underlying_engine(engine):
+    return engine.implementation if isinstance(engine, EnvironmentEngine) else engine
+
+
+class EnvironmentEngine:
+    """Request options persist the snapshot, including across approval resumes."""
+
+    def __init__(self, implementation, builtins, environment=None):
+        self.implementation = implementation
+        self.builtins = builtins
+        self.environment = environment
+
+    def __getattr__(self, name):
+        value = getattr(self.implementation, name)
+        if name == "validate_resume":
+            def validate(checkpoint, **kwargs):
+                if kwargs.get("context") is not None:
+                    kwargs["context"] = self.bind_context(kwargs["context"])
+                return value(checkpoint, **kwargs)
+            return validate
+        return value
+
+    def for_request(self, options):
+        options = dict(options)
+        environment = (ShellEnvironment.from_dict(options.pop(ENVIRONMENT_OPTION))
+                       if ENVIRONMENT_OPTION in options else None)
+        factory = getattr(self.implementation, "for_request", None)
+        if factory is not None:
+            implementation = factory(options)
+        elif options:
+            raise ValueError("Engine does not support request options")
+        else:
+            implementation = self.implementation
+        return EnvironmentEngine(implementation, self.builtins, environment)
+
+    def bind_context(self, context):
+        if self.environment is None:
+            return context
+        tools, capabilities = context.tools, dict(context.capabilities)
+        if "tools" in capabilities and self.builtins.name in context.project.components:
+            registry = self.builtins.resolve_environment(context.project, self.environment)
+            # Preserve imported tools and Agent selections; never enable extra tools.
+            tools = ToolRegistry(tuple(registry.get(name) if name in registry.names() else context.tools.get(name)
+                                       for name in context.tools.names()))
+            capabilities["tools"] = tools
+        if "completion_processors" in capabilities:
+            capabilities["completion_processors"] = (
+                *capabilities["completion_processors"], EnvironmentProcessor(self.environment.cwd))
+        return replace(context, tools=tools, capabilities=capabilities)
+
+    async def execute(self, context):
+        bound = (await drain_on_cancel(asyncio.to_thread(self.bind_context, context))
+                 if self.environment is not None else context)
+        async with aclosing(self.implementation.execute(bound)) as events:
+            async for event in events:
+                yield event

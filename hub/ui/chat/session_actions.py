@@ -2,7 +2,7 @@
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
-from ...widget.session_form import SessionForm
+from ...widget.forms.session_form import SessionForm
 
 class SessionActions:
     def __init__(self, view):

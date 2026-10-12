@@ -7,9 +7,9 @@ import tempfile
 import unittest
 from unittest.mock import AsyncMock, patch
 
-from hub.backend.defaults import provider_defaults
+from hub.backend.project.defaults import provider_defaults
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.backend.test_workspaces import HubTestWorkspaces
+from hub.backend.tools.test_workspaces import HubTestWorkspaces
 from llm.components.tools.builtin import TestWorkspaces
 from llm.engines.loop import LoopEngine
 from tests.llm.test_loop import ScriptedCompletion, call, chunk

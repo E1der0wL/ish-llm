@@ -86,7 +86,7 @@ class DialogController:
             app.layout.focus(controls[(index + (-1 if reverse else 1)) % len(controls)])
 
     def help(self):
-        from ..widget.reader import ReadOnlyDialog
+        from ..widget.output.reader import ReadOnlyDialog
         view = self.view
         popup = ReadOnlyDialog(view.t("help_title"), view.t("help"), view._rows, view._columns,
                                self.close, view.t, markdown=True, theme=lambda: view.theme, render_worker=view.render_worker)

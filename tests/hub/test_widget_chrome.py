@@ -16,10 +16,10 @@ from hub.config.theme import HubTheme
 from examples.hub.preview import install_preview
 from hub.locales import Language
 from hub.model import ChatMessage
-from hub.widget.reader import ReadOnlyDialog
-from hub.widget.conversation import render_messages
+from hub.widget.output.reader import ReadOnlyDialog
+from hub.widget.transcript.conversation import render_messages
 from hub.widget.controls import RadioList
-from hub.widget.settings import ChoiceField
+from hub.widget.forms.settings import ChoiceField
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.support import SizedOutput, eventually
 

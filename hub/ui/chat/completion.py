@@ -5,7 +5,7 @@ import re
 
 from prompt_toolkit.completion import Completer, Completion
 
-from ...backend.component_commands import ACTIONS, BUILTINS
+from ...backend.project.component_commands import ACTIONS, BUILTINS
 
 
 COMMANDS = BUILTINS

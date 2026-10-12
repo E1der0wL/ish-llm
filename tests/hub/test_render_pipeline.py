@@ -18,10 +18,10 @@ from hub.locales import Language
 from hub.model import ChatMessage, StepSummary, TraceItem
 from hub.ui.output import RendererRegistry
 from hub.ui.output.worker import RenderWorker
-from hub.widget.conversation import render_messages
-from hub.widget.conversation import ConversationControl
-from hub.widget.message_cache import MessageRenderCache, frozen_rows
-from hub.widget.progress import TaskProgress
+from hub.widget.transcript.conversation import render_messages
+from hub.widget.transcript.conversation import ConversationControl
+from hub.widget.transcript.message_cache import MessageRenderCache, frozen_rows
+from hub.widget.feedback.progress import TaskProgress
 from hub.ui.presentation import MessagePresentationCache
 from hub.model import HubSnapshot
 from tests.hub.support import SizedOutput, eventually
@@ -259,7 +259,7 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
         progress = TaskProgress(NS(theme=HubTheme()))
         app = NS(invalidate=Mock())
         try:
-            with patch("hub.widget.progress.get_app", return_value=app):
+            with patch("hub.widget.feedback.progress.get_app", return_value=app):
                 task = progress.start("Loading", total=100)
                 timer = progress._timer
                 app.invalidate.reset_mock()

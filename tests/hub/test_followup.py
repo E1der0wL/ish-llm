@@ -8,8 +8,8 @@ from prompt_toolkit.application import Application
 from prompt_toolkit.layout import Layout
 from prompt_toolkit.input import create_pipe_input
 
-from hub.backend.followup import split_followup, INSTRUCTION
-from hub.backend.context import HubContextBuilder
+from hub.backend.execution.followup import split_followup, INSTRUCTION
+from hub.backend.execution.context import HubContextBuilder
 from hub.model import ChatMessage, HubSnapshot, SessionSummary
 from hub.ui.live import LiveHubView
 from llm.core.models import Message, MessageRole, MessageStatus
@@ -45,12 +45,12 @@ class FollowupTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([m.id for m in budgeted], ["u", "a", "v"])
 
     async def test_protocol_processor_preserves_original_ids_for_resume(self):
-        from hub.backend.completion import FollowupProcessor
+        from hub.backend.execution.completion import FollowupProcessor
         from llm.components.processing import CompletionMessage, CompletionRequest
         request = CompletionRequest({}, [CompletionMessage({"role": "user", "content": "task"}, "u")], 0)
         async for _ in FollowupProcessor().session(None).prepare(request):
             pass
-        from hub.backend.tool_advice import INSTRUCTION as RISK_INSTRUCTION
+        from hub.backend.tools.advice import INSTRUCTION as RISK_INSTRUCTION
         self.assertEqual(request.messages[0].value["content"], INSTRUCTION + "\n\n" + RISK_INSTRUCTION)
         self.assertIsNone(request.messages[0].source_id)
         self.assertEqual(request.messages[1].source_id, "u")

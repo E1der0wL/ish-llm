@@ -16,7 +16,7 @@ from hub.config.general import GeneralSettings
 from hub.config.preferences import PreferencesStore, configured_profile
 from hub.config.profile import UserProfile
 from hub.backend.runtime import HubConfig
-from hub.backend.settings_service import SettingsService
+from hub.backend.project.settings import SettingsService
 from hub.backend.worker import BackendWorker
 from tests.hub.test_live import until
 from tests.hub.support import SizedOutput

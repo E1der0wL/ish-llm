@@ -17,7 +17,7 @@ from hub.ui.application import create_application
 from hub.locales import Language
 from hub.config.preferences import PreferencesStore
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.widget.settings import SchemaForm
+from hub.widget.forms.settings import SchemaForm
 from hub.config.theme import HubTheme
 from hub.backend.worker import BackendWorker
 from llm.components.base import Component

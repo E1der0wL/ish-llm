@@ -1,0 +1,1 @@
+"""Hub backend observability responsibilities."""

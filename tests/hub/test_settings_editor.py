@@ -20,7 +20,7 @@ from examples.hub.preview import install_preview
 from hub.config.general import GeneralSettings
 from hub.locales import Language
 from hub.ui.settings.editor import edit_text
-from hub.widget.settings import SchemaForm
+from hub.widget.forms.settings import SchemaForm
 from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_ish_integration import Prompt
 

@@ -14,7 +14,7 @@ from hub.model import ChatMessage
 from hub.ui.output import OutputBlock, OutputObject, OutputParser, RendererRegistry
 from hub.ui.output.table import TableData
 from hub.widget.output_inspector import OutputInspector
-from hub.widget.table_inspector import TableInspector, display_cell
+from hub.widget.output.table_inspector import TableInspector, display_cell
 from tests.hub.support import SizedOutput, eventually
 
 

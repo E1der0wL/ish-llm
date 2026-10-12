@@ -2,8 +2,8 @@
 
 from prompt_toolkit.widgets import Label
 
-from ...backend.component_commands import parse_arguments
-from ...widget.reader import ReadOnlyDialog
+from ...backend.project.component_commands import parse_arguments
+from ...widget.output.reader import ReadOnlyDialog
 
 
 class ComponentCommands:
@@ -31,7 +31,7 @@ class ComponentCommands:
             if name != "tools":
                 view.notice = view.t("component_manager_unavailable", name=name)
                 return
-            from ...widget.tool_manager import ToolManager
+            from ...widget.forms.tool_manager import ToolManager
             def request(operation, argument, version, done):
                 self.controller._call("manage_tools", project_id, operation, argument, version, completed=done)
             popup = ToolManager(view, request)

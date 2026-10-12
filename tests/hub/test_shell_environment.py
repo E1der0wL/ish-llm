@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from hub.config.environment import ENVIRONMENT_OPTION, ShellEnvironment
-from hub.backend.environment import EnvironmentEngine
+from hub.backend.execution.environment import EnvironmentEngine
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.ui.live import LiveController, LiveHubView
 from hub.model import HubSnapshot, SessionSummary
@@ -115,7 +115,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.close()
 
     async def test_old_llm_schema_cannot_silently_ignore_shell_environment(self):
-        from hub.backend.builtin_tools import HubBuiltinTools
+        from hub.backend.tools.builtin import HubBuiltinTools
         from llm.components.tools.builtin import BuiltinTools
         from llm.components.tools import ToolRegistry
         from dataclasses import replace
@@ -132,7 +132,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                 toolkit.registry = ToolRegistry(tuple(tools))
                 return toolkit
             try:
-                with patch("hub.backend.builtin_tools.BuiltinTools", side_effect=old_catalog):
+                with patch("hub.backend.tools.builtin.BuiltinTools", side_effect=old_catalog):
                     with self.assertRaisesRegex(RuntimeError, "Update the llm plugin"):
                         component._create(root, {"PWD": root})
             finally:

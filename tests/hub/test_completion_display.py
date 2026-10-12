@@ -8,12 +8,12 @@ from types import SimpleNamespace
 import unittest
 
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.backend.thinking import ThinkingPhases
+from hub.backend.execution.thinking import ThinkingPhases
 from hub.config.theme import HubTheme
 from hub.locales import Language
 from hub.model import ChatMessage
 from hub.ui.presentation import present, present_message
-from hub.widget.conversation import ConversationControl
+from hub.widget.transcript.conversation import ConversationControl
 from llm.components.tools import ToolComponent
 from llm.engines.loop import LoopEngine
 from llm.llm import LargeLanguageModel

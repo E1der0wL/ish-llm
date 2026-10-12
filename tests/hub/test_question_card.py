@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 from hub.config.theme import HubTheme
 from hub.model import ChatMessage, HubSnapshot, RetrySummary, RunSummary, SessionSummary
 from hub.ui.live import LiveHubView
-from hub.widget.conversation import render_messages
+from hub.widget.transcript.conversation import render_messages
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.formatted_text.utils import fragment_list_width
@@ -44,14 +44,14 @@ class QuestionCardTests(unittest.TestCase):
                                     "class:hub", True, None)
         return [list(screen.data_buffer[y][x] for x in range(width)) for y in range(height)]
 
-    def test_choices_border_grows_in_terminal_cells_and_wraps_on_narrow_screens(self):
+    def test_choices_border_fills_available_width_and_wraps_on_narrow_screens(self):
         question = self.show({"title": "Choose", "source": {"choices": ["승인", "거절"]}})
         self.view.composer.text = "2"
         rows = self.draw_choices(100)
         self.assertEqual(len(rows), 4)
-        self.assertEqual("".join(cell.char for cell in rows[0]).rstrip(), "┌" + "─" * 48 + "┐")
+        self.assertEqual("".join(cell.char for cell in rows[0]), "┌" + "─" * 98 + "┐")
         self.assertIn("(*) 2. 거절", "".join(cell.char for cell in rows[2]))
-        self.assertTrue(all(row[49].char == "│" for row in rows[1:-1]))
+        self.assertTrue(all(row[99].char == "│" for row in rows[1:-1]))
         theme = HubTheme(background="#102030")
         style = theme.style()
         for row in rows:
@@ -63,8 +63,8 @@ class QuestionCardTests(unittest.TestCase):
 
         long_label = "아주 긴 선택지 " * 8
         question.item["request"]["source"]["choices"] = [long_label, "다음"]
-        width = get_cwidth("( ) 1. " + long_label) + 2
-        rows = self.draw_choices(width + 20)
+        width = get_cwidth("( ) 1. " + long_label) + 22
+        rows = self.draw_choices(width)
         self.assertEqual(rows[0][width - 1].char, "┐")
         self.assertEqual(rows[-1][width - 1].char, "┘")
         rows = self.draw_choices(24)
@@ -149,7 +149,7 @@ class QuestionCardTests(unittest.TestCase):
             (SessionSummary("s", "Session", "running"),), "s",
             (ChatMessage("assistant", "Partial", id="a", status="streaming", elapsed_seconds=1),),
             run=RunSummary("r", "running", "loop", 1, True, (), "", RetrySummary(1, 4, 110))))
-        with patch("hub.widget.retry_status.monotonic", return_value=104):
+        with patch("hub.widget.feedback.retry_status.monotonic", return_value=104):
             messages = self.view.preparing.project(("p", "s"), self.view.sessions[0].messages)
         rows = render_messages(messages, 100, HubTheme(), self.view.t, section="header")
         text = "".join(value for row in rows for _, value in row)

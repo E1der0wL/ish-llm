@@ -10,7 +10,7 @@ from prompt_toolkit.input import create_pipe_input
 from examples.hub.preview import install_preview
 from hub.ui.chat.history_ui import HistoryUI
 from hub.widget.header import HeaderBar
-from hub.widget.reader import ReadOnlyDialog
+from hub.widget.output.reader import ReadOnlyDialog
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.support import SizedOutput, eventually, minimize
 

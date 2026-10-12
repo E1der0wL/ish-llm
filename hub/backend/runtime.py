@@ -1,17 +1,17 @@
 """Session-bound Hub operations through LargeLanguageModel's public facade."""
 
 import asyncio
-from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from ..model import ChatMessage, HubSnapshot, SessionNotification, SubmissionResult
+from ..model import ChatMessage, HubSnapshot, SubmissionResult
 from ..locales import Language
 from ..config.profile import UserProfile
-from .engine_selection import requires_model, selected_engines
+from .execution.engine_selection import requires_model, selected_engines
 from ..config.general import GeneralSettings
 from ..config.view_state import ViewStateStore
+from .observability.notifications import NotificationBuffer
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,7 +52,7 @@ def create_backend(config: HubConfig):
     from llm.llm import LargeLanguageModel, BackendServices
     from llm.services.runtime.tools import ToolRuntime
     from llm.components.tools.builtin import BuiltinToolRunner
-    from .retries import HubLoopEngine, RetryMonitor, RetryObservationMixin
+    from .execution.retries import HubLoopEngine, RetryMonitor, RetryObservationMixin
     from llm.engines.graph import GraphEngine
     from llm.engines.graph.agent import AgentNode
     from llm.engines.graph.tool import ToolNode
@@ -61,13 +61,13 @@ def create_backend(config: HubConfig):
     from llm.components.workflows import WorkflowComponent
     from llm.components.memory import MemoryComponent
     from llm.components.prompts import PromptComponent
-    from .skills import HubSkillComponent
+    from .tools.skills import HubSkillComponent
     from llm.components.mcp import MCPComponent
     from llm.components.rag import RAGComponent
-    from .naming import TitleEngine, TITLE_ENGINE
-    from .builtin_tools import HubBuiltinTools
-    from .context import HubContextBuilder
-    from .tool_advice import classify_model_risk
+    from .project.naming import TitleEngine, TITLE_ENGINE
+    from .tools.builtin import HubBuiltinTools
+    from .execution.context import HubContextBuilder
+    from .tools.advice import classify_model_risk
     monitor = RetryMonitor()
     factories = {"loop": HubLoopEngine, **(config.engine_factories or {})}
     if config.engine not in factories and config.engine != "graph":
@@ -87,7 +87,7 @@ def create_backend(config: HubConfig):
     for factory in config.component_factories or ():
         component = factory()
         components[component.name] = component
-    from .environment import EnvironmentEngine
+    from .execution.environment import EnvironmentEngine
     builtins = components.get("builtin_tools")
     if isinstance(builtins, HubBuiltinTools):
         engines = {name: EnvironmentEngine(engine, builtins) if not name.startswith("_hub_") else engine
@@ -116,21 +116,16 @@ class HubRuntime:
         self.lock = asyncio.Lock()
         self._subscriptions = []
         self._dropped_observations = 0
-        from .snapshot import SnapshotReader
+        from .observability.snapshot import SnapshotReader
         self.snapshot_reader = SnapshotReader()
         self._opened_sessions = set()
-        self._notification_sessions = {}
-        self._notifications = deque(maxlen=64)
-        self._notification_keys = deque(maxlen=128)
-        self._notification_sequence = 0
-        self._live_questions = {}
-        self._observed_runs = {}
+        self.notifications = NotificationBuffer()
         self.builtin_tools = None
-        from .settings_service import SettingsService
+        from .project.settings import SettingsService
         self.settings_service = SettingsService(self)
         preferences = self.settings_service.preferences.load()
         self.general = GeneralSettings(**preferences.get("general", {}))
-        from .naming import SessionNamer
+        from .project.naming import SessionNamer
         self.namer = SessionNamer(self)
 
     async def _engine_event(self, run, event) -> None:
@@ -139,23 +134,8 @@ class HubRuntime:
 
     async def _run_event(self, event) -> None:
         self.snapshot_reader.invalidate(event.run.session_id)
-        session = self._notification_sessions.get(event.run.session_id)
-        already_paused = (str(event.run.status) == "paused" and
-                          self._observed_runs.get(event.run.session_id) == (event.run.id, "paused"))
-        if session is not None and not event.run.engine.startswith("_hub_") and not already_paused:
-            self._record_notification(session, event.run)
+        self.notifications.record_run(event.run)
         self.dirty.set()
-
-    def _record_notification(self, session, run) -> None:
-        project_id, title = session
-        state = (run.id, str(run.status))
-        self._observed_runs[run.session_id] = state
-        if state in self._notification_keys:
-            return
-        self._notification_keys.append(state)
-        self._notification_sequence += 1
-        self._notifications.append(SessionNotification(self._notification_sequence,
-            project_id, run.session_id, title, str(run.status)))
 
     def _saved_selection(self, project_id=None):
         try:
@@ -164,30 +144,14 @@ class HubRuntime:
         except (OSError, ValueError, TypeError):
             return ""  # Corrupt UI state must not prevent opening the backend.
 
-    def _question_notification(self, project_id, session_id, title, item):
-        from .questions import waiting_status
-        key = ("question", item["request"]["id"])
-        if key in self._notification_keys:
-            return
-        self._notification_keys.append(key)
-        self._notification_sequence += 1
-        self._notifications.append(SessionNotification(self._notification_sequence,
-            project_id, session_id, title, waiting_status((item,))))
-
     def _questions_changed(self):
-        pending = self.builtin_tools.questions.pending
-        for identifier, item in pending.items():
-            if identifier not in self._live_questions:
-                _, title = self._notification_sessions.get(item.session_id, (item.project_id, item.session_id))
-                self._question_notification(item.project_id, item.session_id, title,
-                    {"request": item.request.to_dict()})
-        self._live_questions = dict(pending)
+        self.notifications.observe_questions(self.builtin_tools.questions.pending)
         self.dirty.set()
 
     async def start(self) -> None:
-        from .bootstrap import select_or_create
+        from .project.bootstrap import select_or_create
         self.backend = self._factory(self.config)
-        from .builtin_tools import HubBuiltinTools
+        from .tools.builtin import HubBuiltinTools
         if "builtin_tools" in self.backend.project_manager.components.names():
             component = self.backend.project_manager.components.get("builtin_tools")
             if isinstance(component, HubBuiltinTools):
@@ -231,7 +195,7 @@ class HubRuntime:
         self.project, self.sessions, self.selected_id = project, candidates, selected
         self.snapshot_reader.clear()
         for session in sessions:
-            self._notification_sessions[session.id] = (project.id, (await session.aget_data()).title)
+            self.notifications.register_session(project.id, session.id, (await session.aget_data()).title)
         if selected:
             self._opened_sessions.add(selected)
         self.dirty.set()
@@ -273,7 +237,7 @@ class HubRuntime:
                 metadata["hub_title_engine"] = (await source_runs[0].aget_data()).engine
         await session.asave(metadata=metadata)
         self.sessions[session.id] = session
-        self._notification_sessions[session.id] = (self.project.id, (await session.aget_data()).title)
+        self.notifications.register_session(self.project.id, session.id, (await session.aget_data()).title)
         self.selected_id = session.id
         await session.run.start()
         self._opened_sessions.add(session.id)
@@ -335,7 +299,7 @@ class HubRuntime:
 
     async def project_activity(self):
         """Keep public activity records and add bounded provider diagnostics."""
-        from .provider_logs import read_provider_logs, associate_provider_logs
+        from .observability.provider_logs import read_provider_logs, associate_provider_logs
         project = self.project
         rows = [event.to_dict() for event in await project.aactivity(limit=300, newest_first=False)]
         workspace = getattr(self.backend, "workspace", self.config.workspace)
@@ -346,7 +310,7 @@ class HubRuntime:
         from llm.engines.graph import GraphEngine
         project = self.sessions[session_id].project if session_id else self.project
         record = await project.aget_data()
-        from .environment import underlying_engine
+        from .execution.environment import underlying_engine
         engines = {name: {"kind": "graph" if isinstance(underlying_engine(self.backend.engines.get(name)), GraphEngine)
                           else "plain"}
                    for name in selected_engines(record.config, self.backend.engines.names())}
@@ -370,7 +334,7 @@ class HubRuntime:
         data = await session.aget_data()
         await session.asave(title=title.strip(), metadata={**data.metadata, "hub_auto_title": False})
         self.namer.errors.pop(session_id, None)
-        self._notification_sessions[session_id] = (self.project.id, title.strip())
+        self.notifications.register_session(self.project.id, session_id, title.strip())
         self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
         return session_id
@@ -390,8 +354,7 @@ class HubRuntime:
             raise
         self.sessions.pop(session_id)
         self._opened_sessions.discard(session_id)
-        self._notification_sessions.pop(session_id, None)
-        self._observed_runs.pop(session_id, None)
+        self.notifications.forget_session(session_id)
         self.namer.errors.pop(session_id, None)
         if self.selected_id == session_id:
             if self.sessions:
@@ -402,7 +365,7 @@ class HubRuntime:
         return self.selected_id
 
     async def component_command(self, project_id: str, command: str, argument: str):
-        from .component_commands import component_commands, execute_data, parse_arguments
+        from .project.component_commands import component_commands, execute_data, parse_arguments
         project = await self.backend.projects.aload(project_id)
         commands = component_commands(tuple((await project.aget_data()).components))
         if command not in commands:
@@ -432,10 +395,10 @@ class HubRuntime:
         return result
 
     async def manage_tools(self, project_id, action, argument="", expected_version=None):
-        from .tool_management import manage_tools
+        from .tools.management import ToolManagement
         project = await self.backend.projects.aload(project_id)
-        return await manage_tools(project, action, argument, expected_version, root=self.config.file_root,
-                                  builtin=self.builtin_tools)
+        tools = await ToolManagement.for_project(project, root=self.config.file_root, builtin=self.builtin_tools)
+        return await tools.execute(action, argument, expected_version)
 
     async def submit(self, session_id: str, text: str, engine: str | None = None,
                      engine_options: dict | None = None) -> str:
@@ -503,7 +466,7 @@ class HubRuntime:
         return result
 
     async def approval_details(self, request_data):
-        from .approval import review_text
+        from .interactions.approval import review_text
         return await asyncio.to_thread(review_text, request_data)
 
     async def answer_question(self, project_id, session_id, run_id, request_data, option_id, value, *, acknowledged=None):
@@ -538,17 +501,7 @@ class HubRuntime:
     def _reconcile_snapshot(self, project_id, observations):
         for item in observations:
             identifier, record, runtime, run = item.session_id, item.record, item.runtime, item.run
-            self._notification_sessions[identifier] = (project_id, record.title)
-            if run is not None:
-                state = (run.id, str(run.status))
-                if identifier in self._observed_runs and self._observed_runs[identifier] != state:
-                    self._record_notification((project_id, record.title), run)
-                else:
-                    self._observed_runs[identifier] = state
-            elif identifier not in self._observed_runs:
-                self._observed_runs[identifier] = None
-            for question in item.questions:
-                self._question_notification(project_id, identifier, record.title, question)
+            self.notifications.observe_session(project_id, identifier, record.title, run, item.questions)
             if record.metadata.get("hub_auto_title") and not runtime.active_run_id:
                 if run is not None and str(run.status) == "completed":
                     self.namer.schedule(self.sessions[identifier], run.id)
@@ -570,15 +523,15 @@ class HubRuntime:
         self._reconcile_snapshot(snapshot.project_id, observations)
         questions = self.builtin_tools.questions.views(self.project.id, self.selected_id) if self.builtin_tools else ()
         questions = questions + snapshot.questions
-        from .retries import RetryMonitor
+        from .execution.retries import RetryMonitor
         monitor = getattr(self.backend.services, "observability_sink", None)
         if snapshot.run and snapshot.run.active and isinstance(monitor, RetryMonitor):
             snapshot = replace(snapshot, run=replace(snapshot.run, retry=monitor.view(snapshot.run.id)))
-        from .questions import waiting_status
+        from .interactions.questions import waiting_status
         waiting = {item.session_id for item in self.builtin_tools.questions.pending.values()
                    if item.project_id == snapshot.project_id} if self.builtin_tools else set()
         sessions = tuple(replace(item, status="waiting_input") if item.id in waiting else item for item in snapshot.sessions)
-        return replace(snapshot, notifications=tuple(self._notifications), questions=questions, sessions=sessions,
+        return replace(snapshot, notifications=self.notifications.items(), questions=questions, sessions=sessions,
                        status=waiting_status(questions) if questions else snapshot.status)
 
     async def close(self) -> None:

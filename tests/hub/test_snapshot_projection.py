@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import AsyncMock
 
 from hub.asset.icon import NERD, UNICODE
-from hub.backend.snapshot import SnapshotReader
+from hub.backend.observability.snapshot import SnapshotReader
 from hub.config.theme import HubTheme
 from hub.locales import Language
 from hub.ui.live import LiveHubView

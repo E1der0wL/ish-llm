@@ -3,7 +3,7 @@
 import tempfile
 import unittest
 
-from hub.backend.naming import TITLE_ENGINE, TitleEngine
+from hub.backend.project.naming import TITLE_ENGINE, TitleEngine
 from hub.backend.runtime import HubConfig, HubRuntime
 from llm.engines.loop import LoopEngine
 from llm.llm import LargeLanguageModel

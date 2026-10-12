@@ -24,7 +24,7 @@ from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
     def test_resumed_reasoning_stays_above_one_response_until_completion(self):
-        from hub.backend.continuations import continued_messages
+        from hub.backend.execution.continuations import continued_messages
         records = [NS(id='u1', role='user', run_id='r1', metadata={}),
                    NS(id='a1', role='assistant', run_id='r1', metadata={}),
                    NS(id='u2', role='user', run_id='r2', metadata={'resume': {'run_id': 'r1'}}),
@@ -46,7 +46,7 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([m.id for m in done], ['u1', 'a1'])
 
     def test_queued_and_repeated_resume_preserve_one_display_turn_with_steering(self):
-        from hub.backend.continuations import continued_messages
+        from hub.backend.execution.continuations import continued_messages
         def record(identifier, role, run_id, parent=None):
             return NS(id=identifier, role=role, run_id=run_id, metadata={'resume': {'run_id': parent}} if parent else {})
         records = [record('u1', 'user', 'r1'), record('a1', 'assistant', 'r1'),

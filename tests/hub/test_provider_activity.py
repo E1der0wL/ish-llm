@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock
 
 from llm.engines.loop import LoopEngine
 
-from hub.backend.provider_logs import associate_provider_logs, read_provider_logs
+from hub.backend.observability.provider_logs import associate_provider_logs, read_provider_logs
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.locales import Language
 from hub.ui.chat.history_ui import format_activity

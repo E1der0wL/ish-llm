@@ -7,14 +7,14 @@ from .view import HubView
 from ..backend.runtime import HubConfig
 from ..model import HubSnapshot, SubmissionResult, SessionView
 from .presentation import present, present_message, MessagePresentationCache
-from threading import Lock
+from .snapshot_inbox import SnapshotInbox
 from ..backend.worker import BackendWorker
 from ..config.view_state import ViewStateStore, ViewStateWriter
 from ..config.preferences import PreferencesStore
 from ..config.profile import UserProfile
 from ..config.general import GeneralSettings
 from ..config.theme import HubTheme
-from ..backend.component_commands import component_commands
+from ..backend.project.component_commands import component_commands
 from .chat.component_ui import ComponentCommands
 
 
@@ -167,9 +167,7 @@ class LiveController:
         self.app = None
         self.loop = None
         self.closed = False
-        self._publish_lock = Lock()
-        self._pending_snapshot = None
-        self._publish_scheduled = False
+        self._snapshot_inbox = SnapshotInbox()
         self._submitting = set()
         self._choosing_submission = False
         self._select_new = None
@@ -214,19 +212,12 @@ class LiveController:
             self.loop.call_soon_threadsafe(callback, *args)
 
     def _publish(self, snapshot):
-        with self._publish_lock:
-            self._pending_snapshot = snapshot
-            if self._publish_scheduled or self.closed or not self.loop or self.loop.is_closed():
-                return
-            self._publish_scheduled = True
-        self._dispatch(self._consume_snapshot)
+        available = not self.closed and self.loop is not None and not self.loop.is_closed()
+        if self._snapshot_inbox.offer(snapshot, can_schedule=available):
+            self._dispatch(self._consume_snapshot)
 
     def _consume_snapshot(self):
-        with self._publish_lock:
-            snapshot = self._pending_snapshot
-            self._pending_snapshot = None
-            self._publish_scheduled = False
-        self._snapshot(snapshot)
+        self._snapshot(self._snapshot_inbox.take())
 
     def _error(self, error):
         if self.closed:
@@ -396,8 +387,7 @@ class LiveController:
         self.refresh_shell_root()
         if self.loop is not loop and not self.closed:
             self.app, self.loop = app, loop
-            with self._publish_lock:
-                self._publish_scheduled = False
+            self._snapshot_inbox.rebind()
             self.view.toasts.app = app
             if self.worker:
                 self._call("snapshot", completed=self._snapshot)
@@ -457,7 +447,7 @@ class LiveController:
         def ready(text):
             if text is None or identity != view.question.identity or view._dialog is not None or not view.visible:
                 return
-            from ..widget.reader import ReadOnlyDialog
+            from ..widget.output.reader import ReadOnlyDialog
             popup = ReadOnlyDialog(request["title"], text, view._rows, view._columns,
                 view.dialogs.close, view.t, markdown=True, theme=lambda: view.theme, render_worker=view.render_worker)
             view.dialogs.show(popup, popup.receiver)
@@ -534,7 +524,7 @@ class LiveController:
 
     def choose_engine(self, name=""):
         from prompt_toolkit.widgets import Label
-        from ..widget.execution import ExecutionChooser
+        from ..widget.forms.execution import ExecutionChooser
         view = self.view
         identity = (view.project_id, view.sessions[view.selected].id)
         view.open_dialog(view.t("execution_title"), Label(view.t("settings_loading")))

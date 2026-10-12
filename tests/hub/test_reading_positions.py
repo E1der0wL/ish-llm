@@ -14,7 +14,7 @@ import unittest
 from prompt_toolkit.input import create_pipe_input
 
 from hub.ui.application import create_application
-from hub.widget.conversation import ChatMessage, ConversationControl
+from hub.widget.transcript.conversation import ChatMessage, ConversationControl
 from hub.config.profile import UserProfile
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.config.theme import HubTheme

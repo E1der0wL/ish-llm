@@ -11,8 +11,8 @@ from ...widget.buttons import SaveButton
 from ...widget.actions import ActionBar
 from ...config.profile import UserProfile
 from ...config.general import GeneralSettings
-from ...widget.settings import SchemaForm
-from ...widget.settings_viewport import SettingsBody
+from ...widget.forms.settings import SchemaForm
+from ...widget.forms.settings_viewport import SettingsBody
 from ...config.theme import HubTheme
 from ...widget.controls import Button, TextArea
 
@@ -184,7 +184,7 @@ class GlobalPage(Page):
         self.form = SchemaForm({"type": "object", "properties": properties}, values, screen.t)
         self.general_form = None
         if name == "general":
-            from ...widget.general_settings import GeneralForm
+            from ...widget.forms.general_settings import GeneralForm
             self.general_form = GeneralForm(screen, values)
             self.form = self.general_form.form
         self.container = HSplit([section(screen.t("settings_" + name)), self.form.container])

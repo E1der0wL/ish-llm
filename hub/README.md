@@ -771,15 +771,15 @@ Skill은 지침이며 실행 도구나 권한을 제공하지 않습니다. 파�
 - `ui/view.py`: 컨테이너, 입력창, 대화상자, 포커스와 키 동작.
 - `../examples/hub/sample_data.py`, `../examples/hub/preview.py`: 배포 밖에서 관리하는 UI 샘플과 미리보기.
 - `ui/chat/completion.py`: 명령·엔진·프로젝트 경로 자동완성.
-- `backend/naming.py`: 분리된 Session/Run을 통한 모델 제목 생성.
+- `backend/project/naming.py`: 분리된 Session/Run을 통한 모델 제목 생성.
 - `locales/`: 한국어/영어 언어팩과 문구 조회.
-- `widget/conversation.py`: 메시지별 정렬, Rich Markdown 변환, 스크롤과 렌더 캐시.
+- `widget/transcript/conversation.py`: 메시지별 정렬, Rich Markdown 변환, 스크롤과 렌더 캐시.
 - `widget/controls.py`, `widget/buttons.py`, `widget/actions.py`: 버튼·입력·선택·스크롤 기본 위젯, 저장 버튼과 버튼 행.
-- `widget/settings.py`, `widget/settings_viewport.py`: 이름·설명·타입·값으로 구성한 설정 필드와 가상 스크롤.
-- `widget/general_settings.py`: 일반 설정 카테고리와 언어 팩 편집 폼.
+- `widget/forms/settings.py`, `widget/forms/settings_viewport.py`: 이름·설명·타입·값으로 구성한 설정 필드와 가상 스크롤.
+- `widget/forms/general_settings.py`: 일반 설정 카테고리와 언어 팩 편집 폼.
 - `widget/sidebar.py`, `widget/shortcuts.py`, `widget/section.py`: 좌측 목록, 하단 단축키 표시, 섹션 제목.
-- `widget/dialog.py`, `widget/reader.py`, `widget/search.py`, `widget/execution.py`, `widget/notifications.py`: 팝업과 알림.
-- `widget/text_viewport.py`, `widget/progress.py`, `widget/welcome.py`: 읽기 전용 출력, 진행 표시, 안내 화면.
+- `widget/dialog.py`, `widget/output/reader.py`, `widget/transcript/search.py`, `widget/forms/execution.py`, `widget/feedback/notifications.py`: 팝업과 알림.
+- `widget/output/text_viewport.py`, `widget/feedback/progress.py`, `widget/welcome.py`: 읽기 전용 출력, 진행 표시, 안내 화면.
 - `model.py`: 백엔드 어댑터와 렌더링이 함께 사용하는 메시지 표시 데이터.
 - `config/theme.py`: 터미널 기본색과 사용자 색상 설정, PTK 스타일 생성.
 - `config/profile.py`: 현재 계정명을 기본값으로 하는 사용자 표시 프로필.
@@ -787,12 +787,12 @@ Skill은 지침이며 실행 도구나 권한을 제공하지 않습니다. 파�
 - `ui/settings/screen.py`, `ui/settings/pages.py`: 패널·영역 이동, 페이지 초안과 저장 동작.
 - `ui/input/`: 포커스 문맥, 키·조건·동작·안내의 단일 등록부, 기본 명령 처리.
 - `ui/dialogs.py`, `ui/chat/session_actions.py`: 팝업 수명과 포커스 복원, 세션 작업 흐름.
-- `backend/snapshot.py`, `ui/presentation.py`: 공개 API 조회와 언어·아이콘·시간 표시 변환.
-- `widget/header.py`, `widget/session_form.py`: 공통 상단 바와 세션 생성/복제 폼.
+- `backend/observability/snapshot.py`, `ui/presentation.py`: 공개 API 조회와 언어·아이콘·시간 표시 변환.
+- `widget/header.py`, `widget/forms/session_form.py`: 공통 상단 바와 세션 생성/복제 폼.
 - `ui/layout/`: 대화·설정 화면에서 공유하는 페이지 배치.
 - `ui/output/`: Markdown/XML 파싱과 출력 렌더러 레지스트리.
-- `backend/engine_selection.py`: 등록된 공개 Hub 엔진 목록.
-- `backend/settings_service.py`: 공개 llm API를 통한 설정 검증·저장·프로젝트 관리.
+- `backend/execution/engine_selection.py`: 등록된 공개 Hub 엔진 목록.
+- `backend/project/settings.py`: 공개 llm API를 통한 설정 검증·저장·프로젝트 관리.
 - `config/preferences.py`: workspace 공통 프로필·모양 설정 저장.
 - `__init__.py`: 플러그인 패키지.
 

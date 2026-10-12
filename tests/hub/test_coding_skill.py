@@ -16,7 +16,7 @@ from tests.llm.test_loop import ScriptedCompletion, call, chunk
 
 class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
     async def test_skill_query_yields_to_backend_observations(self):
-        from hub.backend.skills import HubSkillComponent
+        from hub.backend.tools.skills import HubSkillComponent
         from llm.components.skills import SkillComponent
         from llm.components.tools import Tool, ToolRegistry, ToolContract
         from tests.hub.support import eventually

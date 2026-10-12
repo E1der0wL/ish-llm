@@ -9,7 +9,7 @@ from prompt_toolkit.completion import Completion
 from prompt_toolkit.input import create_pipe_input
 
 from examples.hub.preview import create_preview
-from hub.backend.component_commands import component_commands
+from hub.backend.project.component_commands import component_commands
 from hub.model import ChatMessage
 from tests.hub.support import SizedOutput, eventually
 

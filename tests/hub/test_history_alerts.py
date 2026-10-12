@@ -11,7 +11,7 @@ from prompt_toolkit.input import create_pipe_input
 from hub.hub import install
 from examples.hub.preview import install_preview
 from hub.ui.application import create_application
-from hub.widget.conversation import ChatMessage
+from hub.widget.transcript.conversation import ChatMessage
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.backend.worker import BackendWorker
 from tests.hub.test_ish_integration import Prompt

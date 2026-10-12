@@ -6,7 +6,7 @@ Enter 시점에 `_hub_environment` 요청 옵션을 구성합니다. 파일 시�
 `os.chdir`/`os.environ` 변경을 UI 경로에서 수행하지 않습니다. 컨텍스트가 아직 없거나
 PWD가 올바르지 않으면 초안을 보존하고 오류를 알립니다.
 
-`backend/environment.py`의 `EnvironmentEngine`은 등록 엔진에 위임하면서 요청 옵션에서
+`backend/execution/environment.py`의 `EnvironmentEngine`은 등록 엔진에 위임하면서 요청 옵션에서
 Hub 사본만 분리합니다. Loop/Graph/사용자 엔진의 고유 옵션·설정·추가 지시 계약은 그대로
 위임합니다. 요청 사본은 llm의 기존 QUEUED/Run 저장 및 resume 경로로 보존됩니다.
 실행과 `validate_resume` 모두 동일한 도구 바인딩을 구성하며, 환경 지문을 Tool contract
@@ -24,7 +24,7 @@ Hub는 shell 실행 prefix를 직접 고정해 Git prefix와 섞이지 않게 �
 프로바이더 인증, 가져온 Python Tool의 전역 cwd/env, 외부 MCP 서버의 프로세스 환경은
 이 바인딩의 대상이 아닙니다. 이들을 전역 변경하면 동시 세션이 서로 간섭하기 때문입니다.
 명시적인 Tool `cwd`는 캡처한 root 아래 경로이며 `env`는 병합하지 않고 대체합니다.
-`backend/tool_paths.py`는 파일 경로·프로세스 cwd·테스트 공간의 원본 경로가 root 내부
+`backend/tools/paths.py`는 파일 경로·프로세스 cwd·테스트 공간의 원본 경로가 root 내부
 절대경로이면 실행 직전에 상대경로로 변환합니다. 승인에 표시하고 저장하는 원본 인자는
 유지하며 경로 어댑터 revision도 승인 계약에 포함합니다. root 밖 경로, `..`, 심볼릭 링크는
 기존 백엔드 검증으로 거부합니다. `workspace_id`가 있는 파일 호출은 격리 공간 기준의

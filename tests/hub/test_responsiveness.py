@@ -18,7 +18,7 @@ from hub.config.theme import HubTheme
 from hub.model import ChatMessage, HubSnapshot, SessionSummary
 from hub.ui.live import LiveHubView
 from hub.ui.chat.history_ui import HistoryUI
-from hub.widget.conversation import ConversationControl, render_messages
+from hub.widget.transcript.conversation import ConversationControl, render_messages
 from tests.hub.test_live import controlled_backend
 from tests.hub.support import SizedOutput, eventually
 
@@ -112,13 +112,13 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
         snapshot = HubSnapshot("p", "P", "model", "file", (SessionSummary("s", "S", "running"),), "s",
             (ChatMessage("assistant", "Working", status="streaming", id="a", elapsed_seconds=2),))
         try:
-            with patch("hub.widget.preparing.monotonic", return_value=10):
+            with patch("hub.widget.feedback.preparing.monotonic", return_value=10):
                 view.apply_snapshot(snapshot)
-            with patch("hub.widget.preparing.monotonic", return_value=13):
+            with patch("hub.widget.feedback.preparing.monotonic", return_value=13):
                 view.preparing.paint()
                 self.assertEqual(view.transcript.control.messages[-1].elapsed_seconds, 5)
                 view.apply_snapshot(replace(snapshot, messages=(replace(snapshot.messages[0], status="completed", elapsed_seconds=6),)))
-            with patch("hub.widget.preparing.monotonic", return_value=20):
+            with patch("hub.widget.feedback.preparing.monotonic", return_value=20):
                 view.preparing.paint()
                 self.assertEqual(view.transcript.control.messages[-1].elapsed_seconds, 6)
             self.assertFalse(view.preparing.clocks)
@@ -132,7 +132,7 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
                     ChatMessage("user", "next"), ChatMessage("assistant", "start", id="b", status="streaming"))
         control = ConversationControl(messages, theme)
         try:
-            with patch("hub.widget.conversation.render_messages", wraps=render_messages) as render:
+            with patch("hub.widget.transcript.conversation.render_messages", wraps=render_messages) as render:
                 control.create_content(80, 20)
                 self.assertEqual(control._message_cache.body_renders, 3)
                 control.messages = (*messages[:2], replace(messages[2], text="start and more"))

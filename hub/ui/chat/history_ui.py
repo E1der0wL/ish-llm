@@ -4,7 +4,7 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label, TextArea
-from ...widget.reader import ReadOnlyDialog
+from ...widget.output.reader import ReadOnlyDialog
 from ...widget.summary import clipped_summary
 import json
 

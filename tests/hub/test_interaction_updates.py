@@ -12,11 +12,11 @@ from prompt_toolkit.input import create_pipe_input
 
 from examples.hub.preview import create_preview
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.backend.thinking import ThinkingPhases
+from hub.backend.execution.thinking import ThinkingPhases
 from hub.config.theme import HubTheme
 from hub.model import ChatMessage
-from hub.widget.conversation import ConversationControl
-from hub.widget.tool_manager import ToolManager
+from hub.widget.transcript.conversation import ConversationControl
+from hub.widget.forms.tool_manager import ToolManager
 from hub.ui.application import create_application
 from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_live import until
@@ -133,7 +133,7 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                 for expand in ("\t", " ", "\r"):
                     pipe.send_text("\x14")
                     await eventually(lambda: app.layout.current_control == view.tags.control)
-                    with patch("hub.widget.tag_bar.copy_text", new_callable=AsyncMock, return_value="clipboard_copied") as copied:
+                    with patch("hub.widget.output.tag_bar.copy_text", new_callable=AsyncMock, return_value="clipboard_copied") as copied:
                         pipe.send_text("c")
                         await eventually(lambda: copied.await_count == 1)
                         self.assertEqual(copied.call_args.args[0], "```py\nprint(1)\n```")

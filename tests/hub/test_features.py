@@ -14,7 +14,7 @@ from prompt_toolkit.input import create_pipe_input
 from hub.ui.chat.completion import HubCompleter
 from hub.locales import Language, en, ko
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.backend.naming import TitleEngine, TITLE_ENGINE
+from hub.backend.project.naming import TitleEngine, TITLE_ENGINE
 from hub.ui.application import create_application
 from llm.llm import LargeLanguageModel
 from llm.components.tools import ToolComponent

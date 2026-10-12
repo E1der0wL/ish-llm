@@ -12,9 +12,9 @@ import unittest
 from unittest.mock import patch
 
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.backend.steps import display_steps
-from hub.backend.thinking import ThinkingPhases
-from hub.backend.trace import merge_trace
+from hub.backend.execution.steps import display_steps
+from hub.backend.execution.thinking import ThinkingPhases
+from hub.backend.execution.trace import merge_trace
 from hub.locales import Language
 from hub.model import ChatMessage, HubSnapshot, RunSummary, SessionSummary, TraceItem
 from hub.ui.presentation import present

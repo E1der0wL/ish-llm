@@ -12,7 +12,7 @@ from prompt_toolkit.formatted_text.utils import fragment_list_width
 
 from examples.hub.preview import create_preview
 from hub.ui.chat.component_ui import ComponentCommands
-from hub.widget.progress import ProgressControl
+from hub.widget.feedback.progress import ProgressControl
 from tests.hub.support import SizedOutput, eventually
 
 

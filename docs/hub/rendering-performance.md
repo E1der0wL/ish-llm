@@ -42,6 +42,13 @@ Backend snapshot publication also keeps one latest pending snapshot/callback.
 Command completions are not dropped. Snapshot notifications retain the backend's
 existing bounded sequence history.
 
+`ui/snapshot_inbox.py` owns the mailbox lock, latest value and scheduled flag.
+It neither holds a Controller reference nor starts/schedules a thread or event loop.
+LiveController still decides when UI delivery is possible and applies each consumed
+snapshot. `backend/observability/notifications.py` owns the existing 64-entry
+notification buffer, 128 dedup keys and event/snapshot reconciliation identity.
+These extractions preserve the existing bounds and do not change the rendering pipeline.
+
 ## Cache boundaries
 
 `MessageRenderCache` separates header metadata from body content. Elapsed time,

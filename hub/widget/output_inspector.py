@@ -12,8 +12,8 @@ from prompt_toolkit.widgets import Frame
 from .clipboard import copy_text
 from .controls import TextArea
 from .dialog import PopupInput
-from .output_viewport import OutputViewport
-from .search_index import index_lines
+from .output.output_viewport import OutputViewport
+from .output.search_index import index_lines
 from ..ui.input.registry import MOVEMENT_KEYS, ShortcutRegistry, legend
 
 

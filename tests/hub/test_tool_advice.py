@@ -7,9 +7,9 @@ from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import AsyncMock
 
-from hub.backend.approval import approval_preset, review_lines
+from hub.backend.interactions.approval import approval_preset, review_lines
 from hub.backend.runtime import HubConfig, HubRuntime, create_backend
-from hub.backend.tool_advice import FIELD, MODEL_RISK_SCHEME, bind_advice, classify_model_risk
+from hub.backend.tools.advice import FIELD, MODEL_RISK_SCHEME, bind_advice, classify_model_risk
 from hub.locales import Language
 from llm.components.tools import Tool, ToolClassification, ToolContract, ToolRegistry
 from llm.engines.loop import LoopEngine

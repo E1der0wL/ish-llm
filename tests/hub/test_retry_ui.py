@@ -9,12 +9,12 @@ from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import Mock, patch
 
-from hub.backend.approval import review_summary, review_text
-from hub.backend.retries import HubLoopEngine, RetryMonitor
+from hub.backend.interactions.approval import review_summary, review_text
+from hub.backend.execution.retries import HubLoopEngine, RetryMonitor
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.locales import Language
 from hub.model import RetrySummary, RunSummary
-from hub.widget.retry_status import retry_text
+from hub.widget.feedback.retry_status import retry_text
 from llm.services.infrastructure.observability import Observability
 from tests.hub.support import eventually
 from tests.hub.test_response_reliability import HTTPFailure
@@ -144,9 +144,9 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
 
     def test_countdown_is_local(self):
         run = RunSummary("r", "running", "loop", 0, True, (), "", RetrySummary(1, 4, 110))
-        with patch("hub.widget.retry_status.monotonic", return_value=104):
+        with patch("hub.widget.feedback.retry_status.monotonic", return_value=104):
             self.assertIn("2번째 시도까지 6초", retry_text(run.retry, Language("ko")))
-        with patch("hub.widget.retry_status.monotonic", return_value=108):
+        with patch("hub.widget.feedback.retry_status.monotonic", return_value=108):
             self.assertIn("2번째 시도까지 2초", retry_text(run.retry, Language("ko")))
         self.assertIn("2/4번째", retry_text(RetrySummary(2, 4), Language("ko")))
 

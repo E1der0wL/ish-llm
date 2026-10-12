@@ -28,7 +28,7 @@ def Prompt(*args, **kwargs):
 
 class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_alt_navigation_preserves_input_focus_cursor_and_host_mouse_mode(self):
-        from hub.widget.conversation import ChatMessage
+        from hub.widget.transcript.conversation import ChatMessage
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
             mouse_support = prompt.app.mouse_support

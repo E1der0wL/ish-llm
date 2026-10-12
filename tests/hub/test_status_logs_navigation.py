@@ -12,7 +12,7 @@ from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input, DummyInput
 
 from examples.hub.preview import create_preview
-from hub.backend.provider_logs import read_provider_logs
+from hub.backend.observability.provider_logs import read_provider_logs
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.locales import Language
 from hub.ui.chat.history_ui import format_activity
@@ -22,14 +22,14 @@ from tests.hub.support import SizedOutput, eventually
 class StatusLogsNavigationTests(unittest.IsolatedAsyncioTestCase):
     async def test_paused_event_from_another_project_is_not_lost_or_repeated(self):
         runtime = HubRuntime(HubConfig("unused", auto_title=False))
-        runtime._notification_sessions["s"] = ("other-project", "Other project session")
+        runtime.notifications.register_session("other-project", "s", "Other project session")
         run = NS(id="r", session_id="s", engine="loop", status="paused")
         await runtime._run_event(NS(run=run))
-        self.assertEqual(runtime._notifications[-1].status, "paused")
-        runtime._question_notification("other-project", "s", "Other project session",
+        self.assertEqual(runtime.notifications.items()[-1].status, "paused")
+        runtime.notifications.record_question("other-project", "s", "Other project session",
                                        {"request": {"id": "approval", "kind": "approval"}})
         await runtime._run_event(NS(run=run))
-        self.assertEqual([n.status for n in runtime._notifications], ["paused", "waiting_approval"])
+        self.assertEqual([n.status for n in runtime.notifications.items()], ["paused", "waiting_approval"])
 
     async def test_question_notifications_reach_other_session_and_minimized_ui(self):
         from hub.model import HubSnapshot, SessionSummary, SessionNotification

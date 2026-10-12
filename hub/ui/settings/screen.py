@@ -14,7 +14,7 @@ from .pages import GlobalPage, ProjectPage
 from ...widget.section import section
 from ...config.theme import HubTheme
 from ...widget.controls import TextArea
-from ...widget.settings_viewport import SettingsPane
+from ...widget.forms.settings_viewport import SettingsPane
 from .editor import edit_text
 from ...widget.sidebar import SidebarItem, SidebarList
 from ..layout import TwoPanelPage

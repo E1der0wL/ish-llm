@@ -13,11 +13,11 @@ from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 
 from hub.ui.application import create_application
-from hub.widget.conversation import ChatMessage
+from hub.widget.transcript.conversation import ChatMessage
 from hub.config.general import GeneralSettings
 from hub.ui.live import LiveHubView
 from hub.locales import Language
-from hub.widget.notifications import SessionToasts
+from hub.widget.feedback.notifications import SessionToasts
 from hub.config.preferences import PreferencesStore
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.model import HubSnapshot, SessionSummary
@@ -74,13 +74,13 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
         view = SimpleNamespace(general=GeneralSettings(notification_kinds=["error"], notification_seconds=3), t=Language())
         toasts = SessionToasts(view)
         toasts.app = SimpleNamespace(invalidate=Mock())
-        with patch("hub.widget.notifications.monotonic", return_value=100):
+        with patch("hub.widget.feedback.notifications.monotonic", return_value=100):
             toasts.push("Session", "completed", "success")
             toasts.push("Session", "failed", "error")
             self.assertEqual(len(toasts.items), 1)
             self.assertEqual(toasts.items[0].expires, 103)
             self.assertTrue(toasts.active())
-        with patch("hub.widget.notifications.monotonic", return_value=104):
+        with patch("hub.widget.feedback.notifications.monotonic", return_value=104):
             self.assertFalse(toasts.active())
         toasts.alert("Error", "message", "error")
         view.general = GeneralSettings(notification_kinds=[])

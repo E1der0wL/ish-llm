@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, patch
 
-from hub.widget.conversation import ChatMessage, render_messages
+from hub.widget.transcript.conversation import ChatMessage, render_messages
 from hub.locales import Language
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.config.theme import HubTheme
@@ -35,7 +35,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
                                   created_at="2026-10-04T00:00:00+00:00", run_id=None, metadata={})
         response = SimpleNamespace(id="assistant", role="assistant", content="Answer", status="streaming",
                                    created_at=request.created_at, run_id=run.id, metadata={})
-        with patch("hub.backend.snapshot.datetime", wraps=datetime) as clock:
+        with patch("hub.backend.observability.snapshot.datetime", wraps=datetime) as clock:
             clock.now.return_value = datetime(2026, 10, 4, 0, 1, 2, tzinfo=timezone.utc)
             first = await runtime.snapshot_reader.messages(session, [request, response])
             self.assertEqual(first[-1].elapsed_seconds, 2)
