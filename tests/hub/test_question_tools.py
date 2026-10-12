@@ -51,7 +51,9 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
         from llm.components.tools.builtin import BuiltinToolRunner
         model = ScriptedCompletion()
         with tempfile.TemporaryDirectory() as root:
-            runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
+            source = Path(root) / "source.txt"
+            source.write_text("copied source")
+            runtime = HubRuntime(HubConfig(root, file_root=root, model="test/model", auto_title=False,
                 engine_factories={"loop":lambda:LoopEngine(completion_fn=model)}))
             try:
                 await runtime.start()
@@ -60,7 +62,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 session = await runtime.project.sessions.acreate("Sandbox")
                 identifier = None
                 for name in ("test_workspace_create", "test_workspace_execute", "test_workspace_delete"):
-                    args = {"source_paths":[]} if identifier is None else {"workspace_id":identifier}
+                    args = {"source_paths":[str(source)]} if identifier is None else {"workspace_id":identifier}
                     if name == "test_workspace_execute":
                         args["argv"] = ["/bin/sh","-c","printf isolated > result.txt; printf ok"]
                     model.responses.extend([[chunk(calls=[call(json.dumps(args),name=name)],finish="tool_calls")],
@@ -74,6 +76,8 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                     output = next(s for s in await done.steps.alist() if s.kind=="tool").output.data
                     if name == "test_workspace_create":
                         identifier = output["workspace_id"]
+                        copied = Path(root) / ".hub/test-workspaces" / runtime.project.id / identifier / "files/source.txt"
+                        self.assertEqual(copied.read_text(), "copied source")
                     elif name == "test_workspace_execute":
                         self.assertEqual(output["stdout"],"ok")
                         stored = Path(root) / ".hub/test-workspaces" / runtime.project.id / identifier / "files/result.txt"
@@ -133,6 +137,10 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn(view.t.status("waiting_input"), view.sessions[view.selected].status)
                 self.assertEqual(view.activity, view.t.status("waiting_input") + " · " + view.question.item["request"]["title"])
                 self.assertIs(app.layout.current_control, view.composer.control)
+                self.assertIn("Which output?", view.question.details.text)
+                self.assertIn("1. Markdown", view.question.text())
+                self.assertIn("2. Text", view.question.text())
+                self.assertFalse(any(m.id.startswith("interaction:") for m in view.transcript.control.messages))
                 self.assertIsNone(view._dialog)
                 pipe.send_text("2\r")
                 await until(lambda: view.question.item is None and any(m.text == "Answer received" for m in view.transcript.control.messages))
@@ -161,6 +169,11 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 item = snapshot.questions[0]
                 self.assertEqual(snapshot.run.status, "running")
                 self.assertEqual(snapshot.status, "waiting_input")
+                thinking = next(message for message in snapshot.messages if message.role == "reasoning")
+                self.assertTrue(any(step.name == "ask_user" and step.status == "running" for step in thinking.tools))
+                runtime.snapshot_reader.clear()
+                restored = await runtime.snapshot()
+                self.assertEqual(next(m.tools for m in restored.messages if m.role == "reasoning"), thinking.tools)
                 self.assertEqual(snapshot.sessions[0].status, "waiting_input")
                 self.assertEqual(sum(n.status == "waiting_input" for n in snapshot.notifications), 1)
                 again = await runtime.snapshot()
@@ -209,9 +222,17 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(snapshot.notifications[-1].status, "waiting_approval")
                 self.assertFalse((Path(root) / "answer.txt").exists())
                 item = snapshot.questions[0]
-                action = present(snapshot, runtime.t).messages[-1]
-                self.assertIn("path: 'answer.txt'", action.text)
-                self.assertNotIn('"content": "approved"', action.text)
+                self.assertFalse(any(m.id.startswith("interaction:") or "answer.txt" in m.text
+                                     for m in present(snapshot, runtime.t).messages))
+                view = LiveHubView()
+                try:
+                    view.apply_snapshot(snapshot)
+                    self.assertIn("path: 'answer.txt'", view.question.details.text)
+                    self.assertNotIn('"content": "approved"', view.question.details.text)
+                    self.assertIn("1.", view.question.text())
+                finally:
+                    view.output_renderers.close()
+                    view.progress.close()
                 self.assertIn('"content": "approved"', await runtime.approval_details(item["request"]))
                 await runtime.answer_question(runtime.project.id, sid, item["run_id"], item["request"], "approve", None)
                 await runtime.sessions[sid].run.wait_idle()

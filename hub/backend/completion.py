@@ -3,6 +3,7 @@
 from dataclasses import replace
 from llm.components.processing import CompletionMessage, CompletionSession
 from .followup import INSTRUCTION, split_followup
+from .tool_advice import INSTRUCTION as RISK_INSTRUCTION
 
 
 class FollowupSession(CompletionSession):
@@ -14,7 +15,7 @@ class FollowupSession(CompletionSession):
         # Extra model context is not a Conversation Message and has no persisted
         # source ID. Checkpoints/approvals can therefore resume unchanged.
         index = 1 if request.messages and request.messages[0].value.get("role") == "system" else 0
-        request.messages.insert(index, CompletionMessage({"role": "system", "content": INSTRUCTION}))
+        request.messages.insert(index, CompletionMessage({"role": "system", "content": INSTRUCTION + "\n\n" + RISK_INSTRUCTION}))
         if False:
             yield
 

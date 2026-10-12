@@ -50,7 +50,8 @@ class FollowupTests(unittest.IsolatedAsyncioTestCase):
         request = CompletionRequest({}, [CompletionMessage({"role": "user", "content": "task"}, "u")], 0)
         async for _ in FollowupProcessor().session(None).prepare(request):
             pass
-        self.assertEqual(request.messages[0].value["content"], INSTRUCTION)
+        from hub.backend.tool_advice import INSTRUCTION as RISK_INSTRUCTION
+        self.assertEqual(request.messages[0].value["content"], INSTRUCTION + "\n\n" + RISK_INSTRUCTION)
         self.assertIsNone(request.messages[0].source_id)
         self.assertEqual(request.messages[1].source_id, "u")
         self.assertEqual(request.messages[1].value["content"], "task")

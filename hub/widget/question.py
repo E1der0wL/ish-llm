@@ -3,7 +3,7 @@
 import json
 
 from prompt_toolkit.filters import Condition
-from prompt_toolkit.layout import ConditionalContainer, Window
+from prompt_toolkit.layout import ConditionalContainer, Window, HSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
 
@@ -16,9 +16,14 @@ class QuestionComposer:
         self.drafts = {}
         self.busy = False
         self._completed = {}
-        self.container = ConditionalContainer(Window(FormattedTextControl(self.text), wrap_lines=True,
-            height=lambda: Dimension(min=1, max=max(3, view._rows() // 3)), dont_extend_height=True,
-            style="class:hub.composer"), Condition(lambda: self.item is not None))
+        self.details = FormattedTextControl("")
+        self.container = ConditionalContainer(HSplit([
+            Window(self.details, wrap_lines=True, dont_extend_height=True,
+                   height=lambda: Dimension(min=1, max=max(3, view._rows() // 3)),
+                   style="class:hub.composer"),
+            Window(FormattedTextControl(self.text), wrap_lines=True,
+                   dont_extend_height=True, style="class:hub.composer"),
+        ]), Condition(lambda: self.item is not None))
 
     def leave(self):
         if self.item:
@@ -41,6 +46,7 @@ class QuestionComposer:
         if item:
             self.view._drafts[self.view._draft_key(self.view.selected)] = self.view.composer.text
             self.item, self.identity, self.busy = item, identity, False
+            self.details.text = "\n".join(self.detail_lines())
             self.view.composer.buffer.cancel_completion()
             self.view.composer.text = self.drafts.get(identity, "")
 
@@ -54,10 +60,8 @@ class QuestionComposer:
             return ""
         request = self.item["request"]
         if self.busy:
-            return request["title"]
-        lines = [request["title"]]
-        if request.get("description"):
-            lines.append(request["description"])
+            return ""
+        lines = []
         if self.item["live"]:
             choices = request.get("source", {}).get("choices", [])
             lines.extend(f"{i}. {label}" for i, label in enumerate(choices, 1))
@@ -68,6 +72,13 @@ class QuestionComposer:
             if request.get("action"):
                 lines.append(self.view.t("question_action_hint"))
         return "\n".join(lines)
+
+    def detail_lines(self):
+        request = self.item["request"]
+        if request.get("action"):
+            from ..backend.approval import review_lines
+            return [request["title"], *review_lines(request, self.view.t)]
+        return [request["title"], *([request["description"]] if request.get("description") else [])]
 
     def review(self):
         if self.item and self.item["request"].get("action") and self.view.on_review:

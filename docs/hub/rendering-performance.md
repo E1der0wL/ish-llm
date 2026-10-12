@@ -48,6 +48,16 @@ time labels and status labels do not reparse an unchanged body. The streaming
 versus final distinction remains a parsing input, so unfinished XML is handled
 correctly when a message completes.
 
+Reasoning is a separate ChatMessage linked by the assistant's ID. Its `tools`
+tuple carries immutable Step summaries separately from the provider's thought
+text. Header, thought/body and compact tool rows have independent cache keys.
+Changing only a Tool status does not rerender the thought Markdown or answer;
+changing only thought text does not reparse/render the answer's code or tables.
+The active reasoning and answer form one tail, including any queued requests
+that follow them, so thought growth also reuses the historical prefix.
+Height changes still require positioning the active
+tail and PTK painting its changed cells; this is not a promise of zero layout work.
+
 Each message retains its latest parsed blocks and rendered blocks. The parser
 instance is reused. Renderer registration changes invalidate the layout context;
 renderer completion revisions are checked per block. An image completion cannot
@@ -74,6 +84,17 @@ existing `progress_refresh_interval` timer; start/finish invalidate immediately.
 Only the small single-row progress frame is rendered on the UI thread.
 
 ## Validation and instrumentation
+
+2026-10-12: the Tool-history/advisory-risk update passed all 250 Hub tests
+(`tests/llm/reports/ish-provider-lrsfvop7/hub.txt`) and 34 focused tests in that
+snapshot. Backend regression passed 1,383 tests
+(`tests/llm/reports/ish-provider-7m8f803o/suite.txt`); `llm/` source is unchanged.
+The new work-count regression changes thought text 50 times while a queued
+request follows the active answer: the answer frame and historical prefix retain
+identity, its parser byte count does not increase, and only the thought body is
+rerendered. A Tool-status change updates only Tool rows. Tests also verify real
+composer questions and advisory risk remaining subject to approval without an
+extra completion call.
 
 `tests.hub.test_render_pipeline` checks elapsed-only reuse, 199 historical
 messages with 100 tail updates, canonical final rows/anchors/objects, image-local

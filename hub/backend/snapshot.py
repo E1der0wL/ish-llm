@@ -25,12 +25,14 @@ class SnapshotReader:
         self.cache = {}
         self.observations = {}
         self.submissions = {}
+        self.tool_history = {}
         from .thinking import ThinkingPhases
         self.thinking = ThinkingPhases()
 
     def clear(self):
         self.cache.clear()
         self.observations.clear()
+        self.tool_history.clear()
 
     def invalidate(self, session_id):
         self.observations.pop(session_id, None)
@@ -47,7 +49,8 @@ class SnapshotReader:
             return "", None  # Retention can remove old execution history.
         from .thinking import reasoning_text
         completions = run.metadata.get("completions", [])
-        reasoning = reasoning_text(completions[-1].get("reasoning_content", "")) if completions else ""
+        reasoning = "\n\n".join(text for item in completions
+                                if (text := reasoning_text(item.get("reasoning_content", ""))))
         elapsed = None
         active = str(run.status) in ("pending", "running")
         started_at = requested_at or run.started_at
@@ -61,7 +64,7 @@ class SnapshotReader:
                 self.cache.pop(next(iter(self.cache)))
         return result
 
-    async def messages(self, session, messages, author="", *, latest=None):
+    async def messages(self, session, messages, author="", *, latest=None, latest_steps=()):
         visible = []
         requests = {message.run_id: self.submissions.get(message.id, message.created_at) for message in messages
                     if str(message.role) == "user" and message.run_id and not message.metadata.get("steering")}
@@ -71,13 +74,34 @@ class SnapshotReader:
                 continue
             elapsed = None
             if role == "assistant" and message.run_id:
+                active = str(message.status) in ("streaming", "committed", "paused")
                 reasoning, elapsed = await self.run_display(session, message.run_id,
                     run=latest if latest is not None and latest.id == message.run_id else None,
                     requested_at=requests.get(message.run_id))
                 reasoning = self.thinking.visible(message.run_id, reasoning,
-                    active=str(message.status) in ("streaming", "committed"), content=message.content)
-                if reasoning:
-                    visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning"))
+                    active=active, content=message.content)
+                tools = ()
+                if active:
+                    if latest is not None and latest.id == message.run_id:
+                        tools = tuple(StepSummary(step.name, str(step.status), str(step.kind), getattr(step, "id", ""))
+                                      for step in latest_steps if str(step.kind) == "tool")
+                        if str(latest.status) == "paused":
+                            self.tool_history[message.run_id] = tools
+                    elif message.run_id in self.tool_history:
+                        tools = self.tool_history[message.run_id]
+                    elif session is not None:
+                        try:
+                            steps = await (await session.run.aload(message.run_id)).steps.alist()
+                            tools = tuple(StepSummary(step.name, str(step.status), str(step.kind), step.id)
+                                          for step in steps if str(step.kind) == "tool")
+                            if str(message.status) == "paused":
+                                self.tool_history[message.run_id] = tools
+                        except FileNotFoundError:
+                            pass
+                    if len(self.tool_history) > 1024:
+                        self.tool_history.pop(next(iter(self.tool_history)))
+                if reasoning or tools:
+                    visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning", tools=tools))
             status = str(message.metadata.get("steering", {}).get("status", message.status))
             phase = (self.thinking.activity(latest)
                      if role == "assistant" and latest is not None and latest.id == message.run_id
@@ -117,13 +141,13 @@ class SnapshotReader:
         session_config = selected.record.config if selected else None
         if selected:
             session = sessions[selected_id]
+            steps = await selected.handle.steps.alist() if selected.run else ()
             messages = await self.messages(session, await session.aconversation(), config.user_profile.display_name,
-                                           latest=selected.run)
+                                           latest=selected.run, latest_steps=steps)
             if selected.run:
                 run = selected.run
                 if str(run.status) == "paused":
                     questions = selected.questions
-                steps = await selected.handle.steps.alist()
                 _, elapsed = await self.run_display(session, run.id, run=run)
                 summary = RunSummary(run.id, str(run.status), run.engine, elapsed,
                     bool(selected.runtime.active_run_id),

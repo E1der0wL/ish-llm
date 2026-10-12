@@ -26,8 +26,19 @@ def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessag
             hidden.add(record.id)
         elif str(record.role) == "assistant":
             sources[record.id] = assistants[parent]
-    result, positions = [], {}
+    result, positions, reasoning, tools = [], {}, {}, {}
     for message in messages:
+        if message.role == "reasoning" and message.id.endswith(":reasoning"):
+            assistant = message.id.removesuffix(":reasoning")
+            root = sources.get(assistant, assistant)
+            history = tools.setdefault(root, {})
+            for index, step in enumerate(message.tools):
+                history[step.id or (assistant, index)] = step
+            previous = reasoning.get(root, "")
+            if message.text and message.text not in previous:
+                reasoning[root] = (message.text if message.text.startswith(previous) else
+                                   previous + ("\n\n" if previous else "") + message.text)
+            continue
         if message.id in hidden:
             continue
         root = sources.get(message.id)
@@ -43,4 +54,10 @@ def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessag
         else:
             positions[message.id] = len(result)
             result.append(message)
-    return tuple(result)
+    visible = []
+    for message in result:
+        if (message.id in reasoning or message.id in tools) and message.status in ("streaming", "committed", "paused"):
+            visible.append(ChatMessage("reasoning", reasoning.get(message.id, ""), id=message.id + ":reasoning",
+                                       tools=tuple(tools.get(message.id, {}).values())))
+        visible.append(message)
+    return tuple(visible)

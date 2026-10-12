@@ -67,6 +67,7 @@ def create_backend(config: HubConfig):
     from .naming import TitleEngine, TITLE_ENGINE
     from .builtin_tools import HubBuiltinTools
     from .context import HubContextBuilder
+    from .tool_advice import classify_model_risk
     monitor = RetryMonitor()
     factories = {"loop": HubLoopEngine, **(config.engine_factories or {})}
     if config.engine not in factories and config.engine != "graph":
@@ -93,7 +94,9 @@ def create_backend(config: HubConfig):
                    for name, engine in engines.items()}
     return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
                               services=BackendServices(context_builder=HubContextBuilder(), observability_sink=monitor,
-                                  tool_runtime=ToolRuntime(classify=config.tool_classifier, runner=BuiltinToolRunner())))
+                                  tool_runtime=ToolRuntime(
+                                      classify=config.tool_classifier if config.tool_classifier is not None else classify_model_risk,
+                                      revision="hub-model-risk-v1", runner=BuiltinToolRunner())))
 
 
 class HubRuntime:
@@ -558,9 +561,7 @@ class HubRuntime:
             engines=self.backend.engines, title_errors=self.namer.errors)
         self._reconcile_snapshot(snapshot.project_id, observations)
         questions = self.builtin_tools.questions.views(self.project.id, self.selected_id) if self.builtin_tools else ()
-        from .approval import review_summary
-        questions = tuple({**item, "review_text": review_summary(item["request"], self.t)} if item["request"].get("action") else item
-                          for item in questions + snapshot.questions)
+        questions = questions + snapshot.questions
         from .retries import RetryMonitor
         monitor = getattr(self.backend.services, "observability_sink", None)
         if snapshot.run and snapshot.run.active and isinstance(monitor, RetryMonitor):

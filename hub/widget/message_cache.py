@@ -63,7 +63,7 @@ class MessageRenderCache:
         self.context = None
         self.items = {}
         self.parser = OutputParser()
-        self.body_renders = self.header_renders = self.prefix_builds = 0
+        self.body_renders = self.header_renders = self.prefix_builds = self.tool_renders = 0
         self._prefix_key = None
         self._prefix = None
 
@@ -112,23 +112,34 @@ class MessageRenderCache:
             if header is None or previous.get("header_key") != header_key:
                 header = frozen_rows(render((message,), width, theme, language, section="header"))
                 self.header_renders += 1
-            if previous.get("body") is body and previous.get("header") is header:
+            tools = previous.get("tools")
+            if tools is None or previous.get("tools_key") != message.tools:
+                tools = frozen_rows(render((message,), width, theme, language, section="tools")) if message.tools else ()
+                self.tool_renders += bool(message.tools)
+            if previous.get("body") is body and previous.get("header") is header and previous.get("tools") is tools:
                 frame = previous["frame"]
             else:
                 offset = len(header)
-                frame = Frame(Joined(header, body.lines), ((identifier, 0), *((name, row + offset) for name, row in body.anchors)),
+                frame = Frame(Joined(header, body.lines, tools), ((identifier, 0), *((name, row + offset) for name, row in body.anchors)),
                     tuple(replace(obj, start_line=obj.start_line + offset, end_line=obj.end_line + offset) for obj in body.objects),
-                    max(body.max_width, max(map(fragment_list_width, header), default=0)))
+                    max(body.max_width, max(map(fragment_list_width, header), default=0),
+                        max(map(fragment_list_width, tools), default=0)))
             retained[identifier] = dict(body_key=body_key, blocks=blocks, revisions=revisions, body=body,
-                block_cache=block_cache, header_key=header_key, header=header, frame=frame)
+                block_cache=block_cache, header_key=header_key, header=header, tools=tools,
+                tools_key=message.tools, frame=frame)
             entries.append(frame)
         self.items = retained
-        prefix_key = tuple(id(entry) for entry in entries[:-1])
+        # Queued user messages can follow the currently streaming response.
+        # Keep that whole changing region out of the historical prefix too.
+        tail_start = next((index for index, message in enumerate(messages)
+                           if message.role == "reasoning" or message.role == "assistant"
+                           and message.status in ("streaming", "committed")), len(entries) - 1)
+        prefix_key = tuple(id(entry) for entry in entries[:tail_start])
         if prefix_key != self._prefix_key:
-            self._prefix = self._assemble(entries[:-1], messages, 0)
+            self._prefix = self._assemble(entries[:tail_start], messages, 0)
             self._prefix_key = prefix_key
             self.prefix_builds += 1
-        tail = self._assemble(entries[-1:], messages, len(entries) - 1, len(self._prefix.lines))
+        tail = self._assemble(entries[tail_start:], messages, tail_start, len(self._prefix.lines))
         return Frame(Joined(self._prefix.lines, tail.lines), Joined(self._prefix.anchors, tail.anchors),
                      Joined(self._prefix.objects, tail.objects), max(self._prefix.max_width, tail.max_width),
                      ChainMap(tail.starts, self._prefix.starts))

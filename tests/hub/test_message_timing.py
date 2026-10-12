@@ -30,7 +30,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
                               ended_at=None, metadata={"completions": [{"reasoning_content": "Reason"}]})
         read = AsyncMock(return_value=run)
         session = SimpleNamespace(run=SimpleNamespace(aload=AsyncMock(
-            return_value=SimpleNamespace(aget_data=read))))
+            return_value=SimpleNamespace(aget_data=read, steps=SimpleNamespace(alist=AsyncMock(return_value=[]))))))
         request = SimpleNamespace(id="user", role="user", content="Question", status="queued",
                                   created_at="2026-10-04T00:00:00+00:00", run_id=None, metadata={})
         response = SimpleNamespace(id="assistant", role="assistant", content="Answer", status="streaming",
@@ -41,7 +41,8 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(first[-1].elapsed_seconds, 2)
             self.assertEqual(first[-1].time, "")
             self.assertTrue(first[0].time)
-            self.assertEqual(first[1].role, "assistant")
+            self.assertEqual([m.role for m in first], ["user", "reasoning", "assistant"])
+            self.assertEqual(first[1].text, "Reason")
             clock.now.return_value = datetime(2026, 10, 4, 0, 1, 4, tzinfo=timezone.utc)
             self.assertEqual((await runtime.snapshot_reader.messages(session, [response]))[-1].elapsed_seconds, 4)
             run.status, run.ended_at = "completed", "2026-10-04T00:01:03.250000+00:00"

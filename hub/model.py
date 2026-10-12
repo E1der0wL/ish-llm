@@ -13,6 +13,7 @@ class ChatMessage:
     author: str = ""
     elapsed_seconds: float | None = None
     phase: str = ""
+    tools: tuple["StepSummary", ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,6 +54,7 @@ class StepSummary:
     name: str
     status: str
     kind: str = ""
+    id: str = ""
 
 
 @dataclass(frozen=True, slots=True)

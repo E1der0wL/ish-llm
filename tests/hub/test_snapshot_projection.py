@@ -15,6 +15,24 @@ from hub.ui.presentation import present
 
 
 class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_reconciliation_restores_all_rounds_above_partial_answer(self):
+        run = NS(id="r", status="running", started_at=None, ended_at=None,
+                 metadata={"completions": [{"reasoning_content": "First"},
+                     {"reasoning_content": {"thinking": "Second"}}]})
+        record = NS(id="a", role="assistant", content="Partial answer", status="streaming",
+                    created_at="", run_id="r", metadata={})
+        reader = SnapshotReader()
+        steps = (NS(id="t1", name="file_read", status="completed", kind="tool"),
+                 NS(id="t2", name="shell_execute", status="running", kind="tool"))
+        messages = await reader.messages(None, [record], latest=run, latest_steps=steps)
+        self.assertEqual([m.role for m in messages], ["reasoning", "assistant"])
+        self.assertEqual(messages[0].text, "First\n\nSecond")
+        self.assertEqual([(s.name, s.status) for s in messages[0].tools],
+                         [("file_read", "completed"), ("shell_execute", "running")])
+        record.status = "completed"
+        run.status = "completed"
+        self.assertEqual([m.role for m in await reader.messages(None, [record], latest=run)], ["assistant"])
+
     async def test_read_only_snapshot_has_no_localized_display_and_reuses_observations(self):
         config = NS(engine="loop", model=None, file_root=None, user_profile=NS(display_name="Account"))
         record = NS(id="s", title="Session", config={}, metadata={"hub_auto_title": True})

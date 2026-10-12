@@ -84,6 +84,36 @@ class ShellSnapshotTests(unittest.TestCase):
 
 
 class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_absolute_paths_inside_cwd_work_without_relaxing_boundaries(self):
+        with tempfile.TemporaryDirectory() as root:
+            work = Path(root) / "work"
+            work.mkdir()
+            runtime = HubRuntime(HubConfig(Path(root) / "storage", file_root=work, auto_title=False))
+            try:
+                await runtime.start()
+                registry = runtime.builtin_tools.resolve_environment(
+                    await runtime.project.aget_data(), snapshot(work, "paths"))
+                args = {"path": str(work / "created.txt"), "content": "created"}
+                await registry.get("file_create").handler(args)
+                self.assertEqual(args["path"], str(work / "created.txt"))
+                read = await registry.get("file_read").handler({"path": str(work / "created.txt")})
+                self.assertEqual(read["text"], "created")
+                await registry.get("file_move").handler({"path": str(work / "created.txt"),
+                    "destination": str(work / "renamed.txt"), "expected_sha256": read["sha256"]})
+                self.assertEqual((work / "renamed.txt").read_text(), "created")
+                output = await registry.get("shell_execute").handler({"command": "pwd", "cwd": str(work)})
+                self.assertEqual(output["stdout"].strip(), str(work))
+                for path in (str(Path(root) / "outside.txt"), "../outside.txt", str(work / "../outside.txt")):
+                    with self.subTest(path=path), self.assertRaisesRegex(ValueError, "working root"):
+                        await registry.get("file_create").handler({"path": path, "content": "blocked"})
+                (work / "link").symlink_to(Path(root), target_is_directory=True)
+                with self.assertRaisesRegex(ValueError, "symlink"):
+                    await registry.get("file_create").handler({"path": str(work / "link/escape.txt"), "content": "blocked"})
+                self.assertFalse(Path(root, "outside.txt").exists())
+                self.assertFalse(Path(root, "escape.txt").exists())
+            finally:
+                await runtime.close()
+
     async def test_old_llm_schema_cannot_silently_ignore_shell_environment(self):
         from hub.backend.builtin_tools import HubBuiltinTools
         from llm.components.tools.builtin import BuiltinTools
@@ -194,7 +224,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                 await registries[0].get("shell_execute").handler({"command": "/usr/bin/git init -q"})
                 git = await registries[0].get("git_status").handler({})
                 self.assertEqual(git["stdout"], "?? result.txt\n")
-                start = await registries[0].get("process_start").handler({"argv": ["/usr/bin/env"]})
+                start = await registries[0].get("process_start").handler({"argv": ["/usr/bin/env"], "cwd": str(first)})
                 toolkit = next(t for t in runtime.builtin_tools.toolkits.values() if t.files.root == first)
                 await toolkit.processes.sessions[start["process_id"]]["task"]
                 output = await registries[0].get("process_output").handler({"process_id": start["process_id"]})
@@ -214,13 +244,15 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.close()
 
     async def test_approval_resume_uses_persisted_snapshot_and_model_gets_only_cwd(self):
-        model = ScriptedCompletion(
-            [chunk(calls=[call(json.dumps({"command": 'printf "%s|%s" "$PWD" "$HUB_SHELL_TEST"'}),
-                               name="shell_execute")], finish="tool_calls")],
-            [chunk("done", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             work = Path(root) / "work"
             work.mkdir()
+            # Keep the approved absolute cwd immutable across restart; adapt
+            # to the backend's relative-path contract only at execution.
+            model = ScriptedCompletion(
+                [chunk(calls=[call(json.dumps({"command": 'printf "%s|%s" "$PWD" "$HUB_SHELL_TEST"',
+                    "cwd": str(work)}), name="shell_execute")], finish="tool_calls")],
+                [chunk("done", finish="stop")])
             config = HubConfig(Path(root) / "storage", model="test/model", auto_title=False,
                 engine_factories={"loop": lambda: LoopEngine(completion_fn=model)})
             runtime = HubRuntime(config)
@@ -234,6 +266,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                 paused = await queued.wait()
                 self.assertEqual(str(paused.data.status), "paused", paused.data.error)
                 request, = await paused.ainteractions()
+                self.assertEqual(request.action["arguments"]["cwd"], str(work))
                 await paused.arespond(request.respond("approve"))
                 paused_id = paused.id
                 await runtime.close()

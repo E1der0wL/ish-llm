@@ -12,7 +12,7 @@ from unittest.mock import Mock
 from prompt_toolkit.input import create_pipe_input
 
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.model import ChatMessage, HubSnapshot, SessionSummary
+from hub.model import ChatMessage, HubSnapshot, SessionSummary, StepSummary
 from hub.ui.application import create_application
 from hub.ui.live import LiveController, LiveHubView
 from llm.core.interactions import InteractionOption, InteractionRequest
@@ -23,6 +23,28 @@ from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
 class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
+    def test_resumed_reasoning_stays_above_one_response_until_completion(self):
+        from hub.backend.continuations import continued_messages
+        records = [NS(id='u1', role='user', run_id='r1', metadata={}),
+                   NS(id='a1', role='assistant', run_id='r1', metadata={}),
+                   NS(id='u2', role='user', run_id='r2', metadata={'resume': {'run_id': 'r1'}}),
+                   NS(id='a2', role='assistant', run_id='r2', metadata={})]
+        messages = (ChatMessage('user', 'Request', id='u1'),
+                    ChatMessage('reasoning', 'First thought', id='a1:reasoning',
+                                tools=(StepSummary('file_read', 'completed', 'tool', 't1'),)),
+                    ChatMessage('assistant', 'Before approval', id='a1', status='paused'),
+                    ChatMessage('user', 'Request', id='u2'),
+                    ChatMessage('reasoning', 'Second thought', id='a2:reasoning',
+                                tools=(StepSummary('file_create', 'running', 'tool', 't2'),)),
+                    ChatMessage('assistant', 'After approval', id='a2', status='streaming'))
+        result = continued_messages(records, messages)
+        self.assertEqual([m.id for m in result], ['u1', 'a1:reasoning', 'a1'])
+        self.assertEqual(result[1].text, 'First thought\n\nSecond thought')
+        self.assertEqual([s.id for s in result[1].tools], ['t1', 't2'])
+        self.assertEqual(result[2].text, 'Before approval\n\nAfter approval')
+        done = continued_messages(records, (*messages[:-1], replace(messages[-1], status='completed')))
+        self.assertEqual([m.id for m in done], ['u1', 'a1'])
+
     def test_queued_and_repeated_resume_preserve_one_display_turn_with_steering(self):
         from hub.backend.continuations import continued_messages
         def record(identifier, role, run_id, parent=None):
@@ -65,7 +87,7 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
             app, controller = create_application(HubConfig(Path(root) / 'workspace', file_root=root,
                 model='test/model', auto_title=False, engine_factories={'loop': lambda: LoopEngine(completion_fn=provider)}),
-                input=pipe, output=SizedOutput())
+                input=pipe, output=SizedOutput(columns=100, rows=28))
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
@@ -78,6 +100,15 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                 original = next(m for m in view.sessions[view.selected].messages
                                 if m.role == 'assistant' and m.id != 'interaction:' + view.question.item['request']['id'])
                 self.assertIn('I will create', original.text)
+                self.assertIn('answer.txt', view.question.details.text)
+                self.assertFalse(any(m.id.startswith('interaction:') for m in
+                                     view.sessions[view.selected].messages))
+                self.assertIs(app.layout.current_control, view.composer.control)
+                def displayed():
+                    screen = app.renderer._last_screen
+                    return '\n'.join(''.join(screen.data_buffer[y][x].char for x in range(100))
+                                     for y in range(28)) if screen else ''
+                await until(lambda: 'answer.txt' in displayed() and '1.' in displayed() and '2.' in displayed())
                 self.assertFalse(Path(root, 'answer.txt').exists())
                 self.assertEqual(len(provider.requests), 1)
                 pipe.send_bytes(b'\x0f')

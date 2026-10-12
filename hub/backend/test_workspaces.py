@@ -6,6 +6,8 @@ from llm.components.tools.builtin import TestWorkspaces
 
 class HubTestWorkspaces(TestWorkspaces):
     async def __call__(self, args):
+        from .tool_advice import execution_arguments
+        args = execution_arguments(args)
         argv = args.get("argv")
         if (not isinstance(argv, (list, tuple)) or not argv or not argv[0]
                 or any(not isinstance(part, str) or "\0" in part for part in argv)

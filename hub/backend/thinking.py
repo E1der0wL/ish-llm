@@ -29,13 +29,12 @@ class ThinkingPhases:
             if completion.id != state["completion"]:
                 state["completion"] = completion.id
                 state["activity"] = "thinking"
-                state["text"], state["phase"] = "", None
             text = reasoning_text(completion.reasoning_content)
             previous = state["seen"].get(completion.id, "")
             state["seen"][completion.id] = text
             if text != previous and text:
                 added = text[len(previous):] if text.startswith(previous) else text
-                state["text"] = (state["text"] if state["phase"] == completion.id else "") + added
+                state["text"] += ("\n\n" if state["text"] and not previous else "") + added
                 state["phase"] = completion.id
                 state["activity"] = "thinking"
             if str(getattr(completion, "status", "running")) not in ("pending", "running"):
@@ -43,7 +42,6 @@ class ThinkingPhases:
         delta = getattr(event, "delta", None)
         output = getattr(event, "output", None)
         if any(value is not None and value.visibility == "user" and value.text for value in (delta, output)):
-            state["text"], state["phase"] = "", None
             state["activity"] = "streaming"
 
     def activity(self, run) -> str:
@@ -63,4 +61,5 @@ class ThinkingPhases:
             self.runs.pop(run_id, None)
             return ""
         state = self.runs.get(run_id)
-        return state["text"] if state is not None else fallback if not content else ""
+        text = state["text"] if state is not None else ""
+        return fallback if len(fallback) >= len(text) else text

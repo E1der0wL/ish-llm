@@ -18,13 +18,18 @@ class MouseWheelTests(unittest.IsolatedAsyncioTestCase):
             original = app.mouse_support
             installation = install_preview(prompt)
             view = installation.view
+            # Windows painted after their parent must retain wheel routing too.
+            view.composer.window.z_index = 10
             view.transcript.set_messages((ChatMessage("assistant", "\n\n".join(f"Line {i}" for i in range(200))),))
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: view.transcript.window.render_info is not None)
                 self.assertTrue(app.mouse_support())
-                pipe.send_text("keep draft")
-                await eventually(lambda: view.composer.text == "keep draft")
+                draft = "\n".join(f"draft {i}" for i in range(8))
+                view.composer.text = draft
+                app.invalidate()
+                await eventually(lambda: view.composer.window.render_info.window_height > 1)
+                cursor = view.composer.buffer.cursor_position
                 control = view.transcript.control
                 for window in (view.transcript.window, view.composer.window):
                     position = app.renderer._last_screen.visible_windows_to_write_positions[window]
@@ -33,7 +38,8 @@ class MouseWheelTests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text(f"\x1b[<65;{x};{y}M")
                     await eventually(lambda: control.top_line == before + 3)
                     self.assertIs(app.layout.current_control, view.composer.control)
-                    self.assertEqual(view.composer.text, "keep draft")
+                    self.assertEqual(view.composer.text, draft)
+                    self.assertEqual(view.composer.buffer.cursor_position, cursor)
                     pipe.send_text(f"\x1b[<64;{x};{y}M")
                     await eventually(lambda: control.top_line == before)
                 await minimize(pipe, view)

@@ -36,6 +36,9 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
     lines = []
     account_name = UserProfile().display_name
     for local_index, message in enumerate(messages):
+        if section == "tools":
+            lines.extend(render_tool_history(message.tools, width, theme, t))
+            continue
         index = local_index + index_offset
         if local_index and message.role == "user" and messages[local_index - 1].role in ("assistant", "reasoning"):
             lines.extend([[('', '')], [('', '')]])
@@ -81,6 +84,8 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
                     objects.append(OutputObject(identifier, message.id, block, title,
                         tuple(tuple(row) for row in rendered), len(lines) + len(body), len(lines) + len(body) + len(rendered)))
                 body.extend(rendered)
+        elif not message.text and message.tools:
+            body = []
         else:
             renderable = (HubMarkdown(message.text, theme)
                           if message.role in ("assistant", "user", "draft", "reasoning")
@@ -101,7 +106,20 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         else:
             lines.extend([("", "  "), *fragments] for fragments in body)
         lines.extend([[('', '')], [('', '')]])
+        if section == "all" and message.tools:
+            lines.extend(render_tool_history(message.tools, width, theme, t))
     return lines if section == "header" else lines or [[("", "")]]
+
+
+def render_tool_history(steps, width, theme, language):
+    """Only names and states; arguments and Tool payloads never enter Markdown."""
+    if not steps:
+        return []
+    console = make_console(max(1, width - 4), theme)
+    text = ([language("tool_history_more", count=len(steps) - 5)] if len(steps) > 5 else [])
+    text.extend(f"· {' '.join(step.name.split())[:64]} · {language.status(step.status)}" for step in steps[-5:])
+    rows = console.render_lines(Text("\n".join(text)), console.options, pad=False)
+    return [[("class:hub.muted", "  " + "".join(segment.text for segment in row))] for row in rows] + [[("", "")]]
 
 
 class ConversationControl(UIControl):

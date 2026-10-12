@@ -15,7 +15,7 @@ from examples.hub.preview import create_preview
 from hub.backend.worker import BackendWorker
 from hub.config.theme import HubTheme
 from hub.locales import Language
-from hub.model import ChatMessage
+from hub.model import ChatMessage, StepSummary
 from hub.ui.output import RendererRegistry
 from hub.ui.output.worker import RenderWorker
 from hub.widget.conversation import render_messages
@@ -37,6 +37,36 @@ class CacheTests(unittest.TestCase):
     def prepare(self, messages, width=80):
         return self.cache.prepare(messages, width, self.theme, self.language,
             render=render_messages, renderers=self.registry, root=Path.cwd(), invalidate=lambda: None)
+
+    def test_thought_and_tool_changes_reuse_response_header_body_and_history(self):
+        history = tuple(ChatMessage("assistant", f"history {i}", id=f"old{i}") for i in range(100))
+        tool = StepSummary("file_read", "running", "tool", "step")
+        thought = ChatMessage("reasoning", "Looking at the file", id="a:reasoning", tools=(tool,))
+        answer = ChatMessage("assistant", "**Answer**\n\n```py\nx = 1\n```", id="a", status="streaming")
+        queued = ChatMessage("user", "Next request", id="queued", status="queued")
+        frame = self.prepare((*history, thought, answer, queued))
+        prefix = frame.lines.parts[0]
+        response = self.cache.items["a"]["frame"]
+        parsed, headers, bodies = self.cache.parser.parsed_bytes, self.cache.header_renders, self.cache.body_renders
+        for index in range(50):
+            thought = replace(thought, text=f"Thinking {index}")
+            frame = self.prepare((*history, thought, answer, queued))
+            self.assertIs(self.cache.items["a"]["frame"], response)
+            self.assertIs(frame.lines.parts[0], prefix)
+        self.assertEqual(self.cache.body_renders, bodies + 50)
+        self.assertEqual(self.cache.parser.parsed_bytes, parsed)
+        self.assertEqual(self.cache.header_renders, headers)
+        self.assertEqual(self.cache.prefix_builds, 1)
+        bodies = self.cache.body_renders
+        thought = replace(thought, tools=(replace(tool, status="completed"),))
+        frame = self.prepare((*history, thought, answer, queued))
+        self.assertEqual(self.cache.body_renders, bodies)
+        self.assertEqual(self.cache.header_renders, headers)
+        self.assertEqual(self.cache.tool_renders, 2)
+        self.assertIs(self.cache.items["a"]["frame"], response)
+        expected = render_messages((*history, thought, answer, queued), 80, self.theme, self.language,
+                                   renderers=self.registry, root=Path.cwd())
+        self.assertEqual(tuple(frame.lines), frozen_rows(expected))
 
     def test_elapsed_one_hundred_changes_do_not_parse_or_render_body(self):
         message = ChatMessage("assistant", "**body**\n\n```python\nx = 1\n```", id="a", status="streaming")

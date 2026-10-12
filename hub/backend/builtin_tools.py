@@ -72,6 +72,10 @@ class HubBuiltinTools(BuiltinToolComponent):
                 "description": {"type": "string"}, "choices": {"type": "array", "items": {"type": "string"}}},
              "required": ["question"], "additionalProperties": False},
             self.questions.ask, contract=ToolContract(effect="read_only")))
+        from .tool_paths import bind_paths
+        bind_paths(toolkit)
+        from .tool_advice import bind_advice
+        bind_advice(toolkit)
         return toolkit
 
     def resolve_environment(self, project, environment):

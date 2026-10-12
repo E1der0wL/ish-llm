@@ -41,7 +41,7 @@ class ObjectTests(unittest.TestCase):
         self.assertEqual({o.id: o.raw for o in control.objects}, before)
         self.assertNotIn("출력을 표시할 수 없습니다", str(control._lines))
 
-    def test_reasoning_text_phases_repeat_and_completion_does_not_revive_them(self):
+    def test_reasoning_accumulates_until_the_run_finishes(self):
         phases, run = ThinkingPhases(), SimpleNamespace(id="run", status="running")
         completion = SimpleNamespace(id="call", reasoning_content="think one")
         event = SimpleNamespace(completion=completion, delta=None, output=None)
@@ -50,14 +50,18 @@ class ObjectTests(unittest.TestCase):
         self.assertEqual(visible(), "think one")
         text = SimpleNamespace(completion=None, delta=SimpleNamespace(text="answer", visibility="user"), output=None)
         phases.observe(run, text)
-        self.assertEqual(visible(), "")
+        self.assertEqual(visible(), "think one")
         phases.observe(run, event)
-        self.assertEqual(visible(), "")
+        self.assertEqual(visible(), "think one")
         completion.reasoning_content += "think two"
         phases.observe(run, event)
-        self.assertEqual(visible(), "think two")
+        self.assertEqual(visible(), "think onethink two")
         phases.observe(run, text)
-        self.assertEqual(visible(), "")
+        self.assertEqual(visible(), "think onethink two")
+        completion.id, completion.reasoning_content = "next", "another call"
+        phases.observe(run, event)
+        self.assertEqual(visible(), "think onethink two\n\nanother call")
+        self.assertEqual(phases.visible("run", "saved", active=False, content="done"), "")
 
 
 class InteractionTests(unittest.IsolatedAsyncioTestCase):

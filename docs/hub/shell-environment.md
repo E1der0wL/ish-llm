@@ -23,7 +23,12 @@ Hub는 shell 실행 prefix를 직접 고정해 Git prefix와 섞이지 않게 �
 추가하지 않지만, 내구성 있는 재개를 위해 요청/Run 메타데이터에는 저장됩니다.
 프로바이더 인증, 가져온 Python Tool의 전역 cwd/env, 외부 MCP 서버의 프로세스 환경은
 이 바인딩의 대상이 아닙니다. 이들을 전역 변경하면 동시 세션이 서로 간섭하기 때문입니다.
-명시적인 Tool `cwd`는 캡처한 root 아래 상대 경로이며 `env`는 병합하지 않고 대체합니다.
+명시적인 Tool `cwd`는 캡처한 root 아래 경로이며 `env`는 병합하지 않고 대체합니다.
+`backend/tool_paths.py`는 파일 경로·프로세스 cwd·테스트 공간의 원본 경로가 root 내부
+절대경로이면 실행 직전에 상대경로로 변환합니다. 승인에 표시하고 저장하는 원본 인자는
+유지하며 경로 어댑터 revision도 승인 계약에 포함합니다. root 밖 경로, `..`, 심볼릭 링크는
+기존 백엔드 검증으로 거부합니다. `workspace_id`가 있는 파일 호출은 격리 공간 기준의
+기존 상대경로 규칙을 그대로 사용합니다.
 
 기존 환경 옵션이 없는 Run, 직접 생성한 HubRuntime 및 독립 실행은 이전 file_root 동작을
 유지합니다. 데이터 저장 루트와 작업 디렉토리는 독립적입니다. llm 및 ish 참조 코드는
@@ -31,9 +36,12 @@ Hub는 shell 실행 prefix를 직접 고정해 Git prefix와 섞이지 않게 �
 
 ## 검증
 
-Linux 파일시스템 스냅샷과 Python 3.12.14에서 집중 29개 및 Hub 전체 244개가
-통과했습니다 (`tests/llm/reports/ish-provider-evqt7jnc/`). 별도 전체 백엔드 검사는
-1,383개가 통과했습니다 (`tests/llm/reports/ish-provider-p1tdjz94/suite.txt`).
+2026-10-12 Linux 파일시스템 스냅샷과 Python 3.12.14에서 Hub 전체 247개가
+통과했습니다 (`tests/llm/reports/ish-provider-hzfrjqst/hub.txt`). 집중 검증 47개는
+`tests/llm/reports/ish-provider-fr08qpx_/focused.txt`, 전체 백엔드 1,383개는
+`tests/llm/reports/ish-provider-sguxslu_/suite.txt`에서 통과했습니다.
 요청 사본, 실제 ish 컨텍스트, 서로 다른 cwd/env, 명시 env 대체, Git·프로세스,
-Graph 예약 요청, 재시작 후 승인 재개, 사용자 정의 Tool 보존을 확인했습니다.
-llm 소스 193개는 작업 시작 시 스냅샷과 해시가 동일합니다.
+Graph 예약 요청, 절대경로 파일 생성·이동·격리 공간 복사와 재시작 후 승인 재개,
+사용자 정의 Tool 보존을 확인했습니다. 승인 입력창의 작은 화면 배치, 생각 요약의
+누적·재개·종료 표시, 지연 렌더링된 다중 행 입력창 위 마우스 휠도 검증했습니다.
+해당 검증 시점의 Hub 코드·테스트는 스냅샷과 해시가 같으며 `llm/` 소스 변경은 없습니다.

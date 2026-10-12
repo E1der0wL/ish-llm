@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass, replace
 from datetime import datetime
-from ..backend.approval import review_summary
 
 from ..model import ChatMessage, HubSnapshot, SessionSummary
 from ..backend.followup import split_followup
@@ -24,7 +23,7 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
         return replace(item, text="", phase=item.phase or "preparing")
     if item.role == "assistant" and item.status == "failed":
         text = (text.rstrip() + "\n\n" if text.strip() else "") + t("response_failed")
-    elif not text:
+    elif not text and not item.tools:
         text = t("status_" + item.status) if item.status in ("interrupted", "cancelled", "paused", "completed") else t("waiting")
     return replace(item, text=text,
         time=datetime.fromisoformat(item.time).astimezone().strftime("%Y-%m-%d %H:%M:%S") if item.time else "")
@@ -60,12 +59,6 @@ class MessagePresentationCache:
 def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
     sessions = tuple(replace(item, status=t("queued", status=t.status(item.status), count=item.queued_count)) for item in snapshot.sessions)
     messages = cache.messages(snapshot, t) if cache else tuple(present_message(item, t) for item in snapshot.messages)
-    # Default output is a bounded card, never the entire tool argument payload.
-    for item in snapshot.questions:
-        request = item["request"]
-        if request.get("action"):
-            text = item.get("review_text") or review_summary(request, t)
-            messages += (ChatMessage("assistant", text, id="interaction:" + request["id"]),)
     if not sessions:
         return Presentation((), messages, t("session_required"), "")
     notice = t("queued", status=t.status(snapshot.status), count=snapshot.queued_count)
