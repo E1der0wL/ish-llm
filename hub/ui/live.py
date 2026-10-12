@@ -204,6 +204,7 @@ class LiveController:
         self.view.settings.workspace_anchor = config._workspace_anchor
         self.view.transcript.control.on_position_changed = self._reading_changed
         self.view.file_root = config.file_root or config.workspace
+        self.environment_provider = None
         if config.engine_factories:
             self.view.engines = tuple(config.engine_factories)
 
@@ -270,6 +271,7 @@ class LiveController:
                 self._error(error)
         target = self._select_new
         self.view.apply_snapshot(snapshot, select_id=target)
+        self.refresh_shell_root()
         current = (self.view.project_id, self.view.sessions[self.view.selected].id)
         displayed_status = {session.id: session.status for session in snapshot.sessions}
         for notification in snapshot.notifications:
@@ -373,6 +375,7 @@ class LiveController:
 
     def open(self, app):
         self.app = app
+        self.refresh_shell_root()
         self.view.toasts.app = app
         self.loop = asyncio.get_running_loop()
         if self.worker is None:
@@ -388,6 +391,7 @@ class LiveController:
     def bind_app(self, app):
         """Rebind callbacks when ish starts its next prompt event loop."""
         loop = asyncio.get_running_loop()
+        self.refresh_shell_root()
         if self.loop is not loop and not self.closed:
             self.app, self.loop = app, loop
             with self._publish_lock:
@@ -395,6 +399,15 @@ class LiveController:
             self.view.toasts.app = app
             if self.worker:
                 self._call("snapshot", completed=self._snapshot)
+
+    def refresh_shell_root(self):
+        if self.environment_provider is not None:
+            try:
+                environment = self.environment_provider()
+            except ValueError:
+                return  # Shell context can arrive after plugin installation.
+            self.view.file_root = environment.cwd
+            self.view.transcript.control.file_root = environment.cwd
 
     def _accept_input(self, project_id, session_id, text, result, operation):
         if result is None or self.closed:
@@ -484,6 +497,13 @@ class LiveController:
         view = self.view
         identity = (view.project_id, session_id)
         engine, options = view.engine, dict(view.engine_options)
+        if self.environment_provider is not None:
+            from ..config.environment import ENVIRONMENT_OPTION
+            try:
+                options[ENVIRONMENT_OPTION] = self.environment_provider().to_dict()
+            except ValueError as error:
+                self._error(error)
+                return
         from .input.submission import SubmittedDraft
         draft = SubmittedDraft(identity[0], session_id, text)
         draft.consume(view)

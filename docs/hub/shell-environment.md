@@ -1,0 +1,39 @@
+# ish 작업 환경 연결
+
+`config/environment.py`는 `prompt.context.environ`에서 `PWD`와 문자열 환경변수를
+불변 사본으로 만듭니다. `HubInstallation`이 공급 함수를 연결하고 `LiveController`가
+Enter 시점에 `_hub_environment` 요청 옵션을 구성합니다. 파일 시스템 조회나 전역
+`os.chdir`/`os.environ` 변경을 UI 경로에서 수행하지 않습니다. 컨텍스트가 아직 없거나
+PWD가 올바르지 않으면 초안을 보존하고 오류를 알립니다.
+
+`backend/environment.py`의 `EnvironmentEngine`은 등록 엔진에 위임하면서 요청 옵션에서
+Hub 사본만 분리합니다. Loop/Graph/사용자 엔진의 고유 옵션·설정·추가 지시 계약은 그대로
+위임합니다. 요청 사본은 llm의 기존 QUEUED/Run 저장 및 resume 경로로 보존됩니다.
+실행과 `validate_resume` 모두 동일한 도구 바인딩을 구성하며, 환경 지문을 Tool contract
+revision에 포함하여 다른 환경으로 기존 승인을 재사용하지 않습니다. 실행 준비는
+백엔드 작업 스레드에서 처리합니다.
+
+`HubBuiltinTools`는 프로젝트·cwd·env별 Toolkit을 분리하고 백엔드 종료 때 정리합니다.
+`ShellProcessTools`가 ProcessTools를 상속하여 env 미지정 시의 기본값만 제공합니다.
+파일/Git/셸 도구는 해당 Toolkit의 root/processes를 사용합니다. 별도로 가져온 Tool과
+Agent 도구 선택 집합은 유지합니다. 테스트 공간의 격리/마운트/네트워크 정책도 유지합니다.
+Hub는 shell 실행 prefix를 직접 고정해 Git prefix와 섞이지 않게 합니다.
+
+완료 처리 프로세서는 모델에 cwd만 안내합니다. 전체 env는 모델 프롬프트나 별도 로그로
+추가하지 않지만, 내구성 있는 재개를 위해 요청/Run 메타데이터에는 저장됩니다.
+프로바이더 인증, 가져온 Python Tool의 전역 cwd/env, 외부 MCP 서버의 프로세스 환경은
+이 바인딩의 대상이 아닙니다. 이들을 전역 변경하면 동시 세션이 서로 간섭하기 때문입니다.
+명시적인 Tool `cwd`는 캡처한 root 아래 상대 경로이며 `env`는 병합하지 않고 대체합니다.
+
+기존 환경 옵션이 없는 Run, 직접 생성한 HubRuntime 및 독립 실행은 이전 file_root 동작을
+유지합니다. 데이터 저장 루트와 작업 디렉토리는 독립적입니다. llm 및 ish 참조 코드는
+수정하지 않습니다.
+
+## 검증
+
+Linux 파일시스템 스냅샷과 Python 3.12.14에서 집중 29개 및 Hub 전체 244개가
+통과했습니다 (`tests/llm/reports/ish-provider-evqt7jnc/`). 별도 전체 백엔드 검사는
+1,383개가 통과했습니다 (`tests/llm/reports/ish-provider-p1tdjz94/suite.txt`).
+요청 사본, 실제 ish 컨텍스트, 서로 다른 cwd/env, 명시 env 대체, Git·프로세스,
+Graph 예약 요청, 재시작 후 승인 재개, 사용자 정의 Tool 보존을 확인했습니다.
+llm 소스 193개는 작업 시작 시 스냅샷과 해시가 동일합니다.

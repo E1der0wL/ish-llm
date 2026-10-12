@@ -185,7 +185,6 @@ if hub_plugin is not None:
             engine="loop",
             model="openai/YOUR_MODEL",
             language="ko",  # "en"도 지원
-            file_root=Path.cwd(),  # @파일 경로 자동완성 기준 디렉터리
             # api_base="https://YOUR_SERVER/v1",
             # project_id="PROJECT_ID",
             # session_id="SESSION_ID",
@@ -197,6 +196,22 @@ if hub_plugin is not None:
 Ctrl+Q로 처음 열 때 백엔드를 연결합니다. 셸로 돌아가거나 셸 명령을 실행해도
 진행 중인 대화는 계속됩니다. `.ishrc.py` 재로드는 기존 설치·백엔드를 정리한 뒤
 다시 설치합니다. `hub.close()`로 명시적으로 해제할 수 있습니다.
+
+ish에 설치한 Hub는 `prompt.context.environ`의 `PWD`와 환경변수를 사용합니다.
+`llm` 설치본도 process/shell 도구의 `env` 인자를 지원하는 현재 버전이어야 합니다.
+파일 자동완성은 현재 셸 디렉토리를 따르고, 요청마다 Enter 시점의 디렉토리·환경을
+저장합니다. 예약된 요청과 승인 후 재개도 그 사본을 사용하므로 이후 `cd`/`export`로
+이미 제출한 작업의 실행 위치가 바뀌지 않습니다. 기본 파일·Git·셸·프로세스 도구에
+적용되며, 명시적인 도구 `env` 인자는 기본 환경을 완전히 대체합니다.
+격리 테스트는 기존 테스트 공간에서 실행하고 환경변수만 같은 사본을 기본값으로 사용합니다.
+프로젝트·세션 저장 위치인 `workspace`는 변경되지 않습니다.
+
+환경변수 사본은 재시작 후 재개를 위해 요청/Run의 `engine_options`에 저장합니다.
+모델에는 작업 디렉토리만 안내하고 환경변수 목록은 프롬프트에 추가하지 않습니다.
+모델 인증/프로바이더의 환경은 기존처럼 Hub 프로세스 시작 시 설정해야 합니다.
+별도로 가져온 Python Tool이나 MCP 서버의 전역 실행 환경까지 바꾸지는 않습니다.
+ish 없이 독립 실행하면 기존 `HubConfig.file_root` 동작을 유지합니다.
+구현 경계와 저장 방식은 [ish 작업 환경 연결](../docs/hub/shell-environment.md)을 참고하세요.
 
 참조 ish CLI가 호출하는 `prompt.run()`을 감싸 `finally`에서 백엔드를 정리합니다.
 호스트를 직접 임베딩하여 `prompt.run()`을 사용하지 않는 호출자는 자신의 종료 경계에서
@@ -562,8 +577,8 @@ ESC를 무조건 즉시 확정하는 eager 바인딩은 Alt 조합을 깨뜨리�
   재시작하면 적용되며 실행 중인 작업의 경로는 바뀌지 않습니다. 기존 데이터는 자동으로
   이동·복사하지 않습니다. 빈 폴더는 새 작업 공간으로 시작하고, 데이터가 있으면 해당 작업
   공간을 엽니다. 원래 경로를 다시 지정하면 기존 프로젝트·세션을 열 수 있습니다.
-  비우면 `HubConfig.workspace`의 시작 경로로 돌아갑니다. 도구 작업 디렉토리인
-  `HubConfig.file_root` 및 ish 자체의 설치 경로와는 별개입니다.
+  비우면 `HubConfig.workspace`의 시작 경로로 돌아갑니다. ish의 현재 작업 디렉토리,
+  독립 실행의 `HubConfig.file_root` 및 ish 자체의 설치 경로와는 별개입니다.
 
 전역 설정 정의는 필드별 `requires_restart` 메타데이터로 적용 시점을 구분합니다.
 저장 경로·언어·사용자 언어 팩·시작 시 복원 설정은 재시작이 필요하고, 모양·알림·편집기 등은

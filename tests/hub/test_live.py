@@ -233,6 +233,7 @@ class HostLifecycleTests(unittest.TestCase):
             installation = None
 
             async def interact():
+                prompt.context.update("environ", f"PWD={directory}\0PATH=/usr/bin:/bin\0".encode())
                 view = installation.view
                 first = asyncio.create_task(prompt.prompt_async())
                 await until(lambda: prompt.app.is_running)
@@ -263,9 +264,8 @@ class HostLifecycleTests(unittest.TestCase):
                 raise SystemExit(0)
 
             prompt.run = host_run
-            installation = install(prompt, config=HubConfig(directory, "loop", "test/model", auto_title=False))
-            installation.controller.worker_factory = partial(
-                BackendWorker, backend_factory=partial(controlled_backend, gate=gate))
+            installation = install(prompt, config=HubConfig(directory, "loop", "test/model", auto_title=False,
+                engine_factories={"loop": lambda: ControlledEngine(gate)}))
             with self.assertRaises(SystemExit):
                 prompt.run()
             self.assertTrue(installation._closed)

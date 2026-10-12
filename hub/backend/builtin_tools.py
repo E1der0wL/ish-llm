@@ -2,12 +2,13 @@
 
 import asyncio
 from copy import deepcopy
+from dataclasses import replace
 from pathlib import Path
 from threading import Lock
 import sys
 import shutil
 
-from llm.components.tools import Tool, ToolContract
+from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from .test_workspaces import HubTestWorkspaces
 
@@ -27,13 +28,42 @@ class HubBuiltinTools(BuiltinToolComponent):
         # Schema discovery needs an existing host directory, not a Project.
         super().__init__(self._create(self.file_root or Path.cwd()), name="builtin_tools")
 
-    def _create(self, root):
+    def _create(self, root, environment=None):
         # Hub 제품 preset: 네트워크 차단, 명시적으로 선택한 파일만 복사.
         # Python 설치 경로는 실행에 필요한 read-only runtime이며 사용자 home 전체를 노출하지 않는다.
         spaces = None if self.test_root is None else HubTestWorkspaces(self.test_root, source_root=root,
-            allow_network=False, read_only_paths=tuple(dict.fromkeys((sys.base_prefix, sys.prefix))))
+            allow_network=False, env=environment,
+            read_only_paths=tuple(dict.fromkeys((sys.base_prefix, sys.prefix))))
         toolkit = BuiltinTools(root, allow_commands=True, shell=["/bin/sh", "-c"], git=True, diagnostics=True,
                                test_workspaces=spaces)
+        # Own the shell prefix explicitly. The builtin catalog also enables Git;
+        # its shell/Git closures must not share a subsequently reassigned prefix.
+        async def shell_execute(args):
+            if toolkit.closed:
+                raise RuntimeError("BuiltinTools is closed")
+            return await toolkit.processes.execute({"argv": ["/bin/sh", "-c", args["command"]],
+                **{key: value for key, value in args.items() if key != "command"}})
+        handlers = {"shell_execute": shell_execute}
+        if environment is not None:
+            execution_tools = ("process_start", "shell_execute", "test_workspace_execute") if spaces else (
+                "process_start", "shell_execute")
+            if any("env" not in toolkit.registry.get(name).parameters.get("properties", {})
+                   for name in execution_tools):
+                raise RuntimeError("Update the llm plugin before using ish shell context: process tools must support env")
+            from .processes import ShellProcessTools
+            toolkit.processes = ShellProcessTools(toolkit.files, environment)
+            methods = {"process_start": "start", "process_write": "write", "process_status": "status",
+                       "process_cancel": "cancel", "process_output": "output"}
+            def process_handler(method):
+                async def invoke(args):
+                    if toolkit.closed:
+                        raise RuntimeError("BuiltinTools is closed")
+                    return await getattr(toolkit.processes, method)(args)
+                return invoke
+            handlers.update({name: process_handler(method) for name, method in methods.items()})
+        toolkit.registry = ToolRegistry(tuple(
+            replace(tool, handler=handlers[name]) if name in handlers else tool
+            for name in toolkit.registry.names() for tool in (toolkit.registry.get(name),)))
         toolkit.registry.register(Tool("ask_user",
             "Ask the user a necessary question and wait for their answer, then continue the SAME task. "
             "Use this instead of ending a response with a question when work needs user input. "
@@ -43,6 +73,21 @@ class HubBuiltinTools(BuiltinToolComponent):
              "required": ["question"], "additionalProperties": False},
             self.questions.ask, contract=ToolContract(effect="read_only")))
         return toolkit
+
+    def resolve_environment(self, project, environment):
+        """Immutable per-environment bindings preserve concurrent/queued Runs."""
+        from llm.services.infrastructure.storage import revision_token
+        identity = revision_token(environment.to_dict())
+        key = (project.id, identity)
+        with self._toolkit_lock:
+            if key not in self.toolkits:
+                self.toolkits[key] = self._create(environment.cwd, dict(environment.variables))
+            toolkit = self.toolkits[key]
+        registry = BuiltinToolComponent(toolkit, name=self.name).resolve(project, "tools")
+        # All defaults that can alter effects participate in approval binding.
+        return ToolRegistry(tuple(replace(tool, contract=replace(tool.contract,
+            revision=revision_token({"contract": tool.contract.revision, "shell": identity})))
+            for name in registry.names() for tool in (registry.get(name),)))
 
     def for_project(self, project):
         key = project.id

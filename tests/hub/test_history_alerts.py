@@ -15,7 +15,7 @@ from hub.widget.conversation import ChatMessage
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.backend.worker import BackendWorker
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.test_live import controlled_backend, until
+from tests.hub.test_live import ControlledEngine, controlled_backend, until
 from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_overlays import screen_text
 
@@ -25,9 +25,9 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             gate = threading.Event()
             prompt = Prompt(input=pipe, output=SizedOutput())
-            installation = install(prompt, config=HubConfig(directory, "loop", "test/model", auto_title=False))
-            installation.controller.worker_factory = partial(BackendWorker,
-                backend_factory=partial(controlled_backend, gate=gate))
+            prompt.context.update("environ", f"PWD={directory}\0PATH=/usr/bin:/bin\0".encode())
+            installation = install(prompt, config=HubConfig(directory, "loop", "test/model", auto_title=False,
+                engine_factories={"loop": lambda: ControlledEngine(gate)}))
             view, app = installation.view, prompt.app
             task = asyncio.create_task(prompt.prompt_async())
             try:

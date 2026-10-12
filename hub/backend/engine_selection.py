@@ -18,7 +18,8 @@ def requires_model(engines, config, engine, session_config=None):
     from llm.engines.loop import LoopEngine
     if engine not in engines.names():
         return False
-    implementation = engines.get(engine)
+    from .environment import underlying_engine
+    implementation = underlying_engine(engines.get(engine))
     # Graph/사용자 엔진에는 LLM 모델이 필요하다고 추정하지 않는다.
     if not isinstance(implementation, LoopEngine):
         return False

@@ -36,6 +36,8 @@ class HubInstallation:
             config = configured_profile(config)
             self.view = LiveHubView(theme, config.language, config.language_packs)
             self.controller = LiveController(self.view, config)
+            from .config.environment import ShellEnvironment
+            self.controller.environment_provider = lambda: ShellEnvironment.from_prompt(prompt)
         else:
             self.view = HubView(theme=theme)
         self._closed = False

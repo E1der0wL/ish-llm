@@ -86,6 +86,11 @@ def create_backend(config: HubConfig):
     for factory in config.component_factories or ():
         component = factory()
         components[component.name] = component
+    from .environment import EnvironmentEngine
+    builtins = components.get("builtin_tools")
+    if isinstance(builtins, HubBuiltinTools):
+        engines = {name: EnvironmentEngine(engine, builtins) if not name.startswith("_hub_") else engine
+                   for name, engine in engines.items()}
     return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
                               services=BackendServices(context_builder=HubContextBuilder(), observability_sink=monitor,
                                   tool_runtime=ToolRuntime(classify=config.tool_classifier, runner=BuiltinToolRunner())))
@@ -338,7 +343,8 @@ class HubRuntime:
         from llm.engines.graph import GraphEngine
         project = self.sessions[session_id].project if session_id else self.project
         record = await project.aget_data()
-        engines = {name: {"kind": "graph" if isinstance(self.backend.engines.get(name), GraphEngine)
+        from .environment import underlying_engine
+        engines = {name: {"kind": "graph" if isinstance(underlying_engine(self.backend.engines.get(name)), GraphEngine)
                           else "plain"}
                    for name in selected_engines(record.config, self.backend.engines.names())}
         if not engines:
