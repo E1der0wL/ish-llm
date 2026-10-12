@@ -506,17 +506,25 @@ class HubRuntime:
         from .approval import review_text
         return await asyncio.to_thread(review_text, request_data)
 
-    async def answer_question(self, project_id, session_id, run_id, request_data, option_id, value):
+    async def answer_question(self, project_id, session_id, run_id, request_data, option_id, value, *, acknowledged=None):
         from llm.core.interactions import InteractionRequest
         if project_id != self.project.id:
             raise ValueError("Project changed; reload the question")
         request = InteractionRequest.from_dict(request_data)
         if self.builtin_tools and request.id in self.builtin_tools.questions.pending:
             self.builtin_tools.questions.answer(project_id, session_id, run_id, request, option_id, value)
+            if acknowledged:
+                acknowledged()
         else:
             session = self.sessions[session_id]
             run = await session.run.aload(run_id)
             await run.arespond(request.respond(option_id, value=value))
+            # The decision is durable now. Resume admission may perform much
+            # more I/O; its completion must not gate answer acknowledgement.
+            self.snapshot_reader.invalidate(session_id)
+            self.dirty.set()
+            if acknowledged:
+                acknowledged()
             denied = next(option for option in request.options if option.id == option_id).effect == "deny"
             if not denied and not await run.ainteractions(pending_only=True):
                 engine = (await run.aget_data()).engine

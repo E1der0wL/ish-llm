@@ -21,8 +21,9 @@ MESSAGES = {
     'shortcut_object_sort': '열 정렬',
     'shortcut_cancel': '예약 취소',
     'preparing_response': '준비 중…',
-    'status_preparing': '{icon_running} 준비 중',
+    'status_preparing': '{icon_preparing} 준비 중',
     'status_thinking': '{icon_reasoning} 생각 중',
+    'status_interrupting': '{icon_interrupted} 중단 중',
     'followup_hint': '→ 추천 입력',
     'component_action_install': '내장 스킬 설치 (기존 항목 유지)',
     'skills_install_help': '/skills install hub-code-change [새_ID]\n내장 코딩 스킬을 복사합니다. 같은 ID가 있으면 덮어쓰지 않으므로 새 ID를 지정하세요.',
@@ -69,7 +70,12 @@ MESSAGES = {
     'activity_provider_run_details': '이 Run의 프로바이더 상세:',
     'activity_provider_workspace': '프로바이더 로그 · 워크스페이스 공통',
     'status_waiting_input': '{icon_pending} 답변 대기',
-    'status_waiting_approval': '{icon_pending} 승인 대기',
+    'status_waiting_approval': '{icon_waiting_approval} 승인 대기',
+    'status_answer_sending': '{icon_waiting} 답변 전달 중',
+    'status_approved': '{icon_completed} 승인 완료',
+    'status_denied': '{icon_cancelled} 거절됨',
+    'status_answered': '{icon_completed} 답변 전달 완료',
+    'status_resuming': '{icon_running} 이어서 실행',
     'help': '# Hub 도움말\n\n## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절 및 너비만 자동 저장.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+E**: 엔진·Workflow 선택. **Ctrl+R**: Markdown 미리보기.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **↑↓**: 항목 선택. 편집 중이 아닐 때 **←**: 패널 복귀, **→**: 동작 없음.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n입력창의 **Ctrl+C**는 아무 동작도 하지 않습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
     "settings_dependencies": "필수 컴포넌트: {names}",
     "settings_dependencies_missing": "선택되지 않은 필수 컴포넌트: {names} — 선택 후 저장하세요.",
@@ -319,7 +325,7 @@ MESSAGES = {
 
     "message": "메시지", "preview": "마크다운 미리보기", "you": "나",
 
-    "assistant": "어시스턴트", "info": "안내", "reasoning": "{icon_reasoning} 모델이 제공한 생각 과정",
+    "assistant": "어시스턴트", "info": "안내", "reasoning": "어시스턴트 생각 과정",
 
     "session_hint": "c 생성 · d 삭제\ne 이름 · r 복제", "input_hint": "Enter 전송 · Ctrl+Space 줄바꿈 · ↑↓ 후보 선택 · Tab 확정",
 
@@ -364,7 +370,7 @@ MESSAGES = {
 
     "phase": "현재 단계: {name} ({status})",
 
-    "paused": "{icon_paused} 일시 정지됨 · 승인/재개는 llm API에서 처리하세요.",
+    "paused": "{icon_paused} 일시 정지",
 
     "memory": "메모리 대화: 종료 시 메시지 소멸",
 
@@ -437,8 +443,11 @@ MESSAGES = {
     'shortcut_tools_toggle': '활성/비활성',
     'question_waiting': '답변 대기 중 · 질문',
     'question_sending': '답변 전달 중 · {title}',
+    'question_details_hint': 'Ctrl+O 전체 내용 보기',
+    'approval_heading': '{icon_question} 승인 요청',
+    'question_heading': '{icon_question} 질문',
     'question_action_hint': 'Ctrl+O: 전체 작업 내용 확인 (인자·명령·파일 내용)',
-    'shortcut_approval_details': '작업 상세',
+    'shortcut_approval_details': '요청 상세',
     'approval_tool': '도구: {name}',
     'approval_risk': '위험도: {value}',
     'approval_model_reason': '모델 평가 근거: {reason}',
@@ -447,6 +456,7 @@ MESSAGES = {
     'approval_argument': '{name}: {kind}, {size} (상세에서 확인)',
     'retry_wait': '재시도 대기 중 · {attempt}/{maximum}회 시도 완료 · {next_attempt}번째 시도까지 {seconds}초',
     'retry_active': '재시도 중 · {attempt}/{maximum}번째 시도',
-    'question_text_hint': '답변 또는 선택지 번호를 입력하고 Enter를 누르세요.',
+    'question_text_hint': '선택지 번호를 입력하거나 원하는 답변을 쓰고 Enter를 누르세요.',
+    'question_free_text_hint': '원하는 답변을 쓰고 Enter를 누르세요.',
     'question_choice_hint': '선택지 번호를 입력하고 Enter를 누르세요. 추가 값이 필요하면 번호 뒤에 입력하세요.',
 }

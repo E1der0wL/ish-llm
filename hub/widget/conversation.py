@@ -14,7 +14,6 @@ from prompt_toolkit.data_structures import Point
 from prompt_toolkit.formatted_text.utils import fragment_list_width
 from prompt_toolkit.layout import UIContent, UIControl, Window
 from prompt_toolkit.layout import ScrollOffsets
-from prompt_toolkit.mouse_events import MouseEventType
 from prompt_toolkit.utils import get_cwidth
 from rich.text import Text
 from ..ui.output.markdown import HubMarkdown, make_console, _segment_style, _trim_right
@@ -37,7 +36,8 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
     account_name = UserProfile().display_name
     for local_index, message in enumerate(messages):
         if section == "tools":
-            lines.extend(render_tool_history(message.tools, width, theme, t))
+            if not message.trace:
+                lines.extend(render_tool_history(message.tools, width, theme, t))
             continue
         index = local_index + index_offset
         if local_index and message.role == "user" and messages[local_index - 1].role in ("assistant", "reasoning"):
@@ -50,8 +50,8 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         label = (message.author or account_name) if user else t(
             "assistant" if message.role == "assistant" else
             "reasoning" if message.role == "reasoning" else "info")
-        if message.phase or message.status:
-            label += " · " + t.status(message.phase or message.status)
+        if message.activity or message.phase or message.status:
+            label += " · " + (message.activity or t.status(message.phase or message.status))
         if message.role == "assistant":
             label += " · " + t.elapsed(message.elapsed_seconds)
         elif message.time:
@@ -65,6 +65,12 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
             lines.append([("", "  " + " " * pad),
                           ("class:hub.user bold" if user else "class:hub.accent bold", text)])
         if section == "header":
+            continue
+        if message.trace:
+            if section == "all":
+                from .thought_trace import render_trace_item
+                for item in message.trace:
+                    lines.extend(render_trace_item(item, width, theme, t))
             continue
         def markdown_lines(value):
             rendered = console.render_lines(value, console.options.update(width=message_width), pad=False)
@@ -108,7 +114,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         lines.extend([[('', '')], [('', '')]])
         if section == "all" and message.tools:
             lines.extend(render_tool_history(message.tools, width, theme, t))
-    return lines if section == "header" else lines or [[("", "")]]
+    return lines if section in ("header", "tools") or any(m.trace for m in messages) else lines or [[("", "")]]
 
 
 def render_tool_history(steps, width, theme, language):
@@ -116,8 +122,7 @@ def render_tool_history(steps, width, theme, language):
     if not steps:
         return []
     console = make_console(max(1, width - 4), theme)
-    text = ([language("tool_history_more", count=len(steps) - 5)] if len(steps) > 5 else [])
-    text.extend(f"· {' '.join(step.name.split())[:64]} · {language.status(step.status)}" for step in steps[-5:])
+    text = [f"{language.icons.tool} {' '.join(step.name.split())[:64]} · {language.status(step.status)}" for step in steps]
     rows = console.render_lines(Text("\n".join(text)), console.options, pad=False)
     return [[("class:hub.muted", "  " + "".join(segment.text for segment in row))] for row in rows] + [[("", "")]]
 
@@ -403,18 +408,6 @@ class ConversationControl(UIControl):
             self.cursor_line = len(self._lines) - 1
             self.top_line = max(0, len(self._lines) - self._height)
             self.follow_tail = self._cache_key != self._requested_key
-
-    def mouse_handler(self, mouse_event):
-        if mouse_event.event_type in (MouseEventType.SCROLL_UP, MouseEventType.SCROLL_DOWN):
-            self.create_content(self._width, self._height)
-            self.follow_tail = False
-            delta = -3 if mouse_event.event_type == MouseEventType.SCROLL_UP else 3
-            self._scroll_to(self.top_line + delta)
-        elif mouse_event.event_type == MouseEventType.MOUSE_UP:
-            return None
-        else:
-            return NotImplemented
-
 
 class ConversationView:
     def __init__(self, messages: tuple[ChatMessage, ...], theme: HubTheme, language=None) -> None:

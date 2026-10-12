@@ -64,6 +64,31 @@ Ctrl+S → 프로젝트를 선택하여 `config.parameters.engines.loop.config.c
 제공자 인증은 환경변수 또는 Project의 `config.parameters.engines.loop.config.completion.api_key`로 설정합니다.
 기존 workspace와 모델을 지정하는 `install(prompt, config=HubConfig(...))`도 지원합니다.
 
+### OpenAI 모델로 시험하기
+
+[OpenAI 공식 시작 안내](https://developers.openai.com/api/docs/quickstart)에 따라 API 키를 발급한 뒤,
+WSL에서 **ish를 실행하기 전** 환경변수로 지정합니다.
+
+```sh
+export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
+```
+
+ish를 실행하고 Ctrl+Q로 Hub를 연 다음 Ctrl+E에서 `loop`를 선택합니다. 입력창에서
+Ctrl+S를 눌러 프로젝트의 `config.parameters.engines.loop.config.completion` 설정을 엽니다.
+
+| 항목 | 시험 설정 |
+| --- | --- |
+| `model` | `openai/gpt-5-mini` |
+| `api_key` | 비움: 위 환경변수 사용 |
+| `api_base` | 비움: OpenAI 기본 주소 사용 |
+
+[GPT-5 mini](https://developers.openai.com/api/docs/models/gpt-5-mini)는 스트리밍과 함수 호출을
+지원하는 모델 예시입니다. 계정에서 사용 가능한 다른 모델 ID도 `openai/모델_ID` 형식으로
+지정할 수 있습니다. 문자열 필드는 따옴표 없이 입력합니다. 기존 Gemini API 키·주소·전용 옵션을
+함께 제거하고 Ctrl+S로 저장합니다. 새 세션을 만들어 간단한 요청부터 시험하세요.
+Session의 별도 모델 설정이나 `.ishrc.py`의 호스트 고정 completion 옵션이 있다면 해당 설정도
+확인해야 합니다. 기존 프로젝트의 모델 변경은 `HubConfig.model` 대신 위 프로젝트 설정으로 합니다.
+
 기본 Engine은 `loop`, `graph`이고 Graph에는 AgentNode와 ToolNode 처리기가 연결됩니다.
 새 Project에는 `tools`, `skills`, `mcp`, `rag`, `agents`, `workflows`, `memory`, `prompts`가 모두 등록됩니다.
 Graph 실행은 Ctrl+E에서 요청별 Workflow를 선택합니다. 컴포넌트 등록과 별개로 실제 도구·Workflow 데이터,

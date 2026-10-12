@@ -19,14 +19,14 @@ class RenderStats:
 class RenderWorker:
     """Never submit CPU work to asyncio's unbounded default executor queue.
 
-    One running job and one pending batch (at most four fixed surfaces). A
+    One running job and one pending batch (at most five fixed surfaces). A
     surface replaces its pending job; unrelated surfaces cannot starve its final
     result. Only the UI loop delivers results. Progressive surfaces publish
     completed intermediate frames; cancellation epochs reject old sessions.
     Other surfaces retain strict latest-generation delivery.
     """
 
-    slots = frozenset({"transcript", "preview", "popup", "search"})
+    slots = frozenset({"transcript", "preview", "popup", "search", "question"})
 
     def __init__(self):
         self.stats = RenderStats()

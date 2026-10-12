@@ -14,6 +14,17 @@ class ChatMessage:
     elapsed_seconds: float | None = None
     phase: str = ""
     tools: tuple["StepSummary", ...] = ()
+    trace: tuple["TraceItem", ...] = ()
+    activity: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class TraceItem:
+    id: str
+    kind: str
+    text: str
+    status: str = ""
+    started_at: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,6 +66,8 @@ class StepSummary:
     status: str
     kind: str = ""
     id: str = ""
+    started_at: str = ""
+    source_id: str = ""
 
 
 @dataclass(frozen=True, slots=True)

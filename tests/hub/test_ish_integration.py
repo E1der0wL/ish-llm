@@ -27,13 +27,13 @@ def Prompt(*args, **kwargs):
 
 
 class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
-    async def test_alt_navigation_and_mouse_scroll_preserve_input_focus_and_cursor(self):
+    async def test_alt_navigation_preserves_input_focus_cursor_and_host_mouse_mode(self):
         from hub.widget.conversation import ChatMessage
-        from prompt_toolkit.data_structures import Point
-        from prompt_toolkit.mouse_events import MouseEvent, MouseEventType, MouseButton
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
+            mouse_support = prompt.app.mouse_support
             installation = install_preview(prompt)
+            self.assertIs(prompt.app.mouse_support, mouse_support)
             app, view = prompt.app, installation.view
             view.transcript.set_messages((ChatMessage("assistant", "\n\n".join(f"Line {i}" for i in range(150))),))
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
@@ -54,10 +54,8 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: control.top_line == 0)
                 pipe.send_text("\x1b\x1b[C\x1b\x1b[D")
                 await asyncio.sleep(0.05)
-                for event_type in (MouseEventType.MOUSE_UP, MouseEventType.SCROLL_DOWN):
-                    control.mouse_handler(MouseEvent(Point(0, 0), event_type, MouseButton.LEFT, frozenset()))
-                    self.assertIs(app.layout.current_control, view.composer.control)
-                self.assertEqual(control.top_line, 3)
+                self.assertIs(app.layout.current_control, view.composer.control)
+                self.assertEqual(control.top_line, 0)
                 self.assertEqual(view.composer.text, "keep this draft")
                 self.assertEqual(view.composer.buffer.cursor_position, cursor)
             finally:

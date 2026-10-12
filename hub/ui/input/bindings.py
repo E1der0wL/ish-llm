@@ -11,7 +11,6 @@ class HubBindings:
         self.context = c = InputContext(view)
         self.registry = r = ShortcutRegistry()
         self.keys = r.bindings
-
         r.add(["escape"], "ESC", lambda: "minimize" if c.sidebar else "sidebar", self.escape, when=lambda: c.available)
         r.add(["escape"], "ESC", "close", lambda e: view.close_dialog(), when=lambda: c.dialog)
         r.add(["tab", "s-tab"], "Tab/Shift+Tab", "move",
@@ -68,7 +67,7 @@ class HubBindings:
         r.add(["enter"], "", "send", self.submit, when=lambda: c.composing, eager=False)
         r.add(["c-space"], "", "newline", self.newline, when=lambda: c.composing)
         r.add(["c-o"], "Ctrl+O", "approval_details", lambda e: view.question.review(),
-              when=lambda: c.composing and bool(view.question.item and view.question.item["request"].get("action")))
+              when=lambda: c.composing and bool(view.question.item))
         r.add(["c-c"], "Ctrl+C", "close", self.close, when=lambda: view.visible and not c.composing, global_=True, eager=False)
         r.add(["c-c"], "", "", lambda e: None, when=lambda: c.composing, global_=True)
 
@@ -141,6 +140,10 @@ class HubBindings:
         view, buffer = self.view, self.view.composer.buffer
         if view.question.item:
             view.question.answer()
+            return
+        if view.question.busy:
+            # Keep a newly typed draft while its previous decision is being
+            # admitted; a second Enter must not submit another request.
             return
         if buffer.complete_state and buffer.complete_state.current_completion:
             buffer.apply_completion(buffer.complete_state.current_completion)

@@ -6,6 +6,9 @@ from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import ConditionalContainer, Window, HSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
+from .question_card import QuestionCard
+from .answer_choices import AnswerChoices
+from .answer_feedback import AnswerFeedback, project_answers
 
 
 class QuestionComposer:
@@ -14,74 +17,109 @@ class QuestionComposer:
         self.item = None
         self.identity = None
         self.drafts = {}
-        self.busy = False
-        self._completed = {}
-        self.details = FormattedTextControl("")
+        self.responses = {}
+        self.details = QuestionCard(self)
+        self.choices = AnswerChoices(self)
+        self.details.window.height = lambda: Dimension(min=1, max=max(3, view._rows() // 3))
         self.container = ConditionalContainer(HSplit([
-            Window(self.details, wrap_lines=True, dont_extend_height=True,
-                   height=lambda: Dimension(min=1, max=max(3, view._rows() // 3)),
-                   style="class:hub.composer"),
-            Window(FormattedTextControl(self.text), wrap_lines=True,
-                   dont_extend_height=True, style="class:hub.composer"),
+            Window(FormattedTextControl(self.heading), wrap_lines=True, dont_extend_height=True,
+                   style="class:hub.question-heading"),
+            self.details.window,
+            self.choices,
+            Window(FormattedTextControl(self.hint), wrap_lines=True, dont_extend_height=True,
+                   style="class:hub.muted"),
         ]), Condition(lambda: self.item is not None))
+
+    @property
+    def busy(self):
+        key = (getattr(self.view, "project_id", ""), self.view.sessions[self.view.selected].id)
+        return any(response.pending and identity[:2] == key for identity, response in self.responses.items())
+
+    def begin_answer(self, option_id):
+        response = AnswerFeedback.capture(self, option_id)
+        self.responses[self.identity] = response
+        self.leave()
+        self.view.preparing.paint()
+        return response
+
+    def finish_answer(self, response, success):
+        response.pending = False
+        identity = response.identity
+        current = (getattr(self.view, "project_id", ""), self.view.sessions[self.view.selected].id)
+        if success or response.acknowledged:
+            # Resume failure cannot undo an already accepted decision.
+            response.acknowledged = True
+            self.drafts.pop(identity, None)
+            snapshot = getattr(self.view, "_last_snapshot", None)
+            if snapshot and identity[:2] == current == (snapshot.project_id, snapshot.selected_id):
+                self.sync(snapshot.project_id, snapshot.selected_id, snapshot.questions)
+        else:
+            self.responses.pop(identity, None)
+            if identity[:2] == current:
+                self.sync(*current, (response.item,))
+        response.item = None
+        while len(self.responses) > 128:
+            oldest = next((key for key, value in self.responses.items() if not value.pending), None)
+            if oldest is None:
+                break
+            self.responses.pop(oldest)
+        self.view.preparing.paint()
+
+    def project(self, key, messages):
+        return project_answers([response for identity, response in self.responses.items() if identity[:2] == key], messages)
 
     def leave(self):
         if self.item:
             self.drafts[self.identity] = self.view.composer.text
             self.view.composer.text = self.view._drafts.get(self.view._draft_key(self.view.selected), "")
         self.item, self.identity = None, None
+        self.details.set_request("")
 
     def sync(self, project_id, session_id, questions):
         def key(item):
             return project_id, session_id, item["request"]["id"], item["request"].get("revision", 1)
-        item = next((q for q in questions if key(q) not in self._completed), None)
+        item = next((q for q in questions if key(q) not in self.responses), None)
+        if any(r.pending and k[:2] == (project_id, session_id) for k, r in self.responses.items()):
+            item = None
         identity = key(item) if item else None
-        if self.busy and self.identity and self.identity[:2] == (project_id, session_id) and item is None:
-            # A persisted decision can disappear from observations before
-            # resume admission finishes. Keep its sending feedback until ACK.
-            return
         if identity == self.identity:
             return
         self.leave()
         if item:
             self.view._drafts[self.view._draft_key(self.view.selected)] = self.view.composer.text
-            self.item, self.identity, self.busy = item, identity, False
-            self.details.text = "\n".join(self.detail_lines())
+            self.item, self.identity = item, identity
+            self.details.set_request("\n".join(self.detail_lines()))
             self.view.composer.buffer.cancel_completion()
             self.view.composer.text = self.drafts.get(identity, "")
 
-    def completed(self, identity) -> None:
-        self._completed[identity] = None
-        if len(self._completed) > 128:
-            self._completed.pop(next(iter(self._completed)))
-
     def text(self):
+        """Plain equivalent for accessibility and diagnostics."""
+        return "".join(fragment[1] for fragment in self.options()) + "\n" + self.hint()
+
+    def heading(self):
         if not self.item:
             return ""
-        request = self.item["request"]
-        if self.busy:
+        key = "approval_heading" if self.item["request"].get("action") else "question_heading"
+        return " " + self.view.t(key)
+
+    def options(self):
+        return self.choices._get_text_fragments()
+
+    def hint(self):
+        if not self.item or self.busy:
             return ""
-        lines = []
-        if self.item["live"]:
-            choices = request.get("source", {}).get("choices", [])
-            lines.extend(f"{i}. {label}" for i, label in enumerate(choices, 1))
-            lines.append(self.view.t("question_text_hint"))
-        else:
-            lines.extend(f"{i}. {option['label']}" for i, option in enumerate(request["options"], 1))
-            lines.append(self.view.t("question_choice_hint"))
-            if request.get("action"):
-                lines.append(self.view.t("question_action_hint"))
-        return "\n".join(lines)
+        key = ("question_text_hint" if self.choices.labels() else "question_free_text_hint") if self.item["live"] else "question_choice_hint"
+        return " " + self.view.t(key) + "\n " + self.view.t("question_details_hint")
 
     def detail_lines(self):
         request = self.item["request"]
         if request.get("action"):
             from ..backend.approval import review_lines
-            return [request["title"], *review_lines(request, self.view.t)]
+            return review_lines(request, self.view.t)
         return [request["title"], *([request["description"]] if request.get("description") else [])]
 
     def review(self):
-        if self.item and self.item["request"].get("action") and self.view.on_review:
+        if self.item and self.view.on_review:
             self.view.on_review(self.item["request"])
 
     def answer(self):

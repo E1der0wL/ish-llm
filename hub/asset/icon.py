@@ -18,13 +18,15 @@ SCROLL_TRACK = " "
 SCROLL_THUMB = " "
 ALERT = MappingProxyType({"error": "", "info": "", "warning": "", "success": ""})
 STATUS = MappingProxyType({
-    "idle": "○", "running": "⚙", "queued": "◷", "committed": "✓",
+    "idle": "○", "running": "⚙", "preparing": "⚙", "queued": "◷", "committed": "✓",
     "streaming": "✍", "completed": "✓", "interrupted": "■", "cancelled": "✕",
     "failed": "⚠", "paused": "Ⅱ", "pending": "◷", "applied": "✓",
     "unapplied": "○", "partially_applied": "◐",
+    "waiting_approval": "◷",
 })
 VALUES = MappingProxyType({"icon_sessions": SESSIONS, "icon_reasoning": REASONING,
-                          "icon_waiting": WAITING, **{"icon_" + key: value for key, value in STATUS.items()}})
+                          "icon_waiting": WAITING, "icon_tool": "", "icon_question": "",
+                          **{"icon_" + key: value for key, value in STATUS.items()}})
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,17 +40,20 @@ class IconSet:
     edit: str
     alerts: Mapping[str, str]
     statuses: Mapping[str, str]
+    tool: str = "⚒"
+    question: str = "?"
 
     @property
     def values(self):
         return {"icon_sessions": self.sessions, "icon_reasoning": self.reasoning,
-                "icon_waiting": self.waiting,
+                "icon_waiting": self.waiting, "icon_tool": self.tool, "icon_question": self.question,
                 **{"icon_" + key: value for key, value in self.statuses.items()}}
 
 
-NERD = IconSet(HEADER_MARK, SESSIONS, REASONING, "", "", ALERT, MappingProxyType({
-    **STATUS, "running": "", "streaming": "", "failed": "",
-}))
+NERD = IconSet(HEADER_MARK, SESSIONS, "󰟃", "", "", ALERT, MappingProxyType({
+    **STATUS, "running": "", "streaming": "", "failed": "",
+    "paused": "", "waiting_approval": "", "preparing": "󰒓",
+}), tool="", question="")
 UNICODE = IconSet(HEADER_MARK, "☷", REASONING, WAITING, EDIT,
                   MappingProxyType({"error": "❌", "info": "ℹ", "warning": "⚠", "success": "✅"}), STATUS)
 

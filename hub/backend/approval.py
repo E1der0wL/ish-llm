@@ -54,6 +54,8 @@ def review_text(request):
     """Prepare the complete review payload before it reaches the UI thread."""
     import json
     import re
+    if not request.get("action"):
+        return request["title"] + "\n\n" + request.get("description", "")
     action = json.dumps(request["action"], ensure_ascii=False, indent=2)
     fence = "`" * max(3, max((len(part) for part in re.findall(r"`+", action)), default=0) + 1)
     return request["title"] + "\n\n" + request.get("description", "") + f"\n\n{fence}json\n{action}\n{fence}"

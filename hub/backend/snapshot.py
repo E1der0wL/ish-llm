@@ -5,7 +5,9 @@ from datetime import datetime, timezone
 from typing import Any
 from time import monotonic
 
-from ..model import ChatMessage, HubSnapshot, SessionSummary, RunSummary, StepSummary
+from ..model import ChatMessage, HubSnapshot, SessionSummary, RunSummary, TraceItem
+from .trace import merge_trace, tool_trace
+from .steps import display_steps
 from .engine_selection import model_name, requires_model, selected_engines
 from .questions import waiting_status
 
@@ -26,6 +28,7 @@ class SnapshotReader:
         self.observations = {}
         self.submissions = {}
         self.tool_history = {}
+        self.trace_history = {}
         from .thinking import ThinkingPhases
         self.thinking = ThinkingPhases()
 
@@ -33,6 +36,7 @@ class SnapshotReader:
         self.cache.clear()
         self.observations.clear()
         self.tool_history.clear()
+        self.trace_history.clear()
 
     def invalidate(self, session_id):
         self.observations.pop(session_id, None)
@@ -51,6 +55,12 @@ class SnapshotReader:
         completions = run.metadata.get("completions", [])
         reasoning = "\n\n".join(text for item in completions
                                 if (text := reasoning_text(item.get("reasoning_content", ""))))
+        self.trace_history[run_id] = tuple(TraceItem("thought:" + item.get("id", f"{run_id}:{index}"),
+            "reasoning", text, started_at=item.get("started_at") or run.started_at or "")
+            for index, item in enumerate(completions)
+            if (text := reasoning_text(item.get("reasoning_content", ""))))
+        if len(self.trace_history) > 1024:
+            self.trace_history.pop(next(iter(self.trace_history)))
         elapsed = None
         active = str(run.status) in ("pending", "running")
         started_at = requested_at or run.started_at
@@ -83,8 +93,7 @@ class SnapshotReader:
                 tools = ()
                 if active:
                     if latest is not None and latest.id == message.run_id:
-                        tools = tuple(StepSummary(step.name, str(step.status), str(step.kind), getattr(step, "id", ""))
-                                      for step in latest_steps if str(step.kind) == "tool")
+                        tools = tuple(step for step in display_steps(latest_steps) if step.kind == "tool")
                         if str(latest.status) == "paused":
                             self.tool_history[message.run_id] = tools
                     elif message.run_id in self.tool_history:
@@ -92,8 +101,7 @@ class SnapshotReader:
                     elif session is not None:
                         try:
                             steps = await (await session.run.aload(message.run_id)).steps.alist()
-                            tools = tuple(StepSummary(step.name, str(step.status), str(step.kind), step.id)
-                                          for step in steps if str(step.kind) == "tool")
+                            tools = tuple(step for step in display_steps(steps) if step.kind == "tool")
                             if str(message.status) == "paused":
                                 self.tool_history[message.run_id] = tools
                         except FileNotFoundError:
@@ -101,7 +109,10 @@ class SnapshotReader:
                     if len(self.tool_history) > 1024:
                         self.tool_history.pop(next(iter(self.tool_history)))
                 if reasoning or tools:
-                    visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning", tools=tools))
+                    trace = merge_trace(self.thinking.trace(message.run_id,
+                        self.trace_history.get(message.run_id, ())), tool_trace(tools))
+                    visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning", tools=tools,
+                                               trace=trace))
             status = str(message.metadata.get("steering", {}).get("status", message.status))
             phase = (self.thinking.activity(latest)
                      if role == "assistant" and latest is not None and latest.id == message.run_id
@@ -151,7 +162,7 @@ class SnapshotReader:
                 _, elapsed = await self.run_display(session, run.id, run=run)
                 summary = RunSummary(run.id, str(run.status), run.engine, elapsed,
                     bool(selected.runtime.active_run_id),
-                    tuple(StepSummary(step.name, str(step.status), str(step.kind)) for step in steps),
+                    display_steps(steps),
                     str(run.error) if run.error else "")
         snapshot = HubSnapshot(
             project_id=data.id, project_title=data.title,

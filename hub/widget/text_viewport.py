@@ -12,10 +12,11 @@ from .controls import ScrollbarMargin
 
 
 class TextViewport(UIControl):
-    def __init__(self, text, *, height=None, markdown=False, theme=None, tail=True, render_worker=None):
+    def __init__(self, text, *, height=None, markdown=False, theme=None, tail=True, render_worker=None, render_slot="popup"):
         self.text, self.markdown, self.theme = text, markdown, theme
         self._render_key = None
         self.render_worker = render_worker
+        self.render_slot = render_slot
         self._requested_key = None
         self._resize_timer = None
         self.lines = [""] if render_worker else self._plain_text().splitlines() or [""]
@@ -61,14 +62,14 @@ class TextViewport(UIControl):
             def request():
                 self._resize_timer = None
                 if self.render_worker and app.is_running:
-                    self.render_worker.request("popup", lambda: self._prepare_rows(build_rows()), apply,
+                    self.render_worker.request(self.render_slot, lambda: self._prepare_rows(build_rows()), apply,
                         lambda _: self._prepare_rows([[("", line)] for line in self._plain_text().splitlines()]))
                 else:
                     apply(self._prepare_rows(build_rows()))
             if self._resize_timer:
                 self._resize_timer.cancel()
             if resized and self.render_worker and app.is_running:
-                self.render_worker.cancel("popup")
+                self.render_worker.cancel(self.render_slot)
                 self._resize_timer = asyncio.get_running_loop().call_later(.075, request)
             else:
                 request()

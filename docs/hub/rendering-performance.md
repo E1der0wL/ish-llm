@@ -24,8 +24,9 @@ PTK's context variable cannot accidentally enter the synchronous path.
 
 ## Bounded work and delivery
 
-`RenderWorker` has one running job and one pending batch with four fixed slots:
-transcript, preview, popup and search. A slot holds only its latest request.
+`RenderWorker` has one running job and one pending batch with five fixed slots:
+transcript, preview, popup, search and question. A slot holds only its latest request.
+The composer request card uses the same worker and cannot replace a full-details popup job.
 The bound is independent of update count; separate slots ensure a draft preview
 cannot erase a pending final transcript. Slots share one CPU thread. Generations
 are checked both when work finishes and when the UI callback runs. Closing a
@@ -48,9 +49,11 @@ time labels and status labels do not reparse an unchanged body. The streaming
 versus final distinction remains a parsing input, so unfinished XML is handled
 correctly when a message completes.
 
-Reasoning is a separate ChatMessage linked by the assistant's ID. Its `tools`
-tuple carries immutable Step summaries separately from the provider's thought
-text. Header, thought/body and compact tool rows have independent cache keys.
+Reasoning is a separate ChatMessage linked by the assistant's ID. Its `trace`
+tuple interleaves immutable provider thought and Tool items using persisted start
+times. Snapshot reconciliation rebuilds this ordering without a second transcript.
+Resume updates the original logical Tool item; reused receipts do not add executions.
+Header, answer body and each individual trace item have independent cache keys.
 Changing only a Tool status does not rerender the thought Markdown or answer;
 changing only thought text does not reparse/render the answer's code or tables.
 The active reasoning and answer form one tail, including any queued requests
@@ -84,6 +87,31 @@ existing `progress_refresh_interval` timer; start/finish invalidate immediately.
 Only the small single-row progress frame is rendered on the UI thread.
 
 ## Validation and instrumentation
+
+2026-10-12: immediate composer restoration and durable decision acknowledgement
+are separate from resume admission. Input-linked, nonfocusable RadioList choices
+and content-height request cards replace the plain choice list. Transcript mouse
+wheel handlers/routing and host mouse-mode overrides were removed. Tool rows use
+the configured icon set; the assistant reasoning title has no leading icon.
+
+Linux Python 3.12.14 validation used `ish-provider-in1uz9qc`: **29 focused tests**
+passed; the complete **264-test Hub suite** had two 3-second timing timeouts under
+concurrent backend test load. Both passed unchanged in `ui-recheck.txt` once that
+load finished. `ish-provider-67j929ay` passed **199 focused backend tests**; its
+**1,383-test backend suite** had one failure in the 0.1-second Run deadline test.
+The complete affected BatchTests class passed unchanged in `timeout-recheck.txt`
+without concurrent test load. No timeout thresholds or llm source were changed.
+The final 384 Hub, Hub-test and llm files match the UI snapshot hashes. Recheck
+logs are retained alongside the original results, rather than replacing them.
+
+2026-10-12: the chronological thought/Tool trace, request cards, composer status
+removal and wheel-routing update passed **262 Hub tests** and **21 focused tests**
+in `tests/llm/reports/ish-provider-_a8gv9em/`. The complete backend suite passed
+**1,383 tests** in `tests/llm/reports/ish-provider-8nz_pzua/suite.txt`, using Linux
+Python 3.12.14. Final Hub, Hub tests and llm source hashes match the UI test
+snapshot; `llm/` is unchanged. Coverage includes terminal wheel escape sequences,
+ordinary arrow-key history, approval continuation, stale-card replacement,
+chronological reconstruction and per-item trace cache reuse.
 
 2026-10-12: the Tool-history/advisory-risk update passed all 250 Hub tests
 (`tests/llm/reports/ish-provider-lrsfvop7/hub.txt`) and 34 focused tests in that

@@ -12,7 +12,7 @@ from unittest.mock import Mock
 from prompt_toolkit.input import create_pipe_input
 
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.model import ChatMessage, HubSnapshot, SessionSummary, StepSummary
+from hub.model import ChatMessage, HubSnapshot, RunSummary, SessionSummary, StepSummary, TraceItem
 from hub.ui.application import create_application
 from hub.ui.live import LiveController, LiveHubView
 from llm.core.interactions import InteractionOption, InteractionRequest
@@ -109,6 +109,10 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                     return '\n'.join(''.join(screen.data_buffer[y][x].char for x in range(100))
                                      for y in range(28)) if screen else ''
                 await until(lambda: 'answer.txt' in displayed() and '1.' in displayed() and '2.' in displayed())
+                # Rich replaces the immediate plain fallback asynchronously;
+                # wait for the following PTK layout pass to use its new height.
+                await until(lambda: view.question.details.window.render_info.window_height <=
+                            len(view.question.details.lines))
                 self.assertFalse(Path(root, 'answer.txt').exists())
                 self.assertEqual(len(provider.requests), 1)
                 pipe.send_bytes(b'\x0f')
@@ -147,14 +151,21 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
             controller.app = NS(invalidate=Mock())
             controller.loop = asyncio.get_running_loop()
             calls = []
-            def call_backend(operation, *args):
+            def call_backend(operation, *args, acknowledged=None):
                 future = Future()
-                calls.append((operation, future))
+                calls.append((operation, future, acknowledged))
                 return future
             controller.worker = NS(call=call_backend)
             request = InteractionRequest('Approve?', (InteractionOption('approve', 'Approve', effect='approve'),
-                InteractionOption('deny', 'Deny', effect='deny'))).to_dict()
-            base = HubSnapshot('p', 'Project', 'test/model', 'file', (SessionSummary('s', 'Session', 'idle'),), 's', ())
+                InteractionOption('deny', 'Deny', effect='deny')),
+                source={'step_id': 'step'}, action={'tool': 'shell_execute', 'arguments': {}}).to_dict()
+            step = StepSummary('shell_execute', 'waiting_approval', 'tool', 'logical', source_id='step')
+            trace = (TraceItem('logical', 'tool', 'shell_execute', 'waiting_approval'),
+                     TraceItem('unrelated', 'tool', 'shell_execute', 'waiting_approval'))
+            base = HubSnapshot('p', 'Project', 'test/model', 'file', (SessionSummary('s', 'Session', 'idle'),), 's',
+                (ChatMessage('reasoning', '', id='a:reasoning', tools=(step,), trace=trace),
+                 ChatMessage('assistant', 'Before approval', status='paused', id='a')),
+                run=RunSummary('r', 'paused', 'loop', 1, False, (step,), ''))
             waiting = replace(base, questions=({'run_id': 'r', 'live': False, 'request': request},))
             try:
                 view.apply_snapshot(base)
@@ -162,22 +173,35 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                 view.apply_snapshot(waiting)
                 view.composer.text = '1'
                 view.question.answer()
-                self.assertEqual(view.composer.text, '')
+                self.assertEqual(view.composer.text, 'ordinary draft')
                 self.assertTrue(view.question.busy)
-                from hub.widget.activity import activity_text
-                self.assertIn('답변 전달 중', activity_text(view))
+                self.assertIsNone(view.question.item)
+                self.assertEqual(view.transcript.control.messages[0].trace[0].status, 'answer_sending')
+                self.assertEqual(view.transcript.control.messages[0].trace[1].status, 'waiting_approval')
+                view.composer.text = 'new draft while resume is slow'
                 view.apply_snapshot(base)
                 self.assertTrue(view.question.busy)
-                self.assertIsNotNone(view.question.item)
+                self.assertIsNone(view.question.item)
                 view.question.answer()
+                self.assertEqual(len(calls), 1)
+                calls[0][2]()  # Durable decision ACK, with resume still blocked.
+                await asyncio.sleep(0)
+                self.assertFalse(calls[0][1].done())
+                self.assertEqual(view.transcript.control.messages[0].trace[0].status, 'approved')
+                self.assertEqual(view.transcript.control.messages[1].phase, 'approved')
+                # Duplicate Enter cannot consume or submit the next draft.
+                view.bindings.submit(NS())
                 self.assertEqual(len(calls), 1)
                 calls[0][1].set_result(True)
                 await asyncio.sleep(0)
-                self.assertEqual(view.composer.text, 'ordinary draft')
+                self.assertEqual(view.composer.text, 'new draft while resume is slow')
                 view.apply_snapshot(waiting)
                 self.assertIsNone(view.question.item)
-                self.assertEqual(view.composer.text, 'ordinary draft')
-                self.assertEqual([op for op, _ in calls], ['answer_question', 'snapshot'])
+                self.assertEqual(view.composer.text, 'new draft while resume is slow')
+                self.assertEqual([op for op, _, _ in calls], ['answer_question'])
+                progressed = replace(base.messages[0], trace=(replace(trace[0], status='running'),))
+                view.apply_snapshot(replace(base, messages=(progressed, replace(base.messages[1], status='streaming'))))
+                self.assertEqual(view.transcript.control.messages[0].trace[0].status, 'running')
                 updated = {**waiting.questions[0], 'request': {**request, 'revision': 2}}
                 view.apply_snapshot(replace(waiting, questions=(updated,)))
                 self.assertIsNotNone(view.question.item)
@@ -185,3 +209,50 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 view.output_renderers.close()
                 view.progress.close()
+
+    async def test_failed_answer_restores_question_but_accepted_answer_never_reopens(self):
+        view = LiveHubView()
+        request = InteractionRequest('Approve?', (InteractionOption('approve', 'Approve', effect='approve'),)).to_dict()
+        base = HubSnapshot('p', 'Project', 'model', 'file', (SessionSummary('s', 'Session', 'idle'),), 's', ())
+        waiting = replace(base, questions=({'run_id': 'r', 'live': False, 'request': request},))
+        try:
+            view.apply_snapshot(base)
+            view.composer.text = 'ordinary'
+            view.apply_snapshot(waiting)
+            view.composer.text = '1'
+            response = view.question.begin_answer('approve')
+            view.composer.text = 'new ordinary draft'
+            view.question.finish_answer(response, False)
+            self.assertIsNotNone(view.question.item)
+            self.assertEqual(view.composer.text, '1')
+            response = view.question.begin_answer('approve')
+            self.assertEqual(view.composer.text, 'new ordinary draft')
+            response.acknowledged = True
+            view.question.finish_answer(response, False)  # Resume admission failed.
+            view.apply_snapshot(waiting)
+            self.assertIsNone(view.question.item)
+            self.assertEqual(view.composer.text, 'new ordinary draft')
+        finally:
+            view.render_worker.close()
+            view.output_renderers.close()
+
+    async def test_late_answer_result_does_not_replace_another_sessions_draft(self):
+        view = LiveHubView()
+        request = InteractionRequest('Approve?', (InteractionOption('approve', 'Approve', effect='approve'),)).to_dict()
+        waiting = HubSnapshot('p', 'Project', 'model', 'file',
+            (SessionSummary('s', 'Session', 'idle'), SessionSummary('other', 'Other', 'idle')), 's', (),
+            questions=({'run_id': 'r', 'live': False, 'request': request},))
+        try:
+            view.apply_snapshot(waiting)
+            view.composer.text = '1'
+            response = view.question.begin_answer('approve')
+            # Selection changes before the backend can publish its new snapshot.
+            view.select(1)
+            view.composer.text = 'Other session draft'
+            view.question.finish_answer(response, True)
+            self.assertEqual(view.composer.text, 'Other session draft')
+            self.assertIsNone(view.question.item)
+            self.assertFalse(view.question.busy)
+        finally:
+            view.render_worker.close()
+            view.output_renderers.close()

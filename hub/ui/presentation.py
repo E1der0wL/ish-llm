@@ -68,6 +68,8 @@ def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
         if run.active:
             activity = t("run_progress", status=t.status(run.status), engine=run.engine,
                          seconds=int(run.elapsed_seconds or 0), count=snapshot.queued_count)
+            if not run.steps and any(m.phase == "resuming" for m in snapshot.messages):
+                activity = t.status("resuming")
             if run.steps:
                 step = run.steps[-1]
                 activity = f"{t.status(step.status)} · {step.name}"

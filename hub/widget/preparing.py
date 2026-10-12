@@ -38,13 +38,22 @@ class PreparingResponse:
                 self.paint()
 
     def project(self, key, messages):
+        messages = self.view.question.project(key, messages)
         clock = self.clocks.get(key)
-        if clock and messages and messages[-1].id == clock[0]:
-            messages = (*messages[:-1], replace(messages[-1], elapsed_seconds=clock[1] + monotonic() - clock[2]))
-        if key not in self.pending:
-            return messages
-        return (*messages, ChatMessage("assistant", "", status="preparing",
-            id=f"preparing:{key[1]}", elapsed_seconds=monotonic() - self.started[key]))
+        snapshot = getattr(self.view, "_last_snapshot", None)
+        run = snapshot.run if snapshot and key == (snapshot.project_id, snapshot.selected_id) else None
+        from .retry_status import retry_text
+        activity = retry_text(run.retry if run and run.active else None, self.view.t)
+        for index in range(len(messages) - 1, -1, -1):
+            message = messages[index]
+            if message.role == "assistant" and message.status in ("streaming", "committed"):
+                elapsed = clock[1] + monotonic() - clock[2] if clock and message.id == clock[0] else message.elapsed_seconds
+                messages = (*messages[:index], replace(message, elapsed_seconds=elapsed, activity=activity), *messages[index + 1:])
+                break
+        if key in self.pending:
+            messages = (*messages, ChatMessage("assistant", "", status="preparing",
+                id=f"preparing:{key[1]}", elapsed_seconds=monotonic() - self.started[key]))
+        return self.view.interrupting.project(key, messages)
 
     def paint(self):
         view = self.view
@@ -75,7 +84,7 @@ class PreparingResponse:
         key = (snapshot.project_id, snapshot.selected_id)
         self.clocks = {k: v for k, v in self.clocks.items()
                        if k[0] == snapshot.project_id and any(s.id == k[1] for s in snapshot.sessions)}
-        last = snapshot.messages[-1] if snapshot.messages else None
+        last = next((m for m in reversed(snapshot.messages) if m.role == "assistant"), None)
         if last and last.role == "assistant" and last.status in ("streaming", "committed") and last.elapsed_seconds is not None:
             self.clocks[key] = (last.id, last.elapsed_seconds, monotonic())
         else:

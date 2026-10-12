@@ -15,7 +15,7 @@ from examples.hub.preview import create_preview
 from hub.backend.worker import BackendWorker
 from hub.config.theme import HubTheme
 from hub.locales import Language
-from hub.model import ChatMessage, StepSummary
+from hub.model import ChatMessage, StepSummary, TraceItem
 from hub.ui.output import RendererRegistry
 from hub.ui.output.worker import RenderWorker
 from hub.widget.conversation import render_messages
@@ -37,6 +37,31 @@ class CacheTests(unittest.TestCase):
     def prepare(self, messages, width=80):
         return self.cache.prepare(messages, width, self.theme, self.language,
             render=render_messages, renderers=self.registry, root=Path.cwd(), invalidate=lambda: None)
+
+    def test_trace_changes_render_only_the_changed_item(self):
+        trace = (TraceItem("c1", "reasoning", "**First thought**"),
+                 TraceItem("t1", "tool", "file_read", "completed"),
+                 TraceItem("c2", "reasoning", "Second thought"))
+        thought = ChatMessage("reasoning", "combined fallback", id="a:reasoning", trace=trace)
+        answer = ChatMessage("assistant", "Answer", id="a", status="streaming")
+        self.prepare((thought, answer))
+        response = self.cache.items["a"]["frame"]
+        previous = self.cache.items["a:reasoning"]["trace_cache"]
+        bodies, headers = self.cache.body_renders, self.cache.header_renders
+        for index in range(10):
+            thought = replace(thought, text=f"fallback {index}", trace=(*trace[:-1], replace(trace[-1], text=f"Second {index}")))
+            frame = self.prepare((thought, answer))
+            self.assertIs(self.cache.items["a"]["frame"], response)
+            self.assertIs(self.cache.items["a:reasoning"]["trace_cache"][trace[0]], previous[trace[0]])
+        self.assertEqual(self.cache.trace_renders, 13)
+        self.assertEqual(self.cache.body_renders, bodies)
+        self.assertEqual(self.cache.header_renders, headers)
+        expected = render_messages((thought, answer), 80, self.theme, self.language, renderers=self.registry)
+        self.assertEqual(tuple(frame.lines), frozen_rows(expected))
+        text = "\n".join("".join(t for _, t in row) for row in frame.lines)
+        self.assertLess(text.index("First thought"), text.index("file_read"))
+        self.assertLess(text.index("file_read"), text.index("Second 9"))
+        self.assertNotIn("fallback", text)
 
     def test_thought_and_tool_changes_reuse_response_header_body_and_history(self):
         history = tuple(ChatMessage("assistant", f"history {i}", id=f"old{i}") for i in range(100))
@@ -319,10 +344,10 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
                     threads.add(get_ident())
                     return slot
                 worker.request(slot, build, lambda value: applied.setdefault(value, True), str)
-            await eventually(lambda: len(applied) == 4)
+            await eventually(lambda: set(applied) == worker.slots)
             self.assertEqual(len(threads), 1)
             self.assertNotIn(get_ident(), threads)
-            self.assertLessEqual(worker.stats.pending_peak, 4)
+            self.assertLessEqual(worker.stats.pending_peak, len(worker.slots))
         finally:
             worker.close()
 

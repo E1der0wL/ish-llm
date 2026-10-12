@@ -15,6 +15,18 @@ from hub.ui.presentation import present
 
 
 class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_thoughts_and_all_tools_are_interleaved_from_durable_timestamps(self):
+        start = "2026-10-12T00:00:"
+        run = NS(id="r", status="running", started_at=start + "00+00:00", ended_at=None,
+            metadata={"completions": [
+                {"id": "c1", "started_at": start + "01+00:00", "reasoning_content": "Inspect files"},
+                {"id": "c2", "started_at": start + "09+00:00", "reasoning_content": "Now verify"}]})
+        record = NS(id="a", role="assistant", content="Partial", status="streaming", created_at="", run_id="r", metadata={})
+        steps = tuple(NS(id=f"t{i}", name=f"tool_{i}", status="completed", kind="tool", started_at=start + f"0{i+2}+00:00") for i in range(7))
+        for reader in (SnapshotReader(), SnapshotReader()):
+            messages = await reader.messages(None, [record], latest=run, latest_steps=steps)
+            self.assertEqual([item.text for item in messages[0].trace], ["Inspect files", *(s.name for s in steps), "Now verify"])
+
     async def test_reconciliation_restores_all_rounds_above_partial_answer(self):
         run = NS(id="r", status="running", started_at=None, ended_at=None,
                  metadata={"completions": [{"reasoning_content": "First"},

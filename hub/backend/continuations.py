@@ -4,6 +4,7 @@ from dataclasses import replace
 from collections.abc import Sequence
 from llm.core.models import Message
 from ..model import ChatMessage
+from .trace import merge_trace
 
 
 def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessage]) -> tuple[ChatMessage, ...]:
@@ -26,11 +27,12 @@ def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessag
             hidden.add(record.id)
         elif str(record.role) == "assistant":
             sources[record.id] = assistants[parent]
-    result, positions, reasoning, tools = [], {}, {}, {}
+    result, positions, reasoning, tools, traces = [], {}, {}, {}, {}
     for message in messages:
         if message.role == "reasoning" and message.id.endswith(":reasoning"):
             assistant = message.id.removesuffix(":reasoning")
             root = sources.get(assistant, assistant)
+            traces[root] = merge_trace(traces.get(root, ()), message.trace)
             history = tools.setdefault(root, {})
             for index, step in enumerate(message.tools):
                 history[step.id or (assistant, index)] = step
@@ -58,6 +60,6 @@ def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessag
     for message in result:
         if (message.id in reasoning or message.id in tools) and message.status in ("streaming", "committed", "paused"):
             visible.append(ChatMessage("reasoning", reasoning.get(message.id, ""), id=message.id + ":reasoning",
-                                       tools=tuple(tools.get(message.id, {}).values())))
+                                       tools=tuple(tools.get(message.id, {}).values()), trace=traces.get(message.id, ())))
         visible.append(message)
     return tuple(visible)

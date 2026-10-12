@@ -21,8 +21,9 @@ MESSAGES = {
     'shortcut_object_sort': 'Sort column',
     'shortcut_cancel': 'Cancel queued',
     'preparing_response': 'Preparing…',
-    'status_preparing': '{icon_running} Preparing',
+    'status_preparing': '{icon_preparing} Preparing',
     'status_thinking': '{icon_reasoning} Thinking',
+    'status_interrupting': '{icon_interrupted} Stopping',
     'followup_hint': '→ accept suggestion',
     'component_action_install': 'Install a built-in skill (preserve existing entries)',
     'skills_install_help': '/skills install hub-code-change [new_ID]\nCopy the built-in coding skill. Existing IDs are never overwritten; choose a new ID to preserve them.',
@@ -69,7 +70,12 @@ MESSAGES = {
     'activity_provider_run_details': 'Provider details for this Run:',
     'activity_provider_workspace': 'Provider log · Workspace-wide',
     'status_waiting_input': '{icon_pending} Awaiting reply',
-    'status_waiting_approval': '{icon_pending} Awaiting approval',
+    'status_waiting_approval': '{icon_waiting_approval} Awaiting approval',
+    'status_answer_sending': '{icon_waiting} Sending answer',
+    'status_approved': '{icon_completed} Approved',
+    'status_denied': '{icon_cancelled} Denied',
+    'status_answered': '{icon_completed} Answer delivered',
+    'status_resuming': '{icon_running} Resuming',
     'help': '# Hub help\n\n## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts and automatically saves only panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+E** chooses an engine/Workflow. **Ctrl+R** toggles Markdown preview.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **↑↓** selects fields; **←** returns to the panel and **→** does nothing outside editing.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** does nothing in the composer.\nPath completion inserts text; it does not attach files.\n',
     "settings_dependencies": "Required components: {names}",
     "settings_dependencies_missing": "Missing required components: {names} — select them before saving.",
@@ -319,7 +325,7 @@ MESSAGES = {
 
     "message": "MESSAGE", "preview": "MARKDOWN PREVIEW", "you": "YOU",
 
-    "assistant": "ASSISTANT", "info": "INFO", "reasoning": "{icon_reasoning} MODEL REASONING",
+    "assistant": "ASSISTANT", "info": "INFO", "reasoning": "ASSISTANT REASONING",
 
     "session_hint": "c new · d delete\ne rename · r clone", "input_hint": "Enter send · Ctrl+Space newline · ↑↓ select · Tab confirm",
 
@@ -364,7 +370,7 @@ MESSAGES = {
 
     "phase": "Current step: {name} ({status})",
 
-    "paused": "{icon_paused} Paused · approval/resume is available through the llm API.",
+    "paused": "{icon_paused} Paused",
 
     "memory": "Memory history: messages are lost on shutdown",
 
@@ -437,8 +443,11 @@ MESSAGES = {
     'shortcut_tools_toggle': 'enable/disable',
     'question_waiting': 'Waiting for your answer · Question',
     'question_sending': 'Sending answer · {title}',
+    'question_details_hint': 'Ctrl+O view full details',
+    'approval_heading': '{icon_question} Approval request',
+    'question_heading': '{icon_question} Question',
     'question_action_hint': 'Ctrl+O: review the complete action (arguments, commands, file contents)',
-    'shortcut_approval_details': 'Action details',
+    'shortcut_approval_details': 'Request details',
     'approval_tool': 'Tool: {name}',
     'approval_risk': 'Risk: {value}',
     'approval_model_reason': 'Model assessment reason: {reason}',
@@ -447,6 +456,7 @@ MESSAGES = {
     'approval_argument': '{name}: {kind}, {size} (see details)',
     'retry_wait': 'Waiting to retry · {attempt}/{maximum} attempts completed · attempt {next_attempt} in {seconds}s',
     'retry_active': 'Retrying · attempt {attempt}/{maximum}',
-    'question_text_hint': 'Type an answer or choice number, then press Enter.',
+    'question_text_hint': 'Type a choice number or your own answer, then press Enter.',
+    'question_free_text_hint': 'Type your answer, then press Enter.',
     'question_choice_hint': 'Type a choice number, then Enter. Append an input value after the number if required.',
 }

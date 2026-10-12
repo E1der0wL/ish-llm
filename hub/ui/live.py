@@ -52,6 +52,7 @@ class LiveHubView(HubView):
 
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=None) -> None:
         self._last_snapshot = snapshot
+        self.interrupting.observe(snapshot)
         self.toasts.reconcile_waiting(snapshot.project_id, snapshot.sessions)
         self.preparing.observe(snapshot)
         key = (snapshot.project_id, snapshot.selected_id)
@@ -335,14 +336,15 @@ class LiveController:
         if self.loop is not None and not self.closed:
             self._save_timer = self.loop.call_later(0.25, self._save_view)
 
-    def _call(self, operation, *args, completed=None):
+    def _call(self, operation, *args, completed=None, acknowledged=None):
         if not self.worker or not self.view.connected:
             self._error(self.view.t("not_connected"))
             if completed:
                 completed(None)
             return
         try:
-            future = self.worker.call(operation, *args)
+            kwargs = {"acknowledged": lambda: self._dispatch(acknowledged)} if acknowledged else {}
+            future = self.worker.call(operation, *args, **kwargs)
         except Exception as error:
             self._error(error)
             if completed:
@@ -465,27 +467,16 @@ class LiveController:
         question = self.view.question
         if question.busy:
             return
-        identity = question.identity
-        question.busy = True
-        text = self.view.composer.text
-        self.view.composer.text = ""
-        question.drafts[identity] = ""
+        response = question.begin_answer(option_id)
+        identity = response.identity
         self.app.invalidate()
+        def acknowledged():
+            response.acknowledged = True
+            self.view.preparing.paint()
         def answered(result):
-            if result:
-                question.completed(identity)
-            if question.identity == identity:
-                question.busy = False
-                if result:
-                    question.leave()
-                    question.drafts.pop(identity, None)
-                    self._call("snapshot", completed=self._snapshot)
-                elif not self.view.composer.text:
-                    self.view.composer.text = text
-            elif not result and not question.drafts.get(identity):
-                question.drafts[identity] = text
+            question.finish_answer(response, bool(result))
         self._call("answer_question", identity[0], identity[1], item["run_id"], item["request"],
-                   option_id, value, completed=answered)
+                   option_id, value, completed=answered, acknowledged=acknowledged)
 
     def submit(self, session_id: str, text: str):
         if not session_id:
@@ -601,7 +592,12 @@ class LiveController:
     def interrupt(self, session_id: str):
         if not session_id:
             return
-        self._call("interrupt", session_id)
+        key = (self.view.project_id, session_id)
+        if key in self.view.interrupting.pending:
+            return
+        request = self.view.interrupting.start(key)
+        self._call("interrupt", session_id,
+                   completed=lambda result: self.view.interrupting.finish(request, result))
 
     def rename_session(self, session_id: str, title: str):
         self._call("rename_session", session_id, title,

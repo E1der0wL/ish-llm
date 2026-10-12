@@ -14,7 +14,7 @@ from hub.backend.retries import HubLoopEngine, RetryMonitor
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.locales import Language
 from hub.model import RetrySummary, RunSummary
-from hub.widget.activity import activity_text
+from hub.widget.retry_status import retry_text
 from llm.services.infrastructure.observability import Observability
 from tests.hub.support import eventually
 from tests.hub.test_response_reliability import HTTPFailure
@@ -142,18 +142,13 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
             await asyncio.gather(*tasks, return_exceptions=True)
         self.assertEqual(monitor.states, {})
 
-    def test_countdown_is_local_and_busy_status_has_priority(self):
+    def test_countdown_is_local(self):
         run = RunSummary("r", "running", "loop", 0, True, (), "", RetrySummary(1, 4, 110))
-        view = NS(t=Language("ko"), question=NS(item=None, busy=False),
-                  preparing=NS(visible=lambda: False), _last_snapshot=NS(run=run), activity="old")
-        with patch("hub.widget.activity.monotonic", return_value=104):
-            self.assertIn("2번째 시도까지 6초", activity_text(view))
-        with patch("hub.widget.activity.monotonic", return_value=108):
-            self.assertIn("2번째 시도까지 2초", activity_text(view))
-        view._last_snapshot.run = replace(run, retry=RetrySummary(2, 4))
-        self.assertIn("2/4번째", activity_text(view))
-        view.question.item, view.question.busy = {"request": {"title": "Approve"}}, True
-        self.assertEqual(activity_text(view), "답변 전달 중 · Approve")
+        with patch("hub.widget.retry_status.monotonic", return_value=104):
+            self.assertIn("2번째 시도까지 6초", retry_text(run.retry, Language("ko")))
+        with patch("hub.widget.retry_status.monotonic", return_value=108):
+            self.assertIn("2번째 시도까지 2초", retry_text(run.retry, Language("ko")))
+        self.assertIn("2/4번째", retry_text(RetrySummary(2, 4), Language("ko")))
 
     def test_large_approval_is_bounded_but_full_review_preserves_payload(self):
         request = {"title": "Tool approval", "action": {"tool": "file_create", "arguments": {
@@ -193,3 +188,30 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
             async with asyncio.timeout(.5):
                 self.assertTrue(await worker._execute("answer_question", ("p", "s", "r", {}, "approve", None)))
         self.assertTrue(worker.runtime.dirty.is_set())
+
+    async def test_durable_ack_precedes_slow_resume_admission(self):
+        from unittest.mock import AsyncMock, Mock
+        from llm.core.interactions import InteractionRequest, InteractionOption
+        request = InteractionRequest("Approve", (InteractionOption("approve", "Approve", effect="approve"),))
+        runtime = HubRuntime(HubConfig(auto_title=False))
+        runtime.project = NS(id="p")
+        acknowledged = Mock()
+        entered, release = asyncio.Event(), asyncio.Event()
+        run = NS(arespond=AsyncMock(), ainteractions=AsyncMock(return_value=[]),
+                 aget_data=AsyncMock(return_value=NS(engine="loop")))
+        async def resume(*args, **kwargs):
+            run.arespond.assert_awaited_once()
+            acknowledged.assert_called_once_with()
+            entered.set()
+            await release.wait()
+        runtime.sessions = {"s": NS(run=NS(aload=AsyncMock(return_value=run), resume=resume))}
+        task = asyncio.create_task(runtime.answer_question("p", "s", "r", request.to_dict(), "approve", None,
+                                                          acknowledged=acknowledged))
+        try:
+            async with asyncio.timeout(2):
+                await entered.wait()
+            self.assertFalse(task.done())
+            self.assertTrue(runtime.dirty.is_set())
+        finally:
+            release.set()
+            await task

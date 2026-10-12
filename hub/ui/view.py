@@ -89,6 +89,8 @@ class HubView:
         self.question = QuestionComposer(self)
         from ..widget.preparing import PreparingResponse
         self.preparing = PreparingResponse(self)
+        from ..widget.interrupt_feedback import InterruptFeedback
+        self.interrupting = InterruptFeedback(self)
         from .input.history import ComposerHistory
         self.input_history = ComposerHistory(self)
         self.transcript = ConversationView(self.sessions[0].messages, self.theme, language=self.t)
@@ -129,12 +131,9 @@ class HubView:
                                  Condition(lambda: self._rows() >= 18)),
         ]), title=lambda: self._focus_heading(self.composer.control, self.t("model_line", model=self.model)),
             style="class:hub.input-frame")
-        from ..widget.activity import activity_text
         conversation = HSplit([
             self._line(self._conversation_header, "hub.title"),
             DynamicContainer(lambda: self.welcome if self.no_sessions else self.transcript),
-            ConditionalContainer(self._line(lambda: " " + activity_text(self), "hub.muted"),
-                                 Condition(lambda: bool(activity_text(self)))),
             self._preview_container,
             self._composer_frame,
         ])
@@ -144,9 +143,7 @@ class HubView:
             sidebar_visible=self._sidebar.filter, extra=(self._details,),
             sidebar_controls=lambda: (self._session_control,),
             focus_sidebar=self._focus_sessions, focus_main=self._focus_composer)
-        from ..widget.wheel import WheelRoutingContainer
-        panel = WheelRoutingContainer(self.chat_page.container, self.transcript.control.mouse_handler,
-            enabled=lambda: self._dialog is None and not self.tags.visible)
+        panel = self.chat_page.container
         # PTK defers cursor-positioned floats with an absolute drawing priority.
         # An enclosing host Float can inherit a later priority than our popups.
         # Paint the Hub body at this container's own base, then draw its overlays.

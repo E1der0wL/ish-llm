@@ -44,9 +44,6 @@ class HubInstallation:
         self._terminal_screen = HubTerminalScreen(prompt.app, self.view)
         self._style = prompt.style
         self._bindings = prompt.app.key_bindings
-        self._mouse_support = prompt.app.mouse_support
-        self._installed_mouse_support = Condition(lambda: self.view.visible) | self._mouse_support
-        prompt.app.mouse_support = self._installed_mouse_support
         self._previous_q = [binding for binding in prompt.key_bindings.bindings
                             if binding.keys == (Keys.ControlQ,)]
         prompt.style = merge_styles([self._style or Style([]), DynamicStyle(lambda: self.view.style)])
@@ -116,8 +113,6 @@ class HubInstallation:
         self.prompt.app.before_render -= self._bind_loop
         if self.prompt.app.key_bindings is self._installed_bindings:
             self.prompt.app.key_bindings = self._bindings
-        if self.prompt.app.mouse_support is self._installed_mouse_support:
-            self.prompt.app.mouse_support = self._mouse_support
         if self.prompt.style is self._installed_style:
             self.prompt.style = self._style
         self._closed = True

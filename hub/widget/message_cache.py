@@ -64,6 +64,7 @@ class MessageRenderCache:
         self.items = {}
         self.parser = OutputParser()
         self.body_renders = self.header_renders = self.prefix_builds = self.tool_renders = 0
+        self.trace_renders = 0
         self._prefix_key = None
         self._prefix = None
 
@@ -82,7 +83,8 @@ class MessageRenderCache:
         for index, message in enumerate(messages):
             identifier = message.id or f"index:{index}"
             previous = self.items.get(identifier, {})
-            body_key = (message.role, message.text, message.status not in ("streaming", "committed"), index if not message.id else None)
+            body_key = (message.role, "" if message.trace else message.text,
+                        message.status not in ("streaming", "committed"), index if not message.id else None, bool(message.trace))
             blocks = previous.get("blocks", ())
             if previous.get("body_key") != body_key:
                 blocks = self.parser.parse(message.text, final=body_key[2]) if message.role == "assistant" else ()
@@ -106,27 +108,41 @@ class MessageRenderCache:
                 body = Frame(lines, tuple(anchors), tuple(objects), max(map(fragment_list_width, lines), default=0))
                 block_cache = used_blocks
                 self.body_renders += 1
-            header_key = (message.role, message.author, message.status, message.phase, message.time,
+            header_key = (message.role, message.author, message.status, message.phase, message.time, message.activity,
                           max(0, int(message.elapsed_seconds)) if message.elapsed_seconds is not None else None)
             header = previous.get("header")
             if header is None or previous.get("header_key") != header_key:
                 header = frozen_rows(render((message,), width, theme, language, section="header"))
                 self.header_renders += 1
+            tools_key = () if message.trace else message.tools
             tools = previous.get("tools")
-            if tools is None or previous.get("tools_key") != message.tools:
-                tools = frozen_rows(render((message,), width, theme, language, section="tools")) if message.tools else ()
+            if tools is None or previous.get("tools_key") != tools_key:
+                tools = frozen_rows(render((message,), width, theme, language, section="tools")) if tools_key else ()
                 self.tool_renders += bool(message.tools)
-            if previous.get("body") is body and previous.get("header") is header and previous.get("tools") is tools:
+            trace_cache, trace_parts, trace_width = {}, [], 0
+            from .thought_trace import render_trace_item
+            for item in message.trace:
+                cached = previous.get("trace_cache", {}).get(item)
+                if cached is None:
+                    rows = render_trace_item(item, width, theme, language)
+                    cached = rows, max(map(fragment_list_width, rows), default=0)
+                    self.trace_renders += 1
+                trace_cache[item] = cached
+                trace_parts.append(cached[0])
+                trace_width = max(trace_width, cached[1])
+            trace = previous.get("trace") if previous.get("trace_key") == message.trace else Joined(*trace_parts)
+            if (previous.get("body") is body and previous.get("header") is header
+                    and previous.get("tools") is tools and previous.get("trace") is trace):
                 frame = previous["frame"]
             else:
                 offset = len(header)
-                frame = Frame(Joined(header, body.lines, tools), ((identifier, 0), *((name, row + offset) for name, row in body.anchors)),
+                frame = Frame(Joined(header, body.lines, tools, trace or ()), ((identifier, 0), *((name, row + offset) for name, row in body.anchors)),
                     tuple(replace(obj, start_line=obj.start_line + offset, end_line=obj.end_line + offset) for obj in body.objects),
                     max(body.max_width, max(map(fragment_list_width, header), default=0),
-                        max(map(fragment_list_width, tools), default=0)))
+                        max(map(fragment_list_width, tools), default=0), trace_width))
             retained[identifier] = dict(body_key=body_key, blocks=blocks, revisions=revisions, body=body,
                 block_cache=block_cache, header_key=header_key, header=header, tools=tools,
-                tools_key=message.tools, frame=frame)
+                tools_key=tools_key, trace_key=message.trace, trace=trace, trace_cache=trace_cache, frame=frame)
             entries.append(frame)
         self.items = retained
         # Queued user messages can follow the currently streaming response.
