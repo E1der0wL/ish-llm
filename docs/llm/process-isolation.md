@@ -51,6 +51,11 @@ sys.stdout.buffer.write(json.dumps(result, ensure_ascii=False).encode("utf-8"))
 ToolCall에는 name, arguments, step_id, project_id, session_id, run_id,
 operation_key, idempotency_key가 있다. 프로그램 내부 API 키 환경변수는 자동 상속하지
 않는다. 개발자가 env로 지정한 값만 전달한다.
+env는 전체 대체이며 빈 dict는 빈 환경이다. Python 시작 게이트는 대상 env를 받지 않는다.
+process 모드에서는 실제 명령 생성 시, sandbox 모드에서는 Bubblewrap의 격리 구성 후
+`--clearenv`/`--setenv`로 대상 환경을 적용한다. LD_PRELOAD 같은 대상 설정이 게이트나
+Bubblewrap 자체의 loader에 적용되지 않는다. 전역 os.environ을 수정하지 않는다.
+Bubblewrap 명령 인자에도 환경값이 포함되므로 환경값을 별도 비밀 저장소로 취급하지 않는다.
 Python worker에 직접 -I를 지정하면 PYTHON* 환경변수도 무시하므로 인코딩은 위처럼
 바이너리 스트림에서 명시적으로 처리하는 편이 안전하다.
 

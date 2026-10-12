@@ -10,6 +10,7 @@ from llm._platform import require_linux
 from llm.services.infrastructure.processes import kill_process_tree
 from asyncio import timeout
 from llm.services.infrastructure.storage import drain_on_cancel
+from llm.services.runtime.processes import copy_env
 
 
 class ProcessTools:
@@ -55,6 +56,8 @@ class ProcessTools:
 
     async def start(self, args):
         self.check()
+        # 생략은 기존 subprocess 상속, {}는 빈 환경. 전역 os.environ은 변경하지 않는다.
+        environment = {"env": copy_env(args["env"])} if "env" in args else {}
         async with self.lock:
             if self.closed:
                 raise RuntimeError("Process tools are closed")
@@ -73,7 +76,8 @@ class ProcessTools:
             # 취소가 프로세스 생성과 겹치더라도 핸들을 회수해 종료한다.
             pending = asyncio.create_task(asyncio.create_subprocess_exec(
                 *args["argv"], cwd=cwd, stdin=asyncio.subprocess.PIPE if interactive else asyncio.subprocess.DEVNULL,
-                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, start_new_session=True))
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, start_new_session=True,
+                **environment))
             try:
                 process = await asyncio.shield(pending)
             except asyncio.CancelledError:

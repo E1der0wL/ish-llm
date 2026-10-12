@@ -20,6 +20,35 @@ enabled가 없으면 builtin Tool을 노출하지 않는다. toolkit.registry.na
 [Component 공개 계약](../../llm/components/tools/builtin/README.md)을 참고한다.
 빈 공간·선택 파일 복사와 OS 샌드박스 실행은 [테스트 공간 안내](test-workspaces.md)를 참고한다.
 
+## 명령의 환경변수
+
+`shell_execute`, `process_start`, `test_workspace_execute`만 선택적 `env` object를 받는다.
+이름과 값은 문자열이며 이름은 비어 있거나 `=`/NUL을 포함할 수 없고 값에도 NUL은 허용하지 않는다.
+`null`, 숫자 등은 자동 변환하지 않고 거부한다. 빈 문자열 값은 허용한다.
+
+| 입력 | 의미 |
+| --- | --- |
+| env 생략 | 일반 shell/process는 기존 부모 환경 상속. sandbox는 TestWorkspaces에 설정한 환경 사용 |
+| `env: {}` | 부모/설정 환경을 상속하지 않는 빈 환경 |
+| `env: {"LM_LICENSE_FILE": "27000@license-server"}` | 전달된 환경으로 완전히 대체. 암묵적인 PATH/LANG 등의 병합 없음 |
+
+예를 들어 `shell_execute`의 인자는 다음과 같다. 값에 셸 변수 치환을 자동 적용하지 않는다.
+
+```json
+{"command": "my-program --check", "cwd": "checks", "env": {"PATH": "/usr/bin:/bin", "LM_LICENSE_FILE": "27000@license-server"}}
+```
+
+`cwd`는 shell/process의 기존 작업 루트 상대 경로다. `PWD` 환경값으로 cwd를 바꾸지 않는다.
+실행 프로그램이나 셸이 PWD/locale 등의 변수를 자체 생성·수정하는 동작은 그대로 따른다.
+샌드박스 cwd는 선택한 테스트 공간이며 호출별 cwd를 받지 않는다. 환경 전달이 파일 mount나
+네트워크 권한을 추가하지 않는다. 따라서 Hub의 네트워크 차단 sandbox는 라이선스 주소를
+전달해도 서버에 접속할 수 없다.
+
+전역 os.environ/chdir를 수정하지 않고 호출별 환경을 복사한다. 명시한 env는 다른 Tool 인자처럼
+승인 요청·Step·checkpoint에 포함되므로 비밀 저장소로 취급하지 않는다. 환경이 바뀐 호출에는
+이전 승인을 재사용할 수 없다. 생략한 일반 프로세스의 상속 환경은 기존처럼 실행 시점의 부모
+환경이며 승인 시점의 환경 스냅샷을 보장하지 않는다. 재현 가능한 실행에는 env를 명시한다.
+
 ## 카탈로그
 
 | 등록 조건 | Tool |

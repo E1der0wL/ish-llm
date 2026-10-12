@@ -201,6 +201,31 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
             value = await runner(None, self.call)
         self.assertEqual(value, {"value": {"text": "한글"}, "key": "stable-key", "leak": None})
 
+    async def test_target_environment_is_copied_and_not_given_to_start_gate(self):
+        env = {"ISH_ENV_VALUE": "original", "PYTHONPATH": "/not/a/runtime"}
+        runner = self.runner("import os,json; print(json.dumps(dict(os.environ)))", env=env)
+        env["ISH_ENV_VALUE"] = "mutated"
+        spawn = asyncio.create_subprocess_exec
+        with patch("llm.services.runtime.processes.asyncio.create_subprocess_exec", wraps=spawn) as observed:
+            result = await runner(None, self.call)
+        self.assertEqual(observed.call_args.kwargs["env"], {})
+        self.assertEqual(result["ISH_ENV_VALUE"], "original")
+        self.assertEqual(result["PYTHONPATH"], "/not/a/runtime")
+
+    async def test_loader_environment_is_applied_only_to_the_sandbox_target(self):
+        # ld.so emits one warning for each dynamically linked process receiving
+        # LD_PRELOAD. The gate and bwrap must not receive the target's value.
+        missing = "/ish-explicit-env-missing-preload.so"
+        runner = ProcessToolRunner({}, cwd=self.root, isolation="sandbox", allow_network=False,
+                                   env={"LD_PRELOAD": missing, "ISH_ENV_VALUE": "target"})
+        with patch("llm.services.runtime.processes.asyncio.create_subprocess_exec", wraps=asyncio.create_subprocess_exec) as spawn:
+            result = await runner.execute(["/usr/bin/env", "-0"])
+        self.assertEqual(result["returncode"], 0, result["stderr"])
+        self.assertEqual(spawn.call_args.kwargs["env"], {})
+        self.assertEqual(result["stderr"].count(missing), 1, result["stderr"])
+        self.assertEqual(dict(part.split("=", 1) for part in result["stdout"].split("\0") if part),
+                         {"LD_PRELOAD": missing, "ISH_ENV_VALUE": "target", "PWD": str(self.root)})
+
     async def test_nonzero_invalid_json_and_output_flood_fail(self):
         for code in ("import sys;sys.exit(7)", "print('not json')", "print('x'*1000000)"):
             with self.subTest(code=code), self.assertRaises(ExecutionLimitError):

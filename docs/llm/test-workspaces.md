@@ -56,7 +56,7 @@ async def main():
 | --- | --- | --- |
 | `test_workspace_create` | `source_paths` | `[]`는 빈 공간. 상대 파일/디렉터리 목록은 같은 위치에 독립 사본 생성. `workspace_id` 반환 |
 | `test_workspace_list` | 없음 | 현재 Project의 공간과 생성 완료 여부 조회 |
-| `test_workspace_execute` | `workspace_id`, `argv` | 절대 실행 파일로 시작하는 argv 실행. `returncode`, `stdout`, `stderr` 반환 |
+| `test_workspace_execute` | `workspace_id`, `argv` | 절대 실행 파일로 시작하는 argv 실행. 선택적 env로 환경 전체 대체. `returncode`, `stdout`, `stderr` 반환 |
 | `test_workspace_delete` | `workspace_id` | 해당 공간과 산출물 영구 삭제. busy이면 거절 |
 
 기존 파일 Tool에 선택 인자 `workspace_id`를 추가한다. 예를 들어
@@ -66,6 +66,14 @@ async def main():
 
 cwd는 선택 공간의 files 디렉터리다. 셸 문법은
 `argv=["/bin/sh", "-c", "python3 test.py > result.txt"]`처럼 명시한다.
+`env`를 생략하면 TestWorkspaces의 호스트 환경 설정을 사용하고, `{}`이면 빈 환경을 전달한다.
+문자열 딕셔너리를 지정하면 해당 호출에서만 환경 전체를 대체한다. 예:
+`env={"PATH": "/usr/bin:/bin", "LM_LICENSE_FILE": "27000@license-server"}`.
+상속·변수 치환·문자열 자동 변환은 하지 않는다. 명시한 env는 승인된 Tool 인자에 포함된다.
+Bubblewrap은 자체 동작으로 실제 작업 디렉터리를 PWD에 넣는다. 따라서 빈 env여도 sandbox의
+최종 환경에는 PWD가 있을 수 있으며, Python/셸이 생성하는 변수 역시 해당 프로그램의 동작이다.
+임의의 cwd나 network/mount 옵션은 Tool 인자로 받지 않는다. 라이선스 서버 주소만 전달해도
+차단된 네트워크가 열리지는 않는다. 상세 의미는 [명령 환경변수](builtin-tools.md#명령의-환경변수)를 참고한다.
 `/usr` 밖의 Python/venv를 쓰려면 해당 runtime을 호스트가 읽기 전용 노출하고 절대 실행 경로를
 사용한다. 폐쇄망 의존성은 호스트가 준비한다. 자동 설치는 없다.
 기존 `test_run`은 이름 있는 검증 명령 Tool이며 별개로 유지한다.
@@ -114,6 +122,7 @@ Bubblewrap과 커널 user namespace 지원이 필요하다. 실패 시 호스트
 nonzero 종료는 결과의 returncode/stderr로 확인한다. filesystem/PID/network namespace,
 capability 제거, 부모 사망·취소 시 자손 회수를 사용한다. `/usr`, `/bin`, `/lib`, `/lib64`의
 존재하는 경로와 호스트가 지정한 runtime mount는 읽기 전용이다. 환경변수는 명시한 것만 전달한다.
+대상 환경은 격리 구성 후 적용하며 Python 시작 게이트와 Bubblewrap 자체는 빈 환경으로 시작한다.
 추가 mount에 home/소스 전체, 비밀 파일이나 호스트 소켓을 넣지 않는다.
 
 VM, seccomp, cgroup 합산 메모리/PID 제한 또는 디스크 quota를 제공하지 않는다.

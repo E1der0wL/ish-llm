@@ -53,6 +53,11 @@ offset은 Unicode 문자 단위이며 분할 도착한 UTF-8 문자는 완성 �
 max_output_bytes에 의해 버린 출력은 truncated로 표시하고 복원된 것처럼 반환하지 않습니다.
 프로세스 ID와 출력은 Toolkit 수명에 한정됩니다. 재시작 후 자동 재실행하지 않습니다.
 
+shell_execute/process_start/test_workspace_execute는 선택적 문자열 딕셔너리 `env`를 받습니다.
+생략하면 기존 실행 환경을 유지하고, 지정하면 전체 대체하며 `{}`는 빈 환경입니다.
+전역 환경을 변경하거나 값을 자동 병합하지 않습니다. 일반 shell/process의 기존 cwd는 유지하고
+sandbox는 선택한 테스트 공간에서 실행합니다. 명시 env도 승인·재개 binding의 Tool 인자에 포함됩니다.
+
 BuiltinTools의 async 수명을 닫아 자식 프로세스를 정리해야 합니다. 파일 root 검사는 셸 전체를 격리하는 sandbox가 아닙니다. 승인·retry·실행 이력은 여전히 공통 ToolExecutor를 통과합니다.
 
 등록 코드와 개별 Tool 목록은 [기본 Tool 안내](../../../../docs/llm/builtin-tools.md), Project Python Tool은 [상위 폴더](../README.md)를 참고하세요.

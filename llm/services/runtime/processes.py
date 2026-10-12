@@ -18,6 +18,17 @@ if TYPE_CHECKING:
     from llm.services.runtime.tools import ToolCall
 
 
+def copy_env(env: Mapping[str, str]) -> dict[str, str]:
+    """자식 환경을 검증·복사한다. 부모 환경 병합이나 값의 문자열 변환은 하지 않는다."""
+    if not isinstance(env, Mapping):
+        raise ValueError("env must be a mapping of strings")
+    result = dict(env)
+    if any(not isinstance(k, str) or not k or not isinstance(v, str)
+           or "=" in k or "\0" in k + v for k, v in result.items()):
+        raise ValueError("Invalid process environment")
+    return result
+
+
 class ProcessToolRunner:
     """sandbox는 Linux Bubblewrap 필수다. process는 명시적으로 선택하는 비보안 프로세스 격리다.
 
@@ -51,10 +62,8 @@ class ProcessToolRunner:
         self.cwd = Path(cwd).resolve(strict=True)
         if not self.cwd.is_dir():
             raise ValueError("Process cwd must be a directory")
-        self.isolation, self.env = isolation, dict(env or {})
+        self.isolation, self.env = isolation, copy_env({} if env is None else env)
         self.allow_network = allow_network
-        if any(not isinstance(k, str) or not isinstance(v, str) or "=" in k or "\0" in k + v for k, v in self.env.items()):
-            raise ValueError("Invalid process environment")
         self.read_only_paths = tuple(Path(path).resolve(strict=True) for path in read_only_paths)
         self.max_output_bytes = max_output_bytes
         self.memory_bytes = memory_bytes
@@ -91,17 +100,22 @@ class ProcessToolRunner:
         for protected in (Path(self.python), Path(__file__).resolve()):
             if self.cwd in (protected, *protected.parents):
                 raise ValueError("Sandbox workdir cannot contain the trusted runner or Python runtime")
+        # 대상의 loader/shell 환경은 namespace 구성 후에만 적용한다.
+        # Python 시작 게이트와 bwrap 자체에는 이 환경을 전달하지 않는다.
+        args += ["--clearenv"]
+        for key, value in self.env.items():
+            args += ["--setenv", key, value]
         args += ["--bind", str(self.cwd), str(self.cwd), "--chdir", str(self.cwd), "--", *command]
         return args
 
     async def _launch(self, command, input_value, *, pass_fds=()):
-        env = dict(self.env)
+        env = {} if self.isolation == "sandbox" else copy_env(self.env)
         data = {"argv": command, "cwd": str(self.cwd), "env": env, "payload": input_value, "memory_bytes": self.memory_bytes}
         payload = json.dumps(data, ensure_ascii=False, allow_nan=False).encode("utf-8")
         worker = Path(__file__).with_name("_worker.py")
         pending = asyncio.create_task(asyncio.create_subprocess_exec(
             self.python, "-I", "-S", str(worker), str(os.getpid()), stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, env=env, start_new_session=True,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, env={}, start_new_session=True,
             pass_fds=pass_fds))
         process, readers = None, []
         try:

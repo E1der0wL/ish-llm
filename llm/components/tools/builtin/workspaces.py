@@ -21,7 +21,7 @@ from typing import Mapping, Sequence
 from llm._platform import require_linux
 from llm.policies import ExecutionLimitError
 from llm.services.infrastructure.storage import atomic_json, drain_on_cancel, sync_directory
-from llm.services.runtime.processes import ProcessToolRunner
+from llm.services.runtime.processes import ProcessToolRunner, copy_env
 from llm.services.runtime.tools import current_tool_call
 from .files import FileTools
 
@@ -268,7 +268,11 @@ class TestWorkspaces:
             with self._lease(call.project_id, args["workspace_id"]) as (directory, fd):
                 self._record(directory, call.project_id, ready=True)
                 files = FileTools(directory / "files")
-                runner = ProcessToolRunner({}, cwd=files.root, **self._runtime)
+                # Tool 인자의 env는 승인된 전체 환경이다. 호스트 환경과 암묵적으로 병합하지 않는다.
+                runtime = dict(self._runtime)
+                if "env" in args:
+                    runtime["env"] = copy_env(args["env"])
+                runner = ProcessToolRunner({}, cwd=files.root, **runtime)
                 result = await runner.execute(args["argv"], pass_fds=(fd,))
                 return {"workspace_id": args["workspace_id"], **result}
         finally:

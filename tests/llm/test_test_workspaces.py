@@ -155,6 +155,48 @@ print(json.dumps({{'secret':pathlib.Path({str(secret)!r}).exists(),
                 await self.spaces({"workspace_id": identifier, "argv": self.python("open('unsafe','w').write('bad')")})
             self.assertFalse((self.files(identifier) / "unsafe").exists())
 
+    async def test_command_environment_uses_host_or_explicit_replacement(self):
+        spaces = self.new_spaces(env={"ISH_CONFIGURED": "host"})
+        with self.owner(), patch.dict(os.environ, {"ISH_PRIVATE_TEST": "not inherited"}):
+            identifier = await self.create()
+            for options, expected in (({}, {"ISH_CONFIGURED": "host"}),
+                    ({"env": {}}, {}), ({"env": {"LM_LICENSE_FILE": "27000@example", "EMPTY": "", "VALUE": "한글 space=$HOME"}},
+                     {"LM_LICENSE_FILE": "27000@example", "EMPTY": "", "VALUE": "한글 space=$HOME"})):
+                with self.subTest(options=options):
+                    result = await spaces({"workspace_id": identifier, "argv": ["/usr/bin/env", "-0"], **options})
+                    self.assertEqual(result["returncode"], 0, result["stderr"])
+                    actual = dict(part.split("=", 1) for part in result["stdout"].split("\0") if part)
+                    # Bubblewrap publishes its actual --chdir as PWD, even
+                    # with --clearenv. Other parent/config values must not leak.
+                    self.assertEqual(actual, {**expected, "PWD": str(self.files(identifier))})
+            result = await self.invoke("test_workspace_execute", workspace_id=identifier,
+                argv=["/bin/sh", "-c", 'printf "%s\\n" "$VALUE"; pwd'], env={"VALUE": "explicit"})
+            self.assertEqual(result["stdout"], "explicit\n" + str(self.files(identifier)) + "\n")
+            self.assertEqual(spaces._runtime["env"], {"ISH_CONFIGURED": "host"})
+
+    async def test_invalid_environment_is_rejected_before_sandbox_spawn(self):
+        with self.owner():
+            identifier = await self.create()
+            with patch("llm.services.runtime.processes.asyncio.create_subprocess_exec") as spawn:
+                for env in (None, [], {"X": 1}, {"": "x"}, {"A=B": "x"}, {"A\0B": "x"}, {"X": "x\0y"}):
+                    with self.subTest(env=env), self.assertRaises(ValueError):
+                        await self.invoke("test_workspace_execute", workspace_id=identifier, argv=["/bin/true"], env=env)
+                    with self.assertRaises(ValueError):
+                        await self.spaces({"workspace_id": identifier, "argv": ["/bin/true"], "env": env})
+                spawn.assert_not_called()
+
+    async def test_concurrent_sandbox_environments_do_not_mutate_host_or_baseline(self):
+        before = dict(os.environ)
+        spaces = self.new_spaces(env={"ISH_ENV_VALUE": "baseline"})
+        with self.owner():
+            identifiers = [await self.create(), await self.create()]
+            results = await asyncio.gather(*(spaces({"workspace_id": identifier,
+                "argv": self.python("import os,time; time.sleep(.05); print(os.environ['ISH_ENV_VALUE'])"),
+                "env": {"ISH_ENV_VALUE": value}}) for identifier, value in zip(identifiers, ("first", "second"))))
+        self.assertEqual([item["stdout"] for item in results], ["first\n", "second\n"])
+        self.assertEqual(spaces._runtime["env"], {"ISH_ENV_VALUE": "baseline"})
+        self.assertEqual(dict(os.environ), before)
+
     async def test_unsafe_mounts_and_nonboolean_network_are_rejected(self):
         for mount in (self.root, self.source, Path("/")):
             with self.assertRaises(ValueError):
@@ -315,7 +357,8 @@ asyncio.run(main())
                 {"id": "sandbox", "category": "test.execute", "max_risk": 1}]}}})
         with self.owner(project.id):
             identifier = await self.create()
-        args = {"workspace_id": identifier, "argv": self.python("from pathlib import Path; p=Path('count'); p.write_text(p.read_text()+'x' if p.exists() else 'x'); print('ok')")}
+        args = {"workspace_id": identifier, "env": {"ISH_APPROVED_VALUE": "ok"},
+                "argv": self.python("import os; from pathlib import Path; p=Path('count'); p.write_text(p.read_text()+'x' if p.exists() else 'x'); print(os.environ['ISH_APPROVED_VALUE'])")}
         model.responses.extend([[chunk(calls=[call(json.dumps(args), name="test_workspace_execute")], finish="tool_calls")], [chunk("done", finish="stop")]])
         session = await project.sessions.acreate()
         original = ProcessToolRunner.execute
@@ -330,6 +373,8 @@ asyncio.run(main())
             self.assertEqual(invocations, [])
             self.assertEqual(spawn.call_count, 0)
             self.assertEqual([r.actor for r in await paused.ainteraction_responses()], ["policy"])
+            request, = await paused.ainteractions()
+            self.assertEqual(request.action["arguments"]["env"], {"ISH_APPROVED_VALUE": "ok"})
             self.assertFalse((self.files(identifier, project.id) / "count").exists())
             # 승인 receipt를 저장한 채 Backend를 다시 열어도 자동 실행하지 않는다.
             await app.shutdown()

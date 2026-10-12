@@ -55,6 +55,10 @@ class BuiltinTools:
         digest = string(pattern="^[0-9a-f]{64}$")
         patterns = {"type": "array", "items": string(minLength=1), "minItems": 1}
         filters = {"include": patterns, "exclude": patterns}
+        environment = open_schema("child process environment", category="adapter",
+            description="Complete child environment; replaces rather than merges. Omit to use the configured environment; {} passes no variables.",
+            propertyNames={"type": "string", "minLength": 1, "pattern": "^[^=\\u0000]+$"})
+        environment["additionalProperties"] = {"type": "string", "pattern": "^[^\\u0000]*$"}
         # 효과를 낼 수 있는 Tool은 항상 결정이 필요하다. 자동 응답의 위험 기준은
         # Project가 소유하며, 이 계약은 사람의 승인만을 강제하는 정책이 아니다.
         mutation = ToolContract(effect="external", approval_required=True)
@@ -94,7 +98,7 @@ class BuiltinTools:
                 schema(identity, ["workspace_id"]), test_workspaces.delete, contract=mutation)
             # 실행 handler의 타입/호스트 binding을 runner가 검사한다. 일반 guarded closure로 감싸지 않는다.
             self.registry.register(Tool("test_workspace_execute", "Execute argv in a Linux OS sandbox inside a retained test workspace. Requires an absolute executable. Returns stdout, stderr and returncode; use file tools with workspace_id to inspect results. No host fallback.",
-                schema({**identity, "argv": {"type": "array", "minItems": 1, "items": string()}}, ["workspace_id", "argv"]),
+                schema({**identity, "argv": {"type": "array", "minItems": 1, "items": string()}, "env": deepcopy(environment)}, ["workspace_id", "argv"]),
                 test_workspaces, contract=ToolContract(approval_required=True, isolation="sandbox")))
 
         limits = {"timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
@@ -112,7 +116,7 @@ class BuiltinTools:
                                schema({"name": {"enum": list(commands)}, **limits}, ["name"]), check,
                                contract=execution)
         if allow_commands:
-            process_schema = schema({"argv": {"type": "array", "minItems": 1, "items": string(minLength=1)}, "cwd": path, "stdin": {"type": "boolean", "description": "Explicitly open an input pipe for process_write. This is not a PTY."}, **limits}, ["argv"])
+            process_schema = schema({"argv": {"type": "array", "minItems": 1, "items": string(minLength=1)}, "cwd": path, "env": deepcopy(environment), "stdin": {"type": "boolean", "description": "Explicitly open an input pipe for process_write. This is not a PTY."}, **limits}, ["argv"])
             self._register("process_start", "Start an argv command; returns an ID for polling/cancellation.", process_schema, self.processes.start,
                            contract=execution)
             self._register("process_write", "Send exact text to a process started here with stdin=true, or close its input. No automatic newline. Do not replay uncertain writes.",
@@ -125,7 +129,7 @@ class BuiltinTools:
                 return await self.processes.execute({"argv": prefix + [args["command"]],
                     **{key: value for key, value in args.items() if key != "command"}})
             self._register("shell_execute", "Execute a host shell command and wait for its result.",
-                           schema({"command": string(minLength=1), "cwd": path, **limits}, ["command"]), execute_shell,
+                           schema({"command": string(minLength=1), "cwd": path, "env": deepcopy(environment), **limits}, ["command"]), execute_shell,
                            contract=execution)
         if allow_commands or commands or git:
             for name, method in (("process_status", self.processes.status), ("process_cancel", self.processes.cancel)):

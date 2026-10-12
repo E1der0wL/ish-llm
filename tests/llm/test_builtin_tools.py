@@ -8,6 +8,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from tests.llm.support.runtime_tools import RuntimeTools
@@ -21,7 +22,8 @@ from llm.engines.loop import LoopEngine
 from llm.engines.graph.tool import ToolNode
 from llm.llm import LargeLanguageModel
 from llm.services.composition import BackendServices
-from llm.services.runtime.tools import ToolRuntime
+from llm.services.runtime.tools import ToolRuntime, ToolExecutor, ToolExecutionScope, ToolApprovalRequired, ToolInvocationError
+from llm.engines.base import EngineContext
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
@@ -354,6 +356,81 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("shell-ok", result["stdout"])
         with self.assertRaises(ValueError):
             await self.invoke("process_start", argv=[sys.executable, "-V"], cwd="../")
+
+    async def test_explicit_environment_replaces_parent_and_preserves_cwd(self):
+        folder = self.work / "sub"
+        folder.mkdir()
+        before = dict(os.environ)
+        with patch.dict(os.environ, {"ISH_ENV_PARENT": "parent", "ISH_ENV_VALUE": "inherited"}):
+            for options, expected in (({}, "inherited|parent"),
+                    ({"env": {}}, "missing|missing"),
+                    ({"env": {"ISH_ENV_VALUE": "한글 space=$HOME", "EMPTY": ""}}, "한글 space=$HOME|missing")):
+                with self.subTest(options=options):
+                    shell = await self.invoke("shell_execute", cwd="sub", **options,
+                        command='printf "%s|%s\\n" "${ISH_ENV_VALUE-missing}" "${ISH_ENV_PARENT-missing}"; pwd')
+                    self.assertEqual(shell["stdout"], expected + "\n" + str(folder) + "\n")
+                    code = "import os; print(os.getenv('ISH_ENV_VALUE','missing')+'|'+os.getenv('ISH_ENV_PARENT','missing')); print(os.getcwd())"
+                    started = await self.invoke("process_start", cwd="sub", **options,
+                                                argv=[sys.executable, "-I", "-c", code])
+                    await self.tools.processes.sessions[started["process_id"]]["task"]
+                    result = await self.invoke("process_output", process_id=started["process_id"])
+                    self.assertEqual(result["stdout"], expected + "\n" + str(folder) + "\n")
+        self.assertEqual(dict(os.environ), before)
+        empty = await self.invoke("process_start", argv=["/usr/bin/env"], env={})
+        await self.tools.processes.sessions[empty["process_id"]]["task"]
+        self.assertEqual((await self.invoke("process_output", process_id=empty["process_id"]))["stdout"], "")
+
+    async def test_environment_validation_precedes_spawn_and_is_scoped_to_execution_tools(self):
+        for name in self.tools.registry.names():
+            self.assertEqual("env" in self.tools.registry.get(name).parameters["properties"],
+                             name in ("shell_execute", "process_start"), name)
+        invalid = (None, [], {"X": 1}, {"X": False}, {"X": None}, {"": "x"}, {"A=B": "x"},
+                   {"A\0B": "x"}, {"X": "x\0y"})
+        with patch("llm.components.tools.builtin.processes.asyncio.create_subprocess_exec") as spawn:
+            for env in invalid:
+                for name, args in (("shell_execute", {"command": "true"}),
+                                   ("process_start", {"argv": ["/bin/true"]})):
+                    with self.subTest(name=name, env=env), self.assertRaises(ValueError):
+                        await self.invoke(name, **args, env=env)
+                with self.assertRaises(ValueError):
+                    await self.tools.processes.start({"argv": ["/bin/true"], "env": env})
+            spawn.assert_not_called()
+
+    async def test_concurrent_process_environments_are_independent_snapshots(self):
+        env = {"ISH_ENV_VALUE": "first"}
+        code = "import os,time; time.sleep(.05); print(os.getenv('ISH_ENV_VALUE'))"
+        first = await self.invoke("process_start", argv=[sys.executable, "-I", "-c", code], env=env)
+        env["ISH_ENV_VALUE"] = "mutated"
+        second = await self.invoke("process_start", argv=[sys.executable, "-I", "-c", code], env={"ISH_ENV_VALUE": "second"})
+        await asyncio.gather(*(self.tools.processes.sessions[item["process_id"]]["task"] for item in (first, second)))
+        for item, expected in ((first, "first\n"), (second, "second\n")):
+            self.assertEqual((await self.invoke("process_output", process_id=item["process_id"]))["stdout"], expected)
+
+    async def test_approval_cannot_be_reused_with_replaced_or_missing_environment(self):
+        tool = self.tools.registry.get("shell_execute")
+        args = {"command": 'printf "%s" "$VALUE"', "env": {"VALUE": "approved"}}
+        def context(checkpoint=None, decisions=None):
+            return EngineContext(SimpleNamespace(id="p"), SimpleNamespace(id="s"),
+                SimpleNamespace(id="r", input_message_id="m", metadata={"resume": {"decisions": decisions or {}}}),
+                (), tool_scope=ToolExecutionScope(ToolRuntime()), checkpoint=checkpoint)
+        async def execute(arguments, ctx):
+            result = {}
+            async for _ in ToolExecutor().execute(tool, arguments, context=ctx, result=result, request_key="command"):
+                pass
+            return result
+        with patch("llm.components.tools.builtin.processes.asyncio.create_subprocess_exec", wraps=asyncio.create_subprocess_exec) as spawn:
+            with self.assertRaises(ToolApprovalRequired) as pending:
+                await execute(args, context())
+            saved = {"records": {"command": {"status": "waiting",
+                "interaction": pending.exception.request.bind("custom", "command").to_dict()}}}
+            self.assertEqual(pending.exception.request.action["arguments"]["env"], {"VALUE": "approved"})
+            for changed in ({"command": args["command"]}, {**args, "env": {}}, {**args, "env": {"VALUE": "changed"}}):
+                with self.subTest(arguments=changed), self.assertRaises(ToolInvocationError):
+                    await execute(changed, context(saved, {"command": True}))
+            spawn.assert_not_called()
+            result = await execute(args, context(saved, {"command": True}))
+            self.assertEqual(result["value"]["stdout"], "approved")
+            self.assertEqual(spawn.call_count, 1)
 
     async def test_adapters_are_bound_explicitly_and_validate_inputs(self):
         names = {"web_search": {"query": "q"}, "web_fetch": {"url": "https://example.test"},
