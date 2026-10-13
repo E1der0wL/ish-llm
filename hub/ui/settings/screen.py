@@ -4,19 +4,18 @@ from dataclasses import asdict, replace
 import subprocess
 
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import DynamicContainer, HSplit, Window
+from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Frame, Label
 
 from ...config.profile import UserProfile
 from ...config.general import GeneralSettings
 from .pages import GlobalPage, ProjectPage
-from ...widget.section import section
 from ...config.theme import HubTheme
 from ...widget.controls import TextArea
 from ...widget.forms.settings_viewport import SettingsPane
 from .editor import edit_text
-from ...widget.sidebar import SidebarItem, SidebarList
+from ...widget.sidebar import SidebarHeading, SidebarItem, SidebarList
 from ..layout import TwoPanelPage
 from ...widget.header import HeaderBar
 
@@ -59,20 +58,23 @@ class SettingsScreen:
             lambda: self._left_key, self.select_left)
         self.main = SettingsPane(DynamicContainer(lambda: self.page.container if self.page else
                                   Window(height=1)), show_scrollbar=True,
-                                  width=lambda: max(1, self.main_width() - 2))
+                                  width=lambda: max(1, self.main_width() - 1))
         bottom = DynamicContainer(lambda: self.page.bottom if self.page else Label(""))
+        self.actions = Frame(HSplit([Window(height=1), bottom, Window(height=1)]), width=self.main_width,
+                             height=lambda: max(5, 4 + len(self.page.button_rows())) if self.page else 5)
         self.layout = TwoPanelPage(
-            header=HeaderBar(lambda: self.t("settings_title")),
+            header=HeaderBar(lambda: self.t("settings_title"), icons=lambda: view.icons),
             sidebar=DynamicContainer(lambda: self._left),
             main=HSplit([
-                        Frame(self.main, width=self.main_width,
+                        VSplit([Window(width=1), self.main], width=self.main_width,
                               height=Dimension(min=3, weight=1)),
-                        Frame(bottom, width=self.main_width,
-                              height=lambda: 2 + len(self.page.button_rows()) if self.page else 3)], width=self.main_width),
+                        self.actions], width=self.main_width),
             progress=view.progress, notice=lambda: self.status,
             footer=view.shortcut_bar(),
             sidebar_controls=lambda: (self.global_list, self.project_list),
-            focus_sidebar=self.switch_panel, focus_main=lambda: self._focus_zone(self._main_zone))
+            focus_sidebar=self.switch_panel, focus_main=lambda: self._focus_zone(self._main_zone),
+            sidebar_width=view.sidebar_width, resize_sidebar=self.set_sidebar_width)
+        self.layout.main_region.on_click = self.layout.focus_main
         self.container = self.layout.container
         self._sidebar()
 
@@ -97,8 +99,9 @@ class SettingsScreen:
         previous = self._focused_key()
         if self._left_key not in self._left_items():
             self._left_key = "profile"
-        self._left = HSplit([section(self.t("settings_global")), Window(self.global_list, height=len(self.global_keys)),
-                             Window(height=1), section(self.t("settings_projects")),
+        self._left = HSplit([SidebarHeading(lambda: self.view.icons.settings + " " + self.t("settings_global")),
+                             Window(self.global_list, height=len(self.global_keys)),
+                             Window(height=1), SidebarHeading(lambda: self.view.icons.project + " " + self.t("settings_projects")),
                              Window(self.project_list)],
                             width=self.view.sidebar_width)
         if previous and self.view.visible and self.view.settings_open:
@@ -312,13 +315,18 @@ class SettingsScreen:
             self._focus_zone(self._main_zone)
 
     def resize(self, delta):
+        self.set_sidebar_width(self.view.theme.sidebar_width + delta)
+
+    def set_sidebar_width(self, width, *, persist=True):
         if self.busy:
             return
-        width = max(18, min(60, self.view.theme.sidebar_width + delta))
-        if width == self.view.theme.sidebar_width:
+        width = max(18, min(60, max(18, self.view._columns() // 2), width))
+        if width == self.view.theme.sidebar_width and (not persist or width == self._saved_sidebar_width):
             return
-        self.view.set_theme(replace(self.view.theme, sidebar_width=width))
-        self._saved_sidebar_width = width
+        if width != self.view.theme.sidebar_width:
+            self.view.set_theme(replace(self.view.theme, sidebar_width=width))
+        if persist:
+            self._saved_sidebar_width = width
         self._initial_appearance["sidebar_width"] = width
         self.preferences.setdefault("appearance", self._initial_appearance.copy())["sidebar_width"] = width
         page = self.pages.get("appearance")
@@ -328,7 +336,7 @@ class SettingsScreen:
             field.input.text = field.initial = str(width)
             page.form.original["sidebar_width"] = page.original["sidebar_width"] = width
         save = getattr(self.view, "on_sidebar_width", None)
-        if save:
+        if save and persist:
             save(width)
 
     def error(self, error):

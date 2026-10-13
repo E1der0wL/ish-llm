@@ -62,9 +62,11 @@ def _decode(payload, operation):
     if kind == "inspection" and operation == "inspect":
         raise InspectionError(message)
     if kind == "tool_execution" and error.get("code") == "tool_failed":
-        if error.get("effect") not in ("none", "uncertain") or type(error.get("retryable")) is not bool:
+        if (error.get("effect") not in ("none", "uncertain") or type(error.get("retryable")) is not bool
+                or type(error.get("recoverable")) is not bool
+                or error.get("recoverable") and error.get("effect") != "none"):
             raise WorkerError("tool_worker_protocol", "Invalid Tool failure classification")
-        raise ToolExecutionError(message, effect=error["effect"], retryable=error["retryable"])
+        raise ToolExecutionError(message, effect=error["effect"], retryable=error["retryable"], recoverable=error["recoverable"])
     if kind == "coded" and isinstance(error.get("code"), str) and error["code"].strip():
         raise RemoteToolError(error["code"], message)
     if kind == "unknown":
@@ -230,7 +232,7 @@ def inspect_tool(project, name, data, plugin_lib=None):
             or not isinstance(descriptor["definition"].get("function"), dict)):
         raise WorkerError("tool_worker_protocol", "Invalid Tool descriptor fields")
     try:
-        contract = ToolContract(**descriptor["contract"])
+        contract = ToolContract(**{**descriptor["contract"], "retry_fields": tuple(descriptor["contract"]["retry_fields"])})
         request["descriptor_hash"] = descriptor_fingerprint(descriptor)
         tool = Tool(name, descriptor["description"], descriptor["parameters"],
                     ProjectToolHandler(request), descriptor["definition"], contract)

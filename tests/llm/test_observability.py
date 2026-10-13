@@ -379,8 +379,9 @@ class BoundaryTests(unittest.TestCase):
                                      for node in ast.walk(tree)), str(path))
         client = ast.parse((root / 'components/rag/_client.py').read_text())
         self.assertTrue(any(isinstance(node, ast.Await) and isinstance(node.value, ast.Call)
-                            and isinstance(node.value.func, ast.Name) and node.value.func.id == 'invoke'
+                            and isinstance(node.value.func, ast.Name) and node.value.func.id == 'request_model'
                             for node in ast.walk(client)))
+        self.assertNotIn('litellm_sdk', (root / 'components/rag/_client.py').read_text())
 
     def test_components_do_not_own_telemetry(self):
         import ast

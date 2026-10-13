@@ -19,7 +19,7 @@ from hub.model import ChatMessage, StepSummary, TraceItem
 from hub.ui.output import RendererRegistry
 from hub.ui.output.worker import RenderWorker
 from hub.widget.transcript.conversation import render_messages
-from hub.widget.transcript.conversation import ConversationControl
+from hub.widget.transcript.conversation import ConversationControl, ConversationView
 from hub.widget.transcript.message_cache import MessageRenderCache, frozen_rows
 from hub.widget.feedback.progress import TaskProgress
 from hub.ui.presentation import MessagePresentationCache
@@ -167,6 +167,31 @@ class CacheTests(unittest.TestCase):
 
 
 class WorkerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_replacing_history_cancels_pending_resize_before_next_frame(self):
+        view = ConversationView((ChatMessage("assistant", "old", id="old"),), HubTheme())
+        control, worker = view.control, RenderWorker()
+        control.create_content(80, 10)
+        control.render_worker = worker
+        app = NS(is_running=True, invalidate=Mock())
+        try:
+            with set_app(app):
+                control.create_content(70, 10)
+                timer = control._resize_timer
+                self.assertIsNotNone(timer)
+                view.set_messages((ChatMessage("assistant", "restored", id="new"),))
+                self.assertTrue(timer.cancelled())
+                self.assertIsNone(control._resize_timer)
+                self.assertEqual(worker.stats.requested, 0)
+                control.create_content(70, 10)
+                await eventually(lambda: control._cache_key == control._requested_key)
+                self.assertEqual(worker.stats.requested, 1)
+                text = "\n".join("".join(fragment[1] for fragment in row) for row in control._lines)
+                self.assertIn("restored", text)
+                self.assertNotIn("old", text)
+        finally:
+            worker.close()
+            control.renderers.close()
+
     async def test_conversation_displays_inflight_frame_while_newer_frame_is_rendering(self):
         worker = RenderWorker()
         first_gate, second_gate, started = Event(), Event(), Event()

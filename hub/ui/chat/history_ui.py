@@ -1,19 +1,11 @@
 """Session turn management and project execution activity dialogs."""
 
-from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label, TextArea
 from ...widget.output.reader import ReadOnlyDialog
-from ...widget.summary import clipped_summary
 import json
 
-from ...widget.controls import Button, RadioList
-
-
-def turn_label(row, index, t):
-    summary = " ".join(row["text"].split())[:60]
-    return f"{index + 1}. {summary} · {t.status(row['status'])}"
+from ...widget.controls import Button
 
 
 def provider_detail(row, t):
@@ -91,95 +83,119 @@ class HistoryUI:
         self.controller._call("turns", session_id, completed=ready)
 
     def show(self, session_id, rows):
+        from ...widget.dialog import Dialog
+        from ...widget.forms.request_history import RequestHistoryDialog
         view, t = self.view, self.view.t
         project_id = view.project_id
         if not rows:
-            view.open_dialog(t("history_title"), Label(t("history_empty")))
+            button = Button(t("history_close"), handler=view.close_dialog)
+            popup = Dialog(title=t("history_title"), body=Label(t("history_empty")), buttons=[button])
+            view.dialogs.show(popup, button)
             return
-        popup_width = lambda: max(1, min(80, view._columns() - 4))
-        # Reserve frame, dialog padding, radio marker and scrollbar cells.
-        # Recompute on resize; CJK/emoji must be counted as terminal cells.
-        choices = RadioList([(row["id"], lambda row=row, i=i: clipped_summary(
-            turn_label(row, i, t), popup_width() - 11)) for i, row in enumerate(rows)], select_on_focus=True)
-        choices.window.height = Dimension(min=1, max=max(1, min(8, view._rows() - 17)))
-        by_id = {row["id"]: row for row in rows}
-        def detail():
-            row = by_id[choices.current_value]
-            return "\n".join(clipped_summary(line, popup_width() - 6) for line in (
-                f"{row['time']} · {row['engine']} · {t.elapsed(row['elapsed'])}",
-                f"{t('history_response')}: {row['response']}", row['error']))
-        def clone():
-            boundary = choices.current_value
-            view.close_dialog()
-            view.session_dialog("clone", turns=rows, through_message_id=boundary)
-        def delete():
-            request_id = choices.current_value
-            view.close_dialog()
-            view.open_dialog(t("history_delete"), Label(t("settings_loading")))
-            pending_dialog = view._dialog
-            def ready(plan):
-                if view._dialog is not pending_dialog:
-                    return
+
+        def current():
+            return (view.project_id == project_id and bool(view.sessions)
+                    and view.sessions[view.selected].id == session_id)
+
+        def execute(operation):
+            identifiers = popup.selected()
+            if len(identifiers) != 1:
+                view.notice = t("history_select_one")
+                return
+            identifier = identifiers[0]
+            row = popup.rows[identifier]
+            if operation == "retry_turn" and row["status"] not in ("interrupted", "failed"):
                 view.close_dialog()
-                if (plan is None or view.project_id != project_id or not view.sessions
-                        or view.sessions[view.selected].id != session_id):
-                    return
-                blockers = plan["blockers"]
-                run_ids = [item["source"]["run_id"] for item in blockers]
-                def confirmed():
-                    if (view.project_id != project_id or not view.sessions
-                            or view.sessions[view.selected].id != session_id):
-                        return
-                    def removed(result):
-                        if result:
-                            pending = view._submitted_messages.get((project_id, session_id), {})
-                            pending.pop(request_id, None)
-                            self.controller._call("snapshot", completed=self.controller._snapshot)
-                            if view.project_id == project_id and view.sessions[view.selected].id == session_id:
-                                self.open()
-                    self.controller._call("delete_turn", session_id, request_id, run_ids,
-                                          plan["revision"], completed=removed)
-                if blockers:
-                    rows = [f"{item['source']['run_id']} · {item['details']['engine']} · {t.status(item['details']['status'])}"
-                            for item in blockers]
-                    body = HSplit([Label(t("history_abandon_confirm", count=len(rows))),
-                        TextArea(text="\n".join(rows), read_only=True, scrollbar=True,
-                                 height=Dimension(min=2, max=8))], padding=1)
-                else:
-                    body = Label(t("history_delete_confirm"))
-                view.open_dialog(t("history_delete"), body, confirmed,
-                    accept_text=t("history_abandon_delete") if blockers else None)
-            self.controller._call("delete_turn_plan", session_id, request_id, completed=ready)
-        def cancel():
-            request_id = choices.current_value
-            if by_id[request_id]["status"] != "queued":
-                view.notice = t("history_cancel_unavailable")
+                view.notice = t("history_retry_unavailable")
+                return
+            text = popup.drafts[identifier]
+            if operation == "edit_turn" and not text.strip():
+                view.notice = t("empty_message")
                 return
             view.close_dialog()
-            def confirmed():
-                def cancelled(result):
-                    if result:
-                        view._submitted_messages.get((project_id, session_id), {}).pop(request_id, None)
-                        view.preparing.finish((project_id, session_id))
-                        self.controller._call("snapshot", completed=self.controller._snapshot)
-                    # Re-read also on a promotion race; never interrupt that Run.
-                    if view.project_id == project_id and view.sessions[view.selected].id == session_id:
-                        self.open()
-                self.controller._call("cancel_request", session_id, request_id, completed=cancelled)
-            view.open_dialog(t("history_cancel"), Label(t("history_cancel_confirm")), confirmed)
-        choices.control.hub_shortcuts.add(["d"], "d", "delete", lambda e: delete())
-        choices.control.hub_shortcuts.add(["r"], "r", "clone", lambda e: clone())
-        choices.control.hub_shortcuts.add(["c"], "c", "cancel", lambda e: cancel())
-        details = Label(detail)
-        details.window.height = 3
-        body = HSplit([Label(lambda: clipped_summary(t("history_hint"), popup_width() - 6)), choices, details,
-                       VSplit([Button(t("history_delete"), handler=delete, width=14),
-                               Button(t("history_clone"), handler=clone, width=20),
-                               Button(t("history_cancel"), handler=cancel, width=14)], padding=2)], padding=1,
-                      width=lambda: Dimension.exact(max(1, popup_width() - 4)))
-        view.open_dialog(t("history_title"), body, focus=choices,
-                         width=lambda: Dimension.exact(popup_width()))
-        view._dialog.shortcut_context = "history"
+            args = ((session_id, identifier, text, row.get("request_id", identifier))
+                    if operation == "edit_turn" else (session_id, identifier, row.get("run_id", "")))
+            self.controller._call(operation, *args, completed=lambda result:
+                result is not None and self.controller._call("snapshot", completed=self.controller._snapshot))
+
+        def delete():
+            identifiers = popup.selected()
+            if not identifiers:
+                view.notice = t("history_select_items")
+                return
+            view.close_dialog()
+            view.open_dialog(t("history_delete"), Label(t("settings_loading")))
+            pending = view._dialog
+            def ready(plan):
+                if view._dialog is not pending or not current():
+                    return
+                view.close_dialog()
+                if plan is None:
+                    return
+                def confirmed():
+                    if not current():
+                        return
+                    key = (project_id, session_id)
+                    if key in view.deleting.pending:
+                        return
+                    request = view.deleting.start(key, len(plan.get("items", ())))
+                    def removed(result):
+                        if result is None:
+                            def failed_refresh(snapshot):
+                                self.controller._snapshot(snapshot)
+                                view.deleting.finish(request)
+                            self.controller._call("snapshot", completed=failed_refresh)
+                            return
+                        from dataclasses import replace
+                        deleted = set(result["removed"])
+                        submitted = getattr(view, "_submitted_messages", {}).get(key, {})
+                        for identifier in deleted:
+                            submitted.pop(identifier, None)
+                        if view.project_id == project_id:
+                            texts = {row["text"] for row in rows
+                                     if row["id"] in deleted or row.get("request_id") in deleted}
+                            view.input_history.discard(session_id, texts)
+                            # Forget locally bridged receipts and cached turns before
+                            # the next authoritative snapshot, including after errors.
+                            for index, session in enumerate(view.sessions):
+                                if session.id != session_id:
+                                    continue
+                                kept, removing = [], False
+                                for message in session.messages:
+                                    if message.role == "user":
+                                        removing = message.id in deleted
+                                    if not removing:
+                                        kept.append(message)
+                                view.sessions[index] = replace(session, messages=tuple(kept))
+                        def refreshed(snapshot):
+                            self.controller._snapshot(snapshot)
+                            view.deleting.finish(request)
+                            if current():
+                                if view.visible and view._dialog is None:
+                                    self.open()
+                                if result["errors"]:
+                                    view.notice = "\n".join(dict.fromkeys(result["errors"]))
+                        self.controller._call("snapshot", completed=refreshed)
+                    self.controller._call("delete_turns", session_id, identifiers, plan["revision"], completed=removed,
+                        progress=lambda done, total: view.deleting.update(request, done, total))
+                summary = t("history_delete_selected", count=len(identifiers))
+                if any(not item["queued"] for item in plan.get("items", ())):
+                    summary += "\n" + t("history_delete_confirm")
+                if plan["blockers"]:
+                    summary += "\n" + t("history_abandon_confirm", count=len(plan["blockers"]))
+                    summary += "\n" + "\n".join(
+                        f"{item['source']['run_id']} · {item['details']['engine']} · {t.status(item['details']['status'])}"
+                        for item in plan["blockers"])
+                body = TextArea(text=summary, read_only=True, scrollbar=True, wrap_lines=True,
+                                height=Dimension(min=1, max=8))
+                view.open_dialog(t("history_delete"), body, confirmed,
+                    accept_text=t("history_abandon_delete") if plan["blockers"] else t("history_delete"))
+            self.controller._call("delete_turns_plan", session_id, identifiers, completed=ready)
+
+        popup = RequestHistoryDialog(view, rows, delete=delete, edit=lambda: execute("edit_turn"),
+                                     retry=lambda: execute("retry_turn"), close=view.close_dialog)
+        self.popup = popup
+        view.dialogs.show(popup, popup.choices)
 
     def activity(self):
         view, t = self.view, self.view.t

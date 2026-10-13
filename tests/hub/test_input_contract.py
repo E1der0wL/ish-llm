@@ -11,11 +11,98 @@ from examples.hub.preview import install_preview
 from hub.ui.chat.history_ui import HistoryUI
 from hub.widget.header import HeaderBar
 from hub.widget.output.reader import ReadOnlyDialog
+from hub.widget.controls import TextArea
+from hub.model import ChatMessage
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.support import SizedOutput, eventually, minimize
 
 
 class InputContractTests(unittest.IsolatedAsyncioTestCase):
+    async def test_ctrl_q_minimizes_from_every_hub_input_scope(self):
+        with create_pipe_input() as pipe:
+            prompt = Prompt(input=pipe, output=SizedOutput())
+            installation = install_preview(prompt)
+            app, view = prompt.app, installation.view
+            view.transcript.set_messages((ChatMessage("assistant", "```py\nprint('hello')\n```", id="code"),))
+            task = asyncio.create_task(prompt.prompt_async())
+            rendered = asyncio.Event()
+            app.after_render += lambda _: rendered.set()
+            try:
+                await eventually(lambda: app.is_running)
+                pipe.send_text("shell draft\x11")
+                await eventually(lambda: view.visible and bool(view.transcript.control.objects))
+                for scope in ("composer", "completion", "sidebar", "settings panel", "settings field",
+                              "settings editing", "dialog", "help", "logs", "tags", "expanded", "expanded search",
+                              "question"):
+                    with self.subTest(scope=scope):
+                        field = None
+                        with set_app(app):
+                            if view.settings_open:
+                                view.toggle_settings()
+                            view._focus_composer()
+                            view.composer.text = "hub draft"
+                            if scope == "completion":
+                                view.composer.text = "/eng"
+                                view.composer.buffer.cursor_position = len(view.composer.text)
+                                view.composer.buffer.start_completion(select_first=False)
+                            elif scope == "sidebar":
+                                view._focus_sessions()
+                            elif scope.startswith("settings"):
+                                view.toggle_settings()
+                                view.settings.choose("appearance")
+                                if scope != "settings panel":
+                                    field = view.settings.page.form.fields[("accent1",)]
+                                    app.layout.focus(field.input)
+                                    if scope == "settings editing":
+                                        field.begin()
+                                        field.input.text = "#112233"
+                            elif scope == "dialog":
+                                entry = TextArea(text="popup draft")
+                                view.open_dialog("Name", entry, focus=entry)
+                            elif scope == "help":
+                                view.help_dialog()
+                            elif scope == "logs":
+                                HistoryUI(SimpleNamespace(view=view))._activity_dialog("log entry")
+                            elif scope in ("tags", "expanded", "expanded search"):
+                                view.tags.open()
+                                if scope != "tags":
+                                    view.tags.expand()
+                                    if scope == "expanded search":
+                                        view._dialog.start_query()
+                            elif scope == "question":
+                                view.question.sync("project", view.sessions[view.selected].id, ({
+                                    "run_id": "run", "live": True, "request": {
+                                        "id": "question", "revision": 1, "title": "Choose", "source": {"choices": ["Yes", "No"]}}},))
+                                view.composer.text = "1"
+                        if scope == "completion":
+                            await eventually(lambda: view.composer.buffer.complete_state is not None)
+                        rendered.clear()
+                        app.invalidate()
+                        await asyncio.wait_for(rendered.wait(), 3)
+                        draft = view.composer.text
+                        pipe.send_text("\x11")
+                        await eventually(lambda: not view.visible)
+                        self.assertFalse(task.done())
+                        self.assertIs(app.current_buffer, prompt.default_buffer)
+                        self.assertEqual(prompt.default_buffer.text, "shell draft")
+                        self.assertEqual(view.composer.text, draft)
+                        self.assertIsNone(view._dialog)
+                        self.assertFalse(view.tags.visible)
+                        if field:
+                            self.assertFalse(field.editing)
+                        pipe.send_text("\x11")
+                        await eventually(lambda: view.visible)
+                        self.assertEqual(view.composer.text, draft)
+                        if scope == "settings editing":
+                            self.assertEqual(field.input.text, "#112233")
+                            self.assertTrue(view.settings.page.dirty)
+                        if scope == "question":
+                            self.assertIsNotNone(view.question.item)
+            finally:
+                app.exit(result="")
+                await task
+                installation.close()
+
     async def test_shell_bindings_headers_and_shared_readers(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
@@ -41,11 +128,11 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(prompt.key_bindings.get_bindings_for_keys(("c-s",)), original_s)
                 pipe.send_text("\x11")
                 await eventually(lambda: view.visible)
-                # Entry binding is inactive inside Hub and not a minimize action.
+                # The shell entry binding yields to Hub's global minimize binding.
                 with set_app(app):
                     self.assertFalse(prompt.key_bindings.get_bindings_for_keys(("c-q",))[0].filter())
                     self.assertEqual([key for key, _ in view.bindings.hints()], [
-                        "ESC", "Ctrl+E", "Ctrl+F", "Ctrl+R", "Ctrl+S", "Ctrl+T", "Alt + 이동키"])
+                        "ESC", "Ctrl+F", "Ctrl+Q", "Ctrl+R", "Ctrl+S", "Ctrl+T", "Alt + 이동키"])
                     self.assertEqual(view.bindings.hints()[0], ("ESC", "패널"))
                 await paint()
                 chat_header = next(w for w in app.renderer._last_screen.visible_windows if isinstance(w, HeaderBar))
@@ -54,7 +141,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 await paint()
                 settings_header = next(w for w in app.renderer._last_screen.visible_windows if isinstance(w, HeaderBar))
                 self.assertEqual(chat_header.style, settings_header.style)
-                self.assertEqual(chat_header.fragments()[0][1][:4], " •  ")
+                self.assertEqual(chat_header.fragments()[0][1][:4], "   ")
                 with set_app(app):
                     self.assertEqual(view.bindings.hints()[0], ("ESC", "최소화"))
                 await minimize(pipe, view)
@@ -84,7 +171,8 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                         self.assertIs(app.layout.current_control, popup.receiver)
                         with set_app(app):
                             self.assertEqual(view.bindings.hints(), [
-                                ("ESC", "닫기"), ("Ctrl+L", "닫기"), ("Enter", "닫기"), ("이동키", "스크롤")])
+                                ("ESC", "닫기"), ("Ctrl+L", "닫기"), ("Ctrl+Q", "최소화"),
+                                ("Enter", "닫기"), ("이동키", "스크롤")])
                         if kind == "help":
                             self.assertTrue(popup.output.markdown)
                             text = "\n".join(popup.output.lines)

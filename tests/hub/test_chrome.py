@@ -25,7 +25,7 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.is_running and app.renderer._last_screen is not None)
                 def height():
                     return app.renderer._last_screen.visible_windows_to_write_positions[view.composer.window].height
-                for lines, expected in ((1, 1), (4, 4), (12, 8), (2, 2)):
+                for lines, expected in ((1, 2), (4, 4), (12, 8), (2, 2)):
                     view.composer.text = "\n".join("line" for _ in range(lines))
                     await eventually(lambda: height() == expected)
                 pipe.send_text("\x1b")

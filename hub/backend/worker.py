@@ -123,7 +123,7 @@ class BackendWorker:
             except Exception as error:
                 self.report_error(error)
 
-    async def _execute(self, operation: str, args, acknowledged=None):
+    async def _execute(self, operation: str, args, acknowledged=None, progress=None):
         await self._initialized.wait()
         if self._closed or self._restarting:
             raise RuntimeError("Hub backend is closing")
@@ -138,9 +138,11 @@ class BackendWorker:
             # These operations capture explicit project handles and use service
             # lifecycle/version locks. They never change UI selection. Long RAG
             # writes and tool imports must not block unrelated output either.
-            independent = operation in {"project_activity", "execution_catalog", "component_command", "manage_tools", "approval_details", "answer_question"}
+            independent = operation in {"project_activity", "execution_catalog", "component_command", "manage_tools", "manage_records", "approval_details", "answer_question"}
             async with (nullcontext() if independent else self.runtime.lock):
                 kwargs = {"acknowledged": acknowledged} if acknowledged is not None else {}
+                if progress is not None:
+                    kwargs["progress"] = progress
                 result = await getattr(self.runtime, operation)(*args, **kwargs)
                 if operation not in {"submission_state", "instruction_targets", "snapshot"}:
                     self.runtime.dirty.set()
@@ -163,10 +165,10 @@ class BackendWorker:
                 raise RuntimeError(self.runtime.t("settings_restart_busy"))
             self._restarting = True
 
-    def call(self, operation: str, *args, acknowledged=None) -> Future:
+    def call(self, operation: str, *args, acknowledged=None, progress=None) -> Future:
         if self._closed or self.loop.is_closed():
             raise RuntimeError("Hub backend is closed")
-        return asyncio.run_coroutine_threadsafe(self._execute(operation, args, acknowledged), self.loop)
+        return asyncio.run_coroutine_threadsafe(self._execute(operation, args, acknowledged, progress), self.loop)
 
     def prepare_restart(self) -> Future:
         """Freeze admission only when all projects and background commands are idle."""

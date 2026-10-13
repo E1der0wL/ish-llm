@@ -9,6 +9,9 @@ ACTIONS = ("list", "get", "create", "update", "delete", "settings", "config", "h
 
 def component_commands(names: tuple[str, ...]) -> dict[str, str]:
     commands = {("component:" + name if name in BUILTINS else name): name for name in names}
+    for alias, name in (("skill", "skills"), ("workflow", "workflows")):
+        if name in names:
+            commands.setdefault(alias, name)
     return commands
 
 

@@ -108,11 +108,14 @@ class LoopEngine(BaseEngine):
     _option_names = ("max_iterations", "request_timeout", "tool_timeout", "buffer_size",
                      "max_tool_calls", "max_argument_chars", "max_output_chars")
 
-    def __init__(self, *, parameter_key=None, completion_fn=completion) -> None:
+    def __init__(self, *, parameter_key=None, completion_fn=completion, retry_decider=None) -> None:
         """Host는 구현을 등록한다. 실행값은 Project/Session/Agent 설정에서만 읽는다."""
         if parameter_key is not None and (not isinstance(parameter_key, str) or not parameter_key.strip()):
             raise ValueError("parameter_key must be a nonempty string or None")
         self.parameter_key, self._agent_options = parameter_key, {}
+        if retry_decider is not None and not callable(retry_decider):
+            raise TypeError("Retry selector must be callable")
+        self.retry_decider = retry_decider
         self.completion_fn = completion_fn
         self._configure({})
 
@@ -314,6 +317,7 @@ class LoopEngine(BaseEngine):
                         async for event in events:
                             yield event
                 async with aclosing(self.stream_completion(prepared_request, response=response, provider=self.provider,
+                        retry_decider=self.retry_decider,
                         max_tool_calls=self.max_tool_calls, max_argument_chars=self.max_argument_chars,
                         max_output_chars=self.max_output_chars)) as deltas:
                     async for text in deltas:

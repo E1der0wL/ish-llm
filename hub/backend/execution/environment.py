@@ -44,10 +44,12 @@ def underlying_engine(engine):
 class EnvironmentEngine:
     """Request options persist the snapshot, including across approval resumes."""
 
-    def __init__(self, implementation, builtins, environment=None):
+    def __init__(self, implementation, builtins, environment=None, *, recovery=None, retry_monitor=None):
         self.implementation = implementation
         self.builtins = builtins
         self.environment = environment
+        self.recovery = recovery
+        self.retry_monitor = retry_monitor
 
     def __getattr__(self, name):
         value = getattr(self.implementation, name)
@@ -61,6 +63,11 @@ class EnvironmentEngine:
 
     def for_request(self, options):
         options = dict(options)
+        from .turns import TURN_OPTION
+        turn = options.pop(TURN_OPTION, None)
+        if turn is not None and (not isinstance(turn, dict) or set(turn) != {"source"}
+                                 or not isinstance(turn["source"], str) or not turn["source"]):
+            raise ValueError("Invalid Hub turn reference")
         environment = (ShellEnvironment.from_dict(options.pop(ENVIRONMENT_OPTION))
                        if ENVIRONMENT_OPTION in options else None)
         factory = getattr(self.implementation, "for_request", None)
@@ -70,13 +77,14 @@ class EnvironmentEngine:
             raise ValueError("Engine does not support request options")
         else:
             implementation = self.implementation
-        return EnvironmentEngine(implementation, self.builtins, environment)
+        return EnvironmentEngine(implementation, self.builtins, environment, recovery=self.recovery,
+                                 retry_monitor=self.retry_monitor)
 
     def bind_context(self, context):
         if self.environment is None:
             return context
         tools, capabilities = context.tools, dict(context.capabilities)
-        if "tools" in capabilities and self.builtins.name in context.project.components:
+        if "tools" in capabilities and self.builtins is not None and self.builtins.name in context.project.components:
             registry = self.builtins.resolve_environment(context.project, self.environment)
             # Preserve imported tools and Agent selections; never enable extra tools.
             tools = ToolRegistry(tuple(registry.get(name) if name in registry.names() else context.tools.get(name)
@@ -90,6 +98,17 @@ class EnvironmentEngine:
     async def execute(self, context):
         bound = (await drain_on_cancel(asyncio.to_thread(self.bind_context, context))
                  if self.environment is not None else context)
-        async with aclosing(self.implementation.execute(bound)) as events:
-            async for event in events:
-                yield event
+        if self.recovery is not None:
+            from .tool_recovery import recovery_events
+            stream = recovery_events(self.recovery, self.implementation, bound, self.environment)
+        else:
+            stream = self.implementation.execute(bound)
+        try:
+            async with aclosing(stream) as events:
+                async for event in events:
+                    yield event
+                    if self.retry_monitor is not None:
+                        self.retry_monitor.observe_tool(bound, event)
+        finally:
+            if self.retry_monitor is not None:
+                self.retry_monitor.clear_tools(bound.run.id)

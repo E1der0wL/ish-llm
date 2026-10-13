@@ -345,6 +345,13 @@ ProjectConfig.policies는 tool_retry/usage/retention도 소유한다. 미설정 
 조건부 Tool 재시도의 안전성은 신뢰한 호스트 ToolRuntime/핸들러만 선언한다. 정상 None 반환은
 완료로 저장하며 일반 예외·timeout·취소·저장 실패로 외부 효과를 자동 반복하지 않는다.
 
+공통 `policies/retry.py`는 시도·간격·절대 기한 계산과 Application 선택/수정 인자 검증만
+소유한다. 실행 소유자는 그대로이며 저장/트랜잭션을 포괄하는 retry wrapper는 없다.
+`ToolRuntime.decide_retry`가 수정안을 선택하면 ToolContract.retry_fields와 기존 schema/
+Project 제약을 검증하고 분류·승인·operation key를 다시 계산한다. 수정 전 승인으로
+효과를 실행하지 않는다. 실패 이력과 수정 인자·누적 시도는 기존 CHECKPOINT 이벤트로
+저장하여 새 Run 재개로 retry 한도가 초기화되지 않게 한다. [상세 계약](retry.md).
+
 Loop는 회차와 Tool 영수증을 CHECKPOINT 이벤트로 전달하고 RunRepository가 저장한다.
 재개는 새 Run을 생성하며 완료 효과를 재사용한다. 불확실한 Tool은 명시적 retry_nodes가
 필요하다. 승인 대기와 Graph의 검토 상태 변경은 저장된 decisions를 통해서만 재개한다.

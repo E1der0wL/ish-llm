@@ -9,6 +9,7 @@ from time import perf_counter
 from pathlib import Path
 from prompt_toolkit.application.current import get_app
 from ...ui.output import OutputParser, OutputObject, RendererRegistry, ImageRenderer, RenderContext
+from ...ui.output.labels import block_title
 
 from prompt_toolkit.data_structures import Point
 from prompt_toolkit.formatted_text.utils import fragment_list_width
@@ -23,6 +24,7 @@ from ...locales import Language
 from ...config.profile import UserProfile
 from ...config.view_state import ReadingPosition
 from ..controls import ScrollbarMargin
+from ..output.selection import SelectableControl
 
 
 def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubTheme, language=None, *, anchors=None,
@@ -86,9 +88,10 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
                     anchors.append((identifier, len(lines) + len(body)))
                 rendered = (render_block or renderers.render)(block, context)
                 if objects is not None and renderers.is_object(block):
-                    title = dict(block.attributes).get("title") or dict(block.attributes).get("alt") or block.kind.removeprefix("hub-")
-                    objects.append(OutputObject(identifier, message.id, block, title,
-                        tuple(tuple(row) for row in rendered), len(lines) + len(body), len(lines) + len(body) + len(rendered)))
+                    icons = for_style(theme.icon_style).output
+                    objects.append(OutputObject(identifier, message.id, block, block_title(block),
+                        tuple(tuple(row) for row in rendered), len(lines) + len(body), len(lines) + len(body) + len(rendered),
+                        icons.get(block.kind.removeprefix("hub-"), icons["text"])))
                 body.extend(rendered)
         elif not message.text and message.tools:
             body = []
@@ -127,8 +130,9 @@ def render_tool_history(steps, width, theme, language):
     return [[("class:hub.muted", "  " + "".join(segment.text for segment in row))] for row in rows] + [[("", "")]]
 
 
-class ConversationControl(UIControl):
+class ConversationControl(SelectableControl):
     def __init__(self, messages: tuple[ChatMessage, ...], theme: HubTheme, language=None) -> None:
+        super().__init__()
         from .character_stream import CharacterStream
         self.character_stream = CharacterStream()
         self.animation_active = lambda: False
@@ -188,6 +192,7 @@ class ConversationControl(UIControl):
             else:
                 self.character_stream.reset(value)
             self._messages = value
+            self._urgent_messages = tuple(m for m in value if m.role == "assistant" and m.phase == "interrupting")
             self._message_revision = getattr(self, "_message_revision", 0) + 1
 
     def _request_frame(self, width, key):
@@ -335,6 +340,9 @@ class ConversationControl(UIControl):
         if self.on_position_changed:
             self.on_position_changed()
 
+    def scroll_to(self, line):
+        self._scroll_to(line)
+
     @property
     def restoring(self):
         return self._pending_position is not None
@@ -352,6 +360,20 @@ class ConversationControl(UIControl):
 
     def is_focusable(self) -> bool:
         return False
+
+    def _urgent_headers(self):
+        """Paint local stop acknowledgement independently of the Markdown lane."""
+        headers, extra = {}, []
+        for message in self._urgent_messages:
+            rows = render_messages((message,), self._width, self.theme, self.language, section="header")
+            start = self._anchor_starts.get(message.id)
+            if start is None:
+                extra.extend(rows)
+            else:
+                # Keep the existing body and row geometry intact. The durable
+                # frame handles reflow; immediate feedback uses its first row.
+                headers[start] = rows[0]
+        return headers, extra
 
     def create_content(self, width: int, height: int) -> UIContent:
         started = perf_counter()
@@ -378,13 +400,18 @@ class ConversationControl(UIControl):
                 self._request_frame(width, key)
         self._resolve_position()
         self._index_search()
-        content = UIContent(get_line=self._search_line, line_count=len(self._lines),
+        urgent, extra = self._urgent_headers()
+        def get_line(row):
+            if row >= len(self._lines):
+                return extra[row - len(self._lines)]
+            return urgent[row] if row in urgent else self._search_line(row)
+        content = UIContent(get_line=get_line, line_count=len(self._lines) + len(extra),
                             cursor_position=Point(x=self.left_column, y=self.cursor_line), show_cursor=False)
         elapsed = perf_counter() - started
         self.content_calls += 1
         self.content_seconds += elapsed
         self.content_max_seconds = max(self.content_max_seconds, elapsed)
-        return content
+        return self.select_content(content, width)
 
     def _resolve_position(self, *, partial=False):
         self.left_column = min(self.left_column, max(0, self._max_width - self._width))
@@ -422,6 +449,12 @@ class ConversationView:
         return self.window
 
     def set_messages(self, messages: tuple[ChatMessage, ...], position=None) -> None:
+        # A debounced resize belongs to the old transcript too. It must not
+        # enqueue a frame after the replacement clears its requested key.
+        if self.control._resize_timer:
+            self.control._resize_timer.cancel()
+            self.control._resize_timer = None
+        self.control.selection.clear()
         self.control.character_stream.reset(messages)
         self.control.images.reset()
         self.control.set_search("")
@@ -437,5 +470,6 @@ class ConversationView:
             self.control.render_worker.cancel(self.control.render_slot)
         self.control._lines = [[("", "")]]
         self.control._anchors = []
+        self.control._anchor_starts = {}
         self.control.objects = []
         self.control.restore_position(position)

@@ -1,7 +1,6 @@
 """Project source를 실행하는 child 전용 entrypoint. protocol과 print FD를 분리한다."""
 
 import asyncio
-from dataclasses import asdict
 import json
 import os
 from pathlib import Path
@@ -33,7 +32,7 @@ async def dispatch(request):
     try:
         tool = load(request)
         descriptor = {"name": tool.name, "description": tool.description, "parameters": tool.parameters,
-                      "definition": tool.definition, "contract": asdict(tool.contract)}
+                      "definition": tool.definition, "contract": tool.contract.to_dict()}
         if request["operation"] == "inspect":
             value = descriptor
         elif request["operation"] == "execute":
@@ -59,7 +58,7 @@ async def dispatch(request):
     except Exception as error:
         if isinstance(error, ToolExecutionError):
             record = {"kind": "tool_execution", "message": str(error), "code": "tool_failed",
-                      "effect": error.effect, "retryable": error.retryable}
+                      "effect": error.effect, "retryable": error.retryable, "recoverable": error.recoverable}
         elif stable_error_code(error):
             record = {"kind": "coded", "code": stable_error_code(error), "message": str(error)}
         elif request["operation"] == "inspect":

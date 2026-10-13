@@ -1,14 +1,15 @@
-"""Immediate stop feedback, scoped to the Run observed when the key was pressed."""
+"""Immediate stop feedback, including preparation before a Run is observed."""
 
 from dataclasses import dataclass, replace
 
 from ...model import ChatMessage, HubSnapshot
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class PendingInterrupt:
     key: tuple[str, str]
     run_id: str
+    previous_run_id: str = ""
 
 
 class InterruptFeedback:
@@ -18,10 +19,14 @@ class InterruptFeedback:
 
     def start(self, key: tuple[str, str]) -> PendingInterrupt | None:
         snapshot = getattr(self.view, "_last_snapshot", None)
-        if (not snapshot or key != (snapshot.project_id, snapshot.selected_id)
-                or not snapshot.run or not snapshot.run.active or snapshot.run.status not in ("pending", "running")):
+        run = snapshot.run if snapshot and key == (snapshot.project_id, snapshot.selected_id) else None
+        running = run and run.status in ("pending", "running")
+        if not running and key not in self.view.preparing.pending:
             return None
-        request = PendingInterrupt(key, snapshot.run.id)
+        # The submit receipt and first Run snapshot may still be in flight.
+        # Remember the previous Run so its terminal snapshot cannot dismiss
+        # feedback for the request that is currently being prepared.
+        request = PendingInterrupt(key, run.id if running else "", run.id if run else "")
         self.pending[key] = request
         self.view.preparing.paint()
         return request
@@ -40,7 +45,17 @@ class InterruptFeedback:
         key = (snapshot.project_id, snapshot.selected_id)
         request = self.pending.get(key)
         run = snapshot.run
-        if request and (not run or not run.active or run.status not in ("pending", "running") or run.id != request.run_id):
+        if not request:
+            return
+        if not request.run_id:
+            if not run or run.id == request.previous_run_id:
+                return
+            # Mutate the target in place: the command callback retains this
+            # request's identity while the observed Run ID becomes available.
+            request.run_id = run.id
+        # Runtime active flags and durable status can straddle cancellation.
+        # Wait for the target's terminal status, not just active=False.
+        if not run or run.status not in ("pending", "running") or run.id != request.run_id:
             self.pending.pop(key)
 
     def project(self, key: tuple[str, str], messages: tuple[ChatMessage, ...]) -> tuple[ChatMessage, ...]:
@@ -55,4 +70,4 @@ class InterruptFeedback:
                 return (*messages[:index], replace(message, phase="interrupting", activity=""), *messages[index + 1:])
         # A Run can be active before its assistant message is published.
         return (*messages, ChatMessage("assistant", "", status="preparing", phase="interrupting",
-                                      id=f"interrupting:{request.run_id}"))
+                                      id=f"interrupting:{request.run_id or key[1]}"))

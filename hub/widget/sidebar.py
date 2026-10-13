@@ -4,10 +4,19 @@ from dataclasses import dataclass
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.data_structures import Point
+from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
-from prompt_toolkit.mouse_events import MouseEventType
+from prompt_toolkit.mouse_events import MouseEventType, MouseButton
 
 from ..asset import icon
+from .section import section
+
+
+class SidebarHeading(HSplit):
+    """Keep section titles and rules identical across pages and focus changes."""
+
+    def __init__(self, title):
+        super().__init__([section(title)], style="class:hub.sidebar-heading")
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,6 +24,7 @@ class SidebarItem:
     key: str
     title: str
     detail: str = ""
+    margin_top: int = 0
 
 
 class SidebarList(FormattedTextControl):
@@ -26,24 +36,37 @@ class SidebarList(FormattedTextControl):
     def cursor_position(self):
         line = 0
         for item in self.items():
+            line += item.margin_top
             if item.key == self.selected():
                 return Point(x=0, y=line)
             line += 3 if item.detail else 1
         return Point(x=0, y=0)
 
+    def mouse_handler(self, event):
+        # Handle the entire row, including whitespace beyond its title.
+        if event.event_type == MouseEventType.MOUSE_UP and event.button == MouseButton.LEFT:
+            row = 0
+            for item in self.items():
+                row += item.margin_top
+                height = 3 if item.detail else 1
+                if row <= event.position.y < row + height:
+                    get_app().layout.focus(self)
+                    self.on_select(item.key)
+                    return None
+                row += height
+        return NotImplemented
+
     def fragments(self):
         fragments = []
         for item in self.items():
-            def select(event, key=item.key):
-                if event.event_type == MouseEventType.MOUSE_UP:
-                    get_app().layout.focus(self)
-                    self.on_select(key)
+            if item.margin_top:
+                fragments.append(("class:hub.sidebar", "\n" * item.margin_top))
             selected = item.key == self.selected()
             fragments.append(("class:hub.selected" if selected else "class:hub.sidebar",
-                              f" {icon.SELECTED if selected else ' '} {item.title}\n", select))
+                              f" {icon.SELECTED if selected else ' '} {item.title}\n"))
             if item.detail:
-                fragments.append(("class:hub.muted", f"   {item.detail}\n\n", select))
+                fragments.append(("class:hub.muted", f"   {item.detail}\n\n"))
         if fragments:
-            style, text, handler = fragments[-1]
-            fragments[-1] = (style, text.rstrip("\n"), handler)
+            style, text = fragments[-1]
+            fragments[-1] = (style, text.rstrip("\n"))
         return fragments

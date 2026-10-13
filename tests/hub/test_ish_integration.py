@@ -32,13 +32,15 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
             mouse_support = prompt.app.mouse_support
+            renderer_mouse_support = prompt.app.renderer.mouse_support
             installation = install_preview(prompt)
-            self.assertIs(prompt.app.mouse_support, mouse_support)
+            self.assertEqual(prompt.app.mouse_support(), mouse_support())
             app, view = prompt.app, installation.view
             view.transcript.set_messages((ChatMessage("assistant", "\n\n".join(f"Line {i}" for i in range(150))),))
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: app.is_running and view.transcript.window.render_info is not None)
+                self.assertTrue(app.mouse_support())
                 pipe.send_text("keep this draft")
                 await eventually(lambda: view.composer.text == "keep this draft")
                 cursor = view.composer.buffer.cursor_position
@@ -61,6 +63,34 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 app.exit(result="")
                 await task
+                installation.close()
+                self.assertIs(app.mouse_support, mouse_support)
+                self.assertIs(app.renderer.mouse_support, renderer_mouse_support)
+
+    async def test_mouse_support_preserves_dynamic_host_filter_and_later_plugin_change(self):
+        from prompt_toolkit.filters import Condition
+        with create_pipe_input() as pipe:
+            prompt = Prompt(input=pipe, output=SizedOutput())
+            enabled = False
+            original = Condition(lambda: enabled)
+            prompt.app.mouse_support = prompt.app.renderer.mouse_support = original
+            installation = install_preview(prompt)
+            try:
+                self.assertFalse(prompt.app.mouse_support())
+                self.assertFalse(prompt.app.renderer.mouse_support())
+                enabled = True
+                self.assertTrue(prompt.app.mouse_support())
+                self.assertTrue(prompt.app.renderer.mouse_support())
+                installation.close()
+                self.assertIs(prompt.app.mouse_support, original)
+                self.assertIs(prompt.app.renderer.mouse_support, original)
+                installation = install_preview(prompt)
+                external = Condition(lambda: False)
+                prompt.app.mouse_support = prompt.app.renderer.mouse_support = external
+                installation.close()
+                self.assertIs(prompt.app.mouse_support, external)
+                self.assertIs(prompt.app.renderer.mouse_support, external)
+            finally:
                 installation.close()
 
     async def test_escape_and_alt_scroll_cross_modal_binding_scope(self):
@@ -120,7 +150,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                         await asyncio.wait_for(rendered.wait(), 3)
                         positions = app.renderer._last_screen.visible_windows_to_write_positions
                         hub_positions = [position for window, position in positions.items()
-                                         if "class:hub" in window.style]
+                                         if "class:hub" in (window.style() if callable(window.style) else window.style)]
                         self.assertEqual(max(p.xpos + p.width for p in hub_positions), columns)
                         self.assertEqual(max(p.ypos + p.height for p in hub_positions), rows)
                         self.assertIn(view.composer.window, positions)

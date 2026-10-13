@@ -7,7 +7,10 @@ from time import monotonic
 def retry_text(retry, t):
     if retry is None:
         return ""
+    target = t("retry_tool", name=retry.name) if retry.kind == "tool" else t("retry_provider")
+    values = dict(target=target, attempt=retry.attempt, maximum=retry.maximum, next_attempt=retry.attempt + 1)
+    if retry.phase == "repairing":
+        return t("retry_repairing", **values)
     if retry.retry_at is not None:
-        return t("retry_wait", attempt=retry.attempt, maximum=retry.maximum,
-            next_attempt=retry.attempt + 1, seconds=max(0, ceil(retry.retry_at - monotonic())))
-    return t("retry_active", attempt=retry.attempt, maximum=retry.maximum)
+        return t("retry_wait", **values, seconds=max(0, ceil(retry.retry_at - monotonic())))
+    return t("retry_active", **values)

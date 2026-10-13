@@ -4,6 +4,8 @@ from prompt_toolkit.layout import HSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
 
 from ..dialog import Dialog, PopupInput
+from ..controls import Button
+from prompt_toolkit.key_binding import merge_key_bindings
 from .text_viewport import TextViewport
 from ...ui.input.registry import MOVEMENT_KEYS
 
@@ -21,6 +23,10 @@ class ReadOnlyDialog(Dialog):
             self.output.scroll(event.key_sequence[-1].key)
             event.app.invalidate()
         registry.add(MOVEMENT_KEYS, t("shortcut_movement"), "scroll", scroll)
+        self.close_button = Button(t("history_close"), handler=close)
+        self.close_button.control.key_bindings = merge_key_bindings([
+            self.close_button.control.key_bindings, registry.bindings])
+        self.close_button.control.hub_shortcuts = registry
         super().__init__(title=title, shortcut_context="reader",
-            body=HSplit([self.output, Window(self.receiver, height=0)]), buttons=[],
+            body=HSplit([self.output, Window(self.receiver, height=0)]), buttons=[self.close_button],
             width=lambda: Dimension(preferred=100, max=max(1, columns() - 4)))

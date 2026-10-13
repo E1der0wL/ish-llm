@@ -1,11 +1,11 @@
 """Terminal glyphs used by Hub. Change visual symbols here."""
 
 from types import MappingProxyType
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from collections.abc import Mapping
 
 SELECTED = "▶"
-HEADER_MARK = "•"
+HEADER_MARK = ""
 SCROLL_UP = "△"
 SCROLL_DOWN = "▽"
 SESSIONS = ""
@@ -28,6 +28,11 @@ VALUES = MappingProxyType({"icon_sessions": SESSIONS, "icon_reasoning": REASONIN
                           "icon_waiting": WAITING, "icon_tool": "", "icon_question": "",
                           **{"icon_" + key: value for key, value in STATUS.items()}})
 
+OUTPUT_UNICODE = MappingProxyType({"code": "⌘", "table": "▦", "image": "▧",
+                                  "diff": "±", "chart": "▥", "card": "▤", "text": "≡"})
+OUTPUT_NERD = MappingProxyType({"code": "", "table": "", "image": "",
+                               "diff": "", "chart": "", "card": "", "text": ""})
+
 
 @dataclass(frozen=True, slots=True)
 class IconSet:
@@ -42,6 +47,9 @@ class IconSet:
     statuses: Mapping[str, str]
     tool: str = "⚒"
     question: str = "?"
+    output: Mapping[str, str] = field(default_factory=lambda: OUTPUT_UNICODE)
+    settings: str = "⚙"
+    project: str = "●"
 
     @property
     def values(self):
@@ -53,8 +61,8 @@ class IconSet:
 NERD = IconSet(HEADER_MARK, SESSIONS, "", "", "", ALERT, MappingProxyType({
     **STATUS, "running": "", "streaming": "", "failed": "",
     "paused": "", "waiting_approval": "", "preparing": "",
-}), tool="", question="")
-UNICODE = IconSet(HEADER_MARK, "☷", REASONING, WAITING, EDIT,
+}), tool="", question="", output=OUTPUT_NERD, settings="", project="")
+UNICODE = IconSet("•", "☷", REASONING, WAITING, EDIT,
                   MappingProxyType({"error": "❌", "info": "ℹ", "warning": "⚠", "success": "✅"}), STATUS)
 
 

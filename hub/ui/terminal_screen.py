@@ -1,12 +1,20 @@
 """Keep a full-height Hub float off the shell's normal terminal buffer."""
 
 from prompt_toolkit.application import Application
+from prompt_toolkit.filters import Condition
 
 
 class HubTerminalScreen:
     def __init__(self, app: Application, view) -> None:
         self.app, self.view = app, view
         self._original: tuple[bool, bool] | None = None
+        self._mouse_support = app.mouse_support
+        self._renderer_mouse_support = app.renderer.mouse_support
+        visible = Condition(lambda: self.view.visible)
+        self._hub_mouse_support = visible | self._mouse_support
+        self._hub_renderer_mouse_support = visible | self._renderer_mouse_support
+        app.mouse_support = self._hub_mouse_support
+        app.renderer.mouse_support = self._hub_renderer_mouse_support
         app.before_render += self._before_render
         app.after_render += self._after_render
 
@@ -44,5 +52,9 @@ class HubTerminalScreen:
 
     def close(self) -> None:
         self._restore()
+        if self.app.mouse_support is self._hub_mouse_support:
+            self.app.mouse_support = self._mouse_support
+        if self.app.renderer.mouse_support is self._hub_renderer_mouse_support:
+            self.app.renderer.mouse_support = self._renderer_mouse_support
         self.app.before_render -= self._before_render
         self.app.after_render -= self._after_render

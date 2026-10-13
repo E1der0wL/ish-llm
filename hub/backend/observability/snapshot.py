@@ -122,8 +122,8 @@ class SnapshotReader:
                                        status=status, id=message.id,
                                        author=author if role == "user" else "",
                                        elapsed_seconds=elapsed, phase=phase))
-        from ..execution.continuations import continued_messages
-        return continued_messages(messages, visible)
+        from ..execution.turns import TurnIndex
+        return TurnIndex(messages).display(visible)
 
     async def read(self, project, sessions, selected_id, *, config, engines, title_errors):
         from llm.services.query import Query

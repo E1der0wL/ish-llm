@@ -1,11 +1,12 @@
-"""Observe confirmed provider retries without owning retry/execution policy."""
+"""Project provider and Tool retries into one UI state; never decide execution."""
 
 from contextlib import aclosing
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from time import monotonic
 
 from llm.engines.loop import LoopEngine
+from llm.engines.base import EngineEventType
 from ...model import RetrySummary
 
 
@@ -17,13 +18,67 @@ class CompletionWatch:
     completion_id: str = ""
 
 
+@dataclass(slots=True)
+class ToolWatch:
+    name: str
+    maximum: int
+    delay: float
+
+
+@dataclass(frozen=True, slots=True)
+class RetryObservation:
+    run_id: str
+    summary: RetrySummary
+
+
 class RetryMonitor:
     def __init__(self) -> None:
         self.run: ContextVar[str] = ContextVar("hub_retry_run", default="")
         self.call: ContextVar[CompletionWatch | None] = ContextVar("hub_retry_completion", default=None)
-        self.states: dict[int, tuple[CompletionWatch, RetrySummary]] = {}
+        self.states: dict[int | tuple[str, str], RetryObservation] = {}
+        self.tools: dict[tuple[str, str], ToolWatch] = {}
+
+    def set(self, key, run_id, summary):
+        self.states[key] = RetryObservation(run_id, summary)
+
+    def observe_tool(self, context, event):
+        """Called after the owning service consumes each Engine event."""
+        key = (context.run.id, event.step_id)
+        if event.type == EngineEventType.STEP_STARTED and event.kind == "tool":
+            policy = context.run.metadata.get("policies", {}).get("tool_retry", {})
+            if policy.get("max_retries"):
+                self.tools[key] = ToolWatch(event.name, policy["max_retries"] + 1,
+                                            policy.get("delay_seconds") or 0)
+        watch = self.tools.get(key)
+        if watch is None:
+            return
+        if event.type in (EngineEventType.STEP_COMPLETED, EngineEventType.STEP_FAILED,
+                          EngineEventType.STEP_INTERRUPTED, EngineEventType.STEP_CANCELLED):
+            self.states.pop(key, None)
+            self.tools.pop(key, None)
+        elif event.type == EngineEventType.STEP_UPDATED:
+            phase = event.metadata.get("phase")
+            attempt = event.metadata.get("retry_attempt")
+            if phase in ("repairing", "retrying") and type(attempt) is int and attempt > 0:
+                self.set(key, context.run.id, RetrySummary(attempt, watch.maximum,
+                    monotonic() + watch.delay if phase == "retrying" else None,
+                    "tool", watch.name, "repairing" if phase == "repairing" else "waiting"))
+
+    def clear_tools(self, run_id):
+        for key in [key for key in self.tools if key[0] == run_id]:
+            self.tools.pop(key)
+            self.states.pop(key, None)
 
     def __call__(self, event: dict) -> None:
+        # Executions is emitted immediately before the actual Tool call, including
+        # unchanged-argument retries that have no new STEP_UPDATED event.
+        if event.get("kind") == "tools" and event.get("status") == "executions":
+            key = (event.get("run_id"), event.get("step_id"))
+            previous = self.states.get(key)
+            if previous is not None and previous.summary.phase != "active":
+                self.set(key, previous.run_id, replace(previous.summary,
+                    attempt=previous.summary.attempt + 1, retry_at=None, phase="active"))
+            return
         # This fact is emitted only AFTER the backend checks partial output,
         # error eligibility, attempts, SDK delegation and the wall deadline.
         watch = self.call.get()
@@ -31,11 +86,11 @@ class RetryMonitor:
             return
         delay = watch.policy.get("delay_seconds", 0) * 2 ** max(0, watch.attempt - 1)
         delay = min(delay, watch.policy.get("max_delay_seconds", delay))
-        self.states[id(watch)] = (watch, RetrySummary(watch.attempt,
+        self.set(id(watch), watch.run_id, RetrySummary(watch.attempt,
             watch.policy.get("max_attempts", 1), monotonic() + delay))
 
     def view(self, run_id: str) -> RetrySummary | None:
-        states = [state for watch, state in self.states.values() if watch.run_id == run_id]
+        states = [item.summary for item in self.states.values() if item.run_id == run_id]
         # Parallel Graph agents keep separate calls. Finishing one must not
         # erase another's backoff; show the next scheduled attempt first.
         return min(states, key=lambda state: state.retry_at if state.retry_at is not None else float("inf"),
@@ -87,7 +142,7 @@ class RetryObservationMixin:
                         watch.completion_id = completion.id
                         watch.attempt += 1
                         if watch.attempt > 1:
-                            monitor.states[id(watch)] = (watch, RetrySummary(
+                            monitor.set(id(watch), watch.run_id, RetrySummary(
                                 watch.attempt, watch.policy.get("max_attempts", 1)))
                     yield event
         finally:

@@ -28,13 +28,17 @@ class ComponentCommands:
         original = view.composer.text
 
         if action == "config":
-            if name != "tools":
+            if name not in ("tools", "skills", "rag", "workflows"):
                 view.notice = view.t("component_manager_unavailable", name=name)
                 return
             from ...widget.forms.tool_manager import ToolManager
+            from ...widget.forms.record_manager import RecordManager
             def request(operation, argument, version, done):
-                self.controller._call("manage_tools", project_id, operation, argument, version, completed=done)
-            popup = ToolManager(view, request)
+                if name == "tools":
+                    self.controller._call("manage_tools", project_id, operation, argument, version, completed=done)
+                else:
+                    self.controller._call("manage_records", project_id, name, operation, argument, version, completed=done)
+            popup = ToolManager(view, request) if name == "tools" else RecordManager(view, request, name=name)
             view.composer.text = ""
             view.dialogs.show(popup, popup.path)
             popup.reload()

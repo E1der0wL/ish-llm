@@ -10,10 +10,10 @@ Engine과 RAG 모델 클라이언트가 LiteLLM을 사용할 때 공유하는 �
 | [runtime.py](runtime.py) | LiteLLM 지연 초기화, compatibility/runtime isolation 불변식, SDK 로그·진단 라우팅입니다. |
 | [parameters.py](parameters.py) | 설정 컨테이너를 복사·병합하며 주입된 runtime client의 identity를 유지합니다. |
 | [schema.py](schema.py) | provider 소유 Completion/Embedding/Rerank 설정 계약과 검증입니다. SDK 확장 인자는 변형하지 않고 전달합니다. |
-| [requests.py](requests.py) | 비스트리밍 호출, 명시적 wall timeout/outer retry와 ProviderError 분류입니다. |
+| [requests.py](requests.py) | request_model 호출 경계와 invoke의 비스트리밍 시도, 명시적 wall timeout/outer retry, ProviderError 분류입니다. |
 | [retry.py](retry.py) | 일시적 오류와 명시적 SDK retry를 판단하고 중첩 retry를 방지합니다. |
 | [calls.py](calls.py) | ProviderCalls/ProviderLimits가 호스트의 명시적 동시 호출·대기 제한을 적용합니다. |
-| [litellm.py](litellm.py) | 동기 completion 스트림을 bounded async 스트림으로 연결하고 취소를 전달합니다. |
+| [litellm.py](litellm.py) | 비스트리밍 SDK 함수 선택과 동기 completion의 bounded async 스트림/취소 연결입니다. |
 | [observations.py](observations.py) | 모델 호출 관찰·사용량을 기존 실행 문맥과 연결합니다. |
 | [embeddings.py](embeddings.py) | 단일 입력 응답의 벡터 개수·차원·유한성·zero-vector 무결성 검사입니다. |
 
@@ -56,6 +56,11 @@ TripleExtractor는 JSON-mode fallback과 semantic repair에도 같은 deadline�
 벡터 무결성, JSON 구문·그래프 의미 오류는 transport retry 대상이 아니다. 마지막 공급자
 오류는 안전한 `ProviderError.code`로 전달하고 `__cause__`에 원본을 보존한다.
 JSON/의미 오류는 별도의 extraction repair 정책을 사용한다.
+
+횟수·간격·기한 계산은 `llm.policies.retry`를 재사용한다. Application 선택기는 동일 요청
+재시도를 중단하거나 허용 필드를 수정할 수 있다. 고수준 모델 호출에서는 timeout만 수정하며
+SDK retry/캐시/입력 정체성을 바꾸지 않는다. 요청 오류도 명시된 선택기가 유효한 수정안을
+제공하는 경우에만 반복할 수 있다. [재시도 계약](../../docs/llm/retry.md).
 
 스트리밍은 `BaseEngine.stream_completion(request, provider=...)`의 명시적 인자를 사용한다.
 Loop는 `parameters.engines[이름].policy.provider`, Memory 보조 모델은

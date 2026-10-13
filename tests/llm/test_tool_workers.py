@@ -30,6 +30,31 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
         tool = await asyncio.to_thread(load_tool, await project.aget_data(), "act")
         return project, tool
 
+    async def test_recoverable_error_and_declared_fields_cross_worker_boundary(self):
+        from llm.policies import RetryDecision
+        from llm.services.runtime.tools import ToolExecutionScope, ToolExecutor
+        from types import SimpleNamespace
+        text = '''from llm.components.tools import tool
+from llm.services.runtime.tools import ToolExecutionError
+@tool(retry_fields=("path",))
+async def main(path: str):
+    """Recoverable worker fixture."""
+    if path == "bad":
+        raise ToolExecutionError("missing", effect="none", recoverable=True)
+    return path
+'''
+        _, tool = await self.resolve(text)
+        self.assertEqual(tool.contract.retry_fields, ('path',))
+        scope = ToolExecutionScope(ToolRuntime(decide_retry=lambda failure: RetryDecision({'path': 'good'})),
+            retry={'max_retries': 1})
+        context = SimpleNamespace(project=SimpleNamespace(id='p'), session=SimpleNamespace(id='s'),
+            run=SimpleNamespace(id='r', input_message_id='m', metadata={}), tool_scope=scope)
+        result = {}
+        async for _ in ToolExecutor().execute(tool, {'path': 'bad'}, result=result, context=context):
+            pass
+        self.assertEqual(result['value'], 'good')
+        self.assertEqual(result['retry']['repairs'], 1)
+
     async def test_pid_fresh_globals_print_capture_and_minimal_environment(self):
         text = source('global count\ncount += 1\nprint("noise")\nos.write(1, b"raw noise")\n'
                       'return {"pid": os.getpid(), "count": count, "secret": os.environ.get("WORKER_SECRET")}',

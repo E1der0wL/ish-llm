@@ -23,6 +23,7 @@ MESSAGES = {
     'preparing_response': '준비 중…',
     'status_preparing': '{icon_preparing} 준비 중',
     'status_thinking': '{icon_reasoning} 생각 중',
+    'status_retrying': '{icon_preparing} 재시도 중',
     'status_interrupting': '{icon_interrupted} 중단 중',
     'followup_hint': '→ 추천 입력',
     'component_action_install': '내장 스킬 설치 (기존 항목 유지)',
@@ -52,6 +53,17 @@ MESSAGES = {
     'tags_title': '출력 태그',
     'tags_empty': '출력 객체가 없습니다.',
     'tools_title': 'Tool 패키지 관리',
+    'skills_title': 'Skill 관리',
+    'rag_title': 'RAG 문서 관리',
+    'workflows_title': 'Workflow 관리',
+    'skills_import_hint': 'Markdown 또는 Skill JSON 파일 경로 → Enter: 가져오기',
+    'rag_import_hint': 'UTF-8 텍스트 문서 경로 → Enter: 문서 및 검색 색인 등록',
+    'workflows_import_hint': 'Workflow JSON 파일 경로 → Enter: 검증 후 가져오기',
+    'manager_hint': 'Tab 영역 · ↑↓ 선택 · Enter 편집기에서 수정 · d 삭제',
+    'manager_empty': '등록된 항목이 없습니다.',
+    'manager_imported': '가져왔습니다.',
+    'manager_saved': '저장되었습니다.',
+    'manager_delete_confirm': '{name}을 삭제할까요?',
     'tools_import_hint': '디렉토리 경로 → Enter: <이름>/<이름>.py와 선택적인 requirements.txt 가져오기',
     'tools_columns': '이름 / 마지막 수정 / 설명',
     'tools_hint': 'Tab 영역 · ↑↓ 선택 · Space 내장 도구 활성/비활성 · Enter 폴더 · d 삭제',
@@ -76,7 +88,7 @@ MESSAGES = {
     'status_denied': '{icon_cancelled} 거절됨',
     'status_answered': '{icon_completed} 답변 전달 완료',
     'status_resuming': '{icon_running} 이어서 실행',
-    'help': '# Hub 도움말\n\n## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절 및 너비만 자동 저장.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+E**: 엔진·Workflow 선택. **Ctrl+R**: Markdown 미리보기.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **↑↓**: 항목 선택. 편집 중이 아닐 때 **←**: 패널 복귀, **→**: 동작 없음.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n입력창의 **Ctrl+C**는 아무 동작도 하지 않습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
+    'help': '## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기, Hub의 모든 화면에서 최소화. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절 및 너비만 자동 저장.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+R**: Markdown 미리보기. `/engine <엔진명>`으로 엔진 지정.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **↑↓**: 항목 선택. 편집 중이 아닐 때 **←**: 패널 복귀, **→**: 동작 없음.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n입력창의 **Ctrl+C**는 아무 동작도 하지 않습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
     "settings_dependencies": "필수 컴포넌트: {names}",
     "settings_dependencies_missing": "선택되지 않은 필수 컴포넌트: {names} — 선택 후 저장하세요.",
     "title_model_required": "자동 제목 모델이 없습니다. 대화 엔진 또는 parameters.engines._hub_title.completion.model을 설정하세요.",
@@ -108,13 +120,25 @@ MESSAGES = {
 
     "history_title": "요청·작업 목록", "history_empty": "저장된 요청이 없습니다.",
 
-    "history_hint": "↑↓ 선택 · c 예약 취소 · d 삭제 · r 복제 · Tab 버튼 이동",
+    "history_hint": "↑↓ 이동 · Space 체크 · d 삭제 · e 편집 · r 재시도 · Tab 영역 이동",
 
-    "history_response": "응답", "history_delete": "대화 삭제", "history_clone": "이 시점에서 복제",
+    "history_response": "응답", "history_delete": "삭제",
+    "history_edit": "편집", "history_retry": "재시도", "history_close": "닫기",
+    "history_user_message": "사용자 메시지",
+    "history_select_one": "편집·재시도는 요청을 하나만 체크한 상태에서 사용할 수 있습니다.",
+    "history_select_items": "삭제할 요청을 체크하세요.",
+    "history_retry_unavailable": "중단 혹은 실패된 요청만 재시도할 수 있습니다.",
+    "history_edit_unavailable": "실행 중이 아닌 요청만 편집하여 다시 실행할 수 있습니다.",
+    "history_retry_blocked": "체크포인트에서 재시도할 수 없습니다: {details}",
+    "history_changed": "선택한 요청의 실행 이력이 변경되었습니다. 목록을 다시 열어 선택하세요.",
+    "history_delete_selected": "선택한 {count}개 요청을 삭제할까요? 예약 요청은 취소됩니다.",
+    "history_deleting": "요청 삭제 중",
+    "engine_command_usage": "/engine <엔진명>으로 지정하세요. 사용 가능한 엔진: {engines}",
+    "shortcut_retry": "재시도",
 
     "history_delete_confirm": "선택한 요청·응답을 대화와 이후 모델 문맥에서 삭제할까요?\n실행 기록과 원본 저장 이벤트는 보존됩니다.",
 
-    "history_busy": "실행·예약 요청·자동 이름 생성이 끝난 뒤 대화를 삭제하세요.",
+    "history_busy": "실행·예약 요청·자동 이름 생성이 끝난 뒤 대화 이력을 변경하세요.",
 
     "clone_latest": "최신 대화까지 전체 복제", "clone_boundary": "복제할 마지막 요청·응답 (선택한 쌍 포함)",
 
@@ -188,15 +212,10 @@ MESSAGES = {
 
     "notification_title": "다른 세션 상태",
 
-    "execution_title": "실행 방식 선택", "execution_engine": "엔진",
 
-    "execution_workflow": "워크플로", "execution_plain": "이 엔진은 별도의 요청 옵션이 필요하지 않습니다.",
 
-    "execution_no_workflows": "선택할 워크플로가 없습니다.",
 
-    "execution_workflows_hint": "프로젝트의 workflows 컴포넌트를 활성화하고 Workflow를 등록하세요.",
 
-    "execution_summary": "시작: {entry} · 최상위 노드: {count}개",
 
     "settings_title": "설정", "settings_global": "전역 설정", "settings_projects": "프로젝트",
 
@@ -329,7 +348,7 @@ MESSAGES = {
 
     "session_hint": "c 생성 · d 삭제\ne 이름 · r 복제", "input_hint": "Enter 전송 · Ctrl+Space 줄바꿈 · ↑↓ 후보 선택 · Tab 확정",
 
-    "footer": "ESC 패널 · Ctrl+E 엔진 · Ctrl+F 찾기 · Ctrl+S 설정 · Ctrl+X 중단 · Alt + 이동키 스크롤 · Enter 전송 방식",
+    "footer": "ESC 패널 · Ctrl+F 찾기 · Ctrl+S 설정 · Ctrl+X 중단 · Alt + 이동키 스크롤 · Enter 전송 방식",
 
     "footer_short": "ESC 패널 · Ctrl+F 찾기 · Alt + 이동키 스크롤",
 
@@ -350,9 +369,9 @@ MESSAGES = {
 
     "no_targets": "이 실행은 현재 추가 지시를 받지 않습니다.",
 
-    "choose_target": "추가 지시를 받을 대상", "choose_engine": "다음 요청에 사용할 엔진",
+    "choose_target": "추가 지시를 받을 대상",
 
-    "engine_line": "엔진: {engine} · Ctrl+E 변경", "create_dialog": "대화 생성 또는 복제",
+    "engine_line": "엔진: {engine}", "create_dialog": "대화 생성 또는 복제",
 
     "create": "새로 생성", "clone": "선택한 대화 복제", "name": "이름 (선택)",
 
@@ -454,8 +473,11 @@ MESSAGES = {
     'approval_model_risk': '모델 평가(참고): {level} · {reason}',
     'tool_history_more': '이전 도구 {count}건',
     'approval_argument': '{name}: {kind}, {size} (상세에서 확인)',
-    'retry_wait': '재시도 대기 중 · {attempt}/{maximum}회 시도 완료 · {next_attempt}번째 시도까지 {seconds}초',
-    'retry_active': '재시도 중 · {attempt}/{maximum}번째 시도',
+    'retry_provider': '모델 호출',
+    'retry_tool': 'Tool {name}',
+    'retry_repairing': '재시도 준비 중 · {target} · {next_attempt}/{maximum}번째 시도 · 수정안 생성 중',
+    'retry_wait': '재시도 대기 중 · {target} · {attempt}/{maximum}회 시도 완료 · {next_attempt}번째 시도까지 {seconds}초',
+    'retry_active': '재시도 중 · {target} · {attempt}/{maximum}번째 시도',
     'question_text_hint': '선택지 번호를 입력하거나 원하는 답변을 쓰고 Enter를 누르세요.',
     'question_free_text_hint': '원하는 답변을 쓰고 Enter를 누르세요.',
     'question_choice_hint': '선택지 번호를 입력하고 Enter를 누르세요. 추가 값이 필요하면 번호 뒤에 입력하세요.',

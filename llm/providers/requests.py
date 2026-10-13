@@ -9,6 +9,7 @@ from .parameters import copy_params
 from .runtime import diagnostic, diagnostic_failure
 from .retry import effective_attempts
 from llm.errors import CodedError
+from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
 
 
 def provider_schema():
@@ -79,19 +80,36 @@ TRANSIENT = {"provider_timeout", "provider_connection", "provider_rate_limit", "
              "provider_empty_response", "provider_invalid_response"}
 
 
-async def invoke(operation, request, call, options, *, deadline=None, sdk_defaults=False):
+async def request_model(operation, request, options, *, call=None, deadline=None,
+                        decide=None, changeable=()):
+    """SDK 선택/초기화는 Provider 내부에서만 한다. 상위 모델 클라이언트는 호출 계약만 사용한다."""
+    from .schema import validate_model_params
+    options = resolve_provider_options(options)
+    deadline = RetryPolicy.end(options.get("wall_timeout"), deadline)
+    validate_model_params(request, operation=operation, require_model=True, json_contract=False)
+    sdk_defaults = call is None
+    if call is None:
+        from .litellm import resolve_call
+        async with asyncio.timeout(RetryPolicy(deadline=deadline).remaining()):
+            call = await resolve_call(operation, request)
+    return await invoke(operation, request, call, options, deadline=deadline,
+                        sdk_defaults=sdk_defaults, decide=decide, changeable=changeable)
+
+
+async def invoke(operation, request, call, options, *, deadline=None, sdk_defaults=False,
+                 decide=None, changeable=()):
     """각 실제 시도를 관찰한다. 전체 deadline에는 대기·backoff·사용량 관찰도 포함된다."""
     options = resolve_provider_options(options)
     started = time.monotonic()
-    end = deadline
-    if options.get("wall_timeout") is not None:
-        wall_end = started + options["wall_timeout"]
-        end = wall_end if end is None else min(end, wall_end)
+    end = RetryPolicy.end(options.get("wall_timeout"), deadline)
     attempts = effective_attempts(request, options.get("max_attempts", 1), sdk_defaults=sdk_defaults)
+    policy = RetryPolicy(attempts, options.get("delay_seconds"), options.get("max_delay_seconds"), end, "exponential")
+    request = copy_params(request)
     for attempt in range(attempts):
-        remaining = None if end is None else end - time.monotonic()
-        if remaining is not None and remaining <= 0:
-            raise ProviderError("provider_timeout")
+        try:
+            remaining = policy.remaining()
+        except TimeoutError as error:
+            raise ProviderError("provider_timeout") from error
         try:
             # 취소는 BaseException이므로 retry되지 않는다. 각 시도에 가변 인자 사본을 전달한다.
             async def checked(**params):
@@ -122,16 +140,25 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
             code = error_code(error)
             diagnostic_failure(error, operation=operation, stage="invoke", attempt=attempt + 1,
                                model=request.get("model"), elapsed_seconds=time.monotonic() - started)
-            if code not in TRANSIENT or attempt + 1 >= attempts:
+            correctable = code == "provider_invalid_request" and decide is not None and bool(changeable)
+            if (code not in TRANSIENT and not correctable) or not policy.allows(attempt + 1):
                 if code == "provider_failed" or not code.startswith("provider_"):
                     raise
                 raise ProviderError(code) from error
-            delay = options.get("delay_seconds", 0) * 2 ** attempt
-            if "max_delay_seconds" in options:
-                delay = min(options["max_delay_seconds"], delay)
-            if end is not None and time.monotonic() + delay >= end:
-                raise ProviderError("provider_timeout") from error
-            diagnostic("provider_retry", operation=operation, attempt=attempt + 2, delay_seconds=delay)
+            try:
+                from .schema import validate_retry_params
+                async with asyncio.timeout(policy.remaining()):
+                    selected = await select_retry(RetryFailure(operation, copy_params(request), code,
+                        code.replace("_", " "), attempt + 1, code in TRANSIENT, tuple(changeable)), decide)
+                if selected is None:
+                    raise ProviderError(code) from error
+                request = change_arguments(request, selected, allowed=changeable, copy=copy_params,
+                    validate=lambda value: validate_retry_params(value, original=request, operation=operation))
+                delay = policy.delay(attempt + 1)
+            except TimeoutError as timeout_error:
+                raise ProviderError("provider_timeout") from timeout_error
+            diagnostic("provider_retry", operation=operation, attempt=attempt + 2,
+                       delay_seconds=delay, modified=bool(selected.changes))
             from .observations import record_retry
             record_retry(operation)
             await asyncio.sleep(delay)

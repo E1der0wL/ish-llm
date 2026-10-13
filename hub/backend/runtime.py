@@ -32,9 +32,16 @@ class HubConfig:
     user_profile: UserProfile = field(default_factory=UserProfile)
     language_packs: dict[str, dict[str, str]] = field(default_factory=dict)
     _workspace_anchor: str | Path | None = field(default=None, repr=False)
+    tool_retry_chooser: Callable | None = None
+    tool_retry_evidence: dict[str, Callable] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         Language(self.language, self.language_packs)
+        if self.tool_retry_chooser is not None and not callable(self.tool_retry_chooser):
+            raise TypeError("tool_retry_chooser must be callable")
+        if not isinstance(self.tool_retry_evidence, dict) or any(not isinstance(name, str) or not name or not callable(provider)
+               for name, provider in self.tool_retry_evidence.items()):
+            raise TypeError("tool_retry_evidence maps Tool names to callable evidence providers")
         if not self.engine.strip():
             raise ValueError("An explicit engine is required")
         if self.session_id and not self.project_id:
@@ -51,7 +58,6 @@ def create_backend(config: HubConfig):
     # Heavy imports and construction happen on the backend thread, not in .ishrc.
     from llm.llm import LargeLanguageModel, BackendServices
     from llm.services.runtime.tools import ToolRuntime
-    from llm.components.tools.builtin import BuiltinToolRunner
     from .execution.retries import HubLoopEngine, RetryMonitor, RetryObservationMixin
     from llm.engines.graph import GraphEngine
     from llm.engines.graph.agent import AgentNode
@@ -88,15 +94,22 @@ def create_backend(config: HubConfig):
         component = factory()
         components[component.name] = component
     from .execution.environment import EnvironmentEngine
+    from .tools.retry import ToolRetrySelector, RetryAwareRunner
+    from .tools.retry_evidence import file_candidates
     builtins = components.get("builtin_tools")
-    if isinstance(builtins, HubBuiltinTools):
-        engines = {name: EnvironmentEngine(engine, builtins) if not name.startswith("_hub_") else engine
-                   for name, engine in engines.items()}
+    builtins = builtins if isinstance(builtins, HubBuiltinTools) else None
+    selector = ToolRetrySelector(chooser=config.tool_retry_chooser,
+        evidence={**({"file_read": file_candidates} if builtins else {}), **config.tool_retry_evidence},
+        fallback_engine=engines["loop"], builtins=builtins)
+    engines = {name: EnvironmentEngine(engine, builtins, recovery=selector, retry_monitor=monitor)
+               if not name.startswith("_hub_") else engine
+               for name, engine in engines.items()}
     return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
                               services=BackendServices(context_builder=HubContextBuilder(), observability_sink=monitor,
                                   tool_runtime=ToolRuntime(
                                       classify=config.tool_classifier if config.tool_classifier is not None else classify_model_risk,
-                                      revision="hub-model-risk-v1", runner=BuiltinToolRunner())))
+                                      revision="hub-model-risk-tool-retry-v2", decide_retry=selector,
+                                      runner=RetryAwareRunner(selector))))
 
 
 class HubRuntime:
@@ -118,6 +131,8 @@ class HubRuntime:
         self._dropped_observations = 0
         from .observability.snapshot import SnapshotReader
         self.snapshot_reader = SnapshotReader()
+        from .history import TurnHistory
+        self.history = TurnHistory(self)
         self._opened_sessions = set()
         self.notifications = NotificationBuffer()
         self.builtin_tools = None
@@ -220,7 +235,20 @@ class HubRuntime:
                 raise ValueError(self.t("clone_busy"))
             await source.run.shutdown()
             try:
-                session = await source.aclone(title=title or self.t("new_session"), through_message_id=through_message_id)
+                from .execution.turns import TurnIndex, edit_source
+                records = await source.aconversation()
+                revised = any(edit_source(m) or m.metadata.get("resume") for m in records)
+                index = TurnIndex(records)
+                boundary = (next(i for i, turn in enumerate(index.turns) if turn.id == through_message_id)
+                            if revised and through_message_id else None)
+                session = await source.aclone(title=title or self.t("new_session"),
+                    through_message_id=None if revised else through_message_id)
+                if boundary is not None:
+                    # The Hub context builder clones logical turns. Trim the
+                    # freshly created inactive clone through public deletion.
+                    groups = await session.aturns()
+                    for group in reversed(groups[boundary + 1:]):
+                        await session.adelete_turn(group[0].id)
             finally:
                 await source.run.start()
         elif mode == "new":
@@ -247,21 +275,19 @@ class HubRuntime:
         return session.id
 
     async def turns(self, session_id):
-        if not session_id:
-            return []
-        session = self.sessions[session_id]
-        rows = []
-        for group in await session.aturns():
-            request = group[0]
-            assistants = [m for m in group if m.role == "assistant"]
-            run = await (await session.run.aload(request.run_id)).aget_data() if request.run_id else None
-            elapsed = (await self.snapshot_reader.run_display(session, run.id))[1] if run else None
-            rows.append({"id": request.id, "text": request.content, "time": request.created_at,
-                         "status": str(run.status if run else assistants[-1].status if assistants else request.status),
-                         "engine": run.engine if run else "", "elapsed": elapsed,
-                         "response": "\n".join(m.content for m in assistants),
-                         "run_id": request.run_id or "", "error": str(run.error or "") if run else ""})
-        return rows
+        return await self.history.rows(session_id)
+
+    async def retry_turn(self, session_id, request_id, expected_run_id):
+        return await self.history.retry(session_id, request_id, expected_run_id)
+
+    async def edit_turn(self, session_id, request_id, text, expected_request_id):
+        return await self.history.edit(session_id, request_id, text, expected_request_id)
+
+    async def delete_turns_plan(self, session_id, identifiers):
+        return await self.history.deletion_plan(session_id, identifiers)
+
+    async def delete_turns(self, session_id, identifiers, expected_revision, *, progress=None):
+        return await self.history.delete(session_id, identifiers, expected_revision, progress=progress)
 
     async def delete_turn_plan(self, session_id, request_id):
         return (await self.sessions[session_id].adelete_turn_plan(request_id)).to_dict()
@@ -399,6 +425,12 @@ class HubRuntime:
         project = await self.backend.projects.aload(project_id)
         tools = await ToolManagement.for_project(project, root=self.config.file_root, builtin=self.builtin_tools)
         return await tools.execute(action, argument, expected_version)
+
+    async def manage_records(self, project_id, name, action, argument="", expected_version=None):
+        from .project.record_management import RecordManagement
+        project = await self.backend.projects.aload(project_id)
+        manager = await RecordManagement.for_project(project, name, root=self.config.file_root)
+        return await manager.execute(action, argument, expected_version)
 
     async def submit(self, session_id: str, text: str, engine: str | None = None,
                      engine_options: dict | None = None) -> str:

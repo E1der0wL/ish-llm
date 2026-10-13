@@ -14,7 +14,7 @@ class HubCommands:
             if view.on_component:
                 view.on_component(command[1:], argument.strip())
             return True
-        actions = {"/help": view.help_dialog, "/engine": lambda: view.engine_dialog(argument.strip()),
+        actions = {"/help": view.help_dialog, "/engine": lambda: view.choose_engine(argument.strip()),
                    "/new": lambda: view.session_dialog("new", argument.strip()),
                    "/clone": lambda: view.session_dialog("clone", argument.strip()),
                    "/preview": lambda: setattr(view, "show_preview", not view.show_preview),

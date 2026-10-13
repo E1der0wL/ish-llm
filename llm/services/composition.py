@@ -54,7 +54,7 @@ class BackendServices:
             values[key] = getattr(self, key)
         runtime = self.tool_runtime or ToolRuntime()
         values["tool_runtime"] = {name: identity(getattr(runtime, name)) for name in
-            ("authorize", "runner", "operation_key", "operation_probe", "classify")}
+            ("authorize", "runner", "operation_key", "operation_probe", "classify", "decide_retry")}
         values["tool_runtime"].update(revision=runtime.revision,
                                      retry_safe_tools=list(runtime.retry_safe_tools))
         return {"values": values, "x-owner": "host", "x-scope": "infrastructure"}

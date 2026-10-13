@@ -1,6 +1,7 @@
 """Hub actions and their footer hints share these context predicates."""
 
 from prompt_toolkit.application.current import get_app
+from prompt_toolkit.key_binding import merge_key_bindings
 from .context import InputContext
 from .registry import ShortcutRegistry, legend
 
@@ -10,7 +11,10 @@ class HubBindings:
         self.view = view
         self.context = c = InputContext(view)
         self.registry = r = ShortcutRegistry()
-        self.keys = r.bindings
+        self.common_registry = common = ShortcutRegistry()
+        self.keys = merge_key_bindings([r.bindings, common.bindings])
+        common.add(["c-q"], "Ctrl+Q", "minimize", self.minimize,
+                   when=lambda: view.visible, global_=True)
         r.add(["escape"], "ESC", lambda: "minimize" if c.sidebar else "sidebar", self.escape, when=lambda: c.available)
         r.add(["escape"], "ESC", "close", lambda e: view.close_dialog(), when=lambda: c.dialog)
         r.add(["tab", "s-tab"], "Tab/Shift+Tab", "move",
@@ -55,11 +59,9 @@ class HubBindings:
             -1 if e.key_sequence[-1].key == "up" else 1),
             when=lambda: c.composing and view.input_history.available)
         r.scroll(self.scroll, when=lambda: c.chat)
-        # Settings uses its item navigator. Never let an Alt prefix escape into
-        # the chat page or trigger the standalone ESC panel action.
-        r.scroll(lambda e: None, when=lambda: c.settings, visible=False)
+        r.scroll(self.scroll_settings, when=lambda: c.settings and not c.sidebar)
+        r.scroll(lambda e: None, when=lambda: c.settings and c.sidebar, visible=False)
         for key, label, callback in (
-            ("c-e", "engine", view.engine_dialog),
             ("c-r", "preview", lambda: setattr(view, "show_preview", not view.show_preview)),
             ("c-t", "tags", lambda: view.tags.open())):
             r.add([key], "Ctrl+" + key[-1].upper(), label, lambda e, callback=callback: callback(), when=lambda: c.chat)
@@ -73,19 +75,24 @@ class HubBindings:
 
     def hints(self):
         local = getattr(self.context.control, "hub_shortcuts", None)
-        # A modal read-only receiver owns all keys, including ESC and Enter.
+        # Readers replace page actions, but keep application-wide shortcuts.
         only_local = bool(self.view._dialog and self.view._dialog.shortcut_context == "reader")
-        actions = [] if only_local else self.registry.active()
+        actions = self.common_registry.active()
+        if not only_local:
+            actions += self.registry.active()
         if local:
             actions += local.active()
         return legend(actions, self.view.t)
 
     def escape(self, event):
         if self.context.sidebar:
-            self.view.settings.finish_edit()
-            self.view.hide(event.app)
+            self.minimize(event)
         else:
             self.view.active_page.focus_sidebar()
+
+    def minimize(self, event):
+        self.view.settings.finish_edit()
+        self.view.hide(event.app)
 
     def settings(self, event):
         view = self.view
@@ -134,6 +141,10 @@ class HubBindings:
 
     def scroll(self, event):
         self.view.transcript.control.scroll(event.key_sequence[-1].key)
+        event.app.invalidate()
+
+    def scroll_settings(self, event):
+        self.view.settings.main.scroll(event.key_sequence[-1].key)
         event.app.invalidate()
 
     def submit(self, event):

@@ -69,6 +69,8 @@ class SettingField:
                               height=lambda: min(3, self.input.buffer.document.line_count),
                               read_only=Condition(lambda: self.readonly or not self.editing or not self.enabled()),
                               wrap_lines=True, style="class:hub.settings-input", focus_on_click=True)
+        self.input.window.always_hide_cursor = Condition(
+            lambda: not self.editing or self.readonly or not self.enabled())
         registry = ShortcutRegistry()
         editable = lambda: self.enabled() and not self.readonly
         registry.add(["e", "E"], "e", "editor", lambda e: self.on_edit and self.on_edit(self),

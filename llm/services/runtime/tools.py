@@ -20,6 +20,7 @@ from llm.core.results import EngineOutput
 from llm.core.interactions import InteractionRequest, approval_request, same_interaction_value
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.policies import ExecutionLimitError
+from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
 from llm.services.runtime.operations import operation_token
 
 
@@ -48,15 +49,19 @@ class ToolExecutionError(CodedError, RuntimeError):
 
     code = "tool_failed"
 
-    def __init__(self, message: str, *, effect="uncertain", retryable=False):
+    def __init__(self, message: str, *, effect="uncertain", retryable=False, recoverable=False):
         if effect not in ("none", "uncertain") or type(retryable) is not bool:
             raise ValueError("Invalid Tool failure classification")
+        if type(recoverable) is not bool or recoverable and effect != "none":
+            raise ValueError("Recoverable Tool errors require confirmed absence of effects")
         super().__init__(message)
         self.effect, self.retryable = effect, retryable
+        self.recoverable = recoverable
 
     @property
     def diagnostic(self):
-        return Diagnostic("tool_failed", str(self), details={"effect": self.effect, "retryable": self.retryable})
+        return Diagnostic("tool_failed", str(self), details={"effect": self.effect, "retryable": self.retryable,
+            **({"recoverable": True} if self.recoverable else {})})
 
 
 class ToolApprovalRequired(RuntimeError):
@@ -102,6 +107,8 @@ class ToolRuntime:
     retry_safe_tools: tuple[str, ...] = ()
     revision: str = "1"
     classify: Optional[Callable] = None
+    # Application의 선택 메커니즘. Project의 횟수/Tool 제약을 확대할 수 없다.
+    decide_retry: Optional[Callable] = None
 
     def __post_init__(self):
         if not isinstance(self.revision, str) or not self.revision.strip():
@@ -109,7 +116,7 @@ class ToolRuntime:
         if not isinstance(self.retry_safe_tools, tuple) or any(not isinstance(n, str) or not n for n in self.retry_safe_tools):
             raise ValueError("retry_safe_tools must be a tuple of names")
         if any(value is not None and not callable(value) for value in (
-                self.authorize, self.runner, self.operation_key, self.operation_probe, self.classify)):
+                self.authorize, self.runner, self.operation_key, self.operation_probe, self.classify, self.decide_retry)):
             raise TypeError("Tool adapters must be callable")
 
 
@@ -182,6 +189,7 @@ class ToolExecutionScope:
                 "max_calls": self.max_calls, "approval": root.runtime.authorize is not None,
                 "timeout_seconds": self.timeout_seconds, "max_output_chars": self.max_output_chars,
                 "classifier": root.runtime.classify is not None,
+                **({"retry_selector": True} if root.runtime.decide_retry is not None else {}),
                 "isolated_runner": root.runtime.runner is not None,
                 "operation_key": root.runtime.operation_key is not None,
                 "retry_safe_tools": list(self.runtime.retry_safe_tools), "max_retries": self.max_retries,
@@ -282,10 +290,76 @@ class ToolExecutor:
             raise ValueError("Tool output limit must be a positive integer")
         self.timeout_seconds, self.max_output_chars = timeout_seconds, max_output_chars
 
+    async def _classify(self, tool, arguments, context, scope):
+        from llm.components.tools.registry import ToolClassification
+        classification = tool.classification or ToolClassification()
+        if scope is not None and scope.runtime.classify is not None:
+            classification = scope.runtime.classify(ToolCall(tool.name, deepcopy(arguments), "",
+                context.project.id, context.session.id, context.run.id,
+                contract=tool.contract.to_dict() if tool.contract else None))
+            if inspect.isawaitable(classification):
+                classification = await classification
+        if not isinstance(classification, ToolClassification):
+            raise TypeError("Trusted classifier must return ToolClassification")
+        return asdict(classification)
+
+    def _retry_state(self, context, request_key, arguments):
+        """복구 상태는 기존 Engine checkpoint의 보조 record이며 별도 저장소를 만들지 않는다."""
+        if request_key is not None and (not isinstance(request_key, str) or not request_key.strip()
+                or request_key.startswith("@tool-retry:")):
+            raise ToolInvocationError("Tool request_key must be nonempty and outside the reserved retry namespace")
+        key = "@tool-retry:" + request_key if request_key is not None else None
+        saved = ((getattr(context, "checkpoint", None) or {}).get("records", {}).get(key, {}))
+        if not saved:
+            return {"original": deepcopy(arguments), "arguments": deepcopy(arguments),
+                    "attempt": 0, "repairs": 0, "failures": [], "uncertain": False,
+                    "pending": True, "last_error": None}
+        if saved.get("node_type") != "tool_retry" or saved.get("status") != "completed" or not isinstance(saved.get("retry"), dict):
+            raise ToolInvocationError("Invalid Tool retry checkpoint")
+        state = deepcopy(saved["retry"])
+        if (set(state) != {"original", "arguments", "attempt", "repairs", "failures", "uncertain", "pending", "last_error"}
+                or not same_interaction_value(state["original"], arguments)
+                or type(state["attempt"]) is not int or state["attempt"] < 0
+                or type(state["repairs"]) is not int or not 0 <= state["repairs"] <= state["attempt"]
+                or type(state["uncertain"]) is not bool
+                or type(state["pending"]) is not bool
+                or not isinstance(state["failures"], list) or len(state["failures"]) != state["attempt"]):
+            raise ToolInvocationError("Tool retry checkpoint does not match its original invocation")
+        ProjectConfig.validate_json(state)
+        if not state["pending"]:
+            # 명시적 재개도 이미 실행한 시도의 번호를 재사용하여 한도를 초기화하지 않는다.
+            state["attempt"] += 1
+            previous = state["last_error"] or {"code": "tool_interrupted", "message": "Previous attempt was interrupted",
+                "effect": "uncertain", "arguments": deepcopy(state["arguments"])}
+            state["failures"].append({**previous, "attempt": state["attempt"]})
+            state["uncertain"] = state["uncertain"] or previous["effect"] != "none"
+            state["pending"] = True
+        return state
+
+    def _retry_event(self, state, metadata, request_key):
+        name = (metadata or {}).get("checkpoint_name")
+        if name is None or request_key is None:
+            return None
+        return EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": "record",
+            "key": "@tool-retry:" + request_key, "value": {"status": "completed", "node_type": "tool_retry",
+            "container": True, "retry": deepcopy(state)}})
+
+    def _operation_call(self, call, scope, tool):
+        """수정 인자의 business key도 원래 공개 계약으로 재계산한다. 충돌은 원장이 거부한다."""
+        call = replace(call, operation_key=None, idempotency_key=None)
+        if scope.runtime.operation_key is not None:
+            key = scope.runtime.operation_key(deepcopy(call))
+            if key is not None:
+                if scope.operations is None:
+                    raise ValueError("Operation keys require a Session-bound operation service")
+                call = replace(call, operation_key=key,
+                               idempotency_key=operation_token(call.project_id, call.session_id, key))
+        if tool.contract is not None and tool.contract.operation_key_required and call.operation_key is None:
+            raise ExecutionLimitError("tool_contract", "Tool operation key cannot be empty")
+        return call
+
     def _request_state(self, tool, arguments, context, decision, request_key, classification):
         """권한을 부여하지 않고 기존 체크포인트 연결만 검증한다. 계측 여부와 무관하다."""
-        if request_key is not None and (not isinstance(request_key, str) or not request_key.strip()):
-            raise ToolInvocationError("Tool request_key must be a nonempty string")
         records = (getattr(context, "checkpoint", None) or {}).get("records", {})
         run = getattr(context, "run", None)
         decisions = getattr(run, "metadata", {}).get("resume", {}).get("decisions", {})
@@ -321,7 +395,7 @@ class ToolExecutor:
                 raise ToolInvocationError("Durable Tool approval classification changed")
             if scope is not None and not same_interaction_value(action.get("policy"), scope.binding()):
                 raise ToolInvocationError("Durable Tool approval policy/adapter binding changed")
-            if not same_interaction_value(action.get("contract"), asdict(tool.contract) if tool.contract else None):
+            if not same_interaction_value(action.get("contract"), tool.contract.to_dict() if tool.contract else None):
                 raise ToolInvocationError("Durable Tool approval Tool contract changed")
             if scope is not None and not same_interaction_value(
                     action.get("policy", {}).get("argument_constraints", {}), scope.argument_constraints):
@@ -351,7 +425,7 @@ class ToolExecutor:
         return decision, False if request_key in records else resumed
 
     async def _execute(self, tool, arguments, *, result, metadata=None, context=None, decision=None, classification=None,
-                       request_key=None):
+                       request_key=None, retry_state=None):
         ProjectConfig.validate_json(arguments)
         step_id = new_id()
         scope = getattr(context, "tool_scope", None) or ToolExecutionScope(ToolRuntime())
@@ -360,31 +434,30 @@ class ToolExecutor:
                         context.project.id if context else None, context.session.id if context else None,
                         context.run.id if context else None,
                         input_message_id=context.run.input_message_id if context else None,
-                        contract=asdict(tool.contract) if tool.contract is not None else None,
+                        contract=tool.contract.to_dict() if tool.contract is not None else None,
                         classification=classification)
         # Project의 제한은 모든 엔진이 공유하며 로컬 호출은 좁히기만 한다.
         def narrow(left, right):
             return min(v for v in (left, right) if v is not None) if left is not None or right is not None else None
         seconds = narrow(self.timeout_seconds, scope.timeout_seconds)
         output_limit = narrow(self.max_output_chars, scope.max_output_chars)
-        if scope.runtime.operation_key is not None:
-            key = scope.runtime.operation_key(deepcopy(call))
-            if key is not None:
-                if scope.operations is None:
-                    raise ValueError("Operation keys require a Session-bound operation service")
-                call = replace(call, operation_key=key,
-                               idempotency_key=operation_token(call.project_id, call.session_id, key))
-        if tool.contract is not None and tool.contract.operation_key_required and call.operation_key is None:
-            raise ExecutionLimitError("tool_contract", "Tool operation key cannot be empty")
+        call = self._operation_call(call, scope, tool)
+        if scope.max_retries is not None:
+            event = self._retry_event(retry_state, metadata, request_key)
+            if event is not None:
+                yield event
         yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="tool", name=tool.name,
                           metadata={**deepcopy(metadata or {}), "arguments": deepcopy(arguments),
                                     "phase": "authorizing", "operation_key": call.operation_key,
                                     "idempotency_key": call.idempotency_key})
         authorized = False
         try:
-            deadline = None if seconds is None else asyncio.get_running_loop().time() + seconds
+            deadline = RetryPolicy.end(seconds)
+            retry = RetryPolicy(None if scope.max_retries is None else scope.max_retries + 1,
+                                scope.retry_delay, deadline=deadline)
             async with timeout(seconds):
-                invocation = (json.dumps([getattr(context, "checkpoint_scope", None), request_key])
+                invocation_key = request_key if not retry_state["repairs"] else f"{request_key}:repair:{retry_state['repairs']}"
+                invocation = (json.dumps([getattr(context, "checkpoint_scope", None), invocation_key])
                               if request_key is not None else None)
                 await scope.authorize(call, decision=decision, invocation=invocation)
             authorized = True
@@ -400,14 +473,19 @@ class ToolExecutor:
             if reservation["reused"]:
                 record("tools", "reused", name=tool.name)
             if not reservation["reused"]:
-                attempt = 0
-                uncertain_attempt = False
-                while True:
+                attempt = retry_state["attempt"]
+                uncertain_attempt = retry_state["uncertain"]
+                while not reservation["reused"]:
                     remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
                     if remaining is not None and remaining <= 0:
                         raise asyncio.TimeoutError()
                     try:
                         scope.require_active()
+                        retry_state.update(pending=False, last_error=None)
+                        if scope.max_retries is not None:
+                            event = self._retry_event(retry_state, metadata, request_key)
+                            if event is not None:
+                                yield event
                         record("tools", "executions", retry=attempt > 0, name=tool.name,
                                run_id=call.run_id, step_id=call.step_id)
                         stream = getattr(tool.handler, "execute_events", None)
@@ -451,25 +529,73 @@ class ToolExecutor:
                         safe = (isinstance(error, ToolExecutionError) and error.effect == "none"
                                 or tool.name in scope.runtime.retry_safe_tools)
                         retryable = isinstance(error, ToolExecutionError) and error.retryable
-                        if not safe or not retryable or scope.max_retries is None or attempt >= scope.max_retries:
+                        repairable = (isinstance(error, ToolExecutionError) and error.recoverable
+                                      and not uncertain_attempt and bool(tool.contract and tool.contract.retry_fields))
+                        if isinstance(error, ToolExecutionError) and error.effect == "none" and not uncertain_attempt and call.operation_key is not None:
+                            try:
+                                await scope.operations.not_applied(call, str(error))
+                            except Exception as persistence_error:
+                                raise RuntimeError("Could not persist the no-effect Tool receipt") from persistence_error
+                        retry_state.update(uncertain=uncertain_attempt, last_error={
+                            "code": stable_error_code(error) or "tool_failed", "message": str(error),
+                            "effect": "uncertain" if uncertain_attempt else "none", "arguments": deepcopy(arguments)})
+                        if scope.max_retries is not None:
+                            event = self._retry_event(retry_state, metadata, request_key)
+                            if event is not None:
+                                yield event
+                        if not safe or not (retryable or repairable) or not retry.allows(attempt + 1):
                             if isinstance(error, ToolExecutionError) and error.effect == "none" and uncertain_attempt:
                                 raise ToolExecutionError(str(error), effect="uncertain") from error
-                            if isinstance(error, ToolExecutionError) and error.effect == "none" and call.operation_key is not None:
-                                try:
-                                    await scope.operations.not_applied(call, str(error))
-                                except Exception as persistence_error:
-                                    raise RuntimeError("Could not persist the no-effect Tool receipt") from persistence_error
                             raise
+                        fields = tool.contract.retry_fields if repairable else ()
+                        async with timeout(retry.remaining()):
+                            selected = await select_retry(RetryFailure(tool.name, deepcopy(arguments),
+                                error.code, str(error), attempt + 1, retryable, fields), scope.runtime.decide_retry)
+                        if selected is None:
+                            raise
+                        from llm.components.tools.constraints import constrained_arguments
+                        def validate(candidate):
+                            ProjectConfig.validate_json(candidate)
+                            constrained_arguments(tool.parameters, candidate, scope.argument_constraints.get(tool.name, {}))
+                        candidate = change_arguments(arguments, selected, allowed=fields, validate=validate)
+                        modified = not same_interaction_value(candidate, arguments)
+                        if not modified and not retryable:
+                            raise ValueError("Recoverable Tool failure requires different arguments") from error
                         attempt += 1
+                        retry_state["failures"].append({"attempt": attempt, "code": error.code,
+                            "message": str(error), "effect": error.effect, "arguments": deepcopy(arguments)})
+                        retry_state.update(attempt=attempt, arguments=deepcopy(candidate),
+                                           repairs=retry_state["repairs"] + int(modified), uncertain=uncertain_attempt, pending=True)
                         yield EngineEvent(EngineEventType.STEP_UPDATED, step_id=step_id,
                             metadata={"phase": "retrying", "retry_attempt": attempt,
-                                      "effect": error.effect, "retry_error": str(error)})
-                        remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
-                        if remaining is not None and remaining <= 0:
-                            raise asyncio.TimeoutError()
-                        async with timeout(remaining):
-                            if scope.retry_delay is not None:
-                                await asyncio.sleep(scope.retry_delay)
+                                      "effect": error.effect, "retry_error": str(error),
+                                      "retry_failures": deepcopy(retry_state["failures"])})
+                        event = self._retry_event(retry_state, metadata, request_key)
+                        if event is not None:
+                            yield event
+                        await retry.wait(attempt)
+                        if modified:
+                            arguments = candidate
+                            async with timeout(retry.remaining()):
+                                classification = await self._classify(tool, arguments, context, scope)
+                            call = self._operation_call(replace(call, arguments=deepcopy(arguments),
+                                                               classification=classification), scope, tool)
+                            # 이전 인자의 approval은 새 invocation에 권한을 주지 않는다.
+                            authorized = False
+                            invocation = (json.dumps([getattr(context, "checkpoint_scope", None),
+                                f"{request_key}:repair:{retry_state['repairs']}"]) if request_key is not None else None)
+                            async with timeout(retry.remaining()):
+                                await scope.authorize(call, decision=None, invocation=invocation)
+                            authorized = True
+                            yield EngineEvent(EngineEventType.STEP_UPDATED, step_id=step_id,
+                                metadata={"phase": "executing", "authorization": "allowed", "arguments": deepcopy(arguments),
+                                          "operation_key": call.operation_key, "idempotency_key": call.idempotency_key})
+                        if call.operation_key is not None and not uncertain_attempt:
+                            async with timeout(retry.remaining()):
+                                reservation = await scope.operations.claim(call)
+                            if reservation["reused"]:
+                                value = reservation["result"]
+                                record("tools", "reused", name=tool.name)
             ProjectConfig.validate_json({"result": value})
             content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)
             if output_limit is not None and len(content) > output_limit:
@@ -477,6 +603,8 @@ class ToolExecutor:
             if call.operation_key is not None and not reservation["reused"]:
                 await scope.operations.complete(call, value)
             result.update(value=deepcopy(value), content=content)
+            if retry_state["attempt"]:
+                result["retry"] = deepcopy(retry_state)
             scope.record_completion()
         except (asyncio.CancelledError, GeneratorExit):
             raise
@@ -515,17 +643,13 @@ class ToolExecutor:
         scope = getattr(context, "tool_scope", None)
         arguments = constrained_arguments(tool.parameters, arguments,
             scope.argument_constraints.get(tool.name, {}) if scope is not None else {})
-        from llm.components.tools.registry import ToolClassification
-        classification = tool.classification or ToolClassification()
-        if scope is not None and scope.runtime.classify is not None:
-            classification = scope.runtime.classify(ToolCall(tool.name, deepcopy(arguments), "",
-                context.project.id, context.session.id, context.run.id,
-                contract=asdict(tool.contract) if tool.contract else None))
-            if inspect.isawaitable(classification):
-                classification = await classification
-        if not isinstance(classification, ToolClassification):
-            raise TypeError("Trusted classifier must return ToolClassification")
-        classification = asdict(classification)
+        retry_state = self._retry_state(context, request_key, arguments)
+        arguments = retry_state["arguments"]
+        if retry_state["attempt"] and (scope is None or scope.max_retries is None or retry_state["attempt"] > scope.max_retries):
+            raise ToolInvocationError("Tool retry checkpoint exceeds the configured retry limit")
+        arguments = constrained_arguments(tool.parameters, arguments,
+            scope.argument_constraints.get(tool.name, {}) if scope is not None else {})
+        classification = await self._classify(tool, arguments, context, scope)
         decision, resumed = self._request_state(tool, arguments, context, decision, request_key, classification)
         if scope is not None and request_key is not None:
             invocation = json.dumps([getattr(context, "checkpoint_scope", None), request_key])
@@ -537,7 +661,7 @@ class ToolExecutor:
         try:
             async with aclosing(self._execute(tool, arguments, result=result, metadata=metadata,
                                               context=context, decision=decision, classification=classification,
-                                              request_key=request_key)) as events:
+                                              request_key=request_key, retry_state=retry_state)) as events:
                 async for event in events:
                     if event.type == EngineEventType.PAUSED:
                         status = "paused"

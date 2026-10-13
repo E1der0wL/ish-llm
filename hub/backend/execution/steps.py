@@ -28,6 +28,8 @@ def display_steps(steps) -> tuple[StepSummary, ...]:
                 identity = "tool:" + sha256(json.dumps(key, ensure_ascii=False).encode()).hexdigest()
             if status == "cancelled" and metadata.get("phase") == "waiting_approval":
                 status = "waiting_approval"
+            elif status == "running" and metadata.get("phase") in ("repairing", "retrying"):
+                status = "retrying"
         result.append(StepSummary(step.name, status, kind, identity, getattr(step, "started_at", None) or "",
                                   getattr(step, "id", "")))
     return tuple(result)

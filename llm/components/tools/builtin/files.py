@@ -88,7 +88,13 @@ class FileTools:
 
     def file_read(self, args):
         with self.lock:
-            value = self.read_bytes(self.path(args["path"]))
+            target = self.path(args["path"])
+            try:
+                value = self.read_bytes(target)
+            except FileNotFoundError as error:
+                # 경로/링크 검증을 통과한 읽기만 분류한다. 보안/버전/일반 I/O 오류는 삼키지 않는다.
+                from llm.services.runtime.tools import ToolExecutionError
+                raise ToolExecutionError(f"File not found: {args['path']}", effect="none", recoverable=True) from error
             if "expected_sha256" in args:
                 self.check_version(value, args["expected_sha256"])
             lines = value.decode("utf-8").splitlines(keepends=True)

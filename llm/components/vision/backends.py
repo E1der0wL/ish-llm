@@ -9,7 +9,6 @@ from typing import Protocol
 
 from llm.errors import CodedError
 from llm.providers.parameters import copy_params
-from llm.providers.requests import invoke
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 
@@ -134,8 +133,11 @@ def image_content(raw: bytes, mime_type: str) -> dict:
 class VisionModel:
     observes_model_calls = True
 
-    def __init__(self, *, completion_fn=None):
+    def __init__(self, *, completion_fn=None, retry_decider=None):
+        if retry_decider is not None and not callable(retry_decider):
+            raise TypeError("Retry selector must be callable")
         self.completion_fn = completion_fn
+        self.retry_decider = retry_decider
 
     async def analyze(self, raw: bytes, mime_type: str, prompt: str, *, parameters: dict, provider: dict) -> dict:
         request = copy_params(parameters)
@@ -147,16 +149,9 @@ class VisionModel:
             raise ValueError("Vision analysis requires one non-streaming response")
         request.update(stream=False, n=1, messages=[{"role": "user", "content": [
             {"type": "text", "text": prompt}, image_content(raw, mime_type)]}])
-        # 전체 기한은 SDK 초기화도 포함하고, 명시된 경우에만 적용한다.
-        async with asyncio.timeout(provider.get("wall_timeout")):
-            call = self.completion_fn
-            if call is None:
-                from llm.providers.runtime import litellm_sdk, diagnostic
-                sdk = await asyncio.to_thread(litellm_sdk)
-                call = sdk.acompletion
-                diagnostic("provider_request", operation="acompletion")
-            response = await invoke("acompletion", request, call, provider,
-                                    sdk_defaults=self.completion_fn is None)
+        from llm.providers.requests import request_model
+        response = await request_model("acompletion", request, provider, call=self.completion_fn,
+                                       decide=self.retry_decider, changeable=("timeout",))
         from llm.providers.embeddings import value
         choice = value(response, "choices")[0]
         return {"text": value(value(choice, "message"), "content"), "model": request["model"],

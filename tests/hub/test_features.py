@@ -364,11 +364,13 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(calls[-1][:2], ("new", "Named session"))
                 self.assertEqual(view.composer.text, "**draft**")
                 view.engines = ("loop", "review")
-                pipe.send_text("\x05")  # Ctrl+E
-                await until(lambda: view._dialog is not None)
-                pipe.send_text("\x1b[B\t\r")  # review, Confirm
-                await until(lambda: view._dialog is None)
-                self.assertEqual(view.engine, "review")
+                pipe.send_text("\x05")  # No engine popup shortcut.
+                await asyncio.sleep(.05)
+                self.assertIsNone(view._dialog)
+                app.layout.focus(view.composer)
+                view.composer.text = ""
+                pipe.send_text("/engine review\r")
+                await until(lambda: view.engine == "review")
                 app.layout.focus(view._session_control)
                 pipe.send_text("c")
                 await until(lambda: view._dialog is not None)
@@ -385,7 +387,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.composer.text == "/engine")
                 self.assertIsNone(view._dialog)
                 header = "".join(part[1] for part in view._header())
-                self.assertEqual(header, " •  demo-project")
+                self.assertEqual(header, "   demo-project")
             finally:
                 app.exit()
                 await task

@@ -75,6 +75,9 @@ class RetrySummary:
     attempt: int
     maximum: int
     retry_at: float | None = None
+    kind: str = "provider"
+    name: str = ""
+    phase: str = "active"
 
 
 @dataclass(frozen=True, slots=True)

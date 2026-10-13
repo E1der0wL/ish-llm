@@ -3,6 +3,10 @@
 from prompt_toolkit.utils import get_cwidth
 
 
+def turn_label(row, index, t):
+    return f"{index + 1}. {' '.join(row['text'].split())[:60]} · {t.status(row['status'])}"
+
+
 def clipped_summary(text, width):
     text = " ".join(text.split())
     text = "".join(char for char in text if char.isprintable())

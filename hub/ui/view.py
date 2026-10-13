@@ -20,9 +20,10 @@ from ..model import SessionView
 from ..locales import Language
 from ..config.theme import HubTheme
 from ..widget.controls import TextArea
+from ..widget.input_frame import InputFrame
 from ..asset import icon
 from ..config.general import GeneralSettings
-from ..widget.sidebar import SidebarItem, SidebarList
+from ..widget.sidebar import SidebarHeading, SidebarItem, SidebarList
 from .layout import TwoPanelPage
 
 
@@ -36,13 +37,14 @@ class HubView:
         self.on_open = self.on_submit = self.on_select = self.on_new = None
         self.on_interrupt = self.on_steer = None
         self.on_answer = self.on_review = None
-        self.on_choose_engine = None
         self.on_history = self.on_activity = None
         self.on_turns = None
         self.on_delete = self.on_rename = self.on_component = None
         self.component_commands = {}
         self._execution_options = {}
         self.visible = False
+        from ..widget.mouse import MouseController
+        self.mouse = MouseController(self)
         self.show_preview = False
         self.selected = 0
         self._session_focus = False
@@ -80,7 +82,8 @@ class HubView:
         self.followup = FollowupSuggestion(self)
         self.composer = TextArea(
             auto_suggest=self.followup,
-            multiline=True, height=Dimension(min=1, max=8), dont_extend_height=True,
+            # Two input rows, one hint row and two borders make five rows.
+            multiline=True, height=Dimension(min=2, max=8), dont_extend_height=True,
             wrap_lines=True, prompt=f" {icon.PROMPT} ", style="class:hub.composer",
             completer=ThreadedCompleter(completer), complete_while_typing=Condition(
                 lambda: self.question.item is None and not self.input_history.browsing),
@@ -91,9 +94,12 @@ class HubView:
         self.preparing = PreparingResponse(self)
         from ..widget.feedback.interrupt_feedback import InterruptFeedback
         self.interrupting = InterruptFeedback(self)
+        from ..widget.feedback.history_deletion import HistoryDeletion
+        self.deleting = HistoryDeletion(self)
         from .input.history import ComposerHistory
         self.input_history = ComposerHistory(self)
         self.transcript = ConversationView(self.sessions[0].messages, self.theme, language=self.t)
+        self.transcript.window.hub_click_focus = self._focus_composer
         from .output.worker import RenderWorker
         self.render_worker = RenderWorker()
         self.transcript.control.render_worker = self.render_worker
@@ -113,7 +119,7 @@ class HubView:
             lambda: [] if self.no_sessions else [SidebarItem(self._draft_key(i), session.title, session.status) for i, session in enumerate(self.sessions)],
             lambda: self._draft_key(self.selected), self._select_sidebar_session)
         self._sidebar = ConditionalContainer(HSplit([
-            self._line(lambda: self._focus_heading(self._session_control, self.t("sessions")), "hub.muted", height=2),
+            SidebarHeading(lambda: self.t("sessions")),
             Window(self._session_control, style="class:hub.sidebar"),
         ], width=self.sidebar_width, style="class:hub.sidebar"), Condition(lambda: self._columns() >= 88 or self._session_focus))
         self._details = self.tags.container
@@ -122,14 +128,13 @@ class HubView:
             title=lambda: self._focus_heading(self.draft_preview.control, self.t("preview")),
             style="class:hub.preview-frame", height=lambda: 3 if self._rows() < 32 else 5),
             Condition(lambda: self.show_preview and bool(self.composer.text) and self._rows() >= 24))
-        self._composer_frame = Frame(HSplit([
+        self._composer_frame = InputFrame(HSplit([
             self.question.container,
             self.composer,
-            ConditionalContainer(self._line(lambda: " " + self.t("input_hint") + (
-                " · " + self.t("followup_hint") if self.followup.get_suggestion(
-                    self.composer.buffer, self.composer.buffer.document) else ""), "hub.muted"),
-                                 Condition(lambda: self._rows() >= 18)),
         ]), title=lambda: self._focus_heading(self.composer.control, self.t("model_line", model=self.model)),
+            hint=lambda: self.t("input_hint") + (
+                " · " + self.t("followup_hint") if self.followup.get_suggestion(
+                    self.composer.buffer, self.composer.buffer.document) else ""),
             style="class:hub.input-frame")
         conversation = HSplit([
             self._line(self._conversation_header, "hub.title"),
@@ -138,11 +143,12 @@ class HubView:
             self._composer_frame,
         ])
         self.chat_page = TwoPanelPage(
-            header=HeaderBar(lambda: self.project_title), footer=self.shortcut_bar(),
+            header=HeaderBar(lambda: self.project_title, icons=lambda: self.icons), footer=self.shortcut_bar(),
             sidebar=self._sidebar, main=conversation, progress=self.progress, notice=lambda: self.notice,
             sidebar_visible=self._sidebar.filter, extra=(self._details,),
             sidebar_controls=lambda: (self._session_control,),
-            focus_sidebar=self._focus_sessions, focus_main=self._focus_composer)
+            focus_sidebar=self._focus_sessions, focus_main=self._focus_composer,
+            sidebar_width=self.sidebar_width, resize_sidebar=self.settings.set_sidebar_width)
         panel = self.chat_page.container
         # PTK defers cursor-positioned floats with an absolute drawing priority.
         # An enclosing host Float can inherit a later priority than our popups.
@@ -184,7 +190,7 @@ class HubView:
         return Window(FormattedTextControl(text), height=height, style="class:" + style)
 
     def _header(self):
-        return HeaderBar(lambda: self.project_title).fragments()
+        return HeaderBar(lambda: self.project_title, icons=lambda: self.icons).fragments()
 
     @property
     def icons(self):
@@ -251,8 +257,11 @@ class HubView:
     def help_dialog(self):
         self.dialogs.help()
 
-    def engine_dialog(self, name=""):
-        self.dialogs.engine(name)
+    def choose_engine(self, name=""):
+        if name in self.engines:
+            self.set_execution(name, self.execution_options_for(name))
+        else:
+            self.notice = self.t("engine_command_usage", engines=", ".join(self.engines))
 
     @property
     def engine_options(self) -> dict:
@@ -310,7 +319,9 @@ class HubView:
         self.selected = index
         self.composer.buffer.suggestion = None
         self.composer.text = self._drafts.get(self._draft_key(index), "")
-        self.transcript.set_messages(self.sessions[index].messages, self._positions.get(self._draft_key(index)))
+        key = (getattr(self, "project_id", ""), self.sessions[index].id)
+        self.transcript.set_messages(self.preparing.project(key, self.sessions[index].messages),
+                                     self._positions.get(self._draft_key(index)))
         if self.on_save_view:
             self.on_save_view()
         if self.on_select:
@@ -332,6 +343,7 @@ class HubView:
         self._input_timeouts = (app.ttimeoutlen, app.timeoutlen)
         app.ttimeoutlen = app.timeoutlen = 0.02
         self.visible = True
+        self.mouse.attach(app)
         self._session_focus = False
         if self.on_open:
             self.on_open(app)
@@ -352,6 +364,7 @@ class HubView:
         if self._previous_focus in list(app.layout.find_all_controls()):
             app.layout.focus(self._previous_focus)
         self.visible = False
+        self.mouse.detach()
         if self._input_timeouts is not None:
             app.ttimeoutlen, app.timeoutlen = self._input_timeouts
             self._input_timeouts = None

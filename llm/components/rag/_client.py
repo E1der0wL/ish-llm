@@ -2,8 +2,6 @@
 
 Shared request mechanics; no scheduler, lifecycle events or domain writes."""
 
-import asyncio
-import time
 from copy import copy
 from collections.abc import Awaitable, Callable
 from typing import Any, Optional
@@ -25,6 +23,7 @@ class ModelClient:
         from llm.providers.schema import validate_model_params
         validate_model_params(self.params, operation=operation, json_contract=False)
         self.provider_options = {}
+        self._retry_decider = None
 
     @classmethod
     def describe_config(cls):
@@ -52,29 +51,20 @@ class ModelClient:
         worker.validate_config(params)
         return worker
 
+    def with_retry(self, decide):
+        """Application 선택기. 코퍼스 identity/input은 고정하고 transport timeout만 수정 가능하다."""
+        if not callable(decide):
+            raise TypeError("Retry selector must be callable")
+        worker = copy(self)
+        worker._retry_decider = decide
+        return worker
+
     async def _invoke(self, **kwargs: Any) -> Any:
         request = copy_params(self.params)
         request.update(copy_params(kwargs))
-        from llm.providers.requests import invoke, resolve_provider_options
-        options = resolve_provider_options(self.provider_options)
+        from llm.providers.requests import request_model
         deadline = request.pop("_provider_deadline", None)
-        if options.get("wall_timeout") is not None:
-            end = time.monotonic() + options["wall_timeout"]
-            deadline = min(deadline, end) if deadline is not None else end
         if request.pop("_without_response_format", False):
             request.pop("response_format", None)
-        from llm.providers.schema import validate_model_params
-        validate_model_params(request, operation=self._operation, require_model=True, json_contract=False)
-        call = self._call_fn
-        if call is None:
-            # Heavy SDK initialization must not block the application's loop.
-            from llm.providers.runtime import litellm_sdk, diagnostic
-            sdk = await asyncio.wait_for(asyncio.to_thread(litellm_sdk), None if deadline is None else max(0, deadline - time.monotonic()))
-            call = getattr(sdk, self._operation)
-            diagnostic("provider_request", operation=self._operation,
-                num_retries=request.get("num_retries"), max_retries=request.get("max_retries"),
-                caching=request.get("caching"), cache=request.get("cache"),
-                sdk_cache="none" if sdk.cache is None else "configured")
-        result = await invoke(self._operation, request, call, options, deadline=deadline,
-                              sdk_defaults=self._call_fn is None)
-        return result
+        return await request_model(self._operation, request, self.provider_options, call=self._call_fn,
+                                   deadline=deadline, decide=self._retry_decider, changeable=("timeout",))

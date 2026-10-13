@@ -1,0 +1,124 @@
+"""Component manager operations through lifecycle-checked public data handles."""
+
+import asyncio
+import json
+from pathlib import Path
+import re
+from uuid import uuid4
+
+
+class RecordManagement:
+    def __init__(self, data, name, root):
+        self.data, self.name, self.root = data, name, Path(root)
+
+    @classmethod
+    async def for_project(cls, project, name, *, root=None):
+        from llm.components.rag.data import RAGData
+        from llm.components.skills.data import SkillData
+        from llm.components.workflows.data import WorkflowData
+
+        types = {"skills": SkillData, "workflows": WorkflowData, "rag": RAGData}
+        if name not in types:
+            raise ValueError("Unsupported component manager")
+        data = await project.components.aget(name)
+        if not isinstance(data, types[name]):
+            raise ValueError("Unsupported component data contract")
+        record = await project.aget_data()
+        manager = DocumentManagement if name == "rag" else cls
+        return manager(data, name, root or record.paths.root)
+
+    def _read_import(self, argument):
+        source = Path(argument).expanduser()
+        if not source.is_absolute():
+            source = self.root / source
+        # Only caller-selected files are read. Imported data is validated and
+        # persisted by the component, never copied into its internal directories.
+        with source.open("r", encoding="utf-8-sig") as stream:
+            text = stream.read(8 * 1024 * 1024 + 1)
+        if len(text) > 8 * 1024 * 1024:
+            raise ValueError("Import file exceeds 8 MiB of text")
+        stem = source.parent.name if source.name.lower() == "skill.md" else source.stem
+        identifier = re.sub(r"[^A-Za-z0-9_-]", "_", stem)[:64].strip("_") or uuid4().hex
+        if self.name == "rag":
+            values = {"title": source.name, "content": text, "metadata": {"source": str(source)}}
+        elif self.name == "skills" and source.suffix.lower() in (".md", ".txt"):
+            values = {"title": stem, "instructions": text}
+        else:
+            values = json.loads(text)
+            if not isinstance(values, dict):
+                raise ValueError("Component import must contain a JSON object")
+        return identifier, values
+
+    @staticmethod
+    def _entry(identifier, values, version):
+        metadata = values.get("metadata") or {}
+        return {"name": identifier, "label": values.get("title") or metadata.get("title") or identifier,
+                "description": str(values.get("description") or metadata.get("description") or
+                                   values.get("instructions") or values.get("content") or "")[:200],
+                "modified": metadata.get("updated_at", ""), "version": version}
+
+    async def list(self):
+        entries = []
+        for identifier in await self.data.alist():
+            snapshot = await self.data.asnapshot(identifier)
+            entries.append(self._entry(identifier, snapshot["data"], snapshot["version"]))
+        return entries
+
+    async def read(self, identifier):
+        snapshot = await self.data.asnapshot(identifier)
+        return {"text": json.dumps(snapshot["data"], ensure_ascii=False, indent=2), "version": snapshot["version"]}
+
+    async def create(self, identifier, values):
+        await self.data.acreate(values, identifier=identifier)
+
+    async def save(self, identifier, values, version):
+        await self.data.asave(identifier, values, expected_version=version)
+
+    async def delete(self, identifier, version):
+        await self.data.adelete(identifier, expected_version=version)
+
+    async def execute(self, action, argument="", expected_version=None):
+        if action == "list":
+            return await self.list()
+        if action == "read":
+            return await self.read(argument)
+        if action == "import":
+            identifier, values = await asyncio.to_thread(self._read_import, argument)
+            await self.create(identifier, values)
+        elif action == "save":
+            if expected_version is None:
+                raise ValueError("Reload the item before saving")
+            values = json.loads(argument["text"])
+            if not isinstance(values, dict):
+                raise ValueError("Component data must be a JSON object")
+            await self.save(argument["name"], values, expected_version)
+        elif action == "delete":
+            if expected_version is None:
+                raise ValueError("Reload the item before deleting")
+            await self.delete(argument, expected_version)
+        else:
+            raise ValueError("Unknown component management operation")
+        return await self.list()
+
+
+class DocumentManagement(RecordManagement):
+    """RAG changes must update its corpus generation, not generic JSON records."""
+
+    async def list(self):
+        return [self._entry(item["id"], item, item["revision"]) for item in await self.data.alist_documents()]
+
+    async def read(self, identifier):
+        item = await self.data.aget_document(identifier)
+        values = {key: item[key] for key in ("title", "content", "metadata")}
+        return {"text": json.dumps(values, ensure_ascii=False, indent=2), "version": item["revision"]}
+
+    async def create(self, identifier, values):
+        await self.data.aadd_document(identifier=identifier, **values)
+
+    async def save(self, identifier, values, version):
+        if set(values) != {"title", "content", "metadata"}:
+            raise ValueError("RAG documents require title, content and metadata")
+        await self.data.aupdate_document(identifier, **values, expected_revision=version)
+
+    async def delete(self, identifier, version):
+        await self.data.adelete_document(identifier, expected_revision=version)

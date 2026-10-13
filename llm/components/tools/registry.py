@@ -35,6 +35,7 @@ class ToolContract:
     isolation: str = "none"
     approval_required: bool = False
     operation_key_required: bool = False
+    retry_fields: tuple[str, ...] = ()
 
     def __post_init__(self):
         if not isinstance(self.revision, str) or not self.revision:
@@ -43,6 +44,12 @@ class ToolContract:
             raise ValueError("Invalid Tool effect/isolation contract")
         if type(self.approval_required) is not bool or type(self.operation_key_required) is not bool:
             raise TypeError("Tool contract requirements must be boolean")
+        if (not isinstance(self.retry_fields, tuple) or any(not isinstance(k, str) or not k for k in self.retry_fields)
+                or len(set(self.retry_fields)) != len(self.retry_fields)):
+            raise ValueError("Tool retry_fields must be distinct parameter names")
+
+    def to_dict(self):
+        return {**asdict(self), "retry_fields": list(self.retry_fields)}
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,6 +81,8 @@ class ToolRegistry:
         schema = deepcopy(tool.parameters)
         if schema.get("type") != "object":
             raise ValueError("Tool parameters must describe an object")
+        if tool.contract is not None and set(tool.contract.retry_fields) - schema.get("properties", {}).keys():
+            raise ValueError("Tool retry_fields must name declared parameters")
         # Tool validation must not fetch remote schemas.
         def check_refs(value: Any) -> None:
             if isinstance(value, dict):
@@ -102,7 +111,7 @@ class ToolRegistry:
             if tool.classification is not None:
                 contracts[name] = {"classification": asdict(tool.classification)}
             if tool.contract is not None:
-                contracts.setdefault(name, {}).update(asdict(tool.contract))
+                contracts.setdefault(name, {}).update(tool.contract.to_dict())
                 # 신뢰한 실행 adapter의 immutable binding도 승인/재개 fingerprint에 포함한다.
                 binding = getattr(tool.handler, "execution_binding", None)
                 if binding is not None:

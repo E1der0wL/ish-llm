@@ -56,13 +56,13 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                 {"source": {"run_id": "run-a"}, "details": {"engine": "loop", "status": "failed"}},
                 {"source": {"run_id": "run-b"}, "details": {"engine": "graph", "status": "paused"}}]}
             calls = []
-            def call(operation, *args, completed):
+            def call(operation, *args, completed, progress=None):
                 calls.append((operation, args))
-                if operation == "delete_turn_plan":
+                if operation == "delete_turns_plan":
                     completed(plan)
-                elif operation == "delete_turn":
+                elif operation == "delete_turns":
                     rows.clear()
-                    completed(True)
+                    completed({"removed": ["turn"], "errors": []})
                 elif operation == "turns":
                     completed(rows)
                 else:
@@ -78,7 +78,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                 text = screen_text(app, 132, 40)
                 self.assertIn("run-a", text)
                 self.assertIn(view.t("history_abandon_delete"), text)
-                self.assertFalse(any(op == "delete_turn" for op, _ in calls))
+                self.assertFalse(any(op == "delete_turns" for op, _ in calls))
                 pipe.send_text("\x1b")
                 await eventually(lambda: view._dialog is None)
                 self.assertEqual(len(rows), 1)
@@ -88,8 +88,8 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: "run-b" in screen_text(app, 132, 40))
                 pipe.send_text("\r")
                 await eventually(lambda: not rows)
-                deletes = [args for op, args in calls if op == "delete_turn"]
-                self.assertEqual(deletes, [(sid, "turn", ["run-a", "run-b"], "observed-revision")])
+                deletes = [args for op, args in calls if op == "delete_turns"]
+                self.assertEqual(deletes, [(sid, ["turn"], "observed-revision")])
             finally:
                 app.exit()
                 await task

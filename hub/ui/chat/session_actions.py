@@ -26,7 +26,7 @@ class SessionActions:
             return
         source_id = view.sessions[view.selected].id
         ready = view.no_sessions or turns is not None or view.on_turns is None
-        from .history_ui import turn_label
+        from ...widget.summary import turn_label
         form = SessionForm(view.t, mode=mode, title=title, allow_clone=not view.no_sessions,
                            turns=turns, boundary=through_message_id, turn_label=turn_label)
         choices, name, boundary = form.mode, form.name, form.boundary

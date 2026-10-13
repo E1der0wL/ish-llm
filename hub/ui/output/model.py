@@ -30,6 +30,7 @@ class OutputObject:
     lines: tuple[tuple[tuple[str, str], ...], ...]
     start_line: int
     end_line: int
+    icon: str = ""
 
     @property
     def raw(self):

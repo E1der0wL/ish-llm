@@ -3,7 +3,8 @@
 from bisect import bisect_right
 
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import HSplit
+from prompt_toolkit.layout import HSplit, VSplit, Window
+from prompt_toolkit.layout.containers import to_container
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.screen import WritePosition
@@ -60,8 +61,13 @@ class SettingsBody(HSplit):
 
 
 class SettingsPane(ScrollablePane):
+    def __init__(self, content, **kwargs):
+        self.body = to_container(content)
+        self.scrollbar_gap = Window(width=1)
+        super().__init__(VSplit([self.body, self.scrollbar_gap]), **kwargs)
+
     def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
-        body = self.content.get_children()[0]  # SettingsScreen's DynamicContainer.
+        body = self.body.get_children()[0]  # SettingsScreen's DynamicContainer.
         if isinstance(body, SettingsBody):
             body.viewport = (self.vertical_scroll, write_position.height)
         super().write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)

@@ -164,10 +164,13 @@ class ExpandedOutputDialog:
 
     async def copy(self):
         try:
-            self.notice = self.t(await copy_text(self.item.raw))
+            self.notice = self.t(await copy_text(self.selected_text() or self.item.raw))
         except (OSError, RuntimeError) as error:
             self.notice = self.t("error", error=error)
         get_app().invalidate()
+
+    def selected_text(self):
+        return self.output.selection.text
 
 
 class OutputInspector(ExpandedOutputDialog):
@@ -183,6 +186,7 @@ class OutputInspector(ExpandedOutputDialog):
         self.shortcuts.add(["r"], "r", "object_raw", lambda e: self.toggle_raw())
 
     def toggle_raw(self):
+        self.output.selection.clear()
         self.output.raw_mode = not self.output.raw_mode
         self.output.top_line = self.output.left_column = 0
 

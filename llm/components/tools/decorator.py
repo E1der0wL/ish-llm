@@ -8,9 +8,9 @@ _UNSET = object()
 
 
 def tool(*, revision="1", effect="unknown", isolation="none", approval_required=False,
-         operation_key_required=False, strict=_UNSET):
+         operation_key_required=False, retry_fields=(), strict=_UNSET):
     """ToolContract를 명시한다. strict는 지정한 경우에만 provider 정의에 포함한다."""
-    contract = ToolContract(revision, effect, isolation, approval_required, operation_key_required)
+    contract = ToolContract(revision, effect, isolation, approval_required, operation_key_required, retry_fields)
     if strict is not _UNSET and type(strict) is not bool:
         raise TypeError("strict must be boolean")
     options = MappingProxyType({} if strict is _UNSET else {"strict": strict})

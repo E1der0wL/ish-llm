@@ -15,6 +15,38 @@ from tests.hub.support import SizedOutput, eventually
 
 
 class CharacterStreamTests(unittest.IsolatedAsyncioTestCase):
+    async def test_deleted_history_restores_in_full_then_animates_only_new_delta(self):
+        view = LiveHubView()
+        with create_pipe_input() as pipe:
+            app = Application(layout=Layout(view.container, focused_element=view.composer),
+                key_bindings=view.navigation_keys, input=pipe, output=SizedOutput(), full_screen=True)
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            try:
+                await eventually(lambda: app.is_running)
+                for status in ("completed", "streaming"):
+                    with self.subTest(status=status), set_app(app):
+                        answer = ChatMessage("assistant", "Existing response in full", status=status, id="answer")
+                        base = HubSnapshot("p", "P", "model", "file", (SessionSummary("s", "S", "idle"),),
+                            "s", (ChatMessage("user", "request", id="request"), answer))
+                        view.apply_snapshot(base)
+                        view.transcript.set_messages(view.sessions[0].messages)
+                        pending = view.deleting.start(("p", "s"), 1)
+                        view.apply_snapshot(base)
+                        self.assertFalse(view.transcript.control.messages)
+                        view.deleting.finish(pending)
+                        stream = view.transcript.control.character_stream
+                        self.assertFalse(stream.pending)
+                        self.assertEqual(stream.project(view.transcript.control.messages)[-1].text, answer.text)
+                        if status == "streaming":
+                            view.apply_snapshot(replace(base, messages=(base.messages[0], replace(answer, text=answer.text + " new"))))
+                            self.assertTrue(stream.pending)
+                            self.assertEqual(stream.project(view.transcript.control.messages)[-1].text, answer.text)
+            finally:
+                app.exit()
+                await task
+                view.output_renderers.close()
+                view.progress.close()
+
     def test_reveal_survives_completion_and_resets_on_history_switch_or_interrupt(self):
         stream = CharacterStream()
         stream.reset()

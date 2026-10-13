@@ -53,7 +53,7 @@ class PreparingResponse:
         if key in self.pending:
             messages = (*messages, ChatMessage("assistant", "", status="preparing",
                 id=f"preparing:{key[1]}", elapsed_seconds=monotonic() - self.started[key]))
-        return self.view.interrupting.project(key, messages)
+        return self.view.deleting.project(key, self.view.interrupting.project(key, messages))
 
     def paint(self):
         view = self.view

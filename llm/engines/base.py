@@ -401,6 +401,7 @@ class BaseEngine:
                                 response: Optional[dict] = None,
                                 include_events: bool = True,
                                 provider: Optional[dict] = None,
+                                retry_decider=None,
                                 max_tool_calls: Optional[int] = None,
                                 max_argument_chars: Optional[int] = None,
                                 max_output_chars: Optional[int] = None) -> AsyncIterator[Union[str, EngineEvent]]:
@@ -414,6 +415,9 @@ class BaseEngine:
         """
         from llm.providers.retry import transient, effective_attempts
         from llm.providers.requests import resolve_provider_options, ProviderError
+        from llm.providers.requests import error_code
+        from llm.providers.schema import validate_retry_params
+        from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
         # 호출자가 자신의 Project-owned 설정에서 해석한 제한만 이 호출에 전달한다.
         for value in (max_tool_calls, max_argument_chars, max_output_chars):
             if value is not None and (type(value) is not int or value < 1):
@@ -421,13 +425,15 @@ class BaseEngine:
         policy = resolve_provider_options(provider if provider is not None else {})
         maximum = effective_attempts(request, policy.get("max_attempts", 1),
                                      sdk_defaults=self.completion_fn is completion) - 1
-        deadline = None if policy.get("wall_timeout") is None else time.monotonic() + policy["wall_timeout"]
+        retry = RetryPolicy(maximum + 1, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
+                            RetryPolicy.end(policy.get("wall_timeout")), "exponential")
+        request = self.copy_params(dict(request))
 
         def remaining():
-            left = None if deadline is None else deadline - time.monotonic()
-            if left is not None and left <= 0:
-                raise ProviderError("provider_timeout")
-            return left
+            try:
+                return retry.remaining()
+            except TimeoutError as error:
+                raise ProviderError("provider_timeout") from error
 
         for attempt in range(maximum + 1):
             progress = {"received": False}
@@ -465,15 +471,26 @@ class BaseEngine:
                 result.duration_seconds = time.monotonic() - started
                 if include_events:
                     yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
-                if progress["received"] or attempt >= maximum or not transient(error):
+                if progress["received"] or not retry.allows(attempt + 1) or not transient(error):
                     raise
-                delay = policy.get("delay_seconds", 0) * (2 ** attempt)
-                if "max_delay_seconds" in policy:
-                    delay = min(delay, policy["max_delay_seconds"])
-                left = remaining()
-                if left is not None and delay >= left:
-                    raise ProviderError("provider_timeout") from error
+                try:
+                    async with timeout(remaining()):
+                        selected = await select_retry(RetryFailure("completion", self.copy_params(request),
+                            error_code(error), error_code(error).replace("_", " "), attempt + 1, True,
+                            ("timeout",)), retry_decider)
+                except TimeoutError as timeout_error:
+                    raise ProviderError("provider_timeout") from timeout_error
+                if selected is None:
+                    raise
+                # Transcript/Tool authority/input budget은 이미 준비됐다. transport만 수정한다.
+                request = change_arguments(request, selected, allowed=("timeout",), copy=self.copy_params,
+                    validate=lambda value: validate_retry_params(value, original=request, operation="acompletion"))
+                try:
+                    delay = retry.delay(attempt + 1)
+                except TimeoutError as timeout_error:
+                    raise ProviderError("provider_timeout") from timeout_error
                 from llm.providers.observations import record_retry
+                # 확정된 대기 시작을 알린다. UI의 countdown/취소 관찰 계약을 유지한다.
                 record_retry("completion")
                 await asyncio.sleep(delay)
                 continue

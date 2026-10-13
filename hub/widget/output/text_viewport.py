@@ -9,10 +9,12 @@ import asyncio
 import json
 
 from ..controls import ScrollbarMargin
+from .selection import SelectableControl
 
 
-class TextViewport(UIControl):
+class TextViewport(SelectableControl):
     def __init__(self, text, *, height=None, markdown=False, theme=None, tail=True, render_worker=None, render_slot="popup"):
+        super().__init__()
         self.text, self.markdown, self.theme = text, markdown, theme
         self._render_key = None
         self.render_worker = render_worker
@@ -79,8 +81,8 @@ class TextViewport(UIControl):
         self.left_column = min(self.left_column, max(0, self._max_width - self._width))
         if self._render_key == self._requested_key:
             self._tail = False
-        return UIContent(get_line=lambda i: self.fragments[i], line_count=len(self.lines),
-                         cursor_position=Point(self.left_column, self.top_line), show_cursor=False)
+        return self.select_content(UIContent(get_line=lambda i: self.fragments[i], line_count=len(self.lines),
+                         cursor_position=Point(self.left_column, self.top_line), show_cursor=False), width)
 
     def _prepare_rows(self, rows):
         fragments = tuple(tuple(row) for row in rows) or ((("", ""),),)
@@ -102,6 +104,10 @@ class TextViewport(UIControl):
             page = max(1, self._height - 2)
             self.top_line = max(0, min(limit, self.top_line +
                 {"up": -1, "down": 1, "pageup": -page, "pagedown": page}[key]))
+
+    def scroll_to(self, line):
+        self._tail = False
+        self.top_line = max(0, min(max(0, len(self.lines) - self._height), line))
 
     def mouse_handler(self, event):
         if event.event_type in (MouseEventType.SCROLL_UP, MouseEventType.SCROLL_DOWN):

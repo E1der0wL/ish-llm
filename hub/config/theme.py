@@ -123,6 +123,12 @@ class HubTheme:
             "hub.scrollbar-track": "bg:default",
             "hub.scrollbar-thumb": f"fg:{self.scrollbar_arrow} bg:{self.scrollbar_button} bold",
             "hub.scrollbar-arrow": f"fg:{self.scrollbar_arrow} bg:default",
+            "hub.scrollbar-hover": f"bg:{self.accent2} bold",
+            "hub.mouse-hover button.text": f"fg:{self.accent2} bold nounderline",
+            "hub.mouse-hover": "bold",
+            "hub.text-selection": f"fg:{self.code_background} bg:{self.accent2} nobold",
+            "hub.inactive": "fg:#c8c8c8 bg:default noreverse",
+            "hub.inactive-surface": "fg:#c8c8c8 bg:#484848 noreverse",
             **{selector: f"fg:{getattr(self, 'alert_' + level + '_foreground')} bg:{getattr(self, 'alert_' + level + '_background')}"
                for level in ("error", "info", "warning", "success")
                for selector in (f"hub.alert-{level}", f"hub.alert-{level} frame.label", f"hub.alert-{level} frame.border")},
@@ -135,8 +141,8 @@ class HubTheme:
             "hub button.focused": f"fg:{self.button_foreground} bg:{self.button_background} nobold nounderline noreverse",
             "hub button.focused button.text": f"fg:{self.accent} bold",
             "hub button.selected button.text": f"fg:{self.accent} bold",
-            "hub checkbox-list": f"fg:{self.checklist_foreground} bg:{self.checklist_background} nounderline noreverse",
-            "hub.checklist": f"fg:{self.checklist_foreground} bg:{self.checklist_background}",
+            "hub checkbox-list": f"fg:{self.foreground} bg:default nounderline noreverse",
+            "hub.checklist": f"fg:{self.foreground} bg:default",
             "hub checkbox-list.focused": "bold nounderline noreverse",
             "hub checkbox-checked": f"fg:{self.accent} bold",
             "hub completion-menu": f"fg:{self.completion_foreground} bg:{self.completion_background}",

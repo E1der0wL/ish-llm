@@ -15,6 +15,9 @@ def provider_defaults():
 
 async def create_project(backend, title, *, config, components, conversation_storage):
     project_config = ProjectConfig(deepcopy(config))
+    retry = project_config.policies.setdefault("tool_retry", {})
+    retry.setdefault("max_retries", 2)
+    retry.setdefault("delay_seconds", 0)
     if "builtin_tools" in components:
         from ..tools.builtin import HubBuiltinTools
         builtin = backend.project_manager.components.get("builtin_tools")

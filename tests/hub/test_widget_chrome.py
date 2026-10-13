@@ -45,12 +45,19 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
 
             try:
                 await eventually(lambda: app.is_running and view.transcript.window.render_info is not None)
-                self.assertIn("Ctrl+E", keys())
+                self.assertNotIn("Ctrl+E", keys())
                 self.assertNotIn("c", keys())
-                self.assertEqual(view._header()[0][1], " •  demo-project")
+                self.assertEqual(view._header()[0][1], "   demo-project")
                 # Keep the input help, remove only the separate sidebar hint row.
                 self.assertEqual(len(view._sidebar.content.children), 2)
-                self.assertEqual(len(view._composer_frame.body.children), 3)
+                # Input help has its own row inside the unbroken bottom border.
+                content = app.renderer._last_screen
+                rect = content.visible_windows_to_write_positions[view.composer.window]
+                hint = "".join(content.data_buffer[rect.ypos + rect.height][x].char
+                               for x in range(rect.xpos, rect.xpos + rect.width))
+                self.assertIn(view.t("input_hint"), hint)
+                self.assertEqual(content.data_buffer[rect.ypos + rect.height][rect.xpos - 1].char, "│")
+                self.assertEqual(content.data_buffer[rect.ypos + rect.height + 1][rect.xpos - 1].char, "└")
                 self.assertFalse(view.question.container.filter())
                 pipe.send_text("\x1b")
                 await eventually(lambda: app.layout.current_control == view._session_control)
@@ -67,7 +74,9 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 content = app.renderer._last_screen
                 drawn = "\n".join("".join(content.data_buffer[y][x].char for x in range(132)) for y in range(40))
                 self.assertNotIn(view.t("settings_main"), drawn)
-                self.assertIn("•", drawn.splitlines()[0])
+                self.assertIn("", drawn.splitlines()[0])
+                self.assertIn(" 전역 설정", drawn)
+                self.assertIn(" 프로젝트", drawn)
                 with set_app(app):
                     screen.choose("appearance")
                     field = screen.page.form.fields[("icon_style",)]
@@ -116,7 +125,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                     view.close_dialog()
                     popup = ReadOnlyDialog("Activity", "line", view._rows, view._columns, view.close_dialog, view.t)
                     view.dialogs.show(popup, popup.receiver)
-                self.assertEqual(set(keys()), {"ESC", "Ctrl+L", "Enter", "이동키"})
+                self.assertEqual(set(keys()), {"ESC", "Ctrl+L", "Ctrl+Q", "Enter", "이동키"})
                 pipe.send_text("\x0c")
                 await eventually(lambda: view._dialog is None)
                 with set_app(app):

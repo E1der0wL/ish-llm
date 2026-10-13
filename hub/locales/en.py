@@ -23,6 +23,7 @@ MESSAGES = {
     'preparing_response': 'Preparing…',
     'status_preparing': '{icon_preparing} Preparing',
     'status_thinking': '{icon_reasoning} Thinking',
+    'status_retrying': '{icon_preparing} Retrying',
     'status_interrupting': '{icon_interrupted} Stopping',
     'followup_hint': '→ accept suggestion',
     'component_action_install': 'Install a built-in skill (preserve existing entries)',
@@ -52,6 +53,17 @@ MESSAGES = {
     'tags_title': 'Output tags',
     'tags_empty': 'No output objects.',
     'tools_title': 'Tools',
+    'skills_title': 'Skills',
+    'rag_title': 'RAG documents',
+    'workflows_title': 'Workflows',
+    'skills_import_hint': 'Markdown or Skill JSON file path → Enter to import',
+    'rag_import_hint': 'UTF-8 text file path → Enter to register the document and search index',
+    'workflows_import_hint': 'Workflow JSON file path → Enter to validate and import',
+    'manager_hint': 'Tab: region · ↑↓: select · Enter: edit in editor · d: delete',
+    'manager_empty': 'No items registered.',
+    'manager_imported': 'Imported.',
+    'manager_saved': 'Saved.',
+    'manager_delete_confirm': 'Delete {name}?',
     'tools_import_hint': 'Directory path → Enter to import <name>/<name>.py and optional requirements.txt',
     'tools_columns': 'Name / Last modified / Description',
     'tools_hint': 'Tab: region · ↑↓: select · Space: toggle built-in · Enter: folder · d: delete',
@@ -76,7 +88,7 @@ MESSAGES = {
     'status_denied': '{icon_cancelled} Denied',
     'status_answered': '{icon_completed} Answer delivered',
     'status_resuming': '{icon_running} Resuming',
-    'help': '# Hub help\n\n## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts and automatically saves only panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+E** chooses an engine/Workflow. **Ctrl+R** toggles Markdown preview.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **↑↓** selects fields; **←** returns to the panel and **→** does nothing outside editing.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** does nothing in the composer.\nPath completion inserts text; it does not attach files.\n',
+    'help': '## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell and minimizes it from any Hub screen. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts and automatically saves only panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+R** toggles Markdown preview. `/engine <name>` sets the engine.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **↑↓** selects fields; **←** returns to the panel and **→** does nothing outside editing.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** does nothing in the composer.\nPath completion inserts text; it does not attach files.\n',
     "settings_dependencies": "Required components: {names}",
     "settings_dependencies_missing": "Missing required components: {names} — select them before saving.",
     "title_model_required": "No title model is configured. Set the conversation engine model or parameters.engines._hub_title.completion.model.",
@@ -108,13 +120,25 @@ MESSAGES = {
 
     "history_title": "Requests and work", "history_empty": "No saved requests.",
 
-    "history_hint": "↑↓ select · c cancel queued · d delete · r clone through here · Tab buttons",
+    "history_hint": "↑↓ move · Space check · d delete · e edit · r retry · Tab regions",
 
-    "history_response": "Response", "history_delete": "Delete turn", "history_clone": "Clone through here",
+    "history_response": "Response", "history_delete": "Delete",
+    "history_edit": "Edit", "history_retry": "Retry", "history_close": "Close",
+    "history_user_message": "User message",
+    "history_select_one": "Check exactly one request to edit or retry.",
+    "history_select_items": "Check the requests to delete.",
+    "history_retry_unavailable": "Only interrupted or failed requests can be retried.",
+    "history_edit_unavailable": "Only inactive requests can be edited and run again.",
+    "history_retry_blocked": "Cannot retry from the checkpoint: {details}",
+    "history_changed": "The selected request changed. Reopen the list and select it again.",
+    "history_delete_selected": "Delete {count} selected requests? Queued requests will be cancelled.",
+    "history_deleting": "Deleting requests",
+    "engine_command_usage": "Use /engine <name>. Available engines: {engines}",
+    "shortcut_retry": "retry",
 
     "history_delete_confirm": "Remove this request and response from the conversation and future context?\nExecution records and original storage events are retained.",
 
-    "history_busy": "Finish active work, queued requests and automatic naming before deleting turns.",
+    "history_busy": "Finish active work, queued requests and automatic naming before changing conversation history.",
 
     "clone_latest": "Clone all conversation", "clone_boundary": "Last request and response to include",
 
@@ -188,15 +212,10 @@ MESSAGES = {
 
     "notification_title": "Other sessions",
 
-    "execution_title": "Execution options", "execution_engine": "Engine",
 
-    "execution_workflow": "Workflow", "execution_plain": "This engine needs no additional request options.",
 
-    "execution_no_workflows": "No workflows available.",
 
-    "execution_workflows_hint": "Enable the project's workflows component and register a Workflow.",
 
-    "execution_summary": "Entry: {entry} · Top-level nodes: {count}",
 
     "settings_title": "Settings", "settings_global": "Global settings", "settings_projects": "Projects",
 
@@ -329,7 +348,7 @@ MESSAGES = {
 
     "session_hint": "c new · d delete\ne rename · r clone", "input_hint": "Enter send · Ctrl+Space newline · ↑↓ select · Tab confirm",
 
-    "footer": "ESC panel · Ctrl+E engine · Ctrl+F find · Ctrl+S settings · Ctrl+X stop · Alt + Navigation scroll · Enter send mode",
+    "footer": "ESC panel · Ctrl+F find · Ctrl+S settings · Ctrl+X stop · Alt + Navigation scroll · Enter send mode",
 
     "footer_short": "ESC panel · Ctrl+F find · Alt + Navigation scroll",
 
@@ -350,9 +369,9 @@ MESSAGES = {
 
     "no_targets": "This execution is not accepting instructions.",
 
-    "choose_target": "Instruction target", "choose_engine": "Engine for the next request",
+    "choose_target": "Instruction target",
 
-    "engine_line": "Engine: {engine} · Ctrl+E change", "create_dialog": "Create or clone a conversation",
+    "engine_line": "Engine: {engine}", "create_dialog": "Create or clone a conversation",
 
     "create": "Create", "clone": "Clone selected conversation", "name": "Name (optional)",
 
@@ -454,8 +473,11 @@ MESSAGES = {
     'approval_model_risk': 'Model assessment (advisory): {level} · {reason}',
     'tool_history_more': '{count} earlier tools',
     'approval_argument': '{name}: {kind}, {size} (see details)',
-    'retry_wait': 'Waiting to retry · {attempt}/{maximum} attempts completed · attempt {next_attempt} in {seconds}s',
-    'retry_active': 'Retrying · attempt {attempt}/{maximum}',
+    'retry_provider': 'Model call',
+    'retry_tool': 'Tool {name}',
+    'retry_repairing': 'Preparing retry · {target} · attempt {next_attempt}/{maximum} · correcting arguments',
+    'retry_wait': 'Waiting to retry · {target} · {attempt}/{maximum} attempts completed · attempt {next_attempt} in {seconds}s',
+    'retry_active': 'Retrying · {target} · attempt {attempt}/{maximum}',
     'question_text_hint': 'Type a choice number or your own answer, then press Enter.',
     'question_free_text_hint': 'Type your answer, then press Enter.',
     'question_choice_hint': 'Type a choice number, then Enter. Append an input value after the number if required.',

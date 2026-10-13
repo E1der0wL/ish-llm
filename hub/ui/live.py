@@ -190,7 +190,6 @@ class LiveController:
         self.view.on_component = self.component_commands.open
         self.view.on_interrupt = self.interrupt
         self.view.on_steer = self.steer
-        self.view.on_choose_engine = self.choose_engine
         from .chat.history_ui import HistoryUI
         self.history_ui = HistoryUI(self)
         self.view.on_history = self.history_ui.open
@@ -327,7 +326,7 @@ class LiveController:
         if self.loop is not None and not self.closed:
             self._save_timer = self.loop.call_later(0.25, self._save_view)
 
-    def _call(self, operation, *args, completed=None, acknowledged=None):
+    def _call(self, operation, *args, completed=None, acknowledged=None, progress=None):
         if not self.worker or not self.view.connected:
             self._error(self.view.t("not_connected"))
             if completed:
@@ -335,6 +334,8 @@ class LiveController:
             return
         try:
             kwargs = {"acknowledged": lambda: self._dispatch(acknowledged)} if acknowledged else {}
+            if progress is not None:
+                kwargs["progress"] = lambda done, total: self._dispatch(progress, done, total)
             future = self.worker.call(operation, *args, **kwargs)
         except Exception as error:
             self._error(error)
@@ -521,25 +522,6 @@ class LiveController:
                 accept()
             choices.control.hub_shortcuts.add(["enter"], "", "confirm", confirm)
         self._call("submit_input", session_id, text, engine, options, completed=ready)
-
-    def choose_engine(self, name=""):
-        from prompt_toolkit.widgets import Label
-        from ..widget.forms.execution import ExecutionChooser
-        view = self.view
-        identity = (view.project_id, view.sessions[view.selected].id)
-        view.open_dialog(view.t("execution_title"), Label(view.t("settings_loading")))
-        pending = view._dialog
-        def ready(catalog):
-            if view._dialog is not pending or identity != (view.project_id, view.sessions[view.selected].id):
-                return
-            view.close_dialog()
-            if catalog is None:
-                return
-            if name in catalog["engines"] and catalog["engines"][name]["kind"] == "plain":
-                view.set_execution(name, {})
-            else:
-                ExecutionChooser(view, catalog, name).open()
-        self._call("execution_catalog", identity[1], completed=ready)
 
     def steer(self, session_id: str, text: str, *, expected_run_id=None, draft=None):
         if not text.strip() or session_id in self._submitting:

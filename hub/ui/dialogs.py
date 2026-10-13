@@ -7,7 +7,7 @@ from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.utils import get_cwidth
 
-from ..widget.controls import Button, RadioList
+from ..widget.controls import Button
 from ..widget.dialog import Dialog
 
 
@@ -91,14 +91,3 @@ class DialogController:
         popup = ReadOnlyDialog(view.t("help_title"), view.t("help"), view._rows, view._columns,
                                self.close, view.t, markdown=True, theme=lambda: view.theme, render_worker=view.render_worker)
         self.show(popup, popup.receiver)
-
-    def engine(self, name=""):
-        view = self.view
-        if view.on_choose_engine:
-            view.on_choose_engine(name)
-        elif name in view.engines:
-            view.engine = name
-        else:
-            choices = RadioList([(engine, engine) for engine in view.engines], default=view.engine, select_on_focus=True)
-            self.open(view.t("choose_engine"), choices,
-                      lambda: setattr(view, "engine", choices.current_value), choices)

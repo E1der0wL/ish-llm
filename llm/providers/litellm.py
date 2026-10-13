@@ -24,6 +24,18 @@ def completion(**kwargs: Any) -> Iterator[Any]:
     return litellm_sdk().completion(**kwargs)
 
 
+async def resolve_call(operation, request):
+    """비스트리밍 SDK 선택과 SDK별 진단. 무거운 import를 이벤트 루프 밖에서 수행한다."""
+    from .runtime import litellm_sdk, diagnostic
+    sdk = await asyncio.to_thread(litellm_sdk)
+    call = getattr(sdk, operation)
+    diagnostic("provider_request", operation=operation,
+        num_retries=request.get("num_retries"), max_retries=request.get("max_retries"),
+        caching=request.get("caching"), cache=request.get("cache"),
+        sdk_cache="none" if sdk.cache is None else "configured")
+    return call
+
+
 async def stream_completion(
     request: dict[str, Any], *, completion_fn: Callable[..., Iterator[Any]] = completion,
     buffer_size: int = 8,

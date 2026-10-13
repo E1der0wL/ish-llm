@@ -7,7 +7,7 @@ import unittest
 from prompt_toolkit.input import create_pipe_input
 
 from hub.ui.application import create_application
-from hub.widget.forms.execution import ExecutionChooser
+from prompt_toolkit.application.current import set_app
 from hub.backend.runtime import HubConfig, HubRuntime
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.engines.graph import GraphEngine
@@ -70,93 +70,34 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 gate.set()
                 await runtime.close()
 
-    async def test_live_dialog_select_cancel_execute_and_switch_engine(self):
-        # Seed only definitions; the live controller opens a fresh backend instance.
-        with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            settings = config(directory)
-            runtime = HubRuntime(settings)
-            await runtime.start()
-            if not runtime.sessions:
-                await runtime.new_session()
-            await prepare(runtime)
-            await runtime.close()
-            output = SizedOutput(80, 24)
-            app, controller = create_application(settings, input=pipe, output=output)
-            view = controller.view
-            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
-            rendered = lambda: screen_text(app, output.columns, output.rows)
-            try:
-                await until(lambda: view.connected)
-                if view.no_sessions:
-                    pipe.send_text("/new\r\r")
-                    await until(lambda: not view.no_sessions and view._dialog is None)
-                pipe.send_text("\x05")
-                await until(lambda: "alpha description" in rendered())
-                self.assertIn("Workflow", rendered())
-                output.columns, output.rows = 60, 14
-                app._on_resize()
-                await until(lambda: "Workflow" in rendered() and "Confirm" in rendered())
-                self.assertNotIn("Window too small", rendered())
-                output.columns, output.rows = 80, 24
-                app._on_resize()
-                await until(lambda: "alpha description" in rendered())
-                pipe.send_text("\t\x1b[B\t\r")
-                await until(lambda: view._dialog is None)
-                self.assertEqual(view.engine_options, {"workflow": "beta"})
-                self.assertEqual(view.execution_label, "graph · beta")
-                pipe.send_text("\x05")
-                await until(lambda: "beta description" in rendered())
-                pipe.send_text("\t\x1b[A\x1b")
-                await until(lambda: view._dialog is None)
-                self.assertEqual(view.engine_options, {"workflow": "beta"})
-                pipe.send_text("run beta\r")
-                await until(lambda: any(m.role == "user" and m.text == "run beta"
-                                        for m in view.transcript.control.messages))
-                def persisted():
-                    async def read():
-                        session = controller.worker.runtime.sessions[view.sessions[view.selected].id]
-                        await session.run.wait_idle()
-                        return await (await session.run.alist())[-1].aget_data()
-                    return asyncio.run_coroutine_threadsafe(read(), controller.worker.loop)
-                run = await asyncio.wrap_future(persisted())
-                self.assertEqual(run.metadata["engine_options"], {"workflow": "beta"})
-                self.assertEqual(str(run.status), "completed")
-                pipe.send_text("/engine loop\r")
-                await until(lambda: view.engine == "loop")
-                self.assertEqual(view.engine_options, {})
-                pipe.send_text("\x05")
-                await until(lambda: "additional request options" in rendered())
-                self.assertNotIn("alpha description", rendered())
-                pipe.send_text("\x1b[B")
-                await until(lambda: "beta description" in rendered())
-            finally:
-                app.exit()
-                await task
-                controller.close()
-
-    async def test_empty_workflows_cannot_apply_and_options_are_session_scoped(self):
+    async def test_removed_engine_key_and_direct_command_keep_request_options(self):
         from examples.hub.preview import create_preview
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
-            task = asyncio.create_task(app.run_async())
+            view.engines = ("loop", "graph")
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await until(lambda: app.is_running)
-                pipe.send_text("\x11")
-                await until(lambda: view.visible)
-                chooser = ExecutionChooser(view, {"engines": {"graph": {"kind": "graph"}}, "workflows": {}})
-                chooser.open()
-                await until(lambda: view.t("execution_no_workflows") in screen_text(app, 132, 40))
-                pipe.send_text("\t\t\r")
-                await until(lambda: bool(chooser.error))
-                self.assertIsNotNone(view._dialog)
-                self.assertEqual(view.engine, "loop")
-                self.assertTrue(chooser.error)
-                view.close_dialog()
-                view.set_execution("graph", {"workflow": "alpha"})
-                view.selected = 1
+                pipe.send_text("\x05")
+                await asyncio.sleep(.05)
+                self.assertIsNone(view._dialog)
+                self.assertFalse(view.navigation_keys.get_bindings_for_keys(("c-e",)))
+                with set_app(app):
+                    view.set_execution("graph", {"workflow": "alpha"})
+                    view.selected = 1
+                    self.assertEqual(view.engine_options, {})
+                    view.selected = 0
+                    self.assertEqual(view.engine_options, {"workflow": "alpha"})
+                pipe.send_text("/engine loop\r")
+                await until(lambda: view.engine == "loop")
                 self.assertEqual(view.engine_options, {})
-                view.selected = 0
+                pipe.send_text("/engine graph\r")
+                await until(lambda: view.engine == "graph")
                 self.assertEqual(view.engine_options, {"workflow": "alpha"})
+                pipe.send_text("/engine\r")
+                await until(lambda: "loop, graph" in view.notice)
+                self.assertIsNone(view._dialog)
             finally:
                 app.exit()
                 await task
+                view.output_renderers.close()

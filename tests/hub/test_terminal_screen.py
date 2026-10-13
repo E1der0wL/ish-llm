@@ -22,6 +22,7 @@ class ScreenOutput(SizedOutput):
         self.positions = {False: [0, 0], True: [0, 0]}
         self.in_alternate = False
         self.transitions = []
+        self.mouse_enabled = False
         self.autowrap = True
         self.write("previous shell output\nsecond command result\n")
 
@@ -91,6 +92,12 @@ class ScreenOutput(SizedOutput):
     def disable_autowrap(self):
         self.autowrap = False
 
+    def enable_mouse_support(self):
+        self.mouse_enabled = True
+
+    def disable_mouse_support(self):
+        self.mouse_enabled = False
+
     def enable_autowrap(self):
         self.autowrap = True
 
@@ -119,10 +126,12 @@ class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("unfinished shell command")
                 await eventually(lambda: prompt.default_buffer.text == "unfinished shell command")
                 await paint()
+                self.assertFalse(output.mouse_enabled)
                 for key in ("\x11", "\x11\x13", "\x11"):
                     pipe.send_text(key)
                     await eventually(lambda: view.visible and output.in_alternate)
                     await paint()
+                    self.assertTrue(output.mouse_enabled)
                     self.assertTrue(app.full_screen and app.renderer.full_screen)
                     self.assertEqual({key: output.main.get(key) for key in history}, history)
                     self.assertNotIn(view.project_title, output.text(output.main))
@@ -132,6 +141,7 @@ class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
                         with set_app(app):
                             async with in_terminal():
                                 self.assertFalse(output.in_alternate)
+                                self.assertFalse(output.mouse_enabled)
                                 output.write("background shell output\n")
                         await paint()
                         self.assertTrue(output.in_alternate)
@@ -139,6 +149,7 @@ class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
                     await eventually(lambda: not view.visible and not output.in_alternate)
                     await paint()
                     self.assertFalse(app.full_screen or app.renderer.full_screen)
+                    self.assertFalse(output.mouse_enabled)
                     self.assertEqual({key: output.main.get(key) for key in history}, history)
                     self.assertIn("unfinished shell command", output.text(output.main))
                     self.assertIn("background shell output", output.text(output.main))
@@ -170,6 +181,7 @@ class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
                         installation.close()
                     self.assertFalse(output.in_alternate)
                     self.assertFalse(app.full_screen or app.renderer.full_screen)
+                    self.assertFalse(output.mouse_enabled)
                     self.assertEqual({key: output.main.get(key) for key in history}, history)
                 finally:
                     if not task.done():

@@ -96,7 +96,8 @@ llm/ 및 ish 참조 Python 소스 205개도 검증 스냅샷과 일치하며 수
 도움말은 한국어/영어 언어팩의 Markdown 본문을 Rich로 렌더링하고, 너비·테마 변경 시 다시 그립니다.
 
 셸에는 Ctrl+Q 진입 바인딩만 설치하고 Ctrl+S는 수정하지 않습니다. Hub에서는 ESC로 패널에
-이동하고, 패널에서 ESC로 최소화합니다. 설정의 Alt 스크롤 차단, Ctrl+X 중단, 직접/외부 편집,
+이동하고, 패널에서 ESC로 최소화합니다. Ctrl+Q는 설정 편집·팝업을 포함한 Hub 전체에서
+최소화하며 입력 초안과 저장 전 설정은 유지합니다. 설정의 Alt 스크롤 차단, Ctrl+X 중단, 직접/외부 편집,
 셸 alternate screen 복원은 유지합니다.
 
 `backend/snapshot.py`는 공개 llm 조회 API만 호출하며 원시 상태·예약 수·Run/Step 요약·ISO 시각을
@@ -290,7 +291,7 @@ hub/
 기억합니다. 시작·종료가 매우 빠르거나 알림이 밀리면 중간 상태 대신 최신 상태만 표시할 수 있습니다.
 알림은 도메인 저장소와 실행 상태를 변경하지 않습니다.
 
-상단은 프로젝트 이름, 입력창 제목은 메인 모델을 표시합니다. Ctrl+E는 실행 방식 선택,
+상단은 프로젝트 이름, 입력창 제목은 메인 모델을 표시합니다. 실행 엔진은 `/engine <엔진명>`으로 지정하며,
 실행 중 Enter는 steering/후속 지시 선택, ESC는 중단입니다. 세션 목록의 c/d/e/r은 생성/소프트 삭제/이름 변경/복제입니다.
 `backend/component_commands.py`는 명령 문법과 데이터 API 어댑터, `ui/chat/component_ui.py`는 결과·삭제 확인·설정 이동을
 담당합니다. 스냅샷의 프로젝트 컴포넌트 선택으로 자동완성을 구성하고, 실행 시 공개 Project API로
@@ -339,11 +340,9 @@ ish.platform 참조 소스는 수정하지 않습니다. llm의 CompletionResult
 reasoning_content를 추가하여 COMPLETION 이벤트의 기존 저장 경로로 기록합니다.
 
 기본 연결은 LoopEngine/ToolComponent이며 HubConfig의 factory로 추가 엔진/Component를
-등록합니다. 엔진은 요청 제출 시 명시하고 Ctrl+E 선택은 아직 보내지 않은 요청에 적용합니다.
-`ui/chat/execution.py`는 엔진 선택과 Graph 전용 Workflow 패널을 구성합니다. `HubRuntime.execution_catalog`
-가 공개 EngineRegistry와 프로젝트 ComponentData에서 실행 대상 목록을 읽고, UI에는 JSON 데이터만
-전달합니다. 별칭과 관계없이 GraphEngine 인스턴스를 식별합니다. Ctrl+E는 매번 목록을 새로 읽으며,
-조회 중 닫힌 창이나 다른 세션으로 전환한 뒤 도착한 결과는 무시합니다.
+등록합니다. 엔진은 요청 제출 시 명시하고 `/engine <엔진명>`은 다음 요청에 적용합니다.
+Ctrl+E와 엔진·Workflow 선택 팝업은 제거했습니다. Graph 전용 페이지는 추후 구현합니다.
+`HubRuntime.execution_catalog` 조회 API와 요청별 실행 옵션 계약은 유지합니다.
 Workflow ID는 전송 시 `engine_options`로 복사해 전달하고 llm이 QUEUED 메시지부터 영속화합니다.
 공유 엔진이나 프로젝트 설정을 수정하지 않습니다. UI 선택은 프로젝트·세션·엔진별 메모리 상태이며,
 요청 옵션의 재시작 복구는 백엔드 책임입니다. Workflow 정의는 백엔드의 실행 시작 시 조회 계약을 따릅니다.

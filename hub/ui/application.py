@@ -35,7 +35,7 @@ def create_application(config, *, theme=None, input=None, output=None, worker_fa
     app = Application(layout=Layout(root, focused_element=background),
                       key_bindings=merge_key_bindings([keys, view.navigation_keys]),
                       style=DynamicStyle(lambda: view.style), full_screen=True,
-                      mouse_support=True, input=input, output=output)
+                      mouse_support=Condition(lambda: view.visible), input=input, output=output)
     from .restart import RESTART, bind_restart
     async def restart():
         app.exit(result=RESTART)

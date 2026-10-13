@@ -7,6 +7,7 @@ from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.utils import get_cwidth
 
 from ..controls import ScrollbarMargin
+from .selection import SelectableControl
 from ..output_inspector import ExpandedOutputDialog
 from ...ui.input.registry import MOVEMENT_KEYS
 from ...ui.output.table import TableData
@@ -28,8 +29,9 @@ def display_cell(value, maximum=46):
     return "".join(result)
 
 
-class TableControl(UIControl):
+class TableControl(SelectableControl):
     def __init__(self, item, context):
+        super().__init__()
         self.item, self.context = item, context
         self.data = None
         self.error = ""
@@ -77,6 +79,7 @@ class TableControl(UIControl):
                 apply(str(error))
 
     def filter(self, query):
+        self.selection.clear()
         self.query = query
         if self.data is None:
             return
@@ -123,8 +126,8 @@ class TableControl(UIControl):
                      "class:hub.search.match" if index == self.row else "",
                      value + " " * max(0, cell_width - get_cwidth(value)))
                     for i, (value, cell_width) in enumerate(zip(row, self.widths))]
-        return UIContent(get_line=line, line_count=max(1, len(self.order)),
-                         cursor_position=Point(self.left, self.row), show_cursor=False)
+        return self.select_content(UIContent(get_line=line, line_count=max(1, len(self.order)),
+                         cursor_position=Point(self.left, self.row), show_cursor=False), width)
 
 
 class TableInspector(ExpandedOutputDialog):
@@ -153,6 +156,8 @@ class TableInspector(ExpandedOutputDialog):
         super().changed_query(query)
 
     def toggle_raw(self):
+        self.table.selection.clear()
+        self.output.selection.clear()
         self.raw_mode = not self.raw_mode
         # Both surfaces share the popup worker slot. Re-request any surface
         # whose queued render was superseded while it was hidden.
@@ -174,3 +179,6 @@ class TableInspector(ExpandedOutputDialog):
                         visible=len(table.order), total=len(table.data.rows) if table.data else 0,
                         column=table.column + 1)
         return detail + (f" · {self.notice}" if self.notice else "")
+
+    def selected_text(self):
+        return (self.output if self.raw_mode else self.table).selection.text

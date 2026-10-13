@@ -85,7 +85,8 @@ class BuiltinTools:
                     return await self.test_workspaces.file_call(operation, args)
                 return await drain_on_cancel(asyncio.to_thread(getattr(self.files.for_arguments(args), operation), args))
             self._register(name, description, parameters, file_call,
-                           contract=mutation if name in file_mutations else None)
+                           contract=mutation if name in file_mutations else
+                           ToolContract(effect="read_only", retry_fields=("path",)) if name == "file_read" else None)
 
         if test_workspaces is not None:
             identity = {"workspace_id": string(pattern="^[0-9a-f]{32}$")}

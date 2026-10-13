@@ -48,3 +48,20 @@ def validate_model_params(params, *, operation="acompletion", require_model=Fals
         url = urlsplit(params["api_base"])
         if url.scheme not in ("http", "https") or not url.netloc:
             raise ValueError("api_base must be an HTTP URL")
+
+
+def validate_retry_params(params, *, original, operation):
+    """SDK retry/실행 protocol은 수정안으로 바꾸지 않는다. SDK 중첩·권한 확대를 막는다."""
+    from .parameters import copy_params
+    protected = ("stream", "n", "tools", "tool_choice", "functions", "function_call", "client",
+                 "num_retries", "max_retries", "retry_policy", "caching", "cache")
+    for key in protected:
+        if (key in params) != (key in original) or (key in original and
+                (params[key] is not original[key] if key == "client" else params[key] != original[key])):
+            raise ValueError(f"Retry cannot change provider contract: {key}")
+    validate_model_params(copy_params(params), operation=operation, json_contract=False)
+    # 검증 대상은 수정한 값이다. 원래 runtime timeout/client 객체의 SDK 계약을 바꾸지 않는다.
+    properties = model_schema(operation).get("properties", {})
+    for key, spec in properties.items():
+        if key in params and (key not in original or params[key] != original[key]):
+            Draft202012Validator(spec).validate(params[key])

@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-import time
 from copy import copy, deepcopy
 from datetime import datetime, timezone
 
@@ -100,8 +99,11 @@ class TripleExtractor(ModelClient):
         from llm.providers.runtime import diagnostic
         mode = self.extraction.get("json_mode")
         wall_timeout = self.provider_options.get("wall_timeout")
-        deadline = None if wall_timeout is None else time.monotonic() + wall_timeout
-        for attempt in range(self.extraction.get("repair_attempts", 0) + 1):
+        from llm.policies.retry import RetryPolicy
+        repair = RetryPolicy(self.extraction.get("repair_attempts", 0) + 1,
+                             deadline=RetryPolicy.end(wall_timeout))
+        deadline = repair.deadline
+        for attempt in range(repair.max_attempts):
             try:
                 response = await self._invoke(stream=False, _provider_deadline=deadline,
                     **({"response_format": {"type": "json_object"}} if mode in ("strict", "auto") else {"_without_response_format": True} if mode == "off" else {}),
@@ -122,7 +124,7 @@ class TripleExtractor(ModelClient):
                 validate_graph(graph, chunks)
                 return graph
             except (ValueError, TypeError, KeyError, IndexError, AttributeError) as error:
-                if attempt == self.extraction.get("repair_attempts", 0):
+                if not repair.allows(attempt + 1):
                     raise GraphValidationError(f"RAG extraction invalid after {attempt} repair attempts: {error}") from error
                 # 이전 응답을 assistant 지침으로 승격하지 않는다. 고정 크기의 최신 오류만 전달한다.
                 messages[-1] = {"role": "user", "content": json.dumps({

@@ -24,7 +24,7 @@ from tests.hub.support import SizedOutput, eventually
 
 
 class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
-    async def test_history_c_key_confirms_and_refreshes_cancelled_row(self):
+    async def test_history_delete_confirms_and_refreshes_cancelled_row(self):
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
             view.project_id = "p"
@@ -33,11 +33,13 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
             rows = [{"id": "q", "text": "queued", "status": "queued", "time": "", "engine": "",
                      "elapsed": None, "response": "", "error": ""}]
             calls = []
-            def call(operation, *args, completed):
+            def call(operation, *args, completed, progress=None):
                 calls.append((operation, args))
-                if operation == "cancel_request":
+                if operation == "delete_turns_plan":
+                    completed({"items": [{"id": "q", "queued": True}], "blockers": [], "revision": "queued"})
+                elif operation == "delete_turns":
                     rows[0]["status"] = "cancelled"
-                    completed(True)
+                    completed({"removed": ["q"], "errors": []})
                 elif operation == "turns":
                     completed(rows)
                 else:
@@ -48,11 +50,11 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.is_running)
                 with set_app(app):
                     history.show(sid, rows)
-                pipe.send_text("c")
-                await eventually(lambda: view._dialog.title == view.t("history_cancel"))
-                self.assertFalse(calls)
+                pipe.send_text("d")
+                await eventually(lambda: view._dialog.title == view.t("history_delete"))
+                self.assertFalse(any(op == "delete_turns" for op, _ in calls))
                 pipe.send_text("\r")
-                await eventually(lambda: ("cancel_request", (sid, "q")) in calls)
+                await eventually(lambda: ("delete_turns", (sid, ["q"], "queued")) in calls)
                 await eventually(lambda: view._dialog.title == view.t("history_title"))
                 self.assertEqual(rows[0]["status"], "cancelled")
             finally:

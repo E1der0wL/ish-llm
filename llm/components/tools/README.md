@@ -54,7 +54,7 @@ async def main(
 ```
 
 `@tool`은 원래 함수를 반환하고 기존 불변 `ToolContract`를 붙인다.
-revision/effect/isolation/approval_required/operation_key_required를 지원한다.
+revision/effect/isolation/approval_required/operation_key_required/retry_fields를 지원한다.
 provider의 `strict`는 명시한 경우에만 definition에 포함된다.
 description은 비어 있지 않은 docstring, parameters는 signature/type hints에서 파생한다.
 str/int/float/bool/None, Optional/Union/`|`, Literal, list[T], dict[str,T], Annotated를 지원한다.
@@ -136,7 +136,7 @@ worker는 `-I`와 최소 locale 환경으로 시작하며 부모 API key/PYTHONP
 stdout/stderr print는 protocol FD와 분리된다. capture 1 MiB, protocol 8 MiB의 메모리 경계를
 넘으면 잘라서 성공시키지 않고 `tool_worker_output_limit`으로 실패한다.
 
-오류 경계는 ToolExecutionError(effect/retryable 보존), trusted CodedError(code 보존),
+오류 경계는 ToolExecutionError(effect/retryable/recoverable 보존), trusted CodedError(code 보존),
 unknown(tool_failed/uncertain/nonretryable), infrastructure의 네 종류다.
 infrastructure code는 tool_worker_failed / tool_worker_protocol / tool_worker_output_limit이다.
 CancelledError는 일반 Tool 실패로 변환하지 않는다. full traceback이나 원시 출력은 telemetry에 넣지 않는다.

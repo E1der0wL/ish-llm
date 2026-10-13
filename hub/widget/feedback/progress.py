@@ -31,7 +31,6 @@ class ProgressControl(UIControl):
         owner.bar.style = theme.muted
         owner.bar.complete_style = owner.bar.finished_style = owner.bar.pulse_style = theme.accent
         task = tasks[-1]
-        task.fields["elapsed"] = owner.view.t.elapsed(task.elapsed)
         task.fields["label"] = task.description + (
             owner.view.t("progress_more", count=len(tasks) - 1) if len(tasks) > 1 else "")
         stream = StringIO()
@@ -51,7 +50,6 @@ class TaskProgress:
         self.progress = Progress(SpinnerColumn(), TextColumn("{task.fields[label]}", markup=False,
                                      table_column=Column(no_wrap=True, overflow="ellipsis")),
                                  self.bar, TextColumn("{task.fields[percent]}", markup=False),
-                                 TextColumn("{task.fields[elapsed]}", markup=False),
                                  auto_refresh=False, expand=False)
         self._timer = None
         self._loop = None
@@ -84,7 +82,7 @@ class TaskProgress:
     def start(self, description: str, *, total: float | None = None) -> int:
         # Treat identifiers and user titles as text, including Rich markup.
         description = " ".join(description.split())
-        task = self.progress.add_task(description, total=total, label=description, percent="", elapsed="")
+        task = self.progress.add_task(description, total=total, label=description, percent="")
         self._render_cache.clear()
         self.update(task, completed=0)
         get_app().invalidate()
