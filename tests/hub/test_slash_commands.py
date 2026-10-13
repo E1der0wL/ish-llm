@@ -1,0 +1,67 @@
+"""Only registered slash commands intercept a request before submission."""
+
+import asyncio
+import tempfile
+import unittest
+from unittest.mock import Mock
+
+from prompt_toolkit.input import create_pipe_input
+
+from hub.backend.runtime import HubConfig
+from hub.ui.application import create_application
+from hub.ui.input.commands import HubCommands
+from llm.engines.loop import LoopEngine
+from tests.hub.support import SizedOutput
+from tests.hub.test_features import chunk
+from tests.hub.test_live import until
+
+
+class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
+    def test_registered_commands_keep_their_actions(self):
+        view = Mock(component_commands={"rag": "RAG"})
+        commands = HubCommands(view)
+        self.assertTrue(commands.execute("/help"))
+        view.help_dialog.assert_called_once_with()
+        self.assertEqual(view.composer.text, "")
+        self.assertTrue(commands.execute("/rag add /tmp/notes.md"))
+        view.on_component.assert_called_once_with("rag", "add /tmp/notes.md")
+        view.on_submit.assert_not_called()
+
+    async def test_unknown_slash_input_reaches_provider_unchanged(self):
+        requests = []
+
+        def provider(**kwargs):
+            text = kwargs["messages"][-1]["content"]
+            requests.append(text)
+            yield chunk(content=text, finish="stop")
+
+        with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
+            config = HubConfig(directory, model="openai/test", auto_title=False,
+                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+            app, controller = create_application(config, input=pipe, output=SizedOutput())
+            view = controller.view
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            try:
+                await until(lambda: view.connected)
+                pipe.send_text("/new\r\r")
+                await until(lambda: not view.no_sessions and view._dialog is None)
+                for index, text in enumerate(("/tmp/my project/file.py 를 확인해줘",
+                                              "/경로/파일.txt", "/not-registered list", "/"), 1):
+                    with self.subTest(text=text):
+                        pipe.send_text(text + "\r")
+                        await until(lambda: len(requests) == index and not controller._submitting
+                                    and any(m.role == "assistant" and m.text == text and m.status == "completed"
+                                            for m in view.transcript.control.messages))
+                        self.assertEqual(requests[-1], text)
+                        self.assertEqual(view.composer.text, "")
+                        self.assertTrue(any(m.role == "user" and m.text == text
+                                            for m in view.transcript.control.messages))
+                previous = view.show_preview
+                pipe.send_text("/preview\r")
+                await until(lambda: view.show_preview != previous)
+                self.assertEqual(len(requests), 4)
+                self.assertEqual(view.composer.text, "")
+            finally:
+                app.exit()
+                await task
+                await asyncio.to_thread(controller.close)

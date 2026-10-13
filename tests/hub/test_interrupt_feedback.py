@@ -50,8 +50,8 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
 
     def test_icons_are_separate_from_running_and_keep_unicode_fallback(self):
         language = Language(icons=NERD)
-        self.assertEqual(language.status("preparing"), "󰒓 준비 중")
-        self.assertEqual(language.status("thinking"), "󰟃 생각 중")
+        self.assertEqual(language.status("preparing"), " 준비 중")
+        self.assertEqual(language.status("thinking"), " 생각 중")
         self.assertEqual(NERD.statuses["running"], "")
         plain = Language(icons=UNICODE)
         self.assertEqual(plain.status("preparing"), "⚙ 준비 중")

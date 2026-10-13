@@ -21,8 +21,8 @@ class HubCommands:
                    "/details": view.toggle_details,
                    "/stop": lambda: view.on_interrupt and view.on_interrupt(view.sessions[view.selected].id)}
         if command not in actions:
-            view.notice = view.t("unknown_command", command=command)
-            return True
+            # Absolute paths and other unregistered slash input are user text.
+            return False
         view.composer.text = ""
         actions[command]()
         return True

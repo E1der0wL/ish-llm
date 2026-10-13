@@ -50,9 +50,9 @@ class IconSet:
                 **{"icon_" + key: value for key, value in self.statuses.items()}}
 
 
-NERD = IconSet(HEADER_MARK, SESSIONS, "󰟃", "", "", ALERT, MappingProxyType({
+NERD = IconSet(HEADER_MARK, SESSIONS, "", "", "", ALERT, MappingProxyType({
     **STATUS, "running": "", "streaming": "", "failed": "",
-    "paused": "", "waiting_approval": "", "preparing": "󰒓",
+    "paused": "", "waiting_approval": "", "preparing": "",
 }), tool="", question="")
 UNICODE = IconSet(HEADER_MARK, "☷", REASONING, WAITING, EDIT,
                   MappingProxyType({"error": "❌", "info": "ℹ", "warning": "⚠", "success": "✅"}), STATUS)
