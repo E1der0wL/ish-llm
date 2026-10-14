@@ -8,7 +8,7 @@ from hub.backend.runtime import HubConfig, HubRuntime
 from hub.ui.application import create_application
 from hub.widget.welcome import logo
 from tests.hub.test_live import until
-from tests.hub.support import SizedOutput
+from tests.hub.support import settings_button, SizedOutput
 
 
 class WelcomeTests(unittest.IsolatedAsyncioTestCase):
@@ -61,7 +61,7 @@ class WelcomeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual((await asyncio.wrap_future(controller.worker.call("snapshot"))).sessions, ())
                 pipe.send_text("\x13")
                 await until(lambda: view.settings_open and not view.settings.busy)
-                pipe.send_text("\x13")
+                settings_button(app, pipe, view, "cancel")
                 await until(lambda: not view.settings_open)
                 self.assertIs(app.layout.current_control, view.composer.control)
                 pipe.send_text("Keep my draft\r")

@@ -83,6 +83,8 @@ class TagRequestTests(unittest.IsolatedAsyncioTestCase):
                         view.tags.control.mouse_handler(MouseEvent(Point(4, row),
                             MouseEventType.MOUSE_UP, MouseButton.LEFT, frozenset()))
                         self.assertEqual(view.tags.selected, selected)
+                        if view._dialog is not None:
+                            view.close_dialog()
                     for item in items:
                         self.assertLessEqual(get_cwidth(item.title), view.tags.width() - 4)
                 for key in ("\r", "\t", " "):

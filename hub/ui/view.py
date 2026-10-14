@@ -10,12 +10,11 @@ from prompt_toolkit.layout import (ConditionalContainer, DynamicContainer, Float
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.menus import CompletionsMenu
-from prompt_toolkit.widgets import Frame
 from ..widget.shortcuts import ShortcutBar
 from ..widget.header import HeaderBar
 
 from .chat.completion import HubCompleter
-from ..widget.transcript.conversation import ChatMessage, ConversationView
+from ..widget.transcript.conversation import ConversationView
 from ..model import SessionView
 from ..locales import Language
 from ..config.theme import HubTheme
@@ -45,7 +44,6 @@ class HubView:
         self.visible = False
         from ..widget.mouse import MouseController
         self.mouse = MouseController(self)
-        self.show_preview = False
         self.selected = 0
         self._session_focus = False
         self.engine = "loop"
@@ -111,10 +109,6 @@ class HubView:
         from ..widget.welcome import welcome_window
         self.welcome = welcome_window(self)
         self.transcript.window.height = Dimension(min=5, weight=1)
-        self.draft_preview = ConversationView((), self.theme, language=self.t)
-        self.draft_preview.control.render_worker = self.render_worker
-        self.draft_preview.control.render_slot = "preview"
-        self.composer.buffer.on_text_changed += self._update_preview
         self._session_control = SidebarList(
             lambda: [] if self.no_sessions else [SidebarItem(self._draft_key(i), session.title, session.status) for i, session in enumerate(self.sessions)],
             lambda: self._draft_key(self.selected), self._select_sidebar_session)
@@ -123,11 +117,6 @@ class HubView:
             Window(self._session_control, style="class:hub.sidebar"),
         ], width=self.sidebar_width, style="class:hub.sidebar"), Condition(lambda: self._columns() >= 88 or self._session_focus))
         self._details = self.tags.container
-        self._preview_container = ConditionalContainer(Frame(
-            self.draft_preview,
-            title=lambda: self._focus_heading(self.draft_preview.control, self.t("preview")),
-            style="class:hub.preview-frame", height=lambda: 3 if self._rows() < 32 else 5),
-            Condition(lambda: self.show_preview and bool(self.composer.text) and self._rows() >= 24))
         self._composer_frame = InputFrame(HSplit([
             self.question.container,
             self.composer,
@@ -139,7 +128,6 @@ class HubView:
         conversation = HSplit([
             self._line(self._conversation_header, "hub.title"),
             DynamicContainer(lambda: self.welcome if self.no_sessions else self.transcript),
-            self._preview_container,
             self._composer_frame,
         ])
         self.chat_page = TwoPanelPage(
@@ -227,8 +215,6 @@ class HubView:
         self._session_focus = False
         get_app().layout.focus(self.composer.control)
 
-    def _update_preview(self, _=None):
-        self.draft_preview.control.messages = (ChatMessage("draft", self.composer.text),)
         get_app().invalidate()
 
     def _select_sidebar_session(self, key):
@@ -330,7 +316,7 @@ class HubView:
 
     def set_theme(self, theme):
         self.theme, self.style = theme, theme.style()
-        self.transcript.control.theme = self.draft_preview.control.theme = theme
+        self.transcript.control.theme = theme
         self.progress.close()
         get_app().invalidate()
 
@@ -343,6 +329,8 @@ class HubView:
         self._input_timeouts = (app.ttimeoutlen, app.timeoutlen)
         app.ttimeoutlen = app.timeoutlen = 0.02
         self.visible = True
+        from ..widget.clipboard import SystemClipboard
+        app.clipboard = SystemClipboard(app, app.clipboard)
         self.mouse.attach(app)
         self._session_focus = False
         if self.on_open:
@@ -365,6 +353,9 @@ class HubView:
             app.layout.focus(self._previous_focus)
         self.visible = False
         self.mouse.detach()
+        from ..widget.clipboard import SystemClipboard
+        if isinstance(app.clipboard, SystemClipboard):
+            app.clipboard = app.clipboard.original
         if self._input_timeouts is not None:
             app.ttimeoutlen, app.timeoutlen = self._input_timeouts
             self._input_timeouts = None

@@ -19,6 +19,56 @@ from tests.hub.test_ish_integration import Prompt
 
 
 class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
+    async def test_custom_background_reaches_checklist_tracks_and_inactive_headings(self):
+        from dataclasses import replace
+        from hub.widget.controls import CheckboxList
+        with set_app(self.app):
+            self.view.set_theme(replace(self.view.theme, background="#123456"))
+        await self.paint()
+        screen = self.app.renderer._last_screen
+        attrs = self.app.renderer._attrs_for_style
+        headings = [cell for row in screen.data_buffer.values() for cell in row.values()
+                    if "class:hub.sidebar-heading" in cell.style and cell.char.strip()]
+        self.assertTrue(headings)
+        self.assertTrue(all(attrs[cell.style].bgcolor == "484848" for cell in headings))
+        with set_app(self.app):
+            choices = CheckboxList([(i, str(i)) for i in range(20)])
+            choices.window.height = 4
+            self.view.open_dialog("Check", choices, focus=choices)
+        await self.paint()
+        rect = self.position(choices.window)
+        screen = self.app.renderer._last_screen
+        for y in range(rect.ypos, rect.ypos + rect.height):
+            self.assertEqual(attrs[screen.data_buffer[y][rect.xpos].style].bgcolor, "123456")
+        for selector in ("hub.scrollbar-track", "hub.scrollbar-arrow", "checkbox-list"):
+            self.assertEqual(self.view.style.get_attrs_for_style_str("class:hub class:" + selector).bgcolor, "123456")
+
+    async def test_tagbar_click_selects_and_keyboard_opens_code_viewer(self):
+        from hub.widget.output.code_viewer import CodeViewer
+        self.view.transcript.set_messages((ChatMessage("assistant", "```python\nprint(1)\n```", id="code"),))
+        await self.paint()
+        await eventually(lambda: bool(self.view.transcript.control.objects))
+        self.pipe.send_text("\x14")
+        await eventually(lambda: self.view.tags.visible)
+        await self.paint()
+        for window in (self.view.composer.window, self.view.transcript.window):
+            await self.mouse(0, *self.at(window))
+            await self.mouse(0, *self.at(window), release=True)
+            self.assertIs(self.app.layout.current_control, self.view.tags.control)
+        tag = next(w for w, _ in self.view.mouse.windows if w.content is self.view.tags.control)
+        await self.mouse(0, *self.at(tag))
+        await self.mouse(0, *self.at(tag), release=True)
+        self.assertIsNone(self.view._dialog)
+        self.assertEqual(self.view.tags.selected, self.view.transcript.control.objects[0].id)
+        self.assertIs(self.app.layout.current_control, self.view.tags.control)
+        for key in ("\t", " ", "\r"):
+            self.pipe.send_text(key)
+            await eventually(lambda: self.view._dialog is not None)
+            self.assertIsInstance(self.view._dialog, CodeViewer)
+            self.assertEqual(self.view._dialog.code_text(), "print(1)\n")
+            self.pipe.send_text("\x1b")
+            await eventually(lambda: self.view._dialog is None)
+
     async def asyncSetUp(self):
         self.pipe = self.enterContext(create_pipe_input())
         self.output = SizedOutput()
@@ -112,7 +162,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
                       for x in range(rect.xpos, rect.xpos + rect.width)}
             self.assertEqual(colors, {("c8c8c8", background) for background in backgrounds})
 
-        def heading_cells():
+        def heading_cells(active):
             screen = self.app.renderer._last_screen
             attrs = self.app.renderer._attrs_for_style
             cells = [(x, y, cell.char, attrs[cell.style])
@@ -121,7 +171,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
                      and "class:hub.accent" in cell.style.split() and cell.char.strip()]
             self.assertTrue(cells)
             for _, _, _, style in cells:
-                self.assertEqual(style.color, self.view.theme.accent.removeprefix("#"))
+                self.assertEqual(style.color, self.view.theme.accent.removeprefix("#") if active else "c8c8c8")
                 self.assertTrue(style.bold)
                 self.assertFalse(style.underline)
             return cells
@@ -135,7 +185,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             with set_app(self.app):
                 page.focus_main()
             await self.paint()
-            headings = heading_cells()
+            headings = heading_cells(False)
             sidebar = next(w for w, _ in self.view.mouse.windows if w.content is (
                 self.view.settings.global_list if settings else self.view._session_control))
             is_gray(sidebar, {"default"})
@@ -147,7 +197,8 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             with set_app(self.app):
                 page.focus_sidebar()
             await self.paint()
-            self.assertEqual(heading_cells(), headings)
+            self.assertEqual([(x, y, c) for x, y, c, _ in heading_cells(True)],
+                             [(x, y, c) for x, y, c, _ in headings])
             is_gray(main, {"484848"} if settings else {"default", "484848"})
             is_gray(page.status, {"default"})
             x, y = self.at(sidebar)
@@ -507,6 +558,10 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         await self.mouse(32, to, y)
         self.assertEqual(control.selection.text, "한글 😀")
         await self.mouse(0, to, y, release=True)
+        with patch("hub.widget.clipboard.export_text", new=AsyncMock(return_value="clipboard_copied")) as copied:
+            self.pipe.send_text("\x03")
+            await eventually(lambda: copied.await_count == 1)
+            self.assertEqual(copied.call_args.args[1], "한글 😀")
         self.assertEqual(self.app.clipboard.get_data().text, "한글 😀")
         self.assertIs(self.app.layout.current_control, self.view.composer.control)
         self.assertEqual(self.view.composer.text, "draft")

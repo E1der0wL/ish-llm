@@ -3,6 +3,17 @@
 
 
 MESSAGES = {
+    # Accepted only for saved language packs; no composer preview UI/binding remains.
+    "preview": "마크다운 미리보기",
+    "command_preview": "마크다운 미리보기 전환",
+    "shortcut_preview": "미리보기",
+    "history_requests": "요청 목록",
+    "history_response": "작업 응답",
+    "settings_current_project": "프로젝트 : {title}",
+    "settings_close": "닫기",
+    "shortcut_paste": "붙여넣기",
+    "object_copy_code": "코드 복사",
+    "object_copy_cell": "셀 복사",
     "settings_requires_restart": "재시작 필요",
     "settings_restart_title": "Hub 재시작",
     "settings_restart_now": "재시작",
@@ -27,7 +38,8 @@ MESSAGES = {
     'status_interrupting': '{icon_interrupted} 중단 중',
     'followup_hint': '→ 추천 입력',
     'component_action_install': '내장 스킬 설치 (기존 항목 유지)',
-    'skills_install_help': '/skills install hub-code-change [새_ID]\n내장 코딩 스킬을 복사합니다. 같은 ID가 있으면 덮어쓰지 않으므로 새 ID를 지정하세요.',
+    # Keep the key for saved language packs; the removed install command is not advertised.
+    'skills_install_help': '/skill config\n관리 창에서 내장 스킬 Markdown 파일의 경로를 입력하여 가져옵니다. 기존 ID는 덮어쓰지 않습니다.',
     'history_cancel': '예약 취소',
     'history_cancel_confirm': '선택한 예약 요청을 취소할까요? 현재 실행 중인 작업은 계속됩니다.',
     'history_cancel_unavailable': '예약 상태의 요청만 취소할 수 있습니다. 이미 실행 중이면 Ctrl+X로 중단하세요.',
@@ -88,7 +100,7 @@ MESSAGES = {
     'status_denied': '{icon_cancelled} 거절됨',
     'status_answered': '{icon_completed} 답변 전달 완료',
     'status_resuming': '{icon_running} 이어서 실행',
-    'help': '## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동, 패널에서는 셸로 최소화.\n- **Ctrl+Q**: 셸에서 Hub 열기, Hub의 모든 화면에서 최소화. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절 및 너비만 자동 저장.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- **Ctrl+R**: Markdown 미리보기. `/engine <엔진명>`으로 엔진 지정.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **Ctrl+S**: 모든 페이지 저장 후 대화. **Ctrl+C**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **↑↓**: 항목 선택. 편집 중이 아닐 때 **←**: 패널 복귀, **→**: 동작 없음.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 화면에서는 Alt 스크롤을 사용하지 않습니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n입력창의 **Ctrl+C**는 아무 동작도 하지 않습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
+    'help': '## 패널과 대화\n\n- **ESC**: 메인에서 패널로 이동.\n- **Ctrl+Q**: 셸에서 Hub 열기, Hub의 모든 화면에서 최소화. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Space / Enter / →**: 패널에서 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절 및 너비만 자동 저장.\n- **c / d / e / r**: 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 중단. 예약 요청은 유지.\n- `/engine <엔진명>`으로 엔진 지정.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **저장**: 모든 페이지 저장 후 대화. **닫기**: 모든 페이지 변경 취소 후 대화.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **↑↓**: 설정 항목 선택. 버튼은 **←→** 키로 선택합니다. 설정 항목에서 편집 중이 아닐 때 **←**: 패널 복귀, **→**: 동작 없음.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 메인 영역에서도 **Alt + 이동키**로 스크롤합니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n영역을 선택하고 **Ctrl+C**로 복사합니다. 선택이 없으면 입력창의 Ctrl+C는 아무 동작도 하지 않습니다. **Ctrl+V**로 시스템 클립보드를 붙여넣습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
     "settings_dependencies": "필수 컴포넌트: {names}",
     "settings_dependencies_missing": "선택되지 않은 필수 컴포넌트: {names} — 선택 후 저장하세요.",
     "title_model_required": "자동 제목 모델이 없습니다. 대화 엔진 또는 parameters.engines._hub_title.completion.model을 설정하세요.",
@@ -192,7 +204,7 @@ MESSAGES = {
 
     "component_unavailable": "현재 프로젝트에서 활성화되지 않은 컴포넌트: {name}",
 
-    "component_usage_error": "사용법: list | get ID | create ID JSON | update ID JSON | delete ID | settings | help",
+    "component_usage_error": "사용법: /컴포넌트 config | /컴포넌트 help",
 
     "component_json_object": "데이터는 JSON 객체로 입력하세요.",
 
@@ -202,7 +214,7 @@ MESSAGES = {
 
     "component_loading": "컴포넌트 요청을 처리하고 있습니다…", "component_busy": "이전 컴포넌트 요청을 처리 중입니다.",
 
-    "component_help": "/{command} list\n/{command} get ID\n/{command} create ID JSON\n/{command} update ID JSON\n/{command} delete ID\n/{command} settings\n\n생성·수정은 JSON 객체를 받습니다. 일반 데이터 수정은 최상위 키를 병합합니다.\n컴포넌트 설정은 settings 화면의 저장 버튼으로 적용합니다.\nRAG는 title/content/metadata 문서 데이터를 받으며 생성·수정 시 모델을 호출해 색인을 갱신할 수 있습니다.",
+    "component_help": "/{command} config: 관리 창 열기\n/{command} help: 사용법 보기\n\n관리 창에서 경로를 입력해 가져오고 항목을 편집·삭제할 수 있습니다. 하단 설정 버튼은 이 컴포넌트로 필터링된 프로젝트 설정을 엽니다.\n자료 생성은 대화로 요청할 수 있습니다. Memory·Goals·Refinement는 작업 중 모델 도구와 정책으로 사용합니다.",
 
     "search_title": "현재 세션에서 찾기", "search_hint": "검색어 입력 · Enter 다음 · Alt+P 이전 · Esc 닫기",
 
@@ -235,7 +247,7 @@ MESSAGES = {
 
     "settings_loading": "불러오는 중…", "settings_empty": "프로젝트 없음",
 
-    "settings_footer": "ESC 패널 · Ctrl+S 저장 후 대화 · e 에디터 · Enter 편집 · Tab 영역 · 방향키 항목",
+    "settings_footer": "ESC 패널 · e 에디터 · Enter 편집 · Tab 영역 · ↑↓ 항목 · ←→ 버튼",
 
     "settings_general": "일반",
 
@@ -342,7 +354,7 @@ MESSAGES = {
 
     "new_session": "새 대화", "sessions": "{icon_sessions} 세션 목록", "workspace": "프로젝트",
 
-    "message": "메시지", "preview": "마크다운 미리보기", "you": "나",
+    "message": "메시지", "you": "나",
 
     "assistant": "어시스턴트", "info": "안내", "reasoning": "어시스턴트 생각 과정",
 
@@ -358,7 +370,7 @@ MESSAGES = {
 
     "details_narrow": "실행 상세는 너비 116칸 이상에서 표시됩니다.", "details_open": "실행 상세를 표시합니다.",
 
-    "details_closed": "실행 상세를 접었습니다.", "close_hint": "패널에서 ESC로 최소화하여 셸로 돌아갑니다.",
+    "details_closed": "실행 상세를 접었습니다.", "close_hint": "Ctrl+Q로 최소화하여 셸로 돌아갑니다.",
 
     "error": "오류: {error}", "not_connected": "백엔드 연결을 먼저 완료하세요.",
 
@@ -397,7 +409,7 @@ MESSAGES = {
 
     "command_help": "도움말", "command_engine": "엔진 선택", "command_new": "대화 생성",
 
-    "command_clone": "선택한 대화 복제", "command_preview": "마크다운 미리보기 전환",
+    "command_clone": "선택한 대화 복제",
 
     "command_stop": "현재 실행 중단", "command_details": "출력 태그 바",
 
@@ -451,7 +463,6 @@ MESSAGES = {
     'shortcut_logs': '로그',
     'shortcut_scroll': '스크롤',
     'shortcut_stop': '중단',
-    'shortcut_preview': '미리보기',
     'shortcut_details': '상세',
     'shortcut_help': '도움말',
     'shortcut_alt_movement': 'Alt + 이동키',
@@ -481,4 +492,6 @@ MESSAGES = {
     'question_text_hint': '선택지 번호를 입력하거나 원하는 답변을 쓰고 Enter를 누르세요.',
     'question_free_text_hint': '원하는 답변을 쓰고 Enter를 누르세요.',
     'question_choice_hint': '선택지 번호를 입력하고 Enter를 누르세요. 추가 값이 필요하면 번호 뒤에 입력하세요.',
+    "agents_import_hint": "Agent JSON 파일 경로 → Enter: 검증 후 가져오기",
+    "agents_title": "Agent 관리",
 }

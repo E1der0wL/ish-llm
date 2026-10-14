@@ -18,7 +18,7 @@ from hub.config.general import GeneralSettings
 from hub.config.preferences import PreferencesStore, configured_profile, configured_workspace
 from hub.config.workspace import workspace_path, validate_destination
 from hub.ui.application import create_application
-from tests.hub.support import SizedOutput
+from tests.hub.support import settings_button, SizedOutput
 from tests.hub.test_live import until
 from tests.hub.test_settings import settings_backend
 
@@ -136,6 +136,7 @@ class WorkspaceSettingsTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("general")
                     screen.page.form.fields[("workspace_root",)].input.text = str(target)
                     screen.discard_and_close()
+                await until(lambda: not view.settings_open and not screen.busy)
                 self.assertEqual(configured_workspace(config).workspace, anchor)
                 pipe.send_bytes(b'\x13')
                 await until(lambda: view.settings_open and not screen.busy)
@@ -144,7 +145,7 @@ class WorkspaceSettingsTests(unittest.IsolatedAsyncioTestCase):
                     field = screen.page.form.fields[("workspace_root",)]
                     app.layout.focus(field.input)
                     field.input.text = str(target)
-                pipe.send_bytes(b'\x13')
+                settings_button(app, pipe, view, "save")
                 await until(lambda: not view.settings_open and not screen.busy)
                 self.assertEqual(configured_workspace(config).workspace, target)
                 self.assertEqual(controller.config.workspace, anchor)

@@ -68,7 +68,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: any(m.status == "completed" for m in view.transcript.control.messages))
                 pipe.send_text("\x07")
                 await until(lambda: "1. question" in screen_text(app, 132, 40))
-                pipe.send_text("d")
+                pipe.send_text(" d")
                 await until(lambda: "원본 저장 이벤트" in screen_text(app, 132, 40))
                 pipe.send_text("\r")
                 await until(lambda: view.t("history_empty") in screen_text(app, 132, 40))

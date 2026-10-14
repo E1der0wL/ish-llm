@@ -1,16 +1,16 @@
-"""Skill/Workflow/RAG editing through the shared component manager."""
+"""Skill/Workflow/Agent/RAG editing through the shared component manager."""
 
 import subprocess
 
 from prompt_toolkit.application.current import get_app
 
 from .component_manager import ComponentManager
-from ...ui.settings.editor import edit_text
 
 
 class RecordManager(ComponentManager):
-    def __init__(self, view, request, *, name):
+    def __init__(self, view, request, *, name, edit_text):
         super().__init__(view, request, name=name)
+        self.edit_text = edit_text
         self.drafts = {}
 
     def open_item(self):
@@ -28,7 +28,7 @@ class RecordManager(ComponentManager):
         # Reopening never silently overwrites a concurrent component change.
         text, version = self.drafts.get(name, (record["text"], record["version"]))
         try:
-            edited = await edit_text(text, self.view.general, suffix=".json")
+            edited = await self.edit_text(text, self.view.general, suffix=".json")
         except (OSError, ValueError, subprocess.CalledProcessError) as error:
             self.status = self.view.t("error", error=error)
             return

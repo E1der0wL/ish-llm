@@ -25,23 +25,62 @@ WORKFLOW = {"schema_version": 1, "entry": "done", "nodes": {"done": {"type": "en
 
 
 class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
-    def test_aliases_require_registered_component_and_preserve_custom_names(self):
+    async def test_path_dropdown_tab_confirmation_and_filtered_settings_button(self):
+        with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
+            root = Path(directory)
+            (root / "my-guide.md").write_text("Guide", encoding="utf-8")
+            app, controller = create_application(HubConfig(root / "workspace", file_root=root, auto_title=False),
+                                                  input=pipe, output=SizedOutput())
+            view = controller.view
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            try:
+                await eventually(lambda: view.connected)
+                view.composer.text = "/skill config"
+                view.composer.buffer.cancel_completion()
+                pipe.send_text("\r")
+                await eventually(lambda: isinstance(view._dialog, RecordManager) and not view._dialog.busy)
+                popup = view._dialog
+                pipe.send_text("my-")
+                await eventually(lambda: popup.path.buffer.complete_state is not None)
+                pipe.send_text("\t")
+                await eventually(lambda: popup.path.text == "my-guide.md")
+                self.assertNotIn("my-guide", [item["name"] for item in popup.entries])
+                from prompt_toolkit.completion import CompleteEvent
+                from prompt_toolkit.document import Document
+                with patch.dict("os.environ", {"HOME": str(root)}):
+                    completions = list(popup.path.buffer.completer.get_completions(
+                        Document("~/my-"), CompleteEvent()))
+                self.assertEqual([item.text for item in completions], ["guide.md"])
+                from prompt_toolkit.application.current import set_app
+                with set_app(app):
+                    popup.open_settings()
+                await eventually(lambda: view.settings_open and view._dialog is None and
+                                 view.settings.page is not None and not view.settings.busy)
+                self.assertEqual(view.settings.page.query, "config.parameters.components.skills")
+            finally:
+                app.exit()
+                await task
+                await asyncio.to_thread(controller.close)
+
+    def test_aliases_require_registered_component_and_exclude_unmanaged_names(self):
         self.assertNotIn("skill", component_commands(("tools",)))
         self.assertNotIn("workflow", component_commands(("tools",)))
         self.assertEqual(component_commands(("skills", "workflows"))["skill"], "skills")
-        self.assertEqual(component_commands(("skills", "skill"))["skill"], "skill")
+        self.assertEqual(component_commands(("skills", "skill"))["skill"], "skills")
 
-    async def test_skill_workflow_import_edit_conflict_delete_and_reopen(self):
+    async def test_skill_workflow_agent_import_edit_conflict_delete_and_reopen(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "guide.md").write_text("# Coding guide\nRun relevant tests.", encoding="utf-8")
             (root / "flow.json").write_text(json.dumps(WORKFLOW), encoding="utf-8")
+            (root / "reviewer.json").write_text(json.dumps({"purpose": "Review text", "engine": "loop"}), encoding="utf-8")
             config = HubConfig(root / "workspace", file_root=root, auto_title=False)
             runtime = HubRuntime(config)
             await runtime.start()
             project_id = runtime.project.id
             try:
-                for name, filename, identifier in (("skills", "guide.md", "guide"), ("workflows", "flow.json", "flow")):
+                for name, filename, identifier in (("skills", "guide.md", "guide"), ("workflows", "flow.json", "flow"),
+                                                   ("agents", "reviewer.json", "reviewer")):
                     async def manage(action, value="", version=None):
                         return await runtime.manage_records(project_id, name, action, value, version)
                     entries = await manage("import", filename)
@@ -64,7 +103,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             runtime = HubRuntime(config)
             await runtime.start()
             try:
-                for name, identifier in (("skills", "guide"), ("workflows", "flow")):
+                for name, identifier in (("skills", "guide"), ("workflows", "flow"), ("agents", "reviewer")):
                     record = await runtime.manage_records(project_id, name, "read", identifier)
                     self.assertIn("Edited through manager", record["text"])
                     entries = await runtime.manage_records(project_id, name, "delete", identifier, record["version"])
@@ -88,7 +127,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: view.connected)
-                for command, name in (("skill", "skills"), ("rag", "rag"), ("workflow", "workflows")):
+                for command, name in (("skill", "skills"), ("rag", "rag"), ("workflow", "workflows"), ("agent", "agents")):
                     view.composer.text = f"/{command} config"
                     view.composer.buffer.cancel_completion()
                     pipe.send_text("\r")
@@ -107,7 +146,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         pipe.send_text("\t")
                         await eventually(lambda: app.layout.current_control is popup.list)
                         edited = json.dumps({"instructions": "Revised instructions", "title": "Revised"})
-                        with patch("hub.widget.forms.record_manager.edit_text", new_callable=AsyncMock, return_value=edited) as editor:
+                        with patch("hub.ui.host.edit_text", new_callable=AsyncMock, return_value=edited) as editor:
                             pipe.send_text("\r")
                             await eventually(lambda: editor.await_count == 1 and not popup.busy and
                                              any(item.get("label") == "Revised" for item in popup.entries))

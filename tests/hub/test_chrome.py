@@ -33,9 +33,9 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[1;5C")
                 await eventually(lambda: view.theme.sidebar_width == theme.sidebar_width + 1)
                 self.assertIs(app.layout.current_control, view._session_control)
-                self.assertNotIn("appearance", view.settings.pages)
+                self.assertNotIn("appearance", view.settings.drafts.pages)
                 self.assertEqual(view.theme.accent2, "#123456")
-                self.assertEqual(view.settings.preferences["appearance"]["sidebar_width"], theme.sidebar_width + 1)
+                self.assertEqual(view.settings.drafts.preferences["appearance"]["sidebar_width"], theme.sidebar_width + 1)
                 pipe.send_text("\x1b[1;5D")
                 await eventually(lambda: view.theme.sidebar_width == theme.sidebar_width)
                 self.assertEqual(widths, [theme.sidebar_width + 1, theme.sidebar_width])
@@ -55,7 +55,6 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
             installation = install_preview(prompt)
             app, view = prompt.app, installation.view
             view.composer.text = "**Draft**\n\n---\n\npreview"
-            view.show_preview = True
             rendered = asyncio.Event()
             app.after_render += lambda _: rendered.set()
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
@@ -76,8 +75,6 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
                             self.assertEqual(attrs.bgcolor, expected[1:], (columns, rows, x, y))
                     positions = screen.visible_windows_to_write_positions
                     windows = [view.composer.window]
-                    if view._preview_container.filter():
-                        windows.append(view.draft_preview.window)
                     for window in windows:
                         position = positions[window]
                         self.assertEqual(screen.data_buffer[position.ypos - 1][position.xpos - 1].char, "┌")

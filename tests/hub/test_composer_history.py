@@ -66,7 +66,7 @@ class ComposerHistoryTests(unittest.IsolatedAsyncioTestCase):
                 view.output_renderers.close()
                 view.progress.close()
 
-    def test_tools_has_no_duplicate_alias(self):
-        self.assertEqual(component_commands(("tools",)), {"tools": "tools"})
+    def test_tool_alias_maps_only_to_registered_tools(self):
+        self.assertEqual(component_commands(("tools",)), {"tools": "tools", "tool": "tools"})
         # A genuinely registered custom component retains its own name.
-        self.assertEqual(component_commands(("tools", "tool")), {"tools": "tools", "tool": "tool"})
+        self.assertEqual(component_commands(("tools", "tool")), {"tools": "tools", "tool": "tools"})

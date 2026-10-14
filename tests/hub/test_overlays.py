@@ -1,4 +1,4 @@
-from tests.hub.support import minimize
+from tests.hub.support import settings_button, minimize
 """Assert visible renderer cells, not only popup state and key handling."""
 
 import asyncio
@@ -8,7 +8,7 @@ from prompt_toolkit.input import create_pipe_input
 
 from examples.hub.preview import install_preview
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import settings_button, SizedOutput, eventually
 
 
 def screen_text(app, columns, rows):
@@ -37,7 +37,7 @@ class OverlayTests(unittest.IsolatedAsyncioTestCase):
                     app._on_resize()
                     pipe.send_text("\x13")
                     await eventually(lambda: view.settings_open)
-                    pipe.send_text("\x13")
+                    settings_button(app, pipe, view, "cancel")
                     await eventually(lambda: not view.settings_open)
                     pipe.send_text("/engine ")
                     await eventually(lambda: view.composer.buffer.complete_state is not None)

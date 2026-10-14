@@ -105,6 +105,9 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                         await until(lambda: view.connected and view.sessions[view.selected].id == identifier
                                     and any(message.text.startswith(prefix) for message in view.transcript.control.messages)
                                     and view.transcript.window.render_info is not None
+                                    # render_info can still describe the previous session.
+                                    and view.transcript.control._cache_key is not None
+                                    and view.transcript.control._cache_key == view.transcript.control._requested_key
                                     and not view.transcript.control.restoring)
                     try:
                         if reopened:
@@ -138,7 +141,7 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                         await asyncio.to_thread(controller.close)
             self.assertTrue((Path(directory) / ".hub/view-state.json").is_file())
 
-    async def test_preview_is_opt_in_and_does_not_overlap_transcript(self):
+    async def test_composer_does_not_overlap_transcript_after_preview_removal(self):
         with create_pipe_input() as pipe:
             output = SizedOutput(rows=24)
             app, view, _ = create_preview(input=pipe, output=output)
@@ -150,9 +153,7 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                 view.composer.text = "# draft\n\n" + "preview\n\n" * 100
                 app.invalidate()
                 await until(lambda: view.transcript.window.render_info is not None)
-                self.assertFalse(view._preview_container.filter())
-                pipe.send_text("\x12")  # F5
-                await until(lambda: view.show_preview)
+                self.assertFalse(hasattr(view, "draft_preview"))
                 for rows in (24, 40, 18, 32):
                     rendered.clear()
                     output.rows = rows
@@ -163,11 +164,6 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                     composer = positions[view.composer.window]
                     self.assertGreaterEqual(transcript.height, 5)
                     self.assertLessEqual(transcript.ypos + transcript.height, composer.ypos)
-                    if view._preview_container.filter():
-                        preview = positions[view.draft_preview.window]
-                        self.assertLessEqual(transcript.ypos + transcript.height, preview.ypos)
-                        self.assertLessEqual(preview.ypos + preview.height, composer.ypos)
-                        self.assertLessEqual(preview.height, 3)
             finally:
                 app.exit()
                 await task

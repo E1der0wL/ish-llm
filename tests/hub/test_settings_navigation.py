@@ -40,7 +40,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                     await until(lambda: screen.selected == name and not screen.busy)
                 self.assertIs(app.layout.current_control, screen.project_list)
                 record = screen.page.record
-                screen.pages.pop(view.project_id)
+                screen.drafts.pages.pop(view.project_id)
                 with set_app(app):
                     screen.choose("general")
                 requests = []
@@ -48,7 +48,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("\x1b[B")
                     await until(lambda: screen.busy and bool(requests))
                     pipe.send_text("\x1b[A")
-                    await until(lambda: screen._left_key == "general")
+                    await until(lambda: screen.navigation.left_key == "general")
                     with set_app(app):
                         requests[-1](record)
                     self.assertEqual(screen.page.name, "general")
@@ -129,6 +129,24 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("*", "".join(part[1] for part in screen.page.save._get_text_fragments()))
                 pipe.send_text("\t")
                 await until(lambda: app.layout.current_control == screen.page.save.control)
+                with set_app(app):
+                    hints = [key for key, _ in view.bindings.hints()]
+                    self.assertIn("←→", hints)
+                    self.assertNotIn("←", hints)
+                    self.assertNotIn("↑↓", hints)
+                # Button navigation is horizontal, including at both edges.
+                pipe.send_text("\x1b[D\x1b[A\x1b[B")
+                await asyncio.sleep(0.1)
+                self.assertIs(app.layout.current_control, screen.page.save.control)
+                for index in (1, 2, 2):
+                    pipe.send_text("\x1b[C")
+                    await until(lambda: app.layout.current_control == screen.page.buttons[index].control)
+                pipe.send_text("\x1b[A\x1b[B")
+                await asyncio.sleep(0.1)
+                self.assertIs(app.layout.current_control, screen.page.buttons[2].control)
+                for index in (1, 0):
+                    pipe.send_text("\x1b[D")
+                    await until(lambda: app.layout.current_control == screen.page.buttons[index].control)
                 pipe.send_text("\t")
                 await until(lambda: app.layout.current_control == field.input.control)
                 pipe.send_text("\x1b[Z")
@@ -148,9 +166,9 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 screen.choose(view.project_id)
                 await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
                 page = screen.page
-                self.assertIn(page.activate_button, page.buttons)
-                self.assertNotIn(page.activate_button, page.body_widgets())
-                self.assertEqual([button.width for button in page.buttons], [10, 10, 10, 10])
+                self.assertFalse(hasattr(page, "activate_button"))
+                self.assertEqual([button.text for button in page.buttons], ["저장", "불러오기", "닫기"])
+                self.assertEqual([button.width for button in page.buttons], [10, 10, 10])
                 count = page.component_forms["demo"].fields[("config", "parameters", "components", "demo", "config", "count")]
                 count.input.text = "7"
                 self.assertTrue(page.dirty)

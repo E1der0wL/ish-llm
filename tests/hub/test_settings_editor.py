@@ -19,7 +19,7 @@ from prompt_toolkit.layout import Layout
 from examples.hub.preview import install_preview
 from hub.config.general import GeneralSettings
 from hub.locales import Language
-from hub.ui.settings.editor import edit_text
+from hub.ui.host import edit_text
 from hub.widget.forms.settings import SchemaForm
 from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_ish_integration import Prompt
@@ -81,8 +81,8 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                               "path.write_text('after\\nsecond\\n')\n"
                               "sys.exit(int(sys.argv[2]))\n")
             app = SimpleNamespace(input=tty, output=tty)
-            with patch("hub.ui.settings.editor.get_app", return_value=app), \
-                    patch("hub.ui.settings.editor.in_terminal", terminal):
+            with patch("hub.ui.host.get_app", return_value=app), \
+                    patch("hub.ui.host.in_terminal", terminal):
                 for code in (0, 7):
                     settings = GeneralSettings(editor=shlex.join([sys.executable, str(script), str(marker), str(code)]))
                     if code:
@@ -114,8 +114,8 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                 field = screen.page.form.fields[("display_name",)]
                 before = field.input.text
                 applied = view.general = GeneralSettings(editor="nano -w")
-                screen.preferences["general"]["editor"] = "unsaved-editor"
-                with patch("hub.ui.settings.screen.edit_text", new=AsyncMock(return_value="first\nsecond\nthird\nfourth")) as editor:
+                screen.drafts.preferences["general"]["editor"] = "unsaved-editor"
+                with patch("hub.ui.host.edit_text", new=AsyncMock(return_value="first\nsecond\nthird\nfourth")) as editor:
                     pipe.send_text("\r")
                     await eventually(lambda: field.editing)
                     editor.assert_not_awaited()
@@ -133,10 +133,10 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                     await eventually(lambda: field.input.text.startswith("first") and not screen.busy)
                     editor.assert_awaited_once_with("eE\nsecond\nthird", applied, suffix=".txt")
                 self.assertTrue(screen.page.dirty)
-                self.assertEqual(screen.preferences["profile"]["display_name"], before)
+                self.assertEqual(screen.drafts.preferences["profile"]["display_name"], before)
                 self.assertIs(app.layout.current_control, field.input.control)
                 draft = field.input.text
-                with patch("hub.ui.settings.screen.edit_text", new=AsyncMock(
+                with patch("hub.ui.host.edit_text", new=AsyncMock(
                         side_effect=subprocess.CalledProcessError(9, ["editor"]))) as editor:
                     pipe.send_text("e")
                     await eventually(lambda: "9" in screen.status and not screen.busy)

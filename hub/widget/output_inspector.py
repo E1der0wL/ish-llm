@@ -10,7 +10,8 @@ from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Frame
 
 from .clipboard import copy_text
-from .controls import TextArea
+from .controls import Button, TextArea
+from .actions import ActionBar
 from .dialog import PopupInput
 from .output.output_viewport import OutputViewport
 from .output.search_index import index_lines
@@ -126,11 +127,17 @@ class ExpandedOutputDialog:
         self.query.control.key_bindings = query_keys.bindings
         self.query.control.hub_shortcuts = query_keys
         self.query.control.modal = True
+        self.buttons = [
+            Button(self.t("shortcut_find"), handler=self.start_query),
+            Button(self.t("shortcut_copy"), handler=lambda: get_app().create_background_task(self.copy())),
+            Button(self.t("search_close"), handler=context.close),
+        ]
         self.container = Frame(HSplit([
             body if body is not None else output,
             ConditionalContainer(self.query, Condition(lambda: self.searching)),
             Window(FormattedTextControl(self.status), height=1, style="class:hub.muted"),
             Window(FormattedTextControl(self.hints), height=1, style="class:hub.footer"),
+            ActionBar(self.buttons, lambda: max(1, context.columns() - 4)),
             Window(self.receiver, height=0),
         ]), title=item.title,
             width=lambda: Dimension(min=1, preferred=context.columns(), max=context.columns()),
@@ -184,6 +191,7 @@ class OutputInspector(ExpandedOutputDialog):
         self.shortcuts.add(["n", "c-n"], "n/Ctrl+N", "next_match", lambda e: self.output.move_match(1))
         self.shortcuts.add(["N", "c-p"], "N/Ctrl+P", "previous_match", lambda e: self.output.move_match(-1))
         self.shortcuts.add(["r"], "r", "object_raw", lambda e: self.toggle_raw())
+        self.buttons.insert(1, Button(self.t("object_raw"), handler=self.toggle_raw))
 
     def toggle_raw(self):
         self.output.selection.clear()

@@ -25,7 +25,7 @@ from llm.components.tools import ToolComponent
 from llm.llm import LargeLanguageModel
 from llm.engines.loop import LoopEngine
 from tests.hub.test_live import ControlledEngine, until
-from tests.hub.support import SizedOutput
+from tests.hub.support import settings_button, SizedOutput
 
 
 class DemoComponent(Component):
@@ -264,7 +264,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 stored = screen.page.record["project"]["config"]["parameters"]["engines"]["loop"]["config"]
                 self.assertEqual(stored["system_prompt"], "edited prompt")
                 self.assertEqual(stored["completion"]["temperature"], 0.3)
-                pipe.send_text("\x13")
+                settings_button(app, pipe, view, "save")
                 await until(lambda: not view.settings_open)
                 pipe.send_text("hello\r")
                 await until(lambda: any(m.role == "assistant" and m.status == "completed" for m in view.transcript.control.messages))
@@ -302,16 +302,14 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(field.input.text, "")
                 self.assertNotIn("reasoning_effort", page.values()["config"]["parameters"]["engines"]["loop"]["config"]["completion"])
                 app.layout.focus(field.input)
-                with patch("hub.ui.settings.screen.edit_text", new=AsyncMock(return_value="low")) as editor:
+                with patch("hub.ui.host.edit_text", new=AsyncMock(return_value="low")) as editor:
                     pipe.send_text("e")
                     await until(lambda: field.input.text == "low" and not field.editing)
                     editor.assert_awaited_once()
                 app.layout.focus(page.save)
                 pipe.send_text("\r")
-                await until(lambda: screen.page is not page and not screen.busy)
+                await until(lambda: screen.page is not page and not screen.busy and not view.settings_open)
                 self.assertEqual(screen.page.engine_forms["loop"].fields[path].input.text, "low")
-                pipe.send_text("\x13")
-                await until(lambda: not view.settings_open)
                 pipe.send_text("Explain\r")
                 await until(lambda: any(m.role == "assistant" and m.status == "completed"
                                        for m in view.transcript.control.messages))
@@ -374,13 +372,17 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 profile.form.fields[("display_name",)].input.text = "Configured User"
                 app.layout.focus(profile.save)
                 pipe.send_text("\r")
-                await until(lambda: screen.status == view.t("settings_saved"))
+                await until(lambda: not view.settings_open and not screen.busy)
+                pipe.send_text("\x13")
+                await until(lambda: view.settings_open and not screen.busy)
                 screen.choose("appearance")
                 appearance = screen.page
                 appearance.form.fields[("accent1",)].input.text = "#abcdef"
                 app.layout.focus(appearance.save)
                 pipe.send_text("\r")
-                await until(lambda: view.theme.accent == "#abcdef")
+                await until(lambda: view.theme.accent == "#abcdef" and not view.settings_open and not screen.busy)
+                pipe.send_text("\x13")
+                await until(lambda: view.settings_open and not screen.busy)
                 identifier = view.project_id
                 screen.choose(identifier)
                 await until(lambda: screen.page is not appearance and not screen.busy)
@@ -399,7 +401,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: screen.page is not page and not screen.busy)
                 self.assertEqual(screen.page.record["values"]["config"]["parameters"]["engines"]["loop"]["config"]["completion"]["temperature"], 0.7)
                 self.assertEqual(screen.page.record["values"]["config"]["parameters"]["components"]["demo"]["config"]["count"], 5)
-                pipe.send_text("\t\x1b[Z\x13")
+                settings_button(app, pipe, view, "save")
                 await until(lambda: not view.settings_open)
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertEqual(view.composer.text, "keep chat draft")
@@ -434,7 +436,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn(clone_id, [item["id"] for item in screen.projects])
                 screen.choose(created_id)
                 await until(lambda: not screen.busy and screen.selected == created_id)
-                screen.activate(screen.page)
+                screen.save_and_close()
                 await until(lambda: not view.settings_open and view.project_id == created_id)
                 self.assertEqual(view.project_title, "UI project")
             finally:

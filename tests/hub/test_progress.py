@@ -5,6 +5,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from types import SimpleNamespace
 import unittest
+from unittest.mock import AsyncMock
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -92,27 +93,25 @@ class ProgressTests(unittest.IsolatedAsyncioTestCase):
             view.progress.finish(other)
         self.assertFalse(view.progress.active)
 
-    async def test_rag_registration_keeps_input_and_reports_completion_without_popup(self):
+    async def test_manager_import_progress_preserves_new_path_input(self):
+        from hub.widget.forms.record_manager import RecordManager
+        callbacks = []
         view = self.view
-        view.project_id = "project"
-        view.component_commands = {"rag": "rag"}
-        completions = []
-        controller = SimpleNamespace(view=view, app=self.app,
-            _call=lambda *args, completed: completions.append(completed), _error=self.fail)
-        commands = ComponentCommands(controller)
         with set_app(self.app):
-            view.composer.text = '/rag create note {"title":"Memo","content":"text"}'
-            commands.open("rag", 'create note {"title":"Memo","content":"text"}')
+            popup = RecordManager(view, lambda action, argument, version, done: callbacks.append(done),
+                                  name="rag", edit_text=AsyncMock())
+            view.dialogs.show(popup, popup.path)
+            popup.path.text = "/tmp/note.txt"
+            popup.import_path(None)
             self.assertTrue(view.progress.active)
-            self.assertIsNone(view._dialog)
-            self.assertIs(self.app.layout.current_control, view.composer.control)
-            view.composer.text = "Next request"
-            completions.pop()({"id": "note"})
-            self.assertEqual(view.composer.text, "Next request")
+            self.assertTrue(popup.busy)
+            popup.path.text = "/tmp/next.txt"
+            callbacks.pop()([{"name": "note", "version": 1}])
+            self.assertEqual(popup.path.text, "/tmp/next.txt")
+            self.assertEqual(popup.selected, "note")
             self.assertFalse(view.progress.active)
-            self.assertIsNone(view._dialog)
-            self.assertIn("note", view.toasts.text())
-            commands.open("rag", 'update note {"content":"text"}')
-            completions.pop()(None)
+            self.assertFalse(popup.busy)
+            popup.reload()
+            callbacks.pop()(None)
             self.assertFalse(view.progress.active)
-            self.assertFalse(commands.busy)
+            self.assertFalse(popup.busy)

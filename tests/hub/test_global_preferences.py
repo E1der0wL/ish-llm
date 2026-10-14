@@ -19,7 +19,7 @@ from hub.backend.runtime import HubConfig
 from hub.backend.project.settings import SettingsService
 from hub.backend.worker import BackendWorker
 from tests.hub.test_live import until
-from tests.hub.support import SizedOutput
+from tests.hub.support import SizedOutput, settings_button
 from tests.hub.test_settings import settings_backend
 
 
@@ -88,7 +88,7 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: not view.visible)
                 self.assertIs(app.layout.current_control, shell)
                 settings.loaded_catalog({"schema": settings.schema, "projects": settings.projects,
-                                         "preferences": settings.preferences, "usage": settings.usage})
+                                         "preferences": settings.drafts.preferences, "usage": settings.usage})
                 self.assertIs(app.layout.current_control, shell)
                 pipe.send_text("\x11")
                 await until(lambda: view.visible)
@@ -103,7 +103,7 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view.general.editor, "nano -w")
                 for button in settings.page.buttons:
                     self.assertFalse(button.control.show_cursor)
-                pipe.send_text("\x13")
+                settings_button(app, pipe, view)
                 await until(lambda: not view.settings_open and app.renderer._last_screen.show_cursor)
                 self.assertIs(app.layout.current_control, view.composer.control)
             finally:

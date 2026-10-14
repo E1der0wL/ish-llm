@@ -23,7 +23,8 @@ class TagBar:
         registry.add(["tab", " ", "enter"], "Tab/Space/Enter", "expand", lambda e: self.expand())
         registry.add(["up", "down"], "↑↓", "select", lambda e: self.move(-1 if e.key_sequence[-1].key == "up" else 1))
         registry.add(["c"], "c", "copy", lambda e: e.app.create_background_task(self.copy()))
-        self.control = SidebarList(self.items, lambda: self.selected, self.select, key_bindings=registry.bindings)
+        self.control = SidebarList(self.items, lambda: self.selected, self.select,
+                                   key_bindings=registry.bindings)
         self.control.hub_shortcuts = registry
         self.control.modal = True
         self.container = ConditionalContainer(VSplit([

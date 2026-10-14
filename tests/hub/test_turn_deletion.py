@@ -73,7 +73,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.is_running)
                 with set_app(app):
                     history.show(sid, rows)
-                pipe.send_text("d")
+                pipe.send_text(" d")
                 await eventually(lambda: "run-b" in screen_text(app, 132, 40))
                 text = screen_text(app, 132, 40)
                 self.assertIn("run-a", text)
@@ -84,7 +84,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len(rows), 1)
                 with set_app(app):
                     history.show(sid, rows)
-                pipe.send_text("d")
+                pipe.send_text(" d")
                 await eventually(lambda: "run-b" in screen_text(app, 132, 40))
                 pipe.send_text("\r")
                 await eventually(lambda: not rows)

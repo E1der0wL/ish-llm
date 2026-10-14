@@ -4,7 +4,9 @@ from datetime import datetime
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.completion import PathCompleter, ThreadedCompleter
-from prompt_toolkit.layout import HSplit, Window
+from prompt_toolkit.layout import HSplit, Window, Float, FloatContainer
+from prompt_toolkit.layout.menus import CompletionsMenu
+from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 
@@ -21,8 +23,21 @@ class ComponentManager(Dialog):
         self.view, self.request, self.name = view, request, name
         self.entries, self.selected, self.busy, self.status = [], "", False, ""
         self.path = TextArea(multiline=False, height=1, completer=ThreadedCompleter(PathCompleter(
-            only_directories=directories, get_paths=lambda: [str(view.file_root)])), complete_while_typing=True)
+            only_directories=directories, expanduser=True,
+            get_paths=lambda: [str(view.file_root)])), complete_while_typing=True)
         self.path.buffer.accept_handler = self.import_path
+        completion = ShortcutRegistry()
+        def confirm(event):
+            state = self.path.buffer.complete_state
+            if state and state.completions:
+                self.path.buffer.apply_completion(state.current_completion or state.completions[0])
+            else:
+                self.path.buffer.start_completion(select_first=False)
+        completion.add(["tab"], "Tab", "confirm", confirm,
+                       when=lambda: bool(self.path.text.strip() and self.path.buffer.complete_state))
+        self.path.control.key_bindings = completion.bindings
+        self.path.control.hub_shortcuts = completion
+        self.path.control.hub_complete_path = True
         registry = ShortcutRegistry()
         registry.add(["up", "down"], "↑↓", "select", lambda e: self.move(-1 if e.key_sequence[-1].key == "up" else 1))
         registry.add(["enter"], "Enter", "open_directory" if directories else "edit",
@@ -38,8 +53,17 @@ class ComponentManager(Dialog):
                    wrap_lines=True, right_margins=[ScrollbarMargin(display_arrows=True)]),
             Label(lambda: self.status or view.t("tools_hint" if name == "tools" else "manager_hint"))]),
             buttons=[Button(view.t("settings_reload"), handler=self.reload),
+                     Button(view.t("settings_title"), handler=self.open_settings),
                      Button(view.t("search_close"), handler=view.close_dialog)],
             width=lambda: Dimension(preferred=100, max=max(1, view._columns() - 4)))
+        self.container = FloatContainer(self.container, floats=[Float(
+            CompletionsMenu(max_height=8, extra_filter=Condition(
+                lambda: get_app().layout.current_control is self.path.control)),
+            xcursor=True, ycursor=True, attach_to_window=self.path.window, z_index=500)])
+
+    def open_settings(self):
+        self.view.close_dialog()
+        self.view.settings.open_component(self.name)
 
     def items(self):
         rows = []
@@ -92,6 +116,10 @@ class ComponentManager(Dialog):
         self.call("list")
 
     def import_path(self, _):
+        state = self.path.buffer.complete_state
+        if state and state.current_completion:
+            self.path.buffer.apply_completion(state.current_completion)
+            return True
         original = self.path.text
         if original.strip():
             before = {item["name"] for item in self.entries}

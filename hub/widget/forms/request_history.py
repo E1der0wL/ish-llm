@@ -16,20 +16,22 @@ class RequestHistoryDialog(Dialog):
         self.current = rows[0]["id"]
         width = lambda: max(1, min(80, view._columns() - 4))
         self.editor = TextArea(text=rows[0]["text"], multiline=True, scrollbar=True, wrap_lines=True,
-                               height=lambda: Dimension.exact(max(1, min(4, (view._rows() - 12) // 4))))
+                               height=lambda: Dimension(min=1, preferred=max(1, min(4, (view._rows() - 17) // 4))))
         self.editor.buffer.on_text_changed += lambda _: self.drafts.update({self.current: self.editor.text})
         self.response = TextArea(text=rows[0]["response"], read_only=True, focusable=False, scrollbar=True,
-                                 wrap_lines=True, height=lambda: Dimension.exact(max(1, min(7, (view._rows() - 12) // 3))))
+                                 wrap_lines=True, height=lambda: Dimension(min=1, preferred=max(1, min(7, (view._rows() - 17) // 3))))
         self.choices = CheckboxList([(row["id"], lambda row=row, i=i: clipped_summary(
             turn_label(row, i, view.t), width() - 11))
-            for i, row in enumerate(rows)], default_values=[self.current], on_select=self.select)
-        self.choices.window.height = lambda: Dimension.exact(max(1, min(6, (view._rows() - 12) // 3)))
+            for i, row in enumerate(rows)], default_values=[], on_select=self.select)
+        self.choices.window.height = lambda: Dimension(min=1, preferred=max(1, min(6, (view._rows() - 17) // 3)))
         for key, action, callback in (("d", "delete", delete), ("e", "edit", edit), ("r", "retry", retry)):
             self.choices.control.hub_shortcuts.add([key], key, action, lambda e, callback=callback: callback())
         body = HSplit([
+            Label("\n" + view.t("history_requests"), style="class:hub.accent bold"),
             Label(lambda: clipped_summary(view.t("history_hint"), width() - 6)), self.choices,
-            Label(view.t("history_user_message")), self.editor,
-            Label(lambda: clipped_summary(self.details(), width() - 6)), self.response,
+            Label("\n" + view.t("history_user_message"), style="class:hub.accent bold"), self.editor,
+            Label("\n" + view.t("history_response"), style="class:hub.accent bold"),
+            Label(lambda: clipped_summary(self.details(), width() - 6), style="class:hub.muted"), self.response,
         ], width=lambda: Dimension.exact(max(1, width() - 4)))
         buttons = [Button(view.t("history_" + name), handler=callback, width=9) for name, callback in (
             ("delete", delete), ("edit", edit), ("retry", retry), ("close", close))]

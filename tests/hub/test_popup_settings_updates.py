@@ -22,7 +22,7 @@ from hub.ui.output import ImageRenderer, OutputBlock, RenderContext
 from hub.config.theme import HubTheme
 from hub.locales import Language
 from tests.hub.test_live import until
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import settings_button, SizedOutput, eventually
 from tests.hub.test_settings import settings_backend
 
 
@@ -58,8 +58,8 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
                     screen.save_and_close()
                 self.assertIn("save conflict", screen.status)
                 self.assertTrue(view.settings_open)
-                self.assertFalse(screen.pages["profile"].dirty)
-                self.assertTrue(screen.pages["appearance"].dirty)
+                self.assertFalse(screen.drafts.pages["profile"].dirty)
+                self.assertTrue(screen.drafts.pages["appearance"].dirty)
                 self.assertIs(screen.page, appearance)
                 self.assertFalse(screen.busy)
             finally:
@@ -91,7 +91,7 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
                     await drafts("saved")
                     with set_app(app):
                         screen.switch_panel() if sidebar else screen.layout.focus_main()
-                    pipe.send_text("\x13")
+                    settings_button(app, pipe, view, "save")
                     await until(lambda: not view.settings_open)
                     saved = PreferencesStore(Path(directory)).load()
                     self.assertEqual(saved["profile"]["display_name"], "User saved")
@@ -101,15 +101,15 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
                     await drafts("cancelled")
                     with set_app(app):
                         screen.switch_panel() if sidebar else screen.layout.focus_main()
-                    pipe.send_text("\x03")
+                    settings_button(app, pipe, view, "cancel")
                     await until(lambda: not view.settings_open)
-                    self.assertFalse(screen.pages)
+                    self.assertFalse(screen.drafts.pages)
                     self.assertEqual(view.theme.sidebar_width, 35)
                     self.assertEqual(PreferencesStore(Path(directory)).load(), saved)
                     pipe.send_text("\x13")
                     await until(lambda: not screen.busy and getattr(screen.page, "identifier", None) == view.project_id)
                     self.assertEqual(screen.page.form.fields[("title",)].input.text, "Project saved")
-                    pipe.send_text("\x03")
+                    settings_button(app, pipe, view, "cancel")
                     await until(lambda: not view.settings_open)
             finally:
                 app.exit()
@@ -160,7 +160,7 @@ class HistoryBorderTests(unittest.IsolatedAsyncioTestCase):
                     app.invalidate()
                     await asyncio.sleep(.2)
                     screen = app.renderer._last_screen
-                    choices = view._dialog.body.children[1]
+                    choices = view._dialog.choices.window
                     with set_app(app):
                         summary = fragment_list_to_text(choices.content.create_content(columns, 8).get_line(0))
                     self.assertLessEqual(get_cwidth(summary), min(80, columns - 4) - 7)

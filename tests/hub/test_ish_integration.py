@@ -11,7 +11,7 @@ from prompt_toolkit.application.current import set_app
 from prompt_toolkit.widgets import Label
 
 from examples.hub.preview import install_preview
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import settings_button, SizedOutput, eventually
 
 HOST = Path(__file__).resolve().parents[2] / "ish.platform/src"
 
@@ -181,7 +181,6 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
             other_float = prompt.set_float(Label("Other plugin"), right=0)
             installation = install_preview(prompt)
             replacement = install_preview(prompt)
-            replacement.view.show_preview = True
             self.assertTrue(installation._closed)
             self.assertEqual(len(prompt.floats), 3)
             task = asyncio.create_task(prompt.prompt_async())
@@ -223,7 +222,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn(prompt.app.layout.current_control, [view.settings.global_list, view.settings.project_list])
                 pipe.send_text("\t")  # Tab enters the settings fields.
                 await eventually(lambda: prompt.app.layout.current_control == view.settings.page.body_widgets()[0].control)
-                pipe.send_text("\t\x1b[Z\x03")  # Preview has no settings backend; close without saving.
+                settings_button(prompt.app, pipe, view, "cancel")
                 await eventually(lambda: not view.settings_open)
                 self.assertEqual(view.composer.text, "ui draft")
                 await minimize(pipe, view)

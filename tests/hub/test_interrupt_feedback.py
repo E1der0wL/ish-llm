@@ -250,7 +250,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
                 def slow_render():
                     entered.set()
                     gate.wait(5)
-                view.render_worker.request("preview", slow_render, lambda _: None, lambda _: None)
+                view.render_worker.request("popup", slow_render, lambda _: None, lambda _: None)
                 await until(entered.is_set)
                 pipe.send_bytes(b"\x18\x18")
                 await until(lambda: "중단 중" in drawn())

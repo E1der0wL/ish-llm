@@ -3,6 +3,17 @@
 
 
 MESSAGES = {
+    # Accepted only for saved language packs; no composer preview UI/binding remains.
+    "preview": "MARKDOWN PREVIEW",
+    "command_preview": "Toggle Markdown preview",
+    "shortcut_preview": "preview",
+    "history_requests": "Requests",
+    "history_response": "Response",
+    "settings_current_project": "Project : {title}",
+    "settings_close": "Close",
+    "shortcut_paste": "Paste",
+    "object_copy_code": "Copy code",
+    "object_copy_cell": "Copy cell",
     "settings_requires_restart": "Restart required",
     "settings_restart_title": "Restart Hub",
     "settings_restart_now": "Restart",
@@ -27,7 +38,8 @@ MESSAGES = {
     'status_interrupting': '{icon_interrupted} Stopping',
     'followup_hint': '→ accept suggestion',
     'component_action_install': 'Install a built-in skill (preserve existing entries)',
-    'skills_install_help': '/skills install hub-code-change [new_ID]\nCopy the built-in coding skill. Existing IDs are never overwritten; choose a new ID to preserve them.',
+    # Keep the key for saved language packs; the removed install command is not advertised.
+    'skills_install_help': '/skill config\nEnter a built-in skill Markdown path in the manager to import it. Existing IDs are never overwritten.',
     'history_cancel': 'Cancel queued',
     'history_cancel_confirm': 'Cancel this queued request? The active Run will continue.',
     'history_cancel_unavailable': 'Only queued requests can be cancelled. Use Ctrl+X to interrupt an active Run.',
@@ -88,7 +100,7 @@ MESSAGES = {
     'status_denied': '{icon_cancelled} Denied',
     'status_answered': '{icon_completed} Answer delivered',
     'status_resuming': '{icon_running} Resuming',
-    'help': '## Panels and conversation\n\n- **ESC** moves from main content to the panel; in the panel it minimizes to the shell.\n- **Ctrl+Q** opens Hub from the shell and minimizes it from any Hub screen. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts and automatically saves only panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- **Ctrl+R** toggles Markdown preview. `/engine <name>` sets the engine.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Ctrl+S** saves all pages and returns to chat; **Ctrl+C** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **↑↓** selects fields; **←** returns to the panel and **→** does nothing outside editing.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt scrolling is disabled in settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/preview`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** does nothing in the composer.\nPath completion inserts text; it does not attach files.\n',
+    'help': '## Panels and conversation\n\n- **ESC** moves from main content to the panel.\n- **Ctrl+Q** opens Hub from the shell and minimizes it from any Hub screen. Shell Ctrl+S stays unchanged.\n- **Tab / Space / Enter / →** moves from the panel to main content.\n- **Ctrl+← / Ctrl+→** adjusts and automatically saves only panel width.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** interrupts the current Run, preserving queued requests.\n- `/engine <name>` sets the engine.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Save** saves all pages and returns to chat; **Close** discards all drafts and returns.\n- **Tab / Shift+Tab** moves between fields and actions; **↑↓** selects fields; **←→** selects action buttons. In fields, **←** returns to the panel and **→** does nothing outside editing.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt + Navigation also scrolls settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** copies selected text; without a selection it does nothing in the composer. **Ctrl+V** pastes the system clipboard.\nPath completion inserts text; it does not attach files.\n',
     "settings_dependencies": "Required components: {names}",
     "settings_dependencies_missing": "Missing required components: {names} — select them before saving.",
     "title_model_required": "No title model is configured. Set the conversation engine model or parameters.engines._hub_title.completion.model.",
@@ -192,7 +204,7 @@ MESSAGES = {
 
     "component_unavailable": "Component is not enabled in this project: {name}",
 
-    "component_usage_error": "Usage: list | get ID | create ID JSON | update ID JSON | delete ID | settings | help",
+    "component_usage_error": "Usage: /component config | /component help",
 
     "component_json_object": "Enter data as a JSON object.",
 
@@ -202,7 +214,7 @@ MESSAGES = {
 
     "component_loading": "Processing the component request…", "component_busy": "A component request is already in progress.",
 
-    "component_help": "/{command} list\n/{command} get ID\n/{command} create ID JSON\n/{command} update ID JSON\n/{command} delete ID\n/{command} settings\n\nCreate and update accept JSON objects. Generic updates merge top-level keys.\nUse Save on the settings page to apply component configuration.\nRAG accepts title/content/metadata document data; create/update may call models to update indexes.",
+    "component_help": "/{command} config: open manager\n/{command} help: show help\n\nImport a path, edit or delete entries in the manager. Its Settings button opens project settings filtered to this component.\nAsk the assistant to create resources. Memory, Goals and Refinement work through model tools and processing policies.",
 
     "search_title": "Find in this session", "search_hint": "Type to search · Enter next · Alt+P previous · Esc close",
 
@@ -235,7 +247,7 @@ MESSAGES = {
 
     "settings_loading": "Loading…", "settings_empty": "No projects",
 
-    "settings_footer": "ESC panel · Ctrl+S save & chat · Arrows items · e editor · Enter edit · Tab regions",
+    "settings_footer": "ESC panel · ↑↓ fields · ←→ buttons · e editor · Enter edit · Tab regions",
 
     "settings_general": "General",
 
@@ -342,7 +354,7 @@ MESSAGES = {
 
     "new_session": "New conversation", "sessions": "{icon_sessions} SESSIONS", "workspace": "WORKSPACE",
 
-    "message": "MESSAGE", "preview": "MARKDOWN PREVIEW", "you": "YOU",
+    "message": "MESSAGE", "you": "YOU",
 
     "assistant": "ASSISTANT", "info": "INFO", "reasoning": "ASSISTANT REASONING",
 
@@ -358,7 +370,7 @@ MESSAGES = {
 
     "details_narrow": "Run details need at least 116 columns.", "details_open": "Run details shown.",
 
-    "details_closed": "Run details hidden.", "close_hint": "Press ESC in the panel to minimize Hub and return to the shell.",
+    "details_closed": "Run details hidden.", "close_hint": "Press Ctrl+Q to minimize Hub and return to the shell.",
 
     "error": "Error: {error}", "not_connected": "Wait for the backend connection.",
 
@@ -397,7 +409,7 @@ MESSAGES = {
 
     "command_help": "Show help", "command_engine": "Choose an engine", "command_new": "Create a conversation",
 
-    "command_clone": "Clone this conversation", "command_preview": "Toggle Markdown preview",
+    "command_clone": "Clone this conversation",
 
     "command_stop": "Interrupt the active Run", "command_details": "Output tag bar",
 
@@ -451,7 +463,6 @@ MESSAGES = {
     'shortcut_logs': 'logs',
     'shortcut_scroll': 'scroll',
     'shortcut_stop': 'stop',
-    'shortcut_preview': 'preview',
     'shortcut_details': 'details',
     'shortcut_help': 'help',
     'shortcut_alt_movement': 'Alt + Navigation',
@@ -481,4 +492,6 @@ MESSAGES = {
     'question_text_hint': 'Type a choice number or your own answer, then press Enter.',
     'question_free_text_hint': 'Type your answer, then press Enter.',
     'question_choice_hint': 'Type a choice number, then Enter. Append an input value after the number if required.',
+    "agents_import_hint": "Agent JSON file path → Enter to validate and import",
+    "agents_title": "Agent manager",
 }

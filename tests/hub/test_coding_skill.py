@@ -51,10 +51,12 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
                 engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
             try:
                 await runtime.start()
-                installed = await runtime.component_command(runtime.project.id, "skills", "install hub-code-change coding-tested")
-                self.assertEqual(installed["created"], "coding-tested")
+                skills = await runtime.project.components.aget("skills")
+                definition = await skills.aload("hub-code-change")
+                installed = await skills.acreate(definition, identifier="coding-tested")
+                self.assertEqual(installed, "coding-tested")
                 with self.assertRaises((FileExistsError, ValueError)):
-                    await runtime.component_command(runtime.project.id, "skills", "install hub-code-change coding-tested")
+                    await skills.acreate(definition, identifier="coding-tested")
                 session = await runtime.project.sessions.acreate("Coding test")
 
                 async def tool(name, **arguments):

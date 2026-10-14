@@ -50,7 +50,7 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.is_running)
                 with set_app(app):
                     history.show(sid, rows)
-                pipe.send_text("d")
+                pipe.send_text(" d")
                 await eventually(lambda: view._dialog.title == view.t("history_delete"))
                 self.assertFalse(any(op == "delete_turns" for op, _ in calls))
                 pipe.send_text("\r")

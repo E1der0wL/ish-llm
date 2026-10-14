@@ -1,65 +1,24 @@
-"""Slash-command grammar and public component data adapters."""
+"""The public slash surface only opens component managers and their help."""
 
-import json
+from ...components import COMPONENTS
 
-
-BUILTINS = ("help", "engine", "new", "clone", "preview", "stop", "details")
-ACTIONS = ("list", "get", "create", "update", "delete", "settings", "config", "help")
+BUILTINS = ("help", "engine", "new", "clone", "stop", "details")
+ACTIONS = ("config", "help")
+MANAGED_COMPONENTS = tuple(spec.name for spec in COMPONENTS)
 
 
 def component_commands(names: tuple[str, ...]) -> dict[str, str]:
-    commands = {("component:" + name if name in BUILTINS else name): name for name in names}
-    for alias, name in (("skill", "skills"), ("workflow", "workflows")):
-        if name in names:
-            commands.setdefault(alias, name)
+    commands = {name: name for name in MANAGED_COMPONENTS if name in names}
+    for spec in sorted(COMPONENTS, key=lambda item: item.alias_order):
+        if spec.name in commands:
+            commands.update({command: spec.name for command in spec.commands})
     return commands
 
 
-def parse_arguments(argument: str, language) -> tuple[str, str, dict]:
-    parts = argument.split(maxsplit=2)
-    action = parts[0] if parts else "help"
-    identifier = parts[1] if len(parts) > 1 else ""
-    if action not in (*ACTIONS, "install"):
+def parse_arguments(argument: str, language) -> str:
+    parts = argument.split()
+    if not parts:
+        return "help"
+    if len(parts) != 1 or parts[0] not in ACTIONS:
         raise ValueError(language("component_usage_error"))
-    if action == "install":
-        if len(parts) not in (2, 3) or (len(parts) == 3 and len(parts[2].split()) != 1):
-            raise ValueError(language("component_usage_error"))
-        return action, identifier, {"destination": parts[2] if len(parts) == 3 else identifier}
-    expected = 3 if action in ("create", "update") else 2 if action in ("get", "delete") else 1
-    if parts and len(parts) != expected:
-        raise ValueError(language("component_usage_error"))
-    payload = json.loads(parts[2]) if expected == 3 else {}
-    if not isinstance(payload, dict):
-        raise ValueError(language("component_json_object"))
-    return action, identifier, payload
-
-
-async def execute_data(data, action: str, identifier: str, payload: dict):
-    # RAG owns an indexed corpus; generic JSON record writes cannot maintain it.
-    from llm.components.rag.data import RAGData
-
-    if isinstance(data, RAGData):
-        if action == "list":
-            return await data.alist_documents()
-        if action == "get":
-            return await data.aget_document(identifier)
-        if action == "create":
-            return await data.aadd_document(identifier=identifier, **payload)
-        if action == "update":
-            return await data.aupdate_document(identifier, **payload)
-        if action == "delete":
-            await data.adelete_document(identifier)
-            return {"deleted": identifier}
-    else:
-        if action == "list":
-            return await data.alist()
-        if action == "get":
-            return await data.aload(identifier)
-        if action == "create":
-            return {"created": await data.acreate(payload, identifier=identifier)}
-        if action == "update":
-            return await data.aupdate(identifier, payload)
-        if action == "delete":
-            await data.adelete(identifier)
-            return {"deleted": identifier}
-    raise ValueError(f"Unknown component data operation: {action}")
+    return parts[0]

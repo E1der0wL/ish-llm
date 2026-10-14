@@ -6,21 +6,23 @@
 `hub/asset/skills/coding.md`입니다. 재현 테스트 → 별도 작업 공간 → 수정 → 재검증 →
 원본 변경 검토를 안내합니다. 스킬은 모델에 주는 지침이며 도구 권한이나 실행 보장은 아닙니다.
 
-기존 프로젝트의 사용자 스킬은 자동 덮어쓰지 않습니다. 현재 버전을 별도 ID로 설치하려면:
+기존 프로젝트의 사용자 스킬은 자동 덮어쓰지 않습니다. 현재 버전을 별도 ID로 가져오려면
+`hub/asset/skills/coding.md`를 `coding-tested.md`라는 이름으로 복사하고 다음 관리 창을 엽니다.
 
 ```text
-/skills install hub-code-change coding-tested
-/skills get coding-tested
+/skill config
 ```
 
-그다음 예를 들어 다음처럼 요청합니다.
+상단 경로 입력창에 복사한 파일의 경로를 입력하고 Enter를 누릅니다. 목록에서
+`coding-tested` 항목을 확인한 뒤 다음처럼 요청할 수 있습니다.
 
 > coding-tested 스킬을 읽고 calculator.py의 덧셈 오류를 재현해줘.
 > 필요한 파일만 테스트 공간에 복사해서 테스트를 작성하고, 수정 후 다시 검사해줘.
 > 원본 반영 전에는 변경 내용을 보여줘.
 
-동일한 ID가 이미 있으면 설치가 실패하며 기존 항목은 유지됩니다. `/skills help`에서
-설치와 데이터 관리 명령을 볼 수 있습니다. 기존 프로젝트에는 `/tools config`에서
+동일한 ID가 이미 있으면 가져오기가 실패하며 기존 항목은 유지됩니다. `/skill help`에서
+관리 창 사용법을 볼 수 있습니다. 컴포넌트 명령은 `config`, `help`만 지원합니다.
+기존 프로젝트에는 `/tools config`에서
 필요한 `test_workspace_*` 및 파일 도구가 활성화되어 있는지도 확인하세요.
 원본 경로는 기존 `HubConfig.file_root` 설정을 사용합니다.
 

@@ -309,7 +309,8 @@ class HistoryDialogTests(unittest.IsolatedAsyncioTestCase):
                     popup = history.popup
                     self.assertEqual([b.text for b in popup.buttons], ["삭제", "편집", "재시도", "닫기"])
                     popup.editor.text = "edited first"
-                pipe.send_text("\x1b[B ")
+                self.assertEqual(popup.selected(), [])
+                pipe.send_text(" \x1b[B ")
                 await eventually(lambda: len(popup.selected()) == 2)
                 self.assertEqual(popup.editor.text, "request 1")
                 pipe.send_text("er")
@@ -323,12 +324,12 @@ class HistoryDialogTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     history.show(sid, rows)
                     history.popup.editor.text = "edited first"
-                pipe.send_text("e")
+                pipe.send_text(" e")
                 await eventually(lambda: any(op == "edit_turn" for op, _ in calls))
                 self.assertIn(("edit_turn", (sid, "u0", "edited first", "u0")), calls)
                 with set_app(app):
                     history.show(sid, rows)
-                pipe.send_text("r")
+                pipe.send_text(" r")
                 await eventually(lambda: ("retry_turn", (sid, "u0", "r0")) in calls)
                 with set_app(app):
                     history.show(sid, rows)

@@ -13,8 +13,38 @@ def provider_defaults():
     return {"max_attempts": 4, "delay_seconds": 10, "max_delay_seconds": 60}
 
 
+def rag_defaults():
+    """Model-independent defaults; graph extraction is an explicit later opt-in."""
+    return {"config": {
+        "chunk_size": 1200, "embedding_cache_max_bytes": 16 * 1024 * 1024,
+        "extraction_batch_size": 8, "search_cache_chars": 1_000_000, "index_batch_size": 64,
+        "search": {"method": "hybrid", "expand": "chunk", "limit": 5, "rerank": True,
+                   "candidate_count": 20, "rrf_constant": 60, "max_hops": 2,
+                   "relation_limit": 20, "relation_ranking": "source"},
+        "graph": {"buffer_pool_size": 64 * 1024 * 1024, "max_num_threads": 2}},
+        "policy": {"embedding_concurrency": 2, "ingestion": {"max_active": 1},
+                   "extraction": {"failure_policy": "disabled"}}}
+
+
 async def create_project(backend, title, *, config, components, conversation_storage):
     project_config = ProjectConfig(deepcopy(config))
+    # Application creation presets; explicit user policies always win.
+    presets = {
+        "memory": {"config": {"search_strategy": "keyword", "search_status": "all", "search_limit": 5,
+            "processing": {"priority": 10, "recall_limit": 5, "recall_query_chars": 2000}},
+            "policy": {"tool_write_status": "candidate", "max_search_results": 20,
+                       "processing": {"recall": True, "context_chars": 4000, "failure_mode": "continue"}}},
+        "goals": {"config": {"priority": 20}, "policy": {"inject": True, "write_tools": True}},
+        "refinement": {"policy": {"proposal_operations": ["update", "create", "fork", "bind_skills"],
+                                   "apply_tools": True}},
+    }
+    for name, preset in presets.items():
+        if name in components:
+            parameters = project_config.parameters.setdefault("components", {})
+            parameters[name] = ProjectConfig.merge(preset, parameters.get(name, {}))
+    if "rag" in components:
+        parameters = project_config.parameters.setdefault("components", {})
+        parameters["rag"] = ProjectConfig.merge(rag_defaults(), parameters.get("rag", {}))
     retry = project_config.policies.setdefault("tool_retry", {})
     retry.setdefault("max_retries", 2)
     retry.setdefault("delay_seconds", 0)

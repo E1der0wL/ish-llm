@@ -17,7 +17,6 @@ class HubCommands:
         actions = {"/help": view.help_dialog, "/engine": lambda: view.choose_engine(argument.strip()),
                    "/new": lambda: view.session_dialog("new", argument.strip()),
                    "/clone": lambda: view.session_dialog("clone", argument.strip()),
-                   "/preview": lambda: setattr(view, "show_preview", not view.show_preview),
                    "/details": view.toggle_details,
                    "/stop": lambda: view.on_interrupt and view.on_interrupt(view.sessions[view.selected].id)}
         if command not in actions:

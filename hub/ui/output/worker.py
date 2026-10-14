@@ -26,7 +26,7 @@ class RenderWorker:
     Other surfaces retain strict latest-generation delivery.
     """
 
-    slots = frozenset({"transcript", "preview", "popup", "search", "question"})
+    slots = frozenset({"transcript", "popup", "search", "question"})
 
     def __init__(self):
         self.stats = RenderStats()

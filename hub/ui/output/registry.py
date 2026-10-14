@@ -66,9 +66,11 @@ class RendererRegistry:
         """Create a fresh expanded UI without mutating the transcript object."""
         from ...widget.output_inspector import OutputInspector
         from ...widget.output.table_inspector import TableInspector
+        from ...widget.output.code_viewer import CodeViewer
         factory = self._interactions.get(item.block.kind)
         if factory is None:
-            factory = TableInspector if item.block.kind in ("table", "hub-table") else OutputInspector
+            factory = (TableInspector if item.block.kind in ("table", "hub-table") else
+                       CodeViewer if item.block.kind in ("code", "hub-code") else OutputInspector)
         try:
             return factory(item, context)
         except Exception as error:

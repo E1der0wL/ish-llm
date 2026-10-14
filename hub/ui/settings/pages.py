@@ -20,6 +20,26 @@ from ...widget.controls import Button, TextArea
 class Page:
     query = ""
 
+    def submit(self, *, on_saved=None):
+        if self.screen.busy:
+            return
+        self.screen.finish_edit()
+        try:
+            operation, args = self.save_request()
+        except (ValueError, TypeError) as error:
+            self.screen.error(error)
+            return
+        def saved(result):
+            if result is not None:
+                self.accept_saved(result)
+                if on_saved:
+                    on_saved()
+                self.after_submit()
+        self.screen.call(operation, *args, completed=saved)
+
+    def after_submit(self):
+        """Optional post-save action; validation and dispatch stay shared."""
+
     def filter(self, query):
         if not hasattr(self, "_unfiltered"):
             self._unfiltered = self.container
@@ -29,11 +49,12 @@ class Page:
                           [Label(self.screen.t("settings_search_empty"))], self.fields())
                           if self.query else self._unfiltered)
 
-    def actions(self, extra=()):
-        self.save = SaveButton(lambda: self.screen.t("settings_save"), lambda: self.dirty, self.submit)
+    def actions(self):
+        self.save = SaveButton(lambda: self.screen.t("settings_save"),
+                               lambda: any(page.dirty for page in self.screen.drafts.pages.values()), self.screen.save_and_close)
         self.reload = Button(self.screen.t("settings_reload"), handler=lambda: self.screen.reload(self), width=10)
-        self.cancel = Button(self.screen.t("cancel"), handler=lambda: self.screen.cancel(self), width=10)
-        self.buttons = [self.save, self.reload, self.cancel, *extra]
+        self.cancel = Button(self.screen.t("settings_close"), handler=self.screen.discard_and_close, width=10)
+        self.buttons = [self.save, self.reload, self.cancel]
         self.bottom = ActionBar(self.buttons, lambda: max(1, self.screen.main_width() - 2))
         for field in self.all_fields():
             field.enabled = lambda: not self.screen.busy
@@ -84,7 +105,6 @@ class ProjectPage(Page):
         schema["properties"].pop("components")
         self.form = SchemaForm(schema, values, screen.t)
         self.component_forms, self.engine_forms = {}, {}
-        self.activate_button = Button(screen.t("settings_open_project"), handler=lambda: screen.activate(self), width=10)
         body = list(self.form.children)
         for key in dict.fromkeys(self.engine_keys.values()):
             effective = {name: view for name, view in record.get("effective_engines", {}).items()
@@ -108,7 +128,19 @@ class ProjectPage(Page):
                 body.append(Label(screen.t("settings_dependencies_missing", names=", ".join(missing))))
             body.extend(form.children or [form.container])
         self.container = SettingsBody(body, self.all_fields())
-        self.actions(extra=() if new else (self.activate_button,))
+        # Older projects receive editable suggestions, persisted only on Save.
+        # Host-fixed fields and explicit nulls retain their ownership/meaning.
+        if "rag" in self.component_forms:
+            import json
+            from ...backend.project.defaults import rag_defaults
+            from ...widget.forms.settings import MISSING, at_path
+            defaults = rag_defaults()
+            for path, field in self.component_forms["rag"].fields.items():
+                default = at_path(defaults, path[4:])
+                explicit_null = any(at_path(values, path[:i]) is None for i in range(1, len(path) + 1))
+                if field.original is MISSING and not field.readonly and default is not MISSING and not explicit_null:
+                    field.input.text = default if isinstance(default, str) else json.dumps(default)
+        self.actions()
 
     def forms(self):
         return [self.form, *self.engine_forms.values(), *self.component_forms.values()]
@@ -133,24 +165,8 @@ class ProjectPage(Page):
 
     def accept_saved(self, record):
         if record is not None and self.new:
-            self.screen.pages.pop("new", None)
+            self.screen.drafts.pages.pop("new", None)
         self.screen.saved_project(record)
-
-    def submit(self, *, on_saved=None):
-        if self.screen.busy:
-            return
-        self.screen.finish_edit()
-        try:
-            operation, args = self.save_request()
-        except (ValueError, TypeError) as error:
-            self.screen.error(error)
-            return
-        def saved(record):
-            self.accept_saved(record)
-            if record is not None and on_saved:
-                on_saved()
-        self.screen.call(operation, *args, completed=saved)
-
 
 class GlobalPage(Page):
     def __init__(self, screen, name, values):
@@ -244,31 +260,17 @@ class GlobalPage(Page):
     def accept_saved(self, result):
         if result is None:
             return
-        self.screen.preferences[self.name] = result
-        page = self.screen.pages[self.name] = GlobalPage(self.screen, self.name, result)
+        self.screen.drafts.preferences[self.name] = result
+        page = self.screen.drafts.pages[self.name] = GlobalPage(self.screen, self.name, result)
         self.screen.show_page(page)
         self.screen.status = self.screen.t("settings_saved")
         if self.name == "appearance":
-            self.screen._saved_sidebar_width = result["sidebar_width"]
+            self.screen.drafts.saved_sidebar_width = result["sidebar_width"]
             self.screen.view.set_theme(HubTheme(**result))
         elif self.name == "general":
             self.screen.view.general = GeneralSettings(**result)
             if not self.screen.view.general.auto_scroll:
                 self.screen.view.transcript.control.follow_tail = False
 
-    def submit(self, *, on_saved=None):
-        if self.screen.busy:
-            return
-        self.screen.finish_edit()
-        try:
-            operation, args = self.save_request()
-        except (TypeError, ValueError) as error:
-            self.screen.error(error)
-            return
-        def saved(result):
-            if result is not None:
-                self.accept_saved(result)
-                if on_saved:
-                    on_saved()
-                self.screen.prompt_restart(self.screen.global_keys)
-        self.screen.call(operation, *args, completed=saved)
+    def after_submit(self):
+        self.screen.prompt_restart(self.screen.global_keys)

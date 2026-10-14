@@ -35,4 +35,4 @@ def bind_restart(controller, rebuild):
         screen.busy = True
         get_app().create_background_task(restart())
 
-    screen.on_restart = request
+    screen.drafts.on_restart = request

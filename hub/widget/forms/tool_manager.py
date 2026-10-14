@@ -1,15 +1,14 @@
 """Tool package browser with built-in toggles and the system file manager."""
 
-import asyncio
-
 from prompt_toolkit.application.current import get_app
 
 from .component_manager import ComponentManager
 
 
 class ToolManager(ComponentManager):
-    def __init__(self, view, request):
+    def __init__(self, view, request, *, open_directory):
         super().__init__(view, request, name="tools", directories=True, toggle=True)
+        self.open_directory = open_directory
 
     def open_item(self):
         if self.selected and not self.selected.startswith("builtin:"):
@@ -18,9 +17,7 @@ class ToolManager(ComponentManager):
 
     async def launch(self, path):
         try:
-            process = await asyncio.create_subprocess_exec("xdg-open", path,
-                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
-            code = await process.wait()
+            code = await self.open_directory(path)
             if code:
                 raise OSError(self.view.t("tools_explorer_failed", code=code))
         except OSError as error:

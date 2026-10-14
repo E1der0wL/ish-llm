@@ -24,13 +24,12 @@ class FocusRegion(HSplit):
             row = screen.data_buffer[y]
             for x in range(area.xpos, area.xpos + area.width):
                 cell = row[x]
-                if "class:hub.sidebar-heading" in cell.style.split():
-                    continue
                 if cell.style not in styles:
                     original = attrs[cell.style]
                     surface = original.bgcolor not in (None, "", "default") or original.reverse
                     styles[cell.style] = cell.style + (
-                        " class:hub.inactive-surface" if surface else " class:hub.inactive")
+                        " class:hub.inactive-surface" if surface else " class:hub.inactive") + (
+                        " bold" if original.bold else "")
                 key = (cell.char, cell.style)
                 if key not in cells:
                     cells[key] = Char(cell.char, styles[cell.style])

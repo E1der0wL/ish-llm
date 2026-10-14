@@ -250,7 +250,7 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_slow_component_read_does_not_block_snapshots(self):
         entered, release = asyncio.Event(), asyncio.Event()
-        async def component_command(*args):
+        async def manage_records(*args):
             entered.set()
             await release.wait()
             return ["skill"]
@@ -265,11 +265,11 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
         async def snapshot():
             return "new output"
         worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(),
-            component_command=component_command, snapshot=snapshot)
+            manage_records=manage_records, snapshot=snapshot)
         for arguments in (("p", "skills", "list"), ("p", "rag", 'create doc {"content":"sample"}')):
             entered.clear()
             release.clear()
-            command = asyncio.create_task(worker._execute("component_command", arguments))
+            command = asyncio.create_task(worker._execute("manage_records", arguments))
             try:
                 async with asyncio.timeout(1):
                     await entered.wait()

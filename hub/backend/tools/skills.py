@@ -7,6 +7,14 @@ from llm.components.tools import ToolRegistry
 
 
 class HubSkillComponent(SkillComponent):
+    def resolve_runtime(self, project, capability, *, data_factory):
+        registry = super().resolve_runtime(project, capability, data_factory=data_factory)
+        if capability == "tools":
+            from .resources import authoring_tools
+            for tool in authoring_tools(data_factory(self.name), self, discover=False):
+                registry.register(tool)
+        return registry
+
     def resolve(self, project, capability):
         value = super().resolve(project, capability)
         if capability != "tools":

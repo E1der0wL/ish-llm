@@ -1,5 +1,17 @@
 # Hub 구조와 정리 내역
 
+## 현재 구조 보강 (2026-10-14)
+
+최신 책임 분리와 확장 위치는 [UI 요청·설정·컴포넌트 구조](maintenance.md)에 정리합니다.
+아래 2026-10-13 절은 당시 이동 내역과 검증 기록입니다.
+
+- `ui/requests.py`: Future 결과, 승인 접수, 진행률의 UI 루프 전달.
+- `ui/settings/navigation.py`, `drafts.py`, `project_actions.py`: 탐색/편집, 초안/저장, 프로젝트 작업.
+- `components.py`: 관리 가능한 컴포넌트의 이름·별칭·관리 계약.
+- `backend/bootstrap.py`: 백엔드 생성과 어댑터 구성. Runtime의 공개 생성 진입점은 유지합니다.
+- `ui/host.py`: 설정과 관리 팝업이 함께 쓰는 에디터·파일 탐색기 연동.
+- `asset/prompts/`, `asset/skills/`: 기본 지침 본문. `asset/guides.py`는 목록과 로딩만 담당합니다.
+
 ## 책임별 구조 (2026-10-13)
 
 이번 정리는 Hub 내부 파일 위치와 상태 소유권을 바꿉니다. llm public API, 승인 authority,

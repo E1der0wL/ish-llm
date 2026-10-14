@@ -24,8 +24,9 @@ def main():
     report.mkdir(exist_ok=True)
     hashes = {}
     for directory in ("hub", "llm", "examples/hub", "tests/hub", "tests/llm", "ish.platform/src"):
-        for path in (source / directory).rglob("*.py"):
-            if {"__pycache__", "reports", "manual"}.intersection(path.parts):
+        for path in (source / directory).rglob("*"):
+            if (not path.is_file() or path.suffix not in (".py", ".md", ".json")
+                    or {"__pycache__", "reports", "manual"}.intersection(path.parts)):
                 continue
             relative = path.relative_to(source)
             destination = target / relative
@@ -35,10 +36,14 @@ def main():
     for name in ("examples/__init__.py", "tests/__init__.py"):
         shutil.copy2(source / name, target / name)
     (report / "snapshot.json").write_text(json.dumps({"root": str(target), "files": hashes}, indent=2))
+    env = dict(os.environ, LITELLM_LOCAL_MODEL_COST_MAP="True", LITELLM_MODE="PRODUCTION")
+    # Dummy-terminal tests must not replace the developer's system clipboard.
+    for name in ("WSL_DISTRO_NAME", "WSL_INTEROP", "DISPLAY", "WAYLAND_DISPLAY"):
+        env.pop(name, None)
     result = subprocess.run(
         [sys.executable, "-m", "unittest", "discover", "-s", "tests/hub", "-t", ".", "-v"],
         cwd=target, capture_output=True, text=True,
-        env=dict(os.environ, LITELLM_LOCAL_MODEL_COST_MAP="True", LITELLM_MODE="PRODUCTION"),
+        env=env,
     )
     log = result.stdout + result.stderr
     (report / "suite.txt").write_text(log)

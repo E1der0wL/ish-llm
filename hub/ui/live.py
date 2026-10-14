@@ -8,6 +8,7 @@ from ..backend.runtime import HubConfig
 from ..model import HubSnapshot, SubmissionResult, SessionView
 from .presentation import present, present_message, MessagePresentationCache
 from .snapshot_inbox import SnapshotInbox
+from .requests import UIRequests
 from ..backend.worker import BackendWorker
 from ..config.view_state import ViewStateStore, ViewStateWriter
 from ..config.preferences import PreferencesStore
@@ -167,6 +168,9 @@ class LiveController:
         self.app = None
         self.loop = None
         self.closed = False
+        self.requests = UIRequests(lambda: self.worker, self._dispatch,
+            active=lambda: not self.closed, connected=lambda: self.view.connected,
+            unavailable=lambda: self.view.t("not_connected"))
         self._snapshot_inbox = SnapshotInbox()
         self._submitting = set()
         self._choosing_submission = False
@@ -198,8 +202,8 @@ class LiveController:
         self.view.on_save_view = self._save_view
         self.view.settings.request = self._settings_request
         from ..config.restart import startup_settings
-        self.view.settings.applied_preferences = startup_settings(config, view.general)
-        self.view.settings.workspace_anchor = config._workspace_anchor
+        self.view.settings.drafts.applied_preferences = startup_settings(config, view.general)
+        self.view.settings.drafts.workspace_anchor = config._workspace_anchor
         self.view.transcript.control.on_position_changed = self._reading_changed
         self.view.file_root = config.file_root or config.workspace
         self.environment_provider = None
@@ -286,26 +290,15 @@ class LiveController:
             self._call("select", restore_selection)
 
     def _settings_request(self, operation, args, completed):
-        if not self.worker or (not self.view.connected and operation != "catalog"):
-            completed(None, self.view.t("not_connected"))
-            return
-        try:
-            future = self.worker.call("settings", operation, *args)
-        except Exception as error:
-            completed(None, error)
-            return
-        def finished(future):
-            try:
-                value = future.result()
-            except Exception as error:
-                self._dispatch(completed, None, error)
-            else:
-                def apply():
-                    if operation == "activate_project":
-                        self._snapshot(value)
-                    completed(value)
-                self._dispatch(apply)
-        future.add_done_callback(finished)
+        def received(result):
+            if result.error is not None:
+                completed(None, result.error)
+                return
+            if operation == "activate_project":
+                self._snapshot(result.value)
+            completed(result.value)
+        self.requests.call("settings", operation, *args, completed=received,
+                           allow_disconnected=operation == "catalog")
 
     def _save_view(self):
         if self._save_timer:
@@ -327,35 +320,13 @@ class LiveController:
             self._save_timer = self.loop.call_later(0.25, self._save_view)
 
     def _call(self, operation, *args, completed=None, acknowledged=None, progress=None):
-        if not self.worker or not self.view.connected:
-            self._error(self.view.t("not_connected"))
+        def received(result):
+            if result.error is not None:
+                self._error(result.error)
             if completed:
-                completed(None)
-            return
-        try:
-            kwargs = {"acknowledged": lambda: self._dispatch(acknowledged)} if acknowledged else {}
-            if progress is not None:
-                kwargs["progress"] = lambda done, total: self._dispatch(progress, done, total)
-            future = self.worker.call(operation, *args, **kwargs)
-        except Exception as error:
-            self._error(error)
-            if completed:
-                completed(None)
-            return
-        def finished(result):
-            failure = None
-            try:
-                value = result.result()
-            except Exception as error:
-                failure = error
-                value = None
-            def apply():
-                if failure is not None:
-                    self._error(failure)
-                if completed:
-                    completed(value)
-            self._dispatch(apply)
-        future.add_done_callback(finished)
+                completed(result.value)
+        self.requests.call(operation, *args, completed=received,
+                           acknowledged=acknowledged, progress=progress)
 
     def _set_output_interval(self, seconds):
         if self.worker:

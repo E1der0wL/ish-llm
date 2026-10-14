@@ -18,7 +18,7 @@ from tests.hub.test_live import until
 from tests.hub.support import SizedOutput
 
 
-COMPONENTS = {"tools", "skills", "mcp", "rag", "agents", "workflows", "memory", "prompts", "builtin_tools"}
+COMPONENTS = {"tools", "skills", "mcp", "rag", "agents", "workflows", "memory", "prompts", "builtin_tools", "goals", "refinement"}
 
 
 class DefaultTests(unittest.IsolatedAsyncioTestCase):
@@ -39,7 +39,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                     "parameters": {"engines": {"loop": {'config': {'system_prompt': None}}}}}})
                 self.assertIsNone(created["values"]["config"]["parameters"]["engines"]["loop"]["config"]["system_prompt"])
                 other = await runtime.backend.projects.aload(created["project"]["id"])
-                self.assertEqual(len(await (await other.components.aget("skills")).alist()), 3)
+                self.assertEqual(len(await (await other.components.aget("skills")).alist()), len(SKILLS))
             finally:
                 await runtime.close()
             reopened = HubRuntime(HubConfig(directory, project_id=project_id, auto_title=False))

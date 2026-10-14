@@ -18,7 +18,7 @@ from hub.model import ChatMessage
 from hub.widget.transcript.conversation import ConversationControl
 from hub.widget.forms.tool_manager import ToolManager
 from hub.ui.application import create_application
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import settings_button, SizedOutput, eventually
 from tests.hub.test_live import until
 from tests.hub.test_settings import settings_backend
 
@@ -88,7 +88,7 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("\x06\x01\x0bno-such-setting\r")
                     await eventually(lambda: screen.page.query == "no-such-setting")
                     self.assertIs(app.layout.current_control, screen.page.save.control)
-                    pipe.send_text("\x03")
+                    settings_button(app, pipe, view, "cancel")
                     await eventually(lambda: not view.settings_open)
                 view.composer.text = "/tools config"
                 view.composer.buffer.cancel_completion()
@@ -110,8 +110,7 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
             try:
                 pipe.send_text("\x11")
                 await eventually(lambda: view.visible)
-                pipe.send_text("\x12")
-                await eventually(lambda: view.show_preview)
+                self.assertFalse(view.navigation_keys.get_bindings_for_keys(("c-r",)))
                 for key in range(1, 13):
                     self.assertFalse(view.navigation_keys.get_bindings_for_keys((f"f{key}",)))
                 pipe.send_text("\x1b")
@@ -180,9 +179,9 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: screen.page.query == "email" and view._dialog is None)
                 self.assertEqual(screen.page.fields(), [screen.page.form.fields[("email",)]])
                 self.assertEqual(screen.page.form.values()["phone"], "67890")
-                pipe.send_text("\x03")
+                settings_button(app, pipe, view, "cancel")
                 await eventually(lambda: not view.settings_open)
-                self.assertFalse(screen.pages)
+                self.assertFalse(screen.drafts.pages)
             finally:
                 app.exit()
                 await task
@@ -226,7 +225,8 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view.visible)
                 entry = {"name":"demo", "modified":"2026-10-08T00:00:00+00:00", "description":"Demo", "version":"v1"}
                 with set_app(app):
-                    popup = ToolManager(view, lambda action, argument, version, done: done([entry]))
+                    popup = ToolManager(view, lambda action, argument, version, done: done([entry]),
+                                        open_directory=AsyncMock())
                     view.dialogs.show(popup, popup.path)
                     popup.reload()
                 pipe.send_text("\t")

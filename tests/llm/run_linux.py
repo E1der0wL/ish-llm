@@ -53,6 +53,11 @@ def main():
     (target / ".venv-linux312").symlink_to(Path(args.python).parent.parent, target_is_directory=True)
     (report / "snapshot.json").write_text(json.dumps({"root": str(target), "python": args.python, "files": files}, indent=2))
     env = dict(os.environ, LITELLM_LOCAL_MODEL_COST_MAP="True", LITELLM_MODE="PRODUCTION")
+    # UI tests use dummy terminals; never let native kill/copy bindings replace
+    # the developer's desktop clipboard. Transport tests inject their own env.
+    if args.hub:
+        for name in ("WSL_DISTRO_NAME", "WSL_INTEROP", "DISPLAY", "WAYLAND_DISPLAY"):
+            env.pop(name, None)
     print(target, flush=True)
     modules = args.modules or ["tests.llm.test_provider_runtime", "tests.llm.test_rag_resilience",
                                "tests.llm.test_explicit_configuration", "tests.llm.test_error_boundaries",

@@ -14,10 +14,63 @@ from hub.widget.output.reader import ReadOnlyDialog
 from hub.widget.controls import TextArea
 from hub.model import ChatMessage
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.support import SizedOutput, eventually, minimize
+from tests.hub.support import settings_button, SizedOutput, eventually, minimize
 
 
 class InputContractTests(unittest.IsolatedAsyncioTestCase):
+    async def test_removed_panel_and_settings_shortcuts_leave_drafts_untouched(self):
+        with create_pipe_input() as pipe:
+            prompt = Prompt(input=pipe, output=SizedOutput())
+            installation = install_preview(prompt)
+            app, view = prompt.app, installation.view
+            task = asyncio.create_task(prompt.prompt_async())
+            try:
+                await eventually(lambda: app.is_running)
+                pipe.send_text("\x11")
+                await eventually(lambda: view.visible)
+                for settings in (False, True):
+                    with set_app(app):
+                        if settings:
+                            view.toggle_settings()
+                            view.settings.choose("profile")
+                            field = view.settings.page.form.fields[("display_name",)]
+                            field.input.text = "unsaved name"
+                        view.active_page.focus_sidebar()
+                    pipe.send_text("\x1b")
+                    await asyncio.sleep(0.12)
+                    self.assertTrue(view.visible)
+                    self.assertTrue(view.active_page.sidebar_focused)
+                    with set_app(app):
+                        self.assertNotIn("ESC", [key for key, _ in view.bindings.hints()])
+                for scope in ("panel", "field", "editing", "buttons"):
+                    with set_app(app):
+                        if scope == "field":
+                            app.layout.focus(field.input)
+                        elif scope == "editing":
+                            field.begin()
+                        elif scope == "buttons":
+                            view.settings.finish_edit()
+                            app.layout.focus(view.settings.page.save)
+                        focus = app.layout.current_control
+                    pipe.send_text("\x13\x03")
+                    await asyncio.sleep(0.12)
+                    self.assertTrue(view.settings_open)
+                    self.assertTrue(view.visible)
+                    self.assertFalse(task.done())
+                    self.assertIs(app.layout.current_control, focus)
+                    self.assertEqual(field.input.text, "unsaved name")
+                    self.assertTrue(view.settings.page.dirty)
+                    with set_app(app):
+                        hints = [key for key, _ in view.bindings.hints()]
+                        self.assertNotIn("Ctrl+S", hints)
+                        self.assertNotIn("Ctrl+C", hints)
+                settings_button(app, pipe, view, "cancel")
+                await eventually(lambda: not view.settings_open)
+            finally:
+                app.exit(result="")
+                await task
+                installation.close()
+
     async def test_ctrl_q_minimizes_from_every_hub_input_scope(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
@@ -132,7 +185,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     self.assertFalse(prompt.key_bindings.get_bindings_for_keys(("c-q",))[0].filter())
                     self.assertEqual([key for key, _ in view.bindings.hints()], [
-                        "ESC", "Ctrl+F", "Ctrl+Q", "Ctrl+R", "Ctrl+S", "Ctrl+T", "Alt + 이동키"])
+                        "ESC", "Ctrl+F", "Ctrl+Q", "Ctrl+S", "Ctrl+T", "Ctrl+V/Ctrl+Y", "Alt + 이동키"])
                     self.assertEqual(view.bindings.hints()[0], ("ESC", "패널"))
                 await paint()
                 chat_header = next(w for w in app.renderer._last_screen.visible_windows if isinstance(w, HeaderBar))
@@ -143,14 +196,14 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(chat_header.style, settings_header.style)
                 self.assertEqual(chat_header.fragments()[0][1][:4], "   ")
                 with set_app(app):
-                    self.assertEqual(view.bindings.hints()[0], ("ESC", "최소화"))
+                    self.assertNotIn("ESC", [key for key, _ in view.bindings.hints()])
                 await minimize(pipe, view)
                 pipe.send_text("\x13")
                 await eventually(lambda: len(shell_search) == 2)
                 self.assertFalse(view.visible)
                 pipe.send_text("\x11")
                 await eventually(lambda: view.visible)
-                pipe.send_text("\x13")
+                settings_button(app, pipe, view, "cancel")
                 await eventually(lambda: not view.settings_open)
                 composer = app.layout.current_control
                 view.composer.text = "preserved input"

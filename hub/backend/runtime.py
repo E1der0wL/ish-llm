@@ -12,6 +12,7 @@ from .execution.engine_selection import requires_model, selected_engines
 from ..config.general import GeneralSettings
 from ..config.view_state import ViewStateStore
 from .observability.notifications import NotificationBuffer
+from .bootstrap import create_backend
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,64 +53,6 @@ class HubConfig:
             if any(not name.strip() or name.startswith("_hub_") or not callable(factory)
                    for name, factory in self.engine_factories.items()):
                 raise ValueError("Use nonempty engine names and callable factories; _hub_ is reserved")
-
-
-def create_backend(config: HubConfig):
-    # Heavy imports and construction happen on the backend thread, not in .ishrc.
-    from llm.llm import LargeLanguageModel, BackendServices
-    from llm.services.runtime.tools import ToolRuntime
-    from .execution.retries import HubLoopEngine, RetryMonitor, RetryObservationMixin
-    from llm.engines.graph import GraphEngine
-    from llm.engines.graph.agent import AgentNode
-    from llm.engines.graph.tool import ToolNode
-    from llm.components.tools import ToolComponent
-    from llm.components.agents import AgentComponent
-    from llm.components.workflows import WorkflowComponent
-    from llm.components.memory import MemoryComponent
-    from llm.components.prompts import PromptComponent
-    from .tools.skills import HubSkillComponent
-    from llm.components.mcp import MCPComponent
-    from llm.components.rag import RAGComponent
-    from .project.naming import TitleEngine, TITLE_ENGINE
-    from .tools.builtin import HubBuiltinTools
-    from .execution.context import HubContextBuilder
-    from .tools.advice import classify_model_risk
-    monitor = RetryMonitor()
-    factories = {"loop": HubLoopEngine, **(config.engine_factories or {})}
-    if config.engine not in factories and config.engine != "graph":
-        raise ValueError("Register the selected engine in HubConfig.engine_factories")
-    engines = {name: factory() for name, factory in factories.items()}
-    engines.setdefault("graph", GraphEngine(handlers={
-        "agent": AgentNode(engines={"loop": engines["loop"]}), "tool": ToolNode()}))
-    if config.auto_title:
-        engines[TITLE_ENGINE] = TitleEngine()
-    for engine in engines.values():
-        if isinstance(engine, RetryObservationMixin):
-            engine.retry_monitor = monitor
-    components = {component.name: component for component in
-                  (ToolComponent(), HubSkillComponent(), MCPComponent(), RAGComponent(),
-                   AgentComponent(engines=engines), WorkflowComponent(), MemoryComponent(), PromptComponent(),
-                   HubBuiltinTools(config.file_root, test_root=Path(config.workspace).expanduser() / ".hub" / "test-workspaces"))}
-    for factory in config.component_factories or ():
-        component = factory()
-        components[component.name] = component
-    from .execution.environment import EnvironmentEngine
-    from .tools.retry import ToolRetrySelector, RetryAwareRunner
-    from .tools.retry_evidence import file_candidates
-    builtins = components.get("builtin_tools")
-    builtins = builtins if isinstance(builtins, HubBuiltinTools) else None
-    selector = ToolRetrySelector(chooser=config.tool_retry_chooser,
-        evidence={**({"file_read": file_candidates} if builtins else {}), **config.tool_retry_evidence},
-        fallback_engine=engines["loop"], builtins=builtins)
-    engines = {name: EnvironmentEngine(engine, builtins, recovery=selector, retry_monitor=monitor)
-               if not name.startswith("_hub_") else engine
-               for name, engine in engines.items()}
-    return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
-                              services=BackendServices(context_builder=HubContextBuilder(), observability_sink=monitor,
-                                  tool_runtime=ToolRuntime(
-                                      classify=config.tool_classifier if config.tool_classifier is not None else classify_model_risk,
-                                      revision="hub-model-risk-tool-retry-v2", decide_retry=selector,
-                                      runner=RetryAwareRunner(selector))))
 
 
 class HubRuntime:
@@ -389,36 +332,6 @@ class HubRuntime:
                 self.selected_id = ""
         self.dirty.set()
         return self.selected_id
-
-    async def component_command(self, project_id: str, command: str, argument: str):
-        from .project.component_commands import component_commands, execute_data, parse_arguments
-        project = await self.backend.projects.aload(project_id)
-        commands = component_commands(tuple((await project.aget_data()).components))
-        if command not in commands:
-            raise ValueError(self.t("component_unavailable", name=command))
-        name = commands[command]
-        action, identifier, payload = parse_arguments(argument, self.t)
-        if action == "settings":
-            return {"catalog": await self.settings_service.catalog(),
-                    "project": await self.settings_service.load_project(project_id)}
-        if action == "help":
-            help_text = self.t("component_help", command=command)
-            return help_text + ("\n\n" + self.t("skills_install_help") if name == "skills" else "")
-        data = await project.components.aget(name)
-        if action == "install":
-            from ..asset.guides import SKILLS
-            if name != "skills":
-                raise ValueError(self.t("component_usage_error"))
-            template = next((item for item in SKILLS if item[0] == identifier), None)
-            if template is None:
-                raise ValueError(self.t("component_usage_error"))
-            _, title, description, instructions = template
-            # Explicit create only: existing user-edited guides are never overwritten.
-            return {"created": await data.acreate({"title": title, "description": description,
-                "instructions": instructions, "metadata": {"hub_template_version": 2}}, identifier=payload["destination"])}
-        result = await execute_data(data, action, identifier, payload)
-        self.dirty.set()
-        return result
 
     async def manage_tools(self, project_id, action, argument="", expected_version=None):
         from .tools.management import ToolManagement

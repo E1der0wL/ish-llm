@@ -8,7 +8,6 @@ from prompt_toolkit.data_structures import Point
 from prompt_toolkit.mouse_events import MouseButton, MouseEventType as M
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.containers import to_container
-from prompt_toolkit.clipboard import ClipboardData
 from prompt_toolkit.utils import get_cwidth
 
 
@@ -208,6 +207,8 @@ class MouseController:
     def _scope(self):
         search = getattr(self.view, "search", None)
         dialog = search.dialog if search and search.active else getattr(self.view, "_dialog", None)
+        if dialog is None and self.view.tags.visible:
+            return set(walk(to_container(self.view.tags.container)))
         # A zero-height modal key receiver must not block its read-only body.
         return set(walk(to_container(dialog))) if dialog is not None else set(self.app.layout.walk_through_modal_area())
 
@@ -285,13 +286,14 @@ class MouseController:
         binding = window_scroll(window)
         binding.scroll_to(binding.geometry().offset)
         selection.begin(self._selection_point(window, point))
+        select_cell = getattr(window.content, "select_point", None)
+        if select_cell:
+            select_cell(selection.anchor)
 
         def update(position, finished=False):
             # Coordinates can disappear during a resize/modal switch.
             if any(item is window for item, _ in self.windows):
                 selection.extend(self._selection_point(window, position, autoscroll=not finished))
-            if finished and selection.text:
-                self.app.clipboard.set_data(ClipboardData(selection.text))
 
         self.drag = MouseCapture(window, update, point)
 
@@ -339,7 +341,7 @@ class MouseController:
                               layers.get(self._pane_layers.get(pane), -1))), None)
         if window not in modal and pane_bar is None:
             self._hover(None)
-            return NotImplemented
+            return None
         pane_hit = next(((pane, area) for pane, area in reversed(self.panes)
                          if pane in modal and contains(area, event.position)
                          and getattr(window, "hub_mouse_pane", None) is pane), None)

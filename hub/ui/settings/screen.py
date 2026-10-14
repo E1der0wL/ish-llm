@@ -1,7 +1,6 @@
 """Settings navigation: two panels with fields and actions."""
 
 from dataclasses import asdict, replace
-import subprocess
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
@@ -14,53 +13,46 @@ from .pages import GlobalPage, ProjectPage
 from ...config.theme import HubTheme
 from ...widget.controls import TextArea
 from ...widget.forms.settings_viewport import SettingsPane
-from .editor import edit_text
+from .navigation import SettingsNavigation
+from .drafts import SettingsDrafts
+from .project_actions import SettingsProjectActions
 from ...widget.sidebar import SidebarHeading, SidebarItem, SidebarList
 from ..layout import TwoPanelPage
 from ...widget.header import HeaderBar
 
 
-def control(widget):
-    return getattr(widget, "control", widget)
-
-
 class SettingsScreen:
     def __init__(self, view):
         self.view, self.t = view, view.t
+        self.navigation = SettingsNavigation(self)
+        self.drafts = SettingsDrafts(self)
+        self.project_actions = SettingsProjectActions(self)
         self.request = None
         self.busy = False
         self.status = ""
         self.schema = None
         self.projects = []
-        self.preferences = {}
-        self.applied_preferences = {}
-        self.workspace_anchor = None
-        self.on_restart = None
         self.usage = []
         self.global_keys = ("profile", "appearance", "general")
-        self._initial_appearance = asdict(view.theme)
-        self._saved_sidebar_width = None
-        self.pages = {}
         self.selected = "profile"
         self.page = None
-        self._main_zone = 0
-        self._zone_positions = [0, 0]
-        self._left_key = "profile"
         self._pending_selection = None
         self._engine_target = None
+        self._component_target = None
         self._left = HSplit([])
         self.global_list = SidebarList(
             lambda: [SidebarItem(key, self._caption(key, self.t("settings_" + key))) for key in self.global_keys],
-            lambda: self._left_key, self.select_left)
+            lambda: self.navigation.left_key, self.select_left)
         self.project_list = SidebarList(
             lambda: [SidebarItem(item["id"], self._caption(item["id"], item["title"])) for item in self.projects]
                     or [SidebarItem("new", self.t("settings_empty"))],
-            lambda: self._left_key, self.select_left)
+            lambda: self.navigation.left_key, self.select_left)
         self.main = SettingsPane(DynamicContainer(lambda: self.page.container if self.page else
                                   Window(height=1)), show_scrollbar=True,
                                   width=lambda: max(1, self.main_width() - 1))
         bottom = DynamicContainer(lambda: self.page.bottom if self.page else Label(""))
         self.actions = Frame(HSplit([Window(height=1), bottom, Window(height=1)]), width=self.main_width,
+                             title=self.action_title,
                              height=lambda: max(5, 4 + len(self.page.button_rows())) if self.page else 5)
         self.layout = TwoPanelPage(
             header=HeaderBar(lambda: self.t("settings_title"), icons=lambda: view.icons),
@@ -72,7 +64,7 @@ class SettingsScreen:
             progress=view.progress, notice=lambda: self.status,
             footer=view.shortcut_bar(),
             sidebar_controls=lambda: (self.global_list, self.project_list),
-            focus_sidebar=self.switch_panel, focus_main=lambda: self._focus_zone(self._main_zone),
+            focus_sidebar=self.navigation.switch_panel, focus_main=lambda: self.navigation.focus_zone(self.navigation.main_zone),
             sidebar_width=view.sidebar_width, resize_sidebar=self.set_sidebar_width)
         self.layout.main_region.on_click = self.layout.focus_main
         self.container = self.layout.container
@@ -81,34 +73,30 @@ class SettingsScreen:
     def main_width(self):
         return max(1, self.view._columns() - self.view.sidebar_width() - 1)
 
-    def _left_items(self):
-        return [*self.global_keys, *([item["id"] for item in self.projects] or ["new"])]
-
-    def left_control(self):
-        return self.global_list if self._left_key in self.global_keys else self.project_list
-
-    def _focused_key(self):
-        current = get_app().layout.current_control
-        if current == self.global_list:
-            return self._left_key if self._left_key in self.global_keys else "profile"
-        if current == self.project_list:
-            return self._left_key if self._left_key not in self.global_keys else self._left_items()[len(self.global_keys)]
-        return None
+    def action_title(self):
+        from ...asset.icon import SELECTED
+        title = next((item["title"] for item in self.projects if item["id"] == self.drafts.current_project_id),
+                     self.view.project_title)
+        active = not self.layout.sidebar_focused
+        return [("class:hub.focused" if active else "", (SELECTED + " " if active else "  ")
+                 + self.t("settings_current_project", title=title))]
 
     def _sidebar(self):
-        previous = self._focused_key()
-        if self._left_key not in self._left_items():
-            self._left_key = "profile"
+        previous = self.navigation.focused_key()
+        if self.navigation.left_key not in self.navigation.left_items():
+            self.navigation.left_key = "profile"
         self._left = HSplit([SidebarHeading(lambda: self.view.icons.settings + " " + self.t("settings_global")),
                              Window(self.global_list, height=len(self.global_keys)),
                              Window(height=1), SidebarHeading(lambda: self.view.icons.project + " " + self.t("settings_projects")),
                              Window(self.project_list)],
                             width=self.view.sidebar_width)
         if previous and self.view.visible and self.view.settings_open:
-            get_app().layout.focus(self.left_control())
+            get_app().layout.focus(self.navigation.left_control())
 
     def select_left(self, key):
-        self._left_key = key
+        self.navigation.left_key = key
+        if key not in (*self.global_keys, "new"):
+            self.drafts.select_project(key)
         if self.busy:
             self._pending_selection = key
         elif key != "new":
@@ -116,135 +104,18 @@ class SettingsScreen:
         get_app().invalidate()
 
     def _caption(self, key, title):
-        page = self.pages.get(key)
+        page = self.drafts.pages.get(key)
         return ("* " if page and page.dirty else "") + title
-
-    def _groups(self):
-        return [self.page.body_widgets(), self.page.buttons] if self.page else [[], []]
-
-    def _focus_zone(self, zone):
-        widgets = self._groups()[zone]
-        if not widgets and zone == 0:
-            zone, widgets = 1, self._groups()[1]
-        if widgets:
-            self._main_zone = zone
-            get_app().layout.focus(control(widgets[min(self._zone_positions[zone], len(widgets) - 1)]))
-        get_app().invalidate()
-
-    def _remember_zone(self):
-        current = get_app().layout.current_control
-        for zone, widgets in enumerate(self._groups()):
-            controls = [control(widget) for widget in widgets]
-            if current in controls:
-                self._main_zone, self._zone_positions[zone] = zone, controls.index(current)
-                break
-
-    @property
-    def editing(self):
-        current = get_app().layout.current_control
-        return bool(self.page and any(field.editing and field.input.control == current for field in self.page.all_fields()))
-
-    @property
-    def project_focused(self):
-        key = self._focused_key()
-        return key is not None and key not in self.global_keys
-
-    def finish_edit(self):
-        editing = self.editing
-        if self.page:
-            for field in self.page.all_fields():
-                field.finish()
-        return editing
-
-    def edit_field(self, field):
-        if self.busy or field.readonly:
-            return
-        self.busy = field.editing = True
-        get_app().create_background_task(self._edit_field(field))
-
-    async def _edit_field(self, field):
-        try:
-            kind = field.schema.get("type")
-            kinds = kind if isinstance(kind, list) else [kind]
-            field.input.text = await edit_text(field.input.text, self.view.general,
-                                               suffix=".txt" if "string" in kinds else ".json")
-            self.status = ""
-        except subprocess.CalledProcessError as error:
-            self.error(self.t("settings_editor_failed", code=error.returncode))
-        except Exception as error:
-            self.error(error)
-        finally:
-            self.busy = False
-            field.finish()
-
-    def switch_panel(self):
-        if self._focused_key() is not None:
-            return
-        self.finish_edit()
-        self._remember_zone()
-        get_app().layout.focus(self.left_control())
-
-    def save_and_close(self):
-        if self.busy:
-            return
-        self.finish_edit()
-        pages = [page for page in self.pages.values() if page.dirty]
-        try:
-            requests = [page.save_request() for page in pages]
-        except (ValueError, TypeError) as error:
-            self.error(error)
-            return
-        if not requests:
-            self.view.toggle_settings()
-            self.prompt_restart(self.global_keys)
-            return
-        def saved(batch):
-            if batch is None:
-                return
-            for page, result in zip(pages, batch["results"]):
-                page.accept_saved(result)
-            if batch.get("error"):
-                failed = pages[len(batch["results"])]
-                self.selected = self._left_key = getattr(failed, "name", None) or failed.identifier or "new"
-                self.show_page(failed)
-                self.error(batch["error"])
-            elif self.view.settings_open:
-                self._pending_selection = None
-                self.view.toggle_settings()
-            if not batch.get("error"):
-                self.prompt_restart(self.global_keys)
-        self.call("save_all", requests, completed=saved)
-
-    def prompt_restart(self, sections):
-        from ...config.restart import restart_changes
-        changed = [name for section in sections for name in restart_changes(section,
-            self.preferences.get(section, {}), self.applied_preferences.get(section, {}),
-            anchor=self.workspace_anchor)]
-        if not changed or self.on_restart is None:
-            return
-        self.view.open_dialog(self.t("settings_restart_title"),
-            Label(self.t("settings_restart_confirm", fields="\n".join(changed))),
-            self.on_restart, accept_text=self.t("settings_restart_now"))
-
-    def discard_and_close(self):
-        if self.busy:
-            return
-        self.finish_edit()
-        self.view.set_theme(HubTheme(**self.preferences.get("appearance", self._initial_appearance)))
-        self.pages.clear()
-        self.page = None
-        self._engine_target = self._pending_selection = None
-        self.view.toggle_settings()
 
     def filter(self, query):
         if self.page is None:
             return
-        self.finish_edit()
+        self.navigation.finish_edit()
         self.page.filter(query)
         self.main.vertical_scroll = 0
-        self._zone_positions = [0, 0]
+        self.navigation.positions = [0, 0]
         self.status = self.t("settings_search_active", query=query) if query else ""
-        self._focus_zone(0)
+        self.navigation.focus_zone(0)
 
     def search(self):
         if self.page is None or self.busy:
@@ -270,49 +141,15 @@ class SettingsScreen:
         if self.schema is not None and not self.busy:
             self.choose(project)
 
-    def focus(self, reverse=False):
-        if self._focused_key() is not None:
-            self.layout.focus_main()
+    def open_component(self, name):
+        project = getattr(self.view, "project_id", "")
+        if not project:
             return
-        self.finish_edit()
-        self._remember_zone()
-        step = -1 if reverse else 1
-        zone = self._main_zone
-        for _ in range(2):
-            zone = (zone + step) % 2
-            if self._groups()[zone]:
-                self._focus_zone(zone)
-                break
-
-    def move(self, key):
-        current = get_app().layout.current_control
-        usage = getattr(self.page, "usage_output", None)
-        if usage is not None and current == usage.control and key in ("up", "down"):
-            if key == "down" or usage.buffer.document.cursor_position_row:
-                usage.buffer.cursor_up() if key == "up" else usage.buffer.cursor_down()
-                return
-        left_key = self._focused_key()
-        if left_key is not None:
-            if key in ("left", "right"):
-                if key == "right":
-                    self.layout.focus_main()
-                return
-            items = self._left_items()
-            index = items.index(left_key)
-            index = max(0, min(len(items) - 1, index + (-1 if key == "up" else 1)))
-            self._left_key = items[index]
-            get_app().layout.focus(self.left_control())
-            self.select_left(self._left_key)
-        else:
-            if key == "right":
-                return
-            self._remember_zone()
-            widgets = self._groups()[self._main_zone]
-            if not widgets:
-                return
-            index = self._zone_positions[self._main_zone] + (-1 if key in ("up", "left") else 1)
-            self._zone_positions[self._main_zone] = max(0, min(len(widgets) - 1, index))
-            self._focus_zone(self._main_zone)
+        self._component_target = (project, name)
+        if not self.view.settings_open:
+            self.view.toggle_settings()
+        if self.schema is not None and not self.busy:
+            self.choose(project)
 
     def resize(self, delta):
         self.set_sidebar_width(self.view.theme.sidebar_width + delta)
@@ -321,15 +158,15 @@ class SettingsScreen:
         if self.busy:
             return
         width = max(18, min(60, max(18, self.view._columns() // 2), width))
-        if width == self.view.theme.sidebar_width and (not persist or width == self._saved_sidebar_width):
+        if width == self.view.theme.sidebar_width and (not persist or width == self.drafts.saved_sidebar_width):
             return
         if width != self.view.theme.sidebar_width:
             self.view.set_theme(replace(self.view.theme, sidebar_width=width))
         if persist:
-            self._saved_sidebar_width = width
-        self._initial_appearance["sidebar_width"] = width
-        self.preferences.setdefault("appearance", self._initial_appearance.copy())["sidebar_width"] = width
-        page = self.pages.get("appearance")
+            self.drafts.saved_sidebar_width = width
+        self.drafts.initial_appearance["sidebar_width"] = width
+        self.drafts.preferences.setdefault("appearance", self.drafts.initial_appearance.copy())["sidebar_width"] = width
+        page = self.drafts.pages.get("appearance")
         if page is not None:
             field = page.form.fields[("sidebar_width",)]
             field.original = width
@@ -371,8 +208,9 @@ class SettingsScreen:
             done(None, error)
 
     def open(self):
+        self.drafts.current_project_id = getattr(self.view, "project_id", "") or self.drafts.current_project_id
         if self.request is None:
-            self.preferences = {"profile": asdict(UserProfile()), "appearance": self._initial_appearance.copy(),
+            self.drafts.preferences = {"profile": asdict(UserProfile()), "appearance": self.drafts.initial_appearance.copy(),
                                 "general": asdict(GeneralSettings())}
             self.choose("profile")
             self.status = self.t("preview_notice")
@@ -383,35 +221,41 @@ class SettingsScreen:
         if value is None:
             return
         self.schema, self.projects = value["schema"], value["projects"]
-        self.preferences = value["preferences"]
+        if self.drafts.current_project_id not in {item["id"] for item in self.projects}:
+            self.drafts.current_project_id = value.get("active_project", "")
+        self.drafts.preferences = value["preferences"]
         self.usage = value.get("usage", [])
-        if "profile" in self.pages:
-            page = self.pages["profile"]
+        if "profile" in self.drafts.pages:
+            page = self.drafts.pages["profile"]
             page.usage_output.text = page.usage_text()
-        self.preferences.setdefault("general", asdict(GeneralSettings()))
-        self.preferences["appearance"] = asdict(HubTheme(**self.preferences.get("appearance", self._initial_appearance)))
-        if self._saved_sidebar_width is not None:
-            self.preferences["appearance"]["sidebar_width"] = self._saved_sidebar_width
+        self.drafts.preferences.setdefault("general", asdict(GeneralSettings()))
+        self.drafts.preferences["appearance"] = asdict(HubTheme(**self.drafts.preferences.get("appearance", self.drafts.initial_appearance)))
+        if self.drafts.saved_sidebar_width is not None:
+            self.drafts.preferences["appearance"]["sidebar_width"] = self.drafts.saved_sidebar_width
         self._sidebar()
         if self._engine_target:
             self.choose(self._engine_target[0])
+        elif self._component_target:
+            self.choose(self._component_target[0])
         elif self.page is None:
             self.choose("profile")
 
     def choose(self, key):
         if self.busy:
             return
-        self.finish_edit()
+        self.navigation.finish_edit()
+        if key not in (*self.global_keys, "new"):
+            self.drafts.select_project(key)
         self.selected = key
-        if key in self._left_items():
-            self._left_key = key
-        if self.view.visible and self._focused_key() is not None:
-            get_app().layout.focus(self.left_control())
-        if key in self.pages:
-            self.show_page(self.pages[key])
+        if key in self.navigation.left_items():
+            self.navigation.left_key = key
+        if self.view.visible and self.navigation.focused_key() is not None:
+            get_app().layout.focus(self.navigation.left_control())
+        if key in self.drafts.pages:
+            self.show_page(self.drafts.pages[key])
         elif key in self.global_keys:
-            self.pages[key] = GlobalPage(self, key, self.preferences[key])
-            self.show_page(self.pages[key])
+            self.drafts.pages[key] = GlobalPage(self, key, self.drafts.preferences[key])
+            self.show_page(self.drafts.pages[key])
         elif key == "new":
             if self.schema is None:
                 self.error(self.t("not_connected"))
@@ -419,161 +263,104 @@ class SettingsScreen:
             # A fresh project is not a copy of the current project's settings.
             # Missing fields stay blank; storage is resolved when creating it.
             record = {"schema": self.schema, "values": {"components": [], "config": {}}}
-            self.pages[key] = ProjectPage(self, record, new=True)
-            self.show_page(self.pages[key])
+            self.drafts.pages[key] = ProjectPage(self, record, new=True)
+            self.show_page(self.drafts.pages[key])
         else:
             self.call("load_project", key, completed=self.loaded_project)
 
     def show_page(self, page):
-        left = self._focused_key() is not None
+        left = self.navigation.focused_key() is not None
         self.page = page
         self.main.vertical_scroll = 0
-        self._zone_positions = [0, 0]
+        self.navigation.positions = [0, 0]
         if self._engine_target and getattr(page, "identifier", None) == self._engine_target[0]:
             _, engine = self._engine_target
             self._engine_target = None
             self.filter("config.parameters.engines." + page.engine_keys.get(engine, engine))
+        if self._component_target and getattr(page, "identifier", None) == self._component_target[0]:
+            _, name = self._component_target
+            self._component_target = None
+            self.filter("config.parameters.components." + name)
         if self.view.visible and self.view.settings_open and self.view._dialog is None and not left:
-            self._focus_zone(self._main_zone)
+            self.navigation.focus_zone(self.navigation.main_zone)
         get_app().invalidate()
 
     def loaded_project(self, record):
         if record is not None:
             identifier = record["project"]["id"]
-            query = getattr(self.pages.get(identifier), "query", "")
-            page = self.pages[identifier] = ProjectPage(self, record)
+            query = getattr(self.drafts.pages.get(identifier), "query", "")
+            page = self.drafts.pages[identifier] = ProjectPage(self, record)
             if query:
                 page.filter(query)
             self.selected = identifier
-            self._left_key = identifier
-            if self.view.visible and self._focused_key() is not None:
-                get_app().layout.focus(self.left_control())
+            self.navigation.left_key = identifier
+            if self.view.visible and self.navigation.focused_key() is not None:
+                get_app().layout.focus(self.navigation.left_control())
             self.show_page(page)
 
     def saved_project(self, record):
         if record is None:
             return
+        self.drafts.select_project(record["project"]["id"])
         self.loaded_project(record)
         identifier, title = record["project"]["id"], record["values"]["title"]
         self.projects = [item for item in self.projects if item["id"] != identifier] + [{"id": identifier, "title": title}]
         self._sidebar()
         self.status = self.t("settings_saved")
 
+    def left_control(self):
+        return self.navigation.left_control()
+
+    def finish_edit(self):
+        return self.navigation.finish_edit()
+
+    def edit_field(self, field):
+        return self.navigation.edit_field(field)
+
+    def switch_panel(self):
+        return self.navigation.switch_panel()
+
+    def focus(self, reverse=False):
+        return self.navigation.focus(reverse=reverse)
+
+    def move(self, key):
+        return self.navigation.move(key)
+
+    def save_and_close(self):
+        return self.drafts.save_and_close()
+
+    def discard_and_close(self):
+        return self.drafts.discard_and_close()
+
+    def prompt_restart(self, sections):
+        return self.drafts.prompt_restart(sections)
+
     def reload(self, page):
-        if self.busy:
-            return
-        self.finish_edit()
-        if isinstance(page, GlobalPage):
-            def loaded(value):
-                if value is not None:
-                    self.preferences.update(value["preferences"])
-                    if self._saved_sidebar_width is not None:
-                        self.preferences.setdefault("appearance", self._initial_appearance.copy())["sidebar_width"] = self._saved_sidebar_width
-                    self.usage = value.get("usage", [])
-                    self.cancel(page)
-            if self.request:
-                self.call("catalog", completed=loaded)
-            else:
-                self.cancel(page)
-        elif page.new:
-            self.pages.pop("new", None)
-            self.choose("new")
-        else:
-            self.call("load_project", page.identifier, completed=self.loaded_project)
+        return self.drafts.reload(page)
 
     def cancel(self, page):
-        if self.busy:
-            return
-        self.finish_edit()
-        if isinstance(page, GlobalPage):
-            values = self.preferences.get(page.name, page.original)
-            if page.name == "appearance":
-                values = asdict(HubTheme(**values))
-                self.view.set_theme(HubTheme(**values))
-            self.pages[page.name] = GlobalPage(self, page.name, values)
-            self.show_page(self.pages[page.name])
-        elif page.new:
-            self.pages.pop("new", None)
-            self.choose("profile")
-        else:
-            self.loaded_project(page.record)
-        self.status = self.t("settings_cancelled")
-
-    def project_action(self, key):
-        if self.busy:
-            return
-        identifier = self._focused_key()
-        if key == "c":
-            self._name_dialog(self.t("settings_create"), "",
-                lambda title: self.call("create_project", {"title": title, "config": {}}, completed=self.saved_project))
-            return
-        if identifier in (None, "new", *self.global_keys):
-            return
-        def ready(record):
-            if record is None:
-                return
-            page = ProjectPage(self, record)
-            {"d": self.delete, "e": self.rename, "r": self.clone}[key](page)
-        self.call("load_project", identifier, completed=ready)
-
-    def _name_dialog(self, title, initial, action):
-        name = TextArea(text=initial, height=1, multiline=False)
-        def validate():
-            if name.text.strip():
-                return True
-            self.error(self.t("settings_title_required"))
-            return False
-        def accept():
-            action(name.text.strip())
-        self.view.open_dialog(title, HSplit([Label(self.t("settings_project_name")), name]), accept, name, validate=validate)
-        def entered(_):
-            if validate():
-                self.view.close_dialog()
-                accept()
-            return True
-        name.buffer.accept_handler = entered
+        return self.drafts.cancel(page)
 
     def clone(self, page):
-        if not self.busy:
-            self._name_dialog(self.t("settings_clone"), page.record["values"]["title"] + " " + self.t("settings_copy_suffix"),
-                lambda title: self.call("clone_project", page.identifier, title, completed=self.saved_project))
+        return self.project_actions.clone(page)
 
     def rename(self, page):
-        def renamed(record):
-            if record is None:
-                return
-            identifier, title = record["project"]["id"], record["values"]["title"]
-            for item in self.projects:
-                if item["id"] == identifier:
-                    item["title"] = title
-            cached = self.pages.get(identifier)
-            if cached is not None:
-                field = cached.form.fields[("title",)]
-                if field.input.text == field.initial:
-                    field.input.text = title
-                field.initial = field.original = title
-                cached.record["values"]["title"] = title
-            self._sidebar()
-            self.status = self.t("settings_saved")
-        self._name_dialog(self.t("settings_rename"), page.record["values"]["title"],
-            lambda title: self.call("rename_project", page.identifier, title, completed=renamed))
+        return self.project_actions.rename(page)
 
     def delete(self, page):
-        if self.busy:
-            return
-        def deleted(value):
-            if value:
-                self.pages.pop(page.identifier, None)
-                self.projects = [item for item in self.projects if item["id"] != page.identifier]
-                self._sidebar()
-                self.choose("profile")
-                self.status = self.t("settings_deleted")
-        self.view.open_dialog(self.t("settings_delete"), Label(self.t("settings_delete_confirm",
-            title=page.record["values"]["title"])),
-            lambda: self.call("delete_project", page.identifier, completed=deleted))
+        return self.project_actions.delete(page)
 
-    def activate(self, page):
-        def activated(value):
-            if value is not None:
-                self.view.toggle_settings()
-        self.call("activate_project", page.identifier, completed=activated)
+    def project_action(self, key):
+        return self.project_actions.perform(key)
+
+    @property
+    def actions_focused(self):
+        return self.navigation.actions_focused
+
+    @property
+    def editing(self):
+        return self.navigation.editing
+
+    @property
+    def project_focused(self):
+        return self.navigation.project_focused

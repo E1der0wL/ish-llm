@@ -75,8 +75,8 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 drawn = "\n".join("".join(content.data_buffer[y][x].char for x in range(132)) for y in range(40))
                 self.assertNotIn(view.t("settings_main"), drawn)
                 self.assertIn("", drawn.splitlines()[0])
-                self.assertIn(" 전역 설정", drawn)
-                self.assertIn(" 프로젝트", drawn)
+                self.assertIn(f"{NERD.settings} 전역 설정", drawn)
+                self.assertIn(f"{NERD.project} 프로젝트", drawn)
                 with set_app(app):
                     screen.choose("appearance")
                     field = screen.page.form.fields[("icon_style",)]

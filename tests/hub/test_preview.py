@@ -86,7 +86,6 @@ class PreviewTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_markdown_scrolling_and_live_theme_preserve_input(self):
         await self.open_hub()
-        self.view.show_preview = False
         self.pipe.send_text("keep draft")
         await eventually(lambda: self.view.composer.text == "keep draft"
                          and self.view.transcript.window.render_info is not None)

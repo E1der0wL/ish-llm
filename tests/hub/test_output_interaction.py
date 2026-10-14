@@ -142,7 +142,12 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(popup.item.raw, source)
         self.size.columns, self.size.rows = 42, 12
         self.app.invalidate()
-        await eventually(lambda: popup.table.window.render_info.window_height <= 8)
+        try:
+            await eventually(lambda: popup.table.window.render_info.window_height <= 8)
+        except TimeoutError:
+            screen = self.app.renderer._last_screen
+            painted = "\n".join("".join(screen.data_buffer[y][x].char for x in range(42)) for y in range(12))
+            self.fail(f"Table viewport failed to shrink\n{painted}")
         self.pipe.send_text("\x14")
         await eventually(lambda: self.view._dialog is None)
         self.assertIs(self.app.layout.current_control, self.view.tags.control)

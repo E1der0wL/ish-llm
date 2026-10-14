@@ -28,8 +28,9 @@ class SidebarItem:
 
 
 class SidebarList(FormattedTextControl):
-    def __init__(self, items, selected, on_select, *, key_bindings=None):
+    def __init__(self, items, selected, on_select, *, key_bindings=None, on_activate=None):
         self.items, self.selected, self.on_select = items, selected, on_select
+        self.on_activate = on_activate
         super().__init__(self.fragments, focusable=True, show_cursor=False,
                          key_bindings=key_bindings, get_cursor_position=self.cursor_position)
 
@@ -52,6 +53,8 @@ class SidebarList(FormattedTextControl):
                 if row <= event.position.y < row + height:
                     get_app().layout.focus(self)
                     self.on_select(item.key)
+                    if self.on_activate:
+                        self.on_activate()
                     return None
                 row += height
         return NotImplemented

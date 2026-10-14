@@ -61,7 +61,7 @@ class IconSet:
 NERD = IconSet(HEADER_MARK, SESSIONS, "", "", "", ALERT, MappingProxyType({
     **STATUS, "running": "", "streaming": "", "failed": "",
     "paused": "", "waiting_approval": "", "preparing": "",
-}), tool="", question="", output=OUTPUT_NERD, settings="", project="")
+}), tool="", question="", output=OUTPUT_NERD, settings="", project="")
 UNICODE = IconSet("•", "☷", REASONING, WAITING, EDIT,
                   MappingProxyType({"error": "❌", "info": "ℹ", "warning": "⚠", "success": "✅"}), STATUS)
 

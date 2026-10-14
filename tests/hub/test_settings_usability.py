@@ -17,7 +17,7 @@ from hub.config.preferences import PreferencesStore
 from hub.config.profile import UserProfile
 from hub.config.theme import HubTheme
 from hub.ui.application import create_application
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import settings_button, SizedOutput, eventually
 from tests.hub.test_live import controlled_backend, until
 
 
@@ -51,7 +51,7 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: field.input.buffer.cursor_position == 1)
                 with set_app(app):
                     screen.finish_edit()
-                    screen._left_key = screen.projects[0]['id']
+                    screen.navigation.left_key = screen.projects[0]['id']
                     app.layout.focus(screen.project_list)
                 count = len(screen.projects)
                 pipe.send_text('c')
@@ -121,7 +121,7 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
                     await until(lambda: store.load()['appearance']['sidebar_width'] == 30)
                 self.assertLessEqual(len(writes), 2)
                 self.assertEqual(store.path.read_bytes(), before)
-                pipe.send_text('\x03')
+                settings_button(app, pipe, view, "cancel")
                 await eventually(lambda: not view.settings_open)
                 self.assertEqual(view.theme.sidebar_width, 30)
                 self.assertEqual(store.load()['profile']['display_name'], 'Saved')

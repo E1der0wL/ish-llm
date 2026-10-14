@@ -160,7 +160,6 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             root = Path(directory)
             (root / "notes.md").write_text("fixture")
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
-            view.show_preview = True
             view.file_root = root
             view.engines = ("loop", "review")
             calls = []
@@ -228,7 +227,6 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.composer.text == "first\nsecond")
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertFalse(view.transcript.control.is_focusable())
-                self.assertFalse(view.draft_preview.control.is_focusable())
                 self.assertEqual(calls, [])
             finally:
                 app.exit()
@@ -349,7 +347,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 view.composer.text = "**draft**"
                 self.assertEqual(calls, [])
                 self.assertIs(app.layout.current_control, view.composer.control)
-                self.assertEqual(view.draft_preview.control.messages[0].text, "**draft**")
+                self.assertFalse(hasattr(view, "draft_preview"))
                 app.invalidate()
                 await until(lambda: view.transcript.window.render_info is not None)
                 pipe.send_text("\x1b\x1b[B")

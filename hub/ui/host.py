@@ -1,4 +1,4 @@
-"""Edit a settings draft while lending the host terminal to the configured editor."""
+"""Host editor and desktop integration shared by settings and component managers."""
 
 import asyncio
 from pathlib import Path
@@ -8,7 +8,7 @@ import tempfile
 from prompt_toolkit.application import in_terminal
 from prompt_toolkit.application.current import get_app
 
-from ...config.general import GeneralSettings
+from ..config.general import GeneralSettings
 
 
 async def edit_text(text: str, settings: GeneralSettings, *, suffix: str = ".txt") -> str:
@@ -35,3 +35,9 @@ async def edit_text(text: str, settings: GeneralSettings, *, suffix: str = ".txt
         edited = path.read_text(encoding="utf-8")
         # Editors conventionally add a final newline even to scalar settings.
         return edited if text.endswith("\n") else edited.removesuffix("\n")
+
+
+async def open_directory(path: str) -> int:
+    process = await asyncio.create_subprocess_exec("xdg-open", path,
+        stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
+    return await process.wait()

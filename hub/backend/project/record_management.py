@@ -6,25 +6,24 @@ from pathlib import Path
 import re
 from uuid import uuid4
 
+from ...components import component_spec
+
 
 class RecordManagement:
     def __init__(self, data, name, root):
         self.data, self.name, self.root = data, name, Path(root)
+        self.spec = component_spec(name)
 
     @classmethod
     async def for_project(cls, project, name, *, root=None):
-        from llm.components.rag.data import RAGData
-        from llm.components.skills.data import SkillData
-        from llm.components.workflows.data import WorkflowData
-
-        types = {"skills": SkillData, "workflows": WorkflowData, "rag": RAGData}
-        if name not in types:
+        spec = component_spec(name)
+        if spec.manager == "tools":
             raise ValueError("Unsupported component manager")
         data = await project.components.aget(name)
-        if not isinstance(data, types[name]):
+        if not isinstance(data, spec.data_type()):
             raise ValueError("Unsupported component data contract")
         record = await project.aget_data()
-        manager = DocumentManagement if name == "rag" else cls
+        manager = {"record": cls, "document": DocumentManagement, "agent": AgentManagement}[spec.manager]
         return manager(data, name, root or record.paths.root)
 
     def _read_import(self, argument):
@@ -39,9 +38,9 @@ class RecordManagement:
             raise ValueError("Import file exceeds 8 MiB of text")
         stem = source.parent.name if source.name.lower() == "skill.md" else source.stem
         identifier = re.sub(r"[^A-Za-z0-9_-]", "_", stem)[:64].strip("_") or uuid4().hex
-        if self.name == "rag":
+        if self.spec.import_kind == "text":
             values = {"title": source.name, "content": text, "metadata": {"source": str(source)}}
-        elif self.name == "skills" and source.suffix.lower() in (".md", ".txt"):
+        elif self.spec.import_kind == "skill" and source.suffix.lower() in (".md", ".txt"):
             values = {"title": stem, "instructions": text}
         else:
             values = json.loads(text)
@@ -53,20 +52,23 @@ class RecordManagement:
     def _entry(identifier, values, version):
         metadata = values.get("metadata") or {}
         return {"name": identifier, "label": values.get("title") or metadata.get("title") or identifier,
-                "description": str(values.get("description") or metadata.get("description") or
+                "description": str(values.get("description") or values.get("purpose") or metadata.get("description") or
                                    values.get("instructions") or values.get("content") or "")[:200],
                 "modified": metadata.get("updated_at", ""), "version": version}
 
     async def list(self):
         entries = []
         for identifier in await self.data.alist():
-            snapshot = await self.data.asnapshot(identifier)
+            snapshot = await self.snapshot(identifier)
             entries.append(self._entry(identifier, snapshot["data"], snapshot["version"]))
         return entries
 
     async def read(self, identifier):
-        snapshot = await self.data.asnapshot(identifier)
+        snapshot = await self.snapshot(identifier)
         return {"text": json.dumps(snapshot["data"], ensure_ascii=False, indent=2), "version": snapshot["version"]}
+
+    async def snapshot(self, identifier):
+        return await self.data.asnapshot(identifier)
 
     async def create(self, identifier, values):
         await self.data.acreate(values, identifier=identifier)
@@ -99,6 +101,15 @@ class RecordManagement:
         else:
             raise ValueError("Unknown component management operation")
         return await self.list()
+
+
+class AgentManagement(RecordManagement):
+    async def snapshot(self, identifier):
+        snapshot = await self.data.asnapshot(identifier)
+        return {"data": snapshot["definition"], "version": snapshot["revision"]}
+
+    async def save(self, identifier, values, version):
+        await self.data.arevise(identifier, values, expected_revision=version)
 
 
 class DocumentManagement(RecordManagement):

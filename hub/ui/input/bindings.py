@@ -2,6 +2,7 @@
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.key_binding import merge_key_bindings
+from prompt_toolkit.layout.controls import BufferControl
 from .context import InputContext
 from .registry import ShortcutRegistry, legend
 
@@ -15,12 +16,19 @@ class HubBindings:
         self.keys = merge_key_bindings([r.bindings, common.bindings])
         common.add(["c-q"], "Ctrl+Q", "minimize", self.minimize,
                    when=lambda: view.visible, global_=True)
-        r.add(["escape"], "ESC", lambda: "minimize" if c.sidebar else "sidebar", self.escape, when=lambda: c.available)
+        common.add(["c-c"], "Ctrl+C", "copy", self.copy,
+                   when=lambda: view.visible and bool(self.selection()), global_=True)
+        common.add(["c-v", "c-y"], "Ctrl+V/Ctrl+Y", "paste", self.paste,
+                   when=lambda: view.visible and isinstance(c.control, BufferControl)
+                                and not get_app().current_buffer.read_only(), global_=True)
+        r.add(["escape"], "ESC", "sidebar", self.escape, when=lambda: c.available and not c.sidebar)
+        r.add(["escape"], "", "", lambda e: None, when=lambda: c.sidebar)
         r.add(["escape"], "ESC", "close", lambda e: view.close_dialog(), when=lambda: c.dialog)
         r.add(["tab", "s-tab"], "Tab/Shift+Tab", "move",
-              lambda e: view.dialogs.cycle(e.key_sequence[0].key == "s-tab"), when=lambda: c.dialog)
-        r.add(["c-s"], "Ctrl+S", lambda: "save_chat" if c.settings else "settings",
-              self.settings, when=lambda: c.available)
+              self.dialog_tab, when=lambda: c.dialog)
+        r.add(["c-s"], "Ctrl+S", "settings", self.settings, when=lambda: c.chat)
+        r.add(["c-s"], "", "", lambda e: None,
+              when=lambda: view.visible and view.settings_open, global_=True)
         r.add(["c-f"], "Ctrl+F", "find", lambda e: view.search.open(),
               when=lambda: view.visible and not view.settings_open and not view.tags.visible
                            and (view._dialog is None or view.search.active))
@@ -39,17 +47,23 @@ class HubBindings:
         r.add(["tab", "s-tab"], "Tab/Shift+Tab", "regions",
               lambda e: view.settings.focus(e.key_sequence[0].key == "s-tab"), when=lambda: c.settings and not c.sidebar)
         r.add(["left"], "←", "sidebar", lambda e: view.settings.switch_panel(),
-              when=lambda: c.settings and not c.sidebar and not view.settings.editing)
+              when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused)
         r.add(["up", "down"], "↑↓", "items",
-              lambda e: view.settings.move(e.key_sequence[-1].key), when=lambda: c.settings and not c.sidebar and not view.settings.editing)
+              lambda e: view.settings.move(e.key_sequence[-1].key),
+              when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused)
         r.add(["right"], "", "", lambda e: None,
-              when=lambda: c.settings and not c.sidebar and not view.settings.editing)
+              when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused)
+        r.add(["left", "right"], "←→", "select",
+              lambda e: view.settings.move(e.key_sequence[-1].key),
+              when=lambda: c.settings and view.settings.actions_focused)
+        r.add(["up", "down"], "", "", lambda e: None,
+              when=lambda: c.settings and view.settings.actions_focused)
         r.add(["up", "down"], "↑↓", "select", self.select, when=lambda: c.sidebar)
         r.add(["c-left", "c-right"], "Ctrl+←→", "width", self.resize, when=lambda: c.sidebar)
         for key, action in (("c", "create"), ("d", "delete"), ("e", "rename"), ("r", "clone")):
             def enabled(key=key):
                 return c.sidebar and (not c.settings or view.settings.project_focused) and (
-                    key == "c" or (view.settings._focused_key() != "new" if c.settings else not view.no_sessions))
+                    key == "c" or (view.settings.navigation.focused_key() != "new" if c.settings else not view.no_sessions))
             r.add([key], key, action, self.session_action, when=enabled)
         r.add(["tab", " ", "enter", "right"], "Tab/Space/Enter/→", "main", lambda e: view.active_page.focus_main(), when=lambda: c.sidebar)
         r.add(["tab"], "", "confirm", self.complete, when=lambda: c.composing)
@@ -61,17 +75,47 @@ class HubBindings:
         r.scroll(self.scroll, when=lambda: c.chat)
         r.scroll(self.scroll_settings, when=lambda: c.settings and not c.sidebar)
         r.scroll(lambda e: None, when=lambda: c.settings and c.sidebar, visible=False)
-        for key, label, callback in (
-            ("c-r", "preview", lambda: setattr(view, "show_preview", not view.show_preview)),
-            ("c-t", "tags", lambda: view.tags.open())):
-            r.add([key], "Ctrl+" + key[-1].upper(), label, lambda e, callback=callback: callback(), when=lambda: c.chat)
+        r.add(["c-t"], "Ctrl+T", "tags", lambda e: view.tags.open(), when=lambda: c.chat)
         # The composer's own hint row already shows send/completion/newline.
         r.add(["enter"], "", "send", self.submit, when=lambda: c.composing, eager=False)
         r.add(["c-space"], "", "newline", self.newline, when=lambda: c.composing)
         r.add(["c-o"], "Ctrl+O", "approval_details", lambda e: view.question.review(),
               when=lambda: c.composing and bool(view.question.item))
-        r.add(["c-c"], "Ctrl+C", "close", self.close, when=lambda: view.visible and not c.composing, global_=True, eager=False)
-        r.add(["c-c"], "", "", lambda e: None, when=lambda: c.composing, global_=True)
+        r.add(["c-c"], "Ctrl+C", "close", self.close,
+              when=lambda: view.visible and not view.settings_open and not c.composing and not self.selection(), global_=True, eager=False)
+        r.add(["c-c"], "", "", lambda e: None,
+              when=lambda: view.visible and (c.composing or view.settings_open) and not self.selection(), global_=True)
+
+    def selection(self):
+        from ...widget.clipboard import selected_text
+        return selected_text(get_app(), self.view)
+
+    def copy(self, event):
+        from ...widget.clipboard import copy_text
+        text = self.selection()
+        async def copied():
+            self.view.notice = self.view.t(await copy_text(text))
+            event.app.invalidate()
+        event.app.create_background_task(copied())
+
+    def paste(self, event):
+        from ...widget.clipboard import SystemClipboard
+        buffer = event.app.current_buffer
+        async def paste():
+            register = event.app.clipboard
+            data = await register.read() if isinstance(register, SystemClipboard) else register.get_data()
+            if self.view.visible and event.app.current_buffer is buffer and not buffer.read_only():
+                buffer.paste_clipboard_data(data)
+        event.app.create_background_task(paste())
+
+    def dialog_tab(self, event):
+        control = event.app.layout.current_control
+        if event.key_sequence[-1].key == "tab" and getattr(control, "hub_complete_path", False):
+            buffer = control.buffer
+            if buffer.text.strip() and buffer.complete_state and buffer.complete_state.completions:
+                buffer.apply_completion(buffer.complete_state.current_completion or buffer.complete_state.completions[0])
+                return
+        self.view.dialogs.cycle(event.key_sequence[-1].key == "s-tab")
 
     def hints(self):
         local = getattr(self.context.control, "hub_shortcuts", None)
@@ -85,10 +129,7 @@ class HubBindings:
         return legend(actions, self.view.t)
 
     def escape(self, event):
-        if self.context.sidebar:
-            self.minimize(event)
-        else:
-            self.view.active_page.focus_sidebar()
+        self.view.active_page.focus_sidebar()
 
     def minimize(self, event):
         self.view.settings.finish_edit()
@@ -96,9 +137,7 @@ class HubBindings:
 
     def settings(self, event):
         view = self.view
-        if self.context.settings:
-            view.settings.save_and_close()
-        elif self.context.composing:
+        if self.context.composing:
             view.settings.open_engine()
         else:
             view.toggle_settings()
@@ -175,8 +214,6 @@ class HubBindings:
         view = self.view
         if view._dialog:
             view.close_dialog()
-        elif view.settings_open:
-            view.settings.discard_and_close()
         elif view.tags.visible:
             view.tags.close()
         else:

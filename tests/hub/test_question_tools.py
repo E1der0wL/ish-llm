@@ -288,7 +288,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 # Preview insets Hub by 1 row / 2 columns on each side.
                 # The interactive viewer also owns status and shortcut rows;
                 # its enclosing frame still fills the complete Hub allocation.
-                self.assertEqual(info.window_height, output.rows - 6)
+                self.assertEqual(info.window_height, output.rows - 7)
                 self.assertGreaterEqual(info.window_width, output.columns - 7)
                 from prompt_toolkit.layout.containers import to_container
                 from prompt_toolkit.layout.layout import walk

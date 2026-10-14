@@ -30,16 +30,9 @@ class HubCompleter(Completer):
             return
         command, separator, prefix = before.partition(" ")
         if separator and command[1:] in self.components() and before.startswith("/"):
-            actions = (*ACTIONS, "install") if self.components()[command[1:]] == "skills" else ACTIONS
-            for action in actions:
+            for action in ACTIONS:
                 if action.startswith(prefix):
                     yield Completion(action, -len(prefix), display_meta=self.t("component_action_" + action))
-            if self.components()[command[1:]] == "skills" and prefix.startswith("install "):
-                from ...asset.guides import SKILLS
-                word = prefix[len("install "):]
-                for identifier, title, _, _ in SKILLS:
-                    if identifier.startswith(word):
-                        yield Completion(identifier, -len(word), display_meta=title)
             return
         if before.startswith("/engine ") and "\n" not in before:
             prefix = before[len("/engine "):]

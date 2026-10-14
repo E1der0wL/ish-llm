@@ -5,8 +5,10 @@ from prompt_toolkit.data_structures import Point
 from prompt_toolkit.layout import DynamicContainer, HSplit, UIContent, UIControl, Window, ScrollOffsets
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.utils import get_cwidth
+from prompt_toolkit.mouse_events import MouseEventType, MouseButton
 
-from ..controls import ScrollbarMargin
+from ..controls import Button, ScrollbarMargin
+from ..clipboard import copy_text
 from .selection import SelectableControl
 from ..output_inspector import ExpandedOutputDialog
 from ...ui.input.registry import MOVEMENT_KEYS
@@ -109,9 +111,28 @@ class TableControl(SelectableControl):
         for index, (value, width) in enumerate(zip(self.columns, self.widths)):
             marker = (" ↓" if self.descending else " ↑") if index == self.sort_column else ""
             text = value + marker
+            def clicked(event, index=index):
+                if event.event_type == MouseEventType.MOUSE_UP and event.button == MouseButton.LEFT:
+                    self.column = index
+                    self.sort()
+                    get_app().invalidate()
+                    return None
+                return NotImplemented
             result.append(("class:hub.search.current" if index == self.column else "class:hub.accent",
-                           text + " " * max(0, width - get_cwidth(text))))
+                           text + " " * max(0, width - get_cwidth(text)), clicked))
         return result
+
+    def select_point(self, point):
+        if not self.order:
+            return
+        self.row = min(len(self.order) - 1, point.y)
+        cell = get_cwidth(self.selection.line(point.y)[:point.x])
+        offset = 0
+        for index, width in enumerate(self.widths):
+            offset += width
+            if cell < offset:
+                self.column = index
+                break
 
     def create_content(self, width, height):
         if not self._started:
@@ -147,6 +168,17 @@ class TableInspector(ExpandedOutputDialog):
                            when=lambda: self.raw_mode)
         self.shortcuts.add(["N", "c-p"], "N/Ctrl+P", "previous_match", lambda e: output.move_match(-1),
                            when=lambda: self.raw_mode)
+        self.buttons[1:1] = [
+            Button(self.t("shortcut_object_sort"), handler=self.table.sort),
+            Button(self.t("object_raw"), handler=self.toggle_raw),
+            Button(self.t("object_copy_cell"), handler=lambda: get_app().create_background_task(self.copy_cell())),
+        ]
+
+    async def copy_cell(self):
+        if self.table.data and self.table.order:
+            value = self.table.data.rows[self.table.order[self.table.row]][self.table.column]
+            self.notice = self.t(await copy_text(value))
+            get_app().invalidate()
 
     def move(self, key):
         self.output.scroll(key) if self.raw_mode else self.table.move(key)
