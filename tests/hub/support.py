@@ -30,6 +30,15 @@ def settings_button(app, pipe, view, name="save"):
     pipe.send_text("\r")
 
 
+async def open_home(app, view):
+    """Saving/cancelling stays in settings; Home is a separate explicit action."""
+    await asyncio.sleep(0.05)  # Let a queued Enter invoke its button first.
+    await eventually(lambda: not view.settings.busy and not view.projects.busy)
+    with set_app(app):
+        view.profile_bar.home.handler()
+    await eventually(lambda: not view.settings_open)
+
+
 async def minimize(pipe, view):
     if view.tags.visible:
         pipe.send_text("\x14")

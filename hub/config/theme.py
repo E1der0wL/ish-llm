@@ -97,6 +97,7 @@ class HubTheme:
             "hub": f"noinherit fg:{self.foreground} bg:{self.background}",
             "hub.header": f"fg:{self.bar_foreground} bg:{self.header_background} bold",
             "hub.header.project": f"fg:{self.accent}",
+            "hub.profile": f"fg:{self.bar_foreground} bg:{self.header_background} bold",
             "hub.header.model": f"fg:{self.muted}",
             "hub.accent": f"fg:{self.accent} bold",
             "hub.muted": f"fg:{self.muted}", "hub.sidebar": "",

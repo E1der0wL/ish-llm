@@ -21,15 +21,19 @@ class InputContext:
 
     @property
     def settings(self):
-        return self.available and self.view.settings_open
+        return self.available and self.view.settings_open and not self.profile
 
     @property
     def chat(self):
-        return self.available and not self.view.settings_open
+        return self.available and not self.view.settings_open and not self.profile
 
     @property
     def sidebar(self):
-        return self.available and self.view.active_page.sidebar_focused
+        return self.available and self.view.active_page.sidebar_focused and not self.profile
+
+    @property
+    def profile(self):
+        return self.available and self.view.profile_bar.focused
 
     @property
     def composing(self):

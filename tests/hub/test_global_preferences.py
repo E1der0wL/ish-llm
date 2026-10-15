@@ -104,7 +104,9 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
                 for button in settings.page.buttons:
                     self.assertFalse(button.control.show_cursor)
                 settings_button(app, pipe, view)
-                await until(lambda: not view.settings_open and app.renderer._last_screen.show_cursor)
+                from tests.hub.support import open_home
+                await open_home(app, view)
+                await until(lambda: app.renderer._last_screen.show_cursor)
                 self.assertIs(app.layout.current_control, view.composer.control)
             finally:
                 app.exit()

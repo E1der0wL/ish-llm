@@ -49,7 +49,8 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("c", keys())
                 self.assertEqual(view._header()[0][1], "   demo-project")
                 # Keep the input help, remove only the separate sidebar hint row.
-                self.assertEqual(len(view._sidebar.content.children), 2)
+                self.assertEqual(len(view._sidebar.content.sections), 2)
+                self.assertIs(view._sidebar.content.children[-1], view.profile_bar)
                 # Input help has its own row inside the unbroken bottom border.
                 content = app.renderer._last_screen
                 rect = content.visible_windows_to_write_positions[view.composer.window]
@@ -70,7 +71,8 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 await paint()
                 self.assertNotIn("c", keys())
                 self.assertNotIn("Ctrl+E", keys())
-                self.assertEqual(len(screen._left.children), 5)
+                self.assertEqual(len(screen._left.sections), 2)
+                self.assertIs(screen._left.children[-1], view.profile_bar)
                 content = app.renderer._last_screen
                 drawn = "\n".join("".join(content.data_buffer[y][x].char for x in range(132)) for y in range(40))
                 self.assertNotIn(view.t("settings_main"), drawn)

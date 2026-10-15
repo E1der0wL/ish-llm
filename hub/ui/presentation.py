@@ -23,6 +23,17 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
         return replace(item, text="", phase=item.phase or "preparing")
     if item.role == "assistant" and item.status == "failed":
         text = (text.rstrip() + "\n\n" if text.strip() else "") + t("response_failed")
+        if item.failure is not None:
+            diagnosis = item.failure
+            text += "\n\n" + t("failure_" + diagnosis.kind)
+            evidence = [diagnosis.code] if diagnosis.code else []
+            if diagnosis.http_status is not None:
+                evidence.append(f"HTTP {diagnosis.http_status}")
+            if diagnosis.exception_type:
+                evidence.append(diagnosis.exception_type)
+            if evidence:
+                text += "\n\n" + t("failure_evidence", evidence=" · ".join(evidence))
+            text += "\n" + t("failure_details")
     elif not text and not item.tools:
         text = t("status_" + item.status) if item.status in ("interrupted", "cancelled", "paused", "completed") else t("waiting")
     return replace(item, text=text,

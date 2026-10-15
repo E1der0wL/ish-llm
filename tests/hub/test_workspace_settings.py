@@ -7,6 +7,7 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from tests.hub.support import open_home
 from unittest.mock import patch
 
 from prompt_toolkit.application.current import set_app
@@ -135,8 +136,8 @@ class WorkspaceSettingsTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     screen.choose("general")
                     screen.page.form.fields[("workspace_root",)].input.text = str(target)
-                    screen.discard_and_close()
-                await until(lambda: not view.settings_open and not screen.busy)
+                    screen.discard()
+                await open_home(app, view)
                 self.assertEqual(configured_workspace(config).workspace, anchor)
                 pipe.send_bytes(b'\x13')
                 await until(lambda: view.settings_open and not screen.busy)
@@ -146,7 +147,10 @@ class WorkspaceSettingsTests(unittest.IsolatedAsyncioTestCase):
                     app.layout.focus(field.input)
                     field.input.text = str(target)
                 settings_button(app, pipe, view, "save")
-                await until(lambda: not view.settings_open and not screen.busy)
+                await until(lambda: view._dialog is not None and not screen.busy)
+                pipe.send_text("\x1b")  # Keep the saved path for the next restart.
+                await until(lambda: view._dialog is None)
+                await open_home(app, view)
                 self.assertEqual(configured_workspace(config).workspace, target)
                 self.assertEqual(controller.config.workspace, anchor)
                 self.assertEqual(controller.worker.runtime.config.workspace, anchor)

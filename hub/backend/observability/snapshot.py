@@ -121,7 +121,7 @@ class SnapshotReader:
             visible.append(ChatMessage(role, message.content or "", timestamp,
                                        status=status, id=message.id,
                                        author=author if role == "user" else "",
-                                       elapsed_seconds=elapsed, phase=phase))
+                                       elapsed_seconds=elapsed, phase=phase, run_id=message.run_id or ""))
         from ..execution.turns import TurnIndex
         return TurnIndex(messages).display(visible)
 

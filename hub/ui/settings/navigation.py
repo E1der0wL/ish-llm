@@ -17,7 +17,7 @@ class SettingsNavigation:
         self.left_key = "profile"
 
     def left_items(self):
-        return [*self.screen.global_keys, *([item["id"] for item in self.screen.projects] or ["new"])]
+        return [*self.screen.global_keys, *[item.key for item in self.screen.project_items()]]
 
     def left_control(self):
         return self.screen.global_list if self.left_key in self.screen.global_keys else self.screen.project_list

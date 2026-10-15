@@ -3,6 +3,7 @@
 import asyncio
 import tempfile
 import unittest
+from tests.hub.support import open_home
 from prompt_toolkit.input import create_pipe_input
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.ui.application import create_application
@@ -62,7 +63,7 @@ class WelcomeTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x13")
                 await until(lambda: view.settings_open and not view.settings.busy)
                 settings_button(app, pipe, view, "cancel")
-                await until(lambda: not view.settings_open)
+                await open_home(app, view)
                 self.assertIs(app.layout.current_control, view.composer.control)
                 pipe.send_text("Keep my draft\r")
                 await until(lambda: view._dialog is not None)

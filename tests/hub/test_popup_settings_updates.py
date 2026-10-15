@@ -6,6 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import tempfile
 import unittest
+from tests.hub.support import open_home
 from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.application.current import set_app
@@ -49,13 +50,13 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
                 screen.request = request
                 screen.status = ""
                 with set_app(app):
-                    screen.save_and_close()
+                    screen.save()
                 self.assertTrue(screen.status)
                 self.assertFalse(calls)
                 self.assertTrue(view.settings_open)
                 appearance.form.fields[("sidebar_width",)].input.text = "36"
                 with set_app(app):
-                    screen.save_and_close()
+                    screen.save()
                 self.assertIn("save conflict", screen.status)
                 self.assertTrue(view.settings_open)
                 self.assertFalse(screen.drafts.pages["profile"].dirty)
@@ -92,7 +93,7 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
                     with set_app(app):
                         screen.switch_panel() if sidebar else screen.layout.focus_main()
                     settings_button(app, pipe, view, "save")
-                    await until(lambda: not view.settings_open)
+                    await open_home(app, view)
                     saved = PreferencesStore(Path(directory)).load()
                     self.assertEqual(saved["profile"]["display_name"], "User saved")
                     self.assertEqual(saved["appearance"]["sidebar_width"], 35)
@@ -102,15 +103,16 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
                     with set_app(app):
                         screen.switch_panel() if sidebar else screen.layout.focus_main()
                     settings_button(app, pipe, view, "cancel")
-                    await until(lambda: not view.settings_open)
-                    self.assertFalse(screen.drafts.pages)
+                    await open_home(app, view)
+                    self.assertFalse(any(page.dirty for page in screen.drafts.active_pages()))
                     self.assertEqual(view.theme.sidebar_width, 35)
                     self.assertEqual(PreferencesStore(Path(directory)).load(), saved)
                     pipe.send_text("\x13")
-                    await until(lambda: not screen.busy and getattr(screen.page, "identifier", None) == view.project_id)
+                    await until(lambda: view.settings_open and not screen.busy
+                                and getattr(screen.page, "identifier", None) == view.project_id)
                     self.assertEqual(screen.page.form.fields[("title",)].input.text, "Project saved")
                     settings_button(app, pipe, view, "cancel")
-                    await until(lambda: not view.settings_open)
+                    await open_home(app, view)
             finally:
                 app.exit()
                 await task

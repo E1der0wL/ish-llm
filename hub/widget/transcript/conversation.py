@@ -305,7 +305,9 @@ class ConversationControl(SelectableControl):
         # A snapshot can arrive between paints. Apply navigation to its current
         # layout, not the previous session's empty or differently wrapped rows.
         self.create_content(self._width, self._height)
-        if self._cache_key is None:
+        if self._cache_key is None or (not self._anchors and self._cache_key != self._requested_key):
+            # A painted empty frame has a cache key too. While the first real
+            # frame is pending, do not clamp navigation to that empty viewport.
             base, vertical, horizontal = self._deferred_scroll or ("home", 0, 0)
             if key in ("home", "end"):
                 base, vertical = key, 0

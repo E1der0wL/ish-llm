@@ -74,6 +74,8 @@ class HubRuntime:
         self._dropped_observations = 0
         from .observability.snapshot import SnapshotReader
         self.snapshot_reader = SnapshotReader()
+        from .observability.failures import FailureDiagnostics
+        self.failure_diagnostics = FailureDiagnostics(self)
         from .history import TurnHistory
         self.history = TurnHistory(self)
         self._opened_sessions = set()
@@ -274,6 +276,9 @@ class HubRuntime:
         workspace = getattr(self.backend, "workspace", self.config.workspace)
         provider = await asyncio.to_thread(read_provider_logs, workspace, project.id)
         return associate_provider_logs(rows, provider)
+
+    async def diagnose_failures(self, project_id, session_id, run_ids):
+        return await self.failure_diagnostics.read(project_id, session_id, run_ids)
 
     async def execution_catalog(self, session_id: str) -> dict:
         from llm.engines.graph import GraphEngine

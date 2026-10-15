@@ -73,7 +73,7 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(controller.config.language, "ko")
                 # A save without another edit still offers the pending restart.
                 with set_app(app):
-                    screen.save_and_close()
+                    screen.save()
                 await until(lambda: view._dialog is not None)
                 pipe.send_bytes(b'\r')
                 self.assertEqual(await asyncio.wait_for(asyncio.shield(task), 5), RESTART)
@@ -171,7 +171,7 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                     with set_app(app):
                         screen.choose("general")
                         screen.page.form.fields[("workspace_root",)].input.text = str(Path(root) / "new-root")
-                        screen.save_and_close()
+                        screen.save()
                     await until(lambda: old.view._dialog is not None)
                     pipe.send_bytes(b'\r')
                     await until(lambda: prompt._hub_ui_preview is not old)

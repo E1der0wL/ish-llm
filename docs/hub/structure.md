@@ -1,5 +1,12 @@
 # Hub 구조와 정리 내역
 
+## 패널 UX 보강 (2026-10-15)
+
+프로젝트 탐색과 CRUD는 `ui/chat/projects.py`로 이동했습니다. 설정의 navigation/drafts는
+현재 프로젝트의 일반·엔진·컴포넌트 섹션을 표시하고 공유 초안을 관리합니다.
+공통 프로필·패널은 `widget/profile.py`, `widget/sidebar_panel.py`에 있으며 실패 안내는
+`backend/observability/failures.py`가 같은 Run의 기록을 분석합니다. [사용법](panel-ux.md).
+
 ## 현재 구조 보강 (2026-10-14)
 
 최신 책임 분리와 확장 위치는 [UI 요청·설정·컴포넌트 구조](maintenance.md)에 정리합니다.

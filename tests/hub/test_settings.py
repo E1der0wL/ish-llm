@@ -9,9 +9,11 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from tests.hub.support import open_home
 from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.input import create_pipe_input
+from prompt_toolkit.application.current import set_app
 
 from hub.ui.application import create_application
 from hub.locales import Language
@@ -199,8 +201,13 @@ class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 changed["conversation_storage"] = "file"
                 with self.assertRaisesRegex(ValueError, "Sessions"):
                     await service.save_project(identifier, changed, created["config_version"])
-                with self.assertRaises(ValueError):
-                    await service.delete_project(identifier)
+                await service.delete_project(identifier)
+                self.assertNotEqual(runtime.project.id, identifier)
+                deleted = next(project for project in await runtime.backend.projects.alist(include_deleted=True)
+                               if project.id == identifier)
+                self.assertTrue((await deleted.aget_data()).deleted)
+                with self.assertRaisesRegex(ValueError, runtime.t("project_delete_last")):
+                    await service.delete_project(runtime.project.id)
             finally:
                 await runtime.close()
 
@@ -249,7 +256,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("\x13")
                 await until(lambda: screen.page is not None and not screen.busy)
-                screen.choose(view.project_id)
+                screen.choose("engine:loop")
                 await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
                 page = screen.page
                 prefix = ("config", "parameters", "engines", "loop", "config")
@@ -265,7 +272,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(stored["system_prompt"], "edited prompt")
                 self.assertEqual(stored["completion"]["temperature"], 0.3)
                 settings_button(app, pipe, view, "save")
-                await until(lambda: not view.settings_open)
+                await open_home(app, view)
                 pipe.send_text("hello\r")
                 await until(lambda: any(m.role == "assistant" and m.status == "completed" for m in view.transcript.control.messages))
                 self.assertEqual(calls[0]["temperature"], 0.3)
@@ -295,7 +302,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("\x13")
                 await until(lambda: screen.page is not None and not screen.busy)
-                screen.choose(view.project_id)
+                screen.choose("engine:loop")
                 await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
                 page = screen.page
                 field = page.engine_forms["loop"].fields[path]
@@ -308,8 +315,9 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                     editor.assert_awaited_once()
                 app.layout.focus(page.save)
                 pipe.send_text("\r")
-                await until(lambda: screen.page is not page and not screen.busy and not view.settings_open)
+                await until(lambda: screen.page is not page and not screen.busy)
                 self.assertEqual(screen.page.engine_forms["loop"].fields[path].input.text, "low")
+                await open_home(app, view)
                 pipe.send_text("Explain\r")
                 await until(lambda: any(m.role == "assistant" and m.status == "completed"
                                        for m in view.transcript.control.messages))
@@ -372,7 +380,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 profile.form.fields[("display_name",)].input.text = "Configured User"
                 app.layout.focus(profile.save)
                 pipe.send_text("\r")
-                await until(lambda: not view.settings_open and not screen.busy)
+                await open_home(app, view)
                 pipe.send_text("\x13")
                 await until(lambda: view.settings_open and not screen.busy)
                 screen.choose("appearance")
@@ -380,7 +388,8 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 appearance.form.fields[("accent1",)].input.text = "#abcdef"
                 app.layout.focus(appearance.save)
                 pipe.send_text("\r")
-                await until(lambda: view.theme.accent == "#abcdef" and not view.settings_open and not screen.busy)
+                await until(lambda: view.theme.accent == "#abcdef" and not screen.busy)
+                await open_home(app, view)
                 pipe.send_text("\x13")
                 await until(lambda: view.settings_open and not screen.busy)
                 identifier = view.project_id
@@ -402,42 +411,31 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(screen.page.record["values"]["config"]["parameters"]["engines"]["loop"]["config"]["completion"]["temperature"], 0.7)
                 self.assertEqual(screen.page.record["values"]["config"]["parameters"]["components"]["demo"]["config"]["count"], 5)
                 settings_button(app, pipe, view, "save")
-                await until(lambda: not view.settings_open)
+                await open_home(app, view)
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertEqual(view.composer.text, "keep chat draft")
                 self.assertFalse(view.transcript.control.messages)
-                pipe.send_text("\x13")
-                await until(lambda: view.settings_open and not screen.busy)
-                screen.choose("new")
-                self.assertTrue(all(field.input.text == "" for field in screen.page.all_fields()))
-                self.assertEqual(screen.page.values()["config"], {})
-                screen.page.submit()
-                await until(lambda: not screen.busy)
-                self.assertIn(view.t("settings_title_required"), screen.status)
-                screen.page.form.fields[("title",)].input.text = "UI project"
-                screen.page.submit()
-                await until(lambda: not screen.busy and not screen.page.new)
-                self.assertEqual(screen.page.record["values"]["config"]["parameters"], {})
-                self.assertEqual(screen.page.record["values"]["conversation_storage"], "file")
-                created_id = screen.page.identifier
-                screen.clone(screen.page)
-                app.current_buffer.text = "UI clone"
-                pipe.send_text("\t\r")
-                try:
-                    await until(lambda: not screen.busy and screen.page.identifier != created_id)
-                except TimeoutError:
-                    self.fail(f"Clone did not complete: {screen.status}; dialog={view._dialog is not None}; "
-                              f"focus={app.layout.current_control!r}; buffer={app.current_buffer.text!r}")
-                clone_id = screen.page.identifier
-                self.assertEqual(screen.page.record["values"]["title"], "UI clone")
-                screen.delete(screen.page)
+                await until(lambda: view.projects.loaded and not view.projects.busy)
+                with set_app(app):
+                    app.layout.focus(view.projects.control)
+                    view.projects.perform("c")
+                app.current_buffer.text = "UI project"
                 pipe.send_text("\r")
-                await until(lambda: not screen.busy and screen.selected == "profile")
-                self.assertNotIn(clone_id, [item["id"] for item in screen.projects])
-                screen.choose(created_id)
-                await until(lambda: not screen.busy and screen.selected == created_id)
-                screen.save_and_close()
-                await until(lambda: not view.settings_open and view.project_id == created_id)
+                await until(lambda: view.project_title == "UI project" and not view.projects.busy)
+                created_id = view.project_id
+                with set_app(app):
+                    view.projects.perform("r")
+                app.current_buffer.text = "UI clone"
+                pipe.send_text("\r")
+                await until(lambda: view.project_title == "UI clone" and not view.projects.busy)
+                clone_id = view.project_id
+                with set_app(app):
+                    view.projects.perform("d")
+                pipe.send_text("\r")
+                await until(lambda: not view.projects.busy and clone_id not in [item["id"] for item in view.projects.items])
+                with set_app(app):
+                    view.projects.select(created_id)
+                await until(lambda: view.project_id == created_id and not view.projects.busy)
                 self.assertEqual(view.project_title, "UI project")
             finally:
                 app.exit()

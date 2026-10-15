@@ -35,7 +35,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                     screen.switch_panel()
                 profile = screen.page
                 profile.form.fields[("email",)].input.text = "draft@example.com"
-                for name in ("appearance", "general", view.project_id):
+                for name in ("appearance", "general", "project:general"):
                     pipe.send_text("\x1b[B")
                     await until(lambda: screen.selected == name and not screen.busy)
                 self.assertIs(app.layout.current_control, screen.project_list)
@@ -60,11 +60,10 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIs(type(view._session_control), type(screen.global_list))
                 self.assertIs(type(screen.global_list), type(screen.project_list))
                 pipe.send_text("\x1b[B\x1b[B\x1b[B")
-                await until(lambda: screen.selected == view.project_id)
+                await until(lambda: screen.selected == "project:general")
                 pipe.send_text("c")
-                await until(lambda: view._dialog is not None)
-                pipe.send_text("\x1b")
-                await until(lambda: view._dialog is None and app.layout.current_control == screen.project_list)
+                await asyncio.sleep(.1)
+                self.assertIsNone(view._dialog)  # Project CRUD lives in the chat sidebar.
                 pipe.send_text("\x1b[A")
                 await until(lambda: screen.selected == "general")
             finally:
@@ -167,7 +166,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
                 page = screen.page
                 self.assertFalse(hasattr(page, "activate_button"))
-                self.assertEqual([button.text for button in page.buttons], ["저장", "불러오기", "닫기"])
+                self.assertEqual([button.text for button in page.buttons], ["저장", "불러오기", "취소"])
                 self.assertEqual([button.width for button in page.buttons], [10, 10, 10])
                 count = page.component_forms["demo"].fields[("config", "parameters", "components", "demo", "config", "count")]
                 count.input.text = "7"

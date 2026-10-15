@@ -16,6 +16,16 @@ class ChatMessage:
     tools: tuple["StepSummary", ...] = ()
     trace: tuple["TraceItem", ...] = ()
     activity: str = ""
+    run_id: str = ""
+    failure: "FailureDiagnosis | None" = None
+
+
+@dataclass(frozen=True, slots=True)
+class FailureDiagnosis:
+    kind: str
+    code: str = ""
+    http_status: int | None = None
+    exception_type: str = ""
 
 
 @dataclass(frozen=True, slots=True)

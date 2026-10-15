@@ -51,9 +51,9 @@ class Page:
 
     def actions(self):
         self.save = SaveButton(lambda: self.screen.t("settings_save"),
-                               lambda: any(page.dirty for page in self.screen.drafts.pages.values()), self.screen.save_and_close)
+                               lambda: any(page.dirty for page in self.screen.drafts.active_pages()), self.screen.save)
         self.reload = Button(self.screen.t("settings_reload"), handler=lambda: self.screen.reload(self), width=10)
-        self.cancel = Button(self.screen.t("settings_close"), handler=self.screen.discard_and_close, width=10)
+        self.cancel = Button(self.screen.t("settings_discard"), handler=self.screen.discard, width=10)
         self.buttons = [self.save, self.reload, self.cancel]
         self.bottom = ActionBar(self.buttons, lambda: max(1, self.screen.main_width() - 2))
         for field in self.all_fields():
@@ -69,10 +69,16 @@ class Page:
     def fields(self):
         # Keep the displayed rows and keyboard navigation identical while a
         # matching value is edited. Re-evaluate matches on the next search.
-        return self._filtered_fields if self.query else self.all_fields()
+        return self._filtered_fields if self.query else self.section_fields()
+
+    def visible_forms(self):
+        return self.forms()
+
+    def section_fields(self):
+        return [field for form in self.visible_forms() for field in form.fields.values()]
 
     def _matching_fields(self):
-        return [field for form in self.forms() for path, field in form.fields.items()
+        return [field for form in self.visible_forms() for path, field in form.fields.items()
                 if not self.query or self.query in (".".join(path) + " " +
                     str(field.schema.get("title", "")) + " " + str(field.schema.get("description", "")) +
                     " " + field.input.text).casefold()]
@@ -89,10 +95,10 @@ class Page:
 
 
 class ProjectPage(Page):
-    def __init__(self, screen, record, *, new=False):
-        self.screen, self.record, self.new = screen, record, new
-        self.identifier = None if new else record["project"]["id"]
-        self.components = list(record["schema"]["properties"]["components"]["items"].get("enum", [])) if new else list(record["values"]["components"])
+    def __init__(self, screen, record):
+        self.screen, self.record = screen, record
+        self.identifier = record["project"]["id"]
+        self.components = list(record["values"]["components"])
         values = deepcopy(record["values"])
         values["config"] = deepcopy(record.get("project", {}).get("config", values["config"]))
         schema = deepcopy(record["schema"])
@@ -105,29 +111,18 @@ class ProjectPage(Page):
         schema["properties"].pop("components")
         self.form = SchemaForm(schema, values, screen.t)
         self.component_forms, self.engine_forms = {}, {}
-        body = list(self.form.children)
         for key in dict.fromkeys(self.engine_keys.values()):
             effective = {name: view for name, view in record.get("effective_engines", {}).items()
                          if self.engine_keys.get(name) == key}
             form = SchemaForm(engine_schemas.get(key, {}), values, screen.t,
                               prefix=("config", "parameters", "engines", key), effective=effective)
             self.engine_forms[key] = form
-            body.extend([section(key), *form.children])
         for name in self.components:
             view = record.get("components", {}).get(name, {}).get("effective")
             form = SchemaForm(self.component_schemas.get(name, False), values, screen.t,
                               prefix=("config", "parameters", "components", name),
                               effective={name: view} if view is not None else None)
             self.component_forms[name] = form
-            required = record["schema"].get("x-components", {}).get(name, {}).get("required_components", [])
-            missing = [item for item in required if item not in self.components]
-            body.extend([section(name)])
-            if required:
-                body.append(Label(screen.t("settings_dependencies", names=", ".join(required))))
-            if missing:
-                body.append(Label(screen.t("settings_dependencies_missing", names=", ".join(missing))))
-            body.extend(form.children or [form.container])
-        self.container = SettingsBody(body, self.all_fields())
         # Older projects receive editable suggestions, persisted only on Save.
         # Host-fixed fields and explicit nulls retain their ownership/meaning.
         if "rag" in self.component_forms:
@@ -141,13 +136,35 @@ class ProjectPage(Page):
                 if field.original is MISSING and not field.readonly and default is not MISSING and not explicit_null:
                     field.input.text = default if isinstance(default, str) else json.dumps(default)
         self.actions()
+        self.section = "project:general"
+        self.set_section(self.section)
+
+    def visible_forms(self):
+        section = getattr(self, "section", "project:general")
+        if section.startswith("engine:"):
+            return [self.engine_forms[section.split(":", 1)[1]]]
+        if section.startswith("component:"):
+            return [self.component_forms[section.split(":", 1)[1]]]
+        return [self.form]
+
+    def set_section(self, section):
+        self.section = section
+        form = self.visible_forms()[0]
+        body = []
+        if section.startswith("component:"):
+            name = section.split(":", 1)[1]
+            required = self.record["schema"].get("x-components", {}).get(name, {}).get("required_components", [])
+            missing = [item for item in required if item not in self.components]
+            if required:
+                body.append(Label(self.screen.t("settings_dependencies", names=", ".join(required))))
+            if missing:
+                body.append(Label(self.screen.t("settings_dependencies_missing", names=", ".join(missing))))
+        self._unfiltered = SettingsBody([*body, *(form.children or [form.container])], self.section_fields())
+        self.container = self._unfiltered
+        self.filter("")
 
     def forms(self):
         return [self.form, *self.engine_forms.values(), *self.component_forms.values()]
-
-    @property
-    def dirty(self):
-        return self.new or super().dirty
 
     def values(self):
         values = self.form.values()
@@ -158,14 +175,9 @@ class ProjectPage(Page):
 
     def save_request(self):
         values = self.values()
-        operation = "create_project" if self.new else "save_project"
-        args = (values,) if self.new else (self.identifier, values, self.record["config_version"],
-                                         self.record["values"]["components"])
-        return operation, args
+        return "save_project", (self.identifier, values, self.record["config_version"], self.record["values"]["components"])
 
     def accept_saved(self, record):
-        if record is not None and self.new:
-            self.screen.drafts.pages.pop("new", None)
         self.screen.saved_project(record)
 
 class GlobalPage(Page):
@@ -192,7 +204,7 @@ class GlobalPage(Page):
                 "x-hub-choices": {"nerd": "Nerd Font", "unicode": screen.t("settings_icon_unicode")}}
             for key in ("background", "foreground", "accent1", "accent2", "accent3", "comment"):
                 properties[key]["title"] = screen.t("settings_theme_" + key)
-            properties["sidebar_width"] = {"type": "integer", "minimum": 18, "maximum": 60,
+            properties["sidebar_width"] = {"type": "integer", "minimum": screen.view.profile_bar.minimum_width, "maximum": 60,
                 "title": screen.t("settings_sidebar_width_title"), "description": screen.t("settings_sidebar_width")}
             for key in ("output_refresh_interval", "progress_refresh_interval"):
                 properties[key] = {"type": "number", "minimum": 0.01, "maximum": 10,
@@ -271,6 +283,8 @@ class GlobalPage(Page):
             self.screen.view.general = GeneralSettings(**result)
             if not self.screen.view.general.auto_scroll:
                 self.screen.view.transcript.control.follow_tail = False
+        elif self.name == "profile":
+            self.screen.view.user_profile = UserProfile(**result)
 
     def after_submit(self):
         self.screen.prompt_restart(self.screen.global_keys)

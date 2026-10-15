@@ -5,6 +5,7 @@ import importlib.util
 import json
 import tempfile
 import unittest
+from tests.hub.support import open_home
 
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.application.current import set_app
@@ -49,8 +50,8 @@ class ComponentUITests(unittest.IsolatedAsyncioTestCase):
                     with set_app(app):
                         view._dialog.open_settings()
                     await until(lambda: view.settings_open and not screen.busy)
-                    self.assertEqual(screen.selected, view.project_id)
-                    self.assertEqual(screen.navigation.left_key, view.project_id)
+                    self.assertEqual(screen.selected, "component:" + name)
+                    self.assertEqual(screen.navigation.left_key, "component:" + name)
                     form = screen.page.component_forms[name]
                     expected = next(iter(form.fields.values())).input if form.fields else screen.page.body_widgets()[0]
                     self.assertIs(app.layout.current_control, expected.control)
@@ -58,7 +59,7 @@ class ComponentUITests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("\t")
                     await until(lambda: app.layout.current_control == screen.page.save.control)
                     pipe.send_text("\r")
-                    await until(lambda: not view.settings_open)
+                    await open_home(app, view)
             finally:
                 app.exit()
                 await task

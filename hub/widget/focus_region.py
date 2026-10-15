@@ -9,10 +9,11 @@ from prompt_toolkit.layout.screen import Char
 
 
 class FocusRegion(HSplit):
-    def __init__(self, content, *, active: Callable[[], bool], on_click=None):
+    def __init__(self, content, *, active: Callable[[], bool], on_click=None, tint=True):
         super().__init__([content])
         self.active = active
         self.on_click = on_click
+        self.tint = tint
 
     @staticmethod
     def _tint(screen, area):
@@ -42,7 +43,7 @@ class FocusRegion(HSplit):
             mouse.regions.append((self, write_position))
         super().write_to_screen(screen, mouse_handlers, write_position,
                                 parent_style, erase_bg, z_index)
-        if not self.active():
+        if self.tint and not self.active():
             # Child windows may be deferred at this z-index. Append the tint
             # after them, while higher popup/menus keep their own palette.
             # Only visible cells are visited; identical styles/cells share work.

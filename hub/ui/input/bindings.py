@@ -16,12 +16,14 @@ class HubBindings:
         self.keys = merge_key_bindings([r.bindings, common.bindings])
         common.add(["c-q"], "Ctrl+Q", "minimize", self.minimize,
                    when=lambda: view.visible, global_=True)
+        common.add(["c-p"], "Ctrl+P", "profile", lambda e: view.profile_bar.focus(),
+                   when=lambda: c.available, global_=True)
         common.add(["c-c"], "Ctrl+C", "copy", self.copy,
                    when=lambda: view.visible and bool(self.selection()), global_=True)
         common.add(["c-v", "c-y"], "Ctrl+V/Ctrl+Y", "paste", self.paste,
                    when=lambda: view.visible and isinstance(c.control, BufferControl)
                                 and not get_app().current_buffer.read_only(), global_=True)
-        r.add(["escape"], "ESC", "sidebar", self.escape, when=lambda: c.available and not c.sidebar)
+        r.add(["escape"], "ESC", "sidebar", self.escape, when=lambda: c.available and not c.sidebar and not c.profile)
         r.add(["escape"], "", "", lambda e: None, when=lambda: c.sidebar)
         r.add(["escape"], "ESC", "close", lambda e: view.close_dialog(), when=lambda: c.dialog)
         r.add(["tab", "s-tab"], "Tab/Shift+Tab", "move",
@@ -62,8 +64,8 @@ class HubBindings:
         r.add(["c-left", "c-right"], "Ctrl+←→", "width", self.resize, when=lambda: c.sidebar)
         for key, action in (("c", "create"), ("d", "delete"), ("e", "rename"), ("r", "clone")):
             def enabled(key=key):
-                return c.sidebar and (not c.settings or view.settings.project_focused) and (
-                    key == "c" or (view.settings.navigation.focused_key() != "new" if c.settings else not view.no_sessions))
+                return c.sidebar and c.chat and (
+                    c.control is view.projects.control or key == "c" or not view.no_sessions)
             r.add([key], key, action, self.session_action, when=enabled)
         r.add(["tab", " ", "enter", "right"], "Tab/Space/Enter/→", "main", lambda e: view.active_page.focus_main(), when=lambda: c.sidebar)
         r.add(["tab"], "", "confirm", self.complete, when=lambda: c.composing)
@@ -146,7 +148,7 @@ class HubBindings:
         if self.context.settings:
             self.view.settings.move(event.key_sequence[-1].key)
         else:
-            self.view.select((self.view.selected + (-1 if event.key_sequence[-1].key == "up" else 1)) % len(self.view.sessions))
+            self.view.projects.move(-1 if event.key_sequence[-1].key == "up" else 1)
 
     def resize(self, event):
         self.view.settings.resize(-1 if event.key_sequence[-1].key == "c-left" else 1)
@@ -154,8 +156,8 @@ class HubBindings:
 
     def session_action(self, event):
         key = event.key_sequence[-1].key
-        if self.context.settings:
-            self.view.settings.project_action(key)
+        if self.context.control is self.view.projects.control:
+            self.view.projects.perform(key)
         else:
             self.view.session_actions.perform(key)
 

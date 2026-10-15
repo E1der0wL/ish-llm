@@ -10,6 +10,7 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 
 from prompt_toolkit.input import create_pipe_input
 
@@ -26,6 +27,20 @@ from examples.hub.preview import create_preview
 
 
 class ReadingPositionTests(unittest.TestCase):
+    def test_scroll_waits_for_content_after_a_cached_empty_frame(self):
+        control = ConversationControl((), HubTheme())
+        control.create_content(80, 10)
+        self.assertIsNotNone(control._cache_key)
+        control.messages = (ChatMessage("assistant", "paragraph\n\n" * 70, id="new"),)
+        with patch.object(control, "_request_frame"):
+            control.scroll("home")
+            for _ in range(5):
+                control.scroll("down")
+        self.assertNotEqual(control._cache_key, control._requested_key)
+        control._request_frame(80, control._requested_key)
+        self.assertEqual(control.top_line, 5)
+        self.assertIsNone(control._deferred_scroll)
+
     def test_scroll_after_snapshot_before_paint_uses_new_content(self):
         control = ConversationControl((), HubTheme())
         control.create_content(80, 10)

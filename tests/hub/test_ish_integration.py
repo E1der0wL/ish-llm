@@ -223,7 +223,8 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\t")  # Tab enters the settings fields.
                 await eventually(lambda: prompt.app.layout.current_control == view.settings.page.body_widgets()[0].control)
                 settings_button(prompt.app, pipe, view, "cancel")
-                await eventually(lambda: not view.settings_open)
+                from tests.hub.support import open_home
+                await open_home(prompt.app, view)
                 self.assertEqual(view.composer.text, "ui draft")
                 await minimize(pipe, view)
                 await eventually(lambda: not view.visible)

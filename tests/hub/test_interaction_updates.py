@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
+from tests.hub.support import open_home
 from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.application.current import set_app
@@ -89,7 +90,7 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                     await eventually(lambda: screen.page.query == "no-such-setting")
                     self.assertIs(app.layout.current_control, screen.page.save.control)
                     settings_button(app, pipe, view, "cancel")
-                    await eventually(lambda: not view.settings_open)
+                    await open_home(app, view)
                 view.composer.text = "/tools config"
                 view.composer.buffer.cancel_completion()
                 pipe.send_text("\r")
@@ -180,8 +181,8 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(screen.page.fields(), [screen.page.form.fields[("email",)]])
                 self.assertEqual(screen.page.form.values()["phone"], "67890")
                 settings_button(app, pipe, view, "cancel")
-                await eventually(lambda: not view.settings_open)
-                self.assertFalse(screen.drafts.pages)
+                await open_home(app, view)
+                self.assertFalse(any(page.dirty for page in screen.drafts.active_pages()))
             finally:
                 app.exit()
                 await task

@@ -18,7 +18,7 @@ from hub.backend.worker import BackendWorker
 from hub.ui.application import create_application
 from hub.ui.layout import TwoPanelPage
 from tests.hub.test_live import until
-from tests.hub.support import settings_button, SizedOutput
+from tests.hub.support import settings_button, SizedOutput, open_home
 from tests.hub.test_settings import settings_backend
 
 
@@ -98,7 +98,7 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                 screen.page.form.fields[("output_refresh_interval",)].input.text = "0.23"
                 screen.page.form.fields[("progress_refresh_interval",)].input.text = "0.41"
                 settings_button(app, pipe, view, "save")
-                await until(lambda: not view.settings_open)
+                await open_home(app, view)
                 await until(lambda: controller.worker._output_interval == 0.23)
                 self.assertEqual(view.theme.accent1, "#abcdef")
                 self.assertEqual(view.theme.progress_refresh_interval, 0.41)

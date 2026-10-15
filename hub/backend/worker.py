@@ -139,7 +139,7 @@ class BackendWorker:
             # These operations capture explicit project handles and use service
             # lifecycle/version locks. They never change UI selection. Long RAG
             # writes and tool imports must not block unrelated output either.
-            independent = operation in {"project_activity", "execution_catalog", "manage_tools", "manage_records", "approval_details", "answer_question"}
+            independent = operation in {"project_activity", "diagnose_failures", "execution_catalog", "manage_tools", "manage_records", "approval_details", "answer_question"}
             async with (nullcontext() if independent else self.runtime.lock):
                 kwargs = {"acknowledged": acknowledged} if acknowledged is not None else {}
                 if progress is not None:

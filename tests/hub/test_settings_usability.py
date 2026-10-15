@@ -17,7 +17,7 @@ from hub.config.preferences import PreferencesStore
 from hub.config.profile import UserProfile
 from hub.config.theme import HubTheme
 from hub.ui.application import create_application
-from tests.hub.support import settings_button, SizedOutput, eventually
+from tests.hub.support import settings_button, SizedOutput, eventually, open_home
 from tests.hub.test_live import controlled_backend, until
 
 
@@ -51,9 +51,11 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: field.input.buffer.cursor_position == 1)
                 with set_app(app):
                     screen.finish_edit()
-                    screen.navigation.left_key = screen.projects[0]['id']
-                    app.layout.focus(screen.project_list)
-                count = len(screen.projects)
+                await open_home(app, view)
+                await until(lambda: view.projects.loaded)
+                with set_app(app):
+                    app.layout.focus(view.projects.control)
+                count = len(view.projects.items)
                 pipe.send_text('c')
                 await eventually(lambda: view._dialog is not None)
                 name = app.layout.current_control.buffer
@@ -61,14 +63,14 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text('\r')
                 await asyncio.sleep(.1)
                 self.assertIsNotNone(view._dialog)
-                self.assertEqual(len(screen.projects), count)
-                self.assertIn(screen.t('settings_title_required'), screen.status)
+                self.assertEqual(len(view.projects.items), count)
+                self.assertIn(screen.t('settings_title_required'), view.notice)
                 name.text = '  Named project  '
                 pipe.send_text('\r')
-                await until(lambda: view._dialog is None and not screen.busy)
-                self.assertEqual(len(screen.projects), count + 1, screen.status)
+                await until(lambda: view._dialog is None and not view.projects.busy)
+                self.assertEqual(len(view.projects.items), count + 1, view.notice)
                 self.assertIsNone(view._dialog)
-                self.assertEqual(screen.page.record['values']['title'], 'Named project')
+                self.assertEqual(view.project_title, 'Named project')
             finally:
                 app.exit()
                 await task
@@ -122,7 +124,7 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
                 self.assertLessEqual(len(writes), 2)
                 self.assertEqual(store.path.read_bytes(), before)
                 settings_button(app, pipe, view, "cancel")
-                await eventually(lambda: not view.settings_open)
+                await open_home(app, view)
                 self.assertEqual(view.theme.sidebar_width, 30)
                 self.assertEqual(store.load()['profile']['display_name'], 'Saved')
                 self.assertEqual(store.load()['appearance']['comment'], HubTheme().comment)

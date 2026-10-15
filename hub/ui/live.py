@@ -32,6 +32,7 @@ class LiveHubView(HubView):
         self.notice = self.t("connecting_notice")
         self._submitted_messages = {}
         self._presentation_cache = MessagePresentationCache()
+        self.failure_diagnoses = {}
         self.transcript.control.animation_active = lambda: self.visible and not self.settings_open
         self.transcript.control.animation_follow = lambda: self.general.auto_scroll
 
@@ -68,6 +69,9 @@ class LiveHubView(HubView):
         sessions = {session.id for session in snapshot.sessions}
         self._submitted_messages = {key: value for key, value in self._submitted_messages.items()
                                     if key[0] == snapshot.project_id and key[1] in sessions}
+        snapshot = replace(snapshot, messages=tuple(replace(item, failure=self.failure_diagnoses.get(
+            (snapshot.project_id, snapshot.selected_id, item.run_id))) if item.status == "failed" else item
+            for item in snapshot.messages))
         display = present(snapshot, self.t, self._presentation_cache)
         current_id = self.sessions[self.selected].id
         empty_draft_key = self._draft_key(self.selected) if self.no_sessions else None
@@ -158,6 +162,7 @@ class LiveController:
         if "appearance" in preferences:
             view.set_theme(HubTheme(**preferences["appearance"]))
         view.general = GeneralSettings(**preferences.get("general", {}))
+        view.user_profile = config.user_profile
         self.view = view
         self.config = config
         self.worker_factory = worker_factory
@@ -181,6 +186,7 @@ class LiveController:
         self._restoring_snapshot = None
         self._save_timer = None
         self._last_notification = 0
+        self._diagnosing = set()
         self.view.engine = config.engine
         self.view.on_open = self.open
         self.view.on_submit = self.submit
@@ -266,6 +272,14 @@ class LiveController:
                 self._error(error)
         target = self._select_new
         self.view.apply_snapshot(snapshot, select_id=target)
+        self._diagnose(snapshot)
+        if not self.view.projects.loaded and not self.view.projects.busy:
+            self.view.projects.refresh()
+        if not self.view.projects.busy:
+            self.view.projects.selected = snapshot.project_id
+        for project in self.view.projects.items:
+            if project["id"] == snapshot.project_id:
+                project["title"] = snapshot.project_title
         self.refresh_shell_root()
         current = (self.view.project_id, self.view.sessions[self.view.selected].id)
         displayed_status = {session.id: session.status for session in snapshot.sessions}
@@ -296,9 +310,35 @@ class LiveController:
                 return
             if operation == "activate_project":
                 self._snapshot(result.value)
+            elif operation == "delete_project":
+                self._call("snapshot", completed=self._snapshot)
             completed(result.value)
         self.requests.call("settings", operation, *args, completed=received,
                            allow_disconnected=operation == "catalog")
+
+    def _diagnose(self, snapshot):
+        identity = snapshot.project_id, snapshot.selected_id
+        candidates = [item.run_id for item in snapshot.messages if item.role == "assistant"
+                      and item.status == "failed" and item.run_id][-256:]
+        missing = [rid for rid in candidates
+                   if (*identity, rid) not in self.view.failure_diagnoses
+                   and (*identity, rid) not in self._diagnosing][-64:]
+        if not missing:
+            return
+        self._diagnosing.update((*identity, rid) for rid in missing)
+        def received(result):
+            from ..model import FailureDiagnosis
+            for rid in missing:
+                key = (*identity, rid)
+                self._diagnosing.discard(key)
+                self.view.failure_diagnoses[key] = (result.value or {}).get(rid, FailureDiagnosis("unknown"))
+            while len(self.view.failure_diagnoses) > 256:
+                self.view.failure_diagnoses.pop(next(iter(self.view.failure_diagnoses)))
+            latest = getattr(self.view, "_last_snapshot", None)
+            if latest and (latest.project_id, latest.selected_id) == identity:
+                self.view.apply_snapshot(latest)
+                self.app.invalidate()
+        self.requests.call("diagnose_failures", *identity, missing, completed=received)
 
     def _save_view(self):
         if self._save_timer:

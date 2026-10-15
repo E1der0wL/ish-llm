@@ -3,6 +3,7 @@ from tests.hub.support import settings_button, minimize
 
 import asyncio
 import unittest
+from tests.hub.support import open_home
 
 from prompt_toolkit.input import create_pipe_input
 
@@ -38,7 +39,7 @@ class OverlayTests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("\x13")
                     await eventually(lambda: view.settings_open)
                     settings_button(app, pipe, view, "cancel")
-                    await eventually(lambda: not view.settings_open)
+                    await open_home(app, view)
                     pipe.send_text("/engine ")
                     await eventually(lambda: view.composer.buffer.complete_state is not None)
                     await eventually(lambda: "review-overlay" in screen_text(app, columns, rows))

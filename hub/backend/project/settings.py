@@ -75,6 +75,14 @@ class SettingsService:
                 "active_project": self.runtime.project.id,
                 "preferences": preferences}
 
+    async def list_projects(self):
+        """Sidebar reads do not calculate usage or materialize configuration schemas."""
+        rows = []
+        for project in await self.runtime.backend.projects.alist():
+            data = await project.aget_data()
+            rows.append({"id": data.id, "title": data.title})
+        return rows
+
     async def load_project(self, identifier):
         project = await self._project(identifier)
         result = await project.adescribe_config()
@@ -135,10 +143,13 @@ class SettingsService:
                     await session.run.start()
 
     async def delete_project(self, identifier):
-        if identifier == self.runtime.project.id:
-            raise ValueError(self.runtime.t("settings_delete_active"))
         project = await self._project(identifier)
         sessions = await self._idle_sessions(project)
+        if identifier == self.runtime.project.id:
+            others = [item for item in await self.runtime.backend.projects.alist() if item.id != identifier]
+            if not others:
+                raise ValueError(self.runtime.t("project_delete_last"))
+            await self.runtime.activate_project(others[0])
         try:
             for session in sessions:
                 await session.run.shutdown()
@@ -196,7 +207,7 @@ class SettingsService:
         return {"results": results, "error": None}
 
     async def execute(self, operation, *args):
-        allowed = {"catalog", "load_project", "save_project", "create_project", "select_components",
+        allowed = {"catalog", "list_projects", "load_project", "save_project", "create_project", "select_components",
                    "clone_project", "delete_project", "rename_project", "activate_project", "save_global", "save_all"}
         if operation not in allowed:
             raise ValueError("Unknown settings operation")

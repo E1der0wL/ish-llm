@@ -30,6 +30,8 @@ class HubView:
     def __init__(self, sessions=(), theme=None, language="ko", language_packs=None) -> None:
         self.t = Language(language, language_packs, icons=lambda: self.icons)
         self.general = GeneralSettings()
+        from ..config.profile import UserProfile
+        self.user_profile = UserProfile()
         self.theme = theme or HubTheme()
         self.style = self.theme.style()
         self.sessions = list(sessions) or [SessionView(self.t("welcome_title"))]
@@ -68,6 +70,8 @@ class HubView:
         self.no_sessions = False
         from ..widget.feedback.progress import TaskProgress
         self.progress = TaskProgress(self)
+        from ..widget.profile import ProfileBar
+        self.profile_bar = ProfileBar(self)
         from .settings.screen import SettingsScreen
         self.settings = SettingsScreen(self)
         from ..widget.transcript.search import SessionSearch
@@ -112,10 +116,16 @@ class HubView:
         self._session_control = SidebarList(
             lambda: [] if self.no_sessions else [SidebarItem(self._draft_key(i), session.title, session.status) for i, session in enumerate(self.sessions)],
             lambda: self._draft_key(self.selected), self._select_sidebar_session)
-        self._sidebar = ConditionalContainer(HSplit([
-            SidebarHeading(lambda: self.t("sessions")),
-            Window(self._session_control, style="class:hub.sidebar"),
-        ], width=self.sidebar_width, style="class:hub.sidebar"), Condition(lambda: self._columns() >= 88 or self._session_focus))
+        from .chat.projects import ChatProjects
+        from ..widget.sidebar_panel import SidebarPanel
+        self.projects = ChatProjects(self)
+        self._sidebar = ConditionalContainer(SidebarPanel([
+            HSplit([SidebarHeading(lambda: self.icons.project + " " + self.t("settings_projects")),
+                    Window(self.projects.control, style="class:hub.sidebar")]),
+            HSplit([SidebarHeading(lambda: self.t("sessions")),
+                    Window(self._session_control, style="class:hub.sidebar")]),
+        ], self.profile_bar, width=self.sidebar_width, project_fraction=0.35),
+            Condition(lambda: self._columns() >= 88 or self._session_focus))
         self._details = self.tags.container
         self._composer_frame = InputFrame(HSplit([
             self.question.container,
@@ -134,7 +144,7 @@ class HubView:
             header=HeaderBar(lambda: self.project_title, icons=lambda: self.icons), footer=self.shortcut_bar(),
             sidebar=self._sidebar, main=conversation, progress=self.progress, notice=lambda: self.notice,
             sidebar_visible=self._sidebar.filter, extra=(self._details,),
-            sidebar_controls=lambda: (self._session_control,),
+            sidebar_controls=lambda: (self._session_control, self.projects.control, *self.profile_bar.controls),
             focus_sidebar=self._focus_sessions, focus_main=self._focus_composer,
             sidebar_width=self.sidebar_width, resize_sidebar=self.settings.set_sidebar_width)
         panel = self.chat_page.container
@@ -171,7 +181,8 @@ class HubView:
         return get_app().output.get_size().rows
 
     def sidebar_width(self):
-        return min(self.theme.sidebar_width, max(18, self._columns() // 2))
+        minimum = self.profile_bar.minimum_width
+        return max(minimum, min(self.theme.sidebar_width, max(minimum, self._columns() // 2)))
 
     @staticmethod
     def _line(text, style, height=1):
@@ -210,6 +221,23 @@ class HubView:
         self.composer.buffer.cancel_completion()
         self._session_focus = True
         get_app().layout.focus(self._session_control)
+
+    def focus_sidebar(self):
+        if self.settings_open:
+            self.settings.switch_panel()
+        else:
+            self._focus_sessions()
+        get_app().invalidate()
+
+    def open_page(self, settings):
+        if self.settings.busy or self.projects.busy:
+            return
+        if self.settings_open != settings:
+            self.toggle_settings()
+        elif settings:
+            self.settings.layout.focus_main()
+        else:
+            self._focus_composer()
 
     def _focus_composer(self):
         self._session_focus = False

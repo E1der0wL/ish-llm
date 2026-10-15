@@ -3,6 +3,7 @@
 import asyncio
 from types import SimpleNamespace
 import unittest
+from tests.hub.support import open_home
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -65,7 +66,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                         self.assertNotIn("Ctrl+S", hints)
                         self.assertNotIn("Ctrl+C", hints)
                 settings_button(app, pipe, view, "cancel")
-                await eventually(lambda: not view.settings_open)
+                await open_home(app, view)
             finally:
                 app.exit(result="")
                 await task
@@ -185,7 +186,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     self.assertFalse(prompt.key_bindings.get_bindings_for_keys(("c-q",))[0].filter())
                     self.assertEqual([key for key, _ in view.bindings.hints()], [
-                        "ESC", "Ctrl+F", "Ctrl+Q", "Ctrl+S", "Ctrl+T", "Ctrl+V/Ctrl+Y", "Alt + 이동키"])
+                        "ESC", "Ctrl+F", "Ctrl+P", "Ctrl+Q", "Ctrl+S", "Ctrl+T", "Ctrl+V/Ctrl+Y", "Alt + 이동키"])
                     self.assertEqual(view.bindings.hints()[0], ("ESC", "패널"))
                 await paint()
                 chat_header = next(w for w in app.renderer._last_screen.visible_windows if isinstance(w, HeaderBar))
@@ -204,7 +205,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x11")
                 await eventually(lambda: view.visible)
                 settings_button(app, pipe, view, "cancel")
-                await eventually(lambda: not view.settings_open)
+                await open_home(app, view)
                 composer = app.layout.current_control
                 view.composer.text = "preserved input"
                 history = HistoryUI(SimpleNamespace(view=view))

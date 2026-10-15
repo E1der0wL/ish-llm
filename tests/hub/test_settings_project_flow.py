@@ -1,4 +1,4 @@
-"""Settings select project metadata immediately and load chat only on exit."""
+"""Shared profile navigation and current-project-only settings transactions."""
 
 import asyncio
 import tempfile
@@ -8,66 +8,92 @@ from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 
 from hub.backend.runtime import HubConfig
+from hub.config.preferences import PreferencesStore
 from hub.ui.application import create_application
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually, settings_button, open_home
+from tests.hub.test_live import until
 
 
 class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
-    async def test_project_selection_filter_and_save_close_all_drafts(self):
+    async def test_profile_project_selection_scoped_settings_and_stay_on_save_cancel(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(directory, auto_title=False),
-                                                  input=pipe, output=SizedOutput())
+            output = SizedOutput()
+            app, controller = create_application(HubConfig(directory, auto_title=False), input=pipe, output=output)
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: view.connected)
-                old = view.project_id
-                pipe.send_text("\x13")
-                await eventually(lambda: screen.page is not None and not screen.busy)
-                operations = []
-                request = screen.request
-                def record(operation, args, done):
-                    operations.append((operation, args))
-                    request(operation, args, done)
-                screen.request = record
-                with set_app(app):
-                    screen.filter("engines.loop")
-                    screen.switch_panel()
-                    screen.project_action("c")
-                await eventually(lambda: view._dialog is not None)
-                pipe.send_text("Second project\r")
-                await eventually(lambda: screen.drafts.current_project_id != old and not screen.busy)
-                second = screen.drafts.current_project_id
-                self.assertEqual(view.project_id, old)
-                self.assertEqual(screen.page.query, "")
-                self.assertIn("Second project", "".join(text for _, text in screen.action_title()))
-                self.assertNotIn("activate_project", [op for op, _ in operations])
+                await until(lambda: view.connected and view.projects.loaded and not view.projects.busy)
+                original = view.project_id
+                pipe.send_text("\x10")
+                await eventually(lambda: app.layout.current_control is view.profile_bar.settings.control)
+                for width, height in ((132, 40), (80, 24)):
+                    output.columns, output.rows = width, height
+                    app._on_resize()
+                    await asyncio.sleep(.1)
+                    panel = view._sidebar.content
+                    self.assertEqual(panel.sections[0].height.preferred, round((height - 2) * .35))
+                    position = app.renderer._last_screen.visible_windows_to_write_positions[view.profile_bar.home.window]
+                    self.assertEqual(position.ypos, height - 3)
+                    self.assertLessEqual(position.xpos + position.width, view.sidebar_width())
+                pipe.send_text("\r")
+                await until(lambda: view.settings_open and screen.page is not None and not screen.busy)
                 with set_app(app):
                     screen.choose("profile")
-                    field = screen.page.form.fields[("email",)]
-                    field.input.text = "discard@example.com"
-                    screen.page.cancel.handler()
-                await eventually(lambda: not view.settings_open and view.project_id == second)
-                self.assertEqual([op for op, _ in operations].count("activate_project"), 1)
-                pipe.send_text("\x13")
-                await eventually(lambda: view.settings_open and not screen.busy and screen.page is not None)
+                    screen.page.form.fields[("display_name",)].input.text = "Nickname"
+                settings_button(app, pipe, view)
+                await until(lambda: view.user_profile.display_name == "Nickname" and not screen.busy)
+                self.assertTrue(view.settings_open)
+                self.assertIn("Nickname • ", view.profile_bar.identity()[0][1])
+                self.assertEqual(PreferencesStore(directory).load()["profile"]["display_name"], "Nickname")
                 with set_app(app):
-                    screen.choose("profile")
-                self.assertNotEqual(screen.page.form.fields[("email",)].input.text, "discard@example.com")
-                screen.page.form.fields[("email",)].input.text = "save@example.com"
+                    screen.choose("engine:loop")
+                    project_page = screen.page
+                    loop_field = next(iter(project_page.engine_forms["loop"].fields.values()))
+                    screen.choose("component:tools")
+                    self.assertIs(screen.page, project_page)
+                    self.assertNotIn(loop_field, screen.page.fields())
+                    screen.choose("project:general")
+                    screen.page.form.fields[("title",)].input.text = "Unsaved"
+                settings_button(app, pipe, view, "cancel")
+                await until(lambda: screen.page.form.fields[("title",)].input.text != "Unsaved")
+                self.assertTrue(view.settings_open)
+                await open_home(app, view)
+                # Padding in the shared profile rectangle must also focus its buttons.
+                output.columns = 132
+                app._on_resize()
+                await asyncio.sleep(.1)
+                pipe.send_text(f"\x1b[<0;2;{output.rows - 3}M\x1b[<0;2;{output.rows - 3}m")
+                await eventually(lambda: app.layout.current_control in view.profile_bar.controls)
                 with set_app(app):
-                    screen.choose(old)
-                await eventually(lambda: getattr(screen.page, "identifier", None) == old and not screen.busy)
-                self.assertEqual(view.project_id, second)
+                    view.settings.set_sidebar_width(1)
+                self.assertGreaterEqual(view.sidebar_width(), view.profile_bar.minimum_width)
                 with set_app(app):
-                    screen.page.save.handler()
-                await eventually(lambda: not view.settings_open and view.project_id == old)
-                pipe.send_text("\x13")
-                await eventually(lambda: view.settings_open and not screen.busy)
+                    app.layout.focus(view.projects.control)
+                pipe.send_text("cSecond project\r")
+                await until(lambda: view.project_id != original and not view.projects.busy)
+                second = view.project_id
+                self.assertEqual(view.project_title, "Second project")
                 with set_app(app):
-                    screen.choose("profile")
-                self.assertEqual(screen.page.form.fields[("email",)].input.text, "save@example.com")
+                    view.open_page(True)
+                await until(lambda: not screen.busy)
+                with set_app(app):
+                    screen.choose("project:general")
+                    screen.filter("missing-setting")
+                    screen.choose(original)
+                self.assertEqual(screen.page.identifier, second)
+                self.assertNotIn(original, screen.navigation.left_items())
+                await open_home(app, view)
+                with set_app(app):
+                    view.projects.select(original)
+                await until(lambda: view.project_id == original and not view.projects.busy)
+                self.assertTrue(all(not page.query for page in screen.drafts.pages.values()))
+                with set_app(app):
+                    view.open_page(True)
+                await until(lambda: not screen.busy)
+                with set_app(app):
+                    screen.choose("project:general")
+                self.assertEqual(screen.page.identifier, original)
             finally:
                 app.exit()
                 await task
-                await asyncio.to_thread(controller.close)
+                await controller.aclose()

@@ -70,7 +70,7 @@ class RenderIntervalTests(unittest.IsolatedAsyncioTestCase):
             store.save("appearance", asdict(theme))
             self.assertEqual(HubTheme(**store.load()["appearance"]), theme)
         t = Language("en")
-        self.assertIn("response failed", present_message(ChatMessage("assistant", "", status="failed"), t).text)
+        self.assertIn(t("response_failed"), present_message(ChatMessage("assistant", "", status="failed"), t).text)
         for status in ("interrupted", "cancelled", "paused", "completed"):
             self.assertNotIn(t("waiting"), present_message(ChatMessage("assistant", "", status=status), t).text)
 
