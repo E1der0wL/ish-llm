@@ -20,7 +20,7 @@ class InterruptFeedback:
     def start(self, key: tuple[str, str]) -> PendingInterrupt | None:
         snapshot = getattr(self.view, "_last_snapshot", None)
         run = snapshot.run if snapshot and key == (snapshot.project_id, snapshot.selected_id) else None
-        running = run and run.status in ("pending", "running")
+        running = run and run.status in ("pending", "running", "paused")
         if not running and key not in self.view.preparing.pending:
             return None
         # The submit receipt and first Run snapshot may still be in flight.
@@ -55,7 +55,7 @@ class InterruptFeedback:
             request.run_id = run.id
         # Runtime active flags and durable status can straddle cancellation.
         # Wait for the target's terminal status, not just active=False.
-        if not run or run.status not in ("pending", "running") or run.id != request.run_id:
+        if not run or run.status not in ("pending", "running", "paused") or run.id != request.run_id:
             self.pending.pop(key)
 
     def project(self, key: tuple[str, str], messages: tuple[ChatMessage, ...]) -> tuple[ChatMessage, ...]:
@@ -64,7 +64,7 @@ class InterruptFeedback:
             return messages
         for index in range(len(messages) - 1, -1, -1):
             message = messages[index]
-            if message.role == "assistant" and message.status in ("streaming", "committed", "preparing"):
+            if message.role == "assistant" and message.status in ("streaming", "committed", "preparing", "paused"):
                 # Change only the header. Preserve text, reasoning, durable
                 # status and the Markdown body cache; hide retry information.
                 return (*messages[:index], replace(message, phase="interrupting", activity=""), *messages[index + 1:])

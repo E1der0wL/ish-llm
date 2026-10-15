@@ -61,6 +61,7 @@ class SettingsScreen:
             progress=view.progress, notice=lambda: self.status,
             footer=view.shortcut_bar(),
             sidebar_controls=lambda: (self.global_list, self.project_list, *view.profile_bar.controls),
+            categories=(self.global_list, self.project_list),
             focus_sidebar=self.navigation.switch_panel, focus_main=lambda: self.navigation.focus_zone(self.navigation.main_zone),
             sidebar_width=view.sidebar_width, resize_sidebar=self.set_sidebar_width)
         self.layout.main_region.on_click = self.layout.focus_main

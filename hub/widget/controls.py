@@ -99,6 +99,26 @@ class ScrollablePane(PTKScrollablePane):
 
 
 class Button(PTKButton):
+    @property
+    def text(self):
+        return self._text() if callable(self._text) else self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+
+    def _get_text_fragments(self):
+        provider = self._text
+        if not callable(provider):
+            return super()._get_text_fragments()
+        # PTK reads text repeatedly to measure and center it. Resolve draft-state
+        # labels only once per render, even for forms with many settings fields.
+        self._text = provider()
+        try:
+            return super()._get_text_fragments()
+        finally:
+            self._text = provider
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("left_symbol", "")
         kwargs.setdefault("right_symbol", "")

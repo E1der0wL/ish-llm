@@ -11,8 +11,9 @@ from ...widget.focus_region import FocusRegion
 class TwoPanelPage:
     def __init__(self, *, header, footer, sidebar, main, progress, notice,
                  sidebar_controls, focus_sidebar, focus_main, sidebar_visible=lambda: True,
-                 extra=(), sidebar_width=None, resize_sidebar=None):
+                 extra=(), sidebar_width=None, resize_sidebar=None, categories=()):
         self.sidebar_controls = sidebar_controls
+        self.categories = categories
         self._focus_sidebar, self._focus_main = focus_sidebar, focus_main
         visible = Condition(sidebar_visible)
         self.status = progress.container(notice)
@@ -44,6 +45,13 @@ class TwoPanelPage:
     def focus_main(self):
         self._focus_main()
         get_app().invalidate()
+
+    def cycle_category(self, reverse=False):
+        current = get_app().layout.current_control
+        if current in self.categories:
+            index = (self.categories.index(current) + (-1 if reverse else 1)) % len(self.categories)
+            self.categories[index].activate()
+            get_app().invalidate()
 
     def __pt_container__(self):
         return self.container

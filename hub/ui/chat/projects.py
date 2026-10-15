@@ -62,20 +62,6 @@ class ChatProjects:
             self.view.settings.project_changed(identifier)
         self.call("activate_project", identifier, completed=activated)
 
-    def move(self, delta):
-        current = get_app().layout.current_control
-        if current is self.control:
-            keys = [item["id"] for item in self.items]
-            index = keys.index(self.selected) if self.selected in keys else 0
-            if delta > 0 and index >= len(keys) - 1:
-                self.view._focus_sessions()
-            elif keys:
-                self.select(keys[max(0, index + delta)])
-        elif delta < 0 and self.view.selected == 0 and self.items:
-            get_app().layout.focus(self.control)
-        else:
-            self.view.select(max(0, min(len(self.view.sessions) - 1, self.view.selected + delta)))
-
     def name_dialog(self, title, initial, action):
         field = TextArea(text=initial, height=1, multiline=False)
         def validate():

@@ -411,7 +411,12 @@ class HubRuntime:
         return result.id
 
     async def interrupt(self, session_id: str) -> bool:
-        result = await self.sessions[session_id].run.interrupt()
+        from .execution.stopping import stop_paused
+        session = self.sessions[session_id]
+        result = await session.run.interrupt()
+        if not result:
+            result = await stop_paused(session)
+        self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
         return result
 

@@ -25,14 +25,14 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.connected and view.projects.loaded and not view.projects.busy)
                 original = view.project_id
                 pipe.send_text("\x10")
-                await eventually(lambda: app.layout.current_control is view.profile_bar.settings.control)
+                await eventually(lambda: app.layout.current_control is view.profile_bar.page.control)
                 for width, height in ((132, 40), (80, 24)):
                     output.columns, output.rows = width, height
                     app._on_resize()
                     await asyncio.sleep(.1)
                     panel = view._sidebar.content
                     self.assertEqual(panel.sections[0].height.preferred, round((height - 2) * .35))
-                    position = app.renderer._last_screen.visible_windows_to_write_positions[view.profile_bar.home.window]
+                    position = app.renderer._last_screen.visible_windows_to_write_positions[view.profile_bar.minimize.window]
                     self.assertEqual(position.ypos, height - 3)
                     self.assertLessEqual(position.xpos + position.width, view.sidebar_width())
                 pipe.send_text("\r")

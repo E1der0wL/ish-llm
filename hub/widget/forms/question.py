@@ -79,6 +79,8 @@ class QuestionComposer:
         def key(item):
             return project_id, session_id, item["request"]["id"], item["request"].get("revision", 1)
         item = next((q for q in questions if key(q) not in self.responses), None)
+        if (project_id, session_id) in self.view.interrupting.pending:
+            item = None
         if any(r.pending and k[:2] == (project_id, session_id) for k, r in self.responses.items()):
             item = None
         identity = key(item) if item else None

@@ -48,7 +48,7 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                     if settings:
                         pipe.send_text("\x13")
                         await until(lambda: screen.page is not None and not screen.busy)
-                    for key in ("\t", " ", "\r"):
+                    for key in ("\x1b[C", " ", "\r"):
                         pipe.send_text("\x1b")
                         await until(lambda: view.active_page.sidebar_focused)
                         await paint()

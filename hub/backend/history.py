@@ -4,6 +4,7 @@ import hashlib
 import json
 
 from .execution.turns import TURN_OPTION, TurnIndex
+from .execution.stopping import display_run, reopen_questions
 
 
 class TurnHistory:
@@ -42,9 +43,13 @@ class TurnHistory:
         runtime, rows = self.runtime, []
         session = runtime.sessions[session_id]
         index = await self.index(session_id)
+        record = None
         for turn in index.turns:
             request = turn.latest
             run = await (await session.run.aload(request.run_id)).aget_data() if request.run_id else None
+            if run and str(run.status) == "paused":
+                record = record or await session.aget_data()
+                run = display_run(record, run)
             records = [m for group in turn.active for m in group]
             assistants = [m for m in records if m.role == "assistant"]
             elapsed = (await runtime.snapshot_reader.run_display(session, run.id))[1] if run else None
@@ -74,8 +79,16 @@ class TurnHistory:
             raise ValueError(runtime.t("history_changed"))
         handle = await session.run.aload(expected_run_id)
         run = await handle.aget_data()
-        if str(run.status) not in ("interrupted", "failed"):
+        status = str(run.status)
+        if status == "paused":
+            status = str(display_run(await session.aget_data(), run).status)
+        if status not in ("interrupted", "failed"):
             raise ValueError(runtime.t("history_retry_unavailable"))
+        if str(run.status) == "paused" and await reopen_questions(
+                session, handle, unavailable=runtime.t("history_retry_question_unavailable")):
+            runtime.snapshot_reader.invalidate(session_id)
+            runtime.dirty.set()
+            return turn.latest.id
         plan = await session.run.resume_plan(run.id, engine=run.engine)
         if not plan.can_resume:
             if await self._unstarted_without_checkpoint(handle, run, plan):

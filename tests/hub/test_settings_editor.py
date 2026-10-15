@@ -47,7 +47,7 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: screen.page is not None and view.settings_open)
                 await eventually(lambda: app.renderer._last_screen and any(
                     window.content is screen.global_list for window in app.renderer._last_screen.visible_windows))
-                pipe.send_text("\t")
+                pipe.send_text("\x1b[C")
                 await eventually(lambda: screen.page is not None and not screen.layout.sidebar_focused)
                 field = screen.page.form.fields[("display_name",)]
                 pipe.send_text("e")
@@ -109,7 +109,7 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: screen.page is not None and view.settings_open)
                 await eventually(lambda: app.renderer._last_screen and any(
                     window.content is screen.global_list for window in app.renderer._last_screen.visible_windows))
-                pipe.send_text("\t")
+                pipe.send_text("\x1b[C")
                 await eventually(lambda: screen.page is not None and not screen.layout.sidebar_focused)
                 field = screen.page.form.fields[("display_name",)]
                 before = field.input.text

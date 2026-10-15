@@ -35,7 +35,7 @@ async def open_home(app, view):
     await asyncio.sleep(0.05)  # Let a queued Enter invoke its button first.
     await eventually(lambda: not view.settings.busy and not view.projects.busy)
     with set_app(app):
-        view.profile_bar.home.handler()
+        view.profile_bar.page.handler()
     await eventually(lambda: not view.settings_open)
 
 

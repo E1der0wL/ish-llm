@@ -53,10 +53,6 @@ class TurnIndex:
             if request.run_id:
                 by_run[request.run_id] = turn
 
-    def context_records(self):
-        return [m for m in self.records if m.role in ("system", "developer")] + [
-            m for turn in self.turns for group in turn.active for m in group]
-
     def display(self, messages):
         if not any(edit_source(m) or m.metadata.get("resume") for m in self.records):
             return continued_messages(self.records, messages)

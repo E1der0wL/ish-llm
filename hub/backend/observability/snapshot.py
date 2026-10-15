@@ -10,6 +10,7 @@ from ..execution.trace import merge_trace, tool_trace
 from ..execution.steps import display_steps
 from ..execution.engine_selection import model_name, requires_model, selected_engines
 from ..interactions.questions import waiting_status
+from ..execution.stopping import display_run, STOPPED
 
 
 @dataclass(slots=True)
@@ -74,7 +75,7 @@ class SnapshotReader:
                 self.cache.pop(next(iter(self.cache)))
         return result
 
-    async def messages(self, session, messages, author="", *, latest=None, latest_steps=()):
+    async def messages(self, session, messages, author="", *, latest=None, latest_steps=(), stopped_runs=()):
         visible = []
         requests = {message.run_id: self.submissions.get(message.id, message.created_at) for message in messages
                     if str(message.role) == "user" and message.run_id and not message.metadata.get("steering")}
@@ -114,6 +115,8 @@ class SnapshotReader:
                     visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning", tools=tools,
                                                trace=trace))
             status = str(message.metadata.get("steering", {}).get("status", message.status))
+            if status == "paused" and message.run_id in stopped_runs:
+                status = "interrupted"
             phase = (self.thinking.activity(latest)
                      if role == "assistant" and latest is not None and latest.id == message.run_id
                      and status in ("streaming", "committed") else "")
@@ -138,7 +141,7 @@ class SnapshotReader:
                 runtime = await session.run.astatus(queued_limit=0)
                 latest = await session.run.alist(query=Query(descending=True, limit=1))
                 handle = latest[0] if latest else None
-                run = await handle.aget_data() if handle else None
+                run = display_run(record, await handle.aget_data()) if handle else None
                 pending = (tuple({"run_id": run.id, "live": False, "request": request.to_dict()}
                            for request in await handle.ainteractions(pending_only=True))
                            if run and str(run.status) == "paused" else ())
@@ -146,6 +149,8 @@ class SnapshotReader:
                 self.observations[identifier] = (monotonic(), item)
             observations.append(item)
             status = waiting_status(item.questions) if item.questions else str(item.runtime.status)
+            if not item.runtime.active_run_id and item.run and item.run.id in item.record.metadata.get(STOPPED, {}):
+                status = str(item.run.status)
             summaries.append(SessionSummary(identifier, item.record.title, status, item.runtime.queued_count))
         selected = next((item for item in observations if item.session_id == selected_id), None)
         messages, summary, questions = (), None, ()
@@ -154,7 +159,8 @@ class SnapshotReader:
             session = sessions[selected_id]
             steps = await selected.handle.steps.alist() if selected.run else ()
             messages = await self.messages(session, await session.aconversation(), config.user_profile.display_name,
-                                           latest=selected.run, latest_steps=steps)
+                                           latest=selected.run, latest_steps=steps,
+                                           stopped_runs=selected.record.metadata.get(STOPPED, {}))
             if selected.run:
                 run = selected.run
                 if str(run.status) == "paused":
@@ -169,7 +175,7 @@ class SnapshotReader:
             model=model_name(engines, data.config, config.engine, session_config),
             storage=data.conversation_storage, sessions=tuple(summaries), selected_id=selected_id,
             messages=messages, run=summary,
-            status=(waiting_status(questions) if questions else str(selected.runtime.status)) if selected else "idle",
+            status=next((s.status for s in summaries if s.id == selected_id), "idle"),
             queued_count=selected.runtime.queued_count if selected else 0,
             model_required=requires_model(engines, data.config, config.engine, session_config) if selected else False,
             title_error=title_errors.get(selected_id, ""),

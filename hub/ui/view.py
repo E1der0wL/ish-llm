@@ -100,6 +100,7 @@ class HubView:
         self.deleting = HistoryDeletion(self)
         from .input.history import ComposerHistory
         self.input_history = ComposerHistory(self)
+        self.followup.bind(self.composer.buffer)
         self.transcript = ConversationView(self.sessions[0].messages, self.theme, language=self.t)
         self.transcript.window.hub_click_focus = self._focus_composer
         from .output.worker import RenderWorker
@@ -140,11 +141,13 @@ class HubView:
             DynamicContainer(lambda: self.welcome if self.no_sessions else self.transcript),
             self._composer_frame,
         ])
+        self.header = HeaderBar(lambda: self.t("profile_home"), icons=lambda: self.icons)
         self.chat_page = TwoPanelPage(
-            header=HeaderBar(lambda: self.project_title, icons=lambda: self.icons), footer=self.shortcut_bar(),
+            header=self.header, footer=self.shortcut_bar(),
             sidebar=self._sidebar, main=conversation, progress=self.progress, notice=lambda: self.notice,
             sidebar_visible=self._sidebar.filter, extra=(self._details,),
             sidebar_controls=lambda: (self._session_control, self.projects.control, *self.profile_bar.controls),
+            categories=(self.projects.control, self._session_control),
             focus_sidebar=self._focus_sessions, focus_main=self._focus_composer,
             sidebar_width=self.sidebar_width, resize_sidebar=self.settings.set_sidebar_width)
         panel = self.chat_page.container
@@ -187,9 +190,6 @@ class HubView:
     @staticmethod
     def _line(text, style, height=1):
         return Window(FormattedTextControl(text), height=height, style="class:" + style)
-
-    def _header(self):
-        return HeaderBar(lambda: self.project_title, icons=lambda: self.icons).fragments()
 
     @property
     def icons(self):
@@ -317,6 +317,10 @@ class HubView:
             self._session_focus = False
             app.layout.focus(self.composer)
         app.invalidate()
+
+    def minimize(self):
+        self.settings.finish_edit()
+        self.hide(get_app())
 
     def remember_position(self):
         if self.no_sessions:

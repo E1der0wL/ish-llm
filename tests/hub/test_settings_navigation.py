@@ -36,7 +36,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 profile = screen.page
                 profile.form.fields[("email",)].input.text = "draft@example.com"
                 for name in ("appearance", "general", "project:general"):
-                    pipe.send_text("\x1b[B")
+                    pipe.send_text("\t" if name == "project:general" else "\x1b[B")
                     await until(lambda: screen.selected == name and not screen.busy)
                 self.assertIs(app.layout.current_control, screen.project_list)
                 record = screen.page.record
@@ -45,9 +45,9 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("general")
                 requests = []
                 with patch.object(screen, "request", side_effect=lambda op, args, done: requests.append(done)):
-                    pipe.send_text("\x1b[B")
+                    pipe.send_text("\t")
                     await until(lambda: screen.busy and bool(requests))
-                    pipe.send_text("\x1b[A")
+                    pipe.send_text("\x1b[Z\x1b[B\x1b[B")
                     await until(lambda: screen.navigation.left_key == "general")
                     with set_app(app):
                         requests[-1](record)
@@ -59,13 +59,13 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(profile.form.fields[("email",)].input.text, "draft@example.com")
                 self.assertIs(type(view._session_control), type(screen.global_list))
                 self.assertIs(type(screen.global_list), type(screen.project_list))
-                pipe.send_text("\x1b[B\x1b[B\x1b[B")
+                pipe.send_text("\x1b[B\x1b[B\t")
                 await until(lambda: screen.selected == "project:general")
                 pipe.send_text("c")
                 await asyncio.sleep(.1)
                 self.assertIsNone(view._dialog)  # Project CRUD lives in the chat sidebar.
-                pipe.send_text("\x1b[A")
-                await until(lambda: screen.selected == "general")
+                pipe.send_text("\x1b[Z")
+                await until(lambda: screen.selected == "profile")
             finally:
                 app.exit()
                 await task
@@ -118,7 +118,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("profile")
                     screen.switch_panel()
                 self.assertIs(app.layout.current_control, screen.global_list)
-                pipe.send_text("\t")
+                pipe.send_text("\x1b[C")
                 field = screen.page.form.fields[("display_name",)]
                 await until(lambda: app.layout.current_control == field.input.control)
                 before = field.input.text

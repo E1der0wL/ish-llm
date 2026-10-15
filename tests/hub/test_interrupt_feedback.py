@@ -85,6 +85,25 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.view.transcript.control.messages[1].status, "interrupted")
         self.assertEqual(self.view.transcript.control.messages[-1].status, "queued")
 
+    async def test_paused_stop_hides_question_and_survives_stale_projection(self):
+        paused = replace(self.base, run=replace(self.base.run, status="paused", active=False),
+            messages=(replace(self.base.messages[1], status="paused", phase=""),),
+            questions=({"run_id": "r", "live": True, "request": {
+                "id": "q", "revision": 1, "title": "Continue?", "source": {"choices": ["Yes", "No"]}}},))
+        self.view.apply_snapshot(paused)
+        self.assertIsNotNone(self.view.question.item)
+        self.controller.interrupt("s")
+        self.assertIsNone(self.view.question.item)
+        self.assertEqual(self.view.transcript.control.messages[0].phase, "interrupting")
+        self.view.apply_snapshot(paused)
+        self.assertIsNone(self.view.question.item)
+        self.assertEqual(self.view.transcript.control.messages[0].phase, "interrupting")
+        self.calls[0][2].set_result(True)
+        await asyncio.sleep(0)
+        self.view.apply_snapshot(replace(paused, questions=(), run=replace(paused.run, status="interrupted"),
+            messages=(replace(paused.messages[0], status="interrupted"),)))
+        self.assertFalse(self.view.interrupting.pending)
+
     async def test_failure_or_no_active_target_restores_actual_header(self):
         for failure in (False, RuntimeError("stop failed")):
             with self.subTest(failure=failure):
@@ -200,7 +219,8 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
             view.on_open = None
             controller.app, controller.loop = app, asyncio.get_running_loop()
             future = Future()
-            controller.worker = NS(call=Mock(return_value=future), close=Mock())
+            controller.worker = NS(call=Mock(side_effect=lambda operation, *args:
+                future if operation == "interrupt" else Future()), close=Mock())
             base = running_snapshot()
             with set_app(app):
                 view.apply_snapshot(replace(base, run=replace(base.run, status="completed", active=False),
@@ -235,7 +255,8 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
             view.on_open = None
             controller.app, controller.loop = app, asyncio.get_running_loop()
             future = Future()
-            controller.worker = NS(call=Mock(return_value=future), close=Mock())
+            controller.worker = NS(call=Mock(side_effect=lambda operation, *args:
+                future if operation == "interrupt" else Future()), close=Mock())
             with set_app(app):
                 view.apply_snapshot(running_snapshot())
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))

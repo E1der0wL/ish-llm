@@ -579,8 +579,12 @@ class LiveController:
         if key in self.view.interrupting.pending:
             return
         request = self.view.interrupting.start(key)
-        self._call("interrupt", session_id,
-                   completed=lambda result: self.view.interrupting.finish(request, result))
+        if request:
+            self.view.question.leave()
+        def interrupted(result):
+            self.view.interrupting.finish(request, result)
+            self._call("snapshot", completed=self._snapshot)
+        self._call("interrupt", session_id, completed=interrupted)
 
     def rename_session(self, session_id: str, title: str):
         self._call("rename_session", session_id, title,

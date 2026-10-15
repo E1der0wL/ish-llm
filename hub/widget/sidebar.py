@@ -34,6 +34,20 @@ class SidebarList(FormattedTextControl):
         super().__init__(self.fragments, focusable=True, show_cursor=False,
                          key_bindings=key_bindings, get_cursor_position=self.cursor_position)
 
+    def move(self, direction):
+        """Arrow movement stays inside this category, including its boundaries."""
+        keys = [item.key for item in self.items()]
+        if keys:
+            index = keys.index(self.selected()) if self.selected() in keys else 0
+            self.on_select(keys[max(0, min(len(keys) - 1, index + direction))])
+
+    def activate(self):
+        """Entering a category selects its remembered item or its first row."""
+        keys = [item.key for item in self.items()]
+        get_app().layout.focus(self)
+        if keys:
+            self.on_select(self.selected() if self.selected() in keys else keys[0])
+
     def cursor_position(self):
         line = 0
         for item in self.items():

@@ -193,7 +193,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                     await until(lambda: app.layout.current_control == view._session_control)
                     self.assertEqual(view.composer.text, chosen)
                     self.assertIsNone(view.composer.buffer.complete_state)
-                    pipe.send_text("\t")
+                    pipe.send_text("\x1b[C")
                     await until(lambda: app.layout.current_control == view.composer.control)
                 self.assertEqual(calls, [])
                 # Multiple candidates: arrows choose, Tab accepts that exact item.
@@ -384,8 +384,8 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[B\r")
                 await until(lambda: view.composer.text == "/engine")
                 self.assertIsNone(view._dialog)
-                header = "".join(part[1] for part in view._header())
-                self.assertEqual(header, "   demo-project")
+                header = "".join(part[1] for part in view.header.fragments())
+                self.assertEqual(header, "   홈")
             finally:
                 app.exit()
                 await task

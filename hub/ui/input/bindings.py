@@ -67,7 +67,9 @@ class HubBindings:
                 return c.sidebar and c.chat and (
                     c.control is view.projects.control or key == "c" or not view.no_sessions)
             r.add([key], key, action, self.session_action, when=enabled)
-        r.add(["tab", " ", "enter", "right"], "Tab/Space/Enter/→", "main", lambda e: view.active_page.focus_main(), when=lambda: c.sidebar)
+        r.add(["tab", "s-tab"], "Tab/Shift+Tab", "categories", lambda e: view.active_page.cycle_category(
+            e.key_sequence[-1].key == "s-tab"), when=lambda: c.sidebar)
+        r.add([" ", "enter", "right"], "Space/Enter/→", "main", lambda e: view.active_page.focus_main(), when=lambda: c.sidebar)
         r.add(["tab"], "", "confirm", self.complete, when=lambda: c.composing)
         r.add(["s-tab"], "", "", lambda e: None, when=lambda: c.composing)
         r.add(["right"], "", "", self.suggest_or_move, when=lambda: c.composing)
@@ -134,8 +136,7 @@ class HubBindings:
         self.view.active_page.focus_sidebar()
 
     def minimize(self, event):
-        self.view.settings.finish_edit()
-        self.view.hide(event.app)
+        self.view.minimize()
 
     def settings(self, event):
         view = self.view
@@ -145,10 +146,7 @@ class HubBindings:
             view.toggle_settings()
 
     def select(self, event):
-        if self.context.settings:
-            self.view.settings.move(event.key_sequence[-1].key)
-        else:
-            self.view.projects.move(-1 if event.key_sequence[-1].key == "up" else 1)
+        self.context.control.move(-1 if event.key_sequence[-1].key == "up" else 1)
 
     def resize(self, event):
         self.view.settings.resize(-1 if event.key_sequence[-1].key == "c-left" else 1)

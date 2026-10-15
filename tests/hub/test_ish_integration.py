@@ -113,9 +113,9 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view.transcript.control.top_line == 1)
                 self.assertEqual(view.selected, selected)
                 self.assertIs(app.layout.current_control, view._session_control)
-                pipe.send_text("\tcheck focus")
+                pipe.send_text("\x1b[Ccheck focus")
                 await eventually(lambda: view.composer.text == "check focus")
-                pipe.send_text("\x1b\t")
+                pipe.send_text("\x1b\x1b[C")
                 await eventually(lambda: app.layout.current_control == view.composer.control)
                 self.assertEqual(view.composer.text, "check focus")
             finally:
@@ -207,10 +207,10 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: prompt.app.layout.current_control == replacement.view._session_control)
                 view = replacement.view
                 for control in (view.composer.control, view._session_control):
-                    pipe.send_text("\t" if control == view.composer.control else "\x1b")
+                    pipe.send_text("\x1b[C" if control == view.composer.control else "\x1b")
                     await eventually(lambda: prompt.app.layout.current_control == control)
                 for control in (view.composer.control, view._session_control):
-                    pipe.send_text("\t" if control == view.composer.control else "\x1b")
+                    pipe.send_text("\x1b[C" if control == view.composer.control else "\x1b")
                     await eventually(lambda: prompt.app.layout.current_control == control)
                 await minimize(pipe, replacement.view)
                 await eventually(lambda: not replacement.view.visible)
@@ -220,7 +220,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: replacement.view.settings_open)
                 view.settings.choose("appearance")
                 self.assertIn(prompt.app.layout.current_control, [view.settings.global_list, view.settings.project_list])
-                pipe.send_text("\t")  # Tab enters the settings fields.
+                pipe.send_text("\x1b[C")  # Right enters the settings fields.
                 await eventually(lambda: prompt.app.layout.current_control == view.settings.page.body_widgets()[0].control)
                 settings_button(prompt.app, pipe, view, "cancel")
                 from tests.hub.support import open_home

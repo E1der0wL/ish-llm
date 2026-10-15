@@ -64,7 +64,7 @@ class PreviewTests(unittest.IsolatedAsyncioTestCase):
         self.pipe.send_text("\x1b[A")  # up
         await eventually(lambda: self.view.selected == 0)
         self.assertEqual(self.view.composer.text, "first")
-        self.pipe.send_text("\t")  # Tab enters the main panel.
+        self.pipe.send_text("\x1b[C")  # Right enters the main panel.
         await eventually(lambda: self.app.layout.current_control == self.view.composer.control)
 
     async def test_narrow_layout_hides_optional_panels(self):
@@ -80,7 +80,7 @@ class PreviewTests(unittest.IsolatedAsyncioTestCase):
         self.pipe.send_text("\x1b")
         await eventually(lambda: self.app.layout.current_control == self.view._session_control)
         self.assertTrue(self.view._sidebar.filter())
-        self.pipe.send_text("\t")
+        self.pipe.send_text("\x1b[C")
         await eventually(lambda: self.app.layout.current_control == self.view.composer.control)
         self.assertFalse(self.view._sidebar.filter())
 

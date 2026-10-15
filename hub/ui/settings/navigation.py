@@ -127,12 +127,7 @@ class SettingsNavigation:
                 if key == "right":
                     self.screen.layout.focus_main()
                 return
-            items = self.left_items()
-            index = items.index(left_key)
-            index = max(0, min(len(items) - 1, index + (-1 if key == "up" else 1)))
-            self.left_key = items[index]
-            get_app().layout.focus(self.left_control())
-            self.screen.select_left(self.left_key)
+            current.move(-1 if key == "up" else 1)
         else:
             self.remember_zone()
             allowed = ("left", "right") if self.main_zone == 1 else ("up", "down")

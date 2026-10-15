@@ -1,7 +1,6 @@
-"""Hub's model context excludes failed turns without deleting their history."""
+"""Only completed prior turns enter new requests; checkpoint context stays intact."""
 
 from llm.core.models import Message, MessageRole, MessageStatus
-from llm.core.steering import is_instruction
 from llm.services.history.context import ConversationContextBuilder, ContextPolicy
 from dataclasses import replace
 from .followup import split_followup
@@ -27,21 +26,18 @@ class HubContextBuilder(ConversationContextBuilder):
 
     def for_run(self, messages: list[Message], input_message_id: str, *,
                 policy: ContextPolicy | None = None) -> tuple[Message, ...]:
-        from .turns import TurnIndex, edit_source
-        if any(edit_source(message) or message.metadata.get("resume") for message in messages):
-            messages = TurnIndex(messages).context_records()
-        # Let llm order queued turns and attach resumed steering first. Selection
-        # budgets must apply after failed pairs have been removed. Clone history
-        # deliberately stays intact, including records whose run_id was cleared.
-        history = super().for_run(messages, input_message_id, policy=ContextPolicy(mode="full"))
-        groups: list[list[Message]] = []
-        for message in history[:-1]:
-            if not groups or (message.role == MessageRole.USER and not is_instruction(message)):
-                groups.append([])
-            groups[-1].append(message)
-        kept = [message for group in groups
-                if not any(item.status == MessageStatus.FAILED for item in group)
-                for message in group]
+        from .turns import TurnIndex
+        index = TurnIndex(messages)
+        current = index.by_id.get(input_message_id)
+        records = [m for m in messages if m.role in ("system", "developer")]
+        for turn in index.turns:
+            assistants = [m for m in turn.active[-1] if m.role == MessageRole.ASSISTANT]
+            completed = bool(assistants) and all(m.status == MessageStatus.COMPLETED for m in assistants)
+            if turn is current or completed:
+                records.extend(m for group in turn.active for m in group)
+        # Budget only after selecting complete logical turns. The current resume
+        # lineage contains saved tool receipts, not unrelated previous requests.
+        history = super().for_run(records, input_message_id, policy=ContextPolicy(mode="full"))
         kept = [replace(item, content=split_followup(item.content)[0])
-                if item.role == MessageRole.ASSISTANT else item for item in kept]
+                if item.role == MessageRole.ASSISTANT else item for item in history[:-1]]
         return self._select([*kept, history[-1]], policy)

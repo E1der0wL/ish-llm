@@ -33,8 +33,22 @@ class ContextTests(unittest.IsolatedAsyncioTestCase):
                                  ["good", "answer", "now"])
         self.assertEqual(history, original)
         self.assertEqual(len(builder.for_clone(history)), 5)
+        for status in ("interrupted", "cancelled", "paused", "streaming", "queued", "committed"):
+            history[3].status = MessageStatus(status)
+            self.assertEqual([m.id for m in builder.for_run(history, "now")], ["good", "answer", "now"])
+        self.assertEqual([m.id for m in builder.for_run([*history[:2], history[2], history[4]], "now")],
+                         ["good", "answer", "now"])
+
+    def test_completed_checkpoint_lineage_and_current_request_are_preserved(self):
+        builder = HubContextBuilder()
+        history = [message("u1", "user", "committed", "r1"), message("a1", "assistant", "paused", "r1"),
+                   message("u2", "user", "committed", "r2"), message("a2", "assistant", "completed", "r2"),
+                   message("now", "user", "committed", "r3")]
+        history[2].metadata["resume"] = {"run_id": "r1"}
+        self.assertEqual([m.id for m in builder.for_run(history, "now")], [m.id for m in history])
         history[3].status = MessageStatus.INTERRUPTED
-        self.assertEqual(len(builder.for_run(history, "now")), 5)
+        self.assertEqual([m.id for m in builder.for_run(history, "now")], ["now"])
+        self.assertEqual([m.id for m in builder.for_run(history, "u2")], ["u1", "a1", "u2"])
 
     def test_orders_queued_requests_before_grouping_failed_pairs(self):
         data = [message("failed-user", "user", "committed", "r1"),
