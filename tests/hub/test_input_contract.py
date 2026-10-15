@@ -25,12 +25,12 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
             prompt = Prompt(input=pipe, output=SizedOutput())
             installation = install_preview(prompt)
             app, view = prompt.app, installation.view
-            view.transcript.set_messages((ChatMessage("assistant", "```py\nprint('hello')\n```", id="code"),))
+            view.output.transcript.set_messages((ChatMessage("assistant", "```py\nprint('hello')\n```", id="code"),))
             task = asyncio.create_task(prompt.prompt_async())
             try:
                 await eventually(lambda: app.is_running)
                 pipe.send_text("\x11")
-                await eventually(lambda: view.visible and bool(view.transcript.control.objects))
+                await eventually(lambda: view.visible and bool(view.output.transcript.control.objects))
                 activated = []
                 buttons = [Button(str(index), handler=lambda index=index: activated.append(index)) for index in range(3)]
                 field = TextArea(text="draft", multiline=False)
@@ -42,8 +42,8 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                     if kind == "code viewer":
                         with set_app(app):
                             view.close_dialog()
-                            view.tags.open()
-                            view.tags.expand()
+                            view.output.tags.open()
+                            view.output.tags.expand()
                         popup = view._dialog
                         buttons = popup.buttons
                         with set_app(app):
@@ -70,7 +70,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(field.text, "draft")
                 pipe.send_text("\x1b")
                 await eventually(lambda: view._dialog is None)
-                self.assertIs(app.layout.current_control, view.tags.control)
+                self.assertIs(app.layout.current_control, view.output.tags.control)
             finally:
                 app.exit(result="")
                 await task
@@ -115,12 +115,17 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                     self.assertTrue(view.settings_open)
                     self.assertTrue(view.visible)
                     self.assertFalse(task.done())
-                    self.assertIs(app.layout.current_control, focus)
+                    if scope == "buttons":
+                        self.assertIs(app.layout.current_control, view.settings.auxiliary.buttons["filter"].control)
+                        pipe.send_text("\x1b")
+                        await eventually(lambda: app.layout.current_control is focus)
+                    else:
+                        self.assertIs(app.layout.current_control, focus)
                     self.assertEqual(field.input.text, "unsaved name")
                     self.assertTrue(view.settings.page.dirty)
                     with set_app(app):
                         hints = [key for key, _ in view.bindings.hints()]
-                        self.assertNotIn("Ctrl+S", hints)
+                        self.assertEqual("Ctrl+S" in hints, scope == "buttons")
                         self.assertNotIn("Ctrl+C", hints)
                 settings_button(app, pipe, view, "cancel")
                 await open_home(app, view)
@@ -134,14 +139,14 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
             prompt = Prompt(input=pipe, output=SizedOutput())
             installation = install_preview(prompt)
             app, view = prompt.app, installation.view
-            view.transcript.set_messages((ChatMessage("assistant", "```py\nprint('hello')\n```", id="code"),))
+            view.output.transcript.set_messages((ChatMessage("assistant", "```py\nprint('hello')\n```", id="code"),))
             task = asyncio.create_task(prompt.prompt_async())
             rendered = asyncio.Event()
             app.after_render += lambda _: rendered.set()
             try:
                 await eventually(lambda: app.is_running)
                 pipe.send_text("shell draft\x11")
-                await eventually(lambda: view.visible and bool(view.transcript.control.objects))
+                await eventually(lambda: view.visible and bool(view.output.transcript.control.objects))
                 for scope in ("composer", "completion", "sidebar", "settings panel", "settings field",
                               "settings editing", "dialog", "help", "logs", "tags", "expanded", "expanded search",
                               "question"):
@@ -175,9 +180,9 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                             elif scope == "logs":
                                 HistoryUI(SimpleNamespace(view=view))._activity_dialog("log entry")
                             elif scope in ("tags", "expanded", "expanded search"):
-                                view.tags.open()
+                                view.output.tags.open()
                                 if scope != "tags":
-                                    view.tags.expand()
+                                    view.output.tags.expand()
                                     if scope == "expanded search":
                                         view._dialog.start_query()
                             elif scope == "question":
@@ -198,7 +203,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(prompt.default_buffer.text, "shell draft")
                         self.assertEqual(view.composer.text, draft)
                         self.assertIsNone(view._dialog)
-                        self.assertFalse(view.tags.visible)
+                        self.assertFalse(view.output.tags.visible)
                         if field:
                             self.assertFalse(field.editing)
                         pipe.send_text("\x11")
@@ -243,11 +248,11 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     self.assertFalse(prompt.key_bindings.get_bindings_for_keys(("c-q",))[0].filter())
                     self.assertEqual([key for key, _ in view.bindings.hints()], [
-                        "ESC", "Ctrl+F", "Ctrl+P", "Ctrl+Q", "Ctrl+S", "Ctrl+T", "Ctrl+V/Ctrl+Y", "Alt + 이동키"])
+                        "ESC", "Ctrl+P", "Ctrl+Q", "Ctrl+S", "Alt + 이동키"])
                     self.assertEqual(view.bindings.hints()[0], ("ESC", "패널"))
                 await paint()
                 chat_header = next(w for w in app.renderer._last_screen.visible_windows if isinstance(w, HeaderBar))
-                pipe.send_text("\x13")
+                pipe.send_text("\x10\r")
                 await eventually(lambda: view.settings_open)
                 await paint()
                 settings_header = next(w for w in app.renderer._last_screen.visible_windows if isinstance(w, HeaderBar))

@@ -3,9 +3,9 @@
 from dataclasses import asdict, replace
 
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
+from prompt_toolkit.layout import DynamicContainer, HSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.widgets import Frame, Label
+from prompt_toolkit.widgets import Label
 
 from ...config.profile import UserProfile
 from ...config.general import GeneralSettings
@@ -18,6 +18,8 @@ from .drafts import SettingsDrafts
 from ...widget.sidebar import SidebarHeading, SidebarItem, SidebarList
 from ..layout import TwoPanelPage
 from ...widget.header import HeaderBar
+from ...widget.actions import ActionFrame
+from ...widget.content_inset import ContentInset
 
 
 class SettingsScreen:
@@ -25,9 +27,12 @@ class SettingsScreen:
         self.view, self.t = view, view.t
         self.navigation = SettingsNavigation(self)
         self.drafts = SettingsDrafts(self)
+        from .json_editor import SettingsJsonEditor
+        self.json_editor = SettingsJsonEditor(self)
         self.request = None
         self.busy = False
         self.status = ""
+        self.query = ""
         self.schema = None
         self.projects = []
         self.usage = []
@@ -46,19 +51,20 @@ class SettingsScreen:
             lambda: self.navigation.left_key, self.select_left)
         self.main = SettingsPane(DynamicContainer(lambda: self.page.container if self.page else
                                   Window(height=1)), show_scrollbar=True,
-                                  width=lambda: max(1, self.main_width() - 1))
+                                  width=lambda: Dimension(min=1, preferred=max(1, self.main_width() - 1)))
         bottom = DynamicContainer(lambda: self.page.bottom if self.page else Label(""))
-        self.actions = Frame(HSplit([Window(height=1), bottom, Window(height=1)]), width=self.main_width,
-                             title=self.action_title,
-                             height=lambda: max(5, 4 + len(self.page.button_rows())) if self.page else 5)
+        self.actions = ActionFrame(bottom, width=self.main_dimension, title=self.action_title)
+        from ...widget.auxiliary import AuxiliaryBar
+        self.auxiliary = AuxiliaryBar([("filter", self.search), ("json", self.show_json)],
+                                      lambda: view.icons, lambda: self.navigation.focus_zone(1))
         self.layout = TwoPanelPage(
             header=HeaderBar(lambda: self.t("settings_title"), icons=lambda: view.icons),
             sidebar=DynamicContainer(lambda: self._left),
             main=HSplit([
-                        VSplit([Window(width=1), self.main], width=self.main_width,
-                              height=Dimension(min=3, weight=1)),
-                        self.actions], width=self.main_width),
-            progress=view.progress, notice=lambda: self.status,
+                        ContentInset(self.main, width=self.main_dimension,
+                                     height=Dimension(min=3, weight=1)),
+                        self.auxiliary, self.actions], width=self.main_dimension),
+            progress=view.progress, notice=self.status_text, status_annotation=self.filter_label,
             footer=view.shortcut_bar(),
             sidebar_controls=lambda: (self.global_list, self.project_list, *view.profile_bar.controls),
             categories=(self.global_list, self.project_list),
@@ -70,6 +76,11 @@ class SettingsScreen:
 
     def main_width(self):
         return max(1, self.view._columns() - self.view.sidebar_width() - 1)
+
+    def main_dimension(self):
+        # The host may inset Hub's Float. The terminal width is a preference,
+        # never a minimum that can make an otherwise usable page disappear.
+        return Dimension(min=1, preferred=self.main_width())
 
     def action_title(self):
         from ...asset.icon import SELECTED
@@ -88,7 +99,8 @@ class SettingsScreen:
                              Window(self.global_list, height=len(self.global_keys)),
                              Window(height=1)]),
                              HSplit([SidebarHeading(lambda: self.view.icons.project + " " + self.t("settings_projects")),
-                                     Window(self.project_list)])], self.view.profile_bar, width=self.view.sidebar_width)
+                                     Window(self.project_list)])], self.view.profile_bar, width=self.view.sidebar_width,
+                                     controls=(self.global_list, self.project_list))
         if previous and self.view.visible and self.view.settings_open:
             get_app().layout.focus(self.navigation.left_control())
 
@@ -125,16 +137,17 @@ class SettingsScreen:
         if self.page is None:
             return
         self.navigation.finish_edit()
-        self.page.filter(query)
+        self.query = query.strip()
+        self.page.filter(self.query)
         self.main.vertical_scroll = 0
         self.navigation.positions = [0, 0]
-        self.status = self.t("settings_search_active", query=query) if query else ""
+        self.status = ""
         self.navigation.focus_zone(0)
 
     def search(self):
         if self.page is None or self.busy:
             return
-        field = TextArea(text=self.page.query, height=1, multiline=False)
+        field = TextArea(text=self.query, height=1, multiline=False)
         def accept():
             self.filter(field.text)
         self.view.open_dialog(self.t("settings_search"), HSplit([
@@ -145,14 +158,24 @@ class SettingsScreen:
             return True
         field.buffer.accept_handler = entered
 
-    def open_engine(self):
+    def status_text(self):
+        return " · ".join(part for part in (self.filter_label(), self.status) if part)
+
+    def filter_label(self):
+        return self.t("settings_search_active", query=self.query) if self.query else ""
+
+    def show_json(self):
+        self.json_editor.open()
+
+    def open_engine(self, engine=None):
         project = getattr(self.view, "project_id", "")
         if not project:
             self.view.toggle_settings()
             return
         self.project_changed(project)
-        self._engine_target = (project, self.view.engine)
-        self.view.toggle_settings()
+        self._engine_target = (project, engine or self.view.engine)
+        if not self.view.settings_open:
+            self.view.toggle_settings()
         if self.schema is not None and not self.busy:
             self.choose(project)
 
@@ -292,6 +315,7 @@ class SettingsScreen:
     def show_page(self, page):
         left = self.navigation.focused_key() is not None
         self.page = page
+        page.filter(self.query)
         self.main.vertical_scroll = 0
         self.navigation.positions = [0, 0]
         if self._engine_target and getattr(page, "identifier", None) == self._engine_target[0]:
@@ -312,6 +336,7 @@ class SettingsScreen:
                 self.filter("config.parameters.components." + name)
         if self.view.visible and self.view.settings_open and self.view._dialog is None and not left:
             self.navigation.focus_zone(self.navigation.main_zone)
+        get_app().layout.update_parents_relations()
         get_app().invalidate()
 
     def loaded_project(self, record):
@@ -362,9 +387,6 @@ class SettingsScreen:
 
     def discard(self):
         return self.drafts.discard()
-
-    def prompt_restart(self, sections):
-        return self.drafts.prompt_restart(sections)
 
     def reload(self, page):
         return self.drafts.reload(page)

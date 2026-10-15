@@ -23,7 +23,7 @@ class QuestionCardTests(unittest.TestCase):
     def setUp(self):
         self.view = LiveHubView()
         self.addCleanup(self.view.render_worker.close)
-        self.addCleanup(self.view.output_renderers.close)
+        self.addCleanup(self.view.close)
 
     def show(self, request, *, live=True):
         request = {"id": "q", "revision": 1, **request}

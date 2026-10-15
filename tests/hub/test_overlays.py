@@ -36,7 +36,7 @@ class OverlayTests(unittest.IsolatedAsyncioTestCase):
                 for columns, rows in ((132, 40), (80, 24)):
                     output.columns, output.rows = columns, rows
                     app._on_resize()
-                    pipe.send_text("\x13")
+                    pipe.send_text('\x10\r')
                     await eventually(lambda: view.settings_open)
                     settings_button(app, pipe, view, "cancel")
                     await open_home(app, view)

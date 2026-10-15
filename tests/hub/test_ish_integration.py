@@ -36,15 +36,15 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
             installation = install_preview(prompt)
             self.assertEqual(prompt.app.mouse_support(), mouse_support())
             app, view = prompt.app, installation.view
-            view.transcript.set_messages((ChatMessage("assistant", "\n\n".join(f"Line {i}" for i in range(150))),))
+            view.output.transcript.set_messages((ChatMessage("assistant", "\n\n".join(f"Line {i}" for i in range(150))),))
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: app.is_running and view.transcript.window.render_info is not None)
+                await eventually(lambda: app.is_running and view.output.transcript.window.render_info is not None)
                 self.assertTrue(app.mouse_support())
                 pipe.send_text("keep this draft")
                 await eventually(lambda: view.composer.text == "keep this draft")
                 cursor = view.composer.buffer.cursor_position
-                control = view.transcript.control
+                control = view.output.transcript.control
                 page = max(1, control._height - 2)
                 for sequence, line in (("\x1b[6~", page), ("\x1b[B", page + 1),
                                        ("\x1b[A", page), ("\x1b[5~", 0)):
@@ -110,7 +110,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.layout.current_control == view._session_control)
                 selected = view.selected
                 pipe.send_text("\x1b\x1b[B")
-                await eventually(lambda: view.transcript.control.top_line == 1)
+                await eventually(lambda: view.output.transcript.control.top_line == 1)
                 self.assertEqual(view.selected, selected)
                 self.assertIs(app.layout.current_control, view._session_control)
                 pipe.send_text("\x1b[Ccheck focus")
@@ -140,7 +140,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("keep this draft")
                 await eventually(lambda: view.composer.text == "keep this draft")
                 with set_app(app):
-                    view.tags.open()
+                    view.output.tags.open()
                 for columns, rows in ((132, 40), (80, 24), (160, 60), (60, 14), (132, 40)):
                     with self.subTest(columns=columns, rows=rows):
                         output.columns, output.rows = columns, rows
@@ -154,10 +154,10 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(max(p.xpos + p.width for p in hub_positions), columns)
                         self.assertEqual(max(p.ypos + p.height for p in hub_positions), rows)
                         self.assertIn(view.composer.window, positions)
-                        self.assertIn(view.transcript.window, positions)
+                        self.assertIn(view.output.transcript.window, positions)
                         self.assertEqual(view._sidebar.filter(), columns >= 88)
-                        self.assertTrue(view._details.filter())
-                        self.assertIs(app.layout.current_control, view.tags.control)
+                        self.assertTrue(view.output.tags.container.filter())
+                        self.assertIs(app.layout.current_control, view.output.tags.control)
                         self.assertEqual(view.composer.text, "keep this draft")
                 await minimize(pipe, view)
                 await eventually(lambda: not view.visible)
@@ -216,7 +216,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: not replacement.view.visible)
                 self.assertIs(prompt.app.current_buffer, prompt.default_buffer)
                 self.assertEqual(prompt.default_buffer.text, "shell draft")
-                pipe.send_text("\x11\x13")
+                pipe.send_text('\x11\x10\r')
                 await eventually(lambda: replacement.view.settings_open)
                 view.settings.choose("appearance")
                 self.assertIn(prompt.app.layout.current_control, [view.settings.global_list, view.settings.project_list])

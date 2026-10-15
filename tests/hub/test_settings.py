@@ -250,11 +250,11 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
+                await until(lambda: view.connected and not view.projects.busy)
                 if view.no_sessions:
                     pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 await until(lambda: screen.page is not None and not screen.busy)
                 screen.choose("engine:loop")
                 await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
@@ -266,7 +266,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(field.observations, ())
                 field.input.text = "edited prompt"
                 page.engine_forms["loop"].fields[(*prefix, "completion", "temperature")].input.text = "0.3"
-                page.submit()
+                page.save.handler()
                 await until(lambda: screen.page is not page and not screen.busy)
                 stored = screen.page.record["project"]["config"]["parameters"]["engines"]["loop"]["config"]
                 self.assertEqual(stored["system_prompt"], "edited prompt")
@@ -274,7 +274,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 settings_button(app, pipe, view, "save")
                 await open_home(app, view)
                 pipe.send_text("hello\r")
-                await until(lambda: any(m.role == "assistant" and m.status == "completed" for m in view.transcript.control.messages))
+                await until(lambda: any(m.role == "assistant" and m.status == "completed" for m in view.output.transcript.control.messages))
                 self.assertEqual(calls[0]["temperature"], 0.3)
                 self.assertEqual(calls[0]["messages"][0], {"role": "system", "content": "edited prompt"})
             finally:
@@ -296,11 +296,11 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             path = ("config", "parameters", "engines", "loop", "config", "completion", "reasoning_effort")
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
+                await until(lambda: view.connected and not view.projects.busy)
                 if view.no_sessions:
                     pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 await until(lambda: screen.page is not None and not screen.busy)
                 screen.choose("engine:loop")
                 await until(lambda: getattr(screen.page, "identifier", None) == view.project_id and not screen.busy)
@@ -320,10 +320,10 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 await open_home(app, view)
                 pipe.send_text("Explain\r")
                 await until(lambda: any(m.role == "assistant" and m.status == "completed"
-                                       for m in view.transcript.control.messages))
+                                       for m in view.output.transcript.control.messages))
                 self.assertEqual(calls[0]["reasoning_effort"], "low")
                 self.assertFalse(any(m.role == "reasoning" and m.text == "Provider summary"
-                                    for m in view.transcript.control.messages))
+                                    for m in view.output.transcript.control.messages))
             finally:
                 app.exit()
                 await task
@@ -351,7 +351,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async())
             try:
                 await until(lambda: app.is_running)
-                pipe.send_text("\x11\x13")
+                pipe.send_text('\x11\x10\r')
                 await until(lambda: controller.view.settings.page is not None)
                 self.assertTrue(controller.view.settings_open)
                 self.assertTrue(controller.view.settings.projects)
@@ -369,11 +369,11 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
+                await until(lambda: view.connected and not view.projects.busy)
                 if view.no_sessions:
                     pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
-                pipe.send_text("keep chat draft\x13")
+                pipe.send_text('keep chat draft\x10\r')
                 await until(lambda: view.settings_open and screen.page is not None and not screen.busy)
                 screen.choose("profile")
                 profile = screen.page
@@ -381,7 +381,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 app.layout.focus(profile.save)
                 pipe.send_text("\r")
                 await open_home(app, view)
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 await until(lambda: view.settings_open and not screen.busy)
                 screen.choose("appearance")
                 appearance = screen.page
@@ -390,7 +390,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\r")
                 await until(lambda: view.theme.accent == "#abcdef" and not screen.busy)
                 await open_home(app, view)
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 await until(lambda: view.settings_open and not screen.busy)
                 identifier = view.project_id
                 screen.choose(identifier)
@@ -400,13 +400,13 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 demo_path = ("config", "parameters", "components", "demo", "config", "count")
                 self.assertIn(demo_path, page.component_forms["demo"].fields)
                 page.engine_forms["loop"].fields[("config", "parameters", "engines", "loop", "config", "completion", "temperature")].input.text = "wrong"
-                page.submit()
+                page.save.handler()
                 self.assertIn("temperature", screen.status)
                 page.engine_forms["loop"].fields[("config", "parameters", "engines", "loop", "config", "completion", "temperature")].input.text = "0.7"
                 page.component_forms["demo"].fields[demo_path].input.text = "5"
                 self.assertIn("demo", page.components)
                 self.assertFalse(hasattr(page, "toggles"))
-                page.submit()
+                page.save.handler()
                 await until(lambda: screen.page is not page and not screen.busy)
                 self.assertEqual(screen.page.record["values"]["config"]["parameters"]["engines"]["loop"]["config"]["completion"]["temperature"], 0.7)
                 self.assertEqual(screen.page.record["values"]["config"]["parameters"]["components"]["demo"]["config"]["count"], 5)
@@ -414,7 +414,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 await open_home(app, view)
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertEqual(view.composer.text, "keep chat draft")
-                self.assertFalse(view.transcript.control.messages)
+                self.assertFalse(view.output.transcript.control.messages)
                 await until(lambda: view.projects.loaded and not view.projects.busy)
                 with set_app(app):
                     app.layout.focus(view.projects.control)

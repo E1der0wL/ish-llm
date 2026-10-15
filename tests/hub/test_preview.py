@@ -7,7 +7,7 @@ from prompt_toolkit.input import create_pipe_input
 
 from examples.hub.preview import create_preview
 from hub.config.theme import HubTheme
-from tests.hub.support import SizedOutput, eventually, minimize
+from tests.hub.support import auxiliary, SizedOutput, eventually, minimize
 
 
 class PreviewTests(unittest.IsolatedAsyncioTestCase):
@@ -71,12 +71,12 @@ class PreviewTests(unittest.IsolatedAsyncioTestCase):
         self.output.columns = 80
         self.output.rows = 24
         await self.open_hub()
-        self.pipe.send_text("\x14")
-        await eventually(lambda: self.view.tags.visible)
-        self.assertTrue(self.view._details.filter())
+        await auxiliary(self.app, self.pipe, self.view, 'tags')
+        await eventually(lambda: self.view.output.tags.visible)
+        self.assertTrue(self.view.output.tags.container.filter())
         self.assertFalse(self.view._sidebar.filter())
-        self.pipe.send_text("\x14")
-        await eventually(lambda: not self.view.tags.visible)
+        self.pipe.send_text('\x1b')
+        await eventually(lambda: not self.view.output.tags.visible)
         self.pipe.send_text("\x1b")
         await eventually(lambda: self.app.layout.current_control == self.view._session_control)
         self.assertTrue(self.view._sidebar.filter())
@@ -88,15 +88,15 @@ class PreviewTests(unittest.IsolatedAsyncioTestCase):
         await self.open_hub()
         self.pipe.send_text("keep draft")
         await eventually(lambda: self.view.composer.text == "keep draft"
-                         and self.view.transcript.window.render_info is not None)
+                         and self.view.output.transcript.window.render_info is not None)
         self.pipe.send_text("\x1b\x1b[F")  # Alt+End
-        await eventually(lambda: self.view.transcript.control.cursor_line > 0)
+        await eventually(lambda: self.view.output.transcript.control.cursor_line > 0)
         self.view.set_theme(HubTheme.dark())
         self.app.invalidate()
         self.assertEqual(self.view.composer.text, "keep draft")
-        self.assertEqual(self.view.transcript.control.theme, HubTheme.dark())
+        self.assertEqual(self.view.output.transcript.control.theme, HubTheme.dark())
         self.pipe.send_text("\x1b\x1b[H")  # Alt+Home
-        await eventually(lambda: self.view.transcript.control.cursor_line == 0)
+        await eventually(lambda: self.view.output.transcript.control.cursor_line == 0)
 
 
 if __name__ == "__main__":

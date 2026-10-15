@@ -9,7 +9,7 @@ from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import Mock, patch
 
-from hub.backend.interactions.approval import review_summary, review_text
+from hub.backend.interactions.approval import review_lines, review_text
 from hub.backend.execution.retries import HubLoopEngine, RetryMonitor
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.locales import Language
@@ -153,11 +153,11 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
     def test_large_approval_is_bounded_but_full_review_preserves_payload(self):
         request = {"title": "Tool approval", "action": {"tool": "file_create", "arguments": {
             "path": "script.py", "content": "PAYLOAD_LINE\n" * 10000, "workspace_id": "w"}}}
-        summary = review_summary(request, Language("ko"))
+        # Exercise the same bounded lines consumed by QuestionComposer.
+        summary = "\n".join(review_lines(request, Language("ko")))
         self.assertLess(len(summary), 1000)
         self.assertNotIn("PAYLOAD_LINE", summary)
         self.assertIn("script.py", summary)
-        self.assertIn("Ctrl+O", summary)
         self.assertIn("PAYLOAD_LINE", review_text(request))
 
     async def test_approval_skips_duplicate_resume_preview(self):

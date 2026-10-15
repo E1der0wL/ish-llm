@@ -15,7 +15,7 @@ from hub.locales import Language
 from hub.backend.runtime import HubConfig, HubRuntime
 from llm.core.contracts import ProjectActivityEvent, ResourceRef
 from tests.hub.test_live import until
-from tests.hub.support import SizedOutput
+from tests.hub.support import auxiliary, SizedOutput
 from tests.hub.test_overlays import screen_text
 
 
@@ -44,7 +44,7 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: app.is_running)
                 with set_app(app):
                     controller.history_ui._activity_dialog("one short event")
-                output = controller.history_ui.activity_output.window
+                output = view._dialog.output.window
                 for rows, expected in ((48, 30), (40, 30), (24, 16), (16, 8), (40, 30)):
                     terminal.rows = rows
                     rendered.clear()
@@ -76,9 +76,9 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
                 try:
                     await until(lambda: app.is_running)
                     for close_key in ("\r", "\x1b", "\x0c"):
-                        pipe.send_text("\x0c")
-                        await until(lambda: view._dialog is not None and controller.history_ui.activity_output.window.render_info is not None)
-                        output = controller.history_ui.activity_output
+                        await auxiliary(app, pipe, view, 'logs')
+                        await until(lambda: view._dialog is not None and view._dialog.output.window.render_info is not None)
+                        output = view._dialog.output
                         self.assertFalse(output.is_focusable())
                         pipe.send_text("\x1b[H")
                         await until(lambda: output.top_line == 0)
@@ -91,7 +91,7 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
                         pipe.send_text("ignored\t")
                         pipe.send_text(close_key)
                         await until(lambda: view._dialog is None)
-                        self.assertIs(app.layout.current_control, view.composer.control)
+                        self.assertIs(app.layout.current_control, view.auxiliary.buttons['logs'].control)
                         self.assertEqual(view.composer.text, "keep draft")
                 finally:
                     app.exit()
@@ -128,7 +128,7 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
                     await until(lambda: app.is_running)
                     for result in (None, [], [event.to_dict() for event in events()]):
                         previous = len(callbacks)
-                        pipe.send_text("\x0c")
+                        await auxiliary(app, pipe, view, 'logs')
                         await until(lambda: len(callbacks) > previous)
                         self.assertEqual(callbacks[-1][0], "project_activity")
                         with set_app(app):
@@ -141,14 +141,14 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
                             pipe.send_text("\x1b")
                             await until(lambda: view._dialog is None)
                     previous = len(callbacks)
-                    pipe.send_text("\x0c")
+                    await auxiliary(app, pipe, view, 'logs')
                     await until(lambda: len(callbacks) > previous)
                     view.project_id = "different-project"
                     with set_app(app):
                         callbacks[-1][1]([event.to_dict() for event in events()])
                     self.assertIsNone(view._dialog)
                     previous = len(callbacks)
-                    pipe.send_text("\x07")
+                    await auxiliary(app, pipe, view, 'history')
                     await until(lambda: len(callbacks) > previous)
                     self.assertEqual(callbacks[-1][0], "turns")
                     with set_app(app):

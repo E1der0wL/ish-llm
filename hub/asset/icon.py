@@ -50,6 +50,10 @@ class IconSet:
     output: Mapping[str, str] = field(default_factory=lambda: OUTPUT_UNICODE)
     settings: str = "⚙"
     project: str = "●"
+    collapse: str = "›"
+    auxiliary: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({
+        "history": "☷", "tags": "▤", "find": "⌕", "attach": "📎", "logs": "≡",
+        "settings": "⚙", "filter": "⚲", "json": "⌘"}))
 
     @property
     def values(self):
@@ -61,7 +65,9 @@ class IconSet:
 NERD = IconSet(HEADER_MARK, SESSIONS, "", "", "", ALERT, MappingProxyType({
     **STATUS, "running": "", "streaming": "", "failed": "",
     "paused": "", "waiting_approval": "", "preparing": "",
-}), tool="", question="", output=OUTPUT_NERD, settings="", project="")
+}), tool="", question="", output=OUTPUT_NERD, settings="", project="", collapse="",
+    auxiliary=MappingProxyType({"history": "", "tags": "", "find": "", "attach": "",
+                               "logs": "", "settings": "", "filter": "", "json": ""}))
 UNICODE = IconSet("•", "☷", REASONING, WAITING, EDIT,
                   MappingProxyType({"error": "❌", "info": "ℹ", "warning": "⚠", "success": "✅"}), STATUS)
 

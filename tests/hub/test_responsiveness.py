@@ -60,7 +60,7 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()
 
     async def test_periodic_reads_without_events_use_configured_cadence(self):
@@ -94,7 +94,7 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
             view.preparing.start(("p", "s"))
             self.assertTrue(view.preparing.visible())
             self.assertIn(view.t("preparing_response"), view.preparing.text())
-            pending, = view.transcript.control.messages
+            pending, = view.output.transcript.control.messages
             self.assertEqual((pending.role, pending.status), ("assistant", "preparing"))
             self.assertGreaterEqual(pending.elapsed_seconds, 0)
             view.preparing.accepted(("p", "s"), "request")
@@ -106,7 +106,7 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
             view.apply_snapshot(replace(base, messages=(user, ChatMessage("assistant", "", id="answer", status="streaming"))))
             self.assertFalse(view.preparing.visible())
         finally:
-            view.output_renderers.close()
+            view.close()
             view.progress.close()
 
     def test_clock_keeps_advancing_without_backend_publication_and_stops_at_completion(self):
@@ -118,14 +118,14 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
                 view.apply_snapshot(snapshot)
             with patch("hub.widget.feedback.preparing.monotonic", return_value=13):
                 view.preparing.paint()
-                self.assertEqual(view.transcript.control.messages[-1].elapsed_seconds, 5)
+                self.assertEqual(view.output.transcript.control.messages[-1].elapsed_seconds, 5)
                 view.apply_snapshot(replace(snapshot, messages=(replace(snapshot.messages[0], status="completed", elapsed_seconds=6),)))
             with patch("hub.widget.feedback.preparing.monotonic", return_value=20):
                 view.preparing.paint()
-                self.assertEqual(view.transcript.control.messages[-1].elapsed_seconds, 6)
+                self.assertEqual(view.output.transcript.control.messages[-1].elapsed_seconds, 6)
             self.assertFalse(view.preparing.clocks)
         finally:
-            view.output_renderers.close()
+            view.close()
             view.progress.close()
 
     def test_unchanged_messages_reuse_layout_and_objects_keep_offsets(self):

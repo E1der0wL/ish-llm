@@ -13,7 +13,7 @@ from hub.config.theme import HubTheme
 from hub.locales import Language
 from hub.model import ChatMessage
 from hub.ui.presentation import present, present_message
-from hub.widget.transcript.conversation import ConversationControl
+from hub.widget.transcript.conversation import ConversationControl, render_messages
 from llm.components.tools import ToolComponent
 from llm.engines.loop import LoopEngine
 from llm.llm import LargeLanguageModel
@@ -54,7 +54,8 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
                 projected = present(snapshot, runtime.t)
                 self.assertEqual(projected.messages[-1].phase, 'thinking')
                 self.assertEqual(projected.messages[-1].text, '')
-                self.assertIn('생각 중', projected.activity)
+                header = render_messages(projected.messages[-1:], 80, HubTheme(), runtime.t, section="header")
+                self.assertIn('생각 중', ''.join(text for line in header for _, text in line))
                 gates[0].set()
                 snapshot = await observe(lambda s: any(m.role == 'reasoning' for m in s.messages))
                 self.assertEqual(snapshot.messages[-2].text, 'Visible summary')

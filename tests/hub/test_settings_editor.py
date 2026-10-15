@@ -42,7 +42,7 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.is_running)
                 pipe.send_text("\x11")
                 await eventually(lambda: view.visible)
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 screen = view.settings
                 await eventually(lambda: screen.page is not None and view.settings_open)
                 await eventually(lambda: app.renderer._last_screen and any(
@@ -104,7 +104,7 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.is_running)
                 pipe.send_text("\x11")
                 await eventually(lambda: view.visible)
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 screen = view.settings
                 await eventually(lambda: screen.page is not None and view.settings_open)
                 await eventually(lambda: app.renderer._last_screen and any(

@@ -97,7 +97,7 @@ llm/ 및 ish 참조 Python 소스 205개도 검증 스냅샷과 일치하며 수
 
 셸에는 Ctrl+Q 진입 바인딩만 설치하고 Ctrl+S는 수정하지 않습니다. Hub에서는 ESC로 패널에
 이동하고, 패널에서 ESC로 최소화합니다. Ctrl+Q는 설정 편집·팝업을 포함한 Hub 전체에서
-최소화하며 입력 초안과 저장 전 설정은 유지합니다. 설정의 Alt 스크롤 차단, Ctrl+X 중단, 직접/외부 편집,
+최소화하며 입력 초안과 저장 전 설정은 유지합니다. 설정의 Alt 스크롤 차단, Ctrl+W 중단, 직접/외부 편집,
 셸 alternate screen 복원은 유지합니다.
 
 `backend/snapshot.py`는 공개 llm 조회 API만 호출하며 원시 상태·예약 수·Run/Step 요약·ISO 시각을
@@ -231,14 +231,14 @@ llm 집중 191개와 전체 1,214개도 통과했습니다.
 
 공통 페이지 상태 행은 좌우에만 1칸을 확보하고 높이는 1행으로 유지합니다.
 페이지의 ESC는 좌측 패널로 이동하며, 설정 편집 중에는 편집을 마치고 이동합니다.
-대화 중단은 Ctrl+X입니다. 팝업의 ESC 닫기 동작은 유지합니다.
+대화 중단은 Ctrl+W입니다. 팝업의 ESC 닫기 동작은 유지합니다.
 설정의 Alt+방향키/PageUp/PageDown/Home/End 조합은 명시적으로 소비해
 ESC 처리나 대화 스크롤로 넘어가지 않습니다.
 
 Hub 표시 중 PTK ttimeoutlen/timeoutlen은 각각 20ms로 설정하고 숨김 시 원래 값을 복원합니다.
 ESC의 eager 처리는 Alt 시퀀스를 깨뜨리므로 사용하지 않습니다.
 Linux Python 3.12.14 Hub 89개 검증 통과, 스냅샷 `/tmp/hub-ui-4kzim_7l`.
-단독 ESC, Alt 조합, Ctrl+X, 설정 편집/선택 상태, 호스트 타임아웃 복원,
+단독 ESC, Alt 조합, Ctrl+W, 설정 편집/선택 상태, 호스트 타임아웃 복원,
 상태 행 크기와 좌우 여백을 실제 PTK 입력·렌더러로 검증했습니다.
 
 ## 2026-10-05 공통 페이지와 팔레트
@@ -312,7 +312,7 @@ HubTheme.sidebar_width는 설정 및 대화 좌측 패널의 공통 너비이며
 `hub.hub.install(prompt)`은 ish Application에 하나의 Float를 등록합니다.
 `HubView.container`는 `ConditionalContainer`이며 내부 모달 영역에 목록·대화·입력창을
 배치합니다. 표시 전환은 포커스만 바꾸고 Application이나 이벤트 루프를 새로 실행하지 않습니다.
-좁은 화면에서는 목록을 숨기고, 출력 태그 바는 사용자가 Ctrl+T로 열 때 표시합니다.
+좁은 화면에서는 목록을 숨기고, 출력 태그 바는 사용자가 보조 버튼으로 열 때 표시합니다.
 ish 입력 컨테이너의 높이는 한 줄일 수 있으므로 Float 높이는 렌더링마다 호스트
 output의 현재 PTY 행 수를 읽습니다. 너비는 좌우 앵커로 채우며, PTK의 resize 처리로
 크기 변경을 반영합니다.

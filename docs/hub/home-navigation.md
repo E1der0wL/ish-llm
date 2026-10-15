@@ -19,7 +19,7 @@
 이루어집니다. 편집·재시도 이력은 논리적인 요청 단위로 판단하며, 완료된 재개 이력과 현재
 체크포인트의 도구 결과는 보존합니다.
 
-Ctrl+X는 실행 중인 Run뿐 아니라 일시 정지된 최신 요청도 중단합니다. 헤더의 중단 중 표시와
+Ctrl+W는 실행 중인 Run뿐 아니라 일시 정지된 최신 요청도 중단합니다. 헤더의 중단 중 표시와
 입력창의 질문 숨김은 즉시 적용되고, 저장 후 스냅샷으로 확정합니다. 예약 요청은 취소하지 않습니다.
 
 `llm.interrupt()`는 살아 있는 실행 작업만 대상으로 하므로, 일시 정지는 공개 API로 대기 중인
@@ -47,7 +47,7 @@ interaction을 취소하고 Session metadata의 `hub_stopped_runs`에 중단 시
 
 ## 컴포넌트 설정 이동과 버튼 키 점검
 
-`/tool config`, `/rag config`, `/workflow config`, `/skill config`, `/agent config`의
+`/tools config`, `/skills config`, `/mcp config`, `/rag config`, `/agents config`, `/workflows config`의
 설정 버튼은 현재 프로젝트의 해당 컴포넌트 항목을 선택하고
 `config.parameters.components.<등록 이름>`으로 필터링한 뒤 첫 입력칸으로 이동합니다.
 처음 프로젝트 설정을 불러오는 경우와 기존 설정 초안을 재사용하는 경우를 모두 검사합니다.

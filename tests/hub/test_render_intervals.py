@@ -43,16 +43,16 @@ class RenderIntervalTests(unittest.IsolatedAsyncioTestCase):
                     original = snapshot.messages[-1]
                     self.assertEqual(original.status, "failed")
                     view.apply_snapshot(snapshot, select_id=identifier)
-                    displayed = view.transcript.control.messages[-1].text
+                    displayed = view.output.transcript.control.messages[-1].text
                     self.assertIn(view.t("response_failed"), displayed)
                     self.assertNotIn(view.t("waiting"), displayed)
                     if content == "partial":
                         self.assertIn("Partial response", displayed)
                     view.set_theme(replace(view.theme, icon_style="unicode"))
-                    self.assertEqual(view.transcript.control.messages[-1].text.count(view.t("response_failed")), 1)
+                    self.assertEqual(view.output.transcript.control.messages[-1].text.count(view.t("response_failed")), 1)
                     self.assertNotIn(view.t("response_failed"), original.text)
             finally:
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()
                 await runtime.close()
 
@@ -99,7 +99,7 @@ class RenderIntervalTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(render.call_count, 3)
         finally:
             progress.close()
-            view.output_renderers.close()
+            view.close()
 
     async def test_shorter_output_interval_wakes_pending_long_batch(self):
         worker = BackendWorker.__new__(BackendWorker)

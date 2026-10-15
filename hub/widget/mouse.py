@@ -205,10 +205,9 @@ class MouseController:
                 or any(pane is target for pane, _ in self.panes) and target in modal)
 
     def _scope(self):
-        search = getattr(self.view, "search", None)
-        dialog = search.dialog if search and search.active else getattr(self.view, "_dialog", None)
-        if dialog is None and self.view.tags.visible:
-            return set(walk(to_container(self.view.tags.container)))
+        dialog = getattr(self.view, "_dialog", None)
+        if dialog is None and self.view.output.modal_container is not None:
+            return set(walk(to_container(self.view.output.modal_container)))
         # A zero-height modal key receiver must not block its read-only body.
         return set(walk(to_container(dialog))) if dialog is not None else set(self.app.layout.walk_through_modal_area())
 
@@ -296,6 +295,28 @@ class MouseController:
                 selection.extend(self._selection_point(window, position, autoscroll=not finished))
 
         self.drag = MouseCapture(window, update, point)
+
+    def _select_input(self, window, event, native):
+        """Capture a writable input drag while retaining PTK's display mapping."""
+        native(event)
+        def update(position, finished=False):
+            if not self._present(window) or window.content.buffer.read_only():
+                return
+            rect = next(rect for item, rect in self.windows if item is window)
+            clip = getattr(window, "hub_mouse_clip", None) or rect
+            top, bottom = max(rect.ypos, clip.ypos), min(rect.ypos + rect.height, clip.ypos + clip.height) - 1
+            left = rect.xpos + sum(window._get_margin_width(m) for m in window.left_margins)
+            right = rect.xpos + rect.width - sum(window._get_margin_width(m) for m in window.right_margins) - 1
+            point = Point(max(left, min(right, position.x)), max(top, min(bottom, position.y)))
+            grid = self.app.renderer.mouse_handlers.mouse_handlers
+            rows = grid.rows if isinstance(grid, _MouseGrid) else grid
+            from prompt_toolkit.mouse_events import MouseEvent
+            rows[point.y][point.x](MouseEvent(point, M.MOUSE_UP if finished else M.MOUSE_MOVE,
+                                            MouseButton.LEFT, event.modifiers))
+            if not finished and (position.y < top or position.y > bottom):
+                buffer = window.content.buffer
+                buffer.cursor_up() if position.y < top else buffer.cursor_down()
+        self.drag = MouseCapture(window, update, event.position)
 
     def dispatch(self, event, native):
         if not self.view.visible:
@@ -388,6 +409,12 @@ class MouseController:
                 return None
             if getattr(window.content, "selection", None) is not None:
                 self._select(window, event.position)
+                self.app.invalidate()
+                return None
+            if (getattr(window.content, "hub_editable", False)
+                    and not window.content.buffer.read_only()
+                    and self.app.layout.current_control is window.content):
+                self._select_input(window, event, native)
                 self.app.invalidate()
                 return None
         result = native(event)

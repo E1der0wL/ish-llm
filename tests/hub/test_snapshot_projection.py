@@ -12,6 +12,12 @@ from hub.config.theme import HubTheme
 from hub.locales import Language
 from hub.ui.live import LiveHubView
 from hub.ui.presentation import present
+from hub.widget.transcript.conversation import render_messages
+
+
+def headers(messages, language):
+    return "".join(text for line in render_messages(messages, 120, HubTheme(), language, section="header")
+                   for _, text in line)
 
 
 class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
@@ -74,9 +80,11 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(observations[0].record, record)
         korean = present(snapshot, Language("ko", icons=NERD))
         english = present(snapshot, Language("en", icons=UNICODE))
-        self.assertNotEqual(korean.activity, english.activity)
-        self.assertIn(NERD.reasoning, korean.activity)
-        self.assertIn(UNICODE.reasoning, english.activity)
+        korean_headers = headers(korean.messages, Language("ko", icons=NERD))
+        english_headers = headers(english.messages, Language("en", icons=UNICODE))
+        self.assertNotEqual(korean_headers, english_headers)
+        self.assertIn(NERD.reasoning, korean_headers)
+        self.assertIn(UNICODE.reasoning, english_headers)
         self.assertEqual(snapshot.status, "running")
         # Other sessions don't compete for the persistence lane on every delta.
         await reader.read(project, {"s": session}, "", config=config, engines=engines, title_errors={})
@@ -89,5 +97,7 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         view.composer.text = "draft"
         view.set_theme(replace(HubTheme(), icon_style="unicode"))
         self.assertEqual(view.composer.text, "draft")
-        self.assertEqual(view.activity, present(snapshot, Language("ko", icons=UNICODE)).activity)
-        self.assertIn(UNICODE.reasoning, view.activity)
+        shown = headers(view.output.transcript.control.messages, view.t)
+        self.assertEqual(shown, headers(present(snapshot, view.t).messages, view.t))
+        self.assertIn(UNICODE.reasoning, shown)
+        view.close()

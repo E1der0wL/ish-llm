@@ -23,15 +23,19 @@ class GeneralForm:
             "startup": ("restore_last_project", "restore_last_session"),
             "output": ("auto_scroll",),
             "editor": ("editor",),
+            "diagnostics": ("provider_error_details", "provider_request_summary", "provider_max_detail_chars"),
         }
         kinds = {"notification_kinds": "array", "notification_seconds": "number",
-                 "restore_last_project": "boolean", "restore_last_session": "boolean", "auto_scroll": "boolean"}
+                 "restore_last_project": "boolean", "restore_last_session": "boolean", "auto_scroll": "boolean",
+                 "provider_error_details": "boolean", "provider_request_summary": "boolean",
+                 "provider_max_detail_chars": "integer"}
         properties = {key: {"type": kinds.get(key, "string"), "description": screen.t("general_" + key)}
                       for keys in self.groups.values() for key in keys}
         for key, schema in properties.items():
             schema.update(setting_metadata("general")[key])
         properties["notification_kinds"].update(items={"type": "string", "enum": ["error", "info", "warning", "success"]})
         properties["notification_seconds"].update(minimum=1, maximum=120)
+        properties["provider_max_detail_chars"].update(minimum=1)
         self.form = SchemaForm({"type": "object", "properties": properties}, values, screen.t)
         self.form.original.setdefault("language_packs", {})
         self.add_button = Button(screen.t("language_pack_add"), handler=self.add_pack, width=18)

@@ -6,16 +6,22 @@ Hub의 기본 대화 출력은 Markdown입니다. 일반 Markdown의 코드 블�
 PTK 렌더링 행, 화면 시작/끝 행, 손실 없는 `raw` 원문이 있습니다.
 화면 너비·테마·이미지 변환 결과가 바뀌면 렌더링 좌표만 다시 계산합니다.
 
-`Ctrl+T`는 기존 오른쪽 상세 영역을 대체한 태그 바를 열고 포커스를 옮깁니다.
+홈 입력창 위의 태그 보조 버튼은 태그 바를 열고 포커스를 옮깁니다.
+태그 바는 공통 `EngineOutput`이 소유하며 출력 본문 오른쪽에만 표시합니다.
+각 출력 클래스가 태그 데이터를 공급하며, Loop 출력은 사용자 요청과 출력 객체를 등록합니다.
+입력창·보조 버튼·하단 진행 영역은 태그 바를 열어도 기존 너비를 유지합니다.
 ↑↓로 선택하면 해당 객체로 스크롤하고, `c`는 마크업을 포함한 원문을 복사합니다.
-`Ctrl+T / ESC`로 닫고, 항목을 클릭하면 선택하고 해당 출력 위치로 이동합니다. `Tab / Space / Enter`로 전체 화면 팝업을 엽니다.
+`ESC`로 닫고, 항목을 클릭하면 선택하고 해당 출력 위치로 이동합니다. `Tab / Space / Enter`로 전체 화면 팝업을 엽니다.
 태그 바가 열린 동안 바깥 클릭으로는 포커스가 이동하지 않습니다.
-태그 바는 제목 없이 왼쪽 구분선만 표시합니다. 팝업은 호스트가 할당한 전체 Hub 영역을 채웁니다.
+태그 바는 왼쪽 구분선, 상단의 ‘태그 바’ 제목과 접기 아이콘 버튼을 표시합니다.
+열 때 현재 스크롤 위치에 가장 가까운 항목을 표시하며 자동으로 스크롤을 옮기지 않습니다.
+팝업은 호스트가 할당한 전체 Hub 영역을 채웁니다.
 목록에는 XML의 `title` (이미지는 `alt`도 지원)이 있으면 그 제목을, 없으면 내용의
 앞부분을 표시합니다. 긴 제목은 터미널 셀 너비에 맞춰 `…`로 줄입니다.
 NerdFont의 코드 아이콘은 ``, 표 아이콘은 ``이며, 모양 설정의 일반 아이콘 모드도 지원합니다.
 사용자 요청은 아이콘 없이 같은 시간순 목록에 표시합니다. 선택하면 요청 위치로 이동하지만
 `Enter / Tab / Space`로 확대하지 않습니다.
+사용자 요청 앞에는 빈 줄을 넣고, 하위 출력 객체는 두 칸 들여쓰며 아이콘 뒤에도 두 칸을 둡니다.
 확대 화면은 객체 종류에 맞는 상호작용 UI를 사용합니다. `ESC / Ctrl+T`로 닫으면
 태그 바에 포커스가 돌아옵니다. 복사는 PTK 클립보드와 사용 가능한
 WSL clip.exe / wl-copy / xclip / xsel을 사용하며, 없으면 터미널 OSC 52에 요청합니다.
@@ -105,7 +111,7 @@ class MetricRenderer:
         return [[("class:hub.accent bold", block.text)]]
 
 installation = hub_plugin.install(prompt)
-installation.view.output_renderers.register("hub-metric", MetricRenderer())
+installation.view.output.renderers.register("hub-metric", MetricRenderer())
 ```
 
 모델 출력 `<hub-metric title="지표">42</hub-metric>`는 등록한 렌더러로 표시되며
@@ -136,7 +142,7 @@ class MetricInspector(ExpandedOutputDialog):
     def change(self, amount):
         self.value += amount
 
-installation.view.output_renderers.register(
+installation.view.output.renderers.register(
     "hub-metric", MetricRenderer(), interaction=MetricInspector,
 )
 ```
@@ -182,9 +188,10 @@ d는 확인 후 활성화를 해제하고 삭제합니다. 목록을 읽은 뒤 
 
 설정 Ctrl+F는 키 경로·이름·설명·값의 대소문자 구분 없는 부분 문자열 검색입니다.
 빈 검색어로 전체를 복원합니다. 숨겨진 필드도 편집값과 저장 대상에서 유지합니다.
-대화 입력의 Ctrl+S는 선택 엔진의 configuration_key에 해당하는
-`config.parameters.engines.<key>` 필터로 프로젝트 설정을 엽니다.
-닫기 버튼은 저장 전 변경과 모양 미리보기를 취소하고 대화로 돌아갑니다.
+홈 입력의 Ctrl+S는 보조 버튼으로 이동합니다. 설정 버튼으로 설정을 연 다음
+프로젝트의 엔진 항목을 선택하고 필터를 적용할 수 있습니다.
+필터는 패널 항목을 바꿔도 유지합니다. 취소 버튼은 저장 전 변경과 모양 미리보기를
+되돌리며 설정 화면에 머무릅니다. 홈 버튼으로 돌아갑니다.
 
 제공자가 공개한 thinking은 현재 표시 단계만 유지하며 응답 본문이 시작되면 숨깁니다.
 다음 thinking 증분이 오면 새 단계로 표시합니다. llm의 영속 completion 기록은 그대로입니다.

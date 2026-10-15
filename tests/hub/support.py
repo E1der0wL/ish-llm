@@ -40,9 +40,9 @@ async def open_home(app, view):
 
 
 async def minimize(pipe, view):
-    if view.tags.visible:
-        pipe.send_text("\x14")
-        await eventually(lambda: not view.tags.visible)
+    if view.output.tags.visible:
+        pipe.send_text("\x1b")
+        await eventually(lambda: not view.output.tags.visible)
     if view._dialog is not None:
         pipe.send_text("\x1b")
         await eventually(lambda: view._dialog is None)
@@ -51,5 +51,30 @@ async def minimize(pipe, view):
         await eventually(lambda: view.active_page.sidebar_focused)
     pipe.send_text("\x11")
     await eventually(lambda: not view.visible)
+
+
+async def auxiliary(app, pipe, view, name):
+    """Exercise the auxiliary row via its public keyboard contract."""
+    bar = view.settings.auxiliary if view.settings_open else view.auxiliary
+    with set_app(app):
+        if view.settings_open:
+            view.settings.navigation.focus_zone(1)
+        else:
+            view._focus_composer()
+    pipe.send_text("\x13")
+    await eventually(lambda: app.layout.current_control is next(iter(bar.buttons.values())).control)
+    for _ in range(list(bar.buttons).index(name)):
+        pipe.send_text("\x1b[C")
+    await eventually(lambda: app.layout.current_control is bar.buttons[name].control)
+    pipe.send_text("\r")
+
+
+async def open_settings(app, pipe, view):
+    if not view.visible:
+        pipe.send_text("\x11")
+        await eventually(lambda: view.visible)
+    if not view.settings_open:
+        await auxiliary(app, pipe, view, "settings")
+    await eventually(lambda: view.settings_open and view.settings.page is not None and not view.settings.busy)
 
 

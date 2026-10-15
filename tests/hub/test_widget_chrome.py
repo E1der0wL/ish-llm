@@ -44,7 +44,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.wait_for(rendered.wait(), 3)
 
             try:
-                await eventually(lambda: app.is_running and view.transcript.window.render_info is not None)
+                await eventually(lambda: app.is_running and view.output.transcript.window.render_info is not None)
                 self.assertNotIn("Ctrl+E", keys())
                 self.assertNotIn("c", keys())
                 self.assertEqual(view.header.fragments()[0][1], "   홈")
@@ -65,7 +65,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue({"c", "d", "e", "r", "Ctrl+←→", "Tab/Shift+Tab", "Space/Enter/→"} <= keys().keys())
                 self.assertNotIn("Ctrl+Space", keys())
 
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 screen = view.settings
                 await eventually(lambda: view.settings_open and screen.page is not None)
                 await paint()
@@ -79,6 +79,11 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("", drawn.splitlines()[0])
                 self.assertIn(f"{NERD.settings} 전역 설정", drawn)
                 self.assertIn(f"{NERD.project} 프로젝트", drawn)
+                for heading in (f"{NERD.settings} 전역 설정", f"{NERD.project} 프로젝트"):
+                    self.assertTrue(next(row for row in drawn.splitlines() if heading in row).startswith(" " + heading))
+                positions = content.visible_windows_to_write_positions
+                field = screen.page.form.fields[("display_name",)].input.window
+                self.assertEqual(positions[field].xpos, positions[screen.layout.edge].xpos + 2)
                 with set_app(app):
                     screen.choose("appearance")
                     field = screen.page.form.fields[("icon_style",)]
@@ -111,11 +116,11 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
 
                 with set_app(app):
                     view.toggle_settings()
-                    view.search.open()
+                    view.output.search.open()
                 self.assertIn("Alt+P", keys())
                 self.assertNotIn("Ctrl+S", keys())
                 pipe.send_text("\t")
-                await eventually(lambda: app.layout.current_control != view.search.input.control)
+                await eventually(lambda: app.layout.current_control != view.output.search.input.control)
                 self.assertIn("Alt+P", keys())
                 self.assertEqual(keys()["Enter/Space"], view.t("shortcut_activate"))
                 with set_app(app):

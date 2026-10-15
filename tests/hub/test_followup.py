@@ -69,7 +69,7 @@ class FollowupTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     view.apply_snapshot(snapshot)
                 self.assertEqual(view.composer.buffer.suggestion.text, "Write tests")
-                self.assertEqual(view.transcript.control.messages[-1].text, "Answer")
+                self.assertEqual(view.output.transcript.control.messages[-1].text, "Answer")
                 self.assertEqual(view.composer.text, "")
                 view.composer.text = "different text"
                 view.composer.buffer.cursor_position = 0
@@ -96,5 +96,5 @@ class FollowupTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()

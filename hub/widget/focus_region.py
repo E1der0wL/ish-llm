@@ -2,10 +2,27 @@
 
 from collections.abc import Callable
 from functools import partial
+from functools import lru_cache
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.screen import Char
+from prompt_toolkit.output.vt100 import ANSI_COLORS_TO_RGB
+
+
+@lru_cache(maxsize=1024)
+def grayscale(color):
+    """Desaturate resolved RGB/ANSI colors while preserving terminal defaults."""
+    if color in (None, "", "default"):
+        return "default"
+    rgb = ANSI_COLORS_TO_RGB.get(color)
+    if rgb is None:
+        try:
+            rgb = tuple(int(color[i:i + 2], 16) for i in (0, 2, 4))
+        except ValueError:
+            return "default"
+    value = round(sum(channel * weight for channel, weight in zip(rgb, (0.2126, 0.7152, 0.0722))))
+    return f"#{value:02x}{value:02x}{value:02x}"
 
 
 class FocusRegion(HSplit):
@@ -27,10 +44,10 @@ class FocusRegion(HSplit):
                 cell = row[x]
                 if cell.style not in styles:
                     original = attrs[cell.style]
-                    surface = original.bgcolor not in (None, "", "default") or original.reverse
-                    styles[cell.style] = cell.style + (
-                        " class:hub.inactive-surface" if surface else " class:hub.inactive") + (
-                        " bold" if original.bold else "")
+                    styles[cell.style] = (cell.style + " class:hub.inactive"
+                        + f" fg:{grayscale(original.color)} bg:{grayscale(original.bgcolor)}"
+                        + "".join(" " + (name if getattr(original, name) else "no" + name)
+                                  for name in ("bold", "italic", "underline", "strike", "reverse", "blink", "hidden")))
                 key = (cell.char, cell.style)
                 if key not in cells:
                     cells[key] = Char(cell.char, styles[cell.style])

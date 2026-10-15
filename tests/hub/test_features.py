@@ -58,8 +58,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                     while not any(m.role == "reasoning" for m in (await runtime.snapshot()).messages):
                         await asyncio.sleep(0.02)
                 snapshot = await runtime.snapshot()
-                self.assertNotIn("\n", present(snapshot, runtime.t).activity)
-                self.assertEqual(runtime.t.status("thinking") + " · " + snapshot.model, present(snapshot, runtime.t).activity)
+                self.assertEqual(present(snapshot, runtime.t).messages[-1].phase, "thinking")
                 run_id, targets = await runtime.instruction_targets(identifier)
                 instruction = await runtime.steer(identifier, run_id, "additional direction", [targets[0][0]])
                 await runtime.submit(identifier, "second request", "review")
@@ -139,6 +138,13 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
 
 class CompletionTests(unittest.TestCase):
     def test_language_packs_and_project_path_completion(self):
+        import ast
+        for module in (ko, en):
+            tree = ast.parse(Path(module.__file__).read_text(encoding="utf-8"))
+            messages = next(node.value for node in tree.body if isinstance(node, ast.Assign)
+                            and any(isinstance(target, ast.Name) and target.id == "MESSAGES" for target in node.targets))
+            keys = [key.value for key in messages.keys]
+            self.assertEqual(len(keys), len(set(keys)), module.__name__)
         self.assertEqual(set(ko.MESSAGES), set(en.MESSAGES))
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -163,7 +169,6 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             view.file_root = root
             view.engines = ("loop", "review")
             calls = []
-            view.on_steer = lambda *args: calls.append(args)
             view.on_submit = lambda *args: calls.append(args)
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
@@ -226,7 +231,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x00")
                 await until(lambda: view.composer.text == "first\nsecond")
                 self.assertIs(app.layout.current_control, view.composer.control)
-                self.assertFalse(view.transcript.control.is_focusable())
+                self.assertFalse(view.output.transcript.control.is_focusable())
                 self.assertEqual(calls, [])
             finally:
                 app.exit()
@@ -254,7 +259,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("start\r")
-                await until(lambda: any(m.role == "reasoning" for m in view.transcript.control.messages))
+                await until(lambda: any(m.role == "reasoning" for m in view.output.transcript.control.messages))
                 pipe.send_text("redirect\r")
                 await until(lambda: view._dialog is not None)
                 pipe.send_text("\x1b")  # Cancels the choice, not the running work.
@@ -265,7 +270,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\r")
                 await until(lambda: view._dialog is not None)
                 pipe.send_text("\x1b[A\r")  # Select live instruction.
-                await until(lambda: any(m.text == "redirect" for m in view.transcript.control.messages))
+                await until(lambda: any(m.text == "redirect" for m in view.output.transcript.control.messages))
                 await until(lambda: view.composer.text == "")
                 pipe.send_text("/engine review\r")
                 await until(lambda: view.engine == "review")
@@ -275,10 +280,10 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.composer.text == "")
                 gate.set()
                 await until(lambda: any(m.role == "assistant" and m.text == "next request"
-                                        for m in view.transcript.control.messages))
+                                        for m in view.output.transcript.control.messages))
                 self.assertEqual(len(calls), 3)
                 self.assertTrue(any(m.text == "redirect" and m.status == "applied"
-                                    for m in view.transcript.control.messages))
+                                    for m in view.output.transcript.control.messages))
                 await until(lambda: "Idle" in view.sessions[view.selected].status)
                 self.assertFalse(controller._submitting)
                 pipe.send_text("keep instruction\x04")
@@ -314,12 +319,12 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("first\r")
-                await until(lambda: any(m.role == "reasoning" for m in view.transcript.control.messages))
+                await until(lambda: any(m.role == "reasoning" for m in view.output.transcript.control.messages))
                 pipe.send_text("keep draft\r")
                 await until(lambda: view._dialog is not None)
                 gate.set()
                 await until(lambda: any(m.role == "assistant" and m.status == "completed"
-                                       for m in view.transcript.control.messages))
+                                       for m in view.output.transcript.control.messages))
                 pipe.send_text("\x1b[A\r")
                 await until(lambda: view._dialog is None and view.notice.startswith(view.t("error", error="")))
                 self.assertEqual(view.composer.text, "keep draft")
@@ -336,7 +341,6 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput(rows=24))
             calls = []
-            view.on_steer = lambda session, text: calls.append((session, text))
             view.on_new = lambda *args: calls.append(args)
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
@@ -349,11 +353,11 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertFalse(hasattr(view, "draft_preview"))
                 app.invalidate()
-                await until(lambda: view.transcript.window.render_info is not None)
+                await until(lambda: view.output.transcript.window.render_info is not None)
                 pipe.send_text("\x1b\x1b[B")
-                await until(lambda: view.transcript.window.vertical_scroll == 1)
+                await until(lambda: view.output.transcript.window.vertical_scroll == 1)
                 pipe.send_text("\x1b\x1b[A")
-                await until(lambda: view.transcript.window.vertical_scroll == 0)
+                await until(lambda: view.output.transcript.window.vertical_scroll == 0)
                 app.layout.focus(view._session_control)
                 pipe.send_text("c")
                 await until(lambda: view._dialog is not None)

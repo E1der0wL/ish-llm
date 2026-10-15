@@ -41,7 +41,8 @@ def read_provider_logs(workspace, project_id, *, limit=300):
                     if owner and owner != project_id:
                         continue
                     rows.append({"time": f"{date} {time}", "event": "provider", "status": level.lower(),
-                        "source": {"session_id": details.get("session_id") or "—", "run_id": details.get("run_id") or "—"},
+                        "source": {"session_id": details.get("session_id") or "—", "run_id": details.get("run_id") or "—",
+                                   **({"step_id": details["step_id"]} if details.get("step_id") else {})},
                         "code": value.get("code") or "provider_library_log", "provider": True,
                         "scope": "project" if owner else "workspace", "details": value, "log_path": str(path)})
                 except (ValueError, TypeError):
@@ -54,7 +55,7 @@ def read_provider_logs(workspace, project_id, *, limit=300):
 def associate_provider_logs(activity, provider):
     """Attach Run-scoped evidence to its failure without changing commit order.
 
-    Provider diagnostics do not identify individual Steps. Prefer run.failed;
+    Group all attempts under run.failed, retaining Step/call IDs in each record;
     only use step.failed if the bounded activity window lacks that Run event.
     """
     result = [dict(row) for row in activity]

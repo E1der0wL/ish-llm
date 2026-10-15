@@ -77,7 +77,7 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await until(lambda: app.is_running)
                 shell = app.layout.current_control
-                pipe.send_text("\x11\x13")
+                pipe.send_text('\x11\x10\r')
                 await until(lambda: settings.page is not None and not settings.busy)
                 field = settings.page.form.fields[("email",)]
                 field.input.text = "unsaved@example.com"
@@ -98,7 +98,7 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("known_tokens", settings.usage[0])
                 settings.choose("general")
                 settings.page.form.fields[("editor",)].input.text = "nano -w"
-                settings.page.submit()
+                settings.page.save.handler()
                 await until(lambda: not settings.busy and not settings.page.dirty)
                 self.assertEqual(view.general.editor, "nano -w")
                 for button in settings.page.buttons:

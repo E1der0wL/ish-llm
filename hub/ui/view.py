@@ -6,15 +6,14 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.completion import ThreadedCompleter
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import (ConditionalContainer, DynamicContainer, Float,
-                                   FloatContainer, HSplit, VSplit, Window)
-from prompt_toolkit.layout.controls import FormattedTextControl
+                                   FloatContainer, HSplit, Window)
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.menus import CompletionsMenu
 from ..widget.shortcuts import ShortcutBar
 from ..widget.header import HeaderBar
 
 from .chat.completion import HubCompleter
-from ..widget.transcript.conversation import ConversationView
+from ..widget.output.engine import EngineOutput
 from ..model import SessionView
 from ..locales import Language
 from ..config.theme import HubTheme
@@ -27,7 +26,7 @@ from .layout import TwoPanelPage
 
 
 class HubView:
-    def __init__(self, sessions=(), theme=None, language="ko", language_packs=None) -> None:
+    def __init__(self, sessions=(), theme=None, language="ko", language_packs=None, *, output_factory=None) -> None:
         self.t = Language(language, language_packs, icons=lambda: self.icons)
         self.general = GeneralSettings()
         from ..config.profile import UserProfile
@@ -36,7 +35,7 @@ class HubView:
         self.style = self.theme.style()
         self.sessions = list(sessions) or [SessionView(self.t("welcome_title"))]
         self.on_open = self.on_submit = self.on_select = self.on_new = None
-        self.on_interrupt = self.on_steer = None
+        self.on_interrupt = None
         self.on_answer = self.on_review = None
         self.on_history = self.on_activity = None
         self.on_turns = None
@@ -54,12 +53,13 @@ class HubView:
         self.project_title = "Hub"
         self.model = ""
         self.notice = self.t("preview_notice")
-        self.activity = ""
         self._previous_focus = None
         self._input_timeouts = None
         self._drafts = {}
         self._positions = {}
         self.on_save_view = None
+        self.on_output_position_changed = None
+        self.animate_output = False
         from .dialogs import DialogController
         self.dialogs = DialogController(self)
         from .chat.session_actions import SessionActions
@@ -74,9 +74,7 @@ class HubView:
         self.profile_bar = ProfileBar(self)
         from .settings.screen import SettingsScreen
         self.settings = SettingsScreen(self)
-        from ..widget.transcript.search import SessionSearch
         from ..widget.feedback.notifications import SessionToasts
-        self.search = SessionSearch(self)
         self.toasts = SessionToasts(self)
         completer = HubCompleter(lambda: self.engines, lambda: self.file_root, self.t,
                                  components=lambda: self.component_commands)
@@ -101,19 +99,10 @@ class HubView:
         from .input.history import ComposerHistory
         self.input_history = ComposerHistory(self)
         self.followup.bind(self.composer.buffer)
-        self.transcript = ConversationView(self.sessions[0].messages, self.theme, language=self.t)
-        self.transcript.window.hub_click_focus = self._focus_composer
         from .output.worker import RenderWorker
         self.render_worker = RenderWorker()
-        self.transcript.control.render_worker = self.render_worker
-        self.output_renderers = self.transcript.control.renderers
-        self.output_renderers.on_close = self.render_worker.close
-        self.image_renderer = self.transcript.control.images
-        from ..widget.output.tag_bar import TagBar
-        self.tags = TagBar(self)
-        from ..widget.welcome import welcome_window
-        self.welcome = welcome_window(self)
-        self.transcript.window.height = Dimension(min=5, weight=1)
+        from ..widget.output.loop import LoopOutput
+        self.output: EngineOutput = (output_factory or LoopOutput)(self)
         self._session_control = SidebarList(
             lambda: [] if self.no_sessions else [SidebarItem(self._draft_key(i), session.title, session.status) for i, session in enumerate(self.sessions)],
             lambda: self._draft_key(self.selected), self._select_sidebar_session)
@@ -125,9 +114,9 @@ class HubView:
                     Window(self.projects.control, style="class:hub.sidebar")]),
             HSplit([SidebarHeading(lambda: self.t("sessions")),
                     Window(self._session_control, style="class:hub.sidebar")]),
-        ], self.profile_bar, width=self.sidebar_width, project_fraction=0.35),
+        ], self.profile_bar, width=self.sidebar_width, project_fraction=0.27,
+            controls=(self.projects.control, self._session_control)),
             Condition(lambda: self._columns() >= 88 or self._session_focus))
-        self._details = self.tags.container
         self._composer_frame = InputFrame(HSplit([
             self.question.container,
             self.composer,
@@ -136,16 +125,24 @@ class HubView:
                 " · " + self.t("followup_hint") if self.followup.get_suggestion(
                     self.composer.buffer, self.composer.buffer.document) else ""),
             style="class:hub.input-frame")
+        from ..widget.auxiliary import AuxiliaryBar
+        from ..widget.forms.file_attachment import attach_file
+        self.auxiliary = AuxiliaryBar([
+            ("history", lambda: self.on_history() if self.on_history else self._not_connected()),
+            ("tags", lambda: self.output.invoke("tags")), ("find", lambda: self.output.invoke("find")),
+            ("attach", lambda: attach_file(self)),
+            ("logs", lambda: self.on_activity() if self.on_activity else self._not_connected()),
+            ("settings", lambda: self.settings.open_engine("loop")),
+        ], lambda: self.icons, self._focus_composer)
         conversation = HSplit([
-            self._line(self._conversation_header, "hub.title"),
-            DynamicContainer(lambda: self.welcome if self.no_sessions else self.transcript),
-            self._composer_frame,
+            DynamicContainer(lambda: self.output),
+            self.auxiliary, self._composer_frame,
         ])
         self.header = HeaderBar(lambda: self.t("profile_home"), icons=lambda: self.icons)
         self.chat_page = TwoPanelPage(
             header=self.header, footer=self.shortcut_bar(),
             sidebar=self._sidebar, main=conversation, progress=self.progress, notice=lambda: self.notice,
-            sidebar_visible=self._sidebar.filter, extra=(self._details,),
+            sidebar_visible=self._sidebar.filter,
             sidebar_controls=lambda: (self._session_control, self.projects.control, *self.profile_bar.controls),
             categories=(self.projects.control, self._session_control),
             focus_sidebar=self._focus_sessions, focus_main=self._focus_composer,
@@ -156,16 +153,17 @@ class HubView:
         # Paint the Hub body at this container's own base, then draw its overlays.
         root = FloatContainer(DynamicContainer(lambda: self.settings.container if self.settings_open else panel),
                               style="class:hub", z_index=0, floats=[
-            Float(CompletionsMenu(max_height=8, extra_filter=Condition(
-                lambda: self._dialog is None and get_app().layout.current_control == self.composer.control)),
-                xcursor=True, ycursor=True, attach_to_window=self.composer.window, z_index=200),
             Float(ConditionalContainer(DynamicContainer(lambda: self._dialog or Window()),
-                                       Condition(lambda: self._dialog is not None and not self.search.active)), z_index=300),
-            Float(ConditionalContainer(DynamicContainer(lambda: self.search.dialog or Window()),
-                                       Condition(lambda: self.search.active)), bottom=1, right=1, z_index=300),
+                                       Condition(lambda: self._dialog is not None and self.output.floating_dialog is None)), z_index=300),
+            Float(ConditionalContainer(DynamicContainer(lambda: self.output.floating_dialog or Window()),
+                                       Condition(lambda: self.output.floating_dialog is not None)), bottom=1, right=1, z_index=300),
             Float(ConditionalContainer(self.toasts.container,
                     Condition(lambda: self.toasts.active() and self._dialog is None)),
                   bottom=1, right=1, width=self.toasts.width, height=self.toasts.height, z_index=250),
+            # Keep one cursor overlay after every dialog. Nested cursor floats
+            # can run before the dialog's Windows have published their position.
+            Float(CompletionsMenu(max_height=8, scroll_offset=1),
+                  xcursor=True, ycursor=True, z_index=500),
         ])
         # Register chat bindings at the application level too: PTK's cached
         # parent chain can still describe settings immediately after switching.
@@ -187,27 +185,12 @@ class HubView:
         minimum = self.profile_bar.minimum_width
         return max(minimum, min(self.theme.sidebar_width, max(minimum, self._columns() // 2)))
 
-    @staticmethod
-    def _line(text, style, height=1):
-        return Window(FormattedTextControl(text), height=height, style="class:" + style)
-
     @property
     def icons(self):
         return icon.for_style(self.theme.icon_style)
 
-    @property
-    def output_objects(self):
-        return tuple(self.transcript.control.objects)
-
     def shortcut_bar(self):
         return ShortcutBar(lambda: self.bindings.hints(), self._columns)
-
-    def _footer(self):
-        return " · ".join(key + " " + label for key, label in self.bindings.hints())
-
-    def _conversation_header(self):
-        session = self.sessions[self.selected]
-        return self._focus_heading(self.transcript.control, session.title + "  ·  " + session.status)
 
     def _focus_heading(self, control, text):
         focused = self.visible and get_app().layout.current_control == control
@@ -245,12 +228,40 @@ class HubView:
 
         get_app().invalidate()
 
+    def _not_connected(self):
+        self.notice = self.t("not_connected")
+
     def _select_sidebar_session(self, key):
         self._session_focus = True
         self.select(next(i for i in range(len(self.sessions)) if self._draft_key(i) == key))
 
     def toggle_details(self):
-        self.tags.close() if self.tags.visible else self.tags.open()
+        self.output.invoke("details")
+
+    def set_output(self, output: EngineOutput) -> None:
+        """Replace only the engine-owned output, retaining Home controls and drafts."""
+        if output is self.output:
+            return
+        app = get_app()
+        focus = app.layout.current_control
+        self.remember_position()
+        self.output.close()
+        self.output = output
+        output.set_theme(self.theme)
+        output.set_file_root(self.file_root)
+        output.set_messages(self.sessions[self.selected].messages, self._positions.get(self._draft_key(self.selected)))
+        app.layout.update_parents_relations()
+        if self.visible:
+            if focus in list(app.layout.find_all_controls()):
+                app.layout.focus(focus)
+            elif not self.settings_open:
+                self._focus_composer()
+        app.invalidate()
+
+    def close(self) -> None:
+        self.output.close()
+        self.render_worker.close()
+        self.progress.close()
 
     @property
     def _dialog(self):
@@ -264,9 +275,6 @@ class HubView:
 
     def session_dialog(self, *args, **kwargs):
         self.session_actions.create(*args, **kwargs)
-
-    def rename_dialog(self):
-        self.session_actions.rename()
 
     def help_dialog(self):
         self.dialogs.help()
@@ -284,11 +292,6 @@ class HubView:
     def execution_options_for(self, engine: str) -> dict:
         key = (getattr(self, "project_id", ""), self._draft_key(self.selected), engine)
         return dict(self._execution_options.get(key, {}))
-
-    @property
-    def execution_label(self) -> str:
-        workflow = self.engine_options.get("workflow")
-        return f"{self.engine} · {workflow}" if workflow else self.engine
 
     def set_execution(self, engine: str, options: dict) -> None:
         self.engine = engine
@@ -310,12 +313,16 @@ class HubView:
         self.settings_open = not self.settings_open
         if self.settings_open:
             self.remember_position()
+            self.output.deactivate()
             app.layout.focus(self.settings.left_control())
             self.settings.open()
         else:
             self.settings.finish_edit()
             self._session_focus = False
             app.layout.focus(self.composer)
+        # Global shortcuts follow the focused window's parent containers.
+        # Refresh them before the next key, even if rendering is throttled.
+        app.layout.update_parents_relations()
         app.invalidate()
 
     def minimize(self):
@@ -325,20 +332,18 @@ class HubView:
     def remember_position(self):
         if self.no_sessions:
             return
-        self._positions[self._draft_key(self.selected)] = self.transcript.control.reading_position()
+        self._positions[self._draft_key(self.selected)] = self.output.reading_position()
 
     def select(self, index):
         self.question.leave()
-        self.tags.visible = False
-        if self.search.active:
-            self.close_dialog()
+        self.output.deactivate()
         self.remember_position()
         self._drafts[self._draft_key(self.selected)] = self.composer.text
         self.selected = index
         self.composer.buffer.suggestion = None
         self.composer.text = self._drafts.get(self._draft_key(index), "")
         key = (getattr(self, "project_id", ""), self.sessions[index].id)
-        self.transcript.set_messages(self.preparing.project(key, self.sessions[index].messages),
+        self.output.set_messages(self.preparing.project(key, self.sessions[index].messages),
                                      self._positions.get(self._draft_key(index)))
         if self.on_save_view:
             self.on_save_view()
@@ -348,7 +353,7 @@ class HubView:
 
     def set_theme(self, theme):
         self.theme, self.style = theme, theme.style()
-        self.transcript.control.theme = theme
+        self.output.set_theme(theme)
         self.progress.close()
         get_app().invalidate()
 
@@ -374,13 +379,12 @@ class HubView:
         if not self.visible:
             return
         self.remember_position()
-        self.tags.visible = False
-        self.transcript.control.set_search("")
+        self.output.deactivate()
         if self.on_save_view:
             self.on_save_view()
         self.dialogs.current = None
         self.dialogs.previous_focus = None
-        self.transcript.control.restore_position(self._positions.get(self._draft_key(self.selected)))
+        self.output.restore_position(self._positions.get(self._draft_key(self.selected)))
         if self._previous_focus in list(app.layout.find_all_controls()):
             app.layout.focus(self._previous_focus)
         self.visible = False

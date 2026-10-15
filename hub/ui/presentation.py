@@ -12,7 +12,6 @@ class Presentation:
     sessions: tuple[SessionSummary, ...]
     messages: tuple[ChatMessage, ...]
     notice: str
-    activity: str
 
 
 def present_message(item: ChatMessage, t) -> ChatMessage:
@@ -31,6 +30,8 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
                 evidence.append(f"HTTP {diagnosis.http_status}")
             if diagnosis.exception_type:
                 evidence.append(diagnosis.exception_type)
+            if diagnosis.finish_reason:
+                evidence.append(f"finish_reason={diagnosis.finish_reason}")
             if evidence:
                 text += "\n\n" + t("failure_evidence", evidence=" · ".join(evidence))
             text += "\n" + t("failure_details")
@@ -71,34 +72,23 @@ def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
     sessions = tuple(replace(item, status=t("queued", status=t.status(item.status), count=item.queued_count)) for item in snapshot.sessions)
     messages = cache.messages(snapshot, t) if cache else tuple(present_message(item, t) for item in snapshot.messages)
     if not sessions:
-        return Presentation((), messages, t("session_required"), "")
+        return Presentation((), messages, t("session_required"))
     notice = t("queued", status=t.status(snapshot.status), count=snapshot.queued_count)
-    activity = ""
     run = snapshot.run
     if run:
-        if run.active:
-            activity = t("run_progress", status=t.status(run.status), engine=run.engine,
-                         seconds=int(run.elapsed_seconds or 0), count=snapshot.queued_count)
-            if not run.steps and any(m.phase == "resuming" for m in snapshot.messages):
-                activity = t.status("resuming")
-            if run.steps:
-                step = run.steps[-1]
-                activity = f"{t.status(step.status)} · {step.name}"
-                if step.kind == "llm" and step.status == "running":
-                    phase = next((m.phase for m in reversed(snapshot.messages)
-                                  if m.role == "assistant" and m.phase), "thinking")
-                    activity = f"{t.status(phase if phase != 'preparing' else 'thinking')} · {snapshot.model}"
         if run.error:
             notice = f"{t.status(run.status)}: {run.error}"
         elif run.status == "paused":
             notice = t("paused")
     if snapshot.status in ("waiting_input", "waiting_approval"):
-        activity = f"{t.status(snapshot.status)} · {snapshot.questions[0]['request']['title']}" if snapshot.questions else t.status(snapshot.status)
-        notice = t("queued", status=activity, count=snapshot.queued_count)
+        status = t.status(snapshot.status)
+        if snapshot.questions:
+            status += " · " + snapshot.questions[0]["request"]["title"]
+        notice = t("queued", status=status, count=snapshot.queued_count)
     if snapshot.storage == "memory":
         notice += " · " + t("memory")
     if snapshot.title_error:
         notice = t("title_failed", error=snapshot.title_error)
     if snapshot.model_required:
         notice = t("model_required")
-    return Presentation(sessions, messages, notice, activity)
+    return Presentation(sessions, messages, notice)

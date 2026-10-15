@@ -6,13 +6,14 @@ from ...ui.output.model import RenderContext
 
 
 class OutputViewport(TextViewport):
-    def __init__(self, item, view):
-        super().__init__(item.raw, tail=False, render_worker=view.render_worker)
-        self.item, self.view = item, view
+    def __init__(self, item, output):
+        super().__init__(item.raw, tail=False, render_worker=output.view.render_worker)
+        self.item, self.output = item, output
 
     def render_request(self, width):
-        transcript = self.view.transcript.control
-        context = RenderContext(max(1, width), self.view.theme, self.view.t,
+        transcript = self.output.transcript.control
+        view = self.output.view
+        context = RenderContext(max(1, width), view.theme, view.t,
                                 transcript.file_root, get_app().invalidate)
         key = (width, context.theme, context.language.code, context.root, transcript.renderers.version)
         return key, lambda: transcript.renderers.render(self.item.block, context)

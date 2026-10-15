@@ -127,7 +127,7 @@ class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: prompt.default_buffer.text == "unfinished shell command")
                 await paint()
                 self.assertFalse(output.mouse_enabled)
-                for key in ("\x11", "\x11\x13", "\x11"):
+                for key in ("\x11", "\x11\x10\r", "\x11"):
                     pipe.send_text(key)
                     await eventually(lambda: view.visible and output.in_alternate)
                     await paint()

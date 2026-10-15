@@ -43,8 +43,8 @@ Gemini의 공개 요약은 `includeThoughts` 요청이 필요하며, 반환된 �
 config.parameters.engines.loop.config.completion.reasoning_effort
 ```
 
-대화 입력창에서 Ctrl+S → Ctrl+F로 `reasoning_effort` 검색 → Enter로 값 편집 →
-`medium` 입력(따옴표 없음) → Enter → Ctrl+S로 저장합니다. 새 호출부터 적용됩니다.
+홈의 설정 보조 버튼 → 엔진 loop 항목 → 필터 보조 버튼으로 `reasoning_effort` 검색 → Enter로 값 편집 →
+`medium` 입력(따옴표 없음) → Enter → 하단 저장 버튼으로 저장합니다. 새 호출부터 적용됩니다.
 Graph의 Agent 설정이나 호스트 고정값을 사용하는 경우 그 호출의 설정을 확인해야 합니다.
 Hub는 기존 프로젝트의 추론 강도나 토큰 예산을 자동으로 변경하지 않습니다.
 

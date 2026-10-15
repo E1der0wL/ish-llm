@@ -1,7 +1,7 @@
 """Plain read-only text with scrolling independent of keyboard focus."""
 
 from prompt_toolkit.data_structures import Point
-from prompt_toolkit.layout import ScrollOffsets, UIContent, UIControl, Window
+from prompt_toolkit.layout import ScrollOffsets, UIContent, Window
 from prompt_toolkit.mouse_events import MouseEventType
 from prompt_toolkit.utils import get_cwidth
 from prompt_toolkit.application.current import get_app

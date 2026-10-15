@@ -34,10 +34,9 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await eventually(lambda: view.connected)
                 # The first visit loads the catalog/project; later visits reuse drafts.
-                for command, name in (("tool", "tools"), ("skill", "skills"), ("rag", "rag"),
-                                      ("workflow", "workflows"), ("agent", "agents"), ("tool", "tools")):
+                for name in ("tools", "skills", "mcp", "rag", "workflows", "agents", "tools"):
                     with self.subTest(component=name):
-                        view.composer.text = f"/{command} config"
+                        view.composer.text = f"/{name} config"
                         view.composer.buffer.cancel_completion()
                         pipe.send_text("\r")
                         await eventually(lambda: isinstance(view._dialog, ComponentManager) and not view._dialog.busy)
@@ -52,8 +51,8 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(screen.selected, page.section)
                         self.assertEqual(screen.navigation.left_key, page.section)
                         self.assertEqual(page.query, "config.parameters.components." + name)
-                        self.assertTrue(page.fields())
                         self.assertEqual(page.fields(), list(page.component_forms[name].fields.values()))
+                        self.assertTrue(page.fields())
                         self.assertIs(app.layout.current_control, page.fields()[0].input.control)
                         with set_app(app):
                             screen.filter("no-such-setting")
@@ -73,7 +72,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: view.connected)
-                view.composer.text = "/skill config"
+                view.composer.text = "/skills config"
                 view.composer.buffer.cancel_completion()
                 pipe.send_text("\r")
                 await eventually(lambda: isinstance(view._dialog, RecordManager) and not view._dialog.busy)
@@ -100,25 +99,26 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 await asyncio.to_thread(controller.close)
 
-    def test_aliases_require_registered_component_and_exclude_unmanaged_names(self):
-        self.assertNotIn("skill", component_commands(("tools",)))
-        self.assertNotIn("workflow", component_commands(("tools",)))
-        self.assertEqual(component_commands(("skills", "workflows"))["skill"], "skills")
-        self.assertEqual(component_commands(("skills", "skill"))["skill"], "skills")
+    def test_commands_require_registered_component_and_exclude_aliases(self):
+        self.assertEqual(component_commands(("tools",)), {"tools": "tools"})
+        self.assertEqual(component_commands(("skills", "workflows")), {"skills": "skills", "workflows": "workflows"})
+        self.assertEqual(component_commands(("skills", "skill")), {"skills": "skills"})
+        self.assertEqual(component_commands(("mcp",)), {"mcp": "mcp"})
 
-    async def test_skill_workflow_agent_import_edit_conflict_delete_and_reopen(self):
+    async def test_skill_workflow_agent_mcp_import_edit_conflict_delete_and_reopen(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "guide.md").write_text("# Coding guide\nRun relevant tests.", encoding="utf-8")
             (root / "flow.json").write_text(json.dumps(WORKFLOW), encoding="utf-8")
             (root / "reviewer.json").write_text(json.dumps({"purpose": "Review text", "engine": "loop"}), encoding="utf-8")
+            (root / "server.json").write_text(json.dumps({"transport": "stdio", "command": "not-executed-server"}), encoding="utf-8")
             config = HubConfig(root / "workspace", file_root=root, auto_title=False)
             runtime = HubRuntime(config)
             await runtime.start()
             project_id = runtime.project.id
             try:
                 for name, filename, identifier in (("skills", "guide.md", "guide"), ("workflows", "flow.json", "flow"),
-                                                   ("agents", "reviewer.json", "reviewer")):
+                                                   ("agents", "reviewer.json", "reviewer"), ("mcp", "server.json", "server")):
                     async def manage(action, value="", version=None):
                         return await runtime.manage_records(project_id, name, action, value, version)
                     entries = await manage("import", filename)
@@ -141,13 +141,14 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             runtime = HubRuntime(config)
             await runtime.start()
             try:
-                for name, identifier in (("skills", "guide"), ("workflows", "flow"), ("agents", "reviewer")):
+                for name, identifier in (("skills", "guide"), ("workflows", "flow"), ("agents", "reviewer"), ("mcp", "server")):
                     record = await runtime.manage_records(project_id, name, "read", identifier)
                     self.assertIn("Edited through manager", record["text"])
                     entries = await runtime.manage_records(project_id, name, "delete", identifier, record["version"])
                     self.assertNotIn(identifier, [item["name"] for item in entries])
                 self.assertTrue((root / "guide.md").exists())
                 self.assertTrue((root / "flow.json").exists())
+                self.assertTrue((root / "server.json").exists())
                 await runtime.project.components.aselect(["tools"])
                 with self.assertRaises(ValueError):
                     await runtime.manage_records(project_id, "skills", "list")
@@ -165,8 +166,8 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: view.connected)
-                for command, name in (("skill", "skills"), ("rag", "rag"), ("workflow", "workflows"), ("agent", "agents")):
-                    view.composer.text = f"/{command} config"
+                for name in ("skills", "rag", "workflows", "agents", "mcp"):
+                    view.composer.text = f"/{name} config"
                     view.composer.buffer.cancel_completion()
                     pipe.send_text("\r")
                     await eventually(lambda: isinstance(view._dialog, RecordManager) and not view._dialog.busy)

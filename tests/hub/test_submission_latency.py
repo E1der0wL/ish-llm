@@ -94,17 +94,17 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(calls[0][0], "submit_input")
                 # Consume immediately; durable history still waits for admission.
                 self.assertEqual(view.composer.text, "")
-                self.assertEqual([m.status for m in view.transcript.control.messages], ["preparing"])
+                self.assertEqual([m.status for m in view.output.transcript.control.messages], ["preparing"])
                 calls[0][2].set_result(SubmissionResult(message=message))
                 await asyncio.sleep(0)
                 self.assertEqual(view.composer.text, "")
-                self.assertEqual([m.id for m in view.transcript.control.messages], ["m", "preparing:s"])
+                self.assertEqual([m.id for m in view.output.transcript.control.messages], ["m", "preparing:s"])
                 view.apply_snapshot(base)  # A stale projection cannot erase the receipt.
-                self.assertEqual([m.id for m in view.transcript.control.messages], ["m", "preparing:s"])
+                self.assertEqual([m.id for m in view.output.transcript.control.messages], ["m", "preparing:s"])
                 committed = replace(message, status="committed")
                 view.apply_snapshot(replace(base, messages=(committed, ChatMessage("assistant", "reply", id="a"))))
-                self.assertEqual([m.id for m in view.transcript.control.messages], ["m", "a"])
-                self.assertEqual(view.transcript.control.messages[0].status, "committed")
+                self.assertEqual([m.id for m in view.output.transcript.control.messages], ["m", "a"])
+                self.assertEqual(view.output.transcript.control.messages[0].status, "committed")
                 self.assertFalse(view._submitted_messages)
                 self.assertFalse(view.preparing.visible())
 
@@ -133,7 +133,7 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 calls[-1][2].set_result(SubmissionResult(message=replace(message, text="third", id="m3")))
                 await asyncio.sleep(0)
                 self.assertEqual(view.composer.text, "other draft")
-                self.assertEqual(view.transcript.control.messages, ())
+                self.assertEqual(view.output.transcript.control.messages, ())
                 self.assertEqual(view._drafts["s"], "")
                 self.assertIn("m3", [m.id for m in view.sessions[0].messages])
 
@@ -149,9 +149,9 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(0)
                 self.assertEqual(view._drafts["s"], "")
                 self.assertEqual(view.composer.text, "project draft")
-                self.assertEqual(view.transcript.control.messages, ())
+                self.assertEqual(view.output.transcript.control.messages, ())
             finally:
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()
 
     async def test_failed_admission_keeps_draft_and_has_no_local_echo(self):
@@ -171,7 +171,7 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 future.set_exception(ValueError("admission rejected"))
                 await asyncio.sleep(0)
                 self.assertEqual(view.composer.text, "preserve me")
-                self.assertEqual(view.transcript.control.messages, ())
+                self.assertEqual(view.output.transcript.control.messages, ())
                 self.assertFalse(controller._submitting)
                 self.assertFalse(controller._choosing_submission)
                 self.assertIn("admission rejected", view.notice)
@@ -186,5 +186,5 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 view.input_history.move(-1)
                 self.assertEqual(view.composer.text, "failed with new draft")
             finally:
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()

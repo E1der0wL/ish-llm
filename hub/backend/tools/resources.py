@@ -28,7 +28,7 @@ def tool(name, description, properties, required, handler, *, write=False):
 
 def authoring_tools(data, component, *, discover=True, schema_extensions=None):
     """One schema/create contract shared by Skill, Workflow and Agent authoring."""
-    prefix = component_spec(component.name).singular
+    prefix = component_spec(component.name).tool_prefix
 
     async def schema(args):
         owner(data)

@@ -32,14 +32,14 @@ class EscapeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b")
                 await eventually(lambda: app.layout.current_control == view._session_control)
                 self.assertEqual(interrupts, [])
-                pipe.send_text("\x1b[C\x18")
+                pipe.send_text("\x1b[C\x17")
                 await eventually(lambda: len(interrupts) == 1)
                 self.assertIs(app.layout.current_control, view.composer.control)
                 pipe.send_text("\x1b\x1b[B")
-                await eventually(lambda: view.transcript.control.top_line == 1)
+                await eventually(lambda: view.output.transcript.control.top_line == 1)
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertEqual(len(interrupts), 1)
-                pipe.send_text("\x13\x1b[C")
+                pipe.send_text('\x10\r\x1b[C')
                 await eventually(lambda: view.settings_open and not view.settings.layout.sidebar_focused)
                 sequences = ("\x1b[A", "\x1b[B", "\x1b[C", "\x1b[D", "\x1b[5~", "\x1b[6~", "\x1b[H", "\x1b[F")
                 for editing in (False, True):
@@ -48,13 +48,13 @@ class EscapeNavigationTests(unittest.IsolatedAsyncioTestCase):
                         await eventually(lambda: view.settings.editing)
                     control = app.layout.current_control
                     selected = view.settings.selected
-                    top = view.transcript.control.top_line
+                    top = view.output.transcript.control.top_line
                     pipe.send_text("".join("\x1b" + sequence for sequence in sequences))
                     await asyncio.sleep(0.1)
                     self.assertTrue(view.settings_open)
                     self.assertIs(app.layout.current_control, control)
                     self.assertEqual(view.settings.selected, selected)
-                    self.assertEqual(view.transcript.control.top_line, top)
+                    self.assertEqual(view.output.transcript.control.top_line, top)
                 pipe.send_text("\x1b")
                 await eventually(lambda: view.settings.layout.sidebar_focused)
                 self.assertFalse(view.settings.editing)

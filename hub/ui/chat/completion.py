@@ -5,10 +5,8 @@ import re
 
 from prompt_toolkit.completion import Completer, Completion
 
-from ...backend.project.component_commands import ACTIONS, BUILTINS
-
-
-COMMANDS = BUILTINS
+from ...backend.project.component_commands import ACTIONS
+from ..input.commands import COMMANDS, find_command
 
 
 class HubCompleter(Completer):
@@ -20,9 +18,9 @@ class HubCompleter(Completer):
         before = document.text_before_cursor
         if before.startswith("/") and " " not in before and "\n" not in before:
             for command in COMMANDS:
-                value = "/" + command
+                value = "/" + command.name
                 if value.startswith(before):
-                    yield Completion(value, -len(before), display_meta=self.t("command_" + command))
+                    yield Completion(value, -len(before), display_meta=self.t(command.description_key))
             for command, name in self.components().items():
                 value = "/" + command
                 if value.startswith(before):
@@ -34,8 +32,8 @@ class HubCompleter(Completer):
                 if action.startswith(prefix):
                     yield Completion(action, -len(prefix), display_meta=self.t("component_action_" + action))
             return
-        if before.startswith("/engine ") and "\n" not in before:
-            prefix = before[len("/engine "):]
+        spec = find_command(command[1:]) if command.startswith("/") else None
+        if separator and spec is not None and spec.arguments == "engines" and "\n" not in before:
             for name in self.engines():
                 if name.startswith(prefix):
                     yield Completion(name, -len(prefix), display_meta=self.t("engine"))

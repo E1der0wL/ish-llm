@@ -79,9 +79,9 @@ class SettingField:
                      lambda e: self.finish() if self.editing else self.begin(), when=editable)
         registry.add(["d"], "d", "clear", lambda e: setattr(self.input, "text", ""),
                      when=lambda: editable() and not self.editing)
-        registry.add(["c-space"], "Ctrl+Space", "newline", lambda e: self.input.buffer.insert_text("\n"),
+        registry.add(["c-space"], "Ctrl+Space", "newline", lambda e: self.input.insert_text("\n"),
                      when=lambda: editable() and self.editing)
-        registry.add([("escape", "enter")], "Alt+Enter", "newline", lambda e: self.input.buffer.insert_text("\n"),
+        registry.add([("escape", "enter")], "Alt+Enter", "newline", lambda e: self.input.insert_text("\n"),
                      when=lambda: editable() and self.editing)
         self.input.control.key_bindings = registry.bindings
         self.input.control.hub_shortcuts = registry

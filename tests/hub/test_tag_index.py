@@ -15,7 +15,7 @@ from hub.config.theme import HubTheme
 from hub.model import ChatMessage
 from hub.ui.output.labels import ellipsize
 from hub.widget.transcript.conversation import ConversationControl
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import auxiliary, SizedOutput, eventually
 
 
 class TagLabelTests(unittest.TestCase):
@@ -56,23 +56,24 @@ class TagRequestTests(unittest.IsolatedAsyncioTestCase):
                         ChatMessage("assistant", "```py\nprint('first')\n```\n\n" + "response\n\n" * 40, id="a1"),
                         ChatMessage("user", "두 번째 요청", id="u2"),
                         ChatMessage("assistant", '<hub-code title="긴 코드 제목입니다 ' + "가" * 60 + '">print(2)</hub-code>', id="a2"))
-            view.transcript.set_messages(messages)
+            view.output.transcript.set_messages(messages)
             task = asyncio.create_task(app.run_async())
             try:
                 pipe.send_text("\x11")
-                await eventually(lambda: view.visible and len(view.transcript.control.objects) == 2)
-                pipe.send_text("\x14")
-                await eventually(lambda: app.layout.current_control is view.tags.control)
+                await eventually(lambda: view.visible and len(view.output.transcript.control.objects) == 2)
+                await auxiliary(app, pipe, view, 'tags')
+                await eventually(lambda: app.layout.current_control is view.output.tags.control)
                 with set_app(app):
-                    items = view.tags.items()
+                    items = view.output.tags.items()
                     self.assertEqual([item.key for item in items], ["u1", "a1:block:0", "u2", "a2:block:0"])
                     self.assertTrue(items[0].title.startswith("사용자 요청"))
                     self.assertTrue(items[0].title.endswith("…"))
-                    self.assertTrue(items[-1].title.startswith("  긴 코드 제목"))
+                    self.assertTrue(items[-1].title.startswith("    긴 코드 제목"))
                     self.assertTrue(items[-1].title.endswith("…"))
                     self.assertEqual([item.margin_top for item in items], [1, 0, 1, 0])
-                    self.assertEqual(view.tags.control.cursor_position().y, 1)
-                    content = view.tags.control.create_content(view.tags.width() - 1, 20)
+                    view.output.tags.select("u1")
+                    self.assertEqual(view.output.tags.control.cursor_position().y, 1)
+                    content = view.output.tags.control.create_content(view.output.tags.width() - 1, 20)
                     rows = ["".join(fragment[1] for fragment in content.get_line(row))
                             for row in range(content.line_count)]
                     self.assertEqual(rows[0].strip(), "")
@@ -80,27 +81,27 @@ class TagRequestTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn(items[1].title, rows[2])
                     for row, selected in ((0, "u1"), (2, "a1:block:0"), (3, "a1:block:0"),
                                           (4, "u2"), (1, "u1")):
-                        view.tags.control.mouse_handler(MouseEvent(Point(4, row),
+                        view.output.tags.control.mouse_handler(MouseEvent(Point(4, row),
                             MouseEventType.MOUSE_UP, MouseButton.LEFT, frozenset()))
-                        self.assertEqual(view.tags.selected, selected)
+                        self.assertEqual(view.output.tags.selected, selected)
                         if view._dialog is not None:
                             view.close_dialog()
                     for item in items:
-                        self.assertLessEqual(get_cwidth(item.title), view.tags.width() - 4)
+                        self.assertLessEqual(get_cwidth(item.title), view.output.tags.width() - 4)
                 for key in ("\r", "\t", " "):
                     pipe.send_text(key)
                     await asyncio.sleep(.04)
                     self.assertIsNone(view._dialog)
-                    self.assertIs(app.layout.current_control, view.tags.control)
+                    self.assertIs(app.layout.current_control, view.output.tags.control)
                 pipe.send_text("\x1b[B\x1b[B")
-                await eventually(lambda: view.tags.selected == "u2" and view.transcript.control.top_line > 0)
-                self.assertEqual(view.tags.control.cursor_position().y, 4)
-                position = dict(view.transcript.control._anchors)["u2"]
-                self.assertEqual(view.transcript.control.top_line,
-                                 min(position, len(view.transcript.control._lines) - view.transcript.control._height))
+                await eventually(lambda: view.output.tags.selected == "u2" and view.output.transcript.control.top_line > 0)
+                self.assertEqual(view.output.tags.control.cursor_position().y, 4)
+                position = dict(view.output.transcript.control._anchors)["u2"]
+                self.assertEqual(view.output.transcript.control.top_line,
+                                 min(position, len(view.output.transcript.control._lines) - view.output.transcript.control._height))
                 pipe.send_text("\x1b[B\r")
                 await eventually(lambda: view._dialog is not None)
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()

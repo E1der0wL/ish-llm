@@ -29,7 +29,7 @@ class PreparingResponse:
         self.view.composer.buffer.suggestion = None
         self.paint()
         if key == (getattr(self.view, "project_id", ""), self.view.sessions[self.view.selected].id) and self.view.general.auto_scroll:
-            self.view.transcript.control.follow_tail = True
+            self.view.output.set_follow_tail(True)
 
     async def _tick(self):
         while self.pending or self.clocks:
@@ -59,11 +59,8 @@ class PreparingResponse:
         view = self.view
         session = view.sessions[view.selected]
         key = (getattr(view, "project_id", ""), session.id)
-        control = view.transcript.control
-        at_tail = not control.restoring and control.top_line + control._height >= len(control._lines) - 1
-        control.messages = self.project(key, session.messages)
-        if key in self.pending and view.general.auto_scroll and at_tail:
-            control.follow_tail = True
+        view.output.update_messages(self.project(key, session.messages),
+                                    auto_scroll=True if key in self.pending and view.general.auto_scroll else None)
         app = get_app()
         if (self.pending or self.clocks) and app.is_running and (self._ticker is None or self._ticker.done()):
             self._ticker = app.create_background_task(self._tick())

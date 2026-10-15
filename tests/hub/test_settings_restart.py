@@ -58,13 +58,13 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
-                pipe.send_bytes(b'\x13')
+                await until(lambda: view.connected and not view.projects.busy)
+                pipe.send_text('\x10\r')
                 await until(lambda: screen.page is not None and not screen.busy)
                 with set_app(app):
                     screen.choose("general")
                     screen.page.form.fields[("language",)].input.text = "en"
-                    screen.page.submit()
+                    screen.page.save.handler()
                 await until(lambda: view._dialog is not None and not screen.busy)
                 self.assertEqual(PreferencesStore(root).load()["general"]["language"], "en")
                 pipe.send_bytes(b'\x1b')
@@ -90,20 +90,20 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
-                pipe.send_bytes(b'\x13')
+                await until(lambda: view.connected and not view.projects.busy)
+                pipe.send_text('\x10\r')
                 await until(lambda: screen.page is not None and not screen.busy)
                 with set_app(app):
                     screen.choose("general")
                     screen.page.form.fields[("editor",)].input.text = "nano"
-                    screen.page.submit()
+                    screen.page.save.handler()
                 await until(lambda: not screen.busy)
                 self.assertIsNone(view._dialog)
                 invalid = Path(root) / "file"
                 invalid.write_text("keep")
                 with set_app(app):
                     screen.page.form.fields[("workspace_root",)].input.text = str(invalid)
-                    screen.page.submit()
+                    screen.page.save.handler()
                 await until(lambda: not screen.busy)
                 self.assertIsNone(view._dialog)
                 self.assertTrue(screen.page.dirty)
@@ -163,9 +163,9 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                 app = prompt.app
                 task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: old.view.show(app)))
                 try:
-                    await until(lambda: old.view.connected)
+                    await until(lambda: old.view.connected and not old.view.projects.busy)
                     prompt.default_buffer.text = "keep shell draft"
-                    pipe.send_bytes(b'\x13')
+                    pipe.send_text('\x10\r')
                     screen = old.view.settings
                     await until(lambda: screen.page is not None and not screen.busy)
                     with set_app(app):

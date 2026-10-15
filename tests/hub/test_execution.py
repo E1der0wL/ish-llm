@@ -81,7 +81,9 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x05")
                 await asyncio.sleep(.05)
                 self.assertIsNone(view._dialog)
-                self.assertFalse(view.navigation_keys.get_bindings_for_keys(("c-e",)))
+                # Selection replacement uses Keys.Any, not a restored engine shortcut.
+                self.assertFalse(any(binding.keys == ("c-e",) for binding in
+                    view.navigation_keys.get_bindings_for_keys(("c-e",))))
                 with set_app(app):
                     view.set_execution("graph", {"workflow": "alpha"})
                     view.selected = 1
@@ -100,4 +102,4 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()

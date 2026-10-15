@@ -19,7 +19,7 @@ def populate_preview(view):
     view.sessions = list(SAMPLES)
     view.project_title = "demo-project"
     view.model = "sample/model"
-    view.transcript.set_messages(view.sessions[0].messages)
+    view.output.set_messages(view.sessions[0].messages)
     return view
 
 
@@ -72,7 +72,7 @@ def main() -> None:
     try:
         app.run(pre_run=lambda: view.show(app))
     finally:
-        view.output_renderers.close()
+        view.close()
         view.progress.close()
 
 

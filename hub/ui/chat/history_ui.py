@@ -194,7 +194,6 @@ class HistoryUI:
 
         popup = RequestHistoryDialog(view, rows, delete=delete, edit=lambda: execute("edit_turn"),
                                      retry=lambda: execute("retry_turn"), close=view.close_dialog)
-        self.popup = popup
         view.dialogs.show(popup, popup.choices)
 
     def activity(self):
@@ -215,5 +214,4 @@ class HistoryUI:
         view = self.view
         popup = ReadOnlyDialog(view.t("project_activity"), text, view._rows, view._columns,
                                view.close_dialog, view.t, render_worker=view.render_worker)
-        self.activity_output = popup.output
         view.dialogs.show(popup, popup.receiver)

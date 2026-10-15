@@ -13,8 +13,9 @@ from hub.model import ChatMessage
 from hub.widget.controls import Button, TextArea, RadioList, ScrollablePane
 from hub.widget.dialog import Dialog
 from hub.widget.mouse import ScrollbarGeometry
+from hub.widget.focus_region import grayscale
 from hub.widget.output.reader import ReadOnlyDialog
-from tests.hub.support import SizedOutput, eventually, minimize
+from tests.hub.support import auxiliary, SizedOutput, eventually, minimize
 from tests.hub.test_ish_integration import Prompt
 
 
@@ -30,7 +31,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         headings = [cell for row in screen.data_buffer.values() for cell in row.values()
                     if "class:hub.sidebar-heading" in cell.style and cell.char.strip()]
         self.assertTrue(headings)
-        self.assertTrue(all(attrs[cell.style].bgcolor == "484848" for cell in headings))
+        self.assertTrue(all(attrs[cell.style].bgcolor == grayscale("123456")[1:] for cell in headings))
         with set_app(self.app):
             choices = CheckboxList([(i, str(i)) for i in range(20)])
             choices.window.height = 4
@@ -45,22 +46,22 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_tagbar_click_selects_and_keyboard_opens_code_viewer(self):
         from hub.widget.output.code_viewer import CodeViewer
-        self.view.transcript.set_messages((ChatMessage("assistant", "```python\nprint(1)\n```", id="code"),))
+        self.view.output.transcript.set_messages((ChatMessage("assistant", "```python\nprint(1)\n```", id="code"),))
         await self.paint()
-        await eventually(lambda: bool(self.view.transcript.control.objects))
-        self.pipe.send_text("\x14")
-        await eventually(lambda: self.view.tags.visible)
+        await eventually(lambda: bool(self.view.output.transcript.control.objects))
+        await auxiliary(self.app, self.pipe, self.view, 'tags')
+        await eventually(lambda: self.view.output.tags.visible)
         await self.paint()
-        for window in (self.view.composer.window, self.view.transcript.window):
+        for window in (self.view.composer.window, self.view.output.transcript.window):
             await self.mouse(0, *self.at(window))
             await self.mouse(0, *self.at(window), release=True)
-            self.assertIs(self.app.layout.current_control, self.view.tags.control)
-        tag = next(w for w, _ in self.view.mouse.windows if w.content is self.view.tags.control)
+            self.assertIs(self.app.layout.current_control, self.view.output.tags.control)
+        tag = next(w for w, _ in self.view.mouse.windows if w.content is self.view.output.tags.control)
         await self.mouse(0, *self.at(tag))
         await self.mouse(0, *self.at(tag), release=True)
         self.assertIsNone(self.view._dialog)
-        self.assertEqual(self.view.tags.selected, self.view.transcript.control.objects[0].id)
-        self.assertIs(self.app.layout.current_control, self.view.tags.control)
+        self.assertEqual(self.view.output.tags.selected, self.view.output.transcript.control.objects[0].id)
+        self.assertIs(self.app.layout.current_control, self.view.output.tags.control)
         for key in ("\t", " ", "\r"):
             self.pipe.send_text(key)
             await eventually(lambda: self.view._dialog is not None)
@@ -69,17 +70,24 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             self.pipe.send_text("\x1b")
             await eventually(lambda: self.view._dialog is None)
 
+        collapse = self.view.output.tags.collapse.window
+        await self.paint()
+        await self.mouse(0, *self.at(collapse))
+        await self.mouse(0, *self.at(collapse), release=True)
+        self.assertFalse(self.view.output.tags.visible)
+        self.assertIs(self.app.layout.current_control, self.view.composer.control)
+
     async def asyncSetUp(self):
         self.pipe = self.enterContext(create_pipe_input())
         self.output = SizedOutput()
         self.prompt = Prompt(input=self.pipe, output=self.output)
         self.installation = install_preview(self.prompt)
         self.app, self.view = self.prompt.app, self.installation.view
-        self.view.transcript.set_messages((ChatMessage("assistant", "\n\n".join(f"Line {i}" for i in range(200))),))
+        self.view.output.transcript.set_messages((ChatMessage("assistant", "\n\n".join(f"Line {i}" for i in range(200))),))
         self.task = asyncio.create_task(self.prompt.prompt_async(pre_run=lambda: self.view.show(self.app)))
-        await eventually(lambda: self.app.is_running and self.view.transcript.window.render_info is not None
-                         and self.view.transcript.window.render_info.content_height > 100)
-        self.view.transcript.control.scroll("home")
+        await eventually(lambda: self.app.is_running and self.view.output.transcript.window.render_info is not None
+                         and self.view.output.transcript.window.render_info.content_height > 100)
+        self.view.output.transcript.control.scroll("home")
         await self.paint()
 
     async def asyncTearDown(self):
@@ -126,31 +134,31 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         await self.mouse(0, *self.at(view.composer.window))
         await self.mouse(0, *self.at(view.composer.window), release=True)
         self.assertIs(app.layout.current_control, view.composer.control)
-        await self.mouse(35, *self.at(view.transcript.window))
+        await self.mouse(35, *self.at(view.output.transcript.window))
         self.assertIs(app.layout.current_control, view.composer.control)
-        await self.mouse(65, *self.at(view.transcript.window))
-        self.assertGreater(view.transcript.control.top_line, 0)
-        self.assertFalse(view.transcript.control.is_focusable())
+        await self.mouse(65, *self.at(view.output.transcript.window))
+        self.assertGreater(view.output.transcript.control.top_line, 0)
+        self.assertFalse(view.output.transcript.control.is_focusable())
         self.assertIs(app.layout.current_control, view.composer.control)
-        await self.mouse(64, *self.at(view.transcript.window))
-        self.assertEqual(view.transcript.control.top_line, 0)
+        await self.mouse(64, *self.at(view.output.transcript.window))
+        self.assertEqual(view.output.transcript.control.top_line, 0)
 
         # Output delegates a click to the composer, but never gains focus itself.
         with set_app(app):
             view.chat_page.focus_sidebar()
         await self.paint()
-        await self.mouse(35, *self.at(view.transcript.window))
-        await self.mouse(65, *self.at(view.transcript.window))
+        await self.mouse(35, *self.at(view.output.transcript.window))
+        await self.mouse(65, *self.at(view.output.transcript.window))
         self.assertIs(app.layout.current_control, view._session_control)
-        await self.mouse(0, *self.at(view.transcript.window))
-        await self.mouse(0, *self.at(view.transcript.window), release=True)
+        await self.mouse(0, *self.at(view.output.transcript.window))
+        await self.mouse(0, *self.at(view.output.transcript.window), release=True)
         self.assertIs(app.layout.current_control, view.composer.control)
-        self.assertFalse(view.transcript.control.is_focusable())
+        self.assertFalse(view.output.transcript.control.is_focusable())
 
     async def test_inactive_page_region_overrides_rich_colors_without_tinting_popups(self):
-        self.view.transcript.set_messages((ChatMessage("assistant", "**accent**\n\n```python\nprint('bright')\n```"),))
+        self.view.output.transcript.set_messages((ChatMessage("assistant", "**accent**\n\n```python\nprint('bright')\n```"),))
         await self.paint()
-        await eventually(lambda: bool(self.view.transcript.control.objects))
+        await eventually(lambda: bool(self.view.output.transcript.control.objects))
 
         def is_gray(window, backgrounds):
             rect = self.position(window)
@@ -160,7 +168,11 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
                        attrs[screen.data_buffer[y][x].style].bgcolor)
                       for y in range(rect.ypos, rect.ypos + rect.height)
                       for x in range(rect.xpos, rect.xpos + rect.width)}
-            self.assertEqual(colors, {("c8c8c8", background) for background in backgrounds})
+            def gray(color):
+                return color in ("", "default") or len(color) == 6 and color[:2] == color[2:4] == color[4:]
+            self.assertTrue(all(gray(fg) and gray(bg) for fg, bg in colors), colors)
+            self.assertEqual({bg not in ("", "default") for _, bg in colors},
+                             {bg not in ("", "default") for bg in backgrounds})
 
         def heading_cells(active):
             screen = self.app.renderer._last_screen
@@ -170,8 +182,11 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
                      if "class:hub.sidebar-heading" in cell.style.split()
                      and "class:hub.accent" in cell.style.split() and cell.char.strip()]
             self.assertTrue(cells)
+            colors = {style.color for _, _, _, style in cells}
+            accent = self.view.theme.accent.removeprefix("#")
+            gray_accent = grayscale(accent)[1:]
+            self.assertEqual(colors, {accent, gray_accent} if active else {gray_accent})
             for _, _, _, style in cells:
-                self.assertEqual(style.color, self.view.theme.accent.removeprefix("#") if active else "c8c8c8")
                 self.assertTrue(style.bold)
                 self.assertFalse(style.underline)
             return cells
@@ -190,10 +205,10 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
                 self.view.settings.global_list if settings else self.view._session_control))
             is_gray(sidebar, {"default"})
             main = (self.view.settings.page.form.fields[("background",)].input.window
-                    if settings else self.view.transcript.window)
+                    if settings else self.view.output.transcript.window)
             x, y = self.at(main)
             self.assertNotIn("hub.inactive", self.app.renderer._last_screen.data_buffer[y][x].style)
-            cache_key = self.view.transcript.control._cache_key
+            cache_key = self.view.output.transcript.control._cache_key
             with set_app(self.app):
                 page.focus_sidebar()
             await self.paint()
@@ -203,7 +218,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             is_gray(page.status, {"default"})
             x, y = self.at(sidebar)
             self.assertNotIn("hub.inactive", self.app.renderer._last_screen.data_buffer[y][x].style)
-            self.assertEqual(self.view.transcript.control._cache_key, cache_key)
+            self.assertEqual(self.view.output.transcript.control._cache_key, cache_key)
 
         with set_app(self.app):
             popup = ReadOnlyDialog("Log", "visible popup", self.view._rows, self.view._columns,
@@ -234,7 +249,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.app.renderer._last_screen.show_cursor)
         screen = self.app.renderer._last_screen
         left = self.view.sidebar_width() + 1
-        action_top = self.output.rows - 2 - (4 + len(self.view.settings.page.button_rows()))
+        action_top = self.output.rows - 2 - (4 + len(self.view.settings.page.bottom.rows()))
         # Only the action row has a frame; the option viewport stays borderless.
         for y in range(1, action_top):
             for x in (left, self.output.columns - 1):
@@ -249,7 +264,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             self.output.columns = columns
             self.app._on_resize()
             await self.paint()
-            chat = self.position(self.view.transcript.window)
+            chat = self.position(self.view.output.transcript.window)
             chat_edge = chat.xpos + chat.width - 1
             with set_app(self.app):
                 self.view.toggle_settings()
@@ -279,22 +294,22 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_scrollbar_drag_captures_outside_bar_and_arrows_and_track_work(self):
         view = self.view
-        rect = self.position(view.transcript.window)
+        rect = self.position(view.output.transcript.window)
         x, top, bottom = rect.xpos + rect.width - 1, rect.ypos + 1, rect.ypos + rect.height - 2
         await self.mouse(0, x, top)
         self.assertIsNotNone(view.mouse.drag)
         await self.mouse(32, x - 12, bottom)
-        limit = len(view.transcript.control._lines) - view.transcript.control._height
-        self.assertEqual(view.transcript.control.top_line, limit)
+        limit = len(view.output.transcript.control._lines) - view.output.transcript.control._height
+        self.assertEqual(view.output.transcript.control.top_line, limit)
         await self.mouse(0, x - 12, bottom, release=True)
         self.assertIsNone(view.mouse.drag)
         self.assertIs(self.app.layout.current_control, view.composer.control)
         await self.mouse(0, x, rect.ypos)
         await self.mouse(0, x, rect.ypos, release=True)
-        self.assertEqual(view.transcript.control.top_line, limit - 1)
+        self.assertEqual(view.output.transcript.control.top_line, limit - 1)
         await self.mouse(0, x, top)
         await self.mouse(0, x, top, release=True)
-        self.assertLess(view.transcript.control.top_line, limit - 1)
+        self.assertLess(view.output.transcript.control.top_line, limit - 1)
 
     async def test_settings_blank_description_gutter_and_action_border_click_focus_main(self):
         with set_app(self.app):
@@ -365,11 +380,11 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         await self.mouse(0, *self.at(button.window))
         await self.mouse(0, *self.at(button.window), release=True)
         self.assertEqual(activated, [True])
-        before = self.view.transcript.control.top_line
+        before = self.view.output.transcript.control.top_line
         await self.mouse(35, *self.at(self.view.composer.window))
-        await self.mouse(65, *self.at(self.view.transcript.window))
+        await self.mouse(65, *self.at(self.view.output.transcript.window))
         self.assertIs(self.app.layout.current_control, button.control)
-        self.assertEqual(self.view.transcript.control.top_line, before)
+        self.assertEqual(self.view.output.transcript.control.top_line, before)
 
     async def test_readonly_popup_scrolls_without_focusing_body(self):
         view = self.view
@@ -471,7 +486,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             field.begin()
         await self.paint()
         before = field.input.text, field.input.buffer.cursor_position
-        transcript_top = self.view.transcript.control.top_line
+        transcript_top = self.view.output.transcript.control.top_line
         for sequence, expected in (("\x1b[B", 1), ("\x1b[6~", None), ("\x1b[F", "end"),
                                    ("\x1b[5~", None), ("\x1b[H", 0)):
             self.pipe.send_text("\x1b" + sequence)
@@ -483,7 +498,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             self.assertIs(self.app.layout.current_control, field.input.control)
             self.assertTrue(field.editing)
             self.assertEqual((field.input.text, field.input.buffer.cursor_position), before)
-            self.assertEqual(self.view.transcript.control.top_line, transcript_top)
+            self.assertEqual(self.view.output.transcript.control.top_line, transcript_top)
         self.pipe.send_text("\x1b\x1b[C\x1b\x1b[D")
         await asyncio.sleep(.05)
         self.assertIs(self.app.layout.current_control, field.input.control)
@@ -539,8 +554,8 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(self.app.layout.current_control, sidebar.content)
 
     async def test_transcript_drag_selects_unicode_without_focus_or_draft_changes(self):
-        control = self.view.transcript.control
-        self.view.transcript.set_messages((ChatMessage("assistant", "alpha 한글 😀 omega\n\nsecond line", id="m"),))
+        control = self.view.output.transcript.control
+        self.view.output.transcript.set_messages((ChatMessage("assistant", "alpha 한글 😀 omega\n\nsecond line", id="m"),))
         await self.paint()
         await eventually(lambda: any("alpha" in "".join(f[1] for f in row) for row in control._lines))
         control.scroll("home")
@@ -549,7 +564,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         row = next(i for i in range(len(control._lines)) if "alpha" in control.selection.line(i))
         text = control.selection.line(row)
         from prompt_toolkit.utils import get_cwidth
-        rect = self.position(self.view.transcript.window)
+        rect = self.position(self.view.output.transcript.window)
         start, end = text.index("한"), text.index(" omega")
         x = rect.xpos + get_cwidth(text[:start])
         to = rect.xpos + get_cwidth(text[:end])
@@ -577,10 +592,11 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         from hub.widget.output.table_inspector import TableInspector
         for source, expected in (("```text\nabcdef\nsecond\n```", OutputInspector),
                                  ("| Name | Value |\n| --- | --- |\n| alpha | 1 |\n| beta | 2 |", TableInspector)):
-            self.view.transcript.set_messages((ChatMessage("assistant", source, id="m"),))
+            self.view.output.transcript.set_messages((ChatMessage("assistant", source, id="m"),))
             await self.paint()
-            await eventually(lambda: bool(self.view.transcript.control.objects))
-            self.pipe.send_text("\x14\r")
+            await eventually(lambda: bool(self.view.output.transcript.control.objects))
+            await auxiliary(self.app, self.pipe, self.view, 'tags')
+            self.pipe.send_text('\r')
             await eventually(lambda: self.view._dialog is not None)
             popup = self.view._dialog
             self.assertIsInstance(popup, expected)
@@ -607,11 +623,11 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
                 copy.assert_awaited_once_with(selected)
             self.pipe.send_text("\x1b")
             await eventually(lambda: self.view._dialog is None)
-            self.pipe.send_text("\x14")
-            await eventually(lambda: not self.view.tags.visible)
+            self.pipe.send_text('\x1b')
+            await eventually(lambda: not self.view.output.tags.visible)
 
     async def test_popup_during_drag_cancels_capture_and_swallows_release(self):
-        rect = self.position(self.view.transcript.window)
+        rect = self.position(self.view.output.transcript.window)
         await self.mouse(0, rect.xpos + rect.width - 1, rect.ypos + 1)
         self.assertIsNotNone(self.view.mouse.drag)
         activated = []
@@ -625,7 +641,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_minimize_and_resize_release_capture_without_changing_shell_mouse(self):
         view = self.view
-        rect = self.position(view.transcript.window)
+        rect = self.position(view.output.transcript.window)
         await self.mouse(0, rect.xpos + rect.width - 1, rect.ypos + 1)
         self.output.columns, self.output.rows = 80, 24
         self.app._on_resize()

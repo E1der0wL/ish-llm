@@ -6,26 +6,32 @@ from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 from ..dialog import Dialog
 from ..controls import Button, TextArea
+from ...ui.input.registry import ShortcutRegistry
 
 
 class SessionSearch:
-    def __init__(self, view):
-        self.view = view
+    def __init__(self, view, transcript):
+        self.view, self.transcript = view, transcript
         self.dialog = None
         self.input = None
+        self.shortcuts = ShortcutRegistry()
+        self.shortcuts.add(["enter"], "Enter", "next_match", lambda e: self.move(),
+            when=lambda: view.visible and self.active and get_app().layout.current_control is self.input.control)
+        self.shortcuts.add([("escape", "p")], "Alt+P", "previous_match", lambda e: self.move(-1),
+            when=lambda: view.visible and self.active)
 
     @property
     def active(self):
         return self.dialog is not None and self.view._dialog is self.dialog
 
     def count(self):
-        control = self.view.transcript.control
+        control = self.transcript.control
         if not control.search_query:
             return self.view.t("search_hint")
         return self.view.t("search_count", index=max(0, control.search_index + 1), count=len(control.search_hits))
 
     def move(self, direction=1):
-        self.view.transcript.control.move_search(direction)
+        self.transcript.control.move_search(direction)
         get_app().invalidate()
 
     def open(self):
@@ -34,9 +40,9 @@ class SessionSearch:
             app.layout.focus(self.input)
             return
         view.composer.buffer.cancel_completion()
-        self.input = TextArea(text=view.transcript.control.search_query, multiline=False, height=1)
+        self.input = TextArea(text=self.transcript.control.search_query, multiline=False, height=1)
         def changed(_):
-            view.transcript.control.set_search(self.input.text)
+            self.transcript.control.set_search(self.input.text)
             app.invalidate()
         self.input.buffer.on_text_changed += changed
         def next_match(_):
@@ -49,5 +55,6 @@ class SessionSearch:
                      Button(view.t("search_next"), handler=self.move),
                      Button(view.t("search_close"), handler=view.close_dialog)],
             width=Dimension(preferred=58, max=70), with_background=False, modal=False)
+        self.dialog.dispose = lambda: self.transcript.control.set_search("")
         view.dialogs.show(self.dialog, self.input)
         app.invalidate()

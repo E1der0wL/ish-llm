@@ -32,8 +32,8 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
-                pipe.send_text('\x13')
+                await until(lambda: view.connected and not view.projects.busy)
+                pipe.send_text('\x10\r')
                 await until(lambda: screen.page is not None and not screen.busy)
                 with set_app(app):
                     screen.choose('profile')
@@ -98,8 +98,8 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
-                pipe.send_text('\x13')
+                await until(lambda: view.connected and not view.projects.busy)
+                pipe.send_text('\x10\r')
                 await until(lambda: screen.page is not None and not screen.busy)
                 with set_app(app):
                     screen.choose('appearance')

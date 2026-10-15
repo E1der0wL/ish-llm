@@ -20,26 +20,6 @@ from ...widget.controls import Button, TextArea
 class Page:
     query = ""
 
-    def submit(self, *, on_saved=None):
-        if self.screen.busy:
-            return
-        self.screen.finish_edit()
-        try:
-            operation, args = self.save_request()
-        except (ValueError, TypeError) as error:
-            self.screen.error(error)
-            return
-        def saved(result):
-            if result is not None:
-                self.accept_saved(result)
-                if on_saved:
-                    on_saved()
-                self.after_submit()
-        self.screen.call(operation, *args, completed=saved)
-
-    def after_submit(self):
-        """Optional post-save action; validation and dispatch stay shared."""
-
     def filter(self, query):
         if not hasattr(self, "_unfiltered"):
             self._unfiltered = self.container
@@ -59,9 +39,6 @@ class Page:
         for field in self.all_fields():
             field.enabled = lambda: not self.screen.busy
             field.on_edit = self.screen.edit_field
-
-    def button_rows(self):
-        return self.bottom.rows()
 
     def all_fields(self):
         return [field for form in self.forms() for field in form.fields.values()]
@@ -86,16 +63,14 @@ class Page:
     def body_widgets(self):
         return [field.input for field in self.fields()]
 
-    def focusables(self):
-        return [*self.body_widgets(), *self.buttons]
-
     @property
     def dirty(self):
-        return any(field.input.text != field.initial for field in self.all_fields())
+        return getattr(self, "json_changed", False) or any(
+            field.input.text != field.initial for field in self.all_fields())
 
 
 class ProjectPage(Page):
-    def __init__(self, screen, record):
+    def __init__(self, screen, record, *, suggest_defaults=True):
         self.screen, self.record = screen, record
         self.identifier = record["project"]["id"]
         self.components = list(record["values"]["components"])
@@ -107,7 +82,9 @@ class ProjectPage(Page):
         self.component_schemas = parameters.pop("components")["properties"]
         engine_schemas = parameters.pop("engines")["properties"]
         engine_catalog = schema.get("x-engines", {})
-        self.engine_keys = {name: spec["configuration_key"] for name, spec in engine_catalog.items()}
+        from ...backend.project.naming import TITLE_ENGINE
+        self.engine_keys = {name: spec["configuration_key"] for name, spec in engine_catalog.items()
+                            if name != TITLE_ENGINE and spec["configuration_key"] != TITLE_ENGINE}
         schema["properties"].pop("components")
         self.form = SchemaForm(schema, values, screen.t)
         self.component_forms, self.engine_forms = {}, {}
@@ -125,7 +102,7 @@ class ProjectPage(Page):
             self.component_forms[name] = form
         # Older projects receive editable suggestions, persisted only on Save.
         # Host-fixed fields and explicit nulls retain their ownership/meaning.
-        if "rag" in self.component_forms:
+        if suggest_defaults and "rag" in self.component_forms:
             import json
             from ...backend.project.defaults import rag_defaults
             from ...widget.forms.settings import MISSING, at_path
@@ -161,7 +138,7 @@ class ProjectPage(Page):
                 body.append(Label(self.screen.t("settings_dependencies_missing", names=", ".join(missing))))
         self._unfiltered = SettingsBody([*body, *(form.children or [form.container])], self.section_fields())
         self.container = self._unfiltered
-        self.filter("")
+        self.filter(self.screen.query)
 
     def forms(self):
         return [self.form, *self.engine_forms.values(), *self.component_forms.values()]
@@ -184,7 +161,7 @@ class GlobalPage(Page):
     def __init__(self, screen, name, values):
         self.screen, self.name = screen, name
         if name == "appearance":
-            values = {"icon_style": "nerd", "output_refresh_interval": 0.1,
+            values = {"icon_style": "nerd", "mode": "dark", "output_refresh_interval": 0.1,
                       "progress_refresh_interval": 0.1, **values}
         self.original = deepcopy(values)
         descriptions = ({"display_name": screen.t("settings_profile_description"),
@@ -199,6 +176,8 @@ class GlobalPage(Page):
             if key in properties:
                 properties[key].update(metadata)
         if name == "appearance":
+            properties["mode"] = {"type": "string", "enum": ["dark", "light"],
+                "title": screen.t("settings_theme_mode"), "description": screen.t("settings_theme_mode_description")}
             properties["icon_style"] = {"type": "string", "enum": ["nerd", "unicode"],
                 "title": screen.t("settings_icon_style"), "description": screen.t("settings_icon_description"),
                 "x-hub-choices": {"nerd": "Nerd Font", "unicode": screen.t("settings_icon_unicode")}}
@@ -282,9 +261,6 @@ class GlobalPage(Page):
         elif self.name == "general":
             self.screen.view.general = GeneralSettings(**result)
             if not self.screen.view.general.auto_scroll:
-                self.screen.view.transcript.control.follow_tail = False
+                self.screen.view.output.set_follow_tail(False)
         elif self.name == "profile":
             self.screen.view.user_profile = UserProfile(**result)
-
-    def after_submit(self):
-        self.screen.prompt_restart(self.screen.global_keys)

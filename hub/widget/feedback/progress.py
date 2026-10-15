@@ -6,15 +6,17 @@ from io import StringIO
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.formatted_text import ANSI, to_formatted_text
 from prompt_toolkit.layout import UIContent, UIControl, Window
+from prompt_toolkit.utils import get_cwidth
 from rich.console import Console
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Column
 
 
 class ProgressControl(UIControl):
-    def __init__(self, owner, notice):
+    def __init__(self, owner, notice, annotation=lambda: ""):
         self.owner = owner
         self.notice = notice
+        self.annotation = annotation
 
     def create_content(self, width: int, height: int) -> UIContent:
         owner = self.owner
@@ -24,7 +26,8 @@ class ProgressControl(UIControl):
             return UIContent(get_line=lambda _: [("class:hub.notice", text)] if text else [], line_count=1, show_cursor=False)
         owner.schedule_refresh()
         theme = owner.view.theme
-        key = (width, theme)
+        annotation = self.annotation()
+        key = (width, theme, annotation)
         if key in owner._render_cache:
             line = owner._render_cache[key]
             return UIContent(get_line=lambda _: line, line_count=1, show_cursor=False)
@@ -34,11 +37,13 @@ class ProgressControl(UIControl):
         task.fields["label"] = task.description + (
             owner.view.t("progress_more", count=len(tasks) - 1) if len(tasks) > 1 else "")
         stream = StringIO()
-        console = Console(file=stream, width=max(1, width), color_system="truecolor",
+        console = Console(file=stream, width=max(1, width - get_cwidth(annotation) - bool(annotation)), color_system="truecolor",
                           force_terminal=True, highlight=False)
         console.print(owner.progress.make_tasks_table([task]), end="")
         lines = [to_formatted_text(ANSI(line)) for line in stream.getvalue().splitlines()]
         line = lines[0] if lines else []
+        if annotation:
+            line = [*line, ("class:hub.notice", " " + annotation)]
         owner._render_cache[key] = line
         return UIContent(get_line=lambda _: line, line_count=1, show_cursor=False)
 
@@ -59,9 +64,9 @@ class TaskProgress:
     def active(self) -> bool:
         return bool(self.progress.task_ids)
 
-    def container(self, notice=lambda: ""):
+    def container(self, notice=lambda: "", *, annotation=lambda: ""):
         # Separate PTK controls share one model across chat and settings layouts.
-        return Window(ProgressControl(self, notice), height=1, wrap_lines=False)
+        return Window(ProgressControl(self, notice, annotation), height=1, wrap_lines=False)
 
     def schedule_refresh(self) -> None:
         try:

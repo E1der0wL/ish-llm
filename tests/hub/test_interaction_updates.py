@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
-from tests.hub.support import open_home
+from tests.hub.support import auxiliary, open_home
 from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.application.current import set_app
@@ -73,10 +73,13 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: view.connected)
+                # Initial component/project creation is backend I/O, not the
+                # three-second deadline used for an interactive UI response.
+                await until(lambda: view.connected and not view.projects.busy)
                 for engine in ("loop", "graph"):
                     view.engine = engine
-                    pipe.send_text("\x13")
+                    with set_app(app):
+                        screen.open_engine()
                     try:
                         await until(lambda: screen.page is not None and not screen.busy and screen.page.query.endswith(engine))
                     except TimeoutError:
@@ -111,9 +114,11 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
             try:
                 pipe.send_text("\x11")
                 await eventually(lambda: view.visible)
-                self.assertFalse(view.navigation_keys.get_bindings_for_keys(("c-r",)))
+                self.assertFalse(any(binding.keys == ("c-r",) for binding in
+                    view.navigation_keys.get_bindings_for_keys(("c-r",))))
                 for key in range(1, 13):
-                    self.assertFalse(view.navigation_keys.get_bindings_for_keys((f"f{key}",)))
+                    self.assertFalse(any(binding.keys == (f"f{key}",) for binding in
+                        view.navigation_keys.get_bindings_for_keys((f"f{key}",))))
                 pipe.send_text("\x1b")
                 await eventually(lambda: view.active_page.sidebar_focused)
                 width = view.theme.sidebar_width
@@ -122,35 +127,36 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[C")
                 await eventually(lambda: app.layout.current_control == view.composer.control)
                 self.assertEqual(view.theme.sidebar_width, width + 1)
-                view.transcript.set_messages((ChatMessage("assistant", "find me\n\n```py\nprint(1)\n```", id="m"),))
+                view.output.transcript.set_messages((ChatMessage("assistant", "find me\n\n```py\nprint(1)\n```", id="m"),))
                 app.invalidate()
-                await eventually(lambda: bool(view.transcript.control.objects))
-                pipe.send_text("\x06find")
-                await eventually(lambda: view.transcript.control.search_query == "find")
+                await eventually(lambda: bool(view.output.transcript.control.objects))
+                await auxiliary(app, pipe, view, 'find')
+                pipe.send_text("find")
+                await eventually(lambda: view.output.transcript.control.search_query == "find")
                 pipe.send_text("\x1b")
                 await eventually(lambda: view._dialog is None)
-                self.assertEqual(view.transcript.control.search_query, "")
+                self.assertEqual(view.output.transcript.control.search_query, "")
                 for expand in ("\t", " ", "\r"):
-                    pipe.send_text("\x14")
-                    await eventually(lambda: app.layout.current_control == view.tags.control)
+                    await auxiliary(app, pipe, view, 'tags')
+                    await eventually(lambda: app.layout.current_control == view.output.tags.control)
                     with patch("hub.widget.output.tag_bar.copy_text", new_callable=AsyncMock, return_value="clipboard_copied") as copied:
                         pipe.send_text("c")
                         await eventually(lambda: copied.await_count == 1)
                         self.assertEqual(copied.call_args.args[0], "```py\nprint(1)\n```")
                     pipe.send_text(expand)
                     await eventually(lambda: view._dialog is not None)
-                    self.assertTrue(view.tags.visible)
+                    self.assertTrue(view.output.tags.visible)
                     popup = view._dialog
                     await eventually(lambda: popup.output._render_key is not None)
                     self.assertTrue(any("print" in line for line in popup.output.lines))
                     self.assertNotIn("```", "\n".join(popup.output.lines))
                     pipe.send_text("\x1b")
                     await eventually(lambda: view._dialog is None)
-                    self.assertIs(app.layout.current_control, view.tags.control)
-                    pipe.send_text("\x14")
-                    await eventually(lambda: not view.tags.visible)
+                    self.assertIs(app.layout.current_control, view.output.tags.control)
+                    pipe.send_text('\x1b')
+                    await eventually(lambda: not view.output.tags.visible)
                     self.assertIs(app.layout.current_control, view.composer.control)
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 await eventually(lambda: view.settings.page is not None)
                 screen = view.settings
                 with set_app(app):

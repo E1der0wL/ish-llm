@@ -11,6 +11,7 @@ from prompt_toolkit.styles import Style
 class HubTheme:
     sidebar_width: int = 26
     icon_style: str = "nerd"
+    mode: str = "dark"
     output_refresh_interval: float = 0.1
     progress_refresh_interval: float = 0.1
     foreground: str = "default"
@@ -23,7 +24,15 @@ class HubTheme:
     def _surface(self, color: str, amount: float = 0.16) -> str:
         if color == "default":
             return self.background
-        base = self.background if self.background != "default" else "#111923"
+        base = self.background if self.background != "default" else self.base_background
+        if self.background != "default":
+            # Keep the chosen page background, but give derived surfaces the
+            # selected theme's light/dark shading even with a custom palette.
+            base = self._blend(base, self.base_background, 0.12)
+        return self._blend(base, color, amount)
+
+    @staticmethod
+    def _blend(base: str, color: str, amount: float) -> str:
         return "#" + "".join(f"{round(int(base[i:i+2], 16) * (1 - amount) + int(color[i:i+2], 16) * amount):02x}"
                               for i in (1, 3, 5))
 
@@ -34,6 +43,7 @@ class HubTheme:
         return "#17212b" if brightness > 150 else "#d9e2ef"
 
     # Semantic rendering roles are derived, never stored or edited separately.
+    base_background = property(lambda self: "#f5f7fa" if self.mode == "light" else "#111923")
     accent = property(lambda self: self.accent1)
     user = property(lambda self: self.accent2)
     notice = property(lambda self: self.accent3)
@@ -84,6 +94,10 @@ class HubTheme:
                 from ..asset.icon import for_style
                 for_style(value)
                 continue
+            if field.name == "mode":
+                if value not in ("dark", "light"):
+                    raise ValueError("mode must be 'dark' or 'light'")
+                continue
             if field.name == "sidebar_width":
                 if type(value) is not int or not 18 <= value <= 60:
                     raise ValueError("sidebar_width must be an integer between 18 and 60")
@@ -128,8 +142,8 @@ class HubTheme:
             "hub.mouse-hover button.text": f"fg:{self.accent2} bold nounderline",
             "hub.mouse-hover": "bold",
             "hub.text-selection": f"fg:{self.code_background} bg:{self.accent2} nobold",
-            "hub.inactive": "fg:#c8c8c8 bg:default noreverse",
-            "hub.inactive-surface": "fg:#c8c8c8 bg:#484848 noreverse",
+            "hub.inactive": "",
+            "hub.transparent": "bg:default",
             **{selector: f"fg:{getattr(self, 'alert_' + level + '_foreground')} bg:{getattr(self, 'alert_' + level + '_background')}"
                for level in ("error", "info", "warning", "success")
                for selector in (f"hub.alert-{level}", f"hub.alert-{level} frame.label", f"hub.alert-{level} frame.border")},
@@ -142,6 +156,10 @@ class HubTheme:
             "hub button.focused": f"fg:{self.button_foreground} bg:{self.button_background} nobold nounderline noreverse",
             "hub button.focused button.text": f"fg:{self.accent} bold",
             "hub button.selected button.text": f"fg:{self.accent} bold",
+            "hub.auxiliary": "bg:default",
+            "hub.auxiliary button": f"fg:{self.button_foreground} bg:{self.background}",
+            "hub.auxiliary button.focused": f"fg:{self.button_foreground} bg:{self.background}",
+            "hub.auxiliary button.focused button.text": f"fg:{self.accent} bold",
             "hub checkbox-list": f"fg:{self.foreground} bg:{self.background} nounderline noreverse",
             "hub.checklist": f"fg:{self.foreground} bg:{self.background}",
             "hub checkbox-list.focused": "bold nounderline noreverse",

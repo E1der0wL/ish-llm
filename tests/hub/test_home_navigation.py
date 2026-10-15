@@ -2,6 +2,7 @@
 
 import asyncio
 import unittest
+from unittest.mock import patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -11,6 +12,31 @@ from tests.hub.support import SizedOutput, eventually
 
 
 class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
+    async def test_page_switch_keeps_shortcuts_before_next_render(self):
+        with create_pipe_input() as pipe:
+            app, view, _ = create_preview(input=pipe, output=SizedOutput())
+            task = asyncio.create_task(app.run_async())
+            try:
+                await eventually(lambda: app.is_running)
+                pipe.send_text("\x11")
+                await eventually(lambda: app.renderer._last_screen is not None and view.composer.window in
+                                 app.renderer._last_screen.visible_windows_to_write_positions)
+                # Input can arrive between two render ticks. Page switches must
+                # update key-binding ancestry without relying on a later paint.
+                with patch.object(app, "_redraw"):
+                    pipe.send_text("\x10\r")
+                    await eventually(lambda: view.settings_open)
+                    pipe.send_text("\x10\r")
+                    await eventually(lambda: not view.settings_open)
+                    pipe.send_text("\x10\x1b[C")
+                    await eventually(lambda: app.layout.current_control is view.profile_bar.minimize.control)
+                    pipe.send_text("\r")
+                    await eventually(lambda: not view.visible)
+            finally:
+                app.exit()
+                await task
+                view.close()
+
     async def test_categories_profile_buttons_and_shell_restore(self):
         with create_pipe_input() as pipe:
             output = SizedOutput()
@@ -88,5 +114,5 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()

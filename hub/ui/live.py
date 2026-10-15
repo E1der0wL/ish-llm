@@ -23,7 +23,7 @@ class LiveHubView(HubView):
     def __init__(self, theme=None, language="ko", language_packs=None):
         super().__init__(theme=theme, language=language, language_packs=language_packs)
         self.sessions = [SessionView(self.t("connecting"))]
-        self.transcript.set_messages(())
+        self.output.set_messages(())
         self.project_title = self.t("connecting")
         self.project_id = ""
         self.model = ""
@@ -33,8 +33,7 @@ class LiveHubView(HubView):
         self._submitted_messages = {}
         self._presentation_cache = MessagePresentationCache()
         self.failure_diagnoses = {}
-        self.transcript.control.animation_active = lambda: self.visible and not self.settings_open
-        self.transcript.control.animation_follow = lambda: self.general.auto_scroll
+        self.animate_output = True
 
     def show_submitted(self, project_id, session_id, message):
         """Bridge a durable receipt to the next authoritative conversation read."""
@@ -49,7 +48,7 @@ class LiveHubView(HubView):
                 messages = (*session.messages, present_message(message, self.t))
                 self.sessions[index] = replace(session, messages=messages)
                 if index == self.selected:
-                    self.transcript.control.messages = self.preparing.project(key, messages)
+                    self.output.update_messages(self.preparing.project(key, messages))
                 return
 
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=None) -> None:
@@ -97,30 +96,19 @@ class LiveHubView(HubView):
         self.selected = next((i for i, s in enumerate(self.sessions) if s.id == target), 0)
         changed = current_id != self.sessions[self.selected].id
         if changed:
-            if self.search.active:
-                self.close_dialog()
+            self.output.deactivate()
             self.composer.text = self._drafts.get(self._draft_key(self.selected), "")
             if empty_draft_key and not self.no_sessions and not changing_project:
                 self.composer.text = self._drafts.pop(empty_draft_key, "")
             position = self._positions.get(self._draft_key(self.selected))
-            self.transcript.set_messages(self.sessions[self.selected].messages, position)
+            self.output.set_messages(self.sessions[self.selected].messages, position)
             if position is None and self.general.auto_scroll:
-                self.transcript.control.follow_tail = True
+                self.output.set_follow_tail(True)
         else:
             # Preserve a reader's scroll position. New/updated output follows the
             # bottom only if the reader was already at the bottom.
-            control = self.transcript.control
-            info = self.transcript.window.render_info
             messages = self.sessions[self.selected].messages
-            following = not control.restoring and (
-                not control.messages or (info is not None and
-                    control.top_line + control._height >= info.content_height - 1))
-            changed_messages = control.messages != messages
-            control.messages = messages
-            if self.general.auto_scroll and following and changed_messages and not control.search_query:
-                control.follow_tail = True
-            elif not self.general.auto_scroll:
-                control.follow_tail = False
+            self.output.update_messages(messages, auto_scroll=self.general.auto_scroll)
         self.connected = True
         self.project_title = snapshot.project_title
         self.project_id = snapshot.project_id
@@ -134,11 +122,10 @@ class LiveHubView(HubView):
             self.engine = next(iter(self.engines), "")
         if snapshot.file_root:
             self.file_root = snapshot.file_root
-            self.transcript.control.file_root = snapshot.file_root
+            self.output.set_file_root(snapshot.file_root)
         if self.sessions[self.selected].id == snapshot.selected_id:
             self.question.sync(snapshot.project_id, snapshot.selected_id, snapshot.questions)
             self.notice = display.notice
-            self.activity = display.activity
         self.preparing.paint()
         if self.sessions[self.selected].id == snapshot.selected_id:
             self.followup.refresh((snapshot.project_id, snapshot.selected_id), snapshot.messages)
@@ -199,7 +186,6 @@ class LiveController:
         self.component_commands = ComponentCommands(self)
         self.view.on_component = self.component_commands.open
         self.view.on_interrupt = self.interrupt
-        self.view.on_steer = self.steer
         from .chat.history_ui import HistoryUI
         self.history_ui = HistoryUI(self)
         self.view.on_history = self.history_ui.open
@@ -210,7 +196,7 @@ class LiveController:
         from ..config.restart import startup_settings
         self.view.settings.drafts.applied_preferences = startup_settings(config, view.general)
         self.view.settings.drafts.workspace_anchor = config._workspace_anchor
-        self.view.transcript.control.on_position_changed = self._reading_changed
+        self.view.on_output_position_changed = self._reading_changed
         self.view.file_root = config.file_root or config.workspace
         self.environment_provider = None
         if config.engine_factories:
@@ -411,7 +397,7 @@ class LiveController:
             except ValueError:
                 return  # Shell context can arrive after plugin installation.
             self.view.file_root = environment.cwd
-            self.view.transcript.control.file_root = environment.cwd
+            self.view.output.set_file_root(environment.cwd)
 
     def _accept_input(self, project_id, session_id, text, result, operation):
         if result is None or self.closed:
@@ -428,8 +414,8 @@ class LiveController:
         if current_id == session_id:
             view.notice = view.t("instruction_saved" if operation == "steer" else "saved")
             if view.general.auto_scroll:
-                view.transcript.control.restore_position(None)
-                view.transcript.control.follow_tail = True
+                view.output.restore_position(None)
+                view.output.set_follow_tail(True)
         self.app.invalidate()
 
     def _send(self, operation, session_id, text, *args, draft=None):
@@ -605,7 +591,7 @@ class LiveController:
     def _prepare_close(self):
         if self.closed:
             return False
-        self.view.output_renderers.close()
+        self.view.close()
         self.view.progress.close()
         self.view.remember_position()
         self._save_view()

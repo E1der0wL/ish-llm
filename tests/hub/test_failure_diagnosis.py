@@ -51,12 +51,12 @@ class DiagnosisTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("Fail this request\r")
                 try:
-                    await until(lambda: any("HTTP 503" in item.text for item in view.transcript.control.messages))
+                    await until(lambda: any("HTTP 503" in item.text for item in view.output.transcript.control.messages))
                 except TimeoutError:
                     self.fail(f"diagnoses={view.failure_diagnoses!r}; notice={view.notice}; calls={len(calls)}; "
-                              f"messages={view.transcript.control.messages!r}")
+                              f"messages={view.output.transcript.control.messages!r}")
                 self.assertEqual(len(calls), 1)
-                answer = next(item for item in view.transcript.control.messages if item.status == "failed")
+                answer = next(item for item in view.output.transcript.control.messages if item.status == "failed")
                 self.assertIn(view.t("failure_unavailable"), answer.text)
                 self.assertTrue(answer.run_id)
             finally:
@@ -67,8 +67,8 @@ class DiagnosisTests(unittest.IsolatedAsyncioTestCase):
     def test_structured_causes_and_localized_explanations_preserve_partial_answer(self):
         for status, kind in ((401, "authentication"), (403, "permission"), (429, "rate_limit"),
                              (503, "unavailable"), (400, "request")):
-            diagnosis = diagnose("provider_unavailable", [{"details": {"details": {"exceptions": [
-                {"type": "APIError", "status_code": status}, {"type": "RuntimeError"}]}}}])
+            diagnosis = diagnose("provider_unavailable", details={"exceptions": [
+                {"type": "APIError", "status_code": status}, {"type": "RuntimeError"}]})
             self.assertEqual((diagnosis.kind, diagnosis.http_status), (kind, status))
             message = ChatMessage("assistant", "Partial answer", status="failed", failure=diagnosis)
             for language in ("ko", "en"):
@@ -77,10 +77,10 @@ class DiagnosisTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(rendered.startswith("Partial answer"))
                 self.assertIn(t("failure_" + kind), rendered)
                 self.assertIn(f"HTTP {status}", rendered)
-        self.assertEqual(diagnose("engine_failed", ()).kind, "unknown")
-        self.assertEqual(diagnose("provider_timeout", ()).kind, "timeout")
+        self.assertEqual(diagnose("engine_failed").kind, "unknown")
+        self.assertEqual(diagnose("provider_timeout").kind, "timeout")
 
-    async def test_other_run_and_workspace_logs_are_not_diagnostic_evidence(self):
+    async def test_logs_are_not_used_when_step_diagnostics_are_absent(self):
         with tempfile.TemporaryDirectory() as root:
             directory = Path(root) / "projects/logs"
             directory.mkdir(parents=True)
@@ -95,14 +95,17 @@ class DiagnosisTests(unittest.IsolatedAsyncioTestCase):
             handle = SimpleNamespace(aget_data=AsyncMock(return_value=run), steps=SimpleNamespace(alist=AsyncMock(return_value=[])))
             session = SimpleNamespace(run=SimpleNamespace(aload=AsyncMock(return_value=handle)))
             project = SimpleNamespace(sessions=SimpleNamespace(aload=AsyncMock(return_value=session)),
-                                      aactivity=AsyncMock(return_value=[]))
+                                      aactivity=AsyncMock(side_effect=AssertionError("No activity lookup")))
             runtime = SimpleNamespace(backend=SimpleNamespace(workspace=root,
                 projects=SimpleNamespace(aload=AsyncMock(return_value=project))), config=SimpleNamespace(workspace=root))
             reader = FailureDiagnostics(runtime)
             result = await reader.read("p", "s", ["r"])
-            self.assertEqual(result["r"].http_status, 503)
-            with patch("hub.backend.observability.failures.read_provider_logs", side_effect=AssertionError("cached")):
+            self.assertEqual(result["r"].kind, "unavailable")
+            self.assertIsNone(result["r"].http_status)
+            with patch("hub.backend.observability.provider_logs.read_provider_logs", side_effect=AssertionError("No log lookup")):
                 self.assertEqual(await reader.read("p", "s", ["r"]), result)
-            reader.cache.clear()
-            run.error_code = "engine_failed"
-            self.assertEqual((await reader.read("p", "s", ["r"]))["r"].kind, "unknown")
+                for code, kind in (("engine_failed", "unknown"), (None, "unknown"), ("run_timeout", "timeout")):
+                    reader.cache.clear()
+                    run.error_code = code
+                    self.assertEqual((await reader.read("p", "s", ["r"]))["r"].kind, kind)
+            project.aactivity.assert_not_awaited()

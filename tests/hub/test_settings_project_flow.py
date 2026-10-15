@@ -31,7 +31,7 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                     app._on_resize()
                     await asyncio.sleep(.1)
                     panel = view._sidebar.content
-                    self.assertEqual(panel.sections[0].height.preferred, round((height - 2) * .35))
+                    self.assertEqual(panel.sections[0].height.preferred, round((height - 2) * .27))
                     position = app.renderer._last_screen.visible_windows_to_write_positions[view.profile_bar.minimize.window]
                     self.assertEqual(position.ypos, height - 3)
                     self.assertLessEqual(position.xpos + position.width, view.sidebar_width())
@@ -86,7 +86,7 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     view.projects.select(original)
                 await until(lambda: view.project_id == original and not view.projects.busy)
-                self.assertTrue(all(not page.query for page in screen.drafts.pages.values()))
+                self.assertEqual(screen.query, "missing-setting")
                 with set_app(app):
                     view.open_page(True)
                 await until(lambda: not screen.busy)

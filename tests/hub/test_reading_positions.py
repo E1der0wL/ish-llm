@@ -118,27 +118,27 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                     task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
                     async def loaded(identifier, prefix):
                         await until(lambda: view.connected and view.sessions[view.selected].id == identifier
-                                    and any(message.text.startswith(prefix) for message in view.transcript.control.messages)
-                                    and view.transcript.window.render_info is not None
+                                    and any(message.text.startswith(prefix) for message in view.output.transcript.control.messages)
+                                    and view.output.transcript.window.render_info is not None
                                     # render_info can still describe the previous session.
-                                    and view.transcript.control._cache_key is not None
-                                    and view.transcript.control._cache_key == view.transcript.control._requested_key
-                                    and not view.transcript.control.restoring)
+                                    and view.output.transcript.control._cache_key is not None
+                                    and view.output.transcript.control._cache_key == view.output.transcript.control._requested_key
+                                    and not view.output.transcript.control.restoring)
                     try:
                         if reopened:
                             await loaded(first, "First")
-                            self.assertEqual(view.transcript.control.reading_position(), positions[first])
+                            self.assertEqual(view.output.transcript.control.reading_position(), positions[first])
                             view.select(next(i for i, session in enumerate(view.sessions) if session.id == second))
                             await loaded(second, "Second")
-                            self.assertEqual(view.transcript.control.reading_position(), positions[second])
+                            self.assertEqual(view.output.transcript.control.reading_position(), positions[second])
                         else:
                             await loaded(second, "Second")
                             for identifier, prefix, line in ((second, "Second", 15), (first, "First", 5)):
                                 view.select(next(i for i, session in enumerate(view.sessions) if session.id == identifier))
                                 await loaded(identifier, prefix)
                                 pipe.send_text("\x1b\x1b[H" + "\x1b\x1b[B" * line)
-                                await until(lambda: view.transcript.control.top_line == line)
-                                positions[identifier] = view.transcript.control.reading_position()
+                                await until(lambda: view.output.transcript.control.top_line == line)
+                                positions[identifier] = view.output.transcript.control.reading_position()
                                 store = ViewStateStore(directory)
                                 await until(lambda: store.path.exists() and
                                             store.load(view.project_id)[1].get(identifier) == positions[identifier])
@@ -146,10 +146,10 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                             await until(lambda: not view.visible)
                             await asyncio.wrap_future(controller.worker.call("submit", first, "Hidden addition", "loop"))
                             await until(lambda: any(message.role == "assistant" and "Hidden addition" in message.text
-                                                    for message in view.transcript.control.messages))
+                                                    for message in view.output.transcript.control.messages))
                             pipe.send_text("\x11")
                             await loaded(first, "First")
-                            self.assertEqual(view.transcript.control.reading_position(), positions[first])
+                            self.assertEqual(view.output.transcript.control.reading_position(), positions[first])
                     finally:
                         app.exit()
                         await task
@@ -167,7 +167,7 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: app.is_running)
                 view.composer.text = "# draft\n\n" + "preview\n\n" * 100
                 app.invalidate()
-                await until(lambda: view.transcript.window.render_info is not None)
+                await until(lambda: view.output.transcript.window.render_info is not None)
                 self.assertFalse(hasattr(view, "draft_preview"))
                 for rows in (24, 40, 18, 32):
                     rendered.clear()
@@ -175,9 +175,11 @@ class ReadingPositionUITests(unittest.IsolatedAsyncioTestCase):
                     app._on_resize()
                     await asyncio.wait_for(rendered.wait(), 3)
                     positions = app.renderer._last_screen.visible_windows_to_write_positions
-                    transcript = positions[view.transcript.window]
+                    transcript = positions[view.output.transcript.window]
                     composer = positions[view.composer.window]
-                    self.assertGreaterEqual(transcript.height, 5)
+                    # The reserved auxiliary row shares small terminals with
+                    # the eight-line composer; retain visible, nonoverlapping output.
+                    self.assertGreaterEqual(transcript.height, 1)
                     self.assertLessEqual(transcript.ypos + transcript.height, composer.ypos)
             finally:
                 app.exit()

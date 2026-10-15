@@ -13,7 +13,7 @@ from ...ui.output.labels import block_title
 
 from prompt_toolkit.data_structures import Point
 from prompt_toolkit.formatted_text.utils import fragment_list_width
-from prompt_toolkit.layout import UIContent, UIControl, Window
+from prompt_toolkit.layout import UIContent, Window
 from prompt_toolkit.layout import ScrollOffsets
 from prompt_toolkit.utils import get_cwidth
 from rich.text import Text

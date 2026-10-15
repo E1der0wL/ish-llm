@@ -11,11 +11,32 @@ from prompt_toolkit.clipboard import ClipboardData
 from prompt_toolkit.input import create_pipe_input
 
 from examples.hub.preview import create_preview
-from hub.widget.clipboard import SystemClipboard, export_text, system_clipboard
+from hub.widget.clipboard import SystemClipboard, export_text, system_clipboard, terminal_clipboard_supported
+from prompt_toolkit.output.vt100 import Vt100_Output
 from tests.hub.support import SizedOutput, eventually
 
 
 class ClipboardTests(unittest.IsolatedAsyncioTestCase):
+    async def test_osc52_requires_known_real_terminal_and_bounds_payload(self):
+        output = Mock(spec=Vt100_Output)
+        output.stdout = SimpleNamespace(isatty=lambda: True)
+        app = SimpleNamespace(output=output)
+        with patch('hub.widget.clipboard.system_clipboard', new=AsyncMock(return_value=None)):
+            with patch.dict('os.environ', {'TERM': 'xterm-256color'}, clear=True):
+                self.assertEqual(await export_text(app, 'text'), 'clipboard_internal')
+                output.write_raw.assert_not_called()
+            with patch.dict('os.environ', {'TERM': 'xterm-kitty'}, clear=True):
+                self.assertTrue(terminal_clipboard_supported(app))
+                self.assertEqual(await export_text(app, 'copy'), 'clipboard_terminal')
+                output.write_raw.assert_called_once_with('\x1b]52;c;' + base64.b64encode(b'copy').decode() + '\x07')
+                output.reset_mock()
+                self.assertEqual(await export_text(app, 'x' * 6000), 'clipboard_internal')
+                output.write_raw.assert_not_called()
+            with patch.dict('os.environ', {'TERM': 'xterm-kitty', 'TMUX': '1'}, clear=True):
+                self.assertFalse(terminal_clipboard_supported(app))
+            with patch.dict('os.environ', {'TERM': 'xterm-kitty', 'HUB_OSC52': '0'}, clear=True):
+                self.assertFalse(terminal_clipboard_supported(app))
+
     async def test_wsl_unicode_and_linux_fallback(self):
         process = SimpleNamespace(returncode=0, communicate=AsyncMock(return_value=(b"", b"")))
         with patch.dict("os.environ", {"WSL_DISTRO_NAME": "Ubuntu"}, clear=True), \
@@ -36,8 +57,8 @@ class ClipboardTests(unittest.IsolatedAsyncioTestCase):
         with patch("hub.widget.clipboard.system_clipboard", new=AsyncMock(return_value=None)), \
              patch.dict("os.environ", {}, clear=True):
             result = await export_text(SimpleNamespace(output=output), "copy")
-        self.assertEqual(result, "clipboard_terminal")
-        output.write_raw.assert_called_once_with("\x1b]52;c;" + base64.b64encode(b"copy").decode() + "\x07")
+        self.assertEqual(result, "clipboard_internal")
+        output.write_raw.assert_not_called()
         process = SimpleNamespace(returncode=None, communicate=AsyncMock(side_effect=TimeoutError),
                                   kill=Mock(), wait=AsyncMock())
         with patch.dict("os.environ", {"WAYLAND_DISPLAY": "wayland"}, clear=True), \

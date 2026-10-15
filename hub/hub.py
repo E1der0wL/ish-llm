@@ -94,7 +94,7 @@ class HubInstallation:
         """Detach Hub without clearing other plugins' floats or keys."""
         if self._closed:
             return
-        self.view.output_renderers.close()
+        self.view.close()
         if self.controller:
             self.controller.close()
         self.view.hide(self.prompt.app)

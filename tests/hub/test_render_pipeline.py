@@ -407,15 +407,15 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
             backend.report_error = Mock()
             polling = asyncio.create_task(backend._refresh())
             try:
-                await eventually(lambda: app.is_running and view.transcript.control._cache_key is not None)
-                original = view.output_renderers.render
+                await eventually(lambda: app.is_running and view.output.transcript.control._cache_key is not None)
+                original = view.output.renderers.render
                 def slow(block, context):
                     started.set()
                     gate.wait(10)
                     return original(block, context)
-                with patch.object(view.output_renderers, "render", side_effect=slow):
+                with patch.object(view.output.renderers, "render", side_effect=slow):
                     with set_app(app):
-                        view.transcript.control.messages = (ChatMessage("assistant", "slow", id="slow"),)
+                        view.output.transcript.control.messages = (ChatMessage("assistant", "slow", id="slow"),)
                         app.invalidate()
                     await eventually(started.is_set)
                     await snapshot_entered.wait()
@@ -426,19 +426,19 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("\x1b[C")
                     await eventually(lambda: app.layout.current_control is view.composer.control)
                     with set_app(app):
-                        view.transcript.control.scroll("home")
-                    self.assertEqual(view.transcript.control.top_line, 0)
+                        view.output.transcript.control.scroll("home")
+                    self.assertEqual(view.output.transcript.control.top_line, 0)
                     self.assertFalse(gate.is_set())
                     self.assertFalse(polling.done())
                     gate.set()
-                    await eventually(lambda: view.transcript.control._cache_key == view.transcript.control._requested_key)
+                    await eventually(lambda: view.output.transcript.control._cache_key == view.output.transcript.control._requested_key)
             finally:
                 gate.set()
                 polling.cancel()
                 await asyncio.gather(polling, return_exceptions=True)
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()
 
     async def test_idle_polling_slows_but_dirty_wakes(self):

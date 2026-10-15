@@ -306,7 +306,7 @@ class HistoryDialogTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.is_running)
                 with set_app(app):
                     history.show(sid, rows)
-                    popup = history.popup
+                    popup = view._dialog
                     self.assertEqual([b.text for b in popup.buttons], ["삭제", "편집", "재시도", "닫기"])
                     popup.editor.text = "edited first"
                 self.assertEqual(popup.selected(), [])
@@ -323,7 +323,7 @@ class HistoryDialogTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: any(op == "delete_turns" for op, _ in calls))
                 with set_app(app):
                     history.show(sid, rows)
-                    history.popup.editor.text = "edited first"
+                    view._dialog.editor.text = "edited first"
                 pipe.send_text(" e")
                 await eventually(lambda: any(op == "edit_turn" for op, _ in calls))
                 self.assertIn(("edit_turn", (sid, "u0", "edited first", "u0")), calls)
@@ -333,15 +333,15 @@ class HistoryDialogTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: ("retry_turn", (sid, "u0", "r0")) in calls)
                 with set_app(app):
                     history.show(sid, rows)
-                    history.popup.choices.current_values = ["u1"]
+                    view._dialog.choices.current_values = ["u1"]
                 pipe.send_text("r")
                 await eventually(lambda: view._dialog is None)
                 self.assertEqual(view.notice, view.t("history_retry_unavailable"))
                 with set_app(app):
                     history.show(sid, rows)
-                    history.popup.buttons[-1].handler()
+                    view._dialog.buttons[-1].handler()
                 self.assertIsNone(view._dialog)
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()

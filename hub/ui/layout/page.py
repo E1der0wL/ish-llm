@@ -11,12 +11,12 @@ from ...widget.focus_region import FocusRegion
 class TwoPanelPage:
     def __init__(self, *, header, footer, sidebar, main, progress, notice,
                  sidebar_controls, focus_sidebar, focus_main, sidebar_visible=lambda: True,
-                 extra=(), sidebar_width=None, resize_sidebar=None, categories=()):
+                 sidebar_width=None, resize_sidebar=None, categories=(), status_annotation=lambda: ""):
         self.sidebar_controls = sidebar_controls
         self.categories = categories
         self._focus_sidebar, self._focus_main = focus_sidebar, focus_main
         visible = Condition(sidebar_visible)
-        self.status = progress.container(notice)
+        self.status = progress.container(notice, annotation=status_annotation)
         self.edge = (PanelEdge(sidebar_width, resize_sidebar) if resize_sidebar else
                      Window(width=1, char="│", style="class:hub.divider"))
         self.sidebar_region = FocusRegion(sidebar, active=lambda: self.sidebar_focused)
@@ -28,7 +28,7 @@ class TwoPanelPage:
             VSplit([
                 ConditionalContainer(self.sidebar_region, visible),
                 ConditionalContainer(self.edge, visible),
-                self.main_region, *extra,
+                self.main_region,
             ], height=Dimension(min=3, weight=1)),
             HSplit([footer], height=1),
         ], style="class:hub")

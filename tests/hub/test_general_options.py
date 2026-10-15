@@ -50,12 +50,12 @@ class GeneralOptionTests(unittest.TestCase):
                                "s", messages, engines=("loop",))
         view.general = GeneralSettings(auto_scroll=False)
         view.apply_snapshot(snapshot)
-        control = view.transcript.control
+        control = view.output.transcript.control
         control.create_content(80, 10)
         self.assertEqual(control.top_line, 0)
         control.scroll("end")
         old_line = control.top_line
-        view.transcript.window.render_info = SimpleNamespace(last_visible_line=lambda: len(control._lines) - 1,
+        view.output.transcript.window.render_info = SimpleNamespace(last_visible_line=lambda: len(control._lines) - 1,
                                                              content_height=len(control._lines))
         snapshot = replace(snapshot, messages=(*messages, ChatMessage("assistant", "new\n\n" * 30, id="second")))
         view.apply_snapshot(snapshot)
@@ -63,7 +63,7 @@ class GeneralOptionTests(unittest.TestCase):
         self.assertEqual(control.top_line, old_line)
         view.general = GeneralSettings(auto_scroll=True)
         control.scroll("end")
-        view.transcript.window.render_info = SimpleNamespace(last_visible_line=lambda: len(control._lines) - 1,
+        view.output.transcript.window.render_info = SimpleNamespace(last_visible_line=lambda: len(control._lines) - 1,
                                                              content_height=len(control._lines))
         view.apply_snapshot(replace(snapshot, messages=(*snapshot.messages, ChatMessage("assistant", "third", id="third"))))
         self.assertTrue(control.follow_tail)
@@ -142,14 +142,14 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
-                pipe.send_text("\x13")
+                await until(lambda: view.connected and not view.projects.busy)
+                pipe.send_text('\x10\r')
                 await until(lambda: screen.page is not None and not screen.busy)
                 with set_app(app):
                     screen.choose("general")
                     manager = screen.page.general_form
                     manager.add_pack()
-                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "editor"))
+                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "editor", "diagnostics"))
                 app.current_buffer.text = "custom"
                 pipe.send_text("\t")
                 await until(lambda: "settings_title" in app.current_buffer.text)
@@ -161,7 +161,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                 manager.form.fields[("notification_seconds",)].input.text = "3"
                 manager.form.fields[("auto_scroll",)].input.text = "false"
                 with set_app(app):
-                    screen.page.submit()
+                    screen.page.save.handler()
                 await until(lambda: not screen.busy and not screen.page.dirty)
                 self.assertFalse(view.general.auto_scroll)
                 self.assertEqual(view.general.notification_seconds, 3)
@@ -174,7 +174,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\t\r")
                 await until(lambda: view._dialog is None)
                 with set_app(app):
-                    screen.page.submit()
+                    screen.page.save.handler()
                 await until(lambda: not screen.busy and not screen.page.dirty)
                 saved = PreferencesStore(directory).load()["general"]
                 self.assertEqual(saved["language"], "en")

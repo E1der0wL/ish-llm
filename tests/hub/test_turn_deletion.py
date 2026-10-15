@@ -93,5 +93,5 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()

@@ -13,7 +13,7 @@ class InputContext:
 
     @property
     def available(self):
-        return self.view.visible and self.view._dialog is None and not self.view.tags.visible
+        return self.view.visible and self.view._dialog is None and self.view.output.modal_container is None
 
     @property
     def dialog(self):
@@ -21,11 +21,15 @@ class InputContext:
 
     @property
     def settings(self):
-        return self.available and self.view.settings_open and not self.profile
+        return self.available and self.view.settings_open and not self.profile and not self.auxiliary
 
     @property
     def chat(self):
-        return self.available and not self.view.settings_open and not self.profile
+        return self.available and not self.view.settings_open and not self.profile and not self.auxiliary
+
+    @property
+    def auxiliary(self):
+        return (self.view.settings.auxiliary if self.view.settings_open else self.view.auxiliary).focused
 
     @property
     def sidebar(self):

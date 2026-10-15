@@ -62,7 +62,7 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         base = replace(self.base, run=replace(self.base.run, retry=RetrySummary(1, 4, 999999999)))
         self.view.apply_snapshot(base)
         self.controller.interrupt("s")
-        shown = self.view.transcript.control.messages
+        shown = self.view.output.transcript.control.messages
         self.assertEqual(shown[1].phase, "interrupting")
         self.assertEqual(shown[1].activity, "")
         self.assertEqual(shown[1].text, "Partial response")
@@ -74,7 +74,7 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.controller.interrupt("s")
         self.assertEqual(len(self.calls), 1)
         self.view.apply_snapshot(base)
-        self.assertEqual(self.view.transcript.control.messages[1].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[1].phase, "interrupting")
         self.calls[0][2].set_result(True)
         await asyncio.sleep(0)
         self.assertTrue(self.view.interrupting.pending)
@@ -82,8 +82,8 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
             messages=(base.messages[0], replace(base.messages[1], phase="", status="interrupted"), base.messages[2]))
         self.view.apply_snapshot(stopped)
         self.assertFalse(self.view.interrupting.pending)
-        self.assertEqual(self.view.transcript.control.messages[1].status, "interrupted")
-        self.assertEqual(self.view.transcript.control.messages[-1].status, "queued")
+        self.assertEqual(self.view.output.transcript.control.messages[1].status, "interrupted")
+        self.assertEqual(self.view.output.transcript.control.messages[-1].status, "queued")
 
     async def test_paused_stop_hides_question_and_survives_stale_projection(self):
         paused = replace(self.base, run=replace(self.base.run, status="paused", active=False),
@@ -94,10 +94,10 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(self.view.question.item)
         self.controller.interrupt("s")
         self.assertIsNone(self.view.question.item)
-        self.assertEqual(self.view.transcript.control.messages[0].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[0].phase, "interrupting")
         self.view.apply_snapshot(paused)
         self.assertIsNone(self.view.question.item)
-        self.assertEqual(self.view.transcript.control.messages[0].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[0].phase, "interrupting")
         self.calls[0][2].set_result(True)
         await asyncio.sleep(0)
         self.view.apply_snapshot(replace(paused, questions=(), run=replace(paused.run, status="interrupted"),
@@ -115,7 +115,7 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
                     future.set_result(failure)
                 await asyncio.sleep(0)
                 self.assertFalse(self.view.interrupting.pending)
-                self.assertEqual(self.view.transcript.control.messages[1].phase, "thinking")
+                self.assertEqual(self.view.output.transcript.control.messages[1].phase, "thinking")
         self.assertIn("stop failed", self.view.notice)
 
     async def test_switch_and_new_run_do_not_inherit_old_stop_or_late_failure(self):
@@ -124,27 +124,27 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         other = replace(self.base, selected_id="t", run=None,
                         messages=(ChatMessage("assistant", "Other response", id="other", status="completed"),))
         self.view.apply_snapshot(other, select_id="t")
-        self.assertNotEqual(self.view.transcript.control.messages[0].phase, "interrupting")
+        self.assertNotEqual(self.view.output.transcript.control.messages[0].phase, "interrupting")
         self.view.apply_snapshot(self.base, select_id="s")
-        self.assertEqual(self.view.transcript.control.messages[1].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[1].phase, "interrupting")
         next_run = replace(self.base, run=replace(self.base.run, id="next"),
                            messages=(replace(self.base.messages[1], id="next-answer", text="Next response"),))
         self.view.apply_snapshot(next_run)
         self.assertFalse(self.view.interrupting.pending)
-        self.assertEqual(self.view.transcript.control.messages[0].phase, "thinking")
+        self.assertEqual(self.view.output.transcript.control.messages[0].phase, "thinking")
         self.controller.interrupt("s")
         old.set_result(False)
         await asyncio.sleep(0)
-        self.assertEqual(self.view.transcript.control.messages[0].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[0].phase, "interrupting")
         self.assertEqual(self.view.interrupting.pending[("p", "s")].run_id, "next")
 
     def test_early_stop_before_assistant_is_published_and_terminal_active_flag(self):
         self.view.apply_snapshot(replace(self.base, messages=()))
         self.controller.interrupt("s")
-        self.assertEqual(self.view.transcript.control.messages[0].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[0].phase, "interrupting")
         self.view.apply_snapshot(self.base)
-        self.assertEqual(len(self.view.transcript.control.messages), len(self.base.messages))
-        self.assertEqual(self.view.transcript.control.messages[1].phase, "interrupting")
+        self.assertEqual(len(self.view.output.transcript.control.messages), len(self.base.messages))
+        self.assertEqual(self.view.output.transcript.control.messages[1].phase, "interrupting")
         # Lifecycle and conversation reads may straddle a transition.
         self.view.apply_snapshot(replace(self.base, run=replace(self.base.run, status="completed")))
         self.assertFalse(self.view.interrupting.pending)
@@ -155,19 +155,19 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.view.apply_snapshot(previous)
         self.view.preparing.start(("p", "s"))
         self.controller.interrupt("s")
-        self.assertEqual(self.view.transcript.control.messages[-1].phase, "interrupting")
-        self.assertEqual(self.view.transcript.control.messages[0].status, "completed")
+        self.assertEqual(self.view.output.transcript.control.messages[-1].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[0].status, "completed")
         self.view.apply_snapshot(previous)
-        self.assertEqual(self.view.transcript.control.messages[-1].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[-1].phase, "interrupting")
         active = replace(self.base, run=replace(self.base.run, id="new-run"),
                          messages=(replace(self.base.messages[1], id="new-answer"),))
         self.view.apply_snapshot(active)
         self.view.preparing.finish(("p", "s"))
         self.assertEqual(self.view.interrupting.pending[("p", "s")].run_id, "new-run")
-        self.assertEqual(self.view.transcript.control.messages[-1].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[-1].phase, "interrupting")
         # A torn observation of runtime/metadata is not a completed cancellation.
         self.view.apply_snapshot(replace(active, run=replace(active.run, active=False)))
-        self.assertEqual(self.view.transcript.control.messages[-1].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[-1].phase, "interrupting")
         self.calls[0][2].set_result(True)
         await asyncio.sleep(0)
         self.view.apply_snapshot(replace(active, run=replace(active.run, status="interrupted", active=False),
@@ -179,21 +179,21 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.view.apply_snapshot(empty)
         self.view.preparing.start(("p", "s"))
         self.controller.interrupt("s")
-        self.assertEqual(self.view.transcript.control.messages[-1].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[-1].phase, "interrupting")
         self.view.apply_snapshot(empty)
-        self.assertEqual(self.view.transcript.control.messages[-1].phase, "interrupting")
+        self.assertEqual(self.view.output.transcript.control.messages[-1].phase, "interrupting")
         self.calls[-1][2].set_result(False)
         await asyncio.sleep(0)
         self.assertFalse(self.view.interrupting.pending)
-        self.assertEqual(self.view.transcript.control.messages[-1].status, "preparing")
-        self.assertEqual(self.view.transcript.control.messages[-1].phase, "")
+        self.assertEqual(self.view.output.transcript.control.messages[-1].status, "preparing")
+        self.assertEqual(self.view.output.transcript.control.messages[-1].phase, "")
         self.controller.interrupt("s")
         self.view.apply_snapshot(replace(empty,
             run=replace(self.base.run, status="interrupted", active=False)))
         self.assertFalse(self.view.interrupting.pending)
 
     def test_header_only_change_reuses_body_and_thought_rendering(self):
-        control = self.view.transcript.control
+        control = self.view.output.transcript.control
         control.create_content(100, 20)
         cache = control._message_cache
         body = cache.items["a"]["body"]
@@ -207,7 +207,7 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
 
 
 class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
-    async def test_ish_single_ctrl_x_renders_stopping_during_preparation(self):
+    async def test_ish_single_ctrl_w_renders_stopping_during_preparation(self):
         from hub.hub import install
         from tests.hub.test_ish_integration import Prompt
 
@@ -235,7 +235,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     view.preparing.start(("p", "s"))
                 await until(lambda: "준비 중" in drawn())
-                pipe.send_bytes(b"\x18")
+                pipe.send_bytes(b"\x17")
                 await until(lambda: "중단 중" in drawn())
                 self.assertFalse(future.done())
                 self.assertIn("Previous response", drawn())
@@ -247,7 +247,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 installation.close()
 
-    async def test_ctrl_x_renders_stopping_before_backend_returns(self):
+    async def test_ctrl_w_renders_stopping_before_backend_returns(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             app, controller = create_application(HubConfig(directory, auto_title=False),
                 input=pipe, output=SizedOutput(columns=110, rows=32))
@@ -273,7 +273,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
                     gate.wait(5)
                 view.render_worker.request("popup", slow_render, lambda _: None, lambda _: None)
                 await until(entered.is_set)
-                pipe.send_bytes(b"\x18\x18")
+                pipe.send_bytes(b"\x17\x17")
                 await until(lambda: "중단 중" in drawn())
                 self.assertFalse(future.done())
                 self.assertIn("Partial response", drawn())

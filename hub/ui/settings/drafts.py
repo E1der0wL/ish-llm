@@ -19,11 +19,6 @@ class SettingsDrafts:
         self.saved_sidebar_width = None
 
     def select_project(self, identifier):
-        if identifier != self.current_project_id:
-            for page in self.pages.values():
-                if page.query:
-                    page.filter("")
-            self.screen.status = ""
         self.current_project_id = identifier
 
     def active_pages(self):

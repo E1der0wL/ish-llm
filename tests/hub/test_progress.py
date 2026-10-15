@@ -75,7 +75,7 @@ class ProgressTests(unittest.IsolatedAsyncioTestCase):
         view.settings.request = lambda operation, args, done: callbacks.append(done)
         with set_app(self.app):
             other = view.progress.start("RAG")
-        self.pipe.send_text("\x13")
+        self.pipe.send_text('\x10\r')
         await eventually(lambda: view.settings.busy)
         self.assertEqual(view.settings.status, "")
         self.assertEqual(len(view.progress.progress.tasks), 2)

@@ -9,7 +9,9 @@ if TYPE_CHECKING:
 
 def create_backend(config: "HubConfig"):
     # Heavy imports and construction happen on the backend thread, not in .ishrc.
-    from llm.llm import LargeLanguageModel, BackendServices
+    from llm.llm import LargeLanguageModel, BackendServices, ProviderDiagnostics
+    from ..config.preferences import PreferencesStore
+    from ..config.general import GeneralSettings
     from llm.services.runtime.tools import ToolRuntime
     from .execution.retries import HubLoopEngine, RetryMonitor, RetryObservationMixin
     from llm.engines.graph import GraphEngine
@@ -27,6 +29,9 @@ def create_backend(config: "HubConfig"):
     from .execution.context import HubContextBuilder
     from .tools.advice import classify_model_risk
     monitor = RetryMonitor()
+    general = GeneralSettings(**PreferencesStore(config._workspace_anchor or config.workspace).load().get("general", {}))
+    diagnostics = ProviderDiagnostics(error_details=general.provider_error_details,
+        request_summary=general.provider_request_summary, max_detail_chars=general.provider_max_detail_chars)
     factories = {"loop": HubLoopEngine, **(config.engine_factories or {})}
     if config.engine not in factories and config.engine != "graph":
         raise ValueError("Register the selected engine in HubConfig.engine_factories")
@@ -60,6 +65,7 @@ def create_backend(config: "HubConfig"):
                for name, engine in engines.items()}
     return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
                               services=BackendServices(context_builder=HubContextBuilder(), observability_sink=monitor,
+                                  provider_diagnostics=diagnostics,
                                   tool_runtime=ToolRuntime(
                                       classify=config.tool_classifier if config.tool_classifier is not None else classify_model_risk,
                                       revision="hub-model-risk-tool-retry-v2", decide_retry=selector,

@@ -79,7 +79,7 @@ class StatusLogsNavigationTests(unittest.IsolatedAsyncioTestCase):
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: app.is_running)
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 await eventually(lambda: view.settings_open and view.settings.page is not None)
                 with set_app(app):
                     view.settings.choose("profile")
@@ -101,7 +101,7 @@ class StatusLogsNavigationTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()
 
     async def test_real_provider_diagnostic_appears_with_project_activity(self):
@@ -151,5 +151,5 @@ class StatusLogsNavigationTests(unittest.IsolatedAsyncioTestCase):
                 view.toasts.reconcile_waiting("p", (SessionSummary("s", "Session title", "running"),))
                 self.assertFalse(view.toasts.items)
         finally:
-            view.output_renderers.close()
+            view.close()
             view.progress.close()

@@ -29,22 +29,22 @@ class CharacterStreamTests(unittest.IsolatedAsyncioTestCase):
                         base = HubSnapshot("p", "P", "model", "file", (SessionSummary("s", "S", "idle"),),
                             "s", (ChatMessage("user", "request", id="request"), answer))
                         view.apply_snapshot(base)
-                        view.transcript.set_messages(view.sessions[0].messages)
+                        view.output.transcript.set_messages(view.sessions[0].messages)
                         pending = view.deleting.start(("p", "s"), 1)
                         view.apply_snapshot(base)
-                        self.assertFalse(view.transcript.control.messages)
+                        self.assertFalse(view.output.transcript.control.messages)
                         view.deleting.finish(pending)
-                        stream = view.transcript.control.character_stream
+                        stream = view.output.transcript.control.character_stream
                         self.assertFalse(stream.pending)
-                        self.assertEqual(stream.project(view.transcript.control.messages)[-1].text, answer.text)
+                        self.assertEqual(stream.project(view.output.transcript.control.messages)[-1].text, answer.text)
                         if status == "streaming":
                             view.apply_snapshot(replace(base, messages=(base.messages[0], replace(answer, text=answer.text + " new"))))
                             self.assertTrue(stream.pending)
-                            self.assertEqual(stream.project(view.transcript.control.messages)[-1].text, answer.text)
+                            self.assertEqual(stream.project(view.output.transcript.control.messages)[-1].text, answer.text)
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()
 
     def test_reveal_survives_completion_and_resets_on_history_switch_or_interrupt(self):
@@ -73,7 +73,7 @@ class CharacterStreamTests(unittest.IsolatedAsyncioTestCase):
                 key_bindings=view.navigation_keys, input=pipe, output=SizedOutput(), full_screen=True)
             seen = []
             def rendered(_):
-                count = view.transcript.control.character_stream.shown
+                count = view.output.transcript.control.character_stream.shown
                 if not seen or seen[-1] != count:
                     seen.append(count)
             app.after_render += rendered
@@ -91,14 +91,14 @@ class CharacterStreamTests(unittest.IsolatedAsyncioTestCase):
                     view.apply_snapshot(replace(base, messages=(replace(base.messages[0], text=text),)))
                 pipe.send_text('draft')
                 await eventually(lambda: view.composer.text == 'draft')
-                self.assertEqual(view.transcript.control.messages[-1].text, text)
+                self.assertEqual(view.output.transcript.control.messages[-1].text, text)
                 with set_app(app):
                     view.apply_snapshot(replace(base, messages=(replace(base.messages[0], text=text, status='completed'),)))
-                await eventually(lambda: not view.transcript.control.character_stream.pending)
+                await eventually(lambda: not view.output.transcript.control.character_stream.pending)
                 await asyncio.sleep(.03)
                 self.assertEqual([n for n in seen if n], list(range(1, len(text) + 1)))
             finally:
                 app.exit()
                 await task
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()

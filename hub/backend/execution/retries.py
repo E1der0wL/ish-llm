@@ -3,10 +3,13 @@
 from contextlib import aclosing
 from contextvars import ContextVar
 from dataclasses import dataclass, replace
+import math
 from time import monotonic
 
 from llm.engines.loop import LoopEngine
 from llm.engines.base import EngineEventType
+from llm.core.contracts import Diagnostic
+from llm.providers.runtime import diagnostic_scope
 from ...model import RetrySummary
 
 
@@ -16,6 +19,7 @@ class CompletionWatch:
     policy: dict
     attempt: int = 0
     completion_id: str = ""
+    call_id: str = ""
 
 
 @dataclass(slots=True)
@@ -79,14 +83,22 @@ class RetryMonitor:
                 self.set(key, previous.run_id, replace(previous.summary,
                     attempt=previous.summary.attempt + 1, retry_at=None, phase="active"))
             return
-        # This fact is emitted only AFTER the backend checks partial output,
-        # error eligibility, attempts, SDK delegation and the wall deadline.
+
+    def observe_provider(self, event: Diagnostic) -> None:
+        """The provider owns Retry-After/jitter/deadlines; project its chosen delay."""
         watch = self.call.get()
-        if watch is None or event.get("kind") != "providers" or event.get("status") != "retries" or event.get("name") != "completion":
+        if watch is None or event.code != "provider_retry":
             return
-        delay = watch.policy.get("delay_seconds", 0) * 2 ** max(0, watch.attempt - 1)
-        delay = min(delay, watch.policy.get("max_delay_seconds", delay))
-        self.set(id(watch), watch.run_id, RetrySummary(watch.attempt,
+        details = event.details
+        if details.get("operation") != "completion" or details.get("run_id", watch.run_id) != watch.run_id:
+            return
+        delay, attempt, call_id = details.get("delay_seconds"), details.get("attempt"), details.get("call_id")
+        if (type(delay) not in (int, float) or not math.isfinite(delay) or delay < 0
+                or type(attempt) is not int or attempt != watch.attempt + 1
+                or not isinstance(call_id, str) or not call_id or watch.call_id not in ("", call_id)):
+            return
+        watch.call_id = call_id
+        self.set(id(watch), watch.run_id, RetrySummary(attempt - 1,
             watch.policy.get("max_attempts", 1), monotonic() + delay))
 
     def view(self, run_id: str) -> RetrySummary | None:
@@ -132,7 +144,10 @@ class RetryObservationMixin:
                 while True:
                     token = monitor.call.set(watch)
                     try:
-                        event = await anext(events)
+                        # Scope the observer to iteration, including callbacks after
+                        # the Session worker has started. Never leak across yields.
+                        with diagnostic_scope(monitor.observe_provider):
+                            event = await anext(events)
                     except StopAsyncIteration:
                         break
                     finally:

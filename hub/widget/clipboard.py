@@ -7,6 +7,28 @@ import shutil
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.clipboard import Clipboard, ClipboardData, InMemoryClipboard
+from prompt_toolkit.output.vt100 import Vt100_Output
+
+
+def terminal_clipboard_supported(app):
+    """Only use OSC 52 on a real terminal with an identified write capability.
+
+    Generic xterm/VM consoles and shell output proxies can print unsupported OSC
+    payloads literally. HUB_OSC52=1 is an explicit override for a verified host.
+    """
+    if not isinstance(app.output, Vt100_Output):
+        return False
+    stream = app.output.stdout
+    if not getattr(stream, "isatty", lambda: False)():
+        return False
+    override = os.environ.get("HUB_OSC52")
+    if override is not None:
+        return override == "1"
+    # Multiplexers need their own verified passthrough configuration.
+    if os.environ.get("TMUX") or os.environ.get("STY"):
+        return False
+    return (os.environ.get("TERM_PROGRAM", "").lower() in {"wezterm", "iterm.app", "kitty", "foot"}
+            or os.environ.get("TERM", "") in {"xterm-kitty", "foot", "foot-extra"})
 
 
 def commands(read=False):
@@ -55,9 +77,12 @@ async def system_clipboard(text=None):
 async def export_text(app, text):
     if await system_clipboard(text):
         return "clipboard_copied"
-    # VM/SSH terminals can forward OSC 52 writes to their host clipboard.
-    # Do not query OSC 52: unsupported terminals may never answer.
-    sequence = "\x1b]52;c;" + base64.b64encode(text.encode()).decode("ascii") + "\x07"
+    payload = base64.b64encode(text.encode()).decode("ascii")
+    # Bound the entire sequence: some terminals print the remainder of an
+    # oversized control string as text. Always retain the full internal register.
+    if not terminal_clipboard_supported(app) or len(payload) > 7000:
+        return "clipboard_internal"
+    sequence = "\x1b]52;c;" + payload + "\x07"
     if os.environ.get("TMUX"):
         sequence = "\x1bPtmux;" + sequence.replace("\x1b", "\x1b\x1b") + "\x1b\\"
     app.output.write_raw(sequence)

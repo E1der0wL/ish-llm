@@ -22,7 +22,7 @@ from hub.ui.application import create_application
 from hub.ui.presentation import present
 from llm.core.interactions import InteractionRequest, InteractionOption
 from llm.engines.loop import LoopEngine
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import auxiliary, SizedOutput, eventually
 from tests.hub.test_live import until
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
@@ -135,15 +135,15 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.question.item is not None)
                 await until(lambda: any(item.status == "waiting_input" for item in view.toasts.items))
                 self.assertIn(view.t.status("waiting_input"), view.sessions[view.selected].status)
-                self.assertEqual(view.activity, view.t.status("waiting_input") + " · " + view.question.item["request"]["title"])
+                self.assertIn(view.t.status("waiting_input") + " · " + view.question.item["request"]["title"], view.notice)
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertIn("Which output?", view.question.details.text)
                 self.assertIn("1. Markdown", view.question.text())
                 self.assertIn("2. Text", view.question.text())
-                self.assertFalse(any(m.id.startswith("interaction:") for m in view.transcript.control.messages))
+                self.assertFalse(any(m.id.startswith("interaction:") for m in view.output.transcript.control.messages))
                 self.assertIsNone(view._dialog)
                 pipe.send_text("2\r")
-                await until(lambda: view.question.item is None and any(m.text == "Answer received" for m in view.transcript.control.messages))
+                await until(lambda: view.question.item is None and any(m.text == "Answer received" for m in view.output.transcript.control.messages))
                 self.assertIn("Text", str(provider.requests[-1]["messages"]))
                 self.assertIsNone(view._dialog)
                 self.assertEqual(view.composer.text, "")
@@ -231,7 +231,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                     self.assertNotIn('"content": "approved"', view.question.details.text)
                     self.assertIn("1.", view.question.text())
                 finally:
-                    view.output_renderers.close()
+                    view.close()
                     view.progress.close()
                 self.assertIn('"content": "approved"', await runtime.approval_details(item["request"]))
                 await runtime.answer_question(runtime.project.id, sid, item["run_id"], item["request"], "approve", None)
@@ -279,10 +279,11 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view.composer.text.endswith("z"))
                 self.assertTrue(view.visible)
                 self.assertEqual(view.composer.text, "keep thisz")
-                view.transcript.set_messages((ChatMessage("assistant", "```py\nprint(1)\n```", id="m"),))
+                view.output.transcript.set_messages((ChatMessage("assistant", "```py\nprint(1)\n```", id="m"),))
                 app.invalidate()
-                await eventually(lambda: bool(view.transcript.control.objects))
-                pipe.send_text("\x14\r")
+                await eventually(lambda: bool(view.output.transcript.control.objects))
+                await auxiliary(app, pipe, view, 'tags')
+                pipe.send_text('\r')
                 await eventually(lambda: view._dialog is not None and view._dialog.output.window.render_info is not None)
                 info = view._dialog.output.window.render_info
                 # Preview insets Hub by 1 row / 2 columns on each side.
@@ -298,9 +299,9 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(max(p.xpos + p.width for p in allocated) - min(p.xpos for p in allocated), output.columns - 4)
                 pipe.send_text("\x1b")
                 await eventually(lambda: view._dialog is None)
-                self.assertIs(app.layout.current_control, view.tags.control)
+                self.assertIs(app.layout.current_control, view.output.tags.control)
                 pipe.send_text("\x1b")
-                await eventually(lambda: not view.tags.visible)
+                await eventually(lambda: not view.output.tags.visible)
                 self.assertIs(app.layout.current_control, view.composer.control)
             finally:
                 app.exit()
@@ -330,10 +331,10 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
             sessions=(SessionSummary("s", "Session", "running", 0),), selected_id="s",
             messages=(ChatMessage("assistant", "paragraph\n\n" * 70, id="m"),))
         view.apply_snapshot(snapshot)
-        control = view.transcript.control
+        control = view.output.transcript.control
         control.create_content(80, 10)
         # The last paint was at the bottom, then Home arrived before repaint.
-        view.transcript.window.render_info = NS(content_height=len(control._lines), last_visible_line=lambda: len(control._lines) - 1)
+        view.output.transcript.window.render_info = NS(content_height=len(control._lines), last_visible_line=lambda: len(control._lines) - 1)
         control.scroll("home")
         view.apply_snapshot(replace(snapshot, messages=(*snapshot.messages, ChatMessage("assistant", "new", id="n"))))
         control.create_content(80, 10)

@@ -2,7 +2,7 @@
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.data_structures import Point
-from prompt_toolkit.layout import DynamicContainer, HSplit, UIContent, UIControl, Window, ScrollOffsets
+from prompt_toolkit.layout import DynamicContainer, HSplit, UIContent, Window, ScrollOffsets
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.utils import get_cwidth
 from prompt_toolkit.mouse_events import MouseEventType, MouseButton
@@ -177,7 +177,7 @@ class TableInspector(ExpandedOutputDialog):
     async def copy_cell(self):
         if self.table.data and self.table.order:
             value = self.table.data.rows[self.table.order[self.table.row]][self.table.column]
-            self.notice = self.t(await copy_text(value))
+            await copy_text(value)
             get_app().invalidate()
 
     def move(self, key):

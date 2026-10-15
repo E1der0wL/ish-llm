@@ -1,27 +1,21 @@
 """Explain evidence from the same failed Run; never execute or retry work."""
 
-import asyncio
 from collections import OrderedDict
-from datetime import datetime
 
 from ...model import FailureDiagnosis
-from .provider_logs import read_provider_logs
 
 
-def diagnose(code, records):
+def diagnose(code: str, *, details: dict | None = None) -> FailureDiagnosis:
     """Use structured codes/status/types, not guesses from arbitrary log text."""
-    exceptions = []
-    for row in records:
-        details = row.get("details", {}).get("details", {})
-        if isinstance(details, dict):
-            chain = [item for item in details.get("exceptions", ()) if isinstance(item, dict)]
-            if chain:
-                exceptions = chain
+    details = details or {}
+    exceptions = [item for item in details.get("exceptions", ()) if isinstance(item, dict)]
     # The final attempt is more relevant than earlier errors that were retried.
     latest = exceptions[-1] if exceptions else {}
     status = next((item["status_code"] for item in reversed(exceptions) if isinstance(item.get("status_code"), int)), None)
     status = status if isinstance(status, int) else None
     exception = str(latest.get("type", "")).split(".")[-1]
+    finish_reason = details.get("finish_reason")
+    finish_reason = finish_reason if isinstance(finish_reason, str) else ""
     kind = {
         "provider_rate_limit": "rate_limit", "provider_unavailable": "unavailable",
         "provider_authentication": "authentication", "provider_authentication_error": "authentication",
@@ -30,7 +24,18 @@ def diagnose(code, records):
         "provider_bad_request": "request",
         "provider_invalid_request": "request", "provider_connection": "connection",
         "provider_empty_response": "empty", "provider_invalid_response": "empty",
+        "completion_invalid_response": "completion_invalid",
+        "completion_incomplete": {"length": "completion_length", "content_filter": "completion_filtered"}.get(
+            finish_reason, "completion_incomplete"),
+        "completion_output_limit": "completion_output_limit",
+        "completion_tool_limit": "completion_tool_limit",
+        "completion_argument_limit": "completion_argument_limit",
+        "step_timeout": "step_timeout",
     }.get(code, "unknown")
+    # Engine validation/deadlines retain their own meaning, even if an older
+    # provider exception exists in the exception chain.
+    if code.startswith("completion_") or code == "step_timeout":
+        return FailureDiagnosis(kind, code, status, exception, finish_reason)
     if status in (401, 403):
         kind = "authentication" if status == 401 else "permission"
     elif status == 429:
@@ -49,7 +54,31 @@ def diagnose(code, records):
         kind = "file_missing"
     elif exception == "PermissionError":
         kind = "permission"
-    return FailureDiagnosis(kind, code, status, exception)
+    return FailureDiagnosis(kind, code, status, exception, finish_reason)
+
+
+def _step_evidence(steps, code, project_id, session_id, run_id):
+    """Read the owning failed Step; never select an earlier recovered failure."""
+    generic = ("", "engine_failed", "step_failed", "execution_failed")
+    matching = [step for step in steps if code not in generic and str(step.status) == "failed"
+                and step.diagnostic is not None and step.diagnostic.code == code]
+    # A Graph parent may fail after a child completed or a sibling was cancelled.
+    final = max(matching or steps, key=lambda step: step.ended_at or step.started_at or step.created_at, default=None)
+    if final is None or str(final.status) != "failed":
+        return None
+    diagnostic = final.diagnostic
+    if diagnostic is None:
+        return None
+    details = diagnostic.details
+    source = diagnostic.source
+    for key, expected in (("project_id", project_id), ("session_id", session_id),
+                          ("run_id", run_id), ("step_id", final.id)):
+        if (details.get(key, expected) != expected or
+                source is not None and getattr(source, key) not in (None, expected)):
+            return None
+    if code not in generic and diagnostic.code != code:
+        return None
+    return diagnose(diagnostic.code if diagnostic.code not in generic else code, details=details)
 
 
 class FailureDiagnostics:
@@ -62,9 +91,6 @@ class FailureDiagnostics:
         session = await project.sessions.aload(session_id)
         missing = [rid for rid in dict.fromkeys(run_ids) if (project_id, session_id, rid) not in self.cache][:64]
         if missing:
-            workspace = getattr(self.runtime.backend, "workspace", self.runtime.config.workspace)
-            provider = await asyncio.to_thread(read_provider_logs, workspace, project_id)
-            activity = [row.to_dict() for row in await project.aactivity(limit=300, newest_first=False)]
             for rid in missing:
                 try:
                     handle = await session.run.aload(rid)
@@ -73,31 +99,13 @@ class FailureDiagnostics:
                     continue
                 if str(run.status) != "failed":
                     continue
-                def same_run(row):
-                    source = row.get("source", {})
-                    return source.get("session_id") == session_id and source.get("run_id") == rid
-                records = [row for row in provider if row.get("scope") == "project" and same_run(row)]
-                codes = [row.get("code") for row in activity if same_run(row) and row.get("code")]
-                code = str(run.error_code or (codes[-1] if codes else ""))
-                if code == "engine_failed" and records:
-                    # Some providers raise an uncoded SDK exception. Only use
-                    # its log if the final failed operation was that model call.
+                code = str(run.error_code or "")
+                try:
                     steps = await handle.steps.alist()
-                    final = max(steps, key=lambda step: step.started_at or step.created_at, default=None)
-                    if final is not None and final.kind == "llm" and str(final.status) == "failed" and final.started_at:
-                        started = datetime.fromisoformat(final.started_at).timestamp()
-                        def in_step(row):
-                            try:
-                                logged = datetime.strptime(row["time"], "%Y-%m-%d %H:%M:%S,%f").timestamp()
-                                return logged >= started - .001
-                            except (ValueError, KeyError):
-                                return False
-                        records = [row for row in records if in_step(row)]
-                        if records:
-                            code = records[-1]["code"]
-                # A provider error earlier in this Run may have recovered before
-                # an unrelated Tool failure. Do not attribute that old error to it.
-                self.cache[project_id, session_id, rid] = diagnose(code, records if code.startswith("provider_") else ())
+                except FileNotFoundError:
+                    steps = []
+                diagnosis = _step_evidence(steps, code, project_id, session_id, rid) or diagnose(code)
+                self.cache[project_id, session_id, rid] = diagnosis
                 while len(self.cache) > 256:
                     self.cache.popitem(last=False)
         return {rid: self.cache[project_id, session_id, rid] for rid in run_ids

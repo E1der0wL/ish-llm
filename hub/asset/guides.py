@@ -17,14 +17,14 @@ class StarterSkill:
 
 
 SYSTEM_PROMPT = Path(__file__).with_name("prompts").joinpath("system.md").read_text(encoding="utf-8")
-TEMPLATE_VERSION = 3
+TEMPLATE_VERSION = 4
 STARTER_SKILLS = (
-    StarterSkill("hub-code-change", "코드 수정", "기존 코드의 동작과 경계를 확인하고 필요한 변경을 검증합니다.", "coding.md"),
-    StarterSkill("hub-diagnose", "오류 진단", "오류를 재현하고 근거를 모아 원인과 해결책을 구분합니다.", "diagnose.md"),
-    StarterSkill("hub-document", "문서 작성", "독자와 목적에 맞는 문서를 근거에 따라 작성하고 검토합니다.", "document.md"),
-    StarterSkill("hub-create-rag", "RAG 자료 생성", "자료를 읽고 검색 가능한 RAG 문서로 등록합니다.", "create-rag.md"),
-    StarterSkill("hub-create-workflow", "Workflow 생성", "검증 가능한 그래프 실행 흐름을 작성합니다.", "create-workflow.md"),
-    StarterSkill("hub-create-skill", "Skill 생성", "재사용할 작업 지침을 작성하고 저장합니다.", "create-skill.md"),
-    StarterSkill("hub-create-agent", "Agent 생성", "업무 범위와 도구가 명확한 Agent를 작성합니다.", "create-agent.md"),
+    StarterSkill("hub-code-change", "Code changes", "Inspect existing behavior and boundaries, then verify the necessary changes.", "coding.md"),
+    StarterSkill("hub-diagnose", "Error diagnosis", "Reproduce errors and gather evidence to identify causes and fixes.", "diagnose.md"),
+    StarterSkill("hub-document", "Document writing", "Write and review evidence-based documentation for its audience and purpose.", "document.md"),
+    StarterSkill("hub-create-rag", "Create RAG documents", "Read source material and register searchable RAG documents.", "create-rag.md"),
+    StarterSkill("hub-create-workflow", "Create workflows", "Define and validate graph execution workflows.", "create-workflow.md"),
+    StarterSkill("hub-create-skill", "Create skills", "Write and save reusable task instructions.", "create-skill.md"),
+    StarterSkill("hub-create-agent", "Create agents", "Define agents with clear responsibilities and tool access.", "create-agent.md"),
 )
 SKILLS = tuple(skill.load() for skill in STARTER_SKILLS)

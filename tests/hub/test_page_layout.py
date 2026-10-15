@@ -40,13 +40,13 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.wait_for(rendered.wait(), 3)
 
             try:
-                await until(lambda: view.connected)
+                await until(lambda: view.connected and not view.projects.busy)
                 view.composer.text = "preserved draft"
                 self.assertIsInstance(view.chat_page, TwoPanelPage)
                 self.assertIsInstance(screen.layout, TwoPanelPage)
                 for settings in (False, True):
                     if settings:
-                        pipe.send_text("\x13")
+                        pipe.send_text('\x10\r')
                         await until(lambda: screen.page is not None and not screen.busy)
                     for key in ("\x1b[C", " ", "\r"):
                         pipe.send_text("\x1b")
@@ -89,7 +89,7 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                     screen.layout.focus_main()
                 self.assertEqual(set(screen.page.form.fields), {(key,) for key in
                     ("background", "foreground", "accent1", "accent2", "accent3", "comment", "sidebar_width", "icon_style",
-                     "output_refresh_interval", "progress_refresh_interval")})
+                     "output_refresh_interval", "progress_refresh_interval", "mode")})
                 screen.page.form.fields[("accent1",)].input.text = "invalid"
                 settings_button(app, pipe, view)
                 await until(lambda: "accent1" in screen.status)

@@ -61,7 +61,7 @@ class ToolHistoryTests(unittest.TestCase):
         snapshot = HubSnapshot("p", "Project", "model", "file", (SessionSummary("s", "Session", "running"),), "s",
             (ChatMessage("assistant", "Previous answer", status="streaming", phase=phase),),
             run=RunSummary("r", "running", "loop", 0, True, (), ""))
-        self.assertEqual(present(snapshot, Language()).activity, Language().status("resuming"))
+        self.assertEqual(present(snapshot, Language()).messages[-1].phase, "resuming")
 
 
 @unittest.skipUnless(shutil.which("bwrap"), "Bubblewrap required for real sandbox execution")

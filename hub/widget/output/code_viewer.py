@@ -22,5 +22,5 @@ class CodeViewer(OutputInspector):
         return "".join(token.content for token in tokens if token.type in ("fence", "code_block"))
 
     async def copy_code(self):
-        self.notice = self.t(await copy_text(await asyncio.to_thread(self.code_text)))
+        await copy_text(await asyncio.to_thread(self.code_text))
         get_app().invalidate()

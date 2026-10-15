@@ -133,23 +133,31 @@ class Button(PTKButton):
         self.control.key_bindings = merge_key_bindings([self.control.key_bindings, registry.bindings])
 
 
+def _bind_choices(widget, *, on_move=None):
+    _arrows(widget.window)
+    hover_style(widget.window)
+    widget.control.hub_role = "choices"
+    native = widget.control.key_bindings
+    registry = ShortcutRegistry()
+    def invoke(event):
+        keys = tuple(item.key for item in event.key_sequence)
+        for binding in reversed(native.get_bindings_for_keys(keys)):
+            if binding.filter():
+                result = binding.handler(event)
+                # Enter/Space and mouse clicks notify through _handle_enter.
+                if on_move and keys[-1] in ("up", "down"):
+                    on_move()
+                return result
+    registry.add(["up", "down"], "↑↓", "select", invoke)
+    registry.add(["enter", " "], "Enter/Space", "confirm", invoke)
+    widget.control.hub_shortcuts = registry
+    widget.control.key_bindings = merge_key_bindings([native, registry.bindings])
+
+
 class RadioList(PTKRadioList):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        _arrows(self.window)
-        hover_style(self.window)
-        self.control.hub_role = "choices"
-        native = self.control.key_bindings
-        registry = ShortcutRegistry()
-        def invoke(event):
-            bindings = native.get_bindings_for_keys(tuple(item.key for item in event.key_sequence))
-            for binding in reversed(bindings):
-                if binding.filter():
-                    return binding.handler(event)
-        registry.add(["up", "down"], "↑↓", "select", invoke)
-        registry.add(["enter", " "], "Enter/Space", "confirm", invoke)
-        self.control.hub_shortcuts = registry
-        self.control.key_bindings = merge_key_bindings([native, registry.bindings])
+        _bind_choices(self)
 
 
 class CheckboxList(PTKCheckboxList):
@@ -158,21 +166,7 @@ class CheckboxList(PTKCheckboxList):
     def __init__(self, *args, on_select=None, **kwargs):
         self.on_select = on_select
         super().__init__(*args, **kwargs)
-        _arrows(self.window)
-        hover_style(self.window)
-        self.control.hub_role = "choices"
-        native = self.control.key_bindings
-        registry = ShortcutRegistry()
-        def invoke(event):
-            for binding in reversed(native.get_bindings_for_keys(tuple(item.key for item in event.key_sequence))):
-                if binding.filter():
-                    binding.handler(event)
-                    self.notify()
-                    return
-        registry.add(["up", "down"], "↑↓", "select", invoke)
-        registry.add(["enter", " "], "Enter/Space", "confirm", invoke)
-        self.control.hub_shortcuts = registry
-        self.control.key_bindings = merge_key_bindings([native, registry.bindings])
+        _bind_choices(self, on_move=self.notify)
 
     @property
     def highlighted(self):
@@ -192,3 +186,16 @@ class TextArea(PTKTextArea):
         super().__init__(*args, **kwargs)
         _arrows(self.window)
         hover_style(self.window)
+        self.control.hub_editable = True
+        native_mouse = self.control.mouse_handler
+        def mouse(event):
+            result = native_mouse(event)
+            if self.buffer.selection_state and not self.buffer.read_only():
+                self.buffer.selection_state.enter_shift_mode()
+            return result
+        self.control.mouse_handler = mouse
+
+    def insert_text(self, text):
+        if self.buffer.selection_state:
+            self.buffer.cut_selection()
+        self.buffer.insert_text(text)

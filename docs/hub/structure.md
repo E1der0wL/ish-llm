@@ -1,5 +1,21 @@
 # Hub 구조와 정리 내역
 
+## 미사용 경로와 중복 처리 정리 (2026-10-16)
+
+폐기된 입력 상태줄의 projection·표시 속성과 HistoryUI의 중복 팝업 참조를 제거했습니다.
+일반/보조 버튼 탐색과 RadioList/CheckboxList의 키 연결을 공통화했고 언어 팩의 중복 정의를
+정리했습니다. 현재 프로젝트 조작은 `ui/chat/projects.py`가 담당하며, 설정에는 탐색·초안·
+JSON 편집만 남습니다. 그래프 실행과 공개 출력 확장 계약은 유지합니다.
+[검토 범위와 유지한 코드](maintenance.md#미사용-경로-정리-2026-10-16).
+
+## 엔진 출력 소유권 (2026-10-16)
+
+`widget/output/engine.py`는 모든 홈 출력이 상속하는 공통 레이아웃·태그 바,
+`widget/output/loop.py`는 대화 본문과 출력 객체를 공급하는 기본 Loop 출력을 정의합니다.
+태그 바는 공통 출력 클래스의 자식이며 홈 전체의 별도 열로 렌더링하지 않습니다.
+홈 공통 레이아웃은 출력 슬롯·입력창·패널을 조립합니다. 구체적인 출력 위젯의 컨트롤이나
+태그 바 상태를 참조하지 않습니다. [확장 방법](maintenance.md#엔진별-출력-영역).
+
 ## 패널 UX 보강 (2026-10-15)
 
 프로젝트 탐색과 CRUD는 `ui/chat/projects.py`로 이동했습니다. 설정의 navigation/drafts는
@@ -14,7 +30,7 @@
 
 - `ui/requests.py`: Future 결과, 승인 접수, 진행률의 UI 루프 전달.
 - `ui/settings/navigation.py`, `drafts.py`, `project_actions.py`: 탐색/편집, 초안/저장, 프로젝트 작업.
-- `components.py`: 관리 가능한 컴포넌트의 이름·별칭·관리 계약.
+- `components.py`: 관리 가능한 컴포넌트의 정식 이름·모델 도구 접두사·관리 계약.
 - `backend/bootstrap.py`: 백엔드 생성과 어댑터 구성. Runtime의 공개 생성 진입점은 유지합니다.
 - `ui/host.py`: 설정과 관리 팝업이 함께 쓰는 에디터·파일 탐색기 연동.
 - `asset/prompts/`, `asset/skills/`: 기본 지침 본문. `asset/guides.py`는 목록과 로딩만 담당합니다.
@@ -83,8 +99,8 @@ SnapshotInbox는 여러 backend publish를 최신 한 개로 합치고 UI callba
 
 ## 함수와 import 경계
 
-- `review_lines/review_summary/review_text/risk_label/approval_preset`, risk advice 변환,
-  `split_followup`, component command parsing/`execute_data`, 경로 변환은 상태·수명이 없어
+- `review_lines/review_text/risk_label/approval_preset`, risk advice 변환,
+  `split_followup`, component command parsing, 경로 변환은 상태·수명이 없어
   함수로 유지합니다. 새 Manager/registry/event bus/DI 기반 계층을 만들지 않습니다.
 - 새로운 알림/Tool/mailbox 객체는 HubRuntime이나 LiveController concrete type을 import하거나
   back-reference로 받지 않습니다. 기존 SettingsService/SessionNamer의 조정 연결은 유지합니다.
@@ -194,10 +210,11 @@ UI는 마지막 저장값이 아니라 이번 시작 때 적용한 값과 비교
 `~/.ish/llm-provider-logs` fallback을 사용합니다. 이 전역 폴더는 프로젝트를
 구별할 수 없는 다른 실행의 기록도 포함할 수 있어 Hub가 임의로 합치지 않습니다.
 
-Hub의 진단 파일 조회는 `backend/observability/provider_logs.py` 한 곳에서 두 workspace 경로를
-읽습니다. `HubRuntime.project_activity()`는 실제 backend workspace를 사용하며,
-프로젝트 활동과 진단을 Run ID로 연결합니다. Ctrl+L은 활동·프로바이더 진단을
-표시하며 모든 도메인의 `service.log`를 재귀적으로 합치는 파일 뷰어는 아닙니다.
+오류 안내는 `backend/observability/failures.py`에서 실패 Step의 저장된 진단을 먼저 읽습니다.
+유효한 Step 진단이 없으면 Run 오류 코드만 사용하고, 로그로 진단을 보완하지 않습니다.
+로그 창의 `HubRuntime.project_activity()`는 실제 backend workspace를 사용하며,
+프로젝트 활동과 진단을 Run ID로 연결하고 Step/call ID를 유지합니다. 보조 버튼의 로그는
+활동·프로바이더 진단을 표시하며 모든 도메인의 `service.log`를 재귀적으로 합치는 파일 뷰어는 아닙니다.
 물리적 로그 위치를 바꾸려면 llm의 저장 계약 변경이 필요하므로 이번 정리에서는
 llm 로그 파일 이동이나 저장 계약 변경을 하지 않았습니다.
 

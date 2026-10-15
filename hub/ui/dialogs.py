@@ -43,22 +43,21 @@ class DialogController:
         dialog.on_cancel = on_cancel
         self.show(dialog, focus or buttons[0])
 
-    def close(self, *, accepted=False):
+    def close(self, *, accepted=False, restore_focus=True):
         app, focus = get_app(), self.previous_focus
         on_close = getattr(self.current, "on_close", None)
         if on_close is not None:
             on_close()
             return
         on_cancel = getattr(self.current, "on_cancel", None)
-        if self.view.search.active:
-            self.view.transcript.control.set_search("")
         self._cancel_reader()
         self.current = None
         self.previous_focus = None
-        if focus in list(app.layout.find_all_controls()):
-            app.layout.focus(focus)
-        else:
-            self.view.active_page.focus_main()
+        if restore_focus:
+            if focus in list(app.layout.find_all_controls()):
+                app.layout.focus(focus)
+            else:
+                self.view.active_page.focus_main()
         app.invalidate()
         if on_cancel and not accepted:
             on_cancel()

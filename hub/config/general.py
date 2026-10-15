@@ -18,6 +18,9 @@ class GeneralSettings:
     restore_last_session: bool = field(default=True, metadata={"requires_restart": True})
     auto_scroll: bool = True
     workspace_root: str = field(default="", metadata={"requires_restart": True})
+    provider_error_details: bool = field(default=False, metadata={"requires_restart": True})
+    provider_request_summary: bool = field(default=False, metadata={"requires_restart": True})
+    provider_max_detail_chars: int = field(default=2000, metadata={"requires_restart": True})
 
     def __post_init__(self):
         from .workspace import workspace_path
@@ -35,9 +38,12 @@ class GeneralSettings:
         if (type(self.notification_seconds) not in (int, float) or not math.isfinite(self.notification_seconds) or
                 not 1 <= self.notification_seconds <= 120):
             raise ValueError("notification_seconds must be between 1 and 120")
-        for key in ("restore_last_project", "restore_last_session", "auto_scroll"):
+        for key in ("restore_last_project", "restore_last_session", "auto_scroll",
+                    "provider_error_details", "provider_request_summary"):
             if type(getattr(self, key)) is not bool:
                 raise ValueError(f"{key} must be a boolean")
+        if type(self.provider_max_detail_chars) is not int or self.provider_max_detail_chars < 1:
+            raise ValueError("provider_max_detail_chars must be a positive integer")
         if not isinstance(self.editor, str):
             raise ValueError("editor must be a command string")
         if self.editor.strip():

@@ -33,8 +33,10 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("completion", config.parameters["engines"]["loop"])
                 skills = await runtime.project.components.aget("skills")
                 self.assertEqual(set(await skills.alist()), {item[0] for item in SKILLS})
-                for identifier, _, _, instructions in SKILLS:
+                for identifier, title, description, instructions in SKILLS:
                     guide = await skills.aload(identifier)
+                    self.assertEqual(guide["title"], title)
+                    self.assertEqual(guide["description"], description)
                     self.assertEqual(guide["instructions"], instructions)
                     self.assertEqual(guide["metadata"]["hub_template_version"], TEMPLATE_VERSION)
                 record = await runtime.settings_service.load_project(project_id)
@@ -100,11 +102,11 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(installation.controller.config.workspace, Path(directory) / ".ish/hub-workspace")
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(prompt.app)))
             try:
-                await until(lambda: view.connected)
+                await until(lambda: view.connected and not view.projects.busy)
                 self.assertEqual(view.model, "")
                 self.assertTrue(view.no_sessions)
                 self.assertEqual(view.notice, view.t("session_required"))
-                pipe.send_text("\x13")
+                pipe.send_text('\x10\r')
                 await until(lambda: view.settings_open and view.settings.page is not None and not view.settings.busy)
                 view.settings.choose(view.project_id)
                 await until(lambda: getattr(view.settings.page, "identifier", None) == view.project_id)
@@ -126,7 +128,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(set(original.components), COMPONENTS)
                 self.assertEqual((await runtime.snapshot()).engines, ("loop", "graph"))
                 session = runtime.sessions[runtime.selected_id]
-                with self.assertRaisesRegex(ValueError, "parameters.engines.loop.completion.model"):
+                with self.assertRaisesRegex(ValueError, r"parameters\.engines\.loop\.config\.completion\.model"):
                     await runtime.submit(session.id, "preserve draft")
                 self.assertEqual(await session.aconversation(), [])
                 # A pure Graph workflow must execute without any Loop/model configuration.

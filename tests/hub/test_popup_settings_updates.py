@@ -33,7 +33,7 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
             task = asyncio.create_task(app.run_async())
             try:
-                pipe.send_text("\x11\x13")
+                pipe.send_text('\x11\x10\r')
                 await eventually(lambda: view.settings.page is not None)
                 screen = view.settings
                 with set_app(app):
@@ -74,9 +74,9 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected)
+                await until(lambda: view.connected and not view.projects.busy)
                 async def drafts(suffix):
-                    pipe.send_text("\x13")
+                    pipe.send_text('\x10\r')
                     await until(lambda: screen.page is not None and not screen.busy and view.settings_open)
                     with set_app(app):
                         screen.choose("profile")
@@ -107,7 +107,7 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
                     self.assertFalse(any(page.dirty for page in screen.drafts.active_pages()))
                     self.assertEqual(view.theme.sidebar_width, 35)
                     self.assertEqual(PreferencesStore(Path(directory)).load(), saved)
-                    pipe.send_text("\x13")
+                    pipe.send_text('\x10\r')
                     await until(lambda: view.settings_open and not screen.busy
                                 and getattr(screen.page, "identifier", None) == view.project_id)
                     self.assertEqual(screen.page.form.fields[("title",)].input.text, "Project saved")

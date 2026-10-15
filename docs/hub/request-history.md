@@ -1,6 +1,6 @@
 # 요청 목록
 
-Ctrl+G는 `widget/forms/request_history.py`의 `RequestHistoryDialog`를 엽니다.
+보조 버튼의 요청 목록은 `widget/forms/request_history.py`의 `RequestHistoryDialog`를 엽니다.
 목록은 CheckboxList이며 방향키로 살펴보고 Space로 여러 요청을 체크합니다.
 목록 아래의 TextArea에는 현재 살펴보는 사용자 메시지가 표시됩니다. 입력 초안은
 항목별로 유지하며, 편집 버튼은 체크한 단일 항목의 초안으로 다시 실행합니다.

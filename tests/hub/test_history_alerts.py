@@ -1,4 +1,4 @@
-from tests.hub.support import minimize
+from tests.hub.support import auxiliary, minimize
 """Exercise dialogs and shell alerts through real host rendering and backend APIs."""
 
 import asyncio
@@ -38,7 +38,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("hold finish\r")
-                await until(lambda: any(m.status == "streaming" for m in view.transcript.control.messages))
+                await until(lambda: any(m.status == "streaming" for m in view.output.transcript.control.messages))
                 await minimize(pipe, view)
                 await until(lambda: not view.visible)
                 gate.set()
@@ -65,17 +65,17 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("question\r")
-                await until(lambda: any(m.status == "completed" for m in view.transcript.control.messages))
-                pipe.send_text("\x07")
+                await until(lambda: any(m.status == "completed" for m in view.output.transcript.control.messages))
+                await auxiliary(app, pipe, view, 'history')
                 await until(lambda: "1. question" in screen_text(app, 132, 40))
                 pipe.send_text(" d")
                 await until(lambda: "원본 저장 이벤트" in screen_text(app, 132, 40))
                 pipe.send_text("\r")
                 await until(lambda: view.t("history_empty") in screen_text(app, 132, 40))
-                self.assertFalse(any(m.text == "question" for m in view.transcript.control.messages))
+                self.assertFalse(any(m.text == "question" for m in view.output.transcript.control.messages))
                 pipe.send_text("\x1b")
                 await until(lambda: view._dialog is None)
-                pipe.send_text("\x0c")
+                await auxiliary(app, pipe, view, 'logs')
                 await until(lambda: "run.completed" in screen_text(app, 132, 40))
             finally:
                 app.exit()
@@ -87,26 +87,26 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
             prompt = Prompt(input=pipe, output=SizedOutput())
             installation = install_preview(prompt)
             app, view = prompt.app, installation.view
-            view.transcript.control.messages = (ChatMessage("assistant", "\n\n".join(str(i) for i in range(180))),)
+            view.output.transcript.control.messages = (ChatMessage("assistant", "\n\n".join(str(i) for i in range(180))),)
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
             try:
-                await eventually(lambda: app.is_running and view.transcript.window.render_info is not None)
+                await eventually(lambda: app.is_running and view.output.transcript.window.render_info is not None)
                 # Background rendering may initially paint an empty viewport.
-                await eventually(lambda: view.transcript.window.render_info.content_height >
-                                 view.transcript.window.render_info.window_height)
+                await eventually(lambda: view.output.transcript.window.render_info.content_height >
+                                 view.output.transcript.window.render_info.window_height)
                 def thumb_at(bottom):
-                    position = app.renderer._last_screen.visible_windows_to_write_positions[view.transcript.window]
+                    position = app.renderer._last_screen.visible_windows_to_write_positions[view.output.transcript.window]
                     y = position.ypos + position.height - 2 if bottom else position.ypos + 1
                     cell = app.renderer._last_screen.data_buffer[y][position.xpos + position.width - 1]
                     return cell.char == " " and "class:hub.scrollbar-thumb" in cell.style
-                view.transcript.control.scroll("home")
+                view.output.transcript.control.scroll("home")
                 app.invalidate()
                 await eventually(lambda: thumb_at(False))
-                view.transcript.control.scroll("end")
+                view.output.transcript.control.scroll("end")
                 app.invalidate()
                 await eventually(lambda: thumb_at(True))
                 self.assertFalse(thumb_at(False))
-                self.assertGreater(view.transcript.window.vertical_scroll, 0)
+                self.assertGreater(view.output.transcript.window.vertical_scroll, 0)
             finally:
                 app.exit(result="")
                 await task

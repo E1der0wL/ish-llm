@@ -16,7 +16,8 @@ class SidebarHeading(HSplit):
     """Keep section titles and rules identical across pages and focus changes."""
 
     def __init__(self, title):
-        super().__init__([section(title)], style="class:hub.sidebar-heading")
+        super().__init__([section(lambda: " " + (title() if callable(title) else title))],
+                         style="class:hub.sidebar-heading")
 
 
 @dataclass(frozen=True, slots=True)

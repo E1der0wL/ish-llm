@@ -3,6 +3,16 @@
 
 
 MESSAGES = {
+    'shortcut_auxiliary': '보조 버튼',
+    'shortcut_return': '돌아가기',
+    'attach_title': '파일 첨부',
+    'attach_hint': '파일 경로를 선택하면 입력창에 추가합니다. Tab으로 경로 자동완성을 확정하세요.',
+    'attach_required': '파일 경로를 입력하세요.',
+    'settings_json': '설정 JSON',
+    'settings_theme_mode': '테마',
+    'settings_theme_mode_description': 'dark 또는 light. 자동으로 정해지는 배경과 글자색에 적용합니다.',
+    'clipboard_internal': '내부 클립보드',
+
     "profile_settings": "설정", "profile_home": "홈", "profile_minimize": "최소화",
     "shortcut_profile": "프로필", "shortcut_categories": "카테고리",
     "history_retry_question_unavailable": "취소한 승인·질문은 실행·예약 작업이 없고 가장 최근 요청일 때만 다시 열 수 있습니다. 이전 요청은 편집으로 다시 시작하세요.",
@@ -10,8 +20,8 @@ MESSAGES = {
     "settings_engine_item": "엔진 · {name}", "settings_component_item": "컴포넌트 · {name}",
     "project_delete_last": "마지막 프로젝트는 삭제할 수 없습니다. 먼저 다른 프로젝트를 만들어 주세요.",
     "failure_evidence": "진단 근거: {evidence}",
-    "failure_details": "자세한 실행 기록은 Ctrl+L에서 확인할 수 있습니다.",
-    "failure_unknown": "저장된 기록만으로 정확한 원인을 확인할 수 없습니다. 이미 실행된 파일 변경이나 명령이 있는지 확인한 뒤 요청 목록(Ctrl+G)에서 재시도할 수 있습니다. 같은 문제가 반복되면 상세 기록을 함께 전달해 주세요.",
+    "failure_details": "자세한 실행 기록은 보조 버튼의 로그에서 확인할 수 있습니다.",
+    "failure_unknown": "저장된 기록만으로 정확한 원인을 확인할 수 없습니다. 이미 실행된 파일 변경이나 명령이 있는지 확인한 뒤 보조 버튼의 요청 목록에서 재시도할 수 있습니다. 같은 문제가 반복되면 상세 기록을 함께 전달해 주세요.",
     "failure_rate_limit": "모델 제공자가 사용량 또는 요청 속도 제한으로 요청을 거절했습니다. 잠시 기다린 뒤 다시 시도하고, 계속 발생하면 해당 제공자의 API 사용 한도·잔액·결제 상태를 확인해 주세요. 이 코드만으로 API 키가 잘못됐다고 판단할 수는 없습니다.",
     "failure_unavailable": "모델 제공자에 연결하거나 응답을 받는 과정에서 오류가 발생했습니다. 제공자 서비스 상태를 확인하고 잠시 후 다시 시도해 주세요. 반복되면 다른 사용 가능한 모델로 변경할 수 있습니다.",
     "failure_authentication": "모델 제공자가 인증을 거절했습니다. 선택한 모델에 맞는 제공자의 API 키가 설정되어 있는지, 키가 만료되거나 폐기되지 않았는지 확인해 주세요.",
@@ -23,12 +33,23 @@ MESSAGES = {
     "failure_budget": "프로젝트에 설정된 사용량 한도에 도달했습니다. 사용 통계와 사용량 정책을 확인하고, 필요하다면 한도를 조정해 주세요.",
     "failure_file_missing": "작업에 필요한 파일이나 디렉터리를 찾지 못했습니다. ish의 현재 디렉터리와 요청한 경로가 맞는지 확인해 주세요.",
     "failure_empty": "모델 제공자가 비어 있거나 처리할 수 없는 응답을 반환했습니다. 잠시 후 다시 시도하고, 반복되면 모델 이름과 제공자 연결 설정을 확인해 주세요.",
+    "failure_completion_invalid": "모델 응답의 형식이 맞지 않아 처리를 완료하지 못했습니다. 제공자·서버의 스트리밍 및 Tool 호출 호환성을 확인해 주세요. 받은 응답은 유지되며 자동으로 다시 실행하지 않습니다.",
+    "failure_completion_length": "모델이 출력 토큰 한도에 도달해 답변을 마치지 못했습니다. 모델의 출력 토큰 설정을 확인하거나 작업을 나누어 요청해 주세요. 받은 응답은 유지됩니다.",
+    "failure_completion_filtered": "모델 제공자의 콘텐츠 필터로 응답이 종료되었습니다. 요청 내용과 제공자의 이용 정책을 확인해 주세요. 같은 요청을 자동으로 반복하지 않습니다.",
+    "failure_completion_incomplete": "모델 응답이 정상적으로 끝나지 않았습니다. 받은 응답은 유지됩니다. 로그의 종료 사유와 제공자 상태를 확인한 뒤 재시도 여부를 결정해 주세요.",
+    "failure_completion_output_limit": "프로젝트에 설정한 출력 문자 한도에 도달했습니다. 엔진의 출력 크기 제한을 검토하거나 작업을 나누어 요청해 주세요.",
+    "failure_completion_tool_limit": "모델이 한 번에 요청한 Tool 수가 설정된 한도를 넘었습니다. 엔진의 Tool 호출 수 제한을 검토하거나 작업을 나누어 요청해 주세요.",
+    "failure_completion_argument_limit": "모델이 만든 Tool 인자 또는 호출 ID가 설정된 길이 한도를 넘었습니다. 엔진의 Tool 인자 크기 제한을 검토하거나 작업을 나누어 요청해 주세요.",
+    "failure_step_timeout": "작업 단계가 설정된 제한 시간을 넘었습니다. 해당 엔진의 단계별 제한 시간을 검토해 주세요. 재시도 전 이미 실행된 작업을 확인하세요.",
+    "general_category_diagnostics": "Provider 진단",
+    "general_provider_error_details": "서버의 상세 오류 메시지·오류 필드·API 주소를 기록합니다. 기본값 false. 오류 메시지에 작업 내용이 포함될 수 있습니다. Hub 재시작 후 적용.",
+    "general_provider_request_summary": "요청의 메시지 역할·길이·Tool 호출과 결과의 대응 개수를 기록합니다. 본문과 Tool 인자는 기록하지 않습니다. 기본값 false. Hub 재시작 후 적용.",
+    "general_provider_max_detail_chars": "상세 오류 문자열 하나당 최대 문자 수. 기본값 2000, 1 이상의 정수. 상세 오류 기록을 켰을 때 사용하며 Hub 재시작 후 적용.",
     # Accepted only for saved language packs; no composer preview UI/binding remains.
     "preview": "마크다운 미리보기",
     "command_preview": "마크다운 미리보기 전환",
     "shortcut_preview": "미리보기",
     "history_requests": "요청 목록",
-    "history_response": "작업 응답",
     "settings_current_project": "프로젝트 : {title}",
     "settings_close": "닫기",
     "shortcut_paste": "붙여넣기",
@@ -59,10 +80,10 @@ MESSAGES = {
     'followup_hint': '→ 추천 입력',
     'component_action_install': '내장 스킬 설치 (기존 항목 유지)',
     # Keep the key for saved language packs; the removed install command is not advertised.
-    'skills_install_help': '/skill config\n관리 창에서 내장 스킬 Markdown 파일의 경로를 입력하여 가져옵니다. 기존 ID는 덮어쓰지 않습니다.',
+    'skills_install_help': '/skills config\n관리 창에서 내장 스킬 Markdown 파일의 경로를 입력하여 가져옵니다. 기존 ID는 덮어쓰지 않습니다.',
     'history_cancel': '예약 취소',
     'history_cancel_confirm': '선택한 예약 요청을 취소할까요? 현재 실행 중인 작업은 계속됩니다.',
-    'history_cancel_unavailable': '예약 상태의 요청만 취소할 수 있습니다. 이미 실행 중이면 Ctrl+X로 중단하세요.',
+    'history_cancel_unavailable': '예약 상태의 요청만 취소할 수 있습니다. 이미 실행 중이면 Ctrl+W로 중단하세요.',
     'history_checkpoint_protected': '미완료 작업의 재개 체크포인트가 이 대화를 참조합니다. 삭제를 다시 선택하여 영향받는 작업의 재개 포기를 확인하세요.',
     'history_abandon_delete': '재개 포기 후 삭제',
     'history_delete_changed': '삭제 확인 이후 관련 작업이나 대화가 변경되었습니다. 삭제를 다시 선택하여 확인하세요.',
@@ -77,18 +98,20 @@ MESSAGES = {
     'settings_search': '설정 검색',
     'settings_search_hint': '키·설명·값에 포함된 문자열로 검색합니다. 빈칸이면 전체 표시.',
     'settings_search_empty': '일치하는 설정이 없습니다.',
-    'settings_search_active': '필터: {query}',
+    'settings_search_active': '필터 : {query}',
     'clipboard_copied': '원문을 복사했습니다.',
     'clipboard_terminal': '터미널에 복사를 요청했습니다(OSC 52). 앱 클립보드에도 저장했습니다.',
     'component_action_config': '컴포넌트 관리 창',
     'component_manager_unavailable': '{name} 관리 창은 아직 지원하지 않습니다. settings 또는 데이터 명령을 사용하세요.',
-    'tags_title': '출력 태그',
+    'tags_title': '태그 바',
     'tags_empty': '출력 객체가 없습니다.',
     'tools_title': 'Tool 패키지 관리',
     'skills_title': 'Skill 관리',
+    'mcp_title': 'MCP 서버 관리',
     'rag_title': 'RAG 문서 관리',
     'workflows_title': 'Workflow 관리',
     'skills_import_hint': 'Markdown 또는 Skill JSON 파일 경로 → Enter: 가져오기',
+    'mcp_import_hint': 'MCP 서버 JSON 파일 경로 → Enter: 검증 후 가져오기',
     'rag_import_hint': 'UTF-8 텍스트 문서 경로 → Enter: 문서 및 검색 색인 등록',
     'workflows_import_hint': 'Workflow JSON 파일 경로 → Enter: 검증 후 가져오기',
     'manager_hint': 'Tab 영역 · ↑↓ 선택 · Enter 편집기에서 수정 · d 삭제',
@@ -104,9 +127,8 @@ MESSAGES = {
     'tools_failed': '처리에 실패했습니다. 오류 알림을 확인하세요.',
     'tools_explorer_failed': '파일 탐색기 종료 코드: {code}',
     'tools_delete_confirm': '{name}을 삭제할까요? 활성화되어 있다면 함께 비활성화합니다.',
-    'welcome_keys': 'ESC 패널 · 패널에서 c 새 세션 · Ctrl+S 설정',
+    'welcome_keys': 'ESC 패널 · 패널에서 c 새 세션 · Ctrl+S 보조 버튼',
     'session_required': '먼저 세션을 생성하세요. ESC 후 세션 목록에서 c를 누르세요.',
-    'command_details': '출력 태그 바',
     'activity_hint': '활동·프로바이더 각각 최근 300건 · 이동키 스크롤 · ESC / Enter / Ctrl+L 닫기',
     'activity_provider_project': '프로바이더 로그 · 현재 프로젝트',
     'activity_provider_file': '로그 파일: {path}',
@@ -120,10 +142,10 @@ MESSAGES = {
     'status_denied': '{icon_cancelled} 거절됨',
     'status_answered': '{icon_completed} 답변 전달 완료',
     'status_resuming': '{icon_running} 이어서 실행',
-    'help': '## 패널과 홈\n\n- **ESC**: 메인에서 패널로 이동.\n- **Ctrl+Q**: 셸에서 Hub 열기, Hub의 모든 화면에서 최소화. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Shift+Tab**: 패널의 카테고리 이동. **↑↓**: 현재 카테고리 안에서 이동합니다. **Space / Enter / →**: 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절 및 너비만 자동 저장.\n- **Ctrl+P**: 패널 하단 프로필 영역으로 이동합니다. 홈에서는 설정, 설정에서는 홈 버튼과 최소화 버튼을 표시합니다. **←→**: 버튼 선택. **Enter / Space**: 실행. 프로필의 Tab은 동작하지 않습니다.\n- 홈 위쪽 프로젝트 목록에서 프로젝트를 선택하고, 아래쪽 세션 목록에서 세션을 선택합니다.\n- **c / d / e / r**: 홈 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+X**: 현재 실행 또는 일시 정지된 요청 중단. 예약 요청은 유지.\n- `/engine <엔진명>`으로 엔진 지정.\n- **Ctrl+S**: 선택 엔진의 프로젝트 설정 열기.\n- **Ctrl+F**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **Ctrl+G**: 요청·응답 목록. **Ctrl+L**: 프로젝트 로그.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**Ctrl+T**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **Ctrl+T / ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **Ctrl+F**: 키·설명·값 필터. 빈 검색어로 전체 복원.\n- **저장**: 전역 설정과 현재 프로젝트 변경 적용. **취소**: 저장하지 않은 변경 되돌리기. 둘 다 설정 화면을 유지하며 홈 버튼으로 돌아갑니다.\n- 현재 프로젝트만 편집합니다. 패널에서 일반·엔진·컴포넌트 항목을 선택하세요.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **↑↓**: 설정 항목 선택. 버튼은 **←→** 키로 선택합니다. 설정 항목에서 편집 중이 아닐 때 **←**: 패널 복귀, **→**: 동작 없음.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 메인 영역에서도 **Alt + 이동키**로 스크롤합니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n영역을 선택하고 **Ctrl+C**로 복사합니다. 선택이 없으면 입력창의 Ctrl+C는 아무 동작도 하지 않습니다. **Ctrl+V**로 시스템 클립보드를 붙여넣습니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
+    'help': '## 패널과 홈\n\n- **ESC**: 메인에서 패널로 이동.\n- **Ctrl+Q**: 셸에서 Hub 열기, Hub의 모든 화면에서 최소화. 셸의 Ctrl+S는 변경하지 않습니다.\n- **Tab / Shift+Tab**: 패널의 카테고리 이동. **↑↓**: 현재 카테고리 안에서 이동합니다. **Space / Enter / →**: 메인으로 이동.\n- **Ctrl+← / Ctrl+→**: 패널 너비 조절 및 너비만 자동 저장.\n- **Ctrl+P**: 패널 하단 프로필 영역으로 이동합니다. 홈에서는 설정, 설정에서는 홈 버튼과 최소화 버튼을 표시합니다. **←→**: 버튼 선택. **Enter / Space**: 실행. 프로필의 Tab은 동작하지 않습니다.\n- 홈 위쪽 프로젝트 목록에서 프로젝트를 선택하고, 아래쪽 세션 목록에서 세션을 선택합니다.\n- **c / d / e / r**: 홈 패널에서 생성 / 삭제 / 이름 변경 / 복제.\n- **Enter**: 요청 전송. 실행 중에는 추가 지시 또는 후속 요청 선택.\n- 빈 입력창의 **↑↓**: 이전/다음 사용자 요청 불러오기. 내용을 수정하면 히스토리 탐색을 종료합니다.\n- **Ctrl+Space**: 줄바꿈. **↑↓**: 자동완성 선택, **Tab**: 확정.\n- **Ctrl+W**: 현재 실행 또는 일시 정지된 요청 중단. 예약 요청은 유지.\n- `/engine <엔진명>`으로 엔진 지정.\n- **Ctrl+S**: 입력창 또는 설정 버튼 영역에서 보조 버튼으로 이동. **방향키**: 선택. **Enter / Space**: 실행. **ESC**: 원래 영역으로 복귀.\n- **보조 버튼 → 찾기**: 세션 내용 찾기. Enter 다음 / Alt+P 이전. 닫으면 강조 해제.\n- **보조 버튼**: 요청 목록 / 태그 바 / 찾기 / 파일 첨부 / 로그 / 설정. 파일 첨부는 선택한 경로를 입력창에 추가합니다. 설정 버튼은 Loop 엔진 설정을 엽니다.\n\n## 스크롤과 팝업\n\n대화 출력은 **Alt + 이동키**로 스크롤합니다.\n도움말·로그·조회 결과 팝업에서는 **이동키만** 사용합니다.\n이동키는 ↑↓←→ / Home / End / PgUp / PgDn 전체입니다.\n읽기 팝업은 **ESC / Enter / Ctrl+L**로 닫습니다.\n\n## 출력 태그 바\n\n**보조 버튼 → 태그 바**로 열고 **↑↓** 키로 객체를 선택하면 출력의 해당 위치로 이동합니다.\n**c**로 원문 복사. **ESC**로 닫습니다. **Tab / Space / Enter**로 전체 화면 팝업을 엽니다.\n코드·표·이미지·diff와 등록된 XML 렌더러 출력이 표시됩니다.\n\n## 설정\n\n- **필터 보조 버튼 / Ctrl+F**: 키·설명·값 필터. 패널 항목을 바꾸어도 유지됩니다. 빈 검색어로 해제합니다. **JSON 보조 버튼**: 현재 설정 초안을 등록된 에디터에서 JSON으로 편집합니다. 종료 후 초안에 반영되며 저장 버튼으로 적용합니다.\n- **저장**: 전역 설정과 현재 프로젝트 변경 적용. **취소**: 저장하지 않은 변경 되돌리기. 둘 다 설정 화면을 유지하며 홈 버튼으로 돌아갑니다.\n- 현재 프로젝트만 편집합니다. 패널에서 일반·엔진·컴포넌트 항목을 선택하세요.\n- **Tab / Shift+Tab**: 항목 / 버튼 영역 이동. **↑↓**: 설정 항목 선택. 버튼은 **←→** 키로 선택합니다. 설정 항목에서 편집 중이 아닐 때 **←**: 패널 복귀, **→**: 동작 없음.\n- **Enter**: 직접 편집 시작(끝으로 이동) / 완료.\n- 항목 선택 상태에서 **e**: 외부 에디터, **d**: 값 전체 비우기.\n- 편집 중 **Ctrl+Space / Alt+Enter**: 줄바꿈.\n- 선택형 값은 Enter → 방향키 → Enter로 변경합니다.\n- 설정 메인 영역에서도 **Alt + 이동키**로 스크롤합니다.\n\n## 명령\n\n`/help`, `/engine`, `/new`, `/clone`, `/details`, `/stop`.\n등록된 컴포넌트만 `/` 자동완성에 나옵니다.\n`/tools config`: 내장 도구 활성/비활성 및 패키지 관리.\n질문이 오면 기존 입력창에서 답변 또는 선택지 번호를 입력하고 Enter로 보냅니다.\n영역을 선택하고 **Ctrl+C**로 복사합니다. 선택이 없으면 입력창의 Ctrl+C는 아무 동작도 하지 않습니다. **Ctrl+V**로 시스템 클립보드를 붙여넣습니다. 편집 가능한 입력창의 **Ctrl+A**는 전체 선택, **Ctrl+X**는 잘라내기, **Ctrl+Z / Ctrl+Y**는 실행 취소 / 다시 실행입니다. **Shift+이동키** 또는 마우스 드래그로 선택합니다.\n파일 경로 자동완성은 텍스트를 삽입하며 파일을 자동 첨부하지 않습니다.\n',
     "settings_dependencies": "필수 컴포넌트: {names}",
     "settings_dependencies_missing": "선택되지 않은 필수 컴포넌트: {names} — 선택 후 저장하세요.",
-    "title_model_required": "자동 제목 모델이 없습니다. 대화 엔진 또는 parameters.engines._hub_title.completion.model을 설정하세요.",
+    "title_model_required": "자동 제목에 사용할 모델이 없습니다. 설정에서 대화 엔진의 모델을 지정하세요.",
     "output_image_limit": "현재 화면의 이미지 미리보기 한도(32개)에 도달했습니다.",
     "welcome_title": "아직 세션이 없습니다",
     "welcome_hint": "새 세션을 만들어 대화를 시작하세요.",
@@ -146,7 +168,7 @@ MESSAGES = {
 
     'instruction_run_changed': '대상 실행이 변경되었습니다. 입력을 보존했으니 전송 방식을 다시 선택하세요.',
 
-    'model_required': 'Ctrl+S → 프로젝트 설정에서 config.parameters.engines.loop.completion.model을 지정하세요.',
+    'model_required': '설정 보조 버튼 → 엔진 · loop에서 config.parameters.engines.loop.config.completion.model을 지정하세요.',
 
 
 
@@ -181,7 +203,7 @@ MESSAGES = {
 
     "activity_step": "Step: {step_id}", "activity_code": "코드: {code}",
 
-    "help_history": "Ctrl+G: 요청·작업 쌍 목록 (c 예약 취소 · d 삭제 · r 선택 시점 복제)\nCtrl+L: 프로젝트 실행 이력\n세션 목록 Ctrl+←→: 패널 너비 조절\n복제 창에서 마지막으로 포함할 요청·응답을 선택할 수 있습니다.",
+    "help_history": "보조 버튼 → 요청 목록: 삭제 · 편집 · 재시도\n보조 버튼 → 로그: 프로젝트 실행 이력\n세션 목록 Ctrl+←→: 패널 너비 조절\n복제 창에서 마지막으로 포함할 요청·응답을 선택할 수 있습니다.",
 
     "settings_registration": "추가 기능", "settings_engines": "엔진",
 
@@ -380,9 +402,11 @@ MESSAGES = {
 
     "session_hint": "c 생성 · d 삭제\ne 이름 · r 복제", "input_hint": "Enter 전송 · Ctrl+Space 줄바꿈 · ↑↓ 후보 선택 · Tab 확정",
 
-    "footer": "ESC 패널 · Ctrl+F 찾기 · Ctrl+S 설정 · Ctrl+X 중단 · Alt + 이동키 스크롤 · Enter 전송 방식",
+    "settings_json_object": "설정 JSON의 최상위 값은 객체여야 합니다.",
+    "settings_json_updated": "JSON 편집 내용을 초안에 반영했습니다. 저장 버튼으로 적용하세요.",
+    "footer": "ESC 패널 · Ctrl+S 보조 버튼 · Ctrl+W 중단 · Alt + 이동키 스크롤 · Enter 전송 방식",
 
-    "footer_short": "ESC 패널 · Ctrl+F 찾기 · Alt + 이동키 스크롤",
+    "footer_short": "ESC 패널 · Alt + 이동키 스크롤",
 
     "preview_notice": "샘플 데이터 · 모델 호출과 저장 기능은 연결되지 않았습니다.",
 

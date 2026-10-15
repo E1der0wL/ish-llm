@@ -15,7 +15,7 @@ from hub.ui.output import OutputBlock, OutputObject, OutputParser, RendererRegis
 from hub.ui.output.table import TableData
 from hub.widget.output_inspector import OutputInspector
 from hub.widget.output.table_inspector import TableInspector, display_cell
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import auxiliary, SizedOutput, eventually
 
 
 class TableDataTests(unittest.TestCase):
@@ -72,10 +72,11 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
         self.input.__exit__(None, None, None)
 
     async def expand(self, source):
-        self.view.transcript.set_messages((ChatMessage("assistant", source, id="m"),))
+        self.view.output.transcript.set_messages((ChatMessage("assistant", source, id="m"),))
         self.app.invalidate()
-        await eventually(lambda: bool(self.view.transcript.control.objects))
-        self.pipe.send_text("\x14\r")
+        await eventually(lambda: bool(self.view.output.transcript.control.objects))
+        await auxiliary(self.app, self.pipe, self.view, 'tags')
+        self.pipe.send_text('\r')
         await eventually(lambda: self.view._dialog is not None)
         return self.view._dialog
 
@@ -102,9 +103,9 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(copied.call_args.args[0], source)
         self.pipe.send_text("\x1b")
         await eventually(lambda: self.view._dialog is None)
-        self.assertIs(self.app.layout.current_control, self.view.tags.control)
+        self.assertIs(self.app.layout.current_control, self.view.output.tags.control)
         self.assertEqual(self.view.composer.text, "keep draft")
-        self.assertEqual(self.view.transcript.control.search_query, "")
+        self.assertEqual(self.view.output.transcript.control.search_query, "")
 
     async def test_table_selection_sort_filter_no_matches_raw_and_cancel_query(self):
         source = '<hub-table>{"columns":["이름","점수"],"rows":[["Alpha",10],["Beta",2],["Gamma",30]]}</hub-table>'
@@ -148,9 +149,9 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
             screen = self.app.renderer._last_screen
             painted = "\n".join("".join(screen.data_buffer[y][x].char for x in range(42)) for y in range(12))
             self.fail(f"Table viewport failed to shrink\n{painted}")
-        self.pipe.send_text("\x14")
+        self.pipe.send_text("\x14")  # Expanded viewers retain their own close binding.
         await eventually(lambda: self.view._dialog is None)
-        self.assertIs(self.app.layout.current_control, self.view.tags.control)
+        self.assertIs(self.app.layout.current_control, self.view.output.tags.control)
 
     async def test_invalid_table_retains_source_and_closes(self):
         source = '<hub-table>{"columns":[],"rows":[]}</hub-table>'
@@ -174,7 +175,7 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
         renderer = SimpleNamespace(render=lambda block, context: [[("", block.text)]])
         def broken(item, context):
             raise ValueError("invalid custom UI")
-        self.view.output_renderers.register("hub-broken", renderer, interaction=broken)
+        self.view.output.renderers.register("hub-broken", renderer, interaction=broken)
         popup = await self.expand('<hub-broken>kept source</hub-broken>')
         self.assertIsInstance(popup, OutputInspector)
         self.assertIn("invalid custom UI", popup.notice)
@@ -184,4 +185,4 @@ class ExpandedOutputTests(unittest.IsolatedAsyncioTestCase):
         self.pipe.send_text("\x1b")
         await eventually(lambda: self.view._dialog is None)
         self.assertEqual(disposed, [True])
-        self.assertIs(self.app.layout.current_control, self.view.tags.control)
+        self.assertIs(self.app.layout.current_control, self.view.output.tags.control)

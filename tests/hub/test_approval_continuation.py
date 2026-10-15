@@ -176,8 +176,8 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view.composer.text, 'ordinary draft')
                 self.assertTrue(view.question.busy)
                 self.assertIsNone(view.question.item)
-                self.assertEqual(view.transcript.control.messages[0].trace[0].status, 'answer_sending')
-                self.assertEqual(view.transcript.control.messages[0].trace[1].status, 'waiting_approval')
+                self.assertEqual(view.output.transcript.control.messages[0].trace[0].status, 'answer_sending')
+                self.assertEqual(view.output.transcript.control.messages[0].trace[1].status, 'waiting_approval')
                 view.composer.text = 'new draft while resume is slow'
                 view.apply_snapshot(base)
                 self.assertTrue(view.question.busy)
@@ -187,8 +187,8 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                 calls[0][2]()  # Durable decision ACK, with resume still blocked.
                 await asyncio.sleep(0)
                 self.assertFalse(calls[0][1].done())
-                self.assertEqual(view.transcript.control.messages[0].trace[0].status, 'approved')
-                self.assertEqual(view.transcript.control.messages[1].phase, 'approved')
+                self.assertEqual(view.output.transcript.control.messages[0].trace[0].status, 'approved')
+                self.assertEqual(view.output.transcript.control.messages[1].phase, 'approved')
                 # Duplicate Enter cannot consume or submit the next draft.
                 view.bindings.submit(NS())
                 self.assertEqual(len(calls), 1)
@@ -201,13 +201,13 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual([op for op, _, _ in calls], ['answer_question'])
                 progressed = replace(base.messages[0], trace=(replace(trace[0], status='running'),))
                 view.apply_snapshot(replace(base, messages=(progressed, replace(base.messages[1], status='streaming'))))
-                self.assertEqual(view.transcript.control.messages[0].trace[0].status, 'running')
+                self.assertEqual(view.output.transcript.control.messages[0].trace[0].status, 'running')
                 updated = {**waiting.questions[0], 'request': {**request, 'revision': 2}}
                 view.apply_snapshot(replace(waiting, questions=(updated,)))
                 self.assertIsNotNone(view.question.item)
                 self.assertEqual(view.question.identity[-1], 2)
             finally:
-                view.output_renderers.close()
+                view.close()
                 view.progress.close()
 
     async def test_failed_answer_restores_question_but_accepted_answer_never_reopens(self):
@@ -234,7 +234,7 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(view.composer.text, 'new ordinary draft')
         finally:
             view.render_worker.close()
-            view.output_renderers.close()
+            view.close()
 
     async def test_late_answer_result_does_not_replace_another_sessions_draft(self):
         view = LiveHubView()
@@ -255,4 +255,4 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
             self.assertFalse(view.question.busy)
         finally:
             view.render_worker.close()
-            view.output_renderers.close()
+            view.close()

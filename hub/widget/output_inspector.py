@@ -25,8 +25,8 @@ class SearchRows:
 
 
 class SearchableOutputViewport(OutputViewport):
-    def __init__(self, item, view):
-        super().__init__(item, view)
+    def __init__(self, item, output):
+        super().__init__(item, output)
         self.query = ""
         self.raw_mode = False
         self.hits, self.matches, self.hit_index = (), {}, -1
@@ -172,7 +172,7 @@ class ExpandedOutputDialog:
 
     async def copy(self):
         try:
-            self.notice = self.t(await copy_text(self.selected_text() or self.item.raw))
+            await copy_text(self.selected_text() or self.item.raw)
         except (OSError, RuntimeError) as error:
             self.notice = self.t("error", error=error)
         get_app().invalidate()

@@ -3,6 +3,16 @@
 
 
 MESSAGES = {
+    'shortcut_auxiliary': 'Auxiliary buttons',
+    'shortcut_return': 'Return',
+    'attach_title': 'Attach file',
+    'attach_hint': 'Choose a file path to insert into the composer. Tab confirms path completion.',
+    'attach_required': 'Enter a file path.',
+    'settings_json': 'Settings JSON',
+    'settings_theme_mode': 'Theme',
+    'settings_theme_mode_description': 'dark or light. Used for automatically derived surface and text colors.',
+    'clipboard_internal': 'Internal clipboard',
+
     "profile_settings": "Settings", "profile_home": "Home", "profile_minimize": "Minimize",
     "shortcut_profile": "profile", "shortcut_categories": "categories",
     "history_retry_question_unavailable": "Cancelled questions can reopen only for the latest request with no running or queued work. Edit an older request to start it again.",
@@ -10,8 +20,8 @@ MESSAGES = {
     "settings_engine_item": "Engine · {name}", "settings_component_item": "Component · {name}",
     "project_delete_last": "Create another project before deleting the last project.",
     "failure_evidence": "Diagnostic evidence: {evidence}",
-    "failure_details": "Detailed execution records are available with Ctrl+L.",
-    "failure_unknown": "The stored evidence does not identify the exact cause. Check for file changes or commands already executed before retrying from request history (Ctrl+G). If it happens again, include the detailed records when reporting it.",
+    "failure_details": "Detailed execution records are available from the auxiliary Log button.",
+    "failure_unknown": "The stored evidence does not identify the exact cause. Check for file changes or commands already executed before retrying from the auxiliary Request history button. If it happens again, include the detailed records when reporting it.",
     "failure_rate_limit": "The model provider rejected the request due to a usage or rate limit. Wait before retrying. If it persists, check the provider's API quota, balance and billing status. This code alone does not mean the API key is invalid.",
     "failure_unavailable": "An error occurred while connecting to the model provider or receiving its response. Check the provider's service status and retry later. If it persists, consider another available model.",
     "failure_authentication": "The model provider rejected authentication. Check that the configured API key belongs to the selected provider and has not expired or been revoked.",
@@ -23,12 +33,23 @@ MESSAGES = {
     "failure_budget": "The project's configured usage budget has been reached. Review usage statistics and the usage policy, and adjust the limit if needed.",
     "failure_file_missing": "A required file or directory could not be found. Check the path and ish's current working directory.",
     "failure_empty": "The model provider returned an empty or unreadable response. Retry later; if it persists, check the model name and provider connection settings.",
+    "failure_completion_invalid": "The model response did not match the expected format. Check the provider/server's streaming and Tool calling compatibility. Received output is preserved; the operation is not automatically replayed.",
+    "failure_completion_length": "The model reached its output token limit before finishing. Review the model's output token setting or split the task. Received output is preserved.",
+    "failure_completion_filtered": "The provider's content filter ended the response. Review the request and the provider's usage policy. The same request is not automatically repeated.",
+    "failure_completion_incomplete": "The model response did not finish normally. Received output is preserved. Check the finish reason in the logs and the provider's status before deciding whether to retry.",
+    "failure_completion_output_limit": "The configured output character limit was reached. Review the engine's output size limit or split the task.",
+    "failure_completion_tool_limit": "The model requested more Tools in one response than permitted. Review the engine's Tool call limit or split the task.",
+    "failure_completion_argument_limit": "Generated Tool arguments or a call ID exceeded the configured length limit. Review the engine's Tool argument size limit or split the task.",
+    "failure_step_timeout": "An execution step exceeded its configured deadline. Review the engine's step time limits. Check for completed effects before retrying.",
+    "general_category_diagnostics": "Provider diagnostics",
+    "general_provider_error_details": "Record server error messages, error fields and the API endpoint. Default false. Error messages may contain task content. Applies after restarting Hub.",
+    "general_provider_request_summary": "Record message roles, lengths and Tool call/result pairing counts. Message bodies and Tool arguments are excluded. Default false. Applies after restarting Hub.",
+    "general_provider_max_detail_chars": "Maximum characters per detailed error string. Default 2000; a positive integer. Used when error details are enabled. Applies after restarting Hub.",
     # Accepted only for saved language packs; no composer preview UI/binding remains.
     "preview": "MARKDOWN PREVIEW",
     "command_preview": "Toggle Markdown preview",
     "shortcut_preview": "preview",
     "history_requests": "Requests",
-    "history_response": "Response",
     "settings_current_project": "Project : {title}",
     "settings_close": "Close",
     "shortcut_paste": "Paste",
@@ -59,10 +80,10 @@ MESSAGES = {
     'followup_hint': '→ accept suggestion',
     'component_action_install': 'Install a built-in skill (preserve existing entries)',
     # Keep the key for saved language packs; the removed install command is not advertised.
-    'skills_install_help': '/skill config\nEnter a built-in skill Markdown path in the manager to import it. Existing IDs are never overwritten.',
+    'skills_install_help': '/skills config\nEnter a built-in skill Markdown path in the manager to import it. Existing IDs are never overwritten.',
     'history_cancel': 'Cancel queued',
     'history_cancel_confirm': 'Cancel this queued request? The active Run will continue.',
-    'history_cancel_unavailable': 'Only queued requests can be cancelled. Use Ctrl+X to interrupt an active Run.',
+    'history_cancel_unavailable': 'Only queued requests can be cancelled. Use Ctrl+W to interrupt an active Run.',
     'history_checkpoint_protected': 'An unfinished Run checkpoint references this turn. Choose delete again to review and confirm abandoning its dependent resumes.',
     'history_abandon_delete': 'Abandon resumes and delete',
     'history_delete_changed': 'The conversation or dependent Runs changed after review. Choose delete again to review the current plan.',
@@ -82,13 +103,15 @@ MESSAGES = {
     'clipboard_terminal': 'Copy requested through the terminal (OSC 52); text also stored in the application clipboard.',
     'component_action_config': 'Open component manager',
     'component_manager_unavailable': 'The {name} manager is not available yet. Use settings or data commands.',
-    'tags_title': 'Output tags',
+    'tags_title': 'Tag bar',
     'tags_empty': 'No output objects.',
     'tools_title': 'Tools',
     'skills_title': 'Skills',
+    'mcp_title': 'MCP servers',
     'rag_title': 'RAG documents',
     'workflows_title': 'Workflows',
     'skills_import_hint': 'Markdown or Skill JSON file path → Enter to import',
+    'mcp_import_hint': 'MCP server JSON file path → Enter to validate and import',
     'rag_import_hint': 'UTF-8 text file path → Enter to register the document and search index',
     'workflows_import_hint': 'Workflow JSON file path → Enter to validate and import',
     'manager_hint': 'Tab: region · ↑↓: select · Enter: edit in editor · d: delete',
@@ -104,9 +127,8 @@ MESSAGES = {
     'tools_failed': 'Operation failed; see the error notification.',
     'tools_explorer_failed': 'File manager exited with code {code}',
     'tools_delete_confirm': 'Delete {name}? If enabled, it will also be disabled.',
-    'welcome_keys': 'ESC Panel · c in panel: New session · Ctrl+S Settings',
+    'welcome_keys': 'ESC Panel · c in panel: New session · Ctrl+S Auxiliary',
     'session_required': 'Create a session first: ESC, then c in the session list.',
-    'command_details': 'Output tag bar',
     'activity_hint': 'Last 300 activity / provider entries each · Navigation: scroll · ESC / Enter / Ctrl+L: close',
     'activity_provider_project': 'Provider log · Current project',
     'activity_provider_file': 'Log file: {path}',
@@ -120,10 +142,10 @@ MESSAGES = {
     'status_denied': '{icon_cancelled} Denied',
     'status_answered': '{icon_completed} Answer delivered',
     'status_resuming': '{icon_running} Resuming',
-    'help': '## Panels and Home\n\n- **ESC** moves from main content to the panel.\n- **Ctrl+Q** opens Hub from the shell and minimizes it from any Hub screen. Shell Ctrl+S stays unchanged.\n- **Tab / Shift+Tab** changes panel categories. **↑↓** stays within the current category. **Space / Enter / →** moves to main content.\n- **Ctrl+← / Ctrl+→** adjusts and automatically saves only panel width.\n- **Ctrl+P** focuses the shared profile footer. It offers Settings on Home, Home in settings, and Minimize. **←→** selects a button; **Enter / Space** activates it. Tab does nothing in the profile footer.\n- Select projects in the upper Home category and sessions below.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+X** stops the running or paused request, preserving queued requests.\n- `/engine <name>` sets the engine.\n- **Ctrl+S** opens project settings filtered to the selected engine.\n- **Ctrl+F** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Ctrl+G** shows turns; **Ctrl+L** opens project activity.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Ctrl+T** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **Ctrl+T / ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Ctrl+F** filters keys, descriptions and values; empty query restores all.\n- **Save** applies global and current-project drafts; **Cancel** discards unsaved changes. Both stay in settings. Use Home to return. Only the current project is editable; choose General, an engine or a component in the panel.\n- **Tab / Shift+Tab** moves between fields and actions; **↑↓** selects fields; **←→** selects action buttons. In fields, **←** returns to the panel and **→** does nothing outside editing.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt + Navigation also scrolls settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** copies selected text; without a selection it does nothing in the composer. **Ctrl+V** pastes the system clipboard.\nPath completion inserts text; it does not attach files.\n',
+    'help': '## Panels and Home\n\n- **ESC** moves from main content to the panel.\n- **Ctrl+Q** opens Hub from the shell and minimizes it from any Hub screen. Shell Ctrl+S stays unchanged.\n- **Tab / Shift+Tab** changes panel categories. **↑↓** stays within the current category. **Space / Enter / →** moves to main content.\n- **Ctrl+← / Ctrl+→** adjusts and automatically saves only panel width.\n- **Ctrl+P** focuses the shared profile footer. It offers Settings on Home, Home in settings, and Minimize. **←→** selects a button; **Enter / Space** activates it. Tab does nothing in the profile footer.\n- Select projects in the upper Home category and sessions below.\n- **c / d / e / r** in the panel creates / deletes / renames / clones.\n- **Enter** sends; during execution choose steering or follow-up.\n- **↑↓** in an empty composer recalls previous/next user requests. Editing exits history navigation.\n- **Ctrl+Space** inserts a newline. **↑↓** selects completions; **Tab** confirms.\n- **Ctrl+W** stops the running or paused request, preserving queued requests.\n- `/engine <name>` sets the engine.\n- **Ctrl+S** focuses auxiliary buttons from the composer or settings actions. Arrows select, Enter / Space activates, and ESC returns.\n- **Auxiliary → Find** searches the session. Enter next / Alt+P previous. Closing clears highlights.\n- **Auxiliary buttons** open request history, tags, search, file attachment, logs, and settings. File attachment inserts a path into the composer. Settings opens the Loop engine settings.\n\n## Scrolling and readers\n\nConversation output uses **Alt + Navigation**.\nHelp, activity and query popups use **Navigation alone**.\nNavigation includes ↑↓←→ / Home / End / PgUp / PgDn.\nClose readers with **ESC / Enter / Ctrl+L**.\n\n## Output tag bar\n\n**Auxiliary → Tags** opens it; **↑↓** selects an object and scrolls to its position.\n**c** copies raw source; **ESC** closes it. **Tab / Space / Enter** opens a full-screen popup.\nCode, tables, images, diffs and registered XML renderers appear here.\n\n## Settings\n\n- **Filter button / Ctrl+F** filters keys, descriptions and values across panel selections; empty query clears it. The JSON button opens the current draft in your configured editor. Changes return to the draft; use Save to apply them.\n- **Save** applies global and current-project drafts; **Cancel** discards unsaved changes. Both stay in settings. Use Home to return. Only the current project is editable; choose General, an engine or a component in the panel.\n- **Tab / Shift+Tab** moves between fields and actions; **↑↓** selects fields; **←→** selects action buttons. In fields, **←** returns to the panel and **→** does nothing outside editing.\n- **Enter** starts inline editing at the end / finishes editing.\n- In field navigation **e** opens the editor; **d** clears the value.\n- **Ctrl+Space / Alt+Enter** inserts a newline during editing.\n- Choices use Enter → arrows → Enter. Alt + Navigation also scrolls settings.\n\n## Commands\n\n`/help`, `/engine`, `/new`, `/clone`, `/details`, `/stop`.\nOnly registered components appear in slash completion.\n`/tools config`: toggle built-in tools and manage packages.\nAnswer questions in the existing composer, then press Enter. **Ctrl+C** copies selected text; without a selection it does nothing in the composer. **Ctrl+V** pastes the system clipboard. In writable inputs, **Ctrl+A** selects all, **Ctrl+X** cuts, and **Ctrl+Z / Ctrl+Y** undoes / redoes. Select with **Shift+Navigation** or mouse dragging.\nPath completion inserts text; it does not attach files.\n',
     "settings_dependencies": "Required components: {names}",
     "settings_dependencies_missing": "Missing required components: {names} — select them before saving.",
-    "title_model_required": "No title model is configured. Set the conversation engine model or parameters.engines._hub_title.completion.model.",
+    "title_model_required": "No model is available for automatic titles. Set the conversation engine model in Settings.",
     "output_image_limit": "Image preview limit reached for this view (32 images).",
     "welcome_title": "No sessions yet",
     "welcome_hint": "Create a session to start a conversation.",
@@ -146,7 +168,7 @@ MESSAGES = {
 
     'instruction_run_changed': 'The active Run changed. Your draft is preserved; choose how to send it again.',
 
-    'model_required': 'Set config.parameters.engines.loop.completion.model in Ctrl+S → Project settings.',
+    'model_required': 'Set config.parameters.engines.loop.config.completion.model in Settings auxiliary button → Engine loop.',
 
 
 
@@ -181,7 +203,7 @@ MESSAGES = {
 
     "activity_step": "Step: {step_id}", "activity_code": "Code: {code}",
 
-    "help_history": "Ctrl+G: Request/work pairs (d delete · r clone through selection)\nCtrl+L: Project execution history\nSession list Ctrl+←→: Resize sidebar\nChoose the last request and response to include in the clone dialog.",
+    "help_history": "Auxiliary → Requests: delete, edit, retry\nAuxiliary → Logs: project execution history\nSession list Ctrl+←→: Resize sidebar\nChoose the last request and response to include in the clone dialog.",
 
     "settings_registration": "Additional features", "settings_engines": "Engines",
 
@@ -380,9 +402,11 @@ MESSAGES = {
 
     "session_hint": "c new · d delete\ne rename · r clone", "input_hint": "Enter send · Ctrl+Space newline · ↑↓ select · Tab confirm",
 
-    "footer": "ESC panel · Ctrl+F find · Ctrl+S settings · Ctrl+X stop · Alt + Navigation scroll · Enter send mode",
+    "settings_json_object": "The settings JSON must be an object.",
+    "settings_json_updated": "JSON changes are in the draft. Use Save to apply them.",
+    "footer": "ESC panel · Ctrl+S auxiliary · Ctrl+W stop · Alt + Navigation scroll · Enter send mode",
 
-    "footer_short": "ESC panel · Ctrl+F find · Alt + Navigation scroll",
+    "footer_short": "ESC panel · Alt + Navigation scroll",
 
     "preview_notice": "Sample data · No model calls or storage.",
 

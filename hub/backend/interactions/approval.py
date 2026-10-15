@@ -40,16 +40,6 @@ def review_lines(request, t):
     return [lines[0], *targets, *lines[1:]]
 
 
-def review_summary(request, t):
-    """A bounded action card; the complete immutable request is opt-in."""
-    lines = review_lines(request, t)
-    # Fence length must survive arbitrary paths/commands containing backticks.
-    import re
-    text = "\n".join(lines)
-    fence = "`" * max(3, max((len(s) for s in re.findall(r"`+", text)), default=0) + 1)
-    return request["title"] + f"\n\n{fence}text\n{text}\n{fence}\n\n" + t("question_action_hint")
-
-
 def review_text(request):
     """Prepare the complete review payload before it reaches the UI thread."""
     import json

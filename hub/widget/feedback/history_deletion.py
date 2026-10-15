@@ -18,11 +18,11 @@ class HistoryDeletion:
     def start(self, key, total):
         view = self.view
         request = PendingDeletion(key, view.progress.start(view.t("history_deleting"), total=total or None),
-                                  view.transcript.control.reading_position())
+                                  view.output.reading_position())
         self.pending[key] = request
         if self.current(key):
             # Also cancel an older render already in flight, and its tag objects.
-            view.transcript.set_messages(())
+            view.output.set_messages(())
         view.preparing.paint()
         return request
 
@@ -43,7 +43,7 @@ class HistoryDeletion:
             # Only deltas arriving after this snapshot should animate.
             session = self.view.sessions[self.view.selected]
             messages = self.view.preparing.project(request.key, session.messages)
-            self.view.transcript.set_messages(messages, request.position)
+            self.view.output.set_messages(messages, request.position)
         self.view.preparing.paint()
 
     def project(self, key, messages):

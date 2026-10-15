@@ -48,18 +48,18 @@ class DeletionFeedbackTests(unittest.IsolatedAsyncioTestCase):
                     view.input_history.move(-1)
                     self.assertEqual(view.composer.text, "remove me")
                     history.show(sid, rows)
-                    history.popup.choices.current_values = ["u0", "u1"]
-                    history.popup.buttons[0].handler()
+                    view._dialog.choices.current_values = ["u0", "u1"]
+                    view._dialog.buttons[0].handler()
                 pipe.send_text("\r")
                 await eventually(lambda: "delete_turns" in pending)
                 await eventually(lambda: view.t("history_deleting") in screen_text(app, 132, 40))
                 self.assertIsNone(view._dialog)
-                self.assertFalse(view.transcript.control.messages)
-                self.assertFalse(view.output_objects)
+                self.assertFalse(view.output.transcript.control.messages)
+                self.assertFalse(view.output.objects)
                 self.assertFalse(view.input_history.available)
                 with set_app(app):
                     view.preparing.paint()  # An old observation cannot refill the transcript.
-                    self.assertFalse(view.transcript.control.messages)
+                    self.assertFalse(view.output.transcript.control.messages)
                     completed, progress = pending["delete_turns"]
                     progress(1, 2)
                 await eventually(lambda: "50%" in screen_text(app, 132, 40))
@@ -76,12 +76,12 @@ class DeletionFeedbackTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(view.composer.text, "keep me")
                     view.input_history.move(-1)
                     self.assertEqual(view.composer.text, "keep me")
-                    self.assertNotIn("old answer", [m.text for m in view.transcript.control.messages])
+                    self.assertNotIn("old answer", [m.text for m in view.output.transcript.control.messages])
             finally:
                 app.exit()
                 await task
                 view.progress.close()
-                view.output_renderers.close()
+                view.close()
 
     async def test_failure_restores_output_and_switch_does_not_blank_other_session(self):
         with create_pipe_input() as pipe:
@@ -92,21 +92,21 @@ class DeletionFeedbackTests(unittest.IsolatedAsyncioTestCase):
             original = view.sessions[0].messages
             with set_app(app):
                 pending = view.deleting.start(key, 2)
-                self.assertFalse(view.transcript.control.messages)
+                self.assertFalse(view.output.transcript.control.messages)
                 view.select(1)
-                other = view.transcript.control.messages
+                other = view.output.transcript.control.messages
                 self.assertTrue(other)
                 view.select(0)
-                self.assertFalse(view.transcript.control.messages)
+                self.assertFalse(view.output.transcript.control.messages)
                 view.select(1)
                 view.deleting.finish(pending)
-                self.assertEqual(view.transcript.control.messages, other)
+                self.assertEqual(view.output.transcript.control.messages, other)
                 self.assertFalse(view.progress.active)
                 view.select(0)
-                self.assertEqual(view.transcript.control.messages, original)
+                self.assertEqual(view.output.transcript.control.messages, original)
                 pending = view.deleting.start(key, 2)
                 view.deleting.finish(pending)
-                self.assertEqual(view.transcript.control.messages, original)
+                self.assertEqual(view.output.transcript.control.messages, original)
                 # Recovered drafts and cancelled queue entries must not be recalled.
                 view.input_history.recover(key[1], "deleted queued")
                 view.input_history.discard(key[1], {"deleted queued"})
@@ -118,4 +118,4 @@ class DeletionFeedbackTests(unittest.IsolatedAsyncioTestCase):
                 for locale in ("ko", "en"):
                     self.assertFalse(Language(locale)("help").startswith("# "))
             view.progress.close()
-            view.output_renderers.close()
+            view.close()

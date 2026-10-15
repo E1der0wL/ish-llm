@@ -11,14 +11,14 @@ from hub.components import COMPONENTS, component_spec
 
 
 class ComponentCatalogTests(unittest.TestCase):
-    def test_import_is_lightweight_and_alias_order_is_unchanged(self):
+    def test_import_is_lightweight_and_commands_use_exact_component_names(self):
         subprocess.run([sys.executable, "-c", "import sys; import hub.components; "
             "assert 'llm' not in sys.modules; assert 'prompt_toolkit' not in sys.modules"], check=True)
         commands = component_commands(tuple(spec.name for spec in COMPONENTS))
-        self.assertEqual(list(commands), ["tools", "rag", "workflows", "skills", "agents",
-                                          "tool", "skill", "workflow", "agent"])
+        self.assertEqual(list(commands), ["tools", "skills", "mcp", "rag", "agents", "workflows"])
+        self.assertTrue(all(command == name for command, name in commands.items()))
         self.assertEqual(component_commands(("memory", "goals", "refinement", "skills")),
-                         {"skills": "skills", "skill": "skills"})
+                         {"skills": "skills"})
         with self.assertRaises(ValueError):
             component_spec("unregistered")
         with self.assertRaises(FrozenInstanceError):
@@ -31,6 +31,9 @@ class ComponentCatalogTests(unittest.TestCase):
             "hub-document": "audience", "hub-create-rag": "rag_add_document",
             "hub-create-workflow": "workflow_schema", "hub-create-skill": "skill_create",
             "hub-create-agent": "agent_create"}
-        for identifier, _, _, instructions in SKILLS:
+        for identifier, title, description, instructions in SKILLS:
             self.assertIn(expected[identifier], instructions)
+            self.assertNotRegex(title + description + instructions, "[가-힣]")
         self.assertIn("current Run", SYSTEM_PROMPT)
+        self.assertNotRegex(SYSTEM_PROMPT, "[가-힣]")
+        self.assertIn("Respond in the user's language", SYSTEM_PROMPT)

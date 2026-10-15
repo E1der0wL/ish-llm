@@ -169,7 +169,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                 first_id = view.sessions[view.selected].id
                 pipe.send_text("hold first\r")
                 await until(lambda: view.composer.text == "")
-                await until(lambda: any("reply" in m.text for m in view.transcript.control.messages))
+                await until(lambda: any("reply" in m.text for m in view.output.transcript.control.messages))
                 pipe.send_text("second\r")
                 await until(lambda: view._dialog is not None)
                 pipe.send_text("\r")  # Default: follow-up request.
@@ -178,21 +178,21 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                 await minimize(pipe, view)
                 await until(lambda: not view.visible)
                 self.assertTrue(controller.worker._thread.is_alive())
-                pipe.send_text("\x11\x18")  # return; Ctrl+X interrupts only the active Run
-                await until(lambda: any(m.text == "**reply**: second" for m in view.transcript.control.messages))
-                self.assertTrue(any(m.status == "interrupted" for m in view.transcript.control.messages))
+                pipe.send_text("\x11\x17")  # return; Ctrl+W interrupts only the active Run
+                await until(lambda: any(m.text == "**reply**: second" for m in view.output.transcript.control.messages))
+                self.assertTrue(any(m.status == "interrupted" for m in view.output.transcript.control.messages))
                 pipe.send_text("/new\r")  # F4 new Session
                 await until(lambda: view._dialog is not None)
                 pipe.send_text("Other session\r")
                 await until(lambda: view.sessions[view.selected].id != first_id)
                 self.assertEqual(len(view.sessions), 2)
                 pipe.send_text("other\r")
-                await until(lambda: any(m.text == "**reply**: other" for m in view.transcript.control.messages))
+                await until(lambda: any(m.text == "**reply**: other" for m in view.output.transcript.control.messages))
                 pipe.send_text("\x1b")
                 await until(lambda: app.layout.current_control == view._session_control)
                 pipe.send_text("\x1b[A")  # F2 returns to the first Session
                 await until(lambda: view.sessions[view.selected].id == first_id)
-                await until(lambda: any(m.text == "**reply**: second" for m in view.transcript.control.messages))
+                await until(lambda: any(m.text == "**reply**: second" for m in view.output.transcript.control.messages))
             finally:
                 app.exit()
                 await task
@@ -243,7 +243,7 @@ class HostLifecycleTests(unittest.TestCase):
                     pipe.send_text("/new\r\r")
                     await until(lambda: not view.no_sessions and view._dialog is None)
                 pipe.send_text("hold request\r")
-                await until(lambda: any("reply" in m.text for m in view.transcript.control.messages))
+                await until(lambda: any("reply" in m.text for m in view.output.transcript.control.messages))
                 await minimize(pipe, view)
                 await until(lambda: not view.visible)
                 prompt.app.exit(result="pwd")
@@ -255,7 +255,7 @@ class HostLifecycleTests(unittest.TestCase):
                 await until(lambda: prompt.app.is_running)
                 pipe.send_text("\x11")
                 await until(lambda: any(m.text == "**reply**: hold request"
-                                       for m in view.transcript.control.messages))
+                                       for m in view.output.transcript.control.messages))
                 prompt.app.exit(result="")
                 await second
 

@@ -26,6 +26,7 @@ class FailureDiagnosis:
     code: str = ""
     http_status: int | None = None
     exception_type: str = ""
+    finish_reason: str = ""
 
 
 @dataclass(frozen=True, slots=True)
