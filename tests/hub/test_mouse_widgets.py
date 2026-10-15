@@ -259,13 +259,14 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(screen.data_buffer[self.output.rows - 3][left].char, "└")
         self.assertEqual(screen.data_buffer[self.output.rows - 3][self.output.columns - 1].char, "┘")
 
-    async def test_settings_scrollbar_matches_chat_edge_with_one_inner_padding_column(self):
+    async def test_settings_scrollbar_keeps_edge_when_home_reserves_right_padding(self):
         for columns in (132, 80):
             self.output.columns = columns
             self.app._on_resize()
             await self.paint()
             chat = self.position(self.view.output.transcript.window)
             chat_edge = chat.xpos + chat.width - 1
+            self.assertEqual(chat_edge, columns - 2)
             with set_app(self.app):
                 self.view.toggle_settings()
                 self.view.settings.choose("appearance")
@@ -273,10 +274,10 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             await self.paint()
             pane = self.view.settings.main
             rect = next(rect for item, rect in self.view.mouse.panes if item is pane)
-            self.assertEqual(rect.xpos + rect.width - 1, chat_edge)
-            self.assertEqual(chat_edge, columns - 1)
+            settings_edge = rect.xpos + rect.width - 1
+            self.assertEqual(settings_edge, columns - 1)
             gap = self.position(pane.scrollbar_gap)
-            self.assertEqual((gap.xpos, gap.width), (chat_edge - 1, 1))
+            self.assertEqual((gap.xpos, gap.width), (settings_edge - 1, 1))
             field = self.view.settings.page.form.fields[("background",)].input.window
             field_rect = self.position(field)
             self.assertEqual(field_rect.xpos + field_rect.width, gap.xpos)
@@ -285,8 +286,8 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(cells[y][gap.xpos].char, " ")
             await self.mouse(65, gap.xpos, rect.ypos + 1)
             self.assertEqual(pane.vertical_scroll, 3)
-            await self.mouse(0, chat_edge, rect.ypos + rect.height - 1)
-            await self.mouse(0, chat_edge, rect.ypos + rect.height - 1, release=True)
+            await self.mouse(0, settings_edge, rect.ypos + rect.height - 1)
+            await self.mouse(0, settings_edge, rect.ypos + rect.height - 1, release=True)
             self.assertEqual(pane.vertical_scroll, 4)
             with set_app(self.app):
                 self.view.toggle_settings()
