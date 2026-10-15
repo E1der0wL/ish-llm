@@ -40,7 +40,7 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[C\x10")
                 await eventually(lambda: app.layout.current_control is view.profile_bar.page.control)
                 self.assertEqual(view.profile_bar.page.text, "설정")
-                for sequence in ("\t", "\x1b[Z", "\x1b[A", "\x1b[B"):
+                for sequence in ("\t", "\x1b[Z", "\x1b[A", "\x1b[B", "\x1b[D"):
                     pipe.send_text(sequence)
                     await asyncio.sleep(.05)
                     self.assertIs(app.layout.current_control, view.profile_bar.page.control)
@@ -76,7 +76,7 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: not view.settings_open)
                 pipe.send_text("\x10\x1b[C")
                 await eventually(lambda: app.layout.current_control is view.profile_bar.minimize.control)
-                pipe.send_text("\t")
+                pipe.send_text("\t\x1b[C")
                 await asyncio.sleep(.05)
                 self.assertIs(app.layout.current_control, view.profile_bar.minimize.control)
                 pipe.send_text("\x1b[D")

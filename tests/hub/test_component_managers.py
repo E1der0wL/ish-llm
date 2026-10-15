@@ -25,6 +25,44 @@ WORKFLOW = {"schema_version": 1, "entry": "done", "nodes": {"done": {"type": "en
 
 
 class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_all_manager_settings_buttons_select_component_and_focus_its_fields(self):
+        with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
+            app, controller = create_application(HubConfig(directory, auto_title=False),
+                                                  input=pipe, output=SizedOutput())
+            view, screen = controller.view, controller.view.settings
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            try:
+                await eventually(lambda: view.connected)
+                # The first visit loads the catalog/project; later visits reuse drafts.
+                for command, name in (("tool", "tools"), ("skill", "skills"), ("rag", "rag"),
+                                      ("workflow", "workflows"), ("agent", "agents"), ("tool", "tools")):
+                    with self.subTest(component=name):
+                        view.composer.text = f"/{command} config"
+                        view.composer.buffer.cancel_completion()
+                        pipe.send_text("\r")
+                        await eventually(lambda: isinstance(view._dialog, ComponentManager) and not view._dialog.busy)
+                        popup = view._dialog
+                        pipe.send_text("\t")
+                        await eventually(lambda: app.layout.current_control is popup.list)
+                        pipe.send_text("\t\x1b[C\r")  # Reload -> Settings -> activate.
+                        await eventually(lambda: view.settings_open and view._dialog is None and not screen.busy)
+                        page = screen.page
+                        self.assertEqual(page.identifier, view.project_id)
+                        self.assertEqual(page.section, "component:" + name)
+                        self.assertEqual(screen.selected, page.section)
+                        self.assertEqual(screen.navigation.left_key, page.section)
+                        self.assertEqual(page.query, "config.parameters.components." + name)
+                        self.assertTrue(page.fields())
+                        self.assertEqual(page.fields(), list(page.component_forms[name].fields.values()))
+                        self.assertIs(app.layout.current_control, page.fields()[0].input.control)
+                        with set_app(app):
+                            screen.filter("no-such-setting")
+                            view.toggle_settings()
+            finally:
+                app.exit()
+                await task
+                await asyncio.to_thread(controller.close)
+
     async def test_path_dropdown_tab_confirmation_and_filtered_settings_button(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             root = Path(directory)

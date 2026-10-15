@@ -115,27 +115,17 @@ class SettingsNavigation:
                 break
 
     def move(self, key):
+        if key not in ("up", "down") or self.actions_focused or self.focused_key() is not None:
+            return
         current = get_app().layout.current_control
         usage = getattr(self.screen.page, "usage_output", None)
         if usage is not None and current == usage.control and key in ("up", "down"):
             if key == "down" or usage.buffer.document.cursor_position_row:
                 usage.buffer.cursor_up() if key == "up" else usage.buffer.cursor_down()
                 return
-        left_key = self.focused_key()
-        if left_key is not None:
-            if key in ("left", "right"):
-                if key == "right":
-                    self.screen.layout.focus_main()
-                return
-            current.move(-1 if key == "up" else 1)
-        else:
-            self.remember_zone()
-            allowed = ("left", "right") if self.main_zone == 1 else ("up", "down")
-            if key not in allowed:
-                return
-            widgets = self.groups()[self.main_zone]
-            if not widgets:
-                return
-            index = self.positions[self.main_zone] + (-1 if key in ("up", "left") else 1)
-            self.positions[self.main_zone] = max(0, min(len(widgets) - 1, index))
-            self.focus_zone(self.main_zone)
+        self.remember_zone()
+        widgets = self.groups()[0]
+        if widgets:
+            index = self.positions[0] + (-1 if key == "up" else 1)
+            self.positions[0] = max(0, min(len(widgets) - 1, index))
+            self.focus_zone(0)

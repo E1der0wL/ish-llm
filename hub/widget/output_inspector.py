@@ -132,12 +132,13 @@ class ExpandedOutputDialog:
             Button(self.t("shortcut_copy"), handler=lambda: get_app().create_background_task(self.copy())),
             Button(self.t("search_close"), handler=context.close),
         ]
+        self.actions = ActionBar(self.buttons, lambda: max(1, context.columns() - 4))
         self.container = Frame(HSplit([
             body if body is not None else output,
             ConditionalContainer(self.query, Condition(lambda: self.searching)),
             Window(FormattedTextControl(self.status), height=1, style="class:hub.muted"),
             Window(FormattedTextControl(self.hints), height=1, style="class:hub.footer"),
-            ActionBar(self.buttons, lambda: max(1, context.columns() - 4)),
+            self.actions,
             Window(self.receiver, height=0),
         ]), title=item.title,
             width=lambda: Dimension(min=1, preferred=context.columns(), max=context.columns()),
@@ -191,7 +192,7 @@ class OutputInspector(ExpandedOutputDialog):
         self.shortcuts.add(["n", "c-n"], "n/Ctrl+N", "next_match", lambda e: self.output.move_match(1))
         self.shortcuts.add(["N", "c-p"], "N/Ctrl+P", "previous_match", lambda e: self.output.move_match(-1))
         self.shortcuts.add(["r"], "r", "object_raw", lambda e: self.toggle_raw())
-        self.buttons.insert(1, Button(self.t("object_raw"), handler=self.toggle_raw))
+        self.actions.insert(1, Button(self.t("object_raw"), handler=self.toggle_raw))
 
     def toggle_raw(self):
         self.output.selection.clear()

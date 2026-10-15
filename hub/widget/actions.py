@@ -1,13 +1,36 @@
-"""Responsive, centered button rows shared by settings pages."""
+"""Shared horizontal button navigation and responsive, centered action rows."""
 
 from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
 
 
+def bind_button_navigation(buttons):
+    """Keep button arrows and their footer hints together, including edge keys."""
+    def move(event):
+        controls = [button.control for button in buttons]
+        current = event.app.layout.current_control
+        if current in controls:
+            index = controls.index(current) + (-1 if event.key_sequence[-1].key == "left" else 1)
+            event.app.layout.focus(controls[max(0, min(len(controls) - 1, index))])
+
+    for button in buttons:
+        if getattr(button.control, "hub_button_group", None) is buttons:
+            continue
+        button.control.hub_button_group = buttons
+        registry = button.control.hub_shortcuts
+        registry.add(["left", "right"], "←→", "select", move, when=lambda: len(buttons) > 1)
+        registry.add(["up", "down"], "", "", lambda e: None)
+
+
 class ActionBar(DynamicContainer):
     def __init__(self, buttons, width):
         self.buttons, self.available_width = buttons, width
+        bind_button_navigation(buttons)
         super().__init__(self._container)
+
+    def insert(self, index, button):
+        self.buttons.insert(index, button)
+        bind_button_navigation(self.buttons)
 
     def rows(self, width=None):
         width = self.available_width() if width is None else width

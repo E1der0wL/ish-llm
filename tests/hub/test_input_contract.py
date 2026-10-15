@@ -12,13 +12,70 @@ from examples.hub.preview import install_preview
 from hub.ui.chat.history_ui import HistoryUI
 from hub.widget.header import HeaderBar
 from hub.widget.output.reader import ReadOnlyDialog
-from hub.widget.controls import TextArea
+from hub.widget.controls import Button, TextArea
+from hub.widget.dialog import Dialog
 from hub.model import ChatMessage
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.support import settings_button, SizedOutput, eventually, minimize
 
 
 class InputContractTests(unittest.IsolatedAsyncioTestCase):
+    async def test_popup_and_expanded_view_buttons_share_arrows_and_visible_hints(self):
+        with create_pipe_input() as pipe:
+            prompt = Prompt(input=pipe, output=SizedOutput())
+            installation = install_preview(prompt)
+            app, view = prompt.app, installation.view
+            view.transcript.set_messages((ChatMessage("assistant", "```py\nprint('hello')\n```", id="code"),))
+            task = asyncio.create_task(prompt.prompt_async())
+            try:
+                await eventually(lambda: app.is_running)
+                pipe.send_text("\x11")
+                await eventually(lambda: view.visible and bool(view.transcript.control.objects))
+                activated = []
+                buttons = [Button(str(index), handler=lambda index=index: activated.append(index)) for index in range(3)]
+                field = TextArea(text="draft", multiline=False)
+                with set_app(app):
+                    view.dialogs.show(Dialog(title="Actions", body=field, buttons=buttons), field)
+                pipe.send_text("\t")
+                await eventually(lambda: app.layout.current_control is buttons[0].control)
+                for kind in ("popup", "code viewer"):
+                    if kind == "code viewer":
+                        with set_app(app):
+                            view.close_dialog()
+                            view.tags.open()
+                            view.tags.expand()
+                        popup = view._dialog
+                        buttons = popup.buttons
+                        with set_app(app):
+                            app.layout.focus(buttons[0])
+                    for index in range(len(buttons)):
+                        with self.subTest(kind=kind, button=index):
+                            with set_app(app):
+                                hints = view.bindings.hints()
+                            self.assertIn(("←→", view.t("shortcut_select")), hints)
+                            self.assertIn(("Enter/Space", view.t("shortcut_activate")), hints)
+                            pipe.send_text("\x1b[A\x1b[B" + ("\x1b[D" if index == 0 else ""))
+                            await asyncio.sleep(.05)
+                            self.assertIs(app.layout.current_control, buttons[index].control)
+                            pipe.send_text("\x1b[C")
+                            await eventually(lambda: app.layout.current_control is buttons[min(index + 1, len(buttons) - 1)].control)
+                    for index in reversed(range(len(buttons) - 1)):
+                        pipe.send_text("\x1b[D")
+                        await eventually(lambda: app.layout.current_control is buttons[index].control)
+                    if kind == "popup":
+                        pipe.send_text(" \r")
+                        await eventually(lambda: activated == [0, 0])
+                        pipe.send_text("\x1b[Z")
+                        await eventually(lambda: app.layout.current_control is field.control)
+                        self.assertEqual(field.text, "draft")
+                pipe.send_text("\x1b")
+                await eventually(lambda: view._dialog is None)
+                self.assertIs(app.layout.current_control, view.tags.control)
+            finally:
+                app.exit(result="")
+                await task
+                installation.close()
+
     async def test_removed_panel_and_settings_shortcuts_leave_drafts_untouched(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())

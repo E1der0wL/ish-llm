@@ -5,6 +5,7 @@ from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.keys import Keys
 
 from ..ui.input.registry import ShortcutRegistry
+from .actions import bind_button_navigation
 
 
 class PopupInput:
@@ -24,3 +25,6 @@ class Dialog(PTKDialog):
         kwargs.setdefault("with_background", False)
         kwargs.setdefault("modal", False)
         super().__init__(*args, **kwargs)
+        # Read-only help/log dialogs deliberately keep arrows as scroll keys.
+        if shortcut_context != "reader":
+            bind_button_navigation(kwargs.get("buttons") or [])

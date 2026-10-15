@@ -45,6 +45,28 @@ interaction을 취소하고 Session metadata의 `hub_stopped_runs`에 중단 시
 회귀 검사는 `tests/hub/test_home_navigation.py`, `test_context.py`, `test_paused_stop.py`,
 `test_interrupt_feedback.py`, `test_followup.py` 및 기존 호스트·설정 키 테스트에서 수행합니다.
 
+## 컴포넌트 설정 이동과 버튼 키 점검
+
+`/tool config`, `/rag config`, `/workflow config`, `/skill config`, `/agent config`의
+설정 버튼은 현재 프로젝트의 해당 컴포넌트 항목을 선택하고
+`config.parameters.components.<등록 이름>`으로 필터링한 뒤 첫 입력칸으로 이동합니다.
+처음 프로젝트 설정을 불러오는 경우와 기존 설정 초안을 재사용하는 경우를 모두 검사합니다.
+이전 검색 필터는 새 컴포넌트 대상으로 교체됩니다.
+
+설정·프로필·일반 팝업·출력 확대 화면의 버튼은 `widget/actions.py`의 공통 키 처리를
+사용합니다. ←→로 선택하며 양 끝에서 멈추고, Enter / Space로 실행합니다. ↑↓는 버튼
+선택을 바꾸지 않습니다. 코드 뷰어에 추가되는 원문·코드 복사 버튼도 같은 규칙을 사용하며
+하단 안내는 실제 키 바인딩에서 생성합니다.
+
+Tab은 영역의 역할에 따라 동작합니다. 좌측 패널에서는 카테고리를, 설정 메인 영역에서는
+설정 항목과 버튼 영역을, 일반 팝업에서는 입력칸·목록·버튼을 순환합니다. 프로필에서의
+Tab / Shift+Tab은 기존처럼 무동작입니다. 도움말·로그는 읽기 전용이므로 이동키가 계속
+내용 스크롤로 동작합니다.
+
+`test_component_managers.py`는 다섯 관리 팝업의 실제 키 입력을 통해 선택 항목·필터·포커스를
+확인합니다. `test_input_contract.py`는 일반 팝업과 코드 확대 화면의 버튼 이동·안내·실행,
+입력칸 복귀 및 기존 도움말·로그 키를 검증합니다.
+
 ## 검증 결과 — 2026-10-15
 
 - WSL Linux Python 3.12.14, Linux 파일시스템의 소스 스냅샷에서 실행했습니다.
@@ -57,3 +79,14 @@ interaction을 취소하고 Session metadata의 `hub_stopped_runs`에 중단 시
 - 실제 PTK 셀 렌더링으로 132×40 홈과 80×24 설정의 프로필 버튼 정렬을 확인했습니다.
 - 검사 중 발견한 이전 Tab 기대값, 도움말의 강조 마크업, 불필요한 재시도 상태 조회를
   수정한 뒤 전체 Hub 검사를 다시 실행했습니다. 외부 모델 API는 호출하지 않았습니다.
+
+## 설정 이동·버튼 키 추가 검증 — 2026-10-15
+
+- Linux Python 3.12.14에서 집중 검사 **22개**, Hub 전체 **379개**, 백엔드 전체 **1,445개** 통과.
+- 실행: `python tests/llm/run_linux.py --source /mnt/d/WorkSpace/ish --hub --full --modules
+  tests.hub.test_input_contract tests.hub.test_component_managers tests.hub.test_home_navigation
+  tests.hub.test_settings_navigation tests.hub.test_output_interaction`.
+- 보고서: `tests/llm/reports/ish-provider-x826d8zk/{focused,hub,suite}.txt`.
+- 컴포넌트 설정 이동은 기존 동작이 정상임을 확인했고, 키 처리 개선은 공통 버튼 위젯에 적용했습니다.
+- 검사 스냅샷 710개 파일이 작업 파일과 일치함을 확인했습니다. 검사 이후 변경은 이 결과 문단뿐이며,
+  `llm/` 구현과 기존 사용자 수동 테스트 파일은 수정하지 않았습니다.

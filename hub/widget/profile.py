@@ -31,8 +31,7 @@ class ProfileBar(HSplit):
         super().__init__([FocusRegion(content, active=lambda: self.focused, on_click=self.focus, tint=False)], height=4)
         for button in self.buttons:
             registry = button.control.hub_shortcuts
-            registry.add(["left", "right"], "←→", "select", self.move)
-            registry.add(["tab", "s-tab", "up", "down"], "", "", lambda e: None)
+            registry.add(["tab", "s-tab"], "", "", lambda e: None)
             registry.add(["escape"], "ESC", "sidebar", lambda e: view.focus_sidebar())
 
     @property
@@ -52,8 +51,3 @@ class ProfileBar(HSplit):
         self.view._session_focus = True
         get_app().layout.focus(self.page)
         get_app().invalidate()
-
-    def move(self, event):
-        current = self.controls.index(event.app.layout.current_control)
-        step = -1 if event.key_sequence[-1].key == "left" else 1
-        event.app.layout.focus(self.buttons[(current + step) % len(self.buttons)])

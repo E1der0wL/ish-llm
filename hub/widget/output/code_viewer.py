@@ -12,7 +12,7 @@ from ..output_inspector import OutputInspector
 class CodeViewer(OutputInspector):
     def __init__(self, item, context):
         super().__init__(item, context)
-        self.buttons.insert(-1, Button(self.t("object_copy_code"),
+        self.actions.insert(-1, Button(self.t("object_copy_code"),
             handler=lambda: get_app().create_background_task(self.copy_code())))
 
     def code_text(self):

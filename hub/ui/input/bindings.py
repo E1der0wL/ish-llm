@@ -55,11 +55,6 @@ class HubBindings:
               when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused)
         r.add(["right"], "", "", lambda e: None,
               when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused)
-        r.add(["left", "right"], "←→", "select",
-              lambda e: view.settings.move(e.key_sequence[-1].key),
-              when=lambda: c.settings and view.settings.actions_focused)
-        r.add(["up", "down"], "", "", lambda e: None,
-              when=lambda: c.settings and view.settings.actions_focused)
         r.add(["up", "down"], "↑↓", "select", self.select, when=lambda: c.sidebar)
         r.add(["c-left", "c-right"], "Ctrl+←→", "width", self.resize, when=lambda: c.sidebar)
         for key, action in (("c", "create"), ("d", "delete"), ("e", "rename"), ("r", "clone")):
