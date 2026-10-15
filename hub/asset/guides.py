@@ -17,6 +17,7 @@ class StarterSkill:
 
 
 SYSTEM_PROMPT = Path(__file__).with_name("prompts").joinpath("system.md").read_text(encoding="utf-8")
+TEMPLATE_VERSION = 3
 STARTER_SKILLS = (
     StarterSkill("hub-code-change", "코드 수정", "기존 코드의 동작과 경계를 확인하고 필요한 변경을 검증합니다.", "coding.md"),
     StarterSkill("hub-diagnose", "오류 진단", "오류를 재현하고 근거를 모아 원인과 해결책을 구분합니다.", "diagnose.md"),

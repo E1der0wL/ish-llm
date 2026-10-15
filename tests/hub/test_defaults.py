@@ -11,7 +11,7 @@ from prompt_toolkit.input import create_pipe_input
 
 from hub.hub import install
 from hub.backend.runtime import HubConfig, HubRuntime
-from hub.asset.guides import SKILLS, SYSTEM_PROMPT
+from hub.asset.guides import SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
 from llm.components.workflows import WorkflowGraph
 from tests.hub.test_ish_integration import Prompt
 from tests.hub.test_live import until
@@ -33,6 +33,14 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("completion", config.parameters["engines"]["loop"])
                 skills = await runtime.project.components.aget("skills")
                 self.assertEqual(set(await skills.alist()), {item[0] for item in SKILLS})
+                for identifier, _, _, instructions in SKILLS:
+                    guide = await skills.aload(identifier)
+                    self.assertEqual(guide["instructions"], instructions)
+                    self.assertEqual(guide["metadata"]["hub_template_version"], TEMPLATE_VERSION)
+                record = await runtime.settings_service.load_project(project_id)
+                values = deepcopy(record["values"])
+                values["config"]["parameters"]["engines"]["loop"]["config"]["system_prompt"] = "My project prompt"
+                await runtime.settings_service.save_project(project_id, values, record["config_version"])
                 await skills.aupdate("hub-code-change", {"instructions": "My project rules"})
                 await skills.adelete("hub-document")
                 created = await runtime.settings_service.create_project({"title": "Custom", "config": {
@@ -45,6 +53,8 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
             reopened = HubRuntime(HubConfig(directory, project_id=project_id, auto_title=False))
             try:
                 await reopened.start()
+                config = (await reopened.project.aget_data()).config
+                self.assertEqual(config.parameters["engines"]["loop"]["config"]["system_prompt"], "My project prompt")
                 skills = await reopened.project.components.aget("skills")
                 self.assertEqual((await skills.aload("hub-code-change"))["instructions"], "My project rules")
                 self.assertNotIn("hub-document", await skills.alist())

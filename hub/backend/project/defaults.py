@@ -5,7 +5,7 @@ import asyncio
 
 from llm.core.models import ProjectConfig
 
-from ...asset.guides import SKILLS, SYSTEM_PROMPT
+from ...asset.guides import SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
 
 
 def provider_defaults():
@@ -68,7 +68,7 @@ async def create_project(backend, title, *, config, components, conversation_sto
             skills = await project.components.aget("skills")
             for identifier, title, description, instructions in SKILLS:
                 await skills.acreate({"title": title, "description": description, "instructions": instructions,
-                                      "metadata": {"hub_template_version": 2}}, identifier=identifier)
+                                      "metadata": {"hub_template_version": TEMPLATE_VERSION}}, identifier=identifier)
     except BaseException:
         # Do not leave a partially seeded project as the next startup selection.
         await asyncio.shield(project.adelete())
