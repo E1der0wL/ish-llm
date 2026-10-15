@@ -128,6 +128,26 @@ SDK를 직접 선택하지 않는다. 새 라이브러리 추가 시 그 adapter
 SDK retry가 활성화되면 outer 호출 1회, `DEFAULT_MAX_RETRIES=0` compatibility,
 LiteLLM embedding cache 비활성, 사용량/admission 검사는 유지한다. 첫 streaming chunk가
 발생한 뒤에는 자동 재시도하지 않는다. delay/선택 시간도 동일한 wrapper deadline 안에 있다.
+
+Provider 정책의 `respect_retry_after`와 `jitter`는 선택적 boolean이며 미설정이면 비활성이다.
+전자는 SDK 예외의 HTTP Retry-After(초 또는 날짜)를 최소 대기로 반영하고, 후자는 명시된
+백오프의 0..계산값 범위에서 대기를 분산한다. Retry-After 최소 대기보다 짧아지지는 않는다.
+잘못된/음수/무한대 헤더는 무시한다. 서버 대기가 `max_delay_seconds`보다 크면 원래 실패를
+보존하고 재시도하지 않는다. 전체 기한 밖이면 `provider_timeout`으로 끝나며 기한을 연장하지 않는다.
+두 flag는 시도 횟수를 추가하지 않는다. SDK 내부 retry 설정도 변경하지 않는다.
+
+```python
+# ProjectConfig.parameters 일부. 아래 수치는 Application이 선택한 예시다.
+parameters = {"engines": {"loop": {"policy": {"provider": {
+    "max_attempts": 3, "delay_seconds": 1, "max_delay_seconds": 10,
+    "wall_timeout": 60, "respect_retry_after": True, "jitter": True,
+}}}}}
+```
+
+Component의 provider 정책도 동일한 schema/계산을 재사용하지만 각 Component의 설정 위치를
+유지한다. Loop의 값을 RAG/Memory/Vision에 암묵적으로 상속하지 않는다.
+상세 진단은 `BackendServices.provider_diagnostics`로 선택하며 retry 여부에 영향을 주지 않는다.
+호출 ID/시도/서버 요청 ID와 Step 연결은 [Provider 문서](../../llm/providers/README.md)를 참고한다.
 SDK 내부 HTTP 재시도와 RAG의 의미 검증 repair는 각각의 소유 계약을 유지한다.
 
 이 기능은 Hub의 자동 경로 수정 전략이나 오류 복구 UI를 새로 제공하지 않는다.

@@ -8,6 +8,13 @@ BackendServices / ToolRuntime / OutputBuffer로 표현한다. 실행·승인·�
 제품 정책 ceiling을 덮어쓰지 않는다. 수치 위험 분류, 저장 Agent 위임, Component dependency의
 현재 계약과 예제는 [Project authority](project-authority.md)에 정리한다.
 
+Provider 오류 분류와 서버 진단 추출은 providers가, completion 응답 계약/종료/출력 제한은
+BaseEngine이 소유한다. Run/Step 서비스는 분류된 오류와 Diagnostic을 기존 경로로 저장한다.
+RunManager가 SDK 메시지를 해석하거나 진단으로 승인/재개를 판단하지 않는다.
+상세 로그는 `BackendServices.provider_diagnostics`의 명시적 Host 로깅 설정이고,
+재시도 값은 각 Engine/Component의 기존 provider 정책에 남는다. 새로운 중앙 retry 정책,
+도메인 저장소, 승인 경로는 없다. [설정과 오류 코드](../../llm/providers/README.md).
+
 ## 설정과 정의의 의미 소유권
 
 테스트 파일 공간은 호스트가 주입하는 BuiltinTools 자원이다. 소유권/생성 완료 기록과 공간별

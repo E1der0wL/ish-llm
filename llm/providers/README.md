@@ -69,6 +69,12 @@ Loop는 `parameters.engines[이름].policy.provider`, Memory 보조 모델은
 자동 재시도하지 않는다. 스트리밍도 같은 SDK 우선 정책을 적용하고 사용자 값을 유지한다.
 명시한 `wall_timeout`은 응답·재시도에 같은 절대 기한을 적용하되, 이벤트를 저장 중인
 소비자를 취소하지 않는다. 저장 후 다음 진행에서 남은 기한을 확인한다.
+`respect_retry_after=true`이면 HTTP Retry-After의 초/HTTP-date를 최소 대기로 사용한다.
+`jitter=true`이면 기존 지수 백오프의 0..계산값 범위에서 대기를 분산한다. 둘 다 미설정이면
+적용하지 않으며, 이 플래그만으로 재시도가 활성화되지 않는다. 서버 대기가 명시한
+`max_delay_seconds`를 넘으면 원래 오류로 종료하고 `provider_retry_stopped`를 기록한다.
+전체 `wall_timeout`을 넘으면 `provider_timeout`으로 종료한다. 서버 요구보다 일찍 재시도하거나
+사용자 기한을 늘리지 않는다. SDK 내부 재시도는 이 옵션으로 다시 조율하지 않는다.
 스트림 bridge는 자체 deadline을 만들지 않는다. SDK `timeout`, Loop `request_timeout`,
 provider `wall_timeout`은 독립이다. 동기 SDK worker는
 강제로 죽일 수 없다. 소비자는 취소되지만 실제 호출이 종료될 때까지 슬롯은 반환하지 않는다.
@@ -86,12 +92,16 @@ SDK 임의 로그는 요청 본문·인증을 포함할 수 있으므로 원문 
 기록한다. 호출 실패는 `diagnostic_failure()`가 오류 코드, operation, stage, 경과 시간,
 예외 체인과 각 예외의 파일·행·함수를 기록한다. cause 또는 숨겨지지 않은 context를 따라간다.
 HTTP status와 OS errno가 있으면 포함하고, import 실패의 module 및 AttributeError의 attribute도
-기록한다. 비스트리밍 호출에는 model과 시도 번호, 스트리밍에는 수신 chunk 수와 Tool 개수를
-포함한다. 원래 예외 메시지, 소스 줄, 지역 변수, 요청·응답 본문, 인증/URL은 추가로 기록하지 않는다.
+기록한다. 모델, 호출 ID(`call_id`), 외부 시도 번호(`attempt`), 서버 요청 ID(제공된 경우),
+설치된 LiteLLM/OpenAI 패키지 버전을 포함한다. 스트리밍에는 수신 chunk 수와 Tool 개수도 있다.
+기본적으로 예외 원문, 소스 줄, 지역 변수, 요청·응답 본문, 인증/URL은 기록하지 않는다.
 `provider_failed`는 미분류 오류이며 서버 장애라는 뜻이 아니다. Run/Step의 오류 코드는 그대로 유지한다.
 
 RunManager는 Project/Session/Run ID와 engine을 로그 문맥에 연결한다. 스트림 worker도 그 문맥을
-상속하며, 다른 Run/workspace와 섞이지 않는다. 별도 Run이 없는 직접 모델 호출에는 ID가 없다.
+상속하며, 다른 Run/workspace와 섞이지 않는다. BaseEngine Step 안의 호출은 Step ID도 연결한다.
+별도 Run이 없는 직접 모델 호출에는 Run/Step ID가 없다. 같은 의미의 요청을 재시도하면
+call_id는 유지하고 attempt만 증가한다. 별도 요청이나 명시적 Run 재개는 새 call_id다.
+SDK 내부 HTTP 시도 수는 관찰하지 못하므로 attempt에 합산하거나 추정하지 않는다.
 동기 SDK 초기화 실패는 `initialize/sdk_import`, completion 호출 실패는 `completion/request`,
 iterator 생성은 `stream_open`, 수신은 `stream_read`, 종료는 `stream_close`로 구분한다.
 SDK import 실패는 초기화 경계와 이를 호출한 요청 경계에 각각 기록될 수 있다.
@@ -99,6 +109,44 @@ SDK import 실패는 초기화 경계와 이를 호출한 요청 경계에 각�
 SDK가 첫 `next()`에서 HTTP 요청을 시작할 수도 있다. 비스트리밍은 `invoke` 단계로 기록한다.
 기존 오류 뒤의 cleanup 오류는 `secondary=true`이며 원래 실패를 대체하지 않는다.
 취소를 provider 실패로 바꾸지 않고, 로그 기록 장애도 원래 실행 결과를 바꾸지 않는다.
+
+상세 로깅은 실행 정책이 아닌 Host 로깅 인프라 설정이다. Project/Engine의 retry 정책과
+별개로 Application이 명시적으로 선택한다. 기존 프로젝트 설정을 변경하지 않는다.
+
+```python
+from llm.llm import BackendServices, LargeLanguageModel, ProviderDiagnostics
+
+backend = LargeLanguageModel("workspace", services=BackendServices(
+    provider_diagnostics=ProviderDiagnostics(
+        error_details=True, request_summary=True, max_detail_chars=2000,
+    ),
+))
+```
+
+`error_details`는 서버 오류의 message/type/code/param과 endpoint를 기록한다. Endpoint에서
+인증 userinfo/query/fragment는 제외한다. **서버 오류 메시지 자체에는 사내 내용이 포함될 수 있다.**
+이 설정은 오류 문자열을 안전한 공개 데이터로 변환한다는 보장이 아니다.
+`request_summary`는 메시지 역할·텍스트 길이·Tool 호출/결과 대응 개수만 기록하며
+본문, Tool 인자, Tool ID, 정의 원문은 저장하지 않는다. 요약은 관찰용이며 요청을 수정하지 않는다.
+`max_detail_chars`는 명시했을 때만 개별 오류 문자열을 자른다. 기본값은 상세 수집 없음이다.
+원본 요청/응답 전체 보관, 자동 로그 삭제·보관 기간은 추가하지 않았다. Application이 보관을 관리한다.
+서비스 밖에서 호출할 때는 `logging_scope(workspace, diagnostics=ProviderDiagnostics(...))`를 쓸 수 있다.
+마지막 호출 실패의 Diagnostic은 기존 Step 실패 이벤트에도 연결되어 UI에서 조회할 수 있다.
+
+Engine 응답 검증은 transport 오류와 구분한다.
+
+| 코드 | 의미 |
+|---|---|
+| `completion_invalid_response` | choice/Tool fragment/종료 순서 등 응답 계약 위반 |
+| `completion_incomplete` | `length`, `content_filter`, 종료 사유 누락 등 미완료 응답; finish_reason 별도 기록 |
+| `completion_output_limit` | 명시한 출력 문자 제한 초과 |
+| `completion_tool_limit` | 명시한 Tool 호출 수 제한 초과 |
+| `completion_argument_limit` | 명시한 Tool 인자/ID 길이 제한 초과 |
+| `step_timeout` | BaseEngine이 집행한 명시적 Step 기한 초과(Loop request_timeout 포함); SDK timeout과 별개 |
+
+이 코드들은 자동 transport retry 대상이 아니다. 이미 받은 출력은 기존 저장 경로에 남는다.
+알려진 transport 오류는 사용자 주입 completion 함수에서도 동일하게 분류하지만, 그 함수의
+미분류 내부 오류는 `engine_failed` fallback을 유지한다. RunManager는 SDK 오류를 직접 해석하지 않는다.
 
 Hub 기본 workspace를 사용하는 Linux 환경에서 최근 오류 위치는 다음으로 확인한다.
 

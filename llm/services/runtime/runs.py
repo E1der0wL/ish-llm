@@ -500,7 +500,8 @@ class RunManager:
                  event_handlers: Optional[EventHandlers] = None,
                  subscriptions: Optional[EventSubscriptions] = None,
                  tool_runtime: Optional[ToolRuntime] = None,
-                 policy_resolver=None, provider_calls=None, output_buffer=None, observability=None) -> None:
+                 policy_resolver=None, provider_calls=None, output_buffer=None, observability=None,
+                 provider_diagnostics=None) -> None:
         if not isinstance(session, Session):
             raise TypeError("RunManager requires a Session")
         self._session = deepcopy(session)
@@ -535,6 +536,7 @@ class RunManager:
         self.policy_resolver = policy_resolver if policy_resolver is not None else ProjectPolicyResolver()
         self.tool_runtime = tool_runtime if tool_runtime is not None else ToolRuntime()
         self.provider_calls = provider_calls if provider_calls is not None else ProviderCalls()
+        self.provider_diagnostics = provider_diagnostics
         self.output_buffer = output_buffer or OutputBuffer()
         self.pending_work = PendingWork()
         from llm.services.infrastructure.observability import Observability
@@ -1023,7 +1025,7 @@ class RunManager:
             async with guard:
                 counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"].get("usage", {}).get("counter"))
                 source = {"project_id": runtime.project.id, "session_id": runtime.session.id, "run_id": run.id}
-                with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent, **source, engine=run.engine), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope():
+                with self.observability.scope(), provider_logging_scope(self.sessions.ownership.path.parent, **source, engine=run.engine, diagnostics=self.provider_diagnostics), self.provider_calls.scope(), UsageScope(run.metadata["policies"].get("usage", {}), counter, source).scope():
                     await self._consume(runtime, run, policies)
         except asyncio.TimeoutError as error:
             expired = guard.expired() if callable(guard.expired) else guard.expired

@@ -31,6 +31,7 @@ class ComponentData:
         self.history_reader = None
         self._model_usage = None
         self._provider_calls = None
+        self._provider_diagnostics = None
         self._observability = None
         self._sessions = None
         self._steps = None
@@ -92,6 +93,7 @@ class ComponentData:
         if self._async_runner is not None:
             handle.bind_runtime(runner=self._async_runner, access_check=self._access_check,
                                 history_reader=self.history_reader, provider_calls=self._provider_calls,
+                                provider_diagnostics=self._provider_diagnostics,
                                 observability=self._observability)
         if self._model_usage is not None:
             handle.bind_model_usage(self._model_usage.sessions, self._model_usage.counters)
@@ -111,7 +113,8 @@ class ComponentData:
         from llm.providers.runtime import logging_scope
         admission = self._provider_calls.scope() if self._provider_calls is not None else nullcontext()
         observations = self._observability.scope() if self._observability is not None else nullcontext()
-        with observations, admission, model_observer(self._model_usage), logging_scope(self.ownership.path.parent):
+        with observations, admission, model_observer(self._model_usage), logging_scope(self.ownership.path.parent,
+                project_id=self.project.id, diagnostics=self._provider_diagnostics):
             yield
 
     @workspace_locked
@@ -134,13 +137,15 @@ class ComponentData:
 
     amodel_usage = async_method(model_usage)
 
-    def bind_runtime(self, *, runner, access_check, history_reader=None, provider_calls=None, observability=None) -> "ComponentData":
+    def bind_runtime(self, *, runner, access_check, history_reader=None, provider_calls=None, observability=None,
+                     provider_diagnostics=None) -> "ComponentData":
         """Facade의 비동기 실행기와 수명 검사를 명시적으로 연결한다."""
         if not callable(runner) or not callable(access_check) or history_reader is not None and not callable(history_reader):
             raise TypeError("Component runtime hooks must be callable")
         self._async_runner, self._access_check = runner, access_check
         self.history_reader = history_reader
         self._provider_calls = provider_calls
+        self._provider_diagnostics = provider_diagnostics
         self._observability = observability
         return self
 

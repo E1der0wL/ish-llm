@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from llm.providers.calls import ProviderCalls, ProviderLimits
+from llm.providers.runtime import ProviderDiagnostics
 from llm.services.runtime.output import OutputBuffer
 from typing import Callable, Optional, Union
 from llm.core.models import Session
@@ -35,6 +36,7 @@ class BackendServices:
     conversation_cache_size: int = 32
     provider_limits: ProviderLimits = field(default_factory=ProviderLimits)
     provider_calls: Optional[ProviderCalls] = None
+    provider_diagnostics: Optional[ProviderDiagnostics] = None
     output_buffer: OutputBuffer = field(default_factory=OutputBuffer)
     output_index_stride: int = 128
     backups: Optional[DirectoryBackups] = None
@@ -47,9 +49,11 @@ class BackendServices:
             return {"configured": value is not None,
                     "implementation": type(value).__module__ + "." + type(value).__qualname__ if value is not None else None}
         values = {item.name: identity(getattr(self, item.name)) for item in fields(self)}
-        for key in ("provider_limits", "output_buffer"):
+        for key in ("provider_limits", "output_buffer", "provider_diagnostics"):
             value = getattr(self, key)
             values[key] = asdict(value) if value is not None else None
+        if self.provider_diagnostics is not None:
+            values["provider_diagnostics"] = {k: v for k, v in values["provider_diagnostics"].items() if v is not None}
         for key in ("conversation_cache_size", "output_index_stride"):
             values[key] = getattr(self, key)
         runtime = self.tool_runtime or ToolRuntime()
@@ -61,6 +65,8 @@ class BackendServices:
 
     def build(self, workspace, components):
         """RunManager와 Facade가 같은 저장소/문맥/로그 설정을 공유하도록 연결한다."""
+        if self.provider_diagnostics is not None and not isinstance(self.provider_diagnostics, ProviderDiagnostics):
+            raise TypeError("provider_diagnostics must be ProviderDiagnostics")
         projects = self.project_repository if self.project_repository is not None else ProjectRepository(workspace / "projects")
         if projects.root.absolute() != (workspace / "projects").absolute():
             raise ValueError("Project repository must belong to the backend workspace")

@@ -7,15 +7,20 @@ import concurrent.futures
 import inspect
 import threading
 import time
+from uuid import uuid4
 from contextvars import copy_context
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import Any
 from .calls import current_calls
-from llm.errors import CodedError
+from llm.errors import CodedError, stable_error_code
 
 
 class StreamError(CodedError, RuntimeError):
     """A provider/transport failure crossing the synchronous stream bridge."""
+
+    def __init__(self, message, *, code=None, diagnostic=None):
+        self.code, self.diagnostic = code, diagnostic
+        super().__init__(message)
 
 
 def completion(**kwargs: Any) -> Iterator[Any]:
@@ -56,6 +61,7 @@ async def stream_completion(
     loop = asyncio.get_running_loop()
     queue: asyncio.Queue[tuple[str, Any]] = asyncio.Queue(maxsize=buffer_size)
     stopped = threading.Event()
+    failure_diagnostic = None
 
     def send(kind: str, value: Any = None) -> bool:
         if stopped.is_set():
@@ -78,6 +84,7 @@ async def stream_completion(
         return False
 
     def produce() -> None:
+        nonlocal failure_diagnostic
         from llm.services.infrastructure.observability import record
         from .requests import error_code
         from .runtime import diagnostic_failure
@@ -90,7 +97,7 @@ async def stream_completion(
 
         def report(error, stage, **details):
             definitions = request.get("tools")
-            diagnostic_failure(error, operation="completion", stage=stage,
+            return diagnostic_failure(error, operation="completion", stage=stage,
                                chunks_received=chunks_received,
                                tool_count=len(definitions) if isinstance(definitions, (list, tuple)) else 0,
                                elapsed_seconds=time.monotonic() - started, **details)
@@ -114,7 +121,7 @@ async def stream_completion(
         except BaseException as error:
             failure = error
             if not isinstance(error, (asyncio.CancelledError, GeneratorExit)):
-                report(error, stage)
+                failure_diagnostic = report(error, stage)
         finally:
             # Cleanup is never performed concurrently with next(stream).
             if stream is not None:
@@ -126,7 +133,9 @@ async def stream_completion(
                             asyncio.run(result)
                 except BaseException as error:
                     if not isinstance(error, (asyncio.CancelledError, GeneratorExit)):
-                        report(error, "stream_close", secondary=failure is not None)
+                        closing_diagnostic = report(error, "stream_close", secondary=failure is not None)
+                        if failure is None:
+                            failure_diagnostic = closing_diagnostic
                     if failure is None:
                         failure = error
             try:
@@ -140,9 +149,16 @@ async def stream_completion(
                 if calls is not None:
                     calls.release()
 
+    def run():
+        from .runtime import diagnostic_context, request_details
+        with diagnostic_context(**request_details(request)) as details:
+            details.setdefault("call_id", uuid4().hex)
+            details.setdefault("attempt", 1)
+            produce()
+
     try:
         context = copy_context()
-        threading.Thread(target=context.run, args=(produce,), name="ish-litellm-stream", daemon=True).start()
+        threading.Thread(target=context.run, args=(run,), name="ish-litellm-stream", daemon=True).start()
     except BaseException:
         if calls is not None:
             calls.release()
@@ -153,12 +169,15 @@ async def stream_completion(
             if kind == "end":
                 return
             if kind == "error":
-                if completion_fn is completion:
-                    from .requests import error_code
-                    error = StreamError(error_code(value))
-                    error.code = error_code(value)
-                    raise error from value
-                raise StreamError(str(value)) from value
+                if isinstance(value, (asyncio.CancelledError, GeneratorExit)):
+                    raise value
+                from .requests import error_code
+                code = stable_error_code(value) or error_code(value)
+                # 확장 함수의 미분류 내부 오류는 engine_failed로 남긴다. 알려진 transport 오류만 분류한다.
+                if code == "provider_failed" and completion_fn is not completion:
+                    code = None
+                raise StreamError(code.replace("_", " ") if code else str(value),
+                                  code=code, diagnostic=failure_diagnostic) from value
             yield value
     finally:
         stopped.set()

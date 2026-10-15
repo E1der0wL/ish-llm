@@ -40,12 +40,29 @@ class NamingContractTests(unittest.TestCase):
         self.before = json.loads((Path(__file__).parent / 'fixtures/naming_contract.json').read_text())
 
     def test_config_policy_and_definition_schemas_unchanged(self):
+        def baseline(schema):
+            # 이름 정리 당시 fixture는 보존한다. 이후 명시적으로 추가한 Provider flag만
+            # 검증 후 제외하고 나머지 저장/설정 schema가 baseline과 동일한지 비교한다.
+            if isinstance(schema, dict):
+                properties = schema.get('properties', {})
+                if {'max_attempts', 'wall_timeout', 'delay_seconds', 'max_delay_seconds'} <= properties.keys():
+                    for key in ('respect_retry_after', 'jitter'):
+                        field = properties.pop(key)
+                        self.assertEqual(set(field), {'type', 'description'})
+                        self.assertEqual(field['type'], 'boolean')
+                    self.assertIs(schema['additionalProperties'], False)
+                for value in schema.values():
+                    baseline(value)
+            elif isinstance(schema, list):
+                for value in schema:
+                    baseline(value)
+            return schema
         implementations = [RAGComponent(), MemoryComponent(), VisionComponent(), SkillComponent(),
             AgentComponent(), PromptComponent(), MCPComponent(), GoalComponent(), RefinementComponent(),
             WorkflowComponent(), LoopEngine(), GraphEngine(handlers={})]
         for implementation in implementations:
             with self.subTest(implementation=type(implementation).__name__):
-                self.assertEqual(digest(implementation.describe_config()), self.before['schemas'][type(implementation).__name__])
+                self.assertEqual(digest(baseline(implementation.describe_config())), self.before['schemas'][type(implementation).__name__])
         self.assertEqual(digest(ProjectConfig.describe_policies()), self.before['schemas']['ProjectPolicy'])
 
     def test_persisted_config_domain_fields_and_workflow_unchanged(self):

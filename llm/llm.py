@@ -40,6 +40,7 @@ from llm.core.plans import ResumePlan, RecoveryPlan, RetentionPlan, RecoveryResu
 from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult
 from llm.core.interactions import InteractionRequest, InteractionOption, InteractionResponse, InteractionView
 from llm.providers.calls import ProviderCalls, ProviderLimits
+from llm.providers.runtime import ProviderDiagnostics
 from llm.services.runtime.output import OutputBuffer
 from llm.engines.base import Engine, EngineEvent, EngineEventType
 from llm.core.steering import RunInstruction, InstructionStatus, SteeringMode, SteeringTarget, SteeringRoute
@@ -884,6 +885,7 @@ class LargeLanguageModel:
                 event_handlers=self.event_handlers, subscriptions=self.events,
                 tool_runtime=self.services.tool_runtime, policy_resolver=self.policy_resolver,
                 provider_calls=self.provider_calls, output_buffer=self.services.output_buffer,
+                provider_diagnostics=self.services.provider_diagnostics,
                 observability=self._observability)
         return self._managers[key]
 

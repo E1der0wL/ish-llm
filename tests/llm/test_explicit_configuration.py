@@ -156,8 +156,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         # 서비스의 저장/구독자 처리를 재현한다. Engine timeout이 이 Task를 취소하면 안 된다.
         await asyncio.sleep(.03)
         self.assertEqual((await stream.__anext__()).type.value, "step_failed")
-        with self.assertRaises(asyncio.TimeoutError):
+        from llm.policies import ExecutionLimitError
+        with self.assertRaises(ExecutionLimitError) as caught:
             await stream.__anext__()
+        self.assertEqual(caught.exception.code, "step_timeout")
         self.assertEqual(closed, [True])
 
     async def test_provider_retry_is_opt_in_and_sdk_retries_are_preserved(self):

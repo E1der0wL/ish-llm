@@ -3,6 +3,7 @@
 import asyncio
 import inspect
 import math
+import random
 import time
 from copy import deepcopy
 from dataclasses import dataclass
@@ -81,7 +82,7 @@ class RetryPolicy:
             raise TimeoutError("Retry deadline exceeded")
         return value
 
-    def delay(self, attempt: int) -> float:
+    def delay(self, attempt: int, *, minimum: float | None = None, jitter: bool = False) -> float:
         """대기 가능한 간격을 계산한다. 기한 밖의 재시도를 관찰자에게 예약했다고 알리지 않는다."""
         value = self.delay_seconds if self.delay_seconds is not None else 0
         if value and self.backoff == "exponential":
@@ -92,6 +93,12 @@ class RetryPolicy:
                 value = math.inf
         if self.max_delay_seconds is not None:
             value = min(value, self.max_delay_seconds)
+        if jitter and math.isfinite(value):
+            value = random.uniform(0, value)
+        if minimum is not None:
+            if not math.isfinite(minimum) or minimum < 0:
+                raise ValueError("Retry minimum delay must be finite and nonnegative")
+            value = max(value, minimum)
         remaining = self.remaining()
         if remaining is not None and value >= remaining:
             raise TimeoutError("Retry deadline exceeded")

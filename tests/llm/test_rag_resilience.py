@@ -319,7 +319,8 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("caching", effective["rerank_params"])
                 from llm.providers.requests import provider_schema
                 self.assertEqual(set(provider_schema()["properties"]), {
-                    "max_attempts", "wall_timeout", "delay_seconds", "max_delay_seconds"})
+                    "max_attempts", "wall_timeout", "delay_seconds", "max_delay_seconds",
+                    "respect_retry_after", "jitter"})
                 self.assertFalse((Path(__file__).parents[2] / "llm/providers/openai.py").exists())
 
     async def test_partial_graph_and_disabled_without_extractor(self):

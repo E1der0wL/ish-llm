@@ -17,7 +17,7 @@ from contextlib import aclosing
 from asyncio import timeout
 from llm.core.models import Message, Project, Run, RunStatus, Session, new_id, now
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
-from llm.errors import stable_error_code
+from llm.errors import CodedError, stable_error_code
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
 from llm.core.interactions import InteractionRequest
 from llm.core.configuration import UNSET
@@ -25,7 +25,9 @@ from llm.core.steering import SteeringMode, SteeringRoute
 from llm.components.tools import ToolRegistry
 from llm.providers.litellm import completion, stream_completion
 from llm.providers.parameters import copy_params
+from llm.providers.runtime import diagnostic_context, diagnostic_failure, request_details
 from llm.services.runtime.usage import current_usage
+from llm.policies.errors import ExecutionLimitError
 
 
 _OutputValue = TypeVar("_OutputValue", EngineDelta, EngineOutput)
@@ -188,6 +190,14 @@ def required_capabilities(engine) -> tuple[str, ...]:
 def steering_mode(engine) -> SteeringMode:
     """잘못된 지원 선언은 조용히 무시하지 않는다."""
     return SteeringMode(getattr(engine, "steering_mode", SteeringMode.UNSUPPORTED))
+
+
+class CompletionError(CodedError, ValueError):
+    """Engine이 발견한 응답 계약/종료/명시적 제한 오류. transport retry 대상이 아니다."""
+
+    def __init__(self, message, *, code="completion_invalid_response"):
+        self.code = code
+        super().__init__(message)
 
 
 # 작업 함수를 공통 Step 이벤트와 스트리밍 출력으로 감싼다.
@@ -413,7 +423,7 @@ class BaseEngine:
         provider contains only this caller's explicit outer retry/deadline options;
         no Run policy is implicitly inherited and SDK request options stay separate.
         """
-        from llm.providers.retry import transient, effective_attempts
+        from llm.providers.retry import transient, effective_attempts, retry_delay
         from llm.providers.requests import resolve_provider_options, ProviderError
         from llm.providers.requests import error_code
         from llm.providers.schema import validate_retry_params
@@ -428,6 +438,7 @@ class BaseEngine:
         retry = RetryPolicy(maximum + 1, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
                             RetryPolicy.end(policy.get("wall_timeout")), "exponential")
         request = self.copy_params(dict(request))
+        call_id = new_id()
 
         def remaining():
             try:
@@ -436,6 +447,7 @@ class BaseEngine:
                 raise ProviderError("provider_timeout") from error
 
         for attempt in range(maximum + 1):
+            call_details = {"call_id": call_id, "attempt": attempt + 1, **request_details(request)}
             progress = {"received": False}
             result = CompletionResult(model=request.get("model") if isinstance(request.get("model"), str) else None)
             usage_scope = current_usage()
@@ -454,8 +466,9 @@ class BaseEngine:
                     while True:
                         try:
                             # 이벤트 저장 중인 소비자는 취소하지 않는다. 다음 진행 시 같은 절대 기한을 검사한다.
-                            async with timeout(remaining()):
-                                item = await anext(stream)
+                            with diagnostic_context(**call_details):
+                                async with timeout(remaining()):
+                                    item = await anext(stream)
                         except StopAsyncIteration:
                             break
                         except TimeoutError as error:
@@ -466,6 +479,11 @@ class BaseEngine:
                 # RunManager finalizes the last durable observation; never yield here.
                 raise
             except Exception as error:
+                if isinstance(error, (CompletionError, ProviderError)) and getattr(error, "diagnostic", None) is None:
+                    error.diagnostic = diagnostic_failure(error, operation="completion",
+                        stage="response_validation" if isinstance(error, CompletionError) else "deadline",
+                        **call_details, response_received=progress["received"],
+                        finish_reason=result.finish_reason, response_id=result.response_id)
                 result.status = RunStatus.FAILED
                 result.ended_at = now()
                 result.duration_seconds = time.monotonic() - started
@@ -486,12 +504,20 @@ class BaseEngine:
                 request = change_arguments(request, selected, allowed=("timeout",), copy=self.copy_params,
                     validate=lambda value: validate_retry_params(value, original=request, operation="acompletion"))
                 try:
-                    delay = retry.delay(attempt + 1)
+                    delay = retry_delay(retry, attempt + 1, error, policy)
+                    if delay is None:
+                        from llm.providers.runtime import diagnostic
+                        diagnostic("provider_retry_stopped", operation="completion", **call_details,
+                                   reason="retry_after_exceeds_max_delay")
+                        raise error
                 except TimeoutError as timeout_error:
                     raise ProviderError("provider_timeout") from timeout_error
                 from llm.providers.observations import record_retry
                 # 확정된 대기 시작을 알린다. UI의 countdown/취소 관찰 계약을 유지한다.
                 record_retry("completion")
+                from llm.providers.runtime import diagnostic
+                diagnostic("provider_retry", operation="completion", call_id=call_id,
+                           attempt=attempt + 2, delay_seconds=delay, modified=bool(selected.changes))
                 await asyncio.sleep(delay)
                 continue
             else:
@@ -556,42 +582,48 @@ class BaseEngine:
                 if changed:
                     yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
                 choices = get(chunk, "choices", [])
+                if not isinstance(choices, (list, tuple)):
+                    raise CompletionError("Expected a completion choices array")
                 if not choices:
                     continue  # Optional usage-only chunk; no text to deliver.
                 if len(choices) != 1 or get(choices[0], "index", 0) != 0:
-                    raise ValueError("Expected one completion choice")
+                    raise CompletionError("Expected one completion choice")
                 choice = choices[0]
                 delta = get(choice, "delta")
                 content = get(delta, "content")
                 reasoning = get(delta, "reasoning_content")
                 fragments = get(delta, "tool_calls") or []
+                if not isinstance(fragments, (list, tuple)):
+                    raise CompletionError("Expected a tool_calls array")
                 if get(delta, "function_call"):
-                    raise ValueError("Legacy function_call responses are unsupported")
+                    raise CompletionError("Legacy function_call responses are unsupported")
                 if finish_reason is not None and (content or fragments or reasoning):
-                    raise ValueError("Content after stream termination")
+                    raise CompletionError("Content after stream termination")
                 if reasoning is not None:
                     if not isinstance(reasoning, str):
-                        raise ValueError("Expected reasoning text delta")
+                        raise CompletionError("Expected reasoning text delta")
                     size += len(reasoning)
                     if max_output_chars is not None and size > max_output_chars:
-                        raise ValueError("Completion output limit exceeded")
+                        raise CompletionError("Completion output limit exceeded", code="completion_output_limit")
                     if reasoning:
                         result.reasoning_content += reasoning
                         yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
                 if content is not None:
                     if not isinstance(content, str):
-                        raise ValueError("Expected text delta")
+                        raise CompletionError("Expected text delta")
                     size += len(content)
                     if max_output_chars is not None and size > max_output_chars:
-                        raise ValueError("Completion output limit exceeded")
+                        raise CompletionError("Completion output limit exceeded", code="completion_output_limit")
                     if content:
                         content_parts.append(content)
                 for fragment in fragments:
                     index = get(fragment, "index")
-                    if type(index) is not int or index < 0 or (max_tool_calls is not None and index >= max_tool_calls):
-                        raise ValueError("Invalid tool call index or too many calls")
+                    if type(index) is not int or index < 0:
+                        raise CompletionError("Invalid tool call index")
+                    if max_tool_calls is not None and index >= max_tool_calls:
+                        raise CompletionError("Too many tool calls", code="completion_tool_limit")
                     if get(fragment, "type") not in (None, "function"):
-                        raise ValueError("Unsupported tool call type")
+                        raise CompletionError("Unsupported tool call type")
                     call = calls.setdefault(index, {"id": "", "type": "function",
                                                    "function": {"name": "", "arguments": ""}})
                     function = get(fragment, "function")
@@ -602,20 +634,21 @@ class BaseEngine:
                     ):
                         if value is not None:
                             if not isinstance(value, str):
-                                raise ValueError("Invalid tool call fragment")
+                                raise CompletionError("Invalid tool call fragment")
                             target[key] += value
                     # LiteLLM은 Gemini의 thought signature를 호출 ID에 담을 수 있다.
                     # ID는 불투명 값으로 그대로 전달하며 인자와 같은 유한 크기 제한을 쓴다.
-                    if ((max_argument_chars is not None and
-                         (len(call["function"]["arguments"]) > max_argument_chars or len(call["id"]) > max_argument_chars))
-                            or len(call["function"]["name"]) > 64):
-                        raise ValueError("Tool call size limit exceeded")
+                    if (max_argument_chars is not None and
+                         (len(call["function"]["arguments"]) > max_argument_chars or len(call["id"]) > max_argument_chars)):
+                        raise CompletionError("Tool call size limit exceeded", code="completion_argument_limit")
+                    if len(call["function"]["name"]) > 64:
+                        raise CompletionError("Tool call name exceeds protocol limit")
                 reason = get(choice, "finish_reason")
                 if reason is not None:
                     if not isinstance(reason, str):
-                        raise ValueError("Invalid finish reason")
+                        raise CompletionError("Invalid finish reason")
                     if finish_reason is not None and finish_reason != reason:
-                        raise ValueError("Conflicting stream termination")
+                        raise CompletionError("Conflicting stream termination")
                     finish_reason = reason
                     if result.finish_reason != reason:
                         result.finish_reason = reason
@@ -624,13 +657,13 @@ class BaseEngine:
                     yield content
         result.usage_complete = bool(result.usage)
         if finish_reason not in ("stop", "tool_calls"):
-            raise ValueError("Completion did not finish normally")
+            raise CompletionError("Completion did not finish normally", code="completion_incomplete")
         if bool(calls) != (finish_reason == "tool_calls"):
-            raise ValueError("Tool calls do not match finish reason")
+            raise CompletionError("Tool calls do not match finish reason")
         ids = [call["id"] for call in calls.values()]
         if (any(not call["id"] or not call["function"]["name"] for call in calls.values())
                 or len(set(ids)) != len(ids)):
-            raise ValueError("Incomplete or duplicate tool calls")
+            raise CompletionError("Incomplete or duplicate tool calls")
         if response is not None:
             response.clear()
             response.update(role="assistant", content="".join(content_parts) or None)
@@ -656,12 +689,16 @@ class BaseEngine:
         yield EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id,
                           kind=self.kind, name=self.name, metadata=deepcopy(self.metadata))
         termination = None
+        guard = None
         try:
             deadline = None if timeout_seconds is None else asyncio.get_running_loop().time() + timeout_seconds
-            operation = self.run(context)
+            with diagnostic_context(step_id=step_id):
+                operation = self.run(context)
             if inspect.isawaitable(operation):
-                async with timeout(timeout_seconds):
-                    result = await operation
+                with diagnostic_context(step_id=step_id):
+                    guard = timeout(timeout_seconds)
+                    async with guard:
+                        result = await operation
                 if result is not None and not isinstance(result, EngineOutput):
                     raise TypeError("Return EngineOutput or None, or yield text")
             else:
@@ -670,12 +707,14 @@ class BaseEngine:
                     while True:
                         remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
                         if remaining is not None and remaining <= 0:
-                            raise asyncio.TimeoutError()
+                            raise ExecutionLimitError("step_timeout", "Step execution deadline exceeded")
                         try:
                             # yield 중에는 서비스가 이벤트를 저장한다. 그 Task를 타이머로
                             # 취소하지 않고 다음 Engine 진행 시 절대 기한을 검사한다.
-                            async with timeout(remaining):
-                                text = await iterator.__anext__()
+                            with diagnostic_context(step_id=step_id):
+                                guard = timeout(remaining)
+                                async with guard:
+                                    text = await iterator.__anext__()
                         except StopAsyncIteration:
                             break
                         if isinstance(text, EngineOutput):
@@ -732,7 +771,12 @@ class BaseEngine:
             # persisted active Step, including cancellation before run() starts.
             raise
         except Exception as error:
-            yield self.step_failed_event(step_id, error, message=f"{self.error_message}: {error}")
+            # 소유한 기한만 분류한다. action이 직접 던진 TimeoutError를 wrapper timeout으로 오인하지 않는다.
+            failure = (ExecutionLimitError("step_timeout", "Step execution deadline exceeded")
+                       if isinstance(error, TimeoutError) and guard is not None and guard.expired() else error)
+            yield self.step_failed_event(step_id, failure, message=f"{self.error_message}: {failure}")
+            if failure is not error:
+                raise failure from error
             raise
         yield completed
         if publish_output:

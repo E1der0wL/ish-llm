@@ -5,6 +5,11 @@ import json
 import logging
 import os
 import threading
+from dataclasses import dataclass
+from collections.abc import Mapping
+from functools import lru_cache
+from importlib.metadata import version, PackageNotFoundError
+from urllib.parse import urlsplit, urlunsplit
 from contextlib import contextmanager
 from contextvars import ContextVar
 from collections import OrderedDict
@@ -14,10 +19,154 @@ from logging.handlers import RotatingFileHandler
 _observer = ContextVar("provider_diagnostics", default=None)
 _directory = ContextVar("provider_log_directory", default=None)
 _source = ContextVar("provider_log_source", default=None)
+_options = ContextVar("provider_log_options", default=None)
 _lock = threading.RLock()
 _handler = None
 _sdk = None
 _names = ("LiteLLM", "LiteLLM Router", "LiteLLM Proxy", "httpx", "httpcore", "dotenv", "py.warnings", "llm.provider")
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderDiagnostics:
+    """Host 로깅 설정. 실행 정책/SDK 인자가 아니며 미설정이면 상세 내용을 수집하지 않는다.
+
+    error_details는 서버 오류의 message/type/code/param 및 endpoint를 기록한다.
+    request_summary는 본문 없이 역할/길이/Tool 대응 개수만 기록한다.
+    max_detail_chars는 명시했을 때만 개별 상세 문자열을 자른다. 원본 요청/응답은 저장하지 않는다.
+    """
+
+    error_details: bool | None = None
+    request_summary: bool | None = None
+    max_detail_chars: int | None = None
+
+    def __post_init__(self):
+        for value in (self.error_details, self.request_summary):
+            if value is not None and type(value) is not bool:
+                raise TypeError("Provider diagnostic flags must be boolean or None")
+        if self.max_detail_chars is not None and (type(self.max_detail_chars) is not int or self.max_detail_chars < 1):
+            raise ValueError("max_detail_chars must be a positive integer")
+
+
+@contextmanager
+def diagnostic_context(**source):
+    """호출/Step 관찰 문맥만 확장한다. 실행 권한이나 도메인 상태를 만들지 않는다."""
+    values = {**(_source.get() or {}), **source}
+    token = _source.set(values)
+    try:
+        yield values
+    finally:
+        _source.reset(token)
+
+
+@lru_cache(maxsize=1)
+def _sdk_versions():
+    result = {}
+    for name in ("litellm", "openai"):
+        try:
+            result[name] = version(name)
+        except PackageNotFoundError:
+            pass
+    return result
+
+
+def _request_details(request):
+    """진단용 구조 요약. 값/Tool 이름/ID/본문/인증 헤더는 복사하지 않는다."""
+    result = {}
+    if isinstance(request.get("model"), str):
+        result["model"] = request["model"]
+    options = _options.get()
+    if options is None:
+        return result
+    if options.error_details is True and isinstance(request.get("api_base"), str):
+        try:
+            url = urlsplit(request["api_base"])
+            # 사용자 정보/query/fragment는 endpoint identity에 포함하지 않는다.
+            host = url.hostname or ""
+            if ":" in host:
+                host = f"[{host}]"
+            result["endpoint"] = urlunsplit((url.scheme, host + (f":{url.port}" if url.port else ""), url.path, "", ""))
+        except ValueError:
+            pass
+    if options.request_summary is not True:
+        return result
+    messages = request.get("messages")
+    if not isinstance(messages, (list, tuple)):
+        return result
+    rows, pending, seen, duplicates, unmatched, out_of_order = [], set(), set(), 0, 0, 0
+    for message in messages:
+        if not isinstance(message, Mapping):
+            rows.append({"valid_object": False})
+            continue
+        role = message.get("role")
+        content = message.get("content")
+        calls = message.get("tool_calls")
+        row = {"role": role if role in ("system", "developer", "user", "assistant", "tool", "function") else "unknown",
+               "content_type": "text" if isinstance(content, str) else "parts" if isinstance(content, list) else "null" if content is None else "invalid"}
+        if isinstance(content, str):
+            row["content_chars"] = len(content)
+        if isinstance(content, list):
+            row["content_parts"] = len(content)
+        if pending and role != "tool":
+            out_of_order += 1
+        if isinstance(calls, list):
+            row["tool_calls"] = len(calls)
+            for call in calls:
+                key = call.get("id") if isinstance(call, Mapping) else None
+                if isinstance(key, str) and key:
+                    duplicates += int(key in seen)
+                    seen.add(key)
+                    pending.add(key)
+        if role == "tool":
+            key = message.get("tool_call_id")
+            if isinstance(key, str) and key in pending:
+                pending.remove(key)
+            else:
+                unmatched += 1
+        rows.append(row)
+    result["request_summary"] = {"messages": rows, "message_count": len(rows),
+        "tool_count": len(request["tools"]) if isinstance(request.get("tools"), (list, tuple)) else 0,
+        "unresolved_tool_calls": len(pending), "unmatched_tool_results": unmatched,
+        "duplicate_tool_call_ids": duplicates, "out_of_order_messages": out_of_order}
+    return result
+
+
+def request_details(request):
+    """진단용 객체가 잘못되어도 실제 SDK 요청/취소 결과를 바꾸지 않는다."""
+    try:
+        return _request_details(request)
+    except Exception:
+        return {}
+
+
+def _error_details(error):
+    """서버가 제공한 식별자만 기본 기록하고 상세 오류 문자열은 opt-in으로 수집한다."""
+    result = {}
+    response = getattr(error, "response", None)
+    headers = getattr(response, "headers", None) or getattr(error, "headers", None)
+    request_id = getattr(error, "request_id", None)
+    if isinstance(request_id, str):
+        result["request_id"] = request_id
+    elif hasattr(headers, "items"):
+        for key, value in headers.items():
+            if str(key).lower() in ("x-request-id", "request-id", "x-amzn-requestid") and isinstance(value, str):
+                result["request_id"] = value
+                break
+    options = _options.get()
+    if options is None or options.error_details is not True:
+        return result
+    body = getattr(error, "body", None)
+    if isinstance(body, Mapping) and isinstance(body.get("error"), Mapping):
+        body = body["error"]
+    detail = {}
+    for key in ("message", "type", "code", "param"):
+        value = body.get(key) if isinstance(body, Mapping) else None
+        if isinstance(value, str):
+            detail[key] = value[:options.max_detail_chars] if options.max_detail_chars is not None else value
+    if "message" not in detail:
+        value = str(error)
+        detail["message"] = value[:options.max_detail_chars] if options.max_detail_chars is not None else value
+    result["provider_error"] = detail
+    return result
 
 
 class _FileHandler(RotatingFileHandler):
@@ -97,17 +246,23 @@ def configure_logging(workspace=None, *, refresh=False):
 
 
 @contextmanager
-def logging_scope(workspace, *, project_id=None, session_id=None, run_id=None, engine=None):
+def logging_scope(workspace, *, project_id=None, session_id=None, run_id=None, engine=None, diagnostics=None):
     """동시에 사용하는 백엔드가 서로의 로그 경로를 덮어쓰지 않게 한다."""
-    token = _directory.set(Path(workspace).absolute() / "logs")
-    source_token = _source.set({key: value for key, value in (
+    directory = Path(workspace).absolute() / "logs"
+    same_workspace = _directory.get() == directory
+    if diagnostics is not None and not isinstance(diagnostics, ProviderDiagnostics):
+        raise TypeError("diagnostics must be ProviderDiagnostics")
+    token = _directory.set(directory)
+    option_token = _options.set(diagnostics if diagnostics is not None else _options.get() if same_workspace else None)
+    source_token = _source.set({**(_source.get() or {} if same_workspace else {}), **{key: value for key, value in (
         ("project_id", project_id), ("session_id", session_id), ("run_id", run_id),
-        ("engine", engine)) if value is not None})
+        ("engine", engine)) if value is not None}})
     try:
         configure_logging()
         yield
     finally:
         _source.reset(source_token)
+        _options.reset(option_token)
         _directory.reset(token)
 
 
@@ -156,9 +311,13 @@ def diagnostic(code, *, severity="info", **details):
     from llm.core.contracts import Diagnostic
     event = Diagnostic(code, code.replace("_", " "), severity=severity,
                        details={**(_source.get() or {}), **details})
-    configure_logging()
-    logging.getLogger("llm.provider").log(getattr(logging, severity.upper()), event.message,
-                                         extra={"provider_diagnostic": event.to_dict()})
+    try:
+        configure_logging()
+        logging.getLogger("llm.provider").log(getattr(logging, severity.upper()), event.message,
+                                             extra={"provider_diagnostic": event.to_dict()})
+    except Exception:
+        if _handler is not None:
+            _handler.failed_writes += 1
     callback = _observer.get()
     if callback is not None:
         try:
@@ -169,17 +328,19 @@ def diagnostic(code, *, severity="info", **details):
 
 
 def diagnostic_failure(error, *, operation, stage, **details):
-    """원문/locals/source 없이 실패 위치를 기록한다. 진단 실패는 실행 오류를 바꾸지 않는다.
+    """실패 위치와 명시적으로 선택한 상세 오류를 기록한다. 진단 실패는 실행 오류를 바꾸지 않는다.
 
     SDK 예외 메시지에는 인증·본문이 섞일 수 있으므로 포맷된 traceback 대신
-    파일/행/함수만 수집한다. 사용자 요청의 성공·재시도·취소 판단에는 관여하지 않는다.
+    파일/행/함수를 수집한다. 원문 오류 메시지는 error_details를 켰을 때만 추가한다.
+    사용자 요청의 성공·재시도·취소 판단에는 관여하지 않는다.
     """
     try:
         from llm.errors import exception_chain
         from .requests import error_code
         chain = []
         for current in exception_chain(error):
-            entry = {"type": f"{type(current).__module__}.{type(current).__qualname__}", "frames": []}
+            entry = {"type": f"{type(current).__module__}.{type(current).__qualname__}", "frames": [],
+                     **_error_details(current)}
             status = getattr(current, "status_code", None)
             if type(status) is int:
                 entry["status_code"] = status
@@ -199,7 +360,7 @@ def diagnostic_failure(error, *, operation, stage, **details):
                 trace = trace.tb_next
             chain.append(entry)
         return diagnostic(error_code(error), severity="error", operation=operation,
-                          stage=stage, exceptions=chain, **details)
+                          stage=stage, exceptions=chain, sdk_versions=_sdk_versions(), **details)
     except Exception:
         # 파일/observer/예외 객체가 고장나도 원래 실패와 cleanup 순서를 보존한다.
         if _handler is not None:

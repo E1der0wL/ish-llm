@@ -1,6 +1,44 @@
 """응답을 받기 전의 일시적 공급자 오류만 재시도한다. Tool 효과에는 적용하지 않는다."""
 
 import sys
+import math
+import time
+from email.utils import parsedate_to_datetime
+
+from llm.errors import exception_chain
+
+
+def retry_after(error):
+    """SDK 응답의 Retry-After만 해석한다. 잘못된 값은 정책/기한을 변경하지 않는다."""
+    for current in exception_chain(error):
+        response = getattr(current, "response", None)
+        headers = getattr(response, "headers", None) or getattr(current, "headers", None)
+        if not hasattr(headers, "items"):
+            continue
+        value = next((v for k, v in headers.items() if str(k).lower() == "retry-after"), None)
+        if value is None:
+            continue
+        try:
+            seconds = float(value)
+        except (TypeError, ValueError):
+            try:
+                date = parsedate_to_datetime(value)
+                if date.tzinfo is None:
+                    continue
+                seconds = max(0., date.timestamp() - time.time())
+            except (TypeError, ValueError, OverflowError):
+                continue
+        if math.isfinite(seconds) and seconds >= 0:
+            return seconds
+    return None
+
+
+def retry_delay(policy, attempt, error, options):
+    """명시된 서버 대기/jitter만 적용한다. 서버 대기가 설정 상한보다 크면 재시도를 포기한다."""
+    minimum = retry_after(error) if options.get("respect_retry_after") is True else None
+    if minimum is not None and policy.max_delay_seconds is not None and minimum > policy.max_delay_seconds:
+        return None
+    return policy.delay(attempt, minimum=minimum, jitter=options.get("jitter") is True)
 
 def sdk_retry_enabled(request, *, sdk_defaults=False):
     """인자/클라이언트/SDK 기본값을 읽기만 한다. 불명확한 SDK 정책에는 외부 재시도를 겹치지 않는다."""
