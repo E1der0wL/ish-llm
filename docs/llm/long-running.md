@@ -219,7 +219,8 @@ await project.aconfigure_policies({"context": {"max_turns": 20}}, expected_versi
 
 공통 ComponentData snapshot/save/update/delete/configure와 Project 설정 저장은 선택적인
 expected_version을 지원한다. 불일치하면 edit_conflict로 거절하며 열린 JSON 형식은 유지한다.
-Memory/RAG처럼 자체 revision 계약을 가진 전용 API는 기존 expected_revision을 사용한다.
+Memory/RAG처럼 자체 revision 계약을 가진 전용 API의 CAS는 expected_generation과
+expected_revision을 함께 사용한다. 생성 세대와 변경 번호의 구분은 [Revision 계약](revisions.md)을 따른다.
 
 ## RAG 영속 작업과 증분 색인
 

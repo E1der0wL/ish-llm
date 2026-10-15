@@ -126,7 +126,8 @@ workflow = WorkflowGraph(entry="done", metadata={"label": "Example"})
 
 # 이전: Memory metadata.replaces가 삭제 대상이었다.
 candidate = {"content": "updated fact", "status": "candidate",
-             "replaces": [{"id": "old", "revision": 1}]}
+             "replaces": [{"id": old["id"], "generation": old["generation"],
+                           "revision": old["revision"]}]}
 ```
 
 알 수 없는 config/policy 필드는 metadata로 자동 옮기지 않는다. 실제 설정이라면 owner의 schema에

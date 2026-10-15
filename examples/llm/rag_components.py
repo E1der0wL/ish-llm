@@ -55,9 +55,9 @@ async def run(args: argparse.Namespace) -> dict:
         print(json.dumps(report, ensure_ascii=False, indent=2))
         if args.exercise_crud:
             updated = await rag.aupdate_document(document["id"],
-                content=text + "\n\n## 추가 기록\n\n예제 문서를 수정했습니다.\n", expected_revision=document["revision"])
+                content=text + "\n\n## 추가 기록\n\n예제 문서를 수정했습니다.\n", expected_generation=document["generation"], expected_revision=document["revision"])
             assert updated["revision"] == 2
-            await rag.adelete_document(document["id"], expected_revision=2)
+            await rag.adelete_document(document["id"], expected_generation=updated["generation"], expected_revision=updated["revision"])
             assert not await rag.alist_documents()
             assert not await rag.asearch_documents(args.query)
             print("등록·수정·삭제 완료")

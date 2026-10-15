@@ -1,6 +1,7 @@
 """문서·임베딩·색인의 세대 관리. 공개 핸들은 잠금 아래에서 이 구현을 호출한다."""
 
 from copy import copy, deepcopy
+import re
 import time
 import shutil
 from uuid import uuid4
@@ -78,6 +79,26 @@ class RAGComponent(DefinitionComponent):
     def _build(self, path, documents):
         build_index(path / "chroma", documents, batch_size=self.index_batch_size)
         build_graph(path / "graph.kuzu", documents, options=self.graph_options)
+
+    @staticmethod
+    def _validate_versions(documents):
+        for identifier, document in documents.items():
+            if (document.get("id") != identifier or type(document.get("revision")) is not int
+                    or document["revision"] < 1 or not isinstance(document.get("generation"), str)
+                    or not re.fullmatch(r"[a-f0-9]{32}", document["generation"])):
+                raise ValueError("RAG documents require a stored generation and positive revision; re-register sources without them")
+
+    @staticmethod
+    def _check_revision(document, expected_revision, expected_generation):
+        """명시적인 CAS는 문서 생성 세대까지 비교한다. 코퍼스 publish 세대와는 별개다."""
+        if expected_revision is None and expected_generation is None:
+            return  # 두 값 모두 생략한 기존 unconditional document API 계약.
+        if type(expected_revision) is not int or expected_revision < 1:
+            raise ValueError("Document CAS requires a positive expected_revision")
+        if not isinstance(expected_generation, str) or not re.fullmatch(r"[a-f0-9]{32}", expected_generation):
+            raise ValueError("Document CAS requires expected_generation from the document")
+        if (document["generation"], document["revision"]) != (expected_generation, expected_revision):
+            raise RAGConflictError("Document generation or revision changed")
 
     def _identity(self):
         if self.embedding is None:
@@ -275,6 +296,8 @@ class RAGComponent(DefinitionComponent):
             generation = validate_name(read_json(active)["generation"])
             path = self._generation_path(project, generation)
             corpus = read_json(self._checked(path / "corpus.json"))
+            # 백업·복원도 일반 조회와 같은 문서 identity/generation/revision 계약을 따른다.
+            self._validate_versions(corpus["documents"])
             if not (path / "chroma").is_dir() or not (path / "graph.kuzu").is_file():
                 raise ValueError("RAG backup requires matching vector and graph generation")
             for document in corpus["documents"].values():
@@ -313,6 +336,7 @@ class RAGComponent(DefinitionComponent):
         value = read_json(self._checked(path / "corpus.json"))
         if value.get("graph_schema_version") != 1:
             raise ValueError("Unsupported RAG graph schema; re-register source documents in a new RAG Project")
+        self._validate_versions(value["documents"])
         if any(not isinstance(doc.get("graph"), dict) or
                not {"entities", "relations"}.issubset(doc["graph"])
                for doc in value["documents"].values()):
@@ -350,7 +374,8 @@ class RAGComponent(DefinitionComponent):
             raise ValueError("Document title must be nonempty text")
         metadata = self.deserialize(self.serialize(metadata))
         document = split_markdown(content, identifier, chunk_size=self.chunk_size)
-        document.update(id=identifier, title=title, metadata=metadata, revision=revision)
+        document.update(id=identifier, title=title, metadata=metadata, revision=revision,
+                        generation=previous["generation"] if previous is not None else uuid4().hex)
         await prepare_vectors(self, document, previous=previous, progress=progress, telemetry=telemetry)
         document["profile"] = {"model": self._identity(), "dimensions": len(document["vectors"][0])}
         document.update(graph_complete=policy != "disabled", graph_diagnostics=[])
@@ -407,6 +432,7 @@ class RAGComponent(DefinitionComponent):
         """DB를 완성·닫은 뒤 단일 포인터를 원자적으로 교체한다. 실패 세대는 검색되지 않는다."""
         if self.corpus_version(project) != (previous["identity"], previous["generation"]):
             raise RAGConflictError("Corpus changed during preparation; reload and retry explicitly")
+        self._validate_versions(documents)
         profiles = [doc["profile"] for doc in documents.values()]
         if profiles and any(profile != profiles[0] for profile in profiles):
             raise ValueError("Cannot mix embedding models/dimensions in one corpus")
@@ -479,7 +505,7 @@ class RAGComponent(DefinitionComponent):
         sources = {}
         for hit in hits:
             sources[hit["id"]] = {key: hit[key] for key in (
-                "id", "document_id", "section_id", "heading", "text", "title", "revision", "metadata")}
+                "id", "document_id", "section_id", "heading", "text", "title", "generation", "revision", "metadata")}
         documents = snapshot["documents"]
         chunk_indexes = {}
         for relation in graph["relations"]:
@@ -491,7 +517,7 @@ class RAGComponent(DefinitionComponent):
             if identifier not in chunk_indexes:
                 chunk_indexes[identifier] = {c["id"]: c for c in doc["chunks"]}
             chunk = chunk_indexes[identifier][relation["source_id"]]
-            sources[chunk["id"]] = {**chunk, "title": doc["title"], "revision": doc["revision"],
+            sources[chunk["id"]] = {**chunk, "title": doc["title"], "generation": doc["generation"], "revision": doc["revision"],
                                      "metadata": doc["metadata"]}
         incomplete = [identifier for identifier, doc in documents.items() if doc.get("graph_complete") is False]
         return {"query": query, "documents": hits, **graph, "sources": list(sources.values()),

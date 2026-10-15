@@ -191,14 +191,24 @@ class DocumentManagerTests(unittest.IsolatedAsyncioTestCase):
                 values = json.loads(record["text"])
                 values["content"] = "Revised searchable document"
                 entries = await manage("save", {"name": "note", "text": json.dumps(values)}, record["version"])
-                self.assertEqual(entries[0]["version"], 2)
+                self.assertEqual(entries[0]["version"]["revision"], 2)
                 data = await runtime.project.components.aget("rag")
                 hits = await data.asearch_documents("Revised", method="bm25", expand="document", limit=5, rerank=False)
                 self.assertTrue(hits)
                 with self.assertRaises(RAGConflictError):
                     await manage("delete", "note", record["version"])
-                self.assertEqual(await manage("delete", "note", 2), [])
+                self.assertEqual(await manage("delete", "note", entries[0]["version"]), [])
                 self.assertEqual(await data.asearch_documents("Revised", method="bm25", expand="document", limit=5, rerank=False), [])
                 self.assertEqual(path.read_text(), "Old searchable document")
+                # 삭제 후 같은 ID/revision으로 다시 등록해도 이전 UI 편집 토큰은 재사용할 수 없다.
+                recreated = await manage("import", str(path))
+                self.assertEqual(recreated[0]["version"]["revision"], record["version"]["revision"])
+                self.assertNotEqual(recreated[0]["version"]["generation"], record["version"]["generation"])
+                latest = await manage("read", "note")
+                with self.assertRaises(RAGConflictError):
+                    await manage("save", {"name": "note", "text": json.dumps(values)}, record["version"])
+                with self.assertRaises(RAGConflictError):
+                    await manage("delete", "note", record["version"])
+                self.assertEqual(await manage("read", "note"), latest)
             finally:
                 await runtime.close()

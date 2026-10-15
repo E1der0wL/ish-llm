@@ -27,30 +27,34 @@ async with LargeLanguageModel(workspace) as backend:
     record = await memory.aload(identifier)
     hits = await memory.asearch("한국어", limit=5)  # [{"score": ..., "memory": {...}}]
     record = await memory.aupdate(identifier, {"tags": ["응답"]},
-                                  expected_revision=record["revision"])
+                                  expected_generation=record["generation"], expected_revision=record["revision"])
     history = await memory.ahistory(identifier)
     records = await memory.alist(status="candidate")  # {ID: 레코드}
-    deleted = await memory.adelete(identifier, expected_revision=record["revision"])
-    restored = await memory.arestore(identifier, expected_revision=deleted["revision"])
+    deleted = await memory.adelete(identifier, expected_generation=record["generation"], expected_revision=record["revision"])
+    restored = await memory.arestore(identifier, expected_generation=deleted["generation"], expected_revision=deleted["revision"])
 ```
 
 API의 생성 기본값은 `status="confirmed"`, `kind="note"`, `scope="project"`, `tags=[]`다.
 `kind`는 임의 문자열이며 사용자 필드는 `metadata` 안에 추가한다. 교체 대상은 `metadata`가 아닌
-검증된 `replaces=[{"id": ..., "revision": ...}]` 계약에 둔다. Session 전용 기억은
+검증된 `replaces=[{"id": ..., "generation": ..., "revision": ...}]` 계약에 둔다. Session 전용 기억은
 `scope="session", session_id=session.id`로 생성한다. 조회·수정·삭제에도 같은 `session_id`를 전달해야 하며,
 기본 목록/검색은 프로젝트 공통 기억만 반환하고 `session_id` 지정 시 해당 Session의 기억도 포함한다.
 모델 Tool의 session_id는 실행 문맥에서 결정한다. 전역 범위는 지원하지 않는다.
-관리 필드 `id`, `revision`, `created_at`, `updated_at`, `deleted`, `source`는 컴포넌트가
+관리 필드 `id`, `generation`, `revision`, `created_at`, `updated_at`, `deleted`, `source`는 컴포넌트가
 작성한다. API의 `source={...}` 키워드로 외부 문서 등의 출처를 별도 전달할 수 있다.
 
-변경에는 읽은 시점의 `expected_revision`이 필수다. 충돌 시 `MemoryConflictError`가 발생하고
+변경에는 읽은 시점의 `expected_generation`과 `expected_revision`이 모두 필수다.
+generation은 생성 시 고정되고 같은 ID로 영구 삭제 후 재생성하면 바뀐다.
+충돌 시 `MemoryConflictError`가 발생하고
 쓰기는 수행하지 않는다. 최신 데이터를 다시 읽고 변경을 검토해야 하며 자동 덮어쓰기는 하지
 않는다. `update`는 최상위 키를 병합한다. `save`는 관리 필드를 제외한 사용자 필드 전체를
 교체한다(`content/kind/scope/status/tags`를 포함). 삭제·복원도 revision을 증가시킨다.
 
 삭제한 기억은 기본 `load/list/search`에서 제외한다. 휴지통 UI는
 `alist(include_deleted=True)` / `aload(id, include_deleted=True)`를 사용한다.
-영구 제거는 삭제한 항목에만 `apurge(id, expected_revision=...)`로 수행하며 이력도 지워진다.
+영구 제거는 삭제한 항목에만 `apurge(id, expected_generation=..., expected_revision=...)`로 수행하며 이력도 지워진다.
+Session 요약 삭제도 `aclear_summary(session_id, expected_generation=..., expected_revision=...)`로
+읽었던 요약을 지정한다. 오래된 삭제 요청은 새로 만든 요약을 지우지 못한다.
 
 ## 모델 Tool 연결
 
@@ -66,10 +70,10 @@ run = await request.wait()
 | Tool | 역할 |
 | --- | --- |
 | `memory_search(query, limit?, status?)` | 기본적으로 확인된 기억을 키워드 검색 |
-| `memory_get(identifier)` | 현재 값과 revision 조회 |
+| `memory_get(identifier)` | 현재 값과 generation/revision 조회 |
 | `memory_create(content, kind?, tags?, metadata?)` | 새 기억 후보 생성 |
-| `memory_update(identifier, expected_revision, changes)` | 기억 수정; 기본 정책에서는 후보로 전환 |
-| `memory_delete(identifier, expected_revision)` | 복구 가능한 삭제 |
+| `memory_update(identifier, expected_generation, expected_revision, changes)` | 기억 수정; 기본 정책에서는 후보로 전환 |
+| `memory_delete(identifier, expected_generation, expected_revision)` | 복구 가능한 삭제 |
 
 복원·영구 제거·승인은 API/UI로 제공한다. Tool 인자는 파일 경로, 다른 프로젝트 ID, 실행 출처,
 승인 상태를 받지 않는다. 도메인 레코드는 열린 JSON이지만 모델에는 자주 쓰는 필드와 열린
@@ -91,7 +95,7 @@ ProcessToolRunner에 자동 직렬화되지는 않는다. 주입 runner에서 �
 await memory.aconfigure({'policy': {'tool_write_status': 'candidate', 'max_search_results': 100}, 'config': {'search_status': 'confirmed', 'search_limit': 10, 'ui': {'label': '장기 기억'}}})
 # UI에서 기억 후보를 확인한 뒤 승인한다.
 record = await memory.aload(identifier)
-await memory.aupdate(identifier, {"status": "confirmed"}, expected_revision=record["revision"])
+await memory.aupdate(identifier, {"status": "confirmed"}, expected_generation=record["generation"], expected_revision=record["revision"])
 ```
 
 `configure`는 설정 전체 교체이며 생략한 동작 설정은 기본값을 사용한다. 기본 정책에서는
@@ -122,7 +126,7 @@ BaseEngine에 Memory 전용 로직을 추가하지 않는다. Loop의 범용 com
 
 현재 값과 이력은 한 파일의 원자적 교체로 함께 공개한다. ComponentData의 기존 workspace
 잠금과 수명 검사를 공유하고 비동기 API는 파일 I/O를 StorageIO로 넘긴다. Project clone과
-백업은 삭제된 기록을 포함해 이력을 보존하며, clone의 원본 출처 ID는 그대로 유지한다.
+백업은 삭제된 기록을 포함해 이력과 generation/revision을 보존하며, clone의 원본 출처 ID는 그대로 유지한다.
 기억 수정은 해당 파일의 전체 이력을 읽고 다시 쓰며 검색은 모든 기록을 순회한다. 큰 규모의
 저장소에서는 별도 색인/이력 저장 전략이 필요하다.
 
@@ -132,3 +136,6 @@ Memory 데이터 저장과 Run/Step 기록은 별개 트랜잭션이다. Tool �
 
 컴포넌트 설정은 `project.json`의 `config.parameters["components"]`에만 저장한다.
 ComponentData.configure 편의 API도 이 설정을 갱신한다.
+
+generation이 없는 기존 저장 기록은 자동 변환하지 않는다. 변경 전 API로 원문을 내보낸 뒤
+새 CRUD로 재등록한다. 자세한 범위와 참조 종류는 [Revision 계약](revisions.md)을 따른다.

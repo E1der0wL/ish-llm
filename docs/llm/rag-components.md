@@ -38,9 +38,9 @@ async with LargeLanguageModel(
     )
     result = await rag.asearch("백업 정책", method="hybrid", expand="section")
     updated = await rag.aupdate_document("manual", content=new_text,
-                                        expected_revision=document["revision"])
+                                        expected_generation=document["generation"], expected_revision=document["revision"])
     documents = await rag.alist_documents()
-    await rag.adelete_document("manual", expected_revision=updated["revision"])
+    await rag.adelete_document("manual", expected_generation=updated["generation"], expected_revision=updated["revision"])
 ```
 
 `aadd_document`와 `aupdate_document`는 embedding과 extractor가 필요하다. 모델 객체는
@@ -50,7 +50,14 @@ async with LargeLanguageModel(
 준비 단계에서 발생하면 이전 버전을 유지한다. 모델 준비 중 다른 작업은 계속 진행할 수 있다.
 문서 수정 시 동일 chunk vector는 재사용하고 변경 chunk와 트리플을 준비한 뒤 세대를 교체한다.
 
-`create/save/update/delete`와 그 비동기 별칭은 `records/`의 열린 JSON **정의 CRUD**다.
+문서의 `generation`은 생성 시 고정되는 식별자, `revision`은 수정 횟수다. 업데이트와 삭제에
+CAS를 사용하려면 마지막으로 읽은 `expected_generation`과 `expected_revision`을 함께 전달한다.
+하나만 전달하면 오류이며 같은 ID를 삭제·재생성해 revision이 다시 1이어도 과거 요청을 거부한다.
+둘 다 생략하는 기존 무조건 변경 API는 유지한다. 문서의 generation은 코퍼스 색인 공개 세대와
+별개이며 다른 문서의 변경으로 바뀌지 않는다. Job retry는 준비 완료한 문서의 세대를 재사용한다.
+generation 없는 옛 저장 문서는 자동 변환하지 않는다. [Revision 계약](revisions.md)을 참고한다.
+
+`create/save/update/delete`와 그 비동기 별칭은 `records/`의 **metadata-only 정의 CRUD**다.
 문서 API와 별개이며 정의 저장은 임베딩을 호출하지 않는다. 예전 records 파일을 자동으로
 문서로 가져오지 않는다. 직접 문서 API는 Run/Step이나 백그라운드 job을 만들지 않는다.
 
@@ -69,10 +76,10 @@ sources = result["sources"]
 | 반환 키 | 내용 |
 | --- | --- |
 | query | 입력 질의 |
-| documents | 일치 문단, document_id/section_id, title/metadata/revision, 확장 context, score |
+| documents | 일치 문단, document_id/section_id, title/metadata/generation/revision, 확장 context, score |
 | entities | 반환 관계의 엔티티 id/name |
 | relations | source/target 이름, type, document_id/source_id, 원문 evidence, hop |
-| sources | 검색 문단과 관계 근거 문단의 text/title/metadata/revision |
+| sources | 검색 문단과 관계 근거 문단의 text/title/metadata/generation/revision |
 
 method는 `hybrid`(BM25와 Chroma 순위 결합), `bm25`, `vector`다. score는 확률이 아니다.
 expand는 `chunk`, `section`(하위 절 포함), `document`다. limit는 문서 문단 수(1~100),

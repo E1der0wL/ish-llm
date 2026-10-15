@@ -160,11 +160,12 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
             template = doc["chunks"][0]
             chunks = CountedChunks([{**template, "id": f"manual:c{i}"} for i in range(100)])
             doc["chunks"] = chunks
-            hit = {**chunks[0], "title": doc["title"], "revision": 1, "metadata": {}}
+            hit = {**chunks[0], "title": doc["title"], "generation": doc["generation"], "revision": 1, "metadata": {}}
             relations = [{"document_id": "manual", "source_id": f"manual:c{i}"} for i in range(1, 100)]
             with patch("llm.components.rag.component.related_graph", return_value={"entities": [], "relations": relations}):
                 result = self.component.combined_result(project, snapshot, "Alice", [hit], max_hops=2, relation_limit=100)
         self.assertEqual(len(result["sources"]), 100)
+        self.assertTrue(all(source["generation"] == doc["generation"] for source in result["sources"]))
         self.assertEqual(chunks.iterations, 1)
 
     async def test_compaction_does_not_delete_generations_when_active_corpus_is_unreadable(self):

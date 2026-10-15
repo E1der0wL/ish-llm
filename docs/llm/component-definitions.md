@@ -1,4 +1,4 @@
-# Skill · MCP · RAG · Agent · Workflow · Memory
+# Skill · Data · MCP · RAG · Agent · Workflow · Memory
 
 이 컴포넌트들은 Project에 속하는 정의와 데이터를 소유한다. 정의 CRUD만으로는 모델 호출,
 서버 연결, 인덱싱, Workflow 실행을 시작하지 않는다. RAG 문서 등록처럼 명시적으로 실행하는
@@ -56,6 +56,7 @@ async def create_definitions(backend):
 | 클래스 / import | 선택 이름·디렉토리 | 제공 capability / 레코드 의미 |
 | --- | --- | --- |
 | `SkillComponent` / `llm.components.skills` | skills | skills, tools / 지침과 참고 리소스 |
+| `DataComponent` / `llm.components.data` | data | data / 명시적으로 관리하는 파일 패키지 |
 | `MCPComponent` / `llm.components.mcp` | mcp | mcp / 서버 연결 정의 |
 | `RAGComponent` / `llm.components.rag` | rag | rag, tools / metadata 레코드; 실제 문서는 문서 API |
 | `AgentComponent` / `llm.components.agents` | agents | agents, EngineRegistry 연결 시 tools / 업무 정의 |
@@ -103,10 +104,21 @@ async def edit_definitions(project):
     return all_agents
 ```
 
-Skill은 instructions가 필수다. 허용 필드는 instructions/description/title/tags/resources/lineage/metadata다.
-resources 항목은 uri, 선택 description/metadata만 허용하며 파일을 열거나 실행하지 않는다.
-lineage는 parent/parent_revision의 불변 참조다. 다른 Skill 또는 Agent가 참조하면 삭제를 거부한다.
-SKILL.md 자동 탐색/가져오기와는 별개다.
+Skill은 instructions가 필수다. 허용 필드는 instructions/description/title/tags/resources/lineage/metadata와
+파일 API가 관리하는 files manifest다. Skill별 디렉터리에 정의와 참고 파일을 저장한다.
+resources는 URI, 로컬 파일 path, revision을 고정한 Data 파일 또는 Project Tool 참조를 받는다.
+`skill_read_resource`는 명시한 UTF-8 파일을 조회하고 URI/Tool은 참조 정보만 반환한다.
+Tool을 자동으로 준비·활성화·실행하거나 권한을 추가하지 않는다.
+lineage는 FORK 당시 parent/parent_revision의 불변 출처 기록이다. 부모 수정만으로 자식 사용을
+차단하지 않지만, 다른 Skill의 lineage 또는 Agent가 참조하면 부모 삭제를 거부한다.
+지침의 원본은 skill.json이며 SKILL.md 자동 탐색/가져오기는 제공하지 않는다.
+[Skill API](../../llm/components/skills/README.md)와 [revision 규칙](revisions.md)을 참고한다.
+
+Data는 title/description/metadata와 관리되는 files manifest를 저장한다. 원본 파일은
+data/<id>/files 아래에 저장하며 파일 API의 변경에는 expected_revision이 필수다.
+Skill이 참조하는 파일·Data/Tool 패키지는 삭제 전에 참조를 제거해야 한다. 대상 수정은
+허용하지만 기존 Skill 참조를 자동 갱신하지 않으며 stale 참조의 실행 사용은 거부한다.
+Data는 모델 학습, RAG 색인, 자동 삭제를 수행하지 않는다.
 
 MCP의 최상위 필드는 transport/command/args/env/url/headers/metadata다. stdio는 command,
 streamable_http/sse는 HTTP(S) url이 필수다. args는 문자열 배열이고 env/headers는 문자열 값의
@@ -273,7 +285,10 @@ Loop는 모델이 agent_run을 선택할 수 있게 하지만 Agent나 Workflow�
 <Project>/
   project.json
   tools/<tool-id>/<tool-id>.py       # Project Python Tool 패키지
-  skills/records/<id>.json
+  skills/<id>/skill.json
+  skills/<id>/files/<relative-path>
+  data/<id>/data.json
+  data/<id>/files/<relative-path>
   mcp/records/<id>.json
   rag/records/<id>.json             # metadata만
   rag/generations/<id>/             # 실제 문서·벡터·그래프 색인

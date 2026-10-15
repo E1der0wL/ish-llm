@@ -52,10 +52,10 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         identifier = await self.memory.acreate({"content": "설명은 한국어로", "metadata": {"future": {"x": [1]}}}, identifier="language")
         record = await self.memory.aload(identifier)
         self.assertEqual((record["revision"], record["status"], record["scope"]), (1, "confirmed", "project"))
-        updated = await self.memory.aupdate(identifier, {"tags": ["응답"]}, expected_revision=1)
+        updated = await self.memory.aupdate(identifier, {"tags": ["응답"]}, expected_generation=(await self.memory.aload(identifier, include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual(updated["metadata"]["future"], {"x": [1]})
         with self.assertRaises(MemoryConflictError):
-            await self.memory.aupdate(identifier, {"content": "stale"}, expected_revision=1)
+            await self.memory.aupdate(identifier, {"content": "stale"}, expected_generation=(await self.memory.aload(identifier, include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual(await self.memory.aload(identifier), updated)
         history = await self.memory.ahistory(identifier)
         self.assertEqual([h["operation"] for h in history], ["create", "update"])
@@ -69,8 +69,8 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
     async def test_soft_delete_restore_and_explicit_purge(self):
         identifier = await self.memory.acreate({"content": "remember"})
         with self.assertRaisesRegex(ValueError, "Soft-delete"):
-            await self.memory.apurge(identifier, expected_revision=1)
-        deleted = await self.memory.adelete(identifier, expected_revision=1)
+            await self.memory.apurge(identifier, expected_generation=(await self.memory.aload(identifier, include_deleted=True))["generation"], expected_revision=1)
+        deleted = await self.memory.adelete(identifier, expected_generation=(await self.memory.aload(identifier, include_deleted=True))["generation"], expected_revision=1)
         self.assertTrue(deleted["deleted"])
         self.assertEqual(await self.memory.alist(), {})
         self.assertEqual(await self.memory.asearch("remember"), [])
@@ -78,13 +78,13 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
             await self.memory.aload(identifier)
         self.assertEqual((await self.memory.aload(identifier, include_deleted=True))["revision"], 2)
         with self.assertRaises(ValueError):
-            await self.memory.aupdate(identifier, {"content": "bypass"}, expected_revision=2)
-        await self.memory.arestore(identifier, expected_revision=2)
+            await self.memory.aupdate(identifier, {"content": "bypass"}, expected_generation=(await self.memory.aload(identifier, include_deleted=True))["generation"], expected_revision=2)
+        await self.memory.arestore(identifier, expected_generation=(await self.memory.aload(identifier, include_deleted=True))["generation"], expected_revision=2)
         self.assertEqual((await self.memory.aload(identifier))["revision"], 3)
-        await self.memory.adelete(identifier, expected_revision=3)
+        await self.memory.adelete(identifier, expected_generation=(await self.memory.aload(identifier, include_deleted=True))["generation"], expected_revision=3)
         with self.assertRaises(MemoryConflictError):
-            await self.memory.apurge(identifier, expected_revision=3)
-        await self.memory.apurge(identifier, expected_revision=4)
+            await self.memory.apurge(identifier, expected_generation=(await self.memory.aload(identifier, include_deleted=True))["generation"], expected_revision=3)
+        await self.memory.apurge(identifier, expected_generation=(await self.memory.aload(identifier, include_deleted=True))["generation"], expected_revision=4)
         with self.assertRaises(FileNotFoundError):
             await self.memory.ahistory(identifier)
 
@@ -106,19 +106,19 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         await self.memory.acreate({"content": "valid"}, identifier="m")
         for changes in ({"revision": 9}, {"source": {}}, {"content": ""}, {"scope": "global"}, {"tags": "tag"}):
             with self.assertRaises(ValueError):
-                await self.memory.aupdate("m", changes, expected_revision=1)
+                await self.memory.aupdate("m", changes, expected_generation=(await self.memory.aload("m", include_deleted=True))["generation"], expected_revision=1)
         with self.assertRaises(ValueError):
             await self.memory.acreate({"content": "escape"}, identifier="../outside")
         with patch("llm.components.base.atomic_json", side_effect=OSError("disk")):
             with self.assertRaises(OSError):
-                await self.memory.aupdate("m", {"content": "new"}, expected_revision=1)
+                await self.memory.aupdate("m", {"content": "new"}, expected_generation=(await self.memory.aload("m", include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual((await self.memory.aload("m"))["revision"], 1)
         self.assertEqual(len(await self.memory.ahistory("m")), 1)
 
     async def test_full_save_cannot_bypass_revision(self):
         await self.memory.acreate({"content": "before", "metadata": {"extension": True}}, identifier="m")
         data = {"content": "after", "kind": "note", "scope": "project", "status": "confirmed", "tags": []}
-        result = await self.memory.asave("m", data, expected_revision=1)
+        result = await self.memory.asave("m", data, expected_generation=(await self.memory.aload("m", include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual(result["revision"], 2)
         self.assertNotIn("extension", result.get("metadata", {}))
         with self.assertRaises(TypeError):
@@ -126,26 +126,27 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_concurrent_updates_only_one_revision_wins(self):
         await self.memory.acreate({"content": "original"}, identifier="m")
+        generation = (await self.memory.aload("m"))["generation"]
         results = await asyncio.gather(*(
-            self.memory.aupdate("m", {"content": str(index)}, expected_revision=1)
+            self.memory.aupdate("m", {"content": str(index)}, expected_generation=generation, expected_revision=1)
             for index in range(2)), return_exceptions=True)
         self.assertEqual(sum(isinstance(value, MemoryConflictError) for value in results), 1)
         self.assertEqual((await self.memory.aload("m"))["revision"], 2)
 
     async def test_clone_preserves_history_and_deleted_records(self):
         await self.memory.acreate({"content": "original"}, identifier="m")
-        await self.memory.adelete("m", expected_revision=1)
+        await self.memory.adelete("m", expected_generation=(await self.memory.aload("m", include_deleted=True))["generation"], expected_revision=1)
         clone = await self.project.aclone()
         memory = await clone.components.aget("memory")
         self.assertEqual(await memory.ahistory("m"), await self.memory.ahistory("m"))
         self.assertEqual(await memory.alist(), {})
-        await memory.arestore("m", expected_revision=2)
+        await memory.arestore("m", expected_generation=(await memory.aload("m", include_deleted=True))["generation"], expected_revision=2)
         self.assertEqual((await memory.aload("m"))["revision"], 3)
         self.assertTrue((await self.memory.aload("m", include_deleted=True))["deleted"])
 
     async def test_backup_restore_and_corrupt_deleted_history_validation(self):
         await self.memory.acreate({"content": "archived"}, identifier="m")
-        await self.memory.adelete("m", expected_revision=1)
+        await self.memory.adelete("m", expected_generation=(await self.memory.aload("m", include_deleted=True))["generation"], expected_revision=1)
         backup = await self.project.abackup(self.root / "backup")
         async with LargeLanguageModel(self.root / "restored") as app:
             project = await app.projects.arestore_backup(backup)
@@ -213,7 +214,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
                                           "run_id": run.id, "message_id": run.data.input_message_id, "step_id": step.id})
         self.assertEqual((await self.memory.aload(record["id"])), record)
         self.assertEqual(await self.memory.asearch("한국어"), [])
-        await self.memory.aupdate(record["id"], {"status": "confirmed"}, expected_revision=1)
+        await self.memory.aupdate(record["id"], {"status": "confirmed"}, expected_generation=(await self.memory.aload(record["id"], include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual(len(await self.memory.asearch("한국어")), 1)
         self.assertIsNone(current_tool_call())
         saved = json.loads((step.paths.root / "step.json").read_text())
@@ -221,18 +222,19 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_model_search_get_update_delete_and_stale_write(self):
         await self.memory.acreate({"content": "Python preference"}, identifier="m")
+        generation = (await self.memory.aload("m"))["generation"]
         for name, args in (("memory_search", {"query": "python"}), ("memory_get", {"identifier": "m"}),
-                           ("memory_update", {"identifier": "m", "expected_revision": 1, "changes": {"content": "new"}})):
+                           ("memory_update", {"identifier": "m", "expected_generation": generation, "expected_revision": 1, "changes": {"content": "new"}})):
             run, model, _ = await self.run_tool(name, args)
             self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
             self.assertIn("tool", [m["role"] for m in model.requests[-1]["messages"]])
         self.assertEqual((await self.memory.aload("m"))["status"], "candidate")
-        run, _, _ = await self.run_tool("memory_update", {"identifier": "m", "expected_revision": 1,
+        run, _, _ = await self.run_tool("memory_update", {"identifier": "m", "expected_generation": generation, "expected_revision": 1,
                                                          "changes": {"content": "stale"}})
         self.assertEqual(run.data.status, RunStatus.FAILED)
         step = next(s for s in await run.steps.alist() if s.kind == "tool")
         self.assertEqual(step.metadata["error_code"], "memory_conflict")
-        run, _, _ = await self.run_tool("memory_delete", {"identifier": "m", "expected_revision": 2})
+        run, _, _ = await self.run_tool("memory_delete", {"identifier": "m", "expected_generation": generation, "expected_revision": 2})
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(await self.memory.alist(), {})
         self.assertEqual([h["source"]["kind"] for h in await self.memory.ahistory("m")], ["api", "tool", "tool"])

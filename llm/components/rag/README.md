@@ -46,12 +46,21 @@ document = await rag.aadd_document(
 )
 hits = await rag.asearch("설정 파일을 어떻게 사용하나요?")
 documents = hits["documents"]
-await rag.aupdate_document(
+updated = await rag.aupdate_document(
     "manual", content="# 실행\n설정 파일을 검증한 뒤 실행합니다.",
+    expected_generation=document["generation"],
     expected_revision=document["revision"],
 )
-await rag.adelete_document("manual")
+await rag.adelete_document("manual", expected_generation=updated["generation"],
+                           expected_revision=updated["revision"])
 ```
+
+문서의 `generation`은 생성 시 고정되며 `revision`은 수정마다 증가합니다. CAS에는 읽은 두 값을
+함께 전달합니다. 하나만 전달하면 오류이며 삭제·재생성된 같은 ID에 과거 편집을 적용할 수 없습니다.
+둘 다 생략한 무조건 수정·삭제 API도 유지하므로 UI에서는 위와 같이 쌍을 전달하세요.
+코퍼스 색인 공개 generation과 문서 generation은 별개입니다. 검색 결과와 백업·복제도 문서의
+쌍을 보존합니다. generation 없는 옛 저장 자료는 자동 변환하지 않습니다.
+[Revision 계약](../../../docs/llm/revisions.md)을 참고하세요.
 
 문서 API는 자체적으로 Run을 생성하지 않습니다. Engine/Tool 안에서 호출하면 기존 Run의 관찰 경계를 사용합니다. `rag` 선택 시 tools capability에 `rag_search`를 제공하므로, 이를 요청하는 Loop나 Graph ToolNode는 별도의 enable_search 호출 없이 검색할 수 있습니다. 검색 이외의 문서 CRUD 전체가 자동으로 모델 Tool로 노출되는 것은 아닙니다.
 

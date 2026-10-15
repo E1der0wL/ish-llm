@@ -119,6 +119,8 @@ class DefinitionOwnershipTests(unittest.TestCase):
             schemas.append(component.describe_config())
             if hasattr(component, "schema"):
                 schemas.append(component.schema)
+        from llm.components.data import DataComponent
+        schemas.extend((DataComponent().schema, DataComponent().describe_config()))
         def visit(spec, path):
             if not isinstance(spec, dict):
                 return
@@ -238,6 +240,6 @@ class OwnershipIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await memory.acreate({"content": "old"}, identifier="old")
                 await memory.acreate({"content": "candidate", "status": "candidate", "metadata": {
                     "replaces": [{"id": "old", "revision": 1}]}}, identifier="proposal")
-                await memory.aconsolidate("proposal", expected_revision=1)
+                await memory.aconsolidate("proposal", expected_generation=(await memory.aload("proposal", include_deleted=True))["generation"], expected_revision=1)
                 self.assertFalse((await memory.aload("old"))["deleted"])
                 self.assertEqual((await memory.aload("old"))["revision"], 1)

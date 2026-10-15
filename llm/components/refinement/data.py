@@ -240,14 +240,17 @@ class RefinementData(ComponentData):
         replacement = self._replacement(value, current)
         source = {**self._source(source), "kind": "refinement", "proposal_id": identifier}
         component, target_id = value["target"]["component"], value["target"]["identifier"]
-        if value["operation"] in ("create", "fork"):
+        if value["operation"] == "fork":
+            applied_id = handle.fork(value["parent"]["identifier"], replacement, identifier=target_id,
+                                     expected_revision=value["parent"]["version"])
+        elif value["operation"] == "create":
             applied_id = handle.create(replacement, identifier=target_id)
         elif component == "memory":
             # 보존된 원본 revision은 기존 review/consolidation에서 다시 검사한다.
             candidate = {key: deepcopy(replacement[key]) for key in ("content", "kind", "tags", "scope")}
             if "session_id" in replacement:
                 candidate["session_id"] = replacement["session_id"]
-            candidate.update(status="candidate", replaces=[{"id": target_id, "revision": current["revision"]}],
+            candidate.update(status="candidate", replaces=[{"id": target_id, "generation": current["generation"], "revision": current["revision"]}],
                              metadata={"refinement_proposal": identifier})
             applied_id = handle.create(candidate, source=source)
         elif component == "agents":
@@ -278,7 +281,7 @@ class RefinementData(ComponentData):
             # SkillData.delete가 Agent와 child lineage 모두를 같은 잠금에서 검사한다.
             handle.delete(applied["identifier"], expected_version=applied["version"])
         elif target["component"] == "memory":
-            handle.delete(applied["identifier"], expected_revision=current["revision"], source=source, **kwargs)
+            handle.delete(applied["identifier"], expected_revision=current["revision"], expected_generation=current["generation"], source=source, **kwargs)
         elif target["component"] == "agents":
             handle.revise(target["identifier"], value["before"], expected_revision=applied["version"])
         else:

@@ -174,9 +174,10 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
     async def test_session_scope_crud_and_model_tools_cannot_cross_sessions(self):
         other = await self.project.sessions.acreate()
         await self.memory.acreate({"content": "private", "scope": "session", "session_id": other.id}, identifier="private")
+        generation = (await self.memory.aload("private", session_id=other.id))["generation"]
         for operation in (lambda: self.memory.aload("private", session_id=self.session.id),
-                          lambda: self.memory.aupdate("private", {"content": "wrong"}, expected_revision=1, session_id=self.session.id),
-                          lambda: self.memory.adelete("private", expected_revision=1, session_id=self.session.id),
+                          lambda: self.memory.aupdate("private", {"content": "wrong"}, expected_revision=1, expected_generation=generation, session_id=self.session.id),
+                          lambda: self.memory.adelete("private", expected_revision=1, expected_generation=generation, session_id=self.session.id),
                           lambda: self.memory.ahistory("private", session_id=self.session.id)):
             with self.assertRaises(FileNotFoundError):
                 await operation()
@@ -192,7 +193,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(record["session_id"], self.session.id)
         self.assertEqual(record["status"], "candidate")
         with self.assertRaises(ValueError):
-            await self.memory.aupdate(record["id"], {"scope": "project"}, expected_revision=1, session_id=self.session.id)
+            await self.memory.aupdate(record["id"], {"scope": "project"}, expected_revision=1, expected_generation=record["generation"], session_id=self.session.id)
 
     async def test_incremental_summary_keeps_recent_turns_and_source_history(self):
         await self.configure(summarize=True, keep_turns=1, summary_after_chars=1)
@@ -294,7 +295,8 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
     async def test_extraction_candidates_dedup_proposals_and_expiry(self):
         await self.configure(extract=True)
         await self.memory.acreate({"content": "Old Python choice"}, identifier="old")
-        self.aux.candidates = [{"content": "New Python choice", "replaces": [{"id": "old", "revision": 1}]}]
+        self.aux.candidates = [{"content": "New Python choice", "replaces": [{"id": "old",
+            "generation": (await self.memory.aload("old"))["generation"], "revision": 1}]}]
         run, _ = await self.run_loop("new Python choice")
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         records = await self.memory.alist(session_id=self.session.id)
@@ -305,7 +307,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.memory.aload("old"))["revision"], 1)
         await self.run_loop("new Python choice")
         self.assertEqual(len(await self.memory.alist(session_id=self.session.id)), 2)
-        await self.memory.adelete(candidate["id"], expected_revision=1, session_id=self.session.id)
+        await self.memory.adelete(candidate["id"], expected_revision=1, expected_generation=candidate["generation"], session_id=self.session.id)
         await self.run_loop("new Python choice")
         self.assertEqual(len(await self.memory.alist(session_id=self.session.id)), 1)
         await self.memory.acreate({"content": "Old Python choice"}, identifier="duplicate")
@@ -321,6 +323,20 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         run, _ = await self.run_loop()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(await self.memory.alist(session_id=self.session.id), {})
+
+    async def test_extraction_rejects_missing_or_stale_generation(self):
+        await self.configure(extract=True)
+        await self.memory.acreate({"content": "Existing fact"}, identifier="old")
+        old = await self.memory.aload("old")
+        for reference in ({"id": "old", "revision": old["revision"]},
+                          {"id": "old", "revision": old["revision"], "generation": "0" * 32}):
+            with self.subTest(reference=reference):
+                self.aux.candidates = [{"content": "valid"}, {"content": "replacement", "replaces": [reference]}]
+                run, _ = await self.run_loop()
+                self.assertEqual(run.data.status, RunStatus.FAILED)
+                self.assertEqual(await self.memory.alist(session_id=self.session.id), {"old": old})
+        payload = json.loads(self.aux.requests[-1]["messages"][1]["content"])
+        self.assertEqual(payload["existing"][0]["generation"], old["generation"])
 
     async def test_aux_failure_continue_keeps_answer_and_records_fallback_step(self):
         await self.configure(extract=True, failure_mode="continue")
@@ -473,7 +489,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         async with LargeLanguageModel(self.root / "destination", components=[MemoryComponent(), PromptComponent()]) as app:
             project = await app.projects.arestore_backup(backup)
             self.assertEqual(await (await project.components.aget("memory")).asummary(self.session.id), original)
-        await self.memory.aclear_summary(self.session.id, expected_revision=original["revision"])
+        await self.memory.aclear_summary(self.session.id, expected_revision=original["revision"], expected_generation=original["generation"])
         self.assertIsNone(await self.memory.asummary(self.session.id))
         fresh = await self.memory._async_call(self.memory._processing_snapshot, self.session.id)
         await self.memory._async_call(self.memory._publish_summary, fresh, original, session_id=self.session.id, source={})

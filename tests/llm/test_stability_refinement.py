@@ -86,7 +86,7 @@ class RetrievalRankingTests(unittest.TestCase):
         for i in range(40):
             identifier = str(i)
             text = 'alpha beta' if i % 2 else 'alpha gamma'
-            documents[identifier] = {"title": identifier, "metadata": {}, "revision": 1,
+            documents[identifier] = {"title": identifier, "metadata": {}, "generation": f"{i:032x}", "revision": 1,
                 "content": text, "sections": {"s": {"text": text}},
                 "chunks": [{"id": identifier, "document_id": identifier, "section_id": "s", "text": text}]}
 

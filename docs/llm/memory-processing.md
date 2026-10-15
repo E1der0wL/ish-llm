@@ -68,7 +68,7 @@ failure_mode="continue"는 요약 실패를 degraded Step으로 남기고 원문
 실패한 응답은 정상 요약 캐시에 저장하지 않는다. checkpoint/Tool receipt는 수정하지 않는다.
 
 **기억 검색:** 현재 입력으로 프로젝트 공통 기억과 현재 Session의 기억을 검색한다. candidate와
-만료된 기억은 자동 주입에서 제외한다. 기억 ID/revision과 내용을 구분된 참고 데이터로
+만료된 기억은 자동 주입에서 제외한다. 기억 ID/generation/revision과 내용을 구분된 참고 데이터로
 현재 사용자 메시지의 모델 입력 사본에 붙인다. system 지시로 승격하거나 원본 대화를 바꾸지
 않는다. 검색은 명시한 keyword 또는 host search_fn을 사용한다. keyword만으로는 입력과 표현이
 다른 의미적 연관까지 보장하지 않는다. 기억할 내용의 의미 기준은 extract_prompt_id/host extract_prompt가 소유한다.
@@ -100,8 +100,8 @@ active_keep_iterations로 조절한다. [장시간 작업 API](long-running.md)�
 **기억 후보 추출:** 정상적인 최종 모델 응답 뒤에 현재 요청·답변과 제한된 기존 기억을
 검토한다. 생성 결과는 항상 candidate이며, 범위는 명시된 extract_scope다. 프로젝트 공통 지식으로
 수집하려면 `extract_scope="project"`를 선택한다. 이미 존재하거나 삭제한 동일 내용은 다시
-생성하지 않는다. 모델은 기존 ID/revision을 참조하는 `replaces`로 병합·모순 해결을
-제안할 수 있다. 해당 revision을 저장 직전에 다시 확인한다. 제안만으로 기존 confirmed
+생성하지 않는다. 모델은 기존 ID/generation/revision을 참조하는 `replaces`로 병합·모순 해결을
+제안할 수 있다. 해당 생성 세대와 revision을 저장 직전에 다시 확인한다. 제안만으로 기존 confirmed
 기억을 덮어쓰거나 삭제하지 않는다. 사실의 정확성/의미적 중복 판별은 모델 품질에 달려 있다.
 
 목표·결정·미완료 작업은 요약에 보존할 수 있고, 명시적으로 유지할 작업 메모는 Session 범위의
@@ -141,7 +141,8 @@ summary = await memory.asummary(session.id)  # 없으면 None
 if summary:
     print(summary["content"], summary["metadata"]["through_message_id"])
     # 요약만 초기화; 다음 실행에서는 원문으로 다시 생성한다.
-    await memory.aclear_summary(session.id, expected_revision=summary["revision"])
+    await memory.aclear_summary(session.id, expected_generation=summary["generation"],
+                               expected_revision=summary["revision"])
 
 review = await memory.areview(session_id=session.id)
 # review["duplicates"]: 같은 범위의 정규화된 동일 내용 ID 그룹

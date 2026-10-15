@@ -108,7 +108,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         candidate_id = applied["data"]["applied_target"]["identifier"]
         candidate = await memory.aload(candidate_id)
         self.assertEqual(candidate["status"], "candidate")
-        self.assertEqual(candidate["replaces"], [{"id": "guide", "revision": 1}])
+        self.assertEqual(candidate["replaces"], [{"id": "guide", "generation": original["data"]["generation"], "revision": 1}])
         self.assertIn(candidate, (await memory.areview())["proposals"])
         await self.refine.arollback(identifier, expected_version=applied["version"])
         self.assertTrue((await memory.aload(candidate_id, include_deleted=True))["deleted"])
@@ -119,7 +119,7 @@ class RefinementTests(unittest.IsolatedAsyncioTestCase):
         approved = await self.approve(identifier)
         applied = await self.refine.aapply(identifier, expected_version=approved["version"])
         candidate_id = applied["data"]["applied_target"]["identifier"]
-        await self.project.components.memory.aconsolidate(candidate_id, expected_revision=1)
+        await self.project.components.memory.aconsolidate(candidate_id, expected_generation=(await self.project.components.memory.aload(candidate_id, include_deleted=True))["generation"], expected_revision=1)
         with self.assertRaises(ValueError):
             await self.refine.arollback(identifier, expected_version=applied["version"])
 

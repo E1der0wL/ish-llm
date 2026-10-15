@@ -43,13 +43,13 @@ class MemoryConsolidation:
     def pending(self):
         return sorted(self.component._checked(self.root / "pending").glob("*.json"))
 
-    def apply(self, proposal, *, expected_revision, session_id=None, source=None):
+    def apply(self, proposal, *, expected_revision, expected_generation, session_id=None, source=None):
         from .component import MemoryConflictError
         if self.pending():
             raise MemoryConflictError("Recover pending consolidation before editing memories")
         component, project = self.component, self.project
         candidate = component.load(project, proposal, session_id=session_id)
-        component._check_revision(candidate, expected_revision)
+        component._check_revision(candidate, expected_revision, expected_generation)
         if candidate["status"] != "candidate" or component._expired(candidate):
             raise ValueError("Consolidation requires an unexpired candidate")
         references = candidate.get("replaces", [])
@@ -60,7 +60,7 @@ class MemoryConsolidation:
             raise ValueError("Consolidation references must be distinct")
         for ref in references:
             record = component.load(project, ref["id"], session_id=session_id)
-            component._check_revision(record, ref["revision"])
+            component._check_revision(record, ref["revision"], ref["generation"])
             if (record["scope"], record.get("session_id")) != (candidate["scope"], candidate.get("session_id")):
                 raise ValueError("Consolidation cannot cross memory scopes")
         operation_id = new_id()

@@ -90,8 +90,10 @@ Loop에 숨은 반복/모델/Tool 시간 제한은 없다. Project → Session �
 출력 검증 실패나 정책 위반 후 자동 모델/Tool 재시도는 없다. 업무상 재수정은 Workflow의
 검증 노드/분기/유한 루프로 표현한다.
 
-Skill.resources의 URI는 참고 정보이며 파일 읽기나 스크립트 실행을 자동으로 하지 않는다.
-자료를 읽을 필요가 있다면 허용 Tool로 실행한다.
+Skill.resources의 URI는 참고 정보이며 자동 접근하지 않는다. 등록한 Skill/Data 파일은
+허용한 skill_read_resource Tool로 명시적으로 조회한다. Project Tool 참조는 prepare/enable/실행을
+하지 않으며 Agent의 Tool 허용 목록을 확대하지 않는다. 자료 revision이 바뀌면 참조를
+명시적으로 갱신해야 한다. [Skill 계약](../../llm/components/skills/README.md)을 참고한다.
 
 ## Graph-backed Agent와 behavioral Agent
 

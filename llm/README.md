@@ -56,6 +56,12 @@ LLM이 skill_list로 작업 지침을 찾고 skill_read로 본문을 읽을 수 
 Project별로 선택합니다. [실행 예제](../examples/llm/developer_assistant.md)의 시스템 프롬프트와
 초기 지침은 명시적으로 설치하는 예시이며 라이브러리의 숨은 기본 설정이 아닙니다.
 
+Skill은 디렉터리별 지침·참고 파일을 관리하고 `skill_read_resource`로 자료를 조회합니다.
+공유 자료나 임시 결과는 선택형 [Data](components/data/README.md) 패키지에 저장하고 Skill에서
+Data·Project Tool의 특정 revision을 참조할 수 있습니다. 참조만으로 Tool 권한을 얻지 않습니다.
+파일 복제·백업, 변경 충돌과 참조 중 삭제 보호를 제공합니다.
+[사용 예](../examples/llm/skill_data.py)와 [revision 규칙](../docs/llm/revisions.md)을 참고하세요.
+
 [Vision](components/vision/README.md)을 선택하면 등록한 이미지의 전처리·OCR·VLM 해석을
 Tool과 직접 API에서 사용할 수 있습니다. OCR backend나 모델은 명시적으로 선택하며,
 추출 결과는 출처가 있는 문서로 RAG에 전달할 수 있습니다.

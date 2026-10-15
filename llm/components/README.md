@@ -20,7 +20,8 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | [memory/](memory/README.md) | 장기 기억·후보·출처·요약 | Memory Tool, completion processor |
 | [agents/](agents/README.md) | 목적·Engine·모델·리소스·정책 | Graph AgentNode, 저장 ID 기반 agent_run Tool |
 | [workflows/](workflows/README.md) | 노드·간선·입출력 mapping | GraphEngine |
-| [skills/](skills/README.md) | 재사용 지침과 참고 자료 설명 | skill_list/skill_read, 선택한 Agent의 지침 주입 |
+| [skills/](skills/README.md) | 지침·참고 파일·Tool/Data 버전 참조 | skill_list/skill_read/skill_read_resource, Agent 지침 주입 |
+| [data/](data/README.md) | 학습 자료·참고 자료·임시 결과 등의 파일 패키지 | 공개 파일 API, Skill의 명시적 자료 조회 |
 | [mcp/](mcp/README.md) | 서버 연결 정의 | 호스트가 주입한 connector |
 | [prompts/](prompts/README.md) | 시스템 지침·few-shot 메시지 | RAG 등의 소비자가 ID로 참조 |
 | [goals/](goals/README.md) | 장기 목적·진행·Run 참조 | CRUD, 읽기/승인 대상 쓰기 Tool, 선택적 문맥 주입 |
@@ -36,6 +37,7 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | [base.py](base.py) | 이름·디렉터리·JSON 직렬화·공통 CRUD·초기화·복제 계약입니다. |
 | [registry.py](registry.py) | 이름·디렉터리 충돌을 검사하고 선택한 capability를 해석합니다. |
 | [definitions.py](definitions.py) | JSON schema를 가진 정의형 Component의 공통 검증·스냅샷 구현입니다. |
+| [files.py](files.py) | Skill/Data 파일 패키지, manifest 검증, 파일과 정의의 원자적 변경입니다. |
 | [processing.py](processing.py) | 모델 입력 변환·응답 관찰을 조합하는 completion processor 계약입니다. |
 
 ## 사용자/API 관점
@@ -57,7 +59,7 @@ records = await prompts.alist()  # {id: record, ...}
 
 공통 JSON CRUD에서 create는 중복 ID를 거부하고, save는 기존 레코드를 전체 교체하며, update는 최상위 키를 갱신합니다. configure도 **설정 전체 교체**입니다. 변경할 부분만 있다면 현재 설정을 읽고 수정한 뒤 저장하세요. 동시 편집에는 snapshot과 expected_version을 사용합니다.
 
-Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해당 README를 따릅니다. 특히 RAG 문서는 `aadd_document()`, Memory 수정은 `expected_revision`, Tool은 source/requirements를 사용합니다.
+Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해당 README를 따릅니다. 특히 RAG 문서는 `aadd_document()`, Memory 수정은 `expected_generation`과 `expected_revision`, Tool은 source/requirements를 사용합니다.
 
 ## 새 Component 개발
 
@@ -75,6 +77,9 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 - `resolve(project, capability)`: 요청한 기능의 런타임 값을 반환.
 - `resolve_runtime(project, capability, *, data_factory)`: 수명 검사 핸들이 필요한 기능을 연결. 기본 구현은 resolve에 위임.
 - `data_class`: 필요할 때 지정하는 ComponentData 하위 클래스.
+- `references(project)`: 저장된 Component 참조를 원본 정의에서 계산합니다. 각 항목은
+  `component`(대상 Component), `identifier`(대상 ID), `source`(소비자 record ID), 선택 `path`입니다.
+  registry는 소비자 내부 구조를 읽지 않고 이 공개 계약으로 삭제·선택 해제를 보호합니다.
 
 직렬화 가능한 JSON만 레코드에 저장하고 client/함수/lock은 capability에 둡니다. 공통 직렬화는 문자열 키와 유한한 값을 확인하며, 선택 Component가 record schema를 소유합니다. 내장 정의는 알려진 필드만 허용하고 Application 확장은 `metadata`에 둡니다. `data_class` 없이 Component에 메서드만 추가해도 Facade로 자동 전달되지는 않습니다.
 
@@ -96,6 +101,10 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
   workflows/records/review.json
   tools/search/search.py           # Tool 전용 Python 패키지
   tools/search/requirements.txt    # 선택적 의존성
+  skills/review/skill.json         # 지침·참조·파일 manifest
+  skills/review/files/example.md
+  data/manual/data.json            # 자료 설명·파일 manifest
+  data/manual/files/reference.md
   rag/...                          # 문서·색인 세대·작업 체크포인트
 ```
 

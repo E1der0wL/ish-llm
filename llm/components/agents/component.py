@@ -66,6 +66,11 @@ class AgentComponent(DefinitionComponent):
         return hashlib.sha256(json.dumps(data, ensure_ascii=False, sort_keys=True,
                                          allow_nan=False).encode("utf-8")).hexdigest()
 
+    def references(self, project):
+        return [{"component": "skills", "identifier": skill, "source": identifier}
+                for identifier, value in self.list(project).items()
+                for skill in value.get("resources", {}).get("skills", [])]
+
     def validate_record(self, identifier: str, data: dict) -> None:
         super().validate_record(identifier, data)
         # 제거된 필드를 조용히 무시하거나 과거 형식으로 자동 변환하지 않는다.

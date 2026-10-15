@@ -99,10 +99,12 @@ Hub의 `SettingsService`, Settings 화면, GeneralSettings는 Project config/pol
 | `key` | 특정 scope의 lookup/reference/checkpoint/operation 연결 키 |
 | `title` | 사람이 읽는 표시 제목. identity 아님 |
 | `revision` | 객체·definition·contract 변경 identity |
+| `generation` | 소유 범위 안에서 생성/공개 세대를 구별하는 identity. 문서 생성 세대와 코퍼스 공개 세대는 서로 다른 범위 |
 | `version` | schema/storage/protocol 형식 버전 |
 
 `expected_version`, `config_version`, `component_versions`, snapshot의 `version`은 기존
 CAS/change token 계약이다. 이번에는 저장/비교 의미를 보존하며 rename하지 않는다.
+계산 범위·참조 고정·파일 변경 규칙은 [Revision 계약](revisions.md)에 정리한다.
 metadata는 부가 정보이며 외부 metadata만으로 새 authority를 얻지 못한다.
 Run/Step metadata의 내부 실행 bookkeeping을 naming 때문에 이동하지 않는다.
 

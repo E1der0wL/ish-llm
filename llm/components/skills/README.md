@@ -1,6 +1,6 @@
 # Skills — 재사용할 지침과 참고 자료
 
-특정 작업에 사용할 instructions와 선택적인 리소스 설명을 닫힌 JSON 계약으로 저장합니다. Skill 자체가 별도 실행기나 Python 함수 패키지는 아닙니다. Application 데이터는 `metadata` 안에 두며 실행 권한을 만들지 않습니다. `resources` 항목은 필수 `uri`, 선택 `description`과 `metadata`만 허용합니다.
+특정 작업의 instructions, 참고 파일, Tool·Data 참조를 Skill별 디렉터리에 저장합니다. Skill 자체는 실행기가 아닙니다. Application 데이터는 `metadata`에 두며 실행 권한을 만들지 않습니다. 정의는 알려진 필드만 받습니다.
 
 ## 파일 안내
 
@@ -8,8 +8,10 @@
 | --- | --- |
 | [__init__.py](__init__.py) | SkillComponent 공개 import입니다. |
 | [component.py](component.py) | 정의 schema와 skills/tools capability를 선언합니다. |
-| [data.py](data.py) | 생성 시 lineage 검증, lineage 불변성, Agent/child 의존 조회와 삭제 보호입니다. |
-| [tools.py](tools.py) | Run 스냅샷의 요약 목록·본문을 조회하는 skill_list/skill_read를 제공합니다. |
+| [data.py](data.py) | 파일 API, 버전 참조 검증·조회, fork와 삭제 보호입니다. |
+| [tools.py](tools.py) | Run 스냅샷의 목록·본문·참고 자료를 조회하는 읽기 전용 Tool입니다. |
+
+공통 패키지 저장과 파일 트랜잭션은 [files.py](../files.py)가 담당합니다.
 
 ## 사용 예
 
@@ -22,10 +24,51 @@ await skills.acreate({
 }, identifier="review-guide")
 ```
 
-저장 위치는 `<project>/skills/records/<id>.json`입니다. Agent의 `resources.skills`에 ID를 나열해 연결합니다. 소비하는 Engine/Agent가 지침을 적용하며, 저장만으로 모든 모델 호출에 자동 주입되지 않습니다.
+저장 위치는 `<project>/skills/<id>/skill.json`이며 참고 파일은 같은 디렉터리의 `files/` 아래에 있습니다.
+`skill.json`의 instructions가 지침의 유일한 원본입니다. Agent의 `resources.skills`에 ID를 나열해 연결합니다.
+소비하는 Engine/Agent가 지침을 적용하며, 저장만으로 모든 모델 호출에 자동 주입되지 않습니다.
+
+파일 API는 `write_file/awrite_file`, `import_file/aimport_file`, `read_file/aread_file`,
+`list_files/alist_files`, `delete_file/adelete_file`입니다. 변경에는 snapshot의 version을
+`expected_revision`으로 전달합니다. 파일 목록·해시·크기는 관리되는 `files` 필드에 기록되고
+정의와 함께 하나의 revision을 구성합니다. manifest는 직접 편집하지 않습니다.
+`resources: [{"path": "references/manual.md"}]`는 등록된 로컬 파일을 참조합니다.
+`skill_read_resource(identifier, index)`는 선택한 자료를 필요한 시점에 읽으며 Run의 revision이
+바뀌면 거부합니다. 외부 URI는 자동 열기/다운로드하지 않습니다. scripts 파일도 자동 실행하지 않습니다.
+복제·백업에는 파일이 포함되며 Skill 삭제는 자체 파일만 삭제합니다. 참조 중인 로컬 파일을
+삭제하려면 먼저 resources에서 참조를 제거해야 합니다. 옛 records 디렉터리는 자동 변환하지 않습니다.
+[Revision 계약](../../../docs/llm/revisions.md)을 참고하세요.
+
+## Tool·Data 참조
+
+`resources`는 다음 네 형태만 허용합니다. 각 항목에 description과 metadata를 추가할 수 있습니다.
+
+| 형태 | 의미 |
+| --- | --- |
+| `{"uri": "https://example.org/manual"}` | 참고 URI. 자동 접근하지 않음 |
+| `{"path": "references/manual.md"}` | 해당 Skill에 등록한 파일 |
+| `{"component": "data", "identifier": "manual", "revision": "<snapshot version>", "path": "reference.md"}` | Data 패키지의 지정 버전 파일 |
+| `{"component": "tools", "identifier": "helper", "revision": "<snapshot version>"}` | Project Python Tool 패키지의 지정 버전 |
+
+Tool 참조 조회는 참조 정보만 반환합니다. prepare/import/enable/execute를 호출하지 않으며,
+실제 Tool 사용에는 기존 선택·허용 목록·승인 절차가 필요합니다. builtin Tool 참조는 이 형태로 지원하지 않습니다.
+Data 참조는 파일을 읽으며 `skill_read_resource`는 UTF-8 텍스트 자료를 대상으로 합니다.
+바이너리 자료는 앱에서 Data의 read_file로 조회합니다.
+
+create/save/update 및 Run capability 구성 시 대상이 존재하고 revision이 일치하는지 검사합니다.
+현재 선택된 Skill의 모든 저장 참조를 검사하므로 사용하지 않는 Skill의 낡은 참조도 Run admission을
+막을 수 있습니다. 대상 수정은 허용하지만 Skill의 pinned revision은 자동 갱신하지 않습니다.
+새 snapshot을 확인한 뒤 Skill resources를 명시적으로 수정해야 합니다.
+
+참조 중인 Data 파일·패키지 및 Tool 패키지는 삭제할 수 없습니다. Skill Component를 선택 해제해도
+저장된 참조의 삭제 보호는 유지합니다. 참조를 유지하는 소비자가 선택된 상태에서는 대상 Component를
+선택 해제할 수 없습니다. URI는 외부 설명이므로 이러한 삭제 보호의 대상이 아닙니다.
+전체 사용 예는 [skill_data.py](../../../examples/llm/skill_data.py)에 있습니다.
 
 `await skills.aimpact(id)`는 현재 Agent 정의에서 해당 Skill을 참조하는 ID/revision을 계산합니다.
-별도 역참조 인덱스는 없습니다. FORK는 `lineage={"parent": id, "parent_revision": hash}`를
+선택 해제된 Agent Component의 보존된 참조도 표시하며, 조회가 Component를 다시 활성화하지는 않습니다.
+삭제 보호와 동일한 저장 참조를 사용하고 별도 역참조 인덱스는 없습니다.
+FORK는 `lineage={"parent": id, "parent_revision": hash}`를
 저장하며 생성 시 부모 버전을 검사합니다. lineage는 생성 후 바꾸지 않고 부모 업데이트를
 자식에 자동 전파하지 않습니다. 모델 기반 UPDATE/CREATE/FORK는 [Refinement](../refinement/README.md)를 사용합니다.
 새 Skill 생성과 Agent 연결은 서로 다른 승인 대상입니다.
@@ -37,7 +80,7 @@ await skills.acreate({
 
 ## LLM이 지침을 선택하는 경로
 
-Project에서 `skills`를 선택하면 tools capability에 읽기 전용 Tool 두 개가 연결됩니다.
+Project에서 `skills`를 선택하면 tools capability에 읽기 전용 Tool 세 개가 연결됩니다.
 별도의 ToolComponent나 enable_search 같은 메서드는 필요하지 않습니다.
 
 - `skill_list({query?, after?, limit?})`: ID 순서의 제목·설명·태그·revision을 반환합니다.
@@ -45,7 +88,10 @@ Project에서 `skills`를 선택하면 tools capability에 읽기 전용 Tool �
   모든 단어가 ID/제목/설명/태그에 있어야 일치하며, 대소문자는 구분하지 않습니다.
   다음 페이지가 있으면 next_after가 나오고 같은 query와 함께 after로 전달합니다.
 - `skill_read({identifier, expected_revision?})`: `{id, revision, definition}`을 반환합니다.
-  definition에는 instructions와 사용자가 저장한 추가 필드가 들어갑니다.
+  definition에는 instructions, resources, 파일 manifest 등 허용된 정의 필드가 들어갑니다.
+- `skill_read_resource({identifier, index})`: resources 배열의 한 항목을 조회합니다.
+  파일은 `{text, sha256, bytes, ...}`로 반환하고 Tool/URI는 참조 정보만 반환합니다.
+  Run 시작 시 Skill revision과 대상의 pinned revision을 함께 검사합니다.
 
 일반 Loop는 이 Tool들을 바로 사용할 수 있습니다. Graph 안의 behavioral Agent에서는 `tools` 허용
 목록에 이름을 추가해야 하며, 추가하면 해당 Project의 전체 Skill 목록·본문 조회를 허용합니다.
@@ -62,6 +108,7 @@ Run 시작 시 정의를 복사합니다. 실행 중 편집은 다음 Run에 반
 Skill 준수를 보장하지 않습니다. 강제 검증·승인은 Workflow와 실행 정책으로 구성합니다.
 [개발·진단 예제](../../../examples/llm/developer_assistant.md)는 설치를 명시한 두 지침을 제공합니다.
 
-`resources`의 추가 JSON을 실제 파일/네트워크 작업으로 해석하려면 소비자 구현이 필요합니다. 공통 CRUD·설정은 [Component 계약](../README.md)을 따릅니다.
+참고 파일은 필요할 때만 읽습니다. 전체 자료를 프롬프트에 자동 삽입하지 않습니다.
+공통 CRUD·설정은 [Component 계약](../README.md)을 따릅니다.
 
 [상위 안내](../README.md)

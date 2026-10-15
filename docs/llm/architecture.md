@@ -72,6 +72,21 @@ Tool을 호출했다는 것과 지침의 검증 절차를 완료했다는 것은
 Workflow와 Project 정책·ToolContract의 실행 경계가 소유한다. Host의 기술적 허가는
 ToolRuntime로 연결한다. 일반 Engine/RunManager에 Skill 전용 분기를 넣지 않는다.
 
+Skill은 `skills/<id>/skill.json`과 `files/`를, Data는 `data/<id>/data.json`과 `files/`를
+소유한다. 공통 FileComponent/FileData는 파일 manifest 검증과 기존 workspace transaction을
+재사용한다. 파일 경로·SHA-256·크기가 정의에 포함되어 기존 snapshot/승인/재개/Refinement
+CAS가 파일 변경도 감지한다. storage/schema version과 domain hierarchy는 바꾸지 않는다.
+`skill_read_resource`는 시작 시 Skill revision과 대상 Data revision을 검사하며 필요한 자료만
+읽는다. Tool 참조는 소스 실행·선택·권한 확대를 하지 않는다. 재개는 기존 Engine binding이
+담당하고 참조 검증은 Skill capability가 담당한다.
+
+Component.references는 자신의 저장 정의에서 대상 component/identifier와 소비자 source ID를
+계산한다. registry와 lifecycle 서비스는 이 공개 계약으로 레코드·파일·Component 삭제를
+보호하며 Skill/Data/Tool의 내부 경로를 해석하지 않는다. 별도 참조 DB나 승인 원장을 만들지
+않는다. 등록된 비활성 Component의 보존된 참조도 삭제 보호 대상이다. 선택을 유지하는 소비자의
+대상 Component를 해제할 수 없으며 자동 cascade는 없다. 과거 Skill records 형식은 자동
+변환하지 않는다. [Revision 규칙](revisions.md)과 [파일 API](../../llm/components/data/README.md)를 따른다.
+
 BuiltinToolComponent는 호스트가 생성한 BuiltinTools와 ProjectConfig의 enabled 목록을
 연결한다. Project Python Tool 소스 저장소와 별개이며 Toolkit 수명은 호스트가 소유한다.
 프로세스 출력 cursor/표준입력은 해당 Toolkit의 실행에만 적용하며 재시작 시 자동 재실행하지
@@ -431,7 +446,7 @@ Workflow 선택, Project → Session → Run → Step, 이벤트 저장 ACK와 �
 선택 시 `tools` capability에 memory_search/get/create/update/delete를 제공한다.
 ToolExecutor의 실행 문맥은 소유 Project/Session/Run/Message/Step 출처만 전달하며 엔진이나
 RunManager에 기억 저장 책임을 추가하지 않는다. ToolRuntime와 Step 저장 경계를 유지한다.
-현재 값·변경 이력은 단일 JSON 원자 교체, 수정은 expected_revision 비교, 삭제는 복원 가능한
+현재 값·변경 이력은 단일 JSON 원자 교체, 수정은 expected_generation/expected_revision 쌍 비교, 삭제는 복원 가능한
 형태가 기본이다. 모델 작성은 candidate, 기본 검색은 confirmed이며 프로젝트 설정으로 조절한다.
 BaseEngine에 Memory 전용 로직을 추가하지 않는다. [Memory API](memory.md)를 참고한다.
 
@@ -745,7 +760,9 @@ RAG 세대는 graph.entities/relations와 graph.kuzu를 반드시 포함한다. 
 
 RAGData는 ComponentData를 상속하여 최신 Project 선택/삭제 상태, backend
 수명, workspace 소유권과 StorageIO를 공유한다. 모델 호출은 잠금 밖에서 await하며
-세대/문서 revision을 확인한 뒤 공개한다. 충돌은 RAGConflictError이고 자동 재시도하지 않는다.
+코퍼스 공개 세대와 문서의 generation/revision을 확인한 뒤 공개한다. 문서 generation은
+생성 시 고정되므로 같은 ID의 삭제·재생성을 구분한다. UI CAS에는 expected_generation과
+expected_revision을 함께 전달한다. 충돌은 RAGConflictError이고 자동 재시도하지 않는다.
 새 원문/벡터와 DB를 generations/<id>에 완성하고 닫은 다음 active.json 하나를 원자적으로
 교체한다. 준비/색인 실패 시 이전 세대가 유지된다. 조회·공개·복제는 같은 잠금으로 직렬화한다.
 모델 준비 중에는 기존 검색이 가능하지만 DB 재구축 동안에는 다른 저장 작업이 기다린다.

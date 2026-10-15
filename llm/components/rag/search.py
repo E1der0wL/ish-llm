@@ -87,5 +87,5 @@ def search(path, documents: dict, query: str, vector, *, method: str, expand: st
         context = (doc["content"] if expand == "document" else
                    doc["sections"][chunk["section_id"]]["text"] if expand == "section" else chunk["text"])
         hits.append({**chunk, "title": doc["title"], "metadata": doc["metadata"],
-                     "revision": doc["revision"], "context": context, "score": scores[identifier]})
+                     "generation": doc["generation"], "revision": doc["revision"], "context": context, "score": scores[identifier]})
     return hits

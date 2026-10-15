@@ -243,10 +243,10 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
             probe = await phase("crud_create", rag.aadd_document(identifier="crud-probe",
                 title="CRUD probe", content="# Probe\n\nProbe belongs to Test Suite."))
             updated = await phase("crud_update", rag.aupdate_document("crud-probe",
-                content="# Probe\n\nProbe belongs to Integration Suite.", expected_revision=probe["revision"]))
+                content="# Probe\n\nProbe belongs to Integration Suite.", expected_generation=probe["generation"], expected_revision=probe["revision"]))
             loaded = await rag.aget_document("crud-probe")
             check("crud_revision", loaded["revision"] == updated["revision"] == probe["revision"] + 1)
-            await phase("crud_delete", rag.adelete_document("crud-probe", expected_revision=updated["revision"]))
+            await phase("crud_delete", rag.adelete_document("crud-probe", expected_generation=updated["generation"], expected_revision=updated["revision"]))
             check("crud_deleted", [d["id"] for d in await rag.alist_documents()] == ["manual"])
 
             report["search"] = {}

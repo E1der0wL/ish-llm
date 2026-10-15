@@ -123,6 +123,10 @@ class Component:
         """보관 정리에서 보호해야 할 외부 도메인 ID. 컴포넌트가 자신의 자료 형식을 해석한다."""
         return {"run_ids": [], "message_ids": []}
 
+    def references(self, project) -> list[dict]:
+        """저장된 Component 참조. 소비자가 자기 정의를 해석하며 별도 원장은 만들지 않는다."""
+        return []
+
     def model_usage(self, project) -> list:
         """독립 모델 호출 영수증의 원본은 호출을 소유한 컴포넌트 아래에 둔다."""
         entries = []

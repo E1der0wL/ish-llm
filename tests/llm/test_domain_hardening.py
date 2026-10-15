@@ -310,11 +310,11 @@ class MemoryHardeningTests(unittest.IsolatedAsyncioTestCase):
     async def proposals(self):
         await self.memory.acreate({"content": "old specification"}, identifier="old")
         await self.memory.acreate({"content": "reviewed specification", "status": "candidate",
-            "replaces": [{"id": "old", "revision": 1}]}, identifier="proposal")
+            "replaces": [{"id": "old", "generation": (await self.memory.aload("old"))["generation"], "revision": 1}]}, identifier="proposal")
 
     async def test_consolidation_applies_review_and_keeps_history(self):
         await self.proposals()
-        receipt = await self.memory.aconsolidate("proposal", expected_revision=1)
+        receipt = await self.memory.aconsolidate("proposal", expected_generation=(await self.memory.aload("proposal", include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual(receipt["status"], "completed")
         self.assertEqual((await self.memory.aload("proposal"))["status"], "confirmed")
         self.assertTrue((await self.memory.aload("old", include_deleted=True))["deleted"])
@@ -332,19 +332,19 @@ class MemoryHardeningTests(unittest.IsolatedAsyncioTestCase):
             return original(project, identifier, data)
         with patch.object(self.component, "_write", side_effect=fail_second):
             with self.assertRaises(OSError):
-                await self.memory.aconsolidate("proposal", expected_revision=1)
+                await self.memory.aconsolidate("proposal", expected_generation=(await self.memory.aload("proposal", include_deleted=True))["generation"], expected_revision=1)
         self.assertIn("old", await self.memory.alist())
         self.assertEqual((await self.memory.aload("proposal"))["revision"], 1)
         self.assertEqual(await self.memory.apending_consolidations(), [])
         self.assertEqual(await self.memory.arecover_consolidations(), [])
-        await self.memory.aconsolidate("proposal", expected_revision=1)
+        await self.memory.aconsolidate("proposal", expected_generation=(await self.memory.aload("proposal", include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual(set(await self.memory.alist()), {"proposal"})
 
     async def test_stale_consolidation_does_not_modify_candidate(self):
         await self.proposals()
-        await self.memory.aupdate("old", {"content": "newer requirement"}, expected_revision=1)
+        await self.memory.aupdate("old", {"content": "newer requirement"}, expected_generation=(await self.memory.aload("old", include_deleted=True))["generation"], expected_revision=1)
         with self.assertRaises(MemoryConflictError):
-            await self.memory.aconsolidate("proposal", expected_revision=1)
+            await self.memory.aconsolidate("proposal", expected_generation=(await self.memory.aload("proposal", include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual((await self.memory.aload("proposal"))["revision"], 1)
         self.assertEqual(await self.memory.apending_consolidations(), [])
 
@@ -360,7 +360,7 @@ class MemoryHardeningTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(self.component, "_read", wraps=self.component._read) as reader:
             await self.memory.asearch("semantic synonym")
             self.assertEqual(reader.call_count, 0)
-        await self.memory.aupdate("one", {"content": "second"}, expected_revision=1)
+        await self.memory.aupdate("one", {"content": "second"}, expected_generation=(await self.memory.aload("one", include_deleted=True))["generation"], expected_revision=1)
         self.assertEqual((await self.memory.asearch("synonym"))[0]["memory"]["content"], "second")
         self.component.search_fn = lambda query, records: {"candidate": 1}
         with self.assertRaises(ValueError):

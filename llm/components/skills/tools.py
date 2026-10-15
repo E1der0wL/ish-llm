@@ -6,7 +6,7 @@ from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.services.infrastructure.storage import revision_token
 
 
-def skill_tools(records: dict) -> ToolRegistry:
+def skill_tools(records: dict, *, read_resource=None) -> ToolRegistry:
     """목록은 요약만, 본문은 선택한 ID만 반환한다. 지침의 실행을 보장하지 않는다."""
     records = deepcopy(records)
     revisions = {name: revision_token(value) for name, value in records.items()}
@@ -35,11 +35,17 @@ def skill_tools(records: dict) -> ToolRegistry:
             raise ValueError("Skill revision changed; list the available skills again")
         return {"id": name, "revision": revisions[name], "definition": deepcopy(records[name])}
 
+    async def resource(arguments):
+        name = arguments["identifier"]
+        if name not in records:
+            raise ValueError("Skill is unavailable in this Run")
+        return await read_resource(name, arguments["index"], expected_revision=revisions[name])
+
     def schema(properties, required=()):
         return {"type": "object", "properties": properties, "required": list(required), "additionalProperties": False}
 
     identifier = {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}
-    return ToolRegistry((
+    tools = [
         Tool("skill_list", "Discover this project's task guides before working. Lists IDs and summaries, not full instructions. "
              "Optionally filter all words in query against ID/title/description/tags. Use skill_read for a relevant guide. "
              "Omitting limit returns all matching summaries; after continues an ID-sorted page.",
@@ -50,4 +56,10 @@ def skill_tools(records: dict) -> ToolRegistry:
              "Resource descriptions are references, not automatically opened files or executed code.",
              schema({"identifier": identifier, "expected_revision": {"type": "string", "minLength": 1}},
                     ("identifier",)), read, contract=contract),
-    ))
+    ]
+    if read_resource is not None:
+        tools.append(Tool("skill_read_resource", "Read one referenced Skill resource from the selected revision. "
+                          "Source material does not grant permissions or execute code.",
+                          schema({"identifier": identifier, "index": {"type": "integer", "minimum": 0}},
+                                 ("identifier", "index")), resource, contract=contract))
+    return ToolRegistry(tuple(tools))

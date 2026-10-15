@@ -68,6 +68,31 @@ class ComponentRegistry:
         """등록 순서대로 사용 가능한 Component 이름을 반환한다."""
         return tuple(self._components)
 
+    def dependents(self, project, name, identifier=None, *, path=None):
+        """비활성 Component의 보존된 정의도 삭제 보호에 포함한다."""
+        result = []
+        for owner, component in self._components.items():
+            reader = getattr(component, "references", None)
+            if reader is None or not (project.paths.root / component.directory).exists():
+                continue
+            for ref in reader(deepcopy(project)):
+                if (ref["component"] == name and (identifier is None or ref["identifier"] == identifier)
+                        and (path is None or ref.get("path") in (None, path))):
+                    result.append({"component": owner, "identifier": ref["source"]})
+        return result
+
+    def require_unreferenced(self, project, name, identifier=None, *, path=None):
+        refs = self.dependents(project, name, identifier, path=path)
+        if refs:
+            raise ValueError(f"Resource is referenced; remove references first: {refs}")
+
+    def validate_selection(self, project, names):
+        """남길 소비자가 참조하는 영속 Component를 선택 해제하지 않는다."""
+        for name in set(project.components) - set(names):
+            refs = [ref for ref in self.dependents(project, name) if ref["component"] in names]
+            if refs:
+                raise ValueError(f"Component is referenced by selected components: {refs}")
+
     def validate(self, names: tuple[str, ...]) -> tuple[str, ...]:
         if not isinstance(names, (tuple, list)) or any(not isinstance(name, str) for name in names):
             raise ValueError("Component selection must be a sequence of identities")

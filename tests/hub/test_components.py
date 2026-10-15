@@ -84,7 +84,7 @@ class RAGCommandTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("vectors", created)
                 with self.assertRaises(FileExistsError):
                     await data.aadd_document(identifier="note", title="Duplicate", content="No overwrite")
-                updated = await data.aupdate_document("note", content="Revised content", expected_revision=1)
+                updated = await data.aupdate_document("note", content="Revised content", expected_revision=1, expected_generation=created["generation"])
                 self.assertEqual(updated["revision"], 2)
                 self.assertEqual((await data.aget_document("note"))["content"], "Revised content")
                 self.assertEqual([item["id"] for item in await data.alist_documents()], ["note"])

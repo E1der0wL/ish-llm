@@ -86,9 +86,7 @@ class RAGData(ComponentData):
             document = snapshot["documents"].get(identifier)
             if document is None:
                 raise FileNotFoundError(identifier)
-            if old.get("expected_revision") is not None and old["expected_revision"] != document["revision"]:
-                from .component import RAGConflictError
-                raise RAGConflictError("Document revision changed")
+            component._check_revision(document, old["expected_revision"], old["expected_generation"])
             title = document["title"] if title is None else title
             content = document["content"] if content is None else content
             metadata = document["metadata"] if metadata is None else metadata
@@ -99,6 +97,9 @@ class RAGData(ComponentData):
         prepared = await component.prepare(identifier, title, content,
                                            deepcopy({} if metadata is None else metadata), revision,
                                            **options)
+        if old is not None:
+            # prepare를 교체한 구현에도 문서 update의 생성 세대 보존 계약은 동일하다.
+            prepared["generation"] = snapshot["documents"][identifier]["generation"]
         return await self._async_call(self._commit, snapshot, prepared)
 
     @observe_component_models
@@ -202,10 +203,10 @@ class RAGData(ComponentData):
         return await self._prepare(identifier, title, content, metadata)
 
     async def aupdate_document(self, identifier: str, *, content=None, title=None,
-                               metadata=None, expected_revision=None) -> dict:
-        """새 문서/색인을 완성한 뒤 교체한다. 실패하면 기존 버전이 유지된다."""
+                               metadata=None, expected_revision=None, expected_generation=None) -> dict:
+        """문서/색인을 교체한다. CAS 사용 시 읽은 generation과 revision을 함께 전달한다."""
         return await self._prepare(validate_name(identifier), title, content, metadata,
-                                   {"expected_revision": expected_revision})
+                                   {"expected_revision": expected_revision, "expected_generation": expected_generation})
 
     @workspace_locked
     def get_document(self, identifier: str) -> dict:
@@ -221,16 +222,14 @@ class RAGData(ComponentData):
         return [document_view(document) for document in snapshot["documents"].values()]
 
     @workspace_locked
-    def delete_document(self, identifier: str, *, expected_revision=None) -> None:
-        from .component import RAGConflictError
+    def delete_document(self, identifier: str, *, expected_revision=None, expected_generation=None) -> None:
         project, component = self._current()
         snapshot = component.snapshot(project)
         documents = dict(snapshot["documents"])
         document = documents.pop(validate_name(identifier), None)
         if document is None:
             raise FileNotFoundError(identifier)
-        if expected_revision is not None and expected_revision != document["revision"]:
-            raise RAGConflictError("Document revision changed")
+        component._check_revision(document, expected_revision, expected_generation)
         component.publish(project, snapshot, documents)
 
     async def asearch_documents(self, query: str, *, method=None, expand=None, limit=None, rerank=None) -> list:

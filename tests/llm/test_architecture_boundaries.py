@@ -120,6 +120,25 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.project.components.skills.aload("child"), child)
         self.assertEqual(await self.project.components.skills.aimpact("child"), [])
 
+    async def test_file_revisions_cover_refinement_fork_and_rollback(self):
+        skills = self.project.components.skills
+        original = await skills.asnapshot("guide")
+        await skills.awrite_file("guide", "reference.md", "Original", expected_revision=original["version"])
+        identifier, data = await self.new_skill("fork")
+        approved = await self.approve(identifier)
+        changed = await skills.awrite_file("guide", "reference.md", "Changed", expected_revision=data["parent"]["version"])
+        with self.assertRaisesRegex(ValueError, "conflict"):
+            await self.refine.aapply(identifier, expected_version=approved["version"])
+        identifier, _ = await self.new_skill("fork")
+        approved = await self.approve(identifier)
+        applied = await self.refine.aapply(identifier, expected_version=approved["version"])
+        self.assertEqual(await skills.aread_file("child", "reference.md"), b"Changed")
+        child = await skills.asnapshot("child")
+        await skills.awrite_file("child", "reference.md", "edited after apply", expected_revision=child["version"])
+        with self.assertRaisesRegex(ValueError, "conflict"):
+            await self.refine.arollback(identifier, expected_version=applied["version"])
+        self.assertEqual(await skills.asnapshot("guide"), changed)
+
     async def test_evaluation_versions_and_authority(self):
         await self.refine.aconfigure({"policy": {"require_evaluation": True}})
         identifier, _ = await self.new_skill()

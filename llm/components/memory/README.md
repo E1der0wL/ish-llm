@@ -18,7 +18,7 @@
 
 `await project.components.aget("memory")`로 핸들을 얻습니다. 공통 이름의 create/load/list 외에 search, summary, review, consolidate 등 전문 API가 있습니다. 비동기 UI는 해당 a 접두사 API를 사용합니다.
 
-기억 수정·삭제·복원에는 마지막으로 읽은 `expected_revision`이 필요합니다. Memory의 delete는 상태를 바꾸는 전문 API이므로 일반 JSON Component의 단순 파일 삭제와 구분하세요. candidate/confirmed 등 기억 상태, 출처와 세션 범위를 보존해야 합니다.
+기억 수정·삭제·복원·영구 제거·통합에는 마지막으로 읽은 `expected_generation`과 `expected_revision`이 모두 필요합니다. generation은 생성 세대이고 revision은 그 안의 변경 번호입니다. 같은 ID로 다시 생성한 기록에 과거 편집을 적용하지 못하도록 함께 검증합니다. Memory의 delete는 상태를 바꾸는 전문 API이므로 일반 JSON Component의 단순 파일 삭제와 구분하세요. candidate/confirmed 등 기억 상태, 출처와 세션 범위를 보존해야 합니다.
 
 ## 설정과 실행
 
@@ -30,7 +30,7 @@
 추출의 의미 지침은 Project의 `config.processing.extract_prompt_id`로 선택한 Prompt 레코드에서
 공급합니다. MemoryComponent 생성자는 모델·검색·토큰 계수기 구현만 주입받습니다.
 둘 다 없으면 추출을 실행하지 않고 오류를 반환합니다. 처리기 시작 시 지침/버전을 고정하고
-candidate metadata에 출처를 남깁니다. JSON 형태, replaces revision, 근거 없는 성공 금지는
+candidate metadata에 출처를 남깁니다. JSON 형태, replaces의 id/generation/revision, 근거 없는 성공 금지는
 backend 계약입니다. 무엇을 기억할지는 애플리케이션이 결정합니다.
 
 추출은 검색 전략과 독립적입니다. search_strategy 또는 host search_fn이 있을 때만 관련

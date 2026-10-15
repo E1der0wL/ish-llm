@@ -8,7 +8,7 @@ from copy import deepcopy
 
 
 class MemoryData(ComponentData):
-    """열린 기억 레코드 CRUD. 변경 시 마지막으로 읽은 expected_revision이 필수다."""
+    """기억 CRUD. 변경은 마지막으로 읽은 generation/revision 쌍으로 검증한다."""
 
     def _write_memory(self, operation, *args, **kwargs):
         project, component = self._current()
@@ -73,7 +73,7 @@ class MemoryData(ComponentData):
             for ref in candidate.get("replaces", []):
                 if ref["id"] not in snapshot["records"] or ref["id"] not in records:
                     raise MemoryConflictError("Consolidation reference is unavailable")
-                if (ref["revision"] != records[ref["id"]]["revision"] or
+                if ((ref["generation"], ref["revision"]) != (records[ref["id"]]["generation"], records[ref["id"]]["revision"]) or
                         records[ref["id"]] != snapshot["records"][ref["id"]]):
                     raise MemoryConflictError("Consolidation reference changed")
         keys = {(r["scope"], r.get("session_id"), content_key(r["content"])) for r in records.values()}
@@ -110,8 +110,9 @@ class MemoryData(ComponentData):
 
     # 공개 API. 생성과 조회는 revision이 필요 없고, 모든 변경은 CAS를 거친다.
     @workspace_locked
-    def consolidate(self, identifier, *, expected_revision, session_id=None):
-        return self._write_memory("consolidate", identifier, expected_revision=expected_revision, session_id=session_id)
+    def consolidate(self, identifier, *, expected_revision, expected_generation, session_id=None):
+        return self._write_memory("consolidate", identifier, expected_revision=expected_revision,
+                                  expected_generation=expected_generation, session_id=session_id)
 
     @workspace_locked
     def recover_consolidations(self):
@@ -133,9 +134,9 @@ class MemoryData(ComponentData):
         return component.summary(project, session_id)
 
     @workspace_locked
-    def clear_summary(self, session_id: str, *, expected_revision: int) -> None:
+    def clear_summary(self, session_id: str, *, expected_revision: int, expected_generation: str) -> None:
         """원본은 유지하고 파생 캐시만 지운다. 다음 요청에서 설정에 따라 다시 요약한다."""
-        self._write_memory("clear_summary", session_id, expected_revision=expected_revision)
+        self._write_memory("clear_summary", session_id, expected_revision=expected_revision, expected_generation=expected_generation)
 
     @workspace_locked
     def review(self, *, session_id=None) -> dict:
@@ -168,28 +169,28 @@ class MemoryData(ComponentData):
         return component.list(project, include_deleted=include_deleted, status=status, session_id=session_id)
 
     @workspace_locked
-    def save(self, identifier: str, data: dict, *, expected_revision: int, source=None, session_id=None) -> dict:
+    def save(self, identifier: str, data: dict, *, expected_revision: int, expected_generation: str, source=None, session_id=None) -> dict:
         """사용자 필드 전체 교체. load 결과에서 id/revision/출처 등 관리 필드를 제외해 전달한다."""
-        return self._write_memory("save", identifier, data, expected_revision=expected_revision, source=source, session_id=session_id)
+        return self._write_memory("save", identifier, data, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
 
     @workspace_locked
-    def update(self, identifier: str, changes: dict, *, expected_revision: int, source=None, session_id=None) -> dict:
+    def update(self, identifier: str, changes: dict, *, expected_revision: int, expected_generation: str, source=None, session_id=None) -> dict:
         """최상위 사용자 필드를 병합한다. 중첩 사전은 통째로 교체된다."""
-        return self._write_memory("update", identifier, changes, expected_revision=expected_revision, source=source, session_id=session_id)
+        return self._write_memory("update", identifier, changes, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
 
     @workspace_locked
-    def delete(self, identifier: str, *, expected_revision: int, source=None, session_id=None) -> dict:
+    def delete(self, identifier: str, *, expected_revision: int, expected_generation: str, source=None, session_id=None) -> dict:
         """복구 가능한 삭제. 기본 목록·검색·조회에서 제외한다."""
-        return self._write_memory("delete", identifier, expected_revision=expected_revision, source=source, session_id=session_id)
+        return self._write_memory("delete", identifier, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
 
     @workspace_locked
-    def restore(self, identifier: str, *, expected_revision: int, source=None, session_id=None) -> dict:
-        return self._write_memory("restore", identifier, expected_revision=expected_revision, source=source, session_id=session_id)
+    def restore(self, identifier: str, *, expected_revision: int, expected_generation: str, source=None, session_id=None) -> dict:
+        return self._write_memory("restore", identifier, expected_revision=expected_revision, expected_generation=expected_generation, source=source, session_id=session_id)
 
     @workspace_locked
-    def purge(self, identifier: str, *, expected_revision: int, session_id=None) -> None:
+    def purge(self, identifier: str, *, expected_revision: int, expected_generation: str, session_id=None) -> None:
         """이미 삭제한 기억과 모든 이력을 영구 제거한다. 모델 Tool로는 제공하지 않는다."""
-        self._write_memory("purge", identifier, expected_revision=expected_revision, session_id=session_id)
+        self._write_memory("purge", identifier, expected_revision=expected_revision, expected_generation=expected_generation, session_id=session_id)
 
     @workspace_locked
     def history(self, identifier: str, *, session_id=None) -> list:

@@ -9,6 +9,7 @@ def memory_tools(data) -> ToolRegistry:
     registry = ToolRegistry()
     identifier = {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}
     revision = {"type": "integer", "minimum": 1}
+    generation = {"type": "string", "pattern": "^[a-f0-9]{32}$"}
     fields = {"content": {"type": "string", "minLength": 1},
               "kind": {"type": "string", "minLength": 1},
               "tags": {"type": "array", "items": {"type": "string", "minLength": 1}},
@@ -59,13 +60,14 @@ def memory_tools(data) -> ToolRegistry:
                            schema({"query": {"type": "string", "minLength": 1},
                                    "limit": {"type": "integer", "minimum": 1},
                                    "status": {"type": "string", "enum": ["candidate", "confirmed", "all"]}}, ["query"]), search))
-    registry.register(Tool("memory_get", "Read one project memory and its current revision.",
+    registry.register(Tool("memory_get", "Read one project memory and its current generation and revision.",
                            schema({"identifier": identifier}, ["identifier"]), get))
     registry.register(Tool("memory_create", "Save a reusable project memory. Write status must be configured by the project.",
                            schema({**fields, "scope": {"type": "string", "enum": ["project", "session"]}}, ["content"]), writer("create")))
-    registry.register(Tool("memory_update", "Update a memory using the revision last read. A conflict requires re-reading; do not overwrite blindly. Edits use the project write status.",
-                           schema({"identifier": identifier, "expected_revision": revision,
-                                   "changes": schema(fields, [])}, ["identifier", "expected_revision", "changes"]), writer("update")))
-    registry.register(Tool("memory_delete", "Soft-delete a memory using the revision last read. This does not permanently remove history.",
-                           schema({"identifier": identifier, "expected_revision": revision}, ["identifier", "expected_revision"]), writer("delete")))
+    registry.register(Tool("memory_update", "Update a memory using the generation and revision last read. A conflict requires re-reading; do not overwrite blindly. Edits use the project write status.",
+                           schema({"identifier": identifier, "expected_revision": revision, "expected_generation": generation,
+                                   "changes": schema(fields, [])}, ["identifier", "expected_revision", "expected_generation", "changes"]), writer("update")))
+    registry.register(Tool("memory_delete", "Soft-delete a memory using the generation and revision last read. This does not permanently remove history.",
+                           schema({"identifier": identifier, "expected_revision": revision, "expected_generation": generation},
+                                  ["identifier", "expected_revision", "expected_generation"]), writer("delete")))
     return registry

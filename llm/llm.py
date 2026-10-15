@@ -53,6 +53,7 @@ from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from llm.components.tools.component import ToolComponent
 from llm.components.agents import AgentComponent
 from llm.components.skills import SkillComponent
+from llm.components.data import DataComponent
 from llm.components.goals import GoalComponent, GoalData
 from llm.components.refinement import RefinementComponent, RefinementData
 from llm.components.prompts import PromptComponent
@@ -516,11 +517,11 @@ class LargeLanguageModel:
         memory = await project.components.aget("memory")
         identifier = await memory.acreate({"content": "설명은 한국어로 작성한다.", "kind": "preference"})
         record = await memory.aload(identifier)
-        record = await memory.aupdate(identifier, {"tags": ["응답"]}, expected_revision=record["revision"])
+        record = await memory.aupdate(identifier, {"tags": ["응답"]}, expected_generation=record["generation"], expected_revision=record["revision"])
         hits = await memory.asearch("한국어")
         history = await memory.ahistory(identifier)
-        deleted = await memory.adelete(identifier, expected_revision=record["revision"])
-        await memory.arestore(identifier, expected_revision=deleted["revision"])
+        deleted = await memory.adelete(identifier, expected_generation=record["generation"], expected_revision=record["revision"])
+        await memory.arestore(identifier, expected_generation=deleted["generation"], expected_revision=deleted["revision"])
 
     API 생성 레코드는 confirmed 상태이며 모델 Tool의 작성 상태는 policy.tool_write_status로 반드시 지정한다.
     선택 시 memory_search/get/create/update/delete Tool을 자동 제공한다. 모델 수정도 revision
@@ -573,9 +574,9 @@ class LargeLanguageModel:
         hits, relations = result["documents"], result["relations"]
         graph = await rag.agraph_search("아틀라스", max_hops=2)
         updated = await rag.aupdate_document(document["id"], content=updated_markdown,
-                                             expected_revision=document["revision"])
+                                             expected_generation=document["generation"], expected_revision=document["revision"])
         documents = await rag.alist_documents()
-        await rag.adelete_document(document["id"], expected_revision=updated["revision"])
+        await rag.adelete_document(document["id"], expected_generation=updated["generation"], expected_revision=updated["revision"])
 
     rag 하나가 임베딩과 트리플을 함께 저장한다. 등록/수정에는 embedding과 extractor가 필요하다.
     asearch는 documents/entities/relations/sources를 함께 반환한다. 문서 목록만 필요하면
@@ -760,7 +761,7 @@ class LargeLanguageModel:
         for name, engine in ({"loop": LoopEngine()} if engines is None else engines).items():
             self.engines.register(name, engine)
         # 제공 가능한 종류와 Project에서 선택한 종류는 다르다. 선택 시에만 디렉토리를 만든다.
-        available = [ToolComponent(), SkillComponent(), MCPComponent(), RAGComponent(),
+        available = [ToolComponent(), SkillComponent(), DataComponent(), MCPComponent(), RAGComponent(),
                      AgentComponent(engines=self.engines), WorkflowComponent(), MemoryComponent(), PromptComponent(),
                      VisionComponent(), GoalComponent(), RefinementComponent()] if components is None else components
         self.project_manager, self.run_repository, self.step_manager = self.services.build(

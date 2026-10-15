@@ -116,12 +116,14 @@ class DocumentManagement(RecordManagement):
     """RAG changes must update its corpus generation, not generic JSON records."""
 
     async def list(self):
-        return [self._entry(item["id"], item, item["revision"]) for item in await self.data.alist_documents()]
+        return [self._entry(item["id"], item, {"generation": item["generation"], "revision": item["revision"]})
+                for item in await self.data.alist_documents()]
 
     async def read(self, identifier):
         item = await self.data.aget_document(identifier)
         values = {key: item[key] for key in ("title", "content", "metadata")}
-        return {"text": json.dumps(values, ensure_ascii=False, indent=2), "version": item["revision"]}
+        return {"text": json.dumps(values, ensure_ascii=False, indent=2),
+                "version": {"generation": item["generation"], "revision": item["revision"]}}
 
     async def create(self, identifier, values):
         await self.data.aadd_document(identifier=identifier, **values)
@@ -129,7 +131,9 @@ class DocumentManagement(RecordManagement):
     async def save(self, identifier, values, version):
         if set(values) != {"title", "content", "metadata"}:
             raise ValueError("RAG documents require title, content and metadata")
-        await self.data.aupdate_document(identifier, **values, expected_revision=version)
+        await self.data.aupdate_document(identifier, **values, expected_revision=version["revision"],
+                                         expected_generation=version["generation"])
 
     async def delete(self, identifier, version):
-        await self.data.adelete_document(identifier, expected_revision=version)
+        await self.data.adelete_document(identifier, expected_revision=version["revision"],
+                                         expected_generation=version["generation"])

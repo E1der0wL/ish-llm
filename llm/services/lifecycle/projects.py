@@ -293,6 +293,7 @@ class ProjectManager:
             raise ValueError("Use lifecycle or component APIs to change managed Project state")
         previous_components = current.components
         if components is not None:
+            self.components.validate_selection(current, components)
             current.components = self.components.validate(components)
         if project.conversation_storage != current.conversation_storage:
             storage = self.sessions.conversations.resolve(project.conversation_storage)
@@ -310,6 +311,7 @@ class ProjectManager:
     @workspace_locked
     def set_components(self, project: Project, names: tuple[str, ...]) -> None:
         current = self.access.require(project)
+        self.components.validate_selection(current, names)
         current.components = self.components.validate(names)
         # Initialization is idempotent. Failed initialization does not publish
         # the changed selection; existing component data is never removed.
@@ -342,6 +344,9 @@ class ProjectManager:
         current = self.access.require(project)
         component = self.components.get(name)
         # 파괴적 디렉토리 삭제보다 먼저 선택 불변식을 검증한다.
+        self.components.validate_selection(current, tuple(item for item in current.components if item != name))
+        if permanent:
+            self.components.require_unreferenced(current, name)
         self.components.validate(tuple(item for item in current.components if item != name))
         if permanent:
             from datetime import datetime, timezone, timedelta

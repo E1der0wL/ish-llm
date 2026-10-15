@@ -210,6 +210,7 @@ class ComponentData:
     @workspace_locked
     def delete(self, identifier: str, *, expected_version=None) -> None:
         project, component = self._current()
+        self.registry.require_unreferenced(project, self.name, identifier)
         if expected_version is not None:
             check_revision(component.load(project, identifier), expected_version)
         component.delete(project, identifier)

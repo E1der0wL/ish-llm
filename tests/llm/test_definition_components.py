@@ -190,7 +190,8 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
             self.project.components.remove(name)
             with self.assertRaises(ValueError):
                 handle.load("kept")
-            self.assertTrue((self.project.paths.root / name / "records" / "kept.json").exists())
+            relative = "kept/skill.json" if name == "skills" else "records/kept.json"
+            self.assertTrue((self.project.paths.root / name / relative).exists())
 
     async def test_workflow_handle_validates_and_restores_builder(self):
         data = self.project.components.workflows
