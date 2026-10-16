@@ -149,7 +149,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("shell draft")
                 await eventually(lambda: prompt.default_buffer.text == "shell draft")
                 view.toasts.push("Session alpha", "failed", ("p", "s"))
-                await eventually(lambda: "Session alpha" in screen_text(app, 132, 40))
+                await eventually(lambda: "Session…" in screen_text(app, 132, 40))
                 self.assertIn("", screen_text(app, 132, 40))
                 self.assertIs(app.current_buffer, prompt.default_buffer)
                 self.assertEqual(prompt.default_buffer.text, "shell draft")

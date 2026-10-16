@@ -127,8 +127,7 @@ class ClipboardTests(unittest.IsolatedAsyncioTestCase):
                        HUB_CLIPBOARD_COPY=shlex.join([sys.executable, str(helper), "copy", str(storage)]),
                        HUB_CLIPBOARD_PASTE=shlex.join([sys.executable, str(helper), "paste", str(storage)]))
             app = SimpleNamespace(is_running=True, create_background_task=asyncio.create_task)
-            notices = []
-            app.clipboard = register = SystemClipboard(app, InMemoryClipboard(), environment=lambda: env, notify=notices.append)
+            app.clipboard = register = SystemClipboard(app, InMemoryClipboard(), environment=lambda: env)
             with set_app(app):
                 copying = asyncio.create_task(copy_text("한글 😀\n$(literal)"))
                 await asyncio.sleep(.05)
@@ -142,14 +141,12 @@ class ClipboardTests(unittest.IsolatedAsyncioTestCase):
             storage.write_text("")
             self.assertEqual((await register.read()).text, "")
             self.assertEqual(register.get_data().text, "")
-            self.assertEqual(notices, [])
 
-    async def test_failed_custom_bridge_is_authoritative_and_warns(self):
+    async def test_failed_custom_bridge_is_authoritative(self):
         env = {"HUB_CLIPBOARD_COPY": "missing-copy --clipboard", "HUB_CLIPBOARD_PASTE": "missing-paste",
                "DISPLAY": ":0", "HUB_OSC52": "1"}
         app = SimpleNamespace(is_running=True, create_background_task=asyncio.create_task, output=Mock())
-        notices = []
-        register = SystemClipboard(app, InMemoryClipboard(), environment=lambda: env, notify=notices.append)
+        register = SystemClipboard(app, InMemoryClipboard(), environment=lambda: env)
         with patch("shutil.which", return_value=None) as which:
             register.set_data(ClipboardData("Hub text"))
             self.assertEqual(await register.pending, "clipboard_internal")
@@ -157,7 +154,6 @@ class ClipboardTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(register.get_data().text, "Hub text")
         self.assertEqual([call.args[0] for call in which.call_args_list], ["missing-copy", "missing-paste"])
         app.output.write_raw.assert_not_called()
-        self.assertEqual(notices, ["clipboard_copy_unavailable", "clipboard_read_unavailable"])
 
     async def test_terminal_paste_supersedes_slow_external_read_without_export(self):
         app = SimpleNamespace(is_running=True, create_background_task=asyncio.create_task)
@@ -239,6 +235,11 @@ class ClipboardTests(unittest.IsolatedAsyncioTestCase):
                     await asyncio.sleep(.05)
                     self.assertEqual(view.composer.text, "")
                     self.assertEqual(app.clipboard.get_data().text, "selected")
+                    self.assertFalse(view.toasts.items)
+                with patch("hub.widget.clipboard.export_text", new=AsyncMock(return_value="clipboard_internal")):
+                    app.clipboard.set_data(ClipboardData("internal only"))
+                    await app.clipboard.pending
+                    self.assertFalse(view.toasts.items)
                 with patch("hub.widget.clipboard.system_clipboard", new=AsyncMock(return_value="시스템 값")):
                     pipe.send_text("\x16")
                     await eventually(lambda: view.composer.text == "시스템 값")

@@ -592,7 +592,6 @@ class LiveController:
         if self.closed:
             return False
         self.view.close()
-        self.view.progress.close()
         self.view.remember_position()
         self._save_view()
         self.closed = True

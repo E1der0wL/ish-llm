@@ -234,10 +234,6 @@ class HubView:
     def _not_connected(self):
         self.notice = self.t("not_connected")
 
-    def _clipboard_notice(self, key):
-        if self.visible:
-            self.toasts.alert(self.t("clipboard_title"), self.t(key), "warning", "clipboard")
-
     def _select_sidebar_session(self, key):
         self._session_focus = True
         self.select(next(i for i in range(len(self.sessions)) if self._draft_key(i) == key))
@@ -266,6 +262,7 @@ class HubView:
         app.invalidate()
 
     def close(self) -> None:
+        self.toasts.close()
         self.native_clipboard.close()
         self.output.close()
         self.render_worker.close()
@@ -376,7 +373,7 @@ class HubView:
         self.visible = True
         from ..widget.clipboard import SystemClipboard
         app.clipboard = SystemClipboard(app, app.clipboard,
-            environment=self.clipboard_environment, notify=self._clipboard_notice,
+            environment=self.clipboard_environment,
             x11=self.native_clipboard)
         self.mouse.attach(app)
         self._session_focus = False

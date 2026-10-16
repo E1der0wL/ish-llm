@@ -21,7 +21,7 @@ from hub.widget.transcript.conversation import render_messages
 from hub.widget.controls import RadioList
 from hub.widget.forms.settings import ChoiceField
 from tests.hub.test_ish_integration import Prompt
-from tests.hub.support import SizedOutput, eventually
+from tests.hub.support import SizedOutput, eventually, render_container
 
 
 class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
@@ -161,9 +161,11 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
             view = installation.view
             with set_app(prompt.app):
                 view.toasts.push("Session", "failed", "session")
-                self.assertIn(NERD.alerts["error"], view.toasts.text())
+                def alert_text():
+                    return "\n".join(render_container(view.toasts.container, view.toasts.width(), view.toasts.height()))
+                self.assertIn(NERD.alerts["error"], alert_text())
                 view.set_theme(replace(view.theme, icon_style="unicode"))
-                output = view.toasts.text() + view.t("sessions") + view.t("reasoning")
+                output = alert_text() + view.t("sessions") + view.t("reasoning")
                 output += "".join(text for row in render_messages(
                     (ChatMessage("reasoning", "Reasoning summary", status="running"),), 80, view.theme)
                                   for _, text in row)

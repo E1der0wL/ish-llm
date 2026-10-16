@@ -7,6 +7,18 @@ from prompt_toolkit.data_structures import Size
 from prompt_toolkit.output import DummyOutput
 
 
+def render_container(container, width, height):
+    """Paint a widget through PTK so tests inspect its actual cells and borders."""
+    from prompt_toolkit.layout.containers import to_container
+    from prompt_toolkit.layout.mouse_handlers import MouseHandlers
+    from prompt_toolkit.layout.screen import Screen, WritePosition
+    screen = Screen()
+    to_container(container).write_to_screen(screen, MouseHandlers(), WritePosition(0, 0, width, height),
+                                           parent_style="", erase_bg=True, z_index=None)
+    screen.draw_all_floats()
+    return ["".join(screen.data_buffer[y][x].char for x in range(width)) for y in range(height)]
+
+
 class SizedOutput(DummyOutput):
     def __init__(self, columns=132, rows=40):
         self.columns = columns

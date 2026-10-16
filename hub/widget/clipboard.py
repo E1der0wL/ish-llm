@@ -121,12 +121,11 @@ async def export_text(app, text, *, env=None, x11=None):
 class SystemClipboard(Clipboard):
     """Synchronous PTK register with nonblocking system writes and paste reads."""
 
-    def __init__(self, app, original, *, environment=None, notify=None, x11=None):
+    def __init__(self, app, original, *, environment=None, x11=None):
         from .x11_clipboard import X11Clipboard
         self.app, self.original = app, original
         self.x11 = x11 if x11 is not None else X11Clipboard()
         self.environment = environment or (lambda: dict(os.environ))
-        self.notify = notify or (lambda key: None)
         self.cache = InMemoryClipboard()
         self.cache.set_data(original.get_data())
         self.pending = None
@@ -147,8 +146,6 @@ class SystemClipboard(Clipboard):
             result = await export_text(self.app, data.text, env=env, x11=self.x11)
         except OSError:
             result = "clipboard_internal"
-        if result == "clipboard_internal":
-            self.notify(self.x11.error or "clipboard_copy_unavailable")
         return result
 
     def set_data(self, data):
@@ -172,7 +169,6 @@ class SystemClipboard(Clipboard):
         if revision != self.revision:
             return None
         if text is None:
-            self.notify(self.x11.error or "clipboard_read_unavailable")
             return None
         self.remember(ClipboardData(text))
         return self.get_data()
