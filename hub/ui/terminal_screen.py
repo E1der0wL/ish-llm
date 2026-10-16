@@ -11,9 +11,8 @@ class HubTerminalScreen:
         self._mouse_support = app.mouse_support
         self._renderer_mouse_support = app.renderer.mouse_support
         visible = Condition(lambda: self.view.visible)
-        hub_mouse = visible & Condition(lambda: self.view.mouse_enabled)
-        self._hub_mouse_support = hub_mouse | (~visible & self._mouse_support)
-        self._hub_renderer_mouse_support = hub_mouse | (~visible & self._renderer_mouse_support)
+        self._hub_mouse_support = visible | self._mouse_support
+        self._hub_renderer_mouse_support = visible | self._renderer_mouse_support
         app.mouse_support = self._hub_mouse_support
         app.renderer.mouse_support = self._hub_renderer_mouse_support
         app.before_render += self._before_render

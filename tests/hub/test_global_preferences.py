@@ -3,6 +3,7 @@ from tests.hub.support import minimize
 
 import asyncio
 from functools import partial
+import json
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -24,6 +25,21 @@ from tests.hub.test_settings import settings_backend
 
 
 class GlobalPreferenceTests(unittest.TestCase):
+    def test_removed_mouse_option_does_not_break_existing_preferences(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = PreferencesStore(directory)
+            for mode in ("auto", "hub", "terminal"):
+                with self.subTest(mode=mode):
+                    store._write_json({"version": 1, "general": {"mouse_mode": mode, "editor": "nano"}})
+                    values = store.load()["general"]
+                    self.assertNotIn("mouse_mode", values)
+                    self.assertEqual(values["editor"], "nano")
+                    store.save("general", values)
+                    self.assertNotIn("mouse_mode", json.loads(store.path.read_text())["general"])
+            store._write_json({"version": 1, "general": {"unknown_option": True}})
+            with self.assertRaises(TypeError):
+                store.load()
+
     def test_legacy_profile_editor_roundtrip_and_language_on_startup(self):
         with tempfile.TemporaryDirectory() as directory:
             store = PreferencesStore(directory)

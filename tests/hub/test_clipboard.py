@@ -43,19 +43,36 @@ class ClipboardTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(terminal_clipboard_supported(app))
 
     async def test_wsl_unicode_and_linux_fallback(self):
+        native = SimpleNamespace(transfer=AsyncMock())
         process = SimpleNamespace(returncode=0, communicate=AsyncMock(return_value=(b"", b"")))
         with patch.dict("os.environ", {"WSL_DISTRO_NAME": "Ubuntu"}, clear=True), \
              patch("shutil.which", return_value="/windows/clip.exe"), \
              patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=process)) as spawn:
-            self.assertTrue(await system_clipboard("한글 😀"))
+            self.assertTrue(await system_clipboard("한글 😀", x11=native))
             self.assertEqual(process.communicate.call_args.args[0], "한글 😀".encode("utf-16-le"))
             self.assertEqual(spawn.call_args.args, ("/windows/clip.exe",))
+            native.transfer.assert_not_awaited()
+            process.communicate.return_value = ("Windows 한글\r\n".encode(), b"")
+            self.assertEqual(await system_clipboard(x11=native), "Windows 한글\n")
+            self.assertIn("Get-Clipboard -Raw", spawn.call_args.args[-1])
+            native.transfer.assert_not_awaited()
         with patch.dict("os.environ", {"WAYLAND_DISPLAY": "wayland-0", "DISPLAY": ":0"}, clear=True), \
              patch("shutil.which", side_effect=lambda name, **kwargs: "/bin/" + name), \
              patch("asyncio.create_subprocess_exec", side_effect=[OSError(), process]) as spawn:
             process.communicate.return_value = ("붙여넣기\r\n".encode(), b"")
             self.assertEqual(await system_clipboard(), "붙여넣기\n")
             self.assertEqual(spawn.call_args.args, ("/bin/xclip", "-selection", "clipboard", "-o"))
+
+    async def test_native_x11_fallback_respects_shell_and_explicit_bridge(self):
+        native = SimpleNamespace(transfer=AsyncMock(return_value="external"))
+        env = {"DISPLAY": ":25", "XAUTHORITY": "/session/auth", "SSH_TTY": "/dev/pts/1"}
+        with patch("shutil.which", return_value=None):
+            self.assertEqual(await system_clipboard(env=env, x11=native), "external")
+            native.transfer.assert_awaited_once_with(None, env)
+            native.transfer.reset_mock()
+            self.assertIsNone(await system_clipboard(env={**env, "HUB_CLIPBOARD_PASTE": "custom"}, x11=native))
+            self.assertIsNone(await system_clipboard(env={"SSH_TTY": "ssh"}, x11=native))
+            native.transfer.assert_not_awaited()
 
     async def test_shell_environment_drives_helper_lookup_and_execution(self):
         from examples.hub.preview import install_preview

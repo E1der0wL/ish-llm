@@ -15,6 +15,10 @@ MESSAGES = {
     'clipboard_title': 'Clipboard',
     'clipboard_copy_unavailable': 'External copy failed; saved in Hub only',
     'clipboard_read_unavailable': 'Cannot read the external clipboard. Use your terminal paste command.',
+    'clipboard_x11_library': 'The libX11 library required for clipboard access is unavailable.',
+    'clipboard_x11_connection': 'Cannot connect to the X11 clipboard. Check DISPLAY and X11 access permissions.',
+    'clipboard_x11_timeout': 'The X11 clipboard timed out. Check the display connection.',
+    'clipboard_x11_transfer': 'Cannot transfer X11 clipboard text. Your terminal paste command may still work.',
 
     "profile_settings": "Settings", "profile_home": "Home", "profile_minimize": "Minimize",
     "shortcut_profile": "profile", "shortcut_categories": "categories",
@@ -303,8 +307,6 @@ MESSAGES = {
     "general_category_startup": "Startup",
 
     "general_category_output": "Conversation output",
-    "general_category_input": "Mouse and clipboard",
-    "general_mouse_mode": "auto: terminal selection/paste over SSH, Hub mouse locally. hub: enable clicks, wheel and dragging. terminal: let the terminal handle the mouse. Applies when saved.",
 
     "general_category_editor": "External editor",
 

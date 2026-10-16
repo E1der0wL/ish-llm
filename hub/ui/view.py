@@ -60,6 +60,8 @@ class HubView:
         self.on_save_view = None
         self.on_output_position_changed = None
         self.clipboard_environment = None
+        from ..widget.x11_clipboard import X11Clipboard
+        self.native_clipboard = X11Clipboard()
         self.animate_output = False
         from .dialogs import DialogController
         self.dialogs = DialogController(self)
@@ -264,6 +266,7 @@ class HubView:
         app.invalidate()
 
     def close(self) -> None:
+        self.native_clipboard.close()
         self.output.close()
         self.render_worker.close()
         self.progress.close()
@@ -356,16 +359,6 @@ class HubView:
             self.on_select(self.sessions[index].id)
         get_app().invalidate()
 
-    @property
-    def mouse_enabled(self):
-        if self.general.mouse_mode != "auto":
-            return self.general.mouse_mode == "hub"
-        import os
-        env = self.clipboard_environment() if self.clipboard_environment else os.environ
-        # A remote application cannot return captured clicks to the connecting
-        # terminal. Leave its native selection/paste path intact by default.
-        return not any(env.get(key) for key in ("SSH_CONNECTION", "SSH_CLIENT", "SSH_TTY"))
-
     def set_theme(self, theme):
         self.theme, self.style = theme, theme.style()
         self.output.set_theme(theme)
@@ -383,7 +376,8 @@ class HubView:
         self.visible = True
         from ..widget.clipboard import SystemClipboard
         app.clipboard = SystemClipboard(app, app.clipboard,
-            environment=self.clipboard_environment, notify=self._clipboard_notice)
+            environment=self.clipboard_environment, notify=self._clipboard_notice,
+            x11=self.native_clipboard)
         self.mouse.attach(app)
         self._session_focus = False
         if self.on_open:

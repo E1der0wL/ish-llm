@@ -39,8 +39,7 @@ class GeneralOptionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 GeneralSettings(language_packs=invalid)
         for values in ({"notification_seconds": 0}, {"notification_seconds": float("nan")},
-                       {"auto_scroll": "false"}, {"notification_kinds": ["invalid"]},
-                       {"mouse_mode": "invalid"}, {"mouse_mode": True}):
+                       {"auto_scroll": "false"}, {"notification_kinds": ["invalid"]}):
             with self.assertRaises(ValueError):
                 GeneralSettings(**values)
 
@@ -150,7 +149,8 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("general")
                     manager = screen.page.general_form
                     manager.add_pack()
-                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "input", "editor", "diagnostics"))
+                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "editor", "diagnostics"))
+                self.assertNotIn(("mouse_mode",), manager.form.fields)
                 app.current_buffer.text = "custom"
                 pipe.send_text("\t")
                 await until(lambda: "settings_title" in app.current_buffer.text)
@@ -161,17 +161,15 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                 manager.form.fields[("language",)].input.text = "custom"
                 manager.form.fields[("notification_seconds",)].input.text = "3"
                 manager.form.fields[("auto_scroll",)].input.text = "false"
-                manager.form.fields[("mouse_mode",)].input.text = "terminal"
                 with set_app(app):
                     screen.page.save.handler()
                 await until(lambda: not screen.busy and not screen.page.dirty)
                 self.assertFalse(view.general.auto_scroll)
-                self.assertFalse(app.mouse_support())
+                self.assertTrue(app.mouse_support())
                 self.assertEqual(view.general.notification_seconds, 3)
                 self.assertEqual(view.t.code, "ko")
                 next_app, next_controller = create_application(config, input=pipe, output=SizedOutput())
                 self.assertEqual(next_controller.view.t("settings_title"), "Custom Settings")
-                self.assertFalse(next_controller.view.mouse_enabled)
                 next_controller.close()
                 with set_app(app):
                     screen.page.general_form.delete_pack()

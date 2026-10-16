@@ -50,7 +50,11 @@ class PreferencesStore(WorkspaceJSONStore):
         if "appearance" in value:
             result["appearance"] = asdict(HubTheme.from_preferences(value["appearance"]))
         if "general" in value:
-            result["general"] = asdict(GeneralSettings(**value["general"]))
+            general = dict(value["general"])
+            # Retire the removed option without preventing existing users from
+            # opening Hub. The next save omits it; all other keys stay validated.
+            general.pop("mouse_mode", None)
+            result["general"] = asdict(GeneralSettings(**general))
         sidebar = self.sidebar._read_json(None)
         if sidebar is not None:
             width = sidebar["sidebar_width"]

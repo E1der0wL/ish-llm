@@ -61,8 +61,10 @@ def commands(read=False, env=None):
         yield "xsel", ["--clipboard", "--output" if read else "--input"], "utf-8"
 
 
-async def system_clipboard(text=None, *, env=None):
+async def system_clipboard(text=None, *, env=None, x11=None):
     read = text is None
+    if x11 is not None:
+        x11.error = None
     env = dict(os.environ if env is None else env)
     try:
         candidates = list(commands(read, env))
@@ -93,12 +95,15 @@ async def system_clipboard(text=None, *, env=None):
                 except ProcessLookupError:
                     pass
                 await process.wait()
+    override = "HUB_CLIPBOARD_PASTE" if read else "HUB_CLIPBOARD_COPY"
+    if x11 is not None and env.get("DISPLAY") and not env.get(override, "").strip():
+        return await x11.transfer(text, env)
     return None
 
 
-async def export_text(app, text, *, env=None):
+async def export_text(app, text, *, env=None, x11=None):
     env = dict(os.environ if env is None else env)
-    if await system_clipboard(text, env=env):
+    if await system_clipboard(text, env=env, x11=x11):
         return "clipboard_copied"
     payload = base64.b64encode(text.encode()).decode("ascii")
     # Bound the entire sequence: some terminals print the remainder of an
@@ -116,8 +121,10 @@ async def export_text(app, text, *, env=None):
 class SystemClipboard(Clipboard):
     """Synchronous PTK register with nonblocking system writes and paste reads."""
 
-    def __init__(self, app, original, *, environment=None, notify=None):
+    def __init__(self, app, original, *, environment=None, notify=None, x11=None):
+        from .x11_clipboard import X11Clipboard
         self.app, self.original = app, original
+        self.x11 = x11 if x11 is not None else X11Clipboard()
         self.environment = environment or (lambda: dict(os.environ))
         self.notify = notify or (lambda key: None)
         self.cache = InMemoryClipboard()
@@ -137,11 +144,11 @@ class SystemClipboard(Clipboard):
         if revision != self.revision:
             return "clipboard_internal"
         try:
-            result = await export_text(self.app, data.text, env=env)
+            result = await export_text(self.app, data.text, env=env, x11=self.x11)
         except OSError:
             result = "clipboard_internal"
         if result == "clipboard_internal":
-            self.notify("clipboard_copy_unavailable")
+            self.notify(self.x11.error or "clipboard_copy_unavailable")
         return result
 
     def set_data(self, data):
@@ -160,12 +167,12 @@ class SystemClipboard(Clipboard):
         revision = self.revision
         if self.pending:
             await asyncio.shield(self.pending)
-        text = await system_clipboard(env=dict(self.environment()))
+        text = await system_clipboard(env=dict(self.environment()), x11=self.x11)
         # Do not overwrite a newer terminal paste/copy with a slow read result.
         if revision != self.revision:
             return None
         if text is None:
-            self.notify("clipboard_read_unavailable")
+            self.notify(self.x11.error or "clipboard_read_unavailable")
             return None
         self.remember(ClipboardData(text))
         return self.get_data()

@@ -15,6 +15,10 @@ MESSAGES = {
     'clipboard_title': '클립보드',
     'clipboard_copy_unavailable': '외부 복사 실패 · Hub 내부에만 저장됨',
     'clipboard_read_unavailable': '외부 클립보드를 읽지 못했습니다. 터미널의 붙여넣기를 사용하세요.',
+    'clipboard_x11_library': 'X11 클립보드 연결에 필요한 libX11을 찾지 못했습니다.',
+    'clipboard_x11_connection': 'X11 클립보드에 연결하지 못했습니다. DISPLAY와 X11 접근 권한을 확인하세요.',
+    'clipboard_x11_timeout': 'X11 클립보드 응답 시간이 초과되었습니다. 연결 상태를 확인하세요.',
+    'clipboard_x11_transfer': 'X11 클립보드의 텍스트를 전달하지 못했습니다. 터미널의 붙여넣기를 사용할 수 있습니다.',
 
     "profile_settings": "설정", "profile_home": "홈", "profile_minimize": "최소화",
     "shortcut_profile": "프로필", "shortcut_categories": "카테고리",
@@ -303,8 +307,6 @@ MESSAGES = {
     "general_category_startup": "시작 동작",
 
     "general_category_output": "대화 출력",
-    "general_category_input": "마우스·클립보드",
-    "general_mouse_mode": "auto: SSH에서는 터미널 선택·붙여넣기, 로컬에서는 Hub 마우스 조작. hub: 클릭·휠·드래그 사용. terminal: 터미널이 마우스 처리. 저장 즉시 적용.",
 
     "general_category_editor": "외부 편집기",
 

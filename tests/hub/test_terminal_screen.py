@@ -2,7 +2,6 @@ from tests.hub.support import minimize
 """Real ish/PTK rendering must never paint Hub over the shell's output."""
 
 import asyncio
-from dataclasses import replace
 from types import SimpleNamespace
 import unittest
 
@@ -111,22 +110,22 @@ class ScreenOutput(SizedOutput):
 
 
 class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
-    async def test_ssh_native_mouse_paste_live_override_and_host_restore(self):
+    async def test_ssh_mouse_support_and_terminal_paste_restore_host(self):
         with create_pipe_input() as pipe:
             output = ScreenOutput()
             prompt = Prompt(input=pipe, output=output)
             prompt.context = SimpleNamespace(environ={"SSH_CONNECTION": "client 1 server 22"})
             app = prompt.app
-            # Hub must also release reporting when the shell itself uses it.
-            original = to_filter(True)
+            # SSH must not disable Hub mouse support even when the shell does.
+            original = to_filter(False)
             app.mouse_support = app.renderer.mouse_support = original
             installation = install_preview(prompt)
             view = installation.view
             task = asyncio.create_task(prompt.prompt_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: app.is_running and output.in_alternate)
-                self.assertFalse(app.mouse_support())
-                self.assertFalse(output.mouse_enabled)
+                self.assertTrue(app.mouse_support())
+                self.assertTrue(output.mouse_enabled)
                 app.clipboard.remember(ClipboardData("old internal"))
                 calls = []
                 view.on_submit = lambda *args: calls.append(args)
@@ -134,20 +133,11 @@ class TerminalScreenTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view.composer.text == "외부에서 복사\nsecond line")
                 self.assertEqual(app.clipboard.get_data().text, view.composer.text)
                 self.assertEqual(calls, [])
-                view.general = replace(view.general, mouse_mode="hub")
-                app.invalidate()
-                await eventually(lambda: output.mouse_enabled)
-                view.general = replace(view.general, mouse_mode="terminal")
-                app.invalidate()
-                await eventually(lambda: not output.mouse_enabled)
-                # A late report after releasing capture must not move focus.
-                pipe.send_text("\x1b[<0;2;3M\x1b[<0;2;3m")
-                await asyncio.sleep(.05)
                 self.assertIs(app.layout.current_control, view.composer.control)
                 with set_app(app):
                     view.hide(app)
-                await eventually(lambda: not output.in_alternate and output.mouse_enabled)
-                self.assertTrue(app.mouse_support())
+                await eventually(lambda: not output.in_alternate and not output.mouse_enabled)
+                self.assertFalse(app.mouse_support())
             finally:
                 app.exit(result="")
                 await task
