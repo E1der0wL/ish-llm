@@ -19,7 +19,7 @@ class AuxiliaryBar(VSplit):
             registry = button.control.hub_shortcuts
             registry.add(["escape"], "ESC", "return", lambda e: self.leave())
             registry.add(["tab", "s-tab"], "", "", lambda e: None)
-        bind_button_navigation(tuple(self.buttons.values()), vertical=True)
+        bind_button_navigation(tuple(self.buttons.values()))
         super().__init__([Window(width=Dimension(weight=1), style="class:hub.transparent"),
                          VSplit(list(self.buttons.values()), padding=1,
                                 style="class:hub.auxiliary", width=len(self.buttons) * 4 - 1)],

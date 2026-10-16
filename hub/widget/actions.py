@@ -14,13 +14,13 @@ class ActionFrame(Frame):
         super().__init__(HSplit([Window(height=1), actions, Window(height=1)]), **kwargs)
 
 
-def bind_button_navigation(buttons, *, vertical=False):
+def bind_button_navigation(buttons):
     """Keep button arrows and their footer hints together, including edge keys."""
     def move(event):
         controls = [button.control for button in buttons]
         current = event.app.layout.current_control
         if current in controls:
-            index = controls.index(current) + (-1 if event.key_sequence[-1].key in ("left", "up") else 1)
+            index = controls.index(current) + (-1 if event.key_sequence[-1].key == "left" else 1)
             event.app.layout.focus(controls[max(0, min(len(controls) - 1, index))])
 
     for button in buttons:
@@ -28,10 +28,8 @@ def bind_button_navigation(buttons, *, vertical=False):
             continue
         button.control.hub_button_group = buttons
         registry = button.control.hub_shortcuts
-        registry.add(["left", "up", "right", "down"] if vertical else ["left", "right"],
-                     "↑↓←→" if vertical else "←→", "select", move, when=lambda: vertical or len(buttons) > 1)
-        if not vertical:
-            registry.add(["up", "down"], "", "", lambda e: None)
+        registry.add(["left", "right"], "←→", "select", move, when=lambda: len(buttons) > 1)
+        registry.add(["up", "down"], "", "", lambda e: None)
 
 
 class ActionBar(DynamicContainer):

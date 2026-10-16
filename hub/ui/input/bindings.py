@@ -98,7 +98,7 @@ class HubBindings:
         async def paste():
             register = event.app.clipboard
             data = await register.read() if isinstance(register, SystemClipboard) else register.get_data()
-            if (self.view.visible and event.app.current_buffer is buffer and not buffer.read_only()
+            if (data is not None and self.view.visible and event.app.current_buffer is buffer and not buffer.read_only()
                     and buffer.document == document):
                 buffer.save_to_undo_stack()
                 if buffer.selection_state:

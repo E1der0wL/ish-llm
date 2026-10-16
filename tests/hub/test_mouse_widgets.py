@@ -253,16 +253,21 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         # Only the action row has a frame; the option viewport stays borderless.
         for y in range(1, action_top):
             for x in (left, self.output.columns - 1):
-                self.assertNotIn(screen.data_buffer[y][x].char, "│─┌┐└┘")
+                # Section separators may start at the content's left edge.
+                self.assertNotIn(screen.data_buffer[y][x].char, "│┌┐└┘")
         self.assertEqual(screen.data_buffer[action_top][left].char, "┌")
         self.assertEqual(screen.data_buffer[action_top][self.output.columns - 1].char, "┐")
         self.assertEqual(screen.data_buffer[self.output.rows - 3][left].char, "└")
         self.assertEqual(screen.data_buffer[self.output.rows - 3][self.output.columns - 1].char, "┘")
 
-    async def test_settings_scrollbar_keeps_edge_when_home_reserves_right_padding(self):
+    async def test_settings_and_home_share_width_right_inset_and_scrollbar_edge(self):
         for columns in (132, 80):
             self.output.columns = columns
             self.app._on_resize()
+            # Home auto-hides its sidebar on narrow terminals; compare the
+            # two pages with the same visible sidebar configuration.
+            with set_app(self.app):
+                self.view.chat_page.focus_sidebar()
             await self.paint()
             chat = self.position(self.view.output.transcript.window)
             chat_edge = chat.xpos + chat.width - 1
@@ -275,7 +280,8 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             pane = self.view.settings.main
             rect = next(rect for item, rect in self.view.mouse.panes if item is pane)
             settings_edge = rect.xpos + rect.width - 1
-            self.assertEqual(settings_edge, columns - 1)
+            self.assertEqual((rect.xpos, rect.width), (chat.xpos, chat.width))
+            self.assertEqual(settings_edge, chat_edge)
             gap = self.position(pane.scrollbar_gap)
             self.assertEqual((gap.xpos, gap.width), (settings_edge - 1, 1))
             field = self.view.settings.page.form.fields[("background",)].input.window
@@ -320,7 +326,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         screen = self.view.settings
         pane = next(rect for item, rect in self.view.mouse.panes if item is screen.main)
         button = self.position(screen.page.save.window)
-        points = [(pane.xpos, pane.ypos), (pane.xpos - 1, pane.ypos + 2),
+        points = [(pane.xpos, pane.ypos), (pane.xpos + pane.width, pane.ypos + 2),
                   (pane.xpos + pane.width - 2, pane.ypos + 3),
                   (pane.xpos + 2, button.ypos - 1), (pane.xpos + 2, button.ypos + 2)]
         for point in points:

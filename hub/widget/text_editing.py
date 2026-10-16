@@ -66,9 +66,14 @@ class TextEditing:
     @staticmethod
     def paste(event):
         buffer = event.current_buffer
+        text = event.data.replace("\r\n", "\n").replace("\r", "\n")
+        from .clipboard import SystemClipboard
+        from prompt_toolkit.clipboard import ClipboardData
+        if isinstance(event.app.clipboard, SystemClipboard):
+            event.app.clipboard.remember(ClipboardData(text))
         if buffer.selection_state:
             buffer.cut_selection()
-        buffer.insert_text(event.data.replace("\r\n", "\n").replace("\r", "\n"))
+        buffer.insert_text(text)
 
     @staticmethod
     def move(event, key=None):

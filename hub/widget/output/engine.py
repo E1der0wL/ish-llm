@@ -29,7 +29,7 @@ class EngineOutput(HSplit, ABC):
         self.tags = TagBar(self, view)
         self.header = Window(FormattedTextControl(heading), height=1, style="class:hub.title")
         self.body = VSplit([content, self.tags.container])
-        super().__init__([ContentInset(HSplit([self.header, self.body]), right=True)],
+        super().__init__([ContentInset(HSplit([self.header, self.body]))],
                          height=Dimension(min=3, weight=1))
 
     def __pt_container__(self):

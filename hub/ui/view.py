@@ -59,6 +59,7 @@ class HubView:
         self._positions = {}
         self.on_save_view = None
         self.on_output_position_changed = None
+        self.clipboard_environment = None
         self.animate_output = False
         from .dialogs import DialogController
         self.dialogs = DialogController(self)
@@ -231,6 +232,10 @@ class HubView:
     def _not_connected(self):
         self.notice = self.t("not_connected")
 
+    def _clipboard_notice(self, key):
+        if self.visible:
+            self.toasts.alert(self.t("clipboard_title"), self.t(key), "warning", "clipboard")
+
     def _select_sidebar_session(self, key):
         self._session_focus = True
         self.select(next(i for i in range(len(self.sessions)) if self._draft_key(i) == key))
@@ -367,7 +372,8 @@ class HubView:
         app.ttimeoutlen = app.timeoutlen = 0.02
         self.visible = True
         from ..widget.clipboard import SystemClipboard
-        app.clipboard = SystemClipboard(app, app.clipboard)
+        app.clipboard = SystemClipboard(app, app.clipboard,
+            environment=self.clipboard_environment, notify=self._clipboard_notice)
         self.mouse.attach(app)
         self._session_focus = False
         if self.on_open:

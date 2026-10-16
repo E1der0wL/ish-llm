@@ -83,7 +83,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                     self.assertTrue(next(row for row in drawn.splitlines() if heading in row).startswith(" " + heading))
                 positions = content.visible_windows_to_write_positions
                 field = screen.page.form.fields[("display_name",)].input.window
-                self.assertEqual(positions[field].xpos, positions[screen.layout.edge].xpos + 2)
+                self.assertEqual(positions[field].xpos, positions[screen.layout.edge].xpos + 1)
                 with set_app(app):
                     screen.choose("appearance")
                     field = screen.page.form.fields[("icon_style",)]

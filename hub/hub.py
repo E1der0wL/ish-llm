@@ -40,6 +40,13 @@ class HubInstallation:
             self.controller.environment_provider = lambda: ShellEnvironment.from_prompt(prompt)
         else:
             self.view = HubView(theme=theme)
+        # Clipboard helpers need the current shell DISPLAY/PATH as well as the
+        # host's inherited terminal information. Never mutate process globals.
+        def clipboard_environment():
+            import os
+            env = getattr(getattr(prompt, "context", None), "environ", None)
+            return dict(os.environ if env is None else env)
+        self.view.clipboard_environment = clipboard_environment
         self._closed = False
         self._terminal_screen = HubTerminalScreen(prompt.app, self.view)
         self._style = prompt.style
