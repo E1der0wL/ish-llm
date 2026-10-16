@@ -44,7 +44,7 @@ class SettingsScreen:
         self._component_target = None
         self._left = HSplit([])
         self.global_list = SidebarList(
-            lambda: [SidebarItem(key, self._caption(key, self.t("settings_" + key))) for key in self.global_keys],
+            lambda: [SidebarItem(key, self._caption(key, self._item_title(key))) for key in self.global_keys],
             lambda: self.navigation.left_key, self.select_left)
         self.project_list = SidebarList(
             self.project_items,
@@ -61,7 +61,7 @@ class SettingsScreen:
             header=HeaderBar(lambda: self.t("settings_title"), icons=lambda: view.icons),
             sidebar=DynamicContainer(lambda: self._left),
             main=HSplit([
-                        ContentInset(self.main, width=self.main_dimension,
+                        ContentInset(self.main, heading=self.page_title, width=self.main_dimension,
                                      height=Dimension(min=3, weight=1)),
                         self.auxiliary, self.actions], width=self.main_dimension),
             progress=view.progress, notice=self.status_text, status_annotation=self.filter_label,
@@ -90,6 +90,15 @@ class SettingsScreen:
         return [("class:hub.focused" if active else "", (SELECTED + " " if active else "  ")
                  + self.t("settings_current_project", title=title))]
 
+    def page_title(self) -> str:
+        if self.page is None:
+            return ""
+        if isinstance(self.page, GlobalPage):
+            category, key = "settings_global", self.page.name
+        else:
+            category, key = "settings_projects", self.page.section
+        return self.t(category) + " • " + self._item_title(key)
+
     def _sidebar(self):
         previous = self.navigation.focused_key()
         if self.navigation.left_key not in self.navigation.left_items():
@@ -116,13 +125,19 @@ class SettingsScreen:
         page = self.drafts.pages.get(key)
         return ("* " if page and page.dirty else "") + title
 
+    def _item_title(self, key: str) -> str:
+        kind, _, name = key.partition(":")
+        if kind in ("engine", "component"):
+            return self.t("settings_" + kind + "_item", name=name)
+        return self.t("settings_" + (name or kind))
+
     def project_items(self):
-        items = [SidebarItem("project:general", self.t("settings_general"))]
+        keys = ["project:general"]
         page = self.drafts.pages.get(self.drafts.current_project_id)
         if isinstance(page, ProjectPage):
-            items.extend(SidebarItem("engine:" + key, self.t("settings_engine_item", name=key)) for key in page.engine_forms)
-            items.extend(SidebarItem("component:" + key, self.t("settings_component_item", name=key)) for key in page.component_forms)
-        return items
+            keys.extend("engine:" + key for key in page.engine_forms)
+            keys.extend("component:" + key for key in page.component_forms)
+        return [SidebarItem(key, self._item_title(key)) for key in keys]
 
     def project_changed(self, identifier):
         changed = identifier != self.drafts.current_project_id

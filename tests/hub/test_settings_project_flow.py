@@ -39,6 +39,7 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.settings_open and screen.page is not None and not screen.busy)
                 with set_app(app):
                     screen.choose("profile")
+                    self.assertEqual(screen.page_title(), "전역 설정 • 프로필")
                     screen.page.form.fields[("display_name",)].input.text = "Nickname"
                 settings_button(app, pipe, view)
                 await until(lambda: view.user_profile.display_name == "Nickname" and not screen.busy)
@@ -47,12 +48,15 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(PreferencesStore(directory).load()["profile"]["display_name"], "Nickname")
                 with set_app(app):
                     screen.choose("engine:loop")
+                    self.assertEqual(screen.page_title(), "프로젝트 • 엔진 · loop")
                     project_page = screen.page
                     loop_field = next(iter(project_page.engine_forms["loop"].fields.values()))
                     screen.choose("component:tools")
+                    self.assertEqual(screen.page_title(), "프로젝트 • 컴포넌트 · tools")
                     self.assertIs(screen.page, project_page)
                     self.assertNotIn(loop_field, screen.page.fields())
                     screen.choose("project:general")
+                    self.assertEqual(screen.page_title(), "프로젝트 • 일반")
                     screen.page.form.fields[("title",)].input.text = "Unsaved"
                 settings_button(app, pipe, view, "cancel")
                 await until(lambda: screen.page.form.fields[("title",)].input.text != "Unsaved")

@@ -272,6 +272,11 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             chat = self.position(self.view.output.transcript.window)
             chat_edge = chat.xpos + chat.width - 1
             self.assertEqual(chat_edge, columns - 2)
+            home_auxiliary = self.position(self.view.auxiliary.buttons["history"].window)
+            self.assertEqual(chat.ypos + chat.height + 1, home_auxiliary.ypos)
+            cells = self.app.renderer._last_screen.data_buffer
+            self.assertTrue(all(cells[chat.ypos + chat.height][x].char == " "
+                                for x in range(chat.xpos, columns)))
             with set_app(self.app):
                 self.view.toggle_settings()
                 self.view.settings.choose("appearance")
@@ -282,6 +287,14 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             settings_edge = rect.xpos + rect.width - 1
             self.assertEqual((rect.xpos, rect.width), (chat.xpos, chat.width))
             self.assertEqual(settings_edge, chat_edge)
+            title = "전역 설정 • 모양"
+            cells = self.app.renderer._last_screen.data_buffer
+            self.assertIn(title, "".join(cells[rect.ypos - 1][x].char for x in range(rect.xpos, columns)))
+            self.assertTrue(all(cells[rect.ypos - 2][x].char == " " for x in range(rect.xpos, columns)))
+            settings_auxiliary = self.position(self.view.settings.auxiliary.buttons["filter"].window)
+            self.assertEqual(rect.ypos + rect.height + 1, settings_auxiliary.ypos)
+            self.assertTrue(all(cells[rect.ypos + rect.height][x].char == " "
+                                for x in range(rect.xpos, columns)))
             gap = self.position(pane.scrollbar_gap)
             self.assertEqual((gap.xpos, gap.width), (settings_edge - 1, 1))
             field = self.view.settings.page.form.fields[("background",)].input.window
@@ -295,6 +308,8 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             await self.mouse(0, settings_edge, rect.ypos + rect.height - 1)
             await self.mouse(0, settings_edge, rect.ypos + rect.height - 1, release=True)
             self.assertEqual(pane.vertical_scroll, 4)
+            cells = self.app.renderer._last_screen.data_buffer
+            self.assertIn(title, "".join(cells[rect.ypos - 1][x].char for x in range(rect.xpos, columns)))
             with set_app(self.app):
                 self.view.toggle_settings()
             await self.paint()

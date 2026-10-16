@@ -114,6 +114,8 @@ class EngineOutputTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(text.xpos, composer.xpos - 1)
                 self.assertEqual(tags.xpos + tags.width, header.xpos + header.width)
                 self.assertEqual(header.xpos + header.width, composer.xpos + composer.width)
+                self.assertEqual(tags.ypos + tags.height + (0 if rows == 14 else 1),
+                                 after[view.auxiliary.buttons["history"].window].ypos)
                 self.assertLessEqual(tags.ypos + tags.height, after[view.composer.window].ypos - 2)
                 for window, position in ((view.composer.window, composer), (view.chat_page.status, status)):
                     actual = after[window]
