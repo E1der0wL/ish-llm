@@ -58,7 +58,7 @@ def create_preview(*, input=None, output=None, theme=None):
     app = Application(
         layout=Layout(root, focused_element=shell), key_bindings=keys,
         style=DynamicStyle(lambda: view.style),
-        full_screen=True, mouse_support=Condition(lambda: view.visible), input=input, output=output,
+        full_screen=True, mouse_support=Condition(lambda: view.visible and view.mouse_enabled), input=input, output=output,
     )
     return app, view, shell
 

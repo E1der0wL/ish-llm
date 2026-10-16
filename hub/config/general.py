@@ -17,6 +17,7 @@ class GeneralSettings:
     restore_last_project: bool = field(default=True, metadata={"requires_restart": True})
     restore_last_session: bool = field(default=True, metadata={"requires_restart": True})
     auto_scroll: bool = True
+    mouse_mode: str = "auto"
     workspace_root: str = field(default="", metadata={"requires_restart": True})
     provider_error_details: bool = field(default=False, metadata={"requires_restart": True})
     provider_request_summary: bool = field(default=False, metadata={"requires_restart": True})
@@ -25,6 +26,8 @@ class GeneralSettings:
     def __post_init__(self):
         from .workspace import workspace_path
         workspace_path(self.workspace_root)
+        if self.mouse_mode not in ("auto", "hub", "terminal"):
+            raise ValueError("mouse_mode must be auto, hub or terminal")
         from ..locales import Language, validate_packs
         validate_packs(self.language_packs)
         if self.language:

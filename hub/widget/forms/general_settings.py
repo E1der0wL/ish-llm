@@ -22,6 +22,7 @@ class GeneralForm:
             "notifications": ("notification_kinds", "notification_seconds"),
             "startup": ("restore_last_project", "restore_last_session"),
             "output": ("auto_scroll",),
+            "input": ("mouse_mode",),
             "editor": ("editor",),
             "diagnostics": ("provider_error_details", "provider_request_summary", "provider_max_detail_chars"),
         }
@@ -36,6 +37,7 @@ class GeneralForm:
         properties["notification_kinds"].update(items={"type": "string", "enum": ["error", "info", "warning", "success"]})
         properties["notification_seconds"].update(minimum=1, maximum=120)
         properties["provider_max_detail_chars"].update(minimum=1)
+        properties["mouse_mode"].update(enum=["auto", "hub", "terminal"])
         self.form = SchemaForm({"type": "object", "properties": properties}, values, screen.t)
         self.form.original.setdefault("language_packs", {})
         self.add_button = Button(screen.t("language_pack_add"), handler=self.add_pack, width=18)

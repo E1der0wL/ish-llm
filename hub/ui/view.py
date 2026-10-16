@@ -356,6 +356,16 @@ class HubView:
             self.on_select(self.sessions[index].id)
         get_app().invalidate()
 
+    @property
+    def mouse_enabled(self):
+        if self.general.mouse_mode != "auto":
+            return self.general.mouse_mode == "hub"
+        import os
+        env = self.clipboard_environment() if self.clipboard_environment else os.environ
+        # A remote application cannot return captured clicks to the connecting
+        # terminal. Leave its native selection/paste path intact by default.
+        return not any(env.get(key) for key in ("SSH_CONNECTION", "SSH_CLIENT", "SSH_TTY"))
+
     def set_theme(self, theme):
         self.theme, self.style = theme, theme.style()
         self.output.set_theme(theme)

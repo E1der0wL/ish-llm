@@ -12,9 +12,6 @@ class ContentInset(VSplit):
         padding_height = Dimension(min=0, preferred=1, max=1)
         rows = []
         if heading is not None:
-            rows.extend([
-                Window(height=padding_height),
-                Window(FormattedTextControl(heading), height=1, style="class:hub.title"),
-            ])
+            rows.append(Window(FormattedTextControl(heading), height=1, style="class:hub.title"))
         rows.extend([content, Window(height=padding_height)])
         super().__init__([HSplit(rows), Window(width=1)], **kwargs)

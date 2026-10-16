@@ -136,7 +136,8 @@ class ClipboardTests(unittest.IsolatedAsyncioTestCase):
         with patch("shutil.which", return_value=None) as which:
             register.set_data(ClipboardData("Hub text"))
             self.assertEqual(await register.pending, "clipboard_internal")
-            self.assertEqual((await register.read()).text, "Hub text")
+            self.assertIsNone(await register.read())
+            self.assertEqual(register.get_data().text, "Hub text")
         self.assertEqual([call.args[0] for call in which.call_args_list], ["missing-copy", "missing-paste"])
         app.output.write_raw.assert_not_called()
         self.assertEqual(notices, ["clipboard_copy_unavailable", "clipboard_read_unavailable"])
@@ -215,6 +216,12 @@ class ClipboardTests(unittest.IsolatedAsyncioTestCase):
                     self.assertTrue(view.visible)
                 buffer.exit_selection()
                 view.composer.text = ""
+                with patch("hub.widget.clipboard.system_clipboard", new=AsyncMock(return_value=None)) as read:
+                    pipe.send_text("\x16")
+                    await eventually(lambda: read.await_count == 1)
+                    await asyncio.sleep(.05)
+                    self.assertEqual(view.composer.text, "")
+                    self.assertEqual(app.clipboard.get_data().text, "selected")
                 with patch("hub.widget.clipboard.system_clipboard", new=AsyncMock(return_value="시스템 값")):
                     pipe.send_text("\x16")
                     await eventually(lambda: view.composer.text == "시스템 값")

@@ -14,7 +14,7 @@ MESSAGES = {
     'clipboard_internal': 'Internal clipboard',
     'clipboard_title': 'Clipboard',
     'clipboard_copy_unavailable': 'External copy failed; saved in Hub only',
-    'clipboard_read_unavailable': 'External read failed; using Hub clipboard',
+    'clipboard_read_unavailable': 'Cannot read the external clipboard. Use your terminal paste command.',
 
     "profile_settings": "Settings", "profile_home": "Home", "profile_minimize": "Minimize",
     "shortcut_profile": "profile", "shortcut_categories": "categories",
@@ -303,6 +303,8 @@ MESSAGES = {
     "general_category_startup": "Startup",
 
     "general_category_output": "Conversation output",
+    "general_category_input": "Mouse and clipboard",
+    "general_mouse_mode": "auto: terminal selection/paste over SSH, Hub mouse locally. hub: enable clicks, wheel and dragging. terminal: let the terminal handle the mouse. Applies when saved.",
 
     "general_category_editor": "External editor",
 

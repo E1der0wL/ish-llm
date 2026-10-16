@@ -290,7 +290,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             title = "전역 설정 • 모양"
             cells = self.app.renderer._last_screen.data_buffer
             self.assertIn(title, "".join(cells[rect.ypos - 1][x].char for x in range(rect.xpos, columns)))
-            self.assertTrue(all(cells[rect.ypos - 2][x].char == " " for x in range(rect.xpos, columns)))
+            self.assertEqual(rect.ypos, chat.ypos)
             settings_auxiliary = self.position(self.view.settings.auxiliary.buttons["filter"].window)
             self.assertEqual(rect.ypos + rect.height + 1, settings_auxiliary.ypos)
             self.assertTrue(all(cells[rect.ypos + rect.height][x].char == " "

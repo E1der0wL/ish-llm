@@ -15,7 +15,8 @@ from tests.hub.support import SizedOutput, eventually, open_settings
 class TextEditingTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.pipe = self.enterContext(create_pipe_input())
-        self.enterContext(patch('hub.widget.clipboard.system_clipboard', new=AsyncMock(return_value=None)))
+        self.external_clipboard = self.enterContext(patch(
+            'hub.widget.clipboard.system_clipboard', new=AsyncMock(return_value=True)))
         self.app, self.view, self.shell = create_preview(input=self.pipe, output=SizedOutput())
         self.task = asyncio.create_task(self.app.run_async(pre_run=lambda: self.view.show(self.app)))
         await eventually(lambda: self.app.is_running and self.view.composer.window.render_info)
@@ -56,6 +57,7 @@ class TextEditingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(buffer.text, 'hello world')
         await self.send('\x19')
         self.assertEqual(buffer.text, '')
+        self.external_clipboard.return_value = 'hello world'
         await self.send('\x16')
         self.assertEqual(buffer.text, 'hello world')
         await self.send('\x01한글')
@@ -79,6 +81,7 @@ class TextEditingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(buffer.text, 'pasted\nsecond')
         self.assertEqual(self.app.clipboard.get_data().text, 'pasted\nsecond')
         await self.send('\x01temporary')
+        self.external_clipboard.return_value = 'pasted\nsecond'
         await self.send('\x01\x16')
         self.assertEqual(buffer.text, 'pasted\nsecond')
         await self.send('\x1a')

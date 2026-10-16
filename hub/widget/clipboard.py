@@ -166,8 +166,8 @@ class SystemClipboard(Clipboard):
             return None
         if text is None:
             self.notify("clipboard_read_unavailable")
-        else:
-            self.remember(ClipboardData(text))
+            return None
+        self.remember(ClipboardData(text))
         return self.get_data()
 
 

@@ -177,6 +177,12 @@ class MouseController:
         self._pane_layers = {}
 
     def _before_render(self, app):
+        if not self.view.mouse_enabled:
+            if self.drag:
+                self.drag.finish()
+                self.drag = None
+            self._hover(None)
+            self._cancelled_drag = False
         self.panes = []
         self.regions = []
         self._pane_layers = {}
@@ -321,6 +327,8 @@ class MouseController:
     def dispatch(self, event, native):
         if not self.view.visible:
             return native(event)
+        if not self.view.mouse_enabled:
+            return None  # Discard a final report queued before mode changed.
         if self._cancelled_drag:
             if event.event_type == M.MOUSE_UP:
                 self._cancelled_drag = False
