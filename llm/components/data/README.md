@@ -30,6 +30,10 @@ raw = await data.aread_file("experiment", "examples/input.csv",
 모델은 Skill에서 명시한 자료를 `skill_read_resource`로 읽을 수 있습니다.
 Skill이 참조하는 파일·패키지는 삭제할 수 없습니다. 내용을 바꾸면 기존 참조는 stale 상태가
 되며 Skill에서 기대 revision을 명시적으로 갱신해야 다시 사용할 수 있습니다.
+Memory에서 명시적으로 이 패키지를 Tool/MCP 원문 저장 대상으로 선택할 수도 있습니다.
+Memory가 요약 요청·원문 참조를 소유하고 Data는 파일·manifest·CAS만 소유합니다.
+Memory의 참조가 남아 있으면 삭제를 차단합니다. 명시적으로 참조를 해제한 뒤 Data API로
+삭제해야 하며 자동 정리는 없습니다. 모델의 부분 조회 Tool은 Memory가 제공합니다.
 패키지를 읽을 때 manifest의 모든 파일을 검증하므로 큰 자료 집합에는 검증 I/O 비용이 있습니다.
 실행 중 취소된 파일 쓰기는 기존 StorageIO 계약대로 저장 작업의 완료/롤백을 기다립니다.
 따라서 취소 통지를 받았더라도 파일이 완전히 저장됐을 수 있으며 snapshot으로 확인해야 합니다.

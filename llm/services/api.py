@@ -371,10 +371,10 @@ class Runs(AsyncFacade):
     async def resume_plan(self, run_id: str, *, engine: str) -> ResumePlan:
         return await self.app._manager(self.session._snapshot).resume_plan(run_id, engine=engine)
 
-    async def resume(self, run_id: str, *, engine: str, retry_nodes=(), decisions=None) -> "RequestHandle":
+    async def resume(self, run_id: str, *, engine: str, retry_nodes=(), decisions=None, partial_output=False) -> "RequestHandle":
         """이전 Run의 체크포인트를 이어갈 새 요청. 실행 중이던 노드만 명시적으로 재시도한다."""
         message = await self.app._manager(self.session._snapshot).resume(
-            run_id, engine=engine, retry_nodes=retry_nodes, decisions=decisions)
+            run_id, engine=engine, retry_nodes=retry_nodes, decisions=decisions, partial_output=partial_output)
         return RequestHandle(self.session, message.id)
 
     async def wait_idle(self) -> None:
@@ -544,6 +544,30 @@ class RunHandle(AsyncFacade):
 
     acheckpoint = async_method(checkpoint)
 
+    def checkpoint_plan(self):
+        """Run 전체 체크포인트의 재개 포기/삭제 가능 여부와 CAS revision을 조회한다."""
+        self.app._check_open()
+        return self.app.project_manager.sessions.checkpoint_plan(self.session.data, self.id)
+
+    def abandon_resume(self, *, expected_revision) -> None:
+        self.app._check_open()
+        with self.app.project_manager.ownership.scope():
+            self.app.project_manager.sessions.abandon_resume(self.session.data, self.id,
+                                                             expected_revision=expected_revision)
+            run, session = self.data, self.session.data
+            store = self.app.project_manager.sessions.conversations(session)
+            self.app._interaction_changed(run, self.app.run_repository.interaction_views(session, run, store))
+
+    def delete_checkpoints(self, *, expected_revision) -> None:
+        """Run/Step/대화/효과 원장은 보존하고 재개 파일만 명시적으로 정리한다."""
+        self.app._check_open()
+        self.app.project_manager.sessions.delete_checkpoints(self.session.data, self.id,
+                                                            expected_revision=expected_revision)
+
+    acheckpoint_plan = async_method(checkpoint_plan)
+    aabandon_resume = async_method(abandon_resume)
+    adelete_checkpoints = async_method(delete_checkpoints)
+
     def instructions(self):
         """접수한 추가 지시와 명시적 재개에서 참조한 지시의 저장된 상태를 조회한다."""
         self.app._check_open()
@@ -573,11 +597,10 @@ class RunHandle(AsyncFacade):
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             session, run = self.session.data, self.data
-            requests = self.app.run_repository.interaction_requests(session, run)
             if pending_only:
                 store = self.app.project_manager.sessions.conversations(session)
-                requests = [v.request for v in self.app.run_repository.interaction_views(session, run, store) if v.can_respond]
-            return requests
+                return [v.request for v in self.app.run_repository.interaction_views(session, run, store) if v.can_respond]
+            return self.app.run_repository.interaction_requests(session, run)
 
     def interaction_responses(self) -> list[InteractionResponse]:
         self.app._check_open()

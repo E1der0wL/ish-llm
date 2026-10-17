@@ -39,7 +39,8 @@ class MemoryComponent(Component):
         config=("cache_records", "search_status", "search_limit", "search_strategy", "min_score"),
         policy=("tool_write_status", "max_search_results"),
         paths={**{"processing." + key: "config.processing." + key for key in
-                  ("completion", "priority", "extract_scope", "extract_prompt_id", "summary_chars", "recall_limit", "recall_query_chars", "summary_format", "goal_ids")},
+                  ("completion", "priority", "extract_scope", "extract_prompt_id", "summary_chars", "recall_limit", "recall_query_chars", "summary_format", "goal_ids",
+                   "tool_result_mode", "tool_data", "tool_summary_prompt")},
                **{"processing." + key: "policy.processing." + key for key in
                   ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active",
                    "keep_turns", "summary_after_chars", "summary_after_tokens", "context_chars", "tool_result_chars", "model_input_chars",
@@ -271,7 +272,19 @@ class MemoryComponent(Component):
             self._validate_summary(path.stem, value)
             sessions.add(value["session_id"])
             source(value.get("source"))
+        for path in self._checked(self.root(project) / "compactions").glob("*/*.json"):
+            state = read_json(self._checked(path))
+            messages.update(item["id"] for item in state.get("applied", {}).get("sources", []))
+            if state.get("request", {}).get("status") in ("pending", "running", "partial", "failed", "interrupted"):
+                messages.update(item["id"] for item in state["request"]["sources"])
         return {"run_ids": sorted(runs), "message_ids": sorted(messages), "session_ids": sorted(sessions)}
+
+    def references(self, project):
+        refs = []
+        for path in self._checked(self.root(project) / "tool_summaries").glob("*/*.json"):
+            request = read_json(self._checked(path))["request"]
+            refs.append({**request["reference"], "source": request["id"]})
+        return refs
 
     def validate_config(self, data):
         from jsonschema import Draft202012Validator
@@ -294,6 +307,10 @@ class MemoryComponent(Component):
             "tool_result_chars", "model_input_chars", "max_candidates", "active_keep_iterations",
             "max_summary_calls", "recall_query_chars", "max_output_chars")})
         properties.update(priority=field("integer"), recall_every=field("integer", minimum=0),
+            tool_result_mode=field("string", enum=["reference", "summary"]),
+            tool_data=object_schema({"component": field("string", minLength=1), "identifier": field("string", minLength=1)},
+                                    required=["component", "identifier"]),
+            tool_summary_prompt=field("string", minLength=1),
             summary_format=field("string", enum=["text", "work_state"]),
             goal_ids={"type": "array", "uniqueItems": True, "items": field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$")},
             context_tokens=field(["integer", "null"], minimum=1), completion=completion_schema(),
@@ -436,6 +453,12 @@ class MemoryComponent(Component):
         list(self._all_records(project))
         for path in self._checked(self.root(project) / "contexts").glob("*.json"):
             self.summary(project, path.stem)
+        from .compaction import validate_checkpoint
+        for directory in ("compactions", "tool_summaries"):
+            for path in self._checked(self.root(project) / directory).glob("*/*.json"):
+                request = read_json(self._checked(path)).get("request", {})
+                if "checkpoint" in request:
+                    validate_checkpoint(request["checkpoint"])
 
     def clone(self, source, destination):
         for identifier, _ in self._all_records(source):
@@ -452,6 +475,12 @@ class MemoryComponent(Component):
             from .processing import MemoryProcessor, resolve_processing_config
             data = data_factory(self.name)
             config = resolve_processing_config(data.get_config(), token_counter=self.token_counter)
+            if "tool_result_mode" in config:
+                selection = config["tool_data"]
+                files = data.related(selection["component"])
+                if not all(callable(getattr(files, name, None)) for name in ("read_file", "write_file", "snapshot")):
+                    raise ValueError("tool_data requires a file Component public interface")
+                files.snapshot(selection["identifier"])
             return MemoryProcessor(data, completion_fn=self.completion_fn,
                                    token_counter=self.token_counter, priority=config.get("priority", 0))
         if capability == "memory":

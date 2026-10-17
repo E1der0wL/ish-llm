@@ -13,7 +13,35 @@ from llm.providers.observations import observe_component_models
 
 def document_view(document: dict) -> dict:
     """벡터 같은 내부 색인 데이터를 공개 문서 응답에서 제외한다."""
-    return deepcopy({key: value for key, value in document.items() if key not in ("vectors", "graph", "profile", "preparation_configuration")})
+    return deepcopy({key: value for key, value in document.items() if key not in (
+        "vectors", "graph", "profile", "preparation_configuration", "preparation_fingerprint", "extraction_manifest")})
+
+
+def validate_documents(documents):
+    """Validate the entire explicit create batch before model calls or queue admission."""
+    from llm.core.models import ProjectConfig
+    if not isinstance(documents, list) or not documents:
+        raise ValueError("documents must be a nonempty list")
+    result, identifiers = [], set()
+    for position, source in enumerate(documents):
+        if not isinstance(source, dict) or source.keys() - {"identifier", "title", "content", "metadata", "description"}:
+            raise ValueError(f"documents[{position}] has unsupported fields")
+        ProjectConfig.validate_json(source)
+        item = deepcopy(source)
+        for key in ("title", "content"):
+            if not isinstance(item.get(key), str) or not item[key].strip():
+                raise ValueError(f"documents[{position}].{key} must be nonempty text")
+        if item.get("description") is not None and not isinstance(item["description"], str):
+            raise ValueError(f"documents[{position}].description must be text")
+        if item.get("metadata") is not None and not isinstance(item["metadata"], dict):
+            raise ValueError(f"documents[{position}].metadata must be an object")
+        identifier = uuid4().hex if item.get("identifier") is None else validate_name(item["identifier"])
+        if identifier in identifiers:
+            raise ValueError(f"Duplicate document identifier: {identifier}")
+        identifiers.add(identifier)
+        item.update(identifier=identifier, metadata={} if item.get("metadata") is None else item["metadata"])
+        result.append(item)
+    return result
 
 
 class RAGData(ComponentData):
@@ -45,14 +73,18 @@ class RAGData(ComponentData):
 
     @workspace_locked
     def _commit(self, snapshot, document):
+        return self._commit_documents(snapshot, [document])[0]
+
+    @workspace_locked
+    def _commit_documents(self, snapshot, prepared):
         project, component = self._current()
         if snapshot.get("configuration_version") != component._configuration_version:
             from .component import RAGConflictError
             raise RAGConflictError("RAG configuration changed during preparation; retry explicitly")
         documents = dict(snapshot["documents"])
-        documents[document["id"]] = document
+        documents.update({document["id"]: document for document in prepared})
         component.publish(project, snapshot, documents)
-        return document_view(document)
+        return [document_view(document) for document in prepared]
 
     def _current_snapshot(self, snapshot):
         """저장 트랜잭션 안에서 수명과 세대를 검사하고 이미 읽은 스냅샷을 재사용한다."""
@@ -75,7 +107,9 @@ class RAGData(ComponentData):
         return component.combined_result(project, snapshot, query, hits, **options)
 
     @observe_component_models
-    async def _prepare(self, identifier, title, content, metadata, old=None):
+    async def _prepare(self, identifier, title, content, metadata, old=None, description=None):
+        if description is not None and not isinstance(description, str):
+            raise ValueError("Document description must be text")
         component, snapshot = await self._async_call(self._snapshot)
         await self._async_call(self.require_model_observation, component.embedding, component.extractor)
         if old is None:
@@ -90,6 +124,7 @@ class RAGData(ComponentData):
             title = document["title"] if title is None else title
             content = document["content"] if content is None else content
             metadata = document["metadata"] if metadata is None else metadata
+            description = document.get("description") if description is None else description
             revision = document["revision"] + 1
         # 이 await 동안 UI와 기존 검색은 계속 진행한다. 취소 시 공개 단계에 진입하지 않는다.
         from .component import RAGComponent
@@ -97,6 +132,8 @@ class RAGData(ComponentData):
         prepared = await component.prepare(identifier, title, content,
                                            deepcopy({} if metadata is None else metadata), revision,
                                            **options)
+        if description is not None:
+            prepared["description"] = description
         if old is not None:
             # prepare를 교체한 구현에도 문서 update의 생성 세대 보존 계약은 동일하다.
             prepared["generation"] = snapshot["documents"][identifier]["generation"]
@@ -122,7 +159,7 @@ class RAGData(ComponentData):
             await self._async_call(self.require_model_observation, component.embedding)
             if component._identity() != snapshot["profile"]["model"]:
                 raise ValueError("Query embedding model differs from indexed model")
-            vector = (await component.embed([query], query=True))[0]
+            vector = await component.embed_query(query)
             if len(vector) != snapshot["profile"]["dimensions"]:
                 raise ValueError("Query embedding dimensions differ from index")
         if rerank and component.reranker is None:
@@ -147,10 +184,17 @@ class RAGData(ComponentData):
         """현재 Project의 실행 가능한 reranker 유무. Tool 스키마와 동일한 바인딩을 사용한다."""
         return self._current()[1].reranker is not None
 
-    def enqueue_document(self, *, title, content, metadata=None, identifier=None):
+    def enqueue_document(self, *, title, content, metadata=None, identifier=None, description=None):
         """문서 등록 요청을 영속 큐에 넣는다. 모델 호출은 arun_job에서 명시적으로 시작한다."""
         from .jobs import RAGJobs
-        return RAGJobs(self).enqueue(title=title, content=content, metadata=metadata, identifier=identifier)
+        return RAGJobs(self).enqueue(title=title, content=content, metadata=metadata, identifier=identifier, description=description)
+
+    def enqueue_documents(self, documents):
+        """Queue an explicit document batch; its one Job publishes all documents together."""
+        from .jobs import RAGJobs
+        return RAGJobs(self).enqueue_documents(documents)
+
+    aenqueue_documents = async_method(enqueue_documents)
 
     def jobs(self):
         from .jobs import RAGJobs
@@ -171,6 +215,23 @@ class RAGData(ComponentData):
         from .jobs import RAGJobs
         return RAGJobs(self).cancel(identifier)
 
+    def checkpoint_plan(self, identifier):
+        """Job의 재개 포기/전체 삭제 계획. RunHandle과 같은 CheckpointPlan을 반환한다."""
+        from .jobs import RAGJobs
+        return RAGJobs(self).checkpoint_plan(identifier)
+
+    def abandon_job(self, identifier, *, expected_revision):
+        from .jobs import RAGJobs
+        return RAGJobs(self).abandon(identifier, expected_revision=expected_revision)
+
+    def delete_job(self, identifier, *, expected_revision):
+        from .jobs import RAGJobs
+        return RAGJobs(self).delete(identifier, expected_revision=expected_revision)
+
+    acheckpoint_plan = async_method(checkpoint_plan)
+    aabandon_job = async_method(abandon_job)
+    adelete_job = async_method(delete_job)
+
     @observe_component_models
     async def arun_job(self, identifier, *, retry=False):
         from .jobs import RAGJobs
@@ -182,7 +243,7 @@ class RAGData(ComponentData):
             raise ValueError("limit must be positive")
         results = []
         for job in await self.ajobs():
-            if job["status"] != "queued":
+            if job["status"] != "queued" or "resume_abandonment" in job:
                 continue
             try:
                 results.append(await self.arun_job(job["id"]))
@@ -197,16 +258,42 @@ class RAGData(ComponentData):
     ajob = async_method(job)
     acancel_job = async_method(cancel_job)
 
-    async def aadd_document(self, *, title: str, content: str, metadata=None, identifier=None) -> dict:
+    async def aadd_document(self, *, title: str, content: str, metadata=None, identifier=None, description=None) -> dict:
         """원문과 색인을 함께 등록한다. 완료된 문서 dict를 반환하며 백그라운드 job은 만들지 않는다."""
         identifier = uuid4().hex if identifier is None else validate_name(identifier)
-        return await self._prepare(identifier, title, content, metadata)
+        return await self._prepare(identifier, title, content, metadata, description=description)
+
+    @observe_component_models
+    async def aadd_documents(self, documents) -> list:
+        """Prepare the caller's batch, then publish one generation. Use a Job for durable retry."""
+        inputs = validate_documents(documents)
+        component, snapshot = await self._async_call(self._snapshot)
+        for item in inputs:
+            if item["identifier"] in snapshot["documents"]:
+                raise FileExistsError(item["identifier"])
+        prepared = []
+        for item in inputs:
+            await self._async_call(self.require_model_observation, component.embedding, component.extractor)
+            document = await component.prepare(item["identifier"], item["title"], item["content"], item["metadata"], 1)
+            if item.get("description") is not None:
+                document["description"] = item["description"]
+            component._embedding_dimensions = document["profile"]["dimensions"]
+            prepared.append(document)
+        return await self._async_call(self._commit_documents, snapshot, prepared)
 
     async def aupdate_document(self, identifier: str, *, content=None, title=None,
-                               metadata=None, expected_revision=None, expected_generation=None) -> dict:
+                               metadata=None, expected_revision=None, expected_generation=None, description=None) -> dict:
         """문서/색인을 교체한다. CAS 사용 시 읽은 generation과 revision을 함께 전달한다."""
         return await self._prepare(validate_name(identifier), title, content, metadata,
-                                   {"expected_revision": expected_revision, "expected_generation": expected_generation})
+                                   {"expected_revision": expected_revision, "expected_generation": expected_generation}, description=description)
+
+    @workspace_locked
+    def list_catalog(self, *, limit: int, cursor=None) -> dict:
+        """본문·벡터를 읽지 않는 세대 고정 목록. 페이지 크기는 호출자가 명시한다."""
+        project, component = self._current()
+        return component.list_catalog(project, limit=limit, cursor=cursor)
+
+    alist_catalog = async_method(list_catalog)
 
     @workspace_locked
     def get_document(self, identifier: str) -> dict:

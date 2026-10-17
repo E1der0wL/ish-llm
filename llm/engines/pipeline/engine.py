@@ -27,9 +27,6 @@ class PipelineError(CodedError, RuntimeError):
         self.code = code
 
 
-_UNSET = object()
-
-
 class PreparationStep(BaseEngine):
     """Convenience BaseEngine for async preparation; a deadline is applied only when configured."""
 

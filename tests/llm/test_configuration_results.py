@@ -251,11 +251,15 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
             def load(self, session, run_id):
                 calls.append((session.id, run_id))
                 return run
-            def list(self, session):
-                return [run]
+            def list_results(self, sessions, *, include_running=False, query=None):
+                from llm.services.query import select
+                calls.append((tuple(s.id for s in sessions), include_running, query))
+                return select([run] if include_running else [], query)
         query = RunResultQuery(self.sessions, Reader())
         self.assertEqual(query.load(self.session, run.id).run_id, run.id)
         self.assertEqual(calls, [(self.session.id, run.id)])
+        self.assertEqual(query.list(self.session, include_running=True)[0].run_id, run.id)
+        self.assertEqual(calls[-1], ((self.session.id,), True, None))
         self.assertTrue(get_type_hints(RunResultQuery.__init__))
 
     async def test_flat_workspace_fields_are_not_reinterpreted_as_completion(self):

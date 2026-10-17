@@ -68,6 +68,19 @@ def select(items, query: Optional[Query] = None):
     return query.apply(items) if query is not None else items
 
 
+def select_ordered(rows, query, *, key):
+    """정렬 전 페이지 후보를 좁힌다. 커서가 있으면 전체 순서에서 먼저 커서를 확인한다."""
+    if query is not None and not isinstance(query, Query):
+        raise TypeError("query must be Query or None")
+    if type(query) is Query and query.after is None and query.limit is not None and query.limit > 0:
+        if query.status is not None:
+            rows = (row for row in rows if getattr(row, "status",
+                    "deleted" if getattr(row, "deleted", False) else "active") == query.status)
+        choose = nlargest if query.descending else nsmallest
+        rows = choose(query.offset + query.limit, rows, key=key)
+    return select(sorted(rows, key=key), query)
+
+
 def queryable(method):
     """기존 저장소의 list 계약을 유지하면서 선택 조건을 공통 적용한다.
 
@@ -114,12 +127,4 @@ class FileCatalog:
         if not isinstance(query, Query):
             raise TypeError("query must be Query")
         rows = (self.read(path) for path in paths)
-        key = lambda row: (row.created_at, row.id)
-        if query.after is None and query.limit is not None and query.limit > 0:
-            # 전체 파일의 변경/무결성은 확인하되 페이지에 필요한 메타데이터만 정렬한다.
-            if query.status is not None:
-                rows = (row for row in rows if getattr(row, "status",
-                        "deleted" if getattr(row, "deleted", False) else "active") == query.status)
-            choose = nlargest if query.descending else nsmallest
-            rows = choose(query.offset + query.limit, rows, key=key)
-        return [row.id for row in query.apply(sorted(rows, key=key))]
+        return [row.id for row in select_ordered(rows, query, key=lambda row: (row.created_at, row.id))]

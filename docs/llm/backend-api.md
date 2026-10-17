@@ -330,6 +330,14 @@ uses LangGraph for scheduling and LoopEngine for LiteLLM calls; it does not use
 are available. Use `pause_before: true` for a saved boundary; uncertain action
 nodes require explicit retry approval. See [checkpoint and UI storage APIs](graph-checkpoints.md).
 
+Run cleanup uses `run.checkpoint_plan()`, `run.abandon_resume(expected_revision=...)`,
+and `run.delete_checkpoints(expected_revision=...)`. RAG Job cleanup uses
+`rag.checkpoint_plan(job_id)`, `rag.abandon_job(job_id, expected_revision=...)`, and
+`rag.delete_job(job_id, expected_revision=...)`. Async `a` variants are available.
+Both return the shared `CheckpointPlan` for review and require a fresh revision for changes.
+See [checkpoint lifecycle and ownership](checkpoints.md) for worker/reference protection
+and the distinction between cancellation, abandonment and deletion.
+
 ## Run the tests
 
 From the repository root on Linux/WSL (the runner rejects any other interpreter
@@ -491,6 +499,20 @@ Lists exclude soft-deleted Sessions and pending/running Runs by default; direct 
 can inspect a soft-deleted Session's history. Reads hold workspace ownership but
 never write result metadata. RunManager's query uses its injected RunRepository;
 for custom storage, RunResultQuery(sessions, custom_run_repository) is also available.
+The RunReader contract provides `load(session, run_id)` and
+`list_results(sessions, include_running=False, query=None)`. The latter returns Runs
+in `(ended_at or started_at or "", id)` order and applies the requested page. A custom
+Query subclass still receives full ExecutionResult objects through RunResultQuery.
+RunRepository respects overridden `list`/`load` storage implementations; an injected
+standalone reader implements the current RunReader contract explicitly.
+
+The file repository uses a bounded in-memory metadata catalog to select the page
+before loading full Runs. A warm unchanged catalog reads only the selected Run JSON
+files. A cold/evicted/changed entry must be read to populate or refresh its projection;
+directory enumeration and stat checks still cover the scope. `limit=0` without a
+cursor skips Run reads; with a cursor it still validates cursor membership. No
+persisted result index or historical-format adapter is created.
+An unfiltered full result listing loads each Run directly without an extra projection read.
 Async UI callers can offload these synchronous queries through StorageIO.
 
 Soft deletion retains Run history; permanent Session deletion removes its Runs and
@@ -1108,8 +1130,9 @@ ToolRegistry and Project tool selection live in `llm/components/tools`.
 Skill/MCP/RAG/Agent/Workflow components manage validated JSON definitions;
 The unified RAG component owns document
 CRUD, embedding, triple extraction, vector/graph indexes and combined retrieval.
-MCP connections and Skill execution adapters remain separate future work. Provider
-stream transport lives in `llm/providers/litellm.py`. SessionRuntime lives in
+MCP connections use explicit injected connectors, including the optional standard
+SDK adapter in `llm/providers/mcp.py`; Tool execution still uses ToolExecutor.
+Provider stream transport lives in `llm/providers/litellm.py`. SessionRuntime lives in
 `llm/services/lifecycle/sessions.py` and is owned and scheduled by RunManager.
 
 Services write structured operational JSON lines through Python `logging` and
@@ -1134,3 +1157,7 @@ See [architecture](architecture.md) for boundaries and
 
 실행 자원 제한, 출력 묶음 저장/인덱스, Project 백업/복원과 저장 버전 정책은
 [실행 자원과 저장 정책](operational-storage.md)을 참고하세요.
+
+MCP의 명시적 발견/연결, RAG 설명 목록과 단계별 진행, Memory의 컨텍스트 조회·압축 요청,
+`resume(..., partial_output=True)`는 [장기 실행 API](long-running-capabilities.md)를 참고하세요.
+압축 시점·방법·목표와 부분 출력 전달 여부는 호출하는 애플리케이션이 결정합니다.

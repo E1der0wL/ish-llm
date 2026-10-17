@@ -1364,6 +1364,13 @@ RunResultQuery resolves a Project or Session scope under workspace ownership and
 RunRepository. ProjectManager, SessionManager and RunManager expose it as results;
 RunManager supplies its configured Run repository. Custom query repositories can
 be injected through the RunReader protocol. Session scope avoids a Project-wide scan.
+RunReader owns `load` and ordered/paged `list_results`; the query facade does not
+interpret a repository's private paths. File RunRepository keeps bounded metadata
+projections (identity, Session owner, status, start/end times) validated by file stat,
+selects the page, then loads only selected Runs. Cold or evicted projections require
+file reads and the scope still requires directory/stat traversal. This cache is
+discardable, never a second persisted result authority. Custom Query subclasses
+continue to receive ExecutionResult objects rather than projection records.
 List defaults to terminal Runs in active Sessions; include_deleted/include_running
 make wider queries explicit. Direct loads allow soft-deleted history but verify
 owner scope. Permanent Session deletion removes its Runs and results; clones contain
@@ -2097,6 +2104,15 @@ Graph의 제한 시간 이후 남은 취소 정리는 RunManager PendingWork가 
 대화 저장소는 실제 종료까지 유지한다. Engine에는 파일 저장 책임을 추가하지 않는다.
 Memory는 부분 요약 커서, 재검색, 레코드 캐시, 명시적 통합 저널을 직접 소유한다. 서비스의
 공통 문맥 처리 계약에 Memory 전용 분기는 추가하지 않는다.
+
+명시적 분할 압축은 Memory의 단일 요청과 누적 조각 체크포인트로 관리한다. 모델 호출은
+잠금 밖에서 수행하고 조각별 저장 및 최종 완료 결과의 공개만 workspace 트랜잭션을 사용한다.
+부분 결과는 입력에 적용하지 않으며 소스/옵션 지문과 요청 소유 Run을 확인한다. 실패·취소 후
+자동 재개하지 않는다. 공통 summarization 알고리즘은 모델/저장/Run lifecycle을 소유하지 않는다.
+Tool/MCP 원문 파일은 명시적으로 선택한 Data 패키지, 파생 참조와 요약은 Memory 소유다.
+CompletionPipeline은 완료 Tool 결과의 입력 사본에만 적용하므로 승인·operation receipt·원본
+Tool Step·Run checkpoint의 source of truth를 바꾸지 않는다. 앱은 공개 조회/예약/재개/취소/
+참조 해제 API와 처리 예산을 사용하며, 핵심 도메인과 Hub에 Memory 전용 저장 로직을 넣지 않는다.
 자세한 사용법과 한계는 [domain-hardening.md](domain-hardening.md), [interactions.md](interactions.md)를 참고한다.
 
 
@@ -2140,7 +2156,13 @@ expected_revision을 필수로 전달한다. 누락/추가 대상 또는 변경�
 재개 계획·접수·실행과 승인 응답/취소/갱신은 포기한 Run을 거부하며, 승인 조회는 unavailable /
 blocked_reason=resume_abandoned를 반환한다. 포기는 되돌리지 않으며 새 작업은 새 submit으로 접수한다.
 Activity의 run.resume_abandoned와 INTERACTION_CHANGED 알림은 commit 이후의 파생 관찰이다.
-보관 정책이나 물리 삭제 대상을 확대하지 않는다. 이 삭제는 이력 보존형 논리 삭제다.
+대화 삭제 자체는 보관 정책이나 물리 삭제 대상을 확대하지 않는 이력 보존형 논리 삭제다.
+별도 RunHandle.checkpoint_plan/abandon_resume/delete_checkpoints는 대화 변경 없이 재개 자료를
+정리한다. 공통 CheckpointPlan/ResumeAbandonment는 core 계약이며, Session 서비스가 비활성·참조를
+검사하고 RunRepository가 저장을 집행한다. RAGJobs도 동일 계획/CAS 계약을 따르되 Job 파일을 소유한다.
+Run 삭제 표식과 조회용 승인 증거는 체크포인트 제거와 같은 트랜잭션으로 확정한다. 삭제된 Run의
+원본 fallback/승인 재사용은 허용하지 않는다. RAG Job 삭제는 공개 corpus를 변경하지 않는다.
+세부 API, worker 보호와 보관 범위는 [체크포인트 수명 계약](checkpoints.md)에 명시한다.
 손상된 참조/재개 순환/필수 체크포인트 소실은 추측하지 않고 삭제를 거부한다.
 재개 접수·실행의 기존 검사 경계에서도 필수 메시지의 삭제 표시를 거부한다. 삭제된 내용을 몰래
 되살리거나 체크포인트에서 제외하지 않는다. 새 submit은 삭제를 반영한 현재 문맥으로 실행한다.
@@ -2149,6 +2171,15 @@ Activity의 run.resume_abandoned와 INTERACTION_CHANGED 알림은 commit 이후�
 UI 실행 이력은 ProjectHandle.activity/aactivity로 조회한다. 전체 Session/Run/Step 또는 service.log를
 순회하는 logs/alogs API는 제공하지 않는다. activity는 after-commit 파생 인덱스이며 실행/복구의
 근거는 Run/Step 원본이다. 기존 DomainLogger와 도메인별 service.log는 운영 진단용으로 유지한다.
+
+## 장기 실행 API
+
+장기 실행 확장에서도 책임은 바뀌지 않습니다. MCP connector는 SDK 연결만 소유하고
+ToolExecutor가 승인을 집행합니다. RAG catalog/progress는 같은 corpus generation/Job에서
+파생됩니다. 명시적 컨텍스트 압축 요청과 요약은 Memory가 소유하며 원본 ConversationStore나
+Run checkpoint를 바꾸지 않습니다. 서비스가 조회한 선택적 부분 출력은 EngineContext를 통해
+전달하고 Loop가 자신의 scope/iteration에서 참고 자료로만 사용합니다.
+[API와 취소·재개 계약](long-running-capabilities.md)에 구체적인 경계를 설명합니다.
 
 ## Vision 이미지 capability
 

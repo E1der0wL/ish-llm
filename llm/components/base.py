@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Optional, Protocol
 
 from llm.core.models import Project, ProjectConfig, new_id
-from llm.services.infrastructure.storage import atomic_json, remove_named_tree, sync_directory
+from llm.services.infrastructure.storage import atomic_json, remove_named_tree
 
 
 def validate_name(value: str) -> str:

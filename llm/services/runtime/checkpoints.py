@@ -46,7 +46,51 @@ class CheckpointRepository:
         return self._checked(run.paths.state / "checkpoints" / validate_name(name))
 
     # 공개 API
+    def deletion(self, run):
+        """명시적으로 삭제된 자료를 손상/미초기화와 구분한다. 재개 원본으로 쓰지 않는다."""
+        value = run.metadata.get("checkpoint_deletion")
+        if value is None:
+            return None
+        from llm.core.models import RunStatus
+        if (not isinstance(value, dict) or set(value) != {"deleted_at", "revision", "names", "interactions"}
+                or not isinstance(value["deleted_at"], str) or not value["deleted_at"]
+                or not isinstance(value["revision"], str) or not value["revision"]
+                or not isinstance(value["names"], list) or not value["names"]
+                or not isinstance(value["interactions"], list)
+                or run.metadata.get("checkpoints")
+                or run.status in (RunStatus.PENDING, RunStatus.RUNNING)):
+            raise ValueError("Invalid checkpoint deletion record")
+        for name in value["names"]:
+            validate_name(name)
+        if len(set(value["names"])) != len(value["names"]):
+            raise ValueError("Duplicate deleted checkpoint names")
+        if run.status not in (RunStatus.COMPLETED, RunStatus.CANCELLED):
+            from llm.core.checkpoints import ResumeAbandonment
+            ResumeAbandonment.from_dict(run.metadata["resume_abandonment"])
+        requests = [InteractionRequest.from_dict(raw) for raw in value["interactions"]]
+        if len({request.id for request in requests}) != len(requests):
+            raise ValueError("Duplicate archived interaction identity")
+        if any(request.binding.get("checkpoint") not in value["names"] for request in requests):
+            raise ValueError("Archived interaction checkpoint mismatch")
+        if self._checked(run.paths.state / "checkpoints").exists():
+            raise ValueError("Deleted checkpoint files unexpectedly exist")
+        return deepcopy(value)
+
+    def delete(self, run, *, names, interactions, revision):
+        """호출자의 트랜잭션에서 파일 삭제와 영구 삭제 표식을 함께 확정한다."""
+        from llm.core.models import now
+        from llm.services.infrastructure.storage import remove_named_tree
+        root = self._checked(run.paths.state / "checkpoints")
+        if root.exists():
+            remove_named_tree(root.parent, root, "checkpoints")
+        run.metadata.pop("checkpoints", None)
+        # 승인 조회 증거만 남긴다. require_resume이 이 표식을 거부하므로 실행 권한은 없다.
+        run.metadata["checkpoint_deletion"] = {"deleted_at": now(), "revision": revision,
+            "names": list(names), "interactions": [request.to_dict() for request in interactions]}
+
     def record(self, run, event) -> None:
+        if self.deletion(run) is not None:
+            raise ValueError("Checkpoints were deleted; start a new Run")
         data = deepcopy(event.metadata)
         ProjectConfig.validate_json(data)
         root = self._root(run, data["name"])
@@ -78,6 +122,8 @@ class CheckpointRepository:
             raise ValueError("Unknown checkpoint operation")
 
     def load(self, run, name: str = "graph") -> dict:
+        if self.deletion(run) is not None:
+            raise ValueError("Checkpoints were explicitly deleted")
         root = self._root(run, name)
         data = read_json(self._checked(root / "checkpoint.json"))
         if (data["schema_version"] != 1 or data["run_id"] != run.id or data["engine"] != run.engine):

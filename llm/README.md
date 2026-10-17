@@ -357,6 +357,7 @@ Tool은 Python 패키지, RAG는 색인 세대 등 별도 저장 구조를 가�
 | [components/](components/README.md) | 기능별 데이터·검색·Tool·장기 기억 |
 | [providers/](providers/README.md) | LiteLLM 호출, 오류·retry·로그·임베딩 검증 |
 | [재시도 계약](../docs/llm/retry.md) | Application의 동일/수정 인자 재시도 선택, 승인·재개·효과 안전성, 적용 단위 |
+| [장기 실행 API](../docs/llm/long-running-capabilities.md) | MCP 연결, RAG 설명 목록·진행, 명시적 문맥 압축과 부분 출력 재개 |
 | [policies/](policies/README.md) | Engine·Component에서 재사용하는 수명 독립 정책 알고리즘 |
 | [services/](services/README.md) | 공개 API, 도메인 수명, 저장·복구·이벤트 |
 | [CONFIGURATION.md](CONFIGURATION.md) | 명시적 설정 원칙과 우선순위 |

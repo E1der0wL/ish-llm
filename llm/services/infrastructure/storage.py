@@ -8,6 +8,7 @@ import hashlib
 import os
 import re
 import shutil
+import stat
 import tempfile
 from functools import wraps
 from dataclasses import fields
@@ -30,6 +31,31 @@ def revision_token(value: dict) -> str:
 def check_revision(value: dict, expected_version) -> None:
     if expected_version is not None and expected_version != revision_token(value):
         raise ValueError("edit_conflict: stored data changed; reload before saving")
+
+def tree_snapshot(root: Path, *, exclude=()) -> dict:
+    """명시적 정리의 CAS 입력. 잠금 아래 읽으며 링크를 거부하고 파일 내용을 해시한다."""
+    reject_links(root)
+    if not root.exists():
+        return {}
+    result = {}
+    def fail(error):
+        raise error
+    for directory, names, files in os.walk(root, onerror=fail, followlinks=False):
+        for name in (*names, *files):
+            reject_links(Path(directory) / name)
+        for name in files:
+            path = Path(directory) / name
+            if not stat.S_ISREG(path.stat().st_mode):
+                raise ValueError("Snapshot requires regular files")
+            relative = path.relative_to(root).as_posix()
+            if relative in exclude:
+                continue
+            with path.open("rb") as stream:
+                digest = hashlib.file_digest(stream, "sha256").hexdigest()
+                size = path.stat().st_size
+            result[relative] = {"bytes": size, "digest": digest}
+    return result
+
 
 def child(root: Path, identifier: str) -> Path:
     if not re.fullmatch(r"[a-f0-9]{32}", identifier):

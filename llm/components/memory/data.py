@@ -108,7 +108,199 @@ class MemoryData(ComponentData):
         result = self._write_memory(operation, **arguments, source=source)
         return component.load(project, result, session_id=source["session_id"]) if operation == "create" else result
 
+    @workspace_locked
+    def _compaction_state(self, session_id, scope, *, tool_id=None):
+        from .compaction import Compactions
+        return Compactions(self, session_id, scope, tool_id=tool_id).recover()
+
+    @workspace_locked
+    def _claim_compaction(self, session_id, scope, identifier, run_id, *, tool_id=None):
+        from .compaction import Compactions
+        storage = Compactions(self, session_id, scope, tool_id=tool_id)
+        state = storage.read()
+        request = state.get("request", {})
+        if request.get("id") != identifier or request.get("status") != "pending":
+            return False
+        try:
+            storage.check_sources(request)
+        except ValueError:
+            request.update(status="stale", error="Summary source changed")
+            storage.write(state)
+            return False
+        request.update(status="running", run_id=run_id)
+        storage.write(state)
+        return True
+
+    @workspace_locked
+    def _finish_compaction(self, session_id, scope, identifier, status, applied, error, *, run_id=None, tool_id=None):
+        from .compaction import Compactions
+        storage = Compactions(self, session_id, scope, tool_id=tool_id)
+        state = storage.read()
+        if state.get("request", {}).get("id") != identifier:
+            if applied is not None:
+                from .compaction import CompactionStopped
+                raise CompactionStopped("Summary request was replaced")
+            return
+        if state["request"]["status"] == "cancelled":
+            if applied is not None:
+                from .compaction import CompactionStopped
+                raise CompactionStopped("Summary cancelled before publication")
+            return
+        if run_id is not None:
+            storage.require_running(state, identifier, run_id)
+        if applied is not None:
+            storage.check_sources(state["request"])
+            checkpoint = state["request"].get("checkpoint")
+            if (checkpoint is None or checkpoint["offset"] != checkpoint["total_chars"]
+                    or checkpoint["summary"] != applied["summary"]):
+                raise ValueError("Cannot publish an incomplete summary")
+        state["request"].update(status=status, error=error)
+        if applied is not None:
+            state["applied"] = applied
+        storage.write(state)
+
+    @workspace_locked
+    def _save_compaction(self, session_id, scope, identifier, run_id, fingerprint, total, progress, previous_offset, *, tool_id=None):
+        from .compaction import Compactions
+        Compactions(self, session_id, scope, tool_id=tool_id).checkpoint(
+            identifier, run_id, fingerprint, total, progress, previous_offset)
+
+    @workspace_locked
+    def _observe_context(self, session_id, scope, view):
+        from .compaction import Compactions
+        storage = Compactions(self, session_id, scope)
+        state = storage.read()
+        state["view"] = view
+        storage.write(state)
+
+    def _read_source(self, reference, *, offset, limit):
+        """Use the selected file owner's public snapshot/read contract, never its paths."""
+        if type(offset) is not int or offset < 0 or limit is not None and (type(limit) is not int or limit < 0):
+            raise ValueError("Source ranges must be nonnegative integers")
+        from llm.services.infrastructure.storage import revision_token
+        files = self.related(reference["component"])
+        snapshot = files.snapshot(reference["identifier"])
+        info = snapshot["data"].get("files", {}).get(reference["path"])
+        if info is None or revision_token(info) != reference["revision"]:
+            raise ValueError("Summary source file changed; the saved reference is stale")
+        if limit == 0:
+            return ""
+        text = files.read_file(reference["identifier"], reference["path"], expected_revision=snapshot["version"]).decode("utf-8")
+        return text[offset:] if limit is None else text[offset:offset + limit]
+
+    @workspace_locked
+    def _prepare_tool_summary(self, session_id, identifier, text, options, destination, mode, call_id):
+        from .compaction import Compactions
+        from llm.services.infrastructure.storage import revision_token
+        storage = Compactions(self, session_id, None, tool_id=identifier)
+        state = storage.recover()
+        if state:
+            storage.check_sources(state["request"])
+            return state
+        files = self.related(destination["component"])
+        snapshot = files.snapshot(destination["identifier"])
+        path = f"tool-results/{session_id}/{identifier}.txt"
+        if path in snapshot["data"].get("files", {}):
+            raise ValueError("Source file already exists without a summary request")
+        snapshot = files.write_file(destination["identifier"], path, text, expected_revision=snapshot["version"])
+        reference = {**destination, "path": path, "revision": revision_token(snapshot["data"]["files"][path])}
+        state = {"request": {"id": identifier, "status": "applied" if mode == "reference" else "pending",
+            "options": deepcopy(options), "reference": reference, "tool_call_id": call_id}}
+        if mode == "reference":
+            state["applied"] = {}
+        storage.write(state)  # Source + reference share the workspace transaction.
+        return deepcopy(state)
+
     # 공개 API. 생성과 조회는 revision이 필요 없고, 모든 변경은 CAS를 거친다.
+    @staticmethod
+    def describe_compaction():
+        """애플리케이션이 선택할 압축 요청의 schema. 설정값을 생성하지 않는다."""
+        from .compaction import compaction_schema
+        return compaction_schema()
+
+    @workspace_locked
+    def get_context(self, session_id, *, scope=None):
+        """마지막 모델 입력 경계의 토큰·예산·압축 가능한 턴과 요청 상태를 조회한다."""
+        from .compaction import Compactions
+        return Compactions(self, session_id, scope).view()
+
+    @workspace_locked
+    def request_compaction(self, session_id, options, *, expected_revision, scope=None):
+        """명시한 압축을 다음 Loop 입력 경계에 예약한다. 이 API는 모델을 호출하지 않는다."""
+        from .compaction import Compactions
+        return Compactions(self, session_id, scope).request(options, expected_revision)
+
+    aget_context = async_method(get_context)
+    arequest_compaction = async_method(request_compaction)
+
+    @workspace_locked
+    def resume_compaction(self, session_id, *, expected_revision, scope=None):
+        """Requeue the same immutable request and validated cursor; never resume a Tool effect."""
+        from .compaction import Compactions
+        return Compactions(self, session_id, scope).change(expected_revision, "resume")
+
+    @workspace_locked
+    def cancel_compaction(self, session_id, *, expected_revision, scope=None):
+        """Cancel pending work or reject an in-flight result at its next save boundary."""
+        from .compaction import Compactions
+        return Compactions(self, session_id, scope).change(expected_revision, "cancel")
+
+    aresume_compaction = async_method(resume_compaction)
+    acancel_compaction = async_method(cancel_compaction)
+
+    @workspace_locked
+    def delete_compaction(self, session_id, *, expected_revision, scope=None):
+        """Release a finished/cancelled derived context and its original-message references."""
+        from .compaction import Compactions
+        Compactions(self, session_id, scope).delete(expected_revision)
+
+    adelete_compaction = async_method(delete_compaction)
+
+    @workspace_locked
+    def list_tool_summaries(self, session_id):
+        """List saved result transformations, without loading the source text."""
+        from .compaction import Compactions
+        project, component = self._current()
+        from llm.components.base import validate_name
+        root = component._checked(component.root(project) / "tool_summaries" / validate_name(session_id))
+        result = []
+        for path in sorted(root.glob("*.json")):
+            result.append(Compactions(self, session_id, None, tool_id=path.stem).view())
+        return result
+
+    @workspace_locked
+    def read_source(self, session_id, identifier, *, expected_revision, offset, limit):
+        """Read a character range of a pinned Tool/MCP source in the owning Session."""
+        from .compaction import Compactions
+        state = Compactions(self, session_id, None, tool_id=identifier).read()
+        reference = state["request"]["reference"]
+        if reference["revision"] != expected_revision:
+            raise ValueError("Source revision changed")
+        return {"text": self._read_source(reference, offset=offset, limit=limit),
+                "offset": offset, "reference": deepcopy(reference)}
+
+    @workspace_locked
+    def resume_tool_summary(self, session_id, identifier, *, expected_revision):
+        from .compaction import Compactions
+        return Compactions(self, session_id, None, tool_id=identifier).change(expected_revision, "resume")
+
+    @workspace_locked
+    def cancel_tool_summary(self, session_id, identifier, *, expected_revision):
+        from .compaction import Compactions
+        return Compactions(self, session_id, None, tool_id=identifier).change(expected_revision, "cancel")
+
+    @workspace_locked
+    def delete_tool_summary(self, session_id, identifier, *, expected_revision):
+        """Release an inactive source reference; Data deletion remains a separate explicit action."""
+        from .compaction import Compactions
+        Compactions(self, session_id, None, tool_id=identifier).delete(expected_revision)
+
+    alist_tool_summaries = async_method(list_tool_summaries)
+    aread_source = async_method(read_source)
+    aresume_tool_summary = async_method(resume_tool_summary)
+    acancel_tool_summary = async_method(cancel_tool_summary)
+    adelete_tool_summary = async_method(delete_tool_summary)
+
     @workspace_locked
     def consolidate(self, identifier, *, expected_revision, expected_generation, session_id=None):
         return self._write_memory("consolidate", identifier, expected_revision=expected_revision,

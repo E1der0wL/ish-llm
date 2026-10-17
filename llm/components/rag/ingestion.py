@@ -110,7 +110,8 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
             stats["embedding_seconds"] = time.monotonic() - started
             diagnostic("rag_ingestion_progress", **stats)
             if telemetry:
-                await telemetry(dict(stats))
+                await telemetry({**stats, "phase": "embedding", "completed": stats["chunks_completed"],
+                                 "total": stats["chunks_total"], "unit": "chunk"})
 
     async def embed_chunk(text, ordinals):
         text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()

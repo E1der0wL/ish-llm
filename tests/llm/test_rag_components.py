@@ -66,6 +66,42 @@ class ExtractionTests(unittest.IsolatedAsyncioTestCase):
 @unittest.skipUnless(all(importlib.util.find_spec(name) for name in ("chromadb", "kuzu", "rank_bm25")),
                      "Optional RAG dependencies are not installed")
 class RAGTests(unittest.IsolatedAsyncioTestCase):
+    async def test_catalog_description_paging_without_corpus_read(self):
+        await self.rag.aadd_document(identifier="a", title="A", content="Alice owns Atlas", description="Short description")
+        await self.rag.aadd_document(identifier="b", title="B", content="backup")
+        with patch.object(RAGComponent, "snapshot", side_effect=AssertionError("catalog read corpus")):
+            page = await self.rag.alist_catalog(limit=1)
+            self.assertEqual(page["documents"][0]["description"], "Short description")
+            self.assertNotIn("content", page["documents"][0])
+            second = await self.rag.alist_catalog(limit=1, cursor=page["next_cursor"])
+            self.assertEqual(second["documents"][0]["id"], "b")
+            self.assertIsNone(second["next_cursor"])
+        original = await self.rag.aget_document("a")
+        updated = await self.rag.aupdate_document("a", description="Revised", expected_revision=original["revision"], expected_generation=original["generation"])
+        self.assertEqual(updated["revision"], original["revision"] + 1)
+        with self.assertRaises(RAGConflictError):
+            await self.rag.alist_catalog(limit=1, cursor=page["next_cursor"])
+        await self.rag.adelete_document("b")
+        self.assertEqual([row["id"] for row in (await self.rag.alist_catalog(limit=2))["documents"]], ["a"])
+
+    async def test_job_reports_real_phases_and_counts(self):
+        from llm.components.rag.jobs import RAGJobs
+        phases = []
+        original = RAGJobs._telemetry
+        def observe(jobs, identifier, values):
+            original(jobs, identifier, values)
+            progress = jobs.progress(identifier)
+            phases.append(progress)
+        job = await self.rag.aenqueue_document(title="Manual", content="Alice owns Atlas", description="Guide")
+        with patch.object(RAGJobs, "_telemetry", observe):
+            await self.rag.arun_job(job["id"])
+        self.assertTrue({"validating_input", "splitting", "embedding", "extracting", "validating", "indexing", "writing_metadata", "publishing"}.issubset({p.phase for p in phases}))
+        embedding = [p for p in phases if p.phase == "embedding"][-1]
+        self.assertEqual(embedding.completed, embedding.total)
+        final = await self.rag.ajob_progress(job["id"])
+        self.assertEqual((final.phase, final.completed, final.total), ("completed", 1, 1))
+        self.assertEqual((await self.rag.alist_catalog(limit=1))["documents"][0]["description"], "Guide")
+
     async def test_repeated_cancellation_during_lease_acquisition_does_not_leak_lock(self):
         from llm.components.rag.jobs import RAGJobs
         started, release = asyncio.Event(), asyncio.Event()

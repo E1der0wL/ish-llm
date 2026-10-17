@@ -33,7 +33,11 @@ def build_index(path, documents: dict, *, batch_size=None) -> None:
 
 def update_index(path, before, documents, *, batch_size=None):
     """복사한 불변 세대에서 바뀐 문서만 갱신한다. 기존 검색 세대는 수정하지 않는다."""
-    changed = {key for key in before.keys() | documents.keys() if before.get(key) != documents.get(key)}
+    changed = {key for key in before.keys() | documents.keys()
+               if key not in before or key not in documents or any(
+                   before[key][field] != documents[key][field] for field in ("chunks", "vectors"))}
+    if not changed:
+        return
     with collection(path) as index:
         for identifier in changed:
             if identifier in before:

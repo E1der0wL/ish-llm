@@ -65,7 +65,10 @@ def build_graph(path, documents: dict, *, options=None) -> None:
 
 def update_graph(path, before, documents, *, options=None):
     """변경 문서의 관계만 교체하고 여러 문서가 공유하는 엔티티는 보존한다."""
-    changed = {key for key in before.keys() | documents.keys() if before.get(key) != documents.get(key)}
+    changed = {key for key in before.keys() | documents.keys()
+               if key not in before or key not in documents or before[key]["graph"] != documents[key]["graph"]}
+    if not changed:
+        return
     entities = {e["id"]: e for d in documents.values() for e in d["graph"]["entities"]}
     old = {e["id"] for d in before.values() for e in d["graph"]["entities"]}
     weights = relation_weights(documents)

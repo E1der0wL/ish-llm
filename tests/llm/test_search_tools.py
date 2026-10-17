@@ -27,6 +27,19 @@ def completion_for(name, arguments, text="문서에 따라 답변했습니다.")
 @unittest.skipUnless(all(importlib.util.find_spec(name) for name in ("chromadb", "kuzu", "rank_bm25")),
                      "Optional RAG dependencies are not installed")
 class SearchToolTests(unittest.IsolatedAsyncioTestCase):
+    async def test_document_catalog_tool_avoids_retrieval_and_preserves_step(self):
+        await self.rag.aadd_document(identifier='manual', title='Manual', content='backup instructions',
+                                     description='Operational reference')
+        completion = completion_for('rag_list_documents', {'limit': 5})
+        with patch.object(self.rag_component, 'snapshot', side_effect=AssertionError('No corpus read')):
+            run = await self.run_loop(self.project, completion)
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        payload = json.loads(completion.requests[1]['messages'][-1]['content'])
+        self.assertEqual(payload['documents'][0]['description'], 'Operational reference')
+        step = next(s for s in await run.steps.alist() if s.kind == 'tool')
+        self.assertEqual(step.name, 'rag_list_documents')
+        self.assertEqual(step.output.data, payload)
+
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -58,7 +71,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(completion.requests), 2)
         definitions = completion.requests[0]["tools"]
         self.assertEqual([t["function"]["name"] for t in definitions],
-                         ["rag_search"])
+                         ["rag_search", "rag_list_documents"])
         self.assertNotIn("tool_choice", completion.requests[0])
         self.assertTrue(completion.requests[0]["stream"])
         message = completion.requests[1]["messages"][-1]
@@ -87,7 +100,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         run = await self.run_loop(self.project, completion)
         self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
         names = [t["function"]["name"] for t in completion.requests[0]["tools"]]
-        self.assertEqual(names, ["rag_search"])
+        self.assertEqual(names, ["rag_search", "rag_list_documents"])
         first = json.loads(completion.requests[1]["messages"][-1]["content"])
         self.assertEqual(first["documents"][0]["document_id"], "manual")
         result = first
@@ -110,7 +123,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         run = await self.run_loop(self.project, completion)
         self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
         self.assertEqual({item["function"]["name"] for item in completion.requests[0]["tools"]},
-                         {"rag_search"})
+                         {"rag_search", "rag_list_documents"})
         self.assertNotIn("search_tools_enabled", (await self.rag.aget_config())["config"])
 
     async def test_project_selection_controls_tools_on_subsequent_runs(self):
@@ -124,7 +137,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
         self.assertEqual([[item["function"]["name"] for item in req.get("tools", [])]
                           for req in model.requests],
-                         [[], ["rag_search"], ["rag_search"], []])
+                         [[], ["rag_search", "rag_list_documents"], ["rag_search", "rag_list_documents"], []])
 
     async def test_two_projects_cannot_select_each_others_corpus(self):
         other = await self.app.projects.acreate("Other", components=["rag"], config=rag_project())

@@ -41,10 +41,15 @@ class NamingContractTests(unittest.TestCase):
 
     def test_config_policy_and_definition_schemas_unchanged(self):
         def baseline(schema):
-            # 이름 정리 당시 fixture는 보존한다. 이후 명시적으로 추가한 Provider flag만
-            # 검증 후 제외하고 나머지 저장/설정 schema가 baseline과 동일한지 비교한다.
+            # 이름 정리 당시 fixture는 보존한다. 이후 명시적으로 추가한 Provider flag와
+            # 재개 포기 보관 설명만 검증 후 정규화하고 나머지 schema를 비교한다.
             if isinstance(schema, dict):
                 properties = schema.get('properties', {})
+                if 'job_max_age_seconds' in properties:
+                    field = properties['job_max_age_seconds']
+                    self.assertEqual(field['description'],
+                        '완료·취소·명시적으로 재개를 포기한 색인 작업의 입력/영수증 보관 기간. null은 무제한')
+                    field['description'] = '완료·취소한 색인 작업의 입력/영수증 보관 기간. null은 무제한'
                 if {'max_attempts', 'wall_timeout', 'delay_seconds', 'max_delay_seconds'} <= properties.keys():
                     for key in ('respect_retry_after', 'jitter'):
                         field = properties.pop(key)
@@ -62,7 +67,37 @@ class NamingContractTests(unittest.TestCase):
             WorkflowComponent(), LoopEngine(), GraphEngine(handlers={})]
         for implementation in implementations:
             with self.subTest(implementation=type(implementation).__name__):
-                self.assertEqual(digest(baseline(implementation.describe_config())), self.before['schemas'][type(implementation).__name__])
+                schema = implementation.describe_config()
+                if isinstance(implementation, RAGComponent):
+                    # Explicit cache capacities were added after the naming baseline.
+                    # Validate only these additions, then compare the unchanged contract.
+                    for key in ('query_cache_max_bytes', 'snapshot_cache_max_bytes'):
+                        capacity = schema['properties']['config']['properties'].pop(key)
+                        self.assertEqual(set(capacity), {'type', 'description', 'minimum'})
+                        self.assertEqual(capacity['type'], 'integer')
+                        self.assertEqual(capacity['minimum'], 0)
+                if isinstance(implementation, MCPComponent):
+                    # 명시적 MCP alias 선택 기능은 naming 정리 이후의 추가 계약이다.
+                    tools = schema['properties']['config']['properties'].pop('tools')
+                    self.assertIs(tools['additionalProperties'], False)
+                    selection, = tools['patternProperties'].values()
+                    self.assertEqual(set(selection['required']), {'server', 'tool'})
+                    self.assertIs(selection['additionalProperties'], False)
+                if isinstance(implementation, MemoryComponent):
+                    # Explicit large-result processing was added after the naming
+                    # baseline; validate these additions without rewriting history.
+                    processing = schema['properties']['config']['properties']['processing']['properties']
+                    mode = processing.pop('tool_result_mode')
+                    self.assertEqual(mode, {'type': 'string', 'description': '', 'enum': ['reference', 'summary']})
+                    prompt = processing.pop('tool_summary_prompt')
+                    self.assertEqual(prompt, {'type': 'string', 'description': '', 'minLength': 1})
+                    destination = processing.pop('tool_data')
+                    self.assertIs(destination['additionalProperties'], False)
+                    self.assertEqual(set(destination['required']), {'component', 'identifier'})
+                    self.assertEqual(destination['properties'], {
+                        'component': {'type': 'string', 'description': '', 'minLength': 1},
+                        'identifier': {'type': 'string', 'description': '', 'minLength': 1}})
+                self.assertEqual(digest(baseline(schema)), self.before['schemas'][type(implementation).__name__])
         self.assertEqual(digest(ProjectConfig.describe_policies()), self.before['schemas']['ProjectPolicy'])
 
     def test_persisted_config_domain_fields_and_workflow_unchanged(self):

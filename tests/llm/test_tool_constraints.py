@@ -151,7 +151,7 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
             "method": "hybrid", "expand": "section", "limit": 5, "max_hops": 2, "relation_limit": 30}}}},
             has_reranker=lambda: True, asearch=AsyncMock(return_value={"documents": []}))
         memory = SimpleNamespace(project=SimpleNamespace(id="p"), history_reader=None,
-                                 asearch=AsyncMock(return_value=[]))
+                                 get_config=lambda: {}, asearch=AsyncMock(return_value=[]))
         for registry, name, fields, args, invalid in (
             (search_tools(rag), "rag_search", FIELDS, {"query": "q", "limit": 5, "method": "hybrid"}, {"query": "q", "limit": 5, "method": "bm25"}),
             (memory_tools(memory), "memory_search", {"status": {"mode": "fixed", "value": "confirmed"}},

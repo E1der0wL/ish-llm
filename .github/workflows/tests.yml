@@ -33,7 +33,7 @@ jobs:
               if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name)
                   and target.id == "PLUGIN_META" for target in node.targets))
           dependencies = (project["dependencies"] + project["optional-dependencies"]["rag"]
-              + project["optional-dependencies"]["vision"] + ["prompt-toolkit"]
+              + project["optional-dependencies"]["vision"] + project["optional-dependencies"]["mcp"] + ["prompt-toolkit"]
               + [spec.split("|", 1)[0] for spec in meta["dependencies"]])
           subprocess.check_call([sys.executable, "-m", "pip", "install", *dependencies])
           PY
@@ -56,6 +56,9 @@ jobs:
           tests.llm.test_schema_ownership tests.llm.test_definition_components
           tests.llm.test_project_authority tests.llm.test_component_dependencies
           tests.llm.test_agent_delegation
+          tests.llm.test_mcp_runtime tests.llm.test_memory_processing tests.llm.test_long_running
+          tests.llm.test_summarization tests.llm.test_large_data
+          tests.llm.test_checkpoint_lifecycle tests.llm.test_rag_optimization
           tests.llm.test_builtin_tools
           tests.llm.test_test_workspaces tests.llm.test_isolated_tools
           tests.llm.test_naming_contract tests.llm.test_settings_contract

@@ -5,7 +5,7 @@ import json
 from llm.core.contracts import ResourceRef
 from llm.core.plans import RetentionPlan
 from llm.core.models import now, new_id
-from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, sync_directory, reject_links
+from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, reject_links
 
 
 class HistoryRetention:

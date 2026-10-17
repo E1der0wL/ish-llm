@@ -3,7 +3,6 @@
 from copy import deepcopy
 from jsonschema import Draft202012Validator
 from llm.core.models import ProjectConfig
-from llm.core.interactions import same_interaction_value
 from llm.core.policies import validate_tool_constraints
 
 

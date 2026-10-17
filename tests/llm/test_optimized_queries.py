@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import AsyncMock, patch
 
 from llm.core.results import ExecutionResult
+from llm.core.models import Run, RunStatus, new_id
 from llm.llm import LargeLanguageModel
 from llm.services.query import Query
 from tests.llm.support.fake_engine import FakeStreamingEngine
@@ -97,6 +98,64 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
                 return [r for r in items if r.run_id == runs[1].id and r.total_tokens is None]
         custom = await self.session.results.alist(query=ResultQuery())
         self.assertEqual([r.run_id for r in custom], [runs[1].id])
+
+    async def test_warm_result_page_reads_only_selected_runs_and_invalidates_changes(self):
+        from llm.services.infrastructure import storage
+        repository = self.app.run_repository
+        sessions = [await self.session.aget_data(), await (await self.project.sessions.acreate()).aget_data()]
+        runs = []
+        with self.app.project_manager.ownership.scope():
+            for index in range(12):
+                session = sessions[index % 2]
+                identifier = new_id()
+                run = Run(identifier, session.id, new_id(), new_id(), "test", repository.paths(session, identifier))
+                run.status = RunStatus.COMPLETED if index % 3 else RunStatus.FAILED
+                run.started_at = run.ended_at = f"2026-10-16T00:00:{index:02d}+00:00"
+                repository.save(run)
+                runs.append(run)
+        read_json = storage.read_json
+        def read_count(mock):
+            return sum(call.args[0].name == "run.json" for call in mock.call_args_list)
+        query = Query(status="completed", descending=True, offset=1, limit=2)
+        with patch.object(storage, "read_json", wraps=read_json) as read:
+            self.assertEqual(len(await self.project.results.alist()), len(runs))
+            self.assertEqual(read_count(read), len(runs))  # 전체 결과는 별도 투영 생성 없이 한 번씩만 읽는다.
+            read.reset_mock()
+            cold = await self.project.results.alist(query=query)
+            self.assertEqual(read_count(read), len(runs) + 2)
+            read.reset_mock()
+            warm = await self.project.results.alist(query=query)
+            self.assertEqual(warm, cold)
+            self.assertEqual(read_count(read), 2)
+        changed = runs[0]
+        changed.status, changed.ended_at = RunStatus.COMPLETED, "2026-10-16T01:00:00+00:00"
+        with self.app.project_manager.ownership.scope():
+            repository.save(changed)
+        with patch.object(storage, "read_json", wraps=read_json) as read:
+            page = await self.project.results.alist(query=Query(descending=True, limit=1))
+            self.assertEqual([row.run_id for row in page], [changed.id])
+            self.assertEqual(read_count(read), 2)  # 바뀐 투영 한 개 + 선택한 원본 한 개
+            read.reset_mock()
+            self.assertEqual(await self.project.results.alist(query=Query(limit=0)), [])
+            self.assertEqual(read_count(read), 0)
+            with self.assertRaisesRegex(ValueError, "cursor"):
+                await self.project.results.alist(query=Query(after="absent", limit=0))
+        ordered = sorted(runs, key=lambda r: (r.ended_at or r.started_at or "", r.id))
+        for descending in (False, True):
+            for status in (None, "completed", "failed"):
+                selected = Query(after=runs[3].id, status=status, descending=descending, offset=1, limit=2)
+                page = await self.project.results.alist(query=selected)
+                self.assertEqual([r.run_id for r in page], [r.id for r in selected.apply(ordered)])
+        # 삭제된 원본은 캐시가 남아 있어도 다시 목록에 등장하지 않는다.
+        with self.app.project_manager.ownership.scope():
+            repository.delete_history(sessions[0], changed.id)
+        self.assertNotIn(changed.id, [r.run_id for r in await self.project.results.alist()])
+        # 페이지 밖에 있는 파일의 변경/소유권 오류도 캐시가 숨기지 않는다.
+        from llm.services.infrastructure.storage import atomic_domain_json, record
+        invalid = runs[1]
+        atomic_domain_json(invalid.paths.root / "run.json", {**record(invalid), "session_id": "wrong-owner"})
+        with self.assertRaisesRegex(ValueError, "ownership"):
+            await self.project.results.alist(query=Query(limit=1))
 
 
 @unittest.skipUnless(all(importlib.util.find_spec(n) for n in ("chromadb", "kuzu", "rank_bm25")),

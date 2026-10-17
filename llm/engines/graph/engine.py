@@ -180,9 +180,6 @@ class _ParallelFrame(TypedDict):
     scope: list
 
 
-_UNSET = object()
-
-
 class _WorkflowRuntime:
     """LangGraph 실행 + 노드 결과 체크포인트. 완료 결과만 복원하고 부작용은 재생하지 않는다."""
 

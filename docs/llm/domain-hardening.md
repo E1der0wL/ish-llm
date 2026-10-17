@@ -86,7 +86,7 @@ await memory.aconfigure({'config': {'cache_records': 256, 'processing': {'comple
   설정이나 원문이 달라지면 해당 부분 커서를 재사용하지 않는다.
 - 큰 Tool 교환도 조각으로 요약한다. assistant Tool 호출/결과 쌍 전체를 처리한 뒤에만
   요약으로 대체한다. 실행 중 교환 요약 캐시는 세션 소유이며 재시작 시 원본에서 다시 만든다.
-- max_summary_calls는 과거 요약/활성 교환 요약 각 단계의 호출 상한이다. 기본 4, 최소 1이다.
+- max_summary_calls는 과거 요약/활성 교환 요약 각 단계의 호출 상한이다. 명시해야 하며 최소 1이다.
   요약 설정은 기본 비활성이고 추가 모델 호출의 사용량은 기존 Step/Run 관찰 경로에 기록된다.
 - recall_every=0은 세션 최초 1회, 양수 N은 prepare 호출마다 N회 간격으로 검색한다.
   현재 요청과 최근 Tool 결과를 검색어로 쓰며 recall_query_chars로 길이를 제한한다.

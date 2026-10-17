@@ -157,8 +157,10 @@ Run 단위는 완료 Run과 그 메시지만 제거하며 Session을 유지한�
 재작성하지 않는다. 이 정리는 비활성 파일 저장 Session에만 적용한다.
 
 컴포넌트 자료는 소유 컴포넌트가 `maintenance()`로 정리 계획을 제공한다.
-RAG는 아래 설정을 통해 완료·취소한 색인 작업 입력/영수증을 정리한다. 실패/대기/진행 작업,
-OS lease를 가진 worker와 활성 문서 색인은 유지한다.
+RAG는 아래 설정을 통해 완료·취소·명시적으로 재개를 포기한 색인 작업 입력/영수증을 정리한다.
+포기하지 않은 실패/대기/진행 작업, OS lease를 가진 worker와 활성 문서 색인은 유지한다.
+기간과 무관한 개별 Job 정리는 `checkpoint_plan → abandon_job → checkpoint_plan → delete_job`을
+사용한다. 완료·취소 Job은 포기를 생략한다. [체크포인트 계약](checkpoints.md)을 참고한다.
 
 ```python
 await project.components.rag.aconfigure({'policy': {'ingestion': {'max_active': 1}, 'retention': {'job_max_age_seconds': 30 * 86400}}})
@@ -172,6 +174,13 @@ Run Completion 기록과 `<component>/usage/<id>.json` 영수증을 함께 조�
 독립 Component 호출은 새 Run을 만들지 않는다. Tool 안의 RAG 호출은 현재 Run ID를
 기록하여 해당 Run의 한도에도 포함한다. `project.amodel_usage()`는 호출 목록,
 call_count/known_tokens/reserved_tokens/unknown_calls를 반환한다.
+
+한도를 설정하지 않아도 호출 예약·완료·실패 영수증은 계속 저장한다. 제한 검사에 필요한
+과거 사용량 조회만 생략한다. Run 한도만 있으면 다른 Run의 Completion 이력은 읽지 않고,
+Project 한도가 있으면 기존 Run/Component 이력을 함께 확인한다. 실행 중에는 Run 시작 시의
+정책 스냅샷을 사용한다. 나중에 한도를 설정해도 이전 영수증을 포함하며, 명시적인
+`project.amodel_usage()` 조회는 한도 유무와 관계없이 전체 사용량을 집계한다.
+새 누적 합계 파일이나 과거 자료 변환은 만들지 않는다.
 
 호출 전 예약과 검사에는 같은 workspace 잠금을 사용한다. RAG의 EmbeddingModel,
 RerankModel, TripleExtractor는 공통 관찰 경계를 사용한다. 토큰 한도 사용 시 입력 계수기와
@@ -192,4 +201,4 @@ unknown으로 남아 이후 토큰 한도 수락을 막는다. 예약은 모델�
 거부한다. 사용량 영수증의 자동 삭제와 공급자 청구 내역 조정은 이번 API에 포함하지 않는다.
 
 실제 5 Session × 3시간/2GB 부하·전원 장애·대상 Linux 배포판의 sandbox 검증은 별도다.
-공유 저장 잠금과 전체 corpus JSON, 전체 사용량 영수증 조회 비용도 남아 있다.
+공유 저장 잠금과 전체 corpus JSON, 한도 검사 또는 명시적 집계 시의 사용량 영수증 조회 비용도 남아 있다.

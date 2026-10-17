@@ -63,13 +63,20 @@ def check_admission(run, result, reservation, project_entries, component_entries
                 raise ExecutionLimitError("usage_unknown", "Unaccounted calls prevent quota admission")
             if sum(values) + reservation > maximum:
                 raise ExecutionLimitError("usage_limit", f"{tokens_key} exhausted")
-    check([*run.metadata.get("completions", []), *component_entries], "max_calls", "max_tokens")
-    if policy.get("project_max_calls") is not None or policy.get("project_max_tokens") is not None:
+    if has_limit(policy):
+        check([*run.metadata.get("completions", []), *component_entries], "max_calls", "max_tokens")
+    if has_limit(policy, project=True):
         seconds = policy.get("period_seconds")
         cutoff = datetime.now(timezone.utc) - timedelta(seconds=seconds) if seconds is not None else None
         entries = [e for e in project_entries
                    if cutoff is None or datetime.fromisoformat(e["started_at"]) >= cutoff]
         check(entries, "project_max_calls", "project_max_tokens")
+
+
+def has_limit(policy, *, project=False):
+    """상한이 있는 범위만 과거 영수증을 조회한다. 새 호출 기록 여부와는 무관하다."""
+    prefix = "project_" if project else ""
+    return any(policy.get(prefix + key) is not None for key in ("max_calls", "max_tokens"))
 
 
 def component_usage(registry, project):
@@ -97,7 +104,6 @@ class ComponentUsage:
         project, component = self.data._current()
         policies = project.config.policies
         repository = self.sessions.run_repository
-        auxiliary = component_usage(self.data.registry, project)
         run = None
         if source is not None:
             if source["project_id"] != project.id:
@@ -107,8 +113,12 @@ class ComponentUsage:
             if run.status != "running":
                 raise ValueError("Component model call requires an active owning Run")
             policies = run.metadata["policies"]
+        policy = policies.get("usage", {})
+        project_limited = has_limit(policy, project=True)
+        auxiliary = component_usage(self.data.registry, project) if (
+            project_limited or run is not None and has_limit(policy)) else []
         entries = []
-        if policies.get("usage", {}).get("project_max_calls") is not None or policies.get("usage", {}).get("project_max_tokens") is not None:
+        if project_limited:
             reader = getattr(repository, "completion_history", None)
             entries = [entry for session in self.sessions.list(project, include_deleted=True)
                        for entry in (reader(session) if reader else [e for r in repository.list(session) for e in r.metadata.get("completions", [])])]

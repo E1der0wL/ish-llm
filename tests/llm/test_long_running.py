@@ -1,6 +1,8 @@
 """장시간 실행의 재개·조건부 Tool 재시도 계약을 실제 서비스 경로로 검증한다."""
 
 import tempfile
+import asyncio
+import threading
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -13,6 +15,63 @@ from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
 class LongRunningTests(unittest.IsolatedAsyncioTestCase):
+    async def test_resume_partial_output_is_opt_in_and_completed_tools_are_reused(self):
+        for include in (False, True):
+            with self.subTest(partial_output=include):
+                effects = []
+                async def act(arguments):
+                    effects.append(1)
+                    return 'completed effect'
+                app, session, model = await self.setup_app(act, [
+                    [chunk(calls=[call('{}', name='act')], finish='tool_calls')],
+                    [chunk('unfinished reasoning text'), ConnectionError('offline')],
+                    [chunk('final answer', finish='stop')]])
+                failed = await (await session.run.submit('go', engine='loop')).wait()
+                self.assertEqual(failed.data.status, 'failed')
+                original = await failed.aoutputs()
+                resumed = await (await session.run.resume(failed.id, engine='loop', partial_output=include)).wait()
+                self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
+                self.assertEqual(effects, [1])
+                self.assertEqual(len(model.requests), 3)
+                text = str(model.requests[-1]['messages'])
+                self.assertEqual('unfinished reasoning text' in text, include)
+                self.assertIn('completed effect', text)
+                self.assertEqual(await failed.aoutputs(), original)
+
+    async def test_user_interrupt_then_resume_includes_partial_output(self):
+        started, release, closed = threading.Event(), threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        class InterruptedCompletion:
+            def __init__(self):
+                self.requests = []
+            def __call__(self, **request):
+                self.requests.append(request)
+                if len(self.requests) == 1:
+                    yield chunk('user-visible partial')
+                    started.set()
+                    try:
+                        release.wait(10)
+                    finally:
+                        closed.set()
+                else:
+                    yield chunk('finished', finish='stop')
+        async def act(arguments):
+            self.fail('No Tool should execute')
+        app, session, _ = await self.setup_app(act, [])
+        model = InterruptedCompletion()
+        app.engines.register('partial', LoopEngine(completion_fn=model))
+        await configure_engine(session.project, 'partial', completion={'model': 'test/model'})
+        handle = await session.run.submit('go', engine='partial')
+        self.assertTrue(await asyncio.to_thread(started.wait, 5))
+        await session.run.interrupt()
+        interrupted = await handle.wait()
+        self.assertEqual(interrupted.data.status, 'interrupted')
+        release.set()
+        self.assertTrue(await asyncio.to_thread(closed.wait, 5))
+        resumed = await (await session.run.resume(interrupted.id, engine='partial', partial_output=True)).wait()
+        self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
+        self.assertIn('user-visible partial', str(model.requests[-1]['messages']))
+
     async def test_usage_projection_reuses_unchanged_runs_and_reloads_replacements(self):
         async def act(arguments):
             pass

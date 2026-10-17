@@ -138,6 +138,8 @@ class EngineContext:
     checkpoint: Optional[dict] = None
     # 부모가 이벤트 저장을 중계하는 자식 실행 범위. Step 출력 소유권과 구분한다.
     checkpoint_scope: Optional[str] = None
+    # 명시적 재개에서만 조회한 부분 출력. 완료/승인 증명이 아닌 scope별 참고 자료다.
+    resume_outputs: tuple[EngineOutput, ...] = ()
     # 백엔드가 주입하는 실행 정책. Run 전체(중첩 Agent/Graph 포함)가 공유한다.
     tool_scope: Any = None
     pending_work: Any = None

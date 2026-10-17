@@ -47,6 +47,133 @@ class Auxiliary:
 
 
 class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_explicit_compaction_cancellation_does_not_apply_or_repeat(self):
+        await self.configure()
+        await self.build_history()
+        view = await self.memory.aget_context(self.session.id)
+        await self.memory.arequest_compaction(self.session.id,
+            {"method": "summary", "keep_turns": 0, "model_input_chars": 10000, "max_summary_calls": 10, "summary_chars": 500, "prompt": "Summarize",
+             "completion": {"model": "test/aux"}}, expected_revision=view['revision'])
+        entered, release, closed = threading.Event(), threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        calls = []
+        def slow(**request):
+            calls.append(1)
+            entered.set()
+            try:
+                release.wait(10)
+                yield from answer('{"summary":"must not apply"}')
+            finally:
+                closed.set()
+        self.component.completion_fn = slow
+        task = asyncio.create_task(self.run_loop('continue'))
+        self.assertTrue(await asyncio.to_thread(entered.wait, 5))
+        await self.session.run.interrupt()
+        release.set()
+        self.assertTrue(await asyncio.to_thread(closed.wait, 5))
+        run, model = await task
+        self.assertEqual(run.data.status, RunStatus.INTERRUPTED)
+        self.assertEqual(model.requests, [])
+        self.assertEqual((await self.memory.aget_context(self.session.id))['request']['status'], 'interrupted')
+        run, model = await self.run_loop('again')
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        self.assertEqual(calls, [1])
+        self.assertNotIn('must not apply', str(model.requests))
+
+    async def test_explicit_compaction_stale_sources_and_scope_are_not_reused(self):
+        await self.configure()
+        await self.build_history()
+        view = await self.memory.aget_context(self.session.id)
+        self.assertIsNone((await self.memory.aget_context(self.session.id, scope='another/node'))['context'])
+        await self.memory.arequest_compaction(self.session.id,
+            {"method": "summary", "keep_turns": 0, "model_input_chars": 10000, "max_summary_calls": 10, "summary_chars": 500, "prompt": "Summarize",
+             "completion": {"model": "test/aux"}}, expected_revision=view['revision'])
+        # 앞선 처리기가 입력 사본을 바꾸면 예전 범위에 대한 압축은 적용하지 않는다.
+        from unittest.mock import patch
+        from llm.components.memory.compaction import prepare_compaction
+        async def edit(session, request):
+            request.messages[0].value['content'] = 'edited source'
+            async for event in prepare_compaction(session, request):
+                yield event
+        with patch('llm.components.memory.compaction.prepare_compaction', edit):
+            run, model = await self.run_loop('continue')
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        self.assertEqual((await self.memory.aget_context(self.session.id))['request']['status'], 'stale')
+        self.assertEqual(self.aux.requests, [])
+
+    async def test_explicit_compaction_request_is_deferred_and_preserves_history(self):
+        await self.configure()
+        await self.build_history()
+        view = await self.memory.aget_context(self.session.id)
+        original = await self.session.aconversation()
+        options = {"method": "summary", "keep_turns": 0, "model_input_chars": 10000, "max_summary_calls": 10, "summary_chars": 500,
+                   "prompt": "Summarize prior decisions", "completion": {"model": "test/aux"}}
+        request = await self.memory.arequest_compaction(self.session.id, options, expected_revision=view["revision"])
+        self.assertEqual(request["status"], "pending")
+        self.assertEqual(self.aux.requests, [])
+        with self.assertRaises(ValueError):
+            await self.memory.arequest_compaction(self.session.id, options, expected_revision=view["revision"])
+        run, model = await self.run_loop("continue")
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        self.assertEqual(len(self.aux.requests), 1)
+        self.assertIn("Compacted prior conversation", model.requests[0]["messages"][-1]["content"])
+        self.assertEqual((await self.memory.aget_context(self.session.id))["request"]["status"], "applied")
+        self.assertEqual([(m.id, m.content) for m in (await self.session.aconversation())[:len(original)]], [(m.id, m.content) for m in original])
+        run, model = await self.run_loop("again")
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        self.assertEqual(len(self.aux.requests), 1)
+        self.assertIn("Compacted prior conversation", model.requests[0]["messages"][-1]["content"])
+
+    async def test_explicit_compaction_failure_keeps_original_and_does_not_retry(self):
+        await self.configure()
+        await self.build_history()
+        self.component.completion_fn = lambda **kwargs: iter(answer('{"summary":"too long"}'))
+        view = await self.memory.aget_context(self.session.id)
+        await self.memory.arequest_compaction(self.session.id,
+            {"method": "summary", "keep_turns": 0, "model_input_chars": 10000, "max_summary_calls": 10, "summary_chars": 1, "prompt": "summarize", "completion": {"model": "test"}},
+            expected_revision=view["revision"])
+        run, model = await self.run_loop()
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        self.assertEqual((await self.memory.aget_context(self.session.id))["request"]["status"], "failed")
+        self.assertTrue(any(m["content"] == "first requirement" for m in model.requests[0]["messages"]))
+
+    async def test_explicit_compaction_missing_owner_is_interrupted(self):
+        await self.configure()
+        await self.build_history()
+        view = await self.memory.aget_context(self.session.id)
+        request = await self.memory.arequest_compaction(self.session.id,
+            {"method": "summary", "keep_turns": 0, "model_input_chars": 10000, "max_summary_calls": 10, "summary_chars": 500, "prompt": "Summarize",
+             "completion": {"model": "test/aux"}}, expected_revision=view["revision"])
+        # crash 뒤 소유 Run이 정리되어도 파생 요청을 자동 재실행하거나 영구 대기시키지 않는다.
+        self.memory._claim_compaction(self.session.id, None, request["id"], "0" * 32)
+        self.assertEqual((await self.memory.aget_context(self.session.id))["request"]["status"], "interrupted")
+        run, _ = await self.run_loop()
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        self.assertEqual(self.aux.requests, [])
+
+    async def test_explicit_compaction_keeps_tool_pairs_and_resume_receipts(self):
+        await self.configure()
+        await self.build_history()
+        view = await self.memory.aget_context(self.session.id)
+        await self.memory.arequest_compaction(self.session.id,
+            {"method": "summary", "keep_turns": 0, "model_input_chars": 10000, "max_summary_calls": 10, "summary_chars": 500, "prompt": "Summarize",
+             "completion": {"model": "test/aux"}}, expected_revision=view["revision"])
+        model = ScriptedCompletion(
+            [chunk(calls=[call('{"content":"one effect","scope":"session"}', name="memory_create")], finish="tool_calls")],
+            [ConnectionError("connection lost after completed Tool")], answer())
+        failed, _ = await self.run_loop(model=model)
+        self.assertEqual(failed.data.status, RunStatus.FAILED)
+        before = await self.memory.alist(session_id=self.session.id)
+        self.assertEqual(len(before), 1)
+        resumed = await (await self.session.run.resume(failed.id, engine=failed.data.engine)).wait()
+        self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
+        self.assertEqual(await self.memory.alist(session_id=self.session.id), before)
+        self.assertEqual(len(self.aux.requests), 1)
+        messages = model.requests[-1]["messages"]
+        self.assertEqual([m["tool_call_id"] for m in messages if m["role"] == "tool"], ["call_1"])
+        self.assertEqual([c["id"] for m in messages for c in m.get("tool_calls", [])], ["call_1"])
+        self.assertIn("Compacted prior conversation", str(messages))
+
     async def test_loop_retry_does_not_retry_memory_auxiliary_model(self):
         await self.build_history()
         calls = []
@@ -273,6 +400,78 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         other = await self.project.sessions.acreate()
         _, model = await self.run_loop("other session", session=other)
         self.assertEqual(model.requests[0]["messages"], [{"role": "user", "content": "other session"}])
+
+    async def test_fragment_summary_resumes_stored_cursor_after_restart(self):
+        original = "large source " * 100
+        await self.run_loop(original)
+        await self.run_loop("recent")
+        requests = []
+        def auxiliary(**request):
+            requests.append(json.loads(request["messages"][1]["content"]))
+            yield from answer('{"summary":"accumulated"}')
+        self.component.completion_fn = auxiliary
+        await self.configure(summarize=True, keep_turns=1, summary_after_chars=1,
+                             model_input_chars=300, summary_chars=20, max_summary_calls=1)
+        run, model = await self.run_loop("current")
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        saved = await self.memory.asummary(self.session.id)
+        offset = saved['metadata']['partial']['offset']
+        self.assertGreater(offset, 0)
+        self.assertEqual(saved['metadata']['coverage_count'], 0)
+        self.assertTrue(any(m['content'] == original for m in model.requests[0]['messages']))
+        self.assertEqual(len(requests), 1)
+        await self.app.shutdown()
+        self.app = LargeLanguageModel(self.root / 'workspace', components=[self.component, PromptComponent()], engines={})
+        self.addAsyncCleanup(self.app.shutdown)
+        self.project = await self.app.projects.aload(self.project.id)
+        self.session = await self.project.sessions.aload(self.session.id)
+        self.memory = await self.project.components.aget('memory')
+        run, _ = await self.run_loop('after restart')
+        self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
+        self.assertEqual(len(requests), 2)
+        self.assertEqual(requests[1]['messages'][0]['offset'], offset)
+        self.assertEqual(requests[1]['previous_summary'], 'accumulated')
+        self.assertTrue(all(len(json.dumps(p, ensure_ascii=False)) <= 300 for p in requests))
+        self.assertEqual((await self.session.aconversation())[0].content, original)
+
+    async def test_active_fragments_keep_tool_pair_until_all_fragments_complete(self):
+        from copy import deepcopy
+        from types import SimpleNamespace
+        from llm.components.memory.processing import MemorySession
+        from llm.components.processing import CompletionRequest, CompletionMessage
+        session = MemorySession(SimpleNamespace(data=None), SimpleNamespace(completion_policy=None,
+            run=SimpleNamespace(input_message_id='input', id='run')))
+        session.config = {'active_keep_iterations': 1, 'summary_after_chars': 1,
+                          'summary_chars': 20, 'model_input_chars': 300, 'max_summary_calls': 1}
+        requests = []
+        async def auxiliary(instruction, payload, result):
+            requests.append(deepcopy(payload))
+            result['summary'] = 'accumulated'
+            if False:
+                yield
+        session._model = auxiliary
+        original = [CompletionMessage({'role': 'user', 'content': 'work'}, 'input')]
+        for identifier, content in (('old', 'x' * 900), ('latest', 'keep')):
+            original.extend([CompletionMessage({'role': 'assistant', 'tool_calls': [{'id': identifier}]}),
+                             CompletionMessage({'role': 'tool', 'tool_call_id': identifier, 'content': content})])
+        for attempt in range(20):
+            request = CompletionRequest({}, deepcopy(original), attempt)
+            before = len(requests)
+            async for _ in session._compact_active(request, {}, {}):
+                pass
+            self.assertEqual(len(requests) - before, 1)
+            if request.compacted_tool_calls:
+                self.assertEqual(request.compacted_tool_calls, ('old',))
+                self.assertEqual(request.messages[1:], original[3:])
+                break
+            self.assertEqual(request.messages, original)
+            self.assertIsNotNone(session.active_partial)
+        else:
+            self.fail('Explicit fragment budget never completed the exchange')
+        fragments = [p['exchanges'][0] for p in requests]
+        self.assertEqual(''.join(p['fragment'] for p in fragments), json.dumps([m.value for m in original[1:3]], ensure_ascii=False))
+        self.assertTrue(all(len(json.dumps(p, ensure_ascii=False)) <= 300 for p in requests))
+        self.assertIsNone(session.active_partial)
 
     async def test_tool_previews_preserve_raw_steps_and_distinct_references(self):
         await self.configure(compress_tools=True, tool_result_chars=40)

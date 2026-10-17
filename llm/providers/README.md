@@ -1,6 +1,9 @@
-# Providers — LiteLLM 호출과 공통 보호 경계
+# Providers — SDK 연결과 공통 보호 경계
 
 Engine과 RAG 모델 클라이언트가 LiteLLM을 사용할 때 공유하는 경계입니다. SDK 초기화, 호출 admission, 명시적 timeout/retry, 오류 분류, 로그·진단을 담당합니다. Project/Run/Step 파일은 저장하지 않습니다.
+
+선택적 MCP 어댑터도 이 폴더에서 SDK 연결을 담당합니다. MCP Tool 호출은 모델 호출의
+retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 ToolExecutor가 집행합니다.
 
 ## 파일 안내
 
@@ -16,6 +19,7 @@ Engine과 RAG 모델 클라이언트가 LiteLLM을 사용할 때 공유하는 �
 | [litellm.py](litellm.py) | 비스트리밍 SDK 함수 선택과 동기 completion의 bounded async 스트림/취소 연결입니다. |
 | [observations.py](observations.py) | 모델 호출 관찰·사용량을 기존 실행 문맥과 연결합니다. |
 | [embeddings.py](embeddings.py) | 단일 입력 응답의 벡터 개수·차원·유한성·zero-vector 무결성 검사입니다. |
+| [mcp.py](mcp.py) | 선택적 MCP SDK의 stdio/Streamable HTTP 연결·발견·호출·취소입니다. Tool 실행 정책은 소유하지 않습니다. |
 
 설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. `runtime.py`는 LiteLLM 초기화와 진단 라우팅을 담당한다. 모드·인증 환경변수는 호스트 또는 SDK가 선택한다.
 

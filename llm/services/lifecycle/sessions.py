@@ -388,6 +388,35 @@ class SessionManager:
         return self._turn_deletion(self.repository.reload(session), request_id)[2]
 
     @workspace_locked
+    def checkpoint_plan(self, session: Session, run_id: str):
+        self._owner(session)
+        current = self.repository.reload(session)
+        run = self.run_repository.load(current, run_id)
+        return self.run_repository.checkpoint_plan(current, run, self.conversations(current),
+            attached=self.ownership.session_attached((current.project_id, current.id)))
+
+    @workspace_locked
+    def abandon_resume(self, session: Session, run_id: str, *, expected_revision):
+        """대화 삭제 없이 재개만 포기한다. 실행 효과·상태·대화는 유지한다."""
+        from llm.core.checkpoints import require_checkpoint_plan
+        self._owner(session)
+        current = self.require_inactive(session)
+        run = self.run_repository.load(current, run_id)
+        plan = self.run_repository.checkpoint_plan(current, run, self.conversations(current))
+        require_checkpoint_plan(plan, expected_revision, action="abandon")
+        self.run_repository.abandon_resume(run)
+        activity_event(self._owner(current), run, "run.resume_abandoned",
+            time=run.metadata["resume_abandonment"]["abandoned_at"], status=run.status)
+
+    @workspace_locked
+    def delete_checkpoints(self, session: Session, run_id: str, *, expected_revision):
+        self._owner(session)
+        current = self.require_inactive(session)
+        run = self.run_repository.load(current, run_id)
+        self.run_repository.delete_checkpoints(current, run, self.conversations(current),
+                                              expected_revision=expected_revision)
+
+    @workspace_locked
     def delete_turn(self, session: Session, request_id: str, *, abandon_runs=(), expected_revision=None) -> None:
         """확인된 재개 포기와 대화 논리 삭제를 하나의 트랜잭션으로 저장한다."""
         if (not isinstance(abandon_runs, (tuple, list))

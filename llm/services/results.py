@@ -7,7 +7,7 @@ from typing import Optional, Protocol, Union
 import json
 import hashlib
 
-from llm.core.models import Project, Run, RunStatus, Session, SessionStatus
+from llm.core.models import Project, Run, Session, SessionStatus
 from llm.core.results import ExecutionResult
 from llm.services.infrastructure.locking import WorkspaceOwnership, workspace_locked
 
@@ -28,12 +28,13 @@ class SessionReader(Protocol):
 
 class RunReader(Protocol):
     def load(self, session: Session, run_id: str) -> Run: ...
-    def list(self, session: Session) -> list[Run]: ...
+    def list_results(self, sessions: list[Session], *, include_running: bool = False,
+                     query: Optional[Query] = None) -> list[Run]: ...
 
 
 # Run 원본에서 Session/Project 범위의 결과를 만든다.
 class RunResultQuery:
-    """No result files or cache: run.json is the sole execution source of truth.
+    """run.json is the sole execution source of truth; repositories own query projections.
 
     Project lookups traverse Sessions. Pass a Session for a direct Run lookup. Custom
     Run repositories can be injected; RunManager uses its configured repository.
@@ -97,11 +98,9 @@ class RunResultQuery:
         if query is not None and not isinstance(query, Query):
             raise TypeError("query must be Query or None")
         project, sessions = self._scope(owner, include_deleted)
-        runs = sorted((run for session in sessions for run in self.runs.list(session)
-                       if include_running or run.status not in (RunStatus.PENDING, RunStatus.RUNNING)),
-                      key=lambda run: (run.ended_at or run.started_at or "", run.id))
         if query is not None and type(query) is not Query:
             # 사용자 Query.apply는 기존대로 ExecutionResult를 입력받는다.
+            runs = self.runs.list_results(sessions, include_running=include_running)
             return select([ExecutionResult.from_run(project.id, run) for run in runs], query)
-        # 페이지 밖의 Run에 대한 completion 복사·토큰 집계를 생략한다.
-        return [ExecutionResult.from_run(project.id, run) for run in select(runs, query)]
+        runs = self.runs.list_results(sessions, include_running=include_running, query=query)
+        return [ExecutionResult.from_run(project.id, run) for run in runs]

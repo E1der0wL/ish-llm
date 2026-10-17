@@ -72,6 +72,24 @@ def enrich_graph(graph: dict, document_id: str) -> dict:
         {**edge, "weight": len(sources[key[:3]])} for key, edge in edges.items()]}
 
 
+def group_evidence(graph):
+    """Build a disposable source lookup once, rather than scanning all edges per batch."""
+    by_source = {}
+    for edge in graph["relations"]:
+        by_source.setdefault(edge["source_id"], []).append(edge)
+    return {entity["id"]: entity for entity in graph["entities"]}, by_source
+
+
+def select_graph(grouped, entity_ids, chunks, *, relation_types=()):
+    """Reconstruct one extraction batch from stored graph data, then validate its evidence."""
+    entities, by_source = grouped
+    if set(entity_ids) - entities.keys():
+        raise GraphValidationError("Extraction manifest references unknown entities")
+    return validate_graph({"entities": [entities[key] for key in entity_ids],
+        "relations": [edge for chunk in chunks for edge in by_source.get(chunk["id"], ())]},
+        chunks, relation_types=relation_types)
+
+
 class TripleExtractor(ModelClient):
     """LiteLLM 비동기 completion 또는 주입한 함수로 트리플을 추출한다."""
 

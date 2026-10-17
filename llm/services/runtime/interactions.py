@@ -4,6 +4,7 @@ from copy import deepcopy
 import json
 import hashlib
 from dataclasses import replace
+from contextlib import contextmanager
 
 from llm.core.interactions import (
     InteractionRequest, InteractionResponse, InteractionView, approval_request, same_interaction_value,
@@ -14,6 +15,9 @@ from llm.services.infrastructure.storage import atomic_json, read_json
 
 class InteractionRepository:
     """요청은 체크포인트가 원본이다. 응답 저장만으로 작업을 실행하거나 큐에 넣지 않는다."""
+
+    def __init__(self):
+        self._envelopes = None
 
     def _root(self, run):
         path = run.paths.state / "interactions"
@@ -27,6 +31,23 @@ class InteractionRepository:
         if path.is_symlink():
             raise ValueError("Interaction paths cannot follow links")
         return path
+
+    def _save(self, run, request, data):
+        path = self._path(run, request)
+        atomic_json(path, data)
+        if self._envelopes is not None:
+            self._envelopes.pop(path, None)
+
+    @contextmanager
+    def read_scope(self):
+        """한 workspace 잠금 작업 안에서만 읽기를 재사용한다. 다음 작업에는 남기지 않는다."""
+        previous, self._envelopes = self._envelopes, {}
+        try:
+            yield self
+        finally:
+            if previous is not None:
+                previous.clear()
+            self._envelopes = previous
 
     def requests(self, checkpoint: dict, run: Run) -> list[InteractionRequest]:
         values = []
@@ -50,10 +71,15 @@ class InteractionRepository:
 
     def envelope(self, run, request):
         path = self._path(run, request)
-        value = read_json(path) if path.exists() else {"run_id": run.id}
+        if self._envelopes is not None and path in self._envelopes:
+            value = self._envelopes[path]
+        else:
+            value = read_json(path) if path.exists() else {"run_id": run.id}
+            if self._envelopes is not None:
+                self._envelopes[path] = value
         if value.get("run_id") != run.id:
             raise ValueError("Interaction response Run mismatch")
-        return value
+        return deepcopy(value)
 
     def effective(self, run, requests):
         result = []
@@ -77,7 +103,7 @@ class InteractionRepository:
     def cancel(self, run, request):
         data = self.envelope(run, request)
         data["cancelled"] = True
-        atomic_json(self._path(run, request), data)
+        self._save(run, request, data)
 
     def renew(self, run, request, *, expires_at=None):
         from llm.core.models import new_id, now
@@ -91,19 +117,14 @@ class InteractionRepository:
         if replacement.expired:
             raise ValueError("Renewal expiry must be in the future")
         data["replacement"] = replacement.to_dict()
-        atomic_json(self._path(run, request), data)
+        self._save(run, request, data)
         return replacement
 
     def responses(self, run: Run, requests: list[InteractionRequest]) -> list[InteractionResponse]:
         values = []
         for request in requests:
-            path = self._path(run, request)
-            if path.exists():
-                item = read_json(path)
-                if "response" not in item:
-                    continue
-                if item["run_id"] != run.id:
-                    raise ValueError("Interaction response Run mismatch")
+            item = self.envelope(run, request)
+            if "response" in item:
                 response = InteractionResponse.from_dict(item["response"])
                 if (response.request_fingerprint != request.fingerprint or response.request_id != request.id
                         or response.request_revision != request.revision
@@ -130,7 +151,7 @@ class InteractionRepository:
             if before != after:
                 raise ValueError("Interaction was already answered differently")
             return prior[0]
-        atomic_json(self._path(run, request), {**self.envelope(run, request), "response": response.to_dict()})
+        self._save(run, request, {**self.envelope(run, request), "response": response.to_dict()})
         return deepcopy(response)
 
     def decisions(self, requests: list[InteractionRequest], responses: list[InteractionResponse],

@@ -17,6 +17,7 @@ dependencies = [
 [project.optional-dependencies]
 rag = ["chromadb", "kuzu", "rank-bm25"]
 vision = ["Pillow"]
+mcp = ["mcp>=1.30,<2"]
 
 [tool.setuptools.packages.find]
 include = ["llm", "llm.*"]

@@ -6,6 +6,31 @@ from .interactions import InteractionView
 
 
 @dataclass(frozen=True, slots=True)
+class CheckpointPlan(JsonValue):
+    """Run 전체 체크포인트 또는 RAG Job의 정리 계획. 원문/실행 payload는 노출하지 않는다."""
+    source: ResourceRef
+    checkpoints: list[str]
+    bytes: int
+    abandoned: bool
+    abandon_blockers: list[Diagnostic]
+    delete_blockers: list[Diagnostic]
+    revision: str
+
+    def __post_init__(self):
+        JsonValue.__post_init__(self)
+        if self.bytes < 0 or not self.revision or len(set(self.checkpoints)) != len(self.checkpoints):
+            raise ValueError("Invalid checkpoint plan")
+
+    @property
+    def can_abandon(self) -> bool:
+        return not self.abandon_blockers
+
+    @property
+    def can_delete(self) -> bool:
+        return not self.delete_blockers
+
+
+@dataclass(frozen=True, slots=True)
 class TurnDeletionPlan(JsonValue):
     """대화 삭제 영향의 조회 스냅샷. 실행 시 revision과 재개 참조를 다시 검증한다."""
     source: ResourceRef

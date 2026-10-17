@@ -15,6 +15,12 @@ Memory는 CompletionSession을 상속해 필요한 prepare/finish만 구현한�
 [공통 처리기 계약](completion-processing.md)에 확장 예제와 조합/수명 규칙을 설명한다.
 Memory의 config.processing.priority는 자동 처리를 사용할 때 명시하며 작은 값이 먼저 실행된다.
 
+앱이 직접 요청하는 분할 압축과 Data 원문 참조/큰 Tool·MCP 결과 요약은
+[장기 실행 API](long-running-capabilities.md#컨텍스트-조회와-압축-요청)를 참고한다.
+명시적 요청은 하나의 ID와 조각별 누적 체크포인트를 유지하고 전체 완료 후 원자적으로 적용한다.
+partial/failed/interrupted 상태는 앱이 재개해야 하며 기존 자동 요약의 이어 처리와 구분한다.
+새 tool_result_mode는 compress_tools와 동시에 선택하지 않는다.
+
 ## 활성화와 설정
 
 Memory 선택만으로 자동 검색·미리보기·요약·추출이 활성화되지는 않는다.

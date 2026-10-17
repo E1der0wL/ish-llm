@@ -14,7 +14,7 @@ from .data import RAGData
 from .indexing import build_index, update_index
 from .search import search, search_schema
 from .splitting import split_markdown
-from .extraction import validate_graph, enrich_graph, GraphValidationError
+from .extraction import validate_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
 from .prompts import extraction_schema
 from .graph_indexing import build_graph, update_graph
 from .graph_search import graph_search, related_graph
@@ -26,7 +26,7 @@ from llm.core.schema import object_schema, metadata_schema
 from llm.providers.requests import provider_schema, error_code
 from llm.providers.embeddings import extract_single_embedding
 from llm.providers.runtime import diagnostic, diagnostic_scope
-from .ingestion import VectorCache, prepare_vectors
+from .ingestion import VectorCache, prepare_vectors, vector_key
 
 
 class RAGConflictError(RuntimeError):
@@ -43,7 +43,7 @@ class RAGComponent(DefinitionComponent):
     # 일반 record CRUD는 Application 메모만 보관한다. 문서 색인은 document API가 소유한다.
     schema = object_schema({"metadata": metadata_schema()})
     parameter_layout = ParameterLayout(
-        config=("chunk_size", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
+        config=("chunk_size", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
                 "index_batch_size", "search", "graph", "document_kwargs", "query_kwargs",
                 "embedding_params", "extraction_params", "rerank_params"),
         policy=("embedding_concurrency", "provider", "ingestion", "retention"),
@@ -57,7 +57,7 @@ class RAGComponent(DefinitionComponent):
         self.embedding, self.reranker, self.extractor = embedding, reranker, extractor
         self.embedding_id = embedding_id
         values = {}
-        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
+        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
                      "document_kwargs", "query_kwargs", "index_batch_size"):
             setattr(self, name, deepcopy(values.get(name, {} if name.endswith("kwargs") else None)))
         from .search import LexicalCache
@@ -66,6 +66,9 @@ class RAGComponent(DefinitionComponent):
         self.extraction_options, self.extraction_prompt = values.get("extraction", {}), {"messages": []}
         self.provider_options = values.get("provider", {})
         self.vector_cache = VectorCache()
+        self.query_cache = VectorCache()
+        from .cache import SnapshotCache
+        self.snapshot_cache = SnapshotCache()
 
     def _generation_path(self, project, generation):
         return self._checked(self.root(project) / "generations" / validate_name(generation))
@@ -109,6 +112,17 @@ class RAGComponent(DefinitionComponent):
             raise ValueError("Custom embedding clients require embedding_id")
         return identifier
 
+    def _preparation_fingerprint(self):
+        """Only preparation inputs; cache/search tuning does not change document semantics."""
+        return revision_token({"chunk_size": self.chunk_size, "model": self._identity(),
+            "embedding": type(self.embedding).__module__ + "." + type(self.embedding).__qualname__,
+            "embedding_params": getattr(self.embedding, "params", {}),
+            "document_kwargs": self.document_kwargs, "query_kwargs": self.query_kwargs,
+            "extractor": type(self.extractor).__module__ + "." + type(self.extractor).__qualname__,
+            "extraction_params": getattr(self.extractor, "params", {}),
+            "extraction": self.extraction_options, "prompt": self.extraction_prompt,
+            "extraction_batch_size": self.extraction_batch_size})
+
     # 공개 API: 직접 호출 시 workspace 소유권은 호출자가 보장해야 한다.
     def resolve_config(self, project):
         if getattr(self, "_configuration_source", None) is not None:
@@ -146,7 +160,7 @@ class RAGComponent(DefinitionComponent):
         values = self.parameter_layout.unpack(view["values"])
         worker = copy(self)
         worker._configuration_source = self
-        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
+        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "document_kwargs", "query_kwargs", "index_batch_size"):
             setattr(worker, name, deepcopy(values.get(name, {} if name.endswith("kwargs") else None)))
         worker.search_options, worker.graph_options = values.get("search", {}), values.get("graph", {})
         worker.extraction_options = deepcopy(values.get("extraction", {}))
@@ -196,6 +210,8 @@ class RAGComponent(DefinitionComponent):
             "chunk_size": field("integer", minimum=1),
             "embedding_concurrency": field("integer", minimum=1),
             "embedding_cache_max_bytes": field("integer", minimum=0),
+            "query_cache_max_bytes": field("integer", "Query vector cache capacity; absent or zero disables caching", minimum=0),
+            "snapshot_cache_max_bytes": field("integer", "Corpus projection cache capacity; absent or zero disables caching", minimum=0),
             "extraction_batch_size": field("integer", minimum=1),
             "search_cache_chars": field("integer", minimum=0),
             "index_batch_size": field("integer", minimum=1), "search": search_schema(),
@@ -208,7 +224,7 @@ class RAGComponent(DefinitionComponent):
             "rerank_params": child_schema(self.reranker, RerankModel),
             "ingestion": object_schema({"max_active": field("integer", "동시 색인 작업 수", minimum=1)}),
             "retention": object_schema({"job_max_age_seconds": field(["number", "null"],
-                "완료·취소한 색인 작업의 입력/영수증 보관 기간. null은 무제한", exclusiveMinimum=0)})},
+                "완료·취소·명시적으로 재개를 포기한 색인 작업의 입력/영수증 보관 기간. null은 무제한", exclusiveMinimum=0)})},
             **{"x-runtime-configuration": ["embedding", "extractor", "reranker", "embedding_id"]}))
 
     def validate_config(self, data):
@@ -222,7 +238,7 @@ class RAGComponent(DefinitionComponent):
         for value in (data.get("ingestion", {}).get("max_active"),):
             if value is not None and type(value) is not int:
                 raise ValueError("ingestion.max_active requires an integer")
-        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "index_batch_size"):
+        for name in ("chunk_size", "embedding_concurrency", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars", "index_batch_size"):
             if name in data and type(data[name]) is not int:
                 raise ValueError(f"{name} requires an integer")
         from .embedding import EmbeddingModel
@@ -237,7 +253,7 @@ class RAGComponent(DefinitionComponent):
                 validate(deepcopy(data[key]))
 
     def maintenance(self, project, *, apply=False, expected_version=None):
-        """활성 코퍼스와 실패 작업의 재개 자료를 보존하고, 만료된 종료 작업만 정리한다."""
+        """활성 코퍼스와 재개 자료를 보존하고, 만료된 종료/명시적 포기 작업만 정리한다."""
         import fcntl
         from datetime import datetime, timezone
         maximum = self._options(project).get("retention", {}).get("job_max_age_seconds")
@@ -255,10 +271,14 @@ class RAGComponent(DefinitionComponent):
                         stat = entry.stat()
                         stamps[str(entry.relative_to(path.parent))] = [stat.st_size, stat.st_mtime_ns]
                 sources.append([job, stamps])
-                ended = job.get("ended_at", job["created_at"])
+                abandoned = None
+                if "resume_abandonment" in job:
+                    from llm.core.checkpoints import ResumeAbandonment
+                    abandoned = ResumeAbandonment.from_dict(job["resume_abandonment"])
+                ended = abandoned.abandoned_at if abandoned else job.get("ended_at", job["created_at"])
                 expired = maximum is not None and (datetime.now(timezone.utc) - datetime.fromisoformat(ended)).total_seconds() > maximum
                 row = {"job_id": job["id"], "status": job["status"], "bytes": sum(s[0] for s in stamps.values())}
-                if job["status"] not in ("completed", "cancelled") or not expired:
+                if (job["status"] not in ("completed", "cancelled") and abandoned is None) or not expired:
                     protected.append({**row, "reason": "unfinished_or_retained"})
                     continue
                 stream = self._checked(path.parent / "worker.lock").open("a+b")
@@ -333,7 +353,16 @@ class RAGComponent(DefinitionComponent):
         if generation is None:
             return {"identity": identity, "generation": None, "documents": {}, "profile": None}
         path = self._generation_path(project, generation)
-        value = read_json(self._checked(path / "corpus.json"))
+        source = self._checked(path / "corpus.json")
+        info = source.stat()  # Deletion/replacement must never be hidden by a cached generation.
+        key = (str(source), identity, generation, info.st_dev, info.st_ino,
+               info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+        # Missing means inactive, not a tuning default or a materialized configuration value.
+        maximum = 0 if self.snapshot_cache_max_bytes is None else self.snapshot_cache_max_bytes
+        value = self.snapshot_cache.get(key, maximum)
+        cached = value is not None
+        if not cached:
+            value = read_json(source)
         if value.get("graph_schema_version") != 1:
             raise ValueError("Unsupported RAG graph schema; re-register source documents in a new RAG Project")
         self._validate_versions(value["documents"])
@@ -343,7 +372,28 @@ class RAGComponent(DefinitionComponent):
             raise ValueError("RAG documents require graph entities and relations")
         if not self._checked(path / "graph.kuzu").is_file():
             raise FileNotFoundError("RAG generation requires graph.kuzu")
+        if not cached:
+            self.snapshot_cache.put(key, value, maximum)
         return {**value, "identity": identity, "generation": generation}
+
+    def list_catalog(self, project, *, limit, cursor=None):
+        """현재 세대에 함께 공개된 설명 목록만 읽는다. 원본은 corpus가 소유한다."""
+        if type(limit) is not int or limit < 1:
+            raise ValueError("Catalog limit must be a positive integer")
+        identity, generation = self.corpus_version(project)
+        after = ""
+        if cursor is not None:
+            if not isinstance(cursor, dict) or set(cursor) != {"identity", "generation", "after"}:
+                raise ValueError("Invalid catalog cursor")
+            if (cursor["identity"], cursor["generation"]) != (identity, generation):
+                raise RAGConflictError("RAG catalog changed; restart pagination")
+            after = validate_name(cursor["after"])
+        rows = [] if generation is None else read_json(self._checked(self._generation_path(project, generation) / "catalog.json"))
+        selected = [row for row in rows if row["id"] > after][:limit + 1]
+        more = len(selected) > limit
+        selected = selected[:limit]
+        return {"documents": selected, "generation": generation,
+                "next_cursor": {"identity": identity, "generation": generation, "after": selected[-1]["id"]} if more else None}
 
     async def embed(self, texts: list, *, query=False) -> list:
         if not isinstance(texts, list) or len(texts) != 1:
@@ -359,7 +409,38 @@ class RAGComponent(DefinitionComponent):
         from llm.providers.embeddings import validate_vectors
         return validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))
 
+    async def embed_query(self, query):
+        """Cache only validated query vectors, never retrieval results or SDK responses."""
+        maximum = self.query_cache_max_bytes
+        if not maximum:
+            self.query_cache.get("", 0)
+            return (await self.embed([query], query=True))[0]
+        identity = getattr(self.embedding, "identity", None)
+        if identity is not None and identity(**self.query_kwargs) != identity(**self.document_kwargs):
+            raise ValueError("Query embedding model differs from indexed model")
+        client_identity = getattr(self.embedding, "cache_identity", None)
+        fingerprint = revision_token({"model": self._identity(),
+            "params": getattr(self.embedding, "params", {}), "query_kwargs": self.query_kwargs,
+            "document_kwargs": self.document_kwargs, "client": type(self.embedding).__qualname__,
+            "implementation": str(client_identity() if client_identity else id(self.embedding)),
+            "project": getattr(self, "_cache_namespace", None)})
+        key = vector_key(fingerprint, query)
+        vector = self.query_cache.get(key, maximum)
+        cached = vector is not None
+        if vector is None:
+            vector = (await self.embed([query], query=True))[0]
+        validate = getattr(self.embedding, "validate_vectors", None)
+        if validate is not None:
+            vector = validate([vector], **self.query_kwargs)[0]
+        from llm.providers.embeddings import validate_vectors
+        vector = validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))[0]
+        self.query_cache.put(key, vector, maximum)
+        diagnostic("rag_query_embedding", cached=cached)
+        return vector
+
     async def prepare(self, identifier, title, content, metadata, revision, *, progress=None, previous=None, telemetry=None):
+        if telemetry:
+            await telemetry({"phase": "validating_input"})
         policy = require_config(self.extraction_options, "failure_policy", scope="rag.extraction")
         if self.chunk_size is None:
             raise ValueError("Missing required setting: rag.chunk_size")
@@ -373,26 +454,77 @@ class RAGComponent(DefinitionComponent):
         if not isinstance(title, str) or not title.strip():
             raise ValueError("Document title must be nonempty text")
         metadata = self.deserialize(self.serialize(metadata))
+        fingerprint = self._preparation_fingerprint()
+        if (previous is not None and previous["content"] == content
+                and previous.get("preparation_fingerprint") == fingerprint
+                and (previous["graph_complete"] or policy == "disabled")):
+            from llm.providers.embeddings import validate_vectors
+            vectors = previous["vectors"]
+            validate = getattr(self.embedding, "validate_vectors", None)
+            if validate is not None:
+                vectors = validate(vectors, **self.document_kwargs)
+            dimensions = getattr(self, "_embedding_dimensions", None)
+            vectors = validate_vectors(vectors, dimensions=previous["profile"]["dimensions"] if dimensions is None else dimensions)
+            if len(vectors) != len(previous["chunks"]):
+                raise ValueError("Stored chunk/vector count mismatch")
+            validate_graph(previous["graph"], previous["chunks"],
+                           relation_types=self.extraction_options.get("relation_types", ()))
+            document = deepcopy(previous)
+            document.update(title=title, metadata=metadata, revision=revision,
+                            preparation_configuration=getattr(self, "_configuration_version", None))
+            document["ingestion"] = {"chunks_total": len(vectors), "chunks_completed": len(vectors),
+                "chunks_reused": len(vectors), "chunks_cached": 0, "chunks_requested": 0,
+                "embedding_seconds": 0.0, "extraction_seconds": 0.0, "extraction_batches": 0,
+                "provider_retries": 0, "checkpoint_reuse": 0, "metadata_only": True}
+            return document
+        if telemetry:
+            await telemetry({"phase": "splitting"})
         document = split_markdown(content, identifier, chunk_size=self.chunk_size)
         document.update(id=identifier, title=title, metadata=metadata, revision=revision,
                         generation=previous["generation"] if previous is not None else uuid4().hex)
         await prepare_vectors(self, document, previous=previous, progress=progress, telemetry=telemetry)
         document["profile"] = {"model": self._identity(), "dimensions": len(document["vectors"][0])}
         document.update(graph_complete=policy != "disabled", graph_diagnostics=[])
-        document["ingestion"].update(extraction_batches=0, extraction_seconds=0.0)
+        document["ingestion"].update(extraction_batches=0, extraction_seconds=0.0, extraction_batches_reused=0)
         if policy == "disabled":
             document["graph_diagnostics"].append(diagnostic("graph_extraction_disabled").to_dict())
         entities, relations = {}, []
+        manifest, reused_sources = [], set()
+        previous_batches = {entry["signature"]: entry for entry in previous.get("extraction_manifest", [])} if previous else {}
+        previous_graph = group_evidence(previous["graph"]) if previous_batches else None
+        extraction_total = ((len(document["chunks"]) + self.extraction_batch_size - 1) // self.extraction_batch_size
+                            if policy != "disabled" else 0)
+        extraction_done = 0
+        async def extraction_progress():
+            if telemetry:
+                await telemetry({**document["ingestion"], "phase": "extracting", "completed": extraction_done,
+                                 "total": extraction_total, "unit": "batch"})
+        if policy != "disabled":
+            await extraction_progress()
         def observe_extraction(event):
             if event.code == "provider_retry":
                 document["ingestion"]["provider_retries"] += 1
         for offset in (range(0, len(document["chunks"]), self.extraction_batch_size) if policy != "disabled" else ()):
             batch = document["chunks"][offset:offset + self.extraction_batch_size]
+            # Keep the existing Job checkpoint binding unchanged. Cross-update reuse has
+            # its own implementation identity; it is not a replacement checkpoint format.
             signature = revision_token({"chunks": batch, "extractor": type(self.extractor).__qualname__,
                                         "params": getattr(self.extractor, "params", {}),
-                                        "extraction": self.extraction_options, "prompt": self.extraction_prompt}) if progress else None
+                                        "extraction": self.extraction_options, "prompt": self.extraction_prompt})
+            reuse_signature = revision_token({"request": signature,
+                "implementation": type(self.extractor).__module__ + "." + type(self.extractor).__qualname__})
             key = f"graph_{offset}"
             graph = await progress(key, signature) if progress else None
+            if graph is None and reuse_signature in previous_batches:
+                entry = previous_batches[reuse_signature]
+                graph = select_graph(previous_graph, entry["entity_ids"], batch,
+                                     relation_types=self.extraction_options.get("relation_types", ()))
+                if revision_token(graph) != entry["digest"]:
+                    raise GraphValidationError("Stored extraction batch integrity mismatch")
+                reused_sources.update(chunk["id"] for chunk in batch)
+                document["ingestion"]["extraction_batches_reused"] += 1
+                if progress:
+                    await progress(key, signature, graph)
             if graph is None:
                 started = time.monotonic()
                 try:
@@ -411,27 +543,49 @@ class RAGComponent(DefinitionComponent):
                         batch_offset=offset, cause=code if code != "provider_failed" else "graph_validation_failed").to_dict())
                     continue
                 finally:
+                    extraction_done += 1
                     document["ingestion"]["extraction_batches"] += 1
                     document["ingestion"]["extraction_seconds"] += time.monotonic() - started
                     diagnostic("rag_extraction_progress", **document["ingestion"])
-                    if telemetry:
-                        await telemetry(dict(document["ingestion"]))
+                    await extraction_progress()
                 if progress:
                     await progress(key, signature, graph)
             else:
                 graph = validate_graph(graph, batch, relation_types=self.extraction_options.get("relation_types", ()))
+                extraction_done += 1
+                await extraction_progress()
             entities.update({e["id"]: e for e in graph["entities"]})
             relations.extend(graph["relations"])
+            manifest.append({"signature": reuse_signature, "entity_ids": [e["id"] for e in graph["entities"]],
+                             "offset": offset, "count": len(batch)})
         document["graph"] = enrich_graph(validate_graph(
             {"entities": list(entities.values()), "relations": relations}, document["chunks"],
             relation_types=self.extraction_options.get("relation_types", ())), identifier)
+        # Manifest stores identities/digests, not a second copy of the graph.
+        grouped = group_evidence(document["graph"])
+        for entry in manifest:
+            batch = document["chunks"][entry["offset"]:entry["offset"] + entry["count"]]
+            entry["digest"] = revision_token(select_graph(grouped, entry["entity_ids"], batch,
+                relation_types=self.extraction_options.get("relation_types", ())))
+        if reused_sources:
+            def edge_key(edge):
+                return tuple(edge[key] for key in ("source", "type", "target", "source_id", "evidence"))
+            stamps = {edge_key(edge): edge["extracted_at"] for edge in previous["graph"]["relations"]
+                      if edge["source_id"] in reused_sources}
+            for edge in document["graph"]["relations"]:
+                if edge_key(edge) in stamps:
+                    edge["extracted_at"] = stamps[edge_key(edge)]
+        document["extraction_manifest"] = manifest
         document["preparation_configuration"] = getattr(self, "_configuration_version", None)
+        document["preparation_fingerprint"] = fingerprint
         return document
 
-    def publish(self, project, previous, documents):
+    def publish(self, project, previous, documents, *, progress=None):
         """DB를 완성·닫은 뒤 단일 포인터를 원자적으로 교체한다. 실패 세대는 검색되지 않는다."""
         if self.corpus_version(project) != (previous["identity"], previous["generation"]):
             raise RAGConflictError("Corpus changed during preparation; reload and retry explicitly")
+        if progress:
+            progress("validating")
         self._validate_versions(documents)
         profiles = [doc["profile"] for doc in documents.values()]
         if profiles and any(profile != profiles[0] for profile in profiles):
@@ -443,6 +597,8 @@ class RAGComponent(DefinitionComponent):
             raise FileExistsError(path)
         make_directory(path)
         try:
+            if progress:
+                progress("indexing")
             if previous["generation"] and type(self)._build is RAGComponent._build and "_build" not in self.__dict__:
                 source = self._checked_tree(self._generation_path(project, previous["generation"]))
                 shutil.copytree(source / "chroma", path / "chroma", copy_function=copy_file)
@@ -451,6 +607,11 @@ class RAGComponent(DefinitionComponent):
                 update_graph(path / "graph.kuzu", previous["documents"], documents, options=self.graph_options)
             else:
                 self._build(path, documents)
+            if progress:
+                progress("writing_metadata")
+            atomic_json(path / "catalog.json", [{key: doc[key] for key in
+                ("id", "title", "description", "generation", "revision") if key in doc}
+                for _, doc in sorted(documents.items())])
             atomic_json(path / "corpus.json", {"graph_schema_version": 1, "documents": documents,
                                               "profile": profiles[0] if profiles else None})
         except BaseException:
@@ -458,6 +619,8 @@ class RAGComponent(DefinitionComponent):
             raise
         # 포인터 교체 뒤 디렉토리 fsync가 실패할 수도 있다. 공개를 시도한 세대는
         # 오류가 나더라도 여기서 지우지 않아 active가 없는 DB를 가리키지 않게 한다.
+        if progress:
+            progress("publishing")
         atomic_json(self.root(project) / "active.json", {"generation": generation})
         # 이미 공개한 세대의 성공을 정리 실패로 바꾸지 않는다. compact로 재시도할 수 있다.
         try:

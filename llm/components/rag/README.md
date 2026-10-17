@@ -1,5 +1,20 @@
 # RAG — 문서와 관계를 함께 등록·검색
 
+`aadd_document` / `aupdate_document` / `aenqueue_document`에 선택적 `description`을 전달할 수
+있습니다. Backend는 설명을 모델로 자동 생성하지 않습니다. `alist_catalog(limit=..., cursor=...)`와
+자동 제공되는 `rag_list_documents` Tool은 검색/임베딩/추출 없이 제목·설명·revision 목록을 읽습니다.
+목록은 같은 atomic generation의 `catalog.json`에 함께 공개됩니다. 페이지 도중 세대가 바뀌면
+cursor를 거부하므로 첫 페이지부터 다시 조회합니다. catalog 없는 기존 세대는 자동 변환하지
+않으며 해당 API 사용 전 원문으로 명시적으로 재등록/갱신해야 합니다.
+
+`ajob_progress(job_id)`는 현재 단계와 확인 가능한 `completed/total/unit`을 반환합니다.
+단계는 validating_input → splitting → embedding → extracting → validating → indexing → writing_metadata → publishing → completed입니다.
+추출을 끈 경우 해당 단계는 생략됩니다. 임베딩은 chunk, 추출은 처리한 batch 기준이며 실패한
+best_effort batch의 처리 완료는 그래프 성공을 의미하지 않습니다. 전체량을 모르는 단계는
+total=None입니다. 단계 비율은 계산할 수 있지만 전체 남은 시간/종합 퍼센트는 추측하지 않습니다.
+공개 단계는 기존 workspace 직렬화 경계여서 조회가 완료까지 기다릴 수 있습니다.
+취소/실패 시 활성 세대를 보존하는 계약과 Job checkpoint 재사용은 유지됩니다.
+
 Markdown 문서를 분할하고 임베딩과 관계를 추출하여 Chroma/BM25/Kuzu 색인을 관리합니다. 하나의 검색에서 관련 문서와 관계·출처를 같은 데이터 세대에서 반환합니다. embedding, rerank, 추출 모델 클라이언트도 이 Component가 소유합니다.
 
 ## 파일 안내
@@ -16,13 +31,14 @@ Markdown 문서를 분할하고 임베딩과 관계를 추출하여 Chroma/BM25/
 | [extraction.py](extraction.py) | 관계 JSON 추출·검증, 명시적 JSON mode와 repair를 처리합니다. |
 | [prompts.py](prompts.py) | 관계 추출의 기본 프로토콜 지침을 정의합니다. Project 프롬프트 저장소와 구분됩니다. |
 | [ingestion.py](ingestion.py) | 청크별 bounded 임베딩, 중복 제거, 캐시·이전 벡터 재사용과 진행 전달입니다. |
+| [cache.py](cache.py) | 명시적인 용량 안에서 불변 세대의 코퍼스 읽기 사본을 보관합니다. |
 | [jobs.py](jobs.py) | 등록 Job, 청크·추출 checkpoint와 명시적 재개를 관리합니다. |
 | [files.py](files.py) | 세대 구성 시 파일 복사/reflink 등 Linux 파일 처리를 돕습니다. |
 | [indexing.py](indexing.py) | 문서 벡터를 Chroma 색인으로 구성합니다. |
 | [graph_indexing.py](graph_indexing.py) | Kuzu 엔티티·관계·출처 색인을 구성합니다. |
 | [search.py](search.py) | BM25/vector/hybrid 검색, RRF 결합과 섹션 확장입니다. |
 | [graph_search.py](graph_search.py) | 검색 문서·엔티티에 연결된 그래프 증거를 탐색합니다. |
-| [tools.py](tools.py) | Engine에 자동 연결할 rag_search Tool의 schema와 handler입니다. |
+| [tools.py](tools.py) | rag_search와 rag_list_documents Tool의 schema와 handler입니다. |
 
 ## 시작하기
 
@@ -62,7 +78,7 @@ await rag.adelete_document("manual", expected_generation=updated["generation"],
 쌍을 보존합니다. generation 없는 옛 저장 자료는 자동 변환하지 않습니다.
 [Revision 계약](../../../docs/llm/revisions.md)을 참고하세요.
 
-문서 API는 자체적으로 Run을 생성하지 않습니다. Engine/Tool 안에서 호출하면 기존 Run의 관찰 경계를 사용합니다. `rag` 선택 시 tools capability에 `rag_search`를 제공하므로, 이를 요청하는 Loop나 Graph ToolNode는 별도의 enable_search 호출 없이 검색할 수 있습니다. 검색 이외의 문서 CRUD 전체가 자동으로 모델 Tool로 노출되는 것은 아닙니다.
+문서 API는 자체적으로 Run을 생성하지 않습니다. Engine/Tool 안에서 호출하면 기존 Run의 관찰 경계를 사용합니다. `rag` 선택 시 tools capability에 `rag_search`, `rag_list_documents`를 제공하므로 Loop나 Graph ToolNode가 검색·목록을 조회할 수 있습니다. 문서 CRUD 전체가 자동으로 모델 Tool로 노출되는 것은 아닙니다.
 
 ## 설정과 임베딩
 
@@ -74,7 +90,7 @@ await rag.adelete_document("manual", expected_generation=updated["generation"],
 | config.chunk_size / policy.embedding_concurrency | 문서 등록 시 configuration error (concurrency 범위 양의 정수) |
 | policy.extraction.failure_policy / config.extraction_batch_size | 실패 정책은 명시; 추출을 켠 경우 batch_size도 명시 |
 | config.search: method/expand/limit/candidate_count/rrf_constant | 검색 전 명시; 결합 검색은 max_hops/relation_limit도 필요 |
-| config.embedding_cache_max_bytes / config.search_cache_chars | 캐시 비활성 |
+| config.embedding_cache_max_bytes / config.query_cache_max_bytes / config.snapshot_cache_max_bytes / config.search_cache_chars | 해당 캐시 비활성 |
 | policy.provider: max_attempts/wall_timeout/delay | 최초 호출만, 자체 기한/대기 없음 |
 | config.extraction.json_mode/relation_types, policy.extraction.repair_attempts | SDK format 변경·수정 재호출·선호 목록 없음 |
 | config.graph | Kuzu native 옵션 |
@@ -106,6 +122,80 @@ LiteLLM DEFAULT_MAX_RETRIES는 import 전 환경변수와 import 후 전역값 �
 
 ## 캐시와 재개
 
+### 조회 최적화
+
+`config.query_cache_max_bytes`는 query embedding 벡터, `config.snapshot_cache_max_bytes`는
+코퍼스 조회 사본의 메모리 용량입니다. 둘 다 명시한 경우에만 활성화되며 0은 비활성입니다.
+기본 용량·자동 확대·숨은 문서 수 제한은 없습니다. `aconfigure`는 설정 전체 교체이므로
+기존 설정을 유지하려면 읽은 값에 필요한 키를 병합해서 전달합니다.
+
+Query 캐시는 Project, 모델 identity, 실제 모델 인자, document/query kwargs, 호출 구현과
+질문 해시를 구분합니다. hit도 finite/nonzero 벡터와 모델/코퍼스 차원을 검증합니다.
+실패·취소 결과는 보관하지 않으며 검색 결과나 rerank 결과는 캐시하지 않습니다.
+모델 호출이 필요한 miss는 기존 ProviderCalls·사용량 관찰 경로를 그대로 사용합니다.
+
+코퍼스 캐시는 세대·코퍼스 identity·파일 경로와 stat 정보를 함께 검사합니다. 파일 삭제·교체나
+수정은 캐시로 숨기지 않습니다. 원본은 계속 `corpus.json`이고 반환값은 독립 사본입니다.
+캐시 용량은 보관하는 Python payload 크기로 계산하며 프로세스 전체 RSS 제한을 뜻하지 않습니다.
+코퍼스가 용량보다 크면 보관하지 않습니다. 재시작하면 두 메모리 캐시는 사라집니다.
+저장 형식을 분할하거나 기존 데이터를 자동 변환하지 않습니다.
+
+### 변경된 부분만 준비
+
+본문과 준비 fingerprint가 동일하고 이전 추출이 완전하면 제목·설명·메타데이터 수정은
+임베딩·관계 추출을 호출하지 않습니다. 문서 revision은 증가하고 새 코퍼스 세대를 공개합니다.
+벡터·그래프가 동일하면 복사한 DB의 내용 갱신도 생략합니다. 원본 세대는 수정하지 않습니다.
+모델·프롬프트·추출 설정·분할 설정이 달라졌거나 이전 추출이 불완전하면 일반 준비 경로를 사용합니다.
+
+본문 수정 시 성공한 추출 배치의 입력 청크(순서·ID·제목·텍스트), 추출 구현·인자·프롬프트·정책이
+동일한 경우 관계를 재사용합니다. `extraction_manifest`에는 배치 signature, 엔티티 ID와 검증
+digest만 저장하며 그래프 원문을 중복 저장하지 않습니다. 재사용 시 정확한 인용과 digest를 검증하고
+기존 extracted_at을 유지합니다. 실패한 best_effort 배치는 manifest에 넣지 않습니다.
+청크 위치/ID가 바뀌면 보수적으로 다시 추출하며 ID를 추측하여 재매핑하지 않습니다.
+manifest/fingerprint가 없거나 일치하지 않으면 재계산하며 저장 데이터의 자동 변환은 없습니다.
+커스텀 모델 구현의 의미를 변경하면 해당 구현의 공개 identity/params도 변경해야 합니다.
+
+### 일괄 등록
+
+`aadd_documents(documents)`는 호출자가 명시한 문서 목록을 준비한 후 **한 세대**로 공개합니다.
+각 항목은 `identifier`(선택), `title`, `content`, `metadata`(선택), `description`(선택)입니다.
+새 문서 생성만 지원하며 중복 ID나 이미 등록된 ID를 덮어쓰지 않습니다.
+
+```python
+documents = [
+    {"identifier": "guide", "title": "Guide", "content": "# Guide\n...", "description": "사용 지침"},
+    {"identifier": "reference", "title": "Reference", "content": "# Reference\n..."},
+]
+saved = await rag.aadd_documents(documents)
+```
+
+문서는 순차 준비하고 각 문서 내부 임베딩에 명시된 `policy.embedding_concurrency`를 적용합니다.
+별도 문서 동시성이나 자동 batch size는 만들지 않습니다. 호출자가 한 번에 전달하는 목록이 공개 단위입니다.
+기존 RAG `required`/`best_effort`/`disabled` 추출 정책은 그대로 적용됩니다.
+준비 실패·준비 중 취소·최종 CAS 충돌이면 일부 문서만 공개하지 않습니다.
+동기 저장 트랜잭션이 이미 시작된 뒤 취소되면 기존 StorageIO 계약대로 완료까지 기다립니다.
+이때 공개가 완료될 수 있으므로 호출 취소를 rollback 영수증으로 해석하지 않습니다.
+
+재시작 가능한 일괄 등록은 `aenqueue_documents(documents)`로 **하나의 Job**을 만든 뒤
+`arun_job(job_id)`를 호출합니다. 단건 Job API와 별개인 명시적 입력 형태이며 자동 묶음은 없습니다.
+
+```python
+job = await rag.aenqueue_documents(documents)
+await rag.arun_job(job["id"])
+# 실패 또는 프로세스 중단 뒤에는 호출자가 명시적으로:
+# await rag.arun_job(job["id"], retry=True)
+```
+
+일괄 Job은 `document_ids`를 기록합니다. `batches/document_<position>.json`에 완료한 문서 준비 결과,
+`batches/d<position>_embedding_<ordinal>.json`과 `d<position>_graph_<offset>.json`에 작업 중 조각을
+보관합니다. 입력/설정 signature가 일치하는 결과만 재사용합니다. 모든 문서가 준비된 뒤 한 번 공개하고
+Job 완료를 같은 저장 트랜잭션에 기록합니다. 완료 기록 실패로 트랜잭션이 롤백되면 준비 결과를
+재사용해 모델 호출 없이 다시 공개합니다. 재개 시 동일한 준비 결과가 이미 공개되어 있으면
+공개를 반복하지 않습니다. 재개 포기·삭제·worker lease는 단건 Job과 같은 계약입니다.
+`job.ingestion.documents_total/documents_completed/document_index`로 문서 진행을 조회할 수 있으며
+기존 `ajob_progress`는 현재 문서의 임베딩·추출 단계와 공개 단계를 계속 제공합니다.
+기본 Tool 목록에 쓰기 Tool을 자동 추가하지 않습니다. Application 또는 신뢰한 Tool 구현이 API를 호출합니다.
+
 LiteLLM에는 caching=False, cache={"no-cache": true, "no-store": true}를 전달한다.
 llm VectorCache만 사용한다. 용량이 없거나 0이면 LRU를 끈다. fingerprint에는 single-chunk 계약 버전,
 모델 identity, 유효 embedding params, document/query kwargs, 클라이언트 종류를 포함한다.
@@ -127,6 +217,12 @@ worker는 progress callback만 호출하며 RAGJobs가 workspace 잠금과 atomi
 취소하면 모든 worker를 취소하고 종료를 기다린다. 완료 checkpoint는 유지하고 미완료 세대는
 공개하지 않는다. 기존 active generation은 유지한다. 취소된 Job의 자동 재실행은 없다.
 프로세스 재시작 시 LRU는 소실되지만 Job checkpoint와 이전 문서 벡터는 남는다.
+
+`checkpoint_plan(job_id)`는 Run과 같은 `CheckpointPlan`을 반환한다. 실패·대기 Job은
+`abandon_job(job_id, expected_revision=...)`으로 재개를 포기하고 새 계획을 확인한 뒤
+`delete_job(job_id, expected_revision=...)`으로 입력·체크포인트·Job 기록을 정리할 수 있다.
+완료·취소 Job은 포기를 생략한다. 살아 있는 worker lease는 삭제를 막으며 공개 문서·색인은 유지한다.
+각 API는 `a` 접두사의 비동기 버전도 제공한다. [공통 계약과 예제](../../../docs/llm/checkpoints.md)를 참고한다.
 
 `job()["ingestion"]`, 문서 ingestion, diagnostic_scope로 다음을 관찰한다:
 chunks_total/completed/reused/cached/requested, embedding_concurrency, embedding_seconds,

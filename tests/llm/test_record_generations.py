@@ -223,7 +223,7 @@ class RAGGenerationTests(unittest.IsolatedAsyncioTestCase):
         await self.rag.arun_job(job["id"], retry=True)
         self.assertEqual(len(self.calls), calls)
         self.assertEqual(await self.rag.aget_document("manual"), {k: v for k, v in prepared.items()
-            if k not in ("vectors", "graph", "profile", "preparation_configuration")})
+            if k not in ("vectors", "graph", "profile", "preparation_configuration", "preparation_fingerprint", "extraction_manifest")})
 
     async def test_missing_stored_generation_fails_without_repair(self):
         await self.add()

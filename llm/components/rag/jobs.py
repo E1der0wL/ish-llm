@@ -6,8 +6,11 @@ from uuid import uuid4
 
 from llm.components.base import validate_name
 from llm.core.models import now
+from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan
+from llm.core.contracts import ResourceRef, Diagnostic
+from llm.core.plans import CheckpointPlan
 from llm.services.infrastructure.locking import workspace_locked
-from llm.services.infrastructure.storage import atomic_json, read_json, revision_token, remove_named_tree
+from llm.services.infrastructure.storage import atomic_json, read_json, revision_token, remove_named_tree, tree_snapshot
 
 
 class RAGJobs:
@@ -20,11 +23,32 @@ class RAGJobs:
         project, component = self.data._current()
         return component._checked(component.root(project) / "jobs" / validate_name(identifier))
 
+    def _plan(self, identifier, *, live):
+        project, _ = self.data._current()
+        job = self.get(identifier)
+        source = ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name)
+        files = tree_snapshot(self._path(identifier), exclude=("worker.lock",))
+        abandoned = "resume_abandonment" in job
+        common = [Diagnostic("active_worker", "Indexing worker is still alive; cancel and await it first", source=source)] if live else []
+        abandon = list(common)
+        if abandoned or job["status"] in ("completed", "cancelled"):
+            abandon.append(Diagnostic("not_resumable", "Job is already terminal or abandoned", source=source))
+        delete = list(common)
+        if not abandoned and job["status"] not in ("completed", "cancelled"):
+            delete.append(Diagnostic("resume_required", "Abandon the Job before deleting it", source=source))
+        keys = sorted(key for key in files if key == "prepared.json" or key.startswith("batches/"))
+        return CheckpointPlan(source, keys, sum(v["bytes"] for v in files.values()), abandoned,
+            abandon, delete, revision_token({"source": source.to_dict(), "job": job, "files": files, "live": live}))
+
     @workspace_locked
-    def enqueue(self, *, title, content, metadata=None, identifier=None):
+    def enqueue(self, *, title, content, metadata=None, identifier=None, description=None):
+        if description is not None and not isinstance(description, str):
+            raise ValueError("Document description must be text")
         job_id = uuid4().hex
         identifier = validate_name(identifier or job_id)
         payload = {"title": title, "content": content, "metadata": metadata or {}, "identifier": identifier}
+        if description is not None:
+            payload["description"] = description
         root = self._path(job_id)
         atomic_json(root / "input.json", payload)
         job = {"id": job_id, "document_id": identifier, "status": "queued", "created_at": now(),
@@ -33,8 +57,26 @@ class RAGJobs:
         return job
 
     @workspace_locked
+    def enqueue_documents(self, documents):
+        from .data import validate_documents
+        inputs = validate_documents(documents)
+        job_id = uuid4().hex
+        payload = {"documents": inputs}
+        root = self._path(job_id)
+        atomic_json(root / "input.json", payload)
+        job = {"id": job_id, "document_ids": [item["identifier"] for item in inputs],
+               "status": "queued", "created_at": now(), "input_digest": revision_token(payload), "phase": "queued"}
+        atomic_json(root / "job.json", job)
+        return job
+
+    @workspace_locked
     def get(self, identifier):
-        return read_json(self._path(identifier) / "job.json")
+        job = read_json(self._path(identifier) / "job.json")
+        if job["id"] != identifier or job["status"] not in ("queued", "running", "completed", "failed", "cancelled"):
+            raise ValueError("Invalid RAG job identity or status")
+        if "resume_abandonment" in job:
+            ResumeAbandonment.from_dict(job["resume_abandonment"])
+        return job
 
     @workspace_locked
     def progress(self, identifier):
@@ -42,7 +84,7 @@ class RAGJobs:
         project, _ = self.data._current()
         job = self.get(identifier)
         return OperationProgress(ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name),
-            job["phase"], message=job.get("error", ""))
+            job["phase"], **job.get("progress", {}), message=job.get("error", ""))
 
     @workspace_locked
     def list(self):
@@ -63,9 +105,51 @@ class RAGJobs:
         return job
 
     @workspace_locked
+    def checkpoint_plan(self, identifier):
+        self.get(identifier)
+        lease = self._lease(identifier, probe=True)
+        try:
+            return self._plan(identifier, live=lease is None)
+        finally:
+            if lease is not None:
+                lease.close()
+
+    @workspace_locked
+    def abandon(self, identifier, *, expected_revision):
+        """실행 중인 worker는 포기할 수 없다. 기존 상태와 완료된 조각은 보존한다."""
+        self.get(identifier)
+        lease = self._lease(identifier, probe=True)
+        try:
+            plan = self._plan(identifier, live=lease is None)
+            require_checkpoint_plan(plan, expected_revision, action="abandon")
+            job = self.get(identifier)
+            job["resume_abandonment"] = ResumeAbandonment(now(), "explicit").to_dict()
+            atomic_json(self._path(identifier) / "job.json", job)
+            return job
+        finally:
+            if lease is not None:
+                lease.close()
+
+    @workspace_locked
+    def delete(self, identifier, *, expected_revision):
+        """Job 전체만 삭제한다. 공개된 corpus, VectorCache와 문서는 별도 소유 자료다."""
+        self.get(identifier)
+        lease = self._lease(identifier, probe=True)
+        try:
+            plan = self._plan(identifier, live=lease is None)
+            require_checkpoint_plan(plan, expected_revision, action="delete")
+            root = self._path(identifier)
+            remove_named_tree(root.parent, root, identifier)
+        finally:
+            if lease is not None:
+                lease.close()
+
+    @workspace_locked
     def _claim(self, identifier, retry):
         root = self._path(identifier)
         job = self.get(identifier)
+        if "resume_abandonment" in job:
+            raise ValueError("Job resume was abandoned")
         if job["status"] == "running":
             if not retry:
                 raise ValueError("Interrupted indexing job requires explicit retry=True")
@@ -77,21 +161,22 @@ class RAGJobs:
         maximum = component._options(project).get("ingestion", {}).get("max_active")
         if maximum is not None and (type(maximum) is not int or maximum < 1):
             raise ValueError("ingestion.max_active must be positive")
-        active = 0
-        for item in self.list():
-            if item["id"] == identifier or item["status"] != "running":
-                continue
-            lease = self._lease(item["id"], probe=True)
-            if lease is None:
-                active += 1
-            else:
-                lease.close()
-        if maximum is not None and active >= maximum:
-            raise ValueError("rag_capacity: indexing concurrency limit reached; job remains queued")
+        if maximum is not None:
+            active = 0
+            for item in self.list():
+                if item["id"] == identifier or item["status"] != "running":
+                    continue
+                lease = self._lease(item["id"], probe=True)
+                if lease is None:
+                    active += 1
+                else:
+                    lease.close()
+            if active >= maximum:
+                raise ValueError("rag_capacity: indexing concurrency limit reached; job remains queued")
         payload = read_json(root / "input.json")
         if revision_token(payload) != job["input_digest"]:
             raise ValueError("Job input changed")
-        job.update(status="running", phase="preparing", pid=os.getpid(), started_at=now())
+        job.update(status="running", phase="preparing", progress={}, pid=os.getpid(), started_at=now())
         atomic_json(root / "job.json", job)
         return payload
 
@@ -109,17 +194,35 @@ class RAGJobs:
             raise asyncio.CancelledError()
         project, component = self.data._current()
         snapshot = component.snapshot(project)
-        if document.get("preparation_configuration") != component._configuration_version:
-            raise ValueError("RAG configuration changed since preparation; enqueue a new job")
-        if document["profile"]["model"] != component._identity():
-            raise ValueError("Embedding model changed since the job was prepared")
-        existing = snapshot["documents"].get(document["id"])
-        # 공개 성공 뒤 job.json 쓰기만 실패했어도 같은 문서를 다시 임베딩/공개하지 않는다.
-        if existing is not None and existing != document:
-            raise ValueError("Document already exists with different content")
-        if existing is None:
-            component.publish(project, snapshot, {**snapshot["documents"], document["id"]: document})
-        job.update(status="completed", phase="completed", ended_at=now())
+        prepared = document["documents"] if "document_ids" in job else [document]
+        expected = job["document_ids"] if "document_ids" in job else [job["document_id"]]
+        if [item["id"] for item in prepared] != expected:
+            raise ValueError("Prepared document identity differs from Job input")
+        documents = dict(snapshot["documents"])
+        changed = False
+        for item in prepared:
+            if item.get("preparation_configuration") != component._configuration_version:
+                raise ValueError("RAG configuration changed since preparation; enqueue a new job")
+            if item["profile"]["model"] != component._identity():
+                raise ValueError("Embedding model changed since the job was prepared")
+            from llm.providers.embeddings import validate_vectors
+            from .extraction import validate_graph
+            vectors = validate_vectors(item["vectors"], dimensions=item["profile"]["dimensions"])
+            if len(vectors) != len(item["chunks"]):
+                raise ValueError("Prepared chunk/vector count mismatch")
+            validate_graph(item["graph"], item["chunks"], relation_types=component.extraction_options.get("relation_types", ()))
+            existing = documents.get(item["id"])
+            # Publication may have succeeded before the completion receipt failed.
+            if existing is not None and existing != item:
+                raise ValueError("Document already exists with different content")
+            changed |= existing is None
+            documents[item["id"]] = item
+        if changed:
+            from .component import RAGComponent
+            options = {"progress": lambda phase: self._telemetry(identifier, {"phase": phase})} if type(component).publish is RAGComponent.publish else {}
+            component.publish(project, snapshot, documents, **options)
+        job = self.get(identifier)
+        job.update(status="completed", phase="completed", progress={"completed": 1, "total": 1, "unit": "job"}, ended_at=now())
         atomic_json(self._path(identifier) / "job.json", job)
         # 공개된 원문/벡터는 corpus 세대가 소유한다. 완료 뒤 준비 결과의 중복 사본을 없앤다.
         try:
@@ -140,6 +243,7 @@ class RAGJobs:
         if job["status"] != "completed":
             from llm.providers.requests import error_code
             code = error_code(error)
+            job["failed_phase"] = job["phase"]
             job.update(status="cancelled" if cancelled else "failed", phase="cancelled" if cancelled else "failed",
                        error=code, diagnostic_code=code, ended_at=now())
             atomic_json(self._path(identifier) / "job.json", job)
@@ -147,7 +251,11 @@ class RAGJobs:
     @workspace_locked
     def _telemetry(self, identifier, values):
         job = self.get(identifier)
-        job["ingestion"] = values
+        if "phase" in values:
+            job["phase"] = values["phase"]
+            job["progress"] = {key: values[key] for key in ("completed", "total", "unit") if key in values}
+        job["ingestion"] = {**job.get("ingestion", {}), **{key: value for key, value in values.items()
+                           if key not in ("phase", "completed", "total", "unit")}}
         atomic_json(self._path(identifier) / "job.json", job)
 
     @workspace_locked
@@ -186,6 +294,38 @@ class RAGJobs:
             raise ValueError("Prepared batch configuration changed; enqueue a new job")
         return saved["value"]
 
+    async def _prepare_documents(self, identifier, inputs, component):
+        """One document at a time; embedding concurrency remains the selected RAG policy."""
+        from .component import RAGComponent
+        prepared = []
+        for position, item in enumerate(inputs):
+            signature = revision_token({"input": item, "configuration": component._configuration_version})
+            key = f"document_{position}"
+            document = await self.data._async_call(self._batch, identifier, key, signature)
+            await self.data._async_call(self._telemetry, identifier, {"phase": "preparing_documents",
+                "completed": position, "total": len(inputs), "unit": "document",
+                "documents_completed": position, "documents_total": len(inputs), "document_index": position})
+            if document is None:
+                await self.data._async_call(self.data.require_model_observation, component.embedding, component.extractor)
+                async def progress(batch_key, batch_signature, value=None):
+                    return await self.data._async_call(self._batch, identifier, f"d{position}_{batch_key}", batch_signature, value)
+                async def telemetry(values):
+                    await self.data._async_call(self._telemetry, identifier, values)
+                options = {"progress": progress, "telemetry": telemetry} if type(component).prepare is RAGComponent.prepare else {}
+                document = await component.prepare(item["identifier"], item["title"], item["content"], item["metadata"], 1, **options)
+                if item.get("description") is not None:
+                    document["description"] = item["description"]
+                document["preparation_configuration"] = component._configuration_version
+                await self.data._async_call(self._batch, identifier, key, signature, document)
+            if document["id"] != item["identifier"] or document.get("preparation_configuration") != component._configuration_version:
+                raise ValueError("Prepared document identity/configuration mismatch")
+            component._embedding_dimensions = document["profile"]["dimensions"]
+            prepared.append(document)
+        await self.data._async_call(self._telemetry, identifier, {"phase": "preparing_documents",
+            "completed": len(inputs), "total": len(inputs), "unit": "document",
+            "documents_completed": len(inputs), "documents_total": len(inputs)})
+        return {"documents": prepared}
+
     async def run(self, identifier, *, retry=False):
         # 잠금 획득 직후 취소되어도 descriptor를 잃지 않고 반드시 닫는다.
         pending = asyncio.create_task(self.data._async_call(self._lease, identifier))
@@ -206,15 +346,20 @@ class RAGJobs:
             document = await self.data._async_call(self._prepared, identifier)
             if document is None:
                 component, _ = await self.data._async_call(self.data._snapshot)
-                await self.data._async_call(self.data.require_model_observation, component.embedding, component.extractor)
-                async def progress(key, signature, value=None):
-                    return await self.data._async_call(self._batch, identifier, key, signature, value)
-                async def telemetry(values):
-                    await self.data._async_call(self._telemetry, identifier, values)
-                from .component import RAGComponent
-                options = {"progress": progress, "telemetry": telemetry} if type(component).prepare is RAGComponent.prepare else {}
-                document = await component.prepare(payload["identifier"], payload["title"], payload["content"], payload["metadata"], 1, **options)
-                document["preparation_configuration"] = component._configuration_version
+                if "documents" in payload:
+                    document = await self._prepare_documents(identifier, payload["documents"], component)
+                else:
+                    await self.data._async_call(self.data.require_model_observation, component.embedding, component.extractor)
+                    async def progress(key, signature, value=None):
+                        return await self.data._async_call(self._batch, identifier, key, signature, value)
+                    async def telemetry(values):
+                        await self.data._async_call(self._telemetry, identifier, values)
+                    from .component import RAGComponent
+                    options = {"progress": progress, "telemetry": telemetry} if type(component).prepare is RAGComponent.prepare else {}
+                    document = await component.prepare(payload["identifier"], payload["title"], payload["content"], payload["metadata"], 1, **options)
+                    if "description" in payload:
+                        document["description"] = payload["description"]
+                    document["preparation_configuration"] = component._configuration_version
                 await self.data._async_call(self._prepared, identifier, document)
             return await self.data._async_call(self._commit, identifier, document)
         except BaseException as error:

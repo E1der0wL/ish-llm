@@ -14,7 +14,7 @@ capability를 구성합니다. RunManager는 Workflow ID의 의미를 해석하�
 | [__init__.py](__init__.py) | 런타임 서비스 패키지 설명입니다. |
 | [runs.py](runs.py) | RunRepository/RunManager와 Run 수명 알림. 큐, 시작·종료, 중단과 명시적 재개를 조율합니다. |
 | [events.py](events.py) | 이벤트 처리기 등록, EventContext, 동기·queued 구독과 구독 자원 회수입니다. |
-| [checkpoints.py](checkpoints.py) | Engine이 보낸 체크포인트를 검증·저장·조회합니다. |
+| [checkpoints.py](checkpoints.py) | Engine 체크포인트 저장·조회·명시적 정리와 삭제 표식 검증입니다. 승인 증거는 보존합니다. |
 | [interactions.py](interactions.py) | 승인·확인 요청과 사용자 응답의 영속 검증·저장입니다. |
 | [steering.py](steering.py) | 추가 지시의 대상 등록·마감, 메시지·중첩 체크포인트 참조, 대상별 반영 기록을 연결합니다. |
 | [tools.py](tools.py) | ToolExecutor와 Tool 실행 범위. 승인, 실행, 재시도, 결과·Step 이벤트를 담당합니다. |
@@ -30,7 +30,11 @@ capability를 구성합니다. RunManager는 Workflow ID의 의미를 해석하�
 
 요청은 먼저 ConversationStore에 QUEUED로 저장합니다. `_begin`에서 COMMITTED와 Run 시작을 처리한 뒤 Engine을 소비하고 `_finish`에서 종료합니다. Step·Assistant·Run·Session 기록과 트랜잭션 경계를 거친 **저장 후** Run 수명 알림을 보냅니다.
 
-Run 시작 시 저장한 `metadata.policies`가 해당 Run의 정책 원본입니다. 사용자 이벤트 처리기의 `EventContext.update_metadata()`로 policies/completions/resume/checkpoints/output/steering을 덮어쓸 수 없습니다. 사용자 정의 메타데이터는 별도 키로 저장합니다.
+Run 시작 시 저장한 `metadata.policies`가 해당 Run의 정책 원본입니다. 사용자 이벤트 처리기의 `EventContext.update_metadata()`로 policies/completions/resume/checkpoints/output/steering/engine_options/resume_abandonment/checkpoint_deletion을 덮어쓸 수 없습니다. 사용자 정의 메타데이터는 별도 키로 저장합니다.
+
+RunHandle의 `checkpoint_plan → abandon_resume → checkpoint_plan → delete_checkpoints`는 대화를
+삭제하지 않는 명시적 정리 경로입니다. 완료 Run은 포기를 생략합니다. 실제 차단 조건과 보존 범위는
+[체크포인트 공통 계약](../../../docs/llm/checkpoints.md)을 따릅니다.
 
 `steer(run_id, text, targets=...)`로 접수한 지시는 일반 요청 대기열과 구분합니다. 메시지 저장·대상별 선택·반영·접수 마감을 기존 StorageIO 트랜잭션에서 처리하며 저장 후 STEERING_CHANGED를 알립니다. 서비스는 Loop 반복 번호나 Graph 실행 순서를 결정하지 않습니다. [공통 전달·재개 계약](../../../docs/llm/steering.md)을 따릅니다.
 

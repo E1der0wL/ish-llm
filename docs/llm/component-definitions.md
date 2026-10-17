@@ -57,7 +57,7 @@ async def create_definitions(backend):
 | --- | --- | --- |
 | `SkillComponent` / `llm.components.skills` | skills | skills, tools / 지침과 참고 리소스 |
 | `DataComponent` / `llm.components.data` | data | data / 명시적으로 관리하는 파일 패키지 |
-| `MCPComponent` / `llm.components.mcp` | mcp | mcp / 서버 연결 정의 |
+| `MCPComponent` / `llm.components.mcp` | mcp | mcp, tools / 서버 연결 정의와 명시적으로 선택한 Tool |
 | `RAGComponent` / `llm.components.rag` | rag | rag, tools / metadata 레코드; 실제 문서는 문서 API |
 | `AgentComponent` / `llm.components.agents` | agents | agents, EngineRegistry 연결 시 tools / 업무 정의 |
 | `WorkflowComponent` / `llm.components.workflows` | workflows | workflows / 실행할 그래프 정의 |
@@ -125,6 +125,12 @@ streamable_http/sse는 HTTP(S) url이 필수다. args는 문자열 배열이고 
 객체다. `timeout`이나 범용 `options` 필드는 없다. 실제 접속/인증/발견/호출은
 `MCPComponent(connector=...)`의 호스트 어댑터가 소유한다. AgentExecution은 선택 서버를 연결하고
 정리하며, 레코드 CRUD는 연결하거나 Tool을 실행하지 않는다.
+
+표준 어댑터 `llm.providers.mcp.MCPConnector`는 stdio/Streamable HTTP를 제공한다.
+`aprepare(server_id)`로 발견 목록을 저장하고 `config.tools`에서 `{alias: {server, tool}}`을
+명시하면 일반 Engine의 tools capability에도 연결된다. 미설정 서버/Tool은 자동 선택하지 않는다.
+Tool 실행은 공통 승인 경계를 거치며 발견 스냅샷은 연결 정의·connector revision에 묶인다.
+[상세 API](../../llm/components/mcp/README.md)를 참고한다.
 
 RAG records API는 **metadata만** 저장하며 색인하지 않는다. 실제 문서는
 `aadd_document/aupdate_document/adelete_document`로 관리한다. 분할·임베딩·관계 추출과

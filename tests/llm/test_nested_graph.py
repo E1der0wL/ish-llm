@@ -32,6 +32,23 @@ def action_graph(kind="work", **options):
 
 
 class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
+    async def test_nested_loop_resume_scopes_partial_output_and_reuses_effects(self):
+        from tests.llm.test_loop import call
+        model = ScriptedCompletion(
+            [chunk(calls=[call('{"value":"once"}', name='effect')], finish='tool_calls')],
+            [chunk('nested unfinished text'), ConnectionError('offline')],
+            [chunk('done', finish='stop')])
+        handler = AgentNode(engines={'loop': LoopEngine(completion_fn=model)})
+        await self.setup({'main': action_graph('agent', agent='worker')}, handlers={'agent': handler})
+        await self.agents.acreate({'purpose': 'work', 'engine': 'loop', 'completion': {'model': 'test'},
+                                  'tools': ['effect']}, identifier='worker')
+        failed = await self.request()
+        self.assertEqual(failed.data.status, RunStatus.FAILED, failed.data.error)
+        done = await (await self.session.run.resume(failed.id, engine='graph', partial_output=True)).wait()
+        self.assertEqual(done.data.status, RunStatus.COMPLETED, done.data.error)
+        self.assertEqual(self.effects, [{'value': 'once'}])
+        self.assertIn('nested unfinished text', str(model.requests[-1]['messages']))
+
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

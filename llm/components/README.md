@@ -22,7 +22,7 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | [workflows/](workflows/README.md) | 노드·간선·입출력 mapping | GraphEngine |
 | [skills/](skills/README.md) | 지침·참고 파일·Tool/Data 버전 참조 | skill_list/skill_read/skill_read_resource, Agent 지침 주입 |
 | [data/](data/README.md) | 학습 자료·참고 자료·임시 결과 등의 파일 패키지 | 공개 파일 API, Skill의 명시적 자료 조회 |
-| [mcp/](mcp/README.md) | 서버 연결 정의 | 호스트가 주입한 connector |
+| [mcp/](mcp/README.md) | 서버 연결 정의·발견 스냅샷 | 주입 connector, 선택적 표준 SDK 어댑터와 Tool alias |
 | [prompts/](prompts/README.md) | 시스템 지침·few-shot 메시지 | RAG 등의 소비자가 ID로 참조 |
 | [goals/](goals/README.md) | 장기 목적·진행·Run 참조 | CRUD, 읽기/승인 대상 쓰기 Tool, 선택적 문맥 주입 |
 | [refinement/](refinement/README.md) | 리소스 개선 제안·승인·적용 이력 | 일반 Run의 근거 분석, 단일 대상 CAS 적용/되돌리기 |
@@ -39,6 +39,7 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | [definitions.py](definitions.py) | JSON schema를 가진 정의형 Component의 공통 검증·스냅샷 구현입니다. |
 | [files.py](files.py) | Skill/Data 파일 패키지, manifest 검증, 파일과 정의의 원자적 변경입니다. |
 | [processing.py](processing.py) | 모델 입력 변환·응답 관찰을 조합하는 completion processor 계약입니다. |
+| [summarization.py](summarization.py) | 명시적 입력 예산에 맞춘 분할·점진 요약·결과 검증입니다. 모델 어댑터를 주입받고 저장소나 실행 수명을 소유하지 않습니다. |
 
 ## 사용자/API 관점
 

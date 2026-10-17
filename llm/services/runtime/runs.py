@@ -2,16 +2,18 @@
 
 from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
 
-from llm.services.query import FileCatalog, Query, select
+from llm.services.query import FileCatalog, Query, select, select_ordered
 from llm.services.infrastructure.journal import OutputJournal
-from llm.providers.calls import ProviderCalls, ProviderCapacityError
+from llm.providers.calls import ProviderCalls
 from llm.services.runtime.output import OutputBuffer, OutputProjection, RunOutputState, consume_events
 from typing import Optional, Union
+from types import SimpleNamespace
 import asyncio
 import inspect
 import json
 import time
-from contextlib import closing
+from contextlib import closing, contextmanager
+from contextvars import ContextVar
 from collections.abc import Callable
 from itertools import count
 from copy import deepcopy
@@ -45,6 +47,8 @@ from llm.services.results import RunResultQuery
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.errors import CodedError, stable_error_code
 from llm.core.plans import ResumePlan
+from llm.core.plans import CheckpointPlan
+from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
 from enum import StrEnum
 from asyncio import timeout
@@ -56,7 +60,7 @@ from llm.services.runtime.events import EventHandlers, EventContext, EventSubscr
 from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_digest, checkpoint_message_ids
 from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.pending import PendingWork
-from llm.services.runtime.usage import UsageScope, check_admission, component_usage
+from llm.services.runtime.usage import UsageScope, check_admission, component_usage, has_limit
 
 
 # 실행 메타데이터를 저장한다. Facade와 실행 서비스가 같은 인스턴스를 공유한다.
@@ -64,12 +68,134 @@ class RunRepository:
     """Run metadata and paths beneath the owning Session's runs root."""
 
     def __init__(self, *, output_index_stride: int = 128, catalog_size: int = 4096):
+        self._interaction_reads = ContextVar("run_interaction_reads", default=None)
         self.output_journal = OutputJournal(index_stride=output_index_stride)
         self.catalog = FileCatalog(catalog_size)
+        self.result_catalog = FileCatalog(catalog_size, projection=lambda r: SimpleNamespace(
+            id=r["id"], session_id=r["session_id"], status=RunStatus(r["status"]),
+            started_at=r["started_at"], ended_at=r["ended_at"]))
         self.usage_catalog = FileCatalog(catalog_size, projection=lambda r: (
             r["session_id"], [{key: entry[key] for key in (
                 "started_at", "usage", "usage_complete", "reserved_tokens") if key in entry}
                 for entry in r.get("metadata", {}).get("completions", [])]))
+
+    @contextmanager
+    def _interaction_scope(self, session, run, resolve=None):
+        """공개 저장소 확장점을 그대로 호출하면서 같은 잠금 작업의 읽기만 공유한다."""
+        key = (session.paths.root, run.id)
+        current = self._interaction_reads.get()
+        if current is not None and current[0] == key:
+            yield current[1:]
+            return
+        resolve = resolve or self._checkpoint_reader(session, [run])
+        with InteractionRepository().read_scope() as interactions:
+            token = self._interaction_reads.set((key, interactions, resolve))
+            try:
+                yield interactions, resolve
+            finally:
+                self._interaction_reads.reset(token)
+
+    def _checkpoint_reader(self, session, runs):
+        """잠금 작업 한 번의 Run 목록/체크포인트만 재사용한다. 영속 캐시는 만들지 않는다."""
+        current = self._interaction_reads.get()
+        if current is not None and current[0][0] == session.paths.root:
+            return current[2]
+        by_id = {run.id: run for run in runs}
+        checkpoints, resolved = {}, {}
+        def load(run, name):
+            key = (run.id, name)
+            if key not in checkpoints:
+                checkpoints[key] = self.checkpoint(run, name)
+            return checkpoints[key]
+        def load_run(identifier):
+            if identifier not in by_id:
+                by_id[identifier] = self.load(session, identifier)
+            return by_id[identifier]
+        def resolve(run, name):
+            key = (run.id, name)
+            if key not in resolved:
+                resolved[key] = self._resolve_checkpoint(run, name, load_run, load)
+            return resolved[key]
+        return resolve
+
+    def _interaction_requests(self, run, interactions, resolve):
+        deleted = CheckpointRepository().deletion(run)
+        if deleted is not None:
+            return [InteractionRequest.from_dict(raw) for raw in deleted["interactions"]]
+        names = run.metadata.get("checkpoints", []) or ([run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else [])
+        requests = []
+        for name in names:
+            values = interactions.requests({**resolve(run, name), "name": name}, run)
+            values = interactions.effective(run, values)
+            if any(v.binding.get("checkpoint") != name for v in values):
+                raise ValueError("Interaction checkpoint binding mismatch")
+            requests.extend(values)
+        if len({v.id for v in requests}) != len(requests):
+            raise ValueError("Duplicate interaction identity")
+        return requests
+
+    def _resume_references(self, records, resolve) -> list[tuple[Run, set[str], str]]:
+        """미완료 체인별 (마지막 Run, 보호 메시지 ID, 체크포인트 지문)을 반환한다.
+
+        호출자는 workspace 잠금을 소유해야 한다. 체크포인트가 손상되면
+        보호할 참조를 추측하지 않고 거부한다. 초기 복사 전 실패도 resolve_checkpoint로 읽는다.
+        """
+        from graphlib import TopologicalSorter
+        runs = {run.id: run for run in records}
+        parents = {run.id: run.metadata["resume"]["run_id"] for run in runs.values() if "resume" in run.metadata}
+        if any(parent not in runs or runs[parent].engine != runs[identifier].engine
+               for identifier, parent in parents.items()):
+            raise ValueError("Invalid resume lineage")
+        # 순환된 이력에서 모든 Run을 '후속 실행 있음'으로 오인하여 보호를 풀지 않는다.
+        tuple(TopologicalSorter({identifier: (parents[identifier],) if identifier in parents else ()
+                                for identifier in runs}).static_order())
+        superseded = set(parents.values())
+        references = []
+        for run in runs.values():
+            if run.id in superseded or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
+                continue
+            if self.resume_abandoned(run):
+                continue
+            names = run.metadata.get("checkpoints", ()) or (
+                [run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else ())
+            protected, checkpoints = set(), []
+            for name in names:
+                checkpoint = resolve(run, name)
+                protected.add(run.input_message_id)
+                protected.update(checkpoint_message_ids(checkpoint))
+                checkpoints.append([name, checkpoint])
+            if protected:
+                references.append((run, protected, checkpoint_digest({"checkpoints": checkpoints})))
+        return references
+
+    def _resolve_checkpoint(self, run, name, load_run, load_checkpoint) -> dict:
+        """초기 복사 전에 끝난 재개 시도만 검증된 원본을 따라 복원한다."""
+        selected, visited = run, set()
+        chain = []
+        while True:
+            if selected.id in visited:
+                raise ValueError("Cyclic resume lineage")
+            visited.add(selected.id)
+            try:
+                checkpoint = load_checkpoint(selected, name)
+                break
+            except FileNotFoundError:
+                descriptor = selected.metadata.get("resume")
+                if not descriptor or name in selected.metadata.get("checkpoints", ()):
+                    raise
+                if descriptor["checkpoint"] != name:
+                    raise ValueError("Resume checkpoint name mismatch")
+                parent = load_run(descriptor["run_id"])
+                if parent.engine != run.engine or parent.status not in (
+                        RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
+                    raise ValueError("Invalid resume checkpoint parent")
+                chain.append((selected, descriptor))
+                selected = parent
+        for attempt, descriptor in reversed(chain):
+            if checkpoint_digest(checkpoint) != descriptor["digest"]:
+                raise ValueError("Resume checkpoint changed before initialization")
+            checkpoint = {**checkpoint, "run_id": attempt.id, "engine": attempt.engine}
+        return checkpoint
 
     def completion_history(self, session):
         """프로젝트 한도 검사에는 사용량 투영만 읽고 전체 Run 객체/조회 로그를 만들지 않는다."""
@@ -112,6 +238,8 @@ class RunRepository:
             if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
                 raise ValueError("Backup contains an unfinished Run")
             self.output_events(run)
+            CheckpointRepository().deletion(run)
+            self.resume_abandoned(run)
             for name in run.metadata.get("checkpoints", ()):
                 self.checkpoint(run, name)
             runs.append(run)
@@ -151,7 +279,10 @@ class RunRepository:
         if data["id"] != run_id or data["session_id"] != session.id:
             raise ValueError("Run ownership mismatch")
         log_event(paths.logs, "run.loaded", entity_id=run_id)
-        return Run(**{**data, "status": RunStatus(data["status"]), "paths": paths})
+        run = Run(**{**data, "status": RunStatus(data["status"]), "paths": paths})
+        self.resume_abandoned(run)
+        CheckpointRepository().deletion(run)
+        return run
 
     def record_output(self, run: Run, value: Union[EngineDelta, EngineOutput]) -> None:
         self.output_journal.append(run.paths.state / "outputs.jsonl", [value])
@@ -215,54 +346,51 @@ class RunRepository:
         return [value for identifier, value in values if identifier in inherited or value.run_id == run.id]
 
     def interaction_requests(self, session: Session, run: Run) -> list[InteractionRequest]:
-        names = run.metadata.get("checkpoints", []) or ([run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else [])
-        requests = []
-        for name in names:
-            values = InteractionRepository().requests({**self.resolve_checkpoint(session, run, name), "name": name}, run)
-            values = InteractionRepository().effective(run, values)
-            if any(v.binding.get("checkpoint") != name for v in values):
-                raise ValueError("Interaction checkpoint binding mismatch")
-            requests.extend(values)
-        if len({v.id for v in requests}) != len(requests):
-            raise ValueError("Duplicate interaction identity")
-        return requests
+        with self._interaction_scope(session, run) as (interactions, resolve):
+            return self._interaction_requests(run, interactions, resolve)
 
     def interaction_responses(self, session: Session, run: Run) -> list[InteractionResponse]:
-        return InteractionRepository().responses(run, self.interaction_requests(session, run))
+        with self._interaction_scope(session, run) as (interactions, _):
+            requests = self.interaction_requests(session, run)
+            return interactions.responses(run, requests)
 
     def respond(self, session: Session, run: Run, response: InteractionResponse) -> InteractionResponse:
         self.require_resume(run)
-        return InteractionRepository().respond(run, self.interaction_requests(session, run), response)
+        with self._interaction_scope(session, run) as (interactions, _):
+            requests = self.interaction_requests(session, run)
+            return interactions.respond(run, requests, response)
 
     def interaction_decisions(self, session: Session, run: Run, checkpoint: dict, explicit: dict, *, retry_nodes=(), confirm=False):
         """조회와 실행이 같은 응답 저장소를 사용한다. 주입된 저장소도 이 경로를 공유한다."""
         self.require_resume(run)
-        interactions = InteractionRepository()
-        requests = self.interaction_requests(session, run)
-        if any(interactions.envelope(run, r).get("cancelled") for r in requests):
-            raise ValueError("Interaction is cancelled; renew before resuming")
-        return interactions.decisions(requests, self.interaction_responses(session, run), explicit,
-                                      retry_nodes=retry_nodes, confirm=confirm)
+        with self._interaction_scope(session, run) as (interactions, _):
+            requests = self.interaction_requests(session, run)
+            if any(interactions.envelope(run, r).get("cancelled") for r in requests):
+                raise ValueError("Interaction is cancelled; renew before resuming")
+            return interactions.decisions(requests, self.interaction_responses(session, run), explicit,
+                                          retry_nodes=retry_nodes, confirm=confirm)
 
     def apply_interaction_policy(self, session, run, policy):
         """정책 응답만 저장한다. 실행 재개와 호스트 허용 여부 검사는 별도다."""
         if not policy.get("enabled", False):
             return []
-        answered = {r.request_id for r in self.interaction_responses(session, run)}
-        saved = []
-        for request in self.interaction_requests(session, run):
-            if (request.id in answered or request.expired or request.risk is None
-                    or request.risk_scheme != policy.get("risk_scheme")
-                    or request.category == "execution.retry_uncertain"
-                    or InteractionRepository().envelope(run, request).get("cancelled")):
-                continue
-            for rule in policy.get("rules", []):
-                if rule["category"] == request.category and request.risk <= rule["max_risk"]:
-                    option = next((o for o in request.options if o.effect == "approve"), None)
-                    if option is not None:
-                        response = replace(request.respond(option.id), actor="policy", policy_id=rule["id"])
-                        saved.append(self.respond(session, run, response))
-                    break
+        with self._interaction_scope(session, run) as (interactions, _):
+            requests = self.interaction_requests(session, run)
+            answered = {r.request_id for r in self.interaction_responses(session, run)}
+            saved = []
+            for request in requests:
+                if (request.id in answered or request.expired or request.risk is None
+                        or request.risk_scheme != policy.get("risk_scheme")
+                        or request.category == "execution.retry_uncertain"
+                        or interactions.envelope(run, request).get("cancelled")):
+                    continue
+                for rule in policy.get("rules", []):
+                    if rule["category"] == request.category and request.risk <= rule["max_risk"]:
+                        option = next((o for o in request.options if o.effect == "approve"), None)
+                        if option is not None:
+                            response = replace(request.respond(option.id), actor="policy", policy_id=rule["id"])
+                            saved.append(self.respond(session, run, response))
+                        break
         return saved
 
     def resume_link(self, session, run, store):
@@ -275,69 +403,111 @@ class RunRepository:
         """서비스가 기록한 재개 포기만 해석한다. 손상된 기록은 보호 해제로 추측하지 않는다."""
         if "resume_abandonment" not in run.metadata:
             return False
-        value = run.metadata["resume_abandonment"]
-        if (not isinstance(value, dict) or set(value) != {"abandoned_at", "reason", "request_id"}
-                or value["reason"] != "conversation_deleted"
-                or any(not isinstance(value[k], str) or not value[k] for k in ("abandoned_at", "request_id"))
-                or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED)):
+        ResumeAbandonment.from_dict(run.metadata["resume_abandonment"])
+        if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
             raise ValueError("Invalid resume abandonment record")
         return True
 
     def require_resume(self, run: Run) -> None:
         if self.resume_abandoned(run):
-            raise ValueError("Resume was abandoned for conversation deletion")
+            raise ValueError("Resume was abandoned")
+        if CheckpointRepository().deletion(run) is not None:
+            raise ValueError("Checkpoints were explicitly deleted")
 
-    def abandon_resume(self, run: Run, request_id: str) -> None:
-        """잠금/트랜잭션을 소유한 삭제 서비스 전용. 실행 결과나 효과 영수증은 변경하지 않는다."""
+    def abandon_resume(self, run: Run, request_id: str | None = None) -> None:
+        """잠금/트랜잭션을 소유한 수명 서비스 전용. 실행 결과나 효과 영수증은 변경하지 않는다."""
         self.require_resume(run)
         if run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
             raise ValueError("Only an inactive resumable Run can be abandoned")
-        run.metadata["resume_abandonment"] = {
-            "abandoned_at": now(), "reason": "conversation_deleted", "request_id": request_id}
+        run.metadata["resume_abandonment"] = ResumeAbandonment(
+            now(), "conversation_deleted" if request_id is not None else "explicit", request_id).to_dict()
+        self.save(run)
+
+    def checkpoint_plan(self, session, run, store, *, attached=False):
+        """Run 전체가 정리 단위다. 중첩 실행/승인 레코드를 개별 삭제하지 않는다."""
+        from llm.services.infrastructure.storage import tree_snapshot, revision_token
+        source = ResourceRef("run", run.id, project_id=session.project_id, session_id=session.id, run_id=run.id)
+        abandoned = self.resume_abandoned(run)
+        deleted = CheckpointRepository().deletion(run)
+        names = run.metadata.get("checkpoints", []) or (
+            [run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata and deleted is None else [])
+        # 손상된 계보/참조는 삭제 허가로 바뀌지 않는다.
+        runs = self.list(session)
+        resolve = self._checkpoint_reader(session, runs)
+        self._resume_references(runs, resolve)
+        messages = store.list()
+        common = []
+        def block(code, message):
+            common.append(Diagnostic(code, message, source=source))
+        if attached or session.current_run_id or session.status == SessionStatus.RUNNING:
+            block("runtime_attached", "Shut down Session runtime before checkpoint maintenance")
+        if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
+            block("active_run", "Run is still active; recover stale Runs before maintenance")
+        if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING) for m in messages):
+            block("pending_message", "Finish or cancel pending requests before checkpoint maintenance")
+        descendants = {run.id}
+        changed = True
+        while changed:
+            changed = False
+            for other in runs:
+                if other.id not in descendants and other.metadata.get("resume", {}).get("run_id") in descendants:
+                    descendants.add(other.id)
+                    changed = True
+        for other in runs:
+            if other.id == run.id or other.id not in descendants:
+                continue
+            retired = CheckpointRepository().deletion(other) is not None
+            if (not retired and not other.metadata.get("checkpoints")
+                    or other.status not in (RunStatus.COMPLETED, RunStatus.CANCELLED) and not self.resume_abandoned(other)):
+                block("resume_reference", f"Run {other.id} still requires its resume lineage")
+        if any(m.metadata.get("resume", {}).get("run_id") == run.id
+               and m.status != MessageStatus.CANCELLED and m.run_id is None for m in messages):
+            block("resume_reserved", "A resume request still references this Run")
+        if deleted is not None or not names:
+            block("no_checkpoints", "Run has no retained checkpoints")
+        # 읽기 자체가 누락/승인 손상을 검증한다. 삭제 후 승인 원본은 감사용으로만 보존한다.
+        payloads = [resolve(run, name) for name in names]
+        with self._interaction_scope(session, run, resolve):
+            self.interaction_requests(session, run)
+            responses = self.interaction_responses(session, run)
+        files = tree_snapshot(run.paths.state / "checkpoints")
+        interaction_files = tree_snapshot(run.paths.state / "interactions")
+        abandon = list(common)
+        if abandoned or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
+            abandon.append(Diagnostic("not_resumable", "Only an un-abandoned inactive resumable Run can be abandoned", source=source))
+        delete = list(common)
+        if not abandoned and run.status not in (RunStatus.COMPLETED, RunStatus.CANCELLED):
+            delete.append(Diagnostic("resume_required", "Abandon resume before deleting checkpoints", source=source))
+        revision = revision_token({"run": record(run), "session": record(session),
+            "runs": [record(r) for r in runs], "messages": [record(m) for m in messages],
+            "payloads": payloads, "files": files, "interaction_files": interaction_files,
+            "responses": [r.to_dict() for r in responses], "attached": attached})
+        return CheckpointPlan(source, list(names), sum(v["bytes"] for v in files.values()),
+                              abandoned, abandon, delete, revision)
+
+    def delete_checkpoints(self, session, run, store, *, expected_revision):
+        with self._interaction_scope(session, run):
+            plan = self.checkpoint_plan(session, run, store)
+            require_checkpoint_plan(plan, expected_revision, action="delete")
+            requests = self.interaction_requests(session, run)
+            CheckpointRepository().delete(run, names=plan.checkpoints,
+                interactions=requests, revision=plan.revision)
         self.save(run)
 
     def resume_references(self, session: Session) -> list[tuple[Run, set[str], str]]:
-        """미완료 체인별 (마지막 Run, 보호 메시지 ID, 체크포인트 지문)을 반환한다.
-
-        호출자는 workspace 잠금을 소유해야 한다. 체크포인트가 손상되면
-        보호할 참조를 추측하지 않고 거부한다. 초기 복사 전 실패도 resolve_checkpoint로 읽는다.
-        """
-        from graphlib import TopologicalSorter
-        runs = {run.id: run for run in self.list(session)}
-        parents = {run.id: run.metadata["resume"]["run_id"] for run in runs.values() if "resume" in run.metadata}
-        if any(parent not in runs or runs[parent].engine != runs[identifier].engine
-               for identifier, parent in parents.items()):
-            raise ValueError("Invalid resume lineage")
-        # 순환된 이력에서 모든 Run을 '후속 실행 있음'으로 오인하여 보호를 풀지 않는다.
-        tuple(TopologicalSorter({identifier: (parents[identifier],) if identifier in parents else ()
-                                for identifier in runs}).static_order())
-        superseded = set(parents.values())
-        references = []
-        for run in runs.values():
-            if run.id in superseded or run.status not in (RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
-                continue
-            if self.resume_abandoned(run):
-                continue
-            names = run.metadata.get("checkpoints", ()) or (
-                [run.metadata["resume"]["checkpoint"]] if "resume" in run.metadata else ())
-            protected, checkpoints = set(), []
-            for name in names:
-                checkpoint = self.resolve_checkpoint(session, run, name)
-                protected.add(run.input_message_id)
-                protected.update(checkpoint_message_ids(checkpoint))
-                checkpoints.append([name, checkpoint])
-            if protected:
-                references.append((run, protected, checkpoint_digest({"checkpoints": checkpoints})))
-        return references
+        runs = self.list(session)
+        return self._resume_references(runs, self._checkpoint_reader(session, runs))
 
     def resumable_message_ids(self, session: Session) -> set[str]:
         return {identifier for _, identifiers, _ in self.resume_references(session) for identifier in identifiers}
 
     def interaction_views(self, session, run, store):
         message, resumed = self.resume_link(session, run, store)
-        return InteractionRepository().views(run, self.interaction_requests(session, run),
-            self.interaction_responses(session, run), resume_message=message, resumed_run=resumed,
-            resume_abandoned=self.resume_abandoned(run))
+        with self._interaction_scope(session, run) as (interactions, _):
+            requests = self.interaction_requests(session, run)
+            return interactions.views(run, requests,
+                self.interaction_responses(session, run), resume_message=message, resumed_run=resumed,
+                resume_abandoned=self.resume_abandoned(run))
 
     def change_interaction(self, session, run, request, *, operation, expires_at=None):
         self.require_resume(run)
@@ -356,33 +526,7 @@ class RunRepository:
         return CheckpointRepository().load(run, name)
 
     def resolve_checkpoint(self, session: Session, run: Run, name: str = "graph") -> dict:
-        """초기 복사 전에 끝난 재개 시도만 검증된 원본을 따라 복원한다."""
-        selected, visited = run, set()
-        chain = []
-        while True:
-            if selected.id in visited:
-                raise ValueError("Cyclic resume lineage")
-            visited.add(selected.id)
-            try:
-                checkpoint = self.checkpoint(selected, name)
-                break
-            except FileNotFoundError:
-                descriptor = selected.metadata.get("resume")
-                if not descriptor or name in selected.metadata.get("checkpoints", ()):
-                    raise
-                if descriptor["checkpoint"] != name:
-                    raise ValueError("Resume checkpoint name mismatch")
-                parent = self.load(session, descriptor["run_id"])
-                if parent.engine != run.engine or parent.status not in (
-                        RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED):
-                    raise ValueError("Invalid resume checkpoint parent")
-                chain.append((selected, descriptor))
-                selected = parent
-        for attempt, descriptor in reversed(chain):
-            if checkpoint_digest(checkpoint) != descriptor["digest"]:
-                raise ValueError("Resume checkpoint changed before initialization")
-            checkpoint = {**checkpoint, "run_id": attempt.id, "engine": attempt.engine}
-        return checkpoint
+        return self._resolve_checkpoint(run, name, lambda identifier: self.load(session, identifier), self.checkpoint)
 
     def list(self, session: Session, *, query=None) -> list[Run]:
         if type(query) is Query:
@@ -390,6 +534,31 @@ class RunRepository:
         return select(sorted((self.load(session, path.parent.name)
                        for path in session.paths.runs.glob("*/run.json")),
                       key=lambda run: (run.created_at, run.id)), query)
+
+    def list_results(self, sessions, *, include_running=False, query=None) -> "list[Run]":
+        """결과 순서로 선택한 Run만 로드한다. 원본은 run.json이며 별도 결과 파일은 없다."""
+        if query is not None and type(query) is not Query:
+            raise TypeError("Result selection requires Query or None")
+        if query is not None and query.limit == 0 and query.after is None:
+            return []
+        def visible(run):
+            return include_running or run.status not in (RunStatus.PENDING, RunStatus.RUNNING)
+        key = lambda run: (run.ended_at or run.started_at or "", run.id)
+        # 현재 저장소 확장점의 소유권을 유지한다. 사용자 list/load 구현을 파일 경로로 우회하지 않는다.
+        if query is None or type(self).list is not RunRepository.list or type(self).load is not RunRepository.load:
+            return select_ordered((r for session in sessions for r in self.list(session) if visible(r)), query, key=key)
+        owners = {session.id: session for session in sessions}
+        def rows():
+            for session in sessions:
+                for path in session.paths.runs.glob("*/run.json"):
+                    self.paths(session, path.parent.name)
+                    row = self.result_catalog.read(path)
+                    if row.session_id != session.id:
+                        raise ValueError("Run ownership mismatch")
+                    if visible(row):
+                        yield row
+        selected = select_ordered(rows(), query, key=key)
+        return [self.load(owners[row.session_id], row.id) for row in selected]
 
 
 class RunEventPublisher:
@@ -770,7 +939,7 @@ class RunManager:
                 self._notify_requests()
             return cancelled
 
-    def _resume_request(self, runtime, run_id, engine, retry_nodes, decisions, *, preview=False):
+    def _resume_request(self, runtime, run_id, engine, retry_nodes, decisions, *, preview=False, partial_output=False):
         """소유권 잠금 안에서 중복 재개를 거부하고 요청을 먼저 영속 큐에 저장한다."""
         if self.pending_work.active:
             raise RunRequestError(RunErrorCode.RESUME_REJECTED, "Cancelled work is still finishing")
@@ -797,6 +966,8 @@ class RunManager:
             raise ValueError("This Run already has a resume request; resume its latest attempt instead")
         descriptor = {"run_id": source.id, "checkpoint": name,
                       "digest": checkpoint_digest(checkpoint), "retry_nodes": list(retry_nodes), "decisions": deepcopy(decisions)}
+        if partial_output:
+            descriptor["partial_output"] = True
         project = self.sessions.require_project(runtime.project)
         candidate = deepcopy(source)
         candidate.metadata["resume"] = descriptor
@@ -829,11 +1000,12 @@ class RunManager:
             blockers.append(Diagnostic.from_exception(error, code="resume_rejected", source=ref))
         return ResumePlan(ref, engine, can_resume, views, reused, retries, blockers)
 
-    async def _resume(self, run_id, engine, retry_nodes, decisions):
+    async def _resume(self, run_id, engine, retry_nodes, decisions, partial_output):
         async with self._control_lock():
             runtime = await self._runtime()
             try:
-                message = await self._io.run(self._resume_request, runtime, run_id, engine, retry_nodes, decisions)
+                message = await self._io.run(self._resume_request, runtime, run_id, engine, retry_nodes, decisions,
+                                             partial_output=partial_output)
             except RunRequestError:
                 raise
             except (ValueError, KeyError, FileNotFoundError, TypeError, RuntimeError) as error:
@@ -956,6 +1128,21 @@ class RunManager:
             raise ValueError("Original conversation is unavailable; memory-mode resume requires the original backend") from error
         return resume_instructions(store, checkpoint)
 
+    def _partial_outputs(self, session, run):
+        """출력 원본을 조회해 미완료 Loop 회차에만 연결한다. 체크포인트는 변경하지 않는다."""
+        descriptor = run.metadata.get("resume", {})
+        if not descriptor.get("partial_output"):
+            return ()
+        source = self.repository.load(session, descriptor["run_id"])
+        steps = {step.id: step for step in self.steps.list(source)
+                 if step.kind == "llm" and step.status != StepStatus.COMPLETED
+                 and step.metadata.get("checkpoint_name") == "loop"}
+        return tuple(replace(output, metadata={**output.metadata, "source_run_id": source.id,
+                        "checkpoint_scope": steps[output.step_id].metadata.get("checkpoint_scope"),
+                        "iteration": steps[output.step_id].metadata["iteration"]})
+                     for output in self.repository.outputs(source)
+                     if output.step_id in steps and not output.final and output.text)
+
     def _context(self, runtime: SessionRuntime, run: Run, policies=None, *, project=None, engine=None) -> EngineContext:
         context_policy, limits = (policies if policies is not None
                                                    else self.policy_resolver.resolve(run.metadata["policies"]))
@@ -1014,7 +1201,8 @@ class RunManager:
             inbox.channels[inbox.target_id] = inbox
         return EngineContext(project, deepcopy(runtime.session), deepcopy(run), history,
                              tools=values.get("tools", ToolRegistry()), capabilities=values,
-                             checkpoint=checkpoint, tool_scope=tool_scope, pending_work=self.pending_work,
+                             checkpoint=checkpoint, resume_outputs=self._partial_outputs(runtime.session, run),
+                             tool_scope=tool_scope, pending_work=self.pending_work,
                              token_counters=dict(getattr(self.policy_resolver, "token_counters", {})), steering=inbox)
 
     async def _consume_limited(self, runtime, run):
@@ -1215,11 +1403,12 @@ class RunManager:
             policy = run.metadata["policies"].get("usage", {})
             project_entries = []
             auxiliary = []
-            project = self.sessions.project_access.load(self._session.project_id)
-            if isinstance(self.capabilities, ComponentToolResolver):
-                auxiliary = component_usage(self.capabilities.components, project)
-            if policy.get("project_max_calls") is not None or policy.get("project_max_tokens") is not None:
+            project_limited = has_limit(policy, project=True)
+            if project_limited or has_limit(policy):
                 project = self.sessions.project_access.load(self._session.project_id)
+            if (project_limited or has_limit(policy)) and isinstance(self.capabilities, ComponentToolResolver):
+                auxiliary = component_usage(self.capabilities.components, project)
+            if project_limited:
                 reader = getattr(self.repository, "completion_history", None)
                 project_entries = [entry for session in self.sessions.list(project, include_deleted=True)
                                    for entry in (reader(session) if reader else [e for r in self.repository.list(session)
@@ -1378,12 +1567,14 @@ class RunManager:
         """큐 등록이나 모델 호출 없이 재사용·승인·재개 차단 사유를 조회한다."""
         return await self._io.run(self._resume_plan, run_id, engine)
 
-    async def resume(self, run_id: str, *, engine: str, retry_nodes=(), decisions=None) -> Message:
+    async def resume(self, run_id: str, *, engine: str, retry_nodes=(), decisions=None, partial_output=False) -> Message:
         """체크포인트에서 새 Run을 예약한다. 불확실한 노드의 키는 명시적으로 승인한다."""
         if decisions is not None and not isinstance(decisions, dict):
             raise TypeError("Resume decisions must be a JSON object")
+        if type(partial_output) is not bool:
+            raise TypeError("partial_output must be a boolean")
         decisions = json.loads(json.dumps(decisions if decisions is not None else {}, allow_nan=False))
-        return await drain_on_cancel(self._resume(run_id, engine, tuple(retry_nodes), decisions))
+        return await drain_on_cancel(self._resume(run_id, engine, tuple(retry_nodes), decisions, partial_output))
 
     async def cancel_request(self, message_id: str) -> bool:
         """대기 요청만 취소한다. 실행 중이면 False이며 interrupt로 명시적으로 중단한다."""

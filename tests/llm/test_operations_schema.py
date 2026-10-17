@@ -298,6 +298,28 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "quota"):
             await project.components.aremove("rag", permanent=True)
 
+    async def test_unlimited_calls_keep_receipts_without_reading_usage_history(self):
+        rag = self.rag()
+        app, model = await self.app(components=[rag])
+        project = await app.projects.acreate(components=["rag"], config=rag_project({
+            "parameters": {"engines": {"custom": {"config": {"completion": {"model": "test"}}}}}}))
+        session = await project.sessions.acreate()
+        with patch.object(rag, "model_usage", side_effect=AssertionError("unneeded component history")), \
+                patch.object(app.run_repository, "completion_history", side_effect=AssertionError("unneeded Run history")):
+            await project.components.rag.aadd_document(title="Guide", content="# Guide\nLocal scripting reference.")
+            run = await (await session.run.submit("answer", engine="custom")).wait()
+            self.assertEqual(run.data.status, "completed", run.data.error)
+        usage = await project.amodel_usage()
+        self.assertEqual(usage["call_count"], 3)
+        self.assertEqual(len(await project.components.rag.amodel_usage()), 2)
+        self.assertEqual(len(run.data.metadata["completions"]), 1)
+        # 나중에 상한을 명시해도 제한 없이 호출한 기간의 기록까지 포함한다.
+        await project.aconfigure_policies({"usage": {"project_max_calls": 3}})
+        blocked = await (await session.run.submit("blocked", engine="custom")).wait()
+        self.assertEqual(blocked.data.error_code, "usage_limit")
+        self.assertEqual(len(model.requests), 1)
+        self.assertEqual((await project.amodel_usage())["call_count"], 3)
+
     async def test_rag_tool_observations_count_toward_owning_run(self):
         app, model = await self.app(components=[self.rag()], responses=[
             [chunk(calls=[call('{"query":"reference"}', name="rag_search")], finish="tool_calls")],
@@ -306,7 +328,8 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         await project.components.rag.aadd_document(title="Guide", content="# Guide\nLocal scripting reference.")
         await project.aconfigure_policies({"usage": {"max_calls": 2}})
         session = await project.sessions.acreate()
-        run = await (await session.run.submit("search", engine="custom")).wait()
+        with patch.object(app.run_repository, "completion_history", side_effect=AssertionError("Run quota must not read Project history")):
+            run = await (await session.run.submit("search", engine="custom")).wait()
         self.assertEqual(run.data.error_code, "usage_limit", run.data.error)
         self.assertEqual(len(model.requests), 1)
         owned = [r for r in await project.components.rag.amodel_usage() if r.get("run_id") == run.id]
@@ -365,6 +388,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         receipt = (await data.amodel_usage())[0]
         receipt.update(usage_complete=True, usage={"total_tokens": -100})
         atomic_json(project.paths.root / "rag" / "usage" / (receipt["id"] + ".json"), receipt)
+        await project.aconfigure_policies({"usage": {"project_max_calls": 10}})
         with self.assertRaisesRegex(ValueError, "Invalid complete"):
             await data.aadd_document(title="Another", content="# Text")
 
