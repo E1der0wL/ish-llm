@@ -15,7 +15,7 @@ class RecordManagement:
         self.spec = component_spec(name)
 
     @classmethod
-    async def for_project(cls, project, name, *, root=None):
+    async def for_project(cls, project, name, *, root=None, rag_jobs=None):
         spec = component_spec(name)
         if spec.manager == "tools":
             raise ValueError("Unsupported component manager")
@@ -23,7 +23,10 @@ class RecordManagement:
         if not isinstance(data, spec.data_type()):
             raise ValueError("Unsupported component data contract")
         record = await project.aget_data()
-        manager = {"record": cls, "document": DocumentManagement, "agent": AgentManagement}[spec.manager]
+        if spec.manager == "document":
+            from .rag_management import RAGManagement
+            return RAGManagement(data, name, root or record.paths.root, project.id, rag_jobs)
+        manager = {"record": cls, "agent": AgentManagement}[spec.manager]
         return manager(data, name, root or record.paths.root)
 
     def _read_import(self, argument):

@@ -9,6 +9,7 @@ from prompt_toolkit.utils import get_cwidth
 
 from ..widget.controls import Button
 from ..widget.dialog import Dialog
+from ..widget.focus import focus_control
 
 
 class DialogController:
@@ -24,7 +25,7 @@ class DialogController:
             self.previous_focus = app.layout.current_control
         self.current = dialog
         app.layout.update_parents_relations()
-        app.layout.focus(focus)
+        focus_control(focus)
         app.invalidate()
 
     def open(self, title, body, accept=None, focus=None, *, validate=None, width=None, accept_text=None, on_cancel=None):
@@ -55,7 +56,7 @@ class DialogController:
         self.previous_focus = None
         if restore_focus:
             if focus in list(app.layout.find_all_controls()):
-                app.layout.focus(focus)
+                focus_control(focus)
             else:
                 self.view.active_page.focus_main()
         app.invalidate()
@@ -82,7 +83,7 @@ class DialogController:
             app = get_app()
             current = app.layout.current_control
             index = controls.index(current) if current in controls else -1
-            app.layout.focus(controls[(index + (-1 if reverse else 1)) % len(controls)])
+            focus_control(controls[(index + (-1 if reverse else 1)) % len(controls)])
 
     def help(self):
         from ..widget.output.reader import ReadOnlyDialog

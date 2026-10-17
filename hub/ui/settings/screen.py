@@ -340,7 +340,7 @@ class SettingsScreen:
             if section in {item.key for item in self.project_items()}:
                 page.set_section(section)
                 self.selected = self.navigation.left_key = section
-                self.filter("config.parameters.engines." + page.engine_keys.get(engine, engine))
+                self.filter("")
         if self._component_target and getattr(page, "identifier", None) == self._component_target[0]:
             _, name = self._component_target
             self._component_target = None
@@ -348,7 +348,7 @@ class SettingsScreen:
             if section in {item.key for item in self.project_items()}:
                 page.set_section(section)
                 self.selected = self.navigation.left_key = section
-                self.filter("config.parameters.components." + name)
+                self.filter("")
         if self.view.visible and self.view.settings_open and self.view._dialog is None and not left:
             self.navigation.focus_zone(self.navigation.main_zone)
         get_app().layout.update_parents_relations()

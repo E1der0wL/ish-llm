@@ -187,6 +187,8 @@ class TextArea(PTKTextArea):
         _arrows(self.window)
         hover_style(self.window)
         self.control.hub_editable = True
+        if not self.buffer.read_only():
+            self.buffer.cursor_position = len(self.buffer.text)
         native_mouse = self.control.mouse_handler
         def mouse(event):
             result = native_mouse(event)

@@ -18,6 +18,7 @@ from ..model import SessionView
 from ..locales import Language
 from ..config.theme import HubTheme
 from ..widget.controls import TextArea
+from ..widget.focus import focus_control
 from ..widget.input_frame import InputFrame
 from ..asset import icon
 from ..config.general import GeneralSettings
@@ -227,7 +228,7 @@ class HubView:
 
     def _focus_composer(self):
         self._session_focus = False
-        get_app().layout.focus(self.composer.control)
+        focus_control(self.composer.control)
 
         get_app().invalidate()
 
@@ -256,7 +257,7 @@ class HubView:
         app.layout.update_parents_relations()
         if self.visible:
             if focus in list(app.layout.find_all_controls()):
-                app.layout.focus(focus)
+                focus_control(focus)
             elif not self.settings_open:
                 self._focus_composer()
         app.invalidate()
@@ -324,7 +325,7 @@ class HubView:
         else:
             self.settings.finish_edit()
             self._session_focus = False
-            app.layout.focus(self.composer)
+            focus_control(self.composer)
         # Global shortcuts follow the focused window's parent containers.
         # Refresh them before the next key, even if rendering is throttled.
         app.layout.update_parents_relations()
@@ -379,7 +380,7 @@ class HubView:
         self._session_focus = False
         if self.on_open:
             self.on_open(app)
-        app.layout.focus(self.settings.left_control() if self.settings_open else self.composer)
+        focus_control(self.settings.left_control() if self.settings_open else self.composer)
         app.invalidate()
 
     def hide(self, app):

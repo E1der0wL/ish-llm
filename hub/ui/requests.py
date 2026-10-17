@@ -36,7 +36,7 @@ class UIRequests:
         if acknowledged is not None:
             kwargs["acknowledged"] = lambda: self.dispatch(self._deliver, acknowledged)
         if progress is not None:
-            kwargs["progress"] = lambda done, total: self.dispatch(self._deliver, progress, done, total)
+            kwargs["progress"] = lambda *values: self.dispatch(self._deliver, progress, *values)
         try:
             future = worker.call(operation, *args, **kwargs)
         except Exception as error:

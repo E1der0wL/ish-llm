@@ -48,7 +48,8 @@ class SettingsJsonTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_home_settings_targets_loop_even_when_graph_is_selected(self):
         self.assertEqual(self.screen.page.section, 'engine:loop')
-        self.assertEqual(self.screen.query, 'config.parameters.engines.loop')
+        self.assertEqual(self.screen.query, '')
+        self.assertEqual(self.screen.page.query, '')
         self.assertEqual(self.view.engine, 'graph')
         self.assertIs(self.app.layout.current_control, self.screen.page.fields()[0].input.control)
 

@@ -93,9 +93,16 @@ class TaskProgress:
         get_app().invalidate()
         return task
 
-    def update(self, task: int, *, completed: float, total: float | None = None) -> None:
+    def update(self, task: int, *, completed: float, total: float | None = None,
+               description: str | None = None, indeterminate: bool = False) -> None:
         self.progress.update(task, completed=completed, total=total)
         current = self.progress.tasks[self.progress.task_ids.index(task)]
+        if description is not None:
+            current.description = " ".join(description.split())
+        if indeterminate:
+            current.total = None
+            current.finished_time = None
+            current.finished_speed = None
         current.fields["percent"] = f"{current.percentage:.0f}%" if current.total is not None else ""
         self.schedule_refresh()
 

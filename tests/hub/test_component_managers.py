@@ -50,7 +50,8 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(page.section, "component:" + name)
                         self.assertEqual(screen.selected, page.section)
                         self.assertEqual(screen.navigation.left_key, page.section)
-                        self.assertEqual(page.query, "config.parameters.components." + name)
+                        self.assertEqual(page.query, "")
+                        self.assertEqual(screen.query, "")
                         self.assertEqual(page.fields(), list(page.component_forms[name].fields.values()))
                         self.assertTrue(page.fields())
                         self.assertIs(app.layout.current_control, page.fields()[0].input.control)
@@ -62,7 +63,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 await asyncio.to_thread(controller.close)
 
-    async def test_path_dropdown_tab_confirmation_and_filtered_settings_button(self):
+    async def test_path_dropdown_tab_confirmation_and_component_settings_button(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             root = Path(directory)
             (root / "my-guide.md").write_text("Guide", encoding="utf-8")
@@ -93,7 +94,8 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                     popup.open_settings()
                 await eventually(lambda: view.settings_open and view._dialog is None and
                                  view.settings.page is not None and not view.settings.busy)
-                self.assertEqual(view.settings.page.query, "config.parameters.components.skills")
+                self.assertEqual(view.settings.page.query, "")
+                self.assertEqual(view.settings.page.section, "component:skills")
             finally:
                 app.exit()
                 await task

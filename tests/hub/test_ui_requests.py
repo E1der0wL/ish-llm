@@ -56,6 +56,14 @@ class UIRequestTests(unittest.TestCase):
         self.drain()
         self.assertIs(self.events[-1].error, error)
 
+    def test_structured_progress_uses_the_ui_dispatcher(self):
+        self.requests.call("manage_records", completed=lambda result: None, progress=self.events.append)
+        update = {"phase": "embedding", "ingestion": {"chunks_completed": 2}}
+        self.options["progress"](update)
+        self.assertFalse(self.events)
+        self.drain()
+        self.assertEqual(self.events, [update])
+
     def test_dispatch_failure_and_disconnected_catalog(self):
         self.connected = False
         self.requests.call("load", completed=self.events.append)

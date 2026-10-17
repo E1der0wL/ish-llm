@@ -6,6 +6,7 @@ from prompt_toolkit.layout.dimension import Dimension
 
 from .controls import Button
 from .actions import bind_button_navigation
+from .focus import focus_control
 
 
 class AuxiliaryBar(VSplit):
@@ -38,7 +39,7 @@ class AuxiliaryBar(VSplit):
     def leave(self):
         app = get_app()
         if self.previous in list(app.layout.find_all_controls()):
-            app.layout.focus(self.previous)
+            focus_control(self.previous)
         else:
             self.restore()
         app.invalidate()

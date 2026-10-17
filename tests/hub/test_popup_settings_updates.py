@@ -93,6 +93,10 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
                     with set_app(app):
                         screen.switch_panel() if sidebar else screen.layout.focus_main()
                     settings_button(app, pipe, view, "save")
+                    # Persist all pages before switching views. Storage I/O uses
+                    # the backend deadline, not open_home's short UI deadline.
+                    await until(lambda: not screen.busy and not any(
+                        page.dirty for page in screen.drafts.active_pages()))
                     await open_home(app, view)
                     saved = PreferencesStore(Path(directory)).load()
                     self.assertEqual(saved["profile"]["display_name"], "User saved")

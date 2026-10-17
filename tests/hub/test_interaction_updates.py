@@ -66,7 +66,7 @@ class ObjectTests(unittest.TestCase):
 
 
 class InteractionTests(unittest.IsolatedAsyncioTestCase):
-    async def test_selected_engine_settings_filter_and_component_command_popup(self):
+    async def test_selected_engine_settings_page_and_component_command_popup(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             app, controller = create_application(HubConfig(directory, auto_title=False),
                                                   input=pipe, output=SizedOutput())
@@ -81,11 +81,12 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                     with set_app(app):
                         screen.open_engine()
                     try:
-                        await until(lambda: screen.page is not None and not screen.busy and screen.page.query.endswith(engine))
+                        await until(lambda: screen.page is not None and not screen.busy and screen.page.section == "engine:" + engine)
                     except TimeoutError:
                         self.fail(f"engine={engine}, selected={view.engine}, opened={view.settings_open}, "
                                   f"query={getattr(screen.page, 'query', None)}, busy={screen.busy}, status={screen.status}")
-                    self.assertEqual(screen.page.query, "config.parameters.engines." + engine)
+                    self.assertEqual(screen.page.query, "")
+                    self.assertEqual(screen.query, "")
                     expected = list(screen.page.engine_forms[engine].fields.values())
                     self.assertEqual(screen.page.fields(), expected)
                     self.assertIs(app.layout.current_control, expected[0].input.control)

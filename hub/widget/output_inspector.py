@@ -11,6 +11,7 @@ from prompt_toolkit.widgets import Frame
 
 from .clipboard import copy_text
 from .controls import Button, TextArea
+from .focus import focus_control
 from .actions import ActionBar
 from .dialog import PopupInput
 from .output.output_viewport import OutputViewport
@@ -155,7 +156,7 @@ class ExpandedOutputDialog:
     def start_query(self):
         self._before_query = self.query.text
         self.searching = True
-        get_app().layout.focus(self.query)
+        focus_control(self.query)
 
     def finish_query(self, cancel=False):
         if cancel:

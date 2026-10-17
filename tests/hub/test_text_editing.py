@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
+from prompt_toolkit.layout import HSplit
 
 from examples.hub.preview import create_preview
 from hub.widget.controls import TextArea
@@ -111,6 +112,43 @@ class TextEditingTests(unittest.IsolatedAsyncioTestCase):
         await self.send('\r\x01new\x00name\r')
         self.assertFalse(field.editing)
         self.assertEqual(field.input.text, 'new\nname')
+
+    async def test_input_focus_starts_at_end_without_overriding_editing_cursor(self):
+        first = TextArea(text='first\nline', multiline=True)
+        second = TextArea(text='second', multiline=False)
+        readonly = TextArea(text='read only', read_only=True)
+        self.assertEqual(first.buffer.cursor_position, len(first.text))
+        self.assertEqual(readonly.buffer.cursor_position, 0)
+        self.view.composer.text = 'draft'
+        self.view.composer.buffer.cursor_position = 0
+        first.buffer.cursor_position = second.buffer.cursor_position = 0
+        with set_app(self.app):
+            self.view.open_dialog('Edit', HSplit([first, second]), focus=first)
+        self.assertEqual(first.buffer.cursor_position, len(first.text))
+        await self.send('\x1b[HX')  # An explicit cursor move remains effective while editing.
+        self.assertEqual(first.text, 'first\nXline')
+        await self.send('\t!')  # Focus and typing can arrive before the next render.
+        self.assertEqual(second.text, 'second!')
+        await self.send('\x1b[ZY')
+        self.assertEqual(first.text, 'first\nXlineY')
+        with set_app(self.app):
+            self.view.close_dialog()
+        self.assertEqual(self.view.composer.buffer.cursor_position, len('draft'))
+
+    async def test_find_and_filter_popups_append_to_existing_queries(self):
+        with set_app(self.app):
+            self.view.output.transcript.control.set_search('existing')
+            self.view.output.search.open()
+        await self.send(' query')
+        self.assertEqual(self.view.output.search.input.text, 'existing query')
+        with set_app(self.app):
+            self.view.close_dialog()
+        await open_settings(self.app, self.pipe, self.view)
+        with set_app(self.app):
+            self.view.settings.query = 'display'
+            self.view.settings.search()
+        await self.send('_name\r')
+        self.assertEqual(self.view.settings.query, 'display_name')
 
     async def test_mouse_selection_unicode_wrapping_and_typing_replaces_selection(self):
         buffer = self.view.composer.buffer

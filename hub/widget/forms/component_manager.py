@@ -17,7 +17,7 @@ from ...ui.input.registry import ShortcutRegistry
 class ComponentManager(Dialog):
     """Backend callbacks own data; this widget owns selection and pending UI work."""
 
-    def __init__(self, view, request, *, name, directories=False, toggle=False):
+    def __init__(self, view, request, *, name, directories=False, toggle=False, extra_buttons=(), detail_lines=1):
         self.view, self.request, self.name = view, request, name
         self.entries, self.selected, self.busy, self.status = [], "", False, ""
         self.path = PathInput(lambda: view.file_root, directories=directories)
@@ -33,13 +33,17 @@ class ComponentManager(Dialog):
         self.list.hub_shortcuts = registry
         super().__init__(title=view.t(name + "_title"), body=HSplit([
             Label(view.t(name + "_import_hint")), self.path, Window(height=1), Label(view.t("tools_columns")),
-            Window(self.list, height=lambda: Dimension.exact(max(2, min(18, view._rows() - 15))),
+            Window(self.list, height=lambda: Dimension.exact(max(2, min(18, view._rows() - 14 - detail_lines))),
                    wrap_lines=True, right_margins=[ScrollbarMargin(display_arrows=True)]),
-            Label(lambda: self.status or view.t("tools_hint" if name == "tools" else "manager_hint"))]),
+            Label(self.hint)]),
             buttons=[Button(view.t("settings_reload"), handler=self.reload),
                      Button(view.t("settings_title"), handler=self.open_settings),
+                     *extra_buttons,
                      Button(view.t("search_close"), handler=view.close_dialog)],
             width=lambda: Dimension(preferred=100, max=max(1, view._columns() - 4)))
+
+    def hint(self):
+        return self.status or self.view.t("tools_hint" if self.name == "tools" else "manager_hint")
 
     def open_settings(self):
         self.view.close_dialog()
@@ -72,7 +76,7 @@ class ComponentManager(Dialog):
             index = names.index(self.selected) if self.selected in names else 0
             self.select(names[max(0, min(len(names) - 1, index + direction))])
 
-    def call(self, action, argument="", version=None, completed=None):
+    def call(self, action, argument="", version=None, completed=None, *, observe=None):
         if self.busy:
             return
         self.busy = True
@@ -90,7 +94,8 @@ class ComponentManager(Dialog):
                     if self.selected not in {item["name"] for item in result}:
                         self.selected = result[0]["name"] if result else ""
             get_app().invalidate()
-        self.request(action, argument, version, done)
+        options = {"progress": lambda update: observe(update, progress)} if observe else {}
+        self.request(action, argument, version, done, **options)
 
     def reload(self):
         self.call("list")

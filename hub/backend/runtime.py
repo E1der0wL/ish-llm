@@ -79,6 +79,7 @@ class HubRuntime:
         from .history import TurnHistory
         self.history = TurnHistory(self)
         self._opened_sessions = set()
+        self._rag_jobs = {}
         self.notifications = NotificationBuffer()
         self.builtin_tools = None
         from .project.settings import SettingsService
@@ -344,10 +345,12 @@ class HubRuntime:
         tools = await ToolManagement.for_project(project, root=self.config.file_root, builtin=self.builtin_tools)
         return await tools.execute(action, argument, expected_version)
 
-    async def manage_records(self, project_id, name, action, argument="", expected_version=None):
+    async def manage_records(self, project_id, name, action, argument="", expected_version=None, *, progress=None):
         from .project.record_management import RecordManagement
         project = await self.backend.projects.aload(project_id)
-        manager = await RecordManagement.for_project(project, name, root=self.config.file_root)
+        manager = await RecordManagement.for_project(project, name, root=self.config.file_root, rag_jobs=self._rag_jobs)
+        if name == "rag":
+            return await manager.execute(action, argument, expected_version, progress=progress)
         return await manager.execute(action, argument, expected_version)
 
     async def submit(self, session_id: str, text: str, engine: str | None = None,

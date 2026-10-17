@@ -6,6 +6,7 @@ from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 from ..dialog import Dialog
 from ..controls import Button, TextArea
+from ..focus import focus_control
 from ...ui.input.registry import ShortcutRegistry
 
 
@@ -37,7 +38,7 @@ class SessionSearch:
     def open(self):
         view, app = self.view, get_app()
         if self.active:
-            app.layout.focus(self.input)
+            focus_control(self.input)
             return
         view.composer.buffer.cancel_completion()
         self.input = TextArea(text=self.transcript.control.search_query, multiline=False, height=1)

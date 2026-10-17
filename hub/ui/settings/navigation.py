@@ -3,6 +3,7 @@
 import subprocess
 from prompt_toolkit.application.current import get_app
 from .. import host
+from ...widget.focus import focus_control
 
 
 def control(widget):
@@ -39,7 +40,7 @@ class SettingsNavigation:
             zone, widgets = 1, self.groups()[1]
         if widgets:
             self.main_zone = zone
-            get_app().layout.focus(control(widgets[min(self.positions[zone], len(widgets) - 1)]))
+            focus_control(control(widgets[min(self.positions[zone], len(widgets) - 1)]))
         get_app().invalidate()
 
     def remember_zone(self):

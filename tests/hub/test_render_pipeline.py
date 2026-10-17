@@ -290,9 +290,14 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
                 app.invalidate.reset_mock()
                 for index in range(100):
                     progress.update(task, completed=index + 1)
+                progress.update(task, completed=100, description="Indexing", indeterminate=True)
                 app.invalidate.assert_not_called()
                 self.assertIs(progress._timer, timer)
                 self.assertEqual(progress.progress.tasks[0].completed, 100)
+                self.assertEqual(progress.progress.tasks[0].description, "Indexing")
+                self.assertIsNone(progress.progress.tasks[0].total)
+                self.assertFalse(progress.progress.tasks[0].finished)
+                self.assertEqual(progress.progress.tasks[0].fields["percent"], "")
                 progress.finish(task)
                 app.invalidate.assert_called_once()
         finally:

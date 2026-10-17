@@ -8,8 +8,8 @@ from .component_manager import ComponentManager
 
 
 class RecordManager(ComponentManager):
-    def __init__(self, view, request, *, name, edit_text):
-        super().__init__(view, request, name=name)
+    def __init__(self, view, request, *, name, edit_text, extra_buttons=(), detail_lines=1):
+        super().__init__(view, request, name=name, extra_buttons=extra_buttons, detail_lines=detail_lines)
         self.edit_text = edit_text
         self.drafts = {}
 
