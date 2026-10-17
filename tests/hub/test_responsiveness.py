@@ -71,6 +71,7 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
             return NS(run=NS(active=True), count=len(reads))
         worker = BackendWorker.__new__(BackendWorker)
         worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(), snapshot=snapshot)
+        worker._restarting = False
         worker._output_interval = .1
         worker._interval_changed = asyncio.Event()
         worker.publish = Mock()

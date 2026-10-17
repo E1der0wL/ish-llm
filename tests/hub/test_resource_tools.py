@@ -110,9 +110,15 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         result = await self.invoke("rag_add_document", identifier="note", title="Hub note", content="Violet is the project color.")
         self.assertEqual(result["id"], "note")
         data = await self.runtime.project.components.aget("rag")
-        self.assertIn("Violet", (await data.aget_document("note"))["content"])
+        document = await data.aget_document("note")
+        self.assertIn("Violet", document["content"])
+        self.assertIn("Violet", document["description"])
         found = await self.invoke("rag_search", query="Violet", method="bm25", rerank=False)
         self.assertIn("note", json.dumps(found))
+        preview = [message for message in self.provider.requests[-1]["messages"]
+                   if message.get("role") == "system" and "RAG document overview" in message.get("content", "")]
+        self.assertEqual(len(preview), 1)
+        self.assertIn('"id": "note"', preview[0]["content"])
 
     async def test_saved_agent_executes_in_parent_run(self):
         agents = await self.runtime.project.components.aget("agents")

@@ -402,6 +402,7 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             backend = BackendWorker.__new__(BackendWorker)
+            backend._restarting = False
             async def snapshot():
                 snapshot_entered.set()
                 await asyncio.Event().wait()
@@ -423,7 +424,7 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
                         view.output.transcript.control.messages = (ChatMessage("assistant", "slow", id="slow"),)
                         app.invalidate()
                     await eventually(started.is_set)
-                    await snapshot_entered.wait()
+                    await asyncio.wait_for(snapshot_entered.wait(), 5)
                     pipe.send_text("typing while busy")
                     await eventually(lambda: view.composer.text == "typing while busy")
                     pipe.send_text("\x1b")
@@ -453,6 +454,7 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
             return NS(run=None, queued_count=0, sessions=())
         worker = BackendWorker.__new__(BackendWorker)
         worker.runtime = NS(lock=asyncio.Lock(), dirty=asyncio.Event(), snapshot=snapshot)
+        worker._restarting = False
         worker._output_interval = .01
         worker._interval_changed = asyncio.Event()
         worker.publish, worker.report_error = Mock(), Mock()

@@ -1,7 +1,7 @@
 """Relay auxiliary recovery observations through the owning Engine event stream."""
 
 import asyncio
-from contextlib import aclosing
+from contextlib import aclosing, nullcontext
 from dataclasses import dataclass
 from typing import Callable
 
@@ -14,10 +14,10 @@ class RecoveryContext:
     emit: Callable
 
 
-async def recovery_events(selector, engine, context, environment):
+async def recovery_events(selector, engine, context, environment, *, provider=None):
     # Keep the ordinary rendering/execution path unchanged when retries are off.
     retries = context.run.metadata.get("policies", {}).get("tool_retry", {})
-    if not retries.get("max_retries"):
+    if not retries.get("max_retries") and not (provider and provider.settings.recovery_enabled):
         async with aclosing(engine.execute(context)) as events:
             async for event in events:
                 yield event
@@ -31,11 +31,13 @@ async def recovery_events(selector, engine, context, environment):
         await acknowledgement
 
     async def produce():
-        token = selector.context.set(RecoveryContext(context, engine, environment, emit))
+        frame = RecoveryContext(context, engine, environment, emit)
+        token = selector.context.set(frame)
         try:
-            async with aclosing(engine.execute(context)) as events:
-                async for event in events:
-                    await emit(event)
+            with provider.bind(frame) if provider is not None else nullcontext():
+                async with aclosing(engine.execute(context)) as events:
+                    async for event in events:
+                        await emit(event)
         finally:
             selector.context.reset(token)
 

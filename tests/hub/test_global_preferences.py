@@ -80,7 +80,8 @@ class GlobalSettingsUITests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(catalog["usage"][0]["known_tokens"], 120)
             self.assertEqual(catalog["usage"][0]["period_seconds"], 3600)
             self.assertNotIn("calls", catalog["usage"][0])
-            self.assertEqual(catalog["usage"][1]["error"], "unreadable receipts")
+            self.assertEqual(catalog["usage"][1]["error"].message, "unreadable receipts")
+            self.assertEqual(catalog["usage"][1]["error"].operation, "model_usage")
             good.amodel_usage.assert_awaited_once_with()
 
     async def test_settings_shell_return_drafts_buttons_and_general_page(self):

@@ -30,6 +30,7 @@ async def create_project(backend, title, *, config, components, conversation_sto
     project_config = ProjectConfig(deepcopy(config))
     # Application creation presets; explicit user policies always win.
     presets = {
+        "vision": {"config": {"ocr": {"backend": "tesseract"}}, "policy": {"ocr": {"timeout": 60}}},
         "memory": {"config": {"search_strategy": "keyword", "search_status": "all", "search_limit": 5,
             "processing": {"priority": 10, "recall_limit": 5, "recall_query_chars": 2000}},
             "policy": {"tool_write_status": "candidate", "max_search_results": 20,

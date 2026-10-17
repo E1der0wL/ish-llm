@@ -220,7 +220,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: replacement.view.settings_open)
                 view.settings.choose("appearance")
                 self.assertIn(prompt.app.layout.current_control, [view.settings.global_list, view.settings.project_list])
-                pipe.send_text("\x1b[C")  # Right enters the settings fields.
+                pipe.send_text("\x1b[C\r")  # Right enters tabs; Enter enters settings fields.
                 await eventually(lambda: prompt.app.layout.current_control == view.settings.page.body_widgets()[0].control)
                 settings_button(prompt.app, pipe, view, "cancel")
                 from tests.hub.support import open_home

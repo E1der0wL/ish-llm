@@ -51,13 +51,14 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
         message_width = max(1, int(inner * 0.78) - 2 * inset) if user else inner
         label = (message.author or account_name) if user else t(
             "assistant" if message.role == "assistant" else
+            "system" if message.role == "system" else
             "reasoning" if message.role == "reasoning" else "info")
-        if message.activity or message.phase or message.status:
+        if message.role != "system" and (message.activity or message.phase or message.status):
             label += " · " + (message.activity or t.status(message.phase or message.status))
         if message.role == "assistant":
             label += " · " + t.elapsed(message.elapsed_seconds)
         elif message.time:
-            label += " · " + message.time
+            label += (" • " if message.role == "system" else " · ") + message.time
         label = Text(label, overflow="fold")
         header_lines = ([] if message.role == "draft" or section == "body" else
                         console.render_lines(label, console.options.update(width=inner), pad=False))
@@ -65,7 +66,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
             text = "".join(segment.text for segment in segments)
             pad = max(0, inner - get_cwidth(text)) if user else 0
             lines.append([("", "  " + " " * pad),
-                          ("class:hub.user bold" if user else "class:hub.accent bold", text)])
+                          ("class:hub.user bold" if user else "class:hub.system bold" if message.role == "system" else "class:hub.accent bold", text)])
         if section == "header":
             continue
         if message.trace:
@@ -133,10 +134,6 @@ def render_tool_history(steps, width, theme, language):
 class ConversationControl(SelectableControl):
     def __init__(self, messages: tuple[ChatMessage, ...], theme: HubTheme, language=None) -> None:
         super().__init__()
-        from .character_stream import CharacterStream
-        self.character_stream = CharacterStream()
-        self.animation_active = lambda: False
-        self.animation_follow = lambda: False
         self.messages = messages
         self.theme = theme
         self.language = language or Language(icons=lambda: for_style(self.theme.icon_style))
@@ -187,16 +184,12 @@ class ConversationControl(SelectableControl):
     @messages.setter
     def messages(self, value):
         if value is not getattr(self, "_messages", None):
-            if self.animation_active():
-                self.character_stream.observe(value)
-            else:
-                self.character_stream.reset(value)
             self._messages = value
             self._urgent_messages = tuple(m for m in value if m.role == "assistant" and m.phase == "interrupting")
             self._message_revision = getattr(self, "_message_revision", 0) + 1
 
     def _request_frame(self, width, key):
-        messages = self.character_stream.project(self.messages)
+        messages = self.messages
         theme, language, root = self.theme, self.language, self.file_root
         language = copy(language)
         language.icon_source = for_style(theme.icon_style)
@@ -383,7 +376,6 @@ class ConversationControl(SelectableControl):
         self._width = max(1, width)
         app = self._application()
         loop_id = id(asyncio.get_running_loop()) if app.is_running else 0
-        self.character_stream.schedule(self, app)
         key = (width, self._message_revision, self.theme, id(self.language), str(self.file_root), self.renderers.version, loop_id)
         if self._requested_key != key:
             resized = self._requested_key is not None and self._requested_key[0] != width
@@ -457,7 +449,6 @@ class ConversationView:
             self.control._resize_timer.cancel()
             self.control._resize_timer = None
         self.control.selection.clear()
-        self.control.character_stream.reset(messages)
         self.control.images.reset()
         self.control.set_search("")
         self.control.messages = messages

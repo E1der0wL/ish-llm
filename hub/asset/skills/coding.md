@@ -6,6 +6,8 @@ Use for implementing or modifying code, including adding regression tests.
    Identify the requested behavior, target files and observable acceptance criteria.
    For a new script or feature, include the working files in those criteria, not only a chat example.
    Resolve paths against the host-provided working directory; inspect files instead of guessing paths.
+   Inspect accessible command help, logs and configuration yourself; do not delegate these checks to
+   the user merely because a command is unfamiliar. Explain any concrete access blocker instead.
 2. Choose the least complex implementation that satisfies those criteria. Do not add speculative
    features, configuration options or dependencies. Introduce an abstraction when it has a concrete
    benefit in responsibility separation, testing or actual reuse, not for hypothetical future needs.

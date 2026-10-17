@@ -6,6 +6,8 @@ from dataclasses import asdict, replace
 from ...config.preferences import PreferencesStore
 from ...config.profile import UserProfile
 from ...config.general import GeneralSettings
+from ...errors.adapters import from_exception
+from ...errors.contracts import ErrorOrigin
 
 
 class SettingsService:
@@ -28,6 +30,8 @@ class SettingsService:
         schema["properties"]["conversation_storage"]["description"] = self.runtime.t("settings_storage_description")
         from ..interactions.approval import RISK_SCHEME
         schema["x-hub-risk-scheme"] = RISK_SCHEME
+        from .settings_descriptions import describe_options
+        describe_options(schema, self.runtime.t)
         return schema
 
     def _validate(self, values):
@@ -60,11 +64,14 @@ class SettingsService:
             projects.append({"id": data.id, "title": data.title})
             try:
                 totals = await project.amodel_usage()
+                from .usage import daily_usage
                 usage.append({"id": data.id, "title": data.title,
+                              "daily": daily_usage(totals.get("calls", [])),
                               **{key: totals[key] for key in ("call_count", "known_tokens", "reserved_tokens",
                                                             "unknown_calls", "period_seconds")}})
             except Exception as error:
-                usage.append({"id": data.id, "title": data.title, "error": str(error)})
+                usage.append({"id": data.id, "title": data.title, "error": from_exception(error,
+                    origin=ErrorOrigin.BACKEND, operation="model_usage")})
         preferences = {"profile": asdict(self.runtime.config.user_profile),
                        "general": asdict(GeneralSettings()), **self.preferences.load()}
         preferences["general"]["workspace_root"] = (preferences["general"].get("workspace_root")
@@ -203,10 +210,14 @@ class SettingsService:
             try:
                 results.append(await getattr(self, operation)(*args))
             except Exception as error:
-                return {"results": results, "error": str(error)}
+                return {"results": results, "error": from_exception(error,
+                    origin=ErrorOrigin.BACKEND, operation=operation, validation=True)}
         return {"results": results, "error": None}
 
     async def execute(self, operation, *args):
+        if operation in ("preset_list", "preset_export", "preset_save", "preset_apply"):
+            from .presets import PresetService
+            return await getattr(PresetService(self), operation.removeprefix("preset_"))(*args)
         allowed = {"catalog", "list_projects", "load_project", "save_project", "create_project", "select_components",
                    "clone_project", "delete_project", "rename_project", "activate_project", "save_global", "save_all"}
         if operation not in allowed:

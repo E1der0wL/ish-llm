@@ -65,7 +65,7 @@ class TextEditingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(buffer.text, '한글')
         await self.send('\x01\x1b[3~')
         self.assertEqual(buffer.text, '')
-        await self.send('remain\x17')
+        await self.send('remain\x04')
         self.assertEqual(buffer.text, 'remain')
         self.assertEqual(calls, [self.view.sessions[self.view.selected].id])
 

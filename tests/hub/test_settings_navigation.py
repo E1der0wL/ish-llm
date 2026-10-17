@@ -119,6 +119,8 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                     screen.switch_panel()
                 self.assertIs(app.layout.current_control, screen.global_list)
                 pipe.send_text("\x1b[C")
+                await until(lambda: screen.tabs.tabs_focused)
+                pipe.send_text("\r")
                 field = screen.page.form.fields[("display_name",)]
                 await until(lambda: app.layout.current_control == field.input.control)
                 before = field.input.text

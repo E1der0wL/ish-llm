@@ -30,7 +30,9 @@ async def select_or_create(backend, config):
         if projects:
             records = [(await project.aget_data(), project) for project in projects]
             return min(records, key=lambda item: (item[0].created_at, item[0].id))[1]
-        project_config = ProjectConfig(config.project_config)
+        from ...config.presets import PresetStore
+        preset = await asyncio.to_thread(PresetStore(config._workspace_anchor or config.workspace).selected_project)
+        project_config = ProjectConfig(ProjectConfig.merge(preset["config"], config.project_config) if preset else config.project_config)
         supplied = {key: value for key, value in (("model", config.model), ("api_base", config.api_base)) if value is not None}
         if supplied:
             # Title generation resolves the current source settings at execution
@@ -38,6 +40,7 @@ async def select_or_create(backend, config):
             engines = project_config.parameters.setdefault("engines", {})
             engines.setdefault("loop", {}).setdefault("config", {}).setdefault("completion", {}).update(supplied)
         return await create_project(backend, "Hub", config=project_config,
-            components=list(backend.describe_project_config()["x-components"]), conversation_storage="file")
+            components=preset["components"] if preset else list(backend.describe_project_config()["x-components"]),
+            conversation_storage=preset["conversation_storage"] if preset else "file")
     finally:
         os.close(descriptor)

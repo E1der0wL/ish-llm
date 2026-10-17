@@ -90,7 +90,12 @@ class HubAgentComponent(AgentComponent):
 
 
 class HubRAGComponent(RAGComponent):
+    capabilities = (*RAGComponent.capabilities, "completion_processors")
+
     def resolve_runtime(self, project, capability, *, data_factory):
+        if capability == "completion_processors":
+            from ..execution.rag_catalog import RAGCatalogProcessor
+            return RAGCatalogProcessor(data_factory(self.name))
         registry = super().resolve_runtime(project, capability, data_factory=data_factory)
         if capability != "tools":
             return registry
@@ -99,6 +104,8 @@ class HubRAGComponent(RAGComponent):
         async def add(args):
             call = owner(data)
             values = deepcopy(args)
+            from ..project.rag_import import document_description
+            values.setdefault("description", document_description(values["content"]))
             values.setdefault("metadata", {})["hub_source"] = {
                 "session_id": call.session_id, "run_id": call.run_id, "step_id": call.step_id}
             result = await data.aadd_document(**values)
@@ -108,6 +115,7 @@ class HubRAGComponent(RAGComponent):
             "search index. Use file_read to read an authorized file first, then provide its text. Embedding "
             "configuration is required. Existing IDs are not overwritten. Report success only after this returns.",
             {"identifier": IDENTIFIER, "title": {"type": "string"}, "content": {"type": "string", "minLength": 1},
+             "description": {"type": "string", "description": "Short factual overview for deciding relevance before retrieval."},
              "metadata": {"type": "object"}}, ["identifier", "title", "content"], add, write=True))
         return registry
 

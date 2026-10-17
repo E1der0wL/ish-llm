@@ -423,6 +423,19 @@ class HubRuntime:
         self.dirty.set()
         return result
 
+    async def resume_latest(self, session_id: str):
+        from .execution.stopping import display_run
+        await self.history.require_idle(session_id)
+        index = await self.history.index(session_id)
+        if not index.turns or not index.turns[-1].latest.run_id:
+            return None
+        turn = index.turns[-1]
+        session = self.sessions[session_id]
+        run = await (await session.run.aload(turn.latest.run_id)).aget_data()
+        if str(display_run(await session.aget_data(), run).status) != "interrupted":
+            return None
+        return await self.history.retry(session_id, turn.id, run.id)
+
     async def approval_details(self, request_data):
         from .interactions.approval import review_text
         return await asyncio.to_thread(review_text, request_data)
@@ -447,12 +460,14 @@ class HubRuntime:
             if acknowledged:
                 acknowledged()
             denied = next(option for option in request.options if option.id == option_id).effect == "deny"
-            if not denied and not await run.ainteractions(pending_only=True):
-                engine = (await run.aget_data()).engine
-                # resume performs the authoritative checkpoint/approval checks
-                # again under its lock. Avoid the expensive duplicate preview.
-                # No retry_nodes are supplied: uncertain work cannot be replayed.
-                await session.run.resume(run_id, engine=engine)
+            if not await run.ainteractions(pending_only=True):
+                if not denied:
+                    engine = (await run.aget_data()).engine
+                    # The backend validates persisted user decisions, including
+                    # uncertain-effect approval. Never invent retry_nodes here.
+                    await session.run.resume(run_id, engine=engine, partial_output=True)
+                from .execution.stopping import finish_review
+                await finish_review(session, run_id)
         self.dirty.set()
         return True
 

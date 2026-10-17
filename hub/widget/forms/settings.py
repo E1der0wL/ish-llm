@@ -56,6 +56,7 @@ class SettingField:
     external_editable = True
 
     def __init__(self, key, schema, value, t, *, readonly=False, observations=()):
+        self.label = key
         self.schema = schema if isinstance(schema, dict) else {}
         self.original = deepcopy(value) if value is not MISSING else MISSING
         self.initial = ("" if value is MISSING else value if isinstance(value, str) and value else
@@ -94,7 +95,7 @@ class SettingField:
                        "minLength", "maxLength", "pattern") if name in self.schema}
         if constraints:
             description += " · " + json.dumps(constraints, ensure_ascii=False)
-        self.container = HSplit([Label(lambda: (t.icons.edit + " " if self.editing else "") + key, style="class:hub.title"),
+        self.container = HSplit([Label(lambda: (t.icons.edit + " " if self.editing else "") + self.label, style="class:hub.title"),
                                  Label("- " + description, style="class:hub.muted"),
                                  Label(t("settings_type", type=type_hint(self.schema)), style="class:hub.muted"),
                                  self.input,
@@ -209,6 +210,8 @@ class SchemaForm:
             for key, spec in properties.items():
                 self._walk(spec, (*path, key))
         else:
+            if not schema.get("description") and (self.prefix or path[:1] == ("config",)):
+                schema = {**schema, "description": self.t("settings_option_description", name=".".join(path))}
             field_type = ChoiceField if "x-hub-choices" in schema else SettingField
             field = field_type(schema.get("title", ".".join(path)), schema, at_path(self.original, path), self.t,
                 readonly=any(path[:len(locked)] == locked for locked in self.locked), observations=self._observations(path))

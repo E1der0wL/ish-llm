@@ -29,8 +29,8 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                     pipe.send_text("\x10\r")
                     await eventually(lambda: not view.settings_open)
                     pipe.send_text("\x10\x1b[C")
-                    await eventually(lambda: app.layout.current_control is view.profile_bar.minimize.control)
-                    pipe.send_text("\r")
+                    await eventually(lambda: app.layout.current_control is view.profile_bar.presets.control)
+                    pipe.send_text("\x11")
                     await eventually(lambda: not view.visible)
             finally:
                 app.exit()
@@ -77,7 +77,7 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                     await asyncio.sleep(.08)
                     positions = app.renderer._last_screen.visible_windows_to_write_positions
                     left = positions[view.profile_bar.page.window]
-                    right = positions[view.profile_bar.minimize.window]
+                    right = positions[view.profile_bar.presets.button.window]
                     edge = positions[view.chat_page.edge].xpos
                     self.assertLessEqual(abs(left.xpos - (edge - view.sidebar_width()) -
                                              (edge - right.xpos - right.width)), 1)
@@ -101,13 +101,13 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x10\r")
                 await eventually(lambda: not view.settings_open)
                 pipe.send_text("\x10\x1b[C")
-                await eventually(lambda: app.layout.current_control is view.profile_bar.minimize.control)
+                await eventually(lambda: app.layout.current_control is view.profile_bar.presets.control)
                 pipe.send_text("\t\x1b[C")
                 await asyncio.sleep(.05)
-                self.assertIs(app.layout.current_control, view.profile_bar.minimize.control)
+                self.assertIs(app.layout.current_control, view.profile_bar.presets.control)
                 pipe.send_text("\x1b[D")
                 await eventually(lambda: app.layout.current_control is view.profile_bar.page.control)
-                pipe.send_text("\x1b[C\r")
+                pipe.send_text("\x1b[C\x11")
                 await eventually(lambda: not view.visible)
                 self.assertIs(app.layout.current_control, shell.control)
                 self.assertEqual(shell.text, "shell draft")

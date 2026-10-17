@@ -79,7 +79,8 @@ class SessionNamer:
             def finished(task):
                 self.tasks.pop(session.id, None)
                 if not task.cancelled() and task.exception() is not None:
-                    self.errors[session.id] = str(task.exception())
+                    from ...errors.adapters import from_exception
+                    self.errors[session.id] = from_exception(task.exception(), operation="session_title")
                     self.runtime.dirty.set()
             task.add_done_callback(finished)
 
@@ -125,7 +126,8 @@ class SessionNamer:
         except asyncio.CancelledError:
             raise
         except Exception as error:
-            self.errors[session.id] = str(error)
+            from ...errors.adapters import from_exception
+            self.errors[session.id] = from_exception(error, operation="session_title")
         finally:
             if job is not None:
                 await job.run.shutdown()

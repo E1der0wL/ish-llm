@@ -38,6 +38,7 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     screen.choose('profile')
                     screen.layout.focus_main()
+                    screen.tabs.enter()
                 current = app.layout.current_control
                 pipe.send_text('\x1b[C')
                 await asyncio.sleep(.1)

@@ -1,14 +1,19 @@
 """Deliver backend Future results and observations on the owning UI loop."""
 
 from collections.abc import Callable
+from concurrent.futures import CancelledError
 from dataclasses import dataclass
 from typing import Any
+
+from ..errors.adapters import from_exception
+from ..errors.contracts import Confidence, ErrorCategory, ErrorInfo, ErrorOrigin
 
 
 @dataclass(frozen=True, slots=True)
 class RequestResult:
     value: Any = None
-    error: Exception | str | None = None
+    error: ErrorInfo | None = None
+    cancelled: bool = False
 
 
 class UIRequests:
@@ -30,7 +35,9 @@ class UIRequests:
             return
         worker = self.worker()
         if worker is None or (not self.connected() and not allow_disconnected):
-            self._deliver(completed, RequestResult(error=self.unavailable()))
+            self._deliver(completed, RequestResult(error=ErrorInfo(code="hub_disconnected",
+                message=self.unavailable(), origin=ErrorOrigin.HUB, operation=operation,
+                category=ErrorCategory.SERVICE, reason="disconnected", confidence=Confidence.EXPLICIT)))
             return
         kwargs = {}
         if acknowledged is not None:
@@ -39,15 +46,21 @@ class UIRequests:
             kwargs["progress"] = lambda *values: self.dispatch(self._deliver, progress, *values)
         try:
             future = worker.call(operation, *args, **kwargs)
+        except CancelledError:
+            self._deliver(completed, RequestResult(cancelled=True))
+            return
         except Exception as error:
-            self._deliver(completed, RequestResult(error=error))
+            self._deliver(completed, RequestResult(error=from_exception(error,
+                origin=ErrorOrigin.BACKEND, operation=operation)))
             return
 
         def finished(future):
             try:
                 result = RequestResult(value=future.result())
+            except CancelledError:
+                result = RequestResult(cancelled=True)
             except Exception as error:
-                result = RequestResult(error=error)
+                result = RequestResult(error=from_exception(error, origin=ErrorOrigin.BACKEND, operation=operation))
             self.dispatch(self._deliver, completed, result)
 
         future.add_done_callback(finished)

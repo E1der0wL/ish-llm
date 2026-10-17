@@ -112,7 +112,7 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                 await task
                 await controller.aclose()
 
-    async def test_busy_worker_declines_restart_without_interrupting_run(self):
+    async def test_restart_interrupts_active_run_and_cancels_queue_without_execution(self):
         with tempfile.TemporaryDirectory() as root:
             gate = threading.Event()
             worker = BackendWorker(HubConfig(root, auto_title=False), lambda value: None, lambda error: None,
@@ -126,10 +126,20 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                 async with asyncio.timeout(10):
                     while not await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(active(), worker.loop)):
                         await asyncio.sleep(.01)
-                with self.assertRaises(RuntimeError):
-                    await asyncio.wrap_future(worker.prepare_restart())
-                self.assertFalse(worker._restarting)
-                self.assertIsNotNone(await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(active(), worker.loop)))
+                await asyncio.wrap_future(worker.call("submit", session, "queued request", "loop"))
+                await asyncio.wait_for(asyncio.wrap_future(worker.prepare_restart()), 15)
+                self.assertTrue(worker._restarting)
+                async def verify():
+                    handle = worker.runtime.sessions[session]
+                    state = await handle.run.astatus()
+                    self.assertIsNone(state.active_run_id)
+                    self.assertEqual(state.queued_count, 0)
+                    runs = await handle.run.alist()
+                    self.assertEqual(len(runs), 1)
+                    self.assertEqual(str((await runs[0].aget_data()).status), "interrupted")
+                    messages = await handle.aconversation()
+                    self.assertTrue(any(m.content == "queued request" and str(m.status) == "cancelled" for m in messages))
+                await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(verify(), worker.loop))
                 gate.set()
             finally:
                 gate.set()
@@ -146,6 +156,32 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                 worker.cancel_restart()
                 session = await asyncio.wrap_future(worker.call("new_session", "new", "Allowed again"))
                 self.assertTrue(session)
+            finally:
+                await asyncio.to_thread(worker.close)
+
+    async def test_restart_cancels_component_command_and_waits_for_cleanup(self):
+        with tempfile.TemporaryDirectory() as root:
+            worker = BackendWorker(HubConfig(root, auto_title=False), lambda value: None, lambda error: None,
+                                   backend_factory=settings_backend)
+            entered, cleaned = threading.Event(), threading.Event()
+            try:
+                await asyncio.wrap_future(worker.call("snapshot"))
+                async def install_command():
+                    async def blocked(*args):
+                        entered.set()
+                        try:
+                            await asyncio.Event().wait()
+                        finally:
+                            await asyncio.sleep(.02)
+                            cleaned.set()
+                    worker.runtime.manage_records = blocked
+                await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(install_command(), worker.loop))
+                command = worker.call("manage_records")
+                await until(entered.is_set)
+                await asyncio.wait_for(asyncio.wrap_future(worker.prepare_restart()), 10)
+                self.assertTrue(cleaned.is_set())
+                self.assertTrue(command.cancelled())
+                self.assertFalse(worker._commands)
             finally:
                 await asyncio.to_thread(worker.close)
 

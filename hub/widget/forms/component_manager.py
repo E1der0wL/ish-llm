@@ -9,6 +9,7 @@ from prompt_toolkit.widgets import Label
 
 from ..controls import Button, ScrollbarMargin
 from .path_input import PathInput
+from ..input_field import InputField
 from ..dialog import Dialog
 from ..sidebar import SidebarItem, SidebarList
 from ...ui.input.registry import ShortcutRegistry
@@ -17,10 +18,12 @@ from ...ui.input.registry import ShortcutRegistry
 class ComponentManager(Dialog):
     """Backend callbacks own data; this widget owns selection and pending UI work."""
 
-    def __init__(self, view, request, *, name, directories=False, toggle=False, extra_buttons=(), detail_lines=1):
+    def __init__(self, view, request, *, name, directories=False, toggle=False, extra_buttons=(), detail_lines=1,
+                 button_width=12):
         self.view, self.request, self.name = view, request, name
         self.entries, self.selected, self.busy, self.status = [], "", False, ""
-        self.path = PathInput(lambda: view.file_root, directories=directories)
+        self.path = InputField(input=PathInput(lambda: view.file_root, directories=directories),
+                               button_text=view.t("component_import"), on_action=lambda: self.import_path(self.path.buffer))
         self.path.buffer.accept_handler = self.import_path
         registry = ShortcutRegistry()
         registry.add(["up", "down"], "↑↓", "select", lambda e: self.move(-1 if e.key_sequence[-1].key == "up" else 1))
@@ -36,10 +39,10 @@ class ComponentManager(Dialog):
             Window(self.list, height=lambda: Dimension.exact(max(2, min(18, view._rows() - 14 - detail_lines))),
                    wrap_lines=True, right_margins=[ScrollbarMargin(display_arrows=True)]),
             Label(self.hint)]),
-            buttons=[Button(view.t("settings_reload"), handler=self.reload),
-                     Button(view.t("settings_title"), handler=self.open_settings),
+            buttons=[Button(view.t("settings_reload"), handler=self.reload, width=button_width),
+                     Button(view.t("settings_title"), handler=self.open_settings, width=button_width),
                      *extra_buttons,
-                     Button(view.t("search_close"), handler=view.close_dialog)],
+                     Button(view.t("search_close"), handler=view.close_dialog, width=button_width)],
             width=lambda: Dimension(preferred=100, max=max(1, view._columns() - 4)))
 
     def hint(self):

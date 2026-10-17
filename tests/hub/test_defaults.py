@@ -18,7 +18,7 @@ from tests.hub.test_live import until
 from tests.hub.support import SizedOutput
 
 
-COMPONENTS = {"tools", "skills", "mcp", "rag", "agents", "workflows", "memory", "prompts", "builtin_tools", "goals", "refinement"}
+COMPONENTS = {"tools", "skills", "mcp", "rag", "agents", "workflows", "memory", "prompts", "builtin_tools", "goals", "refinement", "vision"}
 
 
 class DefaultTests(unittest.IsolatedAsyncioTestCase):

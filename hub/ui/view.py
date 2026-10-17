@@ -10,7 +10,7 @@ from prompt_toolkit.layout import (ConditionalContainer, DynamicContainer, Float
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.menus import CompletionsMenu
 from ..widget.shortcuts import ShortcutBar
-from ..widget.header import HeaderBar
+from ..widget.header import HeaderBar, HeaderActions
 
 from .chat.completion import HubCompleter
 from ..widget.output.engine import EngineOutput
@@ -54,6 +54,8 @@ class HubView:
         self.project_title = "Hub"
         self.model = ""
         self.notice = self.t("preview_notice")
+        from .operation_diagnostics import OperationDiagnostics
+        self.operation_diagnostics = OperationDiagnostics()
         self._previous_focus = None
         self._input_timeouts = None
         self._drafts = {}
@@ -63,7 +65,7 @@ class HubView:
         self.clipboard_environment = None
         from ..widget.x11_clipboard import X11Clipboard
         self.native_clipboard = X11Clipboard()
-        self.animate_output = False
+        self.on_restart = None
         from .dialogs import DialogController
         self.dialogs = DialogController(self)
         from .chat.session_actions import SessionActions
@@ -121,6 +123,8 @@ class HubView:
         ], self.profile_bar, width=self.sidebar_width, project_fraction=0.27,
             controls=(self.projects.control, self._session_control)),
             Condition(lambda: self._columns() >= 88 or self._session_focus))
+        from ..widget.composer_actions import ComposerActions
+        self.composer_actions = ComposerActions(self)
         self._composer_frame = InputFrame(HSplit([
             self.question.container,
             self.composer,
@@ -128,7 +132,7 @@ class HubView:
             hint=lambda: self.t("input_hint") + (
                 " · " + self.t("followup_hint") if self.followup.get_suggestion(
                     self.composer.buffer, self.composer.buffer.document) else ""),
-            style="class:hub.input-frame")
+              style="class:hub.input-frame", actions=self.composer_actions)
         from ..widget.auxiliary import AuxiliaryBar
         from ..widget.forms.file_attachment import attach_file
         self.auxiliary = AuxiliaryBar([
@@ -144,7 +148,7 @@ class HubView:
         ])
         self.header = HeaderBar(lambda: self.t("profile_home"), icons=lambda: self.icons)
         self.chat_page = TwoPanelPage(
-            header=self.header, footer=self.shortcut_bar(),
+            header=HeaderActions(self.header, self), footer=self.shortcut_bar(),
             sidebar=self._sidebar, main=conversation, progress=self.progress, notice=lambda: self.notice,
             sidebar_visible=self._sidebar.filter,
             sidebar_controls=lambda: (self._session_control, self.projects.control, *self.profile_bar.controls),
@@ -330,6 +334,12 @@ class HubView:
         # Refresh them before the next key, even if rendering is throttled.
         app.layout.update_parents_relations()
         app.invalidate()
+
+    def restart(self):
+        if self.on_restart is not None:
+            self.on_restart()
+        else:
+            self._not_connected()
 
     def minimize(self):
         self.settings.finish_edit()

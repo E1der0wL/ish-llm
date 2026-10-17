@@ -7,6 +7,9 @@ from time import monotonic
 def retry_text(retry, t):
     if retry is None:
         return ""
+    if retry.kind == "recovery":
+        return t("recovery_" + retry.phase, attempt=retry.attempt, maximum=retry.maximum,
+                 progress=(" · " + retry.name) if retry.name else "")
     target = t("retry_tool", name=retry.name) if retry.kind == "tool" else t("retry_provider")
     values = dict(target=target, attempt=retry.attempt, maximum=retry.maximum, next_attempt=retry.attempt + 1)
     if retry.phase == "repairing":

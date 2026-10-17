@@ -30,12 +30,14 @@ class ComponentCommands:
         from ...widget.forms.tool_manager import ToolManager
         from ...widget.forms.record_manager import RecordManager
         from ...widget.forms.rag_manager import RAGManager
+        from ...widget.forms.definition_manager import DefinitionManager
 
         def request(operation, argument, version, done, *, progress=None):
             target = (project_id,) if spec.manager == "tools" else (project_id, name)
             self.controller._call(spec.operation, *target, operation, argument, version, completed=done, progress=progress)
 
-        record_manager = RAGManager if spec.manager == "document" else RecordManager
+        record_manager = (RAGManager if spec.manager == "document" else
+                          DefinitionManager if name in ("prompts", "agents", "workflows", "memory") else RecordManager)
         popup = (ToolManager(view, request, open_directory=lambda path: host.open_directory(path)) if spec.manager == "tools" else
                  record_manager(view, request, name=name, edit_text=lambda *args, **kwargs: host.edit_text(*args, **kwargs)))
         view.dialogs.show(popup, popup.path)

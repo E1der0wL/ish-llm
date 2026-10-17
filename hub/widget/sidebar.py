@@ -61,17 +61,19 @@ class SidebarList(FormattedTextControl):
     def mouse_handler(self, event):
         # Handle the entire row, including whitespace beyond its title.
         if event.event_type == MouseEventType.MOUSE_UP and event.button == MouseButton.LEFT:
+            get_app().layout.focus(self)
             row = 0
             for item in self.items():
                 row += item.margin_top
                 height = 3 if item.detail else 1
-                if row <= event.position.y < row + height:
-                    get_app().layout.focus(self)
+                if row <= event.position.y < row + (2 if item.detail else 1):
                     self.on_select(item.key)
                     if self.on_activate:
                         self.on_activate()
                     return None
                 row += height
+            # Empty rows only focus the category; never select the last item.
+            return None
         return NotImplemented
 
     def fragments(self):

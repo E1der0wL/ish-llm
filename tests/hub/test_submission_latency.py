@@ -92,9 +92,12 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(view.preparing.visible())
                 self.assertEqual(len(calls), 1)
                 self.assertEqual(calls[0][0], "submit_input")
-                # Consume immediately; durable history still waits for admission.
+                # Both local preparation rows appear immediately. Durable
+                # history still waits for the receipt and replaces the draft.
                 self.assertEqual(view.composer.text, "")
-                self.assertEqual([m.status for m in view.output.transcript.control.messages], ["preparing"])
+                self.assertEqual([(m.role, m.status) for m in view.output.transcript.control.messages],
+                                 [("user", "preparing"), ("assistant", "preparing")])
+                self.assertEqual(view.sessions[view.selected].messages, ())
                 calls[0][2].set_result(SubmissionResult(message=message))
                 await asyncio.sleep(0)
                 self.assertEqual(view.composer.text, "")
@@ -174,7 +177,8 @@ class SubmissionLatencyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(view.output.transcript.control.messages, ())
                 self.assertFalse(controller._submitting)
                 self.assertFalse(controller._choosing_submission)
-                self.assertIn("admission rejected", view.notice)
+                self.assertIn(view.t("operation_failed"), view.notice)
+                self.assertIn("admission rejected", view.operation_diagnostics.text("p", view.t))
                 future = Future()
                 view.composer.text = "failed with new draft"
                 controller.submit("s", view.composer.text)

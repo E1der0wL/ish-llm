@@ -25,9 +25,24 @@ class Page:
             self._unfiltered = self.container
         self.query = query.strip().casefold()
         self._filtered_fields = self._matching_fields()
-        self.container = (SettingsBody([field.container for field in self.fields()] or
+        if not self.section_fields():
+            self.container = SettingsBody([Label(self.screen.t("settings_tab_empty"))], [])
+            return
+        self.container = (SettingsBody(self.grouped_children(self.fields()) or
                           [Label(self.screen.t("settings_search_empty"))], self.fields())
                           if self.query else self._unfiltered)
+
+    def grouped_children(self, fields):
+        groups = getattr(self, "groups", None)
+        if groups is None:
+            return [field.container for field in fields]
+        selected = set(fields)
+        children = []
+        for title, members in groups:
+            matching = [field for field in members if field in selected]
+            if matching:
+                children.extend([section(title), *(field.container for field in matching)])
+        return children
 
     def actions(self):
         self.save = SaveButton(lambda: self.screen.t("settings_save"),
@@ -52,10 +67,13 @@ class Page:
         return self.forms()
 
     def section_fields(self):
-        return [field for form in self.visible_forms() for field in form.fields.values()]
+        tab = self.screen.tabs.selected
+        return [field for form in self.visible_forms() for field in form.fields.values()
+                if getattr(self, "field_tabs", {}).get(field, "config") == tab]
 
     def _matching_fields(self):
-        return [field for form in self.visible_forms() for path, field in form.fields.items()
+        visible = set(self.section_fields())
+        return [field for form in self.visible_forms() for path, field in form.fields.items() if field in visible
                 if not self.query or self.query in (".".join(path) + " " +
                     str(field.schema.get("title", "")) + " " + str(field.schema.get("description", "")) +
                     " " + field.input.text).casefold()]
@@ -127,6 +145,30 @@ class ProjectPage(Page):
     def set_section(self, section):
         self.section = section
         form = self.visible_forms()[0]
+        groups = {}
+        self.field_tabs = {}
+        for path, field in form.fields.items():
+            relative = path[len(form.prefix):]
+            if not form.prefix and relative[:2] == ("config", "policies"):
+                tab, relative = "policy", relative[2:]
+            elif form.prefix and relative[:1] == ("policy",):
+                tab, relative = "policy", relative[1:]
+            else:
+                tab = "config"
+                if relative[:1] == ("config",):
+                    relative = relative[1:]
+            self.field_tabs[field] = tab
+            if len(relative) > 1:
+                category, label = relative[0], ".".join(relative[1:])
+            else:
+                category, label = "general", ".".join(relative)
+            field.label = field.schema.get("title") or label
+            groups.setdefault(category, []).append(field)
+        def title(category):
+            key = "settings_group_" + category
+            value = self.screen.t(key)
+            return category.replace("_", " ") if value == key else value
+        self.groups = [(title(category), fields) for category, fields in groups.items()]
         body = []
         if section.startswith("component:"):
             name = section.split(":", 1)[1]
@@ -136,7 +178,7 @@ class ProjectPage(Page):
                 body.append(Label(self.screen.t("settings_dependencies", names=", ".join(required))))
             if missing:
                 body.append(Label(self.screen.t("settings_dependencies_missing", names=", ".join(missing))))
-        self._unfiltered = SettingsBody([*body, *(form.children or [form.container])], self.section_fields())
+        self._unfiltered = SettingsBody([*body, *self.grouped_children(self.section_fields())], self.section_fields())
         self.container = self._unfiltered
         self.filter(self.screen.query)
 
@@ -199,11 +241,18 @@ class GlobalPage(Page):
             self.container = SettingsBody([section(screen.t("settings_" + name)), *self.form.children], self.all_fields())
         if self.general_form is not None:
             self.container = self.general_form.container
+            self.groups = [(screen.t("general_category_" + category), [self.form.fields[(key,)] for key in keys])
+                           for category, keys in self.general_form.groups.items()]
+        else:
+            self.groups = [(screen.t("settings_" + name), self.all_fields())]
         self.usage_output = None
         if name == "profile":
+            from ...widget.usage_chart import DailyUsageChart
             self.usage_output = TextArea(text=self.usage_text(), read_only=True, scrollbar=True,
                                          wrap_lines=True, height=6, style="class:hub.muted")
-            self.container = HSplit([self.container, section(screen.t("settings_usage")), self.usage_output])
+            self.usage_chart = DailyUsageChart(screen.usage, screen.t)
+            self.container = SettingsBody([section(screen.t("settings_profile")), *self.form.children,
+                section(screen.t("settings_usage")), self.usage_output, self.usage_chart], self.all_fields())
         self.actions()
         if name == "appearance":
             self.form.fields[("sidebar_width",)].input.buffer.on_text_changed += self.preview_width
@@ -214,7 +263,8 @@ class GlobalPage(Page):
             rows.append(self.screen.t("settings_usage_empty"))
         for record in self.screen.usage:
             if "error" in record:
-                rows.append(self.screen.t("settings_usage_error", title=record["title"], error=record["error"]))
+                from ..error_presentation import error_text
+                rows.append(self.screen.t("settings_usage_error", title=record["title"], error=error_text(record["error"])))
                 continue
             period = (self.screen.t("settings_usage_all") if record["period_seconds"] is None else
                       self.screen.t("settings_usage_period", seconds=record["period_seconds"]))
@@ -237,7 +287,7 @@ class GlobalPage(Page):
             self.form.original.get("language_packs", {}) != self.original.get("language_packs", {}))
 
     def body_widgets(self):
-        if self.query:
+        if self.query or self.screen.tabs.selected == "policy":
             return super().body_widgets()
         if self.general_form is not None:
             return self.general_form.widgets

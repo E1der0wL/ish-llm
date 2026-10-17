@@ -5,6 +5,7 @@ from datetime import datetime
 
 from ..model import ChatMessage, HubSnapshot, SessionSummary
 from ..backend.execution.followup import split_followup
+from .error_presentation import error_text, failure_text
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,20 +22,11 @@ def present_message(item: ChatMessage, t) -> ChatMessage:
     if item.role == "assistant" and not text and item.status in ("streaming", "committed"):
         return replace(item, text="", phase=item.phase or "preparing")
     if item.role == "assistant" and item.status == "failed":
-        text = (text.rstrip() + "\n\n" if text.strip() else "") + t("response_failed")
+        text = t("response_failed")
         if item.failure is not None:
-            diagnosis = item.failure
-            text += "\n\n" + t("failure_" + diagnosis.kind)
-            evidence = [diagnosis.code] if diagnosis.code else []
-            if diagnosis.http_status is not None:
-                evidence.append(f"HTTP {diagnosis.http_status}")
-            if diagnosis.exception_type:
-                evidence.append(diagnosis.exception_type)
-            if diagnosis.finish_reason:
-                evidence.append(f"finish_reason={diagnosis.finish_reason}")
-            if evidence:
-                text += "\n\n" + t("failure_evidence", evidence=" · ".join(evidence))
-            text += "\n" + t("failure_details")
+            text += "\n\n" + failure_text(item.failure, t)
+        item = replace(item, role="system", id=item.id + ":failure" if item.id else "",
+                       tools=(), trace=(), phase="", activity="")
     elif not text and not item.tools:
         text = t("status_" + item.status) if item.status in ("interrupted", "cancelled", "paused", "completed") else t("waiting")
     return replace(item, text=text,
@@ -57,12 +49,20 @@ class MessagePresentationCache:
             cached = previous.get(key)
             if cached is None or cached[0] != item:
                 # A clock tick does not change Markdown/metadata parsing.
-                projected = (replace(cached[1], elapsed_seconds=item.elapsed_seconds)
-                    if cached and replace(cached[0], elapsed_seconds=item.elapsed_seconds) == item
-                    else present_message(item, t))
-                cached = (item, projected)
+                if cached and replace(cached[0], elapsed_seconds=item.elapsed_seconds) == item:
+                    projected = replace(cached[1], elapsed_seconds=item.elapsed_seconds)
+                    partial = replace(cached[2], elapsed_seconds=item.elapsed_seconds) if cached[2] else None
+                else:
+                    projected, partial = present_message(item, t), None
+                    if item.role == "assistant" and item.status == "failed" and item.text.strip():
+                        # Keep model output separate; parse it only when changed.
+                        text, _ = split_followup(item.text, final=True)
+                        partial = replace(item, text=text, failure=None)
+                cached = (item, projected, partial)
                 self.transformed += 1
             retained[key] = cached
+            if cached[2] is not None:
+                messages.append(cached[2])
             messages.append(cached[1])
         self.context, self.items = context, retained
         return tuple(messages)
@@ -70,7 +70,7 @@ class MessagePresentationCache:
 
 def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
     sessions = tuple(replace(item, status=t("queued", status=t.status(item.status), count=item.queued_count)) for item in snapshot.sessions)
-    messages = cache.messages(snapshot, t) if cache else tuple(present_message(item, t) for item in snapshot.messages)
+    messages = (cache or MessagePresentationCache()).messages(snapshot, t)
     if not sessions:
         return Presentation((), messages, t("session_required"))
     notice = t("queued", status=t.status(snapshot.status), count=snapshot.queued_count)
@@ -88,7 +88,7 @@ def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
     if snapshot.storage == "memory":
         notice += " · " + t("memory")
     if snapshot.title_error:
-        notice = t("title_failed", error=snapshot.title_error)
+        notice = t("title_failed", error=error_text(snapshot.title_error))
     if snapshot.model_required:
         notice = t("model_required")
     return Presentation(sessions, messages, notice)

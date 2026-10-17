@@ -50,7 +50,7 @@ class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
 
     def test_only_managed_components_and_two_actions_are_exposed(self):
         commands = component_commands(("tools", "rag", "skills", "workflows", "agents", "memory", "goals", "refinement", "mcp"))
-        self.assertEqual(set(commands), {"tools", "rag", "skills", "workflows", "agents", "mcp"})
+        self.assertEqual(set(commands), {"tools", "rag", "skills", "workflows", "agents", "mcp", "memory"})
         self.assertEqual(set(commands), set(commands.values()))
         language = Language("ko")
         completer = HubCompleter(lambda: (), lambda: ".", language, components=lambda: commands)

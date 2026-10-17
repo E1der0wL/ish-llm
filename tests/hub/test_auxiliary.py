@@ -55,7 +55,7 @@ class AuxiliaryTests(unittest.IsolatedAsyncioTestCase):
         await auxiliary(app, self.pipe, view, 'history')
         await eventually(lambda: seen == ['history'])
         with set_app(app):
-            self.assertEqual(set(dict(view.bindings.hints())), {'ESC', 'Ctrl+P', 'Ctrl+Q', 'Enter/Space', '←→'})
+            self.assertEqual(set(dict(view.bindings.hints())), {'ESC', 'Ctrl+P', 'Ctrl+Q', 'Ctrl+W', 'Enter/Space', '←→'})
         for key, index in (('\x1b[C', 1), ('\x1b[C', 2), ('\x1b[D', 1), ('\x1b[D', 0)):
             self.pipe.send_text(key)
             await eventually(lambda: app.layout.current_control is list(view.auxiliary.buttons.values())[index].control)

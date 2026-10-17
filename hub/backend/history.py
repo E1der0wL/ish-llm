@@ -3,33 +3,20 @@
 import hashlib
 import json
 
+from llm.llm import CheckpointError
+
 from .execution.turns import TURN_OPTION, TurnIndex
 from .execution.stopping import display_run, reopen_questions
+from ..errors.adapters import from_exception
+from ..errors.contracts import ErrorOrigin
+from ..errors.operations import OperationBlocked
 
 
 class TurnHistory:
     def __init__(self, runtime):
         self.runtime = runtime
 
-    async def _unstarted_without_checkpoint(self, handle, run, plan):
-        # Missing files are not proof that earlier effects never happened.
-        # Initialization, resume lineage and Steps distinguish an early stop
-        # from lost/corrupt execution state. Inspect only public backend APIs.
-        if (run.metadata.get("checkpoints") or "resume" in run.metadata
-                or "resume_abandonment" in run.metadata
-                or plan.interactions or plan.reused or plan.retry_nodes):
-            return False
-        strategy = self.runtime.backend.engines.resolve_request(run.engine, run.metadata.get("engine_options", {}))
-        name = getattr(strategy, "checkpoint_name", None)
-        if not name or not callable(getattr(strategy, "validate_resume", None)):
-            return False
-        try:
-            await handle.acheckpoint(name)
-        except FileNotFoundError:
-            return not await handle.steps.alist()
-        return False
-
-    async def _restart(self, session_id, request, run, text):
+    async def _edit_request(self, session_id, request, run, text):
         options = dict(run.metadata.get("engine_options", {}))
         options[TURN_OPTION] = {"source": request.id}
         return await self.runtime.submit(session_id, text, run.engine, options)
@@ -69,33 +56,51 @@ class TurnHistory:
     async def require_idle(self, session_id):
         state = await self.runtime.sessions[session_id].run.astatus()
         if state.active_run_id or state.queued_count or session_id in self.runtime.namer.tasks:
-            raise ValueError(self.runtime.t("history_busy"))
+            raise OperationBlocked("hub_operation_busy", self.runtime.t("history_busy"))
 
     async def retry(self, session_id, request_id, expected_run_id):
         runtime, session = self.runtime, self.runtime.sessions[session_id]
         await self.require_idle(session_id)
         turn = (await self.index(session_id)).by_id[request_id]
         if not expected_run_id or turn.latest.run_id != expected_run_id:
-            raise ValueError(runtime.t("history_changed"))
+            raise OperationBlocked("hub_operation_changed", runtime.t("history_changed"))
         handle = await session.run.aload(expected_run_id)
         run = await handle.aget_data()
         status = str(run.status)
         if status == "paused":
             status = str(display_run(await session.aget_data(), run).status)
         if status not in ("interrupted", "failed"):
-            raise ValueError(runtime.t("history_retry_unavailable"))
+            raise OperationBlocked("hub_not_resumable", runtime.t("history_retry_unavailable"))
         if str(run.status) == "paused" and await reopen_questions(
                 session, handle, unavailable=runtime.t("history_retry_question_unavailable")):
             runtime.snapshot_reader.invalidate(session_id)
             runtime.dirty.set()
             return turn.latest.id
-        plan = await session.run.resume_plan(run.id, engine=run.engine)
-        if not plan.can_resume:
-            if await self._unstarted_without_checkpoint(handle, run, plan):
-                return await self._restart(session_id, turn.latest, run, turn.latest.content)
-            details = "\n".join(item.message for item in plan.blockers)
-            raise ValueError(runtime.t("history_retry_blocked", details=details))
-        request = await session.run.resume(run.id, engine=run.engine)
+        for attempt in range(2):
+            # Only admission's explicit revision conflict is safe to re-plan.
+            # This neither executes Tools nor changes the selected source Run.
+            plan = await session.run.resume_plan(run.id, engine=run.engine)
+            if any(item.code == "interaction_required" for item in plan.blockers) and await reopen_questions(
+                    session, handle, unavailable=runtime.t("history_retry_question_unavailable")):
+                runtime.snapshot_reader.invalidate(session_id)
+                runtime.dirty.set()
+                return turn.latest.id
+            try:
+                if plan.can_resume:
+                    request = await session.run.resume(run.id, engine=run.engine, partial_output=True,
+                                                       expected_revision=plan.revision)
+                elif plan.can_restart:
+                    request = await session.run.restart(run.id, engine=run.engine, expected_revision=plan.revision)
+                else:
+                    details = "\n".join(dict.fromkeys(item.message for item in (*plan.blockers, *plan.restart_blockers)))
+                    raise CheckpointError("checkpoint_protected", runtime.t("history_retry_blocked", details=details),
+                                          blockers=(*plan.blockers, *plan.restart_blockers))
+            except CheckpointError as error:
+                if error.code != "checkpoint_conflict" or attempt:
+                    raise
+                await self.require_idle(session_id)
+                continue
+            break
         runtime.snapshot_reader.invalidate(session_id)
         runtime.dirty.set()
         return request.id
@@ -106,13 +111,13 @@ class TurnHistory:
         turn = (await self.index(session_id)).by_id[request_id]
         latest = turn.latest
         if latest.id != expected_request_id:
-            raise ValueError(runtime.t("history_changed"))
+            raise OperationBlocked("hub_operation_changed", runtime.t("history_changed"))
         if not latest.run_id:
-            raise ValueError(runtime.t("history_edit_unavailable"))
+            raise OperationBlocked("hub_edit_unavailable", runtime.t("history_edit_unavailable"))
         run = await (await session.run.aload(latest.run_id)).aget_data()
         if str(run.status) not in ("completed", "interrupted", "failed", "cancelled", "paused"):
-            raise ValueError(runtime.t("history_edit_unavailable"))
-        return await self._restart(session_id, latest, run, text)
+            raise OperationBlocked("hub_edit_unavailable", runtime.t("history_edit_unavailable"))
+        return await self._edit_request(session_id, latest, run, text)
 
     async def deletion_plan(self, session_id, identifiers):
         session = self.runtime.sessions[session_id]
@@ -147,7 +152,7 @@ class TurnHistory:
         runtime, session = self.runtime, self.runtime.sessions[session_id]
         plan = await self.deletion_plan(session_id, identifiers)
         if plan["revision"] != expected_revision:
-            raise ValueError(runtime.t("history_delete_changed"))
+            raise OperationBlocked("hub_operation_changed", runtime.t("history_delete_changed"))
         allowed = {item["source"]["run_id"] for item in plan["blockers"]}
         removed, errors = [], []
         total = len(plan["items"])
@@ -162,11 +167,11 @@ class TurnHistory:
                     current = (await session.adelete_turn_plan(item["id"])).to_dict()
                     blockers = [b["source"]["run_id"] for b in current["blockers"]]
                     if not set(blockers) <= allowed:
-                        raise ValueError(runtime.t("history_delete_changed"))
+                        raise OperationBlocked("hub_operation_changed", runtime.t("history_delete_changed"))
                     await runtime.delete_turn(session_id, item["id"], blockers, current["revision"])
                 removed.append(item["id"])
             except (ValueError, KeyError, RuntimeError) as error:
-                errors.append(str(error))
+                errors.append(from_exception(error, origin=ErrorOrigin.BACKEND, operation="delete_turn"))
             if progress:
                 progress(count, total)
         return {"removed": removed, "errors": errors}

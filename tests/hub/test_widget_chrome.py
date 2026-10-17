@@ -132,7 +132,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                     view.close_dialog()
                     popup = ReadOnlyDialog("Activity", "line", view._rows, view._columns, view.close_dialog, view.t)
                     view.dialogs.show(popup, popup.receiver)
-                self.assertEqual(set(keys()), {"ESC", "Ctrl+L", "Ctrl+Q", "Enter", "이동키"})
+                self.assertEqual(set(keys()), {"ESC", "Ctrl+L", "Ctrl+Q", "Ctrl+W", "Enter", "이동키"})
                 pipe.send_text("\x0c")
                 await eventually(lambda: view._dialog is None)
                 with set_app(app):

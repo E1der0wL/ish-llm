@@ -8,7 +8,7 @@ import tempfile
 import threading
 from functools import partial
 import unittest
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -18,27 +18,134 @@ from hub.backend.runtime import HubConfig, HubRuntime
 from hub.config.environment import ENVIRONMENT_OPTION
 from hub.ui.chat.history_ui import HistoryUI
 from llm.engines.loop import LoopEngine
+from llm.llm import Diagnostic, CheckpointError
+from llm.services.runtime.runs import RunManager
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 from tests.hub.support import SizedOutput, eventually
 from tests.hub.test_live import controlled_backend
 
 
 class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
+    def test_checkpoint_notice_does_not_repeat_embedded_blockers(self):
+        from hub.ui.error_presentation import error_text
+        blocker = Diagnostic("interaction_required", "Resolve pending interactions before execution")
+        error = CheckpointError("checkpoint_protected", "Retry blocked: " + blocker.message, blockers=(blocker,))
+        self.assertEqual(error_text(error).count(blocker.message), 1)
+
+    async def test_interrupted_tool_retry_exposes_approval_before_reexecuting(self):
+        from tests.hub.test_tool_retry import ExampleTools
+        entered = asyncio.Event()
+        executions = []
+        async def tool(arguments):
+            executions.append(arguments)
+            if len(executions) == 1:
+                entered.set()
+                await asyncio.Event().wait()
+            return {"done": True}
+        provider = ScriptedCompletion(
+            [chunk("Before tool"), chunk(calls=[call('{"format":"old","count":1}', name="convert")], finish="tool_calls")],
+            [chunk("After tool", finish="stop")])
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
+                component_factories=(lambda: ExampleTools(tool),),
+                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+            await runtime.start()
+            try:
+                sid = await runtime.new_session()
+                session = runtime.sessions[sid]
+                await runtime.submit(sid, "work")
+                await asyncio.wait_for(entered.wait(), 10)
+                await runtime.interrupt(sid)
+                await session.run.wait_idle()
+                original, = await runtime.turns(sid)
+                self.assertFalse((await runtime.snapshot()).questions)
+                await runtime.resume_latest(sid)
+                question, = (await runtime.snapshot()).questions
+                self.assertEqual(question["request"]["category"], "execution.retry_uncertain")
+                self.assertEqual(len(executions), 1)
+                self.assertEqual(len(await session.run.alist()), 1)
+                # A cancelled review can be explicitly reopened, without approval.
+                handle = await session.run.aload(original["run_id"])
+                request, = await handle.ainteractions(pending_only=True)
+                await handle.acancel_interaction(request)
+                await runtime.resume_latest(sid)
+                question, = (await runtime.snapshot()).questions
+                self.assertEqual(len(executions), 1)
+                await runtime.answer_question(runtime.project.id, sid, question["run_id"], question["request"], "approve", None)
+                await session.run.wait_idle()
+                final, = await runtime.turns(sid)
+                self.assertEqual(final["id"], original["id"])
+                self.assertEqual(final["status"], "completed")
+                self.assertEqual(len(executions), 2)
+                self.assertFalse((await runtime.snapshot()).questions)
+                self.assertNotIn("hub_resume_interactions", (await session.aget_data()).metadata)
+                assistants = [m for m in (await runtime.snapshot()).messages if m.role == "assistant"]
+                self.assertEqual(len(assistants), 1)
+                self.assertIn("Before tool", assistants[0].text)
+                self.assertIn("After tool", assistants[0].text)
+            finally:
+                await runtime.close()
+
+    async def test_resume_latest_interrupted_loop_keeps_partial_reference_and_position(self):
+        release = threading.Event()
+        requests = []
+        def completion(**kwargs):
+            requests.append(kwargs)
+            if len(requests) == 1:
+                yield chunk("unfinished answer")
+                release.wait(10)
+            else:
+                yield chunk("continued answer", finish="stop")
+        with tempfile.TemporaryDirectory() as root:
+            runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
+                engine_factories={"loop": lambda: LoopEngine(completion_fn=completion)}))
+            await runtime.start()
+            try:
+                sid = await runtime.new_session()
+                request = await runtime.submit(sid, "continue this task")
+                session = runtime.sessions[sid]
+                for _ in range(100):
+                    messages = await session.aconversation()
+                    if any(message.role == "assistant" and message.content == "unfinished answer" for message in messages):
+                        break
+                    await asyncio.sleep(.02)
+                else:
+                    self.fail("Partial output was not stored")
+                stopping = asyncio.create_task(runtime.interrupt(sid))
+                await asyncio.sleep(.05)
+                release.set()
+                self.assertTrue(await asyncio.wait_for(stopping, 5))
+                first, = await runtime.turns(sid)
+                self.assertEqual(first["status"], "interrupted")
+                await runtime.resume_latest(sid)
+                await session.run.wait_idle()
+                row, = await runtime.turns(sid)
+                self.assertEqual(row["id"], first["id"])
+                self.assertEqual(row["status"], "completed")
+                self.assertIn("unfinished answer", str(requests[-1]["messages"]))
+                self.assertEqual(len(requests), 2)
+                self.assertIsNone(await runtime.resume_latest(sid))
+            finally:
+                release.set()
+                await runtime.close()
+
     async def test_early_interrupt_without_checkpoint_restarts_in_place_after_reopen(self):
         entered, release = asyncio.Event(), asyncio.Event()
         provider = ScriptedCompletion([chunk("later answer", finish="stop")], [chunk("fresh answer", finish="stop")])
 
-        class PreparingLoop(LoopEngine):
-            async def execute(self, context):
-                if not release.is_set():
-                    entered.set()
-                    await release.wait()
-                async for event in super().execute(context):
-                    yield event
+        original_consume = RunManager._consume_limited
+        async def preparing(manager, runtime, run):
+            if not release.is_set():
+                entered.set()
+                await release.wait()
+            return await original_consume(manager, runtime, run)
+        preparation = patch.object(RunManager, "_consume_limited", preparing)
+        preparation.start()
+        self.addCleanup(preparation.stop)
 
         with tempfile.TemporaryDirectory() as directory:
             config = HubConfig(directory, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: PreparingLoop(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
             runtime = HubRuntime(config)
             try:
                 await runtime.start()
@@ -86,43 +193,69 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 release.set()
                 await runtime.close()
 
-    async def test_missing_checkpoint_does_not_restart_executed_or_protected_runs(self):
+    async def test_backend_denial_cannot_be_overridden_by_empty_steps(self):
         from hub.backend.history import TurnHistory
         from hub.locales import Language
         request = SimpleNamespace(id="u", role="user", run_id="r", metadata={},
                                   status="committed", content="request", created_at="")
         run = SimpleNamespace(id="r", engine="loop", status="failed", metadata={})
-        handle = SimpleNamespace(aget_data=AsyncMock(return_value=run),
-            acheckpoint=AsyncMock(side_effect=FileNotFoundError("missing checkpoint")),
-            steps=SimpleNamespace(alist=AsyncMock(return_value=[])))
-        plan = SimpleNamespace(can_resume=False, interactions=[], reused=[], retry_nodes=[],
-                               blockers=[SimpleNamespace(message="missing checkpoint")])
+        handle = SimpleNamespace(aget_data=AsyncMock(return_value=run))
+        plan = SimpleNamespace(can_resume=False, can_restart=False, blockers=[],
+            restart_blockers=[Diagnostic("checkpoint_protected", "No durable proof of a pre-execution stop")])
         session = SimpleNamespace(aconversation=AsyncMock(return_value=[request]), run=SimpleNamespace(
             astatus=AsyncMock(return_value=SimpleNamespace(active_run_id=None, queued_count=0)),
-            aload=AsyncMock(return_value=handle), resume_plan=AsyncMock(return_value=plan), resume=AsyncMock()))
-        runtime = SimpleNamespace(sessions={"s": session}, namer=SimpleNamespace(tasks={}), t=Language(),
-            submit=AsyncMock(), backend=SimpleNamespace(engines=SimpleNamespace(resolve_request=Mock(
-                return_value=SimpleNamespace(checkpoint_name="loop", validate_resume=lambda _: None)))))
-        history = TurnHistory(runtime)
-        for metadata, steps, interactions in (({"checkpoints": ["loop"]}, [], []),
-                ({"resume": {"run_id": "parent"}}, [], []), ({"resume_abandonment": {}}, [], []),
-                ({}, [SimpleNamespace(kind="tool", status="completed")], []),
-                ({}, [SimpleNamespace(kind="tool", status="interrupted")], []), ({}, [], [object()])):
-            with self.subTest(metadata=metadata, steps=steps, interactions=interactions):
-                run.metadata, plan.interactions = metadata, interactions
-                handle.steps.alist.return_value = steps
-                with self.assertRaisesRegex(ValueError, "체크포인트"):
-                    await history.retry("s", "u", "r")
+            aload=AsyncMock(return_value=handle), resume_plan=AsyncMock(return_value=plan),
+            resume=AsyncMock(), restart=AsyncMock()))
+        runtime = SimpleNamespace(sessions={"s": session}, namer=SimpleNamespace(tasks={}), t=Language(), submit=AsyncMock())
+        with self.assertRaisesRegex(ValueError, "No durable proof"):
+            await TurnHistory(runtime).retry("s", "u", "r")
+        runtime.submit.assert_not_awaited()
+        session.run.resume.assert_not_awaited()
+        session.run.restart.assert_not_awaited()
+
+    async def test_revision_conflict_never_falls_back_to_a_new_request(self):
+        from hub.backend.history import TurnHistory
+        from hub.locales import Language
+        for action in ("resume", "restart"):
+            with self.subTest(action=action):
+                request = SimpleNamespace(id="u", role="user", run_id="r", metadata={},
+                                          status="committed", content="request", created_at="")
+                run = SimpleNamespace(id="r", engine="loop", status="failed", metadata={})
+                plan = SimpleNamespace(can_resume=action == "resume", can_restart=action == "restart",
+                                       revision="reviewed", blockers=[], restart_blockers=[])
+                api = SimpleNamespace(
+                    astatus=AsyncMock(return_value=SimpleNamespace(active_run_id=None, queued_count=0)),
+                    aload=AsyncMock(return_value=SimpleNamespace(aget_data=AsyncMock(return_value=run))),
+                    resume_plan=AsyncMock(return_value=plan), resume=AsyncMock(), restart=AsyncMock())
+                getattr(api, action).side_effect = CheckpointError("checkpoint_conflict", "changed")
+                runtime = SimpleNamespace(sessions={"s": SimpleNamespace(run=api,
+                    aconversation=AsyncMock(return_value=[request]))}, namer=SimpleNamespace(tasks={}),
+                    t=Language(), submit=AsyncMock())
+                with self.assertRaises(CheckpointError):
+                    await TurnHistory(runtime).retry("s", "u", "r")
+                kwargs = {"partial_output": True} if action == "resume" else {}
+                self.assertEqual(getattr(api, action).await_count, 2)
+                getattr(api, action).assert_awaited_with("r", engine="loop", expected_revision="reviewed", **kwargs)
+                getattr(api, "restart" if action == "resume" else "resume").assert_not_awaited()
                 runtime.submit.assert_not_awaited()
-                session.run.resume.assert_not_awaited()
-        run.metadata, plan.interactions = {}, []
-        handle.steps.alist.return_value = []
-        for error in (PermissionError("cannot read checkpoint"), ValueError("invalid checkpoint")):
-            with self.subTest(error=error):
-                handle.acheckpoint.side_effect = error
-                with self.assertRaises(type(error)):
-                    await history.retry("s", "u", "r")
-                runtime.submit.assert_not_awaited()
+
+    async def test_revision_conflict_replans_once_before_safe_admission(self):
+        from hub.backend.history import TurnHistory
+        from hub.locales import Language
+        request = SimpleNamespace(id="u", role="user", run_id="r", metadata={}, status="committed", content="work")
+        run = SimpleNamespace(id="r", engine="loop", status="interrupted", metadata={})
+        plans = [SimpleNamespace(can_resume=True, can_restart=False, blockers=[], revision=version) for version in ("old", "new")]
+        api = SimpleNamespace(astatus=AsyncMock(return_value=SimpleNamespace(active_run_id=None, queued_count=0)),
+            aload=AsyncMock(return_value=SimpleNamespace(aget_data=AsyncMock(return_value=run))),
+            resume_plan=AsyncMock(side_effect=plans), resume=AsyncMock(side_effect=[
+                CheckpointError("checkpoint_conflict", "changed"), SimpleNamespace(id="new-request")]), restart=AsyncMock())
+        runtime = SimpleNamespace(sessions={"s": SimpleNamespace(run=api, aconversation=AsyncMock(return_value=[request]))},
+            namer=SimpleNamespace(tasks={}), t=Language(), submit=AsyncMock(),
+            snapshot_reader=SimpleNamespace(invalidate=Mock()), dirty=asyncio.Event())
+        self.assertEqual(await TurnHistory(runtime).retry("s", "u", "r"), "new-request")
+        self.assertEqual([call.kwargs["expected_revision"] for call in api.resume.await_args_list], ["old", "new"])
+        api.restart.assert_not_awaited()
+        runtime.submit.assert_not_awaited()
 
     async def test_edit_approval_waiting_request_starts_fresh_without_old_effects(self):
         provider = ScriptedCompletion([chunk(calls=[call('{"path":"old.txt","content":"old"}',
@@ -300,7 +433,7 @@ class HistoryDialogTests(unittest.IsolatedAsyncioTestCase):
                     completed({"items": [], "blockers": [], "revision": "revision"})
                 else:
                     completed(None)
-            history = HistoryUI(SimpleNamespace(view=view, _call=invoke, _snapshot=lambda _: None))
+            history = HistoryUI(SimpleNamespace(view=view, _call=invoke, _snapshot=lambda _: None, _submitting=set()))
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
                 await eventually(lambda: app.is_running)

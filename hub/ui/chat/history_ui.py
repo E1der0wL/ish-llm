@@ -1,11 +1,13 @@
 """Session turn management and project execution activity dialogs."""
 
 from prompt_toolkit.layout.dimension import Dimension
-from prompt_toolkit.widgets import Label, TextArea
+from prompt_toolkit.widgets import Label
+from ...widget.controls import TextArea
 from ...widget.output.reader import ReadOnlyDialog
 import json
 
 from ...widget.controls import Button
+from ..error_presentation import operation_notice
 
 
 def provider_detail(row, t):
@@ -113,8 +115,11 @@ class HistoryUI:
                 view.notice = t("empty_message")
                 return
             view.close_dialog()
-            args = ((session_id, identifier, text, row.get("request_id", identifier))
-                    if operation == "edit_turn" else (session_id, identifier, row.get("run_id", "")))
+            if operation == "retry_turn":
+                from .resume import resume_turn
+                resume_turn(self.controller, session_id, row.get("run_id", ""), identifier)
+                return
+            args = (session_id, identifier, text, row.get("request_id", identifier))
             self.controller._call(operation, *args, completed=lambda result:
                 result is not None and self.controller._call("snapshot", completed=self.controller._snapshot))
 
@@ -174,7 +179,10 @@ class HistoryUI:
                                 if view.visible and view._dialog is None:
                                     self.open()
                                 if result["errors"]:
-                                    view.notice = "\n".join(dict.fromkeys(result["errors"]))
+                                    for error in result["errors"]:
+                                        view.operation_diagnostics.record(project_id, error)
+                                    view.notice = "\n".join(dict.fromkeys(
+                                        operation_notice(error, t) for error in result["errors"]))
                         self.controller._call("snapshot", completed=refreshed)
                     self.controller._call("delete_turns", session_id, identifiers, plan["revision"], completed=removed,
                         progress=lambda done, total: view.deleting.update(request, done, total))
@@ -205,9 +213,13 @@ class HistoryUI:
             if view._dialog is not pending:
                 return
             view.close_dialog()
-            if rows is None or view.project_id != project_id:
+            if view.project_id != project_id:
                 return
-            self._activity_dialog(lambda: format_activity(rows, t))
+            if rows is None and not view.operation_diagnostics.text(project_id, t):
+                return
+            self._activity_dialog(lambda: "\n\n".join(filter(None, (
+                format_activity(rows, t) if rows is not None else "",
+                view.operation_diagnostics.text(project_id, t)))))
         self.controller._call("project_activity", completed=ready)
 
     def _activity_dialog(self, text):

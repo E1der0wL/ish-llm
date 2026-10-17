@@ -87,7 +87,9 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                                   f"query={getattr(screen.page, 'query', None)}, busy={screen.busy}, status={screen.status}")
                     self.assertEqual(screen.page.query, "")
                     self.assertEqual(screen.query, "")
-                    expected = list(screen.page.engine_forms[engine].fields.values())
+                    self.assertEqual(screen.tabs.selected, "config")
+                    expected = [field for field in screen.page.engine_forms[engine].fields.values()
+                                if screen.page.field_tabs[field] == "config"]
                     self.assertEqual(screen.page.fields(), expected)
                     self.assertIs(app.layout.current_control, expected[0].input.control)
                     pipe.send_text("\x06\x01\x0bno-such-setting\r")
@@ -163,6 +165,7 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     screen.choose("profile")
                     screen.layout.focus_main()
+                    screen.tabs.enter()
                 field = screen.page.form.fields[("display_name",)]
                 field.input.text = "original"
                 field.input.buffer.cursor_position = 0
@@ -237,7 +240,7 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
                                         open_directory=AsyncMock())
                     view.dialogs.show(popup, popup.path)
                     popup.reload()
-                pipe.send_text("\t")
+                pipe.send_text("\t\t")
                 await eventually(lambda: app.layout.current_control == popup.list)
                 pipe.send_text("d")
                 await eventually(lambda: view._dialog is not popup)

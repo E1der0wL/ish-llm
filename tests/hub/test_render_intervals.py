@@ -47,7 +47,8 @@ class RenderIntervalTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn(view.t("response_failed"), displayed)
                     self.assertNotIn(view.t("waiting"), displayed)
                     if content == "partial":
-                        self.assertIn("Partial response", displayed)
+                        self.assertEqual(view.output.transcript.control.messages[-2].text, "Partial response")
+                        self.assertEqual(view.output.transcript.control.messages[-1].role, "system")
                     view.set_theme(replace(view.theme, icon_style="unicode"))
                     self.assertEqual(view.output.transcript.control.messages[-1].text.count(view.t("response_failed")), 1)
                     self.assertNotIn(view.t("response_failed"), original.text)

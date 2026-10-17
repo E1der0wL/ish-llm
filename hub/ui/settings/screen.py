@@ -17,7 +17,7 @@ from .navigation import SettingsNavigation
 from .drafts import SettingsDrafts
 from ...widget.sidebar import SidebarHeading, SidebarItem, SidebarList
 from ..layout import TwoPanelPage
-from ...widget.header import HeaderBar
+from ...widget.header import HeaderBar, HeaderActions
 from ...widget.actions import ActionFrame
 from ...widget.content_inset import ContentInset
 
@@ -52,23 +52,28 @@ class SettingsScreen:
         self.main = SettingsPane(DynamicContainer(lambda: self.page.container if self.page else
                                   Window(height=1)), show_scrollbar=True,
                                   width=lambda: Dimension(min=1, preferred=max(1, self.main_width() - 1)))
+        from ...widget.tab_page import TabPage
+        self.tabs = TabPage([("config", self.t("settings_tab_config"), self.main),
+                             ("policy", self.t("settings_tab_policy"), self.main)],
+                            width=self.main_width, on_change=self.tab_changed,
+                            on_enter=self.enter_tab, on_leave=self.navigation.finish_edit)
         bottom = DynamicContainer(lambda: self.page.bottom if self.page else Label(""))
         self.actions = ActionFrame(bottom, width=self.main_dimension, title=self.action_title)
         from ...widget.auxiliary import AuxiliaryBar
         self.auxiliary = AuxiliaryBar([("filter", self.search), ("json", self.show_json)],
                                       lambda: view.icons, lambda: self.navigation.focus_zone(1))
         self.layout = TwoPanelPage(
-            header=HeaderBar(lambda: self.t("settings_title"), icons=lambda: view.icons),
+            header=HeaderActions(HeaderBar(lambda: self.t("settings_title"), icons=lambda: view.icons), view),
             sidebar=DynamicContainer(lambda: self._left),
             main=HSplit([
-                        ContentInset(self.main, heading=self.page_title, width=self.main_dimension,
+                        ContentInset(self.tabs, heading=self.page_title, width=self.main_dimension,
                                      height=Dimension(min=3, weight=1)),
                         self.auxiliary, self.actions], width=self.main_dimension),
             progress=view.progress, notice=self.status_text, status_annotation=self.filter_label,
             footer=view.shortcut_bar(),
             sidebar_controls=lambda: (self.global_list, self.project_list, *view.profile_bar.controls),
             categories=(self.global_list, self.project_list),
-            focus_sidebar=self.navigation.switch_panel, focus_main=lambda: self.navigation.focus_zone(self.navigation.main_zone),
+            focus_sidebar=self.navigation.switch_panel, focus_main=self.tabs.focus_tabs,
             sidebar_width=view.sidebar_width, resize_sidebar=self.set_sidebar_width)
         self.layout.main_region.on_click = self.layout.focus_main
         self.container = self.layout.container
@@ -76,6 +81,18 @@ class SettingsScreen:
 
     def main_width(self):
         return max(1, self.view._columns() - self.view.sidebar_width() - 1)
+
+    def tab_changed(self, key):
+        if isinstance(self.page, ProjectPage):
+            self.page.set_section(self.page.section)
+        elif self.page is not None:
+            self.page.filter(self.query)
+        self.main.vertical_scroll = 0
+        self.navigation.positions = [0, 0]
+
+    def enter_tab(self):
+        if self.page and self.page.body_widgets():
+            self.navigation.focus_zone(0)
 
     def main_dimension(self):
         # The host may inset Hub's Float. The terminal width is a preference,
@@ -232,7 +249,11 @@ class SettingsScreen:
             save(width)
 
     def error(self, error):
-        self.status = self.t("error", error=error)
+        from ..error_presentation import operation_notice
+        from ...errors.adapters import from_exception
+        info = from_exception(error, operation="settings", validation=isinstance(error, (ValueError, TypeError)))
+        self.view.operation_diagnostics.record(getattr(self.view, "project_id", ""), info)
+        self.status = self.t("error", error=operation_notice(error if isinstance(error, str) else info, self.t))
         get_app().invalidate()
 
     def call(self, operation, *args, completed=None):
@@ -338,6 +359,7 @@ class SettingsScreen:
             self._engine_target = None
             section = "engine:" + page.engine_keys.get(engine, engine)
             if section in {item.key for item in self.project_items()}:
+                self.tabs.selected = "config"
                 page.set_section(section)
                 self.selected = self.navigation.left_key = section
                 self.filter("")
@@ -346,6 +368,7 @@ class SettingsScreen:
             self._component_target = None
             section = "component:" + name
             if section in {item.key for item in self.project_items()}:
+                self.tabs.selected = "config"
                 page.set_section(section)
                 self.selected = self.navigation.left_key = section
                 self.filter("")

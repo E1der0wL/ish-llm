@@ -10,6 +10,8 @@ from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
+from prompt_toolkit.layout.layout import walk
+from prompt_toolkit.layout.containers import to_container
 
 from hub.backend.project.component_commands import component_commands
 from hub.backend.runtime import HubConfig, HubRuntime
@@ -34,16 +36,22 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await eventually(lambda: view.connected)
                 # The first visit loads the catalog/project; later visits reuse drafts.
-                for name in ("tools", "skills", "mcp", "rag", "workflows", "agents", "tools"):
+                for name in ("tools", "skills", "mcp", "rag", "workflows", "agents", "prompts", "memory", "tools"):
                     with self.subTest(component=name):
                         view.composer.text = f"/{name} config"
                         view.composer.buffer.cancel_completion()
                         pipe.send_text("\r")
                         await eventually(lambda: isinstance(view._dialog, ComponentManager) and not view._dialog.busy)
                         popup = view._dialog
-                        pipe.send_text("\t")
+                        buttons = next(node.content.hub_button_group for node in walk(to_container(popup))
+                                       if getattr(getattr(node, "content", None), "hub_button_group", None))
+                        pipe.send_text("\t\t")  # InputField action, then component list.
                         await eventually(lambda: app.layout.current_control is popup.list)
-                        pipe.send_text("\t\x1b[C\r")  # Reload -> Settings -> activate.
+                        pipe.send_text("\t")
+                        await eventually(lambda: app.layout.current_control is buttons[0].control)
+                        pipe.send_text("\x1b[C")
+                        await eventually(lambda: app.layout.current_control is buttons[1].control)
+                        pipe.send_text("\r")
                         await eventually(lambda: view.settings_open and view._dialog is None and not screen.busy)
                         page = screen.page
                         self.assertEqual(page.identifier, view.project_id)
@@ -52,11 +60,14 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         self.assertEqual(screen.navigation.left_key, page.section)
                         self.assertEqual(page.query, "")
                         self.assertEqual(screen.query, "")
-                        self.assertEqual(page.fields(), list(page.component_forms[name].fields.values()))
+                        self.assertEqual(screen.tabs.selected, "config")
+                        self.assertEqual(page.fields(), [field for field in page.component_forms[name].fields.values()
+                                                        if page.field_tabs[field] == "config"])
                         self.assertTrue(page.fields())
                         self.assertIs(app.layout.current_control, page.fields()[0].input.control)
                         with set_app(app):
                             screen.filter("no-such-setting")
+                            screen.tabs.select("policy")
                             view.toggle_settings()
             finally:
                 app.exit()
@@ -184,7 +195,7 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                         pipe.send_text("\r")
                         await eventually(lambda: not popup.busy and popup.selected == "guide")
                         self.assertEqual(popup.path.text, "")
-                        pipe.send_text("\t")
+                        pipe.send_text("\t\t")  # InputField action, then component list.
                         await eventually(lambda: app.layout.current_control is popup.list)
                         edited = json.dumps({"instructions": "Revised instructions", "title": "Revised"})
                         with patch("hub.ui.host.edit_text", new_callable=AsyncMock, return_value=edited) as editor:

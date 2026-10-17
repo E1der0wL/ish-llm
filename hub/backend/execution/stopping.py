@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from llm.services.query import Query
 
 STOPPED = "hub_stopped_runs"
+RESUME_INTERACTIONS = "hub_resume_interactions"
 
 
 def stopped(record, run):
@@ -47,23 +48,40 @@ async def stop_paused(session):
 
 
 async def reopen_questions(session, handle, *, unavailable):
-    """An explicit retry restores cancelled questions, never grants approval."""
+    """Explicit retry exposes durable interactions, never grants approval.
+
+    Interrupted/failed tools may need an uncertain-effect decision even though
+    their Run was never PAUSED. Remember the reviewed Run for the input form.
+    """
     def reopen():
         with session.app.project_manager.ownership.scope():
             record, run = session.data, handle.data
-            if not stopped(record, run):
+            if str(run.status) not in ("paused", "interrupted", "failed"):
                 return False
-            cancelled = [v.request for v in handle.interaction_views() if v.status == "cancelled"]
-            if cancelled:
-                state = session.run.status(queued_limit=0)
-                latest = session.run.list(query=Query(descending=True, limit=1))
-                if state.active_run_id or state.queued_count or not latest or latest[0].id != run.id:
-                    raise ValueError(unavailable)
-            for request in cancelled:
-                handle.renew_interaction(request)
-            if cancelled:
-                marks = dict(record.metadata[STOPPED])
-                marks.pop(run.id)
-                session.save(metadata={**record.metadata, STOPPED: marks})
-            return bool(cancelled)
+            views = handle.interaction_views()
+            actionable = [v for v in views if v.can_respond or v.status in ("cancelled", "expired")]
+            if not actionable:
+                return False
+            state = session.run.status(queued_limit=0)
+            if state.active_run_id or state.queued_count:
+                raise ValueError(unavailable)
+            for view in actionable:
+                if view.status in ("cancelled", "expired"):
+                    handle.renew_interaction(view.request)
+            marks = dict(record.metadata.get(STOPPED, {}))
+            marks.pop(run.id, None)
+            session.save(metadata={**record.metadata, STOPPED: marks, RESUME_INTERACTIONS: run.id})
+            return True
     return await asyncio.to_thread(reopen)
+
+
+async def finish_review(session, run_id):
+    """Drop the completed input-form target without overwriting other metadata."""
+    def clear():
+        with session.app.project_manager.ownership.scope():
+            record = session.data
+            if record.metadata.get(RESUME_INTERACTIONS) == run_id:
+                metadata = dict(record.metadata)
+                metadata.pop(RESUME_INTERACTIONS)
+                session.save(metadata=metadata)
+    await asyncio.to_thread(clear)

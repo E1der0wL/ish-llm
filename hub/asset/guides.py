@@ -16,8 +16,9 @@ class StarterSkill:
         return self.identifier, self.title, self.description, instructions
 
 
-SYSTEM_PROMPT = Path(__file__).with_name("prompts").joinpath("system.md").read_text(encoding="utf-8")
-TEMPLATE_VERSION = 4
+WORK_GUIDANCE = Path(__file__).with_name("prompts").joinpath("work-context.md").read_text(encoding="utf-8")
+SYSTEM_PROMPT = Path(__file__).with_name("prompts").joinpath("system.md").read_text(encoding="utf-8") + "\n" + WORK_GUIDANCE
+TEMPLATE_VERSION = 6
 STARTER_SKILLS = (
     StarterSkill("hub-code-change", "Code changes", "Inspect existing behavior and boundaries, then verify the necessary changes.", "coding.md"),
     StarterSkill("hub-diagnose", "Error diagnosis", "Reproduce errors and gather evidence to identify causes and fixes.", "diagnose.md"),

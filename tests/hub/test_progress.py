@@ -82,14 +82,16 @@ class ProgressTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(self.app.layout.current_control, view.settings.left_control())
         with set_app(self.app):
             callbacks.pop()(None, RuntimeError("load failed"))
-            self.assertIn("load failed", view.settings.status)
+            self.assertIn(view.t("operation_failed"), view.settings.status)
+            self.assertIn("load failed", view.operation_diagnostics.text("", view.t))
             self.assertEqual(len(view.progress.progress.tasks), 1)
             def broken(*args):
                 raise RuntimeError("dispatch failed")
             view.settings.request = broken
             view.settings.call("catalog")
             self.assertFalse(view.settings.busy)
-            self.assertIn("dispatch failed", view.settings.status)
+            self.assertIn(view.t("operation_failed"), view.settings.status)
+            self.assertIn("dispatch failed", view.operation_diagnostics.text("", view.t))
             view.progress.finish(other)
         self.assertFalse(view.progress.active)
 

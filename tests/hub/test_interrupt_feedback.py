@@ -10,7 +10,9 @@ import unittest
 from unittest.mock import Mock
 
 from prompt_toolkit.application.current import set_app
+from prompt_toolkit.application import Application
 from prompt_toolkit.input import create_pipe_input
+from prompt_toolkit.layout import Layout
 
 from hub.asset.icon import NERD, UNICODE
 from hub.backend.runtime import HubConfig
@@ -58,6 +60,88 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(plain.status("preparing"), "⚙ 준비 중")
         self.assertEqual(plain.status("thinking"), "◌ 생각 중")
 
+    async def test_resume_prepares_existing_response_until_durable_continuation_arrives(self):
+        message = replace(self.base.messages[1], status="interrupted", phase="", run_id="r")
+        stopped = replace(self.base, messages=(message,), run=replace(self.base.run, status="interrupted", active=False))
+        self.view.apply_snapshot(stopped)
+        self.controller.interrupt("s")
+        shown = self.view.output.transcript.control.messages
+        self.assertEqual([(m.id, m.text, m.status) for m in shown], [("a", "Partial response", "preparing")])
+        self.view.apply_snapshot(stopped)
+        self.assertEqual(len(self.view.output.transcript.control.messages), 1)
+        self.calls[0][2].set_result("resumed-request")
+        await asyncio.sleep(0)
+        self.view.apply_snapshot(stopped)  # Stale observation after admission ACK.
+        self.assertEqual(self.view.output.transcript.control.messages[0].status, "preparing")
+        self.controller.interrupt("s")
+        self.assertEqual(sum(op == "resume_latest" for op, _, _ in self.calls), 1)
+        resumed = replace(stopped, messages=(replace(message, run_id="r2", status="streaming"),),
+                          run=replace(stopped.run, id="r2", active=True, status="running"))
+        self.view.apply_snapshot(resumed)
+        self.assertFalse(self.view.preparing.resuming)
+        self.assertEqual([(m.id, m.text, m.status) for m in self.view.output.transcript.control.messages],
+                         [("a", "Partial response", "streaming")])
+
+    async def test_rejected_resume_restores_existing_response(self):
+        message = replace(self.base.messages[1], status="interrupted", phase="", run_id="r")
+        self.view.apply_snapshot(replace(self.base, messages=(message,),
+            run=replace(self.base.run, status="interrupted", active=False)))
+        self.controller.interrupt("s")
+        self.calls[0][2].set_exception(ValueError("resume blocked"))
+        await asyncio.sleep(0)
+        self.assertFalse(self.view.preparing.resuming)
+        self.assertEqual(self.view.output.transcript.control.messages[0].status, "interrupted")
+
+    async def test_history_retry_tracks_selected_older_turn_not_last_response(self):
+        from hub.ui.chat.history_ui import HistoryUI
+        messages = (ChatMessage("user", "first", id="u1"),
+            ChatMessage("assistant", "partial", id="a1", run_id="r1", status="interrupted"),
+            ChatMessage("user", "second", id="u2"),
+            ChatMessage("assistant", "later answer", id="a2", run_id="r2", status="completed"))
+        snapshot = replace(self.base, messages=messages, run=replace(self.base.run, id="r2", status="completed", active=False))
+        self.view.apply_snapshot(snapshot)
+        row = {"id": "u1", "request_id": "u1", "run_id": "r1", "status": "interrupted", "text": "first",
+               "response": "partial", "time": "", "engine": "loop", "elapsed": None, "error": ""}
+        history = HistoryUI(self.controller)
+        with create_pipe_input() as pipe:
+            self.view.visible = True
+            app = Application(layout=Layout(self.view.container), input=pipe, output=SizedOutput())
+            with set_app(app):
+                history.show("s", [row])
+                self.view._dialog.choices.current_values = ["u1"]
+                self.view._dialog.buttons[2].handler()
+        self.assertEqual(self.calls[0][:2], ("retry_turn", ("s", "u1", "r1")))
+        self.assertIsNone(self.view._dialog)
+        shown = self.view.output.transcript.control.messages
+        self.assertEqual([m.id for m in shown], ["u1", "a1", "u2", "a2"])
+        self.assertEqual([m.status for m in shown if m.role == "assistant"], ["preparing", "completed"])
+        self.view.apply_snapshot(snapshot)
+        self.calls[0][2].set_result("new-request")
+        await asyncio.sleep(0)
+        self.view.apply_snapshot(snapshot)
+        self.assertEqual(self.view.output.transcript.control.messages[1].status, "preparing")
+        resumed = replace(snapshot, messages=(messages[0], replace(messages[1], run_id="r3", status="streaming"), *messages[2:]))
+        self.view.apply_snapshot(resumed)
+        self.assertFalse(self.view.preparing.resuming)
+        self.assertEqual(self.view.output.transcript.control.messages[1].status, "streaming")
+        self.assertEqual(self.view.output.transcript.control.messages[-1], shown[-1])
+
+    async def test_restart_replaces_failed_system_slot_without_extra_preparing_message(self):
+        from hub.ui.chat.resume import resume_turn
+        messages = (ChatMessage("user", "first", id="u1"),
+                    ChatMessage("assistant", "", id="a1", run_id="r1", status="failed"),
+                    ChatMessage("user", "second", id="u2"),
+                    ChatMessage("assistant", "second answer", id="a2", run_id="r2", status="completed"))
+        snapshot = replace(self.base, messages=messages)
+        self.view.apply_snapshot(snapshot)
+        resume_turn(self.controller, "s", "r1", "u1")
+        shown = self.view.output.transcript.control.messages
+        self.assertEqual([m.id for m in shown], ["u1", "a1", "u2", "a2"])
+        self.assertEqual(shown[1].status, "preparing")
+        restarted = replace(snapshot, messages=(messages[0], replace(messages[1], id="a3", run_id="r3", status="streaming"), *messages[2:]))
+        self.view.apply_snapshot(restarted)
+        self.assertFalse(self.view.preparing.resuming)
+
     async def test_immediate_header_survives_stale_snapshot_and_ack_until_terminal(self):
         base = replace(self.base, run=replace(self.base.run, retry=RetrySummary(1, 4, 999999999)))
         self.view.apply_snapshot(base)
@@ -73,10 +157,12 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.calls[0][2].done())
         self.controller.interrupt("s")
         self.assertEqual(len(self.calls), 1)
+        self.assertEqual(self.view.notice, self.view.t("cancel_wait"))
         self.view.apply_snapshot(base)
         self.assertEqual(self.view.output.transcript.control.messages[1].phase, "interrupting")
         self.calls[0][2].set_result(True)
         await asyncio.sleep(0)
+        self.assertNotEqual(self.view.notice, self.view.t("cancel_wait"))
         self.assertTrue(self.view.interrupting.pending)
         stopped = replace(base, run=replace(base.run, active=False, status="interrupted"),
             messages=(base.messages[0], replace(base.messages[1], phase="", status="interrupted"), base.messages[2]))
@@ -116,7 +202,8 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(0)
                 self.assertFalse(self.view.interrupting.pending)
                 self.assertEqual(self.view.output.transcript.control.messages[1].phase, "thinking")
-        self.assertIn("stop failed", self.view.notice)
+        self.assertIn(self.view.t("operation_failed"), self.view.notice)
+        self.assertIn("stop failed", self.view.operation_diagnostics.text("p", self.view.t))
 
     async def test_switch_and_new_run_do_not_inherit_old_stop_or_late_failure(self):
         self.controller.interrupt("s")
@@ -235,7 +322,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     view.preparing.start(("p", "s"))
                 await until(lambda: "준비 중" in drawn())
-                pipe.send_bytes(b"\x17")
+                pipe.send_bytes(b"\x04")
                 await until(lambda: "중단 중" in drawn())
                 self.assertFalse(future.done())
                 self.assertIn("Previous response", drawn())
@@ -273,7 +360,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
                     gate.wait(5)
                 view.render_worker.request("popup", slow_render, lambda _: None, lambda _: None)
                 await until(entered.is_set)
-                pipe.send_bytes(b"\x17\x17")
+                pipe.send_bytes(b"\x04\x04")
                 await until(lambda: "중단 중" in drawn())
                 self.assertFalse(future.done())
                 self.assertIn("Partial response", drawn())

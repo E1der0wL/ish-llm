@@ -24,13 +24,17 @@ def create_backend(config: "HubConfig"):
     from llm.components.prompts import PromptComponent
     from .tools.skills import HubSkillComponent
     from llm.components.mcp import MCPComponent
+    from llm.components.vision import VisionComponent
     from .project.naming import TitleEngine, TITLE_ENGINE
     from .tools.builtin import HubBuiltinTools
     from .execution.context import HubContextBuilder
     from .tools.advice import classify_model_risk
     monitor = RetryMonitor()
     general = GeneralSettings(**PreferencesStore(config._workspace_anchor or config.workspace).load().get("general", {}))
-    diagnostics = ProviderDiagnostics(error_details=general.provider_error_details,
+    from .execution.provider_recovery import ProviderRecovery, CompletionRecoveryMixin
+    from llm.engines.loop import LoopEngine
+    recovery = ProviderRecovery(general, monitor, general.language or config.language)
+    diagnostics = ProviderDiagnostics(error_details=True,
         request_summary=general.provider_request_summary, max_detail_chars=general.provider_max_detail_chars)
     factories = {"loop": HubLoopEngine, **(config.engine_factories or {})}
     if config.engine not in factories and config.engine != "graph":
@@ -43,8 +47,12 @@ def create_backend(config: "HubConfig"):
     for engine in engines.values():
         if isinstance(engine, RetryObservationMixin):
             engine.retry_monitor = monitor
+        if isinstance(engine, CompletionRecoveryMixin):
+            engine.provider_recovery = recovery
+            if isinstance(engine, LoopEngine) and engine.recover_completion is None:
+                engine.recover_completion = recovery.recover
     components = {component.name: component for component in
-                  (ToolComponent(), HubSkillComponent(), MCPComponent(), HubRAGComponent(),
+                  (ToolComponent(), HubSkillComponent(), MCPComponent(), HubRAGComponent(), VisionComponent(),
                    HubAgentComponent(engines=engines),
                    HubWorkflowComponent(handlers=getattr(engines["graph"], "handlers", {})), MemoryComponent(),
                    HubGoalComponent(), RefinementComponent(), PromptComponent(),
@@ -60,7 +68,8 @@ def create_backend(config: "HubConfig"):
     selector = ToolRetrySelector(chooser=config.tool_retry_chooser,
         evidence={**({"file_read": file_candidates} if builtins else {}), **config.tool_retry_evidence},
         fallback_engine=engines["loop"], builtins=builtins)
-    engines = {name: EnvironmentEngine(engine, builtins, recovery=selector, retry_monitor=monitor)
+    engines = {name: EnvironmentEngine(engine, builtins, recovery=selector, retry_monitor=monitor,
+                                      provider_recovery=recovery)
                if not name.startswith("_hub_") else engine
                for name, engine in engines.items()}
     return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,

@@ -7,6 +7,8 @@ import threading
 
 from .runtime import HubConfig, HubRuntime
 from .bootstrap import create_backend
+from ..errors.adapters import from_exception
+from ..errors.contracts import ErrorOrigin
 
 
 class BackendWorker:
@@ -46,7 +48,8 @@ class BackendWorker:
             self._failure = error
             self._shutdown_error = error
             self._ready.set()
-            self.report_error(error)
+            if isinstance(error, Exception):
+                self.report_error(from_exception(error, origin=ErrorOrigin.BACKEND, operation="worker"))
 
     async def _serve(self) -> None:
         self.runtime = HubRuntime(self.config, self.backend_factory)
@@ -58,7 +61,7 @@ class BackendWorker:
                 refresher = asyncio.create_task(self._refresh())
             except Exception as error:
                 self._failure = error
-                self.report_error(error)
+                self.report_error(from_exception(error, origin=ErrorOrigin.BACKEND, operation="start"))
             finally:
                 self._initialized.set()
             await self._stop.wait()
@@ -80,6 +83,9 @@ class BackendWorker:
         loop = asyncio.get_running_loop()
         last_read = loop.time()
         while True:
+            if self._restarting:
+                await asyncio.sleep(.1)
+                continue
             dirty = self.runtime.dirty.is_set()
             self.runtime.dirty.clear()
             active = last is None or bool(getattr(getattr(last, "run", None), "active", False)) or bool(getattr(last, "queued_count", 0))
@@ -122,7 +128,7 @@ class BackendWorker:
                     self.publish(snapshot)
                     last = snapshot
             except Exception as error:
-                self.report_error(error)
+                self.report_error(from_exception(error, origin=ErrorOrigin.BACKEND, operation="snapshot"))
 
     async def _execute(self, operation: str, args, acknowledged=None, progress=None):
         await self._initialized.wait()
@@ -139,7 +145,7 @@ class BackendWorker:
             # These operations capture explicit project handles and use service
             # lifecycle/version locks. They never change UI selection. Long RAG
             # writes and tool imports must not block unrelated output either.
-            independent = operation in {"project_activity", "diagnose_failures", "execution_catalog", "manage_tools", "manage_records", "approval_details", "answer_question"}
+            independent = operation in {"project_activity", "diagnose_failures", "execution_catalog", "manage_tools", "manage_records", "approval_details", "answer_question", "interrupt"}
             async with (nullcontext() if independent else self.runtime.lock):
                 kwargs = {"acknowledged": acknowledged} if acknowledged is not None else {}
                 if progress is not None:
@@ -153,18 +159,21 @@ class BackendWorker:
 
     async def _prepare_restart(self):
         await self._initialized.wait()
-        async with self.runtime.lock:
-            if self._commands:
-                raise RuntimeError(self.runtime.t("settings_restart_busy"))
-            if self.runtime.backend is not None:
-                for project in await self.runtime.backend.projects.alist():
-                    for session in await project.sessions.alist():
-                        status = await session.run.astatus()
-                        if status.active_run_id or status.queued_count or session.id in self.runtime.namer.tasks:
-                            raise RuntimeError(self.runtime.t("settings_restart_busy"))
-            if self._commands:
-                raise RuntimeError(self.runtime.t("settings_restart_busy"))
-            self._restarting = True
+        self._restarting = True
+        commands = tuple(self._commands)
+        for task in commands:
+            task.cancel()
+        if self._snapshot_task is not None:
+            self._snapshot_task.cancel()
+        # Cancellation must finish storage writes and component cleanup before
+        # another runtime can claim the same workspace.
+        from .execution.restarting import stop_for_restart
+        # Stop Runs concurrently with cancelled component commands, so a slow
+        # RAG cancellation does not let other Sessions continue executing.
+        cleanup = asyncio.create_task(stop_for_restart(self.runtime))
+        results = await asyncio.gather(*commands, cleanup, return_exceptions=True)
+        if isinstance(results[-1], BaseException):
+            raise results[-1]
 
     def call(self, operation: str, *args, acknowledged=None, progress=None) -> Future:
         if self._closed or self.loop.is_closed():
@@ -172,7 +181,7 @@ class BackendWorker:
         return asyncio.run_coroutine_threadsafe(self._execute(operation, args, acknowledged, progress), self.loop)
 
     def prepare_restart(self) -> Future:
-        """Freeze admission only when all projects and background commands are idle."""
+        """Freeze admission, cancel commands and stop all Hub-owned execution."""
         if self._closed or self.loop.is_closed():
             raise RuntimeError("Hub backend is closed")
         return asyncio.run_coroutine_threadsafe(self._prepare_restart(), self.loop)
@@ -198,7 +207,7 @@ class BackendWorker:
                 async with self.runtime.lock:
                     await asyncio.to_thread(self.runtime.settings_service.preferences.save_sidebar_width, width)
             except Exception as error:
-                self.report_error(error)
+                self.report_error(from_exception(error, origin=ErrorOrigin.HUB, operation="save_sidebar_width"))
 
     def set_sidebar_width(self, width: int) -> None:
         """Coalesce only width writes, serialized with explicit settings saves."""

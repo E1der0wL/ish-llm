@@ -1,60 +1,10 @@
-"""Explain evidence from the same failed Run; never execute or retry work."""
+"""Read the owning failed Step into Hub's error contract; no recovery or UI."""
 
 from collections import OrderedDict
 
-from ...model import FailureDiagnosis
-
-
-def diagnose(code: str, *, details: dict | None = None) -> FailureDiagnosis:
-    """Use structured codes/status/types, not guesses from arbitrary log text."""
-    details = details or {}
-    exceptions = [item for item in details.get("exceptions", ()) if isinstance(item, dict)]
-    # The final attempt is more relevant than earlier errors that were retried.
-    latest = exceptions[-1] if exceptions else {}
-    status = next((item["status_code"] for item in reversed(exceptions) if isinstance(item.get("status_code"), int)), None)
-    status = status if isinstance(status, int) else None
-    exception = str(latest.get("type", "")).split(".")[-1]
-    finish_reason = details.get("finish_reason")
-    finish_reason = finish_reason if isinstance(finish_reason, str) else ""
-    kind = {
-        "provider_rate_limit": "rate_limit", "provider_unavailable": "unavailable",
-        "provider_authentication": "authentication", "provider_authentication_error": "authentication",
-        "provider_timeout": "timeout", "run_timeout": "timeout", "context_limit_exceeded": "context",
-        "provider_context_window_exceeded": "context", "usage_budget_exceeded": "budget",
-        "provider_bad_request": "request",
-        "provider_invalid_request": "request", "provider_connection": "connection",
-        "provider_empty_response": "empty", "provider_invalid_response": "empty",
-        "completion_invalid_response": "completion_invalid",
-        "completion_incomplete": {"length": "completion_length", "content_filter": "completion_filtered"}.get(
-            finish_reason, "completion_incomplete"),
-        "completion_output_limit": "completion_output_limit",
-        "completion_tool_limit": "completion_tool_limit",
-        "completion_argument_limit": "completion_argument_limit",
-        "step_timeout": "step_timeout",
-    }.get(code, "unknown")
-    # Engine validation/deadlines retain their own meaning, even if an older
-    # provider exception exists in the exception chain.
-    if code.startswith("completion_") or code == "step_timeout":
-        return FailureDiagnosis(kind, code, status, exception, finish_reason)
-    if status in (401, 403):
-        kind = "authentication" if status == 401 else "permission"
-    elif status == 429:
-        kind = "rate_limit"
-    elif status in (500, 502, 503, 504):
-        kind = "unavailable"
-    elif status in (408,):
-        kind = "timeout"
-    elif status in (400, 404, 422):
-        kind = "request"
-    elif exception in ("TimeoutError", "ReadTimeout", "ConnectTimeout", "APITimeoutError"):
-        kind = "timeout"
-    elif exception in ("ConnectionError", "ConnectError", "APIConnectionError", "gaierror"):
-        kind = "connection"
-    elif exception == "FileNotFoundError":
-        kind = "file_missing"
-    elif exception == "PermissionError":
-        kind = "permission"
-    return FailureDiagnosis(kind, code, status, exception, finish_reason)
+from llm.llm import Diagnostic
+from ...errors.adapters import from_diagnostic
+from ...errors.contracts import ErrorOrigin
 
 
 def _step_evidence(steps, code, project_id, session_id, run_id):
@@ -78,7 +28,11 @@ def _step_evidence(steps, code, project_id, session_id, run_id):
             return None
     if code not in generic and diagnostic.code != code:
         return None
-    return diagnose(diagnostic.code if diagnostic.code not in generic else code, details=details)
+    code = diagnostic.code if diagnostic.code not in generic else code
+    origin = (ErrorOrigin.PROVIDER if code.startswith("provider_") else
+              ErrorOrigin.TOOL if final.kind in ("tool", "shell") else ErrorOrigin.BACKEND)
+    return from_diagnostic(diagnostic, origin=origin,
+        source={"project_id": project_id, "session_id": session_id, "run_id": run_id, "step_id": final.id})
 
 
 class FailureDiagnostics:
@@ -104,7 +58,12 @@ class FailureDiagnostics:
                     steps = await handle.steps.alist()
                 except FileNotFoundError:
                     steps = []
-                diagnosis = _step_evidence(steps, code, project_id, session_id, rid) or diagnose(code)
+                diagnosis = _step_evidence(steps, code, project_id, session_id, rid)
+                if diagnosis is None:
+                    result = await handle.aresult()
+                    diagnosis = from_diagnostic(result.diagnostic or Diagnostic(code or "execution_failed", run.error or ""),
+                        origin=ErrorOrigin.PROVIDER if code.startswith("provider_") else ErrorOrigin.BACKEND,
+                        source={"project_id": project_id, "session_id": session_id, "run_id": rid})
                 self.cache[project_id, session_id, rid] = diagnosis
                 while len(self.cache) > 256:
                     self.cache.popitem(last=False)

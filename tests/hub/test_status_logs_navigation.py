@@ -84,11 +84,12 @@ class StatusLogsNavigationTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     view.settings.choose("profile")
                     view.settings.layout.focus_main()
+                    view.settings.tabs.enter()
                 field = view.settings.page.form.fields[("display_name",)]
                 await eventually(lambda: app.layout.current_control is field.input.control)
                 pipe.send_text("\x1b[D")
                 await eventually(lambda: app.layout.current_control is view.settings.global_list)
-                pipe.send_text("\x1b[C\r")
+                pipe.send_text("\x1b[C\r\r")
                 await eventually(lambda: field.editing)
                 field.input.text = "abc"
                 field.input.buffer.cursor_position = 3

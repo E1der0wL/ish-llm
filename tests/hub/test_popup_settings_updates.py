@@ -140,7 +140,9 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
                 with patch.object(service, "save_project", new=AsyncMock(side_effect=ValueError("conflict"))):
                     result = await service.save_all(requests)
                 self.assertEqual(len(result["results"]), 1)
-                self.assertEqual(result["error"], "conflict")
+                self.assertEqual(result["error"].message, "conflict")
+                self.assertEqual(result["error"].operation, "save_project")
+                self.assertEqual(result["error"].reason, "validation")
             finally:
                 await runtime.close()
 

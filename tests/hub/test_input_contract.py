@@ -248,7 +248,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     self.assertFalse(prompt.key_bindings.get_bindings_for_keys(("c-q",))[0].filter())
                     self.assertEqual([key for key, _ in view.bindings.hints()], [
-                        "ESC", "Ctrl+P", "Ctrl+Q", "Ctrl+S", "Alt + 이동키"])
+                        "ESC", "Ctrl+P", "Ctrl+Q", "Ctrl+S", "Ctrl+W", "Alt + 이동키"])
                     self.assertEqual(view.bindings.hints()[0], ("ESC", "패널"))
                 await paint()
                 chat_header = next(w for w in app.renderer._last_screen.visible_windows if isinstance(w, HeaderBar))
@@ -288,6 +288,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                         with set_app(app):
                             self.assertEqual(view.bindings.hints(), [
                                 ("ESC", "닫기"), ("Ctrl+L", "닫기"), ("Ctrl+Q", "최소화"),
+                                ("Ctrl+W", "재시작"),
                                 ("Enter", "닫기"), ("이동키", "스크롤")])
                         if kind == "help":
                             self.assertTrue(popup.output.markdown)

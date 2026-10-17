@@ -6,6 +6,7 @@ from prompt_toolkit.widgets import Label
 
 from ...widget.controls import TextArea
 from ...widget.sidebar import SidebarItem, SidebarList
+from ..error_presentation import operation_notice
 
 
 class ChatProjects:
@@ -29,7 +30,8 @@ class ChatProjects:
             self.busy = False
             self.view.progress.finish(token)
             if error is not None:
-                self.view.notice = self.view.t("error", error=error)
+                self.view.operation_diagnostics.record(getattr(self.view, "project_id", ""), error)
+                self.view.notice = self.view.t("error", error=operation_notice(error, self.view.t))
                 self.selected = getattr(self.view, "project_id", "")
             elif completed:
                 completed(value)

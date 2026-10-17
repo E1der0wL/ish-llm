@@ -13,7 +13,9 @@ class PreparingResponse:
         self.view = view
         self.pending = {}
         self.started = {}
+        self.drafts = {}
         self.clocks = {}
+        self.resuming = {}
         self._ticker = None
 
     def visible(self):
@@ -23,12 +25,27 @@ class PreparingResponse:
     def text(self):
         return self.view.t("preparing_response") + " · " + self.view.model
 
-    def start(self, key):
+    def start(self, key, text="", *, resume_run_id=None, turn_id=None):
         self.pending[key] = None
         self.started[key] = monotonic()
+        if resume_run_id:
+            snapshot = getattr(self.view, "_last_snapshot", None)
+            anchor, assistant = turn_id, None
+            if snapshot and key == (snapshot.project_id, snapshot.selected_id):
+                preceding = None
+                for message in snapshot.messages:
+                    if message.role == "user":
+                        preceding = message.id
+                    if message.role == "assistant" and message.run_id == resume_run_id:
+                        anchor, assistant = anchor or preceding, message.id
+                        break
+            self.resuming[key] = (resume_run_id, anchor, assistant)
+        if text:
+            self.drafts[key] = ChatMessage("user", text, status="preparing", id=f"draft:{key[1]}",
+                                          author=self.view.user_profile.display_name)
         self.view.composer.buffer.suggestion = None
         self.paint()
-        if key == (getattr(self.view, "project_id", ""), self.view.sessions[self.view.selected].id) and self.view.general.auto_scroll:
+        if not resume_run_id and key == (getattr(self.view, "project_id", ""), self.view.sessions[self.view.selected].id) and self.view.general.auto_scroll:
             self.view.output.set_follow_tail(True)
 
     async def _tick(self):
@@ -51,8 +68,26 @@ class PreparingResponse:
                 messages = (*messages[:index], replace(message, elapsed_seconds=elapsed, activity=activity), *messages[index + 1:])
                 break
         if key in self.pending:
-            messages = (*messages, ChatMessage("assistant", "", status="preparing",
-                id=f"preparing:{key[1]}", elapsed_seconds=monotonic() - self.started[key]))
+            if key in self.resuming:
+                # Resume changes the existing response header, never its position
+                # or partial body. Keep this bridge until durable output arrives.
+                run_id, _, assistant = self.resuming[key]
+                has_body = any(m.role == "assistant" and m.run_id == run_id for m in messages)
+                prepared = []
+                for message in messages:
+                    if message.run_id == run_id and message.role == "system":
+                        if has_body:
+                            continue
+                        message = replace(message, role="assistant", id=assistant or message.id, text="")
+                    if message.role == "assistant" and message.run_id == run_id:
+                        message = replace(message, status="preparing", phase="preparing", activity="")
+                    prepared.append(message)
+                messages = tuple(prepared)
+            else:
+                if key in self.drafts:
+                    messages = (*messages, self.drafts[key])
+                messages = (*messages, ChatMessage("assistant", "", status="preparing",
+                    id=f"preparing:{key[1]}", elapsed_seconds=monotonic() - self.started[key]))
         return self.view.deleting.project(key, self.view.interrupting.project(key, messages))
 
     def paint(self):
@@ -60,7 +95,7 @@ class PreparingResponse:
         session = view.sessions[view.selected]
         key = (getattr(view, "project_id", ""), session.id)
         view.output.update_messages(self.project(key, session.messages),
-                                    auto_scroll=True if key in self.pending and view.general.auto_scroll else None)
+                                    auto_scroll=True if key in self.pending and key not in self.resuming and view.general.auto_scroll else None)
         app = get_app()
         if (self.pending or self.clocks) and app.is_running and (self._ticker is None or self._ticker.done()):
             self._ticker = app.create_background_task(self._tick())
@@ -69,9 +104,12 @@ class PreparingResponse:
     def finish(self, key):
         self.pending.pop(key, None)
         self.started.pop(key, None)
+        self.drafts.pop(key, None)
+        self.resuming.pop(key, None)
         self.paint()
 
     def accepted(self, key, message_id):
+        self.drafts.pop(key, None)
         self.pending[key] = message_id
         snapshot = getattr(self.view, "_last_snapshot", None)
         if snapshot:
@@ -86,6 +124,21 @@ class PreparingResponse:
             self.clocks[key] = (last.id, last.elapsed_seconds, monotonic())
         else:
             self.clocks.pop(key, None)
+        if key in self.resuming:
+            run_id, anchor, assistant = self.resuming[key]
+            target = next((m for m in snapshot.messages if m.id == assistant and m.role == "assistant"), None)
+            if target is None and anchor:
+                start = next((i for i, m in enumerate(snapshot.messages) if m.id == anchor), None)
+                if start is not None:
+                    for message in snapshot.messages[start + 1:]:
+                        if message.role == "user":
+                            break
+                        if message.role == "assistant":
+                            target = message
+                            break
+            if any(q["run_id"] == run_id for q in snapshot.questions) or (target and target.run_id and target.run_id != run_id):
+                self.finish(key)
+            return
         request_id = self.pending.get(key)
         if not request_id:
             return

@@ -9,7 +9,7 @@ from typing import Literal
 class ComponentSpec:
     name: str
     tool_prefix: str
-    manager: Literal["tools", "record", "document", "agent"]
+    manager: Literal["tools", "record", "document", "agent", "memory"]
     import_kind: Literal["package", "json", "text", "skill"]
     data_contract: tuple[str, str] | None = None
 
@@ -32,6 +32,8 @@ COMPONENTS = (
     ComponentSpec("rag", "rag", "document", "text", ("llm.components.rag.data", "RAGData")),
     ComponentSpec("agents", "agent", "agent", "json", ("llm.components.agents.data", "AgentData")),
     ComponentSpec("workflows", "workflow", "record", "json", ("llm.components.workflows.data", "WorkflowData")),
+    ComponentSpec("prompts", "prompt", "record", "json", ("llm.services.lifecycle.components", "ComponentData")),
+    ComponentSpec("memory", "memory", "memory", "json", ("llm.components.memory.data", "MemoryData")),
 )
 
 

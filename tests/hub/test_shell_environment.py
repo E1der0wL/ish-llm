@@ -23,6 +23,21 @@ def snapshot(root, marker):
         "PWD": str(root), "PATH": "/usr/bin:/bin", "HUB_SHELL_TEST": marker}})
 
 
+class InvestigationGuidanceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_existing_project_receives_direct_investigation_and_search_order(self):
+        from hub.backend.execution.environment import EnvironmentSession
+        from hub.asset.guides import WORK_GUIDANCE
+        request = NS(messages=[])
+        async for _ in EnvironmentSession("/work/project").prepare(request):
+            pass
+        text = request.messages[0].value["content"]
+        self.assertIn("/work/project", text)
+        self.assertIn(WORK_GUIDANCE, text)
+        self.assertIn("Do not ask the user to run --help", text)
+        self.assertLess(text.index("registered RAG documents"), text.index("then existing model knowledge"))
+        self.assertIn("does not currently provide Internet search", text)
+
+
 class ShellSnapshotTests(unittest.TestCase):
     def test_copies_host_values_and_rejects_unavailable_or_invalid_context(self):
         env = {"PWD": "/tmp", "EXAMPLE": "first"}

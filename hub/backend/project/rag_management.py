@@ -1,87 +1,34 @@
-"""RAG manager jobs and observations through public component APIs only."""
+"""RAG jobs, resumptions and cleanup through public component APIs only."""
 
 import asyncio
-from dataclasses import dataclass, field
-from datetime import datetime
-import time
 
 from llm.providers.runtime import diagnostic_scope
+from llm.llm import CheckpointError
 
+from ...errors.adapters import from_exception
+from ...errors.contracts import ErrorOrigin
+from ...errors.operations import OperationBlocked
 from .record_management import DocumentManagement
-
-
-def _document_ids(job):
-    """Current single-document and atomic batch Job contracts."""
-    return job["document_ids"] if "document_ids" in job else [job["document_id"]]
-
-
-def job_entry(job, *, live=False, phase=None, ingestion=None, elapsed=None):
-    stats = dict(job.get("ingestion", {}) if ingestion is None else ingestion)
-    if elapsed is None and job["status"] in ("failed", "cancelled", "completed"):
-        if job.get("started_at") and job.get("ended_at"):
-            elapsed = max(0, (datetime.fromisoformat(job["ended_at"]) -
-                              datetime.fromisoformat(job["started_at"])).total_seconds())
-    status = job["status"]
-    return {"name": "job:" + job["id"], "kind": "job", "job_id": job["id"],
-            "label": ", ".join(_document_ids(job)), "status": status,
-            "phase": phase or ("unconfirmed" if status == "running" else job["phase"]),
-            "modified": (job.get("ended_at") if status in ("failed", "cancelled", "completed") else None)
-                        or job.get("started_at") or job["created_at"],
-            "description": job.get("error", "") if status == "failed" else "", "ingestion": stats, "elapsed": elapsed,
-            "live": live, "retryable": not live and not job.get("cancel_requested") and "resume_abandonment" not in job and
-            status in ("queued", "failed", "running")}
-
-
-@dataclass(slots=True)
-class RegistrationProgress:
-    job: dict
-    extraction: bool
-    started: float = field(default_factory=time.monotonic)
-    stats: dict = field(default_factory=dict)
-    phase: str = "preparing"
-    embedding_started: float | None = None
-
-    def observe(self, event):
-        if event.code not in ("rag_ingestion_progress", "rag_extraction_progress"):
-            return
-        if self.embedding_started is None:
-            self.embedding_started = time.monotonic()
-        # Diagnostics can also contain project/provider context. Keep only the
-        # numeric counters; no document contents or model credentials enter UI.
-        self.stats = {key: value for key, value in event.details.items()
-                      if type(value) in (int, float)}
-        total = self.stats.get("chunks_total", 0)
-        if self.stats.get("chunks_completed", 0) < total:
-            self.phase = "embedding"
-        else:
-            # Public jobs do not emit a separate publish-start event. Do not
-            # invent a graph percentage or mistake reused graph batches for new calls.
-            self.phase = "extraction_index" if self.extraction else "indexing"
-
-    def entry(self):
-        stats = dict(self.stats)
-        if self.phase == "embedding" and self.embedding_started is not None:
-            stats["embedding_seconds"] = time.monotonic() - self.embedding_started
-        return job_entry({**self.job, "status": "running"}, live=True, phase=self.phase,
-                         ingestion=stats, elapsed=time.monotonic() - self.started)
+from .rag_progress import RegistrationProgress, job_entry, document_ids
 
 
 class RAGManagement(DocumentManagement):
-    def __init__(self, data, name, root, project_id, active=None):
+    def __init__(self, data, name, root, project_id, active=None, *, project=None):
         super().__init__(data, name, root)
-        self.project_id = project_id
+        self.project_id, self.project = project_id, project
         self.active = {} if active is None else active
 
-    async def _run(self, identifier, *, retry, progress):
+    async def _run(self, identifier, *, progress):
         job = await self.data.ajob(identifier)
         key = self.project_id, identifier
-        if not job_entry(job)["retryable"] or key in self.active:
-            raise ValueError("RAG job cannot be resumed in its current state")
-        values = (await self.data.aresolve_config())["values"]
-        observer = RegistrationProgress(job, values.get("policy", {}).get("extraction", {}).get("failure_policy") != "disabled")
-        # Recheck after configuration I/O: another popup may have admitted it.
         if key in self.active:
-            raise ValueError("RAG job is already running")
+            raise OperationBlocked("hub_operation_busy", "RAG job is already active")
+        plan = await self.data.aresume_plan(identifier) if job["status"] != "queued" else None
+        if key in self.active:
+            raise OperationBlocked("hub_operation_busy", "RAG job is already active")
+        if plan is not None and not plan.can_resume:
+            raise CheckpointError("checkpoint_protected", "RAG job cannot resume", blockers=plan.blockers)
+        observer = RegistrationProgress(job, task=asyncio.current_task())
         self.active[key] = observer
 
         def report(entry):
@@ -91,53 +38,116 @@ class RAGManagement(DocumentManagement):
         async def refresh():
             while True:
                 report(observer.entry())
+                await asyncio.sleep(.1)
+
+        async def poll():
+            while True:
+                try:
+                    observer.update(await self.data.ajob_progress(identifier))
+                except Exception as error:
+                    # An observer failure must not cancel an indexing operation.
+                    observer.observation_error = from_exception(error, origin=ErrorOrigin.COMPONENT,
+                                                                 operation="rag.progress")
+                    return
                 await asyncio.sleep(.25)
 
-        timer = asyncio.create_task(refresh())
+        timer, reader = asyncio.create_task(refresh()), asyncio.create_task(poll())
         try:
             with diagnostic_scope(observer.observe):
-                await self.data.arun_job(identifier, retry=retry)
+                await self.data.arun_job(identifier, retry=plan is not None,
+                    expected_revision=plan.revision if plan is not None else None)
+        except Exception as error:
+            observer.failure = from_exception(error, origin=ErrorOrigin.COMPONENT, operation="rag.register")
+            raise
         finally:
             timer.cancel()
-            await asyncio.gather(timer, return_exceptions=True)
+            reader.cancel()
+            await asyncio.gather(timer, reader, return_exceptions=True)
             self.active.pop(key, None)
-            report(job_entry(await self.data.ajob(identifier)))
+            try:
+                final = await self.data.ajob(identifier)
+            except Exception as error:
+                # Preserve the original registration error/cancellation if a
+                # second failure occurs while collecting the final observation.
+                observer.observation_error = from_exception(error, origin=ErrorOrigin.COMPONENT, operation="rag.progress")
+            else:
+                report(observer.entry(final))
 
-    async def jobs(self):
+    async def _delete_job(self, identifier, revision):
+        job = await self.data.ajob(identifier)
+        if job["status"] not in ("failed", "cancelled"):
+            raise ValueError("Only failed or cancelled RAG jobs can be deleted")
+        plan = await self.data.acheckpoint_plan(identifier)
+        if plan.revision != revision:
+            raise CheckpointError("checkpoint_conflict", "RAG job changed; review deletion again")
+        if not plan.can_delete:
+            if not plan.can_abandon:
+                raise CheckpointError("checkpoint_protected", "RAG job is still active; cancel and wait before deleting",
+                                      blockers=plan.abandon_blockers)
+            await self.data.aabandon_job(identifier, expected_revision=plan.revision)
+            plan = await self.data.acheckpoint_plan(identifier)
+        await self.data.adelete_job(identifier, expected_revision=plan.revision)
+
+    async def _require_new(self, identifier):
+        try:
+            await self.data.aget_document(identifier)
+        except FileNotFoundError:
+            pass
+        else:
+            raise FileExistsError(identifier)
+        if any(identifier in document_ids(job) and job["status"] in ("queued", "running", "failed")
+               and "resume_abandonment" not in job and not job.get("cancel_requested")
+               for job in await self.data.ajobs()):
+            raise OperationBlocked("hub_existing_rag_job", "An unfinished RAG job already exists; select it and retry or delete it")
+
+    async def jobs(self, *, inspect=True):
         entries = []
         for job in await self.data.ajobs():
-            if job["status"] in ("completed", "failed"):
+            if job["status"] == "completed":
                 continue
             observer = self.active.get((self.project_id, job["id"]))
-            entries.append(observer.entry() if observer else job_entry(job))
+            if observer:
+                entries.append(observer.entry())
+            else:
+                plan = await self.data.aresume_plan(job["id"]) if inspect and job["status"] in ("failed", "running") else None
+                entries.append(job_entry(job, plan=plan))
         return entries
 
     async def list(self):
         return [*await super().list(), *await self.jobs()]
 
     async def execute(self, action, argument="", expected_version=None, *, progress=None):
+        if action == "vision_settings":
+            record = await self.project.adescribe_config()
+            selected = record["values"]["components"]
+            if "vision" not in selected:
+                await self.project.asave(components=[*selected, "vision"], expected_components=selected,
+                                         expected_version=record["config_version"])
+            return {"component": "vision"}
         if action == "jobs":
-            return await self.jobs()
-        if action == "import":
-            identifier, values = await asyncio.to_thread(self._read_import, argument)
-            # Never overwrite a completed document or duplicate an unfinished job.
-            # Hidden failures must not block importing the current file again.
-            try:
-                await self.data.aget_document(identifier)
-            except FileNotFoundError:
-                pass
-            else:
-                raise FileExistsError(identifier)
-            if any(identifier in _document_ids(job) and job["status"] in ("queued", "running")
-                   and "resume_abandonment" not in job
-                   for job in await self.data.ajobs()):
-                raise ValueError("An unfinished RAG job already exists; select it and retry")
+            return await self.jobs(inspect=False)
+        if action == "job_delete_plan":
+            plan = await self.data.acheckpoint_plan(argument)
+            return {"revision": plan.revision, "bytes": plan.bytes,
+                    "allowed": plan.can_delete or plan.can_abandon}
+        if action == "delete_job":
+            await self._delete_job(argument, expected_version)
+        elif action == "cancel_job":
+            await self.data.acancel_job(argument)
+            observer = self.active.get((self.project_id, argument))
+            if observer and observer.task:
+                observer.task.cancel()
+                await asyncio.gather(observer.task, return_exceptions=True)
+        elif action == "import":
+            from .rag_import import read_document
+            identifier, values = await read_document(self, argument, progress=progress)
+            await self._require_new(identifier)
             job = await self.data.aenqueue_document(identifier=identifier, **values)
             if progress:
                 progress(job_entry(job))
-            await self._run(job["id"], retry=False, progress=progress)
+            await self._run(job["id"], progress=progress)
         elif action == "retry":
-            await self._run(argument, retry=True, progress=progress)
+            await self._run(argument, progress=progress)
         else:
             return await super().execute(action, argument, expected_version)
         return await self.list()

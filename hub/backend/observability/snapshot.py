@@ -10,7 +10,7 @@ from ..execution.trace import merge_trace, tool_trace
 from ..execution.steps import display_steps
 from ..execution.engine_selection import model_name, requires_model, selected_engines
 from ..interactions.questions import waiting_status
-from ..execution.stopping import display_run, STOPPED
+from ..execution.stopping import display_run, STOPPED, RESUME_INTERACTIONS
 
 
 @dataclass(slots=True)
@@ -30,6 +30,7 @@ class SnapshotReader:
         self.submissions = {}
         self.tool_history = {}
         self.trace_history = {}
+        self.ended_times = {}
         from ..execution.thinking import ThinkingPhases
         self.thinking = ThinkingPhases()
 
@@ -38,6 +39,7 @@ class SnapshotReader:
         self.observations.clear()
         self.tool_history.clear()
         self.trace_history.clear()
+        self.ended_times.clear()
 
     def invalidate(self, session_id):
         self.observations.pop(session_id, None)
@@ -70,6 +72,9 @@ class SnapshotReader:
             elapsed = max(0.0, (end - datetime.fromisoformat(started_at)).total_seconds())
         result = reasoning, elapsed
         if not active:
+            self.ended_times[run_id] = run.ended_at or ""
+            if len(self.ended_times) > 1024:
+                self.ended_times.pop(next(iter(self.ended_times)))
             self.cache[key] = result
             if len(self.cache) > 1024:
                 self.cache.pop(next(iter(self.cache)))
@@ -120,7 +125,8 @@ class SnapshotReader:
             phase = (self.thinking.activity(latest)
                      if role == "assistant" and latest is not None and latest.id == message.run_id
                      and status in ("streaming", "committed") else "")
-            timestamp = message.created_at if role == "user" else ""
+            timestamp = (message.created_at if role == "user" else
+                         (self.ended_times.get(message.run_id) or message.created_at) if status == "failed" else "")
             visible.append(ChatMessage(role, message.content or "", timestamp,
                                        status=status, id=message.id,
                                        author=author if role == "user" else "",
@@ -142,9 +148,18 @@ class SnapshotReader:
                 latest = await session.run.alist(query=Query(descending=True, limit=1))
                 handle = latest[0] if latest else None
                 run = display_run(record, await handle.aget_data()) if handle else None
-                pending = (tuple({"run_id": run.id, "live": False, "request": request.to_dict()}
-                           for request in await handle.ainteractions(pending_only=True))
-                           if run and str(run.status) == "paused" else ())
+                question_handle = handle if run and str(run.status) == "paused" else None
+                target = record.metadata.get(RESUME_INTERACTIONS)
+                if target and not runtime.active_run_id and not runtime.queued_count:
+                    try:
+                        candidate = handle if run and run.id == target else await session.run.aload(target)
+                        if str((await candidate.aget_data()).status) in ("paused", "interrupted", "failed"):
+                            question_handle = candidate
+                    except FileNotFoundError:
+                        pass
+                pending = (tuple({"run_id": question_handle.id, "live": False, "request": request.to_dict()}
+                           for request in await question_handle.ainteractions(pending_only=True))
+                           if question_handle is not None else ())
                 item = SessionObservation(identifier, record, runtime, run, handle, pending)
                 self.observations[identifier] = (monotonic(), item)
             observations.append(item)
@@ -163,8 +178,7 @@ class SnapshotReader:
                                            stopped_runs=selected.record.metadata.get(STOPPED, {}))
             if selected.run:
                 run = selected.run
-                if str(run.status) == "paused":
-                    questions = selected.questions
+                questions = selected.questions
                 _, elapsed = await self.run_display(session, run.id, run=run)
                 summary = RunSummary(run.id, str(run.status), run.engine, elapsed,
                     bool(selected.runtime.active_run_id),
@@ -178,7 +192,7 @@ class SnapshotReader:
             status=next((s.status for s in summaries if s.id == selected_id), "idle"),
             queued_count=selected.runtime.queued_count if selected else 0,
             model_required=requires_model(engines, data.config, config.engine, session_config) if selected else False,
-            title_error=title_errors.get(selected_id, ""),
+            title_error=title_errors.get(selected_id),
             engines=selected_engines(data.config, engines.names()),
             file_root=str(config.file_root or project.paths.root), components=tuple(data.components), questions=questions)
         return snapshot, tuple(observations)

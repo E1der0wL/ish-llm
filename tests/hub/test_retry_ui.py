@@ -162,6 +162,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_approval_skips_duplicate_resume_preview(self):
         from unittest.mock import AsyncMock
+        review = self.enterContext(patch("hub.backend.execution.stopping.finish_review", new_callable=AsyncMock))
         from llm.core.interactions import InteractionRequest, InteractionOption
         request = InteractionRequest("Approve", (InteractionOption("approve", "Approve", effect="approve"),))
         runtime = HubRuntime(HubConfig(auto_title=False))
@@ -172,7 +173,8 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
         runtime.sessions = {"s": session}
         self.assertTrue(await runtime.answer_question("p", "s", "r", request.to_dict(), "approve", None))
         session.run.resume_plan.assert_not_awaited()
-        session.run.resume.assert_awaited_once_with("r", engine="loop")
+        session.run.resume.assert_awaited_once_with("r", engine="loop", partial_output=True)
+        review.assert_awaited_once_with(session, "r")
 
     async def test_approval_admission_does_not_wait_for_ui_operation_lock(self):
         from unittest.mock import AsyncMock
@@ -191,6 +193,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_durable_ack_precedes_slow_resume_admission(self):
         from unittest.mock import AsyncMock, Mock
+        self.enterContext(patch("hub.backend.execution.stopping.finish_review", new_callable=AsyncMock))
         from llm.core.interactions import InteractionRequest, InteractionOption
         request = InteractionRequest("Approve", (InteractionOption("approve", "Approve", effect="approve"),))
         runtime = HubRuntime(HubConfig(auto_title=False))

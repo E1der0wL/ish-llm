@@ -54,6 +54,8 @@ class PreferencesStore(WorkspaceJSONStore):
             # Retire the removed option without preventing existing users from
             # opening Hub. The next save omits it; all other keys stay validated.
             general.pop("mouse_mode", None)
+            general.pop("recovery_max_attempts", None)
+            general.pop("provider_error_details", None)
             result["general"] = asdict(GeneralSettings(**general))
         sidebar = self.sidebar._read_json(None)
         if sidebar is not None:

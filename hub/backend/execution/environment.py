@@ -15,12 +15,13 @@ class EnvironmentSession(CompletionSession):
         self.cwd = cwd
 
     async def prepare(self, request):
+        from ...asset.guides import WORK_GUIDANCE
         index = 1 if request.messages and request.messages[0].value.get("role") == "system" else 0
         request.messages.insert(index, CompletionMessage({"role": "system", "content":
             "The working directory captured from the user's ish shell for this request is "
             f"{self.cwd!r}. Built-in file paths are relative to this directory. "
             "Process tools inherit the captured shell environment unless an explicit env is supplied. "
-            "Sandbox commands still run inside their isolated test workspace."}))
+            "Sandbox commands still run inside their isolated test workspace.\n\n" + WORK_GUIDANCE}))
         if False:
             yield
 
@@ -44,12 +45,14 @@ def underlying_engine(engine):
 class EnvironmentEngine:
     """Request options persist the snapshot, including across approval resumes."""
 
-    def __init__(self, implementation, builtins, environment=None, *, recovery=None, retry_monitor=None):
+    def __init__(self, implementation, builtins, environment=None, *, recovery=None, retry_monitor=None,
+                 provider_recovery=None):
         self.implementation = implementation
         self.builtins = builtins
         self.environment = environment
         self.recovery = recovery
         self.retry_monitor = retry_monitor
+        self.provider_recovery = provider_recovery
 
     def __getattr__(self, name):
         value = getattr(self.implementation, name)
@@ -78,7 +81,7 @@ class EnvironmentEngine:
         else:
             implementation = self.implementation
         return EnvironmentEngine(implementation, self.builtins, environment, recovery=self.recovery,
-                                 retry_monitor=self.retry_monitor)
+                                 retry_monitor=self.retry_monitor, provider_recovery=self.provider_recovery)
 
     def bind_context(self, context):
         if self.environment is None:
@@ -96,11 +99,11 @@ class EnvironmentEngine:
         return replace(context, tools=tools, capabilities=capabilities)
 
     async def execute(self, context):
-        bound = (await drain_on_cancel(asyncio.to_thread(self.bind_context, context))
-                 if self.environment is not None else context)
+        bound = await drain_on_cancel(asyncio.to_thread(self.bind_context, context))
         if self.recovery is not None:
             from .tool_recovery import recovery_events
-            stream = recovery_events(self.recovery, self.implementation, bound, self.environment)
+            stream = recovery_events(self.recovery, self.implementation, bound, self.environment,
+                                     provider=self.provider_recovery)
         else:
             stream = self.implementation.execute(bound)
         try:

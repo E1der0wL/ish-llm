@@ -119,7 +119,7 @@ SessionCatalog는 세션 생성/삭제/복제와 실행 start/shutdown, 제목 �
 유지합니다. SettingsService/SessionNamer의 기존 Runtime 의존성도 저장/재시작·제목 예약의
 계약을 건드리지 않고 유지합니다. ui의 현재 category, 렌더러, 순수 함수는 이미 경계가 명확해
 추가 추상화나 파일 크기를 이유로 한 분할을 하지 않습니다. 테스트는 기능 중심 이름을 유지합니다.
-정적 import 그래프의 기존 conversation/character_stream 상호 참조(지연 import)는 유지하며,
+문자 단위 출력 애니메이션 모듈은 제거했으며, 수신 청크 전체를 렌더링합니다.
 이동 전후 새 순환 의존성은 추가하지 않습니다.
 
 ## 이번 구조 정리 검증 (2026-10-13)
@@ -202,8 +202,9 @@ flush/fsync, 원자적 교체, 실패 시 임시 파일 정리만 공통 Store�
 전역 설정 dataclass 필드의 `metadata={"requires_restart": True}`를 `config/restart.py`에서
 조회해 폼 설명과 저장 후 재시작 판단에 공유합니다. 메타데이터는 사용자 저장값에 섞지 않습니다.
 UI는 마지막 저장값이 아니라 이번 시작 때 적용한 값과 비교하므로 재시작을 미룬 상태도 유지합니다.
-`ui/restart.py`가 확인 후 비동기 종료를 조정하고, BackendWorker는 모든 프로젝트의 실행·예약 및
-처리 중인 명령을 확인한 뒤 새 명령 진입을 막습니다. ish에서는 `HubInstallation`만 재설치해 셸과
+`ui/restart.py`가 비동기 종료를 조정하고, BackendWorker는 새 명령 진입을 막은 뒤
+`backend/execution/restarting.py`를 통해 실행·예약 작업과 처리 중인 명령을 취소·정리합니다.
+정리 완료 전 새 런타임을 만들지 않습니다. ish에서는 `HubInstallation`만 재설치해 셸과
 셸 입력을 유지하며, 독립 실행에서는 앱 종료 결과를 받아 `__main__`에서 새 앱을 엽니다.
 
 명시적 로깅 범위가 없는 독립 프로바이더 사용은 llm의

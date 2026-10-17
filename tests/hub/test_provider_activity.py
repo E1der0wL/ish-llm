@@ -48,7 +48,7 @@ class ProviderActivityTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn("Traceback", rendered)
                     self.assertIn("provider()", rendered)
                     self.assertIn('"stage": "stream_read"', rendered)
-                    self.assertNotIn("upstream response unavailable", rendered)
+                    self.assertIn("upstream response unavailable", rendered)
             finally:
                 await runtime.close()
 

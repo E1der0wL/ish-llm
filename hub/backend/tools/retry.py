@@ -11,10 +11,15 @@ from typing import Callable
 
 from llm.components.tools.constraints import constrained_arguments
 from llm.components.tools.builtin import BuiltinToolRunner
-from llm.core.results import EngineOutput
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.policies import ExecutionLimitError
 from llm.policies.retry import RetryDecision, RetryFailure, change_arguments
+
+from llm.llm import Diagnostic
+from ...errors.adapters import from_diagnostic, from_exception
+from ...errors.contracts import ErrorInfo, ErrorOrigin
+from ...errors.policy import Effects, RecoveryAction, RecoveryFacts, RecoveryPolicy
+from ..execution.recovery_model import model_events
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +31,7 @@ class ToolRetryRequest:
     working_directory: str | None
     evidence: dict
     constraints: dict
+    error: ErrorInfo
 
 
 INSTRUCTION = """Correct the arguments of one failed tool invocation.
@@ -51,17 +57,27 @@ class ToolRetrySelector:
         self.failed_call = ContextVar("hub_failed_tool", default=None)
 
     async def __call__(self, failure: RetryFailure):
-        # Preserve the backend's existing retry of a transient, safe failure.
-        if failure.retryable:
+        # llm invokes this selector only after enforcing effects, budget and
+        # deadline. Admission is a boundary fact, never inferred from error text.
+        error = from_diagnostic(Diagnostic(failure.code, failure.message), origin=ErrorOrigin.TOOL,
+                                operation=failure.operation)
+        facts = RecoveryFacts(backend_admitted=True, maximum=1, retryable=failure.retryable,
+            retry_safe=True, changeable=failure.changeable,
+            effects=Effects.NONE if failure.changeable else Effects.UNKNOWN)
+        action = RecoveryPolicy.tool(error, facts).action
+        if action == RecoveryAction.RETRY:
             return RetryDecision()
         captured = self.failed_call.get()
         self.failed_call.set(None)
         frame = self.context.get()
-        if not failure.changeable or frame is None or captured is None:
+        if action != RecoveryAction.REPAIR_ARGUMENTS or frame is None or captured is None:
             return None
-        tool, call = captured
+        tool, call, cause = captured
         if (tool.name != failure.operation or call.arguments != failure.arguments
                 or call.run_id != frame.context.run.id):
+            return None
+        error = from_exception(cause, origin=ErrorOrigin.TOOL, operation=failure.operation)
+        if RecoveryPolicy.tool(error, facts).action != RecoveryAction.REPAIR_ARGUMENTS:
             return None
         try:
             context = frame.context
@@ -72,12 +88,12 @@ class ToolRetrySelector:
             payload = ToolRetryRequest(deepcopy(failure), tool.description, deepcopy(tool.parameters),
                 next((item.content for item in context.messages if item.id == context.run.input_message_id), ""),
                 root, {}, deepcopy(context.tool_scope.argument_constraints.get(tool.name, {}))
-                if context.tool_scope else {})
+                if context.tool_scope else {}, error)
             provider = self.evidence.get(failure.operation)
             if provider is not None:
                 evidence = await self._choose(provider, payload)
                 payload = ToolRetryRequest(payload.failure, payload.description, payload.schema,
-                                           payload.task, root, evidence, payload.constraints)
+                                           payload.task, root, evidence, payload.constraints, error)
             if self.chooser is None:
                 decision = await self._model_choice(payload, frame, call.step_id)
             else:
@@ -117,36 +133,22 @@ class ToolRetrySelector:
         params = BaseEngine.copy_params(values.get("config", {}).get("completion", {}))
         if not params.get("model") or not hasattr(engine, "completion_fn"):
             return None
-        for key in ("messages", "tools", "tool_choice", "parallel_tool_calls", "functions", "function_call",
-                    "response_format", "json_schema", "stop", "n"):
-            params.pop(key, None)
         document = asdict(payload)
+        # The selector receives full local evidence; the bounded model helper
+        # needs the cause, not Python frames or a second copy of diagnostics.
+        document["error"] = {key: document["error"][key] for key in (
+            "code", "message", "category", "reason", "confidence", "origin", "evidence")}
         document["task"] = payload.task[:8000]
         encoded = json.dumps(document, ensure_ascii=False, allow_nan=False)
         if len(encoded) > 64000:
             return None
-        params["messages"] = [{"role": "system", "content": INSTRUCTION}, {"role": "user", "content": encoded}]
-        response = {}
-        model = BaseEngine("Tool argument repair", completion_fn=engine.completion_fn)
-        async def complete(context):
-            # A separate logical call gets no inherited provider retry loop. Its completion
-            # observations still pass through the owning Run's usage admission and persistence.
-            async with aclosing(model.stream_completion(params, response=response, provider={},
-                                                         max_output_chars=16000)) as stream:
-                async for item in stream:
-                    if getattr(item, "type", None) == EngineEventType.COMPLETION:
-                        yield item
-            yield EngineOutput(visibility="internal")
-
-        async with aclosing(model.step(frame.context, complete, name="Tool argument repair", kind="llm",
+        value = {}
+        async with aclosing(model_events(engine, frame, params, INSTRUCTION, document, value,
+                kind="tool argument repair", maximum=16000, name="Tool argument repair",
                 metadata={"hub_tool_repair": True, "parent_step_id": parent_step_id,
                           "tool": payload.failure.operation, "retry_attempt": payload.failure.attempt})) as events:
             async for event in events:
                 await frame.emit(event)
-        raw = (response.get("content") or "").strip()
-        if raw.startswith("```json\n") and raw.endswith("```"):
-            raw = raw[8:-3].strip()
-        value = json.loads(raw)
         if not isinstance(value, dict) or set(value) != {"changes"}:
             return None
         return RetryDecision(value["changes"]) if isinstance(value["changes"], dict) else None
@@ -163,6 +165,6 @@ class RetryAwareRunner(BuiltinToolRunner):
         self.selector.failed_call.set(None)
         try:
             return await super().__call__(tool, call)
-        except Exception:
-            self.selector.failed_call.set((tool, deepcopy(call)))
+        except Exception as error:
+            self.selector.failed_call.set((tool, deepcopy(call), error))
             raise

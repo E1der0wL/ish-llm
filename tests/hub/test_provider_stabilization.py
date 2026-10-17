@@ -10,13 +10,14 @@ import unittest
 from unittest.mock import AsyncMock, patch
 
 from hub.backend.execution.retries import HubLoopEngine, RetryMonitor
-from hub.backend.observability.failures import FailureDiagnostics, diagnose
+from hub.backend.observability.failures import FailureDiagnostics
+from hub.errors.adapters import from_diagnostic
 from hub.backend.runtime import HubConfig, HubRuntime
 from hub.config.general import GeneralSettings
 from hub.config.preferences import PreferencesStore
 from hub.config.restart import restart_changes, setting_metadata
 from hub.locales import Language
-from hub.model import ChatMessage
+from hub.model import ChatMessage, RetrySummary
 from hub.ui.chat.history_ui import format_activity
 from hub.ui.presentation import present_message
 from hub.widget.forms.general_settings import GeneralForm
@@ -27,12 +28,21 @@ from tests.llm.test_loop import ScriptedCompletion
 
 
 class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
+    def test_retired_disable_value_is_not_loaded_or_presented(self):
+        with tempfile.TemporaryDirectory() as root:
+            store = PreferencesStore(root)
+            store._write_json({"version": 1, "general": {"provider_error_details": False}})
+            values = store.load()["general"]
+            self.assertNotIn("provider_error_details", values)
+            form = GeneralForm(NS(t=Language()), values)
+            self.assertNotIn(("provider_error_details",), form.form.fields)
+
     def test_settings_form_validates_and_requires_restart(self):
         defaults = asdict(GeneralSettings())
-        self.assertFalse(defaults["provider_error_details"])
-        self.assertFalse(defaults["provider_request_summary"])
+        self.assertNotIn("provider_error_details", defaults)
+        self.assertTrue(defaults["provider_request_summary"])
         form = GeneralForm(NS(t=Language()), defaults)
-        changed = dict(defaults, provider_error_details=True, provider_request_summary=True,
+        changed = dict(defaults, provider_request_summary=False,
                        provider_max_detail_chars=1000)
         for name in form.groups["diagnostics"]:
             field = form.form.fields[(name,)]
@@ -41,7 +51,7 @@ class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(form.form.values(), changed)
         self.assertEqual(set(restart_changes("general", changed, defaults)),
                          {"general." + key for key in form.groups["diagnostics"]})
-        for invalid in ({"provider_error_details": "true"}, {"provider_request_summary": 1},
+        for invalid in ({"provider_request_summary": 1},
                         {"provider_max_detail_chars": 0}, {"provider_max_detail_chars": True},
                         {"provider_max_detail_chars": 1.5}):
             with self.assertRaises(ValueError):
@@ -57,7 +67,7 @@ class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             anchor, workspace = Path(root) / "preferences", Path(root) / "workspace"
             values = dict(asdict(GeneralSettings()), workspace_root=str(workspace),
-                          provider_error_details=True, provider_request_summary=True)
+                          provider_request_summary=True)
             PreferencesStore(anchor).save("general", values)
             config = HubConfig(anchor, model="test/model", auto_title=False,
                 engine_factories={"loop": lambda: HubLoopEngine(completion_fn=model)},
@@ -79,16 +89,15 @@ class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("private body", rendered)
                 with patch("hub.backend.observability.provider_logs.read_provider_logs", side_effect=AssertionError("No log lookup")):
                     diagnosis = (await runtime.diagnose_failures(runtime.project.id, sid, [handle.id]))[handle.id]
-                self.assertEqual((diagnosis.kind, diagnosis.http_status), ("request", 400))
-                await runtime.settings("save_global", "general", dict(values, provider_error_details=False,
-                                                                        provider_request_summary=False))
+                self.assertEqual((diagnosis.reason, diagnosis.http_status), ("request", 400))
+                await runtime.settings("save_global", "general", dict(values, provider_request_summary=False))
                 self.assertIs(runtime.backend.services.provider_diagnostics, options)
             finally:
                 await runtime.close()
             restarted = HubRuntime(config)
             try:
                 await restarted.start()
-                self.assertFalse(restarted.backend.services.provider_diagnostics.error_details)
+                self.assertTrue(restarted.backend.services.provider_diagnostics.error_details)
                 self.assertFalse(restarted.backend.services.provider_diagnostics.request_summary)
             finally:
                 await restarted.close()
@@ -101,6 +110,7 @@ class ActualRetryTests(unittest.IsolatedAsyncioTestCase):
                 error = HTTPFailure(429)
                 error.response = NS(headers={"Retry-After": "30"})
                 monitor = RetryMonitor()
+                monitor.set(("run", "recovery"), "run", RetrySummary(1, 3, kind="recovery", phase="retrying"))
                 engine = HubLoopEngine(completion_fn=ScriptedCompletion([error]))
                 engine.retry_monitor = monitor
                 ready, captured = asyncio.Event(), []
@@ -155,8 +165,9 @@ class ActualRetryTests(unittest.IsolatedAsyncioTestCase):
 
 class StoredDiagnosisTests(unittest.IsolatedAsyncioTestCase):
     def reader(self, steps, code):
-        run = NS(status="failed", error_code=code)
-        handle = NS(aget_data=AsyncMock(return_value=run), steps=NS(alist=AsyncMock(return_value=steps)))
+        run = NS(status="failed", error_code=code, error="failed")
+        handle = NS(aget_data=AsyncMock(return_value=run), steps=NS(alist=AsyncMock(return_value=steps)),
+            aresult=AsyncMock(return_value=NS(diagnostic=Diagnostic(code or "execution_failed", "failed"))))
         project = NS(sessions=NS(aload=AsyncMock(return_value=NS(run=NS(aload=AsyncMock(return_value=handle))))),
                      aactivity=AsyncMock(side_effect=AssertionError("No activity lookup")))
         runtime = NS(backend=NS(projects=NS(aload=AsyncMock(return_value=project)), workspace="unused"),
@@ -178,12 +189,13 @@ class StoredDiagnosisTests(unittest.IsolatedAsyncioTestCase):
                  ("completion_argument_limit", "", "completion_argument_limit"),
                  ("step_timeout", "", "step_timeout")]
         for code, finish, kind in cases:
-            diagnosis = diagnose(code, details={"finish_reason": finish})
-            self.assertEqual(diagnosis.kind, kind)
+            diagnosis = from_diagnostic(Diagnostic(code or "execution_failed", "", details={"finish_reason": finish}))
+            self.assertEqual(diagnosis.reason, Diagnostic(code, "", details={"finish_reason": finish}).classification.reason)
             for language in ("ko", "en"):
                 t = Language(language)
                 rendered = present_message(ChatMessage("assistant", "partial", status="failed", failure=diagnosis), t)
-                self.assertTrue(rendered.text.startswith("partial"))
+                self.assertEqual(rendered.role, "system")
+                self.assertNotIn("partial", rendered.text)
                 self.assertIn(t("failure_" + kind), rendered.text)
                 if finish:
                     self.assertIn("finish_reason=" + finish, rendered.text)
@@ -193,7 +205,7 @@ class StoredDiagnosisTests(unittest.IsolatedAsyncioTestCase):
                              "completion_incomplete")
         with patch("hub.backend.observability.provider_logs.read_provider_logs", side_effect=AssertionError("No log lookup")):
             result = await reader.read("p", "s", ["r"])
-            self.assertEqual(result["r"].kind, "completion_length")
+            self.assertEqual(result["r"].reason, "output")
             self.assertEqual(await reader.read("p", "s", ["r"]), result)
 
     async def test_recovered_step_and_other_run_diagnostic_are_not_used(self):
@@ -205,17 +217,17 @@ class StoredDiagnosisTests(unittest.IsolatedAsyncioTestCase):
                 result = (await self.reader(steps, code).read("p", "s", ["r"]))["r"]
                 self.assertIsNone(result.http_status)
                 if code == "engine_failed":
-                    self.assertEqual(result.kind, "unknown")
+                    self.assertEqual(result.reason, "unknown")
 
     async def test_failed_graph_parent_is_not_hidden_by_a_later_cancelled_sibling(self):
         parent = self.step("completion_incomplete", kind="graph_node", details={"finish_reason": "length"})
         sibling = self.step("step_failed", stamp="2026-10-16T02:00:00+00:00", status="cancelled")
         with patch("hub.backend.observability.provider_logs.read_provider_logs", side_effect=AssertionError("No log lookup")):
             result = (await self.reader([parent, sibling], "completion_incomplete").read("p", "s", ["r"]))["r"]
-        self.assertEqual(result.kind, "completion_length")
+        self.assertEqual(result.reason, "output")
 
     async def test_step_diagnosis_does_not_require_run_code_or_activity(self):
         step = self.step("provider_invalid_request", details={"exceptions": [{"status_code": 400}]})
         with patch("hub.backend.observability.provider_logs.read_provider_logs", side_effect=AssertionError("No log lookup")):
             result = (await self.reader([step], None).read("p", "s", ["r"]))["r"]
-        self.assertEqual((result.code, result.kind, result.http_status), ("provider_invalid_request", "request", 400))
+        self.assertEqual((result.code, result.reason, result.http_status), ("provider_invalid_request", "request", 400))

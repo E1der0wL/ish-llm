@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from .errors.contracts import ErrorInfo
+
 
 @dataclass(frozen=True, slots=True)
 class ChatMessage:
@@ -17,16 +19,7 @@ class ChatMessage:
     trace: tuple["TraceItem", ...] = ()
     activity: str = ""
     run_id: str = ""
-    failure: "FailureDiagnosis | None" = None
-
-
-@dataclass(frozen=True, slots=True)
-class FailureDiagnosis:
-    kind: str
-    code: str = ""
-    http_status: int | None = None
-    exception_type: str = ""
-    finish_reason: str = ""
+    failure: ErrorInfo | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -116,7 +109,7 @@ class HubSnapshot:
     status: str = "idle"
     queued_count: int = 0
     model_required: bool = False
-    title_error: str = ""
+    title_error: ErrorInfo | None = None
     engines: tuple[str, ...] = ()
     file_root: str = ""
     notifications: tuple[SessionNotification, ...] = ()

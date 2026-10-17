@@ -149,7 +149,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("general")
                     manager = screen.page.general_form
                     manager.add_pack()
-                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "editor", "diagnostics"))
+                self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "editor", "diagnostics", "recovery"))
                 self.assertNotIn(("mouse_mode",), manager.form.fields)
                 app.current_buffer.text = "custom"
                 pipe.send_text("\t")

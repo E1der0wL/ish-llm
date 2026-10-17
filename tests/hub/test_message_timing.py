@@ -12,6 +12,19 @@ from hub.config.theme import HubTheme
 
 
 class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_failure_uses_run_end_without_changing_request_timestamp(self):
+        runtime = HubRuntime(HubConfig("unused", auto_title=False))
+        run = SimpleNamespace(id="r", status="failed", started_at="2026-10-18T00:00:02+00:00",
+                              ended_at="2026-10-18T00:00:08+00:00", metadata={})
+        request = SimpleNamespace(id="u", role="user", content="Q", status="failed", run_id="r",
+                                  created_at="2026-10-18T00:00:00+00:00", metadata={})
+        response = SimpleNamespace(id="a", role="assistant", content="", status="failed", run_id="r",
+                                   created_at="2026-10-18T00:00:02+00:00", metadata={})
+        for _ in range(2):
+            messages = await runtime.snapshot_reader.messages(None, [request, response], latest=run)
+            self.assertEqual(messages[0].time, request.created_at)
+            self.assertEqual(messages[-1].time, run.ended_at)
+
     async def test_response_duration_includes_submission_and_admission_time(self):
         runtime = HubRuntime(HubConfig("unused", auto_title=False))
         run = SimpleNamespace(id="r", status="completed", started_at="2026-10-11T00:00:04+00:00",

@@ -9,13 +9,22 @@ from .actions import bind_button_navigation
 from .focus import focus_control
 
 
+class AuxiliaryButton(Button):
+    """Compact icon action with the page background instead of a button surface."""
+
+    def __init__(self, text, handler):
+        super().__init__(text, handler=handler, width=3)
+        original = self.window.style
+        self.window.style = lambda: (original() if callable(original) else original) + " class:hub.auxiliary"
+
+
 class AuxiliaryBar(VSplit):
     def __init__(self, actions, icons, restore):
         self.restore = restore
         self.buttons = {}
         self.previous = None
         for name, handler in actions:
-            button = Button(lambda name=name: icons().auxiliary[name], handler=handler, width=3)
+            button = AuxiliaryButton(lambda name=name: icons().auxiliary[name], handler=handler)
             self.buttons[name] = button
             registry = button.control.hub_shortcuts
             registry.add(["escape"], "ESC", "return", lambda e: self.leave())

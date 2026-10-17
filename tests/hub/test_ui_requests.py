@@ -54,7 +54,9 @@ class UIRequestTests(unittest.TestCase):
         self.requests.call("save", completed=self.events.append)
         self.future.set_exception(error)
         self.drain()
-        self.assertIs(self.events[-1].error, error)
+        self.assertEqual(self.events[-1].error.message, str(error))
+        self.assertEqual(self.events[-1].error.operation, "save")
+        self.assertEqual(self.events[-1].error.exception_type, "ValueError")
 
     def test_structured_progress_uses_the_ui_dispatcher(self):
         self.requests.call("manage_records", completed=lambda result: None, progress=self.events.append)
@@ -67,7 +69,8 @@ class UIRequestTests(unittest.TestCase):
     def test_dispatch_failure_and_disconnected_catalog(self):
         self.connected = False
         self.requests.call("load", completed=self.events.append)
-        self.assertEqual(self.events[-1].error, "offline")
+        self.assertEqual(self.events[-1].error.code, "hub_disconnected")
+        self.assertEqual(self.events[-1].error.message, "offline")
         self.requests.call("settings", "catalog", allow_disconnected=True, completed=self.events.append)
         self.future.set_result({"catalog": True})
         self.drain()

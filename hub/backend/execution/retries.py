@@ -11,6 +11,7 @@ from llm.engines.base import EngineEventType
 from llm.core.contracts import Diagnostic
 from llm.providers.runtime import diagnostic_scope
 from ...model import RetrySummary
+from .provider_recovery import CompletionRecoveryMixin
 
 
 @dataclass(slots=True)
@@ -87,7 +88,15 @@ class RetryMonitor:
     def observe_provider(self, event: Diagnostic) -> None:
         """The provider owns Retry-After/jitter/deadlines; project its chosen delay."""
         watch = self.call.get()
-        if watch is None or event.code != "provider_retry":
+        if watch is None:
+            return
+        if event.code in ("completion_recovery", "completion_recovery_rejected"):
+            state = self.states.get((watch.run_id, "recovery"))
+            if state is not None:
+                self.set((watch.run_id, "recovery"), watch.run_id,
+                    replace(state.summary, phase="retrying" if event.code == "completion_recovery" else "rejected", retry_at=None))
+            return
+        if event.code != "provider_retry":
             return
         details = event.details
         if details.get("operation") != "completion" or details.get("run_id", watch.run_id) != watch.run_id:
@@ -98,11 +107,15 @@ class RetryMonitor:
                 or not isinstance(call_id, str) or not call_id or watch.call_id not in ("", call_id)):
             return
         watch.call_id = call_id
+        self.states.pop((watch.run_id, "recovery"), None)
         self.set(id(watch), watch.run_id, RetrySummary(attempt - 1,
             watch.policy.get("max_attempts", 1), monotonic() + delay))
 
     def view(self, run_id: str) -> RetrySummary | None:
         states = [item.summary for item in self.states.values() if item.run_id == run_id]
+        recovery = next((state for state in states if state.kind == "recovery"), None)
+        if recovery is not None:
+            return recovery
         # Parallel Graph agents keep separate calls. Finishing one must not
         # erase another's backoff; show the next scheduled attempt first.
         return min(states, key=lambda state: state.retry_at if state.retry_at is not None else float("inf"),
@@ -157,6 +170,7 @@ class RetryObservationMixin:
                         watch.completion_id = completion.id
                         watch.attempt += 1
                         if watch.attempt > 1:
+                            monitor.states.pop((watch.run_id, "recovery"), None)
                             monitor.set(id(watch), watch.run_id, RetrySummary(
                                 watch.attempt, watch.policy.get("max_attempts", 1)))
                     yield event
@@ -164,5 +178,5 @@ class RetryObservationMixin:
             monitor.states.pop(id(watch), None)
 
 
-class HubLoopEngine(RetryObservationMixin, LoopEngine):
+class HubLoopEngine(CompletionRecoveryMixin, RetryObservationMixin, LoopEngine):
     """The standard Loop with optional Hub-only retry observations."""

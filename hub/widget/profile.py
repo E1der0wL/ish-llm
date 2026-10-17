@@ -9,19 +9,23 @@ from prompt_toolkit.layout.controls import FormattedTextControl
 from .controls import Button
 from .focus_region import FocusRegion
 from .actions import ActionBar
+from .dropdown import DropdownBox
 
 
 class ProfileBar(HSplit):
-    # Two eight-cell buttons, their gap and horizontal padding.
-    minimum_width = 19
+    # Page button, preset dropdown, gap and horizontal padding.
+    minimum_width = 25
 
     def __init__(self, view):
         self.view = view
         self.account = getuser()
         self.page = Button(lambda: view.t("profile_home" if view.settings_open else "profile_settings"),
                            handler=lambda: view.open_page(not view.settings_open), width=8)
-        self.minimize = Button(view.t("profile_minimize"), handler=view.minimize, width=8)
-        self.buttons = (self.page, self.minimize)
+        from ..ui.settings.presets import PresetUI
+        self.preset_ui = PresetUI(view)
+        self.presets = DropdownBox(self.preset_ui.items, value="", placeholder=view.t("preset_title"),
+                                   on_change=self.preset_ui.choose, width=14, icons=lambda: view.icons)
+        self.buttons = (self.page, self.presets)
         heading = Window(FormattedTextControl(self.identity), height=1, style="class:hub.profile")
         padding = [Window(height=1), Window(height=1)]
         for window in (heading, *padding):
@@ -36,7 +40,7 @@ class ProfileBar(HSplit):
 
     @property
     def controls(self):
-        return tuple(button.control for button in self.buttons)
+        return self.page.control, *self.presets.controls
 
     @property
     def focused(self):

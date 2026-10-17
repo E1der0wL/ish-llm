@@ -47,7 +47,7 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: screen.page is not None and view.settings_open)
                 await eventually(lambda: app.renderer._last_screen and any(
                     window.content is screen.global_list for window in app.renderer._last_screen.visible_windows))
-                pipe.send_text("\x1b[C")
+                pipe.send_text("\x1b[C\r")
                 await eventually(lambda: screen.page is not None and not screen.layout.sidebar_focused)
                 field = screen.page.form.fields[("display_name",)]
                 pipe.send_text("e")
@@ -109,7 +109,7 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: screen.page is not None and view.settings_open)
                 await eventually(lambda: app.renderer._last_screen and any(
                     window.content is screen.global_list for window in app.renderer._last_screen.visible_windows))
-                pipe.send_text("\x1b[C")
+                pipe.send_text("\x1b[C\r")
                 await eventually(lambda: screen.page is not None and not screen.layout.sidebar_focused)
                 field = screen.page.form.fields[("display_name",)]
                 before = field.input.text
@@ -139,7 +139,8 @@ class SettingsEditorTests(unittest.IsolatedAsyncioTestCase):
                 with patch("hub.ui.host.edit_text", new=AsyncMock(
                         side_effect=subprocess.CalledProcessError(9, ["editor"]))) as editor:
                     pipe.send_text("e")
-                    await eventually(lambda: "9" in screen.status and not screen.busy)
+                    await eventually(lambda: view.t("settings_editor_failed", code=9) in screen.status and not screen.busy)
+                    self.assertIn("9", view.operation_diagnostics.text(getattr(view, "project_id", ""), view.t))
                     self.assertEqual(field.input.text, draft)
                     self.assertFalse(field.editing)
                     field.readonly = True

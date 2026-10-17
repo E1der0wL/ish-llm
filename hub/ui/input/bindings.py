@@ -19,6 +19,8 @@ class HubBindings:
                                        DynamicKeyBindings(lambda: view.output.shortcuts.bindings)])
         common.add(["c-q"], "Ctrl+Q", "minimize", self.minimize,
                    when=lambda: view.visible, global_=True)
+        common.add(["c-w"], "Ctrl+W", "restart", lambda e: view.restart(),
+                   when=lambda: view.visible, global_=True)
         common.add(["c-p"], "Ctrl+P", "profile", lambda e: view.profile_bar.focus(),
                    when=lambda: c.available, global_=True)
         common.add(["c-c"], "Ctrl+C", "copy", self.copy,
@@ -27,7 +29,8 @@ class HubBindings:
                    when=lambda: view.visible and isinstance(c.control, BufferControl)
                                 and not get_app().current_buffer.read_only(), global_=True)
         r.add(["escape"], "ESC", "sidebar", self.escape,
-              when=lambda: c.available and not c.sidebar and not c.profile and not c.auxiliary)
+              when=lambda: c.available and not c.sidebar and not c.profile and not c.auxiliary
+                  and not (c.settings and view.settings.tabs.content_focused))
         r.add(["escape"], "", "", lambda e: None, when=lambda: c.sidebar)
         r.add(["escape"], "ESC", "close", lambda e: view.close_dialog(), when=lambda: c.dialog)
         r.add(["tab", "s-tab"], "Tab/Shift+Tab", "move",
@@ -39,17 +42,17 @@ class HubBindings:
         # Retired Home shortcuts must not fall through to PTK's transpose/redraw
         # bindings and unexpectedly modify a draft.
         r.add(["c-f", "c-g", "c-l", "c-t"], "", "", lambda e: None, when=lambda: c.chat)
-        r.add(["c-w"], "Ctrl+W", "stop", lambda e: view.on_interrupt(view.sessions[view.selected].id),
-              when=lambda: c.chat and view.on_interrupt is not None)
+        r.add(["c-d"], "Ctrl+D", "stop_resume", lambda e: view.on_interrupt(view.sessions[view.selected].id),
+              when=lambda: c.composing and view.on_interrupt is not None)
         r.add(["tab", "s-tab"], "Tab/Shift+Tab", "regions",
               lambda e: view.settings.focus(e.key_sequence[0].key == "s-tab"), when=lambda: c.settings and not c.sidebar)
         r.add(["left"], "←", "sidebar", lambda e: view.settings.switch_panel(),
-              when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused)
+              when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused and not view.settings.tabs.tabs_focused)
         r.add(["up", "down"], "↑↓", "items",
               lambda e: view.settings.move(e.key_sequence[-1].key),
-              when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused)
+              when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused and not view.settings.tabs.tabs_focused)
         r.add(["right"], "", "", lambda e: None,
-              when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused)
+              when=lambda: c.settings and not c.sidebar and not view.settings.editing and not view.settings.actions_focused and not view.settings.tabs.tabs_focused)
         r.add(["up", "down"], "↑↓", "select", self.select, when=lambda: c.sidebar)
         r.add(["c-left", "c-right"], "Ctrl+←→", "width", self.resize, when=lambda: c.sidebar)
         for key, action in (("c", "create"), ("d", "delete"), ("e", "rename"), ("r", "clone")):
@@ -125,6 +128,8 @@ class HubBindings:
             actions += self.view.output.shortcuts.active()
         if local:
             actions += local.active()
+        if self.context.settings:
+            actions += self.view.settings.tabs.shortcuts.active()
         return legend(actions, self.view.t)
 
     def escape(self, event):

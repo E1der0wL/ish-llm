@@ -21,8 +21,6 @@ class LoopOutput(EngineOutput):
         self.transcript.window.height = Dimension(min=1, weight=1)
         control = self.transcript.control
         control.render_worker = view.render_worker
-        control.animation_active = lambda: view.animate_output and view.visible and not view.settings_open
-        control.animation_follow = lambda: view.general.auto_scroll
         control.on_position_changed = self.position_changed
         control.file_root = view.file_root
         self.renderers = control.renderers

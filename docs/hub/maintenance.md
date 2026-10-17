@@ -8,6 +8,11 @@
 
 ## 비동기 요청
 
+오류 전달은 [공통 오류 계약](error-handling.md)을 따릅니다. `ErrorInfo`는 원문과 분류 근거를,
+백엔드 `Diagnostic.classification`은 분류를, `ui/error_presentation.py`는 표시를 담당합니다.
+Provider 복구·체크포인트 재개 허용은 llm 계약을 따르며 `RecoveryPolicy`는 승인된 Tool 콜백의
+어플리케이션 선택만 담당합니다. Hub에는 별도 오류 분류기나 Provider 재시도 루프가 없습니다.
+
 `ui/requests.py`의 UIRequests가 BackendWorker의 Future를 RequestResult로 변환합니다.
 성공한 None과 예외를 구분하고, 승인 접수·진행률·최종 결과를 같은 UI dispatch 경로로 전달합니다.
 UI가 닫힌 뒤 큐에 남아 있던 callback은 실행하지 않습니다. Hub 최소화는 종료가 아니므로
@@ -57,7 +62,7 @@ Screen은 키 바인딩과 위젯에서 사용하는 기존 행동 메서드를 
 개별 페이지의 `submit/after_submit` 경로는 제거했고 기존 테스트는 실제 저장 버튼의 handler를
 호출하거나 Enter 키로 버튼을 실행합니다.
 
-패널 하단 프로필과 설정/홈 이동·최소화는 `widget/profile.py`를 공유합니다. 설정 화면은 현재
+패널 하단 프로필과 설정/홈 이동·프리셋 선택은 `widget/profile.py`를 공유합니다. 설정 화면은 현재
 프로젝트만 편집하며 섹션별 폼이 하나의 ProjectPage 초안을 공유합니다. 저장·취소는
 설정 화면에 머뭅니다. 자세한 동작은 [패널과 설정 UX](panel-ux.md)를 참고하세요.
 

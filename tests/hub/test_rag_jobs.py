@@ -8,16 +8,20 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest.mock import AsyncMock
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
 
-from hub.backend.project.rag_management import RAGManagement, RegistrationProgress
+from hub.backend.project.rag_management import RAGManagement
+from hub.backend.project.rag_progress import RegistrationProgress
 from hub.backend.runtime import HubRuntime
 from hub.ui.application import create_application
+from hub.ui.operation_diagnostics import OperationDiagnostics
 from hub.widget.forms.rag_manager import RAGManager
 from llm.components.rag import RAGComponent, EmbeddingModel
-from llm.core.contracts import Diagnostic
+from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
+from llm.llm import CheckpointError
 from tests.hub.support import SizedOutput, render_container
 from tests.hub.test_components import config, Extractor
 
@@ -35,6 +39,74 @@ async def wait_for(predicate):
 
 
 class RAGJobTests(unittest.IsolatedAsyncioTestCase):
+    async def test_cancel_immediately_shows_stopping_and_does_not_duplicate_request(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock, patch
+        from hub.locales import Language
+        from hub.ui.operation_diagnostics import OperationDiagnostics
+
+        popup = RAGManager.__new__(RAGManager)
+        job = {"name": "job:j", "kind": "job", "job_id": "j", "status": "running", "phase": "embedding"}
+        popup.entries, popup.selected, popup.cancel_pending = [job], "job:j", set()
+        popup.view = SimpleNamespace(t=Language(), notice="")
+        popup.request = Mock()
+        app, timer, scheduler = Mock(), Mock(), Mock()
+        scheduler.call_later.return_value = timer
+        with patch("hub.widget.forms.rag_manager.get_app", return_value=app), \
+                patch("hub.widget.forms.rag_manager.asyncio.get_running_loop", return_value=scheduler):
+            popup.cancel_job()
+            self.assertEqual(popup._phase(job), popup.view.t("rag_phase_cancelling"))
+            scheduler.call_later.call_args.args[1]()
+            self.assertEqual(popup.view.notice, popup.view.t("cancel_wait"))
+            popup.cancel_job()
+            popup.request.assert_called_once()
+            stopped = {**job, "status": "cancelled", "phase": "cancelled"}
+            popup.request.call_args.args[3]([stopped])
+        timer.cancel.assert_called_once()
+        self.assertFalse(popup.cancel_pending)
+        self.assertEqual(popup.view.notice, "")
+        self.assertEqual(popup.entries, [stopped])
+
+    async def test_concurrent_resume_inspections_admit_only_one_local_observer(self):
+        from types import SimpleNamespace
+        ready, inspected = asyncio.Event(), 0
+        async def inspect(identifier):
+            nonlocal inspected
+            inspected += 1
+            if inspected == 2:
+                ready.set()
+            await ready.wait()
+            return SimpleNamespace(can_resume=True, revision="r", blockers=[])
+        async def execute(*args, **kwargs):
+            await asyncio.sleep(.02)
+        job = {"id": "j", "document_id": "d", "status": "failed", "phase": "failed", "created_at": "now"}
+        data = SimpleNamespace(ajob=AsyncMock(return_value=job), aresume_plan=inspect,
+            ajob_progress=AsyncMock(), arun_job=AsyncMock(side_effect=execute))
+        manager = RAGManagement(data, "rag", Path("."), "project")
+        results = await asyncio.gather(manager._run("j", progress=None), manager._run("j", progress=None),
+                                       return_exceptions=True)
+        self.assertEqual(sum(value is None for value in results), 1)
+        self.assertEqual(sum(isinstance(value, ValueError) for value in results), 1)
+        data.arun_job.assert_awaited_once()
+        self.assertEqual(manager.active, {})
+
+    async def test_poll_is_lightweight_and_retry_passes_reviewed_revision(self):
+        from types import SimpleNamespace
+        job = {"id": "j", "document_id": "d", "status": "failed", "phase": "failed", "created_at": "now"}
+        plan = SimpleNamespace(can_resume=True, revision="reviewed", blockers=[])
+        data = SimpleNamespace(ajobs=AsyncMock(return_value=[job]), ajob=AsyncMock(return_value=job),
+            aresume_plan=AsyncMock(return_value=plan), ajob_progress=AsyncMock(),
+            arun_job=AsyncMock(side_effect=CheckpointError("checkpoint_conflict", "changed")))
+        manager = RAGManagement(data, "rag", Path("."), "project")
+        entries = await manager.execute("jobs")
+        self.assertIsNone(entries[0]["retryable"])
+        data.aresume_plan.assert_not_awaited()
+        self.assertTrue((await manager.jobs())[0]["retryable"])
+        with self.assertRaises(CheckpointError):
+            await manager.execute("retry", "j")
+        data.arun_job.assert_awaited_once_with("j", retry=True, expected_revision="reviewed")
+        self.assertEqual(manager.active, {})
+
     async def test_batch_job_lists_retries_and_blocks_duplicate_document_import(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -82,7 +154,7 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
                 await data.aabandon_job(job["id"], expected_revision=plan.revision)
                 rows = await runtime.manage_records(runtime.project.id, "rag", "jobs")
                 self.assertFalse(rows[0]["retryable"])
-                with self.assertRaisesRegex(ValueError, "cannot be resumed"):
+                with self.assertRaisesRegex(ValueError, "abandoned"):
                     await runtime.manage_records(runtime.project.id, "rag", "retry", job["id"])
                 await runtime.manage_records(runtime.project.id, "rag", "import", str(source))
                 self.assertEqual(calls, [["New source"]])
@@ -108,11 +180,12 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
                 with self.assertRaises(RuntimeError):
                     await runtime.manage_records(project_id, "rag", "import", str(source), progress=updates.append)
                 entries = await runtime.manage_records(project_id, "rag", "list")
-                self.assertEqual(entries, [])
-                self.assertEqual(await runtime.manage_records(project_id, "rag", "jobs"), [])
+                self.assertEqual(len(entries), 1)
+                self.assertEqual(entries[0]["status"], "failed")
                 job = updates[-1]
                 self.assertEqual(job["status"], "failed")
-                self.assertTrue(job["retryable"])
+                self.assertIsNone(job["retryable"])  # Progress does not perform checkpoint inspection.
+                self.assertTrue(entries[0]["retryable"])
                 self.assertEqual(job["ingestion"]["chunks_completed"], 1)
                 self.assertEqual(updates[-1]["phase"], "failed")
             finally:
@@ -123,7 +196,7 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
             await runtime.start()
             try:
                 entries = await runtime.manage_records(project_id, "rag", "list")
-                self.assertEqual(entries, [])  # Hidden failures keep their backend checkpoints.
+                self.assertEqual(entries[0]["job_id"], job["job_id"])
                 entries = await runtime.manage_records(project_id, "rag", "retry", job["job_id"], progress=updates.append)
                 self.assertEqual([item["name"] for item in entries], ["note"])
                 self.assertEqual(calls, ["First chunk", "Second chunk", "Second chunk", "Third chunk"])
@@ -170,8 +243,9 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
                     await runtime.manage_records(runtime.project.id, "rag", "retry", job["id"])
                 # An observer without Hub's in-memory map still cannot bypass the backend lease.
                 observer = RAGManagement(data, "rag", root, runtime.project.id)
-                with self.assertRaisesRegex(ValueError, "still alive"):
+                with self.assertRaises(CheckpointError) as caught:
                     await observer.execute("retry", job["id"])
+                self.assertTrue(caught.exception.blockers)
                 self.assertEqual(len(calls), 1)
             finally:
                 release.set()
@@ -220,6 +294,22 @@ asyncio.run(main())
 
 
 class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
+    def test_blocked_resume_shows_owner_reason_without_running(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock, patch
+        from hub.locales import Language
+        popup = RAGManager.__new__(RAGManager)
+        popup.busy, popup.selected = False, "job:j"
+        popup.entries = [{"name": "job:j", "kind": "job", "retryable": False,
+                          "resume_blockers": ({"code": "checkpoint_configuration", "message": "The indexing settings changed"},)}]
+        popup.view = SimpleNamespace(t=Language(), notice="", project_id="p", operation_diagnostics=OperationDiagnostics())
+        popup.call = Mock()
+        with patch("hub.widget.forms.rag_manager.get_app", return_value=Mock()):
+            popup.retry()
+        self.assertIn("RAG 설정", popup.view.notice)
+        self.assertIn("The indexing settings changed", popup.view.operation_diagnostics.text("p", popup.view.t))
+        popup.call.assert_not_called()
+
     async def test_retry_button_runs_persisted_queued_job(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             root = Path(directory)
@@ -256,7 +346,7 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
                 await task
                 await asyncio.to_thread(controller.close)
 
-    async def test_failed_job_disappears_and_does_not_block_reimport(self):
+    async def test_failed_job_remains_and_retry_reuses_checkpoint(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             root = Path(directory)
             (root / "retry.md").write_text("Saved chunk\n\nRetry chunk")
@@ -279,15 +369,15 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
                 popup.path.text = "retry.md"
                 pipe.send_text("\r")
                 await wait_for(lambda: not popup.busy and popup.last_job and popup.last_job["status"] == "failed")
-                self.assertIsNone(popup._selected_job())
-                self.assertEqual(popup.entries, [])
-                # A failed row is hidden, not deleted from llm's storage. Import
-                # the same path again without getting stuck on that hidden job.
+                self.assertIsNot(popup._selected_job()["retryable"], False)
+                self.assertEqual(len(popup.entries), 1)
                 self.assertEqual(popup.path.text, "retry.md")
+                with set_app(app):
+                    app.layout.focus(popup.retry_button)
                 pipe.send_text("\r")
                 await wait_for(lambda: not popup.busy and popup.selected == "retry")
-                self.assertEqual(calls, ["Saved chunk", "Retry chunk", "Saved chunk", "Retry chunk"])
-                self.assertEqual(popup.last_job["ingestion"]["checkpoint_reuse"], 0)
+                self.assertEqual(calls, ["Saved chunk", "Retry chunk", "Retry chunk"])
+                self.assertEqual(popup.last_job["ingestion"]["checkpoint_reuse"], 1)
                 self.assertFalse(view.progress.active)
             finally:
                 app.exit()
@@ -348,9 +438,14 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
 
     def test_phase_progress_does_not_claim_graph_batches_are_overall_percent(self):
         job = {"id": "job", "document_id": "doc", "status": "running", "phase": "preparing", "created_at": "2026-01-01T00:00:00+00:00"}
-        observer = RegistrationProgress(job, extraction=True)
+        observer = RegistrationProgress(job)
         observer.observe(Diagnostic("rag_ingestion_progress", "embedding", details={"chunks_total": 4, "chunks_completed": 4, "embedding_seconds": 2}))
-        self.assertEqual(observer.entry()["phase"], "extraction_index")
+        self.assertEqual(observer.entry()["phase"], "embedding")
+        observer.update(OperationProgress(ResourceRef("rag_job", "job"), "extracting", completed=1, total=3, unit="batch"))
         observer.observe(Diagnostic("rag_extraction_progress", "extraction", details={"chunks_total": 4, "chunks_completed": 4, "extraction_batches": 1, "extraction_seconds": 3}))
-        self.assertEqual(observer.entry()["phase"], "extraction_index")
+        self.assertEqual(observer.entry()["phase"], "extracting")
         self.assertEqual(observer.entry()["ingestion"]["extraction_seconds"], 3)
+        self.assertEqual(observer.entry()["progress"]["total"], 3)
+        observer.update(OperationProgress(ResourceRef("rag_job", "job"), "publishing"))
+        self.assertIsNone(observer.entry()["progress"]["total"])
+        self.assertIn("extracting", observer.entry()["phase_seconds"])

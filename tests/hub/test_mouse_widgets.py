@@ -289,8 +289,8 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(settings_edge, chat_edge)
             title = "전역 설정 • 모양"
             cells = self.app.renderer._last_screen.data_buffer
-            self.assertIn(title, "".join(cells[rect.ypos - 1][x].char for x in range(rect.xpos, columns)))
-            self.assertEqual(rect.ypos, chat.ypos)
+            self.assertIn(title, "".join(cells[rect.ypos - 2][x].char for x in range(rect.xpos, columns)))
+            self.assertEqual(rect.ypos, chat.ypos + 1)
             settings_auxiliary = self.position(self.view.settings.auxiliary.buttons["filter"].window)
             self.assertEqual(rect.ypos + rect.height + 1, settings_auxiliary.ypos)
             self.assertTrue(all(cells[rect.ypos + rect.height][x].char == " "
@@ -309,7 +309,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             await self.mouse(0, settings_edge, rect.ypos + rect.height - 1, release=True)
             self.assertEqual(pane.vertical_scroll, 4)
             cells = self.app.renderer._last_screen.data_buffer
-            self.assertIn(title, "".join(cells[rect.ypos - 1][x].char for x in range(rect.xpos, columns)))
+            self.assertIn(title, "".join(cells[rect.ypos - 2][x].char for x in range(rect.xpos, columns)))
             with set_app(self.app):
                 self.view.toggle_settings()
             await self.paint()
@@ -464,6 +464,7 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             self.view.toggle_settings()
             self.view.settings.choose("appearance")
             self.view.settings.layout.focus_main()
+            self.view.settings.tabs.enter()
         await self.paint()
         pane = self.view.settings.main
         focus = self.app.layout.current_control

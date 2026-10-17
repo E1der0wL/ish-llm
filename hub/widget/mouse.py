@@ -417,5 +417,13 @@ class MouseController:
                 self._select_input(window, event, native)
                 self.app.invalidate()
                 return None
+        from .sidebar import SidebarList
+        if (window is not None and isinstance(window.content, SidebarList)
+                and event.button == MouseButton.LEFT and event.event_type in (M.MOUSE_DOWN, M.MOUSE_UP)
+                and event.position.y - rect.ypos + window.vertical_scroll >= window.render_info.content_height):
+            # PTK maps blank display rows to the last content row.
+            self.app.layout.focus(window)
+            self.app.invalidate()
+            return None
         result = native(event)
         return None if moved else result

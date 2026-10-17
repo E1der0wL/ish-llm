@@ -178,7 +178,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
                 await minimize(pipe, view)
                 await until(lambda: not view.visible)
                 self.assertTrue(controller.worker._thread.is_alive())
-                pipe.send_text("\x11\x17")  # return; Ctrl+W interrupts only the active Run
+                pipe.send_text("\x11\x04")  # return; Ctrl+D interrupts only the active Run
                 await until(lambda: any(m.text == "**reply**: second" for m in view.output.transcript.control.messages))
                 self.assertTrue(any(m.status == "interrupted" for m in view.output.transcript.control.messages))
                 pipe.send_text("/new\r")  # F4 new Session

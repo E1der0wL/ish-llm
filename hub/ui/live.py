@@ -9,6 +9,7 @@ from ..model import HubSnapshot, SubmissionResult, SessionView
 from .presentation import present, present_message, MessagePresentationCache
 from .snapshot_inbox import SnapshotInbox
 from .requests import UIRequests
+from .error_presentation import operation_notice
 from ..backend.worker import BackendWorker
 from ..config.view_state import ViewStateStore, ViewStateWriter
 from ..config.preferences import PreferencesStore
@@ -33,7 +34,6 @@ class LiveHubView(HubView):
         self._submitted_messages = {}
         self._presentation_cache = MessagePresentationCache()
         self.failure_diagnoses = {}
-        self.animate_output = True
 
     def show_submitted(self, project_id, session_id, message):
         """Bridge a durable receipt to the next authoritative conversation read."""
@@ -217,8 +217,10 @@ class LiveController:
     def _error(self, error):
         if self.closed:
             return
-        self.view.notice = self.view.t("error", error=error)
-        self.view.toasts.alert(self.view.sessions[self.view.selected].title, str(error), "error", "backend-error")
+        info = self.view.operation_diagnostics.record(self.view.project_id, error)
+        message = operation_notice(error if isinstance(error, str) else info, self.view.t)
+        self.view.notice = self.view.t("error", error=message)
+        self.view.toasts.alert(self.view.sessions[self.view.selected].title, message, "error", "backend-error")
         self.app.invalidate()
 
     def _snapshot(self, snapshot):
@@ -258,6 +260,9 @@ class LiveController:
                 self._error(error)
         target = self._select_new
         self.view.apply_snapshot(snapshot, select_id=target)
+        presets = self.view.profile_bar.preset_ui
+        if not presets.loaded and not presets.loading and not self.view.settings.busy:
+            presets.refresh()
         self._diagnose(snapshot)
         if not self.view.projects.loaded and not self.view.projects.busy:
             self.view.projects.refresh()
@@ -313,11 +318,11 @@ class LiveController:
             return
         self._diagnosing.update((*identity, rid) for rid in missing)
         def received(result):
-            from ..model import FailureDiagnosis
+            from ..errors.contracts import ErrorInfo
             for rid in missing:
                 key = (*identity, rid)
                 self._diagnosing.discard(key)
-                self.view.failure_diagnoses[key] = (result.value or {}).get(rid, FailureDiagnosis("unknown"))
+                self.view.failure_diagnoses[key] = (result.value or {}).get(rid, ErrorInfo())
             while len(self.view.failure_diagnoses) > 256:
                 self.view.failure_diagnoses.pop(next(iter(self.view.failure_diagnoses)))
             latest = getattr(self.view, "_last_snapshot", None)
@@ -406,8 +411,8 @@ class LiveController:
         if isinstance(result, SubmissionResult):
             if result.message is None:
                 return
-            view.show_submitted(project_id, session_id, result.message)
             view.preparing.accepted((project_id, session_id), result.message.id)
+            view.show_submitted(project_id, session_id, result.message)
         if view.project_id != project_id:
             return
         current_id = view.sessions[view.selected].id
@@ -430,7 +435,7 @@ class LiveController:
             draft = SubmittedDraft(project_id, session_id, text)
             draft.consume(self.view)
         if operation == "submit_input":
-            self.view.preparing.start((project_id, session_id))
+            self.view.preparing.start((project_id, session_id), text)
         def accepted(request_id):
             self._submitting.discard(session_id)
             if request_id is None:
@@ -488,7 +493,7 @@ class LiveController:
         draft.consume(view)
         self._choosing_submission = True
         self._submitting.add(session_id)
-        view.preparing.start(identity)
+        view.preparing.start(identity, text)
 
         def ready(state):
             self._choosing_submission = False
@@ -562,12 +567,33 @@ class LiveController:
         if not session_id:
             return
         key = (self.view.project_id, session_id)
+        if key in self.view.preparing.resuming:
+            return
         if key in self.view.interrupting.pending:
+            self.view.notice = self.view.t("cancel_wait")
+            self.app.invalidate()
+            return
+        snapshot = getattr(self.view, "_last_snapshot", None)
+        if (snapshot and snapshot.selected_id == session_id and snapshot.run
+                and not snapshot.run.active and snapshot.run.status == "interrupted"
+                and not snapshot.queued_count and key not in self.view.preparing.pending):
+            from .chat.resume import resume_turn
+            resume_turn(self, session_id, snapshot.run.id)
             return
         request = self.view.interrupting.start(key)
         if request:
             self.view.question.leave()
+        waiting = self.view.t("cancel_wait")
+        def explain_delay():
+            if not self.closed and request and self.view.interrupting.pending.get(key) is request:
+                self.view.notice = waiting
+                self.app.invalidate()
+        monitor = self.loop.call_later(5, explain_delay) if request else None
         def interrupted(result):
+            if monitor:
+                monitor.cancel()
+            if self.view.notice == waiting:
+                self.view.notice = ""
             self.view.interrupting.finish(request, result)
             self._call("snapshot", completed=self._snapshot)
         self._call("interrupt", session_id, completed=interrupted)

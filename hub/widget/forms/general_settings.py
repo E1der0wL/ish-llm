@@ -23,12 +23,16 @@ class GeneralForm:
             "startup": ("restore_last_project", "restore_last_session"),
             "output": ("auto_scroll",),
             "editor": ("editor",),
-            "diagnostics": ("provider_error_details", "provider_request_summary", "provider_max_detail_chars"),
+            "diagnostics": ("provider_request_summary", "provider_max_detail_chars"),
+            "recovery": ("recovery_enabled", "recovery_model_analysis", "recovery_timeout_seconds",
+                         "recovery_input_chars", "recovery_summary_chars", "recovery_max_summary_calls"),
         }
         kinds = {"notification_kinds": "array", "notification_seconds": "number",
                  "restore_last_project": "boolean", "restore_last_session": "boolean", "auto_scroll": "boolean",
-                 "provider_error_details": "boolean", "provider_request_summary": "boolean",
-                 "provider_max_detail_chars": "integer"}
+                 "provider_request_summary": "boolean",
+                 "provider_max_detail_chars": "integer", "recovery_enabled": "boolean", "recovery_model_analysis": "boolean",
+                 "recovery_timeout_seconds": "number", "recovery_input_chars": "integer",
+                 "recovery_summary_chars": "integer", "recovery_max_summary_calls": "integer"}
         properties = {key: {"type": kinds.get(key, "string"), "description": screen.t("general_" + key)}
                       for keys in self.groups.values() for key in keys}
         for key, schema in properties.items():
@@ -36,6 +40,8 @@ class GeneralForm:
         properties["notification_kinds"].update(items={"type": "string", "enum": ["error", "info", "warning", "success"]})
         properties["notification_seconds"].update(minimum=1, maximum=120)
         properties["provider_max_detail_chars"].update(minimum=1)
+        for key in self.groups["recovery"][2:]:
+            properties[key].update(exclusiveMinimum=0)
         self.form = SchemaForm({"type": "object", "properties": properties}, values, screen.t)
         self.form.original.setdefault("language_packs", {})
         self.add_button = Button(screen.t("language_pack_add"), handler=self.add_pack, width=18)

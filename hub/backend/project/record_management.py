@@ -25,14 +25,26 @@ class RecordManagement:
         record = await project.aget_data()
         if spec.manager == "document":
             from .rag_management import RAGManagement
-            return RAGManagement(data, name, root or record.paths.root, project.id, rag_jobs)
+            return RAGManagement(data, name, root or record.paths.root, project.id, rag_jobs, project=project)
+        if spec.manager == "memory":
+            from .memory_management import MemoryManagement
+            return MemoryManagement(data, name, root or record.paths.root, project)
         manager = {"record": cls, "agent": AgentManagement}[spec.manager]
         return manager(data, name, root or record.paths.root)
 
-    def _read_import(self, argument):
+    def source_path(self, argument):
         source = Path(argument).expanduser()
         if not source.is_absolute():
             source = self.root / source
+        return source
+
+    @staticmethod
+    def import_identifier(source):
+        stem = source.parent.name if source.name.lower() == "skill.md" else source.stem
+        return re.sub(r"[^A-Za-z0-9_-]", "_", stem)[:64].strip("_") or uuid4().hex
+
+    def _read_import(self, argument):
+        source = self.source_path(argument)
         # Only caller-selected files are read. Imported data is validated and
         # persisted by the component, never copied into its internal directories.
         with source.open("r", encoding="utf-8-sig") as stream:
@@ -40,7 +52,7 @@ class RecordManagement:
         if len(text) > 8 * 1024 * 1024:
             raise ValueError("Import file exceeds 8 MiB of text")
         stem = source.parent.name if source.name.lower() == "skill.md" else source.stem
-        identifier = re.sub(r"[^A-Za-z0-9_-]", "_", stem)[:64].strip("_") or uuid4().hex
+        identifier = self.import_identifier(source)
         if self.spec.import_kind == "text":
             values = {"title": source.name, "content": text, "metadata": {"source": str(source)}}
         elif self.spec.import_kind == "skill" and source.suffix.lower() in (".md", ".txt"):
@@ -90,6 +102,11 @@ class RecordManagement:
         if action == "import":
             identifier, values = await asyncio.to_thread(self._read_import, argument)
             await self.create(identifier, values)
+        elif action == "create" and self.name in ("prompts", "agents", "workflows", "memory"):
+            values = json.loads(argument["text"])
+            if not isinstance(values, dict):
+                raise ValueError("Component data must be a JSON object")
+            await self.create(argument["name"], values)
         elif action == "save":
             if expected_version is None:
                 raise ValueError("Reload the item before saving")
@@ -119,12 +136,20 @@ class DocumentManagement(RecordManagement):
     """RAG changes must update its corpus generation, not generic JSON records."""
 
     async def list(self):
-        return [self._entry(item["id"], item, {"generation": item["generation"], "revision": item["revision"]})
-                for item in await self.data.alist_documents()]
+        entries, cursor = [], None
+        while True:
+            page = await self.data.alist_catalog(limit=100, cursor=cursor)
+            entries.extend(self._entry(item["id"], item,
+                           {"generation": item["generation"], "revision": item["revision"]})
+                           for item in page["documents"])
+            cursor = page["next_cursor"]
+            if cursor is None:
+                return entries
 
     async def read(self, identifier):
         item = await self.data.aget_document(identifier)
         values = {key: item[key] for key in ("title", "content", "metadata")}
+        values["description"] = item.get("description", "")
         return {"text": json.dumps(values, ensure_ascii=False, indent=2),
                 "version": {"generation": item["generation"], "revision": item["revision"]}}
 
@@ -132,8 +157,9 @@ class DocumentManagement(RecordManagement):
         await self.data.aadd_document(identifier=identifier, **values)
 
     async def save(self, identifier, values, version):
-        if set(values) != {"title", "content", "metadata"}:
-            raise ValueError("RAG documents require title, content and metadata")
+        if (not {"title", "content", "metadata"} <= values.keys() or
+                values.keys() - {"title", "content", "metadata", "description"}):
+            raise ValueError("RAG documents require title, content, metadata and optional description")
         await self.data.aupdate_document(identifier, **values, expected_revision=version["revision"],
                                          expected_generation=version["generation"])
 
