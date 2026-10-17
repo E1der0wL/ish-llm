@@ -6,9 +6,9 @@ from uuid import uuid4
 
 from llm.components.base import validate_name
 from llm.core.models import now
-from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan
+from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, CheckpointError
 from llm.core.contracts import ResourceRef, Diagnostic
-from llm.core.plans import CheckpointPlan
+from llm.core.plans import CheckpointPlan, JobResumePlan
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import atomic_json, read_json, revision_token, remove_named_tree, tree_snapshot
 
@@ -23,9 +23,9 @@ class RAGJobs:
         project, component = self.data._current()
         return component._checked(component.root(project) / "jobs" / validate_name(identifier))
 
-    def _plan(self, identifier, *, live):
+    def _plan(self, identifier, *, live, job=None):
         project, _ = self.data._current()
-        job = self.get(identifier)
+        job = self.get(identifier) if job is None else job
         source = ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name)
         files = tree_snapshot(self._path(identifier), exclude=("worker.lock",))
         abandoned = "resume_abandonment" in job
@@ -39,6 +39,55 @@ class RAGJobs:
         keys = sorted(key for key in files if key == "prepared.json" or key.startswith("batches/"))
         return CheckpointPlan(source, keys, sum(v["bytes"] for v in files.values()), abandoned,
             abandon, delete, revision_token({"source": source.to_dict(), "job": job, "files": files, "live": live}))
+
+    def _resume_plan(self, identifier, *, live):
+        project, component = self.data._current()
+        job = self.get(identifier)
+        source = ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name)
+        root = self._path(identifier)
+        blockers, reused = [], []
+        state = "not_created" if job["status"] == "queued" else "available"
+        files = tree_snapshot(root, exclude=("worker.lock",))
+        def block(code, message):
+            blockers.append(Diagnostic(code, message, source=source))
+        if live:
+            block("active_worker", "Cancel and await the active Job worker first")
+        if "resume_abandonment" in job or job.get("cancel_requested") or job["status"] in ("completed", "cancelled", "queued"):
+            block("not_resumable", "Only an inactive failed or interrupted Job can resume")
+        try:
+            payload = read_json(root / "input.json")
+            if revision_token(payload) != job["input_digest"]:
+                raise ValueError("Job input changed")
+            for key in files:
+                if key == "prepared.json" or key.startswith("batches/"):
+                    saved = read_json(root / key)
+                    if not isinstance(saved, dict):
+                        raise ValueError("Invalid Job checkpoint")
+                    if key.startswith("batches/") and (set(saved) != {"signature", "value"} or not isinstance(saved["signature"], str)):
+                        raise ValueError("Invalid batch checkpoint")
+                    reused.append(key)
+            if job["status"] != "queued" and job.get("configuration") != component._configuration_version:
+                state = "incompatible"
+                block("checkpoint_configuration", "RAG configuration differs from the Job's preparation")
+        except FileNotFoundError as error:
+            state = "missing"
+            block("checkpoint_missing", str(error))
+        except (ValueError, TypeError, KeyError) as error:
+            state = "corrupt"
+            block("checkpoint_corrupt", str(error))
+        return JobResumePlan(source, state, not blockers, sorted(reused), blockers,
+            revision_token({"job": job, "files": files, "live": live, "configuration": component._configuration_version}),
+            live, "resume_abandonment" in job)
+
+    @workspace_locked
+    def resume_plan(self, identifier):
+        self.get(identifier)  # Validate identity before opening the lease.
+        lease = self._lease(identifier, probe=True)
+        try:
+            return self._resume_plan(identifier, live=lease is None)
+        finally:
+            if lease is not None:
+                lease.close()
 
     @workspace_locked
     def enqueue(self, *, title, content, metadata=None, identifier=None, description=None):
@@ -145,9 +194,15 @@ class RAGJobs:
                 lease.close()
 
     @workspace_locked
-    def _claim(self, identifier, retry):
+    def _claim(self, identifier, retry, expected_revision=None):
         root = self._path(identifier)
         job = self.get(identifier)
+        if expected_revision is not None:
+            plan = self._resume_plan(identifier, live=False)
+            if expected_revision != plan.revision:
+                raise CheckpointError("checkpoint_conflict", "review a fresh Job resume plan")
+            if not plan.can_resume:
+                raise CheckpointError("checkpoint_protected", "Job resume is blocked", blockers=plan.blockers)
         if "resume_abandonment" in job:
             raise ValueError("Job resume was abandoned")
         if job["status"] == "running":
@@ -158,6 +213,8 @@ class RAGJobs:
         if job.get("cancel_requested"):
             raise ValueError("Job was cancelled")
         project, component = self.data._current()
+        if job["status"] != "queued" and job.get("configuration") != component._configuration_version:
+            raise CheckpointError("checkpoint_configuration", "RAG configuration changed; enqueue a new Job")
         maximum = component._options(project).get("ingestion", {}).get("max_active")
         if maximum is not None and (type(maximum) is not int or maximum < 1):
             raise ValueError("ingestion.max_active must be positive")
@@ -176,7 +233,16 @@ class RAGJobs:
         payload = read_json(root / "input.json")
         if revision_token(payload) != job["input_digest"]:
             raise ValueError("Job input changed")
-        job.update(status="running", phase="preparing", progress={}, pid=os.getpid(), started_at=now())
+        # Archive the previous attempt only after admission succeeds. These are
+        # observations in the same Job, never receipts or permission to retry.
+        if "diagnostic" in job:
+            job.setdefault("failures", []).append({key: job[key] for key in (
+                "status", "started_at", "ended_at", "failed_phase", "error", "diagnostic_code", "diagnostic"
+            ) if key in job})
+        for key in ("error", "diagnostic_code", "diagnostic", "failed_phase", "ended_at"):
+            job.pop(key, None)
+        job.update(status="running", phase="preparing", progress={}, pid=os.getpid(), started_at=now(),
+                   configuration=component._configuration_version)
         atomic_json(root / "job.json", job)
         return payload
 
@@ -197,14 +263,14 @@ class RAGJobs:
         prepared = document["documents"] if "document_ids" in job else [document]
         expected = job["document_ids"] if "document_ids" in job else [job["document_id"]]
         if [item["id"] for item in prepared] != expected:
-            raise ValueError("Prepared document identity differs from Job input")
+            raise CheckpointError("checkpoint_corrupt", "Prepared document identity differs from Job input")
         documents = dict(snapshot["documents"])
         changed = False
         for item in prepared:
             if item.get("preparation_configuration") != component._configuration_version:
-                raise ValueError("RAG configuration changed since preparation; enqueue a new job")
+                raise CheckpointError("checkpoint_configuration", "RAG configuration changed since preparation; enqueue a new job")
             if item["profile"]["model"] != component._identity():
-                raise ValueError("Embedding model changed since the job was prepared")
+                raise CheckpointError("checkpoint_configuration", "Embedding model changed since the job was prepared")
             from llm.providers.embeddings import validate_vectors
             from .extraction import validate_graph
             vectors = validate_vectors(item["vectors"], dimensions=item["profile"]["dimensions"])
@@ -241,11 +307,17 @@ class RAGJobs:
     def _finish_error(self, identifier, error, cancelled):
         job = self.get(identifier)
         if job["status"] != "completed":
-            from llm.providers.requests import error_code
-            code = error_code(error)
+            from llm.errors import stable_error_code
+            code = "rag_cancelled" if cancelled else stable_error_code(error) or "rag_failed"
+            project, _ = self.data._current()
+            diagnostic = Diagnostic.from_exception(error, code=code, boundary="component",
+                source=ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name))
+            if diagnostic.code != code:
+                diagnostic = Diagnostic(code, diagnostic.message, source=diagnostic.source,
+                    details={**diagnostic.details, "observed_code": diagnostic.code})
             job["failed_phase"] = job["phase"]
             job.update(status="cancelled" if cancelled else "failed", phase="cancelled" if cancelled else "failed",
-                       error=code, diagnostic_code=code, ended_at=now())
+                       error=code, diagnostic_code=code, diagnostic=diagnostic.to_dict(), ended_at=now())
             atomic_json(self._path(identifier) / "job.json", job)
 
     @workspace_locked
@@ -291,7 +363,7 @@ class RAGJobs:
             return None
         saved = read_json(path)
         if saved["signature"] != signature:
-            raise ValueError("Prepared batch configuration changed; enqueue a new job")
+            raise CheckpointError("checkpoint_configuration", "Prepared batch configuration changed; enqueue a new job")
         return saved["value"]
 
     async def _prepare_documents(self, identifier, inputs, component):
@@ -326,7 +398,7 @@ class RAGJobs:
             "documents_completed": len(inputs), "documents_total": len(inputs)})
         return {"documents": prepared}
 
-    async def run(self, identifier, *, retry=False):
+    async def run(self, identifier, *, retry=False, expected_revision=None):
         # 잠금 획득 직후 취소되어도 descriptor를 잃지 않고 반드시 닫는다.
         pending = asyncio.create_task(self.data._async_call(self._lease, identifier))
         cancelled = False
@@ -341,7 +413,7 @@ class RAGJobs:
             raise asyncio.CancelledError()
         claimed = False
         try:
-            payload = await self.data._async_call(self._claim, identifier, retry)
+            payload = await self.data._async_call(self._claim, identifier, retry, expected_revision)
             claimed = True
             document = await self.data._async_call(self._prepared, identifier)
             if document is None:

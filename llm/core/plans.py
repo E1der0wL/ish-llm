@@ -1,6 +1,7 @@
 """실행 전 검토용 계획. 각 서비스가 원본/정책을 재검증한 뒤 실제 작업을 수행한다."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 from .contracts import Diagnostic, JsonValue, ResourceRef
 from .interactions import InteractionView
 
@@ -48,6 +49,25 @@ class ResumePlan(JsonValue):
     reused: list[str]
     retry_nodes: list[str]
     blockers: list[Diagnostic]
+    state: str = "unknown"
+    revision: Optional[str] = None
+    can_restart: bool = False
+    restart_blockers: list[Diagnostic] = field(default_factory=list)
+    active: bool = False
+    abandoned: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class JobResumePlan(JsonValue):
+    """Component-owned resumption; no invented Run/Engine or approval fields."""
+    source: ResourceRef
+    state: str
+    can_resume: bool
+    checkpoints: list[str]
+    blockers: list[Diagnostic]
+    revision: str
+    active: bool = False
+    abandoned: bool = False
 
 
 @dataclass(frozen=True, slots=True)

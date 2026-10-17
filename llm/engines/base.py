@@ -1,6 +1,6 @@
 """Engine 이벤트 계약과 BaseEngine의 공통 Step/스트리밍 처리를 정의한다. Engine은 이벤트를 생성하며 영속 파일에는 직접 쓰지 않는다.
 
-Engine contract, Step event lifecycle, and reusable LiteLLM streaming."""
+Engine contract, Step event lifecycle, and adapter-owned model streaming."""
 
 import asyncio
 import inspect
@@ -17,15 +17,15 @@ from contextlib import aclosing
 from asyncio import timeout
 from llm.core.models import Message, Project, Run, RunStatus, Session, new_id, now
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
-from llm.errors import CodedError, stable_error_code
-from llm.core.results import CompletionResult, EngineOutput, EngineDelta
+from llm.errors import stable_error_code
+from llm.core.results import CompletionResult, EngineOutput, EngineDelta, ResumeOutput
 from llm.core.interactions import InteractionRequest
 from llm.core.configuration import UNSET
 from llm.core.steering import SteeringMode, SteeringRoute
 from llm.components.tools import ToolRegistry
-from llm.providers.litellm import completion, stream_completion
+from llm.providers.streaming import CompletionError, CompletionUpdate, CompletionDecoder, CompletionAdapter
 from llm.providers.parameters import copy_params
-from llm.providers.runtime import diagnostic_context, diagnostic_failure, request_details
+from llm.providers.runtime import diagnostic_context, diagnostic_failure
 from llm.services.runtime.usage import current_usage
 from llm.policies.errors import ExecutionLimitError
 
@@ -68,8 +68,17 @@ class EngineEvent:
     # 실행 중 fail-fast 합성용. Diagnostic의 임의 관찰 code와 달리 명시적 CodedError만 전달한다.
     # StepEventRecorder는 이 런타임 필드를 저장하지 않는다.
     failure_code: Optional[str] = None
+    # A completed Step and its resume receipt commit in one service transaction.
+    # Only record operations are attachable; initialization remains a separate boundary.
+    checkpoint: Optional["EngineEvent"] = None
 
     def __post_init__(self):
+        if self.checkpoint is not None and (self.type != EngineEventType.STEP_COMPLETED
+                or not isinstance(self.checkpoint, EngineEvent)
+                or self.checkpoint.type != EngineEventType.CHECKPOINT
+                or self.checkpoint.metadata.get("operation") != "record"
+                or self.checkpoint.checkpoint is not None):
+            raise ValueError("A Step completion can attach one checkpoint record")
         # Step 상태 표시를 공통 계약으로 제공한다. 실제 상태 전이는 서비스가 수행한다.
         if self.diagnostic is not None and not isinstance(self.diagnostic, Diagnostic):
             raise TypeError("diagnostic must be Diagnostic")
@@ -139,7 +148,7 @@ class EngineContext:
     # 부모가 이벤트 저장을 중계하는 자식 실행 범위. Step 출력 소유권과 구분한다.
     checkpoint_scope: Optional[str] = None
     # 명시적 재개에서만 조회한 부분 출력. 완료/승인 증명이 아닌 scope별 참고 자료다.
-    resume_outputs: tuple[EngineOutput, ...] = ()
+    resume_outputs: tuple[ResumeOutput, ...] = ()
     # 백엔드가 주입하는 실행 정책. Run 전체(중첩 Agent/Graph 포함)가 공유한다.
     tool_scope: Any = None
     pending_work: Any = None
@@ -150,6 +159,22 @@ class EngineContext:
     output_step_id: Optional[str] = None
     output_visibility: str = "user"
     steering: Optional[SteeringInbox] = None
+    # Service-owned, Run-local capability lookup; not persisted and never expands Tool authority.
+    capability_resolver: Optional[Callable] = None
+
+    def with_capabilities(self, names, *, expansion=None):
+        """Resolve explicitly selected implementation requirements through the owning service."""
+        if not isinstance(names, tuple) or any(not isinstance(name, str) or not name for name in names):
+            raise ValueError("Capability requirements must be a tuple of names")
+        missing = tuple(dict.fromkeys(name for name in names if name not in self.capabilities))
+        if not missing:
+            return self
+        if self.capability_resolver is None:
+            raise ValueError(f"Required capabilities unavailable: {missing}")
+        resolved = self.capability_resolver(missing, expansion=expansion)
+        if not isinstance(resolved, dict) or set(resolved) != set(missing):
+            raise ValueError("Capability resolver must return exactly the requested capabilities")
+        return replace(self, capabilities={**self.capabilities, **resolved})
 
     def resolve_config(self, engine: Optional[str] = None) -> dict:
         return self.project.config.resolve_engine_config(self.run.engine if engine is None else engine, self.session.config)
@@ -194,14 +219,6 @@ def steering_mode(engine) -> SteeringMode:
     return SteeringMode(getattr(engine, "steering_mode", SteeringMode.UNSUPPORTED))
 
 
-class CompletionError(CodedError, ValueError):
-    """Engine이 발견한 응답 계약/종료/명시적 제한 오류. transport retry 대상이 아니다."""
-
-    def __init__(self, message, *, code="completion_invalid_response"):
-        self.code = code
-        super().__init__(message)
-
-
 # 작업 함수를 공통 Step 이벤트와 스트리밍 출력으로 감싼다.
 class BaseEngine:
     """Adapt a developer operation to the existing Engine event contract.
@@ -216,6 +233,10 @@ class BaseEngine:
 
     required_capabilities = ()
     steering_mode = SteeringMode.UNSUPPORTED
+
+    def validate_selections(self, context):
+        """Validate durable Tool selections in this Engine's local checkpoint scope."""
+        context.tools.validate_selections(context)
 
     @staticmethod
     async def instruction_event(context: EngineContext, operation: str, **metadata) -> AsyncIterator[EngineEvent]:
@@ -297,8 +318,10 @@ class BaseEngine:
                      Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]]] = None,
                  metadata: Optional[dict] = None,
                  error_message: str = "Step execution failed",
-                 completion_fn: Callable[..., Iterator[Any]] = completion,
-                 buffer_size: int = 8) -> None:
+                 completion_fn: Optional[Callable[..., Iterator[Any]]] = None,
+                 buffer_size: int = 8,
+                 completion_decoder: Optional[Callable[..., CompletionDecoder]] = None,
+                 completion_adapter: Optional[CompletionAdapter] = None) -> None:
         if not isinstance(name, str) or not name.strip() or not isinstance(kind, str) or not kind.strip():
             raise ValueError("Step requires a name and kind")
         if action is not None and not callable(action):
@@ -312,9 +335,12 @@ class BaseEngine:
         self.action = action
         self.metadata = deepcopy(metadata or {})
         self.error_message = error_message
-        if not callable(completion_fn):
-            raise TypeError("completion_fn must be callable")
-        self.completion_fn = completion_fn
+        if completion_adapter is not None and (completion_fn is not None or completion_decoder is not None):
+            raise ValueError("Choose a completion adapter or LiteLLM function/decoder")
+        if completion_adapter is None:
+            from llm.providers.litellm import LiteLLMCompletionAdapter
+            completion_adapter = LiteLLMCompletionAdapter(completion_fn=completion_fn, completion_decoder=completion_decoder)
+        self.completion_adapter = completion_adapter
         self.buffer_size = buffer_size
         if type(buffer_size) is not int or buffer_size < 1:
             raise ValueError("buffer_size must be a positive integer")
@@ -376,8 +402,6 @@ class BaseEngine:
         """실패 의미를 전달한다. 명시 진단/기존 진단은 유지하고 누락 source만 Step에 연결한다."""
         if not isinstance(step_id, str) or not step_id.strip():
             raise ValueError("A failed Step requires an ID")
-        if diagnostic is None:
-            diagnostic = getattr(error, "diagnostic", None)
         source = ResourceRef("step", step_id, step_id=step_id)
         if diagnostic is None:
             diagnostic = Diagnostic.from_exception(error, code=code, source=source)
@@ -404,16 +428,12 @@ class BaseEngine:
         """Copy builtin option containers, keeping live SDK clients/callbacks intact."""
         return copy_params(value)
 
-    @staticmethod
-    def chunk_value(value: Any, key: str, default: Any = None) -> Any:
-        """Read either LiteLLM SDK attributes or equivalent dictionary chunks."""
-        return value.get(key, default) if isinstance(value, Mapping) else getattr(value, key, default)
-
     async def stream_completion(self, request: Mapping[str, Any], *,
                                 response: Optional[dict] = None,
                                 include_events: bool = True,
                                 provider: Optional[dict] = None,
                                 retry_decider=None,
+                                recover_completion=None,
                                 max_tool_calls: Optional[int] = None,
                                 max_argument_chars: Optional[int] = None,
                                 max_output_chars: Optional[int] = None) -> AsyncIterator[Union[str, EngineEvent]]:
@@ -425,18 +445,16 @@ class BaseEngine:
         provider contains only this caller's explicit outer retry/deadline options;
         no Run policy is implicitly inherited and SDK request options stay separate.
         """
-        from llm.providers.retry import transient, effective_attempts, retry_delay
+        from llm.providers.retry import retry_delay
         from llm.providers.requests import resolve_provider_options, ProviderError
-        from llm.providers.requests import error_code
-        from llm.providers.schema import validate_retry_params
         from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
         # 호출자가 자신의 Project-owned 설정에서 해석한 제한만 이 호출에 전달한다.
         for value in (max_tool_calls, max_argument_chars, max_output_chars):
             if value is not None and (type(value) is not int or value < 1):
                 raise ValueError("Completion limits must be positive integers")
         policy = resolve_provider_options(provider if provider is not None else {})
-        maximum = effective_attempts(request, policy.get("max_attempts", 1),
-                                     sdk_defaults=self.completion_fn is completion) - 1
+        adapter = self.completion_adapter
+        maximum = adapter.effective_attempts(request, policy.get("max_attempts", 1)) - 1
         retry = RetryPolicy(maximum + 1, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
                             RetryPolicy.end(policy.get("wall_timeout")), "exponential")
         request = self.copy_params(dict(request))
@@ -449,14 +467,15 @@ class BaseEngine:
                 raise ProviderError("provider_timeout") from error
 
         for attempt in range(maximum + 1):
-            call_details = {"call_id": call_id, "attempt": attempt + 1, **request_details(request)}
+            call_details = {"call_id": call_id, "attempt": attempt + 1, **adapter.describe_request(request)}
             progress = {"received": False}
-            result = CompletionResult(model=request.get("model") if isinstance(request.get("model"), str) else None)
+            invocation = adapter.describe_call(self.copy_params(dict(request)))
+            result = CompletionResult(model=invocation.model)
             usage_scope = current_usage()
             if usage_scope is not None:
                 try:
                     async with timeout(remaining()):
-                        result.reserved_tokens = await usage_scope.reservation(self.copy_params(dict(request)))
+                        result.reserved_tokens = await usage_scope.reservation(invocation)
                 except TimeoutError as error:
                     raise ProviderError("provider_timeout") from error
             started = time.monotonic()
@@ -491,20 +510,43 @@ class BaseEngine:
                 result.duration_seconds = time.monotonic() - started
                 if include_events:
                     yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
-                if progress["received"] or not retry.allows(attempt + 1) or not transient(error):
+                if progress["received"] or not retry.allows(attempt + 1):
+                    raise
+                failure = Diagnostic.from_exception(error)
+                if recover_completion is not None and failure.classification.reason == "context":
+                    try:
+                        async with timeout(remaining()):
+                            repaired = await recover_completion(failure, self.copy_params(request), attempt + 1)
+                    except asyncio.CancelledError:
+                        raise
+                    except Exception as recovery_error:
+                        # A rejected proposal/analysis failure cannot erase the provider cause.
+                        from llm.providers.runtime import diagnostic
+                        diagnostic("completion_recovery_rejected", operation="completion", **call_details,
+                                   reason="deadline" if isinstance(recovery_error, TimeoutError) else "proposal_failed",
+                                   exception_type=f"{type(recovery_error).__module__}.{type(recovery_error).__qualname__}")
+                        raise error
+                    if repaired is None:
+                        raise
+                    remaining()  # The callback cannot renew this invocation's deadline.
+                    request = repaired
+                    from llm.providers.runtime import diagnostic
+                    diagnostic("completion_recovery", operation="completion", **{**call_details, "attempt": attempt + 2})
+                    continue
+                if not adapter.retryable(error):
                     raise
                 try:
                     async with timeout(remaining()):
                         selected = await select_retry(RetryFailure("completion", self.copy_params(request),
-                            error_code(error), error_code(error).replace("_", " "), attempt + 1, True,
-                            ("timeout",)), retry_decider)
+                                adapter.classify_error(error), adapter.classify_error(error).replace("_", " "), attempt + 1, True,
+                            adapter.retry_fields(request)), retry_decider)
                 except TimeoutError as timeout_error:
                     raise ProviderError("provider_timeout") from timeout_error
                 if selected is None:
                     raise
                 # Transcript/Tool authority/input budget은 이미 준비됐다. transport만 수정한다.
-                request = change_arguments(request, selected, allowed=("timeout",), copy=self.copy_params,
-                    validate=lambda value: validate_retry_params(value, original=request, operation="acompletion"))
+                request = change_arguments(request, selected, allowed=adapter.retry_fields(request), copy=self.copy_params,
+                    validate=lambda value: adapter.validate_retry(value, original=request))
                 try:
                     delay = retry_delay(retry, attempt + 1, error, policy)
                     if delay is None:
@@ -531,146 +573,49 @@ class BaseEngine:
 
                 return
 
-    @staticmethod
-    def _usage(value: Any) -> dict:
-        if callable(getattr(value, "model_dump", None)):
-            value = value.model_dump()
-        if not isinstance(value, Mapping):
-            return {}
-        result = {}
-        for key, item in value.items():
-            if not isinstance(key, str):
-                continue
-            if type(item) is int and item >= 0:
-                result[key] = item
-            elif isinstance(item, Mapping) or callable(getattr(item, "model_dump", None)):
-                nested = BaseEngine._usage(item)
-                if nested:
-                    result[key] = nested
-        return result
-
     async def _stream_completion(self, request: Mapping[str, Any], response: Optional[dict],
                                  result: CompletionResult, progress: dict,
                                  max_tool_calls, max_argument_chars, max_output_chars) -> AsyncIterator[Union[str, EngineEvent]]:
-        params = self.copy_params(dict(request))
-        if params.get("stream", True) is not True or params.get("n", 1) != 1:
-            raise ValueError("Completion requires stream=True and n=1")
-        params["stream"] = True
+        params = self.completion_adapter.prepare(self.copy_params(dict(request)))
         if response is not None and not isinstance(response, dict):
             raise TypeError("Completion response must be a dictionary")
-        content_parts: list[str] = []
-        calls: dict[int, dict[str, Any]] = {}
-        finish_reason = None
-        size = 0
-        get = self.chunk_value
-        async with aclosing(stream_completion(
-            params, completion_fn=self.completion_fn, buffer_size=self.buffer_size,
+        decoder = self.completion_adapter.decoder(max_tool_calls=max_tool_calls,
+            max_argument_chars=max_argument_chars, max_output_chars=max_output_chars)
+        async with aclosing(self.completion_adapter.stream(
+            params, buffer_size=self.buffer_size,
         )) as chunks:
             async for chunk in chunks:
-                # 텍스트 없이 Tool 인자 일부만 온 경우도 이미 응답을 받은 호출이다.
+                # Even a chunk with no visible text forbids replay of this attempt.
                 progress["received"] = True
-                changed = False
-                for attribute, key in (("response_id", "id"), ("model", "model")):
-                    value = get(chunk, key)
-                    if isinstance(value, str) and value != getattr(result, attribute):
-                        setattr(result, attribute, value)
+                for update in decoder.decode(chunk):
+                    if not isinstance(update, CompletionUpdate):
+                        raise TypeError("Completion decoder must yield CompletionUpdate")
+                    changed = False
+                    for key in ("response_id", "model", "finish_reason"):
+                        value = getattr(update, key)
+                        if value is not None and value != getattr(result, key):
+                            setattr(result, key, value)
+                            changed = True
+                    if update.usage:
+                        usage = {**result.usage, **deepcopy(update.usage)}
+                        if usage != result.usage:
+                            result.usage = usage
+                            changed = True
+                    if update.reasoning:
+                        result.reasoning_content += update.reasoning
                         changed = True
-                usage = self._usage(get(chunk, "usage"))
-                if usage:
-                    updated = {**result.usage, **usage}
-                    if updated != result.usage:
-                        result.usage = updated
-                        changed = True
-                if changed:
-                    yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
-                choices = get(chunk, "choices", [])
-                if not isinstance(choices, (list, tuple)):
-                    raise CompletionError("Expected a completion choices array")
-                if not choices:
-                    continue  # Optional usage-only chunk; no text to deliver.
-                if len(choices) != 1 or get(choices[0], "index", 0) != 0:
-                    raise CompletionError("Expected one completion choice")
-                choice = choices[0]
-                delta = get(choice, "delta")
-                content = get(delta, "content")
-                reasoning = get(delta, "reasoning_content")
-                fragments = get(delta, "tool_calls") or []
-                if not isinstance(fragments, (list, tuple)):
-                    raise CompletionError("Expected a tool_calls array")
-                if get(delta, "function_call"):
-                    raise CompletionError("Legacy function_call responses are unsupported")
-                if finish_reason is not None and (content or fragments or reasoning):
-                    raise CompletionError("Content after stream termination")
-                if reasoning is not None:
-                    if not isinstance(reasoning, str):
-                        raise CompletionError("Expected reasoning text delta")
-                    size += len(reasoning)
-                    if max_output_chars is not None and size > max_output_chars:
-                        raise CompletionError("Completion output limit exceeded", code="completion_output_limit")
-                    if reasoning:
-                        result.reasoning_content += reasoning
+                    if changed:
                         yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
-                if content is not None:
-                    if not isinstance(content, str):
-                        raise CompletionError("Expected text delta")
-                    size += len(content)
-                    if max_output_chars is not None and size > max_output_chars:
-                        raise CompletionError("Completion output limit exceeded", code="completion_output_limit")
-                    if content:
-                        content_parts.append(content)
-                for fragment in fragments:
-                    index = get(fragment, "index")
-                    if type(index) is not int or index < 0:
-                        raise CompletionError("Invalid tool call index")
-                    if max_tool_calls is not None and index >= max_tool_calls:
-                        raise CompletionError("Too many tool calls", code="completion_tool_limit")
-                    if get(fragment, "type") not in (None, "function"):
-                        raise CompletionError("Unsupported tool call type")
-                    call = calls.setdefault(index, {"id": "", "type": "function",
-                                                   "function": {"name": "", "arguments": ""}})
-                    function = get(fragment, "function")
-                    for target, key, value in (
-                        (call, "id", get(fragment, "id")),
-                        (call["function"], "name", get(function, "name")),
-                        (call["function"], "arguments", get(function, "arguments")),
-                    ):
-                        if value is not None:
-                            if not isinstance(value, str):
-                                raise CompletionError("Invalid tool call fragment")
-                            target[key] += value
-                    # LiteLLM은 Gemini의 thought signature를 호출 ID에 담을 수 있다.
-                    # ID는 불투명 값으로 그대로 전달하며 인자와 같은 유한 크기 제한을 쓴다.
-                    if (max_argument_chars is not None and
-                         (len(call["function"]["arguments"]) > max_argument_chars or len(call["id"]) > max_argument_chars)):
-                        raise CompletionError("Tool call size limit exceeded", code="completion_argument_limit")
-                    if len(call["function"]["name"]) > 64:
-                        raise CompletionError("Tool call name exceeds protocol limit")
-                reason = get(choice, "finish_reason")
-                if reason is not None:
-                    if not isinstance(reason, str):
-                        raise CompletionError("Invalid finish reason")
-                    if finish_reason is not None and finish_reason != reason:
-                        raise CompletionError("Conflicting stream termination")
-                    finish_reason = reason
-                    if result.finish_reason != reason:
-                        result.finish_reason = reason
-                        yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
-                if content:
-                    yield content
+                    if update.text:
+                        yield update.text
         result.usage_complete = bool(result.usage)
-        if finish_reason not in ("stop", "tool_calls"):
-            raise CompletionError("Completion did not finish normally", code="completion_incomplete")
-        if bool(calls) != (finish_reason == "tool_calls"):
-            raise CompletionError("Tool calls do not match finish reason")
-        ids = [call["id"] for call in calls.values()]
-        if (any(not call["id"] or not call["function"]["name"] for call in calls.values())
-                or len(set(ids)) != len(ids)):
-            raise CompletionError("Incomplete or duplicate tool calls")
+        message = decoder.finish()
+        if not isinstance(message, dict):
+            raise TypeError("Completion decoder must return a message object")
         if response is not None:
+            message = deepcopy(message)
             response.clear()
-            response.update(role="assistant", content="".join(content_parts) or None)
-            if calls:
-                response["tool_calls"] = [calls[index] for index in sorted(calls)]
+            response.update(message)
 
     def run(self, context: EngineContext) -> Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]:
         """문자열/EngineDelta/마지막 EngineOutput을 yield하거나 EngineOutput/None을 반환한다."""

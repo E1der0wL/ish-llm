@@ -297,8 +297,7 @@ cloning or deleting an attached Session.
 
 LoopEngine reads `config.parameters.engines[registered_engine_name]`, including
 Session overrides. EngineContext.resolve_config() uses the owning Run's engine name.
-For stages in a PipelineEngine, that is the pipeline's registered name. To use
-another section explicitly, construct `LoopEngine(parameter_key="loop")` (or any
+To use another section explicitly, construct `LoopEngine(parameter_key="loop")` (or any
 other section name). Execution settings use Project → Session → Agent and child limits
 cannot widen their parent. Constructors supply implementations, not policy values. Reusing the
 same LoopEngine under multiple names does not mutate its shared settings.
@@ -590,7 +589,7 @@ async def prepare(context):
     result = await EmbeddingModel(**config["embedding"]).embed(["document text"])
     context.state["embeddings"] = result.data
 
-# Wrap prepare with PreparationStep(..., kind="embedding") or self.step(...).
+# Wrap prepare with BaseEngine.step(..., kind="embedding").
 # A Tool handler can await the same model methods without creating another Run.
 ```
 
@@ -647,8 +646,8 @@ still be offloaded by your action, and cancellation must not be swallowed.
 The inherited `execute()` wraps `run()` in one Step. To implement multiple Steps,
 override `execute(context)` and forward events from `self.step(context, action,
 name=..., kind=...)`, closing each iterator with `contextlib.aclosing`. LoopEngine
-uses this pattern for every LLM round and tool operation. PreparationStep also
-inherits BaseEngine. PipelineEngine composes engines inside the same Run.
+uses this pattern for every LLM round and tool operation. Graph Workflow nodes
+compose sequential or nested work inside the same Run.
 
 BaseEngine also supplies `stream_completion(request, response=None)`. It calls
 LiteLLM's synchronous `completion(..., stream=True)` through the existing bounded
@@ -703,57 +702,22 @@ ValueError/TypeError; execution failures retain Step error details and
 RuntimeError through the common lifecycle. Existing event/persistence formats and
 RunManager ownership are unchanged.
 
-## Prepare a Run before its Loop
+## Compose work before an Agent
 
-PipelineEngine runs Engine stages in order inside the same Run. PreparationStep
-wraps an async callback as an observable Step. All stages receive the same
-EngineContext and its fresh, runtime-only state dictionary. Custom Engine code or a
-completion processor may consume prepared state; built-in Loop settings remain Project JSON.
-A system prompt is prepended to the provider transcript and is not appended as a
-new durable conversation message each round.
+Use a Graph Workflow with preparation nodes followed by an AgentNode. The Agent
+selects its saved Engine definition, such as LoopEngine. Graph owns node scheduling,
+checkpoints and explicit resume within the same Run. See [GraphEngine](graph-engine.md)
+and [Agent definitions](agents.md). There is no separate sequential Pipeline Engine.
 
-```python
-import asyncio
-import os
-from pathlib import Path
-from llm.engines.loop import LoopEngine
-from llm.engines.pipeline import PipelineEngine, PreparationStep
+For a single custom operation, use `BaseEngine(action=...)`; for several observable
+operations inside a custom Engine, use `BaseEngine.step()` with `contextlib.aclosing`.
+These helpers provide Step lifecycle events, not automatic checkpoint/resume support.
+Callbacks must offload blocking work, propagate cancellation and keep runtime-only
+values in `context.state`. Never write domain persistence or mutate global environment
+from an Engine. Component services still own document, RAG and process operations.
 
-async def prepare(context):
-    # Offload blocking reads. This example loads context, not a RAG implementation.
-    path = context.project.paths.root / "instructions.txt"
-    context.state["instructions"] = await asyncio.to_thread(
-        path.read_text, encoding="utf-8"
-    )
-    context.state["shell_env"] = dict(os.environ)  # for subprocess env=, not logs
-
-engines.register("prepared_loop", PipelineEngine(stages=[
-    PreparationStep("Read instructions", prepare, kind="retrieval"),
-    LoopEngine(parameter_key="loop"),
-]))
-
-# Configure parameters.engines.loop.config.completion.model on the Project.
-# The caller creates instructions.txt before submitting. This example reads it into
-# context.state only; a custom Engine/processor decides how to consume that data.
-await manager.submit("Help with this workspace", engine="prepared_loop")
-```
-
-PreparationStep adds a deadline only for explicit policy.timeout_seconds in its resolved settings;
-missing or None adds no deadline. Callbacks are developer code on the event
-loop: avoid blocking calls, propagate cancellation, keep per-Run values in
-context.state, and do not mutate global os.environ. A copied environment reflects
-this process's current environment; it cannot automatically read changes from an
-unrelated shell. RAG/Shell work belongs to component services; this feature does
-not implement RAG synchronization or Shell execution. Engine stages never write
-Session/Run/Step/conversation persistence directly.
-
-A failed/timed-out preparation prevents subsequent stages; interruption marks the
-Run and active Step interrupted and preserves queued input. Pipeline also stops
-on non-success Step terminal events or unfinished Steps, and closes each stage's
-iterator. A crash uses the existing stale-Run recovery policy: no preparation or
-Loop side effects are automatically replayed. Pipelines may be nested; this is
-sequential composition, not GraphEngine or an arbitrary-code loader. Shared
-clients and developer component state still need their own concurrency handling.
+On failure/interruption, queued requests are preserved. Stale Runs are never
+automatically replayed because earlier operations may have produced effects.
 
 RunManager accepts `on_event(run, event)` for displaying persisted events. The
 callback receives snapshots after each event is recorded; keep it synchronous,

@@ -2,6 +2,10 @@
 
 LiteLLM completion 스트림을 읽고, 모델이 요청한 Tool을 실행한 뒤 결과를 다음 모델 호출에 전달합니다. 모델 응답, Tool 실행, 반복 체크포인트를 같은 Run 안에서 관찰할 수 있습니다.
 
+기본 Provider는 LiteLLM입니다. `completion_adapter`를 명시하면 요청·SDK·응답 해석을
+교체할 수 있습니다. 어댑터는 Loop의 canonical messages/tools/assistant 계약과 설정
+schema를 제공해야 하며 승인·Tool 실행·저장 책임은 가지지 않습니다.
+
 ## 파일 안내
 
 | 파일 | 역할 |
@@ -40,7 +44,7 @@ SDK 인자는 `config.completion`에 그대로 두며 provider 설정과 서로 
 
 ## 실행 중 추가 지시
 
-`await session.run.steer(run_id, text)`는 실행 중인 단독 Loop에 지시를 접수하고 `RunInstruction`을 반환합니다. `submit`과 달리 새 Run이나 일반 요청 대기열을 만들지 않습니다. RunStatus를 추가하지 않으며 기존 `RUNNING` 상태를 유지합니다. 종료 중/종료한 Run과 다른 런타임이 소유한 Run은 거절합니다. Graph 안의 Loop는 `targets=[실행 대상 ID]`로 지정하며, Pipeline 라우팅은 지원하지 않습니다. 재개 Run은 원본 체크포인트 검증이 끝난 뒤에만 접수합니다. 실행별 수신 상태는 `run.ainstruction_targets()`에서 확인합니다. [공통 전달 계약](../../../docs/llm/steering.md)을 참고하세요.
+`await session.run.steer(run_id, text)`는 실행 중인 단독 Loop에 지시를 접수하고 `RunInstruction`을 반환합니다. `submit`과 달리 새 Run이나 일반 요청 대기열을 만들지 않습니다. RunStatus를 추가하지 않으며 기존 `RUNNING` 상태를 유지합니다. 종료 중/종료한 Run과 다른 런타임이 소유한 Run은 거절합니다. Graph 안의 Loop는 `targets=[실행 대상 ID]`로 지정합니다. 재개 Run은 원본 체크포인트 검증이 끝난 뒤에만 접수합니다. 실행별 수신 상태는 `run.ainstruction_targets()`에서 확인합니다. [공통 전달 계약](../../../docs/llm/steering.md)을 참고하세요.
 
 ```text
 steer → ConversationStore에 pending 저장

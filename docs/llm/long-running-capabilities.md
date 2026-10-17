@@ -191,10 +191,12 @@ handle = await session.run.resume(interrupted_run.id, engine="loop", partial_out
 resumed = await handle.wait()
 ```
 
-기본은 부분 출력 미전달입니다. True를 명시하면 서비스가 원본 Run/Step 출력에서 미완료
-Loop 회차의 텍스트를 읽고 EngineContext.resume_outputs로 전달합니다. Loop는 같은
-checkpoint scope와 iteration에만 reference data로 붙입니다. Graph 안의 Loop도 동일합니다.
-custom Engine은 공통 context의 자료를 자신의 안전 경계에서 해석할 수 있습니다.
+기본은 부분 출력 미전달입니다. True를 명시하면 서비스는 미확정 원본 출력과 미완료
+소유 Step을 `ResumeOutput` 사본으로 `EngineContext.resume_outputs`에 전달합니다.
+서비스는 Step의 Engine 전용 메타데이터를 해석하지 않습니다. Loop는 자신의 checkpoint
+이름·scope·iteration이 같은 llm Step의 텍스트만 reference data로 붙입니다. Graph 안의
+Loop도 동일합니다. custom Engine은 [공통 계약](shared-contracts.md)의 원본 자료를
+자신의 안전 경계에서 선택합니다.
 
 완료된 모델 응답/Tool 결과는 기존 체크포인트로 재사용하고, 부분 출력은 완료 응답이나
 Tool 호출로 복원하지 않습니다. 승인·retry_nodes·uncertain effects 검사를 우회하지 않습니다.

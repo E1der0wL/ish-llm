@@ -18,14 +18,12 @@ from llm.components.tools import ToolComponent
 from llm.components.skills import SkillComponent
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
-from llm.engines.pipeline import PipelineEngine, PreparationStep
 from llm.policies import CompletionPolicy, ExecutionLimitError
 
 
 class SettingsContractTests(unittest.TestCase):
     def test_common_envelope_and_no_materialized_values(self):
         implementations = [LoopEngine(), GraphEngine(handlers={}),
-            PreparationStep("prepare", lambda c: None), PipelineEngine([LoopEngine()]),
             RAGComponent(), MemoryComponent(), VisionComponent(), ToolComponent(), SkillComponent()]
         for item in implementations:
             with self.subTest(implementation=type(item).__name__):
@@ -113,15 +111,6 @@ class SettingsContractTests(unittest.TestCase):
         self.assertEqual(layout.pack({}), {})
         self.assertEqual(layout.unpack({}), {})
 
-    def test_pipeline_stage_effective_values_and_sources_are_project_owned(self):
-        engine = PipelineEngine({"writer": LoopEngine()})
-        config = ProjectConfig(parameters={"engines": {"pipeline": {"config": {"stages": {
-            "writer": {"config": {"system_prompt": None}}}}}}})
-        view = engine.resolve_config(config, "pipeline")
-        self.assertIsNone(view["values"]["config"]["stages"]["writer"]["config"]["system_prompt"])
-        path = "/config/stages/writer/config/system_prompt"
-        self.assertEqual(view["sources"][path], "project")
-        self.assertTrue(view["editable"][path])
 
     def test_nested_open_configuration_extensions_survive_resolution(self):
         component = MemoryComponent()
@@ -202,25 +191,16 @@ class SettingsContractTests(unittest.TestCase):
         self.assertTrue(view["editable"]["/config/completion/extra_body/b"])
         self.assertTrue(view["editable"]["/config/completion/extra_body/empty/inherited"])
 
-    def test_pipeline_preserves_child_reference_scope(self):
-        class RefEngine:
-            parameter_key = None
-            def describe_config(self):
-                return ParameterLayout(config=("address",)).schema({"type": "object",
-                    "$defs": {"address": {"type": "string", "minLength": 1}},
-                    "properties": {"address": {"$ref": "#/$defs/address"}}})
-            def resolve_config(self, config, name, *, session_config=None):
-                from llm.core.configuration import resolve_engine_config
-                return resolve_engine_config(config, self.parameter_key or name,
-                    session_config=session_config, schema=self.describe_config())
-            async def execute(self, context):
-                yield
-        engine = PipelineEngine({"nested": PipelineEngine({"call": RefEngine()})})
-        settings = {"config": {"stages": {"nested": {"config": {"stages": {"call": {"config": {"address": "host"}}}}}}}}
-        config = ProjectConfig(parameters={"engines": {"pipeline": settings}})
-        self.assertEqual(engine.resolve_config(config, "pipeline")["values"], settings)
-        settings["config"]["stages"]["nested"]["config"]["stages"]["call"]["config"]["address"] = ""
-        self.assertFalse(Draft202012Validator(engine.describe_config()).is_valid(settings))
+    def test_engine_layout_preserves_local_reference_scope(self):
+        from llm.core.configuration import resolve_engine_config
+        schema = ParameterLayout(config=('address',)).schema({'type': 'object',
+            '$defs': {'address': {'type': 'string', 'minLength': 1}},
+            'properties': {'address': {'$ref': '#/$defs/address'}}})
+        settings = {'config': {'address': 'host'}}
+        config = ProjectConfig(parameters={'engines': {'custom': settings}})
+        self.assertEqual(resolve_engine_config(config, 'custom', schema=schema)['values'], settings)
+        settings['config']['address'] = ''
+        self.assertFalse(Draft202012Validator(schema).is_valid(settings))
 
     def test_mapped_subtree_not_constraint_is_not_replaced_by_policy_guard(self):
         layout = ParameterLayout(config=("options",), paths={"policy_options": "policy.options"})

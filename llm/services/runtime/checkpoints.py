@@ -121,7 +121,7 @@ class CheckpointRepository:
         else:
             raise ValueError("Unknown checkpoint operation")
 
-    def load(self, run, name: str = "graph") -> dict:
+    def load(self, run, name: str) -> dict:
         if self.deletion(run) is not None:
             raise ValueError("Checkpoints were explicitly deleted")
         root = self._root(run, name)

@@ -7,7 +7,6 @@ from pathlib import Path
 from llm.core.models import ProjectConfig, RunStatus
 from llm.engines import EngineRegistry
 from llm.engines.loop import LoopEngine
-from llm.engines.pipeline import PipelineEngine
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.runtime.runs import RunManager
 from llm.services.infrastructure.storage import StorageIO, atomic_json, read_json
@@ -93,19 +92,27 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         for path in self.project.paths.root.rglob("*.json"):
             self.assertNotIn("do-not-save", path.read_text(encoding="utf-8"))
 
-    async def test_pipeline_aggregates_all_completion_calls_and_missing_usage_is_unknown(self):
-        provider = ScriptedCompletion([chunk("one", finish="stop"), self.usage_chunk()],
-                                      [chunk("two", finish="stop"), self.usage_chunk(4, 6)])
-        self.engines.register("pipeline", PipelineEngine([LoopEngine(completion_fn=provider, parameter_key="loop"),
-                                                          LoopEngine(completion_fn=provider, parameter_key="loop")]))
-        run = await self.submit("pipeline")
+    async def test_multiple_calls_aggregate_and_missing_usage_is_unknown(self):
+        from contextlib import aclosing
+        from llm.engines.base import BaseEngine
+        provider = ScriptedCompletion([chunk('one', finish='stop'), self.usage_chunk()],
+                                      [chunk('two', finish='stop'), self.usage_chunk(4, 6)])
+        class Calls(BaseEngine):
+            async def run(self, context):
+                for _ in range(2):
+                    async with aclosing(self.stream_completion({'model': 'test',
+                            'messages': [{'role': 'user', 'content': 'hello'}]})) as events:
+                        async for event in events:
+                            yield event
+        self.engines.register('multiple', Calls(completion_fn=provider))
+        run = await self.submit('multiple')
         result = self.projects.results.load(self.project, run.id)
-        self.assertEqual(result.engine, "pipeline")
+        self.assertEqual(result.engine, 'multiple')
         self.assertEqual(result.total_tokens, 15)
-        self.assertEqual(result.finish_reasons, ["stop", "stop"])
+        self.assertEqual(result.finish_reasons, ['stop', 'stop'])
         self.assertEqual(len({c.id for c in result.completions}), 2)
-        self.engines.register("missing", LoopEngine(parameter_key="loop", completion_fn=ScriptedCompletion([chunk("none", finish="stop")])))
-        missing = self.projects.results.load(self.project, (await self.submit("missing")).id)
+        self.engines.register('missing', LoopEngine(parameter_key='loop', completion_fn=ScriptedCompletion([chunk('none', finish='stop')])))
+        missing = self.projects.results.load(self.project, (await self.submit('missing')).id)
         self.assertIsNone(missing.total_tokens)
         self.assertFalse(missing.completions[0].usage_complete)
 

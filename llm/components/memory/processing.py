@@ -509,11 +509,14 @@ class MemorySession(CompletionSession):
             if message.get("role") != "tool" or not isinstance(content, str) or len(content) <= self.config["tool_result_chars"]:
                 continue
             checksum = hashlib.sha256(content.encode()).hexdigest()
-            key = (message["tool_call_id"], checksum)
+            reference = item.result_ref
+            if reference is None or not reference.run_id or not reference.step_id:
+                raise ValueError("Tool preview requires an owning completed Run/Step result reference")
+            key = (reference.run_id, reference.step_id, checksum)
             if key not in self.tool_previews:
                 self.tool_previews[key] = json.dumps({"preview": content[:self.config["tool_result_chars"]],
                     "truncated": True, "original_chars": len(content), "source": {
-                    "run_id": self.context.run.id, "tool_call_id": message["tool_call_id"], "sha256": checksum}}, ensure_ascii=False)
+                    "run_id": reference.run_id, "step_id": reference.step_id, "sha256": checksum}}, ensure_ascii=False)
             message["content"] = self.tool_previews[key]
             changed.append(message["tool_call_id"])
         result["compressed_tool_calls"] = changed

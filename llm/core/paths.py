@@ -9,10 +9,6 @@ class ProjectPaths:
     root: Path
 
     @property
-    def memory(self) -> Path:
-        return self.root / "memory"
-
-    @property
     def sessions(self) -> Path:
         return self.root / "sessions"
 

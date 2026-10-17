@@ -305,7 +305,7 @@ class DomainTransactionTests(unittest.TestCase):
                     self.manager.repository.record_checkpoint(run, event)
         self.assertNotIn("checkpoints", run.metadata)
         with self.assertRaises(FileNotFoundError):
-            self.manager.repository.checkpoint(run)
+            self.manager.repository.checkpoint(run, "graph")
 
     def test_project_clone_failure_publishes_no_partial_tree(self):
         with patch.object(self.sessions, "clone", side_effect=OSError("clone failure")):

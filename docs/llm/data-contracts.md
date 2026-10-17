@@ -2,8 +2,9 @@
 
 UI와 서비스 사이의 안정적인 필드는 데이터 클래스로 제공한다. 이 객체들은 실행 도메인이나
 저장소가 아니다. Project → Session → Run → Step 및 컴포넌트의 소유권을 유지한다.
-프로젝트 설정, Component 정의, LiteLLM 인자, Workflow 상태와 도메인별 세부 내용은 열린
-JSON dict를 유지한다. 모든 dict를 고정 스키마로 바꾸지 않는다.
+Backend가 소유하는 설정·정의는 해당 소유자의 닫힌 계약으로 검증한다. 선택된 구현체의
+인자, 외부 SDK pass-through, Application metadata와 Workflow 상태처럼 명시적 소유자가
+있는 JSON 영역은 그 계약을 유지한다. 공통 자료형이 하위 구현체의 schema를 복제하지 않는다.
 
 ## 공개 타입과 반환 API
 
@@ -12,10 +13,12 @@ JSON dict를 유지한다. 모든 dict를 고정 스키마로 바꾸지 않는�
 | 클래스 | 사용 위치 | 핵심 속성 |
 | --- | --- | --- |
 | Diagnostic | 실행 한도/요청/Tool 예외의 diagnostic, ExecutionResult.diagnostic, Step.diagnostic, 계획의 진단 | code, message, severity, source, details |
+| ErrorClassification | Diagnostic.classification 또는 classify_diagnostic | category, reason, confidence, evidence; 저장 상태나 재실행 권한이 아닌 순수 투영 |
 | ResourceRef | 진단·계획·진행 정보의 source | kind, id, project_id, session_id, run_id, step_id, component, version |
 | SessionRuntimeView | session.run.status/astatus | session_id, status, active_run_id, engine, started_at, queued_count, queued_request_ids, unfinished_work |
 | RunView | run.view/aview | run, outputs, cursor, events |
-| ResumePlan | session.run.resume_plan | source, engine, can_resume, interactions, reused, retry_nodes, blockers |
+| ResumePlan | session.run.resume_plan | source, engine, can_resume, interactions, reused, retry_nodes, blockers, state, revision, can_restart, restart_blockers, active, abandoned |
+| JobResumePlan | rag.resume_plan/aresume_plan | source, state, can_resume, checkpoints, blockers, revision, active, abandoned |
 | TurnDeletionPlan | session.delete_turn_plan | source, message_ids, blockers, revision |
 | RecoveryPlan | project.recovery/arecovery(apply=False) | source, issues, repair_sessions, version |
 | RecoveryResult | project.recovery/arecovery(apply=True) | applied, journal, remaining |
@@ -26,6 +29,10 @@ JSON dict를 유지한다. 모든 dict를 고정 스키마로 바꾸지 않는�
 검사하며 중첩 값은 분리된 사본으로 전달한다. `details`와 정책·후보 레코드 내부는 자유로운
 JSON 확장 영역이다. dataclass의 속성 할당은 막지만 내부 dict/list는 읽는 쪽에서 편집할 수
 있다. 그 편집은 저장소나 실행 중 상태에 적용되지 않는다.
+
+공통 변환기의 지원 타입, transient `ResumeOutput`, Provider 사용량 관찰과 텍스트 문맥
+처리의 명시적 제한은 [공통 경계 계약](shared-contracts.md)을 따른다. 저장 데이터의
+형식 버전은 바꾸지 않는다.
 
 ```python
 from llm.llm import RunView, Diagnostic
@@ -46,7 +53,7 @@ if result.diagnostic is not None:
 try:
     await session.run.submit("request", engine="missing")
 except Exception as error:
-    issue = getattr(error, "diagnostic", Diagnostic.from_exception(error))
+    issue = Diagnostic.from_exception(error)
     print(issue.to_dict())
 ```
 
@@ -54,6 +61,26 @@ except Exception as error:
 문자열이다. ToolExecutionError의 effect/retryable 정보는 details에 표시하지만 이 값만으로
 Tool을 재실행하지 않는다. 기존 ToolRuntime·효과 원장·명시적 승인 검사가 계속 실행을 결정한다.
 ResourceRef를 역직렬화한 것만으로 대상 조회·수정 권한을 얻지 않는다. 대상 API가 소유권을 검사한다.
+
+`Diagnostic.from_exception()`은 예외의 저장된 `diagnostic`과 계산형 property를 동일하게
+읽고 사본으로 보존한다. 구현체 이름에 따른 분기는 없다. property의 재진입은 해당 속성만
+건너뛰어 기존 code/원인 체인으로 처리하고, 속성 평가의 일반 예외는 원래 실패를 대체하지 않는다.
+신뢰한 바깥 오류 code와 다른 내부 진단을 가져와 바깥 오류의 의미를 바꾸지 않는다.
+
+Run의 최종 진단은 `Run.metadata.diagnostic`에서 `ExecutionResult.diagnostic`으로 투영한다.
+Step은 기존 `Step.diagnostic`, RAG Job은 `rag.job_diagnostic/ajob_diagnostic(job_id)`로 조회한다.
+RAG의 현재 오류는 재시도 입장이 확정되면 Job의 `failures`에 이전 시도의 관찰 이력으로
+옮겨진다. running/completed Job의 현재 진단은 없으며, 재실패/취소 시 새 진단을 기록한다.
+이력은 Job record 안에만 있고 체크포인트·승인·재실행 권한을 만들지 않는다.
+Provider 원인 체인과 상세 수집 설정은 Provider가 소유한다. 다른 경계에 Provider 진단 옵션을
+상속하지 않는다. 수집하지 않은 자료를 새로 만들지 않으며 일반 Component 오류를 Provider 오류로
+분류하지 않는다. 신뢰되지 않은 예외의 `.code`가 Run/Job의 집행 코드와 다르면 `details.observed_code`로
+보존한다. 오류 code와 관찰 근거가 실행 권한을 부여하지 않는다.
+
+`CheckpointError`는 `code`, `blockers`, `diagnostic`을 제공하는 `ValueError`다.
+문자열 파싱 없이 충돌(`checkpoint_conflict`), 보호(`checkpoint_protected`), 손상
+(`checkpoint_corrupt`), RAG 설정 불일치(`checkpoint_configuration`)를 구분할 수 있다.
+새 공개 API와 Hub 연결 대응표는 [오류·복구 계약](backend-recovery.md)에 있다.
 
 ## 검토와 실행 분리
 

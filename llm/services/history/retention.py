@@ -17,7 +17,7 @@ class HistoryRetention:
         for name in self.manager.components.names():
             component = self.manager.components.get(name)
             reader = getattr(component, "history_references", None)
-            if reader and component.root(project).exists():
+            if reader:
                 for kind, values in reader(project).items():
                     if kind in refs:
                         refs[kind].update(values)

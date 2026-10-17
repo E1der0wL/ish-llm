@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace as NS
+from unittest.mock import patch
 import unittest
 
 from llm.llm import LargeLanguageModel, BackendServices
@@ -108,16 +109,28 @@ class NamingContractTests(unittest.TestCase):
         graph = WorkflowGraph(entry='end', metadata={'title': 'Review'}).node('end', 'end').to_dict()
         self.assertEqual(graph, self.before['workflow'])
 
-    def test_old_tool_loop_and_graph_bindings_still_match(self):
+    def test_binding_vocabulary_preserves_unchanged_fields(self):
         config = ProjectConfig(self.before['project_config'])
         scope = ToolExecutionScope(ToolRuntime(revision='host-1'), policy={'max_calls': 5})
         context = EngineContext(NS(config=config, components=()), NS(config={}), NS(engine='loop'), (), tool_scope=scope)
         self.assertEqual(scope.binding(), self.before['scope_binding'])
         loop = LoopEngine()
         loop._configure({'completion': {'model': 'test/model', 'temperature': None}, 'max_iterations': 3})
-        self.assertEqual(loop._binding(context), self.before['loop_binding'])
+        # Provider substitution now participates in resume identity. Keep the
+        # historical naming fixture intact and verify the explicitly added field.
+        original_hash = hashlib.sha256
+        with patch('llm.engines.loop.engine.hashlib.sha256', wraps=original_hash) as tracked:
+            loop._binding(context)
+        payload = json.loads(tracked.call_args.args[0])
+        self.assertEqual(payload.pop('adapter'), {
+            'type': 'llm.providers.litellm.LiteLLMCompletionAdapter', 'binding': None})
+        self.assertEqual(digest(payload), self.before['loop_binding'])
         graph = GraphEngine(handlers={}, parameter_key='graph').for_request({'workflow': 'flow'})
-        self.assertEqual(graph._binding(context, self.before['workflow'], []), self.before['graph_binding'])
+        expected = dict(self.before['graph_binding'])
+        # Agent catalogue identity was intentionally replaced by per-selection
+        # records. Other persisted names are still protected by this fixture.
+        self.assertEqual(expected.pop('agents'), [])
+        self.assertEqual(graph._binding(context, self.before['workflow'], []), expected)
 
     def test_parameter_key_only_selects_the_explicit_engine_path(self):
         engine = LoopEngine(parameter_key='shared')

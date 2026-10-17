@@ -35,9 +35,12 @@ from typing import Any, Callable, Iterable, Mapping, Optional, Union
 from llm._platform import require_linux
 from llm.core.models import ProjectConfig, Run, RunStatus, Session
 from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent
+from llm.core.diagnostics import ErrorClassification, classify_diagnostic
+from llm.core.checkpoints import CheckpointError
 from llm.core.views import SessionRuntimeView, RunView
-from llm.core.plans import ResumePlan, RecoveryPlan, RetentionPlan, RecoveryResult, TurnDeletionPlan
-from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult
+from llm.core.plans import ResumePlan, JobResumePlan, RecoveryPlan, RetentionPlan, RecoveryResult, TurnDeletionPlan
+from llm.components.processing import CompletionRecovery, CompletionRepair
+from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult, ResumeOutput
 from llm.core.interactions import InteractionRequest, InteractionOption, InteractionResponse, InteractionView
 from llm.providers.calls import ProviderCalls, ProviderLimits
 from llm.providers.runtime import ProviderDiagnostics
@@ -296,7 +299,7 @@ class LargeLanguageModel:
         instruction = await session.run.steer(active_run_id, "근거도 포함해줘.",
                                                targets=selected_target_ids)
 
-    Graph/중첩 Agent는 지정한 자식 실행에만 전달하며 Pipeline 라우팅은 미지원이다.
+    Graph/중첩 Agent는 지정한 자식 실행에만 전달한다.
     미시작 Agent는 실행 스냅샷의 SteeringRoute로 한 번 예약한다::
 
         routes = await active_run.ainstruction_routes()

@@ -49,6 +49,105 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
     async def reserve(self, routes, content="one shot"):
         return await self.session.run.reserve_instruction(self.run.id, content, targets=routes)
 
+    async def test_agent_factory_declared_consumer_reservation_matches_execution(self):
+        from llm.core.steering import SteeringMode
+        model = Model([chunk("done", finish="stop")], gate=False)
+        selected = []
+        class Factory:
+            required_capabilities = LoopEngine.required_capabilities
+            steering_mode = SteeringMode.CONSUME
+            checkpoint_name = "loop"
+            def for_agent(self, definition):
+                selected.append(definition["engine"])
+                return LoopEngine(completion_fn=model).for_agent(definition)
+            async def execute(self, context):
+                raise AssertionError("Only the bound Engine executes")
+                yield
+        routes = await self.gated({"writer": model},
+            handlers={"agent": AgentNode(engines={"writer": Factory()})})
+        self.assertEqual(selected, [])
+        self.assertEqual(routes, [SteeringRoute(("flow",), "work", "writer")])
+        await self.reserve(routes)
+        self.gate_release.set()
+        run = await self.completed()
+        self.assertEqual(self.contents(model).count("one shot"), 1)
+        instruction, = await run.ainstructions()
+        self.assertEqual(instruction.status, "applied")
+        self.assertEqual(len(instruction.applications), 1)
+
+    async def test_mismatched_factory_is_rejected_before_agent_approval_or_effect(self):
+        model = Model([chunk("must not run", finish="stop")], gate=False)
+        class Factory:
+            required_capabilities = LoopEngine.required_capabilities
+            def for_agent(self, definition):
+                return LoopEngine(completion_fn=model).for_agent(definition)
+            async def execute(self, context):
+                if False:
+                    yield
+        graph = fixtures.agent_graph()
+        graph["nodes"]["work"]["pause_before"] = True
+        routes = await self.gated({"writer": model}, graph,
+            handlers={"agent": AgentNode(engines={"writer": Factory()})})
+        self.assertEqual(routes, [])
+        self.gate_release.set()
+        run = await self.request.wait(timeout=15)
+        self.assertEqual(run.data.status, "failed")
+        self.assertIn("Agent binding must preserve Engine steering mode", run.data.error)
+        self.assertEqual(await run.ainteractions(), [])
+        self.assertEqual(model.requests, [])
+
+    async def test_changed_factory_mode_rejects_approved_resume_before_effect(self):
+        from llm.core.steering import SteeringMode
+        model = Model([chunk("must not run", finish="stop")], gate=False)
+        class Factory:
+            required_capabilities = LoopEngine.required_capabilities
+            steering_mode = SteeringMode.CONSUME
+            checkpoint_name = "loop"
+            bound_mode = SteeringMode.CONSUME
+            def for_agent(self, definition):
+                engine = LoopEngine(completion_fn=model).for_agent(definition)
+                engine.steering_mode = self.bound_mode
+                return engine
+            async def execute(self, context):
+                if False:
+                    yield
+        factory = Factory()
+        graph = fixtures.agent_graph()
+        graph["nodes"]["work"]["pause_before"] = True
+        await self.gated({"writer": model}, graph,
+            handlers={"agent": AgentNode(engines={"writer": factory})})
+        self.gate_release.set()
+        paused = await self.request.wait(timeout=15)
+        self.assertEqual(paused.data.status, "paused", paused.data.error)
+        interaction, = await paused.ainteractions()
+        await paused.arespond(interaction.respond("approve"))
+        factory.bound_mode = SteeringMode.UNSUPPORTED
+        with self.assertRaisesRegex(ValueError, "preserve Engine steering mode"):
+            await self.session.run.resume(paused.id, engine="graph")
+        self.assertEqual(model.requests, [])
+
+    async def test_unselected_factory_is_not_evaluated_during_route_discovery(self):
+        model = Model([chunk("selected", finish="stop")], gate=False)
+        class Unselected:
+            required_capabilities = ()
+            def for_agent(self, definition):
+                raise AssertionError("Unselected factory must not be evaluated")
+            async def execute(self, context):
+                if False:
+                    yield
+        graph = (WorkflowGraph(entry="choose").node("choose", "branch", cases=[
+            {"when": {"path": "/pick", "op": "eq", "value": "a"}, "port": "a"}], default="b")
+            .node("a", "agent", agent="a").node("b", "agent", agent="b").node("end", "end")
+            .connect("choose", "a", port="a").connect("choose", "b", port="b")
+            .connect("a", "end").connect("b", "end").to_dict())
+        graph["initial_state"] = {"pick": "a"}
+        routes = await self.gated({"a": model, "b": Model(gate=False)}, graph,
+            handlers={"agent": AgentNode(engines={"a": LoopEngine(completion_fn=model), "b": Unselected()})})
+        self.assertEqual(routes, [SteeringRoute(("flow",), "a", "a")])
+        self.gate_release.set()
+        await self.completed()
+        self.assertEqual(len(model.requests), 1)
+
     async def test_repeat_consumes_once_and_routes_are_persisted_before_notification(self):
         model = Model([chunk("first", finish="stop")], [chunk("second", finish="stop")], gate=False)
         graph = (WorkflowGraph(entry="repeat").node("repeat", "loop", body=fixtures.agent_graph(),

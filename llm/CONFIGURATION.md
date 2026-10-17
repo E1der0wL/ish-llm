@@ -50,8 +50,6 @@ ProjectConfig
 |---|---|---|
 | Loop | completion(SDK dict), system_prompt, buffer_size | completion(입력 예산), provider(외부 재시도), max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars |
 | Graph | buffer_size, cleanup_timeout | max_steps, max_parallelism, timeout_seconds, max_nested_depth |
-| Preparation | 별도 정의한 기능 인자 | timeout_seconds |
-| Pipeline | stages.<단계 이름>에 각 단계의 config/policy | 현재 없음 |
 | RAG | chunk_size, embedding_params, extraction_params, rerank_params, document_kwargs, query_kwargs, search, graph, extraction_batch_size, index_batch_size, embedding_cache_max_bytes, search_cache_chars, extraction.json_mode/prompt_id/relation_types | embedding_concurrency, provider, ingestion.max_active, retention.job_max_age_seconds, extraction.repair_attempts/failure_policy |
 | Memory | cache_records, search_status/search_limit, processing.completion/priority/extract_scope/summary_chars/recall_limit/recall_query_chars | tool_write_status, max_search_results, processing의 자동 실행 여부·입력/출력/시간 한도·실패 방식·provider |
 | Vision | completion, ocr.backend/backends | limits.max_bytes/max_pixels, ocr.timeout, provider |
@@ -88,7 +86,6 @@ ParameterLayout을 상속하거나 내부 실행 알고리즘을 공통 클래�
 선언된 경로와 충돌하지 않는 확장 키와 SDK dict 내부 키는 계속 보존한다.
 ParameterLayout은 직접 매핑한 필드의 루트 `required`, `$defs`/`definitions`와 로컬
 JSON Pointer 참조를 공개 경로에 맞춰 보존한다. 통째로 매핑한 하위 schema의 조건도 유지한다.
-Pipeline은 하위 Engine schema의 참조 루트를 분리해 중첩 단계에서도 로컬 `$ref`의 의미를 유지한다.
 분할하는 컨테이너의 `allOf`/조건부 제약, 중첩 `required`/정의, 별도 schema resource/anchor 등
 안전하게 재배치할 수 없는 제약은 명시적으로 거부한다. 복합 조건은 변환 도우미를 거치지 않고
 `implementation_schema()`의 최종 config/policy 경로에 직접 선언한다. 조건을 조용히 버리지 않는다.
@@ -142,7 +139,6 @@ Step의 명시 기한은 provider 진행을 중단하지만 yield된 이벤트�
 | core/schema.py, Component base/schema | Schema default·default_configuration 기반 생성 제거 |
 | engines/loop/engine.py, engines/base.py | 반복·시간·수량·출력 cap, SDK timeout/tool_choice/stream_options 자동 삽입 제거 |
 | engines/graph/engine.py | steps/parallelism/depth/timeout 숨은 한도 제거 |
-| engines/pipeline/engine.py | Preparation timeout 제거 |
 | providers/requests.py, litellm.py | provider 기본 재시도/wall deadline·stream 120초 fallback 제거 |
 | providers/calls.py | active/waiting/admission wait 기본 한도 제거 |
 | providers/runtime.py | 모드/log 환경변수 강제 선택·자동 로그 회전 삭제 제거. bundled 비용표 선택은 runtime isolation invariant |

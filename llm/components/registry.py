@@ -73,7 +73,7 @@ class ComponentRegistry:
         result = []
         for owner, component in self._components.items():
             reader = getattr(component, "references", None)
-            if reader is None or not (project.paths.root / component.directory).exists():
+            if reader is None:
                 continue
             for ref in reader(deepcopy(project)):
                 if (ref["component"] == name and (identifier is None or ref["identifier"] == identifier)

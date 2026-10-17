@@ -22,7 +22,12 @@ Workflow 노드의 입출력 매핑/schema는 유지하지만 Graph Agent 노드
 | [engine.py](engine.py) | Workflow 컴파일, 노드 판단과 실행, 스케줄링, 이벤트·체크포인트·재개를 구현합니다. |
 | [agent.py](agent.py) | AgentNode가 저장된 Agent 정의를 등록된 Engine과 연결합니다. |
 | [tool.py](tool.py) | ToolNode가 Tool 호출을 공통 ToolExecutor에 연결합니다. |
-| [checkpoints.py](checkpoints.py) | 중첩 Engine의 체크포인트와 승인 요청을 부모 Graph 범위에 연결합니다. |
+| [checkpoints.py](checkpoints.py) | 중첩 Engine의 체크포인트와 상호작용을 불투명한 부모 invocation key에 연결합니다. 부모/자식 Engine 이름을 제한하지 않습니다. |
+
+ToolNode는 효과 이전 승인을 `GraphNodeContext.pause`로 명시합니다. 등록 이름을 `tool`로
+고정하지 않으며 취소된 처리기는 새 대기 기록을 만들 수 없습니다. Agent binding은 실제
+선택한 노드 실행에 기록하고 승인 대기·완료 결과의 재개에서도 검증합니다. Workflow의
+구조적 사전 탐색과 스냅샷 재사용은 유지합니다.
 
 ## 함께 읽을 코드
 
@@ -68,7 +73,7 @@ Agent의 `engine`은 `AgentNode(engines=...)`에 전달한 맵/EngineRegistry에
 
 ## 판단과 실행의 경계
 
-`_branch_port`, `_loop_continues`, `_plan_node`는 입력 상태에서 다음 동작만 계산합니다. 파일 저장, 승인 생성, 모델·Tool 실행을 하지 않습니다. 실행부가 계획을 받아 체크포인트 저장 확인 → Step 시작 → 처리기 실행 → 완료 체크포인트 저장 확인 → Step 완료를 수행합니다.
+`_branch_port`, `_loop_continues`, `_plan_node`는 입력 상태에서 다음 동작만 계산합니다. 파일 저장, 승인 생성, 모델·Tool 실행을 하지 않습니다. 실행부가 계획을 받아 시작 체크포인트 저장 확인 → Step 시작 → 처리기 실행 → Step 완료와 완료 체크포인트의 원자적 저장을 수행합니다.
 
 LangGraph 스케줄링, 병렬 합류, 취소 정리와 이벤트 ACK는 실행부가 소유합니다. 일반 실행 timeout은 명시했을 때만 적용합니다. 순수 판단 결과는 별도 영속 상태나 승인 증명이 아닙니다.
 
@@ -84,8 +89,9 @@ LangGraph 스케줄링, 병렬 합류, 취소 정리와 이벤트 ACK는 실행�
 이전하지 않습니다. [공통 전달·UI 계약](../../../docs/llm/steering.md)을 참고하세요.
 
 추가 지시를 소비하는 Agent Engine은 `checkpoint_name`과 동기 `validate_resume`을 제공해야 합니다.
-AgentNode는 `for_agent()`가 반환한 실제 Engine을 사전 탐색에서 검사하여, 계약 오류가 있을 때
-앞선 Tool이나 MCP 연결이 먼저 실행되지 않도록 합니다. 미지원 Engine의 기존 계약은 유지합니다.
+AgentNode는 실제 선택 시 `for_agent()`가 반환한 Engine을 검사합니다. 해당 Agent의 승인·MCP 연결·
+효과는 검증 이후에만 진행합니다. 선행 독립 노드는 실행될 수 있으며, 미선택 Agent의 private 설정은
+검증하지 않습니다. Workflow의 구조·참조·순환 검사는 계속 실행 전에 수행합니다.
 
 `pause_before`는 노드 실행 전 대기 기록을 저장합니다. 노드 확인은 Tool 실행 승인을 대신하지 않으며 ToolRuntime가 ASK를 반환하면 별도 Tool 승인이 필요합니다.
 

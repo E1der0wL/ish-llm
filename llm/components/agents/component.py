@@ -24,7 +24,7 @@ class AgentComponent(DefinitionComponent):
     def resolve(self, project, capability):
         if capability == "tools" and self.engines is not None:
             from .tools import agent_tools
-            return agent_tools(self.engines, self.list(project))
+            return agent_tools(self.engines)
         return super().resolve(project, capability)
 
     schema = {
@@ -76,18 +76,10 @@ class AgentComponent(DefinitionComponent):
         # 제거된 필드를 조용히 무시하거나 과거 형식으로 자동 변환하지 않는다.
         if any(key in data for key in ("loop", "skills", "rag", "mcp")):
             raise ValueError("Use engine_options and resources in Agent definitions")
-        def check_refs(value):
-            if isinstance(value, dict):
-                for key, item in value.items():
-                    if key in ("$ref", "$dynamicRef") and (not isinstance(item, str) or not item.startswith("#")):
-                        raise ValueError("Agent schemas only support local references")
-                    check_refs(item)
-            elif isinstance(value, list):
-                for item in value:
-                    check_refs(item)
+        from llm.core.schema import validate_local_refs
         for name in ("input_schema", "output_schema"):
             if name in data:
-                check_refs(data[name])
+                validate_local_refs(data[name])
                 Draft202012Validator.check_schema(data[name])
         if data.get("policy", {}).get("require_tool") and not (
                 data.get("tools") or data.get("resources", {}).get("rag") or data.get("resources", {}).get("mcp")):

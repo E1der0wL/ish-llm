@@ -134,7 +134,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.calls, [])
         self.assertEqual(json.loads(model.requests[1]["messages"][1]["content"]), {"request": "second"})
 
-    async def test_all_agent_policies_preflight_before_earlier_side_effect(self):
+    async def test_agent_policy_validates_on_selection_before_its_effects(self):
         self.profile["engine_options"]['policy']['max_iterations'] = 0
         async def write(node):
             self.calls.append("write")
@@ -145,10 +145,11 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         await self.setup_graph(graph, model, handlers={"write": write, "agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})})
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)
-        self.assertEqual(self.calls, [])
-        self.assertEqual(await run.steps.alist(), [])
+        self.assertEqual(self.calls, ["write"])
+        self.assertEqual(model.requests, [])
+        self.assertFalse(any(s.kind == "agent" for s in await run.steps.alist()))
 
-    async def test_steerable_agent_contract_preflight_prevents_tool_and_mcp_effects(self):
+    async def test_selected_steerable_agent_contract_prevents_child_effects(self):
         from llm.core.steering import SteeringMode
         connected = []
 
@@ -166,7 +167,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.profile = {"engine": "custom", "purpose": "Work",
                         "resources": {"mcp": {"docs": {"read_docs": "echo"}}}}
         graph = (WorkflowGraph(entry="effect")
-                 .node("effect", "tool", tool="echo", arguments={"value": "must not execute"})
+                 .node("effect", "tool", tool="echo", arguments={"value": "earlier independent node"})
                  .node("agent", "agent", agent="writer").node("end", "end")
                  .connect("effect", "agent").connect("agent", "end").to_dict())
         await self.setup_graph(graph, None, handlers={"tool": ToolNode(),
@@ -177,9 +178,9 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertIn("checkpoint_name and validate_resume", run.data.error)
-        self.assertEqual(self.calls, [])
+        self.assertEqual(self.calls, [{"value": "earlier independent node"}])
         self.assertEqual(connected, [])
-        self.assertEqual(await run.steps.alist(), [])
+        self.assertFalse(any(s.kind == "agent" for s in await run.steps.alist()))
 
     async def test_schema_failure_prevents_next_handler(self):
         model = ScriptedCompletion(answer('{"code":42}'))
@@ -416,14 +417,14 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([t["function"]["name"] for t in model.requests[0]["tools"]], ["read_docs"])
         self.assertEqual(self.calls, [{"value": "remote"}])
 
-    async def test_mcp_without_adapter_fails_before_workflow_side_effects(self):
+    async def test_selected_mcp_without_adapter_fails_before_agent_effects(self):
         self.profile["resources"] = {"mcp": {"docs": {"read": "echo"}}}
         await self.setup_graph(agent_graph(), ScriptedCompletion(), extra_components=(MCPComponent(),))
         await (await self.project.components.aget("mcp")).acreate(
             {"transport": "stdio", "command": "must-not-run"}, identifier="docs")
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)
-        self.assertEqual(await run.steps.alist(), [])
+        self.assertTrue(all(s.kind == "graph" for s in await run.steps.alist()))
 
     async def test_mcp_cancel_closes_tool_and_session_once(self):
         entered, closed = asyncio.Event(), []
@@ -451,7 +452,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, RunStatus.INTERRUPTED)
         self.assertEqual(closed, ["tool", "session"])
 
-    async def test_unknown_and_non_agent_engine_rejected_before_any_steps(self):
+    async def test_unknown_and_non_agent_engine_rejected_before_agent_steps(self):
         self.profile["engine"] = "missing"
         model = ScriptedCompletion()
         await self.setup_graph(agent_graph(), model)
@@ -464,7 +465,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         handler.engines.register("plain", BaseEngine())
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)
-        self.assertEqual(await run.steps.alist(), [])
+        self.assertTrue(all(s.kind == "graph" for s in await run.steps.alist()))
         self.assertEqual(model.requests, [])
 
     async def test_missing_skill_fails_before_model_and_unselected_resource_is_not_resolved(self):

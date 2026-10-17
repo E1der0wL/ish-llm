@@ -339,7 +339,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(reused), 1)
         self.assertEqual(reused[0].metadata['source_run_id'], failed.id)
         self.assertIsNone(reused[0].output.data)
-        original = app.project_manager.results.tool_result(session.project.data, session.id, resumed.id, 'call_1', steps=app.step_manager)
+        original = app.project_manager.results.tool_result(session.project.data, session.id, resumed.id, reused[0].id, steps=app.step_manager)
         self.assertEqual(original['content'], 'null')
 
     async def test_no_effect_operation_can_resume_without_resetting_uncertain_receipts(self):

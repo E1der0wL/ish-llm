@@ -13,6 +13,18 @@ class CodedError:
     code: str
 
 
+def get_error_attribute(error: BaseException, name: str):
+    """Read optional error observations without replacing the original failure.
+
+    SDK/custom errors may expose computed attributes. A broken observer is
+    missing information, not a new execution failure. Cancellation is not caught.
+    """
+    try:
+        return getattr(error, name, None)
+    except Exception:
+        return None
+
+
 def exception_chain(error: BaseException) -> Iterator[BaseException]:
     """명시적 cause 우선, 없으면 숨기지 않은 context. 순환/과도한 체인은 중단한다."""
     seen = set()
@@ -30,7 +42,7 @@ def stable_error_code(error: BaseException) -> Optional[str]:
     """명시적으로 분류한 오류만 보존한다. message/status/vendor code를 추측하지 않는다."""
     for current in exception_chain(error):
         if isinstance(current, CodedError):
-            code = getattr(current, "code", None)
+            code = get_error_attribute(current, "code")
             if isinstance(code, str) and code.strip():
                 return str(code)
     return None

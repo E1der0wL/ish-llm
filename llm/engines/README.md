@@ -13,9 +13,8 @@ Engine은 하나의 Run을 어떻게 실행할지 정의합니다. 모델을 반
 | [registry.py](registry.py) | 실행 객체 등록, 이름 조회와 실행 전 설정 검증입니다. |
 | [loop/](loop/README.md) | LiteLLM completion → Tool → 다음 completion을 반복합니다. |
 | [graph/](graph/README.md) | LangGraph로 Workflow를 실행하고 Agent/Tool·중첩 체크포인트를 연결합니다. |
-| [pipeline/](pipeline/README.md) | 준비 작업과 여러 Engine을 같은 Run에서 순서대로 실행합니다. |
 
-현재 공개 구현은 LoopEngine, GraphEngine, PipelineEngine입니다. 단일 동작은 BaseEngine으로 구현할 수 있으며 별도 SingleEngine 구현은 없습니다.
+현재 공개 구현은 LoopEngine, GraphEngine입니다. 단일 동작은 BaseEngine으로 구현할 수 있으며 별도 SingleEngine 구현은 없습니다. 순차 작업과 중첩 Engine 실행은 Graph Workflow로 구성합니다.
 
 정책 클래스는 실제 처리를 소유한 계층에 둡니다. 서비스의 RunPolicy는 공통 실행 제한,
 공용 CompletionPolicy는 모델 입력 선택을 담당합니다. EngineContext.token_counters는
@@ -24,6 +23,18 @@ CompletionPolicy를 만들어 processor 문맥에 전달합니다. custom Engine
 사용하려면 자신의 설정에서 명시적으로 구성해야 합니다. BaseEngine의 스트리밍 재시도도
 `stream_completion(..., provider=명시한 설정)`으로 선택하며 중앙 정책을 자동 적용하지 않습니다.
 
+`BaseEngine(completion_adapter=...)`는 SDK 요청·재시도 인자·응답을 소유하는 Host 구현을
+선택합니다. 기본 연결은 LiteLLM입니다. 별도 어댑터와 `completion_fn`/`completion_decoder`를
+동시에 지정할 수 없습니다. Loop의 어댑터는 Loop 메시지/Tool 프로토콜과 설정 schema도
+지원해야 합니다. [확장 계약](../../docs/llm/shared-contracts.md)을 참고하세요.
+
+기본 LiteLLM 연결의 `completion_decoder`는 시도마다 새 `CompletionDecoder`를 만드는 동기
+factory입니다. 기본은 Provider의 `LiteLLMCompletionDecoder`입니다. 다른 응답 형식은
+`decode(chunk)`에서 `CompletionUpdate`를 yield하고, `finish()`에서 종료를 검증한 뒤
+최종 message dict를 반환합니다. 기존 동기 `completion_fn` 연결 방식은 유지합니다.
+decoder는 저장·Tool 실행·재시도를 하지 않습니다. BaseEngine은 관찰 이벤트를 전달하며,
+chunk를 한 번이라도 수신했다면 decoder 실패 후에도 요청을 자동 반복하지 않습니다.
+
 ## 공개 import와 등록
 
 ```python
@@ -31,7 +42,6 @@ from llm.engines import BaseEngine, EngineContext, EngineRegistry
 from llm.engines.base import EngineEvent, EngineEventType
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
-from llm.engines.pipeline import PipelineEngine, PreparationStep
 
 engines = {"assistant": LoopEngine()}
 # LargeLanguageModel(..., engines=engines)
@@ -53,13 +63,30 @@ engines = {"assistant": LoopEngine()}
   안 됩니다. 이 hook이 없는 Engine은 빈 옵션만 허용합니다. 재개도 원본 옵션으로 연결합니다.
 - `required_capabilities`는 필요한 기능 이름의 중복 없는 tuple입니다. 미선언은 외부 기능 없음입니다.
 - `context`에는 도메인 스냅샷, 메시지, Run별 state/capabilities와 공유 실행 범위가 있습니다. 실행 상태를 Engine 인스턴스에 누적하지 않습니다.
+- 명시적 부분 출력 재개에서는 `context.resume_outputs`의 `ResumeOutput`에 원본 출력과
+  소유 Step이 전달됩니다. Engine은 자기 Step 메타데이터로 사용할 자료를 선택합니다.
+  완료된 Tool 영수증이나 실행 권한으로 해석하지 않습니다. [공통 경계](../../docs/llm/shared-contracts.md)를 참고하세요.
 - Step/Run/Session/대화/체크포인트 파일을 직접 쓰지 않습니다.
+- `STEP_COMPLETED`의 `checkpoint`에 CHECKPOINT record 이벤트를 첨부하면 Step 완료·출력·
+  재개 영수증을 같은 서비스 트랜잭션에서 저장합니다. 실패하면 완료 상태를 재사용하지 않습니다.
+- 선택 Engine은 순수 동기 `bind_execution(context)`로 JSON 실행 identity를 제공할 수 있습니다.
+  Agent binding은 Engine 종류와 관계없이 이를 포함합니다. Host는 구현 동작 변경 시 기존 revision
+  또는 이 identity를 변경해야 합니다.
 - 이벤트 소비자는 조기 종료에도 generator를 닫도록 `aclosing`을 사용합니다. 취소는 자원을 정리한 뒤 전달합니다.
 - 사용자 설정은 명시한 값만 적용합니다. `describe_config()`는 UI·사전 검증에, `resolve_config(config, name, *, session_config=None)`는 출처를 포함한 유효 설정 조회에 사용합니다. 동일 해석을 실행에서도 사용해야 합니다.
 
 Graph AgentNode에서도 사용할 Engine은 `for_agent(definition)`이 호출별 Engine을 반환하도록 구현하고 AgentNode의 엔진 맵에 등록합니다. 일반 `execute` 계약만 구현했다고 Agent 설정이 자동 적용되지는 않습니다. 명시적 재개까지 지원하려면 Engine별 체크포인트 생성과 `validate_resume` 검증도 구현해야 합니다. BaseEngine의 Tool helper가 체크포인트를 대신 생성하지는 않습니다.
 
-실행 중 추가 지시는 `steering_mode`로 `UNSUPPORTED` / `CONSUME` / `FORWARD`를 선언합니다. BaseEngine은 `open_instructions`, `select_instructions`, `apply_instructions`, `close_instructions` helper와 저장 ACK 계약을 제공합니다. 상속만으로 지원되지는 않습니다. Loop는 직접 처리하고 Graph는 사용자가 지정한 자식 실행으로 전달합니다. Pipeline 라우팅은 지원하지 않습니다. [공통 계약과 custom Engine 구현](../../docs/llm/steering.md)을 참고하세요.
+`for_agent()`가 반환한 Engine의 `steering_mode`는 등록 Engine의 선언과 같아야 합니다.
+미시작 Agent의 지시 예약은 등록 선언으로 탐색하고, 실제 선택·승인 대기·재개 시 이
+일치 조건을 검증합니다. 선택하지 않은 Agent의 factory나 자원은 미리 평가하지 않습니다.
+
+Prompt/Skill 자원을 사용하는 Agent Engine은 `with_instructions(context, before=..., after=...)`로
+자기 지침의 상속·합성을 소유합니다. AgentExecution은 특정 config 경로를 읽지 않습니다.
+선택형 자식을 재사용하는 Engine은 `validate_selections(context)`를 실행·재개 경계에서
+호출해야 합니다. BaseEngine은 로컬 Tool 선택 검증을 제공하며 자식의 구현은 자식이 검사합니다.
+
+실행 중 추가 지시는 `steering_mode`로 `UNSUPPORTED` / `CONSUME` / `FORWARD`를 선언합니다. BaseEngine은 `open_instructions`, `select_instructions`, `apply_instructions`, `close_instructions` helper와 저장 ACK 계약을 제공합니다. 상속만으로 지원되지는 않습니다. Loop는 직접 처리하고 Graph는 사용자가 지정한 자식 실행으로 전달합니다. [공통 계약과 custom Engine 구현](../../docs/llm/steering.md)을 참고하세요.
 
 미시작 Agent 예약은 전달 Engine이 `declare_instruction_routes`로 검증된 경로를 선언하고 `bind_instruction_route`로 실제 실행 시작에 한 번 결합합니다. 서비스 저장 ACK 뒤 작업을 시작하며 소비 Engine은 기존 선택/반영 helper를 그대로 사용합니다. Graph가 중첩·병렬·반복 경로를 해석하고 서비스는 경로별 영수증을 저장합니다.
 
@@ -119,7 +146,7 @@ API 및 책임 구분은 [승인 API](../../docs/llm/interactions.md)를 참고�
 ## 실패 전달 계약
 
 Subsystem은 오류를 분류하고 Engine은 `BaseEngine.step_failed_event(step_id, error)`로
-`STEP_FAILED + Diagnostic`을 전달합니다. Graph 노드·중첩 Graph·Agent·Pipeline·Tool도
+`STEP_FAILED + Diagnostic`을 전달합니다. Graph 노드·중첩 Graph·Agent·Tool도
 같은 helper를 사용합니다. 기존 Diagnostic의 source/details를 보존하며, source가 없으면
 Step에 연결합니다. 오류에 code가 없으면 Step은 `step_failed`(Tool은 `tool_failed`)입니다.
 문자열 error와 구조화된 diagnostic은 별도 필드이며 raw message 정책은 변경하지 않습니다.
@@ -148,9 +175,8 @@ Engine도 해당 Step 진단을 그대로 저장할 수 있습니다.
 순환을 검사하고 최대 32개까지만 관찰합니다. 이는 실행 정책이 아닌 종료 처리의 작업량
 상한이며, 오류 메시지·HTTP status·vendor code의 의미를 여기서 추측하지 않습니다.
 
-Pipeline은 실패 이벤트 뒤 자식 generator를 더 진행하지 않습니다. 이를 위해 공통 helper가
-분류된 오류에 한해 `EngineEvent.failure_code`를 채웁니다. Pipeline은 이 명시적인 Engine
-계약만 전달하고 관찰용 Diagnostic code를 임의로 승격하지 않습니다. failure_code는
+공통 helper는 분류된 오류에 한해 `EngineEvent.failure_code`를 채웁니다. 이벤트 소비자는
+이 명시적인 Engine 계약만 전달하고 관찰용 Diagnostic code를 임의로 승격하지 않습니다. failure_code는
 런타임 조합용 문자열이며 영속 Step에는 추가하지 않습니다. 예외 객체/traceback도 저장하지 않습니다.
 
 StepEventRecorder/StepManager는 전달된 status/error/diagnostic을 기존 소유 경로에 저장할 뿐

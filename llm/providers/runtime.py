@@ -297,7 +297,8 @@ def diagnostic_scope(callback):
         for handler in (callback, previous):
             if handler is not None:
                 try:
-                    handler(event)
+                    # Observation must not rewrite evidence used by recovery.
+                    handler(type(event).from_dict(event.to_dict()))
                 except Exception:
                     pass
     token = _observer.set(observe)
@@ -321,7 +322,7 @@ def diagnostic(code, *, severity="info", **details):
     callback = _observer.get()
     if callback is not None:
         try:
-            callback(event)
+            callback(event)  # diagnostic_scope supplies a separate copy to each observer.
         except Exception:
             pass
     return event
@@ -338,12 +339,30 @@ def diagnostic_failure(error, *, operation, stage, **details):
         from llm.errors import exception_chain
         from .requests import error_code
         chain = []
+        request_failure = None
+        http_seen = False
         for current in exception_chain(error):
             entry = {"type": f"{type(current).__module__}.{type(current).__qualname__}", "frames": [],
                      **_error_details(current)}
             status = getattr(current, "status_code", None)
             if type(status) is int:
                 entry["status_code"] = status
+                if not http_seen and status == 400:
+                    # Interpret only this cause, even when detailed logging is disabled.
+                    body = getattr(current, "body", None)
+                    if isinstance(body, Mapping) and isinstance(body.get("error"), Mapping):
+                        body = body["error"]
+                    message = body.get("message") if isinstance(body, Mapping) else None
+                    text = (message if isinstance(message, str) else str(current)).lower()
+                    reason = ("parameter" if any(term in text for term in (
+                        "unsupported parameter", "unknown parameter", "unrecognized request argument")) else
+                        "context" if any(term in text for term in (
+                        "context_length_exceeded", "maximum context length", "context length exceeded",
+                        "context window exceeded", "exceeds the context", "exceeds context",
+                        "context window limit", "too many tokens", "prompt is too long")) else None)
+                    if reason:
+                        request_failure = {"reason": reason, "cause_index": len(chain), "status_code": status}
+                http_seen = True
             if isinstance(current, OSError) and type(current.errno) is int:
                 entry["errno"] = current.errno
             if isinstance(current, AttributeError) and isinstance(current.name, str) and current.name.isidentifier():
@@ -359,7 +378,8 @@ def diagnostic_failure(error, *, operation, stage, **details):
                                         "function": code.co_name})
                 trace = trace.tb_next
             chain.append(entry)
-        return diagnostic(error_code(error), severity="error", operation=operation,
+        return diagnostic(error_code(error), severity="error", operation=operation, boundary="provider",
+                          **({"request_failure": request_failure} if request_failure else {}),
                           stage=stage, exceptions=chain, sdk_versions=_sdk_versions(), **details)
     except Exception:
         # 파일/observer/예외 객체가 고장나도 원래 실패와 cleanup 순서를 보존한다.

@@ -98,7 +98,7 @@ class ProjectManager:
         self.ownership = repository.ownership
         self.sessions.bind_project_access(self.access)
         self.components = registry
-        from llm.services.runtime.policies import model_token_count
+        from llm.providers.litellm import model_token_count
         self.usage_counters = {"model_default": model_token_count}
         self.backups = backups if backups is not None else DirectoryBackups()
         from llm.services.lifecycle.steps import StepRepository
@@ -352,7 +352,7 @@ class ProjectManager:
             from datetime import datetime, timezone, timedelta
             usage = current.config.policies.get("usage", {})
             reader = getattr(component, "model_usage", None)
-            receipts = reader(current) if reader and component.root(current).exists() else []
+            receipts = reader(current) if reader else []
             period = usage.get("period_seconds")
             cutoff = datetime.now(timezone.utc) - timedelta(seconds=period) if period is not None else None
             if any(r.get("status") == "started" for r in receipts):

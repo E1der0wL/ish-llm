@@ -57,30 +57,64 @@ def mark_host_overrides(schema, values):
         schema["x-host-override"] = True
 
 
+def schema_nodes(value):
+    """Yield only JSON Schema objects, never instance data or annotation payloads.
+
+    The vocabulary is structural: property names are opaque, and const/enum/
+    examples/default plus extension annotations are data. Local references are
+    not expanded; their definitions are visited at their declared locations.
+    """
+    if not isinstance(value, dict):
+        return
+    yield value
+    for key in ("properties", "patternProperties", "$defs", "definitions", "dependentSchemas"):
+        mapping = value.get(key)
+        if isinstance(mapping, dict):
+            for child in mapping.values():
+                yield from schema_nodes(child)
+    for key in ("items", "additionalItems", "additionalProperties", "unevaluatedProperties",
+                "unevaluatedItems", "contains", "propertyNames", "not", "if", "then", "else", "contentSchema"):
+        child = value.get(key)
+        if isinstance(child, list):
+            for item in child:
+                yield from schema_nodes(item)
+        else:
+            yield from schema_nodes(child)
+    for key in ("allOf", "anyOf", "oneOf", "prefixItems"):
+        children = value.get(key)
+        if isinstance(children, list):
+            for child in children:
+                yield from schema_nodes(child)
+    dependencies = value.get("dependencies")
+    if isinstance(dependencies, dict):
+        for child in dependencies.values():
+            yield from schema_nodes(child)  # Property dependency lists are not schemas.
+
+
+def validate_local_refs(value):
+    """Check schema references, never keys inside instance data or annotations."""
+    for item in schema_nodes(value):
+        for key in ("$ref", "$dynamicRef"):
+            if key in item and (not isinstance(item[key], str) or not item[key].startswith("#")):
+                raise ValueError("Only local schema references are supported")
+
+
 def checked_schema(value):
     """UI 스키마는 JSON이며 외부 스키마를 내려받지 않는다."""
     import json
     json.dumps(value, allow_nan=False)
-    def check(item, mapping=False):
-        if isinstance(item, dict):
-            for key, child in item.items():
-                if key == "default" and not mapping:
-                    raise ValueError("Configuration schemas must not provide implicit defaults")
-                if key in ("$ref", "$dynamicRef") and not str(child).startswith("#"):
-                    raise ValueError("Only local configuration schema references are supported")
-                if key not in ("const", "enum", "examples"):
-                    check(child, not mapping and key in ("properties", "patternProperties", "$defs", "definitions", "dependentSchemas"))
-        elif isinstance(item, list):
-            for child in item:
-                check(child)
-    check(value)
     Draft202012Validator.check_schema(value)
+    validate_local_refs(value)
+    for item in schema_nodes(value):
+        if "default" in item:
+            raise ValueError("Configuration schemas must not provide implicit defaults")
     return deepcopy(value)
 
 
 def checked_implementation_schema(value):
     """확장 구현체도 같은 설정 외형을 공개한다. 각 section의 내용은 구현체가 결정한다."""
     spec = checked_schema(value)
+    narrowing_paths(spec)
     if not isinstance(spec, dict) or spec.get("type") != "object":
         raise ValueError("Implementation configuration schema must describe an object")
     if spec.get("properties", {}).keys() - {"config", "policy"}:
@@ -91,3 +125,46 @@ def checked_implementation_schema(value):
     # 외형 제한을 schema에도 담아 ProjectConfig와 UI 검증이 일치하게 한다.
     spec["additionalProperties"] = False
     return spec
+
+
+def narrowing_paths(schema):
+    """Explicit ownership rule: limits live on numeric properties, not branches.
+
+    JSON Schema validation still supports references/composition. Our additional
+    cross-scope narrowing contract deliberately does not infer conditional paths
+    or expand references. An unsupported declaration fails at registration and
+    resolution rather than silently losing its authority constraint.
+    """
+    paths = []
+    mappings = {"properties", "patternProperties", "$defs", "definitions", "dependentSchemas"}
+    single = {"items", "additionalItems", "additionalProperties", "unevaluatedProperties",
+              "unevaluatedItems", "contains", "propertyNames", "not", "if", "then", "else", "contentSchema"}
+    arrays = {"allOf", "anyOf", "oneOf", "prefixItems"}
+
+    def visit(spec, path=(), direct=True):
+        if not isinstance(spec, dict):
+            return
+        if "x-narrowing" in spec:
+            kinds = spec.get("type")
+            kinds = {kinds} if isinstance(kinds, str) else set(kinds or ())
+            if (not direct or not path or spec["x-narrowing"] != "maximum"
+                    or not kinds.intersection({"integer", "number"})
+                    or kinds - {"integer", "number", "null"}):
+                raise ValueError("x-narrowing requires an inline numeric property path: " + "/".join(path))
+            paths.append(path)
+        for key in mappings:
+            for name, child in spec.get(key, {}).items():
+                visit(child, (*path, name), direct and key == "properties")
+        for key in single:
+            child = spec.get(key)
+            if isinstance(child, list):
+                for item in child:
+                    visit(item, path, False)
+            else:
+                visit(child, path, False)
+        for key in arrays:
+            for child in spec.get(key, []):
+                visit(child, path, False)
+
+    visit(schema)
+    return tuple(paths)

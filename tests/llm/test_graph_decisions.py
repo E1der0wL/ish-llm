@@ -125,7 +125,8 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
             calls.append(node.node_id)
             if node.node_id in ("first", "review"):
                 trace.append(("effect", node.node_id))
-            saved = self.app.run_repository.checkpoint(node.context.run)["records"][node.checkpoint_key]
+            # EngineContext is a Run-start snapshot; the handler names its checkpoint.
+            saved = self.app.run_repository.checkpoint(node.context.run, "graph")["records"][node.checkpoint_key]
             self.assertEqual(saved["status"], "started")
             self.assertTrue(any(step.name == node.node_id and step.status == StepStatus.RUNNING
                                 for step in self.app.step_manager.list(node.context.run)))

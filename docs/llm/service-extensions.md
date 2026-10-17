@@ -63,12 +63,19 @@ class ResearchEngine(BaseEngine):
 쓰지 않는 Engine에는 영향을 주지 않는다. `LoopEngine`은 `("tools",)`를 선언한다.
 기존 사용자 Engine이 `context.tools`를 사용한다면 같은 선언을 추가해야 한다.
 
+사용자 정의 capability resolver는 `resolve(project, names)`를 제공한다. 선택적 동기
+`validate(project)`는 접수 시 자기 capability 구성을 검증한다. 사용량 상한을 집행하려면
+동기 `model_usage(project)`도 제공하여 비활성 Component를 포함한 Project의 모델 사용량
+영수증 목록을 반환해야 한다. Component 모델 호출이 없다면 `[]`를 명시적으로 반환한다.
+누락 시 상한을 무시하지 않고 `usage_configuration`으로 거부한다. 기존
+`ComponentToolResolver`는 이 계약을 제공한다. [공통 경계](shared-contracts.md)를 참고한다.
+
 일반 capability 값은 해당 기능을 제공하는 선택된 Component들의 결과 튜플이다.
 `tools`는 기존 ToolRegistry로 합쳐져 `context.tools`와
 `context.capabilities["tools"]`에서 접근할 수 있다. Tool이 없는 프로젝트의 빈 ToolRegistry는
 정상이며, 다른 필수 capability의 제공자가 없으면 Run이 `capability_failed`로 실패한다.
-PipelineEngine은 모든 단계의 선언을 합쳐 Run 시작 시 한 번 구성한다.
-준비 단계에서 생성하는 임시 데이터는 `context.state`를 사용한다.
+여러 작업을 조율할 때는 Graph Workflow를 사용한다. 실행 중 생성하는 임시 데이터는
+`context.state`를 사용하며 영속 재개 상태는 Engine의 checkpoint 계약을 따른다.
 
 ## 사용자 이벤트 처리기
 

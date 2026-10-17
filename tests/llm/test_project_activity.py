@@ -174,10 +174,16 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
         return await (await (session or self.session).run.submit("SECRET-PROMPT", engine="test", **options)).wait(timeout=20)
 
     async def test_success_many_steps_two_sessions_reopen_and_no_raw_content(self):
-        from llm.engines.pipeline import PipelineEngine
         async def action(context):
             yield "SECRET-OUTPUT"
-        engine = PipelineEngine([BaseEngine(action=action), BaseEngine(action=action)])
+        from contextlib import aclosing
+        class Work(BaseEngine):
+            async def execute(self, context):
+                for name in ('first', 'second'):
+                    async with aclosing(self.step(context, action, name=name)) as events:
+                        async for event in events:
+                            yield event
+        engine = Work()
         root = await self.setUpBackend(engine)
         second = await self.project.sessions.acreate()
         handles = await asyncio.gather(self.run_request(), self.run_request(second))

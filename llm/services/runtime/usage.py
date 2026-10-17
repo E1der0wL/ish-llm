@@ -2,7 +2,6 @@
 
 import asyncio
 from copy import deepcopy
-import json
 from types import SimpleNamespace
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -10,6 +9,7 @@ from datetime import datetime, timezone, timedelta
 
 from llm.policies import ExecutionLimitError
 from llm.core.models import now, new_id
+from llm.providers.observations import ModelCall
 
 _current = ContextVar("llm_usage_scope", default=None)
 
@@ -31,17 +31,14 @@ class UsageScope:
         finally:
             _current.reset(token)
 
-    async def reservation(self, request):
+    async def reservation(self, invocation: ModelCall):
         """토큰 상한 사용 시 입력 계수와 명시적 출력 상한이 필요하다. 누락 사용량은 예약을 유지한다."""
         if self.policy.get("max_tokens") is None and self.policy.get("project_max_tokens") is None:
             return None
-        output = request.get("max_completion_tokens", request.get("max_tokens"))
-        if type(output) is not int or output < 1:
-            raise ExecutionLimitError("usage_configuration", "Token quota requires an explicit completion output limit")
-        count = await asyncio.to_thread(self.counter, request)
+        count = await asyncio.to_thread(invocation.count_tokens, self.counter)
         if type(count) is not int or count < 0:
             raise ExecutionLimitError("usage_configuration", "Token counter must return a nonnegative integer")
-        return count + output
+        return count
 
 
 def check_admission(run, result, reservation, project_entries, component_entries=()):
@@ -85,7 +82,7 @@ def component_usage(registry, project):
     for name in registry.names():
         component = registry.get(name)
         reader = getattr(component, "model_usage", None)
-        if reader and component.root(project).exists():
+        if reader:
             entries.extend(reader(project))
     return entries
 
@@ -100,7 +97,7 @@ class ComponentUsage:
         project, _ = self.data._current()
         return deepcopy(project.config.policies)
 
-    def _reserve(self, operation, request, reservation, source):
+    def _reserve(self, invocation, reservation, source):
         project, component = self.data._current()
         policies = project.config.policies
         repository = self.sessions.run_repository
@@ -128,29 +125,32 @@ class ComponentUsage:
             run = SimpleNamespace(metadata={"policies": policies}, id=None)
         owned = [e for e in auxiliary if run.id is not None and e.get("run_id") == run.id]
         check_admission(run, None, reservation, [*entries, *auxiliary], owned)
-        entry = {"id": new_id(), "operation": operation, "model": request.get("model"),
+        entry = {"id": new_id(), "operation": invocation.operation, "model": invocation.model,
                  "component": component.name, "started_at": now(), "status": "started",
                  "usage": {}, "usage_complete": False, "reserved_tokens": reservation, **(source or {})}
         component.save_model_usage(project, entry)
         return entry
 
-    def _finish(self, entry, response, error):
+    def _finish(self, invocation, entry, response, error):
         project, component = self.data._current()
-        usage = response.get("usage") if isinstance(response, dict) else getattr(response, "usage", None)
-        if hasattr(usage, "model_dump"):
-            usage = usage.model_dump()
-        usage = usage if isinstance(usage, dict) else {}
+        usage = invocation.read_usage(response) if error is None else {}
+        if not isinstance(usage, dict):
+            raise TypeError("Model usage must be a normalized dictionary")
         valid = type(usage.get("total_tokens")) is int and usage["total_tokens"] >= 0
         entry.update(ended_at=now(), status="failed" if error else "completed",
                      usage=usage if valid else {}, usage_complete=valid)
         if error:
             # 공급자 예외의 원문에는 endpoint 응답/요청 내용이 섞일 수 있다.
-            from llm.providers.requests import error_code
-            entry["error"] = error_code(error)
-            entry["diagnostic_code"] = error_code(error)
+            code = invocation.classify_error(error)
+            if not isinstance(code, str) or not code:
+                raise TypeError("Model error classification requires a code")
+            entry["error"] = code
+            entry["diagnostic_code"] = code
         component.save_model_usage(project, entry)
 
-    async def __call__(self, operation, request, call):
+    async def __call__(self, invocation: ModelCall, request, call):
+        if not isinstance(invocation, ModelCall):
+            raise TypeError("Model observation requires ModelCall")
         policies = await self.data._async_call(self._get_policies)
         scope = current_usage()
         source = deepcopy(scope.source) if scope else None
@@ -160,25 +160,16 @@ class ComponentUsage:
             counter = scope.counter if source else self.counters.get(policies.get("usage", {}).get("counter"))
             if counter is None:
                 raise ExecutionLimitError("usage_configuration", "Component model quota requires a token counter")
-            counted = deepcopy(request)
-            if operation in ("aembedding", "arerank"):
-                payload = request.get("input") if operation == "aembedding" else [request.get("query"), request.get("documents")]
-                counted["messages"] = [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
-                output = 0
-            else:
-                output = request.get("max_completion_tokens", request.get("max_tokens"))
-                if type(output) is not int or output < 1:
-                    raise ExecutionLimitError("usage_configuration", "Component completion quota requires an output token limit")
-            count = await asyncio.to_thread(counter, counted)
+            count = await asyncio.to_thread(invocation.count_tokens, counter)
             if type(count) is not int or count < 0:
                 raise ExecutionLimitError("usage_configuration", "Token counter requires a nonnegative integer")
-            reservation = count + output
+            reservation = count
         # 예약과 검사 전체를 같은 workspace 잠금으로 처리하여 다른 Run/색인 작업과 경쟁하지 않는다.
-        entry = await self.data._async_call(self._reserve, operation, request, reservation, source)
+        entry = await self.data._async_call(self._reserve, invocation, reservation, source)
         try:
             response = await call(**request)
         except BaseException as error:
-            await self.data._async_call(self._finish, entry, None, error)
+            await self.data._async_call(self._finish, invocation, entry, None, error)
             raise
-        await self.data._async_call(self._finish, entry, response, None)
+        await self.data._async_call(self._finish, invocation, entry, response, None)
         return response

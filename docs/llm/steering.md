@@ -143,15 +143,17 @@ RunManager가 메시지·대상·선택·반영 기록을 저장한다. Engine�
 전달 Engine은 `declare_instruction_routes`로 검증된 경로를 Run당 한 번 선언하고,
 `bind_instruction_route`로 실제 노드 시작 시 한 번 결합한다. 결합 ACK 전에는 노드 효과를
 실행하지 않는다. 서비스는 접수와 결합을 같은 StorageIO 직렬화/트랜잭션 경계로 처리한다.
-Graph의 AgentNode.instruction_engine은 실제 소비 엔진 이름만 선언하며 경로 열거·반복/분기
-해석은 Graph가 소유한다. 같은 실행 scope를 여러 번 결합하거나 열면 거부한다.
+Graph의 AgentNode.instruction_engine은 등록 Engine의 `steering_mode=CONSUME` 선언을
+사용하며 미선택 Agent의 factory를 평가하지 않는다. `for_agent()`의 반환 Engine은 이
+선언을 유지해야 한다. 경로 열거·반복/분기 해석은 Graph가 소유한다.
+같은 실행 scope를 여러 번 결합하거나 열면 거부한다.
 
 ## Graph 전달과 명시적 재개
 
 Graph는 `FORWARD`다. AgentNode가 호출별 채널을 만들고 체크포인트 bridge를 통해
 자식의 선택·반영 이벤트를 부모 저장 경계로 전달한다. 각 자식은 별도 전달함을 사용한다.
 Graph Agent와 중첩 Workflow에서도 같은 경로를 쓴다. 미지원 합성 Engine에는 입력 채널을
-주입하지 않으므로 내부 Loop에 자동 전달되지 않는다. Pipeline 라우팅은 제공하지 않는다.
+주입하지 않으므로 내부 Loop에 자동 전달되지 않는다.
 
 Loop는 `steering:<iteration>` 키와 기존 반영 시점을 유지한다. 현재 completion과
 Tool 묶음을 마친 뒤 다음 completion에 반영한다. Graph는 LangGraph 스케줄링과
@@ -171,8 +173,9 @@ engine_record envelope로 Graph 체크포인트에 연결한다. 명시적 재�
 memory 메시지는 백엔드 종료 후 복원되지 않는다.
 
 추가 지시를 소비하는 custom Agent Engine은 `for_agent`, 유효한 `checkpoint_name` 및
-`validate_resume` 계약도 구현해야 한다. AgentNode는 factory가 반환한 실제 Engine을
-사전 탐색에서 검증하므로 계약 오류가 있으면 앞선 Tool 노드와 MCP 연결도 실행하지 않는다.
+`validate_resume` 계약도 구현해야 한다. AgentNode는 선택된 factory의 반환 Engine과
+등록 선언의 일치를 승인 대기·실행·재개 전에 검증한다. 이 검증이 실패하면 해당 Agent의
+자원 연결과 효과를 시작하지 않는다. 앞서 완료된 다른 노드의 효과를 되돌리지는 않는다.
 일반 미지원 Engine이나 최상위 소비자에 Graph 전용 재개 계약을 추가로 강제하지 않는다.
 GraphEngine/ToolExecutor의 승인·retry·operation receipt·Step 수명은 이 기능으로 이동하지 않는다.
 

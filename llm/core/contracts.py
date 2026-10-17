@@ -1,14 +1,20 @@
 """UI와 서비스가 공유하는 JSON 데이터 계약. 실행 권한이나 저장 책임은 갖지 않는다."""
 
 from copy import deepcopy
+from contextvars import ContextVar
 from dataclasses import dataclass, field, fields, is_dataclass
 from enum import Enum
 import math
 from pathlib import Path
+from types import UnionType
 from typing import Any, Optional, Union, get_args, get_origin, get_type_hints
 
 from .models import ProjectConfig
-from llm.errors import exception_chain, stable_error_code
+from llm.errors import exception_chain, stable_error_code, get_error_attribute
+
+
+# Observation-local recursion guard; no exception/Component type is privileged.
+_diagnostic_reads = ContextVar("llm_diagnostic_reads", default=())
 
 
 def _encode(value):
@@ -29,7 +35,7 @@ def _decode(kind, value):
     origin, args = get_origin(kind), get_args(kind)
     if kind is Any:
         return deepcopy(value)
-    if origin is Union:
+    if origin in (Union, UnionType):
         for candidate in args:
             try:
                 return _decode(candidate, value)
@@ -43,7 +49,12 @@ def _decode(kind, value):
     if origin in (list, tuple) or kind in (list, tuple):
         if not isinstance(value, list):
             raise ValueError("Expected an array")
-        items = [_decode(args[0] if args else Any, item) for item in value]
+        if origin is tuple and args and args[-1] is not Ellipsis:
+            if len(value) != len(args):
+                raise ValueError("Tuple length does not match the declared JSON type")
+            items = [_decode(item_type, item) for item_type, item in zip(args, value)]
+        else:
+            items = [_decode(args[0] if args else Any, item) for item in value]
         return tuple(items) if origin is tuple or kind is tuple else items
     if origin is dict or kind is dict:
         if not isinstance(value, dict):
@@ -124,16 +135,44 @@ class Diagnostic(JsonValue):
             raise ValueError("Invalid diagnostic code or severity")
 
     @classmethod
-    def from_exception(cls, error: Exception, *, code="execution_failed", source=None):
+    def from_exception(cls, error: Exception, *, code="execution_failed", source=None, boundary=None):
         # Diagnostic은 관찰 계약이다. Run의 신뢰 판별은 stable_error_code가 별도로 한다.
         known = stable_error_code(error)
+        chain = list(exception_chain(error))
+        # Re-entering for the same error uses the plain fallback. Do not walk
+        # factories again: a chain of recursive properties would multiply reads.
+        candidates = () if id(error) in _diagnostic_reads.get() else chain
+        for current in candidates:
+            supplied = None
+            active = _diagnostic_reads.get()
+            if id(current) not in active:
+                token = _diagnostic_reads.set((*active, id(current)))
+                try:
+                    supplied = get_error_attribute(current, "diagnostic")
+                finally:
+                    _diagnostic_reads.reset(token)
+            # A property may call this converter itself. Re-entry skips only
+            # that property, retaining the normal code/cause fallback below.
+            if isinstance(supplied, cls) and (known is None or supplied.code == known):
+                return cls(supplied.code, supplied.message, severity=supplied.severity,
+                           source=supplied.source or source, details=supplied.details)
+        details = {"exceptions": [{"type": f"{type(item).__module__}.{type(item).__qualname__}"}
+                                  for item in chain]}
+        if boundary is not None:
+            details["boundary"] = boundary
         if known is not None:
-            return cls(known, str(error), source=source)
-        for current in exception_chain(error):
-            value = getattr(current, "code", None)
+            return cls(known, str(error), source=source, details=details)
+        for current in chain:
+            value = get_error_attribute(current, "code")
             if isinstance(value, str) and value.strip():
-                return cls(str(value), str(error), source=source)
-        return cls(code, str(error), source=source)
+                return cls(str(value), str(error), source=source, details=details)
+        return cls(code, str(error), source=source, details=details)
+
+    @property
+    def classification(self):
+        """Derived observation, never another persisted failure or retry policy."""
+        from .diagnostics import classify_diagnostic
+        return classify_diagnostic(self)
 
 
 @dataclass(frozen=True, slots=True)

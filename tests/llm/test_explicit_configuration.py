@@ -13,7 +13,6 @@ from llm.core.models import ProjectConfig
 from llm.core.policies import normalize_policies
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
-from llm.engines.pipeline import PipelineEngine, PreparationStep
 from llm.components.rag import RAGComponent, EmbeddingModel, TripleExtractor
 from llm.components.memory import MemoryComponent
 from llm.components.tools import Tool
@@ -32,8 +31,7 @@ def chunks(text="ok"):
 class ConfigurationTests(unittest.TestCase):
     def test_host_override_metadata_matches_effective_values(self):
         cases = [(LoopEngine(), "system_prompt", "project prompt"),
-                 (GraphEngine(handlers={}), "timeout_seconds", 300),
-                 (PreparationStep("prepare", lambda context: None), "timeout_seconds", 300)]
+                 (GraphEngine(handlers={}), "timeout_seconds", 300)]
         for engine, key, value in cases:
             with self.subTest(engine=type(engine).__name__, key=key):
                 section = "config" if key == "system_prompt" else "policy"
@@ -44,19 +42,6 @@ class ConfigurationTests(unittest.TestCase):
                 self.assertTrue(view["editable"]["/" + section + "/" + key])
                 self.assertNotIn("x-host-override", engine.describe_config()["properties"][section]["properties"][key])
 
-    def test_pipeline_and_runtime_prompt_override_metadata(self):
-        engine = PipelineEngine({"explicit": LoopEngine(), "dynamic": LoopEngine()})
-        config = {"parameters": {"engines": {"pipeline": {'config': {'stages': {
-            "explicit": {"config": {"system_prompt": None}}, "dynamic": {"config": {"system_prompt": "project prompt"}}}}}}}}
-        view = engine.resolve_config(config, "pipeline")["stages"]
-        schema = engine.describe_config()["properties"]["config"]["properties"]["stages"]["properties"]
-        self.assertIsNone(view["explicit"]["values"]["config"]["system_prompt"])
-        self.assertEqual(view["explicit"]["sources"]["/config/system_prompt"], "project")
-        self.assertEqual(view["dynamic"]["values"]["config"]["system_prompt"], "project prompt")
-        self.assertEqual(view["dynamic"]["sources"]["/config/system_prompt"], "project")
-        for name in view:
-            self.assertTrue(view[name]["editable"]["/config/system_prompt"])
-            self.assertNotIn("x-host-override", schema[name]["properties"]["config"]["properties"]["system_prompt"])
 
     def test_sparse_resolution_and_null(self):
         for session, host, expected, source in (({}, {}, 300, "project"),

@@ -92,7 +92,7 @@ max_tool_calls는 한 모델 응답의 Tool 개수 제한이고 policy.max_tool_
 
 AgentNode의 엔진 등록은 백엔드 Run용 엔진 등록과 독립적이다. 커스텀 엔진은 순수 동기
 `for_agent(definition)`에서 별도 실행기를 반환하고 `execute(context)`에서 이벤트를 보낸다.
-Factory는 사전 검증에서도 호출되므로 외부 작업을 수행하거나 등록 객체를 수정하면 안 된다.
+Factory는 해당 Agent의 선택·재개 검증에서도 호출되므로 외부 작업을 수행하거나 등록 객체를 수정하면 안 된다.
 실제 작업은 execute에서 수행한다. 엔진·어댑터 코드를 변경하면 revision도 올린다.
 
 Workflow와 처리 노드에는 아래 JSON 계약을 선택적으로 저장한다. 제어 노드와 loop.body에는

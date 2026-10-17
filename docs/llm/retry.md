@@ -152,3 +152,28 @@ SDK 내부 HTTP 재시도와 RAG의 의미 검증 repair는 각각의 소유 계
 
 이 기능은 Hub의 자동 경로 수정 전략이나 오류 복구 UI를 새로 제공하지 않는다.
 Application이 선택기를 연결하고 Project 재시도 정책을 명시해야 복구가 활성화된다.
+
+## 현재 Completion의 문맥 복구
+
+`LoopEngine(recover_completion=callback)`은 Provider가 문맥 초과 근거를 제공한 실패에서만
+입력 사본의 축약안을 요청한다. `CompletionRecovery`와 `CompletionRepair`는
+`llm.components.processing` 또는 `llm.llm`에서 import한다. 일반 `RetryDecision.changes`에
+`messages`를 허용하지 않는다. Loop의 기존 `policy.provider.max_attempts`와 절대 deadline을
+공유하며 별도 횟수나 timeout을 만들지 않는다. SDK retry가 켜져 outer invocation이 1회이면
+이 경로도 추가 호출하지 않는다. 부분 응답 수신, 취소, 예산 소진 뒤에는 복구하지 않는다.
+
+콜백은 `None` 또는 `CompletionRepair({message_index: replacement_text})`를 반환한다.
+백엔드가 제시한 `editable` 중 애플리케이션이 선택한 이전 대화·Tool 결과의 본문만 변경할 수 있다.
+현재 요청, 시스템·Agent 지침, 현재 실행의 추가 지시, 역할·순서·Tool 호출 ID·인자·정책은 보존한다.
+현재 사용자 본문 안에 섞인 자료는 별도 범위를 추측하지 않고 전체를 보호한다. 현재 요청을 비우는
+fallback은 없다. 기존 CompletionPolicy가 있다면 수정 후 전체 입력 예산을 다시 검사한다.
+
+저장된 대화·완료 Tool 결과·체크포인트는 변경하지 않는다. 현재 실패한 모델 호출만 이어가며
+Tool이나 Run을 다시 실행하지 않는다. 잘못된 제안, 요약 실패, callback deadline 소진은 원래
+Provider 실패를 유지하고 `completion_recovery_rejected`를 관찰한다. 취소는 그대로 전파한다.
+적용한 축약은 `completion_recovery`와 기존 CompletionResult의 attempt로 관찰한다.
+
+요약 모델·프롬프트·대상 크기는 애플리케이션이 명시한다. 콜백에서 기존 요약 API와 Provider
+경계를 사용하면 해당 호출의 원래 정책·사용량·관찰을 유지한다. 메인 Loop의 retry 값을 요약
+호출로 상속하지 않는다. 동기 콜백은 빠르게 반환해야 하며 외부 I/O는 취소 가능한 async API를 쓴다.
+사용 예와 현재 제한은 [오류·복구 API](backend-recovery.md)에 있다.

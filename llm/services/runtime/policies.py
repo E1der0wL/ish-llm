@@ -33,17 +33,11 @@ class RunPolicy:
             raise ValueError("max_capability_rounds must be a positive integer")
 
 
-def model_token_count(request: dict) -> int:
-    """모델별 LiteLLM 계산기에 메시지·Tool 정의를 전달한다. 원격 모델 호출은 하지 않는다."""
-    from llm.providers.runtime import litellm_sdk
-    return litellm_sdk().token_counter(model=request.get("model"), messages=request.get("messages"),
-                         tools=request.get("tools"), tool_choice=request.get("tool_choice"))
-
-
 class ProjectPolicyResolver:
     """영속 JSON 정책을 실행 객체에 연결한다. 계산기만 백엔드에 등록하고 정책값은 Project가 소유한다."""
 
     def __init__(self, token_counters=None):
+        from llm.providers.litellm import model_token_count
         self.token_counters = {"model_default": model_token_count, **dict(token_counters or {})}
         if any(not isinstance(name, str) or not name.strip() or not callable(counter)
                for name, counter in self.token_counters.items()):

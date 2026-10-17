@@ -115,10 +115,11 @@ class InteractionRequest:
         return cls(**data)
 
     def bind(self, checkpoint: str, key: str, *, decision_key: Optional[str] = None,
-             input_key: Optional[str] = None) -> "InteractionRequest":
+             input_key: Optional[str] = None, selection: bool = False) -> "InteractionRequest":
         """Engine의 재개 형식은 선택지 값으로 표현한다. UI는 이 값을 해석할 필요가 없다."""
         options = tuple(replace(o, value={decision_key: o.value}) if decision_key and type(o.value) is bool else o for o in self.options)
-        return replace(self, options=options, binding={"checkpoint": checkpoint, "key": key, "input_key": input_key})
+        return replace(self, options=options, binding={"checkpoint": checkpoint, "key": key, "input_key": input_key,
+                       **({"selection": True} if selection else {})})
 
     def decision_for(self, option_id: str, *, value: Any = None) -> Any:
         """선택지와 입력의 순수 형식 변환. 요청 수명/응답 지문 검증이나 승인을 대신하지 않는다."""
@@ -138,6 +139,8 @@ class InteractionRequest:
         if value is not None:
             if self.input_schema is None:
                 raise ValueError("Interaction does not accept input")
+            if self.binding.get("selection") is True:
+                return {"option_id": option.id, "value": deepcopy(value)}
             key = self.binding.get("input_key")
             if key:
                 if not isinstance(decision, dict) or key in decision:
@@ -145,7 +148,7 @@ class InteractionRequest:
                 decision[key] = deepcopy(value)
             else:
                 decision = deepcopy(value)
-        return decision
+        return {"option_id": option.id, "value": None} if self.binding.get("selection") is True else decision
 
     def select_decision(self, decision: Any, *, confirm_empty: bool = False) -> tuple[InteractionOption, Any]:
         """재개 값을 유일한 선택지와 추가 입력으로 분리한다. 누락 응답은 호출자가 구분한다.
@@ -154,6 +157,11 @@ class InteractionRequest:
         choice에는 적용하지 않는다. 반환값은 사본이며 응답 영수증을 생성하지 않는다.
         """
         ProjectConfig.validate_json({"decision": decision})
+        if self.binding.get("selection") is True:
+            if not isinstance(decision, dict) or decision.keys() != {"option_id", "value"}:
+                raise ValueError("Interaction selection requires option_id and value")
+            self.decision_for(decision["option_id"], value=decision["value"])
+            return deepcopy(next(o for o in self.options if o.id == decision["option_id"])), deepcopy(decision["value"])
         value = deepcopy(decision)
         input_key = self.binding.get("input_key")
         supplied = value.pop(input_key, None) if input_key and isinstance(value, dict) else None
@@ -168,6 +176,21 @@ class InteractionRequest:
         option = options[0]
         self.decision_for(option.id, value=supplied)
         return deepcopy(option), supplied
+
+    def find_approval(self) -> Optional[InteractionOption]:
+        """Only an unambiguous approval can be selected without a user's choice.
+
+        Option IDs are presentation identities, not execution semantics. Required
+        input belongs to the caller; no input or choice may be invented here.
+        """
+        options = [option for option in self.options if option.effect == "approve"]
+        if len(options) != 1:
+            return None
+        try:
+            self.decision_for(options[0].id)
+        except ValueError:
+            return None
+        return deepcopy(options[0])
 
     def respond(self, option_id: str, *, value: Any = None) -> "InteractionResponse":
         """UI가 본 요청 버전과 실행 대상에 묶인 응답을 만든다. 저장/실행은 하지 않는다."""

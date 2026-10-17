@@ -1,7 +1,7 @@
 """구현체 설정의 공개 경로와 내부 인자 이름을 연결한다. 값이나 정책을 생성하지 않는다."""
 
 from copy import deepcopy
-from .schema import implementation_schema, object_schema, validate_parameters
+from .schema import implementation_schema, object_schema, validate_parameters, schema_nodes
 
 
 class ParameterLayout:
@@ -153,21 +153,14 @@ class ParameterLayout:
             return "#/" + "/".join("properties/" + part.replace("~", "~0").replace("/", "~1")
                                     for part in path.split("."))
         locations = {pointer(source): pointer(target) for source, target in self.paths.items()}
-        def relocate(node, mapping=False):
-            if isinstance(node, dict):
-                if not mapping and any(key in node for key in ("$id", "$anchor", "$dynamicAnchor", "$dynamicRef")):
-                    raise ValueError("ParameterLayout cannot relocate schema resource scopes; use implementation_schema")
-                for key, value in tuple(node.items()):
-                    if key == "$ref" and not mapping:
-                        match = next((old for old in locations if value == old or value.startswith(old + "/")), None)
-                        if match:
-                            node[key] = locations[match] + value[len(match):]
-                        elif not value.startswith(("#/$defs/", "#/definitions/")):
-                            raise ValueError("ParameterLayout cannot relocate this reference; use implementation_schema")
-                    elif mapping or key not in ("const", "enum", "examples"):
-                        relocate(value, not mapping and key in ("properties", "patternProperties", "$defs", "definitions", "dependentSchemas"))
-            elif isinstance(node, list):
-                for child in node:
-                    relocate(child)
-        relocate(result)
+        for node in schema_nodes(result):
+            if any(key in node for key in ("$id", "$anchor", "$dynamicAnchor", "$dynamicRef")):
+                raise ValueError("ParameterLayout cannot relocate schema resource scopes; use implementation_schema")
+            if "$ref" in node:
+                value = node["$ref"]
+                match = next((old for old in locations if value == old or value.startswith(old + "/")), None)
+                if match:
+                    node["$ref"] = locations[match] + value[len(match):]
+                elif not value.startswith(("#/$defs/", "#/definitions/")):
+                    raise ValueError("ParameterLayout cannot relocate this reference; use implementation_schema")
         return result

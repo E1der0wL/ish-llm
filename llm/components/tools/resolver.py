@@ -10,13 +10,27 @@ from .registry import ToolRegistry
 
 
 class CapabilityResolver(Protocol):
+    """resolve is required; quota-enabled callers also require model_usage.
+
+    model_usage returns all Component receipts in this Project, including disabled
+    components. Implementations without any Component calls explicitly return [].
+    validate is an optional, synchronous admission check owned by the resolver.
+    """
     def resolve(self, project: Project, names: tuple[str, ...]) -> dict: ...
+    def model_usage(self, project: Project) -> list[dict]: ...
 
 
 class ComponentToolResolver:
     def __init__(self, components: ComponentRegistry, *, data_factory=None) -> None:
         self.components = components
         self.data_factory = data_factory
+
+    def validate(self, project: Project) -> None:
+        self.components.validate(project.components)
+
+    def model_usage(self, project: Project) -> list[dict]:
+        from llm.services.runtime.usage import component_usage
+        return component_usage(self.components, project)
 
     def resolve_tools(self, project: Project) -> ToolRegistry:
         """전달된 Project 사본의 설정을 사용한다. 서비스 호출자는 최신 Project를 전달한다."""

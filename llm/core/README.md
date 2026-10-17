@@ -15,11 +15,11 @@ Project → Session → Run → Step의 저장 모델과, Engine·서비스·UI�
 | [schema.py](schema.py) | 설정 UI에 쓰는 JSON Schema 생성·검증 도우미입니다. |
 | [contracts.py](contracts.py) | Diagnostic, OperationProgress, ResourceRef, ProjectActivityEvent 등 공통 관찰 데이터를 정의합니다. |
 | [interactions.py](interactions.py) | InteractionRequest/Response와 선택지·승인·재개 값의 공통 해석 계약입니다. |
-| [results.py](results.py) | EngineDelta, EngineOutput, CompletionResult, ExecutionResult를 정의합니다. |
+| [results.py](results.py) | EngineDelta, EngineOutput, ResumeOutput, CompletionResult, ExecutionResult를 정의합니다. |
 | [steering.py](steering.py) | RunInstruction/InstructionStatus, SteeringTarget/SteeringMode, 예약 경로 SteeringRoute와 일반 대기 요청 구분입니다. 새 영속 도메인은 아닙니다. |
 | [views.py](views.py) | SessionRuntimeView, RunView 등 UI 조회용 스냅샷입니다. |
 | [plans.py](plans.py) | 재개·복구·보관 작업의 계획과 결과 데이터입니다. |
-| [checkpoints.py](checkpoints.py) | 재개 포기 자료형과 정리 계획의 공통 CAS/차단 검사입니다. 저장과 실행 해석은 소유자가 담당합니다. |
+| [checkpoints.py](checkpoints.py) | 재개 포기 자료형, 정리 계획의 CAS/차단 검사와 중첩 기록 외피 계약입니다. 저장과 실행 해석은 소유자가 담당합니다. |
 
 ## 변경할 때 지킬 계약
 
@@ -31,5 +31,6 @@ Project → Session → Run → Step의 저장 모델과, Engine·서비스·UI�
 - Interaction의 권한 판정·응답 저장은 서비스 책임입니다. 선택지 해석 함수 자체가 승인 권한을 부여하지 않습니다.
 
 설정 규칙은 [CONFIGURATION.md](../CONFIGURATION.md), 저장·이벤트 처리는 [Services](../services/README.md)를 참고하세요.
+부분 출력·사용량·설정 제한·JSON 변환의 지원 범위는 [공통 경계](../../docs/llm/shared-contracts.md)에 정의되어 있습니다.
 
 [상위 안내](../README.md)

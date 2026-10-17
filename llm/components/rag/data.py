@@ -220,6 +220,20 @@ class RAGData(ComponentData):
         from .jobs import RAGJobs
         return RAGJobs(self).checkpoint_plan(identifier)
 
+    def resume_plan(self, identifier):
+        """Read Job-owned eligibility and revision without invoking any model."""
+        from .jobs import RAGJobs
+        return RAGJobs(self).resume_plan(identifier)
+
+    aresume_plan = async_method(resume_plan)
+
+    def job_diagnostic(self, identifier):
+        from llm.core.contracts import Diagnostic
+        value = self.job(identifier).get("diagnostic")
+        return Diagnostic.from_dict(value) if value is not None else None
+
+    ajob_diagnostic = async_method(job_diagnostic)
+
     def abandon_job(self, identifier, *, expected_revision):
         from .jobs import RAGJobs
         return RAGJobs(self).abandon(identifier, expected_revision=expected_revision)
@@ -233,9 +247,9 @@ class RAGData(ComponentData):
     adelete_job = async_method(delete_job)
 
     @observe_component_models
-    async def arun_job(self, identifier, *, retry=False):
+    async def arun_job(self, identifier, *, retry=False, expected_revision=None):
         from .jobs import RAGJobs
-        return await RAGJobs(self).run(identifier, retry=retry)
+        return await RAGJobs(self).run(identifier, retry=retry, expected_revision=expected_revision)
 
     async def arun_jobs(self, *, limit=None):
         """현재 영속 대기열을 순차 처리한다. 실패 작업은 남기고 다음 작업으로 진행한다."""

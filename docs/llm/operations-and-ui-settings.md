@@ -190,7 +190,10 @@ unknown으로 남아 이후 토큰 한도 수락을 막는다. 예약은 모델�
 공급자 내부 재시도 횟수를 보장하지 않는다.
 
 사용자 모델 클라이언트가 한도에 참여하려면 `observes_model_calls=True`를 선언하고 실제
-호출을 `llm.providers.observations.observed_call()`로 감싸야 한다. 한도가 켜진 RAG에서
+호출을 `llm.providers.observations.observed_call(invocation, request, call)`로 감싸야 한다.
+`invocation`은 어댑터가 만든 `ModelCall`이며 사용량 예약·응답 해석·오류 분류 계약을
+제공한다. 서비스는 어댑터의 private 요청/응답 필드를 읽지 않는다.
+한도가 켜진 RAG에서
 이 계약이 없는 주입 클라이언트는 실행 전에 거부한다. 일반 Component는 ComponentData의
 `model_scope()` 안에서 같은 관찰 경계를 사용할 수 있다. 원시 SDK를 직접 호출한 사용자
 코드를 자동 감시하는 기능은 아니다. 단독 ModelClient 호출도 Project 문맥이 없으면 기록하지 않는다.

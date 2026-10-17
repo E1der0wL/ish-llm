@@ -227,7 +227,7 @@ class EngineDecisionTests(unittest.TestCase):
             expires_at="2000-01-01T00:00:00+00:00")
         scope, child = self.scope(request=request)
         for value in (True, False):
-            context = self.context({scope.key("tool:1:call"): {"approved": value}})
+            context = self.context({scope.key("tool:1:call"): {"option_id": "yes" if value else "no", "value": None}})
             before = deepcopy((context.run.metadata, scope.records))
             with patch.object(InteractionRequest, "respond", side_effect=AssertionError("No new receipt")):
                 nested = scope.context(context)
@@ -239,7 +239,7 @@ class EngineDecisionTests(unittest.TestCase):
     def test_nested_scope_isolates_siblings_retry_keys_and_missing_decisions(self):
         scope, _ = self.scope()
         sibling, _ = self.scope('["other"]', scope.records)
-        context = self.context({sibling.key("tool:1:call"): {"approved": False}},
+        context = self.context({sibling.key("tool:1:call"): {"option_id": "deny", "value": None}},
                                (scope.key("tool:1:call"), sibling.key("tool:1:call")))
         nested = scope.context(context)
         self.assertEqual(nested.run.metadata["resume"]["decisions"], {})

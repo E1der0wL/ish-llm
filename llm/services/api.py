@@ -371,10 +371,17 @@ class Runs(AsyncFacade):
     async def resume_plan(self, run_id: str, *, engine: str) -> ResumePlan:
         return await self.app._manager(self.session._snapshot).resume_plan(run_id, engine=engine)
 
-    async def resume(self, run_id: str, *, engine: str, retry_nodes=(), decisions=None, partial_output=False) -> "RequestHandle":
+    async def resume(self, run_id: str, *, engine: str, retry_nodes=(), decisions=None, partial_output=False,
+                     expected_revision=None) -> "RequestHandle":
         """이전 Run의 체크포인트를 이어갈 새 요청. 실행 중이던 노드만 명시적으로 재시도한다."""
         message = await self.app._manager(self.session._snapshot).resume(
-            run_id, engine=engine, retry_nodes=retry_nodes, decisions=decisions, partial_output=partial_output)
+            run_id, engine=engine, retry_nodes=retry_nodes, decisions=decisions, partial_output=partial_output,
+            expected_revision=expected_revision)
+        return RequestHandle(self.session, message.id)
+
+    async def restart(self, run_id: str, *, engine: str, expected_revision: str) -> "RequestHandle":
+        message = await self.app._manager(self.session._snapshot).restart(
+            run_id, engine=engine, expected_revision=expected_revision)
         return RequestHandle(self.session, message.id)
 
     async def wait_idle(self) -> None:
@@ -536,8 +543,8 @@ class RunHandle(AsyncFacade):
     async def aresponse(self) -> Message:
         return await self._async_call(lambda: self.response)
 
-    def checkpoint(self, name: str = "graph") -> dict:
-        """UI용 JSON 스냅샷: 정의/입력과 노드별 completed/started/waiting 상태를 반환한다."""
+    def checkpoint(self, name: str | None = None) -> dict:
+        """Stored snapshot. Omit name for one checkpoint or an explicit resume reference."""
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             return self.app.run_repository.resolve_checkpoint(self.session.data, self.data, name)

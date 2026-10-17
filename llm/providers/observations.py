@@ -3,10 +3,36 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import wraps
+from dataclasses import dataclass
+from collections.abc import Callable
 import asyncio
 import time
 
 _observer = ContextVar("llm_model_observer", default=None)
+
+
+@dataclass(frozen=True, slots=True)
+class ModelCall:
+    """Adapter-owned usage interpretation; services own quotas and persistence.
+
+    count_tokens(counter) returns a conservative input+output reservation, or
+    raises when it cannot be determined. read_usage(response) returns canonical
+    usage fields (including total_tokens when known). No SDK objects are stored.
+    These trusted callbacks grant no retry, approval or execution authority.
+    """
+    operation: str
+    model: str | None
+    count_tokens: Callable
+    read_usage: Callable
+    classify_error: Callable
+
+    def __post_init__(self):
+        if not isinstance(self.operation, str) or not self.operation.strip():
+            raise ValueError("Model call requires an operation")
+        if self.model is not None and not isinstance(self.model, str):
+            raise TypeError("Model identity must be text or None")
+        if not all(callable(fn) for fn in (self.count_tokens, self.read_usage, self.classify_error)):
+            raise TypeError("Model call requires usage interpretation callbacks")
 
 
 @contextmanager
@@ -18,18 +44,21 @@ def model_observer(callback):
         _observer.reset(token)
 
 
-async def observed_call(operation, request, call):
+async def observed_call(invocation: ModelCall, request, call):
+    if not isinstance(invocation, ModelCall):
+        raise TypeError("Model observation requires an adapter-owned ModelCall")
     observer = _observer.get()
     async def tracked(**params):
-        with provider_attempt(operation):
+        with provider_attempt(invocation):
             return await call(**params)
-    return await observer(operation, request, tracked) if observer else await tracked(**request)
+    return await observer(invocation, request, tracked) if observer else await tracked(**request)
 
 
 @contextmanager
-def provider_attempt(operation):
+def provider_attempt(invocation: ModelCall):
     """공통 SDK 호출 경계. SDK 내부 retry 횟수는 관찰할 수 없으므로 추측하지 않는다."""
     from llm.services.infrastructure.observability import record
+    operation = invocation.operation
     started, status, code = time.monotonic(), "completed", None
     record("providers", "calls", name=operation)
     try:
@@ -38,8 +67,7 @@ def provider_attempt(operation):
         status = "cancelled"
         raise
     except BaseException as error:
-        from .requests import error_code
-        status, code = "failed", error_code(error)
+        status, code = "failed", invocation.classify_error(error)
         raise
     finally:
         record("providers", status, code=code, name=operation, duration_seconds=time.monotonic() - started)

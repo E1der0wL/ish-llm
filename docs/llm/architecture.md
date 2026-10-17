@@ -8,12 +8,27 @@ BackendServices / ToolRuntime / OutputBuffer로 표현한다. 실행·승인·�
 제품 정책 ceiling을 덮어쓰지 않는다. 수치 위험 분류, 저장 Agent 위임, Component dependency의
 현재 계약과 예제는 [Project authority](project-authority.md)에 정리한다.
 
-Provider 오류 분류와 서버 진단 추출은 providers가, completion 응답 계약/종료/출력 제한은
-BaseEngine이 소유한다. Run/Step 서비스는 분류된 오류와 Diagnostic을 기존 경로로 저장한다.
+Provider 오류 분류·서버 진단·SDK 요청/응답 해석은 providers의 선택 어댑터가 소유한다.
+BaseEngine은 공통 실행 수명, 명시적 재시도/기한, 부분 수신 후 replay 금지를 집행하고,
+선택 decoder가 명시된 출력 제한을 프로토콜에 맞게 검사한다.
+Run/Step 서비스는 분류된 오류와 Diagnostic을 기존 경로로 저장한다.
 RunManager가 SDK 메시지를 해석하거나 진단으로 승인/재개를 판단하지 않는다.
 상세 로그는 `BackendServices.provider_diagnostics`의 명시적 Host 로깅 설정이고,
 재시도 값은 각 Engine/Component의 기존 provider 정책에 남는다. 새로운 중앙 retry 정책,
 도메인 저장소, 승인 경로는 없다. [설정과 오류 코드](../../llm/providers/README.md).
+
+Agent 재개 지문은 실제 선택한 정의와 자원만 고정한다. 선택 기록은 승인 대기 이전에
+영속화하며 완료 결과를 재사용하는 자식도 재개 전에 검사한다. 미사용 Agent 목록을
+재개 지문에 넣지 않는다. 동적 선택의 capability는 RunManager의 Run-local resolver가
+제공하며 EngineContext는 공개 요구 목록만 전달한다. Tool scope는 계속 부모에서 좁힌다.
+Workflow의 구조적 사전 검증은 유지한다. 세부 제한과 9개 확장 경계는
+[공통 계약](shared-contracts.md#확장-경계-보강--9개-항목)에 정리한다.
+
+Agent의 private 설정·자원은 실제 선택 시와 재개 시 검증한다. 미선택 Agent를 실행 준비하지
+않으며, 선택 전에 실행한 독립 노드의 효과는 이 검증으로 되돌리지 않는다.
+Engine의 선택적 `bind_execution(context)`가 제공하는 JSON 실행 identity도 승인에 연결한다.
+Step 완료 이벤트는 checkpoint record를 첨부할 수 있다. 서비스가 출력·Step·checkpoint를
+하나의 기존 저장 트랜잭션으로 확정한 뒤 ACK하며, 실패 시 미완료 효과는 자동 재실행하지 않는다.
 
 ## 설정과 정의의 의미 소유권
 
@@ -207,8 +222,9 @@ RunManager가 경로·결합을 저장하고 접수와 직렬화하며, Engine�
 미사용 예약은 명시적 재개에 이전하지 않으며 선택만 된 미적용 ID도 새 체크포인트 사본에서
 제외한다. 적용한 예약은 기존 문맥만 복원하고 영수증을 추가하거나 원본 Run을 변경하지 않는다.
 지속 변경은 중단·Workflow 수정 후 새 submit으로 처음부터 실행한다.
-AgentNode는 for_agent가 반환한 소비자의 checkpoint_name/validate_resume 계약을 사전 탐색에서
-검사한다. 지시 데이터의 읽기·복구 경계는 현재 대상/상태/참조 형식을 검증하고 복구 상태 변경은
+예약 경로 탐색은 등록 Engine의 공개 steering_mode를 사용한다. AgentNode는 실제 선택 시
+for_agent가 반환한 소비자의 checkpoint_name/validate_resume 계약을 승인·효과 전에 검사한다.
+지시 데이터의 읽기·복구 경계는 현재 대상/상태/참조 형식을 검증하고 복구 상태 변경은
 전체 검증 뒤에만 수행한다. invalid_instruction_data는 원본을 변환하지 않는 명시적 거부이며
 형식이 맞지 않는 Session의 대기 요청을 자동 우회하지 않는다.
 
@@ -217,8 +233,8 @@ Loop의 반복별 steering:<iteration> 체크포인트에는 메시지 ID와 대
 승인 대기/재시작 시 사유를 남기며 자동 재실행하지 않는다. 재개는 여전히 새 Run이고
 memory 저장의 restart 한계도 같다. 재개 가능한 지시 참조는 보관 정책에서 보호한다.
 문맥·Memory 요약·CompletionPolicy는 해당 실행의 원래 입력과 추가 지시를 같은 턴으로 취급한다.
-노드 대상 지시는 다른 노드나 후속 일반 대화에 자동 삽입하지 않는다. Pipeline 단계 라우팅은
-미지원이다. [공통 계약·UI·custom Engine](steering.md), [Loop 반영](../../llm/engines/loop/README.md)을 따른다.
+노드 대상 지시는 다른 노드나 후속 일반 대화에 자동 삽입하지 않는다.
+[공통 계약·UI·custom Engine](steering.md), [Loop 반영](../../llm/engines/loop/README.md)을 따른다.
 
 ## RAG 추출 정책과 프롬프트
 
@@ -268,7 +284,7 @@ sessions/<id>/session.json에 저장되며 대화와 runs/는 해당 Session 아
 
 Engine 구현은 components와 같이 종류별 하위 패키지에 둔다. 공통 실행 계약·문맥·이벤트와
 BaseEngine은 engines/base.py, 등록·조회·설정 사전 검증은 engines/registry.py가 담당한다.
-Loop/Pipeline은 각각 engines/loop/engine.py, engines/pipeline/engine.py에 둔다.
+Loop는 engines/loop/engine.py에 둔다. 순차·중첩 작업은 Graph Workflow로 표현한다.
 Graph의 공개 엔진과 Run별 내부 실행은 engines/graph/engine.py에 함께 유지하며
 Graph용 AgentNode, ToolNode, 중첩 체크포인트 연결은 같은 graph/ 폴더에 둔다.
 공개 진입점은 각 패키지의 __init__.py다. 호환용 옛 모듈은 만들지 않는다.
@@ -308,9 +324,9 @@ Engine 이벤트와 UI 알림은 저장 확정 후 전달한다. 메모리 저�
 ## 설정 적용 계약
 
 Project → Session → Agent → 명시적인 호스트 값 순서를
-core/configuration.py에서 해석한다. Loop/Graph/Preparation/Pipeline의 configuration 계약은
-실행과 UI 조회가 공유하며, 호스트 값의 출처와 가려진 설정을 표시한다. Pipeline은 이름 있는
-단계별 설정을 제공하고 Graph는 중첩 실행/재개에서도 호출별 설정 사본을 사용한다.
+core/configuration.py에서 해석한다. Loop/Graph의 configuration 계약은
+실행과 UI 조회가 공유하며, 호스트 값의 출처와 가려진 설정을 표시한다.
+Graph는 중첩 실행/재개에서도 호출별 설정 사본을 사용한다.
 RAG의 JSON 설정은 분할·모델 인자·배치·검색·DB 옵션을 소유하며 등록 객체를 변경하지 않는다.
 ProjectConfig.parameters["components"]는 컴포넌트 설정의 유일한 저장 위치다.
 Component는 스키마·검증·해석을 담당하고 ComponentData의 편의 수정도 ProjectConfig에만 저장한다.
@@ -497,19 +513,19 @@ Project/Session/Run/Step JSON에는 storage_version=1를 명시한다. 누락/�
 ## 공통 출력 데이터와 조회
 
 core/results.py의 EngineDelta와 EngineOutput은 기존 실행 도메인의 값 객체다.
-새 출력 도메인/Manager를 만들지 않는다. Base·Loop·Graph·Agent·Pipeline·Tool이
+새 출력 도메인/Manager를 만들지 않는다. Base·Loop·Graph·Agent·Tool이
 EngineEvent.delta/output으로 전달하고 RunManager/StepEventRecorder가 저장한다.
 CompletionResult는 모델 관찰값, ExecutionResult는 Run 조회 뷰로 유지한다.
 
 BaseEngine.run은 str/EngineDelta/EngineOutput을 받아 이벤트로 변환한다. 델타 append/replace를
 Step 안에서 합산하고 최종 결과를 생략하면 합산한 텍스트로 확정한다. delta_event/output_event/
 step_completed_event는 저장 없이 소유 ID/표시 범위/순번 초기화를 적용하는 공통 메서드다.
-Loop는 상속으로, Graph/Agent/Pipeline은 정적 호출로 사용하여 각자의 실행 방식을 유지한다.
+Loop는 상속으로, Graph/Agent는 정적 호출로 사용하여 각자의 실행 방식을 유지한다.
 내부 표시 범위는 사용자 표시 범위로 승격하지 않으며, 결과 검증도 Step 실패 처리 범위에 둔다.
 
 output_id와 step_id로 병렬·중첩 출력을 분리한다. step_id=None인 최상위 결과는 Run에,
-Agent와 중첩 Graph 및 Tool 결과는 소유 Step에 저장한다. Pipeline은 stage별 engine Step을
-추가하고 마지막 stage 결과를 전달한다. Graph의 Workflow JSON 입출력 계약은 유지한다.
+Agent와 중첩 Graph 및 Tool 결과는 소유 Step에 저장한다.
+Graph의 Workflow JSON 입출력 계약은 유지한다.
 
 Run/state/outputs.jsonl은 append-only 출력 저널이다. RunManager가 Run 내 sequence를
 부여하고 저장한 뒤 알림을 발행한다. 최종 스냅샷은 run.json/step.json의 metadata.output에
@@ -845,7 +861,7 @@ Project/Session/Run/Step 파일과 로그는 유지한다. 메모리 모드는 �
 `BackendServices`에서 저장소, 대화 문맥, 이벤트 처리기, 로그 출력을 구성한다.
 LargeLanguageModel의 실행과 Facade/Project/Session 조회는 같은 Run/Step 저장소를 사용한다.
 Engine은 `required_capabilities` 튜플을 선언하며 기본값은 빈 튜플이다. LoopEngine만
-기본적으로 tools를 요청하고, PipelineEngine은 단계별 요구를 합친다. 일반 capability는
+기본적으로 tools를 요청한다. 일반 capability는
 EngineContext.capabilities에 들어가며 도메인 영속 모델에는 저장되지 않는다.
 
 RunManager는 내장 이벤트를 명시적으로 분기하고 사용자 이벤트는 EventHandlers로 전달한다.
@@ -1041,7 +1057,7 @@ The initial workspace contained documentation only. The `llm` package now
 implements the domain and persistence/runtime foundation described below:
 
 * `llm/core`: Project, Session, Message, Run, and Step dataclasses, persisted enums, and major paths (native slots)
-* `llm/engines`: Engine protocol, context snapshots, event types, registry, BaseEngine event lifecycle and LiteLLM chunk handling, LiteLLM LoopEngine, and sequential PipelineEngine/PreparationStep
+* `llm/engines`: Engine protocol, context snapshots, event types, registry, BaseEngine event lifecycle, LoopEngine, and durable GraphEngine orchestration
 * `llm/components`: generic directory/JSON base and registry; Tool, Skill, MCP, RAG, Agent, Workflow definition CRUD; unified RAG document CRUD, embedding/triples, local indexing and retrieval; requested runtime capabilities with a separate Tool adapter; Workflow structural validation
 * `llm/providers`: LiteLLM synchronous stream transport, bounded async bridge and request container copying
 * `llm/services/lifecycle/components.py`: ComponentData lifecycle-checked, workspace-locked access to selected component data
@@ -1334,8 +1350,8 @@ Nested dictionaries merge; explicit null replaces inherited values where support
 overrides cannot remove or widen a parent execution limit. Project/Session/Agent own execution
 settings; constructors inject implementations and technical identities. Runtime clients remain host-owned.
 Loop uses its registration name unless parameter_key explicitly selects another configuration.
-Pipeline stages can select a named target or their own stages mapping. RunManager still reloads
-Project/Session and snapshots policies at Run start. Active Run policy protection is unchanged.
+RunManager still reloads Project/Session and snapshots policies at Run start.
+Active Run policy protection is unchanged.
 Removed Project-level SDK/default sections are rejected without rewriting stored files.
 
 COMPLETION EngineEvents carry CompletionResult snapshots: a stable call ID,
@@ -1396,8 +1412,8 @@ SDK types; cancellation propagates, subject to provider cleanup behavior.
 RAG model options live in ProjectConfig.parameters.components.rag; custom Engines
 declare their own targeted parameters and read context.resolve_config(name)["engine"].
 Callers own mapping configuration into clients,
-inputs, output/index persistence and observability. Within a Run, self.step or
-PreparationStep can record embedding/rerank lifecycle; Tool handlers may call the
+inputs, output/index persistence and observability. Within a Run, BaseEngine.step
+can record embedding/rerank lifecycle; Tool handlers may call the
 same clients. No automatic model-call usage recording is introduced outside the
 existing COMPLETION event contract. Inference responses include native metadata;
 callers decide which numeric observations to emit. Rerank billing units must not be
@@ -1451,7 +1467,6 @@ LoopEngine is the only class in engines/loop/engine.py and inherits BaseEngine. 
 responsibility is Project/history/prompt configuration, batch validation before
 side effects, tool execution and bounded iteration. Each completion/tool uses
 self.step(), and every completion uses the inherited stream_completion().
-PreparationStep also inherits BaseEngine; PipelineEngine composition is unchanged.
 StepManager/StepEventRecorder still persist lifecycle events, and RunManager still
 owns queues, Runs, streaming conversation writes, cancellation and recovery.
 
@@ -1488,8 +1503,7 @@ or null, prepended once to the in-memory provider transcript when present.
 
 LoopEngine.parameter_key defaults to None, selecting context.run.engine rather
 than a hard-coded "loop" section. EngineContext.resolve_config() shares that default;
-an explicit section name overrides it. Pipeline stages therefore use the owning
-pipeline's registered name unless configured with parameter_key="stage-name".
+An explicit section name overrides it.
 Each Run-local Loop copy preserves that explicit choice. Registering a shared
 LoopEngine under different names does not mutate the shared Engine instance.
 
@@ -1498,23 +1512,16 @@ runtime handles. RunManager's context construction creates it; neither core
 models nor repositories acquire this field. Do not copy these outputs to event
 metadata by default, because they may contain documents or runtime-only values.
 
-engines/pipeline/engine.py supplies PipelineEngine(stages) and PreparationStep(name,
-action, kind=..., parameter_key=...). PreparationStep emits lifecycle events
-around an async action(context). Only explicit policy.timeout_seconds adds a
-deadline. Pipeline passes one context through its sequential stages, including nested
-pipelines. A failure, cancellation event, or unfinished Step prevents the next
-stage. Iterator cleanup is propagated; RunManager still owns Run cancellation,
-StepEventRecorder persistence, and queue/recovery semantics. Pipeline creates no
-extra Run. Actual cancellation propagates so RunManager records INTERRUPTED;
-non-success terminal events without cancellation fail the pipeline.
+Sequential and nested work uses Graph Workflow nodes. A preparation node can precede
+an AgentNode running LoopEngine; Graph owns their node checkpoints and explicit resume.
+Single custom actions use BaseEngine, and custom multi-Step Engines use BaseEngine.step
+without acquiring automatic checkpoint support. RunManager, StepEventRecorder and
+repositories retain cancellation, lifecycle and persistence ownership.
 
-Preparation runs after Run creation, before the Loop. Document/RAG/environment
-work delegates to developer callbacks and component services. Per-Run values use
-context.state and can be consumed by custom Engines or completion processors. Callbacks
-must cooperate with cancellation and offload blocking work; arbitrary side effects
-cannot be rolled back. Never mutate process-global environment for one Session.
-Use a Run-local env dictionary for subprocesses. Existing stale Runs, including
-interrupted preparation, are never replayed automatically.
+Document/RAG/environment work delegates to component services or developer callbacks.
+Runtime-only values use context.state. Callbacks must cooperate with cancellation,
+offload blocking work and avoid process-global environment mutation. Arbitrary side
+effects cannot be rolled back. Existing stale Runs are never replayed automatically.
 
 ## LiteLLM Loop Execution
 
@@ -1599,6 +1606,20 @@ returns a ToolRegistry. Other capability values are not created by that call. Th
 ComponentToolResolver adapts those resolved values; RunManager wraps ComponentRegistry
 passed as capabilities. Custom resolvers implement resolve(project, names);
 Tool-only resolver fallback is removed. Only requested capabilities are constructed.
+Quota-enabled resolvers also expose synchronous model_usage(project), returning all
+Component model receipts, including disabled Components. Missing accounting fails
+closed; unlimited execution does not read receipt history. Optional validate(project)
+owns resolver admission checks. RunManager does not identify resolver subclasses to
+decide whether usage should count. The existing ledger and quota enforcement remain
+service-owned. See [shared-contracts.md](shared-contracts.md).
+
+Streaming adapters own SDK chunk decoding and final-message validation through
+CompletionDecoder/CompletionUpdate. BaseEngine owns completion observations and
+never retries after any chunk was received. LiteLLM token counting also lives in
+the provider adapter; the registered model_default name and policy selection remain
+unchanged. Schema validation, layout relocation and UI resource projection share
+schema-node traversal; literal instance data is never interpreted as schema.
+
 A tools request gets a fresh fixed snapshot, using persisted overrides or
 registered catalog definitions with application-registered handlers. Unknown handlers
 fail during runtime binding, not data CRUD/configuration/clone; saved names never
@@ -1659,7 +1680,6 @@ It contains long-lived configuration such as:
 ProjectPaths exposes major Project paths such as:
 
 * root
-* memory
 * sessions
 * state
 * logs
@@ -1667,7 +1687,8 @@ ProjectPaths exposes major Project paths such as:
 
 ProjectPaths intentionally does not expose every nested subsystem path.
 
-For example, ProjectPaths exposes `memory`, while MemoryComponent owns everything beneath that directory.
+Component roots, including MemoryComponent's directory, are resolved by the selected
+Component. ProjectPaths does not select or duplicate a Component's storage location.
 
 ## ProjectManager
 
@@ -2173,6 +2194,12 @@ UI 실행 이력은 ProjectHandle.activity/aactivity로 조회한다. 전체 Ses
 근거는 Run/Step 원본이다. 기존 DomainLogger와 도메인별 service.log는 운영 진단용으로 유지한다.
 
 ## 장기 실행 API
+
+오류의 분류는 `Diagnostic`의 순수 투영이며 집행 상태를 따로 소유하지 않는다. SDK 원인 해석은
+Provider, 현재 Completion 입력 보존은 CompletionPipeline/Loop, Run/Job 재개 허용은 기존
+서비스가 소유한다. 애플리케이션의 복구 콜백이나 계획 편집으로 승인·효과·횟수·기한 검사를
+우회할 수 없다. 서비스의 dispatch 전 영속 표식만 제한된 새 시도의 근거가 되며, Step/파일의
+부재는 효과 없음의 증거가 아니다. [공개 계약과 Hub 대응표](backend-recovery.md)를 참고한다.
 
 장기 실행 확장에서도 책임은 바뀌지 않습니다. MCP connector는 SDK 연결만 소유하고
 ToolExecutor가 승인을 집행합니다. RAG catalog/progress는 같은 corpus generation/Job에서

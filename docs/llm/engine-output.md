@@ -53,7 +53,7 @@ BaseEngine이 ID와 소유 Step을 부여하므로 위 예제는 경로나 저�
 | `output_event(context, EngineOutput(...))` | 현재 엔진의 최종 결과 생성 |
 | `step_completed_event(context, step_id, EngineOutput(...), metadata=...)` | 명시한 Step의 결과와 완료 생성 |
 
-상속 클래스에서는 self로 호출한다. 상속을 사용하지 않는 Graph/Pipeline/Agent 실행기도
+상속 클래스에서는 self로 호출한다. 상속을 사용하지 않는 Graph/Agent 실행기도
 BaseEngine의 정적 메서드로 재사용할 수 있다. 복잡한 실행기에 단일 Step 실행 흐름을 강제하지 않는다.
 Step 완료 메서드는 이미 시작한 Step에 사용한다. run()에서는 이벤트를 직접 조립하는 대신
 EngineDelta/EngineOutput을 전달하고, 여러 Step이 필요하면 기존 step()을 사용한다.
@@ -70,8 +70,8 @@ context.output_visibility 또는 전달한 값이 internal이면 내부 출력�
 Loop는 호출별 스트림을 서로 다른 LLM Step에 남기고 마지막 모델 응답만 Run 결과로 확정한다.
 Graph는 Workflow outputs에 매핑된 JSON을 Run output.data로 반환한다. 중첩 Graph와 Agent는
 부모 Run을 덮어쓰지 않는다. Agent의 입력/출력 매핑 계약 `{text, data?}`는 그대로 유지한다.
-Tool 결과도 `step.output.data`로 조회한다. Pipeline은 각 단계를 kind="engine" Step으로 묶고
-마지막 단계의 결과를 자신의 결과로 사용한다. Pipeline 단계들의 임시 context.state는 공유한다.
+Tool 결과도 `step.output.data`로 조회한다. 여러 작업의 최종 결과는 Graph Workflow의
+outputs로 명시하거나 custom Engine의 명시적 Run output으로 확정한다.
 
 ## UI 조회 및 스트리밍
 

@@ -102,7 +102,7 @@ Skill.resources의 URI는 참고 정보이며 자동 접근하지 않는다. 등
 engine_options 및 비실행 metadata만 받는다. completion/system_prompt/tools/resources/
 policy/input_schema/output_schema/output_format은 존재 자체를 for_agent에서 거부한다.
 Workflow 노드 inputs/outputs/input_schema/output_schema는 계속 유효하다. Graph Agent 노드의
-emit_text/output_format은 사전 검증 오류다. 같은 환경은 workflow 노드를 사용한다.
+emit_text/output_format은 해당 Agent가 선택될 때 실행 전에 거부한다. 같은 환경은 workflow 노드를 사용한다.
 Graph Agent는 부모 tools/tool_scope/capabilities를 그대로 전달하고 의미 없는 resource binding을
 만들지 않는다. [예제와 중첩 계약](nested-workflows.md)을 참고한다.
 
@@ -148,9 +148,14 @@ Agent가 별도 Run이나 체크포인트 수명주기를 만들지 않는다.
 ## 개발자 엔진 확장
 
 AgentNode(engines={"name": engine})에 등록하는 엔진은 순수 동기
-`for_agent(definition) -> Engine`과 `execute(context)`를 구현한다. for_agent는 사전
+`for_agent(definition) -> Engine`과 `execute(context)`를 구현한다. for_agent는 선택·재개
 검증에서도 호출되므로 I/O를 수행하거나 공유 엔진을 수정하지 않는다. LoopEngine의 구현은
 서브클래스의 준비/실행 메서드와 주입된 provider를 보존한다. 다른 엔진은 completion이 없어도 된다.
+
+반환 Engine의 `steering_mode`는 등록 Engine의 선언과 일치해야 한다. 미시작 노드의
+예약 탐색은 이 선언만 읽고 factory를 실행하지 않는다. 선택된 Agent는 승인 대기 전과
+실행·재개 시 이 일치를 검증한다. 구현체에 따라 지원 방식이 달라지면 서로 다른 등록으로
+표현한다. 선택하지 않은 Agent의 전체 설정이나 자원을 사전에 해석하지 않는다.
 
 선택 엔진이 선언한 required_capabilities만 실행 context에 전달한다. 시스템 지침을 적용하는
 방식은 엔진 계약이며 Tool 실행은 ToolExecutor를 사용해야 공유 권한/예산/이력이 적용된다.
@@ -160,6 +165,13 @@ GraphNodeContext의 실행기를 통해 하위 Workflow를 실행한다. Graph A
 Agent 엔진은 checkpoint_name/validate_resume 계약이 있을 때만 EngineCheckpointScope를 통해
 체크포인트와 승인을 부모에 연결한다. 자세한 계약은 [중첩 Workflow](nested-workflows.md)를 따른다.
 호스트 코드나 등록 엔진 설정을 변경하면 AgentNode 또는 GraphEngine revision을 올려야 한다.
+
+Prompt/Skill을 합성하는 Engine은 `with_instructions(context, before=..., after=...)`를
+제공한다. AgentExecution은 지침 텍스트만 전달하고 Engine의 private 설정을 읽지 않는다.
+재개 identity에는 실제 선택한 Agent만 포함한다. 승인 대기 전에 선택을 저장하고 완료된
+Agent 및 실제 사용한 하위 Agent도 재개 전에 검사한다. 미사용 Agent 목록은 지문이 아니다.
+`agent_run`의 선택된 자원은 서비스의 capability resolver로 연결하며 Tool 권한 확대는 없다.
+Workflow에 명시된 참조/순환/역량의 사전 검증은 유지한다.
 
 구형 Agent의 loop/skills/rag/mcp 최상위 필드는 자동 변환하지 않는다. engine을 명시하고
 engine_options와 resources를 사용하는 현재 정의로 저장한다.

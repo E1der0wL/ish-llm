@@ -10,6 +10,7 @@ from llm.llm import (Diagnostic, ResourceRef, OperationProgress, SessionRuntimeV
 from llm.core.interactions import approval_request
 from llm.policies import ExecutionLimitError
 from llm.services.runtime.tools import ToolExecutionError
+from llm.errors import stable_error_code
 from tests.llm import test_long_running, test_interactions, test_rag_components
 from tests.llm.test_loop import chunk, call
 
@@ -29,7 +30,8 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(failure.diagnostic.details, {"effect": "uncertain", "retryable": True})
         self.assertEqual(failure.effect, "uncertain")
         failure.code = None
-        self.assertEqual(Diagnostic.from_exception(failure).code, "execution_failed")
+        self.assertIsNone(stable_error_code(failure))
+        self.assertEqual(Diagnostic.from_exception(failure), failure.diagnostic)
 
     def test_common_observations_do_not_restrict_custom_metadata(self):
         metadata = {"phase": 3, "error_code": 503, "custom": {"provider": "future"}}

@@ -13,7 +13,6 @@ from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.core.models import MessageStatus, RunStatus
 from llm.engines.base import BaseEngine
 from llm.engines.loop import LoopEngine
-from llm.engines.pipeline import PipelineEngine
 from llm.services.api import RequestHandle
 from llm.services.infrastructure.locking import WorkspaceBusyError
 from llm.services.lifecycle.projects import ProjectRepository
@@ -299,20 +298,15 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(await self.project.results.alist()), 2)
         self.assertEqual(len(await self.session.results.alist()), 1)
 
-    async def test_pipeline_can_choose_explicit_stage_configuration(self):
-        provider = ScriptedCompletion([chunk("one", finish="stop")], [chunk("two", finish="stop")])
-        await self.project.asave(config={"parameters": {"engines": {
-            "pipeline": {'config': {'stages': {'0': {'config': {'system_prompt': 'outer', 'completion': {'model': 'openai/test'}}}}}},
-            "stage": {'config': {'system_prompt': 'inner', 'completion': {'model': 'openai/test'}}}}}})
-        self.app.engines.register("pipeline", PipelineEngine([
-            LoopEngine(completion_fn=provider),
-            LoopEngine(completion_fn=provider, parameter_key="stage"),
-        ]))
-        run = await (await self.session.run.submit("go", engine="pipeline")).wait(timeout=5)
+    async def test_engine_can_choose_explicit_parameter_key(self):
+        provider = ScriptedCompletion([chunk('one', finish='stop')])
+        await self.project.asave(config={'parameters': {'engines': {
+            'stage': {'config': {'system_prompt': 'inner', 'completion': {'model': 'openai/test'}}}}}})
+        self.app.engines.register('explicit', LoopEngine(completion_fn=provider, parameter_key='stage'))
+        run = await (await self.session.run.submit('go', engine='explicit')).wait(timeout=5)
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
-        self.assertEqual([request["messages"][0]["content"] for request in provider.requests],
-                         ["outer", "inner"])
-        self.assertEqual([step.kind for step in await run.steps.alist()], ["engine", "llm", "engine", "llm"])
-        for invalid in ("", " ", 1):
+        self.assertEqual(provider.requests[0]['messages'][0]['content'], 'inner')
+        self.assertEqual([step.kind for step in await run.steps.alist()], ['llm'])
+        for invalid in ('', ' ', 1):
             with self.assertRaises(ValueError):
                 LoopEngine(parameter_key=invalid)

@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from llm.core.models import MessageRole as Role, MessageStatus as Status, RunStatus
+from llm.core.checkpoints import build_envelope
 from llm.components.workflows import WorkflowGraph, WorkflowComponent
 from llm.engines.base import BaseEngine
 from llm.engines.graph import GraphEngine
@@ -279,7 +280,8 @@ class TurnResumeTests(unittest.IsolatedAsyncioTestCase):
 
     def test_nested_instruction_references_are_included(self):
         checkpoint = {"header": {"input_message_id": "input", "message_ids": ["prior", "input"]}, "records": {
-            "child": {"node_type": "engine_record", "engine_scope": "child",
+            "child": {**build_envelope(engine_scope="child", checkpoint_name="custom", local_key="instruction:1",
+                                       status="completed", container=True, requires_retry=False),
                       "payload": {"kind": "instruction", "status": "input", "target_scope": "child",
                                   "message_ids": ["instruction"]}}}}
         self.assertEqual(checkpoint_message_ids(checkpoint), {"prior", "input", "instruction"})

@@ -196,9 +196,11 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
                                   'tools':['effect']}, identifier='worker')
         paused = await self.request()
         keys = [k for k,v in (await paused.acheckpoint())['records'].items() if v.get('approval_required')]
-        with self.assertRaisesRegex(RunRequestError, 'cannot edit'):
+        with self.assertRaisesRegex(RunRequestError, 'selection requires'):
             await self.session.run.resume(paused.id, engine='graph', decisions={keys[0]:{'approved':True, 'state':{}}})
-        denied = await (await self.session.run.resume(paused.id, engine='graph', decisions={keys[0]:{'approved':False}})).wait()
+        request, = await paused.ainteractions(pending_only=True)
+        await paused.arespond(request.respond('deny'))
+        denied = await (await self.session.run.resume(paused.id, engine='graph')).wait()
         self.assertEqual(denied.data.status, RunStatus.FAILED)
         self.assertEqual(self.effects, [])
         self.assertEqual(len(model.requests), 1)
@@ -388,7 +390,9 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         run = await self.request()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(self.effects, [])
-        self.assertEqual(await run.steps.alist(), [])
+        # The selected Agent fails before its own Step, resources or effects;
+        # starting orchestration does not instantiate all hypothetical Agents.
+        self.assertTrue(all(step.kind == "graph" for step in await run.steps.alist()))
 
     async def test_nested_interrupt_cleans_up_and_preserves_queued_request(self):
         entered, closed = asyncio.Event(), asyncio.Event()

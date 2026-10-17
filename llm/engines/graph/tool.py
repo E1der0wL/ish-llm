@@ -3,7 +3,7 @@
 import json
 
 from contextlib import aclosing
-from llm.services.runtime.tools import ToolExecutor
+from llm.services.runtime.tools import ToolExecutor, ToolApprovalRequired
 from llm.core.schema import object_schema, open_schema, field
 from llm.engines.base import EngineEventType
 from .engine import _GraphPause
@@ -61,11 +61,16 @@ class ToolNode:
         result = {}
         # node.decision은 pause_before 확인일 수도 있다. Tool 승인만 공통 helper가
         # 원본 checkpoint의 interaction/action과 연결해 해석하도록 위임한다.
-        async with aclosing(node.context.execute_tool(tool, values, result=result, executor=self.executor,
+        try:
+            async with aclosing(node.context.execute_tool(tool, values, result=result, executor=self.executor,
                                                  metadata={"node_id": node.node_id, "checkpoint_name": "graph"},
                                                  checkpoint_key=node.checkpoint_key)) as events:
-            async for event in events:
-                if event.type == EngineEventType.PAUSED:
-                    raise _GraphPause(node.checkpoint_key)
-                await node.emit(event)
+                async for event in events:
+                    if event.type == EngineEventType.PAUSED:
+                        raise _GraphPause(node.checkpoint_key)
+                    await node.emit(event)
+        except ToolApprovalRequired as error:
+            # ToolExecutor rejects requests raised after effects. Only this trusted
+            # pre-effect boundary may declare a resumable waiting node.
+            await node.pause(error.request)
         return {definition.get("result_key", node.node_id): result["value"]}

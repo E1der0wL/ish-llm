@@ -11,7 +11,6 @@ from llm.core.configuration import resolve_config
 from llm.engines.loop import LoopEngine
 from llm.engines.graph import GraphEngine
 from llm.engines.graph.agent import AgentNode
-from llm.engines.pipeline import PipelineEngine, PreparationStep
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.components.agents import AgentComponent
 from llm.components.rag import RAGComponent, EmbeddingModel
@@ -106,21 +105,6 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(provider.requests[0]["model"], "agent")
         self.assertNotIn("timeout", provider.requests[0])
 
-    async def test_pipeline_stage_settings_apply_and_host_timeout_remains_fixed(self):
-        provider = ScriptedCompletion([chunk("should not run", finish="stop")])
-        async def slow(context):
-            await asyncio.sleep(0.2)
-        pipeline = PipelineEngine({"prepare": PreparationStep("Prepare", slow), "answer": LoopEngine(completion_fn=provider)})
-        app = self.backend(engines={"pipeline": pipeline})
-        project = await app.projects.acreate(config={"parameters": {"engines": {"pipeline": {'config': {'stages': {'prepare': {'policy': {'timeout_seconds': 0.01}}}}}, "loop": {'config': {'completion': {'model': 'fake'}}}}}})
-        view = await project.adescribe_config()
-        self.assertEqual(view["effective_engines"]["pipeline"]["stages"]["prepare"]["values"]["policy"]["timeout_seconds"], .01)
-        session = await project.sessions.acreate()
-        run = await (await session.run.submit("go", engine="pipeline")).wait()
-        self.assertEqual((await run.aget_data()).status, "failed")
-        self.assertEqual(provider.requests, [])
-        fixed = PreparationStep("Fixed", slow)
-        self.assertEqual(fixed.resolve_config({"parameters": {"engines": {"fixed": {'policy': {'timeout_seconds': 0.01}}}}}, "fixed")["values"]["policy"]["timeout_seconds"], .01)
 
     async def test_rag_project_settings_isolate_chunking_batches_and_search_defaults(self):
         calls = []

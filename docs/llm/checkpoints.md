@@ -31,6 +31,12 @@ Tool operation 원장, 승인 응답, Run/Step 기록, 저장 트랜잭션 저�
 
 ## 공통 조회 결과
 
+`await run.acheckpoint(name)`은 지정한 체크포인트를 조회한다. 이름을 생략하면 저장된
+체크포인트가 정확히 하나일 때만 선택하며 특정 Engine 이름을 기본값으로 사용하지 않는다.
+초기 재개 사본 생성 전에 실패한 Run은 저장된 명시적 resume 참조를 기존 lineage/digest
+검증으로 해석한다. 초기화가 완료된 체크포인트의 유실을 원본으로 우회하지 않는다.
+부분 출력과 중첩 기록의 전달 계약은 [공통 경계](shared-contracts.md)를 참고한다.
+
 `CheckpointPlan`은 다음 필드를 가진 JSON 직렬화 가능한 관찰 계약이다.
 
 | 필드 | 의미 |
@@ -124,6 +130,34 @@ queued/failed 작업도 먼저 포기해야 삭제할 수 있다. completed/canc
 `policy.retention.job_max_age_seconds`와 명시적 Project maintenance는 완료·취소·명시적으로 포기한
 Job을 정리할 수 있다. 포기한 Job의 보관 기간은 포기 시각부터 계산한다.
 이 설정이 없거나 null이면 기간 기준 정리는 하지 않는다. 수동 `delete_job`에는 보관 기간 설정이 필요 없다.
+
+## 실행 계획과 CAS
+
+`await session.run.resume_plan(run_id, engine=name)`은 기존 필드에 `state`, `revision`,
+`can_restart`, `restart_blockers`, `active`, `abandoned`를 추가한다. `state`는 `valid`,
+`not_created`, `missing`, `corrupt`, `incompatible`, `deleted`, `unsupported`, `unknown`이다.
+`valid`여도 승인·실행 상태·재개 계보에 따라 `can_resume=False`일 수 있다. Run 수명 증거 자체가
+손상되거나 삭제 표식과 파일이 모순되면 계획을 만들어 허용하지 않고 `CheckpointError`를 반환한다.
+
+`session.run.resume(..., expected_revision=plan.revision)`은 같은 잠금에서 계획을 다시 검사한다.
+인자를 생략하는 기존 호출도 기존 승인·binding·원본 digest 검사를 계속 수행한다.
+`session.run.restart(..., expected_revision=plan.revision)`은 서비스가 **dispatch 진입 전 중단**을
+영속 기록으로 증명한 경우에만 새 요청을 예약한다. 이 API에는 revision이 필수다.
+Run 생성 시 `execution_started=False`, 실행 경계 진입 전에 `True`를 확정한다. 누락된 기록은
+불명확으로 남기며 옛 기록에 값을 채우지 않는다. 실행에 진입한 custom Engine이 Step을 만들지
+않았더라도 새 시도를 허용하지 않는다. 새 요청은 원본 Run/input digest를 묶고 실행 때 다시 검사한다.
+체크포인트 복구나 효과 재실행 승인을 대신하지 않으며 원본 Run은 보존한다.
+
+`rag.resume_plan/aresume_plan(job_id)`은 `JobResumePlan`을 반환한다. 활성 lease, 취소·포기,
+완료 상태, 원문 digest, 저장된 체크포인트 구조와 preparation 설정 fingerprint를 검사한다.
+`checkpoints`는 저장된 결과의 목록이며 실제 재사용은 실행 시 chunk signature/vector/graph
+검증을 다시 통과해야 한다. `arun_job(..., retry=True, expected_revision=plan.revision)`으로
+같은 Job을 재개한다. Project/모델 설정이 바뀌면 `checkpoint_configuration`으로 거부한다.
+설정 지문이 없는 기존 실패 Job은 재사용 가능하다고 추측하지 않는다. 자동 변환은 없다.
+
+계획 조회만 전체 무결성 자료를 읽는다. Job 진행률 조회는 기존 가벼운 status/progress 투영을
+유지한다. 삭제된 RAG Job은 더 이상 존재하지 않으므로 `FileNotFoundError`이며 가짜 Run이나
+삭제 이력 저장소를 만들지 않는다. [공개 API 사용 예](backend-recovery.md)를 참고한다.
 
 ## 변경하지 않는 계약
 

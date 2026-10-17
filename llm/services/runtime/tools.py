@@ -650,6 +650,22 @@ class ToolExecutor:
         arguments = constrained_arguments(tool.parameters, arguments,
             scope.argument_constraints.get(tool.name, {}) if scope is not None else {})
         classification = await self._classify(tool, arguments, context, scope)
+        from inspect import getattr_static
+        bind = getattr(tool.handler, "bind_arguments") if getattr_static(tool.handler, "bind_arguments", None) is not None else None
+        if callable(bind):
+            selected = {"tool": tool.name, "arguments": deepcopy(arguments), "binding": bind(deepcopy(arguments), context)}
+            ProjectConfig.validate_json(selected)
+            name = (metadata or {}).get("checkpoint_name")
+            if context is None or not request_key or not name:
+                raise ToolInvocationError("Selected Tool execution binding requires a durable checkpoint")
+            key = "@tool-binding:" + request_key
+            saved = (context.checkpoint or {}).get("records", {}).get(key)
+            if saved is not None and saved.get("selection") != selected:
+                raise ToolInvocationError("Selected Tool execution configuration changed")
+            # Selection is durable before ASK, authorization, or any Tool effect.
+            yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": "record", "key": key,
+                "value": {"node_type": "tool_binding", "status": "completed", "container": True, "selection": selected,
+                          "request_key": request_key, "checkpoint_name": name}})
         decision, resumed = self._request_state(tool, arguments, context, decision, request_key, classification)
         if scope is not None and request_key is not None:
             invocation = json.dumps([getattr(context, "checkpoint_scope", None), request_key])

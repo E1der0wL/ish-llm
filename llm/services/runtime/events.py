@@ -74,7 +74,7 @@ class EventContext:
 
     # Run 시작 시 확정한 정책과 실행/재개 원본은 서비스만 변경한다.
     _managed_metadata = frozenset(("policies", "completions", "resume", "checkpoints", "output", "steering", "engine_options",
-                                  "resume_abandonment", "checkpoint_deletion"))
+                                  "resume_abandonment", "checkpoint_deletion", "execution_started", "restart", "diagnostic"))
 
     def __init__(self, run, engine_context, io, repository):
         self._run, self.engine_context = run, engine_context

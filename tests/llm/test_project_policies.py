@@ -15,7 +15,7 @@ from llm.engines.loop import LoopEngine
 from llm.llm import LargeLanguageModel
 from llm.services.composition import BackendServices
 from llm.services.runtime.runs import RunRequestError
-from llm.services.runtime.policies import model_token_count
+from llm.providers.litellm import model_token_count
 from tests.llm.test_loop import ScriptedCompletion, chunk
 from tests.llm.configuration_fixtures import configure_engine
 

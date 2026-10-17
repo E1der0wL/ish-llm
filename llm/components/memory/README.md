@@ -99,6 +99,10 @@ Loop의 추가 지시는 원래 사용자 요청과 같은 턴으로 요약·보
 
 ## 큰 Tool/MCP 결과
 
+`compress_tools` 미리보기의 원문 조회는 `memory_tool_result`에 `run_id`와 `step_id`를
+명시합니다. 모델 Tool call ID는 중첩 Agent 간에 중복될 수 있어 조회 identity로 사용하지
+않습니다. 완료 Step과 Session 소유권을 검사하며 원문을 읽기 위해 Tool을 재실행하지 않습니다.
+
 `config.processing.tool_result_mode`를 reference/summary로 명시하면 완료 결과를 선택한
 `tool_data={component, identifier}` 파일 패키지에 보존합니다. 결과 임계값·모델·지침·처리
 예산은 명시적입니다. 기본 활성화, 기본 Data 패키지 생성, 자동 재시도는 없습니다.

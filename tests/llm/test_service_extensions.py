@@ -15,7 +15,6 @@ from llm.core.models import Message, MessageRole, MessageStatus, RunStatus
 from llm.core.paths import RunPaths, StepPaths
 from llm.engines.base import BaseEngine, EngineEvent
 from llm.engines.registry import EngineRegistry
-from llm.engines.pipeline import PipelineEngine, PreparationStep
 from llm.services.composition import BackendServices
 from llm.services.history.context import ContextPolicy, ConversationContextBuilder
 from llm.services.runtime.events import EventHandlers
@@ -55,7 +54,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
         run = await self.run_one(session)
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
 
-    async def test_capabilities_are_requested_once_and_shared_across_pipeline(self):
+    async def test_capabilities_are_requested_once_and_shared_across_operations(self):
         calls = []
         class Documents(Component):
             name = directory = "documents"
@@ -67,12 +66,12 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             required_capabilities = ("documents",)
             async def run(self, context):
                 self.last_context = context
-                yield context.capabilities["documents"][0]["value"]
+                for _ in range(2):
+                    yield context.capabilities["documents"][0]["value"]
         reader = Read()
-        pipeline = PipelineEngine([reader, reader])
-        app, project, session = await self.backend(components=[Documents()], engines={"read": pipeline})
+        app, project, session = await self.backend(components=[Documents()], engines={"read": reader})
         run = await self.run_one(session, engine="read")
-        self.assertEqual((await run.aresponse()).content, "document")
+        self.assertEqual((await run.aresponse()).content, "documentdocument")
         self.assertEqual(calls, ["documents"])
         self.assertEqual(reader.last_context.tools.names(), ())
 
@@ -129,7 +128,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
         async def inspect(context, event):
             before = context.run.metadata
             for key in ("policies", "completions", "resume", "checkpoints", "output", "engine_options",
-                        "resume_abandonment", "checkpoint_deletion"):
+                        "resume_abandonment", "checkpoint_deletion", "execution_started", "restart", "diagnostic"):
                 with self.subTest(key=key):
                     with self.assertRaisesRegex(ValueError, key):
                         await context.update_metadata({"partial": True, key: {}})
@@ -315,7 +314,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
         async def wait(context):
             entered.set()
             await release.wait()
-        _, _, session = await self.backend(engines={"held": PreparationStep("held", wait)})
+        _, _, session = await self.backend(engines={"held": BaseEngine("held", action=wait)})
         request = await session.run.submit("hello", engine="held")
         await asyncio.wait_for(entered.wait(), 5)
         try:

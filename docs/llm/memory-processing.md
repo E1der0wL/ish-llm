@@ -96,10 +96,11 @@ failure_mode="continue"는 요약 실패를 degraded Step으로 남기고 원문
 다른 처리기가 요약 대상 원문을 바꿨거나 제거했다면 해당 요청에서는 요약 교체를 생략한다.
 
 **Tool 결과 압축:** 모델에 다시 보내는 큰 tool 메시지를 미리보기·원본 크기·Run ID·
-tool_call_id·SHA256으로 바꾼다. Tool 호출/결과 메시지의 쌍, ID, 이름, 호출 인자는 보존한다.
-완전한 결과는 기존 Step.output에 남는다. UI는 Run의 Steps에서 metadata.tool_call_id로 찾을
-수 있다. 이 참조를 자동으로 역참조하는 새로운 LLM Tool을 추가한 것은 아니다. 상세 내용이
-필요한 작업은 memory_tool_result의 Run/호출 ID 기반 부분 조회를 사용하거나 압축을 끌 수 있다.
+Step ID·SHA256으로 바꾼다. Tool 호출/결과 메시지의 쌍, ID, 이름, 호출 인자는 보존한다.
+완전한 결과는 기존 Step.output에 남는다. `CompletionMessage.result_ref`로 전달된 정확한
+Run/Step을 사용하며 중첩 Agent가 같은 tool_call_id를 써도 다른 결과를 선택하지 않는다.
+상세 내용이 필요한 작업은 `memory_tool_result(run_id=..., step_id=..., offset=..., limit=...)`의
+부분 조회를 사용하거나 압축을 끌 수 있다. 재개 시 재사용한 결과는 원래 Run/Step을 가리킨다.
 실행 효과를 재시도하지 않는다. 현재 작업의 완료된 Tool 교환 요약은 compact_active와
 active_keep_iterations로 조절한다. [장시간 작업 API](long-running.md)에 예제를 설명한다.
 

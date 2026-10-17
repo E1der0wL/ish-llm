@@ -16,12 +16,29 @@ retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 
 | [requests.py](requests.py) | request_model 호출 경계와 invoke의 비스트리밍 시도, 명시적 wall timeout/outer retry, ProviderError 분류입니다. |
 | [retry.py](retry.py) | 일시적 오류와 명시적 SDK retry를 판단하고 중첩 retry를 방지합니다. |
 | [calls.py](calls.py) | ProviderCalls/ProviderLimits가 호스트의 명시적 동시 호출·대기 제한을 적용합니다. |
-| [litellm.py](litellm.py) | 비스트리밍 SDK 함수 선택과 동기 completion의 bounded async 스트림/취소 연결입니다. |
-| [observations.py](observations.py) | 모델 호출 관찰·사용량을 기존 실행 문맥과 연결합니다. |
+| [litellm.py](litellm.py) | SDK 함수 선택, bounded async 스트림/취소 연결, LiteLLM chunk 해석과 토큰 계산입니다. |
+| [streaming.py](streaming.py) | CompletionAdapter의 요청/재시도/SDK 경계, CompletionDecoder/CompletionUpdate와 응답 검증 오류 계약입니다. |
+| [observations.py](observations.py) | 어댑터가 제공한 ModelCall의 사용량 해석을 기존 실행 문맥과 연결합니다. |
 | [embeddings.py](embeddings.py) | 단일 입력 응답의 벡터 개수·차원·유한성·zero-vector 무결성 검사입니다. |
 | [mcp.py](mcp.py) | 선택적 MCP SDK의 stdio/Streamable HTTP 연결·발견·호출·취소입니다. Tool 실행 정책은 소유하지 않습니다. |
 
 설정은 [명시적 설정 계약](../CONFIGURATION.md)을 따른다. `runtime.py`는 LiteLLM 초기화와 진단 라우팅을 담당한다. 모드·인증 환경변수는 호스트 또는 SDK가 선택한다.
+
+공통 사용량 서비스는 SDK 요청 필드나 응답 객체를 해석하지 않는다. Provider가
+`ModelCall`의 토큰 예약·사용량 추출·오류 분류 콜백을 제공하고 서비스가 기존 원장과
+명시적 한도를 집행한다. 새 어댑터의 계약은 [공통 경계](../../docs/llm/shared-contracts.md)를 참고한다.
+
+스트리밍 chunk의 `choices/delta/tool_calls`, 조각 결합과 종료 검증은
+`LiteLLMCompletionDecoder`가 소유한다. BaseEngine에는 정규화된 `CompletionUpdate`만
+전달한다. 정상 종료 후 `finish()`가 반환한 최종 message도 어댑터 소유 데이터이며,
+공통 계층은 내부 필드를 재해석하지 않는다. `model_token_count`도 이 어댑터에 있으며
+서비스의 기존 계산기 등록 이름 `model_default`는 유지한다. 계산기 선택은 명시적 정책이다.
+
+`LiteLLMCompletionAdapter`는 요청 준비, SDK retry 중첩 방지, 허용된 retry 인자 검증과
+decoder/transport 선택을 함께 소유한다. BaseEngine은 `CompletionAdapter`를 주입받을 수
+있으며 SDK 필드명으로 분기하지 않는다. 다른 어댑터도 ProviderCalls admission, 사용량,
+취소, 진단, 명시적 상한 집행을 제공해야 한다. 부분 chunk 수신 이후 재시도 금지는 공통
+실행 경계에서 유지한다. Loop는 canonical 메시지/Tool 대화 계약을 계속 사용한다.
 
 ## 초기화와 retry 계약
 
@@ -189,6 +206,13 @@ LiteLLM이 처리한다. 명시적으로 주입한 모델 함수는 기존 확�
 호출은 공통 정책을 적용하지만, 임의의 커스텀 embedding/extractor 클래스가 내부에서 직접
 호출하는 SDK까지 가로채지는 않는다. 같은 정책 바인딩을 제공하려면 `with_provider(options)`를
 구현하거나 ModelClient를 재사용한다.
+
+## Completion processor 경계
+
+Loop의 Completion processor는 선택 adapter의 `validate_processing(candidate, original=...)`
+검증을 통과해야 합니다. LiteLLM의 `num_retries`, `max_retries`, `retry_policy`, `client`
+보호는 LiteLLM adapter가 소유합니다. 다른 SDK는 자신의 필드를 검증하며 공통 처리기에
+SDK 필드 이름을 추가하지 않습니다. canonical Tool/message/stream 계약은 공통 계층이 유지합니다.
 
 ## 재현 검사
 

@@ -12,7 +12,6 @@ Application은 제품의 한계값·프리셋·위험 분류를 선택한다. Ba
 | Tool | allowed_tools, max_calls, timeout_seconds, max_output_chars, argument_constraints, retry 횟수/지연 | ToolRuntime.authorize/runner/operation_key/operation_probe/classify/retry_safe_tools/revision |
 | Loop | config.completion/system_prompt/buffer_size; policy.max_iterations/request_timeout/tool_timeout/max_tool_calls/max_argument_chars/max_output_chars/completion/provider | completion_fn, parameter_key |
 | Graph | workflow 선택; config.buffer_size/cleanup_timeout; policy.max_steps/max_parallelism/timeout_seconds/max_nested_depth | handlers, revision, config_keys, parameter_key |
-| PreparationStep | policy.timeout_seconds | action, name, kind, parameter_key |
 | RAG | chunk/search/extraction/ingestion/cache/index 값; model params, provider 정책 | embedding/reranker/extractor, schema/validator/factory 구현 |
 | Memory | 검색·처리·추출·보관 정책, config.processing.extract_prompt_id | completion_fn/token_counter/search_fn |
 | 다른 Component | 각 describe_config의 config/policy, 정의 레코드 | OCR/backend/MCP connector/Tool dependency installer 등 선택 구현 |
@@ -156,7 +155,7 @@ DefinitionComponent의 기본 schema는 닫힌 빈 object다. custom plugin이 �
 ## 수동 변경 안내
 
 - 과거 Host Tool 설정의 allowed_tools/max_calls/argument_constraints/max_retries/... → Project policies.tools/tool_retry. 현재 ToolRuntime는 이 값들을 받지 않는다.
-- LoopEngine/GraphEngine/PreparationStep 실행 scalar → parameters.engines.<name>.config/policy.
+- LoopEngine/GraphEngine 실행 scalar → parameters.engines.<name>.config/policy.
 - BaseEngine의 limit constructor → 구현체 설정에서 해석 후 step/stream_completion 호출에 전달.
 - MemoryComponent(extract_prompt=...) → Prompt 레코드 + config.processing.extract_prompt_id.
 - BuiltinTools(max_seconds/max_output_bytes/max_file_bytes) → 명시 Tool 인자와 Project 제약.

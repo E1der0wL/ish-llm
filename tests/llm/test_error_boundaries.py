@@ -15,7 +15,6 @@ from llm.components.tools import Tool
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.engines.graph import GraphEngine
 from llm.engines.graph.agent import AgentNode
-from llm.engines.pipeline import PipelineEngine, PreparationStep
 from llm.llm import LargeLanguageModel
 from llm.providers.requests import ProviderError
 from llm.providers.calls import ProviderCapacityError
@@ -151,13 +150,20 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(any(s.kind == "agent" and s.status == StepStatus.FAILED for s in steps))
             self.assertTrue(all(s.diagnostic.code == "provider_timeout" for s in steps if s.status == StepStatus.FAILED))
 
-    async def test_pipeline_stops_and_preserves_only_classified_failure(self):
-        for failure, expected in ((ProviderError("provider_rate_limit"), "provider_rate_limit"),
-                                  (UntrustedError("sdk"), "engine_failed")):
+    async def test_graph_stops_following_nodes_and_preserves_classified_failure(self):
+        for failure, expected in ((ProviderError('provider_rate_limit'), 'provider_rate_limit'),
+                                  (UntrustedError('sdk'), 'engine_failed')):
             following = []
-            async def next_stage(context):
+            async def fail(node):
+                raise failure
+            async def next_node(node):
                 following.append(True)
-            result, steps = await self.execute(PipelineEngine([failing_engine(failure), PreparationStep("next", next_stage)]))
+                return {}
+            graph = (WorkflowGraph(entry='fail').node('fail', 'fail').node('next', 'next')
+                     .node('end', 'end').connect('fail', 'next').connect('next', 'end').to_dict())
+            result, steps = await self.execute(GraphEngine(handlers={'fail': fail, 'next': next_node}),
+                engine_options={'workflow': 'flow'}, components=[WorkflowComponent()],
+                definitions={'workflows': {'flow': graph}})
             self.assertEqual(result.error_code, expected)
             self.assertEqual(following, [])
             self.assertEqual(len([s for s in steps if s.status == StepStatus.FAILED]), 2)

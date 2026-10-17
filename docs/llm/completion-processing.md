@@ -142,7 +142,7 @@ configure는 설정 전체 교체이므로 유지할 다른 설정도 전달한�
 
 ## 적용 범위와 추가 고려 사항
 
-- 직접 소비자는 LoopEngine이다. Graph의 Loop Agent와 Pipeline 내부 Loop에도 적용된다.
+- 직접 소비자는 LoopEngine이다. Graph의 Loop Agent에도 적용된다.
   순수 Graph 노드, BaseEngine의 모든 모델 호출, Memory의 보조 모델 호출에 재귀 적용하지 않는다.
 - 컴포넌트 순서를 정하는 데 priority/name이면 현재 충분하다. before/after 의존성 그래프는
   도입하지 않았다. 같은 필드를 수정하는 여러 처리기의 의도까지 자동 병합하지 않는다.

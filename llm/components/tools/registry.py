@@ -7,6 +7,7 @@ import re
 from dataclasses import asdict, dataclass
 from collections.abc import Awaitable, Callable
 from copy import deepcopy
+from inspect import getattr_static
 from typing import Any, Optional
 
 from jsonschema import Draft202012Validator
@@ -83,17 +84,13 @@ class ToolRegistry:
             raise ValueError("Tool parameters must describe an object")
         if tool.contract is not None and set(tool.contract.retry_fields) - schema.get("properties", {}).keys():
             raise ValueError("Tool retry_fields must name declared parameters")
-        # Tool validation must not fetch remote schemas.
-        def check_refs(value: Any) -> None:
-            if isinstance(value, dict):
-                for key, item in value.items():
-                    if key in ("$ref", "$dynamicRef") and not str(item).startswith("#"):
-                        raise ValueError("Only local schema references are supported")
-                    check_refs(item)
-            elif isinstance(value, list):
-                for item in value:
-                    check_refs(item)
-        check_refs(schema)
+        # A durable selected child cannot change identity through argument repair.
+        # A new selection requires a new invocation and its own approval binding.
+        if (tool.contract is not None and tool.contract.retry_fields
+                and getattr_static(tool.handler, "bind_arguments", None) is not None):
+            raise ValueError("Durable selected Tool bindings do not support retry_fields; start a new invocation")
+        from llm.core.schema import validate_local_refs
+        validate_local_refs(schema)
         Draft202012Validator.check_schema(schema)
         definition = deepcopy(tool.definition)
         if definition is not None:
@@ -118,6 +115,21 @@ class ToolRegistry:
                     json.dumps(binding, allow_nan=False)
                     contracts[name]["execution_binding"] = deepcopy(binding)
         return contracts
+
+    def validate_selections(self, context):
+        """Validate only durably selected invocation bindings, including nested scopes."""
+        for record in (context.checkpoint or {}).get("records", {}).values():
+            if record.get("node_type") != "tool_binding":
+                continue
+            selected = record["selection"]
+            handler = self.get(selected["tool"]).handler
+            bind = getattr(handler, "bind_arguments", None)
+            if not callable(bind) or bind(deepcopy(selected["arguments"]), context) != selected["binding"]:
+                raise ValueError("Selected Tool execution configuration changed; start a new request")
+            validate = getattr(handler, "validate_selection", None)
+            if callable(validate):
+                validate(deepcopy(selected["arguments"]), context, request_key=record["request_key"],
+                         checkpoint_name=record["checkpoint_name"])
 
     def definitions(self, *, constraints=None) -> list[dict[str, Any]]:
         from .constraints import constrained_parameters

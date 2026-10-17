@@ -31,9 +31,9 @@ EngineRegistry는 등록 엔진이 선언한 입력 스키마와 effective confi
 계약을 선언하지 않은 사용자 엔진의 임의 JSON 의미를 서비스가 추측하지 않는다.
 
 Loop는 자신의 설정 키에서 completion을 읽는다. `parameter_key`으로 다른 키를 명시할 수 있다.
-Pipeline은 `parameters.engines.pipeline.config.stages.<단계>`의 config/policy를 해당 단계에 전달한다.
-준비 단계와 모델 단계에 timeout/model을 이름 일치로 방송하지 않는다. 별도 parameter_key을
-명시한 단계만 그 설정을 공유한다.
+Graph의 각 Agent Engine은 선택한 Engine의 설정 계약을 사용한다. 서로 다른 작업에
+timeout/model을 이름 일치로 방송하지 않는다. 별도 `parameter_key`를 명시한 Engine만
+그 설정을 공유한다.
 
 RAG는 `aconfigure`에 명시된 분할·동시성·검색·모델 옵션을 해석한다. provider native 옵션은
 생략 시 라이브러리에 맡긴다. 필요한 알고리즘 설정이 없으면 작업 시작 시 오류다.

@@ -42,20 +42,10 @@ def validate_contract(definition: dict) -> None:
                 raise ValueError("Binding names must be nonempty strings")
             pointer_parts(path)
 
-    def check_refs(value):
-        if isinstance(value, dict):
-            for key, item in value.items():
-                if key in ("$ref", "$dynamicRef") and (
-                        not isinstance(item, str) or not item.startswith("#")):
-                    raise ValueError("Workflow schemas only support local references")
-                check_refs(item)
-        elif isinstance(value, list):
-            for item in value:
-                check_refs(item)
-
+    from llm.core.schema import validate_local_refs
     for name in ("input_schema", "output_schema", "resume_schema"):
         if name in definition:
-            check_refs(definition[name])
+            validate_local_refs(definition[name])
             Draft202012Validator.check_schema(definition[name])
 
 

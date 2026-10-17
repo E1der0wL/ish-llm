@@ -119,13 +119,12 @@ def finish_instructions(store: Conversation, run_id: str, reason: str, *, target
 
 def instruction_records(checkpoint):
     """직접/중첩 체크포인트의 공통 input 기록. 메시지 본문은 복제하지 않는다."""
+    from llm.core.checkpoints import unwrap_record
     for key, record in checkpoint["records"].items():
-        payload = record.get("payload", {}) if record.get("node_type") == "engine_record" else record
+        payload, scope = unwrap_record(record)
         if isinstance(payload, dict) and payload.get("kind") == "instruction":
             validate_instruction_record(payload)
-            if record.get("node_type") == "engine_record" and (
-                    not isinstance(record.get("engine_scope"), str) or not record["engine_scope"].strip()
-                    or payload["target_scope"] != record["engine_scope"]):
+            if scope is not None and payload["target_scope"] != scope:
                 raise InstructionDataError("checkpoint scope mismatch")
             yield key, payload
 

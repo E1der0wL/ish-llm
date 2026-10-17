@@ -12,7 +12,6 @@ from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.engines.graph.agent import AgentNode
 from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
-from llm.engines.pipeline import PipelineEngine
 from llm.core.models import new_id
 from llm.components.workflows import WorkflowGraph
 from llm.llm import LargeLanguageModel
@@ -201,20 +200,28 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone((await run.aresult()).output)
         self.assertEqual((await run.aoutputs())[0].text, "valid")
 
-    async def test_pipeline_preserves_stage_results_and_uses_last_result(self):
+    async def test_multi_step_engine_preserves_results_and_publishes_final_output(self):
+        from contextlib import aclosing
         async def first(context):
-            yield "intermediate"
+            yield 'intermediate'
         async def second(context):
-            return EngineOutput(text="final", data={"verified": True})
-        await self.backend(PipelineEngine([BaseEngine(action=first), BaseEngine(action=second)]))
+            return EngineOutput(text='final', data={'verified': True})
+        class Work(BaseEngine):
+            async def execute(self, context):
+                for name, action in (('first', first), ('second', second)):
+                    async with aclosing(self.step(context, action, name=name)) as events:
+                        async for event in events:
+                            yield event
+                            if event.type == EngineEventType.STEP_COMPLETED:
+                                final = event.output
+                yield self.output_event(context, final)
+        await self.backend(Work())
         run = await self.request()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
-        self.assertEqual((await run.aresult()).output.data, {"verified": True})
-        stages = [step for step in await run.steps.alist() if step.kind == "engine"]
-        self.assertEqual([step.output.text for step in stages], ["intermediate", "final"])
-        self.assertEqual((await run.aresponse()).content, "final")
-        roots = [item for item in await run.aoutputs() if item.step_id is None]
-        self.assertEqual(len(roots), 1)
+        self.assertEqual((await run.aresult()).output.data, {'verified': True})
+        self.assertEqual([step.output.text for step in await run.steps.alist()], ['intermediate', 'final'])
+        self.assertEqual((await run.aresponse()).content, 'final')
+        self.assertEqual(len([item for item in await run.aoutputs() if item.step_id is None]), 1)
 
     async def test_closed_step_cannot_emit_more_deltas(self):
         class BadEngine:

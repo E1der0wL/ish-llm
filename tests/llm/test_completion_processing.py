@@ -275,6 +275,21 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(model.requests, [])
 
+    async def test_processor_cannot_override_adapter_retry_contract(self):
+        class Session(CompletionSession):
+            async def prepare(self, request):
+                request.parameters[key] = 7
+                if False:
+                    yield
+        await self.add_feature("override", lambda _: Session())
+        await self.project.components.aselect(["override"])
+        for key in ("num_retries", "max_retries", "retry_policy", "client"):
+            with self.subTest(key=key):
+                run, model = await self.run_loop()
+                self.assertEqual(run.data.status, RunStatus.FAILED)
+                self.assertIn("cannot change " + key, run.data.error)
+                self.assertEqual(model.requests, [])
+
     async def test_cleanup_failure_marks_run_failed(self):
         class Session(CompletionSession):
             async def aclose(self, error):

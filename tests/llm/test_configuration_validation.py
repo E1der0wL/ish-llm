@@ -9,7 +9,6 @@ from jsonschema import Draft202012Validator
 from llm.components.base import Component
 from llm.engines.graph import GraphEngine
 from llm.engines.loop import LoopEngine
-from llm.engines.pipeline import PipelineEngine, PreparationStep
 from llm.llm import LargeLanguageModel
 
 
@@ -92,16 +91,6 @@ class ConfigurationValidationTests(unittest.IsolatedAsyncioTestCase):
             await app.projects.acreate(config={"parameters": {"engines": {"graph": {'policy': {'max_parallelism': 0}}}}})
         await app.projects.acreate(config={"parameters": {"engines": {"graph": {'policy': {'max_parallelism': 2}}}}})
 
-    async def test_pipeline_rejects_invalid_stage_without_preparation(self):
-        async def prepare(context):
-            raise AssertionError("Configuration must not run preparation")
-        app = self.backend(engines={"pipeline": PipelineEngine({
-            "prepare": PreparationStep("prepare", prepare), "answer": LoopEngine()})})
-        for stages in ({"prepare": {"timeout_seconds": -1}},
-                       {"answer": {"max_iterations": 0}}, {"unknown": {}}):
-            with self.assertRaisesRegex(ValueError, "pipeline"):
-                await app.projects.acreate(config={"parameters": {"engines": {"pipeline": {'config': {'stages': stages}}}}})
-        await app.projects.acreate(config={"parameters": {"engines": {"pipeline": {'config': {'stages': {'prepare': {'policy': {'timeout_seconds': None}}, 'answer': {'policy': {'max_iterations': 3}}}}}}}})
 
     async def test_partial_nested_defaults_match_ui_without_weakening_arrays(self):
         app = self.backend(components=[ConnectionComponent()])

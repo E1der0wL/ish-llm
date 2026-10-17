@@ -64,22 +64,21 @@ class RunResultQuery:
         return self.sessions.ownership
 
     @workspace_locked
-    def tool_result(self, owner, session_id, run_id, tool_call_id, *, steps, offset=0, limit=None):
+    def tool_result(self, owner, session_id, run_id, step_id, *, steps, offset=0, limit=None):
         """소유 Session의 원본 Tool 결과를 부분 조회한다. 경로를 모델 입력으로 받지 않는다."""
         if type(offset) is not int or offset < 0 or limit is not None and (type(limit) is not int or limit < 1):
             raise ValueError("Invalid result slice")
         project = self.sessions.require_project(owner)
         session = self.sessions.load(project, session_id)
         run = self.runs.load(session, run_id)
-        matches = [s for s in steps.list(run) if s.kind == "tool" and s.status == "completed"
-                   and s.metadata.get("tool_call_id") == tool_call_id]
-        if len(matches) != 1 or matches[0].output is None:
-            raise ValueError("Completed Tool result not found uniquely")
-        value = matches[0].output.data
+        step = steps.load(run, step_id)
+        if step.kind != "tool" or step.status != "completed" or step.output is None:
+            raise ValueError("Completed Tool result required")
+        value = step.output.data
         content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)
         return {"content": content[offset:None if limit is None else offset + limit], "offset": offset,
                 "total_chars": len(content), "sha256": hashlib.sha256(content.encode()).hexdigest(),
-                "run_id": run_id, "step_id": matches[0].id}
+                "run_id": run_id, "step_id": step.id}
 
     @workspace_locked
     def load(self, owner: Union[Project, Session], run_id: str) -> ExecutionResult:

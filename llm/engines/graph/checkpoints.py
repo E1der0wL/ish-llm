@@ -3,6 +3,7 @@
 import json
 from copy import deepcopy
 from llm.core.interactions import InteractionRequest
+from llm.core.checkpoints import build_envelope
 from dataclasses import replace
 
 from llm.engines.base import EngineEvent, EngineEventType
@@ -12,15 +13,16 @@ class EngineCheckpointScope:
     """Step ID와 독립적인 호출 경로. 내부 payload 형식은 자식 Engine이 소유한다."""
 
     def __init__(self, owner, name, records, *, parent_name="graph"):
+        if any(not isinstance(v, str) or not v.strip() for v in (owner, name, parent_name)):
+            raise ValueError("Checkpoint scope requires nonempty owner and Engine checkpoint names")
         self.owner, self.name, self.records = owner, name, records
         self.parent_name = parent_name
 
     def _bind(self, request, local):
-        return request.bind(self.parent_name, self.key(local),
-                            decision_key="approved" if self.parent_name == "graph" else None)
+        return request.bind(self.parent_name, self.key(local), selection=True)
 
     def key(self, local):
-        return json.dumps([*json.loads(self.owner), "engine", self.name, local], ensure_ascii=False, separators=(",", ":"))
+        return json.dumps([self.owner, "engine", self.name, local], ensure_ascii=False, separators=(",", ":"))
 
     def snapshot(self):
         header = self.records.get(self.key("@header"))
@@ -58,6 +60,8 @@ class EngineCheckpointScope:
         return replace(context, run=run, checkpoint=snapshot, checkpoint_scope=self.owner)
 
     def wrap(self, event):
+        if event.checkpoint is not None:
+            return replace(event, checkpoint=self.wrap(event.checkpoint))
         data = event.metadata
         if data.get("name") != self.name:
             raise ValueError("Child Engine checkpoint name mismatch")
@@ -70,18 +74,16 @@ class EngineCheckpointScope:
             if self.snapshot() is None or data["key"] == "@header":
                 raise ValueError("Initialize child checkpoint before records")
             local, payload = data["key"], data["value"]
-            state = payload["status"]
-            if state not in ("started", "completed", "waiting", "responded", "not_applied"):
-                raise ValueError("Unsupported child checkpoint status")
-            # 자식의 responded/not_applied는 부모에서 외부 효과 재시도를 요구하지 않는다.
-            status = state if state in ("started", "completed", "waiting") else "completed"
-            container = state != "started" or payload.get("container") is True
+            from llm.core.checkpoints import checkpoint_lifecycle
+            status, container = checkpoint_lifecycle(payload, data.get("lifecycle"))
         else:
             raise ValueError("Unsupported child checkpoint operation")
-        value = {"node_type": "engine_record", "engine_scope": self.owner, "checkpoint_name": self.name,
-                 "local_key": local, "payload": deepcopy(payload), "status": status, "container": container,
-                 "requires_retry": status == "started" and not container}
+        value = {**build_envelope(engine_scope=self.owner, checkpoint_name=self.name, local_key=local,
+                    status=status, container=container, requires_retry=status == "started" and not container),
+                 "payload": deepcopy(payload)}
         if status == "waiting":
+            if "interaction" not in payload:
+                raise ValueError("Nested waiting checkpoints require an InteractionRequest")
             value.update(approval_required=True, name=payload.get("name"), arguments=payload.get("arguments"), prompt=payload.get("prompt"))
         request = None
         if "interaction" in payload:
@@ -91,6 +93,7 @@ class EngineCheckpointScope:
                           "key": self.key(local), "value": value})
 
     def accepted(self, event):
+        event = event.checkpoint or event
         self.records[event.metadata["key"]] = deepcopy(event.metadata["value"])
 
     def wrap_instruction(self, event):
@@ -101,8 +104,8 @@ class EngineCheckpointScope:
         if data["checkpoint"] != self.name:
             raise ValueError("Child instruction checkpoint name mismatch")
         local = data["boundary"]
-        envelope = {"node_type": "engine_record", "engine_scope": self.owner, "checkpoint_name": self.name,
-                    "local_key": local, "status": "completed", "container": True, "requires_retry": False}
+        envelope = build_envelope(engine_scope=self.owner, checkpoint_name=self.name, local_key=local,
+                                  status="completed", container=True, requires_retry=False)
         return replace(event, metadata={**data, "checkpoint": self.parent_name, "boundary": self.key(local), "envelope": envelope})
 
     def accepted_instruction(self, event, inbox):

@@ -1,7 +1,7 @@
 """등록 객체가 선언한 Project 편집 스키마를 조합한다. 저장 파일이나 모델은 읽지 않는다."""
 
 from llm.core.models import ProjectConfig
-from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema, metadata_schema
+from llm.core.schema import checked_schema, object_schema, implementation_schema, checked_implementation_schema, metadata_schema, schema_nodes
 
 
 def effective_engines(app, config, *, session_config=None):
@@ -26,14 +26,16 @@ def describe_project_config(app, components=None):
                          "project_configuration": callable(getattr(component, "validate_project_config", None))}
     # 선언한 런타임 자원의 선택지만 보강한다. 정책값이나 Engine별 기본값은 생성하지 않는다.
     def resources(spec):
-        if isinstance(spec, dict):
-            if spec.get("x-resource") == "token_counters":
-                spec["enum"] = sorted(getattr(app.policy_resolver, "token_counters", {}))
-            for value in spec.values():
-                resources(value)
-        elif isinstance(spec, list):
-            for value in spec:
-                resources(value)
+        for node in schema_nodes(spec):
+            if node.get("x-resource") == "token_counters":
+                names = sorted(getattr(app.policy_resolver, "token_counters", {}))
+                # A UI availability projection may narrow, never replace the owner's enum.
+                if "enum" in node:
+                    names = [name for name in names if name in node["enum"]]
+                if names:
+                    node["enum"] = names
+                else:
+                    node["allOf"] = [*node.get("allOf", []), False]
 
     engines, engine_catalog = {}, {}
     for name in app.engines.names():
@@ -62,6 +64,7 @@ def describe_project_config(app, components=None):
             continue
         describe = getattr(component, "describe_config", None)
         spec = checked_implementation_schema(describe() if describe else implementation_schema())
+        resources(spec)
         if isinstance(spec, dict):
             spec["$id"] = "urn:ish:project-component:" + name + ":configuration"
             # UI values에는 명시적으로 설정한 값만 제공한다. 중첩/배열/ref의 조건을 보존한다.

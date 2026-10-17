@@ -9,7 +9,7 @@ from .observations import observed_call
 from .parameters import copy_params
 from .runtime import diagnostic, diagnostic_failure, diagnostic_context, request_details
 from .retry import effective_attempts, retry_delay
-from llm.errors import CodedError, exception_chain
+from llm.errors import CodedError, exception_chain, stable_error_code
 from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
 
 
@@ -45,6 +45,9 @@ class ProviderError(CodedError, RuntimeError):
 
 def error_code(error):
     """오류 텍스트는 분류에만 사용한다. 원문은 로그에 넣지 않는다."""
+    known = stable_error_code(error)
+    if known is not None:
+        return known
     for error in exception_chain(error):
         if isinstance(error, asyncio.CancelledError):
             return "provider_cancelled"
@@ -145,7 +148,8 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
                         raise ProviderError("provider_invalid_response")
                 return result
             with diagnostic_context(**details, attempt=attempt + 1):
-                return await asyncio.wait_for(observed_call(operation, copy_params(request), checked), remaining)
+                from .litellm import describe_call
+                return await asyncio.wait_for(observed_call(describe_call(operation, request), copy_params(request), checked), remaining)
         except Exception as error:
             code = error_code(error)
             failure = diagnostic_failure(error, operation=operation, stage="invoke", attempt=attempt + 1,

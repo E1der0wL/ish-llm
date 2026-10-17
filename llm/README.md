@@ -32,7 +32,7 @@ Backend는 계약·저장·권한 불변식을 집행합니다. 새 구현은
 | Session | 다시 열 수 있는 대화·작업 세션. Conversation도 여기에 속함 | 문서 작성 대화 |
 | Run | 한 사용자 요청을 실제로 실행한 기록 | “이 문서를 요약해줘” |
 | Step | Run 안에서 관찰할 수 있는 실행 단위 | 모델 호출, Tool 호출, Graph 노드 |
-| Engine | Run을 어떻게 실행할지 정의하는 전략 | LoopEngine, GraphEngine, PipelineEngine |
+| Engine | Run을 어떻게 실행할지 정의하는 전략 | LoopEngine, GraphEngine |
 | Component | Project에 연결할 기능과 해당 기능의 데이터를 관리 | Tools, RAG, Memory, Agents, Workflows |
 
 ```text
@@ -265,7 +265,7 @@ Graph는 `await run.ainstruction_targets()`의 실행 목록을 UI에 표시하�
 
 추가 지시는 `pending`, `applied`, `unapplied`, `partially_applied`로 조회합니다. 대상별 결과는 `instruction.targets`에 있습니다. `applied`는 입력 준비에 포함했다는 뜻으로 모델의 이행이나 요청 성공을 보장하지 않습니다. UI는 `STEERING_CHANGED`를 받고, 알림을 놓쳤으면 `ainstructions()`, `ainstruction_targets()`, `ainstruction_routes()`로 다시 읽습니다. 접수가 마감된 대상은 `RunRequestError(code="steering_unavailable")`로 거절하며 다른 실행으로 자동 전송하지 않습니다.
 
-기존 반복·토큰·시간 제한은 유지됩니다. 이미 시작한 Tool을 즉시 멈춰야 한다면 `interrupt()`를 사용하세요. Pipeline 단계 라우팅은 지원하지 않습니다. [공통 계약과 Graph 대상 선택](../docs/llm/steering.md), [Loop 반영 시점](engines/loop/README.md#실행-중-추가-지시)을 참고하세요.
+기존 반복·토큰·시간 제한은 유지됩니다. 이미 시작한 Tool을 즉시 멈춰야 한다면 `interrupt()`를 사용하세요. [공통 계약과 Graph 대상 선택](../docs/llm/steering.md), [Loop 반영 시점](engines/loop/README.md#실행-중-추가-지시)을 참고하세요.
 
 ### 설정과 UI 연결
 
@@ -353,7 +353,7 @@ Tool은 Python 패키지, RAG는 색인 세대 등 별도 저장 구조를 가�
 | 경로 | 읽을 때 |
 | --- | --- |
 | [core/](core/README.md) | 도메인, 설정, 출력·승인 등 공통 데이터 계약 |
-| [engines/](engines/README.md) | Loop/Graph/Pipeline 실행과 새 전략 구현 |
+| [engines/](engines/README.md) | Loop/Graph 실행과 새 전략 구현 |
 | [components/](components/README.md) | 기능별 데이터·검색·Tool·장기 기억 |
 | [providers/](providers/README.md) | LiteLLM 호출, 오류·retry·로그·임베딩 검증 |
 | [재시도 계약](../docs/llm/retry.md) | Application의 동일/수정 인자 재시도 선택, 승인·재개·효과 안전성, 적용 단위 |

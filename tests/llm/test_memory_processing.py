@@ -230,7 +230,8 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         await self.memory.acreate({'content': 'large source ' * 50}, identifier='source')
         first, _ = await self.run_loop(model=ScriptedCompletion(
             [chunk(calls=[call('{"identifier":"source"}', name='memory_get')], finish='tool_calls')], answer()))
-        query = json.dumps({'run_id': first.id, 'tool_call_id': 'call_1', 'offset': 0, 'limit': 50})
+        step, = [s for s in await first.steps.alist() if s.kind == 'tool']
+        query = json.dumps({'run_id': first.id, 'step_id': step.id, 'offset': 0, 'limit': 50})
         second, model = await self.run_loop(model=ScriptedCompletion(
             [chunk(calls=[call(query, name='memory_tool_result')], finish='tool_calls')], answer()))
         self.assertEqual(second.data.status, RunStatus.COMPLETED, second.data.error)
@@ -485,7 +486,8 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         for message in tool_messages:
             preview = json.loads(message["content"])
             self.assertTrue(preview["truncated"])
-            self.assertEqual(preview["source"]["tool_call_id"], message["tool_call_id"])
+            step = next(s for s in await run.steps.alist() if s.metadata.get("tool_call_id") == message["tool_call_id"])
+            self.assertEqual(preview["source"]["step_id"], step.id)
             self.assertLess(len(message["content"]), 600)
         steps = [s for s in await run.steps.alist() if s.kind == "tool"]
         self.assertEqual(len(steps[0].output.data["content"]), 10000)

@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from .contracts import Diagnostic, ResourceRef
-from .models import ProjectConfig, Run, RunStatus, new_id, now
+from .models import ProjectConfig, Run, RunStatus, Step, new_id, now
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,6 +105,31 @@ def duration_seconds(start: Optional[str], end: Optional[str]) -> Optional[float
     return max(0.0, (datetime.fromisoformat(end) - datetime.fromisoformat(start)).total_seconds())
 
 
+@dataclass(frozen=True, slots=True)
+class ResumeOutput:
+    """Explicit-resume observation, not a completion or effect receipt.
+
+    Services supply the stored output and its owning Step without interpreting
+    Engine-private metadata. The consuming Engine selects applicable references.
+    This snapshot is transient; it creates no additional persisted authority.
+    """
+    run_id: str
+    output: EngineOutput
+    step: Optional[Step] = None
+
+    def __post_init__(self):
+        if not self.run_id or not isinstance(self.output, EngineOutput) or self.output.final:
+            raise ValueError("Resume output requires an unfinished source output")
+        if self.step is None:
+            if self.output.step_id is not None:
+                raise ValueError("Resume output requires its owning Step")
+        elif (self.step.id != self.output.step_id or self.step.run_id != self.run_id
+              or self.step.status == "completed"):
+            raise ValueError("Resume output Step ownership/status mismatch")
+        object.__setattr__(self, "output", deepcopy(self.output))
+        object.__setattr__(self, "step", deepcopy(self.step))
+
+
 @dataclass(slots=True)
 # 개별 모델 호출의 종료 이유, 시간과 사용량을 기록한다.
 class CompletionResult:
@@ -153,6 +178,8 @@ class ExecutionResult:
     error_code: Optional[str] = None
     output: Optional[EngineOutput] = None
 
+    diagnostic_details: dict = field(default_factory=dict)
+
     @classmethod
     def from_run(cls, project_id: str, run: Run) -> "ExecutionResult":
         completions = [CompletionResult.for_run(data, run)
@@ -165,13 +192,16 @@ class ExecutionResult:
         return cls(project_id, run.session_id, run.id, run.engine, run.status,
                    run.started_at, run.ended_at, duration_seconds(run.started_at, run.ended_at),
                    completions=completions, usage=usage, error=run.error, error_code=run.error_code,
-                   output=EngineOutput.from_dict(run.metadata["output"]) if "output" in run.metadata else None)
+                   output=EngineOutput.from_dict(run.metadata["output"]) if "output" in run.metadata else None,
+                   diagnostic_details=deepcopy(run.metadata.get("diagnostic", {})))
 
     @property
     def diagnostic(self) -> Optional[Diagnostic]:
         """저장된 오류의 UI 투영. 재시도 판단이나 원본 오류 필드를 변경하지 않는다."""
         if self.error is None and self.error_code is None:
             return None
+        if self.diagnostic_details:
+            return Diagnostic.from_dict(self.diagnostic_details)
         return Diagnostic(self.error_code or "execution_failed", self.error or "",
             source=ResourceRef("run", self.run_id, project_id=self.project_id,
                                session_id=self.session_id, run_id=self.run_id))

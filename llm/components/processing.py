@@ -1,12 +1,29 @@
 """컴포넌트의 모델 입력 변환·응답 관찰 계약. 영속 도메인이나 특정 컴포넌트를 알지 않는다."""
 
 import math
+import inspect
 from typing import AsyncIterator, Optional, Protocol, TYPE_CHECKING
 
 from contextlib import aclosing
 from dataclasses import dataclass
 from asyncio import timeout
 from llm.providers.parameters import copy_params
+from llm.core.contracts import Diagnostic, ResourceRef
+
+
+@dataclass(frozen=True, slots=True)
+class CompletionRecovery:
+    """Application input-repair proposal boundary; editable indexes are not authority."""
+    diagnostic: Diagnostic
+    request: dict
+    attempt: int
+    editable: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class CompletionRepair:
+    """Replace reference bodies only. No SDK, Tool, policy or message-role changes."""
+    replacements: dict[int, str]
 
 if TYPE_CHECKING:
     from llm.engines.base import EngineContext, EngineEvent
@@ -20,11 +37,20 @@ class CompletionMessage:
     source_id: Optional[str] = None
     # 같은 작업에 추가된 USER 입력. provider kwargs에는 포함하지 않는다.
     continuation: bool = False
+    # Completed result identity, excluded from provider kwargs. Call IDs are local
+    # to an execution scope and cannot identify sibling Agent results in a Run.
+    result_ref: Optional[ResourceRef] = None
 
 
 @dataclass(slots=True)
 class CompletionRequest:
-    """한 모델 호출의 가변 사본. 메시지 구조와 공급자 인자를 분리한다."""
+    """한 텍스트 모델 호출의 가변 사본. SDK 인자와 출처/압축 계약을 분리한다.
+
+    The current user instruction is text and remains an exact prefix. Active
+    compaction appends reference summaries to that body and declares removed
+    Tool exchange IDs. This contract does not interpret multimodal content or
+    silently translate alternate summary placements.
+    """
 
     parameters: dict
     messages: list[CompletionMessage]
@@ -111,10 +137,11 @@ def ordered_processors(processors):
 class CompletionPipeline:
     """한 엔진 호출에 귀속되는 처리기 수명·순서·입력 계약. 상태를 엔진 인스턴스에 두지 않는다."""
 
-    def __init__(self, processors, context):
+    def __init__(self, processors, context, *, validate_parameters=None):
         self.processors = ordered_processors(processors)
         self.context = context
         self.sessions = []
+        self.validate_parameters = validate_parameters
 
     async def __aenter__(self):
         try:
@@ -148,11 +175,65 @@ class CompletionPipeline:
         return False
 
     @staticmethod
+    def _instruction_text(message):
+        content = message.get("content")
+        if not isinstance(content, str):
+            raise ValueError("Text completion processing requires a string current instruction")
+        return content
+
+    @staticmethod
+    async def recover(request, diagnostic, attempt, *, current_index, decide, prepare=None):
+        """Repair this prepared invocation, without touching persistent input/receipts.
+
+        Current instructions (including embedded data without an explicit separate
+        reference boundary) stay whole. Earlier bodies and Tool result bodies can
+        be shortened; call IDs/arguments/order and all other fields stay exact.
+        """
+        original = copy_params(request)
+        messages = original["messages"]
+        if not 0 <= current_index < len(messages) or messages[current_index].get("role") != "user":
+            raise ValueError("Recovery requires the current user input")
+        CompletionPipeline._instruction_text(messages[current_index])
+        editable = tuple(i for i, message in enumerate(messages)
+            if isinstance(message.get("content"), str)
+            and message.get("role") not in ("system", "developer")
+            and (i < current_index or message.get("role") == "tool"))
+        if not editable:
+            return None
+        selected = decide(CompletionRecovery(Diagnostic.from_dict(diagnostic.to_dict()), copy_params(original), attempt, editable))
+        if inspect.isawaitable(selected):
+            selected = await selected
+        if selected is None:
+            return None
+        if not isinstance(selected, CompletionRepair) or not isinstance(selected.replacements, dict):
+            raise TypeError("Completion recovery requires CompletionRepair or None")
+        candidate = copy_params(original)
+        for index, content in selected.replacements.items():
+            if (type(index) is not int or index not in editable or not isinstance(content, str)
+                    or not content.strip()):
+                raise ValueError("Recovery can only replace declared reference bodies")
+            candidate["messages"][index]["content"] = content
+        if sum(len(m.get("content") or "") for m in candidate["messages"] if isinstance(m.get("content"), str)) >= sum(
+                len(m.get("content") or "") for m in messages if isinstance(m.get("content"), str)):
+            raise ValueError("Context repair must reduce reference content")
+        tail = copy_params(candidate["messages"][current_index:])
+        instructions = [m for m in messages if m.get("role") in ("system", "developer")]
+        if prepare is not None:
+            candidate = await prepare(candidate)
+        # Budget preparation may drop whole prior turns, never the protected tail.
+        if (candidate["messages"][-len(tail):] != tail or
+                [m for m in candidate["messages"] if m.get("role") in ("system", "developer")] != instructions or
+                {k: v for k, v in candidate.items() if k != "messages"} !=
+                {k: v for k, v in original.items() if k != "messages"}):
+            raise ValueError("Recovery budget processing removed current input or Tool structure")
+        return candidate
+
+    @staticmethod
     def _validate(request, original, parameters, current_id):
         if not isinstance(request.parameters, dict) or "messages" in request.parameters:
             raise ValueError("Completion messages must use CompletionRequest.messages")
         # 처리기가 Tool 권한·반복 계약을 우회하거나 메인 모델 자동 재시도를 추가할 수 없다.
-        for key in ("tools", "tool_choice", "functions", "function_call", "stream", "n", "num_retries"):
+        for key in ("tools", "tool_choice", "functions", "function_call", "stream", "n"):
             if (key in request.parameters) != (key in parameters) or request.parameters.get(key) != parameters.get(key):
                 raise ValueError(f"Completion processor cannot change {key}")
         originals = {m.source_id: m.value for m in original if m.source_id is not None}
@@ -168,6 +249,17 @@ class CompletionPipeline:
                     raise ValueError("Completion processor cannot change an original message role")
         if current_id not in seen:
             raise ValueError("Completion processor must preserve the current user message")
+        current = next(m.value for m in request.messages if m.source_id == current_id)
+        before = originals[current_id]
+        # Existing processors can append explicitly configured reference context;
+        # they cannot replace the original instruction with a summary or an ID.
+        if not CompletionPipeline._instruction_text(current).startswith(CompletionPipeline._instruction_text(before)):
+            raise ValueError("Completion processor must preserve the current instruction body")
+        protected = [m.value for m in original if m.value.get("role") in ("system", "developer")]
+        supplied = [m.value for m in request.messages if m.value.get("role") in ("system", "developer")]
+        candidates = iter(supplied)
+        if any(not any(value == candidate for candidate in candidates) for value in protected):
+            raise ValueError("Completion processor must preserve applied instructions")
         order = [m.source_id for m in original if m.source_id in seen]
         if order != [m.source_id for m in request.messages if m.source_id is not None]:
             raise ValueError("Completion processor must preserve original message order")
@@ -213,16 +305,19 @@ class CompletionPipeline:
             if left.get("role") == "tool":
                 left.pop("content", None)
                 right.pop("content", None)
-            if before.source_id != after.source_id or left != right:
+            if before.source_id != after.source_id or before.result_ref != after.result_ref or left != right:
                 raise ValueError("Completion processor cannot alter active tool calls or identifiers")
 
     async def prepare(self, request: CompletionRequest, original):
         parameters = copy_params(request.parameters)
+        self._validate(request, original, parameters, self.context.run.input_message_id)
         for _, session in self.sessions:
             async with aclosing(session.prepare(request)) as events:
                 async for event in events:
                     yield event
             self._validate(request, original, parameters, self.context.run.input_message_id)
+            if self.validate_parameters is not None:
+                self.validate_parameters(request.parameters, original=parameters)
 
     async def after_completion(self, observation: CompletionObservation):
         for _, session in self.sessions:

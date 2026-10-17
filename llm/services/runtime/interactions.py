@@ -175,7 +175,10 @@ class InteractionRepository:
                         retries.append(key)
                 continue
             if response is None and key not in decisions and confirm and request.kind == "confirmation":
-                response = request.respond("approve")
+                option = request.find_approval()
+                if option is None:
+                    raise ValueError("Confirmation requires an explicit option and any required input")
+                response = request.respond(option.id)
                 receipts.append(response)
             if response is not None:
                 value = response.decision(request)
