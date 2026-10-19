@@ -1,7 +1,8 @@
 # 출시 전 호환 계층 제거 작업 기록
 
-현재 작업은 진행 중이다. R0/R1은 완료·Push했고, R2의 최종 전체 회귀도 통과했다.
-R3~R7은 완료하지 않았다. 아래의 로컬 결과를 GitHub Actions 성공으로 간주하지 않는다.
+현재 작업은 **R3 안전성 회귀로 중단**했다. R0~R2는 검증·커밋·Push했고, R3~R7은
+완료하지 않았다. R3 초안은 외부 증거 디렉터리에 보존하고 제품 소스를 R2로 복원했다.
+아래의 로컬 결과를 GitHub Actions 성공으로 간주하지 않는다.
 
 ## 브랜치와 보존한 기준선
 
@@ -13,7 +14,10 @@ R3~R7은 완료하지 않았다. 아래의 로컬 결과를 GitHub Actions 성�
   `ish.platform/src/ish`를 사용하며 호스트 수정·추적·커밋 없음.
 - Python: 3.12.14. 기존 A~F 보고서와 실패·재검증 이력은 그대로 보존했다.
 - R0: `e6feefb` (감사·실제 기준선), R1: `2bd94e53d72fc3b957d82033ad8ad4ce5e86adef`
-  (단일 계약). 두 커밋의 원격 Push를 확인했다.
+  (단일 계약).
+- R2: `b6b71c76385f15a4c705231764da79bebda42dd4` (typed Provider/Tool 계약),
+  원격 `refactor/llm-backend` 동일 SHA를 확인했다. 변경 파일 177개; 정확한 목록은
+  `git diff-tree --no-commit-id --name-status -r b6b71c76385f15a4c705231764da79bebda42dd4`로 조회한다.
 
 설계와 전수 감사는 [PRE_RELEASE_CONTRACT.md](PRE_RELEASE_CONTRACT.md),
 [COMPATIBILITY_REMOVAL_AUDIT.md](COMPATIBILITY_REMOVAL_AUDIT.md)를 따른다.
@@ -83,7 +87,7 @@ RAG·Vision의 raw completion 결과는 소비·repair 전에 TypeError로 거�
 `/workspace/compat-removal-evidence/`에 보존한다. `r0-*`, `r2-full-dev1-*`, `r2-final-*`,
 `r2-test-id-diff.json`이 전체 게이트의 근거다. 최종 R2 게이트는 llm/hub/tests/examples의
 Python 파일 집합과 SHA256을 전후 비교한다. 테스트 실행 당시 소스는 R1 HEAD 위 R2
-수정 트리이며, 전체 완료 후 동일 구현을 R2 커밋으로 보존한다.
+수정 트리이며, 전체 완료 후 동일 구현을 R2 커밋 `b6b71c7`로 보존·Push했다.
 
 개발 중 실패/중단도 성공으로 처리하지 않았다:
 
@@ -102,13 +106,76 @@ Python 파일 집합과 SHA256을 전후 비교한다. 테스트 실행 당시 �
 | r2-current-fixtures | 27개, 오류 1 | 존재하지 않는 unittest 클래스 지정으로 loader 오류 |
 | r2-current-fixtures-confirm | 27개 통과 | 올바른 클래스명으로 현재 fixture·모델 계약·Hub 지침 확인 |
 
-## 아직 완료하지 않은 작업
+## R3 안전성 회귀와 중단
 
-R3 명시 Agent/단일 저장 형식, R4 Hub Agent 관리·선택과 현재 Run 관계,
-R5 나머지 구형 fixture·문서, R6 Actions, R7 최종 전체 검증은 진행 대상이다.
-R3 설계는 Run의 Agent revision, 승인 scope, Step/효과 소유권, 같은 Agent FIFO,
-다른 Agent 병렬, 입증된 pending 요청만 복구하는 규칙을 보존한다.
-실행 중인 R2 소스에는 R3 초안을 적용하지 않았다.
+사용자의 “핵심 안전성 회귀가 발생하면 중단하고 보고” 조건에 따라 R3 구현을 중단했다.
+R3 초안에서 **Agent `policy.max_tool_calls=1`이 Run의 ToolExecutionScope에 적용되지
+않는 회귀**가 실제 테스트로 확인됐다. 아직 검증된 R3 커밋은 없다.
+
+원인: `RunAgentResolver.snapshot()`에서 binding의 `adapter` 필드를 제거했지만,
+`RunManager._context()`의 정책 합성에는
+`if selected.get("adapter") == "agent":` 조건이 남았다. 이 조건이 거짓이 되어 Agent의
+`max_tool_calls` 적용과 Project 한도를 넓히지 않는 검사를 건너뛰었다. 해당 실행의
+`agent_execution.tool_policy.max_calls`는 기대값 `1` 대신 `None`이었다.
+
+실패한 테스트는 `tests.llm.test_agent_runs.AgentRunTests.test_loop_approval_uses_agent_tool_scope_and_preserves_budget_on_resume`이다.
+승인 전 효과 0회, 승인 후 효과 1회, 완료 상태까지의 기존 assertion은 통과했고
+그 뒤 Tool 한도 assertion이 실패했다. 이 결과만으로 추가 효과가 실제 발생했다고
+주장하지 않는다. 실행 한도를 보장하지 못하므로 다음 단계에 사용할 수 없는 상태다.
+assertion 삭제·완화, Skip 추가, 구 API 우회는 하지 않았다.
+
+| 게이트 | 명령 | 실행 | 실패 | 오류 | Skip | 시간 | exit |
+|---|---|---:|---:|---:|---:|---:|---:|
+| R3 첫 집중 검증 | `-m unittest -v tests.llm.test_agent_domain tests.llm.test_agent_runs tests.llm.test_multi_agent tests.llm.test_multi_run_interleavings tests.llm.test_cross_session_requests tests.llm.test_completion_review` | 63 | 1 | 44 | 0 | 10.854s | 1 |
+| R3 안전성 단독 재현 | `-m unittest -v tests.llm.test_agent_runs.AgentRunTests.test_loop_approval_uses_agent_tool_scope_and_preserves_budget_on_resume` | 1 | 1 | 0 | 0 | 0.294s | 1 |
+| R2 소스 복원 후 같은 테스트 | 위 단독 명령 | 1 | 0 | 0 | 0 | 0.345s | 0 |
+
+첫 집중 검증의 오류에는 subTest 오류가 포함되므로 63에서 단순 차감해 통과 수를
+계산하지 않는다. 주요 오류는 아직 이관하지 않은 Fake Engine의 `for_agent` 누락,
+제거한 submit/Request/Session API 사용, AgentComponent import였다. 이는 R3 미완료
+항목이며 성공으로 처리하지 않는다. 별도 수동 Echo smoke도 테스트 코드의 잘못된
+`output_event` 호출로 Run이 실패해 성공 증거에 포함하지 않았다.
+
+R3에서 수정한 추적 파일 30개와 새 파일 2개는 다음에 보존했다:
+
+- `/workspace/compat-removal-evidence/r3-blocked.patch`
+- `/workspace/compat-removal-evidence/r3-blocked-new-files.tar.gz`
+- `/workspace/compat-removal-evidence/r3-blocked-manifest.json`
+- `r3-domain-dev1-*`, `r3-safety-repro-*`, `r2-restored-safety-*` 명령·원문 로그·exit·소스 hash
+
+패치 SHA256: `bda98d7486b5c6082e2359c43b7b96963f8b587f9139ff551c59feb6b6359526`.
+보존 후 이번 R3 수정 파일만 R2 HEAD로 복원했다. 새 파일도 archive/hash를 확인한 뒤
+작업 트리에서 제거했다. 제품·테스트 소스는 R2 커밋과 일치하며, 중단 보고 문서만
+추가 커밋한다. R3 초안은 원격 브랜치나 Draft PR에 포함하지 않았다.
+
+## 구현 상태와 다음 작업
+
+| 단계 | 상태 |
+|---|---|
+| R0 | 완료: 원격/기준선 확인, 감사표, 실제 전체 회귀 |
+| R1 | 완료: 정규 Provider/Agent/Run/저장 계약 문서 |
+| R2 | 완료: typed Provider·Processor·RAG·Vision·Tool 및 직접 소비자 이관, 전체 회귀·Push |
+| R3 | **중단·미완료**: Tool 한도 안전성 회귀 재현, 초안 보존 후 제품 소스 R2 복원 |
+| R4 | 미완료: Hub Agent 관리·명시 선택·현재 Run 관계 |
+| R5 | 미완료: 나머지 현재 fixture/예제/문서 및 최종 잔존 감사 |
+| R6 | 미완료: Actions 진단·게이트 분리와 실제 새 CI 실행 검증 |
+| R7 | 미완료: 최종 정리된 소스의 전체 회귀 및 출시 전 검토 |
+
+재개 시 첫 수정 대상은 `llm/services/runtime/{agents,runs}.py`의 정책 합성이다.
+Agent 한도와 Project 한도의 관계를 discriminator 없이 검증하고, 최초 실행·Resume
+모두에서 한도 초과 시 추가 Tool 효과가 0회임을 확인해야 한다. 그 다음
+`services/lifecycle/agents.py`, `services/runtime/requests.py`, `services/api.py`,
+`core/models.py`, history/Session 저장 계약과 관련 테스트를 이관한다.
+Core API와 함께 Hub `backend/{runtime,bootstrap,history}.py`,
+`backend/{execution/environment,project/record_management,project/naming,tools/resources}.py`,
+`components.py`의 실제 Agent·요청 문맥·단수 Run 사용처도 수정해야 한다.
+
+위험 요소는 Agent 한도 누락, 변경된 binding으로 인한 승인/Resume 무효화, request별
+환경을 Agent 정의에 덮어써 발생하는 실행 조건 변경, pending 접수/실제 시작의 원자성,
+구형 fixture를 제거하면서 crash/효과 중복 방지 증거를 잃는 것이다. 기존 F01~F14와
+C01~C12, 실제 효과 후 재개방 검증을 유지해야 한다. 이 단계들은 아직 완료하지 않았다.
+
+## CI 및 미검증
 
 기존 CI 실패: <https://github.com/E1der0wL/ish-llm/actions/runs/39288390903>,
 job `118182322629`, fafa8ce. `Install Linux sandbox runtime`에서 중단됐고 이후 테스트는

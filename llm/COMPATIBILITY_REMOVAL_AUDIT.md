@@ -87,6 +87,14 @@ sync/async facade는 현재 사용 방식으로 유지하지만 과거 이름 al
 
 ## 유지하는 현재 기능과 오탐
 
+R3 구현은 안전성 회귀를 발견해 중단했으며 소스는 검증된 R2로 복원했다.
+아래 추가 발견 항목과 기존 R3 이후 대기 항목은 아직 구현 완료가 아니다.
+
+| 경로/심볼 | 과거 지원 목적 | 현행 사용처 | 판정 | 정규 규약 | 변경 내용 | 기존 테스트 → 대체 테스트 | 확인 결과 |
+|---|---|---|---|---|---|---|---|
+| `services/runtime/runs.py:RunManager._context`, `selected.adapter == agent` | 구 Engine 요청과 명시 Agent의 정책 적용 구분 | 최초 Run·Resume Tool scope | 대체 필요 | 모든 명시 Agent의 한도 합성·Project 한도 초과 거부 | discriminator 제거와 정책 적용을 함께 바꿔야 함 | `test_loop_approval_uses_agent_tool_scope_and_preserves_budget_on_resume` 유지, 초과 효과 0회 검증 보강 필요 | **R3 초안 실패:** max_calls 1→None; 단독 재현 실패, R2 복원 후 통과 |
+| `services/api.py:Projects.upgrade_backup`, `lifecycle/projects.py:ProjectManager.upgrade_backup`, `infrastructure/backups.py:DirectoryBackups.upgrade` | 이전 개발 저장 형식의 명시적 변환 | 구 backup upgrade 테스트·예제 | 삭제 필요 | 현재 backup/restore만 | 원본 보존·검증 실패 rollback 검사는 현재 restore로 대체해야 함 | 기존 upgrade 성공 테스트 → 현재 copy/restore rollback 및 구형 형식 거부 | R3 초안 보존·복원, 아직 미완료 |
+
 | 경로/심볼 | 유지 이유 | 확인/검증 |
 |---|---|---|
 | `core/model_protocol.py`의 현재 `version`·typed JSON | 현재 한 포맷의 무결성/미지원 차단; 버전 숫자 자체는 호환 계층이 아님 | strict round-trip/unknown version/extra shape 검증 |
