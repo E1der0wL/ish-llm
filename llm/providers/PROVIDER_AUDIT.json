@@ -1,0 +1,253 @@
+{
+  "files": 48,
+  "matched_lines": 408,
+  "categories": {
+    "Persisted domain / application data": 27,
+    "Compatibility / public API": 7,
+    "Common contract / explicit compatibility boundary": 4,
+    "Provider wire / adapter": 10
+  },
+  "unclassified": [],
+  "inventory": [
+    {
+      "path": "llm/components/agents/component.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/components/memory/compaction.py",
+      "category": "Compatibility / public API",
+      "matched_lines": 3
+    },
+    {
+      "path": "llm/components/memory/component.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 4
+    },
+    {
+      "path": "llm/components/memory/data.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 5
+    },
+    {
+      "path": "llm/components/memory/processing.py",
+      "category": "Compatibility / public API",
+      "matched_lines": 22
+    },
+    {
+      "path": "llm/components/memory/tools.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 2
+    },
+    {
+      "path": "llm/components/memory/work_state.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 2
+    },
+    {
+      "path": "llm/components/processing.py",
+      "category": "Common contract / explicit compatibility boundary",
+      "matched_lines": 16
+    },
+    {
+      "path": "llm/components/prompts/component.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 5
+    },
+    {
+      "path": "llm/components/rag/__init__.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/components/rag/component.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 61
+    },
+    {
+      "path": "llm/components/rag/data.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 11
+    },
+    {
+      "path": "llm/components/rag/embedding.py",
+      "category": "Compatibility / public API",
+      "matched_lines": 5
+    },
+    {
+      "path": "llm/components/rag/extraction.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 2
+    },
+    {
+      "path": "llm/components/rag/indexing.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 4
+    },
+    {
+      "path": "llm/components/rag/ingestion.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 23
+    },
+    {
+      "path": "llm/components/rag/jobs.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 8
+    },
+    {
+      "path": "llm/components/rag/prompts.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 6
+    },
+    {
+      "path": "llm/components/rag/search.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 2
+    },
+    {
+      "path": "llm/components/rag/splitting.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/components/refinement/component.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 3
+    },
+    {
+      "path": "llm/components/refinement/data.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 5
+    },
+    {
+      "path": "llm/components/tools/builtin/catalog.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/components/tools/builtin/files.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/components/vision/backends.py",
+      "category": "Compatibility / public API",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/components/vision/data.py",
+      "category": "Compatibility / public API",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/core/model_protocol.py",
+      "category": "Common contract / explicit compatibility boundary",
+      "matched_lines": 8
+    },
+    {
+      "path": "llm/core/policies.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/core/results.py",
+      "category": "Compatibility / public API",
+      "matched_lines": 3
+    },
+    {
+      "path": "llm/engines/agents.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 3
+    },
+    {
+      "path": "llm/engines/base.py",
+      "category": "Common contract / explicit compatibility boundary",
+      "matched_lines": 8
+    },
+    {
+      "path": "llm/engines/loop/engine.py",
+      "category": "Common contract / explicit compatibility boundary",
+      "matched_lines": 15
+    },
+    {
+      "path": "llm/llm.py",
+      "category": "Compatibility / public API",
+      "matched_lines": 7
+    },
+    {
+      "path": "llm/providers/embeddings.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 7
+    },
+    {
+      "path": "llm/providers/litellm.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 51
+    },
+    {
+      "path": "llm/providers/model_codec.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 54
+    },
+    {
+      "path": "llm/providers/operations.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 19
+    },
+    {
+      "path": "llm/providers/requests.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 6
+    },
+    {
+      "path": "llm/providers/retry.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/providers/runtime.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 14
+    },
+    {
+      "path": "llm/providers/schema.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 3
+    },
+    {
+      "path": "llm/providers/streaming.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/providers/tokens.py",
+      "category": "Provider wire / adapter",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/services/history/conversation.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 3
+    },
+    {
+      "path": "llm/services/infrastructure/journal.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 3
+    },
+    {
+      "path": "llm/services/lifecycle/sessions.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/services/results.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 1
+    },
+    {
+      "path": "llm/services/runtime/runs.py",
+      "category": "Persisted domain / application data",
+      "matched_lines": 2
+    }
+  ]
+}
