@@ -361,10 +361,12 @@ class Runs(AsyncFacade):
     async def start(self) -> None:
         await self.session.app._manager(self.session._snapshot).start()
 
-    async def submit(self, content: str, *, engine: str, engine_options=UNSET) -> "RequestHandle":
+    async def submit(self, content: str, *, agent_id=UNSET, engine=UNSET, engine_options=UNSET) -> "RequestHandle":
         """요청별 JSON 실행 인자를 저장한다. Graph는 workflow ID를 명시해야 한다."""
+        if agent_id is UNSET and engine is UNSET:
+            raise TypeError("Specify agent_id (or the legacy engine= adapter)")
         message = await self.session.app._manager(self.session._snapshot).submit(
-            content, engine=engine, engine_options=engine_options)
+            content, agent_id=agent_id, engine=engine, engine_options=engine_options)
         return RequestHandle(self.session, message.id)
 
     async def steer(self, run_id: str, content: str, *, targets=None):
@@ -375,10 +377,10 @@ class Runs(AsyncFacade):
         """Run의 예약 경로별 다음 Agent 실행에 한 번만 전달한다."""
         return await self.app._manager(self.session._snapshot).reserve_instruction(run_id, content, targets=targets)
 
-    async def resume_plan(self, run_id: str, *, engine: str) -> ResumePlan:
+    async def resume_plan(self, run_id: str, *, engine=UNSET) -> ResumePlan:
         return await self.app._manager(self.session._snapshot).resume_plan(run_id, engine=engine)
 
-    async def resume(self, run_id: str, *, engine: str, retry_nodes=(), decisions=None, partial_output=False,
+    async def resume(self, run_id: str, *, engine=UNSET, retry_nodes=(), decisions=None, partial_output=False,
                      expected_revision=None) -> "RequestHandle":
         """이전 Run의 체크포인트를 이어갈 새 요청. 실행 중이던 노드만 명시적으로 재시도한다."""
         message = await self.app._manager(self.session._snapshot).resume(
@@ -386,7 +388,7 @@ class Runs(AsyncFacade):
             expected_revision=expected_revision)
         return RequestHandle(self.session, message.id)
 
-    async def restart(self, run_id: str, *, engine: str, expected_revision: str) -> "RequestHandle":
+    async def restart(self, run_id: str, *, engine=UNSET, expected_revision: str) -> "RequestHandle":
         message = await self.app._manager(self.session._snapshot).restart(
             run_id, engine=engine, expected_revision=expected_revision)
         return RequestHandle(self.session, message.id)

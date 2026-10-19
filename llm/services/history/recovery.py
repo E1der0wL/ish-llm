@@ -74,6 +74,12 @@ class ProjectRecovery:
                                  project_id=project.id, session_id=session, run_id=run)
             issues.append(Diagnostic(code, code.replace("_", " "), source=source,
                                      details={"detail": detail, "repairable": repairable}))
+        try:
+            agents = self.manager.agents.list(project)
+            signatures.append({"agents": agents})
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            agents = {}
+            issue("agent_integrity", detail=str(error))
         for session in self.manager.sessions.list(project, include_deleted=True):
             signatures.append(record(session))
             if self.manager.ownership.session_attached((project.id, session.id)):
@@ -102,6 +108,8 @@ class ProjectRecovery:
                 if any(m.run_id and m.run_id not in identifiers for m in messages.values()):
                     issue("missing_run_reference", session=session.id)
                 for run in runs:
+                    if run.agent_id is not None and run.agent_id not in agents:
+                        issue("missing_agent_reference", session=session.id, run=run.id)
                     from llm.services.runtime.steering import instruction_targets
                     instruction_targets(run)
                     stale = run.status in (RunStatus.RUNNING, RunStatus.PENDING)

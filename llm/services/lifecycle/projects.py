@@ -132,7 +132,7 @@ class ProjectManager:
             raise ValueError("Portable backup requires file conversation storage")
         self.components.validate(project.components)
         self._validate_config(project)
-        self.agents.list(project)
+        agents = self.agents.list(project)
         for name in project.components:
             validator = getattr(self.components.get(name), "validate_backup", None)
             if validator is None:
@@ -142,6 +142,8 @@ class ProjectManager:
             if self.config_validator is not None:
                 self.config_validator(project.config, session_config=session.config)
             for run in self.sessions.run_repository.read_backup(session):
+                if run.agent_id is not None and run.agent_id not in agents:
+                    raise ValueError("Backup Run references a missing Project Agent")
                 self.backup_steps.read_backup(run)
         return project
 

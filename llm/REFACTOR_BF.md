@@ -154,8 +154,7 @@ and test Python files in `b-gate-source.json` and runs `b-gate-{llm,hub}`.
 
 ## Remaining stages and gates
 
-C adds immutable top-level Agent/Engine bindings and one dispatch path, including
-legacy engine-only normalization. D changes User Message/Run cardinality and
+C is complete as recorded below. D changes User Message/Run cardinality and
 Session participants before enabling per-Agent concurrent execution. E reuses
 that durable request contract for same-Project cross-Session requests. F adds
 typed final review with candidate buffering and bounded continuation. Each stage
@@ -170,3 +169,113 @@ every suite; their earlier success does not certify future concurrency changes.
 Live authenticated model calls and dedicated kernel short-write injection remain
 **unverified**. The nine X11 checks are now verified, not residual Skip entries.
 Environment draft saving does not establish Publish or fresh-task restoration.
+
+## C — one Agent-bound Run pipeline
+
+B commit: `9d37f939bb93206271e4d5cd8a66a937ad93caf0`, pushed.
+
+`RunAgentResolver` normalizes explicit Project Agent selection and the legacy
+`engine=` input into one immutable binding. RunManager retains the only durable
+queue, worker, Engine event consumption and finalization path. Top-level
+`AgentInvocation` reuses AgentExecution resource selection, Prompt/Skill
+composition and MCP connection helpers; it does not create another Run/Step
+scheduler. Nested Graph AgentNodes and `agent_run` remain parent-owned Steps.
+Both paths select Engines through `EngineRegistry.resolve_agent`.
+
+The compatibility Agent ID is derived from Engine/options content and stored in
+the same Project catalogue. Its reserved `engine-request-v1` adapter preserves
+old request-factory fingerprints: constructing an empty Loop `for_agent` profile
+would change its checkpoint options, so the adapter explicitly retains the old
+factory contract. New Agent requests use `for_agent`, or a minimal custom Engine's
+public request factory when it lacks that hook. No default Engine is guessed.
+Ambiguous selectors and unknown Agents fail before queue admission.
+
+Canonical RunManager writes version-2 Runs with Agent ID, selected definition,
+revision and Engine identity; the original definition and actual configuration,
+resource, Tool and policy bindings are persisted before Engine invocation. Active
+Runs keep their frozen binding. Queued/resumed/restarted requests validate current
+revisions before effects. Prompt/Skill/Tool changes cannot silently alter an
+approved continuation. MCP remote definitions are checked after connection and
+before resumed Engine execution; preflight can only validate local configuration
+and resource references, not remote Tool definitions unavailable before connecting.
+
+Explicit version-1 Run decoding preserves engine-only history and source hashes
+without rewriting files or fabricating identity on a plain read. The low-level
+legacy Run constructor still defaults to v1; canonical new admission explicitly
+uses v2. Unsupported versions, invalid binding revisions and Agent/Engine identity
+mismatches are rejected. Legacy queued requests normalize during their existing
+transaction; malformed requests become observable failed Runs without killing the
+worker. Existing A/B golden fixtures remain byte-identical.
+
+Agent deletion now protects queued bindings; backup and recovery also validate
+new Run references against the independent catalogue. Clone retains its existing
+conversation/configuration-only contract and never replays old Runs/queues.
+File/memory ConversationStore tests cover the new identity path. Root Tool scope,
+Agent limits, input/output schema checks and resource composition use existing
+approval/budget enforcement. Resume reuses durable receipts; duplicate continuation
+is refused rather than replaying a Tool effect.
+
+Focused evidence (`/workspace/refactor-bf-evidence/c-*`):
+
+- Broad Agent, Run API, Engine, Graph, legacy data, storage/transaction and approval
+  regression: 198 pass, zero fail/Skip, exit 0, 34.468 s.
+- Actual host's three requested modules plus unchanged Hub resource/component
+  contracts: 56 pass, zero fail/Skip, exit 0, 59.371 s.
+- Final custom factory/Engine contract regression: 25 pass, exit 0, 5.236 s.
+- Final new Agent Run module: 15 pass, exit 0, 3.622 s. It proves a Tool effect is
+  absent before approval and occurs once after resume; Graph resume does not
+  replay its completed effect; MCP opens/closes each attempt; changed queued
+  configuration blocks effects; custom Engines honor domain schemas; missing
+  Agent references block archive validation and appear in recovery diagnostics.
+- Dedicated admission crash processes reach pre-write, post-write/pre-commit,
+  and post-COMMITTED/pre-in-memory-queue boundaries with distinct exit codes
+  81/82/83 and durable marker IDs. A fresh Backend sees zero/zero/one accepted
+  request respectively. The accepted request retains its original Message ID,
+  creates one Run, executes once, and a second fresh Backend does not replay it.
+- Initial added-test runs exposed harness mistakes (conversation list called as
+  a store, approval-plan readiness expected before approval, nonexistent
+  `aconfigure`, Agent ID accessed on RunHandle instead of its data). Those runs
+  are failed evidence, retained in `c-agent-runs-{1,3}` and `c-admission-crash`.
+  The corrected tests keep the intended assertions and pass; no unrelated tests,
+  assertion strength, Skip rules or Hub files changed.
+
+Full frozen-source LLM/Hub gates are running; this section does not yet claim C
+completion or D–F verification. Authenticated models and kernel short-write
+injection remain unverified.
+
+First C full-gate result (frozen 623 Python files): **1,686 LLM tests, 1,679 pass,
+7 failures, zero Skip, exit 1, 368.197 s**. The corresponding Hub gate passed all
+**534 tests**, zero failures/Skip, exit 0, 511.460 s. Source hashes matched after
+both completed. The failed LLM gate is retained as `c-gate-llm`; it is not a
+successful C gate.
+
+The seven failures were corrected before the next full gate:
+
+- Missing selectors now fail at the facade before constructing a manager.
+- The new binding error preserves the existing `configuration changed` wording.
+- Two unchanged Loop tests detected runtime test credentials copied into the
+  new configuration snapshot. Configuration and public execution bindings now
+  persist SHA-256 revisions, not raw views. The new explicit-Agent test also
+  proves custom Engine credentials are absent from all JSON history while
+  credential changes still change the stored identity. No real credentials or
+  authenticated Provider calls are used by these tests.
+- Naming tests explicitly verify the added v2 `agent_id`, retaining all original
+  fields/order, v1 constructor defaults, and the unchanged historical fixture.
+  The production local variable no longer reintroduces a retired API symbol.
+- Agent invocation closes custom Engine iterators only when they expose
+  `aclose`, preserving the existing optional-close iterator contract.
+
+Before correction, the four behavioral regression tests failed again in an
+isolated run (exit 1, 0.997 s). After correction, all **27** targeted tests passed
+(exit 0, 4.788 s), including every failed contract and the 16-test Agent Run module.
+The next complete frozen-source gates use `c-verified-{llm,hub}`; their filenames
+alone do not establish success. No further Python edits occur during those gates.
+
+Final corrected C gate: **1,687 LLM tests passed**, zero fail/Skip, exit 0,
+363.398 s; **534 Hub tests passed**, zero fail/Skip, exit 0, 512.051 s, including
+all nine X11 tests. The three explicitly requested host modules passed **44 tests**,
+zero fail/Skip, exit 0, 18.852 s. Provider audit remains 48 files / 409 matching
+lines / zero unclassified. All 623 frozen Python hashes matched afterward.
+**C is implemented and verified against these gates.** D–F and their new fan-out,
+cross-Session and review fault/concurrency gates remain pending; this is not a
+claim of complete A–F safety or deployment readiness.

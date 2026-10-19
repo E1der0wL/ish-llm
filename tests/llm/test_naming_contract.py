@@ -105,7 +105,14 @@ class NamingContractTests(unittest.TestCase):
         config = ProjectConfig.deserialize(json.dumps(self.before['project_config']))
         self.assertEqual(config.to_dict(), self.before['project_config'])
         for domain in (Project, Session, Run, Step):
-            self.assertEqual([item.name for item in fields(domain)], self.before['fields'][domain.__name__])
+            expected = list(self.before['fields'][domain.__name__])
+            if domain is Run:
+                # C adds explicit Agent identity to v2; the original naming
+                # fixture and every preexisting field/order remain protected.
+                expected.append('agent_id')
+                self.assertIsNone(domain.__dataclass_fields__['agent_id'].default)
+                self.assertEqual(domain.__dataclass_fields__['storage_version'].default, 1)
+            self.assertEqual([item.name for item in fields(domain)], expected)
         graph = WorkflowGraph(entry='end', metadata={'title': 'Review'}).node('end', 'end').to_dict()
         self.assertEqual(graph, self.before['workflow'])
 

@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 # Session 기반 경로·식별자를 사용하는 영속 도메인 형식. 이전 Task 형식은 자동 변환하지 않는다.
 DOMAIN_STORAGE_VERSION = 1
+RUN_STORAGE_VERSION = 2
 
 # ---------------------------------------------------------------------------
 # 공통 ID와 UTC 시각 생성
@@ -315,7 +316,12 @@ class Run:
     error: Optional[str] = None
     metadata: dict = field(default_factory=dict)
     error_code: Optional[str] = None
+    # The low-level constructor keeps the legacy record contract. Canonical
+    # admission explicitly creates v2 records with a selected Agent binding.
     storage_version: int = DOMAIN_STORAGE_VERSION
+    # None is retained only for explicitly decoded engine-only history or an
+    # invalid pre-Agent queued request whose failure must remain observable.
+    agent_id: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------

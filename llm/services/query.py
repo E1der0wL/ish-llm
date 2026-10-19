@@ -98,10 +98,11 @@ def queryable(method):
 class FileCatalog:
     """목록용 작은 메타데이터만 캐시한다. 파일 변경을 stat으로 확인하고 선택한 항목만 완전히 로드한다."""
 
-    def __init__(self, max_entries=4096, *, projection=None):
+    def __init__(self, max_entries=4096, *, projection=None, reader=None):
         if type(max_entries) is not int or max_entries < 0:
             raise ValueError("Catalog size must be nonnegative")
         self.max_entries = max_entries
+        self.reader = reader
         self.entries = OrderedDict()
         self.projection = projection or (lambda r: SimpleNamespace(
             id=r["id"], status=r["status"], created_at=r["created_at"]))
@@ -113,7 +114,7 @@ class FileCatalog:
         signature = (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns)
         cached = self.entries.pop(path, None)
         if cached is None or cached[0] != signature:
-            record = read_domain_record(path)
+            record = (self.reader or read_domain_record)(path)
             if record["id"] != path.parent.name:
                 raise ValueError("Catalog identity mismatch")
             cached = (signature, self.projection(record))

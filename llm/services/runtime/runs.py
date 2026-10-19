@@ -21,7 +21,7 @@ from dataclasses import asdict, dataclass, replace
 
 from llm.core.models import (
     Message, MessageRole, MessageStatus, Project, Run, RunStatus, StepStatus,
-    Session, SessionStatus, new_id, now, validate_run_transition,
+    Session, SessionStatus, new_id, now, validate_run_transition, RUN_STORAGE_VERSION,
 )
 from llm.core.paths import RunPaths
 from llm.core.configuration import UNSET
@@ -60,6 +60,7 @@ from llm.services.runtime.events import EventHandlers, EventContext, EventSubscr
 from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_digest, checkpoint_message_ids
 from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.pending import PendingWork
+from llm.services.runtime.agents import RunAgentResolver
 from llm.services.runtime.usage import UsageScope, check_admission, has_limit
 
 
@@ -70,14 +71,34 @@ class RunRepository:
     def __init__(self, *, output_index_stride: int = 128, catalog_size: int = 4096):
         self._interaction_reads = ContextVar("run_interaction_reads", default=None)
         self.output_journal = OutputJournal(index_stride=output_index_stride)
-        self.catalog = FileCatalog(catalog_size)
-        self.result_catalog = FileCatalog(catalog_size, projection=lambda r: SimpleNamespace(
+        self.catalog = FileCatalog(catalog_size, reader=self._read_record)
+        self.result_catalog = FileCatalog(catalog_size, reader=self._read_record, projection=lambda r: SimpleNamespace(
             id=r["id"], session_id=r["session_id"], status=RunStatus(r["status"]),
             started_at=r["started_at"], ended_at=r["ended_at"]))
-        self.usage_catalog = FileCatalog(catalog_size, projection=lambda r: (
+        self.usage_catalog = FileCatalog(catalog_size, reader=self._read_record, projection=lambda r: (
             r["session_id"], [{key: entry[key] for key in (
                 "started_at", "usage", "usage_complete", "reserved_tokens") if key in entry}
                 for entry in r.get("metadata", {}).get("completions", [])]))
+
+    @staticmethod
+    def _validate_record(data):
+        if data["storage_version"] == 1:
+            if data.get("agent_id") is not None or data.get("metadata", {}).get("agent_binding") is not None:
+                raise ValueError("Legacy Run storage_version cannot contain an Agent binding")
+        elif "agent_id" not in data:
+            raise ValueError("Run storage_version 2 requires an explicit Agent reference field")
+        elif data["agent_id"] is None:
+            if not data.get("metadata", {}).get("agent_binding_error") or data["status"] == RunStatus.COMPLETED:
+                raise ValueError("Run storage_version 2 requires a valid Agent or an explicit invalid-request failure")
+        else:
+            binding = RunAgentResolver.validate(data.get("metadata", {}).get("agent_binding"))
+            if binding["agent_id"] != data["agent_id"] or binding["engine"] != data["engine"]:
+                raise ValueError("Run Agent or Engine binding mismatch")
+        return data
+
+    @classmethod
+    def _read_record(cls, path):
+        return cls._validate_record(read_domain_record(path, versions=(1, RUN_STORAGE_VERSION)))
 
     @contextmanager
     def _interaction_scope(self, session, run, resolve=None):
@@ -231,7 +252,7 @@ class RunRepository:
         """자신이 소유하는 Run/출력/체크포인트만 읽어서 검증한다."""
         runs = []
         for path in session.paths.runs.glob("*/run.json"):
-            data = read_domain_record(path)
+            data = self._read_record(path)
             if child(session.paths.runs, data["id"]) != path.parent or data["session_id"] != session.id:
                 raise ValueError("Backup Run ownership mismatch")
             run = Run(**{**data, "paths": RunPaths(path.parent), "status": RunStatus(data["status"])})
@@ -270,12 +291,17 @@ class RunRepository:
         if run.status not in (RunStatus.PENDING, RunStatus.RUNNING) and "completions" in run.metadata:
             run.metadata["completions"] = [asdict(CompletionResult.for_run(data, run))
                                            for data in run.metadata["completions"]]
-        atomic_domain_json(run.paths.root / "run.json", record(run))
+        data = record(run)
+        if run.storage_version == 1:
+            if run.agent_id is not None or "agent_binding" in run.metadata:
+                raise ValueError("Legacy Run writes require explicit Agent schema migration")
+            data.pop("agent_id", None)
+        atomic_domain_json(run.paths.root / "run.json", self._validate_record(data), versions=(1, RUN_STORAGE_VERSION))
         log_event(run.paths.logs, "run.saved", entity_id=run.id, status=run.status)
 
     def load(self, session: Session, run_id: str) -> Run:
         paths = self.paths(session, run_id)
-        data = read_domain_record(paths.root / "run.json")
+        data = self._read_record(paths.root / "run.json")
         if data["id"] != run_id or data["session_id"] != session.id:
             raise ValueError("Run ownership mismatch")
         log_event(paths.logs, "run.loaded", entity_id=run_id)
@@ -595,6 +621,8 @@ class RunEventPublisher:
 class RunErrorCode(StrEnum):
     ENGINE_REQUIRED = "engine_required"
     ENGINE_NOT_REGISTERED = "engine_not_registered"
+    AGENT_NOT_FOUND = "agent_not_found"
+    AGENT_BINDING_CHANGED = "agent_binding_changed"
     COMPONENT_NOT_REGISTERED = "component_not_registered"
     CAPABILITY_FAILED = "capability_failed"
     ENGINE_FAILED = "engine_failed"
@@ -687,6 +715,7 @@ class RunManager:
         self._session = deepcopy(session)
         self.sessions = sessions
         self.engines = engines
+        self.agent_resolver = RunAgentResolver(engines)
         self.repository = repository if repository is not None else sessions.run_repository
         if self.repository is None:
             self.repository = RunRepository()
@@ -837,13 +866,16 @@ class RunManager:
             raise ValueError("Session is deleted")
         return project, current
 
-    def _validate_request(self, engine: str, options: dict) -> str:
+    def _validate_request(self, engine: str, options: dict, *, binding=None) -> str:
         if not isinstance(engine, str) or not engine.strip():
             raise RunRequestError(RunErrorCode.ENGINE_REQUIRED, "Specify an Engine for each request")
         project, _ = self._prepare()
         if engine not in self.engines.names():
             raise RunRequestError(RunErrorCode.ENGINE_NOT_REGISTERED, "Requested Engine is not registered")
-        self.engines.resolve_request(engine, options)
+        selected = binding if binding is not None else self.agent_resolver.legacy(project, engine, options)
+        if selected["engine"] != engine:
+            raise ValueError("Agent binding requires its original Engine")
+        self.agent_resolver.strategy(selected)
         try:
             self.policy_resolver.resolve(project.config.policies)
         except (ValueError, TypeError, ExecutionLimitError) as error:
@@ -855,6 +887,26 @@ class RunManager:
             except ValueError as error:
                 raise RunRequestError(RunErrorCode.COMPONENT_NOT_REGISTERED, str(error)) from error
         return engine
+
+    def _select_agent(self, engine, options, agent_id):
+        project, _ = self._prepare()
+        if agent_id is UNSET:
+            self._validate_request(engine, options)
+            return self.agent_resolver.legacy(project, engine, options)
+        try:
+            binding = self.agent_resolver.selected(project, agent_id)
+        except (FileNotFoundError, ValueError, TypeError) as error:
+            raise RunRequestError(RunErrorCode.AGENT_NOT_FOUND, str(error)) from error
+        self._validate_request(binding["engine"], binding["definition"].get("engine_options", {}), binding=binding)
+        return binding
+
+    def _persist_binding(self, project, binding):
+        if binding["adapter"] == "engine-request-v1":
+            selected = self.agent_resolver.legacy(project, binding["engine"],
+                binding["definition"].get("engine_options", {}), create=True)
+            if selected != binding:
+                raise ValueError("Legacy Agent binding changed")
+        return self.agent_resolver.current(project, binding)
 
     async def _runtime(self) -> SessionRuntime:
         # Caller holds _control. OS ownership is retained before recovery; the
@@ -899,17 +951,21 @@ class RunManager:
             return await self._runtime()
 
     async def _submit(self, content: str,
-                      engine: str, options: dict) -> Message:
+                      engine: str, options: dict, agent_id) -> Message:
         async with self._control_lock():
             if self._closed:
                 raise RuntimeError("RunManager is shut down")
-            selected = await self._io.run(self._validate_request, engine, options)
+            binding = await self._io.run(self._select_agent, engine, options, agent_id)
             runtime = await self._runtime()
             def persist():
                 self._check_queue(runtime.session)
+                project, _ = self._prepare()
+                self._persist_binding(project, binding)
                 message = self._store(runtime.session).create(
                     MessageRole.USER, content, MessageStatus.QUEUED,
-                    metadata={"engine": selected, "engine_options": deepcopy(options)})
+                    metadata={"engine": binding["engine"],
+                              "engine_options": deepcopy(binding["definition"].get("engine_options", {})),
+                              "agent_binding": deepcopy(binding)})
                 log_event(runtime.session.paths.logs, "request.queued", entity_id=message.id,
                           related_id=runtime.session.id)
                 return message
@@ -961,13 +1017,17 @@ class RunManager:
             if expected_revision != self._resume_plan(run_id, engine).revision:
                 raise CheckpointError("checkpoint_conflict", "review a fresh resume plan")
         source = source or self.repository.load(runtime.session, run_id)
+        if engine is UNSET:
+            engine = source.engine
         self.repository.require_resume(source)
         options = source.metadata.get("engine_options", {})
-        self._validate_request(engine, options)
+        project = self.sessions.require_project(runtime.project)
+        binding = self.agent_resolver.source(project, source)
+        self._validate_request(engine, options, binding=binding)
         if source.engine != engine or source.status not in (
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise ValueError("Resume requires a paused/interrupted/failed Run and its original Engine")
-        strategy = self.engines.resolve_request(engine, options)
+        strategy = self.agent_resolver.strategy(binding)
         name = getattr(strategy, "checkpoint_name", None)
         if not name or not callable(getattr(strategy, "validate_resume", None)):
             raise ValueError("Engine does not support checkpoint resume")
@@ -986,16 +1046,22 @@ class RunManager:
             descriptor["partial_output"] = True
         project = self.sessions.require_project(runtime.project)
         candidate = deepcopy(source)
+        candidate.agent_id = binding["agent_id"]
+        candidate.metadata["agent_binding"] = deepcopy(binding)
         candidate.metadata["resume"] = descriptor
         candidate.metadata["policies"] = deepcopy(project.config.policies)
         strategy.validate_resume(checkpoint, retry_nodes=retry_nodes,
                                  context=self._context(runtime, candidate, project=project, engine=strategy), **({"decisions": decisions} if decisions else {}))
         if preview:
             return descriptor
+        self._persist_binding(project, binding)
         for response in receipts:
             self.repository.respond(runtime.session, source, response)
         return store.create(MessageRole.USER, store.get(source.input_message_id).content, MessageStatus.QUEUED,
-                            metadata={"engine": engine, "engine_options": deepcopy(options), "resume": descriptor})
+                            metadata={"engine": engine, "engine_options": deepcopy(options),
+                                      "agent_binding": deepcopy(binding), "resume": descriptor,
+                                      **({"agent_execution": deepcopy(source.metadata["agent_execution"])}
+                                         if "agent_execution" in source.metadata else {})})
 
     def _resume_plan(self, run_id, engine) -> ResumePlan:
         project, session = self._prepare()
@@ -1003,14 +1069,19 @@ class RunManager:
             source = self.repository.load(session, run_id)
         except (ValueError, KeyError) as error:
             raise CheckpointError("checkpoint_corrupt", "Run lifecycle proof is invalid") from error
+        if engine is UNSET:
+            engine = source.engine
         ref = ResourceRef("run", run_id, project_id=project.id, session_id=session.id, run_id=run_id)
         reused, retries, blockers, views, can_resume = [], [], [], [], False
-        state, checkpoint, strategy = "unknown", None, None
+        state, checkpoint, strategy, binding = "unknown", None, None, None
         store = self._store(session)
         messages, runs = store.list(), self.repository.list(session)
         link = self.repository.resume_link(session, source, store, messages=messages, records=runs)
         try:
-            strategy = self.engines.resolve_request(engine, source.metadata.get("engine_options", {}))
+            binding = self.agent_resolver.source(project, source)
+            if binding["engine"] != engine:
+                raise ValueError("Resume requires the original Agent Engine")
+            strategy = self.agent_resolver.strategy(binding)
             if CheckpointRepository().deletion(source) is not None:
                 state = "deleted"
                 raise ValueError("Checkpoints were explicitly deleted")
@@ -1062,7 +1133,8 @@ class RunManager:
         if session.current_run_id or self.pending_work.active:
             restart_blockers.append(Diagnostic("active_run", "Session still has active work", source=ref))
         revision = revision_token({"run": record(source), "checkpoint": checkpoint, "views": [v.to_dict() for v in views],
-            "project": project.config.to_dict(), "session": record(session), "messages": [record(m) for m in messages],
+            "project": project.config.to_dict(), "agent_binding": binding,
+            "session": record(session), "messages": [record(m) for m in messages],
             "runs": [record(r) for r in runs]})
         return ResumePlan(ref, engine, can_resume, views, reused, retries, blockers,
             state=state, revision=revision, can_restart=not restart_blockers, restart_blockers=restart_blockers,
@@ -1082,6 +1154,9 @@ class RunManager:
             return message
 
     def _restart_request(self, runtime, run_id, engine, expected_revision):
+        source = self.repository.load(runtime.session, run_id)
+        if engine is UNSET:
+            engine = source.engine
         plan = self._resume_plan(run_id, engine)
         if not expected_revision or expected_revision != plan.revision:
             raise CheckpointError("checkpoint_conflict", "review a fresh resume plan")
@@ -1089,12 +1164,17 @@ class RunManager:
             raise CheckpointError("checkpoint_protected", "Restart has not been admitted", blockers=plan.restart_blockers)
         source = self.repository.load(runtime.session, run_id)
         options = source.metadata.get("engine_options", {})
-        self._validate_request(engine, options)
+        project = self.sessions.require_project(runtime.project)
+        binding = self.agent_resolver.source(project, source)
+        self._validate_request(engine, options, binding=binding)
         self._check_queue(runtime.session)
+        self._persist_binding(project, binding)
         store = self._store(runtime.session)
         original = store.get(source.input_message_id)
         return store.create(MessageRole.USER, original.content, MessageStatus.QUEUED,
-            metadata={"engine": engine, "engine_options": deepcopy(options), "restart": {
+            metadata={"engine": engine, "engine_options": deepcopy(options), "agent_binding": deepcopy(binding),
+                **({"agent_execution": deepcopy(source.metadata["agent_execution"])}
+                   if "agent_execution" in source.metadata else {}), "restart": {
                 "run_id": run_id, "digest": revision_token({"run": record(source), "input": record(original)})}})
 
     def _restart_source(self, session, run):
@@ -1102,6 +1182,7 @@ class RunManager:
         source = self.repository.load(session, descriptor["run_id"])
         original = self._store(session).get(source.input_message_id)
         if (source.metadata.get("execution_started") is not False or source.engine != run.engine
+                or source.agent_id is not None and source.agent_id != run.agent_id
                 or source.status not in (RunStatus.FAILED, RunStatus.INTERRUPTED)
                 or self.steps.list(source) or self.repository.resume_abandoned(source)
                 or original.metadata.get("conversation_deleted")
@@ -1175,11 +1256,28 @@ class RunManager:
         engine = message.metadata.get("engine")
         run = Run(run_id, session.id, message.id, new_id(),
                   engine if isinstance(engine, str) and engine.strip() else "",
-                  self.repository.paths(session, run_id))
+                  self.repository.paths(session, run_id), storage_version=RUN_STORAGE_VERSION)
         validate_run_transition(run.status, RunStatus.RUNNING, reason="start")
         # 대기 중 변경은 새 Run부터 반영한다. 실행 도중에는 저장된 값과 동일한 사본을 사용한다.
         run.metadata["policies"] = deepcopy(runtime.project.config.policies)
         run.metadata["engine_options"] = deepcopy(message.metadata.get("engine_options", {}))
+        if isinstance(engine, str) and engine.strip():
+            try:
+                binding = message.metadata.get("agent_binding")
+                if binding is None:
+                    binding = self.agent_resolver.legacy(runtime.project, engine,
+                        run.metadata["engine_options"], create=True)
+                binding = self.agent_resolver.validate(binding)
+                if binding["engine"] != engine:
+                    raise ValueError("Queued Agent and Engine selection mismatch")
+                run.agent_id = binding["agent_id"]
+                run.metadata["agent_binding"] = binding
+            except (ValueError, TypeError, KeyError, OSError) as error:
+                # Invalid old queue data must fail observably and leave later
+                # requests schedulable; it must not crash the Session worker.
+                run.metadata["agent_binding_error"] = str(error)
+        else:
+            run.metadata["agent_binding_error"] = "Queued request has no Engine selection"
         # Service dispatch fact, not an effects guarantee after execution.
         # Records without this field remain unknown; never backfill them.
         run.metadata["execution_started"] = False
@@ -1187,6 +1285,8 @@ class RunManager:
             run.metadata["restart"] = deepcopy(message.metadata["restart"])
         if "resume" in message.metadata:
             run.metadata["resume"] = deepcopy(message.metadata["resume"])
+        if "agent_execution" in message.metadata:
+            run.metadata["agent_execution"] = deepcopy(message.metadata["agent_execution"])
         strategy = self.engines.get(engine) if engine in self.engines.names() else None
         if steering_mode(strategy) != SteeringMode.UNSUPPORTED:
             run.metadata["steering"] = ({"accepting": False} if "resume" in run.metadata
@@ -1220,7 +1320,8 @@ class RunManager:
         descriptor = run.metadata["resume"]
         source = self.repository.load(session, descriptor["run_id"])
         self.repository.require_resume(source)
-        if source.engine != run.engine or source.status not in (
+        if (source.agent_id is not None and source.agent_id != run.agent_id
+                or source.engine != run.engine) or source.status not in (
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise ValueError("Resume source is no longer eligible")
         checkpoint = self.repository.resolve_checkpoint(session, source, descriptor["checkpoint"])
@@ -1266,7 +1367,7 @@ class RunManager:
         # Copy domain state, but do not deepcopy Python handler closures or live
         # capabilities. The resolver returns a fresh registry for this Run.
         if engine is None:
-            engine = self.engines.resolve_request(run.engine, run.metadata.get("engine_options", {}))
+            engine = self.agent_resolver.strategy(self.agent_resolver.source(runtime.project, run))
         names = required_capabilities(engine)
         project = deepcopy(project if project is not None else runtime.project)
         project.config["policies"] = deepcopy(run.metadata["policies"])
@@ -1291,13 +1392,19 @@ class RunManager:
                 raise ValueError("Capability resolver omitted a required capability")
             values.update(resolved)
         retries = run.metadata["policies"].get("tool_retry", {})
-        tool_scope = ToolExecutionScope(self.tool_runtime, policy=run.metadata["policies"].get("tools", {}), retry=retries,
+        root_policy = deepcopy(run.metadata["policies"].get("tools", {}))
+        selected = run.metadata.get("agent_binding", {})
+        if selected.get("adapter") == "agent":
+            maximum = selected["definition"].get("policy", {}).get("max_tool_calls")
+            if maximum is not None:
+                if root_policy.get("max_calls") is not None and maximum > root_policy["max_calls"]:
+                    raise ValueError("Agent Tool budget widens its Project policy")
+                root_policy["max_calls"] = maximum
+        tool_scope = ToolExecutionScope(self.tool_runtime, policy=root_policy, retry=retries,
               operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
         if checkpoint:
             tool_scope.restore([value["runtime_tool_usage"] for value in checkpoint["records"].values()
                                 if "runtime_tool_usage" in value])
-        for name in values.get("tools", ToolRegistry()).names():
-            tool_scope.validate(values["tools"].get(name))
         inbox = (SteeringInbox(history=checkpoint_messages(store, checkpoint) if checkpoint else {})
                  if "steering" in run.metadata else None)
         if inbox is not None:
@@ -1317,12 +1424,30 @@ class RunManager:
                     raise ValueError("Capability resolver must return exactly the requested capabilities")
                 capability_cache.update(resolved)
             return {name: capability_cache[name] for name in names}
-        return EngineContext(project, deepcopy(runtime.session), deepcopy(run), history,
+        context = EngineContext(project, deepcopy(runtime.session), deepcopy(run), history,
                              tools=values.get("tools", ToolRegistry()), capabilities=values,
                              checkpoint=checkpoint, resume_outputs=self._partial_outputs(runtime.session, run),
                              tool_scope=tool_scope, pending_work=self.pending_work,
                              token_counters=dict(getattr(self.policy_resolver, "token_counters", {})), steering=inbox,
                              capability_resolver=resolve_selected)
+        from llm.engines.agents import AgentInvocation
+        if isinstance(engine, AgentInvocation):
+            context = engine.prepare_context(context)
+            previous = run.metadata.get("agent_execution")
+            if previous is not None and previous != engine.runtime_binding:
+                raise ValueError("Agent execution configuration changed or resource binding changed")
+        for name in context.tools.names():
+            tool_scope.validate(context.tools.get(name))
+        return context
+
+    def _execution_context(self, runtime, run, policies, engine):
+        # The immutable selected definition is checked again in the transaction
+        # that commits the actual Engine/resource snapshot, before invocation.
+        self.agent_resolver.source(runtime.project, run)
+        context = self._context(runtime, run, policies, engine=engine)
+        run.metadata["agent_execution"] = deepcopy(engine.runtime_binding)
+        self.repository.save(run)
+        return replace(context, run=deepcopy(run))
 
     def _dispatch(self, run):
         run.metadata["execution_started"] = True
@@ -1349,10 +1474,15 @@ class RunManager:
     async def _consume(self, runtime: SessionRuntime, run: Run, policies) -> None:
         if not run.engine:
             raise RunRequestError(RunErrorCode.ENGINE_REQUIRED, "Queued request has no Engine selection")
+        if run.engine not in self.engines.names():
+            raise RunRequestError(RunErrorCode.ENGINE_NOT_REGISTERED, "Requested Engine is not registered")
         try:
-            engine = self.engines.resolve_request(run.engine, run.metadata.get("engine_options", {}))
-        except KeyError as error:
-            raise RunRequestError(RunErrorCode.ENGINE_NOT_REGISTERED, "Requested Engine is not registered") from error
+            if "agent_binding_error" in run.metadata:
+                raise ValueError(run.metadata["agent_binding_error"])
+            binding = await self._io.run(self.agent_resolver.source, runtime.project, run)
+            engine = self.agent_resolver.strategy(binding)
+        except (ValueError, TypeError, KeyError, OSError) as error:
+            raise RunRequestError(RunErrorCode.AGENT_BINDING_CHANGED, str(error)) from error
         store = self._store(runtime.session)
         try:
             if "resume" in run.metadata:
@@ -1362,7 +1492,7 @@ class RunManager:
                     EngineEvent(EngineEventType.CHECKPOINT, metadata={
                         "name": run.metadata["resume"]["checkpoint"], "operation": "initialize",
                         "header": checkpoint["header"], "records": checkpoint["records"]}))
-            context = await self._io.run(self._context, runtime, run, policies, engine=engine)
+            context = await self._io.run(self._execution_context, runtime, run, policies, engine)
             if context.checkpoint is not None and context.steering is not None:
                 await self._io.run(self._open_resumed_steering, run, context.checkpoint)
         except ExecutionLimitError:
@@ -1687,14 +1817,18 @@ class RunManager:
         await drain_on_cancel(self._start())
 
     async def submit(self, content: str, *,
-                     engine: str, engine_options=UNSET) -> Message:
+                     agent_id=UNSET, engine=UNSET, engine_options=UNSET) -> Message:
         """요청 인자를 먼저 복사하고 QUEUED와 함께 저장한 뒤 실행한다."""
+        if agent_id is UNSET and engine is UNSET:
+            raise TypeError("Specify agent_id (or the legacy engine= adapter)")
+        if agent_id is not UNSET and (engine is not UNSET or engine_options is not UNSET):
+            raise ValueError("Agent selection cannot be combined with legacy Engine options")
         options = {} if engine_options is UNSET else deepcopy(engine_options)
         from llm.core.models import ProjectConfig
         if not isinstance(options, dict):
             raise TypeError("engine_options must be a JSON object")
         ProjectConfig.validate_json(options)
-        return await drain_on_cancel(self._submit(content, engine, options))
+        return await drain_on_cancel(self._submit(content, engine, options, agent_id))
 
     async def steer(self, run_id: str, content: str, *, targets=None) -> RunInstruction:
         """현재 Run에 추가 지시를 저장한다. 일반 요청 큐나 새 Run을 만들지 않는다."""
@@ -1710,11 +1844,11 @@ class RunManager:
             raise ValueError("targets must be a list of SteeringRoute values")
         return await self._send_instruction(run_id, content, tuple(targets), reserved=True)
 
-    async def resume_plan(self, run_id: str, *, engine: str) -> ResumePlan:
+    async def resume_plan(self, run_id: str, *, engine=UNSET) -> ResumePlan:
         """큐 등록이나 모델 호출 없이 재사용·승인·재개 차단 사유를 조회한다."""
         return await self._io.run(self._resume_plan, run_id, engine)
 
-    async def restart(self, run_id: str, *, engine: str, expected_revision: str) -> Message:
+    async def restart(self, run_id: str, *, engine=UNSET, expected_revision: str) -> Message:
         """Only a durably proven pre-dispatch stop can become a new request."""
         async def apply():
             async with self._control_lock():
@@ -1724,7 +1858,7 @@ class RunManager:
                 return message
         return await drain_on_cancel(apply())
 
-    async def resume(self, run_id: str, *, engine: str, retry_nodes=(), decisions=None, partial_output=False,
+    async def resume(self, run_id: str, *, engine=UNSET, retry_nodes=(), decisions=None, partial_output=False,
                      expected_revision=None) -> Message:
         """체크포인트에서 새 Run을 예약한다. 불확실한 노드의 키는 명시적으로 승인한다."""
         if decisions is not None and not isinstance(decisions, dict):

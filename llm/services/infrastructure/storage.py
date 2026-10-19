@@ -150,27 +150,37 @@ def reject_links(path: Path) -> Path:
     return path
 
 
-def read_domain_record(path: Path) -> dict:
+def read_domain_record(path: Path, *, versions=(DOMAIN_STORAGE_VERSION,)) -> dict:
     """지원하지 않는 저장 형식은 로드/수정 전에 거부한다. 암묵적인 변환은 하지 않는다."""
     data = read_json(path)
-    if type(data.get("storage_version")) is not int or data["storage_version"] != DOMAIN_STORAGE_VERSION:
-        raise ValueError(f"Unsupported domain storage_version: {path.name}; expected {DOMAIN_STORAGE_VERSION}. "
+    if type(data.get("storage_version")) is not int or data["storage_version"] not in versions:
+        raise ValueError(f"Unsupported domain storage_version: {path.name}; expected {versions}. "
                          "Use a new workspace or an explicitly upgraded backup")
     return data
 
 
-def atomic_domain_json(path: Path, data: dict) -> None:
+def atomic_domain_json(path: Path, data: dict, *, versions=(DOMAIN_STORAGE_VERSION,)) -> None:
     """오래된 핸들도 새 저장 버전의 파일을 덮어쓰지 못하게 한다."""
-    if type(data.get("storage_version")) is not int or data["storage_version"] != DOMAIN_STORAGE_VERSION:
+    if type(data.get("storage_version")) is not int or data["storage_version"] not in versions:
         raise ValueError("Unsupported domain storage_version")
     if path.exists():
-        read_domain_record(path)
+        previous = read_domain_record(path, versions=versions)
+        if previous["storage_version"] > data["storage_version"]:
+            raise ValueError("Cannot downgrade domain storage_version with a stale record")
     atomic_json(path, data)
 
 
 def record(model: object) -> dict:
-    return {item.name: getattr(model, item.name) for item in fields(model)
-            if item.name != "paths"}
+    value = {item.name: getattr(model, item.name) for item in fields(model)
+             if item.name != "paths"}
+    # Keep legacy Run digests and read-only projections byte-semantic compatible.
+    # New optional in-memory fields are not retroactive v1 storage fields.
+    from llm.core.models import Run
+    if isinstance(model, Run) and model.storage_version == 1:
+        if model.agent_id is not None:
+            raise ValueError("Legacy Run requires explicit Agent schema migration")
+        value.pop("agent_id", None)
+    return value
 
 
 # Validated permanent removal of an owned domain directory.
