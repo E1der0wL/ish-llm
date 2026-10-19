@@ -91,3 +91,12 @@ class LegacyProviderTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(any(s.metadata.get('reused') for s in await resumed.steps.alist()))
                 self.assertEqual((await prior.aget_data()).status, 'paused')
                 self.assertEqual((await prior.acheckpoint())['header'], before['header'])
+
+    async def test_baseline_omitted_and_null_definition_fields_keep_binding_bytes(self):
+        from llm.components.tools.process import descriptor_fingerprint
+        manifest = json.loads((Path(__file__).with_name('fixtures') / 'provider_v1' / 'definitions.json').read_text())
+        async def act(arguments): return None
+        for expected in manifest['definitions']:
+            registry = ToolRegistry((Tool('act', '', {'type': 'object'}, act, definition=expected),))
+            self.assertEqual(registry.definitions(), [expected])
+            self.assertEqual(descriptor_fingerprint(registry.definitions()), descriptor_fingerprint([expected]))

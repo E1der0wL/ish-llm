@@ -112,15 +112,18 @@ def definition_from_legacy(value):
         raise ValueError('Invalid legacy Tool definition')
     fn=value['function']
     return ToolDefinition(fn['name'],fn.get('description',''),fn['parameters'],fn.get('strict'),
-        {'litellm':{'outer':{k:deepcopy(v) for k,v in value.items() if k not in ('type','function')},
+        {'litellm':{'description_missing': 'description' not in fn, 'strict_present': 'strict' in fn,
+                    'outer':{k:deepcopy(v) for k,v in value.items() if k not in ('type','function')},
                     'function':{k:deepcopy(v) for k,v in fn.items() if k not in ('name','description','parameters','strict')}}})
 
 
 def definition_to_legacy(value):
     state=value.opaque.get('litellm',{})
     return {**deepcopy(state.get('outer',{})), 'type':'function', 'function':{
-        **deepcopy(state.get('function',{})), 'name':value.name,'description':value.description,
-        'parameters':deepcopy(value.parameters),**({'strict':value.strict} if value.strict is not None else {})}}
+        **deepcopy(state.get('function',{})), 'name':value.name,
+        **({} if state.get('description_missing') and not value.description else {'description':value.description}),
+        'parameters':deepcopy(value.parameters),
+        **({'strict':value.strict} if value.strict is not None or state.get('strict_present') else {})}}
 
 
 def request_from_legacy(value):
