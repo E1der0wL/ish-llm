@@ -147,3 +147,19 @@ class ModelProtocolTests(unittest.TestCase):
         copied.value['content'][0]['image_url']['url'] = 'copy'
         self.assertEqual(item.message.content[0].value, 'new')
         self.assertEqual(copied.message.content[0].value, 'copy')
+
+    def test_legacy_stream_override_preserves_foreign_state_and_runtime_options(self):
+        from llm.providers.model_codec import adapter_request, stream_request
+        from tests.llm.support.common_provider import CommonProvider
+        request = self.request()
+        client = object()
+        request.parameters['client'] = client
+        projected = stream_request(lambda request: request, request)
+        projected['timeout'] = 2
+        restored = adapter_request(CommonProvider(), projected)
+        self.assertEqual(restored.messages, request.messages)
+        self.assertIs(restored.parameters['client'], client)
+        self.assertEqual(restored.parameters['timeout'], 2)
+        projected['messages'][1]['content'] = 'changed'
+        with self.assertRaisesRegex(ValueError, 'common-protocol stream override'):
+            adapter_request(CommonProvider(), projected)

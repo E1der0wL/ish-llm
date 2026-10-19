@@ -93,6 +93,7 @@ class LiteLLMCompletionAdapter:
     """LiteLLM-specific request/retry/decoder semantics behind a replaceable boundary."""
 
     model_protocol = 1
+    accepts_legacy_requests = True
 
     def __init__(self, *, completion_fn=None, completion_decoder=None):
         self.completion_fn = completion if completion_fn is None else completion_fn

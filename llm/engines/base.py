@@ -574,6 +574,8 @@ class BaseEngine:
 
                 return
 
+    stream_completion.model_protocol = 1
+
     async def _stream_completion(self, request: Mapping[str, Any], response: Optional[dict],
                                  result: CompletionResult, progress: dict,
                                  max_tool_calls, max_argument_chars, max_output_chars) -> AsyncIterator[Union[str, EngineEvent]]:

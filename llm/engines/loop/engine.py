@@ -23,7 +23,7 @@ from llm.core.results import EngineOutput
 from llm.core.contracts import ResourceRef
 from llm.providers.parameters import merge_params
 from llm.core.model_protocol import ModelMessage, ModelResponse, ToolResult
-from llm.providers.model_codec import restore_response, validate_input_ownership
+from llm.providers.model_codec import stream_request, restore_response, validate_input_ownership
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError, ToolApprovalRequired
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
 from llm.policies import CompletionPolicy
@@ -366,7 +366,7 @@ class LoopEngine(BaseEngine):
                         async for event in events:
                             yield event
                 capture = []
-                async with aclosing(self.stream_completion(prepared_request, response=capture, provider=self.provider,
+                async with aclosing(self.stream_completion(stream_request(self.stream_completion, prepared_request), response=capture, provider=self.provider,
                         retry_decider=self.retry_decider,
                         recover_completion=recover if self.recover_completion is not None else None,
                         max_tool_calls=self.max_tool_calls, max_argument_chars=self.max_argument_chars,

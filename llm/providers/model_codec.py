@@ -158,7 +158,11 @@ def restore_response(value):
 
 def adapter_request(adapter, request):
     """Compatibility for registered pre-protocol adapters; new adapters receive values."""
+    if isinstance(request, LegacyRequestSnapshot):
+        request = request.restore()
     if getattr(adapter, 'model_protocol', None) == 1:
+        if isinstance(request, dict) and getattr(adapter, 'accepts_legacy_requests', False):
+            return option_copy(request)
         return request_from_legacy(request)
     return request_to_legacy(request)
 
@@ -352,3 +356,38 @@ def validate_default_processing(parameters, *, original):
     """Compatibility for standalone v1 pipelines without a selected adapter."""
     from .litellm import LiteLLMCompletionAdapter
     LiteLLMCompletionAdapter().validate_processing(parameters, original=original)
+
+
+class LegacyRequestSnapshot(dict):
+    """Old Engine overrides see kwargs; unchanged forwarding keeps common state."""
+    def __init__(self, request):
+        self.common = option_copy(request)
+        self.original = request_to_legacy(request)
+        super().__init__(option_copy(self.original))
+
+    def restore(self):
+        if dict(self) == self.original:
+            return option_copy(self.common)
+        value = request_from_legacy(dict(self))
+        def foreign(item):
+            return any(key not in ('litellm', 'litellm_compat') for key in item.opaque)
+        if self.get('messages') == self.original.get('messages'):
+            value.messages = deepcopy(self.common.messages)
+        elif any(foreign(m) or any(foreign(c) for c in m.calls) or
+                 isinstance(m.content, tuple) and any(foreign(p) for p in m.content)
+                 for m in self.common.messages):
+            raise ValueError('Editing provider-specific state requires a common-protocol stream override')
+        if self.get('tools') == self.original.get('tools'):
+            value.tools = deepcopy(self.common.tools)
+        elif any(foreign(t) for t in self.common.tools):
+            raise ValueError('Editing provider-specific tools requires a common-protocol stream override')
+        if self.get('tool_choice') == self.original.get('tool_choice'):
+            value.tool_mode = self.common.tool_mode
+            if self.common.tool_mode is not None and 'tool_choice' not in self.common.parameters:
+                value.parameters.pop('tool_choice', None)
+        return value
+
+
+def stream_request(method, request):
+    """New inherited methods accept common values; unmarked host overrides retain v1."""
+    return request if getattr(method, 'model_protocol', None) == 1 else LegacyRequestSnapshot(request)

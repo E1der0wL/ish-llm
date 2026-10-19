@@ -36,6 +36,12 @@ class CommonProviderTests(unittest.IsolatedAsyncioTestCase):
                                 if False: yield
                         return Session()
                 return Processor()
+        class LegacyLoop(LoopEngine):
+            async def stream_completion(self, request, **options):
+                assert isinstance(request, dict)  # Pre-protocol host override.
+                async with aclosing(super().stream_completion(request, **options)) as stream:
+                    async for event in stream:
+                        yield event
         effects=[]
         async def lookup(arguments):
             effects.append(arguments)
@@ -49,7 +55,7 @@ class CommonProviderTests(unittest.IsolatedAsyncioTestCase):
             'required':['q'],'additionalProperties':False},lookup),)))
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root,components=[tools,MemoryComponent(),Processing()],
-                    engines={'loop':LoopEngine(completion_adapter=provider)}) as app:
+                    engines={'loop':LegacyLoop(completion_adapter=provider)}) as app:
                 project=await app.projects.acreate('common',components=['tools','memory','processing'],config={
                     'parameters':{'engines':{'loop':{'config':{'completion':{'model':'fake'}}}}}})
                 project.components.tools.enable('lookup')
