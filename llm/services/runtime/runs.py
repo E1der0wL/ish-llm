@@ -62,7 +62,7 @@ from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.pending import PendingWork
 from llm.services.runtime.agents import RunAgentResolver
 from llm.services.runtime.requests import RequestAdmission
-from llm.services.runtime.usage import UsageScope, check_admission, has_limit
+from llm.services.runtime.usage import UsageScope, check_admission, has_limit, resume_ancestors
 
 
 # 실행 메타데이터를 저장한다. Facade와 실행 서비스가 같은 인스턴스를 공유한다.
@@ -1882,8 +1882,11 @@ class RunManager:
                 project_entries = [entry for session in self.sessions.list(project, include_deleted=True)
                                    for entry in (reader(session) if reader else [e for r in self.repository.list(session)
                                        for e in r.metadata.get("completions", [])])]
+            ancestors = resume_ancestors(self.repository, self._session, run) if has_limit(policy) else []
+            owners = {run.id, *(r.id for r in ancestors)}
             check_admission(run, result, event.completion.reserved_tokens, [*project_entries, *auxiliary],
-                            [e for e in auxiliary if e.get("run_id") == run.id])
+                            [e for e in auxiliary if e.get("run_id") in owners],
+                            [e for r in ancestors for e in r.metadata.get("completions", [])])
             entries.append(result)
         self.repository.save(run)
 

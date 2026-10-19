@@ -16,6 +16,7 @@ LITERALS = {'choices', 'delta', 'tool_calls', 'tool_call_id', 'relevance_score',
             'function_call', 'tool_choice', 'response_format', 'finish_reason', 'function',
             'role', 'content', 'messages', 'embedding', 'results'}
 COMMON = {
+    'components/review.py', 'engines/loop/review.py',
     'core/model_protocol.py', 'components/processing.py', 'engines/base.py', 'engines/loop/engine.py',
 }
 COMPAT = {

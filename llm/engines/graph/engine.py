@@ -903,7 +903,9 @@ class GraphEngine:
         if options.keys() - allowed:
             raise ValueError("Unsupported Graph Agent engine_options")
         # 빈 resources/tools도 의미 없는 별도 behavior/authority 계층이다.
-        unsupported = set(definition) - {"purpose", "description", "engine", "engine_options", "metadata"}
+        # Processor selection narrows inherited child capabilities; the Graph
+        # orchestrator itself has no model candidate or review callback.
+        unsupported = set(definition) - {"purpose", "description", "engine", "engine_options", "metadata", "completion_processors"}
         if unsupported:
             raise ValueError("Graph Agent only orchestrates Workflows; unsupported fields: " + ", ".join(sorted(unsupported)))
         worker = self.for_request({"workflow": options.pop("workflow", None)})

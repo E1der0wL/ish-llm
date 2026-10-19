@@ -69,6 +69,16 @@ class NamingContractTests(unittest.TestCase):
         for implementation in implementations:
             with self.subTest(implementation=type(implementation).__name__):
                 schema = implementation.describe_config()
+                if isinstance(implementation, LoopEngine):
+                    review = schema['properties']['policy']['properties'].pop('final_review')
+                    rejected = schema['properties']['config']['not']['anyOf'].pop(0)
+                    self.assertEqual(rejected, {'type': 'object', 'required': ['final_review'],
+                                                'properties': {'final_review': {}}})
+                    self.assertEqual(review, {'type': 'object', 'additionalProperties': False, 'properties': {
+                        'max_continuations': {'type': 'integer', 'minimum': 0, 'x-narrowing': 'maximum'},
+                        'max_attempts': {'type': 'integer', 'minimum': 1, 'x-narrowing': 'maximum'},
+                        'hook_timeout': {'type': 'number', 'exclusiveMinimum': 0, 'x-narrowing': 'maximum'},
+                        'max_feedback_chars': {'type': 'integer', 'minimum': 1, 'x-narrowing': 'maximum'}}})
                 if isinstance(implementation, RAGComponent):
                     # Explicit cache capacities were added after the naming baseline.
                     # Validate only these additions, then compare the unchanged contract.

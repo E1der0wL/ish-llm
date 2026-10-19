@@ -10,6 +10,8 @@ from asyncio import timeout
 from llm.providers.parameters import copy_params
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse
+from llm.components.review import (CompletionReview, CompletionReviewObservation, ReviewAction,
+                                   review_policy)
 from llm.providers.model_codec import (message_from_legacy, message_to_legacy, request_from_legacy,
     request_to_legacy, response_from_legacy, LegacyMessageView)
 
@@ -157,6 +159,10 @@ class CompletionSession:
         if False:
             yield
 
+    async def review_final(self, observation: CompletionReviewObservation) -> CompletionReview:
+        """Optional pure decision. Opt-in processors declare a stable review_revision."""
+        return CompletionReview()
+
     async def aclose(self, error: Optional[BaseException]) -> None:
         pass
 
@@ -191,6 +197,18 @@ def ordered_processors(processors):
     return tuple(sorted(values, key=lambda item: (item.priority, item.name)))
 
 
+def review_identities(processors):
+    """Inspect explicit opt-in without constructing invocation-local sessions."""
+    result = []
+    for processor in ordered_processors(processors):
+        revision = getattr(processor, "review_revision", None)
+        if revision is not None:
+            if not isinstance(revision, str) or not revision.strip() or len(revision) > 128:
+                raise ValueError("review_revision must contain 1 to 128 characters")
+            result.append({"name": processor.name, "revision": revision, "priority": processor.priority})
+    return result
+
+
 class CompletionPipeline:
     """한 엔진 호출에 귀속되는 처리기 수명·순서·입력 계약. 상태를 엔진 인스턴스에 두지 않는다."""
 
@@ -199,6 +217,7 @@ class CompletionPipeline:
         self.context = context
         self.sessions = []
         self.validate_parameters = validate_parameters
+        self.reviewers = review_identities(self.processors)
 
     async def __aenter__(self):
         try:
@@ -211,6 +230,11 @@ class CompletionPipeline:
                 if any(not callable(getattr(session, name, None))
                        for name in ("prepare", "after_completion", "finish")):
                     raise TypeError("Invalid completion session hooks")
+                hook = getattr(session, "review_final", None)
+                declared = getattr(processor, "review_revision", None) is not None
+                overridden = hook is not None and getattr(type(session), "review_final", None) is not CompletionSession.review_final
+                if overridden and not declared or declared and not callable(hook):
+                    raise ValueError("review_final requires an explicit stable review_revision and hook")
         except BaseException as error:
             await self.__aexit__(type(error), error, error.__traceback__)
             raise
@@ -392,3 +416,29 @@ class CompletionPipeline:
             async with aclosing(session.finish(observation.snapshot())) as events:
                 async for event in events:
                     yield event
+
+    async def review_final(self, observation: CompletionReviewObservation, policy=None):
+        """All opted-in processors decide; block wins over continue over accept."""
+        policy = review_policy(policy)
+        selected = {p["name"]: p for p in self.reviewers}
+        decisions, size = [], 0
+        for processor, session in self.sessions:
+            if processor.name not in selected:
+                continue
+            from llm.policies import ExecutionLimitError
+            guard = timeout(policy["hook_timeout"])
+            try:
+                async with guard:
+                    decision = await session.review_final(observation.snapshot())
+            except TimeoutError as error:
+                if guard.expired():
+                    raise ExecutionLimitError("completion_review_timeout", "Final review timed out") from error
+                raise
+            if not isinstance(decision, CompletionReview):
+                raise TypeError("review_final must return CompletionReview")
+            size += len(decision.feedback)
+            if size > policy["max_feedback_chars"]:
+                raise ValueError("Final review feedback exceeds max_feedback_chars")
+            decisions.append({**selected[processor.name], "action": str(decision.action),
+                              "feedback": decision.feedback})
+        return decisions

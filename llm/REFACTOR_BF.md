@@ -5,6 +5,10 @@ and historical evidence remain in [providers/REFACTOR_A.md](providers/REFACTOR_A
 Changes use Codex's `work` checkout and push to `refactor/llm-backend`; `main`,
 `hub/`, and `tests/hub/` are unchanged. `ish.platform/` is ignored external source.
 
+This is a chronological evidence log. Earlier pending/failing entries describe
+their execution time and remain preserved. The current consolidated state and
+complete validation matrices are in [REFACTOR_FINAL.md](REFACTOR_FINAL.md).
+
 ## Reproducible environment and host correction
 
 Python is **3.12.14**, host `E1der0wL/ish` is pinned at
@@ -578,3 +582,121 @@ E is implemented and verified; its earlier failed gate is preserved above.
 The pinned host is clean and ignored; forbidden product/test paths still match
 baseline main `94229cb865374d99f20ec48c5e48269488041a4e`. F remains the next stage.
 Authenticated models and dedicated kernel short-write injection remain unverified.
+
+## F — final candidate review
+
+E commit `d5cddc05d339940faa07e4dc8240bf706617967b` is pushed. Its final frozen
+1,726 LLM / 534 Hub / 44 targeted host gates all passed with zero Skip.
+
+`components/review.py` defines detached common observations and typed decisions;
+`CompletionSession.review_final` is optional, with explicit stable processor
+`review_revision`. Pipeline instances remain invocation-local. All reviewers
+must accept; block precedes continue. Callback timeout, text feedback cap and
+strict return types fail closed. No application success rule or automatic Tool
+is added. Agent processor selection only narrows host/parent capabilities,
+including Graph descendants and `agent_run`; Graph orchestration has no candidate.
+
+`engines/loop/review.py` owns versioned JSON-only receipts. An iteration stores its
+prepared common observation without Provider parameters/credentials. A completed
+attempt reservation precedes the pure callback; the decision receipt precedes
+continuation or final OUTPUT. Committed decisions are reused, incomplete decisions
+allow bounded pure re-review, and candidate/reviewer/aggregate/attempt corruption
+is refused. Existing Tool receipt and approval paths remain the only authority.
+
+Reviewed model Step deltas/outputs are internal until final acceptance. A continue
+adds explicit untrusted feedback without modifying the original User or Tool
+pairs and remains inside the same Loop/Run budgets. Live Steering stays open until
+acceptance, then its final boundary is checked. No-review streaming and old binding
+bytes are retained. Generic usage admission counts validated resume ancestors'
+model and Component receipts without double-counting Project totals; unknown
+usage keeps its reservation. Review-enabled Run timeout stores the original
+absolute deadline, conservatively including approval pauses. This opt-in deadline
+never extends during Resume; the no-review timeout path is unchanged.
+
+Initial and intermediate results are preserved under `/workspace/refactor-bf-evidence/`:
+
+- `f-baseline`: 77 tests, one schema-baseline failure, exit 1, 16.797 s. The new
+  policy field also appears in ParameterLayout's explicit config-key rejection
+  schema. Both additions are now asserted before comparing the unchanged golden
+  schema; no fixture was regenerated.
+- `f-review-initial`: 9 tests, 7 failing subtests and 1 error, exit 1, 2.476 s.
+  Review continuation initially followed the final Steering close. Decision now
+  precedes that boundary; acceptance then checks final Steering. The test's
+  RunHandle access was also corrected to `.data.status`.
+- `f-review-corrected`: 45 tests passed, zero Skip, exit 0, 9.808 s, including all
+  existing Loop Steering tests and the explicit new schema assertions.
+- `f-review-expanded`: 14 tests, 2 errors, exit 1, 3.715 s. Graph's explicit field
+  allowlist needed the new inherited processor selection; a new async-comprehension
+  assertion also needed an awaited list. Corrected run: 14 pass, exit 0, 4.621 s.
+- `f-crash-initial`: F14's six dedicated process-death subcases passed, exit 0,
+  3.286 s. Child exit 94 and reached markers prove response/attempt/computed/
+  continue/accept/publication boundaries. Fresh owners never automatically replay
+  the interrupted Run. Explicit Resume preserves three total model calls and one
+  actual Tool effect in every case. Only computed-but-uncommitted review adds a
+  pure re-review (three callbacks instead of two). Second reopen preserves IDs,
+  interrupted/completed statuses, final text and effect count. Full evidence uses
+  `F_F14` JSON rows; publication is not an exactly-once notification claim.
+- `f-boundaries`: 169 tests passed, zero Skip, exit 0, 70.625 s, covering new F,
+  processing/common Provider, Agent/Graph, Memory/Goal, operation/usage and schema
+  regression (before the last additional composed tests).
+- `f-composed` (18 tests, 1 failure, 5.810 s) and `f-final-focused` (20 tests,
+  1 failure, 10.550 s) exposed a mistaken new test expectation: saved-response
+  Resume skips prepare, leaving Memory's existing lazy processing state unset,
+  so its extraction is not repeated. The test now explicitly verifies that
+  established boundary and preserved auxiliary receipts. A separate actual RAG
+  call tests ComponentUsage ancestor quotas, instead of claiming a skipped
+  auxiliary operation exercises quota admission.
+
+C12 holds two Agent reviewers using Events before either can finish, then permits
+one Agent to complete while the other continues. It checks separate Session
+instances, candidate/feedback/Checkpoint scope, Run/Step/Assistant IDs and active
+sets; `F_C12` rows record the exact schedule. The composed tests also cover nested
+Graph decision reuse, Memory/Goal Tool-pair preservation, live Steering during
+both accept/continue, failed/unknown-token quota across Resume, callback cancellation,
+configuration revision changes, corrupt receipts and invocation credential omission.
+
+F implementation and final gates are not yet declared complete. Authenticated
+models and kernel short-write injection remain unverified.
+
+The final expanded delegation gate (`f-release-focused`) executed 61 tests and
+failed with 12 failure reports and 2 errors (including subtests), exit 1,
+29.367 s. New processor narrowing incorrectly assumed every invocation node was
+a dataclass. Existing Graph uses a frozen dataclass, while `agent_run` supplies
+an invocation-local namespace. The selection adapter now preserves unchanged
+contexts and copies the appropriate existing node representation only when
+narrowing is requested. No approval assertion, retry rule, test Skip or Tool
+implementation was changed. The failed gate is retained and must be followed by
+a passing delegation/approval/cancellation/resume gate before full regression.
+
+After the node fix, `f-release-fixed` ran 61 tests: one new test failed because it
+assumed dictionary iteration order for nested receipts (exit 1, 22.538 s). The
+assertion now checks both exact local keys and the receipt count, preserving
+identity rather than assuming incidental ordering. `f-focused-verified` then
+passed **61 tests**, zero failures/Skip, exit 0, 22.341 s. All unchanged delegation,
+approval, cancellation, nested binding and project-policy tests passed.
+
+The final source is frozen in `f-gate-source.json`: **636 Python files** across
+llm/tests/llm/hub/tests/hub. LLM then Hub full suites and the three targeted host
+modules are running. Provider inventory is **50 files / 417 matching lines /
+0 unclassified**; the current report is `llm/PROVIDER_AUDIT_FINAL.json`. The old A
+inventory, fixtures and evidence remain unchanged.
+
+Frozen final F LLM regression (`f-gate-llm`) passed **1,747 tests**, zero
+failures/Skip, exit 0, 413.616 s. Targeted real-host modules (`f-gate-host`) passed
+**44 tests**, zero failures/Skip, exit 0, 18.860 s. The sequential full Hub suite
+is still running on the same frozen source and is not yet declared successful.
+
+Final F Hub regression (`f-gate-hub`) passed **534 tests**, zero failures/Skip,
+exit 0, 549.426 s. This includes all **nine** actual Xvfb/xclip tests. After all
+gates, the exact **636** Python paths and SHA-256 hashes matched the frozen
+manifest. The final results are **1,747 LLM + 534 Hub + 44 targeted host**;
+the targeted cases overlap the full suites, so the unique full total is 2,281.
+`f-final-verification.json` records actual counts, exits and log hashes. The
+pinned host remains clean/ignored, A evidence and all golden archives are
+unchanged, and hub/tests/hub/examples still match baseline main.
+
+F is implemented and verified in this Cloud environment. Historical failures
+above remain part of the evidence. Authenticated model calls, kernel short-write
+fault injection, separate CI and production validation remain unverified.
+The Korean consolidated report, complete F01–F14/C01–C12 matrices and concrete
+future Hub integration call sites are in `REFACTOR_FINAL.md`.

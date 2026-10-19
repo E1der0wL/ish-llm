@@ -3,8 +3,8 @@
 import asyncio
 import json
 from contextlib import AsyncExitStack, aclosing
-from copy import deepcopy
-from dataclasses import replace
+from copy import copy, deepcopy
+from dataclasses import is_dataclass, replace
 from types import SimpleNamespace
 
 from jsonschema import Draft202012Validator
@@ -170,6 +170,7 @@ class AgentExecution:
     def binding(self, definition, context):
         """재개 검사와 Step에 런타임 핸들 없이 재현 가능한 정의를 남긴다."""
         profile = self._profile(definition, context.capabilities)
+        context = self.select_processors(profile, context)
         engine = self._engine(profile)
         describe = getattr(engine, "resolve_config", None)
         binding = {"agent_id": definition["agent"], "agent": profile,
@@ -237,7 +238,21 @@ class AgentExecution:
                 if all(name in context.capabilities for name in names):
                     break
                 context = context.with_capabilities(names, expansion=expansion)
-        return context
+        return self.select_processors(self._profile(definition, context.capabilities), context)
+
+    @staticmethod
+    def select_processors(profile, context):
+        """An Agent may only narrow the host/parent's already selected processors."""
+        if "completion_processors" not in profile:
+            return context
+        from llm.components.processing import ordered_processors
+        context = context.with_capabilities(("completion_processors",))
+        available = ordered_processors(context.capabilities["completion_processors"])
+        selected = profile["completion_processors"]
+        if set(selected) - {p.name for p in available}:
+            raise ValueError("Agent completion_processors exceed the host or parent selection")
+        return replace(context, capabilities={**context.capabilities,
+            "completion_processors": tuple(p for p in available if p.name in selected)})
 
     async def _graph_call(self, node, engine):
         """다른 Graph 환경으로 위임한다. behavior/resource/Agent 예산을 만들지 않는다."""
@@ -280,6 +295,15 @@ class AgentExecution:
     async def __call__(self, node):
         """업무의 입력/출력을 검증하고 연결 세션과 실행 스코프를 호출별로 정리한다."""
         profile = self._profile(node.definition, node.context.capabilities)
+        selected = self.select_processors(profile, node.context)
+        if selected is not node.context:
+            if is_dataclass(node):
+                node = replace(node, context=selected)
+            else:
+                # Tool delegation uses an invocation-local namespace, whereas
+                # Graph supplies a frozen GraphNodeContext. Preserve both.
+                node = copy(node)
+                node.context = selected
         engine = self._engine(profile)
         if isinstance(engine, GraphEngine):
             return await self._graph_call(node, engine)
@@ -447,6 +471,7 @@ class AgentInvocation:
         return discover(capabilities) if callable(discover) else ()
 
     def prepare_context(self, context):
+        context = self.selection.select_processors(self.profile, context)
         if not self.legacy and not isinstance(self.engine, GraphEngine):
             tools, self.resources = self.selection._resources(self.profile, context, inherit_tools=True)
             if context.tool_scope is not None:

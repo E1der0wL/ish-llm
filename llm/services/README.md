@@ -137,3 +137,97 @@ Session의 삭제·대화 턴 삭제·retention을 보수적으로 막아 멱등
 보존합니다. clone은 실행 라우팅을 비활성 출처 자료로 바꾸고 전송하지 않으며,
 backup/recovery는 연결 손상을 보고하고 재전송하지 않습니다. 전체 Project 삭제는
 원래 수명 계약대로 소유 영역 전체를 삭제할 수 있습니다.
+
+## 최종 후보 검토 (`review_final`)
+
+호스트가 등록한 CompletionProcessor에 `review_revision`을 명시하면 해당
+Processor의 호출별 Session이 검토에 참여합니다. 작업별 성공 기준은 호스트가
+구현합니다. 백엔드는 판정 기준을 만들거나 Tool 승인을 대신하지 않습니다.
+
+```python
+from llm.components.processing import (
+    CompletionSession, CompletionReview, CompletionReviewObservation, ReviewAction,
+)
+
+class ReviewSession(CompletionSession):
+    async def review_final(self, observation: CompletionReviewObservation) -> CompletionReview:
+        # 호스트 검증기는 observation과 선언한 revision에 대한 순수 결정을 반환합니다.
+        return CompletionReview(ReviewAction.ACCEPT)
+
+class Reviewer:
+    name = "quality"
+    priority = 100
+    close_timeout = 1.0
+    review_revision = "quality-v1"
+
+    def session(self, context):
+        return ReviewSession()
+```
+
+기존 `completion_processors` capability로 `Reviewer()`를 제공하면 됩니다.
+`review_revision` 없이 `review_final`을 재정의하면 모델 호출 전에 실패합니다.
+검토 훅이 없는 기존 Processor는 그대로 사용할 수 있고 스트리밍도 유지합니다.
+Agent 정의의 선택 필드 `completion_processors: ["quality", ...]`는 등록된
+Processor 이름을 선택합니다. 생략하면 부모/호스트 선택을 상속하고, 빈 배열은
+모두 제외합니다. 자식 Agent는 부모가 제외한 Processor를 다시 추가할 수 없습니다.
+이 선택은 Memory/Goal을 포함한 전체 Processor 목록에 적용됩니다. 등록 이름과
+revision/priority 변경은 검토 Checkpoint binding에 반영됩니다.
+
+`CompletionReviewObservation`은 `iteration`, 준비된 공통 `messages`, 공통
+`answer`, 준비 전 `original_messages`, 공통 `tools`의 독립 사본입니다.
+Provider 옵션·API 키·클라이언트는 포함하지 않습니다. 검증기마다 사본이 분리되고
+반환값은 `CompletionReview(ReviewAction.ACCEPT|CONTINUE|BLOCK, feedback="...")`
+입니다. 문자열/딕셔너리 반환, 과도한 피드백, 예외는 실패입니다. 모든 검증기를
+priority/name 순서로 호출하며 **block > continue > accept**가 적용됩니다.
+취소는 Run 중단으로, 협력적 훅 시간 초과는 `completion_review_timeout`으로
+처리됩니다. 임의 Python 확장을 격리하는 sandbox 계약은 아닙니다.
+
+Tool 호출 없는 후보만 `after_completion()` 후 검토합니다. `continue`는 같은
+Run의 다음 의미적 iteration입니다. 후보와 출처·revision이 붙은 피드백을
+명시적인 비신뢰 참고 자료로 추가하고 원본 User/system/developer 및 Tool 쌍은
+보존합니다. 후속 Tool 요청은 기존 ToolExecutor와 승인·operation 영수증을
+사용합니다. `accept` 후 마지막 Steering 입력을 확인하고 `finish()` 및 최종
+OUTPUT을 확정합니다. 검토 중 들어온 Steering 입력도 같은 Run에서 처리됩니다.
+`finish()`는 수락한 최종 후보에만 호출됩니다.
+
+검토 사용 시 모델 Step의 후보 delta/output은 `visibility="internal"`입니다.
+대화의 Assistant 본문에는 수락된 최종 OUTPUT만 반영됩니다. 검토 중 Run은
+`running`이며 별도 Assistant 도메인이나 Message 상태 enum을 만들지 않습니다.
+내부 Step/출력 저널을 표시하는 호스트는 기존 visibility 계약을 따라야 합니다.
+Graph 조율자 자체에는 모델 검토가 없고, 하위 Loop Agent는 부모 Run 안의 Step과
+독립된 Checkpoint scope에서 검토합니다. `agent_run` 위임도 같은 계약입니다.
+
+선택적인 Engine `policy.final_review` 설정과 실행 기본값:
+
+```json
+{"max_continuations": 8, "max_attempts": 3,
+ "hook_timeout": 30.0, "max_feedback_chars": 4096}
+```
+
+`max_continuations`는 추가 의미적 호출 수(0 허용), `max_attempts`는 후보별 순수
+검토 재시도 수, `hook_timeout`은 각 훅의 초 단위 협력적 기한,
+`max_feedback_chars`는 모든 반환 피드백 문자열의 합계 상한입니다.
+기존 iteration/Run timeout/모델 사용량/토큰/Tool 한도도 함께 적용됩니다.
+명시적 Resume의 모델 quota는 이전 시도들의 모델 및 Component 영수증까지
+합산하며, 미확인 사용량을 0으로 환산하지 않습니다. Project 합계에는 중복
+합산하지 않습니다. 별도 Restart는 새 요청입니다. 손상·순환·4096개를 넘는
+Resume 계보는 quota 조회에서 거부합니다.
+
+검토를 사용하는 Run에 `policies.run.timeout_seconds`가 있으면 원래 시작 시각의
+절대 기한을 Checkpoint에 보존합니다. **이 보수적인 기한은 승인 대기 시간도
+포함하며 Resume로 연장되지 않습니다.** 만료 후 재개는 모델/Tool 실행 전에
+`run_timeout`으로 실패합니다. 검토가 없는 기존 timeout 계약은 유지됩니다.
+
+공개 `run.acheckpoint("loop")` 및 기존 Checkpoint 이벤트에서 버전이 있는
+`header.review`, `iteration:N.review_observation`, `review_attempt:N`, `review:N`을
+확인할 수 있습니다. 시도 예약을 먼저 확정하고, 판정/출처/피드백을 확정한 뒤
+후속 모델 호출 또는 최종 OUTPUT으로 넘어갑니다. Graph/위임에서는 같은 payload가
+기존 Engine scope envelope에 들어갑니다. 완료 판정은 재사용하고, 판정이 확정되지
+않은 경우에만 저장된 후보를 제한된 횟수로 다시 검토합니다. 재개는 기존 공개
+`session.run.resume(run.id)`와 승인 API를 사용합니다.
+
+저장된 모델 응답의 `prepare`/`after_completion`은 재실행하지 않습니다.
+검토기는 fresh Session에서도 저장 관찰만으로 같은 결정을 내릴 수 있어야 합니다.
+기존 `finish` 확장은 재개 중 다시 호출될 수 있으며, `prepare`에 의존하는 Memory의
+기존 지연 초기화 경계도 유지합니다. 임의 확장 효과나 사용자 알림의 exactly-once
+전달을 보장하지 않습니다. Tool 효과는 별도의 기존 영수증/불확실성 규칙을 따릅니다.

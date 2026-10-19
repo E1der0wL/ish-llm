@@ -25,6 +25,8 @@ class AgentDefinition:
             "output_schema": {"anyOf": [{"type": "boolean"}, open_schema("Agent output JSON Schema", category="schema")]},
             "tools": {"type": "array", "uniqueItems": True,
                       "items": {"type": "string", "minLength": 1}},
+            "completion_processors": {"type": "array", "uniqueItems": True,
+                                      "items": {"type": "string", "minLength": 1}},
             "resources": {"type": "object", "additionalProperties": False, "properties": {
                 "prompt": {"type": "string", "minLength": 1},
                 "skills": {"type": "array", "uniqueItems": True,
