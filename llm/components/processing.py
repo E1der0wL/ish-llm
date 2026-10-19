@@ -12,15 +12,13 @@ from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse
 from llm.components.review import (CompletionReview, CompletionReviewObservation, ReviewAction,
                                    review_policy)
-from llm.providers.model_codec import (message_from_legacy, message_to_legacy, request_from_legacy,
-    request_to_legacy, response_from_legacy, LegacyMessageView)
 
 
 @dataclass(frozen=True, slots=True)
 class CompletionRecovery:
     """Application input-repair proposal boundary; editable indexes are not authority."""
     diagnostic: Diagnostic
-    request: dict
+    request: ModelRequest
     attempt: int
     editable: tuple[int, ...]
 
@@ -34,12 +32,11 @@ if TYPE_CHECKING:
     from llm.engines.base import EngineContext, EngineEvent
 
 
-@dataclass(frozen=True, slots=True, init=False)
+@dataclass(frozen=True, slots=True)
 class CompletionMessage:
     """모델용 메시지와 원본 출처. 추가 참고자료는 source_id=None이며 ID는 공급자에게 보내지 않는다."""
 
     message: ModelMessage
-    _legacy_view: object = field(default=None, init=False, compare=False, repr=False)
     source_id: Optional[str] = None
     # 같은 작업에 추가된 USER 입력. provider kwargs에는 포함하지 않는다.
     continuation: bool = False
@@ -47,26 +44,10 @@ class CompletionMessage:
     # to an execution scope and cannot identify sibling Agent results in a Run.
     result_ref: Optional[ResourceRef] = None
 
-    def __init__(self, value=None, source_id=None, continuation=False, result_ref=None, *, message=None):
-        object.__setattr__(self, 'message', message_from_legacy(value) if value is not None else message)
+    def __post_init__(self):
         if not isinstance(self.message, ModelMessage):
-            raise TypeError('CompletionMessage requires a model message')
-        object.__setattr__(self, '_legacy_view', None)
-        object.__setattr__(self, 'source_id', source_id)
-        object.__setattr__(self, 'continuation', continuation)
-        object.__setattr__(self, 'result_ref', result_ref)
-
-    @property
-    def value(self):
-        """Compatibility view for existing application processors."""
-        if self._legacy_view is None:
-            object.__setattr__(self, '_legacy_view', LegacyMessageView(self))
-        return self._legacy_view
-
-    def __deepcopy__(self, memo):
-        from copy import deepcopy
-        return CompletionMessage(deepcopy(self.message, memo), self.source_id,
-                                 self.continuation, deepcopy(self.result_ref, memo))
+            raise TypeError('CompletionMessage requires ModelMessage')
+        object.__setattr__(self, 'message', copy_params(self.message))
 
     def with_text(self, text):
         from dataclasses import replace
@@ -91,20 +72,14 @@ class CompletionRequest:
     tools: tuple = ()
     tool_mode: str | None = None
 
-    def to_kwargs(self) -> dict:
-        return request_to_legacy(self.to_model())
-
     def to_model(self) -> ModelRequest:
-        # Old callers may still supply definitions through parameters.
-        result = request_from_legacy(self.parameters)
-        result.messages = [copy_params(m.message) for m in self.messages]
-        if self.tools:
-            result.tools = copy_params(self.tools)
-        result.tool_mode = self.tool_mode
-        return result
+        if set(self.parameters) & {'messages', 'tools'}:
+            raise ValueError('Messages and Tools must use the typed request fields')
+        return ModelRequest([copy_params(m.message) for m in self.messages],
+                            copy_params(self.parameters), copy_params(self.tools), self.tool_mode)
 
 
-@dataclass(frozen=True, slots=True, init=False)
+@dataclass(frozen=True, slots=True)
 class CompletionObservation:
     """예산 적용 후 모델에 전달한 요청과 응답, 가공 전 대화의 독립 사본.
 
@@ -117,23 +92,12 @@ class CompletionObservation:
     answer: ModelResponse
     messages: list[ModelMessage]
 
-    def __init__(self, iteration, request, response, original_messages):
-        object.__setattr__(self, 'iteration', iteration)
-        object.__setattr__(self, 'invocation', request_from_legacy(request))
-        object.__setattr__(self, 'answer', response_from_legacy(response))
-        object.__setattr__(self, 'messages', [message_from_legacy(m) for m in original_messages])
-
-    @property
-    def request(self):
-        return request_to_legacy(self.invocation)
-
-    @property
-    def response(self):
-        return message_to_legacy(self.answer.message)
-
-    @property
-    def original_messages(self):
-        return [message_to_legacy(m) for m in self.messages]
+    def __post_init__(self):
+        if (not isinstance(self.invocation, ModelRequest) or not isinstance(self.answer, ModelResponse)
+                or not isinstance(self.messages, list) or any(not isinstance(m, ModelMessage) for m in self.messages)):
+            raise TypeError('Completion observation requires typed model values')
+        for name in ('invocation', 'answer', 'messages'):
+            object.__setattr__(self, name, copy_params(getattr(self, name)))
 
     def snapshot(self):
         return CompletionObservation(self.iteration, self.invocation, self.answer, self.messages)
@@ -212,10 +176,12 @@ def review_identities(processors):
 class CompletionPipeline:
     """한 엔진 호출에 귀속되는 처리기 수명·순서·입력 계약. 상태를 엔진 인스턴스에 두지 않는다."""
 
-    def __init__(self, processors, context, *, validate_parameters=None):
+    def __init__(self, processors, context, *, validate_parameters):
         self.processors = ordered_processors(processors)
         self.context = context
         self.sessions = []
+        if not callable(validate_parameters):
+            raise TypeError("Completion pipeline requires an explicit parameter validator")
         self.validate_parameters = validate_parameters
         self.reviewers = review_identities(self.processors)
 
@@ -270,8 +236,9 @@ class CompletionPipeline:
         reference boundary) stay whole. Earlier bodies and Tool result bodies can
         be shortened; call IDs/arguments/order and all other fields stay exact.
         """
-        legacy = not isinstance(request, ModelRequest)
-        original = request_from_legacy(request)
+        if not isinstance(request, ModelRequest):
+            raise TypeError("Completion recovery requires ModelRequest")
+        original = copy_params(request)
         messages = original.messages
         if not 0 <= current_index < len(messages) or messages[current_index].role != "user":
             raise ValueError("Recovery requires the current user input")
@@ -282,9 +249,8 @@ class CompletionPipeline:
             and (i < current_index or message.result is not None))
         if not editable:
             return None
-        # Existing repair selectors receive their documented detached kwargs view.
         selected = decide(CompletionRecovery(Diagnostic.from_dict(diagnostic.to_dict()),
-                          request_to_legacy(original), attempt, editable))
+                          copy_params(original), attempt, editable))
         if inspect.isawaitable(selected):
             selected = await selected
         if selected is None:
@@ -302,13 +268,15 @@ class CompletionPipeline:
         tail = copy_params(candidate.messages[current_index:])
         instructions = [m for m in messages if m.role in ("system", "developer")]
         if prepare is not None:
-            candidate = request_from_legacy(await prepare(request_to_legacy(candidate) if legacy else candidate))
+            candidate = await prepare(candidate)
+            if not isinstance(candidate, ModelRequest):
+                raise TypeError("Recovery preparation must return ModelRequest")
         if (candidate.messages[-len(tail):] != tail or
                 [m for m in candidate.messages if m.role in ("system", "developer")] != instructions or
                 candidate.parameters != original.parameters or candidate.tools != original.tools
                 or candidate.tool_mode != original.tool_mode):
             raise ValueError("Recovery budget processing removed current input or Tool structure")
-        return request_to_legacy(candidate) if legacy else candidate
+        return candidate
 
     @staticmethod
     def _validate(request, original, parameters, current_id):
@@ -399,11 +367,7 @@ class CompletionPipeline:
             self._validate(request, original, parameters, self.context.run.input_message_id)
             if request.tools != tools or request.tool_mode != tool_mode:
                 raise ValueError("Completion processor cannot change tools")
-            if self.validate_parameters is not None:
-                self.validate_parameters(request.parameters, original=parameters)
-            else:
-                from llm.providers.model_codec import validate_default_processing
-                validate_default_processing(request.parameters, original=parameters)
+            self.validate_parameters(request.parameters, original=parameters)
 
     async def after_completion(self, observation: CompletionObservation):
         for _, session in self.sessions:

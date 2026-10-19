@@ -1,7 +1,7 @@
 """A non-OpenAI fake transport. It never imports a LiteLLM adapter or wire codec."""
 from copy import deepcopy
 import json
-from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, StopReason, ToolCall
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, StopReason, ToolCall, option_copy
 from llm.providers.streaming import CompletionUpdate, CompletionError
 from llm.providers.observations import ModelCall, provider_attempt
 from llm.providers.calls import current_calls
@@ -43,7 +43,6 @@ class CommonDecoder:
 
 
 class CommonProvider:
-    model_protocol=1
     execution_binding={'protocol':'fake-v1'}
 
     def __init__(self,*attempts):
@@ -61,6 +60,13 @@ class CommonProvider:
     def validate_processing(self,request,*,original):
         if request!=original:
             raise ValueError('Fake transport settings are immutable')
+
+    def validate_input_ownership(self, parameters, *, auxiliary=False):
+        if set(parameters) & {'messages', 'tools'}:
+            raise ValueError('Use common message and Tool fields')
+
+    def auxiliary_parameters(self, parameters):
+        return deepcopy(parameters)
 
     def prepare(self,request):
         if not isinstance(request,ModelRequest):
@@ -98,7 +104,7 @@ class CommonProvider:
         calls = current_calls()
         if calls is not None:
             await calls.acquire()
-        self.requests.append(deepcopy(request))
+        self.requests.append(option_copy(request))
         try:
             with provider_attempt(self.describe_call(request)):
                 for envelope in self.attempts.pop(0):

@@ -37,6 +37,7 @@ def from_diagnostic(value: Diagnostic, *, origin=ErrorOrigin.UNKNOWN, operation=
         confidence=Confidence(classification.confidence), evidence=deepcopy(classification.evidence),
         http_status=entry.get("status_code"), exception_type=str(entry.get("type", "")).split(".")[-1],
         finish_reason=details.get("finish_reason") if isinstance(details.get("finish_reason"), str) else "",
+        termination=details.get("termination") if isinstance(details.get("termination"), str) else "",
         detail=detail or (value.message if status_entry is None else ""), details=details, source=references,
         explanation=recovery.get("explanation") if isinstance(recovery.get("explanation"), str) else "",
         recovery=recovery.get("outcome") if isinstance(recovery.get("outcome"), str) else "")

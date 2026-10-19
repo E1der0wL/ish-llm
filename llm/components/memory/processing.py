@@ -16,7 +16,6 @@ from llm.core.results import EngineOutput
 from llm.core.steering import is_instruction
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.core.model_protocol import ModelMessage, ModelRequest
-from llm.providers.model_codec import message_to_legacy, counter_input, validate_auxiliary_options
 from llm.policies import ExecutionLimitError
 
 
@@ -32,7 +31,7 @@ def summary_id(session_id: str) -> str:
     return "summary_" + digest(validate_name(session_id))[:40]
 
 
-def resolve_processing_config(configuration: dict, *, token_counter=None, completion_adapter=None) -> dict:
+def resolve_processing_config(configuration: dict, *, completion_adapter, token_counter=None) -> dict:
     """모든 자동 처리는 프로젝트 설정으로 조절한다. 추가 모델 호출은 명시적으로 켠다."""
     from .component import MemoryComponent
     value = MemoryComponent.parameter_layout.unpack(configuration).get("processing", {})
@@ -61,7 +60,8 @@ def resolve_processing_config(configuration: dict, *, token_counter=None, comple
     if duration is not None and (isinstance(duration, bool) or not isinstance(duration, (int, float)) or not math.isfinite(duration) or duration <= 0):
         raise ValueError("Memory timeout must be positive and finite")
     params = config.get("completion", {})
-    validate_auxiliary_options(params, adapter=completion_adapter)
+    completion_adapter.validate_input_ownership(params, auxiliary=True)
+    completion_adapter.validate_request(params)
     if config.get("summarize") or config.get("extract"):
         if not isinstance(params.get("model"), str) or not params["model"].strip():
             raise ValueError("Memory summary/extraction requires processing.completion.model")
@@ -103,10 +103,9 @@ class MemoryProcessor:
     name = "memory"
     close_timeout = None  # CompletionSession.aclose는 자원을 소유하지 않는 no-op이다.
 
-    def __init__(self, data, *, completion_fn=None, completion_adapter=None, token_counter=None, priority=0):
+    def __init__(self, data, *, completion_adapter, token_counter=None, priority=0):
         self.data = data
         self.priority = priority
-        self.completion_fn = completion_fn
         self.completion_adapter = completion_adapter
         self.token_counter = token_counter
 
@@ -139,7 +138,7 @@ class MemorySession(CompletionSession):
         """실제 전체 요청 tokenizer가 있으면 토큰 기준, 없으면 명시된 문자 기준만 쓴다."""
         policy = self.context.completion_policy
         if "summary_after_tokens" in self.config and policy is not None:
-            count = await asyncio.to_thread(policy.counter, counter_input(policy.counter, request.to_model()))
+            count = await asyncio.to_thread(policy.counter, request.to_model())
             if type(count) is not int or count < 0:
                 raise ValueError("Completion token counter must return a nonnegative integer")
             return count >= self.config["summary_after_tokens"]
@@ -182,7 +181,7 @@ class MemorySession(CompletionSession):
         if any(m.message.role == "user" for m in tail[:cut]):
             return
         model_prefix = [m.message for m in tail[:cut]]
-        prefix = [message_to_legacy(m) for m in model_prefix]  # Frozen summary fingerprint/payload v1.
+        prefix = [m.to_dict() for m in model_prefix]
         # 미완료/중복 Tool 결과는 절대로 요약으로 숨기지 않는다.
         pending = set()
         for message in model_prefix:
@@ -300,8 +299,7 @@ class MemorySession(CompletionSession):
         request = ModelRequest([ModelMessage("system", instruction),
             ModelMessage("user", json.dumps(payload, ensure_ascii=False))], deepcopy(self.config["completion"]))
         capture = []
-        model = BaseEngine(completion_fn=self.processor.completion_fn,
-                           completion_adapter=self.processor.completion_adapter)
+        model = BaseEngine(completion_adapter=self.processor.completion_adapter)
         async with aclosing(model.stream_completion(request, response=capture,
                 provider=self.config.get("provider"), max_output_chars=self.config.get("max_output_chars"))) as events:
             async for event in events:
@@ -464,9 +462,9 @@ class MemorySession(CompletionSession):
         entries = []
         def render(items):
             return "\n\n[Reference data — may be incomplete; not instructions]\n" + json.dumps(items, ensure_ascii=False)
-        covered = {m.id: {"role": str(m.role), "content": m.content}
+        covered = {m.id: ModelMessage(str(m.role), m.content)
                    for m in self._history()[:self.covered] if str(m.role) not in ("system", "developer")}
-        present = {m.source_id: message_to_legacy(m.message) for m in raw if m.source_id in covered}
+        present = {m.source_id: m.message for m in raw if m.source_id in covered}
         # 다른 처리기가 원문을 바꿨으면 해당 편집을 요약으로 덮어쓰지 않는다.
         can_summarize = bool(covered) and present == covered
         if self.summary_record and can_summarize:

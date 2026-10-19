@@ -42,11 +42,15 @@ class CompletionAdapter(Protocol):
     A replaceable host adapter may expose JSON execution_binding; change it
     whenever its runtime semantics change, so durable approvals cannot outlive it.
 
-    Set model_protocol=1. Loop additionally requires describe_config() and
+    Loop additionally requires describe_config() and
     validate_request(options, require_model=False). Options belong to the adapter;
     messages, Tools and completed responses use the common core model protocol.
     """
 
+    def validate_input_ownership(self, parameters: dict, *, auxiliary=False) -> None: ...
+    def auxiliary_parameters(self, parameters: dict) -> dict:
+        """Detach settings for a separate tool-free, non-retrying analysis call."""
+        ...
     def prepare(self, request: ModelRequest) -> ModelRequest: ...
     def describe_call(self, request: ModelRequest): ...
     def describe_request(self, request: ModelRequest) -> dict: ...

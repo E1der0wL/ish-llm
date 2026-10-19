@@ -27,7 +27,7 @@ class VisionComponent(Component):
         paths={"ocr.backend": "config.ocr.backend", "ocr.backends": "config.ocr.backends",
                "ocr.timeout": "policy.ocr.timeout"})
 
-    def __init__(self, *, ocr_backends=None, completion_fn=None, adapter=None, revision="1"):
+    def __init__(self, *, ocr_backends=None, adapter=None, revision="1"):
         from .data import VisionData
         self.data_class = VisionData
         if not isinstance(revision, str) or not revision:
@@ -42,7 +42,7 @@ class VisionComponent(Component):
             if not isinstance(getattr(backend, "revision", None), str) or not backend.revision:
                 raise ValueError("OCR backend revision is required")
             checked_schema(backend.describe_config())
-        self.model = VisionModel(completion_fn=completion_fn, adapter=adapter)
+        self.model = VisionModel(adapter=adapter)
 
     def _blob(self, project, digest):
         if not isinstance(digest, str) or not re.fullmatch("[0-9a-f]{64}", digest):

@@ -8,8 +8,8 @@ from typing import Protocol
 
 from llm.errors import CodedError
 from llm.providers.parameters import copy_params
-from llm.core.model_protocol import ModelMessage, ModelRequest, ContentPart
-from llm.providers.operations import LiteLLMOperations, image_part, legacy_image_part
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ContentPart
+from llm.providers.operations import LiteLLMOperations, image_part
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 
@@ -125,22 +125,13 @@ class TesseractBackend:
             raise VisionError("vision_invalid_response", "Invalid Tesseract TSV response") from error
 
 
-def image_content(raw: bytes, mime_type: str) -> dict:
-    """Base64는 요청 직전에만 만든다. 저장 JSON과 Tool 결과에 이미지 전체를 넣지 않는다."""
-    return legacy_image_part(image_part(raw, mime_type))
-
-
-
 class VisionModel:
     observes_model_calls = True
 
-    def __init__(self, *, completion_fn=None, adapter=None, retry_decider=None):
+    def __init__(self, *, adapter=None, retry_decider=None):
         if retry_decider is not None and not callable(retry_decider):
             raise TypeError("Retry selector must be callable")
-        if completion_fn is not None and adapter is not None:
-            raise ValueError("Choose an operation adapter or SDK function")
-        self.completion_fn = completion_fn
-        self.adapter = adapter if adapter is not None else LiteLLMOperations(completion_fn)
+        self.adapter = adapter if adapter is not None else LiteLLMOperations()
         self.retry_decider = retry_decider
 
     async def analyze(self, raw: bytes, mime_type: str, prompt: str, *, parameters: dict, provider: dict) -> dict:
@@ -151,5 +142,7 @@ class VisionModel:
         response = await self.adapter.complete(ModelRequest([ModelMessage("user", (
             ContentPart("text", prompt), image_part(raw, mime_type)))], request),
             provider, decide=self.retry_decider)
+        if not isinstance(response, ModelResponse):
+            raise TypeError("Vision adapter must return ModelResponse")
         return {"text": response.message.text, "model": request["model"],
                 "finish_reason": response.raw_finish_reason}

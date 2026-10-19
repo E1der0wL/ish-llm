@@ -85,7 +85,7 @@ class ProviderRecovery:
         result = {}
         payload = {"code": diagnosis.code, "http_status": diagnosis.http_status, "detail": diagnosis.detail,
                    "reducible_characters": sum(len(item.source) for item in items),
-                   "message_count": len(request.get("messages", []))}
+                   "message_count": len(request.messages)}
         try:
             await self._relay(model_events(engine, state.frame, request, ANALYZE.format(language=self.language),
                 payload, result, kind="error analysis", maximum=4000), state.frame)

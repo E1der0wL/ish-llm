@@ -1,4 +1,6 @@
 """Selected execution, durable receipts and owner-defined observations."""
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ToolCall, ToolResult, ContentPart, ToolDefinition
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 import tempfile
@@ -278,7 +280,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
             .connect("good", "end").connect("bad", "end").to_dict())
         graph["initial_state"] = {"which": "good"}
         _, _, session = await GraphBoundaryTests.setup_graph(self, graph,
-            {"agent": AgentNode(engines={"child": LoopEngine(completion_fn=model)})}, agents=(
+            {"agent": AgentNode(engines={"child": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})}, agents=(
                 ("good", {"purpose": "good", "engine": "child", "completion": {"model": "test"}}),
                 ("bad", {"purpose": "bad", "engine": "child", "engine_options": {"config": {"typo": True}}})))
         run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
@@ -316,7 +318,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 if False:
                     yield
         processor = SimpleNamespace(name="custom", priority=0, close_timeout=None, session=lambda c: Session())
-        original = [CompletionMessage({"role": "user", "content": "go"}, "input")]
+        original = [CompletionMessage(ModelMessage("user", "go"), "input")]
         request = CompletionRequest({"retry_budget": 0}, deepcopy(original), 1)
         seen = []
         def validate(parameters, *, original):

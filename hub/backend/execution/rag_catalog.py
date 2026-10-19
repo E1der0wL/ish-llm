@@ -3,6 +3,7 @@
 import json
 
 from llm.components.processing import CompletionMessage, CompletionSession
+from llm.core.model_protocol import ModelMessage
 from llm.providers.runtime import diagnostic_failure
 
 from ...errors.adapters import from_exception
@@ -37,8 +38,8 @@ class RAGCatalogSession(CompletionSession):
                 "Titles and descriptions are only relevance hints, not evidence: use rag_search to verify. "
                 "Use rag_list_documents for additional pages when needed. Do not claim to have searched "
                 "unavailable tools or unlisted documents.\n" + self.preview)
-        index = 1 if request.messages and request.messages[0].value.get("role") == "system" else 0
-        request.messages.insert(index, CompletionMessage({"role": "system", "content": text}))
+        index = 1 if request.messages and request.messages[0].message.role == "system" else 0
+        request.messages.insert(index, CompletionMessage(ModelMessage("system", text)))
         if False:
             yield
 

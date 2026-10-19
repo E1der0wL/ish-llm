@@ -1,3 +1,5 @@
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ToolCall, ToolResult, ContentPart, ToolDefinition
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 import tempfile
 import threading
@@ -46,7 +48,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.session.config["parameters"] = {"engines": {"loop": {'config': {'completion': {'top_p': 0.6, 'extra_body': {'setting': 1}}, 'system_prompt': 'session prompt'}, 'policy': {'max_iterations': 1}}}}
         self.sessions.save(self.session)
         provider = ScriptedCompletion([chunk("answer", finish="stop")])
-        self.engines.register("loop", LoopEngine(completion_fn=provider).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"top_p": 0.4}})}))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"top_p": 0.4}})}))
         self.assertEqual(self.sessions.load(self.project, self.session.id).config, self.session.config)
         self.assertEqual(self.project.config, self.projects.load(self.project.id).config)
         run = await self.submit()
@@ -62,7 +64,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_project_updates_reach_later_runs_without_mutating_active_snapshot(self):
         provider = ScriptedCompletion([chunk("one", finish="stop")], [chunk("two", finish="stop")])
-        self.engines.register("loop", LoopEngine(completion_fn=provider))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         await self.submit()
         self.project.config.parameters["engines"]["loop"]["config"]["completion"]["top_p"] = 0.2
         self.projects.save(self.project)
@@ -76,7 +78,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
             {**chunk("answer", finish="stop"), "id": "response-1", "model": "served-model",
              "headers": {"Authorization": "do-not-save"}}, usage,
         ])
-        self.engines.register("loop", LoopEngine(completion_fn=provider))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         run = await self.submit()
         result = self.projects.results.load(self.project, run.id)
         completion, = result.completions
@@ -100,25 +102,24 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         class Calls(BaseEngine):
             async def run(self, context):
                 for _ in range(2):
-                    async with aclosing(self.stream_completion({'model': 'test',
-                            'messages': [{'role': 'user', 'content': 'hello'}]})) as events:
+                    async with aclosing(self.stream_completion(ModelRequest([ModelMessage('user', 'hello')], {'model': 'test'}))) as events:
                         async for event in events:
                             yield event
-        self.engines.register('multiple', Calls(completion_fn=provider))
+        self.engines.register('multiple', Calls(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         run = await self.submit('multiple')
         result = self.projects.results.load(self.project, run.id)
         self.assertEqual(result.engine, 'multiple')
         self.assertEqual(result.total_tokens, 15)
         self.assertEqual(result.finish_reasons, ['stop', 'stop'])
         self.assertEqual(len({c.id for c in result.completions}), 2)
-        self.engines.register('missing', LoopEngine(parameter_key='loop', completion_fn=ScriptedCompletion([chunk('none', finish='stop')])))
+        self.engines.register('missing', LoopEngine(parameter_key='loop', completion_adapter=LiteLLMCompletionAdapter(completion_fn=ScriptedCompletion([chunk('none', finish='stop')]))))
         missing = self.projects.results.load(self.project, (await self.submit('missing')).id)
         self.assertIsNone(missing.total_tokens)
         self.assertFalse(missing.completions[0].usage_complete)
 
     async def test_failure_keeps_finish_reason_and_non_llm_engines_have_summary(self):
         provider = ScriptedCompletion([chunk("partial", finish="length"), self.usage_chunk()])
-        self.engines.register("loop", LoopEngine(completion_fn=provider))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         result = self.projects.results.load(self.project, (await self.submit()).id)
         self.assertEqual(result.status, RunStatus.FAILED)
         self.assertEqual(result.finish_reasons, ["length"])
@@ -137,7 +138,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
             yield self.usage_chunk()
             release.wait(5)
             yield chunk(finish="stop")
-        self.engines.register("loop", LoopEngine(completion_fn=provider))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         await self.manager.submit("hello", engine="loop")
         storage = StorageIO(self.projects.ownership)
         async def observed():
@@ -159,8 +160,8 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         release.set()
 
     async def test_recovery_finalizes_stale_observations_in_run(self):
-        self.engines.register("loop", LoopEngine(completion_fn=ScriptedCompletion([
-            chunk("ok", finish="stop"), self.usage_chunk()])))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=ScriptedCompletion([
+            chunk("ok", finish="stop"), self.usage_chunk()]))))
         run = await self.submit()
         await self.manager.shutdown()
         self.assertFalse((self.project.paths.state / "executions").exists())
@@ -195,8 +196,8 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.projects.results.list(self.project), [])
 
     async def test_project_and_session_queries_read_the_same_run_without_result_files(self):
-        self.engines.register("loop", LoopEngine(completion_fn=ScriptedCompletion([
-            chunk("answer", finish="stop"), self.usage_chunk()])))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=ScriptedCompletion([
+            chunk("answer", finish="stop"), self.usage_chunk()]))))
         run = await self.submit()
         path = run.paths.root / "run.json"
         before = path.read_bytes()

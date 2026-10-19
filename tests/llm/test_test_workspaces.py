@@ -1,4 +1,5 @@
 """실제 Linux namespace, 영속 공간, 공통 Tool 승인/취소 경계를 검증한다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from contextlib import contextmanager
@@ -51,7 +52,7 @@ class WorkspaceTests(unittest.IsolatedAsyncioTestCase):
             yield
 
     async def invoke(self, name, **args):
-        tool, arguments = self.tools.registry.prepare(name, json.dumps(args))
+        tool, arguments = self.tools.registry.prepare(name, args)
         return await tool.handler(arguments)
 
     async def create(self, paths=None):
@@ -346,7 +347,7 @@ asyncio.run(main())
         runtime = ToolRuntime(runner=BuiltinToolRunner(), classify=lambda _: ToolClassification("test.execute", "test-v1", 1))
         model = ScriptedCompletion()
         def backend():
-            return LargeLanguageModel(self.root / "backend", components=[component], engines={"loop": LoopEngine(completion_fn=model)},
+            return LargeLanguageModel(self.root / "backend", components=[component], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
                                       services=BackendServices(tool_runtime=runtime))
         app = backend()
         self.addAsyncCleanup(app.shutdown)
@@ -428,7 +429,7 @@ asyncio.run(main())
     async def test_create_and_delete_require_decisions_before_mutating_space(self):
         model = ScriptedCompletion()
         async with LargeLanguageModel(self.root / "lifecycle", components=[BuiltinToolComponent(self.tools,name="builtin")],
-                engines={"loop":LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=ToolRuntime(runner=BuiltinToolRunner()))) as app:
+                engines={"loop":LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=ToolRuntime(runner=BuiltinToolRunner()))) as app:
             project = await app.projects.acreate(components=["builtin"],config={"parameters":{
                 "engines":{"loop":{"config":{"completion":{"model":"test/model"}}}},
                 "components":{"builtin":{"config":{"enabled":["test_workspace_create","test_workspace_delete"]}}}}})
@@ -454,7 +455,7 @@ asyncio.run(main())
     async def test_run_interrupt_drains_sandbox_and_preserves_workspace(self):
         model = ScriptedCompletion()
         async with LargeLanguageModel(self.root / "interrupt", components=[BuiltinToolComponent(self.tools,name="builtin")],
-                engines={"loop":LoopEngine(completion_fn=model)},services=BackendServices(tool_runtime=ToolRuntime(runner=BuiltinToolRunner()))) as app:
+                engines={"loop":LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},services=BackendServices(tool_runtime=ToolRuntime(runner=BuiltinToolRunner()))) as app:
             project = await app.projects.acreate(components=["builtin"],config={"parameters":{
                 "engines":{"loop":{"config":{"completion":{"model":"test/model"}}}},
                 "components":{"builtin":{"config":{"enabled":["test_workspace_execute"]}}}}})

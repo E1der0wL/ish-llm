@@ -1,4 +1,5 @@
 """Hub defaults support ingestion and hybrid reranking with only model clients."""
+from llm.providers.operations import LiteLLMOperations
 
 import tempfile
 import unittest
@@ -17,8 +18,8 @@ class RagDefaultsTests(unittest.IsolatedAsyncioTestCase):
                                 for i in range(len(request["documents"]))]}
         with tempfile.TemporaryDirectory() as directory:
             config = HubConfig(directory, auto_title=False, component_factories=(lambda: RAGComponent(
-                embedding=EmbeddingModel(model="test/embedding", embedding_fn=embedding),
-                reranker=RerankModel(model="test/rerank", rerank_fn=rerank)),),
+                embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=embedding)),
+                reranker=RerankModel(model="test/rerank", adapter=LiteLLMOperations(call=rerank))),),
                 project_config={"parameters": {"components": {"rag": {"config": {"chunk_size": 900}}}}})
             runtime = HubRuntime(config)
             try:

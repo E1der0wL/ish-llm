@@ -687,7 +687,7 @@ class GraphEngine:
                 "max_parallelism": self.max_parallelism, "timeout_seconds": self.timeout_seconds,
                 "project_config": self._execution_config(context), "session_config": context.session.config,
                 "components": list(context.project.components),
-                "tools": context.tools.definitions(), "tool_contracts": context.tools.contracts(),
+                "tools": [tool.to_dict() for tool in context.tools.definitions()], "tool_contracts": context.tools.contracts(),
                 "tool_policy": context.tool_scope.binding() if context.tool_scope else None}  # persisted binding key
 
     def _environment(self):

@@ -495,7 +495,7 @@ class AgentInvocation:
                     self.binding["engine"], session_config=context.session.config))}
                     if callable(describe) else {"runtime_only": True},
                  "resources": deepcopy(self.resources),
-                 "tools": [tool.to_dict() for tool in context.tools.model_definitions()],
+                 "tools": [tool.to_dict() for tool in context.tools.definitions()],
                  "tool_contracts": context.tools.contracts(),
                  "tool_policy": context.tool_scope.binding() if context.tool_scope is not None else None}
         if isinstance(self.engine, GraphEngine):

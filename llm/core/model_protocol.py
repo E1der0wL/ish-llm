@@ -181,8 +181,10 @@ class ModelMessage:
     @classmethod
     def from_dict(cls, value):
         value = json_copy(value)
-        if value.pop('version', None) != 1:
+        if (not isinstance(value, dict) or type(value.get('version')) is not int or value['version'] != 1
+                or set(value) != {'version', 'role', 'content', 'calls', 'result', 'opaque'}):
             raise ValueError('Unsupported model message version')
+        value.pop('version')
         if isinstance(value.get('content'), list):
             value['content'] = tuple(ContentPart(**p) for p in value['content'])
         value['calls'] = tuple(ToolCall(**c) for c in value.get('calls', ()))
@@ -203,6 +205,8 @@ class ModelRequest:
             raise TypeError('Model request requires typed messages')
         if not isinstance(self.parameters, dict) or any(not isinstance(k, str) for k in self.parameters):
             raise TypeError('Model options require a string-keyed mapping')
+        if set(self.parameters) & {'messages', 'tools'}:
+            raise ValueError('Messages and Tools must use typed request fields')
         if not isinstance(self.tools, tuple) or any(not isinstance(t, ToolDefinition) for t in self.tools):
             raise TypeError('Model request requires typed Tool definitions')
         if len({t.name for t in self.tools}) != len(self.tools):
@@ -234,10 +238,12 @@ class ModelRequest:
     @classmethod
     def from_dict(cls, value):
         value=json_copy(value)
-        if value.pop('version', None) != 1:
+        if (not isinstance(value, dict) or type(value.get('version')) is not int or value['version'] != 1
+                or set(value) != {'version', 'messages', 'parameters', 'tools', 'tool_mode'}):
             raise ValueError('Unsupported model request version')
+        value.pop('version')
         return cls([ModelMessage.from_dict(m) for m in value['messages']], value['parameters'],
-                   tuple(ToolDefinition(**t) for t in value['tools']),value.get('tool_mode'))
+                   tuple(ToolDefinition(**t) for t in value['tools']),value['tool_mode'])
 
 
 @dataclass(frozen=True, slots=True)
@@ -277,8 +283,10 @@ class ModelResponse:
     @classmethod
     def from_dict(cls, value):
         value=json_copy(value)
-        if value.pop('version', None) != 1:
+        if (not isinstance(value, dict) or type(value.get('version')) is not int or value['version'] != 1
+                or set(value) != {'version', 'message', 'stop', 'usage', 'response_id', 'model', 'raw_finish_reason'}):
             raise ValueError('Unsupported model response version')
+        value.pop('version')
         value['message']=ModelMessage.from_dict(value['message'])
         return cls(**value)
 
@@ -290,7 +298,7 @@ class CompletionUpdate:
     response_id: str | None = None
     model: str | None = None
     usage: dict | None = None
-    finish_reason: str | None = None  # Legacy observation, not interpreted by consumers.
+    finish_reason: str | None = None  # Raw provider metadata; control flow uses termination.
     termination: StopReason | None = None
 
     def __post_init__(self):

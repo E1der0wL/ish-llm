@@ -1,4 +1,5 @@
 """Hub presets exercise llm's bounded, pre-output retry without replaying tools."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from copy import deepcopy
@@ -49,7 +50,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
                 project_config={"parameters": {"engines": {"loop": {"policy": {"provider": {
                     "max_attempts": 4, "delay_seconds": delay, "max_delay_seconds": 60}}}}}},
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 identifier = await runtime.new_session()
@@ -127,7 +128,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             yield chunk(calls=[call(json.dumps(arguments), name=name, call_id=str(len(tools)))], finish="tool_calls")
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 identifier = await runtime.new_session()

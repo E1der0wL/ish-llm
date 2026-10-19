@@ -1,4 +1,5 @@
 """닫힌 backend 계약과 선택 구현체/metadata 소유 경계를 검증한다."""
+from llm.providers.operations import LiteLLMOperations
 
 from copy import deepcopy
 import unittest
@@ -205,7 +206,8 @@ class OwnershipIntegrationTests(unittest.IsolatedAsyncioTestCase):
             def identity(self, **kwargs):
                 return "custom-model"
             async def embed(self, texts, **kwargs):
-                return {"data": [{"embedding": [1 if self.params["dialect"] == "beta" else 2, 3]}]}
+                from llm.core.model_protocol import EmbeddingResult
+                return EmbeddingResult((1 if self.params["dialect"] == "beta" else 2, 3))
         component = RAGComponent(embedding=Child())
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[component]) as backend:
@@ -221,7 +223,7 @@ class OwnershipIntegrationTests(unittest.IsolatedAsyncioTestCase):
         async def call(**kwargs):
             calls.append(deepcopy(kwargs))
             return {"data": [{"embedding": [1, 2]}]}
-        component = RAGComponent(embedding=EmbeddingModel(model="custom/model", embedding_fn=call))
+        component = RAGComponent(embedding=EmbeddingModel(model="custom/model", adapter=LiteLLMOperations(call=call)))
         opaque = {"custom_route": {"future_sdk_flag": [True, "opaque"]}}
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[component]) as backend:

@@ -92,10 +92,10 @@ def select_graph(grouped, entity_ids, chunks, *, relation_types=()):
 
 
 class TripleExtractor(ModelClient):
-    """LiteLLM 비동기 completion 또는 주입한 함수로 트리플을 추출한다."""
+    """선택한 OperationAdapter의 공통 응답에서 트리플을 추출한다."""
 
-    def __init__(self, *, completion_fn=None, adapter=None, **params):
-        super().__init__("acompletion", completion_fn, params, adapter=adapter)
+    def __init__(self, *, adapter=None, **params):
+        super().__init__("acompletion", params, adapter=adapter)
         self.extraction = {}
         self.prompt = {"messages": []}
 

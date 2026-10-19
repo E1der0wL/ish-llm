@@ -1,4 +1,5 @@
 """장시간 실행을 위한 호출 상한, 출력 저장 경계와 휴대 가능한 백업을 검증한다."""
+from llm.providers.operations import LiteLLMOperations
 from tests.llm.configuration_fixtures import rag_settings, rag_project
 
 import asyncio
@@ -418,7 +419,7 @@ class BackupTests(unittest.IsolatedAsyncioTestCase):
         from llm.components.rag import RAGComponent, EmbeddingModel
         from tests.llm.test_rag_components import fake_embedding
         from tests.llm.test_unified_rag import ChainExtractor
-        component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", embedding_fn=fake_embedding),
+        component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=fake_embedding)),
                                  extractor=ChainExtractor())
         async with LargeLanguageModel(self.root / "rag-source", components=[component]) as source:
             project = await source.projects.acreate(components=["rag"], config=rag_project())

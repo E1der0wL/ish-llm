@@ -120,7 +120,8 @@ class HubBuiltinTools(BuiltinToolComponent):
         # Cache only our host-owned built-ins. Imported Tool packages still use
         # llm's live resolver so source changes and contracts cannot go stale.
         key = revision_token({"options": self._options(project),
-            "definitions": toolkit.registry.definitions(), "contracts": toolkit.registry.contracts()})
+            "definitions": [definition.to_dict() for definition in toolkit.registry.definitions()],
+            "contracts": toolkit.registry.contracts()})
         with self._toolkit_lock:
             cached = self._resolved.get(project.id)
             if cached is None or cached[0] != key:

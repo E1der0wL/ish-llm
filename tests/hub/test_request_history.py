@@ -1,4 +1,5 @@
 """Durable attempts stay at their logical position; UI actions honor selection."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from dataclasses import replace
@@ -48,7 +49,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
                 component_factories=(lambda: ExampleTools(tool),),
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             await runtime.start()
             try:
                 sid = await runtime.new_session()
@@ -98,7 +99,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 yield chunk("continued answer", finish="stop")
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=completion)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))}))
             await runtime.start()
             try:
                 sid = await runtime.new_session()
@@ -145,7 +146,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             config = HubConfig(directory, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:
                 await runtime.start()
@@ -262,7 +263,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
             name="file_create")], finish="tool_calls")], [chunk("edited response", finish="stop")])
         with tempfile.TemporaryDirectory() as directory:
             runtime = HubRuntime(HubConfig(Path(directory, "workspace"), file_root=directory, model="test/model",
-                auto_title=False, engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                auto_title=False, engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 sid = await runtime.new_session()
@@ -301,7 +302,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
             [chunk("third answer", finish="stop")])
         with tempfile.TemporaryDirectory() as directory:
             config = HubConfig(directory, model="test/model", auto_title=False,
-                               engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                               engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:
                 await runtime.start()
@@ -396,7 +397,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory:
             Path(directory, "input.txt").write_text("test input")
             runtime = HubRuntime(HubConfig(Path(directory, "workspace"), file_root=directory, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 sid = await runtime.new_session()

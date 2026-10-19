@@ -1,4 +1,6 @@
 """설정의 출처·우선순위와 실제 Engine/Component 실행이 같은 값을 쓰는지 검증한다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
 from tests.llm.configuration_fixtures import rag_settings, rag_project
 
 import asyncio
@@ -52,7 +54,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
     async def test_ui_does_not_invoke_runtime_factories(self):
         def factory(context):
             raise AssertionError("UI must not call an Engine factory")
-        app = self.backend(engines={"loop": LoopEngine(completion_fn=factory)})
+        app = self.backend(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=factory))})
         project = await app.projects.acreate()
         view = await project.adescribe_config()
         self.assertEqual(view["effective_engines"]["loop"]["runtime"], [])
@@ -90,7 +92,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_agent_actual_completion_matches_project_session_agent_host_order(self):
         provider = ScriptedCompletion([chunk("ok", finish="stop")])
-        worker = LoopEngine(completion_fn=provider)
+        worker = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
         app = self.backend(engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"writer": worker})})},
                            components=[WorkflowComponent(), AgentComponent()])
         project = await app.projects.acreate(components=["workflows", "agents"], config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 7}, 'config': {'completion': {'model': 'project', 'temperature': 0.9}}}}}})
@@ -111,7 +113,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         async def embedding(**params):
             calls.append(params)
             return await fake_embedding(**params)
-        component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=embedding), extractor=Extractor())
+        component = RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=embedding)), extractor=Extractor())
         app = self.backend(components=[component])
         first = await app.projects.acreate(components=["rag"], config=rag_project())
         second = await app.projects.acreate(components=["rag"], config=rag_project())
@@ -131,7 +133,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_rag_json_model_configuration_uses_injected_clients_without_mutation(self):
         call = AsyncMock(side_effect=fake_embedding)
-        model = EmbeddingModel(embedding_fn=call)
+        model = EmbeddingModel(adapter=LiteLLMOperations(call=call))
         component = RAGComponent(embedding=model, extractor=Extractor())
         app = self.backend(components=[component])
         project = await app.projects.acreate(components=["rag"], config=rag_project())
@@ -150,7 +152,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await release.wait()
             return await fake_embedding(**params)
-        app = self.backend(components=[RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=embed), extractor=Extractor())])
+        app = self.backend(components=[RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=embed)), extractor=Extractor())])
         project = await app.projects.acreate(components=["rag"], config=rag_project())
         rag = await project.components.aget("rag")
         pending = asyncio.create_task(rag.aadd_document(title="A", content="Alice owns Atlas"))
@@ -176,7 +178,7 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_prepared_job_cannot_publish_after_settings_change(self):
         from llm.components.rag.jobs import RAGJobs
-        app = self.backend(components=[RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=fake_embedding), extractor=Extractor())])
+        app = self.backend(components=[RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=fake_embedding)), extractor=Extractor())])
         project = await app.projects.acreate(components=["rag"], config=rag_project())
         rag = await project.components.aget("rag")
         job = await rag.aenqueue_document(title="A", content="Alice owns Atlas")

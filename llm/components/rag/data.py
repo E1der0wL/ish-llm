@@ -168,8 +168,12 @@ class RAGData(ComponentData):
                                      {"method": method, "expand": expand, "limit": limit})
         if rerank and hits:
             await self._async_call(self.require_model_observation, component.reranker)
-            from llm.providers.operations import normalized_rerank
-            response = await normalized_rerank(component.reranker, query, [hit["text"] for hit in hits])
+            from llm.core.model_protocol import RerankResult
+            response = await component.reranker.rerank(query, [hit["text"] for hit in hits])
+            if not isinstance(response, RerankResult):
+                raise TypeError('RAG rerank client must return RerankResult')
+            if any(row.index >= len(hits) for row in response.documents):
+                raise ValueError('Rerank index is outside the supplied documents')
             hits = [{**hits[row.index], "rerank_score": row.score} for row in response.documents]
             # 모델 호출 중 프로젝트가 삭제/해제되었는지도 다시 확인한다.
             await self._async_call(self._current_snapshot, snapshot)

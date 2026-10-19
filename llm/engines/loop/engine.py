@@ -26,7 +26,6 @@ from llm.core.results import EngineOutput
 from llm.core.contracts import ResourceRef
 from llm.providers.parameters import merge_params
 from llm.core.model_protocol import ModelMessage, ModelResponse, ToolResult
-from llm.providers.model_codec import stream_request, restore_response, validate_input_ownership
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError, ToolApprovalRequired
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
 from llm.policies import CompletionPolicy
@@ -65,10 +64,10 @@ class LoopEngine(BaseEngine):
             if value is None or isinstance(value, (str, int, float, bool)):
                 return value
             return {"runtime_type": type(value).__module__ + "." + type(value).__qualname__}
-        # Persisted binding vocabulary stays byte-compatible; these are not runtime API aliases.
+        # Freeze current common definitions and actual adapter identity for Resume/approval.
         values = portable({"settings": context.resolve_config(self.parameter_key),
                          "completion": self.completion_kwargs,
-                         "prompt": self.system_prompt, "agent": self._agent_options, "tools": context.tools.definitions(),
+                         "prompt": self.system_prompt, "agent": self._agent_options, "tools": [tool.to_dict() for tool in context.tools.definitions()],
                          "adapter": {"type": type(self.completion_adapter).__module__ + "." + type(self.completion_adapter).__qualname__,
                                      "binding": getattr(self.completion_adapter, "execution_binding", None)},
                          "tool_contracts": context.tools.contracts(),
@@ -123,7 +122,7 @@ class LoopEngine(BaseEngine):
     _option_names = ("max_iterations", "request_timeout", "tool_timeout", "buffer_size",
                      "max_tool_calls", "max_argument_chars", "max_output_chars")
 
-    def __init__(self, *, parameter_key=None, completion_fn=None, retry_decider=None,
+    def __init__(self, *, parameter_key=None, retry_decider=None,
                  recover_completion=None, completion_adapter=None) -> None:
         """Host는 구현을 등록한다. 실행값은 Project/Session/Agent 설정에서만 읽는다."""
         if parameter_key is not None and (not isinstance(parameter_key, str) or not parameter_key.strip()):
@@ -135,10 +134,8 @@ class LoopEngine(BaseEngine):
         if recover_completion is not None and not callable(recover_completion):
             raise TypeError("Completion recovery selector must be callable")
         self.recover_completion = recover_completion
-        if completion_adapter is not None and completion_fn is not None:
-            raise ValueError("Choose completion_adapter or completion_fn")
-        self.completion_fn = completion_fn
-        self._provided_adapter = completion_adapter
+        from llm.providers.litellm import LiteLLMCompletionAdapter
+        self.completion_adapter = completion_adapter if completion_adapter is not None else LiteLLMCompletionAdapter()
         self._configure({})
 
     def _configure(self, values):
@@ -150,7 +147,7 @@ class LoopEngine(BaseEngine):
         self.input_policy = deepcopy(values.get("input_policy"))
         self.provider = deepcopy(values.get("provider"))
         self.final_review = review_policy(values.get("final_review"))
-        super().__init__("Loop", completion_fn=self.completion_fn, completion_adapter=self._provided_adapter, buffer_size=buffer_size)
+        super().__init__("Loop", completion_adapter=self.completion_adapter, buffer_size=buffer_size)
         self.max_tool_calls, self.max_argument_chars, self.max_output_chars = max_tool_calls, max_argument_chars, max_output_chars
         if max_iterations is not None and (type(max_iterations) is not int or max_iterations < 1):
             raise ValueError("max_iterations must be a positive integer")
@@ -221,7 +218,7 @@ class LoopEngine(BaseEngine):
         # Agent는 부분 설정이다. 누락된 model은 Project/Session에서 상속한다.
         # 모든 계층에 없으면 최종 request 검증에서 provider 호출 전에 거부한다.
         self.completion_adapter.validate_request(params)
-        validate_input_ownership(params, adapter=self.completion_adapter)
+        self.completion_adapter.validate_input_ownership(params)
         options = definition.get("engine_options", {})
         from jsonschema import Draft202012Validator
         Draft202012Validator(self.describe_config()).validate(options)
@@ -259,7 +256,7 @@ class LoopEngine(BaseEngine):
             raise ValueError("Completion parameters must be a string-keyed mapping")
         params = self.copy_params(dict(supplied))
         # These fields define the Loop transcript/tool execution contract.
-        validate_input_ownership(params, adapter=self.completion_adapter)
+        self.completion_adapter.validate_input_ownership(params)
         self.completion_adapter.validate_request(params)
         prompt = self.system_prompt(context) if callable(self.system_prompt) else self.system_prompt
         if prompt is not None and not isinstance(prompt, str):
@@ -339,11 +336,11 @@ class LoopEngine(BaseEngine):
                 selected = [inbox.history[i] for i in records[instruction_key]["message_ids"]]
                 messages.extend(CompletionMessage(ModelMessage("user", m.content), m.id, True) for m in selected)
             saved = records.get(f"iteration:{iteration}", {})
-            response = restore_response(saved["response"]) if saved else None
+            response = ModelResponse.from_dict(saved["response"]) if saved else None
             calls, prepared = [], []
             request = CompletionRequest(self._request(context, params),
                 [replace(m, message=self.copy_params(m.message)) for m in messages], iteration,
-                tools=context.tools.model_definitions(constraints=context.tool_scope.argument_constraints if context.tool_scope else None),
+                tools=context.tools.definitions(constraints=context.tool_scope.argument_constraints if context.tool_scope else None),
                 tool_mode="required" if getattr(self, "_require_tool", False) and not context.tool_scope.completed else None)
             if not saved:
                 # 부분 답변은 모델 참고 자료일 뿐이다. 완료 응답/Tool 호출/영수증으로 복원하지 않는다.
@@ -402,7 +399,7 @@ class LoopEngine(BaseEngine):
                         async for event in events:
                             yield event
                 capture = []
-                async with aclosing(self.stream_completion(stream_request(self.stream_completion, prepared_request), response=capture, provider=self.provider,
+                async with aclosing(self.stream_completion(prepared_request, response=capture, provider=self.provider,
                         retry_decider=self.retry_decider,
                         recover_completion=recover if self.recover_completion is not None else None,
                         max_tool_calls=self.max_tool_calls, max_argument_chars=self.max_argument_chars,

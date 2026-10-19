@@ -1,4 +1,5 @@
 """Dedicated process death around D transaction/effect boundaries; fresh owners."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 import json
 import os
@@ -109,7 +110,7 @@ def tool_backend(root, point, *, recovery=False):
             entered.set()
             await asyncio.Event().wait()
             yield 'unreachable'
-    app = LargeLanguageModel(root, engines={'loop': LoopEngine(completion_fn=model), 'hold': Hold()},
+    app = LargeLanguageModel(root, engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)), 'hold': Hold()},
         components=[tools], services=BackendServices(tool_runtime=ToolRuntime(operation_key=lambda call: 'persisted-effect')))
     return app, model, entered
 

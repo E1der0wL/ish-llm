@@ -1,4 +1,5 @@
 """Explicit host exchange, durable idempotency and independent target authority."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 from datetime import datetime, timezone, timedelta
 import json
@@ -271,7 +272,7 @@ class CrossSessionRequests(unittest.IsolatedAsyncioTestCase):
             contract=ToolContract(approval_required=True)),)))
         model = ScriptedCompletion([chunk(calls=[call('{}', name='write')], finish='tool_calls')],
                                    [chunk('approved', finish='stop')])
-        await self.setup_app(engines={'loop': LoopEngine(completion_fn=model)}, components=[tools])
+        await self.setup_app(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, components=[tools])
         await self.project.components.tools.aenable('write')
         await self.attach(engine='loop', completion={'model': 'test/model'}, tools=['write'])
         transfer = await self.source.exchange.send(self.target.id, 'save', agent_ids=('a',), key='approval')
@@ -370,7 +371,7 @@ class CrossSessionRequests(unittest.IsolatedAsyncioTestCase):
         tools = RuntimeTools(ToolRegistry((Tool('write', 'write', {'type': 'object'}, effect,
             contract=ToolContract(approval_required=True)),)))
         model = ScriptedCompletion([chunk(calls=[call('{}', name='write')], finish='tool_calls')])
-        await self.setup_app(engines={'loop': LoopEngine(completion_fn=model)}, components=[tools])
+        await self.setup_app(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, components=[tools])
         await self.project.components.tools.aenable('write')
         await self.attach(engine='loop', completion={'model': 'test/model'}, tools=['write'])
         now = datetime.now(timezone.utc)

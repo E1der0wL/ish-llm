@@ -1,4 +1,5 @@
 """Default installation and fixed registrations through the public backend API."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from copy import deepcopy
@@ -74,7 +75,7 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
             [chunk("Guide read", finish="stop")])
         with tempfile.TemporaryDirectory() as directory:
             runtime = HubRuntime(HubConfig(directory, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 identifier = await runtime.new_session()

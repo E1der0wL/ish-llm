@@ -45,8 +45,7 @@ def classify_diagnostic(value: Diagnostic) -> ErrorClassification:
         return ErrorClassification("unknown", "unknown", "unknown", {"code": value.code})
     category, reason = known[value.code]
     evidence = {"code": value.code}
-    from llm.providers.model_codec import diagnostic_termination
-    if value.code == "completion_incomplete" and diagnostic_termination(value.details) == "output_limit":
+    if value.code == "completion_incomplete" and value.details.get("termination") == "output_limit":
         return ErrorClassification("resource", "output", "explicit", {**evidence, "termination": "output_limit"})
     if value.code == "provider_invalid_request":
         # Only the provider adapter owns these normalized, cause-local hints.

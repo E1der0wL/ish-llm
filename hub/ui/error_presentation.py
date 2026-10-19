@@ -81,7 +81,7 @@ def operation_notice(error, t):
 def failure_text(error: ErrorInfo, t) -> str:
     key = _GUIDANCE.get(error.reason, "failure_unknown")
     if error.code == "completion_incomplete":
-        key = {"length": "failure_completion_length", "content_filter": "failure_completion_filtered"}.get(error.finish_reason, key)
+        key = {"output_limit": "failure_completion_length", "blocked": "failure_completion_filtered"}.get(error.termination, key)
     elif error.code in ("completion_invalid_response", "tool_invocation_invalid", "tool_contract", "sandbox_unavailable",
                         "operation_uncertain", "operation_conflict", "tool_failed", "step_timeout"):
         key = {"completion_invalid_response": "failure_completion_invalid", "tool_invocation_invalid": "failure_tool_arguments",

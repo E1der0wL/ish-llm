@@ -55,14 +55,13 @@ class MemoryComponent(Component):
             "generation": field("string", pattern=r"^[a-f0-9]{32}$"), "revision": field("integer", minimum=1)},
             required=["id", "generation", "revision"]))})
 
-    def __init__(self, *, completion_fn=None, completion_adapter=None, token_counter=None, search_fn=None):
+    def __init__(self, *, completion_adapter=None, token_counter=None, search_fn=None):
         """보조 모델과 토큰 계수기는 런타임에 주입한다. 설정/레코드에는 저장하지 않는다."""
-        if any(value is not None and not callable(value) for value in (completion_fn, token_counter, search_fn)):
+        if any(value is not None and not callable(value) for value in (token_counter, search_fn)):
             raise TypeError("Memory model and token counter must be callable")
-        self.completion_fn, self.token_counter = completion_fn, token_counter
-        if completion_fn is not None and completion_adapter is not None:
-            raise ValueError("Choose completion_fn or completion_adapter")
-        self.completion_adapter = completion_adapter
+        self.token_counter = token_counter
+        from llm.providers.litellm import LiteLLMCompletionAdapter
+        self.completion_adapter = completion_adapter if completion_adapter is not None else LiteLLMCompletionAdapter()
         self.search_fn = search_fn
         self._record_cache = OrderedDict()
 
@@ -316,8 +315,7 @@ class MemoryComponent(Component):
             tool_summary_prompt=field("string", minLength=1),
             summary_format=field("string", enum=["text", "work_state"]),
             goal_ids={"type": "array", "uniqueItems": True, "items": field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$")},
-            context_tokens=field(["integer", "null"], minimum=1), completion=(self.completion_adapter.describe_config()
-                if self.completion_adapter is not None else completion_schema()),
+            context_tokens=field(["integer", "null"], minimum=1), completion=self.completion_adapter.describe_config(),
             provider={**provider_schema(), "type": ["object", "null"]},
             extract_scope=field("string", enum=["session", "project"]),
             extract_prompt_id=field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$"),
@@ -486,7 +484,7 @@ class MemoryComponent(Component):
                 if not all(callable(getattr(files, name, None)) for name in ("read_file", "write_file", "snapshot")):
                     raise ValueError("tool_data requires a file Component public interface")
                 files.snapshot(selection["identifier"])
-            return MemoryProcessor(data, completion_fn=self.completion_fn, completion_adapter=self.completion_adapter,
+            return MemoryProcessor(data, completion_adapter=self.completion_adapter,
                                    token_counter=self.token_counter, priority=config.get("priority", 0))
         if capability == "memory":
             return data_factory(self.name)

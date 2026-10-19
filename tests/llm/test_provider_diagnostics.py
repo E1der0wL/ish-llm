@@ -1,4 +1,6 @@
+from llm.core.model_protocol import ModelRequest
 """명시적 진단/대기 설정과 오류 보존, 승인·완료 Tool의 재실행 방지를 검증한다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 import json
@@ -173,8 +175,8 @@ class RetryTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual((failed.details["attempt"], retry.details["attempt"]), (1, 2))
 
     async def consume(self, model, options, **request):
-        return [event async for event in BaseEngine(completion_fn=model).stream_completion(
-            {"model": "openai/test", **request}, provider=options)]
+        return [event async for event in BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).stream_completion(
+            ModelRequest([], {"model": "openai/test", **request}), provider=options)]
 
     async def test_server_wait_cannot_exceed_explicit_cap_or_deadline(self):
         for streaming in (False, True):
@@ -228,7 +230,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(*responses)
         tools = ToolRegistry((Tool("act", "write", {"type": "object"}, effect,
             contract=ToolContract(approval_required=approval)),))
-        app = LargeLanguageModel(temporary.name, components=[RuntimeTools(tools)], engines={"loop": LoopEngine(completion_fn=model)},
+        app = LargeLanguageModel(temporary.name, components=[RuntimeTools(tools)], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
             services=BackendServices(provider_diagnostics=ProviderDiagnostics(error_details=True, request_summary=True),
                 tool_runtime=ToolRuntime(classify=lambda _: ToolClassification("file.write", "test", 10))))
         self.addAsyncCleanup(app.shutdown)
@@ -318,6 +320,6 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             time.sleep(.05)
             yield chunk("late", finish="stop")
         # Host implementation is supplied before the Run is constructed.
-        session.app.engines.get("loop").completion_fn = slow
+        session.app.engines.get("loop").completion_adapter = LiteLLMCompletionAdapter(completion_fn=slow)
         run = await (await session.run.submit("go", engine="loop")).wait()
         self.assertEqual(run.data.error_code, "step_timeout")

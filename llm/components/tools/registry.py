@@ -12,7 +12,6 @@ from typing import Any, Optional
 
 from jsonschema import Draft202012Validator
 from llm.core.model_protocol import ToolDefinition
-from llm.providers.model_codec import definition_from_legacy, definition_to_legacy
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,20 +60,16 @@ class Tool:
     description: str
     parameters: dict[str, Any]
     handler: Callable[[dict[str, Any]], Awaitable[Any]]
-    # Optional native definition preserves provider extensions such as strict.
-    definition: Optional[dict[str, Any]] = None
+    # Common definition carries opaque provider extensions without exposing wire dicts.
+    definition: Optional[ToolDefinition] = None
     contract: Optional[ToolContract] = None
     classification: Optional[ToolClassification] = None
 
     def __post_init__(self):
-        # The public v1 definition remains an explicit compatibility projection.
-        if isinstance(self.definition, ToolDefinition):
-            object.__setattr__(self, "definition", definition_to_legacy(self.definition))
-
-    @property
-    def model_definition(self):
-        return (definition_from_legacy(self.definition) if self.definition is not None else
-                ToolDefinition(self.name, self.description, self.parameters))
+        if self.definition is None:
+            object.__setattr__(self, "definition", ToolDefinition(self.name, self.description, self.parameters))
+        elif not isinstance(self.definition, ToolDefinition):
+            raise TypeError("Tool definition must be ToolDefinition")
 
 
 # 런타임 함수와 인자 Schema를 등록한다. 저장된 Tool 선택과 분리된다.
@@ -106,10 +101,10 @@ class ToolRegistry:
         Draft202012Validator.check_schema(schema)
         definition = deepcopy(tool.definition)
         if definition is not None:
-            model = definition_from_legacy(definition)
+            model = definition
             if (model.name != tool.name or model.parameters != schema or model.description != tool.description):
                 raise ValueError("Tool definition does not match its runtime binding")
-            json.dumps(definition, allow_nan=False)
+            json.dumps(definition.to_dict(), allow_nan=False)
         self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition, tool.contract, tool.classification)
 
     def contracts(self):
@@ -141,14 +136,10 @@ class ToolRegistry:
                 validate(deepcopy(selected["arguments"]), context, request_key=record["request_key"],
                          checkpoint_name=record["checkpoint_name"])
 
-    def definitions(self, *, constraints=None) -> list[dict[str, Any]]:
-        """Stable public/worker/Graph v1 projection; execution uses model_definitions."""
-        return [definition_to_legacy(t) for t in self.model_definitions(constraints=constraints)]
-
-    def model_definitions(self, *, constraints=None) -> tuple[ToolDefinition, ...]:
+    def definitions(self, *, constraints=None) -> tuple[ToolDefinition, ...]:
         from dataclasses import replace
         from .constraints import constrained_parameters
-        return tuple(replace(tool.model_definition, parameters=constrained_parameters(tool.parameters,
+        return tuple(replace(tool.definition, parameters=constrained_parameters(tool.parameters,
             (constraints or {}).get(tool.name, {}))) for tool in self._tools.values())
 
     def names(self) -> tuple[str, ...]:
@@ -175,13 +166,11 @@ class ToolRegistry:
         for tool in other._tools.values():
             self.register(tool)
 
-    def prepare(self, name: str, arguments: str, *, constraints=None) -> tuple[Tool, dict[str, Any]]:
+    def prepare(self, name: str, arguments: dict, *, constraints=None) -> tuple[Tool, dict[str, Any]]:
         """Validate before executing any tool in a returned batch."""
         try:
             tool = self._tools[name]
-            def reject_constant(value: str) -> None:
-                raise ValueError("Non-finite JSON constant")
-            values = deepcopy(arguments) if isinstance(arguments, dict) else json.loads(arguments, parse_constant=reject_constant)
+            values = deepcopy(arguments)
             if not isinstance(values, dict):
                 raise ValueError("Expected argument object")
             json.dumps(values, allow_nan=False)

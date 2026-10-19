@@ -1,4 +1,5 @@
 """F: final-candidate authority, durable decisions, budgets and C12 isolation."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 from copy import deepcopy
 import json
@@ -36,9 +37,9 @@ class ReviewContractTests(unittest.IsolatedAsyncioTestCase):
         observation = CompletionReviewObservation(1, (ModelMessage('user', 'original', opaque={'x': 1}),),
             ModelResponse(ModelMessage('assistant', 'candidate')), (ModelMessage('user', 'original'),))
         context = SimpleNamespace(run=SimpleNamespace(input_message_id='current'))
-        async with CompletionPipeline([], context) as pipeline:
+        async with CompletionPipeline([], context, validate_parameters=LiteLLMCompletionAdapter().validate_processing) as pipeline:
             self.assertEqual(await pipeline.review_final(observation), [])
-        async with CompletionPipeline([reviewer(lambda _: CompletionSession())], context) as pipeline:
+        async with CompletionPipeline([reviewer(lambda _: CompletionSession())], context, validate_parameters=LiteLLMCompletionAdapter().validate_processing) as pipeline:
             self.assertEqual((await pipeline.review_final(observation))[0]['action'], 'accept')
         seen = []
         class First(CompletionSession):
@@ -49,7 +50,7 @@ class ReviewContractTests(unittest.IsolatedAsyncioTestCase):
             async def review_final(self, value):
                 seen.append(value.messages[0].opaque['x'])
                 return CompletionReview(ReviewAction.BLOCK, 'second')
-        async with CompletionPipeline([reviewer(lambda _: Second(), 'b'), reviewer(lambda _: First(), 'a')], context) as pipeline:
+        async with CompletionPipeline([reviewer(lambda _: Second(), 'b'), reviewer(lambda _: First(), 'a')], context, validate_parameters=LiteLLMCompletionAdapter().validate_processing) as pipeline:
             decisions = await pipeline.review_final(observation)
         self.assertEqual(seen, [1])
         self.assertEqual(LoopReview.decision({}, decisions)['action'], 'block')
@@ -57,11 +58,11 @@ class ReviewContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(observation.messages[0].opaque['x'], 1)
         with self.assertRaises(TypeError):
             CompletionReview('continue')
-        async with CompletionPipeline([reviewer(lambda _: First(), 'a'), reviewer(lambda _: Second(), 'b')], context) as pipeline:
+        async with CompletionPipeline([reviewer(lambda _: First(), 'a'), reviewer(lambda _: Second(), 'b')], context, validate_parameters=LiteLLMCompletionAdapter().validate_processing) as pipeline:
             with self.assertRaisesRegex(ValueError, 'feedback'):
                 await pipeline.review_final(observation, {'max_feedback_chars': 5})
         with self.assertRaisesRegex(ValueError, 'review_revision'):
-            async with CompletionPipeline([reviewer(lambda _: First(), revision=None)], context):
+            async with CompletionPipeline([reviewer(lambda _: First(), revision=None)], context, validate_parameters=LiteLLMCompletionAdapter().validate_processing):
                 pass
 
 
@@ -575,7 +576,7 @@ class CompletionReviewTests(unittest.IsolatedAsyncioTestCase):
                 yield
         provider = CommonProvider(answer('accepted'))
         await self.make(provider, [reviewer(lambda _: Review(), priority=10000)],
-            components=[MemoryComponent(completion_fn=auxiliary), PromptComponent()],
+            components=[MemoryComponent(completion_adapter=LiteLLMCompletionAdapter(completion_fn=auxiliary)), PromptComponent()],
             config={'policies': {'usage': {'max_calls': 2}}})
         await self.project.components.prompts.acreate({'messages': [{'role': 'system', 'content': 'Extract facts.'}]}, identifier='extract')
         await self.project.components.memory.aconfigure(memory_settings({'processing': memory_processing({

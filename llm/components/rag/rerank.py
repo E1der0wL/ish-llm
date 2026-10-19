@@ -2,24 +2,26 @@
 
 Document reranking independent of execution strategy and storage."""
 
-from collections.abc import Awaitable, Callable
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 from ._client import ModelClient
+from llm.core.model_protocol import RerankResult
+from llm.providers.parameters import copy_params
 
 
 class RerankModel(ModelClient):
     operation = "arerank"
 
-    def __init__(self, *, rerank_fn: Optional[Callable[..., Awaitable[Any]]] = None, adapter=None,
-                 **params: Any) -> None:
-        super().__init__("arerank", rerank_fn, params, adapter=adapter)
-
-    async def rank(self, query, documents, **kwargs):
-        return await self.adapter.rerank(query, documents, {**self.params, **kwargs},
-                                         self.provider_options, decide=self._retry_decider)
+    def __init__(self, *, adapter=None, **params: Any) -> None:
+        super().__init__("arerank", params, adapter=adapter)
 
     async def rerank(self, query: str, documents: list[Union[str, dict[str, Any]]],
-                     **kwargs: Any) -> Any:
-        """Return LiteLLM's native response with indexes, scores and metadata."""
-        return await self._invoke(query=query, documents=documents, **kwargs)
+                     **kwargs: Any) -> RerankResult:
+        """Return normalized indexes, scores and usage."""
+        result = await self.adapter.rerank(query, documents,
+            {**copy_params(self.params), **copy_params(kwargs)}, self.provider_options, decide=self._retry_decider)
+        if not isinstance(result, RerankResult):
+            raise TypeError('Operation adapter must return RerankResult')
+        if any(row.index >= len(documents) for row in result.documents):
+            raise ValueError('Rerank index is outside the supplied documents')
+        return result

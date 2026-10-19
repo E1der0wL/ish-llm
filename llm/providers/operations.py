@@ -2,7 +2,7 @@
 from typing import Protocol
 
 from llm.core.model_protocol import ModelRequest, ModelResponse, EmbeddingResult, RankedDocument, RerankResult
-from .model_codec import request_to_legacy, message_from_legacy, stop_reason
+from .wire_codec import encode_request, decode_message, normalize_stop_reason
 from .embeddings import value, extract_single_embedding
 
 
@@ -13,7 +13,6 @@ class OperationAdapter(Protocol):
     ModelCall observation. Return normalized values with unknown usage as None.
     Never execute tools or write domain state. Output format is None/json/text;
     it is an intent that each adapter translates to its own capabilities.
-    embed_raw/invoke are optional legacy return projections, not common APIs.
     """
     vision_enforced: dict
     def describe_config(self, operation='acompletion') -> dict: ...
@@ -49,13 +48,13 @@ class LiteLLMOperations:
         if parameters.get('stream',False) is not False or parameters.get('n',1)!=1:
             raise ValueError('Vision requires stream=False and n=1')
 
-    async def invoke(self, operation, request, options, *, deadline=None, decide=None):
+    async def _invoke_sdk(self, operation, request, options, *, deadline=None, decide=None):
         from .requests import request_model
         return await request_model(operation,request,options,call=self.call,deadline=deadline,
                                    decide=decide,changeable=('timeout',))
 
     async def complete(self, request: ModelRequest, options, *, output_format=None, deadline=None, decide=None):
-        params=request_to_legacy(request)
+        params=encode_request(request)
         if params.get('stream',False) is not False or params.get('n',1)!=1:
             raise ValueError('Nonstreaming completion requires stream=False and n=1')
         params['stream']=False
@@ -63,7 +62,7 @@ class LiteLLMOperations:
             params['response_format']={'type':'json_object'}
         elif output_format=='text':
             params.pop('response_format',None)
-        raw=await self.invoke('acompletion',params,options,deadline=deadline,decide=decide)
+        raw=await self._invoke_sdk('acompletion',params,options,deadline=deadline,decide=decide)
         return self.completion_result(raw)
 
     @staticmethod
@@ -76,37 +75,28 @@ class LiteLLMOperations:
         message={'role':'assistant',**message} if isinstance(message,dict) else {
             'role':'assistant','content':value(message,'content')}
         reason=value(choice,'finish_reason')
-        return ModelResponse(message_from_legacy(message),stop_reason(reason),_usage(value(raw,'usage')) or None,
+        return ModelResponse(decode_message(message),normalize_stop_reason(reason),_usage(value(raw,'usage')) or None,
                              value(raw,'id'),value(raw,'model'),reason)
 
-    async def embed_raw(self, inputs, parameters, options, *, decide=None):
-        params={**parameters,'input':inputs,'caching':False,'cache':{'no-cache':True,'no-store':True}}
-        return await self.invoke('aembedding',params,options,decide=decide)
-
     async def embed(self, inputs, parameters, options, *, decide=None):
-        raw=await self.embed_raw(inputs,parameters,options,decide=decide)
+        params={**parameters,'input':inputs,'caching':False,'cache':{'no-cache':True,'no-store':True}}
+        raw=await self._invoke_sdk('aembedding',params,options,decide=decide)
         return self.embedding_result(raw,dimensions=parameters.get('dimensions'))
 
     @staticmethod
     def embedding_result(raw, *, dimensions=None):
         from .litellm import _usage
-        if isinstance(raw,EmbeddingResult):
-            return raw
         return EmbeddingResult(tuple(extract_single_embedding(raw,dimensions=dimensions)),
                                _usage(value(raw,'usage')) or None)
 
     async def rerank(self, query, documents, parameters, options, *, decide=None):
-        raw=await self.invoke('arerank',{**parameters,'query':query,'documents':documents},options,decide=decide)
+        raw=await self._invoke_sdk('arerank',{**parameters,'query':query,'documents':documents},options,decide=decide)
         return self.rerank_result(raw,count=len(documents))
 
     @staticmethod
     def rerank_result(raw, *, count=None):
         import math
         from .litellm import _usage
-        if isinstance(raw,RerankResult):
-            if count is not None and any(row.index >= count for row in raw.documents):
-                raise ValueError('Rerank index is outside the supplied documents')
-            return raw
         rows=value(raw,'results')
         if not isinstance(rows,list):
             raise ValueError('Rerank requires results')
@@ -120,21 +110,7 @@ class LiteLLMOperations:
         return RerankResult(tuple(result),_usage(value(raw,'usage')) or None)
 
 
-async def normalized_rerank(client, query, documents):
-    """Old injected RAG clients are decoded at this compatibility boundary."""
-    rank=getattr(client,'rank',None)
-    if callable(rank):
-        return LiteLLMOperations.rerank_result(await rank(query,documents),count=len(documents))
-    return LiteLLMOperations.rerank_result(await client.rerank(query,documents),count=len(documents))
-
-
 def image_part(raw, mime_type):
     import base64
     from llm.core.model_protocol import ContentPart
     return ContentPart('image','data:'+mime_type+';base64,'+base64.b64encode(raw).decode('ascii'),mime_type)
-
-
-def legacy_image_part(part):
-    from .model_codec import message_to_legacy
-    from llm.core.model_protocol import ModelMessage
-    return message_to_legacy(ModelMessage('user',(part,)))['content'][0]

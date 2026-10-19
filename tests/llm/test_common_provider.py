@@ -36,9 +36,9 @@ class CommonProviderTests(unittest.IsolatedAsyncioTestCase):
                                 if False: yield
                         return Session()
                 return Processor()
-        class LegacyLoop(LoopEngine):
+        class TypedLoop(LoopEngine):
             async def stream_completion(self, request, **options):
-                assert isinstance(request, dict)  # Pre-protocol host override.
+                assert isinstance(request, ModelRequest)  # No protocol marker or wire projection.
                 async with aclosing(super().stream_completion(request, **options)) as stream:
                     async for event in stream:
                         yield event
@@ -55,7 +55,7 @@ class CommonProviderTests(unittest.IsolatedAsyncioTestCase):
             'required':['q'],'additionalProperties':False},lookup),)))
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root,components=[tools,MemoryComponent(),Processing()],
-                    engines={'loop':LegacyLoop(completion_adapter=provider)}) as app:
+                    engines={'loop':TypedLoop(completion_adapter=provider)}) as app:
                 project=await app.projects.acreate('common',components=['tools','memory','processing'],config={
                     'parameters':{'engines':{'loop':{'config':{'completion':{'model':'fake'}}}}}})
                 project.components.tools.enable('lookup')
@@ -132,7 +132,6 @@ class CommonProviderTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsInstance(request, ModelRequest)
             seen.append(request)
             return 3
-        count.model_protocol = 1
         provider = CommonProvider([{'sealed': {'say': 'done'}}])
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, engines={'loop': LoopEngine(completion_adapter=provider)},

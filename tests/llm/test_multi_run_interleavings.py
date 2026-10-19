@@ -1,4 +1,5 @@
 """Controlled D schedules: record IDs, ownership, and durable terminal outcomes."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 import itertools
 import json
@@ -183,7 +184,7 @@ class MultiRunInterleavings(unittest.IsolatedAsyncioTestCase):
                 entered.set()
                 await release.wait()
                 yield 'independent'
-        app, project, session = await self.setup_app({'loop': LoopEngine(completion_fn=provider), 'hold': Hold()}, components=[tool])
+        app, project, session = await self.setup_app({'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)), 'hold': Hold()}, components=[tool])
         await project.components.tools.aenable('write')
         await self.attach(project, session, {'writer': {'engine': 'loop', 'completion': {'model': 'test/model'}, 'tools': ['write'], 'policy': {'max_tool_calls': 1}}, 'other': {'engine': 'hold'}})
         holding = await session.run.submit('hold', agent_id='other')
@@ -263,7 +264,7 @@ class MultiRunInterleavings(unittest.IsolatedAsyncioTestCase):
         tools = RuntimeTools(ToolRegistry((Tool('write', 'write', {'type': 'object'}, write),)))
         models = {name: ScriptedCompletion([chunk(calls=[call('{}', name='write')], finish='tool_calls')],
                                            [chunk('done', finish='stop')]) for name in ('a', 'b')}
-        app, project, session = await self.setup_app({n: LoopEngine(completion_fn=m) for n, m in models.items()}, components=[tools],
+        app, project, session = await self.setup_app({n: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=m)) for n, m in models.items()}, components=[tools],
             services=BackendServices(tool_runtime=ToolRuntime(operation_key=lambda call: 'shared-resource')))
         await project.components.tools.aenable('write')
         await self.attach(project, session, {n: {'engine': n, 'completion': {'model': 'test/model'}, 'tools': ['write']} for n in models})
@@ -295,7 +296,7 @@ class MultiRunInterleavings(unittest.IsolatedAsyncioTestCase):
                 async for event in super().execute(context):
                     yield event
         models = {n: ScriptedCompletion([chunk('done', finish='stop')]) for n in gates}
-        app, project, session = await self.setup_app({n: BarrierLoop(completion_fn=m) for n, m in models.items()},
+        app, project, session = await self.setup_app({n: BarrierLoop(completion_adapter=LiteLLMCompletionAdapter(completion_fn=m)) for n, m in models.items()},
             config={'policies': {'usage': {'project_max_calls': 1}}})
         await self.attach(project, session, {n: {'engine': n, 'completion': {'model': 'test/model'}, 'tools': []} for n in gates})
         request = await session.run.submit('parallel quota', recipients='all')
@@ -357,7 +358,7 @@ class MultiRunInterleavings(unittest.IsolatedAsyncioTestCase):
             return 'saved'
         tools = RuntimeTools(ToolRegistry((Tool('write', 'write', {'type': 'object'}, write),)))
         model = ScriptedCompletion([chunk(calls=[call('{}', name='write')], finish='tool_calls')], [chunk('done', finish='stop')])
-        app, project, session = await self.setup_app({'slow': Slow(), 'loop': LoopEngine(completion_fn=model)}, components=[tools])
+        app, project, session = await self.setup_app({'slow': Slow(), 'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, components=[tools])
         await project.components.tools.aenable('write')
         await self.attach(project, session, {'slow': {'engine': 'slow', 'policy': {'timeout_seconds': .2}},
             'writer': {'engine': 'loop', 'completion': {'model': 'test/model'}, 'tools': ['write']}})

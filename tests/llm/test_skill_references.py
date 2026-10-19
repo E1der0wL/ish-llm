@@ -1,4 +1,5 @@
 """Skill에서 Data/Tool을 참조하되 권한은 늘리지 않는지 검증한다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 from pathlib import Path
 import tempfile
@@ -130,7 +131,7 @@ class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
     async def test_loop_reads_resource_and_persists_step_without_tool_authority(self):
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": "guide", "index": 0}), name="skill_read_resource")], finish="tool_calls")],
                                    [chunk("Answer", finish="stop")])
-        engine = LoopEngine(completion_fn=model).for_agent({"engine": "loop", "engine_options": LoopEngine.parameter_layout.pack({"completion": {"model": "test/model"}})})
+        engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": "loop", "engine_options": LoopEngine.parameter_layout.pack({"completion": {"model": "test/model"}})})
         self.app.engines.register("read", engine)
         session = await self.project.sessions.acreate()
         result = await (await session.run.submit("Read guide", engine="read")).wait()

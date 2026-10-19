@@ -1,4 +1,6 @@
+from llm.core.model_protocol import ModelRequest, ModelMessage, ToolCall, ToolResult, ToolDefinition
 """Shared contracts work without selecting or interpreting a built-in owner."""
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ToolCall, ToolResult, ContentPart, ToolDefinition
 
 import tempfile
 import unittest
@@ -149,12 +151,12 @@ class ConfigurationBoundaryTests(unittest.TestCase):
 class ModelObservationTests(unittest.IsolatedAsyncioTestCase):
     async def test_text_processing_rejects_unsupported_representation_before_callback(self):
         seen = []
-        message = CompletionMessage({"role": "user", "content": [{"type": "text", "text": "instruction"}]}, "current")
+        message = CompletionMessage(ModelMessage("user", (ContentPart("text", "instruction"),)), "current")
         request = CompletionRequest({}, [message], 0)
         with self.assertRaisesRegex(ValueError, "string current instruction"):
             CompletionPipeline._validate(request, [message], {}, "current")
         with self.assertRaisesRegex(ValueError, "string current instruction"):
-            await CompletionPipeline.recover(request.to_kwargs(), Diagnostic("custom", "too large"), 1,
+            await CompletionPipeline.recover(request.to_model(), Diagnostic("custom", "too large"), 1,
                 current_index=0, decide=lambda repair: seen.append(repair))
         self.assertEqual(seen, [])
 
@@ -185,7 +187,8 @@ class ModelObservationTests(unittest.IsolatedAsyncioTestCase):
             async def call(**kwargs):
                 executed.append(kwargs)
                 return {"unfamiliar_usage": 4}
-            invocation = ModelCall("custom.score", "custom-model", lambda counter: counter(request["unfamiliar_input"]),
+            counted_request = ModelRequest([ModelMessage("user", "abc")], {"model": "custom-model"})
+            invocation = ModelCall("custom.score", "custom-model", lambda counter: counter(counted_request),
                 lambda response: {"total_tokens": response["unfamiliar_usage"]}, lambda error: "custom_error")
             with model_observer(observer):
                 self.assertEqual(await observed_call(invocation, request, call), {"unfamiliar_usage": 4})
@@ -193,7 +196,7 @@ class ModelObservationTests(unittest.IsolatedAsyncioTestCase):
                     await observed_call(invocation, request, call)
                 self.assertEqual(error.exception.code, "usage_limit")
             self.assertEqual(executed, [request])
-            self.assertEqual(counted, [["abc"], ["abc"]])
+            self.assertEqual(counted, [counted_request, counted_request])
             self.assertEqual(entries[0]["reserved_tokens"], 8)
             self.assertEqual(entries[0]["usage"], {"total_tokens": 4})
             self.assertTrue(entries[0]["usage_complete"])
@@ -211,4 +214,4 @@ class ModelObservationTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(entries), 3)
             self.assertIsNone(entries[1]["reserved_tokens"])
             self.assertEqual(entries[2]["diagnostic_code"], "custom_error")
-            self.assertEqual(counted, [["abc"], ["abc"]])
+            self.assertEqual(counted, [counted_request, counted_request])

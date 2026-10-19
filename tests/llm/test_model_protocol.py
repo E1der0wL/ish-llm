@@ -7,9 +7,9 @@ from llm.core.model_protocol import (
     ContentPart, ModelMessage, ModelRequest, ModelResponse, StopReason,
     ToolCall, ToolDefinition, ToolResult, option_copy,
 )
-from llm.providers.model_codec import (
-    definition_from_legacy, definition_to_legacy, message_from_legacy,
-    message_to_legacy, request_from_legacy, request_to_legacy,
+from llm.providers.wire_codec import (
+    decode_tool_definition, encode_tool_definition, decode_message,
+    encode_message, decode_request, encode_request,
 )
 
 
@@ -60,7 +60,7 @@ class ModelProtocolTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             request.to_dict()
 
-    def test_legacy_signatures_arguments_and_multimodal_round_trip(self):
+    def test_sdk_signatures_arguments_and_multimodal_round_trip(self):
         values=[
             {'role':'assistant','content':None,'reasoning_content':'thinking',
              'provider_specific_fields':{'signature':'signed'},'tool_calls':[
@@ -72,22 +72,24 @@ class ModelProtocolTests(unittest.TestCase):
         ]
         for value in values:
             with self.subTest(value=value):
-                self.assertEqual(message_to_legacy(message_from_legacy(value)),value)
+                self.assertEqual(encode_message(decode_message(value)),value)
 
-    def test_worker_and_graph_v1_definition_encoding_is_stable(self):
+    def test_sdk_tool_definition_preserves_wire_extensions(self):
         definition={'type':'function','function':{'name':'lookup','description':'Lookup',
                     'parameters':{'type':'object'},'strict':True,'vendor':'preserve'}}
-        self.assertEqual(definition_to_legacy(definition_from_legacy(definition)),definition)
+        self.assertEqual(encode_tool_definition(decode_tool_definition(definition)),definition)
 
     def test_request_codec_preserves_client_and_does_not_mutate_input(self):
         client=object()
         request={'messages':[{'role':'user','content':'task'}],'model':'test','client':client,
-                 'tools':[definition_to_legacy(self.request().tools[0])]}
-        common=request_from_legacy(request)
-        self.assertEqual(request_to_legacy(common),request)
+                 'tools':[encode_tool_definition(self.request().tools[0])]}
+        common=decode_request(request)
+        self.assertEqual(encode_request(common),request)
         self.assertIs(common.parameters['client'],client)
         common.messages[0]=common.messages[0].with_text('changed')
         self.assertEqual(request['messages'][0]['content'],'task')
+        request['tool_choice'] = {'type': 'function', 'function': {'name': 'act'}}
+        self.assertEqual(encode_request(decode_request(request)), request)
 
     def test_versions_and_invalid_content_fail_closed(self):
         value=self.request().to_dict()
@@ -99,23 +101,40 @@ class ModelProtocolTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ModelMessage('tool','missing reference')
 
-    def test_legacy_processor_mutations_preserve_common_owner_and_opaque(self):
+    def test_single_current_record_shape_and_owned_fields_are_required(self):
+        for value, decode in ((self.request().to_dict(), ModelRequest.from_dict),
+                              (ModelMessage('user', 'input').to_dict(), ModelMessage.from_dict),
+                              (ModelResponse(ModelMessage('assistant', 'answer')).to_dict(), ModelResponse.from_dict)):
+            for corrupted in ({**value, 'version': True}, {**value, 'extra': None},
+                              {key: item for key, item in value.items() if key != 'version'}):
+                with self.subTest(decode=decode.__qualname__, value=corrupted), self.assertRaises(ValueError):
+                    decode(corrupted)
+            self.assertEqual(decode(value).to_dict(), value)
+        for field in ('messages', 'tools'):
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'typed request fields'):
+                ModelRequest(parameters={field: []})
+
+    def test_typed_processor_edits_preserve_opaque_and_reject_dict_projection(self):
+        from dataclasses import replace
         from llm.components.processing import CompletionMessage
         item = CompletionMessage(ModelMessage('assistant', 'before',
             (ToolCall('a', 'lookup', {'q': 'original'}, {'fake': {'signature': 'call'}}),),
             opaque={'fake': {'signature': 'message'}}))
-        view = item.value
-        view['tool_calls'][0]['function']['arguments'] = '{"q": "changed"}'
-        view.update(content='after')
-        self.assertEqual(item.message.text, 'after')
-        self.assertEqual(item.message.calls[0].arguments, {'q': 'changed'})
-        self.assertEqual(item.message.opaque['fake'], {'signature': 'message'})
-        self.assertEqual(item.message.calls[0].opaque['fake'], {'signature': 'call'})
-        self.assertEqual(json.loads(json.dumps(view)), dict(item.value))
+        edited = item.with_text('after')
+        edited = replace(edited, message=replace(edited.message,
+            calls=(replace(edited.message.calls[0], arguments={'q': 'changed'}),)))
+        self.assertEqual(edited.message.text, 'after')
+        self.assertEqual(edited.message.calls[0].arguments, {'q': 'changed'})
+        self.assertEqual(edited.message.opaque['fake'], {'signature': 'message'})
+        self.assertEqual(edited.message.calls[0].opaque['fake'], {'signature': 'call'})
+        self.assertEqual(item.message.calls[0].arguments, {'q': 'original'})
+        self.assertEqual(item.message.text, 'before')
         with self.assertRaises(ValueError):
-            view['tool_calls'].append(dict(view['tool_calls'][0]))
-        self.assertEqual(len(item.message.calls), 1)
-        self.assertEqual(len(view['tool_calls']), 1)
+            replace(edited.message, calls=edited.message.calls * 2)
+        self.assertEqual(len(edited.message.calls), 1)
+        self.assertFalse(hasattr(item, 'value'))
+        with self.assertRaises(TypeError):
+            CompletionMessage({'role': 'user', 'content': 'old API'})
 
     def test_streamed_opaque_metadata_and_content_edits_survive_adapter_round_trip(self):
         from dataclasses import replace
@@ -128,38 +147,53 @@ class ModelProtocolTests(unittest.TestCase):
         self.assertEqual(response.message.opaque['litellm']['provider_specific_fields'],
                          {'signature': 'signed', 'cache': 'hint'})
         self.assertEqual(response.message.opaque['litellm']['reasoning_content'], 'think')
-        message = message_from_legacy({'role': 'user', 'content': [
+        message = decode_message({'role': 'user', 'content': [
             {'type': 'image_url', 'image_url': {'url': 'old', 'detail': 'high'}}]})
         message = replace(message, content=(replace(message.content[0], value='new'),))
-        self.assertEqual(message_to_legacy(message)['content'][0]['image_url'], {'url': 'new', 'detail': 'high'})
+        self.assertEqual(encode_message(message)['content'][0]['image_url'], {'url': 'new', 'detail': 'high'})
 
-    def test_legacy_view_aliases_and_copies_preserve_multimodal_state(self):
+    def test_typed_copies_and_multimodal_edits_preserve_detached_state(self):
+        from dataclasses import replace
         from llm.components.processing import CompletionMessage
         item = CompletionMessage(ModelMessage('user', (ContentPart('image', 'old',
             opaque={'fake': {'signature': 'image'}}),)))
-        first, second = item.value, item.value
-        self.assertIs(first, second)
-        first['content'][0]['image_url']['url'] = 'new'
-        second['name'] = 'user-name'
-        self.assertEqual(item.message.content[0].value, 'new')
-        self.assertEqual(item.message.content[0].opaque['fake']['signature'], 'image')
-        copied = deepcopy(item)
-        copied.value['content'][0]['image_url']['url'] = 'copy'
-        self.assertEqual(item.message.content[0].value, 'new')
-        self.assertEqual(copied.message.content[0].value, 'copy')
+        edited = replace(item, message=replace(item.message,
+            content=(replace(item.message.content[0], value='new'),)))
+        self.assertEqual(item.message.content[0].value, 'old')
+        self.assertEqual(edited.message.content[0].value, 'new')
+        self.assertEqual(edited.message.content[0].opaque['fake']['signature'], 'image')
+        copied = deepcopy(edited)
+        copied.message.content[0].opaque['fake']['signature'] = 'copy'
+        self.assertEqual(edited.message.content[0].opaque['fake']['signature'], 'image')
+        self.assertEqual(copied.message.content[0].opaque['fake']['signature'], 'copy')
 
-    def test_legacy_stream_override_preserves_foreign_state_and_runtime_options(self):
-        from llm.providers.model_codec import adapter_request, stream_request
+    def test_unmarked_typed_stream_override_preserves_state_and_rejects_dict(self):
+        import asyncio
+        from llm.engines.base import BaseEngine
         from tests.llm.support.common_provider import CommonProvider
         request = self.request()
         client = object()
         request.parameters['client'] = client
-        projected = stream_request(lambda request: request, request)
-        projected['timeout'] = 2
-        restored = adapter_request(CommonProvider(), projected)
-        self.assertEqual(restored.messages, request.messages)
-        self.assertIs(restored.parameters['client'], client)
-        self.assertEqual(restored.parameters['timeout'], 2)
-        projected['messages'][1]['content'] = 'changed'
-        with self.assertRaisesRegex(ValueError, 'common-protocol stream override'):
-            adapter_request(CommonProvider(), projected)
+        provider = CommonProvider([{'sealed': {'say': 'answer'}}])
+        class Forwarding(BaseEngine):
+            async def stream_completion(self, request, **options):
+                request = option_copy(request)
+                request.parameters['timeout'] = 2
+                async for item in super().stream_completion(request, **options):
+                    yield item
+        async def exercise():
+            capture = []
+            engine = Forwarding(completion_adapter=provider)
+            async for _ in engine.stream_completion(request, response=capture):
+                pass
+            self.assertEqual(capture[0].message.text, 'answer')
+            sent = provider.requests[0]
+            self.assertEqual(sent.messages, request.messages)
+            self.assertIs(sent.parameters['client'], client)
+            self.assertEqual(sent.parameters['timeout'], 2)
+            self.assertNotIn('timeout', request.parameters)
+            with self.assertRaisesRegex(TypeError, 'ModelRequest'):
+                async for _ in BaseEngine(completion_adapter=provider).stream_completion({}):
+                    pass
+            self.assertEqual(len(provider.requests), 1)
+        asyncio.run(exercise())

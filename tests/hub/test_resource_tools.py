@@ -1,4 +1,6 @@
 """Real Loop/Tool execution, durable approvals, component persistence and recall."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
 
 import json
 import tempfile
@@ -18,9 +20,9 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.directory.cleanup)
         self.provider = ScriptedCompletion()
         self.runtime = HubRuntime(HubConfig(self.directory.name, model="test/model", auto_title=False,
-            engine_factories={"loop": lambda: LoopEngine(completion_fn=self.provider)},
+            engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.provider))},
             component_factories=(lambda: HubRAGComponent(
-                embedding=EmbeddingModel(model="test/embedding", embedding_fn=embedding), extractor=Extractor()),)))
+                embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=embedding)), extractor=Extractor()),)))
         await self.runtime.start()
         self.addAsyncCleanup(self.runtime.close)
         self.session = await self.runtime.project.sessions.acreate("Resources")

@@ -1,6 +1,7 @@
 """모델 입력 선택 알고리즘. 설정은 호출하는 구현체가 해석하며 저장소를 소유하지 않는다."""
 
 from collections.abc import Callable
+from llm.core.model_protocol import ModelRequest
 from .errors import ExecutionLimitError
 
 
@@ -63,16 +64,16 @@ class CompletionPolicy:
         return cls(policy["max_tokens"], counter=counters[name],
                    **({"reserve_tokens": policy["reserve_tokens"]} if "reserve_tokens" in policy else {}))
 
-    def prepare(self, request: dict) -> dict:
+    def prepare(self, request: ModelRequest) -> ModelRequest:
         return self.prepare_turn(request)
 
-    def prepare_turn(self, request: dict, current_index=None, turn_starts=None) -> dict:
+    def prepare_turn(self, request: ModelRequest, current_index=None, turn_starts=None) -> ModelRequest:
         """provider 호출 직전에 사용한다. 반환 요청과 입력 요청은 독립적이다."""
         from llm.providers.parameters import copy_params
         from llm.core.model_protocol import ModelRequest
-        from llm.providers.model_codec import request_from_legacy, request_to_legacy, counter_input
-        legacy = not isinstance(request, ModelRequest)
-        result = request_from_legacy(request)
+        if not isinstance(request, ModelRequest):
+            raise TypeError("Completion policy requires ModelRequest")
+        result = copy_params(request)
         messages = result.messages
         latest = (next((i for i in range(len(messages) - 1, -1, -1)
                         if messages[i].role == "user"), 0) if current_index is None else current_index)
@@ -90,13 +91,13 @@ class CompletionPolicy:
 
         def fits():
             # tokenizer가 요청을 변경해도 실제 전송할 요청에는 반영하지 않는다.
-            count = self.counter(counter_input(self.counter, copy_params(result)))
+            count = self.counter(copy_params(result))
             if type(count) is not int or count < 0:
                 raise ValueError("Token counter must return a nonnegative integer")
             return count <= self.max_tokens - self.reserve_tokens
 
         if fits():
-            return request_to_legacy(result) if legacy else result
+            return result
         def select(index):
             result.messages = pinned + [item for group in groups[index:] for item in group] + messages[latest:]
 
@@ -116,4 +117,4 @@ class CompletionPolicy:
         select(low)
         if not fits():
             raise ValueError("Token counter returned inconsistent results")
-        return request_to_legacy(result) if legacy else result
+        return result

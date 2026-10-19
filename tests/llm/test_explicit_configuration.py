@@ -1,4 +1,6 @@
 """Explicit-only configuration is a public contract, independent of test presets."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
 
 import asyncio
 from contextlib import contextmanager
@@ -95,7 +97,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 time.sleep(.015)
                 yield from chunks()
             with tempfile.TemporaryDirectory() as root:
-                async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_fn=call)}) as app:
+                async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=call))}) as app:
                     project = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {'policy': options, 'config': {'completion': {'model': 'test', **completion}}}}}))
                     session = await project.sessions.acreate()
                     run = await (await session.run.submit("hello", engine="loop")).wait(timeout=5)
@@ -109,7 +111,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             time.sleep(.05)
             yield from chunks()
         with tempfile.TemporaryDirectory() as root:
-            async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_fn=call)}) as app:
+            async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=call))}) as app:
                 project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'policy': {'request_timeout': .005}, 'config': {'completion': {'model': 'test'}}}}}})
                 session = await project.sessions.acreate()
                 run = await (await session.run.submit("hello", engine="loop")).wait(timeout=5)
@@ -202,7 +204,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_extraction_sampling_and_json_format_are_explicit(self):
         call = AsyncMock(return_value={"choices": [{"message": {"content": '{"entities":[],"relations":[]}'}}]})
-        extractor = TripleExtractor(model="test", completion_fn=call)
+        extractor = TripleExtractor(model="test", adapter=LiteLLMOperations(call=call))
         await extractor.extract([{"id": "one", "text": "hello"}])
         self.assertNotIn("temperature", call.call_args.kwargs)
         self.assertNotIn("response_format", call.call_args.kwargs)
@@ -281,7 +283,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 captured.append(params)
                 return chunks()
             components = [AgentComponent(), WorkflowComponent(), SkillComponent()]
-            graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=call)})})
+            graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=call))})})
             with tempfile.TemporaryDirectory() as root:
                 async with LargeLanguageModel(root, components=components, engines={"graph": graph}) as app:
                     project = await app.projects.acreate(components=[c.name for c in components], config={"parameters": {"engines": {"loop": {'config': {'system_prompt': 'project prompt', 'completion': {'model': 'test', 'temperature': 0.8}}}}}})
@@ -320,9 +322,9 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_memory_empty_processing_does_not_recall_or_call_model(self):
         from llm.components.memory.processing import resolve_processing_config
-        self.assertEqual(resolve_processing_config({}), {})
+        self.assertEqual(resolve_processing_config({}, completion_adapter=LiteLLMCompletionAdapter()), {})
         with self.assertRaisesRegex(ValueError, "Missing required setting"):
-            resolve_processing_config({"policy": {"processing": {"recall": True}}})
+            resolve_processing_config({"policy": {"processing": {"recall": True}}}, completion_adapter=LiteLLMCompletionAdapter())
 
     async def test_schema_rejects_default_annotation_but_allows_field_named_default(self):
         from llm.core.schema import checked_schema

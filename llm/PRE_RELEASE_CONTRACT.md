@@ -26,6 +26,9 @@ Agent는 없다. 실제 agent_run Tool은 Backend의 명시적 등록 기능으�
   우회는 거부한다. Observation은 invocation/answer/messages만 제공한다.
   Recovery도 ModelRequest 사본과 editable index만 제공한다. 원본 지시·Tool 권한·출처
   검사와 Processor별 사본 분리는 그대로 유지한다.
+  Adapter의 `validate_input_ownership()`은 SDK 옵션을 통한 입력·Tool 우회를 검사한다.
+  `auxiliary_parameters()`는 별도 분석 요청에서 Tool·출력 형식·SDK 자동 retry 옵션을
+  제거한 사본을 만든다. Memory와 Hub recovery는 선택 Adapter의 이 계약을 사용한다.
   CompletionPipeline은 선택 Adapter의 validate_processing을 명시적으로 받는다.
   독립 처리기 사용자는 자신의 검증 함수를 지정한다. 기본 SDK 검증을 추측하지 않는다.
 - Counter는 ModelRequest를 받고 nonnegative int를 반환한다. Memory 요약 digest와

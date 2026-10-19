@@ -53,6 +53,7 @@ class ErrorInfo:
     http_status: int | None = None
     exception_type: str = ""
     finish_reason: str = ""
+    termination: str = ""
     detail: str = ""
     traceback: str = ""
     details: dict[str, Any] = field(default_factory=dict)

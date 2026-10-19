@@ -369,8 +369,8 @@ class ReviewTools(Component):
         return self.registry
 
 
-def backend(workspace, config, review, *, completion_fn=None, rag_component=None):
-    loop = LoopEngine(parameter_key="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
+def backend(workspace, config, review, *, completion_adapter=None, rag_component=None):
+    loop = LoopEngine(parameter_key="loop", completion_adapter=completion_adapter)
     registry = ToolRegistry((Tool("apply_configuration", "Apply exactly the reviewed configuration after approval.",
         {"type": "object", "required": ["package"], "properties": {"package": {"type": "object"}},
          "additionalProperties": False}, review.apply,
@@ -393,7 +393,7 @@ async def describe_run(run, report):
         report["output"] = root.output.data
 
 
-async def plan(workspace, config, request, *, report_only=False, completion_fn=None, rag_component=None):
+async def plan(workspace, config, request, *, report_only=False, completion_adapter=None, rag_component=None):
     """별도 Project에 문서를 색인하고 변경 승인 전까지 실행한다. 승인 없이 원본은 쓰지 않는다."""
     config = build_config({**config, "report_only": report_only})
     if not isinstance(request, str) or not request.strip():
@@ -405,10 +405,10 @@ async def plan(workspace, config, request, *, report_only=False, completion_fn=N
     review = ConfigurationReview(config, bundle, source, documents)
     atomic_json(bundle / "snapshot.json", {"source": source, "documents": documents, "binding": review.binding})
     report = {"workspace": str(workspace), "bundle": str(bundle), "request": request,
-              "mode": "injected" if completion_fn or rag_component else "live", "status": "preparing",
+              "mode": "injected" if completion_adapter or rag_component else "live", "status": "preparing",
               "report_only": report_only}
     try:
-        async with backend(workspace, config, review, completion_fn=completion_fn, rag_component=rag_component) as app:
+        async with backend(workspace, config, review, completion_adapter=completion_adapter, rag_component=rag_component) as app:
             project = await app.projects.acreate("Configuration review", config=ProjectConfig.from_dict(config["project_config"]),
                 components=["rag", "agents", "workflows", "review_tools"], conversation_storage="file")
             report["project_id"] = project.id
@@ -432,7 +432,7 @@ async def plan(workspace, config, request, *, report_only=False, completion_fn=N
     return report
 
 
-async def decide(report_path, config, decision, *, expected_package, completion_fn=None, rag_component=None):
+async def decide(report_path, config, decision, *, expected_package, completion_adapter=None, rag_component=None):
     """저장된 공통 승인에 답하고 새 Run으로 재개한다. expected_package는 검토한 변경안의 해시다."""
     report = load_json(report_path)
     config = build_config({**config, "report_only": report["report_only"]})
@@ -442,7 +442,7 @@ async def decide(report_path, config, decision, *, expected_package, completion_
         raise ValueError("Configuration changed since planning; create a new plan")
     if decision not in ("approve", "deny"):
         raise ValueError("Decision must be approve or deny")
-    async with backend(Path(report["workspace"]), config, review, completion_fn=completion_fn, rag_component=rag_component) as app:
+    async with backend(Path(report["workspace"]), config, review, completion_adapter=completion_adapter, rag_component=rag_component) as app:
         project = await app.projects.aload(report["project_id"])
         session = await project.sessions.aload(report["session_id"])
         run = await session.run.aload(report["run_id"])

@@ -1,8 +1,5 @@
-"""Run ONLY on baseline 94229cb to regenerate the committed compatibility archive.
-
-From repository root: python -m tests.llm.fixtures.provider_v1.generate
-No external model requests; generated workspace contains synthetic test data only.
-"""
+"""Generate current-format synthetic Provider/Graph fixtures, never user data."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 import hashlib
 import json
@@ -16,10 +13,9 @@ from llm.components.tools import Tool, ToolRegistry, ToolContract
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
-BASE = '94229cb865374d99f20ec48c5e48269488041a4e'
+from .provenance import provenance, archive_hash
 
 async def generate():
-    assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip() == BASE
     target = Path(__file__).parent
     with tempfile.TemporaryDirectory() as directory:
         root=Path(directory)/'workspace'
@@ -35,12 +31,14 @@ async def generate():
         ):
             registry=ToolRegistry((Tool('act','action',{'type':'object'},act,contract=contract),))
             async with LargeLanguageModel(root/scenario, components=[RuntimeTools(registry)],
-                    engines={'loop':LoopEngine(completion_fn=ScriptedCompletion(*responses))}) as app:
+                    engines={'loop':LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=ScriptedCompletion(*responses)))}) as app:
                 project=await app.projects.acreate('golden',components=['tools'],config=ProjectConfig(parameters={
                     'engines':{'loop':{'config':{'completion':{'model':'test/model'}}}}}))
                 project.components.tools.enable('act')
+                await project.agents.acreate({'engine': 'loop'}, identifier='writer')
                 session=await project.sessions.acreate('golden')
-                run=await (await session.run.submit('golden request',engine='loop')).wait()
+                await session.agents.aattach('writer')
+                run=await (await session.run.submit('golden request',agent_id='writer')).wait()
                 expected={'completed':'completed','resume':'failed','approval':'paused'}[scenario]
                 assert run.data.status == expected, (scenario,run.data.status,run.data.error)
                 info[scenario]={'project':project.id,'session':session.id,'run':run.id,'status':str(run.data.status)}
@@ -50,7 +48,7 @@ async def generate():
         with tarfile.open(target/'workspace.tar.gz','w:gz') as archive:
             for name in files:
                 archive.add(root/name,arcname=name)
-        (target/'manifest.json').write_text(json.dumps({'baseline':BASE,'scenarios':info,'files':files},indent=2)+'\n')
+        (target/'manifest.json').write_text(json.dumps({**provenance(), 'archive_sha256':archive_hash(target/'workspace.tar.gz'), 'scenarios':info,'files':files},indent=2)+'\n')
 
 if __name__=='__main__':
     asyncio.run(generate())

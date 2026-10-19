@@ -1,4 +1,5 @@
 """제품 선택과 backend 계약, Skill 진화의 권한·버전 경계를 검증한다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import json
 import unittest
@@ -71,7 +72,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": identifier,
             "expected_version": view["version"]}), name="refinement_apply")], finish="tool_calls")],
             [chunk("applied", finish="stop")])
-        self.app.engines.register(engine, LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/refiner"}})}))
+        self.app.engines.register(engine, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/refiner"}})}))
         paused = await (await self.session.run.submit("apply proposal", engine=engine)).wait()
         self.assertEqual(str(paused.data.status), "paused", paused.data.error)
         self.assertEqual((await self.refine.aload(identifier))["status"], "proposed")
@@ -166,12 +167,12 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         identifier, data, _ = await self.proposal()
         data["operation"] = "fork"
         with self.assertRaises(ValueError):
-            registry.prepare("refinement_propose", json.dumps(data))
+            registry.prepare("refinement_propose", data)
         self.assertTrue(registry.get("refinement_apply").contract.approval_required)
         view = await self.refine.asnapshot(identifier)
         with self.assertRaises(ValueError):
-            registry.prepare("refinement_apply", json.dumps({"identifier": identifier,
-                "expected_version": view["version"], "approval_required": False}))
+            registry.prepare("refinement_apply", {"identifier": identifier,
+                "expected_version": view["version"], "approval_required": False})
 
     async def test_binding_preserves_authority_and_rejects_stale_skill(self):
         original = await self.project.components.agents.asnapshot("guide")
@@ -203,7 +204,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         await self.project.components.agents.arevise("guide", profile, expected_revision=view["revision"])
         model = ScriptedCompletion([chunk(calls=[call('{}', name="not_allowed")], finish="tool_calls")], answer("success"))
         self.app.engines.register("graph", GraphEngine(handlers={"agent": AgentNode(engines={
-            "loop": LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/worker"}})})})}))
+            "loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/worker"}})})})}))
         workflow = agent_graph()
         workflow["nodes"]["agent"]["agent"] = "guide"
         await self.project.components.workflows.acreate(workflow, identifier="flow")
@@ -218,7 +219,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
             "expected_version": None, "parent": {"identifier": "guide", "version": parent["version"]},
             "patch": {"instructions": "Check allowed Tools before working"}, "reason": "Observed failure", "evidence": self.evidence}
         refiner = ScriptedCompletion([chunk(calls=[call(json.dumps(proposal), name="refinement_propose")], finish="tool_calls")], answer("Review proposal"))
-        self.app.engines.register("refiner", LoopEngine(completion_fn=refiner).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/refiner"}})}))
+        self.app.engines.register("refiner", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=refiner)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/refiner"}})}))
         analysis = await (await self.session.run.submit("Analyze failure and propose a fork", engine="refiner")).wait()
         self.assertEqual(str(analysis.data.status), "completed", analysis.data.error)
         identifier, saved = next(iter((await self.refine.alist()).items()))
@@ -296,7 +297,7 @@ class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
             captured.append(json.loads(request["messages"][-1]["content"]))
             return iter(answer(json.dumps({"memories": []})))
         memory = self.project.components.memory
-        self.memory_component.completion_fn = extract
+        self.memory_component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=extract)
         await memory.acreate({"content": "Last"}, identifier="z")
         await memory.acreate({"content": "First"}, identifier="a")
         # No retrieval tuning/recall limit: extraction owns only its explicit input budget.
@@ -316,7 +317,7 @@ class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
         def extract(**request):
             captured.append(request)
             return iter(answer(json.dumps({"memories": [{"content": "Explicit remembered constraint", "kind": "constraint", "tags": [], "replaces": []}]})))
-        self.memory_component.completion_fn = extract
+        self.memory_component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=extract)
         options = memory_processing({"recall": False, "extract": True, "completion": {"model": "test/extract"}})
         await self.project.components.memory.aconfigure(memory_settings({"processing": options}))
         failed = await (await self.session.run.submit("remember", engine="loop")).wait()

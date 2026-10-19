@@ -1,4 +1,5 @@
 """모델의 잘못된 JSON/출처 복구와 실제 Kuzu 가중치·프롬프트 수명 연결을 검사한다."""
+from llm.providers.operations import LiteLLMOperations
 from tests.llm.configuration_fixtures import rag_settings, rag_project
 
 import asyncio
@@ -39,7 +40,7 @@ class ExtractionRepairTests(unittest.IsolatedAsyncioTestCase):
         bad_quote["relations"][0]["evidence"] = "invented quotation"
         bad_entity["relations"][0]["target"] = "missing"
         call = AsyncMock(side_effect=[response(bad_quote), response(bad_entity), response(valid)])
-        extractor = TripleExtractor(model="test", temperature=.9, completion_fn=call).with_extraction({"repair_attempts": 2, "relation_types": list(RELATION_TYPES)}, default_prompt())
+        extractor = TripleExtractor(model="test", temperature=.9, adapter=LiteLLMOperations(call=call)).with_extraction({"repair_attempts": 2, "relation_types": list(RELATION_TYPES)}, default_prompt())
         result = await extractor.extract(self.chunks)
         self.assertEqual(result, valid)
         self.assertEqual(call.await_count, 3)
@@ -56,14 +57,14 @@ class ExtractionRepairTests(unittest.IsolatedAsyncioTestCase):
     async def test_invalid_json_and_non_object_relations_get_bounded_repairs(self):
         call = AsyncMock(side_effect=[response('```json broken'), response({"entities": [], "relations": [3]}),
                                      response(graph(self.chunks))])
-        await TripleExtractor(model="test", completion_fn=call).with_extraction({"repair_attempts": 2}, default_prompt()).extract(self.chunks)
+        await TripleExtractor(model="test", adapter=LiteLLMOperations(call=call)).with_extraction({"repair_attempts": 2}, default_prompt()).extract(self.chunks)
         self.assertEqual(call.await_count, 3)
 
     async def test_disabled_and_exhausted_repairs(self):
         for attempts in (0, 1, 2):
             with self.subTest(attempts=attempts):
                 call = AsyncMock(return_value=response({"entities": [], "relations": [{}]}))
-                extractor = TripleExtractor(model="test", completion_fn=call).with_extraction(
+                extractor = TripleExtractor(model="test", adapter=LiteLLMOperations(call=call)).with_extraction(
                     {**{"repair_attempts": 2, "json_mode": "strict", "relation_types": list(RELATION_TYPES), "failure_policy": "required"}, "repair_attempts": attempts}, default_prompt())
                 with self.assertRaisesRegex(ValueError, f"after {attempts} repair"):
                     await extractor.extract(self.chunks)
@@ -73,7 +74,7 @@ class ExtractionRepairTests(unittest.IsolatedAsyncioTestCase):
         for error in (RuntimeError("network disconnected"), asyncio.CancelledError()):
             call = AsyncMock(side_effect=error)
             with self.assertRaises(type(error)):
-                await TripleExtractor(model="test", completion_fn=call).with_extraction({"repair_attempts": 2}, default_prompt()).extract(self.chunks)
+                await TripleExtractor(model="test", adapter=LiteLLMOperations(call=call)).with_extraction({"repair_attempts": 2}, default_prompt()).extract(self.chunks)
             self.assertEqual(call.await_count, 1)
 
     def test_malformed_fields_are_validation_errors_not_type_errors(self):
@@ -110,8 +111,8 @@ class ComponentExtractionTests(unittest.IsolatedAsyncioTestCase):
                 result["relations"].append(deepcopy(result["relations"][0]))
             return response(result)
 
-        self.rag = RAGComponent(embedding=EmbeddingModel(model="test/embed", embedding_fn=fake_embedding),
-                                extractor=TripleExtractor(model="test/extract", completion_fn=extract))
+        self.rag = RAGComponent(embedding=EmbeddingModel(model="test/embed", adapter=LiteLLMOperations(call=fake_embedding)),
+                                extractor=TripleExtractor(model="test/extract", adapter=LiteLLMOperations(call=extract)))
         self.app = LargeLanguageModel(self.temp.name, components=[self.rag, PromptComponent()])
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate(components=["rag", "prompts"], config=rag_project({"parameters": {"components": {"rag": {'policy': {'extraction': {'repair_attempts': 2}}}}}}))

@@ -67,6 +67,7 @@ def bind_advice(toolkit: BuiltinTools) -> None:
             # Keep the sandbox handler's trusted type and execution binding.
             # HubTestWorkspaces removes the classification metadata itself.
             tool = replace(tool, parameters=parameters,
+                definition=replace(tool.definition, parameters=parameters),
                 handler=tool.handler if name == "test_workspace_execute" else handler(tool),
                 contract=replace(tool.contract, revision="hub-risk-advice-v1:" + tool.contract.revision))
         tools.append(tool)

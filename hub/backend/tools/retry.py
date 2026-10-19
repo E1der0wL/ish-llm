@@ -131,7 +131,7 @@ class ToolRetrySelector:
             values = engine.resolve_config(frame.context.project.config, name,
                 session_config=frame.context.session.config).get("values", {})
         params = BaseEngine.copy_params(values.get("config", {}).get("completion", {}))
-        if not params.get("model") or not hasattr(engine, "completion_fn"):
+        if not params.get("model") or not hasattr(engine, "completion_adapter"):
             return None
         document = asdict(payload)
         # The selector receives full local evidence; the bounded model helper
@@ -142,8 +142,9 @@ class ToolRetrySelector:
         encoded = json.dumps(document, ensure_ascii=False, allow_nan=False)
         if len(encoded) > 64000:
             return None
+        from llm.core.model_protocol import ModelRequest
         value = {}
-        async with aclosing(model_events(engine, frame, params, INSTRUCTION, document, value,
+        async with aclosing(model_events(engine, frame, ModelRequest([], params), INSTRUCTION, document, value,
                 kind="tool argument repair", maximum=16000, name="Tool argument repair",
                 metadata={"hub_tool_repair": True, "parent_step_id": parent_step_id,
                           "tool": payload.failure.operation, "retry_attempt": payload.failure.attempt})) as events:

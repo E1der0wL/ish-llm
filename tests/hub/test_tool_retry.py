@@ -1,4 +1,5 @@
 """Hub selects generic repairs while llm retains budgets, effects and persistence."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from copy import deepcopy
@@ -37,7 +38,7 @@ class ExampleTools(Component):
 class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
     async def runtime(self, root, provider, **kwargs):
         runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-            engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}, **kwargs))
+            engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}, **kwargs))
         await runtime.start()
         self.addAsyncCleanup(runtime.close)
         return runtime

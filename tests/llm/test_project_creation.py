@@ -1,4 +1,5 @@
 """라이브러리의 명시적 생성과 대상별 설정 계약. UI 초기 선택 정책은 hub에서 검증한다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from pathlib import Path
@@ -90,7 +91,7 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_session_stores_only_its_explicit_overrides(self):
         provider = ScriptedCompletion([chunk("one", finish="stop")], [chunk("two", finish="stop")])
-        self.app.engines.register("writer", LoopEngine(completion_fn=provider))
+        self.app.engines.register("writer", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         config = ProjectConfig(parameters={"engines": {"writer": {'config': {'completion': {'model': 'test', 'temperature': 0.3}}, 'policy': {'request_timeout': 300}}}})
         project = await self.app.projects.acreate(config=config)
         session = await project.sessions.acreate(config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 60}}}}})
@@ -114,8 +115,8 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
     async def test_target_parameters_are_not_broadcast_and_host_metadata_matches(self):
         first = ScriptedCompletion([chunk("first", finish="stop")])
         second = ScriptedCompletion([chunk("second", finish="stop")])
-        self.app.engines.register("writer", LoopEngine(completion_fn=first))
-        self.app.engines.register("reviewer", LoopEngine(completion_fn=second))
+        self.app.engines.register("writer", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=first)))
+        self.app.engines.register("reviewer", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=second)))
         project = await self.app.projects.acreate(components=["notes"], config=ProjectConfig(parameters={
             "engines": {"writer": {'config': {'system_prompt': None, 'completion': {'model': 'test/writer', 'temperature': None}}},
                         "reviewer": {'config': {'completion': {'model': 'test/reviewer', 'temperature': 0.8}}}},
@@ -143,7 +144,7 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_unconfigured_engine_does_not_borrow_another_engines_model(self):
         provider = ScriptedCompletion([chunk("must not run", finish="stop")])
-        self.app.engines.register("other", LoopEngine(completion_fn=provider))
+        self.app.engines.register("other", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         project = await self.app.projects.acreate(config=ProjectConfig(parameters={
             "engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
         self.assertEqual((await project.adescribe_config())["effective_engines"]["other"]["values"], {})

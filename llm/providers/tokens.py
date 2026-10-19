@@ -1,5 +1,5 @@
 """Default provider counter registration; host counters remain explicitly selectable."""
-from .model_codec import counter_input
+from llm.core.model_protocol import ModelRequest
 
 
 def default_token_counters():
@@ -8,4 +8,6 @@ def default_token_counters():
 
 
 def count_request(counter, request):
-    return counter(counter_input(counter, request))
+    if not isinstance(request, ModelRequest):
+        raise TypeError("Token counter requires ModelRequest")
+    return counter(request)

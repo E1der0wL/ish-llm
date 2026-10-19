@@ -1,4 +1,5 @@
 """Hub RAG jobs preserve checkpoints across failures, crashes and popup lifetimes."""
+from llm.providers.operations import LiteLLMOperations
 
 import asyncio
 from dataclasses import replace
@@ -29,7 +30,7 @@ from tests.hub.test_components import config, Extractor
 def settings(root, embed):
     return replace(config(root / "workspace"), file_root=root,
         component_factories=(lambda: RAGComponent(
-            embedding=EmbeddingModel(model="test/embedding", embedding_fn=embed), extractor=Extractor()),))
+            embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=embed)), extractor=Extractor()),))
 
 
 async def wait_for(predicate):

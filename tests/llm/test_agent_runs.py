@@ -1,4 +1,5 @@
 """Canonical Agent Runs and the explicit engine-request compatibility adapter."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from contextlib import asynccontextmanager
@@ -212,7 +213,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
              contract=ToolContract(approval_required=True)), Tool('unselected', 'unselected', {'type': 'object'}, write))))
         provider = ScriptedCompletion([chunk(calls=[call('{}', name='write')], finish='tool_calls')],
                                       [chunk('done', finish='stop')])
-        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_fn=provider)}, components=[tools])
+        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}, components=[tools])
         await project.components.tools.aenable('write', 'unselected')
         await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/agent'},
                                      'tools': ['write'], 'policy': {'max_tool_calls': 1, 'require_tool': True}}, identifier='writer')
@@ -237,7 +238,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_prompt_skill_and_input_output_contracts_are_bound(self):
         provider = ScriptedCompletion([chunk('{"answer":42}', finish='stop')])
-        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_fn=provider)},
+        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
             components=[SkillComponent(), PromptComponent()])
         await project.components.skills.acreate({'instructions': 'Verify the answer.'}, identifier='review')
         await project.components.prompts.acreate({'messages': [{'role': 'system', 'content': 'Reference prompt.'}]}, identifier='guide')
@@ -268,7 +269,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
         tools = RuntimeTools(ToolRegistry((Tool('write', 'write', {'type': 'object'}, write,
             contract=ToolContract(approval_required=True)),)))
         provider = ScriptedCompletion([chunk(calls=[call('{}', name='write')], finish='tool_calls')])
-        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_fn=provider)}, components=[tools])
+        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}, components=[tools])
         await project.components.tools.aenable('write')
         await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/agent'}, 'tools': ['write']}, identifier='writer')
         await session.agents.aattach('writer')
@@ -297,7 +298,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
         tools = RuntimeTools(ToolRegistry((Tool('write', 'write', {'type': 'object'}, write,
             contract=ToolContract(approval_required=True)),)))
         provider = ScriptedCompletion([chunk(calls=[call('{}', name='write')], finish='tool_calls')])
-        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_fn=provider), 'hold': BaseEngine(action=hold)},
+        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)), 'hold': BaseEngine(action=hold)},
                                                  components=[tools])
         await project.components.tools.aenable('write')
         await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/agent'}, 'tools': ['write']}, identifier='writer')
@@ -404,7 +405,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
                 connections.append('close')
         provider = ScriptedCompletion([chunk(calls=[call('{}', name='remote')], finish='tool_calls')],
                                       [chunk('verified', finish='stop')])
-        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_fn=provider)},
+        project, session = await self.setup_app(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
                                                  components=[MCPComponent(connector=connector)])
         await project.components.mcp.acreate({'transport': 'stdio', 'command': 'injected-test-connector'}, identifier='server')
         await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/agent'}, 'tools': [],
