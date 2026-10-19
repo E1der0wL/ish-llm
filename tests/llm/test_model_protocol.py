@@ -132,3 +132,18 @@ class ModelProtocolTests(unittest.TestCase):
             {'type': 'image_url', 'image_url': {'url': 'old', 'detail': 'high'}}]})
         message = replace(message, content=(replace(message.content[0], value='new'),))
         self.assertEqual(message_to_legacy(message)['content'][0]['image_url'], {'url': 'new', 'detail': 'high'})
+
+    def test_legacy_view_aliases_and_copies_preserve_multimodal_state(self):
+        from llm.components.processing import CompletionMessage
+        item = CompletionMessage(ModelMessage('user', (ContentPart('image', 'old',
+            opaque={'fake': {'signature': 'image'}}),)))
+        first, second = item.value, item.value
+        self.assertIs(first, second)
+        first['content'][0]['image_url']['url'] = 'new'
+        second['name'] = 'user-name'
+        self.assertEqual(item.message.content[0].value, 'new')
+        self.assertEqual(item.message.content[0].opaque['fake']['signature'], 'image')
+        copied = deepcopy(item)
+        copied.value['content'][0]['image_url']['url'] = 'copy'
+        self.assertEqual(item.message.content[0].value, 'new')
+        self.assertEqual(copied.message.content[0].value, 'copy')

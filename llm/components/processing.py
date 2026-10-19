@@ -5,7 +5,7 @@ import inspect
 from typing import AsyncIterator, Optional, Protocol, TYPE_CHECKING
 
 from contextlib import aclosing
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from asyncio import timeout
 from llm.providers.parameters import copy_params
 from llm.core.contracts import Diagnostic, ResourceRef
@@ -37,6 +37,7 @@ class CompletionMessage:
     """모델용 메시지와 원본 출처. 추가 참고자료는 source_id=None이며 ID는 공급자에게 보내지 않는다."""
 
     message: ModelMessage
+    _legacy_view: object = field(default=None, init=False, compare=False, repr=False)
     source_id: Optional[str] = None
     # 같은 작업에 추가된 USER 입력. provider kwargs에는 포함하지 않는다.
     continuation: bool = False
@@ -48,6 +49,7 @@ class CompletionMessage:
         object.__setattr__(self, 'message', message_from_legacy(value) if value is not None else message)
         if not isinstance(self.message, ModelMessage):
             raise TypeError('CompletionMessage requires a model message')
+        object.__setattr__(self, '_legacy_view', None)
         object.__setattr__(self, 'source_id', source_id)
         object.__setattr__(self, 'continuation', continuation)
         object.__setattr__(self, 'result_ref', result_ref)
@@ -55,7 +57,14 @@ class CompletionMessage:
     @property
     def value(self):
         """Compatibility view for existing application processors."""
-        return LegacyMessageView(self)
+        if self._legacy_view is None:
+            object.__setattr__(self, '_legacy_view', LegacyMessageView(self))
+        return self._legacy_view
+
+    def __deepcopy__(self, memo):
+        from copy import deepcopy
+        return CompletionMessage(deepcopy(self.message, memo), self.source_id,
+                                 self.continuation, deepcopy(self.result_ref, memo))
 
     def with_text(self, text):
         from dataclasses import replace

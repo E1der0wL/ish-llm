@@ -328,6 +328,11 @@ class LegacyMessageView(_LegacyDict):
         message = replace(message, opaque={**opaque, **message.opaque}, calls=tuple(
             replace(c, opaque={**({k: deepcopy(v) for k, v in calls[c.id].opaque.items() if k != 'litellm'}
                                  if c.id in calls else {}), **c.opaque}) for c in message.calls))
+        if isinstance(previous.content, tuple) and isinstance(message.content, tuple):
+            message = replace(message, content=tuple(replace(part, opaque={
+                **({k: deepcopy(v) for k, v in previous.content[i].opaque.items() if k != 'litellm'}
+                   if i < len(previous.content) and previous.content[i].kind == part.kind else {}),
+                **part.opaque}) for i, part in enumerate(message.content)))
         object.__setattr__(self.owner, 'message', message)
 
 
