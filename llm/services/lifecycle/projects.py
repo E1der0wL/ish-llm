@@ -141,10 +141,31 @@ class ProjectManager:
         for session in self.sessions.repository.read_backup(project):
             if self.config_validator is not None:
                 self.config_validator(project.config, session_config=session.config)
-            for run in self.sessions.run_repository.read_backup(session):
+            from llm.services.history.conversation import ConversationStore
+            from llm.services.history.recovery import can_dispatch_pending
+            from llm.services.runtime.requests import RequestAdmission
+            messages = {message.id: message for message in ConversationStore(session.paths.conversation).list()}
+            if any(identifier not in agents for identifier in session.agent_ids):
+                raise ValueError("Backup Session references a missing Project Agent")
+            runs = self.sessions.run_repository.read_backup(session, allow_pending=True)
+            for message in messages.values():
+                admission = RequestAdmission.read(message)
+                if admission is not None:
+                    RequestAdmission.runs(message, runs)
+                    if any(identifier not in agents for identifier in admission["recipients"]):
+                        raise ValueError("Backup request references a missing Project Agent")
+            for run in runs:
                 if run.agent_id is not None and run.agent_id not in agents:
                     raise ValueError("Backup Run references a missing Project Agent")
-                self.backup_steps.read_backup(run)
+                steps = self.backup_steps.read_backup(run)
+                if run.status == "pending" and not can_dispatch_pending(run,
+                        messages.get(run.input_message_id), messages.get(run.assistant_message_id), steps):
+                    raise ValueError("Backup pending Run has no safe dispatch proof")
+                if run.agent_id is not None:
+                    source, assistant = messages.get(run.input_message_id), messages.get(run.assistant_message_id)
+                    if (source is None or source.role != "user" or assistant is None
+                            or assistant.role != "assistant" or assistant.run_id != run.id):
+                        raise ValueError("Backup Run message ownership mismatch")
         return project
 
     def _backup_destination(self, destination):
@@ -440,7 +461,7 @@ class ProjectManager:
         self.agents.clone(source, clone)
         self.components.clone(source, clone)
         for session in sessions:
-            self.sessions.clone(session, clone)
+            self.sessions.clone(session, clone, copy_participants=True)
         log_event(clone.paths.logs, "project.cloned", entity_id=clone.id,
                   related_id=source.id)
         return clone

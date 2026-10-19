@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from llm.core import models
-from llm.core.models import DOMAIN_STORAGE_VERSION, RUN_STORAGE_VERSION, ProjectConfig, Session, SessionStatus
+from llm.core.models import DOMAIN_STORAGE_VERSION, RUN_STORAGE_VERSION, SESSION_STORAGE_VERSION, ProjectConfig, Session, SessionStatus
 from llm.core.paths import SessionPaths
 from llm.engines.base import BaseEngine
 from llm.llm import LargeLanguageModel
@@ -47,7 +47,7 @@ class SessionDomainTests(unittest.IsolatedAsyncioTestCase):
                            (await run.aget_data()).paths.root / 'run.json', steps[0].paths.root / 'step.json']
                 for path in records:
                     self.assertEqual(read_json(path)['storage_version'],
-                                     RUN_STORAGE_VERSION if path.name == 'run.json' else DOMAIN_STORAGE_VERSION)
+                                     RUN_STORAGE_VERSION if path.name == 'run.json' else SESSION_STORAGE_VERSION if path.name == 'session.json' else DOMAIN_STORAGE_VERSION)
                 self.assertEqual(RUN_STORAGE_VERSION, 2)
                 self.assertEqual(read_json(records[2])['agent_id'], run.data.agent_id)
                 self.assertEqual((await project.agents.aload(run.data.agent_id))['engine'], 'probe')

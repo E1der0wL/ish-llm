@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 # Session 기반 경로·식별자를 사용하는 영속 도메인 형식. 이전 Task 형식은 자동 변환하지 않는다.
 DOMAIN_STORAGE_VERSION = 1
 RUN_STORAGE_VERSION = 2
+SESSION_STORAGE_VERSION = 2
 
 # ---------------------------------------------------------------------------
 # 공통 ID와 UTC 시각 생성
@@ -71,8 +72,8 @@ def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: st
     """Run 상태 변경의 순수 검증. 저장·시각 생성·다른 도메인 변경은 하지 않는다.
 
     종료한 실행 시도는 다시 열지 않는다. resume는 서비스가 별도 Run을 생성한다.
-    CANCELLED는 기존 저장 enum으로 유지하되 새 실행 경로를 만들지 않는다.
-    대기 요청 취소는 Run 전이가 아니라 Message의 CANCELLED 전이다.
+    User 접수 취소는 Message의 CANCELLED 전이다. 수신자 Run을 이미 생성했지만
+    실행하지 않은 경우는 별도의 cancel_admission 전이로만 취소한다.
     """
     current, target = RunStatus(current), RunStatus(target)
     if reason == "start":
@@ -82,6 +83,8 @@ def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: st
             RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.INTERRUPTED, RunStatus.PAUSED)
     elif reason == "recovery":
         allowed = current in (RunStatus.PENDING, RunStatus.RUNNING) and target == RunStatus.INTERRUPTED
+    elif reason == "cancel_admission":
+        allowed = current == RunStatus.PENDING and target == RunStatus.CANCELLED
     else:
         raise ValueError(f"Unknown Run transition reason: {reason}")
     if not allowed:
@@ -278,6 +281,19 @@ class Session:
     metadata: dict = field(default_factory=dict)
     config: dict = field(default_factory=dict)
     storage_version: int = DOMAIN_STORAGE_VERSION
+    agent_ids: list[str] = field(default_factory=list)
+    current_run_ids: list[str] = field(default_factory=list)
+
+    @property
+    def active_run_ids(self):
+        """Include the v1 compatibility slot until owned recovery reconciles it."""
+        return frozenset((*self.current_run_ids, *((self.current_run_id,) if self.current_run_id else ())))
+
+    def set_active_runs(self, identifiers):
+        self.current_run_ids = sorted(set(identifiers))
+        self.current_run_id = self.current_run_ids[0] if len(self.current_run_ids) == 1 else None
+        self.status = SessionStatus.RUNNING if self.current_run_ids else SessionStatus.IDLE
+        self.storage_version = SESSION_STORAGE_VERSION
 
 
 # ---------------------------------------------------------------------------
@@ -294,6 +310,11 @@ class Message:
     run_id: Optional[str] = None
     created_at: str = field(default_factory=now)
     metadata: dict = field(default_factory=dict)
+
+    @property
+    def recipients(self):
+        """Only versioned executable User admission owns recipient semantics."""
+        return tuple(self.metadata.get("admission", {}).get("recipients", ()))
 
 
 # ---------------------------------------------------------------------------

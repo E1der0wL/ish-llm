@@ -239,7 +239,7 @@ Focused evidence (`/workspace/refactor-bf-evidence/c-*`):
   The corrected tests keep the intended assertions and pass; no unrelated tests,
   assertion strength, Skip rules or Hub files changed.
 
-Full frozen-source LLM/Hub gates are running; this section does not yet claim C
+The first frozen-source LLM/Hub gates below initially did not certify C
 completion or D–F verification. Authenticated models and kernel short-write
 injection remain unverified.
 
@@ -279,3 +279,203 @@ lines / zero unclassified. All 623 frozen Python hashes matched afterward.
 **C is implemented and verified against these gates.** D–F and their new fan-out,
 cross-Session and review fault/concurrency gates remain pending; this is not a
 claim of complete A–F safety or deployment readiness.
+
+## D — recipient admission and one concurrent Session dispatcher
+
+C commit: `3076192f58f5b803136b2a1bcf14a5fc9946f6fd`, pushed. D is implemented
+and verified by the final completed gates recorded at the end of this section.
+
+Session v2 adds sorted, distinct `agent_ids` and `current_run_ids`; the old singular
+ID is a single-active compatibility projection. Explicit v1 reads retain original
+bytes. `session.agents.attach/detach/list` (and async variants) mutate references
+to the owning Project catalogue. Runtime detail writes preserve concurrent title,
+metadata, and participant changes. Attached Agents and accepted/historical Run
+references protect definition deletion. A detached Agent is unavailable to new
+explicit submissions, without changing previously accepted recipients.
+
+`submit(agent_id=...)`, `submit(agent_ids=(...))`, and `submit(recipients='all')`
+normalize to a closed version-2 admission envelope in the original User Message.
+Empty, duplicate, ambiguous, foreign, missing and unattached recipients are
+rejected before ACK. `all` freezes membership at submission. An intervening
+membership change causes an explicit admission conflict. The legacy `engine=`
+adapter explicitly attaches its stable compatibility Agent at atomic execution
+begin and uses an exclusive
+FIFO lane, preserving old Session-wide sequencing through the same dispatcher.
+No second Engine execution path or RequestGroup repository is introduced.
+
+The User acceptance transaction records all bindings. Legacy exclusive requests
+preserve the existing atomic group-plus-start rollback boundary. For new explicit
+recipient requests, a subsequent single
+transaction records the complete Run/Assistant group, `run_ids` and pending index;
+partial creation rolls back. Each Run starts in its own atomic RUNNING/STREAMING/
+Session-active-set transaction. A shared, hashed context snapshot is captured
+before the first recipient starts, after earlier completed history becomes
+available; recipient identity is frozen earlier at User ACK. This distinction
+preserves queued legacy context. Streaming/queued outputs are excluded, and the
+same snapshot is used by every sibling even if later recipients wait for a lane.
+
+`RequestHandle.runs/aruns/wait_all` return separate Run handles. The old
+`run/result/wait` remain single-recipient operations and reject ambiguous groups.
+Only a one-recipient User retains its old `run_id` compatibility projection.
+Bounded result polling validates the journal projection against Run records;
+owned recovery and archive validation check complete group cardinality, bindings,
+message ownership and missing references. They never invent missing siblings.
+
+The Session dispatcher schedules different Agents concurrently; requests to one
+Agent retain acceptance FIFO. `run.max_parallel_runs` optionally limits active
+executions; policy changes are observed at scheduling boundaries. Completion
+removes only its own active ID. Per-Run cancel interrupts that Run or cancels a
+proven unstarted pending admission. Session interrupt selects current work;
+shutdown preserves queued/unstarted work and waits for finalizers and quarantined
+uncancellable effects before releasing ownership. Paused approval does not occupy
+an execution lane. Existing Tool scopes, quota reservations, operation receipts,
+checkpoint validation and nested Agent Steps remain in force.
+
+Recovery automatically dispatches only new PENDING records with an exact group,
+`execution_started=False`, matching queued Assistant, and no Step, completion or
+checkpoint. Uncertain RUNNING/old PENDING records become interrupted and require
+explicit continuation. The mutable pending index can be repaired from Run states;
+identity/cardinality corruption cannot. Restart fingerprints exclude that mutable
+index only. Explicit Resume keeps the original Agent and lane semantics, checks
+current membership and binding, and does not repeat completed Tool effects.
+
+History groups all sibling responses under their one original User. Clone remaps
+conversation IDs, preserves participants within a Project (or a whole Project
+clone), and strips executable admission. A cross-Project conversation-only copy
+carries no executable membership. Run retention selects complete sibling groups,
+charges the shared User once, and protects the entire group when any sibling or
+original message is needed by a checkpoint/reference. Backup accepts only proven
+unstarted pending Runs and validates every recipient/Run/Assistant reference.
+
+The actual C-produced golden archive `tests/llm/fixtures/agent_run_v2/` records
+producer SHA, script, versions, original IDs and 21 file hashes. Tests read without
+rewriting, then perform explicit v2 participant writes and recover its real queued
+request exactly once while preserving the interrupted Run. Original A/B fixtures
+are unchanged.
+
+Focused D evidence currently includes:
+
+- Participant/transition/transaction checks: 34 pass; initial dispatcher/Run API/
+  reliability checks: 61 pass; C contract adaptations and storage: 57 pass.
+- History checks initially found an unnecessary full Run scan (69 pass, 1 fail);
+  bounded lookup fixed it, and the same 70 tests passed.
+- A 101-test state run found one failure and one error in manually inconsistent
+  pending-state recovery. Run-state-authoritative index repair fixed the focused
+  15-test rerun. Missing/duplicate group rejection remains strict.
+- A 50-test policy/history run had four errors (three affected cases, one repeated
+  during cleanup): policy dependency failure stopped the dispatcher, corruption
+  fixture needed a valid new context envelope, and cross-Project conversation
+  clone incorrectly required copied participants. These were corrected without
+  deleting old assertions. A subsequent 56-test run had one diagnostic failure;
+  recovery now reports invalid recipient group and invalid input separately.
+- Nine schedule/quota/receipt/recovery tests passed. The mixed schedule test uses
+  20 recorded orders, four Sessions, three Agents, explicit Engine Events, and
+  checks Run/Message/Step ownership plus the active set after every terminal
+  boundary. It reopens a fresh Backend and prints IDs/orders to the test log.
+- Dedicated child processes reach User-write, COMMITTED acceptance, partial group,
+  complete group, active-set start, execution binding, streaming, first completion,
+  approval, approved, Tool claim, external effect and durable receipt boundaries.
+  Fresh Backends prove zero automatic replay for uncertain effects and exactly
+  once scheduling of proven unstarted recipients. Explicit retry still requires
+  new Tool approval, and a started uncertain ledger blocks effects afterward;
+  a completed receipt is reused after approval without a duplicate effect.
+- Crash harness iterations accurately retain failures: `d-crash-2` had one error
+  and one failure (missing explicit retry selection; wrong checkpoint filename);
+  `d-crash-3` had three failed expectations because retry correctly paused for
+  fresh approval. The corrected `d-crash-4` passed all three tests, including
+  partial-JSON checkpoint refusal and restoration of the original valid bytes.
+- The first frozen full gate used `d-gate-source.json`. Failures
+  included the old runtime metrics field, the RUNNING callback Steering window,
+  unnecessary final-group rereads during paging, and cloned Steering ordering.
+  This gate **failed**; its results and the corrected gates are recorded below.
+
+All D command logs and actual exit codes are in
+`/workspace/refactor-bf-evidence/d-*`. Live authenticated model calls and kernel
+short-write injection remain unverified; injected fsync/replace failures and
+partial JSON are separate deterministic storage tests, not substitutes for them.
+
+
+First frozen D gates finished with **1,706 LLM tests: 1,696 pass, 5 failures,
+5 errors, 0 Skip, exit 1, 411.227 s**; **534 Hub tests: all pass, 0 Skip,
+exit 0, 560.683 s**, including the nine X11 tests. All 629 frozen Python hashes
+matched afterward. The five errors came from the obsolete singular runtime
+metrics field. The five failures were the start-notification Steering window,
+finished-group rereads during paginated queries, cloned Steering ordering,
+pre-execution interruption, and the old ENOSPC begin boundary.
+
+The corrected Dispatcher keeps per-group unfinished ID sets and queued-request
+gauges, reaps finished groups without redundant repository reads, accepts Steering
+at the original RUNNING callback boundary, and bridges the queue-to-first-start
+interrupt window. Cloned Steering carries an explicit remapped turn origin.
+Related existing and new regression: **105 pass, exit 0, 25.024 s**.
+The next safety run had **102 tests, 101 pass, 1 failure, exit 1, 36.082 s**:
+the ENOSPC probe showed legacy participant registration still wrote Session at
+User ACK. Registration moved to atomic begin, so accepted User input survives
+begin failure and no Run/effect leaks. The unmodified recovery probe now passes;
+the combined recovery/mixed-schedule/C-contract rerun passed **33 tests**, exit 0, 18.533 s (`d-atomic-begin-fixed`).
+
+Additional tests verify actual Agent timeout while a sibling Tool remains active,
+simultaneous same-Agent submission FIFO, cancellation winning immediately before
+the group transaction, and backup/restore dispatching only a proven unstarted
+recipient while retaining its interrupted sibling. Provider audit remains
+48 files / 410 matching lines / 0 unclassified (`d-provider-audit.json`).
+
+
+The second frozen D run passed **1,710 LLM tests**, 0 failure/Skip, exit 0,
+403.524 s; **534 Hub tests**, 0 failure/Skip, exit 0, 559.173 s; and the targeted
+host modules passed **44 tests**, 0 failure/Skip, exit 0, 19.400 s. All 629 Python
+source hashes matched (`d-verified-*`). These results preceded the final two
+boundary protections below, so the final source is being gated again.
+
+An additional isolated corruption audit reproduced a lifecycle risk: an empty
+Session active index could permit permanent deletion while authoritative Run
+records remained RUNNING. No real workspace data was involved. Lifecycle
+inactivity now checks both the complete Session index and Run records, using the
+shared repository's bounded result query for RUNNING records. Existing custom
+repository overrides retain their original fallback contract.
+Delete/clone/backup reject the inconsistency; owned recovery interrupts uncertain
+Runs without invoking Engines, after which explicit deletion is allowed. The
+same audit before/after records `blocked=false` / `blocked=true`. A dedicated
+child-process streaming crash test validates the guard and unchanged Run bytes.
+
+A selected cancellation is also retained across the durable RUNNING notification
+before the consumer task exists. Its deterministic test holds that notification,
+cancels only the selected Run, and proves zero Engine effects while the other
+Agent stays active. These protections plus lifecycle/custom-repository/runtime/
+transaction regressions passed **113 tests** (`d-last-boundaries-focused`).
+
+The next full gate (`d-final-*`) was stopped with SIGINT: both LLM and Hub
+exit 130, **incomplete**, not passing evidence. An unchanged checkpoint lifecycle
+assertion caught an unnecessary second full Run list read. The exact one-test
+diagnostic failed independently (exit 1). The safety guard now uses the existing
+bounded `list_results(..., status=running, limit=1)` query; the same checkpoint
+test plus custom repositories, process crashes and mixed schedules passed all
+**60 tests**, exit 0, 19.882 s (`d-index-query-fixed`). This preserves both
+authoritative active-Run protection and the existing read-count assertion.
+
+The final release gate freezes the same 629 source/test paths again in
+`d-release-source.json`. LLM completed **1,712 tests**, all passing, zero Skip,
+exit 0, 403.372 s. The three host modules completed **44 tests**, all passing,
+zero Skip, exit 0, 19.217 s. Provider audit remains 48 files / 410 lines /
+zero unclassified. The corresponding Hub run executed **534 tests: 533 pass,
+1 failure, 0 Skip**, exit 1, 557.221 s. The unchanged pure-Hub test
+`tests.hub.test_render_pipeline.WorkerTests.test_idle_polling_slows_but_dirty_wakes`
+observed two reads instead of one. The log records its coroutine stalled for
+**0.521 s** at the 0.1-second wait, exceeding the worker's 0.5-second idle polling
+interval. Its runtime is a SimpleNamespace/mock and never calls LLM code; both
+Hub implementation and test are byte-identical to main. No assertion, test timing,
+Skip condition or Hub code was altered.
+
+The exact test passed independently (1 test, exit 0, 0.137 s); its complete module
+passed (19 tests, exit 0, 1.520 s). A complete Hub rerun without a concurrent LLM
+suite (`d-serial-hub`) passed **534 tests**, zero failures/Skip, exit 0,
+549.571 s, including the unchanged polling assertion and all nine X11 checks.
+The failed full run remains failed evidence and its timing sensitivity remains
+recorded; this is not a claim that one successful rerun eliminates flakiness.
+
+Final D gate: **1,712 LLM + 534 Hub + 44 targeted host tests passed**, all actual
+exit codes 0, zero residual Skip. All 629 frozen Python source/test hashes matched
+after completion. The old golden fixture bytes, pinned host checkout and forbidden
+product/test paths are unchanged. **D is implemented and verified; E and F remain
+pending implementation.** Authenticated models and dedicated kernel short-write
+injection remain unverified.

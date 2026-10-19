@@ -175,11 +175,16 @@ def record(model: object) -> dict:
              if item.name != "paths"}
     # Keep legacy Run digests and read-only projections byte-semantic compatible.
     # New optional in-memory fields are not retroactive v1 storage fields.
-    from llm.core.models import Run
+    from llm.core.models import Run, Session
     if isinstance(model, Run) and model.storage_version == 1:
         if model.agent_id is not None:
             raise ValueError("Legacy Run requires explicit Agent schema migration")
         value.pop("agent_id", None)
+    if isinstance(model, Session) and model.storage_version == 1:
+        if model.agent_ids or model.current_run_ids:
+            raise ValueError("Legacy Session requires explicit participant schema migration")
+        value.pop("agent_ids", None)
+        value.pop("current_run_ids", None)
     return value
 
 

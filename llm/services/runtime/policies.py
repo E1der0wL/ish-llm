@@ -22,12 +22,15 @@ class RunPolicy:
     """
 
     max_queued: Optional[int] = None
+    max_parallel_runs: Optional[int] = None
     timeout_seconds: Optional[float] = None
     max_capability_rounds: Optional[int] = None
 
     def __post_init__(self):
         if self.max_queued is not None and (type(self.max_queued) is not int or self.max_queued < 1):
             raise ValueError("max_queued must be a positive integer")
+        if self.max_parallel_runs is not None and (type(self.max_parallel_runs) is not int or self.max_parallel_runs < 1):
+            raise ValueError("max_parallel_runs must be a positive integer")
         positive_seconds(self.timeout_seconds, "Run timeout")
         if self.max_capability_rounds is not None and (type(self.max_capability_rounds) is not int or self.max_capability_rounds < 1):
             raise ValueError("max_capability_rounds must be a positive integer")

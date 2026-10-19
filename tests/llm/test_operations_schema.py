@@ -174,6 +174,11 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         plan = await project.arecovery()
         value = runs[0].data
         value.input_message_id = "missing"
+        # Keep the new context envelope internally valid while deliberately
+        # corrupting its external Message reference, as this test requires.
+        from llm.services.infrastructure.storage import revision_token
+        value.metadata["context_snapshot"][-1]["id"] = "missing"
+        value.metadata["context_revision"] = revision_token(value.metadata["context_snapshot"])
         with app.project_manager.ownership.scope():
             app.run_repository.save(value)
         with self.assertRaisesRegex(ValueError, "recovery_conflict"):

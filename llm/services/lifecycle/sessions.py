@@ -4,7 +4,7 @@ from llm.services.infrastructure.storage import read_domain_record, atomic_domai
 from llm.services.infrastructure.storage import make_directory
 from llm.services.infrastructure.transactions import after_commit, current_transaction
 
-from llm.services.query import queryable
+from llm.services.query import Query, queryable
 from typing import Optional, Union
 import asyncio
 import threading
@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 from collections.abc import Callable
 
-from llm.core.models import Project, ProjectConfig, Session, SessionStatus, new_id
+from llm.core.models import Project, ProjectConfig, Session, SessionStatus, new_id, SESSION_STORAGE_VERSION
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.plans import TurnDeletionPlan
@@ -26,6 +26,15 @@ from llm.services.infrastructure.storage import atomic_json, child, read_json, r
 
 
 @dataclass(slots=True)
+class RunExecution:
+    run: object
+    task: Optional[asyncio.Task] = None
+    execution: Optional[asyncio.Task] = None
+    finished: asyncio.Event = field(default_factory=asyncio.Event)
+    interrupt_requested: bool = False
+
+
+@dataclass(slots=True)
 class SessionRuntime:
     """Runtime-only state, owned and scheduled exclusively by RunManager."""
 
@@ -33,19 +42,52 @@ class SessionRuntime:
     session: Session
     queue: asyncio.Queue[Optional[str]] = field(default_factory=asyncio.Queue)
     worker: Optional[asyncio.Task[None]] = None
-    execution: Optional[asyncio.Task[None]] = None
+    executions: dict[str, RunExecution] = field(default_factory=dict)
+    waiting: list[str] = field(default_factory=list)
+    groups: dict[str, set[str]] = field(default_factory=dict)
+    queued_requests: set[str] = field(default_factory=set)
+    interrupt_next: bool = False
+    interrupt_ids: set[str] = field(default_factory=set)
+    prepared: asyncio.Event = field(default_factory=asyncio.Event)
+    changed: asyncio.Event = field(default_factory=asyncio.Event)
     finished: asyncio.Event = field(default_factory=asyncio.Event)
     closed: bool = False
     preparing: bool = False
     interrupt_requested: bool = False
 
 
+    def enqueue(self, identifier):
+        self.queued_requests.add(identifier)
+        self.queue.put_nowait(identifier)
+
+
 # 프로젝트 아래의 Session 메타데이터를 읽고 쓴다.
 class SessionRepository:
     """Session metadata and paths beneath the owning Project's sessions root."""
 
+    @staticmethod
+    def _validate_record(data):
+        from llm.core.agents import AgentDefinition
+        if data["storage_version"] == 1:
+            if "agent_ids" in data or "current_run_ids" in data:
+                raise ValueError("Legacy Session cannot contain participant or active-set fields")
+        else:
+            for name in ("agent_ids", "current_run_ids"):
+                values = data.get(name)
+                if not isinstance(values, list) or any(not isinstance(v, str) for v in values):
+                    raise ValueError("Session requires explicit JSON identifier arrays")
+                if values != sorted(set(values)):
+                    raise ValueError("Session identifier arrays must be sorted and distinct")
+                for value in values:
+                    AgentDefinition.identifier(value)
+        return data
+
+    @classmethod
+    def _read_record(cls, path):
+        return cls._validate_record(read_domain_record(path, versions=(1, SESSION_STORAGE_VERSION)))
+
     def _load(self, paths: SessionPaths, session_id: str, project_id: str) -> Session:
-        data = read_domain_record(paths.root / "session.json")
+        data = self._read_record(paths.root / "session.json")
         if data["id"] != session_id or data["project_id"] != project_id:
             raise ValueError("Session ownership mismatch")
         ProjectConfig.validate_session(data["config"])
@@ -59,12 +101,12 @@ class SessionRepository:
         for folder in project.paths.sessions.iterdir():
             if not folder.is_dir():
                 continue
-            data = read_domain_record(folder / "session.json")
+            data = self._read_record(folder / "session.json")
             if child(project.paths.sessions, data["id"]) != folder or data["project_id"] != project.id:
                 raise ValueError("Backup Session ownership mismatch")
             session = Session(**{**data, "paths": SessionPaths(folder), "status": SessionStatus(data["status"])})
             ProjectConfig.validate_session(session.config)
-            if session.status == SessionStatus.RUNNING or session.current_run_id is not None:
+            if session.status == SessionStatus.RUNNING or session.active_run_ids:
                 raise ValueError("Backup contains an active Session")
             ConversationStore(session.paths.conversation).list()
             sessions.append(session)
@@ -80,7 +122,8 @@ class SessionRepository:
 
     def save(self, session: Session) -> None:
         ProjectConfig.validate_session(session.config)
-        atomic_domain_json(session.paths.root / "session.json", record(session))
+        atomic_domain_json(session.paths.root / "session.json", self._validate_record(record(session)),
+                           versions=(1, SESSION_STORAGE_VERSION))
         log_event(session.paths.logs, "session.saved", entity_id=session.id, status=session.status)
 
     def load(self, project: Project, session_id: str) -> Session:
@@ -191,6 +234,9 @@ class SessionManager:
             raise ValueError("Session is deleted")
         # 오래 유지된 런타임 스냅샷이 UI의 제목/메타데이터 수정을 덮어쓰지 않는다.
         session.title, session.metadata = current.title, deepcopy(current.metadata)
+        session.agent_ids = list(current.agent_ids)
+        if current.storage_version == SESSION_STORAGE_VERSION:
+            session.storage_version = SESSION_STORAGE_VERSION
         self.repository.save(session)
 
     # 공개 API
@@ -294,7 +340,7 @@ class SessionManager:
         self.initialize(project)
         session_id = new_id()
         session = Session(session_id, project.id, title, self.repository.paths(project, session_id),
-                    config=config)
+                    config=config, storage_version=SESSION_STORAGE_VERSION)
         self.repository.save(session)
         log_event(session.paths.logs, "session.created", entity_id=session.id,
                   related_id=project.id)
@@ -308,7 +354,8 @@ class SessionManager:
         current = self.require_inactive(session)
         if current.status == SessionStatus.DELETED:
             raise ValueError("Session is deleted")
-        if session.status != current.status or session.current_run_id != current.current_run_id:
+        if (session.status != current.status or session.current_run_id != current.current_run_id
+                or session.current_run_ids != current.current_run_ids or session.agent_ids != current.agent_ids):
             raise ValueError("Session execution state is managed by RunManager")
         current.title = session.title
         current.metadata = deepcopy(session.metadata)
@@ -355,7 +402,7 @@ class SessionManager:
 
     @workspace_locked
     def clone(self, source: Session, project: Project, *, title: Optional[str] = None,
-              through_message_id: str | None = None) -> Session:
+              through_message_id: str | None = None, copy_participants: bool | None = None) -> Session:
         """Copy conversation/configuration, with no execution history or queue replay."""
         self._owner(source)
         source = self.require_inactive(source)
@@ -373,10 +420,22 @@ class SessionManager:
         clone.config = deepcopy(source.config)
         destination = self.conversations(clone)
         messages = self.context_builder.for_clone(messages)
+        identifiers = {message.id: new_id() for message in messages}
         for message in messages:
+            if message.metadata.get("input_message_id") in identifiers:
+                message.metadata["input_message_id"] = identifiers[message.metadata["input_message_id"]]
             destination.create(message.role, message.content, message.status,
-                               metadata=message.metadata)
+                               message_id=identifiers[message.id], metadata=message.metadata)
         self.save(clone)
+        from llm.services.lifecycle.agents import AgentRepository
+        # Cross-Project conversation copies carry no executable membership.
+        # A whole-Project clone explicitly copies its Agent catalogue first.
+        selected = source.agent_ids if (source.project_id == destination_project.id
+                                       if copy_participants is None else copy_participants) else []
+        for identifier in selected:
+            AgentRepository().load(destination_project, identifier)
+        clone.agent_ids = list(selected)
+        self.repository.save(clone)
         log_event(clone.paths.logs, "session.cloned", entity_id=clone.id,
                   related_id=source.id)
         return clone
@@ -448,6 +507,11 @@ class SessionManager:
             raise ValueError("Session runtime is attached; shut down RunManager first")
         # Reload to avoid trusting a stale handle held by a caller.
         current = self.repository.reload(session)
-        if current.status == SessionStatus.RUNNING or current.current_run_id is not None:
+        if current.status == SessionStatus.RUNNING or current.active_run_ids:
             raise ValueError("Session has an active Run")
+        # The Session set is an execution index, not authoritative history. A
+        # damaged/stale empty index must not authorize destructive lifecycle work.
+        if self.run_repository is not None and self.run_repository.list_results(
+                [current], include_running=True, query=Query(status="running", limit=1)):
+            raise ValueError("Run records still contain active work; recover the Session first")
         return current

@@ -68,6 +68,12 @@ class ConversationContextBuilder:
     def _ordered(self, messages: list[Message]) -> list[Message]:
         inputs = {message.run_id: index for index, message in enumerate(messages)
                   if message.role == MessageRole.USER and message.run_id and not is_instruction(message)}
+        by_id = {message.id: index for index, message in enumerate(messages)
+                 if message.role == MessageRole.USER and not is_instruction(message)}
+        for message in messages:
+            if message.id in by_id:
+                inputs.update((identifier, by_id[message.id]) for identifier in
+                              message.metadata.get("admission", {}).get("run_ids", {}).values())
         # 재개된 작업의 지시를 옛 실패 턴에만 남기면 recent 정책이 이를 버린다.
         # 각 지시는 자기 Run을 실제로 재개한 가장 최근 자손 턴에 연결한다.
         # 형제 재개 분기의 지시는 섞지 않으며 원본 Message/Run 연결은 수정하지 않는다.
@@ -77,7 +83,8 @@ class ConversationContextBuilder:
             if parent in continuations:
                 continuations[parent] = max(continuations[parent], continuations[run_id])
         return [message for _, message in sorted(enumerate(messages), key=lambda item: (
-            (continuations if is_instruction(item[1]) else inputs).get(item[1].run_id, item[0]),
+            (continuations if is_instruction(item[1]) else inputs).get(item[1].run_id,
+                by_id.get(item[1].metadata.get("input_message_id"), item[0])),
             item[1].role == MessageRole.ASSISTANT, is_instruction(item[1]), item[0],
         ))]
 
@@ -91,6 +98,9 @@ class ConversationContextBuilder:
         history = []
         committed = {message.run_id for message in messages
                      if message.role == MessageRole.USER and message.status == MessageStatus.COMMITTED}
+        committed.update(identifier for message in messages
+            if message.role == MessageRole.USER and message.status == MessageStatus.COMMITTED
+            for identifier in message.metadata.get("admission", {}).get("run_ids", {}).values())
         for message in self._ordered(messages):
             # 노드 대상 지시는 그 실행의 체크포인트로만 복원한다. 다른 Agent/후속 Run에
             # 일반 사용자 지시처럼 흘러가지 않으며 대화 조회에는 원문이 그대로 남는다.
@@ -114,7 +124,27 @@ class ConversationContextBuilder:
             if is_instruction(message):
                 RunInstruction.validate_message(message)
         snapshot = deepcopy(self._ordered(messages))
+        sources = {}
         for message in snapshot:
+            if message.role == MessageRole.USER and not is_instruction(message):
+                if message.run_id:
+                    sources[message.run_id] = message.id
+                sources.update((identifier, message.id) for identifier in
+                               message.metadata.get("admission", {}).get("run_ids", {}).values())
+        anchor = None
+        for message in snapshot:
+            if message.role == MessageRole.USER and not is_instruction(message):
+                anchor = message.id
+            elif is_instruction(message) and anchor is not None:
+                # The ordered snapshot already chose the correct resumed turn.
+                # Preserve that position when cloned Run IDs are intentionally absent.
+                message.metadata["input_message_id"] = anchor
+            if message.role == MessageRole.ASSISTANT and message.run_id in sources:
+                message.metadata["input_message_id"] = sources[message.run_id]
+            admission = message.metadata.pop("admission", None)
+            if admission is not None:
+                # Conversation clone is historical content, not executable admission.
+                message.metadata["cloned_recipients"] = list(admission["recipients"])
             message.run_id = None
             if message.status == MessageStatus.QUEUED:
                 message.status = MessageStatus.CANCELLED

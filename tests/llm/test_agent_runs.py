@@ -41,6 +41,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
     async def test_minimal_agent_identity_snapshot_and_legacy_share_dispatch(self):
         project, session = await self.setup_app()
         await project.agents.acreate({'engine': 'echo'}, identifier='writer')
+        await session.agents.aattach('writer')
         request = await session.run.submit('first', agent_id='writer')
         run = await request.wait(timeout=10)
         self.assertEqual(run.data.status, 'completed', run.data.error)
@@ -64,6 +65,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
     async def test_invalid_or_ambiguous_selection_has_no_admission(self):
         project, session = await self.setup_app()
         await project.agents.acreate({'engine': 'echo'}, identifier='writer')
+        await session.agents.aattach('writer')
         for options in ({'agent_id': 'missing'}, {'agent_id': None}, {'agent_id': '../writer'},
                         {'agent_id': 'writer', 'engine': 'echo'},
                         {'agent_id': 'writer', 'engine_options': {}}, {'engine': 'missing'}):
@@ -81,6 +83,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
         await project.agents.acreate({'engine': 'echo', 'tools': [],
             'input_schema': {'type': 'string', 'minLength': 2},
             'output_schema': {'type': 'object', 'required': ['text']}}, identifier='validated')
+        await session.agents.aattach('validated')
         bad = await (await session.run.submit('x', agent_id='validated')).wait(timeout=10)
         self.assertEqual(bad.data.status, 'failed')
         self.assertEqual(self.engine.contexts, [])
@@ -99,6 +102,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
                 yield 'done'
         project, session = await self.setup_app(engines={'worker': Worker()})
         await project.agents.acreate({'engine': 'worker'}, identifier='writer')
+        await session.agents.aattach('writer')
         first = await (await session.run.submit('one', agent_id='writer')).wait(timeout=10)
         credential['value'] = 'fake-host-secret-after'
         second = await (await session.run.submit('two', agent_id='writer')).wait(timeout=10)
@@ -124,9 +128,11 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
         engine = FakeStreamingEngine(gate=release)
         project, session = await self.setup_app(engines={'echo': engine}, on_event=observe)
         await project.agents.acreate({'engine': 'echo'}, identifier='writer')
+        await session.agents.aattach('writer')
         first = await session.run.submit('held', engine='echo')
         await asyncio.wait_for(entered.wait(), 10)
         queued = await session.run.submit('queued', agent_id='writer')
+        await session.agents.adetach('writer')
         try:
             with self.assertRaisesRegex(ValueError, 'queued request'):
                 await project.agents.adelete('writer')
@@ -154,6 +160,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
                 yield self.label
         project, session = await self.setup_app(engines={'worker': Worker()})
         await project.agents.acreate({'engine': 'worker'}, identifier='writer')
+        await session.agents.aattach('writer')
         before = await project.agents.asnapshot('writer')
         request = await session.run.submit('held', agent_id='writer')
         await asyncio.wait_for(entered.wait(), 10)
@@ -179,6 +186,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
                  .node('end', 'end').connect('a', 'b').connect('b', 'end').to_dict())
         await project.components.workflows.acreate(graph, identifier='flow')
         await project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier='coordinator')
+        await session.agents.aattach('coordinator')
         paused = await (await session.run.submit('go', agent_id='coordinator')).wait(timeout=10)
         self.assertEqual(paused.data.status, 'paused', paused.data.error)
         self.assertEqual(effects, ['a'])
@@ -208,6 +216,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
         await project.components.tools.aenable('write', 'unselected')
         await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/agent'},
                                      'tools': ['write'], 'policy': {'max_tool_calls': 1, 'require_tool': True}}, identifier='writer')
+        await session.agents.aattach('writer')
         paused = await (await session.run.submit('save', agent_id='writer')).wait(timeout=10)
         self.assertEqual(paused.data.status, 'paused', paused.data.error)
         self.assertEqual(effects, [])
@@ -237,6 +246,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
             'input_schema': {'type': 'string', 'minLength': 2}, 'output_format': 'json',
             'output_schema': {'type': 'object', 'required': ['text', 'data'],
                               'properties': {'data': {'type': 'object', 'required': ['answer']}}}}, identifier='writer')
+        await session.agents.aattach('writer')
         invalid = await (await session.run.submit('x', agent_id='writer')).wait(timeout=10)
         self.assertEqual(invalid.data.status, 'failed')
         self.assertEqual(provider.requests, [])
@@ -261,6 +271,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
         project, session = await self.setup_app(engines={'loop': LoopEngine(completion_fn=provider)}, components=[tools])
         await project.components.tools.aenable('write')
         await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/agent'}, 'tools': ['write']}, identifier='writer')
+        await session.agents.aattach('writer')
         paused = await (await session.run.submit('save', agent_id='writer')).wait(timeout=10)
         self.assertEqual(paused.data.status, 'paused', paused.data.error)
         interaction, = await paused.ainteractions(pending_only=True)
@@ -290,6 +301,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
                                                  components=[tools])
         await project.components.tools.aenable('write')
         await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/agent'}, 'tools': ['write']}, identifier='writer')
+        await session.agents.aattach('writer')
         paused = await (await session.run.submit('save', agent_id='writer')).wait(timeout=10)
         self.assertEqual(paused.data.status, 'paused', paused.data.error)
         interaction, = await paused.ainteractions(pending_only=True)
@@ -313,6 +325,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
     async def test_new_record_corruption_is_rejected_without_overwrite(self):
         project, session = await self.setup_app()
         await project.agents.acreate({'engine': 'echo'}, identifier='writer')
+        await session.agents.aattach('writer')
         run = await (await session.run.submit('read', agent_id='writer')).wait(timeout=10)
         await session.run.shutdown()
         path = run.data.paths.root / 'run.json'
@@ -340,6 +353,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
     async def test_clone_backup_restore_and_memory_mode_preserve_agent_contract(self):
         project, session = await self.setup_app()
         await project.agents.acreate({'engine': 'echo'}, identifier='writer')
+        await session.agents.aattach('writer')
         run = await (await session.run.submit('saved', agent_id='writer')).wait(timeout=10)
         await session.run.shutdown()
         clone = await project.aclone()
@@ -356,6 +370,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
         memory = await self.app.projects.acreate(conversation_storage='memory', components=[])
         await memory.agents.acreate({'engine': 'echo'}, identifier='memory-agent')
         memory_session = await memory.sessions.acreate()
+        await memory_session.agents.aattach('memory-agent')
         result = await (await memory_session.run.submit('ephemeral', agent_id='memory-agent')).wait(timeout=10)
         self.assertEqual(result.data.agent_id, 'memory-agent')
         self.assertEqual(result.data.status, 'completed', result.data.error)
@@ -365,6 +380,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
     async def test_missing_agent_is_reported_by_recovery_and_backup(self):
         project, session = await self.setup_app()
         await project.agents.acreate({'engine': 'echo'}, identifier='writer')
+        await session.agents.aattach('writer')
         await (await session.run.submit('history', agent_id='writer')).wait(timeout=10)
         await session.run.shutdown()
         (project.paths.agents / 'records/writer.json').unlink()
@@ -393,6 +409,7 @@ class AgentRunTests(unittest.IsolatedAsyncioTestCase):
         await project.components.mcp.acreate({'transport': 'stdio', 'command': 'injected-test-connector'}, identifier='server')
         await project.agents.acreate({'engine': 'loop', 'completion': {'model': 'test/agent'}, 'tools': [],
             'resources': {'mcp': {'server': {'remote': 'read'}}}}, identifier='reader')
+        await session.agents.aattach('reader')
         paused = await (await session.run.submit('read', agent_id='reader')).wait(timeout=10)
         self.assertEqual(paused.data.status, 'paused', paused.data.error)
         self.assertEqual(effects, [])
@@ -451,6 +468,7 @@ asyncio.run(main())
                         project = await app.projects.acreate()
                         await project.agents.acreate({'engine': 'echo'}, identifier='writer')
                         session = await project.sessions.acreate()
+                        await session.agents.aattach('writer')
                         return project.id, session.id, await project.agents.asnapshot('writer')
                 project_id, session_id, definition = asyncio.run(seed())
                 result = subprocess.run([sys.executable, '-c', program, str(root), project_id, session_id, point],

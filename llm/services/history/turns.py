@@ -13,6 +13,8 @@ def conversation_turns(messages):
             groups.append(group)
             if message.run_id:
                 by_run[message.run_id] = group
+            for identifier in message.metadata.get("admission", {}).get("run_ids", {}).values():
+                by_run[identifier] = group
     by_id = {group[0].id: group for group in groups}
     current = None
     for message in messages:
@@ -21,7 +23,8 @@ def conversation_turns(messages):
         if message.id in by_id:
             current = by_id[message.id]
         else:
-            group = by_run.get(message.run_id) if message.run_id else current
+            source = message.metadata.get("input_message_id")
+            group = by_id.get(source) if source is not None else by_run.get(message.run_id) if message.run_id else current
             if group is not None:
                 group.append(message)
     return groups

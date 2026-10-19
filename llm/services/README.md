@@ -39,7 +39,8 @@ LargeLanguageModel → api.py의 핸들
 | --- | --- | --- |
 | 시작 | PENDING | RUNNING |
 | 정상 종료·실패·중단·대기 | RUNNING | COMPLETED / FAILED / INTERRUPTED / PAUSED |
-| 재시작 복구 | PENDING / RUNNING | INTERRUPTED |
+| 미시작 수신자 취소 | PENDING | CANCELLED |
+| 재시작 복구 | 불확실한 PENDING / RUNNING | INTERRUPTED |
 
 `core.models.validate_run_transition`은 허용 전이만 판단합니다. 시각·저장·Step/Conversation 변경은 서비스가 수행합니다. 종료된 Run을 다시 열지 않으며 명시적 재개는 새로운 Run을 만듭니다. 대기 요청 취소는 Message의 CANCELLED로 처리하고 새 Run을 만들지 않습니다.
 
@@ -47,7 +48,7 @@ LargeLanguageModel → api.py의 핸들
 
 미시작 Agent에는 `run.ainstruction_routes()`의 경로를 선택해 `session.run.reserve_instruction(run_id, text, targets=routes)`로 예약합니다. 경로별 다음 실행 한 번에만 결합하며 미사용 예약을 명시적 재개에 이전하지 않습니다. 적용한 예약은 기존 문맥만 복원합니다.
 
-RunManager는 종료 상태와 오류의 조합, Session의 current_run_id를 확인합니다. 늦은 종료가 다음 Run의 소유권을 해제하거나 이미 저장된 종료를 덮어쓰지 못하게 합니다. Step 정리 → Assistant 상태 → Run → Session 기록은 기존 트랜잭션 경계를 따르고 저장 성공 후 수명 알림을 전달합니다.
+RunManager는 종료 상태와 오류의 조합, Session의 current_run_ids에서 해당 Run의 소유권을 확인합니다. 늦은 종료가 다른 활성 Run의 소유권을 해제하거나 이미 저장된 종료를 덮어쓰지 못하게 합니다. Step 정리 → Assistant 상태 → Run → Session 기록은 기존 트랜잭션 경계를 따르고 저장 성공 후 수명 알림을 전달합니다.
 
 ## 확장할 때
 
@@ -58,3 +59,28 @@ RunManager는 종료 상태와 오류의 조합, Session의 current_run_id를 �
 - 새 코드는 책임별 하위 패키지에 둡니다. 단순 폴더 분류를 새 실행 계층으로 만들지 않습니다.
 
 [이벤트·구독 예제](runtime/README.md), [서비스 확장 계약](../../docs/llm/service-extensions.md), [공통 데이터 API](../../docs/llm/data-contracts.md)에 세부 계약이 있습니다.
+
+
+## 여러 Agent가 참여하는 Session
+
+`project.agents`는 정의를 소유하고 `session.agents.attach/detach/list`는 ID 참조를
+변경합니다. `session.run.submit(text, agent_ids=("writer", "reviewer"))` 또는
+`recipients="all"`로 접수한 한 User Message는 Agent마다 별도 Run과 Assistant를
+갖습니다. `all`은 접수 때 참여자 집합을 고정합니다. 결과는
+`request.runs()` / `await request.wait_all()`로 조회합니다. 한 수신자는 기존
+`await request.wait()`를 사용하며 다중 수신자에 대한 단일 결과 조회는 거부합니다.
+
+동일 Session의 같은 Agent는 FIFO, 다른 Agent는 병렬입니다. 하나의 Dispatcher가
+모든 실행·종료를 관리하며 `run.max_parallel_runs`가 선택적 상한입니다. 기존
+`engine=` 호출은 명시적인 호환 Agent와 독점 FIFO 경로로 같은 Dispatcher에
+들어갑니다. User 접수 후 호환 Agent 참여 등록·Run 생성·시작을 한 트랜잭션에서
+수행하여 기존 저장 실패 경계를 보존합니다. 신규 다중 접수는 전체 Run 그룹을
+원자적으로 만들고, 실행하지 않았음이 증명되는 PENDING 수신자만 재기동 후
+예약합니다. RUNNING/불확실한 기록은 자동 재실행하지 않습니다.
+
+`session.run.interrupt()`는 현재 실행(실행 시작 직전인 첫 접수 포함)을 중단하고,
+`interrupt(run_id)` 또는 `cancel(run_id)`는 선택한 Run만 처리합니다. `cancel`은
+증명된 미시작 Run의 PENDING→CANCELLED도 지원합니다. `request.cancel()`은 아직
+Run 그룹으로 청구되지 않은 User만 취소합니다. `shutdown()`은 대기 요청을 보존하고
+활성 실행·최종 저장·분리할 수 없는 외부 효과 정리를 기다립니다. 자세한 저장 버전,
+공유 문맥, 복구·보관 경계와 검증 결과는 [단계 기록](../REFACTOR_BF.md)을 따릅니다.

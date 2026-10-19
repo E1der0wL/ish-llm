@@ -234,7 +234,9 @@ class ProjectAgents:
                 raise ValueError("Agent is attached to a Session")
             from llm.core.steering import is_queued_request
             for message in self.sessions.conversations(session).list():
-                if is_queued_request(message) and references(message.metadata.get("agent_binding", {})):
+                if is_queued_request(message) and (
+                        references(message.metadata.get("agent_binding", {}))
+                        or references(message.metadata.get("admission", {}).get("bindings", {}))):
                     raise ValueError("Agent is referenced by a queued request")
             for run in self.sessions.run_repository.list(session):
                 if getattr(run, "agent_id", None) == identifier or references(run.metadata):

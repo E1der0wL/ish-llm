@@ -257,6 +257,8 @@ class SessionHandle(AsyncFacade):
         self._snapshot = deepcopy(model)
         self.run = Runs(self)
         self.results = Results(self)
+        from llm.services.lifecycle.participants import SessionAgents
+        self.agents = SessionAgents(self)
 
     @property
     def id(self) -> str:
@@ -361,12 +363,14 @@ class Runs(AsyncFacade):
     async def start(self) -> None:
         await self.session.app._manager(self.session._snapshot).start()
 
-    async def submit(self, content: str, *, agent_id=UNSET, engine=UNSET, engine_options=UNSET) -> "RequestHandle":
+    async def submit(self, content: str, *, agent_id=UNSET, agent_ids=UNSET, recipients=UNSET,
+                     engine=UNSET, engine_options=UNSET) -> "RequestHandle":
         """요청별 JSON 실행 인자를 저장한다. Graph는 workflow ID를 명시해야 한다."""
-        if agent_id is UNSET and engine is UNSET:
+        if all(value is UNSET for value in (agent_id, agent_ids, recipients, engine)):
             raise TypeError("Specify agent_id (or the legacy engine= adapter)")
         message = await self.session.app._manager(self.session._snapshot).submit(
-            content, agent_id=agent_id, engine=engine, engine_options=engine_options)
+            content, agent_id=agent_id, agent_ids=agent_ids, recipients=recipients,
+            engine=engine, engine_options=engine_options)
         return RequestHandle(self.session, message.id)
 
     async def steer(self, run_id: str, content: str, *, targets=None):
@@ -396,8 +400,13 @@ class Runs(AsyncFacade):
     async def wait_idle(self) -> None:
         await self.session.app._manager(self.session._snapshot).wait_idle()
 
-    async def interrupt(self) -> bool:
-        return await self.session.app._manager(self.session._snapshot).interrupt()
+    async def interrupt(self, run_id=None) -> bool:
+        """Interrupt current work, or only the explicitly selected Run."""
+        return await self.session.app._manager(self.session._snapshot).interrupt(run_id)
+
+    async def cancel(self, run_id):
+        """Cancel a proven pending Run, or interrupt only this active Run."""
+        return await self.app._manager(self.session._snapshot).cancel_run(run_id)
 
     async def shutdown(self) -> None:
         """Detach just this Session; a later submit creates a fresh manager."""
@@ -412,12 +421,16 @@ class Runs(AsyncFacade):
             session = self.session.data
             store = self.app.project_manager.sessions.conversations(session)
             from llm.core.steering import is_queued_request
-            requests = [m for m in store.list(query=Query(status=MessageStatus.QUEUED)) if is_queued_request(m)]
+            read_pending = getattr(store, "pending_requests", None)
+            requests = (read_pending() if callable(read_pending) else
+                        [m for m in store.list() if is_queued_request(m)
+                         or m.metadata.get("admission", {}).get("pending_agents")])
             queued = requests if queued_limit is None else requests[:queued_limit]
             active = self.app.run_repository.load(session, session.current_run_id) if session.current_run_id else None
             return SessionRuntimeView(**{"session_id": session.id, "status": session.status,
                     "unfinished_work": getattr(self.app._managers.get((session.project_id, session.id)), "pending_work", None).active if (session.project_id, session.id) in self.app._managers else 0,
                     "active_run_id": active.id if active else None,
+                    "active_run_ids": sorted(session.active_run_ids),
                     "engine": active.engine if active else None,
                     "started_at": active.started_at if active else None,
                     "queued_count": len(requests),
@@ -703,6 +716,10 @@ class RequestHandle(AsyncFacade):
         self.session, self.app, self.id = session, session.app, message_id
 
     def _load_run(self) -> Optional[Run]:
+        runs = self._load_runs(single=True)
+        return runs[0] if runs else None
+
+    def _load_runs(self, *, single=False):
         """한 트랜잭션에서 요청과 Run 연결을 검증한다. 조회 간 캐시는 두지 않는다."""
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
@@ -711,12 +728,20 @@ class RequestHandle(AsyncFacade):
             from llm.core.steering import is_instruction
             if message.role != MessageRole.USER or is_instruction(message):
                 raise ValueError("Request ID must identify a user message")
-            if message.run_id is None:
-                return None
-            run = self.app.run_repository.load(session, message.run_id)
-            if run.input_message_id != self.id:
-                raise ValueError("Request and Run ownership mismatch")
-            return run
+            from llm.services.runtime.requests import RequestAdmission
+            admission = RequestAdmission.read(message)
+            if single and admission is not None and len(admission["recipients"]) != 1:
+                raise ValueError("Multiple recipients require runs() or wait_all()")
+            return self.app.run_repository.for_request(session, message)
+
+    def runs(self):
+        return [RunHandle(self.session, run.id) for run in self._load_runs()]
+
+    aruns = async_method(runs)
+
+    async def wait_all(self, *, timeout=None):
+        values = await self.app._manager(self.session._snapshot).wait_requests(self.id, timeout=timeout)
+        return [RunHandle(self.session, run.id) for run in values]
 
     # 공개 API
     @property
