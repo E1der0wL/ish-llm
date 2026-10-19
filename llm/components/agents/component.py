@@ -1,86 +1,75 @@
-"""재사용 가능한 업무 정의. 실행 상태는 Agent가 아니라 소유 Run/Step에 둔다."""
+"""Compatibility exports; Project Agent definitions are owned by AgentRepository."""
 
-import hashlib
-import json
-from jsonschema import Draft202012Validator
 from llm.components.definitions import DefinitionComponent
+from llm.core.agents import AgentDefinition
+from llm.services.lifecycle.agents import AgentRepository
 from .data import AgentData
-from llm.core.schema import open_schema, metadata_schema
 
 
 class AgentComponent(DefinitionComponent):
-    """공통 업무 계약은 닫고 선택 Engine의 인자는 해당 Engine에 위임한다."""
+    """Legacy configuration/Tool facade over the independent Agent catalogue."""
 
     name = "agents"
     directory = "agents"
     capabilities = ("agents",)
     data_class = AgentData
+    # Existing Component clients use this input contract for forms and Tool
+    # admission. Project.agents exposes the new engine-only domain contract.
+    schema = {**AgentDefinition.schema, "required": ["purpose", "engine"]}
+    revision = staticmethod(AgentDefinition.revision)
 
     def __init__(self, *, engines=None):
-        """위임 Tool을 제공할 Host Engine environment를 명시적으로 연결한다."""
         self.engines = engines
+        self.repository = AgentRepository()
         self.capabilities = ("agents", "tools") if engines is not None else ("agents",)
 
     def resolve(self, project, capability):
         if capability == "tools" and self.engines is not None:
             from .tools import agent_tools
             return agent_tools(self.engines)
+        if capability == "agents":
+            return self.repository.resolve(project)
         return super().resolve(project, capability)
 
-    schema = {
-        "type": "object", "required": ["purpose", "engine"], "additionalProperties": False,
-        "properties": {
-            "purpose": {"type": "string", "minLength": 1},
-            "description": {"type": "string"}, "metadata": metadata_schema(),
-            "engine": {"type": "string", "minLength": 1},
-            "system_prompt": {"type": ["string", "null"]},
-            "completion": open_schema("selected Agent Engine completion adapter", category="provider"),
-            "engine_options": open_schema("selected Agent Engine.for_agent", category="implementation"),
-            "input_schema": {"anyOf": [{"type": "boolean"}, open_schema("Agent input JSON Schema", category="schema")]},
-            "output_schema": {"anyOf": [{"type": "boolean"}, open_schema("Agent output JSON Schema", category="schema")]},
-            "tools": {"type": "array", "uniqueItems": True,
-                      "items": {"type": "string", "minLength": 1}},
-            "resources": {"type": "object", "additionalProperties": False, "properties": {
-                "prompt": {"type": "string", "minLength": 1},
-                "skills": {"type": "array", "uniqueItems": True,
-                           "items": {"type": "string", "minLength": 1}},
-                # 현재 RAG는 Project 단위 corpus다. 문서 ID 필터로 해석하지 않는다.
-                "rag": {"type": "boolean"},
-                "mcp": {"type": "object", "additionalProperties": {
-                    "type": "object", "minProperties": 1,
-                    "propertyNames": {"pattern": "^[A-Za-z0-9_-]{1,64}$"},
-                    "additionalProperties": {"type": "string", "minLength": 1}}},
-            }},
-            "policy": {"type": "object", "additionalProperties": False, "properties": {
-                "timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
-                "max_tool_calls": {"type": "integer", "minimum": 1},
-                "require_tool": {"type": "boolean"},
-            }},
-            "output_format": {"enum": ["text", "json"]},
-        },
-    }
-
-    @staticmethod
-    def revision(data: dict) -> str:
-        """같은 JSON 정의는 동일한 버전 지문을 가진다."""
-        return hashlib.sha256(json.dumps(data, ensure_ascii=False, sort_keys=True,
-                                         allow_nan=False).encode("utf-8")).hexdigest()
-
-    def references(self, project):
-        return [{"component": "skills", "identifier": skill, "source": identifier}
-                for identifier, value in self.list(project).items()
-                for skill in value.get("resources", {}).get("skills", [])]
-
-    def validate_record(self, identifier: str, data: dict) -> None:
+    def validate_record(self, identifier, data):
         super().validate_record(identifier, data)
-        # 제거된 필드를 조용히 무시하거나 과거 형식으로 자동 변환하지 않는다.
-        if any(key in data for key in ("loop", "skills", "rag", "mcp")):
-            raise ValueError("Use engine_options and resources in Agent definitions")
-        from llm.core.schema import validate_local_refs
-        for name in ("input_schema", "output_schema"):
-            if name in data:
-                validate_local_refs(data[name])
-                Draft202012Validator.check_schema(data[name])
-        if data.get("policy", {}).get("require_tool") and not (
-                data.get("tools") or data.get("resources", {}).get("rag") or data.get("resources", {}).get("mcp")):
-            raise ValueError("require_tool needs at least one allowed Tool")
+        AgentDefinition.validate(identifier, data)
+
+    def root(self, project):
+        return self.repository.root(project)
+
+    def _record_path(self, project, identifier):
+        return self.repository.path(project, identifier)
+
+    def initialize(self, project):
+        self.get_config(project)
+        self.repository.initialize(project)
+
+    def create(self, project, data, *, identifier=None):
+        self.validate_record(identifier or "pending", data)
+        return self.repository.create(project, data, identifier=identifier)
+
+    def load(self, project, identifier):
+        return self.repository.load(project, identifier)
+
+    def list(self, project):
+        return self.repository.list(project)
+
+    def save(self, project, identifier, data):
+        self.validate_record(identifier, data)
+        self.repository.save(project, identifier, data)
+
+    def update(self, project, identifier, changes):
+        self.validate_record(identifier, {**self.repository.load(project, identifier), **changes})
+        return self.repository.update(project, identifier, changes)
+
+    def delete(self, project, identifier):
+        self.repository.delete(project, identifier)
+
+    def clone(self, source, destination):
+        # ProjectManager clones the domain exactly once, including when this
+        # optional Tool/configuration compatibility facade is disabled.
+        pass
+
+    def delete_directory(self, project):
+        raise ValueError("Agent definitions belong to Project.agents; delete them explicitly")

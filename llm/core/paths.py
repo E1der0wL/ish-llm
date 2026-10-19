@@ -9,6 +9,10 @@ class ProjectPaths:
     root: Path
 
     @property
+    def agents(self) -> Path:
+        return self.root / "agents"
+
+    @property
     def sessions(self) -> Path:
         return self.root / "sessions"
 

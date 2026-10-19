@@ -84,6 +84,13 @@ class ProjectHandle(AsyncFacade):
         self.components = Components(self)
         self.results = Results(self)
 
+    @property
+    def agents(self):
+        """Independent Project Agent definitions, available without a Component selection."""
+        self.app._check_open()
+        return self.app.project_manager.agent_data(self._snapshot).bind_runtime(
+            runner=self.app._storage_call, access_check=self.app._check_open)
+
     def _describe_config(self, config=None, *, expected_version=None) -> dict:
         self.app._check_open()
         value = self.app.project_manager.describe_config(self._snapshot, config=config,

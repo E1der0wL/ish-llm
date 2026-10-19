@@ -98,6 +98,8 @@ class ProjectManager:
         self.ownership = repository.ownership
         self.sessions.bind_project_access(self.access)
         self.components = registry
+        self.agents = registry.agent_repository
+        self.agent_engines = None
         from llm.providers.tokens import default_token_counters
         self.usage_counters = default_token_counters()
         self.backups = backups if backups is not None else DirectoryBackups()
@@ -130,6 +132,7 @@ class ProjectManager:
             raise ValueError("Portable backup requires file conversation storage")
         self.components.validate(project.components)
         self._validate_config(project)
+        self.agents.list(project)
         for name in project.components:
             validator = getattr(self.components.get(name), "validate_backup", None)
             if validator is None:
@@ -326,6 +329,13 @@ class ProjectManager:
         project.config = self.access.require(current).config
 
     @workspace_locked
+    def agent_data(self, project):
+        from llm.services.lifecycle.agents import ProjectAgents
+        current = self.access.require(project)
+        return ProjectAgents(self.access, self.agents, current, components=self.components,
+                             engines=self.agent_engines, sessions=self.sessions, steps=self.backup_steps)
+
+    @workspace_locked
     def component(self, project: Project, name: str) -> ComponentData:
         current = self.access.require(project)
         self.components.validate(current.components)
@@ -425,6 +435,7 @@ class ProjectManager:
         clone = self.create(title if title is not None else source.title, config=source.config,
                             components=source.components,
                             conversation_storage=source.conversation_storage)
+        self.agents.clone(source, clone)
         self.components.clone(source, clone)
         for session in sessions:
             self.sessions.clone(session, clone)

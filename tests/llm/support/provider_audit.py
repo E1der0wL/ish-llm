@@ -24,6 +24,7 @@ COMPAT = {
     'components/vision/backends.py', 'components/vision/data.py',
 }
 DOMAIN = {
+    'core/agents.py',  # Persisted Agent schema and its content revision, moved out of Component ownership.
     'components/agents/component.py', 'engines/agents.py', 'components/memory/component.py',
     'components/memory/data.py', 'components/memory/tools.py', 'components/memory/work_state.py',
     'components/prompts/component.py', 'components/rag/__init__.py', 'components/rag/component.py',

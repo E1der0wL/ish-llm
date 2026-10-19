@@ -85,6 +85,13 @@ class ComponentData:
     def related(self, name):
         """같은 Project의 다른 선택 Component에 수명·저장소·비동기 경계를 전달한다."""
         project, _ = self._current()
+        if name == "agents":
+            from llm.services.lifecycle.agents import ProjectAgents
+            handle = ProjectAgents(self.access, self.registry.agent_repository, project,
+                components=self.registry, sessions=self._sessions, steps=self._steps)
+            if self._async_runner is not None:
+                handle.bind_runtime(runner=self._async_runner, access_check=self._access_check)
+            return handle
         if name not in project.components:
             raise ValueError("Component is not enabled for this Project")
         component = self.registry.get(name)

@@ -28,3 +28,14 @@ class WorkflowComponent(DefinitionComponent):
 
     def validate_record(self, identifier: str, data: dict) -> None:
         validate_graph(data)
+
+    def references(self, project):
+        """Saved nested Agent nodes retain their Project-owned definition IDs."""
+        def agents(graph):
+            for node in graph["nodes"].values():
+                if node["type"] == "agent" and isinstance(node.get("agent"), str):
+                    yield node["agent"]
+                elif node["type"] == "loop":
+                    yield from agents(node["body"])
+        return [{"component": "agents", "identifier": agent, "source": identifier}
+                for identifier, value in self.list(project).items() for agent in sorted(set(agents(value)))]

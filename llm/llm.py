@@ -780,6 +780,7 @@ class LargeLanguageModel:
         self.event_handlers = self.services.event_handlers
         self.projects = Projects(self)
         self.project_manager.bind_config_validator(self.engines.validate_config)
+        self.project_manager.agent_engines = self.engines
         self.on_event = on_event
         self.on_run_event = on_run_event
         self._managers: dict[tuple[str, str], RunManager] = {}

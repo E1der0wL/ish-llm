@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from jsonschema import Draft202012Validator
 
 from asyncio import timeout
-from llm.components.agents import AgentComponent
+from llm.core.agents import AgentDefinition
 from llm.components.base import Component
 from llm.components.tools import Tool, ToolRegistry
 from llm.core.models import new_id
@@ -69,7 +69,7 @@ class AgentExecution:
         if not isinstance(identifier, str) or not identifier:
             raise ValueError("Agent node requires an agent ID")
         profile = deepcopy(self._record(capabilities, "agents", identifier)[1])
-        AgentComponent().validate_record(identifier, profile)
+        AgentDefinition.validate(identifier, profile)
         return profile
 
     def _engine(self, profile):
@@ -168,7 +168,7 @@ class AgentExecution:
         engine = self._engine(profile)
         describe = getattr(engine, "resolve_config", None)
         binding = {"agent_id": definition["agent"], "agent": profile,
-                "agent_revision": AgentComponent.revision(profile), "engine": profile["engine"],
+                "agent_revision": AgentDefinition.revision(profile), "engine": profile["engine"],
                 "handler_revision": self.revision,
                 "configuration": describe(context.project.config, profile["engine"], session_config=context.session.config)
                                  if describe else {"runtime_only": True}}

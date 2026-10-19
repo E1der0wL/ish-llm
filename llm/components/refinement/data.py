@@ -105,7 +105,8 @@ class RefinementData(ComponentData):
             result.setdefault("resources", {})["skills"] = deepcopy(patch["skills"])
             if result == current:
                 raise ValueError("Binding does not change the target")
-            self.registry.get("agents").validate_record(target["identifier"], result)
+            from llm.core.agents import AgentDefinition
+            AgentDefinition.validate(target["identifier"], result)
             return result
         if not isinstance(patch, dict) or not patch or set(patch) - EDITABLE[target["component"]]:
             raise ValueError("Refinement patch contains unsupported or authority-changing fields")
@@ -121,6 +122,9 @@ class RefinementData(ComponentData):
                 raise ValueError("Memory candidate requires kind")
             if not isinstance(result.get("tags"), list) or any(not isinstance(t, str) or not t.strip() for t in result["tags"]):
                 raise ValueError("Memory candidate requires text tags")
+        elif target["component"] == "agents":
+            from llm.core.agents import AgentDefinition
+            AgentDefinition.validate(target["identifier"], result)
         else:
             self.registry.get(target["component"]).validate_record(target["identifier"], result)
         return result

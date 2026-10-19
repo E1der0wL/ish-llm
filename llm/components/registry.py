@@ -26,6 +26,8 @@ class ComponentDependencyError(CodedError, ValueError):
 
 class ComponentRegistry:
     def __init__(self, components: tuple[ProjectComponent, ...] = ()) -> None:
+        from llm.services.lifecycle.agents import AgentRepository
+        self.agent_repository = AgentRepository()
         self._components: dict[str, ProjectComponent] = {}
         for component in components:
             self.register(component)
@@ -43,6 +45,10 @@ class ComponentRegistry:
         if not re.fullmatch(r"[a-z][a-z0-9_]*", component.name) or component.name in self._components:
             raise ValueError("Invalid or duplicate component identity")
         directory = validate_name(getattr(component, "directory", None)).lower()
+        if directory == "agents":
+            from llm.components.agents import AgentComponent
+            if not isinstance(component, AgentComponent):
+                raise ValueError("Agent directory belongs to the Project domain")
         if directory in {"sessions", "logs", "state", "cache"} or any(
                 item.directory.lower() == directory for item in self._components.values()):
             raise ValueError("Component directory is reserved or already owned")
@@ -71,6 +77,10 @@ class ComponentRegistry:
     def dependents(self, project, name, identifier=None, *, path=None):
         """비활성 Component의 보존된 정의도 삭제 보호에 포함한다."""
         result = []
+        for ref in self.agent_repository.references(deepcopy(project)):
+            if (ref["component"] == name and (identifier is None or ref["identifier"] == identifier)
+                    and (path is None or ref.get("path") in (None, path))):
+                result.append({"component": "agents", "identifier": ref["source"]})
         for owner, component in self._components.items():
             reader = getattr(component, "references", None)
             if reader is None:
@@ -130,6 +140,9 @@ class ComponentRegistry:
 
     def resolve(self, project: Project, capability: str, *, data_factory=None) -> tuple[Any, ...]:
         """Collect optional exports without knowing their domain or value types."""
+        if capability == "agents":
+            self.validate(project.components)
+            return (self.agent_repository.resolve(deepcopy(project)),)
         values = []
         for name in self.validate(project.components):
             component = self._components[name]
