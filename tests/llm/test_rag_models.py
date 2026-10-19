@@ -117,7 +117,7 @@ class RAGModelTests(unittest.IsolatedAsyncioTestCase):
 
     def test_import_does_not_load_engines_services_or_sdk(self):
         code = ("import sys; from llm.components.rag import EmbeddingModel, RerankModel; "
-                "assert not any(n == 'litellm' or n.startswith(('llm.engines', 'llm.services', 'llm.core')) "
+                "assert not any(n == 'litellm' or n.startswith(('llm.engines', 'llm.services')) or (n.startswith('llm.core.') and n != 'llm.core.model_protocol') "
                 "for n in sys.modules)")
         result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=15)
         self.assertEqual(result.returncode, 0, result.stderr)

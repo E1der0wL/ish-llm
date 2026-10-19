@@ -11,9 +11,13 @@ from ._client import ModelClient
 class RerankModel(ModelClient):
     operation = "arerank"
 
-    def __init__(self, *, rerank_fn: Optional[Callable[..., Awaitable[Any]]] = None,
+    def __init__(self, *, rerank_fn: Optional[Callable[..., Awaitable[Any]]] = None, adapter=None,
                  **params: Any) -> None:
-        super().__init__("arerank", rerank_fn, params)
+        super().__init__("arerank", rerank_fn, params, adapter=adapter)
+
+    async def rank(self, query, documents, **kwargs):
+        return await self.adapter.rerank(query, documents, {**self.params, **kwargs},
+                                         self.provider_options, decide=self._retry_decider)
 
     async def rerank(self, query: str, documents: list[Union[str, dict[str, Any]]],
                      **kwargs: Any) -> Any:

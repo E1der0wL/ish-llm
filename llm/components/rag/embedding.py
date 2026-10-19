@@ -6,6 +6,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any, Optional
 
 from ._client import ModelClient
+from llm.providers.parameters import copy_params
 from llm.providers.embeddings import extract_single_embedding, validate_vectors
 
 
@@ -18,14 +19,21 @@ class EmbeddingModel(ModelClient):
 
     def extract_vector(self, response, **kwargs):
         """모델 출력 계약은 클라이언트가 소유하고 코퍼스 차원 계약은 RAG가 소유한다."""
+        from llm.providers.operations import EmbeddingResult
+        if isinstance(response, EmbeddingResult):
+            return self.validate_vectors([response.vector], **kwargs)[0]
         return extract_single_embedding(response, dimensions={**self.params, **kwargs}.get("dimensions"))
 
     def validate_vectors(self, vectors, **kwargs):
         return validate_vectors(vectors, dimensions={**self.params, **kwargs}.get("dimensions"))
 
-    def __init__(self, *, embedding_fn: Optional[Callable[..., Awaitable[Any]]] = None,
+    def __init__(self, *, embedding_fn: Optional[Callable[..., Awaitable[Any]]] = None, adapter=None,
                  **params: Any) -> None:
-        super().__init__("aembedding", embedding_fn, params)
+        super().__init__("aembedding", embedding_fn, params, adapter=adapter)
+
+    async def embed_result(self, input, **kwargs):
+        return await self.adapter.embed(input, {**copy_params(self.params), **kwargs},
+                                        self.provider_options, decide=self._retry_decider)
 
     async def embed(self, input: Any, **kwargs: Any) -> Any:
         """Return LiteLLM's native response, including vectors and reported usage.
@@ -33,6 +41,7 @@ class EmbeddingModel(ModelClient):
         Per-call kwargs override defaults. Provider-specific input formats and
         model parameters are forwarded without an application allowlist.
         """
-        # RAG 벡터 무결성 계약. 일반 ModelClient의 provider cache 인자는 변경하지 않는다.
-        kwargs.update(caching=False, cache={"no-cache": True, "no-store": True})
-        return await self._invoke(input=input, **kwargs)
+        adapter = self.adapter
+        call = getattr(adapter, 'embed_raw', adapter.embed)
+        return await call(input, {**copy_params(self.params), **copy_params(kwargs)},
+                          self.provider_options, decide=self._retry_decider)

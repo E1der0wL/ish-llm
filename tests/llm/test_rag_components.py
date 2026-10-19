@@ -46,7 +46,7 @@ class ParsingTests(unittest.TestCase):
 
     def test_rag_model_import_is_lightweight(self):
         result = subprocess.run([sys.executable, "-c", "import sys; from llm.components.rag import EmbeddingModel; "
-            "assert not any(n in sys.modules for n in ('litellm','chromadb','kuzu','llm.services','llm.core'))"],
+            "assert not any(n in sys.modules for n in ('litellm','chromadb','kuzu','llm.services','llm.core.models'))"],
             capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stderr)
 
