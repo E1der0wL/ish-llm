@@ -166,6 +166,7 @@ class ProjectManager:
                     if (source is None or source.role != "user" or assistant is None
                             or assistant.role != "assistant" or assistant.run_id != run.id):
                         raise ValueError("Backup Run message ownership mismatch")
+        self.sessions.transfers.validate_project(project, archive=True)
         return project
 
     def _backup_destination(self, destination):

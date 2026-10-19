@@ -479,3 +479,102 @@ after completion. The old golden fixture bytes, pinned host checkout and forbidd
 product/test paths are unchanged. **D is implemented and verified; E and F remain
 pending implementation.** Authenticated models and dedicated kernel short-write
 injection remain unverified.
+
+## E — explicit same-Project Session exchange (verified)
+
+D commit: `4ffbb5e69abdfe7579e0db83db9531a209b3ae3e`, pushed. D final gates and
+its earlier Hub timing failure remain recorded above. E is not yet committed.
+
+`services/runtime/transfers.py` adds `SessionExchange`/`TransferHandle` and a
+source-Session transport receipt. It is an idempotency/correlation record, not a
+second queue, Run, scheduler or RequestGroup. Existing RunManager `_submit`
+atomically writes that receipt and the target User; target admission alone owns
+execution. Same-key/same-payload lookup reuses the original Message, while target,
+content, recipients, source Run or deadline changes conflict. Interrupted sends
+drain accepted storage; F13 proves pre-COMMITTED rollback and post-COMMITTED
+reopening through real child-process exits. Missing receipts never authorize a
+replacement request.
+
+Authority remains the trusted Backend host's same-Project ownership. An optional
+synchronous literal-bool host authorizer narrows independent actions and is
+checked again at dispatch. No model Tool is automatically installed. Source
+Agent/Message IDs are derived from a real source Run; public callers cannot
+supply them. Explicit recipients, a unique ancestor Session chain of at most 16,
+and original deadline survive target continuations. Different Project IDs,
+ambiguous/missing recipients, spoofed source fields and cycles fail before ACK.
+
+Only portable file ConversationStore journals support this durable API. Memory
+and nonportable factories are explicitly rejected before acceptance; existing
+ordinary memory/file execution APIs are unchanged. Absolute deadlines reject new
+expired acceptance, cap active timeout and block expired resume without resetting
+approval, Tool scope, quotas or operation receipts. Query/idempotent reopen still
+works after expiry or detach. Source Memory, internal context and approval records
+are never copied to target; the target independently resolves its own Agent and
+resources. Results are detached JSON projections over Run/Assistant history,
+including continuation links and stable denial/expiry codes.
+
+Clone strips executable transfer routing into inert provenance. Retained receipts
+conservatively protect connected Session/turn history from deletion and retention;
+whole Project deletion still removes the whole ownership domain. Archive and
+recovery inspect both sides and continuation origins, including Run/User provenance
+mismatch. Archive validation uses read-only Run readers rather than writing logs
+inside the archive. Public API examples and limits are in `services/README.md`.
+
+Focused E evidence (`/workspace/refactor-bf-evidence/e-*`):
+
+- Initial exchange + existing Run API/custom repository/checkpoint regression:
+  **67 pass**, exit 0, 9.929 s.
+- F13 child death, cross-Session contracts, D process crashes, checkpoint, turn
+  deletion, operational storage and policy regression: **81 pass**, exit 0,
+  25.083 s.
+- Expanded selected cancellation, expired approval, immutable origin and D/C
+  regression: **102 pass**, exit 0, 22.884 s.
+- The first complete new-module run passed **14 tests**, exit 0, 6.490 s, before
+  the final explicit denial/expiry error-code assertions. A final focused run and
+  frozen full gates follow below; they are not assumed successful in advance.
+- F13 failpoints `before_user`, `target_written`, `receipt_written`, `committed`
+  exit with code 93 in dedicated children. Fresh owners see zero/zero/zero/one
+  accepted input; explicit safe send/reopen produces exactly one effect. A second
+  new Backend/same-key send preserves the same User/Run and effect count. IDs,
+  markers and effect rows are emitted as `E_F13` evidence.
+- C11 uses a held source Run plus two actually entered target Engines, Event
+  synchronization, immediate acceptance, independent active sets and a blocked
+  return transfer. Sender wait cancellation/timeout leaves targets running.
+  A 16-Session chain is accepted; its next hop is rejected without admission.
+- Actual target Tool approval pauses with zero effects; target resume requires its
+  own approval and executes once. Continuation cannot escape the source chain or
+  original deadline through either public resume API.
+
+Authenticated models and kernel short-write injection remain unverified. E full
+regressions and commit/push are pending; F remains unimplemented.
+
+Final E focused modules passed **14 tests**, zero failures/Skip, exit 0,
+6.552 s (`e-release-focused`). The first frozen LLM gate then executed **1,726
+ tests: 1,725 pass, 1 error, 0 Skip**, exit 1, 402.651 s (`e-gate-llm`). Hub was
+**not started** because that gate failed. Targeted host modules passed **44 tests**,
+exit 0, 19.231 s. These are separate actual outcomes, not a successful full gate.
+
+The error was the unchanged external Component hook contract:
+`test_execution_boundaries.ObservationTests.test_external_component_hooks_do_not_require_local_storage`.
+Component-only reference inspection receives only a registry and must not require
+local Sessions. Transfer references now join the actual Session/Run retention
+planning paths, preserving the existing Component-only method. The exact test
+failed independently before correction (1 error, exit 1, 0.004 s), and the corrected
+execution/transport/retention/mixed-schedule regression passed **66 tests**, exit 0,
+20.346 s (`e-retention-fixed`). Its assertion is unchanged. New frozen gates below
+must pass before E commit or F implementation.
+
+Corrected frozen E LLM gate (`e-verified-llm`) passed **1,726 tests**,
+zero failures/Skip, exit 0, 401.583 s. Targeted host modules passed **44 tests**,
+zero failures/Skip, exit 0, 19.048 s (`e-verified-host`). The sequential full Hub
+gate is still running; it is not yet counted as passed. Python sources remain
+frozen at `e-verified-source.json` (632 files).
+
+Final E Hub gate (`e-verified-hub`) passed **534 tests**, zero failures/Skip,
+exit 0, 544.154 s, including all nine X11 tests. All **632** frozen Python
+source/test hashes match after both full suites. Final E results are therefore
+**1,726 LLM + 534 Hub + 44 targeted host**, all exit 0 and zero residual Skip.
+E is implemented and verified; its earlier failed gate is preserved above.
+The pinned host is clean and ignored; forbidden product/test paths still match
+baseline main `94229cb865374d99f20ec48c5e48269488041a4e`. F remains the next stage.
+Authenticated models and dedicated kernel short-write injection remain unverified.

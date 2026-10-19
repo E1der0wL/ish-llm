@@ -28,6 +28,8 @@ def recover_session(sessions, repository, steps, session, store):
     watch(session)
     recovered = []
     messages = {message.id: message for message in store.list()}
+    if sessions._owner(session).conversation_storage == "file":
+        sessions.transfers.validate_session(sessions._owner(session), session, messages.values())
     runs = repository.list(session)
     # 모든 지시를 먼저 읽어 검증한다. 뒤쪽의 손상으로 앞선 Run/Step만 복구되지 않게 한다.
     from llm.services.runtime.steering import instruction_targets, instruction_records
@@ -199,6 +201,11 @@ class ProjectRecovery:
             found = issues[start:]
             if found and all(i.details["repairable"] for i in found):
                 actions.append(session.id)
+        if project.conversation_storage == "file":
+            try:
+                signatures.append({"transfers": self.manager.sessions.transfers.validate_project(project)})
+            except (ValueError, OSError, KeyError, TypeError) as error:
+                issue("transfer_integrity", detail=str(error))
         for name in project.components:
             try:
                 self.manager.components.get(name).validate_backup(project)

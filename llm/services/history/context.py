@@ -141,6 +141,9 @@ class ConversationContextBuilder:
                 message.metadata["input_message_id"] = anchor
             if message.role == MessageRole.ASSISTANT and message.run_id in sources:
                 message.metadata["input_message_id"] = sources[message.run_id]
+            origin = message.metadata.pop("transfer", None)
+            if origin is not None:
+                message.metadata["cloned_transfer_origin"] = origin
             admission = message.metadata.pop("admission", None)
             if admission is not None:
                 # Conversation clone is historical content, not executable admission.

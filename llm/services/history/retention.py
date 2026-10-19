@@ -27,6 +27,7 @@ class HistoryRetention:
 
     def _run_plan(self, project):
         policy, refs = project.config.policies.get("retention", {}), self._references(project)
+        refs["session_ids"].update(self.manager.sessions.transfers.protected_sessions(project))
         rows, protected, sources = [], [], []
         groups = {}
         clock = datetime.now(timezone.utc)
@@ -182,6 +183,7 @@ class HistoryRetention:
             return self._run_plan(project)
         policy = project.config.policies.get("retention", {})
         refs = self._references(project)
+        refs["session_ids"].update(self.manager.sessions.transfers.protected_sessions(project))
         items, protected = [], []
         total_bytes = total_tokens = 0
         now = datetime.now(timezone.utc)

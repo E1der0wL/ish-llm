@@ -102,6 +102,8 @@ class RequestAdmission:
         for agent, run in by_agent.items():
             if run.metadata.get("agent_binding") != admission["bindings"][agent]:
                 raise ValueError("Run differs from its accepted Agent binding")
+            if run.metadata.get("transfer") != message.metadata.get("transfer"):
+                raise ValueError("Run differs from its accepted transfer origin")
         if check_pending and "pending_agents" in admission and admission["pending_agents"] != sorted(
                 run.agent_id for run in selected if run.status == "pending"):
             raise ValueError("Pending recipient projection differs from its Runs")

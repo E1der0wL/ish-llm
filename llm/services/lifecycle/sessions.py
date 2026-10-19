@@ -171,6 +171,8 @@ class SessionManager:
                                                   file_cache_size=conversation_cache_size)
         self.context_builder = context_builder if context_builder is not None else ConversationContextBuilder()
         self.run_repository = runs
+        from llm.services.runtime.transfers import TransferRecords
+        self.transfers = TransferRecords(self)
         self.config_validator = None
 
     def _conversation_storage(self, session: Session) -> Optional[str]:
@@ -379,6 +381,7 @@ class SessionManager:
         if type(permanent) is not bool:
             raise TypeError("permanent must be a bool")
         current = self.require_inactive(session)
+        self.transfers.require_unreferenced(self._owner(current), current)
         if permanent:
             self.repository.delete(current)
             self._discard_conversation(current)
@@ -485,6 +488,7 @@ class SessionManager:
         if abandon_runs and (not isinstance(expected_revision, str) or not expected_revision):
             raise ValueError("Resume abandonment requires expected_revision from delete_turn_plan")
         current = self.require_inactive(session)
+        self.transfers.require_unreferenced(self._owner(current), current)
         store, group, plan, runs = self._turn_deletion(current, request_id)
         if expected_revision is not None and expected_revision != plan.revision:
             raise ValueError("Turn deletion plan changed; reload and confirm again")

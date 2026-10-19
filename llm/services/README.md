@@ -84,3 +84,56 @@ RunManager는 종료 상태와 오류의 조합, Session의 current_run_ids에�
 Run 그룹으로 청구되지 않은 User만 취소합니다. `shutdown()`은 대기 요청을 보존하고
 활성 실행·최종 저장·분리할 수 없는 외부 효과 정리를 기다립니다. 자세한 저장 버전,
 공유 문맥, 복구·보관 경계와 검증 결과는 [단계 기록](../REFACTOR_BF.md)을 따릅니다.
+
+## Session 간 명시적 전송
+
+같은 Project의 신뢰된 호스트 Facade에서 다음처럼 사용합니다. 모델 Tool은 자동으로
+등록하지 않으며, Session ID만으로 호출 권한을 부여하지 않습니다.
+
+```python
+transfer = await source.exchange.send(
+    target.id, "명시적으로 전달할 입력", agent_ids=("writer", "reviewer"),
+    key="review-42", source_run_id=source_run.id,  # 호스트 직접 요청은 None
+    deadline="2026-10-20T12:00:00+00:00",          # 선택 사항, 절대 UTC 마감
+)
+status = await transfer.asnapshot()  # 접수/실행/대기/실패 및 개별 Run 결과 참조
+result = await transfer.wait(timeout=30)  # 선택 사항; 대기 취소는 대상 실행을 취소하지 않음
+await transfer.cancel(run_id=selected_run_id)  # 생략하면 이 전송의 대기/활성 실행 전체
+transfer = await source.exchange.aget("review-42")  # 새 Backend에서도 재조회
+```
+
+`source.exchange.inspect(target.id, conversation_limit=0)` / `ainspect`는 상태를
+조회합니다. 대화는 별도 허용 시 1~100개의 User/Assistant 공개 본문만 반환하며,
+Memory·내부 Tool trace·설정·원본 승인 기록은 전송하거나 조회 결과에 복사하지 않습니다.
+`BackendServices(session_authorizer=callback)`은 `send`, `execute`, `inspect`,
+`conversation`, `query`, `cancel`, `resume` 작업을 각각 더 제한할 수 있습니다.
+callback은 복사된 출처/대상/수신자 정보를 받고 동기적으로 정확한 bool을 반환합니다.
+기본 권한은 기존 Backend를 소유한 신뢰된 호스트의 같은 Project 접근이며, 임의
+Python 확장 코드를 격리하는 다중 사용자 보안 경계로 해석하면 안 됩니다.
+
+명시적 `agent_ids`만 지원하며 임의 기본 Agent나 전체 참여자를 추측하지 않습니다.
+`source_run_id`를 지정하면 실제 해당 Session의 Run에서 Agent와 입력 Message ID를
+도출합니다. 같은 원본 Session/key와 동일 payload는 원래 접수를 반환하고 다른
+payload는 충돌합니다. 저장은 파일 ConversationStore만 지원합니다. 임시 메모리
+대상을 영속 접수로 표시하지 않도록 명확히 거부하며 일반 메모리 요청은 유지됩니다.
+
+원본 Session의 전달 영수증과 대상 User는 기존 workspace 트랜잭션에서 함께
+커밋됩니다. 대상 User의 기존 Dispatcher가 유일한 실행 소유자입니다. 접수 후
+참여자 detach는 대상 집합을 바꾸지 않으며 새로운 요청은 거부됩니다. 실행 직전
+출처/권한/마감을 다시 검사하고, 기존 Run timeout과 더 짧은 기한을 적용합니다.
+진행 중 외부 효과의 취소는 기존 quarantine/영수증 규칙을 따릅니다. 권한 거부는
+`transfer_denied`, 실행 전 만료는 `transfer_expired`, 실행 중 기한은 `run_timeout`으로
+관찰됩니다. 만료 뒤 조회/동일 키 재조회는 가능하지만 재개가 기한을 연장하지 않습니다.
+
+`await transfer.resume(run_id, ...)`도 기존 대상 승인·Checkpoint API를 사용합니다.
+원래 Session의 Run API로 재개해도 전달 출처/기한을 보존합니다. 대기 중인 승인은
+cancel로 암묵적으로 승인하거나 포기하지 않습니다. 결과는 원본과 재개 시도를 각각
+반환하며 `previous_run_id`로 연결합니다. 대기는 호출 시 알려진 시도들을 기다립니다.
+최상위 status가 `partial_failure`이면 개별 Run 상태를 확인합니다.
+
+출처 체인은 반복 Session과 16개를 넘는 Session을 거부합니다. 요청자의 Worker가
+대상 완료를 암묵적으로 기다리지 않습니다. 전달 영수증이 유지되는 동안 연결된
+Session의 삭제·대화 턴 삭제·retention을 보수적으로 막아 멱등성 및 결과 참조를
+보존합니다. clone은 실행 라우팅을 비활성 출처 자료로 바꾸고 전송하지 않으며,
+backup/recovery는 연결 손상을 보고하고 재전송하지 않습니다. 전체 Project 삭제는
+원래 수명 계약대로 소유 영역 전체를 삭제할 수 있습니다.

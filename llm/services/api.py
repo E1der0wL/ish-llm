@@ -259,6 +259,8 @@ class SessionHandle(AsyncFacade):
         self.results = Results(self)
         from llm.services.lifecycle.participants import SessionAgents
         self.agents = SessionAgents(self)
+        from llm.services.runtime.transfers import SessionExchange
+        self.exchange = SessionExchange(self)
 
     @property
     def id(self) -> str:

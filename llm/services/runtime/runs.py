@@ -995,13 +995,21 @@ class RunManager:
             return await self._runtime()
 
     async def _submit(self, content: str,
-                      engine: str, options: dict, agent_id, agent_ids, recipients) -> Message:
+                      engine: str, options: dict, agent_id, agent_ids, recipients, *, transfer=None) -> Message:
         async with self._control_lock():
             if self._closed:
                 raise RuntimeError("RunManager is shut down")
+            if transfer is not None:
+                existing = await self._io.run(transfer.existing)
+                if existing is not None:
+                    return existing
             admission = await self._io.run(self._select_recipients, engine, options, agent_id, agent_ids, recipients)
             runtime = await self._runtime()
             def persist():
+                if transfer is not None:
+                    existing = transfer.existing()
+                    if existing is not None:
+                        return existing
                 self._check_queue(runtime.session)
                 project, session = self._prepare()
                 selected = admission["recipients"]
@@ -1019,6 +1027,8 @@ class RunManager:
                 message = self._store(runtime.session).create(
                     MessageRole.USER, content, MessageStatus.QUEUED,
                     metadata=metadata)
+                if transfer is not None:
+                    message = transfer.persist(message)
                 log_event(runtime.session.paths.logs, "request.queued", entity_id=message.id,
                           related_id=runtime.session.id)
                 return message
@@ -1114,6 +1124,7 @@ class RunManager:
         strategy.validate_resume(checkpoint, retry_nodes=retry_nodes,
                                  context=self._context(runtime, candidate, project=project, engine=strategy), **({"decisions": decisions} if decisions else {}))
         admission = self._continuation_admission(runtime, source, binding, preview=preview)
+        transport = self.sessions.transfers.continuation(project, runtime.session, source)
         if preview:
             return descriptor
         self._persist_binding(project, binding)
@@ -1123,6 +1134,7 @@ class RunManager:
                             metadata={"engine": engine, "engine_options": deepcopy(options),
                                       "agent_binding": deepcopy(binding), "resume": descriptor,
                                       "admission": admission,
+                                      **transport,
                                       **({"agent_execution": deepcopy(source.metadata["agent_execution"])}
                                          if "agent_execution" in source.metadata else {})})
 
@@ -1242,6 +1254,7 @@ class RunManager:
         return store.create(MessageRole.USER, original.content, MessageStatus.QUEUED,
             metadata={"engine": engine, "engine_options": deepcopy(options), "agent_binding": deepcopy(binding),
                 "admission": admission,
+                **self.sessions.transfers.continuation(project, runtime.session, source),
                 **({"agent_execution": deepcopy(source.metadata["agent_execution"])}
                    if "agent_execution" in source.metadata else {}), "restart": {
                 "run_id": run_id, "digest": revision_token({"run": record(source), "input": RequestAdmission.identity(original)})}})
@@ -1352,6 +1365,8 @@ class RunManager:
         # Service dispatch fact, not an effects guarantee after execution.
         # Records without this field remain unknown; never backfill them.
         run.metadata["execution_started"] = False
+        if "transfer" in message.metadata:
+            run.metadata["transfer"] = deepcopy(message.metadata["transfer"])
         if "restart" in message.metadata:
             run.metadata["restart"] = deepcopy(message.metadata["restart"])
         if "resume" in message.metadata:
@@ -1629,11 +1644,20 @@ class RunManager:
         self.repository.save(run)
 
     async def _consume_limited(self, runtime, run):
+        # Revalidate source authority and deadline before acknowledging dispatch.
+        duration = None
+        if "transfer" in run.metadata:
+            duration = await self._io.run(self.sessions.transfers.execution, runtime.project, runtime.session, run)
         # ACK before resolving capabilities or invoking an Engine implementation.
         await self._io.run(self._dispatch, run)
         from llm.providers.runtime import logging_scope as provider_logging_scope
         policies = self.policy_resolver.resolve(run.metadata["policies"])
-        guard = timeout(policies[1].timeout_seconds)
+        if "transfer" in run.metadata:
+            from llm.services.runtime.transfers import remaining
+            duration = remaining(run.metadata["transfer"]["deadline"])
+        configured = policies[1].timeout_seconds
+        guard = timeout(min(configured, duration) if configured is not None and duration is not None
+                        else duration if duration is not None else configured)
         try:
             async with guard:
                 counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"].get("usage", {}).get("counter"))
