@@ -1,3 +1,4 @@
+from llm.providers.litellm import LiteLLMCompletionAdapter
 from tests.llm.support.runtime_tools import RuntimeTools
 from asyncio import timeout
 from typing import Optional
@@ -116,7 +117,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         config.parameters["engines"]["loop"] = ProjectConfig.merge(
             config.parameters["engines"]["loop"], LoopEngine.parameter_layout.pack(kwargs))
         self.projects.save(self.project)
-        engine = LoopEngine(completion_fn=completion_fn)
+        engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion_fn))
         self.registry.register("loop", engine)
         return engine
 

@@ -1,4 +1,5 @@
 """ish execution snapshots survive queueing, approval and concurrent sessions."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 import json
@@ -30,7 +31,7 @@ class InvestigationGuidanceTests(unittest.IsolatedAsyncioTestCase):
         request = NS(messages=[])
         async for _ in EnvironmentSession("/work/project").prepare(request):
             pass
-        text = request.messages[0].value["content"]
+        text = request.messages[0].message.text
         self.assertIn("/work/project", text)
         self.assertIn(WORK_GUIDANCE, text)
         self.assertIn("Do not ask the user to run --help", text)
@@ -143,7 +144,8 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                     tool = toolkit.registry.get(name)
                     parameters = tool.parameters
                     parameters.get("properties", {}).pop("env", None)
-                    tools.append(replace(tool, parameters=parameters))
+                    tools.append(replace(tool, parameters=parameters,
+                                         definition=replace(tool.definition, parameters=parameters)))
                 toolkit.registry = ToolRegistry(tuple(tools))
                 return toolkit
             try:
@@ -269,7 +271,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                     "cwd": str(work)}), name="shell_execute")], finish="tool_calls")],
                 [chunk("done", finish="stop")])
             config = HubConfig(Path(root) / "storage", model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=model)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
             runtime = HubRuntime(config)
             try:
                 await runtime.start()

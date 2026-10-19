@@ -780,6 +780,7 @@ class LargeLanguageModel:
         self.event_handlers = self.services.event_handlers
         self.projects = Projects(self)
         self.project_manager.bind_config_validator(self.engines.validate_config)
+        self.project_manager.agent_engines = self.engines
         self.on_event = on_event
         self.on_run_event = on_run_event
         self._managers: dict[tuple[str, str], RunManager] = {}
@@ -801,8 +802,8 @@ class LargeLanguageModel:
             runtime = manager._active
             unfinished += manager.pending_work.active
             if runtime is not None:
-                active += int(runtime.execution is not None and not runtime.execution.done())
-                queued += runtime.queue.qsize()
+                active += len(runtime.session.active_run_ids)
+                queued += len(runtime.queued_requests)
         return {"active_runs": active, "queued_requests": queued, "unfinished_work": unfinished}
 
     def _interaction_changed(self, run, views):

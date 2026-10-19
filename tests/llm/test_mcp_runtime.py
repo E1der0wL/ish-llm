@@ -1,4 +1,5 @@
 """MCP 발견·호출·승인·취소·재시작을 실제 SDK/local transport로 검증한다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from contextlib import asynccontextmanager
@@ -43,7 +44,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{"value":"hello"}', name="remote_echo")], finish="tool_calls")],
             [chunk("done", finish="stop")])
         app = LargeLanguageModel(self.root / "workspace", components=[MCPComponent(connector=connector or self.connector)],
-            engines={"loop": LoopEngine(completion_fn=self.model)}, services=BackendServices(tool_runtime=ToolRuntime(
+            engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.model))}, services=BackendServices(tool_runtime=ToolRuntime(
                 classify=lambda call: ToolClassification("remote.call", "test", 1))))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=["mcp"], config={"policies": {"approval": {
@@ -131,7 +132,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             project_id, session_id = project.id, session.id
             await app.shutdown()
             reopened = LargeLanguageModel(self.root / "workspace", components=[MCPComponent(connector=connector)],
-                engines={"loop": LoopEngine(completion_fn=self.model)}, services=BackendServices(tool_runtime=ToolRuntime(
+                engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.model))}, services=BackendServices(tool_runtime=ToolRuntime(
                     classify=lambda call: ToolClassification("remote.call", "test", 1))))
             try:
                 session = (await reopened.projects.aload(project_id)).sessions.load(session_id)

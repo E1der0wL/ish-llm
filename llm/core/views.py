@@ -1,7 +1,7 @@
 """Session/Run의 UI 조회 스냅샷. 원본 도메인 기록을 추가로 저장하지 않는다."""
 
 from typing import Optional, Union
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from .contracts import JsonValue
 from .models import Run, SessionStatus
 from .results import EngineDelta, EngineOutput
@@ -17,6 +17,7 @@ class SessionRuntimeView(JsonValue):
     started_at: Optional[str]
     queued_count: int
     queued_request_ids: list[str]
+    active_run_ids: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         JsonValue.__post_init__(self)

@@ -1,4 +1,5 @@
 """장시간 실행의 재개·조건부 Tool 재시도 계약을 실제 서비스 경로로 검증한다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import tempfile
 import asyncio
@@ -59,7 +60,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             self.fail('No Tool should execute')
         app, session, _ = await self.setup_app(act, [])
         model = InterruptedCompletion()
-        app.engines.register('partial', LoopEngine(completion_fn=model))
+        app.engines.register('partial', LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await configure_engine(session.project, 'partial', completion={'model': 'test/model'})
         handle = await session.run.submit('go', engine='partial')
         self.assertTrue(await asyncio.to_thread(started.wait, 5))
@@ -111,7 +112,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         root, project_id, session_id = project.data.paths.root.parent.parent, project.id, session.id
         await app.shutdown()
         reopened = LargeLanguageModel(root, components=[RuntimeTools(ToolRegistry((
-            Tool('act', 'action', {'type': 'object'}, act),)))], engines={'loop': LoopEngine(completion_fn=model)})
+            Tool('act', 'action', {'type': 'object'}, act),)))], engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         self.addAsyncCleanup(reopened.shutdown)
         session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
         resumed = await (await session.run.resume(failed.id, engine='loop')).wait()
@@ -314,7 +315,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(*responses)
         tools = ToolRegistry((Tool("act", "action", tool_schema or {"type": "object"}, handler, contract=tool_contract),))
         app = LargeLanguageModel(Path(temporary.name), components=[RuntimeTools(tools)],
-            engines={"loop": LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=runtime or ToolRuntime()))
+            engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=runtime or ToolRuntime()))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate("resume", config=ProjectConfig(policies=policies or {}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}), components=["tools"])
         project.components.tools.enable("act")

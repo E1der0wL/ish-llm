@@ -1,5 +1,7 @@
 """프로젝트 보관 정책의 미리보기와 명시적 정리. 재개·외부 효과 기록은 자동 삭제하지 않는다."""
 
+from llm.core.model_protocol import ModelRequest, ModelMessage
+from llm.providers.tokens import count_request
 from datetime import datetime, timezone
 import json
 from llm.core.contracts import ResourceRef
@@ -25,7 +27,9 @@ class HistoryRetention:
 
     def _run_plan(self, project):
         policy, refs = project.config.policies.get("retention", {}), self._references(project)
+        refs["session_ids"].update(self.manager.sessions.transfers.protected_sessions(project))
         rows, protected, sources = [], [], []
+        groups = {}
         clock = datetime.now(timezone.utc)
         total_bytes = total_tokens = 0
         for session in self.manager.sessions.list(project, include_deleted=True):
@@ -33,7 +37,7 @@ class HistoryRetention:
             messages = self.manager.sessions.conversations(session).list()
             sources.extend([record(session), *[record(m) for m in messages]])
             reasons = []
-            if self.manager.ownership.session_attached((project.id, session.id)) or session.current_run_id:
+            if self.manager.ownership.session_attached((project.id, session.id)) or session.active_run_ids:
                 reasons.append("runtime_attached")
             if project.conversation_storage != "file":
                 reasons.append("non_file_conversation")
@@ -65,6 +69,15 @@ class HistoryRetention:
                             from llm.services.runtime.steering import instruction_records
                             protected_messages.update(mid for _, value in instruction_records(checkpoint) for mid in value["message_ids"])
             keep.update(m.run_id for m in messages if m.id in protected_messages and m.run_id)
+            keep.update(run.id for run in runs if run.input_message_id in protected_messages
+                        or run.assistant_message_id in protected_messages)
+            siblings = {}
+            for run in runs:
+                siblings.setdefault(run.input_message_id, []).append(run.id)
+            for ids in siblings.values():
+                ids.sort()
+                for identifier in ids:
+                    groups[(session.id, identifier)] = tuple(ids)
             for run in runs:
                 stamps = {}
                 for path in run.paths.root.rglob("*"):
@@ -75,13 +88,16 @@ class HistoryRetention:
                         stat = path.stat()
                         stamps[str(relative)] = [stat.st_ino, stat.st_size, stat.st_mtime_ns]
                 owned = [m for m in messages if m.run_id == run.id or m.id in (run.input_message_id, run.assistant_message_id)]
+                # One shared User belongs to the complete sibling group. Charge
+                # its bytes/tokens once; selection below is atomic for that group.
+                owned = [m for m in owned if m.id != run.input_message_id
+                         or run.id == siblings[run.input_message_id][0]]
                 size = sum(s[1] for s in stamps.values()) + sum(len(json.dumps(record(m), ensure_ascii=False).encode("utf-8")) for m in owned)
                 tokens = 0
                 if policy.get("max_tokens") is not None:
                     if self.counter is None:
                         raise ValueError("Retention requires a registered token counter")
-                    tokens = self.counter({**policy.get("counter_params", {}),
-                        "messages": [{"role": m.role.value, "content": m.content} for m in owned]})
+                    tokens = count_request(self.counter, ModelRequest([ModelMessage(m.role.value, m.content) for m in owned], dict(policy.get("counter_params", {}))))
                     if type(tokens) is not int or tokens < 0:
                         raise ValueError("Retention counter requires nonnegative integer tokens")
                 total_bytes += size
@@ -101,13 +117,27 @@ class HistoryRetention:
                            for e in run.metadata.get("completions", [])):
                         blocked.append("active_usage_accounting")
                 (protected if blocked else rows).append({**row, **({"reasons": blocked} if blocked else {})})
+        # A retained sibling protects the whole turn, including the User whose
+        # admission envelope references every Run. Never leave dangling fan-out.
+        blocked_groups = {(r["session_id"], groups[(r["session_id"], r["run_id"])]) for r in protected}
+        eligible = []
+        for row in rows:
+            if (row["session_id"], groups[(row["session_id"], row["run_id"])]) in blocked_groups:
+                protected.append({**row, "reasons": ["shared_request_reference"]})
+            else:
+                eligible.append(row)
+        units = {}
+        for row in eligible:
+            units.setdefault((row["session_id"], groups[(row["session_id"], row["run_id"])]), []).append(row)
         left_bytes, left_tokens, selected = total_bytes, total_tokens, []
-        for row in sorted(rows, key=lambda r: (r["last_activity"], r["session_id"], r["run_id"])):
-            expired = policy.get("max_age_seconds") is not None and (clock - datetime.fromisoformat(row["last_activity"])).total_seconds() > policy.get("max_age_seconds")
-            if expired or policy.get("max_bytes") is not None and left_bytes > policy.get("max_bytes") or policy.get("max_tokens") is not None and left_tokens > policy.get("max_tokens"):
-                selected.append(row)
-                left_bytes -= row["bytes"]
-                left_tokens -= row["tokens"]
+        for unit in sorted(units.values(), key=lambda values: min(
+                (r["last_activity"], r["session_id"], r["run_id"]) for r in values)):
+            expired = policy.get("max_age_seconds") is not None and all(
+                (clock - datetime.fromisoformat(row["last_activity"])).total_seconds() > policy["max_age_seconds"] for row in unit)
+            if expired or policy.get("max_bytes") is not None and left_bytes > policy["max_bytes"] or policy.get("max_tokens") is not None and left_tokens > policy["max_tokens"]:
+                selected.extend(unit)
+                left_bytes -= sum(row["bytes"] for row in unit)
+                left_tokens -= sum(row["tokens"] for row in unit)
         result = {"policy": policy, "candidates": selected, "protected": protected, "estimated": True,
                   "bytes_before": total_bytes, "bytes_after": left_bytes, "tokens_before": total_tokens, "tokens_after": left_tokens}
         return RetentionPlan(ResourceRef("project", project.id, project_id=project.id),
@@ -153,6 +183,7 @@ class HistoryRetention:
             return self._run_plan(project)
         policy = project.config.policies.get("retention", {})
         refs = self._references(project)
+        refs["session_ids"].update(self.manager.sessions.transfers.protected_sessions(project))
         items, protected = [], []
         total_bytes = total_tokens = 0
         now = datetime.now(timezone.utc)
@@ -174,8 +205,7 @@ class HistoryRetention:
             if policy.get("max_tokens") is not None:
                 if self.counter is None:
                     raise ValueError("Retention requires a registered token counter")
-                tokens = self.counter({**policy.get("counter_params", {}),
-                    "messages": [{"role": m.role.value, "content": m.content} for m in messages]})
+                tokens = count_request(self.counter, ModelRequest([ModelMessage(m.role.value, m.content) for m in messages], dict(policy.get("counter_params", {}))))
                 if type(tokens) is not int or tokens < 0:
                     raise ValueError("Retention counter requires nonnegative integer tokens")
             total_bytes += size
@@ -187,10 +217,11 @@ class HistoryRetention:
                 reasons.append("pending_maintenance")
             if self.manager.ownership.session_attached((project.id, session.id)):
                 reasons.append("runtime_attached")
-            if session.current_run_id or any(r.status != "completed" for r in runs):
+            if session.active_run_ids or any(r.status != "completed" for r in runs):
                 reasons.append("unfinished_or_resumable_run")
             completed = {r.id for r in runs if r.status == "completed"}
-            if any(m.status in ("queued", "streaming") or m.status == "committed" and m.run_id not in completed for m in messages):
+            from llm.services.runtime.requests import RequestAdmission
+            if any(m.status in ("queued", "streaming") or m.status == "committed" and not (m.run_id in completed or (RequestAdmission.read(m) or {}).get("run_ids") and set(m.metadata["admission"]["run_ids"].values()) <= completed) for m in messages):
                 reasons.append("pending_message")
             if (session.paths.state / "tool_operations").exists():
                 reasons.append("external_operation_history")

@@ -45,8 +45,8 @@ def classify_diagnostic(value: Diagnostic) -> ErrorClassification:
         return ErrorClassification("unknown", "unknown", "unknown", {"code": value.code})
     category, reason = known[value.code]
     evidence = {"code": value.code}
-    if value.code == "completion_incomplete" and value.details.get("finish_reason") == "length":
-        return ErrorClassification("resource", "output", "explicit", {**evidence, "finish_reason": "length"})
+    if value.code == "completion_incomplete" and value.details.get("termination") == "output_limit":
+        return ErrorClassification("resource", "output", "explicit", {**evidence, "termination": "output_limit"})
     if value.code == "provider_invalid_request":
         # Only the provider adapter owns these normalized, cause-local hints.
         hint = value.details.get("request_failure")

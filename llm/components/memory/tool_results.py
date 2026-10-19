@@ -18,25 +18,25 @@ async def prepare_tool_results(session, request):
     mode = config.get("tool_result_mode")
     if mode is None:
         return
-    names = {call["id"]: call["function"]["name"] for item in request.messages
-             for call in item.value.get("tool_calls", [])}
-    for message in request.messages:
-        value = message.value
-        text = value.get("content")
-        if value.get("role") != "tool" or not isinstance(text, str) or len(text) <= config["tool_result_chars"]:
+    names = {call.id: call.name for item in request.messages
+             for call in item.message.calls}
+    for index, message in enumerate(request.messages):
+        value = message.message
+        text = value.text
+        if value.result is None or not isinstance(text, str) or len(text) <= config["tool_result_chars"]:
             continue
         # Rereading a slice is already explicit; never replace the reader's result
         # with another reference and create a recursive read/summary loop.
-        if names.get(value["tool_call_id"]) == "memory_read_source":
+        if names.get(value.result.call_id) == "memory_read_source":
             continue
         options = {key: deepcopy(config[key]) for key in
             ("completion", "provider", "summary_chars", "model_input_chars", "max_summary_calls", "timeout_seconds", "max_output_chars") if key in config}
         if mode == "summary":
             options["prompt"] = config["tool_summary_prompt"]
-        identity = revision_token({"scope": context.checkpoint_scope, "call_id": value["tool_call_id"],
+        identity = revision_token({"scope": context.checkpoint_scope, "call_id": value.result.call_id,
             "text": text, "mode": mode, "options": options, "destination": config["tool_data"]})
         state = await data._async_call(data._prepare_tool_summary, context.session.id, identity,
-            text, options, config["tool_data"], mode, value["tool_call_id"])
+            text, options, config["tool_data"], mode, value.result.call_id)
         pending = state["request"]
         if pending["status"] == "pending":
             claim = await data._async_call(data._claim_compaction, context.session.id, None,
@@ -75,6 +75,6 @@ async def prepare_tool_results(session, request):
             # Publication is durable before the model-only copy is changed.
             result = {"reference": {"id": identity, "tool": "memory_read_source",
                 "revision": state["request"]["reference"]["revision"]},
-                "original_chars": len(text), "source_call_id": value["tool_call_id"],
+                "original_chars": len(text), "source_call_id": value.result.call_id,
                 "notice": "Derived reference data; original Tool result is unchanged.", **state["applied"]}
-            value["content"] = json.dumps(result, ensure_ascii=False)
+            request.messages[index] = message.with_text(json.dumps(result, ensure_ascii=False))

@@ -113,6 +113,7 @@ def describe_policies() -> dict:
                                        "x-open-kind": "adapter", "not": {"required": ["messages"]}})}),
         "run": section({
             "max_queued": field(["integer", "null"], "Session별 대기 요청 수 상한", minimum=1),
+            "max_parallel_runs": field(["integer", "null"], "Session에서 동시에 실행할 Run 수 상한", minimum=1),
             "timeout_seconds": field(["number", "null"], "문맥 준비 포함 Run 기한(초)", exclusiveMinimum=0),
             "max_capability_rounds": field(["integer", "null"], "Engine capability 확장 탐색 횟수", minimum=1)})}}
 

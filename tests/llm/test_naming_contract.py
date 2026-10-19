@@ -69,6 +69,16 @@ class NamingContractTests(unittest.TestCase):
         for implementation in implementations:
             with self.subTest(implementation=type(implementation).__name__):
                 schema = implementation.describe_config()
+                if isinstance(implementation, LoopEngine):
+                    review = schema['properties']['policy']['properties'].pop('final_review')
+                    rejected = schema['properties']['config']['not']['anyOf'].pop(0)
+                    self.assertEqual(rejected, {'type': 'object', 'required': ['final_review'],
+                                                'properties': {'final_review': {}}})
+                    self.assertEqual(review, {'type': 'object', 'additionalProperties': False, 'properties': {
+                        'max_continuations': {'type': 'integer', 'minimum': 0, 'x-narrowing': 'maximum'},
+                        'max_attempts': {'type': 'integer', 'minimum': 1, 'x-narrowing': 'maximum'},
+                        'hook_timeout': {'type': 'number', 'exclusiveMinimum': 0, 'x-narrowing': 'maximum'},
+                        'max_feedback_chars': {'type': 'integer', 'minimum': 1, 'x-narrowing': 'maximum'}}})
                 if isinstance(implementation, RAGComponent):
                     # Explicit cache capacities were added after the naming baseline.
                     # Validate only these additions, then compare the unchanged contract.
@@ -99,13 +109,29 @@ class NamingContractTests(unittest.TestCase):
                         'component': {'type': 'string', 'description': '', 'minLength': 1},
                         'identifier': {'type': 'string', 'description': '', 'minLength': 1}})
                 self.assertEqual(digest(baseline(schema)), self.before['schemas'][type(implementation).__name__])
-        self.assertEqual(digest(ProjectConfig.describe_policies()), self.before['schemas']['ProjectPolicy'])
+        policies = ProjectConfig.describe_policies()
+        field = policies['properties']['run']['properties'].pop('max_parallel_runs')
+        self.assertEqual(field, {'type': ['integer', 'null'], 'minimum': 1,
+            'description': 'Session에서 동시에 실행할 Run 수 상한'})
+        self.assertEqual(digest(policies), self.before['schemas']['ProjectPolicy'])
 
     def test_persisted_config_domain_fields_and_workflow_unchanged(self):
         config = ProjectConfig.deserialize(json.dumps(self.before['project_config']))
         self.assertEqual(config.to_dict(), self.before['project_config'])
         for domain in (Project, Session, Run, Step):
-            self.assertEqual([item.name for item in fields(domain)], self.before['fields'][domain.__name__])
+            expected = list(self.before['fields'][domain.__name__])
+            if domain is Session:
+                expected.extend(('agent_ids', 'current_run_ids'))
+                for name in ('agent_ids', 'current_run_ids'):
+                    self.assertEqual(domain.__dataclass_fields__[name].default_factory(), [])
+                self.assertEqual(domain.__dataclass_fields__['storage_version'].default, 1)
+            if domain is Run:
+                # C adds explicit Agent identity to v2; the original naming
+                # fixture and every preexisting field/order remain protected.
+                expected.append('agent_id')
+                self.assertIsNone(domain.__dataclass_fields__['agent_id'].default)
+                self.assertEqual(domain.__dataclass_fields__['storage_version'].default, 1)
+            self.assertEqual([item.name for item in fields(domain)], expected)
         graph = WorkflowGraph(entry='end', metadata={'title': 'Review'}).node('end', 'end').to_dict()
         self.assertEqual(graph, self.before['workflow'])
 

@@ -1,4 +1,5 @@
 """Hub 소유의 최초 생성/선택과 llm의 일반 CRUD 경계를 검증한다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from pathlib import Path
@@ -19,7 +20,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
         provider = ScriptedCompletion([chunk("hello", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/host", auto_title=False, engine_factories={
-                "loop": lambda: LoopEngine(completion_fn=provider)}))
+                "loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 await runtime.new_session()
@@ -41,7 +42,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
         provider = ScriptedCompletion([chunk("hello", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, engine="writer", auto_title=False,
-                engine_factories={"writer": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"writer": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 session = await runtime.project.sessions.acreate(config={"parameters": {

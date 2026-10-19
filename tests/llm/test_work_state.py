@@ -1,4 +1,6 @@
 """구조화 문맥은 파생 캐시이며 원본/Goal 버전/토큰 예산을 대체하지 않는다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ToolCall, ToolResult, ContentPart, ToolDefinition
 
 import json
 import unittest
@@ -32,7 +34,7 @@ class WorkStateTests(unittest.IsolatedAsyncioTestCase):
     async def prepare_work(self):
         await self.build_history()
         self.requests = []
-        self.component.completion_fn = self.model
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=self.model)
         await self.configure(summarize=True, summary_format="work_state", keep_turns=1, summary_after_chars=1)
 
     async def test_structured_state_provenance_and_original_history(self):
@@ -84,7 +86,7 @@ class WorkStateTests(unittest.IsolatedAsyncioTestCase):
             snapshot = goals.snapshot("work")
             goals.update("work", {"objective": "Changed concurrently"}, expected_version=snapshot["version"])
             yield from self.model(**request)
-        self.component.completion_fn = mutate
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=mutate)
         run, model = await self.run_loop()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertIsNone(await self.memory.asummary(self.session.id))
@@ -94,7 +96,7 @@ class WorkStateTests(unittest.IsolatedAsyncioTestCase):
         await self.prepare_work()
         await self.configure(summarize=True, summary_format="work_state", keep_turns=1,
                              summary_after_chars=1, failure_mode="continue")
-        self.component.completion_fn = lambda **kw: iter(memory_tests.answer('{"work_state":{"completed":"unsupported"}}'))
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=lambda **kw: iter(memory_tests.answer('{"work_state":{"completed":"unsupported"}}')))
         run, model = await self.run_loop()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertIsNone(await self.memory.asummary(self.session.id))
@@ -108,9 +110,9 @@ class WorkStateTests(unittest.IsolatedAsyncioTestCase):
         processor = MemorySession(SimpleNamespace(data=None), SimpleNamespace(
             completion_policy=CompletionPolicy(200, counter=counter)))
         processor.config = {"summary_after_tokens": 80}
-        request = CompletionRequest({"tools": [{"name": "test"}]}, [CompletionMessage({"role": "user", "content": "tiny"})], 0)
+        request = CompletionRequest({}, [CompletionMessage(ModelMessage("user", "tiny"))], 0, tools=(ToolDefinition("test", "", {"type": "object"}),))
         self.assertTrue(await processor._threshold(request, 1))
-        self.assertIn("tools", seen[0])
+        self.assertEqual(seen[0].tools, request.tools)
         processor.context.completion_policy = None
         with self.assertRaisesRegex(ValueError, "counter"):
             await processor._threshold(request, 90000)
@@ -121,13 +123,13 @@ class WorkStateTests(unittest.IsolatedAsyncioTestCase):
         processor = MemorySession(SimpleNamespace(data=None), SimpleNamespace(
             run=SimpleNamespace(input_message_id="input", id="run"), completion_policy=None))
         processor.config = {"active_keep_iterations": 1, "summary_after_chars": 1}
-        original = [CompletionMessage({"role": "user", "content": "request"}, "input"),
-            CompletionMessage({"role": "assistant", "tool_calls": [{"id": "pending"}]}),
-            CompletionMessage({"role": "assistant", "tool_calls": [{"id": "current"}]})]
+        original = [CompletionMessage(ModelMessage("user", "request"), "input"),
+            CompletionMessage(ModelMessage("assistant", None, calls=(ToolCall("pending", "act", {}),))),
+            CompletionMessage(ModelMessage("assistant", None, calls=(ToolCall("current", "act", {}),)))]
         for steering in (False, True):
             messages = deepcopy(original)
             if steering:
-                messages.insert(2, CompletionMessage({"role": "user", "content": "Do not delete"}, "steer"))
+                messages.insert(2, CompletionMessage(ModelMessage("user", "Do not delete"), "steer"))
             request = CompletionRequest({}, deepcopy(messages), 0)
             async for _ in processor._compact_active(request, {}, {}):
                 pass

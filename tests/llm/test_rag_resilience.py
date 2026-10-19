@@ -1,4 +1,5 @@
 """실제 Chroma/Kuzu 공개·재개 경계와 저사양 청크 병렬 처리를 확인한다."""
+from llm.providers.operations import LiteLLMOperations
 from tests.llm.configuration_fixtures import rag_settings, rag_project
 
 import asyncio
@@ -25,8 +26,8 @@ async def extract(**request):
 class IngestionTests(unittest.IsolatedAsyncioTestCase):
     def component(self, call=embedding):
         from types import SimpleNamespace
-        return RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=call),
-                            extractor=TripleExtractor(model="test", completion_fn=extract)).with_config(
+        return RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=call)),
+                            extractor=TripleExtractor(model="test", adapter=LiteLLMOperations(call=extract))).with_config(
                                 SimpleNamespace(id="fixture", config=rag_project(), paths=SimpleNamespace(root=Path(tempfile.gettempdir()) / "ish-rag-test-fixture")))
 
     async def test_bounded_workers_order_and_admission(self):
@@ -255,7 +256,7 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 active -= 1
         with tempfile.TemporaryDirectory() as root:
-            component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=provider))
+            component = RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=provider)))
             async with LargeLanguageModel(root, components=[component],
                     services=BackendServices(provider_limits=ProviderLimits(max_active=2))) as backend:
                 project = await backend.projects.acreate("bounded", components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'policy': {'embedding_concurrency': 4, 'extraction': {'failure_policy': 'disabled'}}}}})))
@@ -288,7 +289,7 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
             return {"data": [{"embedding": vector}]}
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[RAGComponent(
-                    embedding=EmbeddingModel(model="test", embedding_fn=provider))]) as backend:
+                    embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=provider)))]) as backend:
                 project = await backend.projects.acreate("dimensions", components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'policy': {'extraction': {'failure_policy': 'disabled'}}}}})))
                 rag = await project.components.aget("rag")
                 await rag.aadd_document(title="first", content="first", identifier="first")
@@ -333,8 +334,8 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
                                     "evidence": "Atlas uses Harbor."}]}
             return {"choices": [{"message": {"content": json.dumps(graph)}}]}
         with tempfile.TemporaryDirectory() as root:
-            component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=embedding),
-                                    extractor=TripleExtractor(model="test", completion_fn=partial))
+            component = RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=embedding)),
+                                    extractor=TripleExtractor(model="test", adapter=LiteLLMOperations(call=partial)))
             async with LargeLanguageModel(root, components=[component], engines={}) as backend:
                 project = await backend.projects.acreate("partial", components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'config': {'extraction_batch_size': 1}, 'policy': {'extraction': {'failure_policy': 'best_effort', 'repair_attempts': 0}}}}})))
                 rag = await project.components.aget("rag")
@@ -352,8 +353,8 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
         for policy in ("required", "best_effort", "disabled"):
             with tempfile.TemporaryDirectory() as root:
                 call = AsyncMock(return_value={"choices": [{"message": {"content": "broken JSON"}}]})
-                component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=embedding),
-                    extractor=TripleExtractor(model="test", completion_fn=call))
+                component = RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=embedding)),
+                    extractor=TripleExtractor(model="test", adapter=LiteLLMOperations(call=call)))
                 async with LargeLanguageModel(root, components=[component], engines={}) as backend:
                     project = await backend.projects.acreate("test", components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'policy': {'extraction': {'failure_policy': policy, 'repair_attempts': 0}}}}})))
                     rag = await project.components.aget("rag")
@@ -374,14 +375,14 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
                     tool = registry.get("rag_search")
                     self.assertEqual(tool.parameters["properties"]["rerank"]["const"], False)
                     from llm.components.rag import RerankModel
-                    component.reranker = RerankModel(model="test", rerank_fn=AsyncMock())
+                    component.reranker = RerankModel(model="test", adapter=LiteLLMOperations(call=AsyncMock()))
                     self.assertNotIn("const", search_tools(rag).get("rag_search").parameters["properties"]["rerank"])
 
     async def test_retry_reservation_cannot_exceed_project_quota(self):
         call = AsyncMock(side_effect=ConnectionResetError("PRIVATE payload"))
         with tempfile.TemporaryDirectory() as root:
-            component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=call),
-                                    extractor=TripleExtractor(model="test", completion_fn=extract))
+            component = RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=call)),
+                                    extractor=TripleExtractor(model="test", adapter=LiteLLMOperations(call=extract)))
             async with LargeLanguageModel(root, components=[component], engines={}) as backend:
                 project = await backend.projects.acreate("quota", components=["rag"], config=rag_project(ProjectConfig(policies={"usage": {"project_max_calls": 1}}, parameters={"components": {"rag": {'policy': {'provider': {'max_attempts': 2, 'delay_seconds': 0}}}}})))
                 rag = await project.components.aget("rag")
@@ -403,8 +404,8 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
                 raise ConnectionResetError()
             return await embedding(**request)
         with tempfile.TemporaryDirectory() as root:
-            component = RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=unreliable),
-                extractor=TripleExtractor(model="test", completion_fn=extract))
+            component = RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=unreliable)),
+                extractor=TripleExtractor(model="test", adapter=LiteLLMOperations(call=extract)))
             async with LargeLanguageModel(root, components=[component], engines={}) as backend:
                 project = await backend.projects.acreate("test", components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'policy': {'embedding_concurrency': 1, 'provider': {'max_attempts': 1}}, 'config': {'embedding_cache_max_bytes': 0}}}})))
                 rag = await project.components.aget("rag")
@@ -424,7 +425,7 @@ class PersistentRAGTests(unittest.IsolatedAsyncioTestCase):
                 async def block(**request):
                     entered.set()
                     await asyncio.Event().wait()
-                component.embedding._call_fn = block
+                component.embedding.adapter = LiteLLMOperations(call=block)
                 task = asyncio.create_task(rag.aupdate_document("doc", content="replacement"))
                 await asyncio.wait_for(entered.wait(), 5)
                 task.cancel()

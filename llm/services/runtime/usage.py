@@ -41,7 +41,30 @@ class UsageScope:
         return count
 
 
-def check_admission(run, result, reservation, project_entries, component_entries=()):
+def resume_ancestors(repository, session, run):
+    """Semantic Run quotas include prior attempts, never a second Project total.
+
+    Follow owned durable resume links only. A resume preview can have its source
+    Run's ID, so cycle detection starts with the descriptor rather than that
+    synthetic candidate. Restart is a new request and deliberately not a link.
+    """
+    result, visited = [], set()
+    descriptor = run.metadata.get("resume")
+    while descriptor is not None:
+        identifier = descriptor.get("run_id") if isinstance(descriptor, dict) else None
+        if not isinstance(identifier, str) or identifier in visited or len(visited) >= 4096:
+            raise ValueError("Invalid or excessive resume quota lineage")
+        visited.add(identifier)
+        parent = repository.load(session, identifier)
+        if (parent.session_id != session.id or parent.engine != run.engine
+                or parent.agent_id not in (None, run.agent_id)):
+            raise ValueError("Resume quota lineage crosses execution ownership")
+        result.append(parent)
+        descriptor = parent.metadata.get("resume")
+    return result
+
+
+def check_admission(run, result, reservation, project_entries, component_entries=(), ancestor_entries=()):
     """동일 workspace 저장 잠금 안에서 호출한다. 병렬 분기의 예약도 기존 Run 기록에 포함된다."""
     policy = run.metadata["policies"].get("usage", {})
     def amount(entry):
@@ -61,7 +84,7 @@ def check_admission(run, result, reservation, project_entries, component_entries
             if sum(values) + reservation > maximum:
                 raise ExecutionLimitError("usage_limit", f"{tokens_key} exhausted")
     if has_limit(policy):
-        check([*run.metadata.get("completions", []), *component_entries], "max_calls", "max_tokens")
+        check([*run.metadata.get("completions", []), *component_entries, *ancestor_entries], "max_calls", "max_tokens")
     if has_limit(policy, project=True):
         seconds = policy.get("period_seconds")
         cutoff = datetime.now(timezone.utc) - timedelta(seconds=seconds) if seconds is not None else None
@@ -123,8 +146,11 @@ class ComponentUsage:
             policies = deepcopy(policies)
             policies.get("usage", {}).update(max_calls=None, max_tokens=None)
             run = SimpleNamespace(metadata={"policies": policies}, id=None)
-        owned = [e for e in auxiliary if run.id is not None and e.get("run_id") == run.id]
-        check_admission(run, None, reservation, [*entries, *auxiliary], owned)
+        ancestors = resume_ancestors(repository, session, run) if source is not None and has_limit(policy) else []
+        owners = {run.id, *(r.id for r in ancestors)} if run.id is not None else set()
+        owned = [e for e in auxiliary if e.get("run_id") in owners]
+        check_admission(run, None, reservation, [*entries, *auxiliary], owned,
+                        [e for r in ancestors for e in r.metadata.get("completions", [])])
         entry = {"id": new_id(), "operation": invocation.operation, "model": invocation.model,
                  "component": component.name, "started_at": now(), "status": "started",
                  "usage": {}, "usage_complete": False, "reserved_tokens": reservation, **(source or {})}

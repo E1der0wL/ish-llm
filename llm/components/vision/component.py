@@ -27,7 +27,7 @@ class VisionComponent(Component):
         paths={"ocr.backend": "config.ocr.backend", "ocr.backends": "config.ocr.backends",
                "ocr.timeout": "policy.ocr.timeout"})
 
-    def __init__(self, *, ocr_backends=None, completion_fn=None, revision="1"):
+    def __init__(self, *, ocr_backends=None, adapter=None, revision="1"):
         from .data import VisionData
         self.data_class = VisionData
         if not isinstance(revision, str) or not revision:
@@ -42,7 +42,7 @@ class VisionComponent(Component):
             if not isinstance(getattr(backend, "revision", None), str) or not backend.revision:
                 raise ValueError("OCR backend revision is required")
             checked_schema(backend.describe_config())
-        self.model = VisionModel(completion_fn=completion_fn)
+        self.model = VisionModel(adapter=adapter)
 
     def _blob(self, project, digest):
         if not isinstance(digest, str) or not re.fullmatch("[0-9a-f]{64}", digest):
@@ -81,7 +81,7 @@ class VisionComponent(Component):
                 "timeout": {"type": ["number", "null"], "exclusiveMinimum": 0},
                 "backends": object_schema({key: value.describe_config()
                     for key, value in self.ocr_backends.items()}, additionalProperties=False)}, additionalProperties=False),
-            "completion": completion_schema(), "provider": provider_schema(),
+            "completion": self.model.adapter.describe_config(), "provider": provider_schema(),
         }))
 
     def validate_config(self, values):
@@ -90,14 +90,11 @@ class VisionComponent(Component):
         values = self.parameter_layout.unpack(values)
         resolve_provider_options(values.get("provider", {}))
         params = values.get("completion", {})
-        if any(key in params for key in ("messages", "tools", "tool_choice", "functions", "function_call")):
-            raise ValueError("Vision owns completion messages and does not invoke tools")
-        if params.get("stream", False) is not False or params.get("n", 1) != 1:
-            raise ValueError("Vision requires stream=False and n=1")
+        self.model.adapter.validate_vision(params)
 
     def resolve_config(self, project):
         view = super().resolve_config(project)
-        view["enforced"] = {"config": {"completion": {"stream": False, "n": 1}}, "asset_format": 1}
+        view["enforced"] = {"config": {"completion": dict(self.model.adapter.vision_enforced)}, "asset_format": 1}
         return view
 
     def binding(self, project):

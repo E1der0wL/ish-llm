@@ -212,11 +212,11 @@ class MemoryData(ComponentData):
         return deepcopy(state)
 
     # 공개 API. 생성과 조회는 revision이 필요 없고, 모든 변경은 CAS를 거친다.
-    @staticmethod
-    def describe_compaction():
+    @workspace_locked
+    def describe_compaction(self):
         """애플리케이션이 선택할 압축 요청의 schema. 설정값을 생성하지 않는다."""
         from .compaction import compaction_schema
-        return compaction_schema()
+        return compaction_schema(self._current()[1].completion_adapter)
 
     @workspace_locked
     def get_context(self, session_id, *, scope=None):

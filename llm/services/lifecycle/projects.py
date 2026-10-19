@@ -98,8 +98,10 @@ class ProjectManager:
         self.ownership = repository.ownership
         self.sessions.bind_project_access(self.access)
         self.components = registry
-        from llm.providers.litellm import model_token_count
-        self.usage_counters = {"model_default": model_token_count}
+        self.agents = registry.agent_repository
+        self.agent_engines = None
+        from llm.providers.tokens import default_token_counters
+        self.usage_counters = default_token_counters()
         self.backups = backups if backups is not None else DirectoryBackups()
         from llm.services.lifecycle.steps import StepRepository
         self.backup_steps = backup_steps if backup_steps is not None else StepRepository()
@@ -130,6 +132,7 @@ class ProjectManager:
             raise ValueError("Portable backup requires file conversation storage")
         self.components.validate(project.components)
         self._validate_config(project)
+        agents = self.agents.list(project)
         for name in project.components:
             validator = getattr(self.components.get(name), "validate_backup", None)
             if validator is None:
@@ -138,8 +141,32 @@ class ProjectManager:
         for session in self.sessions.repository.read_backup(project):
             if self.config_validator is not None:
                 self.config_validator(project.config, session_config=session.config)
-            for run in self.sessions.run_repository.read_backup(session):
-                self.backup_steps.read_backup(run)
+            from llm.services.history.conversation import ConversationStore
+            from llm.services.history.recovery import can_dispatch_pending
+            from llm.services.runtime.requests import RequestAdmission
+            messages = {message.id: message for message in ConversationStore(session.paths.conversation).list()}
+            if any(identifier not in agents for identifier in session.agent_ids):
+                raise ValueError("Backup Session references a missing Project Agent")
+            runs = self.sessions.run_repository.read_backup(session, allow_pending=True)
+            for message in messages.values():
+                admission = RequestAdmission.read(message)
+                if admission is not None:
+                    RequestAdmission.runs(message, runs)
+                    if any(identifier not in agents for identifier in admission["recipients"]):
+                        raise ValueError("Backup request references a missing Project Agent")
+            for run in runs:
+                if run.agent_id is not None and run.agent_id not in agents:
+                    raise ValueError("Backup Run references a missing Project Agent")
+                steps = self.backup_steps.read_backup(run)
+                if run.status == "pending" and not can_dispatch_pending(run,
+                        messages.get(run.input_message_id), messages.get(run.assistant_message_id), steps):
+                    raise ValueError("Backup pending Run has no safe dispatch proof")
+                if run.agent_id is not None:
+                    source, assistant = messages.get(run.input_message_id), messages.get(run.assistant_message_id)
+                    if (source is None or source.role != "user" or assistant is None
+                            or assistant.role != "assistant" or assistant.run_id != run.id):
+                        raise ValueError("Backup Run message ownership mismatch")
+        self.sessions.transfers.validate_project(project, archive=True)
         return project
 
     def _backup_destination(self, destination):
@@ -326,6 +353,13 @@ class ProjectManager:
         project.config = self.access.require(current).config
 
     @workspace_locked
+    def agent_data(self, project):
+        from llm.services.lifecycle.agents import ProjectAgents
+        current = self.access.require(project)
+        return ProjectAgents(self.access, self.agents, current, components=self.components,
+                             engines=self.agent_engines, sessions=self.sessions, steps=self.backup_steps)
+
+    @workspace_locked
     def component(self, project: Project, name: str) -> ComponentData:
         current = self.access.require(project)
         self.components.validate(current.components)
@@ -425,9 +459,10 @@ class ProjectManager:
         clone = self.create(title if title is not None else source.title, config=source.config,
                             components=source.components,
                             conversation_storage=source.conversation_storage)
+        self.agents.clone(source, clone)
         self.components.clone(source, clone)
         for session in sessions:
-            self.sessions.clone(session, clone)
+            self.sessions.clone(session, clone, copy_participants=True)
         log_event(clone.paths.logs, "project.cloned", entity_id=clone.id,
                   related_id=source.id)
         return clone

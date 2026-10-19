@@ -1,5 +1,6 @@
 """모델 응답을 출처가 있는 엔티티·트리플로 변환한다. 저장은 Component가 담당한다."""
 
+from llm.core.model_protocol import ModelMessage
 import hashlib
 import json
 from copy import copy, deepcopy
@@ -91,10 +92,10 @@ def select_graph(grouped, entity_ids, chunks, *, relation_types=()):
 
 
 class TripleExtractor(ModelClient):
-    """LiteLLM 비동기 completion 또는 주입한 함수로 트리플을 추출한다."""
+    """선택한 OperationAdapter의 공통 응답에서 트리플을 추출한다."""
 
-    def __init__(self, *, completion_fn=None, **params):
-        super().__init__("acompletion", completion_fn, params)
+    def __init__(self, *, adapter=None, **params):
+        super().__init__("acompletion", params, adapter=adapter)
         self.extraction = {}
         self.prompt = {"messages": []}
 
@@ -109,10 +110,10 @@ class TripleExtractor(ModelClient):
 
     async def extract(self, chunks: list) -> dict:
         """검증 오류만 제한 횟수 수정한다. 연결 오류·취소·사용량 제한은 그대로 전달한다."""
-        messages = [{"role": "system", "content": EXTRACTION_CONTRACT + "\nPreferred relation types: "
-                     + json.dumps(self.extraction.get("relation_types", []), ensure_ascii=False)},
-                    *deepcopy(self.prompt["messages"]),
-                    {"role": "user", "content": json.dumps(chunks, ensure_ascii=False)}]
+        messages = [ModelMessage("system", EXTRACTION_CONTRACT + "\nPreferred relation types: "
+                     + json.dumps(self.extraction.get("relation_types", []), ensure_ascii=False)),
+                    *(ModelMessage(m["role"], m["content"]) for m in self.prompt["messages"]),
+                    ModelMessage("user", json.dumps(chunks, ensure_ascii=False))]
         from llm.providers.requests import error_code
         from llm.providers.runtime import diagnostic
         mode = self.extraction.get("json_mode")
@@ -123,21 +124,17 @@ class TripleExtractor(ModelClient):
         deadline = repair.deadline
         for attempt in range(repair.max_attempts):
             try:
-                response = await self._invoke(stream=False, _provider_deadline=deadline,
-                    **({"response_format": {"type": "json_object"}} if mode in ("strict", "auto") else {"_without_response_format": True} if mode == "off" else {}),
-                    messages=messages)
+                response = await self._complete(messages, deadline=deadline,
+                    output_format="json" if mode in ("strict", "auto") else "text" if mode == "off" else None)
             except Exception as error:
                 if mode != "auto" or error_code(error) not in ("provider_empty_response", "provider_invalid_response"):
                     raise
                 mode = "off"
                 diagnostic("provider_json_mode_fallback", operation="acompletion")
-                response = await self._invoke(stream=False, _provider_deadline=deadline,
-                    _without_response_format=True, messages=messages)
+                response = await self._complete(messages, deadline=deadline, output_format="text")
             content = None
             try:
-                choices = response["choices"] if isinstance(response, dict) else response.choices
-                message = choices[0]["message"] if isinstance(choices[0], dict) else choices[0].message
-                content = message["content"] if isinstance(message, dict) else message.content
+                content = response.message.text
                 graph = json.loads(content)
                 validate_graph(graph, chunks)
                 return graph
@@ -145,7 +142,7 @@ class TripleExtractor(ModelClient):
                 if not repair.allows(attempt + 1):
                     raise GraphValidationError(f"RAG extraction invalid after {attempt} repair attempts: {error}") from error
                 # 이전 응답을 assistant 지침으로 승격하지 않는다. 고정 크기의 최신 오류만 전달한다.
-                messages[-1] = {"role": "user", "content": json.dumps({
+                messages[-1] = ModelMessage("user", json.dumps({
                     "instruction": "Correct the previous JSON to satisfy the extraction contract. Return the full corrected JSON.",
                     "validation_error": str(error), "previous_json": content, "chunks": chunks,
-                }, ensure_ascii=False)}
+                }, ensure_ascii=False))

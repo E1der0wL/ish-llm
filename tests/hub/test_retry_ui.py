@@ -1,4 +1,6 @@
 """Observe actual retry decisions, and render approvals without dumping bodies."""
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ToolCall, ToolResult, ContentPart, ToolDefinition
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from contextlib import aclosing
@@ -26,7 +28,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
         provider = ScriptedCompletion([HTTPFailure(503)])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: HubLoopEngine(completion_fn=provider)},
+                engine_factories={"loop": lambda: HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
                 project_config={"parameters": {"engines": {"loop": {"policy": {"provider": {
                     "max_attempts": 3, "delay_seconds": 10, "max_delay_seconds": 2}}}}}}))
             try:
@@ -50,7 +52,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
     async def test_attempt_counter_resets_per_completion_and_does_not_leak_context(self):
         provider = ScriptedCompletion([HTTPFailure(429)], [chunk("Done", finish="stop")],
                                       [chunk("Next", finish="stop")])
-        engine, monitor = HubLoopEngine(completion_fn=provider), RetryMonitor()
+        engine, monitor = HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)), RetryMonitor()
         engine.retry_monitor = monitor
         observer = Observability(sink=monitor)
         attempts = []
@@ -58,7 +60,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
         try:
             for _ in range(2):
                 with observer.scope():
-                    async with aclosing(engine.stream_completion({"model": "test/model", "messages": []},
+                    async with aclosing(engine.stream_completion(ModelRequest([], {'model': "test/model"}),
                         provider={"max_attempts": 3, "delay_seconds": 0})) as events:
                         async for event in events:
                             self.assertIsNone(monitor.call.get())
@@ -78,7 +80,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
             ([chunk("partial"), HTTPFailure(503)], {"max_attempts": 4}),
             ([HTTPFailure(503)], {"max_attempts": 4, "delay_seconds": 10, "wall_timeout": 1})):
             monitor = RetryMonitor()
-            engine = HubLoopEngine(completion_fn=ScriptedCompletion(chunks))
+            engine = HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=ScriptedCompletion(chunks)))
             engine.retry_monitor = monitor
             seen = []
             def sink(event):
@@ -88,7 +90,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
             token = monitor.run.set("r")
             try:
                 with Observability(sink=sink).scope(), self.assertRaises(Exception):
-                    async with aclosing(engine.stream_completion({"model": "test/model", "messages": []}, provider=policy)) as events:
+                    async with aclosing(engine.stream_completion(ModelRequest([], {'model': "test/model"}), provider=policy)) as events:
                         async for _ in events:
                             pass
                 self.assertEqual(seen, [])
@@ -99,14 +101,14 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
     async def test_sdk_delegation_does_not_invent_outer_attempts(self):
         monitor = RetryMonitor()
         provider = ScriptedCompletion([HTTPFailure(503)])
-        engine = HubLoopEngine(completion_fn=provider)
+        engine = HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
         engine.retry_monitor = monitor
         token = monitor.run.set("r")
         observer = Observability(sink=monitor)
         try:
             with observer.scope(), self.assertRaises(Exception):
                 async with aclosing(engine.stream_completion(
-                    {"model": "test/model", "messages": [], "num_retries": 2},
+                    ModelRequest([], {'model': "test/model", 'num_retries': 2}),
                     provider={"max_attempts": 4})) as events:
                     async for _ in events:
                         self.assertIsNone(monitor.view("r"))
@@ -118,12 +120,12 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
     async def test_parallel_calls_in_one_graph_run_keep_independent_backoffs(self):
         monitor = RetryMonitor()
         async def call_model():
-            engine = HubLoopEngine(completion_fn=ScriptedCompletion([HTTPFailure(503)]))
+            engine = HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=ScriptedCompletion([HTTPFailure(503)])))
             engine.retry_monitor = monitor
             token = monitor.run.set("graph-run")
             try:
                 with Observability(sink=monitor).scope():
-                    async with aclosing(engine.stream_completion({"model": "test/model", "messages": []},
+                    async with aclosing(engine.stream_completion(ModelRequest([], {'model': "test/model"}),
                         provider={"max_attempts": 3, "delay_seconds": 60})) as events:
                         async for _ in events:
                             pass

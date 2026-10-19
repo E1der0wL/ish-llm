@@ -1,4 +1,6 @@
 """목표는 실행 부모가 아닌 선택 리소스이며 기존 승인·저장 경계를 재사용한다."""
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ToolCall, ToolResult, ContentPart, ToolDefinition
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import tempfile
 import unittest
@@ -27,7 +29,7 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         self.provider = ScriptedCompletion(*[[chunk("done", finish="stop")] for _ in range(10)])
         self.app = LargeLanguageModel(Path(self.temp.name), components=[GoalComponent()],
-            engines={"loop": LoopEngine(completion_fn=self.provider).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})})
+            engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.provider)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("goals", components=["goals"])
         self.session = await self.project.sessions.acreate("session")
@@ -99,10 +101,10 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
         for enabled in (False, True):
             if enabled:
                 settings["config"]["nested_agent_ids"] = ["worker"]
-            request = CompletionRequest({}, [CompletionMessage({"role": "user", "content": "task"}, "input")], 0)
+            request = CompletionRequest({}, [CompletionMessage(ModelMessage("user", "task"), "input")], 0)
             async for _ in GoalProcessor(self.goals, settings).session(context).prepare(request):
                 pass
-            self.assertEqual("Active Goal" in request.messages[0].value["content"], enabled)
+            self.assertEqual("Active Goal" in request.messages[0].message.text, enabled)
 
     async def test_unselected_component_keeps_plain_execution(self):
         project = await self.app.projects.acreate("plain", components=[])

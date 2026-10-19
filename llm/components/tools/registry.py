@@ -11,6 +11,7 @@ from inspect import getattr_static
 from typing import Any, Optional
 
 from jsonschema import Draft202012Validator
+from llm.core.model_protocol import ToolDefinition
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,10 +60,16 @@ class Tool:
     description: str
     parameters: dict[str, Any]
     handler: Callable[[dict[str, Any]], Awaitable[Any]]
-    # Optional native definition preserves provider extensions such as strict.
-    definition: Optional[dict[str, Any]] = None
+    # Common definition carries opaque provider extensions without exposing wire dicts.
+    definition: Optional[ToolDefinition] = None
     contract: Optional[ToolContract] = None
     classification: Optional[ToolClassification] = None
+
+    def __post_init__(self):
+        if self.definition is None:
+            object.__setattr__(self, "definition", ToolDefinition(self.name, self.description, self.parameters))
+        elif not isinstance(self.definition, ToolDefinition):
+            raise TypeError("Tool definition must be ToolDefinition")
 
 
 # 런타임 함수와 인자 Schema를 등록한다. 저장된 Tool 선택과 분리된다.
@@ -94,12 +101,10 @@ class ToolRegistry:
         Draft202012Validator.check_schema(schema)
         definition = deepcopy(tool.definition)
         if definition is not None:
-            function = definition.get("function", {})
-            if (definition.get("type") != "function" or function.get("name") != tool.name
-                    or function.get("parameters") != schema
-                    or function.get("description", "") != tool.description):
+            model = definition
+            if (model.name != tool.name or model.parameters != schema or model.description != tool.description):
                 raise ValueError("Tool definition does not match its runtime binding")
-            json.dumps(definition, allow_nan=False)
+            json.dumps(definition.to_dict(), allow_nan=False)
         self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition, tool.contract, tool.classification)
 
     def contracts(self):
@@ -131,17 +136,11 @@ class ToolRegistry:
                 validate(deepcopy(selected["arguments"]), context, request_key=record["request_key"],
                          checkpoint_name=record["checkpoint_name"])
 
-    def definitions(self, *, constraints=None) -> list[dict[str, Any]]:
+    def definitions(self, *, constraints=None) -> tuple[ToolDefinition, ...]:
+        from dataclasses import replace
         from .constraints import constrained_parameters
-        definitions = [deepcopy(tool.definition) if tool.definition is not None else {"type": "function", "function": {
-            "name": tool.name, "description": tool.description,
-            "parameters": deepcopy(tool.parameters),
-        }} for tool in self._tools.values()]
-        for definition in definitions:
-            function = definition["function"]
-            function["parameters"] = constrained_parameters(function["parameters"],
-                (constraints or {}).get(function["name"], {}))
-        return definitions
+        return tuple(replace(tool.definition, parameters=constrained_parameters(tool.parameters,
+            (constraints or {}).get(tool.name, {}))) for tool in self._tools.values())
 
     def names(self) -> tuple[str, ...]:
         return tuple(self._tools)
@@ -167,13 +166,11 @@ class ToolRegistry:
         for tool in other._tools.values():
             self.register(tool)
 
-    def prepare(self, name: str, arguments: str, *, constraints=None) -> tuple[Tool, dict[str, Any]]:
+    def prepare(self, name: str, arguments: dict, *, constraints=None) -> tuple[Tool, dict[str, Any]]:
         """Validate before executing any tool in a returned batch."""
         try:
             tool = self._tools[name]
-            def reject_constant(value: str) -> None:
-                raise ValueError("Non-finite JSON constant")
-            values = json.loads(arguments, parse_constant=reject_constant)
+            values = deepcopy(arguments)
             if not isinstance(values, dict):
                 raise ValueError("Expected argument object")
             json.dumps(values, allow_nan=False)

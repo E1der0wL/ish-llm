@@ -203,7 +203,7 @@ class RAGComponent(DefinitionComponent):
         from .rerank import RerankModel
         def child_schema(client, factory):
             selected = factory if client is None else client
-            describe = getattr(selected, "describe_config", None)
+            describe = (None if isinstance(selected, type) else getattr(selected, "operation_schema", None)) or getattr(selected, "describe_config", None)
             return describe() if describe else open_schema(type(selected).__qualname__ + ".with_config", category="implementation")
         embedding_schema = child_schema(self.embedding, EmbeddingModel)
         return self.parameter_layout.schema(object_schema({
@@ -248,7 +248,7 @@ class RAGComponent(DefinitionComponent):
                                     (self.extractor, TripleExtractor, "extraction_params"),
                                     (self.reranker, RerankModel, "rerank_params")):
             selected = factory if client is None else client
-            validate = getattr(selected, "validate_config", None)
+            validate = (None if isinstance(selected, type) else getattr(selected, "validate_operation", None)) or getattr(selected, "validate_config", None)
             if validate is not None and key in data:
                 validate(deepcopy(data[key]))
 
@@ -404,8 +404,10 @@ class RAGComponent(DefinitionComponent):
             raise ValueError("Query embedding model differs from indexed model")
         kwargs = self.query_kwargs if query else self.document_kwargs
         response = await self.embedding.embed(texts, **kwargs)
-        extract = getattr(self.embedding, "extract_vector", None)
-        vector = extract(response, **kwargs) if extract else extract_single_embedding(response)
+        from llm.core.model_protocol import EmbeddingResult
+        if not isinstance(response, EmbeddingResult):
+            raise TypeError('RAG embedding client must return EmbeddingResult')
+        vector = response.vector
         from llm.providers.embeddings import validate_vectors
         return validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))
 

@@ -1,7 +1,6 @@
 """교체 가능한 OCR 구현과 LiteLLM 이미지 해석. 저장/Tool 승인/Run 수명을 소유하지 않는다."""
 
 import asyncio
-import base64
 import csv
 from io import StringIO
 import math
@@ -9,6 +8,8 @@ from typing import Protocol
 
 from llm.errors import CodedError
 from llm.providers.parameters import copy_params
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ContentPart
+from llm.providers.operations import LiteLLMOperations, image_part
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 
@@ -124,35 +125,24 @@ class TesseractBackend:
             raise VisionError("vision_invalid_response", "Invalid Tesseract TSV response") from error
 
 
-def image_content(raw: bytes, mime_type: str) -> dict:
-    """Base64는 요청 직전에만 만든다. 저장 JSON과 Tool 결과에 이미지 전체를 넣지 않는다."""
-    return {"type": "image_url", "image_url": {
-        "url": "data:" + mime_type + ";base64," + base64.b64encode(raw).decode("ascii")}}
-
-
 class VisionModel:
     observes_model_calls = True
 
-    def __init__(self, *, completion_fn=None, retry_decider=None):
+    def __init__(self, *, adapter=None, retry_decider=None):
         if retry_decider is not None and not callable(retry_decider):
             raise TypeError("Retry selector must be callable")
-        self.completion_fn = completion_fn
+        self.adapter = adapter if adapter is not None else LiteLLMOperations()
         self.retry_decider = retry_decider
 
     async def analyze(self, raw: bytes, mime_type: str, prompt: str, *, parameters: dict, provider: dict) -> dict:
         request = copy_params(parameters)
         if not isinstance(request.get("model"), str) or not request["model"].strip():
             raise ValueError("Missing required setting: vision.completion.model")
-        if any(key in request for key in ("messages", "tools", "tool_choice", "functions", "function_call")):
-            raise ValueError("Vision owns messages and does not execute nested tools")
-        if request.get("stream", False) is not False or request.get("n", 1) != 1:
-            raise ValueError("Vision analysis requires one non-streaming response")
-        request.update(stream=False, n=1, messages=[{"role": "user", "content": [
-            {"type": "text", "text": prompt}, image_content(raw, mime_type)]}])
-        from llm.providers.requests import request_model
-        response = await request_model("acompletion", request, provider, call=self.completion_fn,
-                                       decide=self.retry_decider, changeable=("timeout",))
-        from llm.providers.embeddings import value
-        choice = value(response, "choices")[0]
-        return {"text": value(value(choice, "message"), "content"), "model": request["model"],
-                "finish_reason": value(choice, "finish_reason")}
+        self.adapter.validate_vision(request)
+        response = await self.adapter.complete(ModelRequest([ModelMessage("user", (
+            ContentPart("text", prompt), image_part(raw, mime_type)))], request),
+            provider, decide=self.retry_decider)
+        if not isinstance(response, ModelResponse):
+            raise TypeError("Vision adapter must return ModelResponse")
+        return {"text": response.message.text, "model": request["model"],
+                "finish_reason": response.raw_finish_reason}

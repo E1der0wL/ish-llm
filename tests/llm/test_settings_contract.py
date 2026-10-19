@@ -1,3 +1,4 @@
+from llm.core.model_protocol import ModelRequest, ModelMessage, ToolCall, ToolResult, ToolDefinition
 """구현체 공통 외형·정책 소유권·UI 출처·실제 실행 인자를 함께 검사한다."""
 
 import ast
@@ -92,15 +93,14 @@ class SettingsContractTests(unittest.TestCase):
             for node in ast.walk(ast.parse(file.read_text())):
                 if isinstance(node, ast.ImportFrom):
                     self.assertFalse((node.module or "").startswith(("llm.services", "llm.engines", "llm.components")))
-        request = {"model": "fake", "messages": [
-            {"role": "system", "content": "rules"}, {"role": "user", "content": "old"},
-            {"role": "assistant", "content": "old answer"}, {"role": "user", "content": "current"}]}
+        request = ModelRequest([ModelMessage("system", "rules"), ModelMessage("user", "old"),
+            ModelMessage("assistant", "old answer"), ModelMessage("user", "current")], {"model": "fake"})
         original = deepcopy(request)
-        policy = CompletionPolicy(2, counter=lambda r: len(r["messages"]))
-        self.assertEqual(policy.prepare(request)["messages"], [request["messages"][0], request["messages"][-1]])
+        policy = CompletionPolicy(2, counter=lambda r: len(r.messages))
+        self.assertEqual(policy.prepare(request).messages, [request.messages[0], request.messages[-1]])
         self.assertEqual(request, original)
         with self.assertRaises(ExecutionLimitError) as caught:
-            CompletionPolicy(1, counter=lambda r: len(r["messages"])).prepare(request)
+            CompletionPolicy(1, counter=lambda r: len(r.messages)).prepare(request)
         self.assertEqual(caught.exception.code, "context_budget_exceeded")
 
     def test_layout_roundtrip_preserves_explicit_null_and_sdk_options(self):

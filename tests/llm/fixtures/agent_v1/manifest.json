@@ -1,0 +1,41 @@
+{
+  "baseline_sha": "7984c8e225ca07711c866607d110727dfbb3c391",
+  "domain_storage_version": 1,
+  "agent_storage_version": "legacy raw definition, no envelope",
+  "project_id": "a6c3bdd12df7411bbd236c078e38adbb",
+  "agent_id": "legacy",
+  "agent_snapshot": {
+    "agent_id": "legacy",
+    "definition": {
+      "engine": "loop",
+      "purpose": "legacy work",
+      "system_prompt": "Keep the original contract.",
+      "metadata": {
+        "fixture": true
+      }
+    },
+    "revision": "4e96e1eaba936a695a86c175e680bd28dfd74d20280c9dc4156712a6b8a3e9ae"
+  },
+  "completed_session_id": "62fe73cb2dd94272bf1e96722180d755",
+  "completed_run_id": "85d13cc039f84deea695ac8554e21a0e",
+  "queued_session_id": "dad1b4812c734ea98d243a302348d247",
+  "queued_message_id": "e58a71fd7b56488eb09e1660a8d5a5ef",
+  "files": {
+    "projects/.ish.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/agents/records/legacy.json": "467b453c93badedae5815366da8027fae2bd8b975c7af1a683631c261ee685de",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/logs/activity.jsonl": "87609aa54524d514c1179467608a50909fac78d52ca8a20186a123b0dcc195ec",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/logs/service.log": "bcdb34fbc684b68e0bf8ffb0742baa61d021b3826519092ff9340246e02f7539",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/project.json": "562d29be8728a5a33d423b5359e64638efb0e54bcaf054920ed0865bba6ff68b",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/62fe73cb2dd94272bf1e96722180d755/conversation.jsonl": "14b8c80e087f8c55194146cbfaaddf17a3f3c64eeed7a343c2c0960b7d560344",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/62fe73cb2dd94272bf1e96722180d755/logs/service.log": "24e7a62279278f67a3935bf1fc94340d6e0a331d9738b4f618815f7fc1b816a7",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/62fe73cb2dd94272bf1e96722180d755/runs/85d13cc039f84deea695ac8554e21a0e/logs/service.log": "2d77ed0a896c11898515561d8f6cf714a36d2ce926a286ee0016839671aeee87",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/62fe73cb2dd94272bf1e96722180d755/runs/85d13cc039f84deea695ac8554e21a0e/run.json": "8090f6e9a552c5554c7f817ff4cbd65a65ddbc01cddc8648f152c07eb297d632",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/62fe73cb2dd94272bf1e96722180d755/runs/85d13cc039f84deea695ac8554e21a0e/state/outputs.jsonl": "0de31d6404a4257bce29a07df782d9636b5050928c89b29884a8ebde87ac09a1",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/62fe73cb2dd94272bf1e96722180d755/runs/85d13cc039f84deea695ac8554e21a0e/steps/2dfb20d7122c4da6b6eebb35571c9367/logs/service.log": "ecd91de9ea81db681c6eccbad09a73a4e5726c9c39d0961f8738e924217f6848",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/62fe73cb2dd94272bf1e96722180d755/runs/85d13cc039f84deea695ac8554e21a0e/steps/2dfb20d7122c4da6b6eebb35571c9367/step.json": "96e906d5a171e9a41c209562571d1cad9b9019a4ffc88fd41d1e505c503a6413",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/62fe73cb2dd94272bf1e96722180d755/session.json": "7fd3c0be223e77718a5e0c8cf8ae58d15c86f5882291e096ec0057a9aa86bac3",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/dad1b4812c734ea98d243a302348d247/conversation.jsonl": "390e134511b9b316e2fcde14736adc4539d60f816af0e1029dd25dc29f65e6c8",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/dad1b4812c734ea98d243a302348d247/logs/service.log": "48d74270adecf269933eecff7f88908a766a86b01698a4878c039854f444b6ea",
+    "projects/a6c3bdd12df7411bbd236c078e38adbb/sessions/dad1b4812c734ea98d243a302348d247/session.json": "657d7761ab538c25d4a479c8e8d2c104e8c699e2a1cffc155677841c5e6a7e3d"
+  }
+}

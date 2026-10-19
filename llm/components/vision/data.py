@@ -12,7 +12,9 @@ from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import revision_token
 from llm.providers.observations import observe_component_models
 from . import images
-from .backends import validate_ocr, image_content
+from .backends import validate_ocr
+from llm.core.model_protocol import ContentPart
+from llm.providers.operations import image_part
 
 
 class VisionData(ComponentData):
@@ -113,11 +115,11 @@ class VisionData(ComponentData):
         await self._async_call(self._finish, config, record)
         return {**result, "kind": "model_analysis", "image": self._reference(record)}
 
-    async def acompletion_content(self, image_id: str) -> dict:
+    async def acompletion_content(self, image_id: str) -> ContentPart:
         """이미지 지원 Completion용 content block. 반환 Base64를 영속 메시지/로그에 저장하지 않는다."""
         _, config, record, raw = await self._async_call(self._snapshot, image_id)
         await asyncio.to_thread(images.inspect_image, raw, config.get("limits", {}))
-        block = await asyncio.to_thread(image_content, raw, record["mime_type"])
+        block = await asyncio.to_thread(image_part, raw, record["mime_type"])
         await self._async_call(self._finish, config, record)
         return block
 

@@ -1,3 +1,5 @@
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ToolCall, ToolResult, ContentPart, ToolDefinition
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 import threading
 import tempfile
@@ -133,11 +135,9 @@ class BaseEngineTests(unittest.IsolatedAsyncioTestCase):
     async def test_subclass_reuses_completion_with_automatic_step_persistence(self):
         class Chat(BaseEngine):
             def run(self, context):
-                return self.stream_completion({"model": "openai/test", "messages": [
-                    {"role": "user", "content": context.messages[-1].content},
-                ]})
+                return self.stream_completion(ModelRequest([ModelMessage("user", context.messages[-1].content)], {'model': "openai/test"}))
         provider = ScriptedCompletion([chunk("Hello "), chunk("there", finish="stop")])
-        self.engines.register("simple", Chat("Answer", kind="llm", completion_fn=provider))
+        self.engines.register("simple", Chat("Answer", kind="llm", completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         await self.manager.submit("hello", engine="simple")
         await self.idle()
         run, = self.manager.repository.list(self.session)
@@ -384,14 +384,14 @@ class CompletionHelperTests(unittest.IsolatedAsyncioTestCase):
                          {"index": 1, "function": {"arguments": "2}"}}], finish="tool_calls"),
             {"choices": [], "usage": {"total_tokens": 4}},
         ])
-        response = {}
-        engine = BaseEngine(completion_fn=provider)
-        text = [part async for part in engine.stream_completion(include_events=False, request={"model": "test"}, response=response)]
+        response = []
+        engine = BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
+        text = [part async for part in engine.stream_completion(include_events=False, request=ModelRequest([], {'model': "test"}), response=response)]
         self.assertEqual(text, ["Thinking"])
-        self.assertEqual(response["role"], "assistant")
-        self.assertEqual(response["content"], "Thinking")
-        self.assertEqual([item["id"] for item in response["tool_calls"]], ["id_1", "id_2"])
-        self.assertEqual([item["function"]["arguments"] for item in response["tool_calls"]],
+        self.assertEqual(response[0].message.role, "assistant")
+        self.assertEqual(response[0].message.text, "Thinking")
+        self.assertEqual([item.id for item in response[0].message.calls], ["id_1", "id_2"])
+        self.assertEqual([item.opaque["litellm"]["arguments_text"] for item in response[0].message.calls],
                          ['{"a":1}', '{"b":2}'])
         self.assertEqual(provider.closed, 1)
 
@@ -407,18 +407,17 @@ class CompletionHelperTests(unittest.IsolatedAsyncioTestCase):
         ]
         for limits, chunks in cases:
             with self.subTest(limits=limits, chunks=chunks):
-                response = {}
+                response = []
                 provider = ScriptedCompletion(chunks)
-                engine = BaseEngine(completion_fn=provider)
+                engine = BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
                 with self.assertRaises(ValueError):
-                    async for _ in engine.stream_completion(include_events=False, request={}, response=response, **limits):
+                    async for _ in engine.stream_completion(include_events=False, request=ModelRequest([], {}), response=response, **limits):
                         pass
-                self.assertEqual(response, {})
+                self.assertEqual(response, [])
 
     async def test_simultaneous_streams_keep_results_and_request_copies_isolated(self):
         client = object()
-        original = {"model": "test", "client": client,
-                    "messages": [{"role": "user", "content": "shared"}]}
+        original = ModelRequest([ModelMessage("user", "shared")], {"model": "test", "client": client})
         def provider(**request):
             if request["client"] is not client:
                 raise AssertionError("SDK client identity changed")
@@ -426,17 +425,17 @@ class CompletionHelperTests(unittest.IsolatedAsyncioTestCase):
             request["messages"][0]["content"] = label
             yield chunk(label)
             yield chunk("!", finish="stop")
-        engine = BaseEngine(completion_fn=provider)
+        engine = BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
         async def collect(label):
-            response = {}
+            response = []
             text = [part async for part in engine.stream_completion(include_events=False, request=
-                dict(original, label=label), response=response)]
-            return text, response
+                ModelRequest(original.messages, {**original.parameters, "label": label}), response=response)]
+            return text, response[0].message
         first, second = await asyncio.gather(collect("first"), collect("second"))
-        self.assertEqual(first, (["first", "!"], {"role": "assistant", "content": "first!"}))
-        self.assertEqual(second, (["second", "!"], {"role": "assistant", "content": "second!"}))
-        self.assertEqual(original["messages"][0]["content"], "shared")
-        self.assertNotIn("stream", original)
+        self.assertEqual(first, (["first", "!"], ModelMessage("assistant", "first!")))
+        self.assertEqual(second, (["second", "!"], ModelMessage("assistant", "second!")))
+        self.assertEqual(original.messages[0].text, "shared")
+        self.assertNotIn("stream", original.parameters)
 
     async def test_early_close_closes_provider_and_leaves_response_unfinished(self):
         closed = threading.Event()
@@ -446,18 +445,18 @@ class CompletionHelperTests(unittest.IsolatedAsyncioTestCase):
                     yield chunk("delta")
             finally:
                 closed.set()
-        response = {}
-        engine = BaseEngine(completion_fn=provider, buffer_size=1)
-        async with aclosing(engine.stream_completion(include_events=False, request={}, response=response)) as stream:
+        response = []
+        engine = BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider), buffer_size=1)
+        async with aclosing(engine.stream_completion(include_events=False, request=ModelRequest([], {}), response=response)) as stream:
             self.assertEqual(await stream.__anext__(), "delta")
         self.assertTrue(await asyncio.to_thread(closed.wait, 5))
-        self.assertEqual(response, {})
+        self.assertEqual(response, [])
 
     async def test_nonstreaming_or_multiple_choices_rejected_before_provider_call(self):
         provider = ScriptedCompletion([])
-        engine = BaseEngine(completion_fn=provider)
+        engine = BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
         for request in ({"stream": False}, {"n": 2}):
             with self.subTest(request=request), self.assertRaises(ValueError):
-                async for _ in engine.stream_completion(include_events=False, request=request):
+                async for _ in engine.stream_completion(include_events=False, request=ModelRequest([], request)):
                     pass
         self.assertEqual(provider.requests, [])

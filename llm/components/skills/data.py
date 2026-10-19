@@ -99,9 +99,10 @@ class SkillData(FileData):
             return []
         # workspace 잠금 안에서 소유 Component의 공개 읽기 계약만 사용한다.
         # 조회를 위해 Component를 선택하거나 runtime capability를 활성화하지 않는다.
-        agents = self.registry.get("agents")
+        from llm.core.agents import AgentDefinition
+        agents = self.registry.agent_repository
         return [{"agent_id": ref["identifier"],
-                 "revision": agents.revision(agents.load(project, ref["identifier"]))}
+                 "revision": AgentDefinition.revision(agents.load(project, ref["identifier"]))}
                 for ref in refs]
 
     @workspace_locked

@@ -1,3 +1,4 @@
+from llm.providers.litellm import LiteLLMCompletionAdapter
 from hub.ui.presentation import present
 """User-visible engine selection, steering, naming, Markdown and completion."""
 
@@ -45,8 +46,8 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             yield chunk(content=kwargs["messages"][-1]["content"], finish="stop")
         with tempfile.TemporaryDirectory() as directory:
             config = HubConfig(directory, "chat", "openai/test", auto_title=False, project_config={"parameters": {"engines": {"chat": {'config': {'completion': {'model': 'openai/test'}}}, "review": {'config': {'completion': {'model': 'openai/test'}}}}}},
-                engine_factories={"chat": lambda: LoopEngine(completion_fn=provider),
-                                  "review": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"chat": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)),
+                                  "review": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:
                 await runtime.start()
@@ -101,7 +102,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             yield chunk(content="Generated title", finish="stop")
         def factory(config):
             return LargeLanguageModel(config.workspace, components=[ToolComponent()], engines={
-                "loop": LoopEngine(completion_fn=answer), TITLE_ENGINE: TitleEngine(completion_fn=title)})
+                "loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=answer)), TITLE_ENGINE: TitleEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=title))})
         with tempfile.TemporaryDirectory() as directory:
             config = HubConfig(directory, "loop", "openai/test")
             runtime = HubRuntime(config, factory)
@@ -248,8 +249,8 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             yield chunk(content=kwargs["messages"][-1]["content"], finish="stop")
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             config = HubConfig(directory, "loop", "openai/test", language="en", auto_title=False, project_config={"parameters": {"engines": {"review": {'config': {'completion': {'model': 'openai/test'}}}}}},
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider),
-                                  "review": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)),
+                                  "review": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
@@ -309,7 +310,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             yield chunk(content="Done", finish="stop")
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             config = HubConfig(directory, model="openai/test", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))

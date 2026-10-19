@@ -1,4 +1,5 @@
 """Approval continuation shows logical calls and never repeats their effects."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 from collections import Counter
 from copy import deepcopy
@@ -104,7 +105,7 @@ class ToolContinuationTests(unittest.IsolatedAsyncioTestCase):
 
         with tempfile.TemporaryDirectory() as root, patch.object(BuiltinToolRunner, "__call__", observed):
             config = HubConfig(Path(root) / "data", file_root=root, auto_title=False, model="test/model",
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:
                 await runtime.start()

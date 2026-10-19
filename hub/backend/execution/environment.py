@@ -5,6 +5,7 @@ from dataclasses import replace
 import asyncio
 
 from llm.components.processing import CompletionMessage, CompletionSession
+from llm.core.model_protocol import ModelMessage
 from llm.components.tools import ToolRegistry
 from llm.services.infrastructure.storage import drain_on_cancel
 from ...config.environment import ENVIRONMENT_OPTION, ShellEnvironment
@@ -16,12 +17,12 @@ class EnvironmentSession(CompletionSession):
 
     async def prepare(self, request):
         from ...asset.guides import WORK_GUIDANCE
-        index = 1 if request.messages and request.messages[0].value.get("role") == "system" else 0
-        request.messages.insert(index, CompletionMessage({"role": "system", "content":
+        index = 1 if request.messages and request.messages[0].message.role == "system" else 0
+        request.messages.insert(index, CompletionMessage(ModelMessage("system",
             "The working directory captured from the user's ish shell for this request is "
             f"{self.cwd!r}. Built-in file paths are relative to this directory. "
             "Process tools inherit the captured shell environment unless an explicit env is supplied. "
-            "Sandbox commands still run inside their isolated test workspace.\n\n" + WORK_GUIDANCE}))
+            "Sandbox commands still run inside their isolated test workspace.\n\n" + WORK_GUIDANCE)))
         if False:
             yield
 

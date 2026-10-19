@@ -8,6 +8,18 @@ from llm.services.infrastructure.storage import atomic_json, record, revision_to
 from llm.services.infrastructure.logging import log_event
 from llm.services.lifecycle.steps import StepManager
 from llm.core.steering import is_instruction, RunInstruction, InstructionDataError
+from llm.services.runtime.requests import RequestAdmission
+
+
+def can_dispatch_pending(run, message, assistant, steps):
+    """Only the new service's untouched admission proves execution never began."""
+    admission = RequestAdmission.read(message) if message is not None else None
+    return (run.status == RunStatus.PENDING and admission is not None
+            and admission.get("run_ids", {}).get(run.agent_id) == run.id
+            and run.metadata.get("execution_started") is False
+            and not run.metadata.get("checkpoints") and not run.metadata.get("completions") and not steps
+            and assistant is not None and assistant.run_id == run.id
+            and assistant.role == MessageRole.ASSISTANT and assistant.status == MessageStatus.QUEUED)
 
 
 def recover_session(sessions, repository, steps, session, store):
@@ -16,12 +28,18 @@ def recover_session(sessions, repository, steps, session, store):
     watch(session)
     recovered = []
     messages = {message.id: message for message in store.list()}
+    if sessions._owner(session).conversation_storage == "file":
+        sessions.transfers.validate_session(sessions._owner(session), session, messages.values())
     runs = repository.list(session)
     # 모든 지시를 먼저 읽어 검증한다. 뒤쪽의 손상으로 앞선 Run/Step만 복구되지 않게 한다.
     from llm.services.runtime.steering import instruction_targets, instruction_records
     for message in messages.values():
         if is_instruction(message):
             RunInstruction.validate_message(message)
+        if RequestAdmission.read(message) is not None:
+            # Run states are authoritative. Owned recovery may repair only the
+            # mutable pending index, never invent missing recipient Runs.
+            RequestAdmission.runs(message, runs, check_pending=False)
     for run in runs:
         if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
             instruction_targets(run)
@@ -31,7 +49,9 @@ def recover_session(sessions, repository, steps, session, store):
                 # Session 시작을 막지 않으며 메시지 존재 검사는 명시적 재개가 소유한다.
                 list(instruction_records(repository.checkpoint(run, name)))
     for run in runs:
-        stale = run.status in (RunStatus.PENDING, RunStatus.RUNNING)
+        untouched = can_dispatch_pending(run, messages.get(run.input_message_id),
+            messages.get(run.assistant_message_id), steps.list(run))
+        stale = run.status in (RunStatus.PENDING, RunStatus.RUNNING) and not untouched
         if stale:
             validate_run_transition(run.status, RunStatus.INTERRUPTED, reason="recovery")
         steps.recover(run)
@@ -46,15 +66,26 @@ def recover_session(sessions, repository, steps, session, store):
             repository.save(run)
             log_event(run.paths.logs, "run.recovered", entity_id=run.id, status=run.status)
             recovered.append(deepcopy(run))
+            assistant = messages.get(run.assistant_message_id)
+            if assistant is not None and assistant.status in (MessageStatus.QUEUED, MessageStatus.STREAMING):
+                store.set_status(assistant.id, MessageStatus.INTERRUPTED)
+                assistant.status = MessageStatus.INTERRUPTED
         message = messages.get(run.input_message_id)
         if message is not None and message.status == MessageStatus.QUEUED:
-            store.bind_run(message.id, run.id)
+            admission = RequestAdmission.read(message)
+            if admission is None or len(admission["recipients"]) == 1:
+                store.bind_run(message.id, run.id)
             store.set_status(message.id, MessageStatus.COMMITTED)
             message.status = MessageStatus.COMMITTED
     for message in messages.values():
+        admission = RequestAdmission.read(message)
+        if admission is not None and "run_ids" in admission:
+            admission["pending_agents"] = sorted(run.agent_id for run in runs
+                if run.input_message_id == message.id and run.status == RunStatus.PENDING)
+            store.update_metadata(message.id, {"admission": RequestAdmission.validate(admission)})
         if message.role == MessageRole.ASSISTANT and message.status == MessageStatus.STREAMING:
             store.set_status(message.id, MessageStatus.INTERRUPTED)
-    session.current_run_id, session.status = None, SessionStatus.IDLE
+    session.set_active_runs(())
     sessions._save_runtime(session)
     return recovered
 
@@ -74,6 +105,12 @@ class ProjectRecovery:
                                  project_id=project.id, session_id=session, run_id=run)
             issues.append(Diagnostic(code, code.replace("_", " "), source=source,
                                      details={"detail": detail, "repairable": repairable}))
+        try:
+            agents = self.manager.agents.list(project)
+            signatures.append({"agents": agents})
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            agents = {}
+            issue("agent_integrity", detail=str(error))
         for session in self.manager.sessions.list(project, include_deleted=True):
             signatures.append(record(session))
             if self.manager.ownership.session_attached((project.id, session.id)):
@@ -97,14 +134,33 @@ class ProjectRecovery:
                 identifiers = {r.id for r in runs}
                 signatures.extend(record(m) for m in messages.values())
                 signatures.extend(record(r) for r in runs)
-                if session.current_run_id or session.status == SessionStatus.RUNNING:
+                if session.active_run_ids or session.status == SessionStatus.RUNNING:
                     issue("stale_session", session=session.id, repairable=True)
+                if any(identifier not in agents for identifier in session.agent_ids):
+                    issue("missing_agent_reference", session=session.id)
+                for message in messages.values():
+                    admission = RequestAdmission.read(message)
+                    if admission is not None:
+                        try:
+                            selected = RequestAdmission.runs(message, runs, check_pending=False)
+                        except ValueError as error:
+                            issue("invalid_recipient_group", session=session.id, detail=str(error))
+                            continue
+                        if "pending_agents" in admission and admission["pending_agents"] != sorted(
+                                run.agent_id for run in selected if run.status == RunStatus.PENDING):
+                            issue("pending_projection_gap", session=session.id, repairable=True)
+                        if any(identifier not in agents for identifier in admission["recipients"]):
+                            issue("missing_agent_reference", session=session.id)
                 if any(m.run_id and m.run_id not in identifiers for m in messages.values()):
                     issue("missing_run_reference", session=session.id)
                 for run in runs:
+                    if run.agent_id is not None and run.agent_id not in agents:
+                        issue("missing_agent_reference", session=session.id, run=run.id)
                     from llm.services.runtime.steering import instruction_targets
                     instruction_targets(run)
-                    stale = run.status in (RunStatus.RUNNING, RunStatus.PENDING)
+                    untouched = can_dispatch_pending(run, messages.get(run.input_message_id),
+                        messages.get(run.assistant_message_id), self.steps.list(run))
+                    stale = run.status in (RunStatus.RUNNING, RunStatus.PENDING) and not untouched
                     if stale:
                         issue("stale_run", session=session.id, run=run.id, repairable=True)
                     source, assistant = messages.get(run.input_message_id), messages.get(run.assistant_message_id)
@@ -145,6 +201,11 @@ class ProjectRecovery:
             found = issues[start:]
             if found and all(i.details["repairable"] for i in found):
                 actions.append(session.id)
+        if project.conversation_storage == "file":
+            try:
+                signatures.append({"transfers": self.manager.sessions.transfers.validate_project(project)})
+            except (ValueError, OSError, KeyError, TypeError) as error:
+                issue("transfer_integrity", detail=str(error))
         for name in project.components:
             try:
                 self.manager.components.get(name).validate_backup(project)

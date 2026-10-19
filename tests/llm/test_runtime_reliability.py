@@ -1,4 +1,6 @@
+from llm.core.model_protocol import ModelRequest, ModelMessage, ToolCall, ToolResult, ToolDefinition
 """운영 정책을 실제 Facade/Run/Step/Graph 경로로 검증한다. 외부 모델은 호출하지 않는다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 import gc
@@ -67,7 +69,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
     def loop(self, *responses):
         completion = ScriptedCompletion(*responses)
-        return LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}), completion
+        return LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}), completion
 
     async def test_queue_limit_cancel_and_status_do_not_interrupt_active_run(self):
         entered, release = asyncio.Event(), asyncio.Event()
@@ -192,7 +194,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.Event().wait()
 
         completion = ScriptedCompletion([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
-        loop = LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'tool_timeout': .1, 'completion': {"model": "test/model"}})})
+        loop = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'tool_timeout': .1, 'completion': {"model": "test/model"}})})
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         run = await self.execute(session, "loop")
@@ -276,7 +278,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
     async def test_graph_agent_inherits_backend_tool_policy(self):
         completion = ScriptedCompletion([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
         _, project, session = await self.backend(components=[self.tools, WorkflowComponent(), AgentComponent()],
-            engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=completion)})})},
+            engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})})},
             policies={"tools": {"allowed_tools": []}})
         await (await project.components.aget("agents")).acreate({"engine": "loop", "purpose": "test", "completion": {"model": "test/model"},
             "tools": ["act"], "engine_options": {'policy': {'max_iterations': 2}}}, identifier="worker")
@@ -288,7 +290,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_loop_checks_budget_again_after_tool_result(self):
         loop, completion = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
-        counter = lambda request: 100 if any(item["role"] == "tool" for item in request["messages"]) else 1
+        counter = lambda request: 100 if any(item.role == "tool" for item in request.messages) else 1
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
             services=BackendServices(token_counters={"test": counter}))
         await configure_engine(session.project, "loop", input_policy={"max_tokens": 10, "counter": "test"})
@@ -610,34 +612,36 @@ class BudgetAndProjectionTests(unittest.TestCase):
     def test_long_history_uses_logarithmic_counter_calls(self):
         calls = []
         def count(request):
-            calls.append(len(request["messages"]))
+            calls.append(len(request.messages))
             return calls[-1]
         messages = [item for _ in range(1000) for item in (
-            {"role": "user", "content": "old"}, {"role": "assistant", "content": "reply"})]
-        messages.append({"role": "user", "content": "current"})
-        request = CompletionPolicy(8, counter=count).prepare({"messages": messages})
-        self.assertEqual(len(request["messages"]), 7)
+            ModelMessage("user", "old"), ModelMessage("assistant", "reply"))]
+        messages.append(ModelMessage("user", "current"))
+        request = CompletionPolicy(8, counter=count).prepare(ModelRequest(messages))
+        self.assertEqual(len(request.messages), 7)
         self.assertLessEqual(len(calls), 14)
 
     def test_budget_preserves_system_current_tool_pairs_and_original_request(self):
-        request = {"model": "test/model", "tools": [{"x": 1}], "messages": [
-            {"role": "system", "content": "rules"}, {"role": "user", "content": "old"},
-            {"role": "assistant", "content": "old answer"}, {"role": "user", "content": "new"},
-            {"role": "assistant", "tool_calls": [{"id": "call"}]},
-            {"role": "tool", "tool_call_id": "call", "content": "result"}]}
+        request = ModelRequest([
+            ModelMessage("system", "rules"), ModelMessage("user", "old"),
+            ModelMessage("assistant", "old answer"), ModelMessage("user", "new"),
+            ModelMessage("assistant", calls=(ToolCall("call", "act", {}),)),
+            ModelMessage("tool", result=ToolResult("call", "result"))],
+            {"model": "test/model"}, (ToolDefinition("act", "", {"type": "object"}),))
         seen = []
         def counter(value):
             seen.append(value)
-            return len(value["messages"]) + len(value["tools"])
+            return len(value.messages) + len(value.tools)
         result = CompletionPolicy(6, reserve_tokens=1, counter=counter).prepare(request)
-        self.assertEqual(result["messages"], [request["messages"][0], *request["messages"][3:]])
-        result["messages"][0]["content"] = "changed"
-        self.assertEqual(request["messages"][0]["content"], "rules")
-        self.assertTrue(all(item["tools"] for item in seen))
+        self.assertEqual(result.messages, [request.messages[0], *request.messages[3:]])
+        result.messages[0] = result.messages[0].with_text("changed")
+        self.assertEqual(request.messages[0].text, "rules")
+        self.assertTrue(all(item.tools for item in seen))
+        result.validate_exchanges()
 
     def test_current_input_is_never_truncated(self):
         with self.assertRaises(ExecutionLimitError) as raised:
-            CompletionPolicy(2, counter=lambda request: 3).prepare({"messages": [{"role": "user", "content": "large"}]})
+            CompletionPolicy(2, counter=lambda request: 3).prepare(ModelRequest([ModelMessage("user", "large")]))
         self.assertEqual(raised.exception.code, "context_budget_exceeded")
 
     def test_counts_follow_status_changes_replay_truncation_and_memory_clear(self):

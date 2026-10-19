@@ -1,6 +1,7 @@
 """모델 입력 선택 알고리즘. 설정은 호출하는 구현체가 해석하며 저장소를 소유하지 않는다."""
 
 from collections.abc import Callable
+from llm.core.model_protocol import ModelRequest
 from .errors import ExecutionLimitError
 
 
@@ -63,24 +64,27 @@ class CompletionPolicy:
         return cls(policy["max_tokens"], counter=counters[name],
                    **({"reserve_tokens": policy["reserve_tokens"]} if "reserve_tokens" in policy else {}))
 
-    def prepare(self, request: dict) -> dict:
+    def prepare(self, request: ModelRequest) -> ModelRequest:
         return self.prepare_turn(request)
 
-    def prepare_turn(self, request: dict, current_index=None, turn_starts=None) -> dict:
+    def prepare_turn(self, request: ModelRequest, current_index=None, turn_starts=None) -> ModelRequest:
         """provider 호출 직전에 사용한다. 반환 요청과 입력 요청은 독립적이다."""
         from llm.providers.parameters import copy_params
+        from llm.core.model_protocol import ModelRequest
+        if not isinstance(request, ModelRequest):
+            raise TypeError("Completion policy requires ModelRequest")
         result = copy_params(request)
-        messages = result.get("messages", [])
+        messages = result.messages
         latest = (next((i for i in range(len(messages) - 1, -1, -1)
-                        if messages[i].get("role") == "user"), 0) if current_index is None else current_index)
+                        if messages[i].role == "user"), 0) if current_index is None else current_index)
         if type(latest) is not int or latest < 0 or (messages and latest >= len(messages)):
             raise ValueError("Invalid current conversation boundary")
-        pinned = [item for item in messages[:latest] if item.get("role") in ("system", "developer")]
+        pinned = [item for item in messages[:latest] if item.role in ("system", "developer")]
         groups = []
         for index, item in enumerate(messages[:latest]):
-            if item.get("role") in ("system", "developer"):
+            if item.role in ("system", "developer"):
                 continue
-            start = item.get("role") == "user" if turn_starts is None else index in turn_starts
+            start = item.role == "user" if turn_starts is None else index in turn_starts
             if start or not groups:
                 groups.append([])
             groups[-1].append(item)
@@ -95,7 +99,7 @@ class CompletionPolicy:
         if fits():
             return result
         def select(index):
-            result["messages"] = pinned + [item for group in groups[index:] for item in group] + messages[latest:]
+            result.messages = pinned + [item for group in groups[index:] for item in group] + messages[latest:]
 
         select(len(groups))
         if not fits():

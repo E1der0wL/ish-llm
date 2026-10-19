@@ -1,4 +1,5 @@
 """Failed turns remain durable but are omitted from subsequent model inputs."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 from copy import deepcopy
 import tempfile
@@ -61,7 +62,7 @@ class ContextTests(unittest.IsolatedAsyncioTestCase):
             [chunk("bad partial"), RuntimeError("provider unavailable")], [chunk("new answer", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             config = HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:
                 await runtime.start()

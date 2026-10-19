@@ -119,6 +119,15 @@ class Conversation(ABC):
         return self._snapshot(self._messages[message_id])
 
     @_serialized
+    def pending_requests(self):
+        """Queue projection without loading unrelated Run/Step history."""
+        from llm.core.steering import is_queued_request
+        self._refresh()
+        return [self._snapshot(message) for message in self._messages.values()
+                if is_queued_request(message) or message.role == MessageRole.USER
+                and message.metadata.get("admission", {}).get("pending_agents")]
+
+    @_serialized
     def create(self, role: MessageRole, content: str, status: MessageStatus,
                *, message_id: Optional[str] = None, run_id: Optional[str] = None,
                metadata: Optional[dict] = None) -> Message:
@@ -180,7 +189,9 @@ class Conversation(ABC):
     @_serialized
     def bind_run(self, message_id: str, run_id: str) -> None:
         self._refresh()
-        self._messages[message_id]
+        message = self._messages[message_id]
+        if len(message.recipients) > 1:
+            raise ValueError("A multi-recipient User message cannot own a single Run")
         self._append({"type": "message.run", "id": message_id, "run_id": run_id})
 
     @_serialized

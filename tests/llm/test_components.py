@@ -1,4 +1,6 @@
+from llm.core.model_protocol import ModelRequest, ModelMessage, ToolCall, ToolResult, ToolDefinition
 """Generic component data, lifecycle, path safety and runtime tool adaptation."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 import inspect
@@ -259,14 +261,14 @@ class ToolDataTests(unittest.IsolatedAsyncioTestCase):
             data.configure({'config': {'enabled': []}})
             data.enable("add")
             resolved = ComponentToolResolver(registry).resolve_tools(projects.load(project.id))
-            self.assertEqual(resolved.definitions(), [definition])
+            self.assertEqual(resolved.definitions(), (ToolDefinition(**definition["function"]),))
             self.assertEqual(await resolved.get("add").handler({"a": 2}), "result")
             with self.assertRaises(ValueError):
-                resolved.prepare("add", '{"b": 1}')
+                resolved.prepare("add", {'b': 1})
             completion = ScriptedCompletion([chunk(calls=[call('{"a":2}')], finish="tool_calls")],
                                             [chunk("done", finish="stop")])
             engines = EngineRegistry()
-            engines.register("loop", LoopEngine(completion_fn=completion))
+            engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
             session = sessions.create(project, "Test")
             manager = RunManager(sessions, engines, session=session, capabilities=registry)
             try:

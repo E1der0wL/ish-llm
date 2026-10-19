@@ -41,6 +41,7 @@ class BackendServices:
     output_index_stride: int = 128
     backups: Optional[DirectoryBackups] = None
     observability_sink: Optional[Callable] = None
+    session_authorizer: Optional[Callable] = None
 
     def describe(self):
         """Host 자원의 읽기 전용 투영. callable/client/인증값을 직렬화하지 않는다."""
@@ -76,4 +77,7 @@ class BackendServices:
         builder = self.context_builder if self.context_builder is not None else ConversationContextBuilder()
         sessions = SessionManager(self.session_repository, conversations=self.conversations, context_builder=builder, runs=runs,
                             conversation_cache_size=self.conversation_cache_size)
+        if self.session_authorizer is not None and not callable(self.session_authorizer):
+            raise TypeError("session_authorizer must be callable")
+        sessions.transfers.authorize = self.session_authorizer
         return ProjectManager(projects, sessions, components=components, backups=self.backups, backup_steps=steps.repository), runs, steps

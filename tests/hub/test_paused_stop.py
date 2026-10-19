@@ -1,4 +1,5 @@
 """Stopping a checkpoint cancels interaction without executing or erasing it."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import tempfile
 import unittest
@@ -52,7 +53,7 @@ class PausedStopTests(unittest.IsolatedAsyncioTestCase):
             [chunk("Finished", finish="stop")], [chunk("Next answer", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             config = HubConfig(Path(root) / "hub", file_root=root, auto_title=False, model="test/model",
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:
                 await runtime.start()
@@ -105,7 +106,7 @@ class PausedStopTests(unittest.IsolatedAsyncioTestCase):
             [chunk("New answer", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(Path(root) / "hub", file_root=root, auto_title=False, model="test/model",
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 sid = await runtime.new_session()

@@ -687,7 +687,7 @@ class GraphEngine:
                 "max_parallelism": self.max_parallelism, "timeout_seconds": self.timeout_seconds,
                 "project_config": self._execution_config(context), "session_config": context.session.config,
                 "components": list(context.project.components),
-                "tools": context.tools.definitions(), "tool_contracts": context.tools.contracts(),
+                "tools": [tool.to_dict() for tool in context.tools.definitions()], "tool_contracts": context.tools.contracts(),
                 "tool_policy": context.tool_scope.binding() if context.tool_scope else None}  # persisted binding key
 
     def _environment(self):
@@ -903,7 +903,9 @@ class GraphEngine:
         if options.keys() - allowed:
             raise ValueError("Unsupported Graph Agent engine_options")
         # 빈 resources/tools도 의미 없는 별도 behavior/authority 계층이다.
-        unsupported = set(definition) - {"purpose", "description", "engine", "engine_options", "metadata"}
+        # Processor selection narrows inherited child capabilities; the Graph
+        # orchestrator itself has no model candidate or review callback.
+        unsupported = set(definition) - {"purpose", "description", "engine", "engine_options", "metadata", "completion_processors"}
         if unsupported:
             raise ValueError("Graph Agent only orchestrates Workflows; unsupported fields: " + ", ".join(sorted(unsupported)))
         worker = self.for_request({"workflow": options.pop("workflow", None)})

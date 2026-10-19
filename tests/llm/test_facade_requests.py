@@ -1,4 +1,5 @@
 """Per-request completion, result navigation and off-loop public operations."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import asyncio
 from pathlib import Path
@@ -278,7 +279,7 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         usage = {"choices": [], "usage": {"prompt_tokens": 2, "completion_tokens": 3, "total_tokens": 5}}
         provider = ScriptedCompletion([chunk("alpha", finish="stop"), usage],
                                       [chunk("beta", finish="stop"), usage])
-        shared = LoopEngine(completion_fn=provider)
+        shared = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
         self.app.engines.register("alpha", shared)
         self.app.engines.register("beta", shared)
         await self.project.asave(config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'project alpha', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 12}}, "beta": {'config': {'system_prompt': 'project beta', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 23}}, "loop": {'config': {'system_prompt': 'must not use', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 99}}}}})
@@ -302,7 +303,7 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         provider = ScriptedCompletion([chunk('one', finish='stop')])
         await self.project.asave(config={'parameters': {'engines': {
             'stage': {'config': {'system_prompt': 'inner', 'completion': {'model': 'openai/test'}}}}}})
-        self.app.engines.register('explicit', LoopEngine(completion_fn=provider, parameter_key='stage'))
+        self.app.engines.register('explicit', LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider), parameter_key='stage'))
         run = await (await self.session.run.submit('go', engine='explicit')).wait(timeout=5)
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
         self.assertEqual(provider.requests[0]['messages'][0]['content'], 'inner')

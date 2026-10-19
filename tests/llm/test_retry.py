@@ -1,4 +1,7 @@
 """재시도 단위·Application 수정안·승인·재개를 외부 모델 없이 검증한다."""
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ToolCall, ToolResult, ContentPart, ToolDefinition
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
 
 import asyncio
 from copy import deepcopy
@@ -112,7 +115,7 @@ class RetryTests(unittest.IsolatedAsyncioTestCase):
         from llm.components.rag import EmbeddingModel
         for changes in ({'model': 'different'}, {'input': ['different']}, {'cache': {}}, {'dimensions': 1}):
             call = AsyncMock(side_effect=TimeoutError())
-            model = EmbeddingModel(model='test', embedding_fn=call).with_provider({'max_attempts': 2}).with_retry(
+            model = EmbeddingModel(model='test', adapter=LiteLLMOperations(call=call)).with_provider({'max_attempts': 2}).with_retry(
                 lambda failure: RetryDecision(changes))
             with self.assertRaisesRegex(ValueError, 'cannot change'):
                 await model.embed(['original'])
@@ -133,8 +136,8 @@ class RetryTests(unittest.IsolatedAsyncioTestCase):
                 observed.append(failure)
                 return RetryDecision({'timeout': 2})
             async def execute():
-                return [event async for event in BaseEngine(completion_fn=stream).stream_completion(
-                    {'model': 'test'}, provider={'max_attempts': 2}, retry_decider=choose)]
+                return [event async for event in BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=stream)).stream_completion(
+                    ModelRequest([], {'model': 'test'}), provider={'max_attempts': 2}, retry_decider=choose)]
             if partial:
                 with self.assertRaises(Exception):
                     await execute()
@@ -163,7 +166,7 @@ class RetryTests(unittest.IsolatedAsyncioTestCase):
             async def run():
                 policy = {'max_attempts': 2, 'delay_seconds': 60}
                 if streaming:
-                    async for _ in BaseEngine(completion_fn=stream).stream_completion({'model': 'test'}, provider=policy):
+                    async for _ in BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=stream)).stream_completion(ModelRequest([], {'model': 'test'}), provider=policy):
                         pass
                 else:
                     await invoke('aembedding', {'model': 'test'}, call, policy)

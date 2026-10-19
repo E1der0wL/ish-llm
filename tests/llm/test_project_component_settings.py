@@ -1,3 +1,5 @@
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
 from llm.core.schema import implementation_schema
 from tests.llm.support.runtime_tools import RuntimeTools
 """Project 설정 전달, 단일 저장 경계, 공개 편의 API와 실제 실행을 검증한다."""
@@ -55,7 +57,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         async def embed(**params):
             requests.append(params)
             return await fake_embedding(**params)
-        model = EmbeddingModel(model="client-default", embedding_fn=embed, timeout=99)
+        model = EmbeddingModel(model="client-default", adapter=LiteLLMOperations(call=embed), timeout=99)
         app = self.backend(components=[RAGComponent(embedding=model, extractor=Extractor())])
         project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'config': {'embedding_params': {'model': 'project-model', 'timeout': 7}}}}})))
         rag = await project.components.aget("rag")
@@ -81,7 +83,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
             requests.append(kwargs)
             return await fake_embedding(**kwargs)
         app = self.backend(components=[RAGComponent(
-            embedding=EmbeddingModel(embedding_fn=embed), extractor=Extractor())])
+            embedding=EmbeddingModel(adapter=LiteLLMOperations(call=embed)), extractor=Extractor())])
         project = await app.projects.acreate(components=["rag"], config=rag_project(ProjectConfig(parameters={"components": {"rag": {'config': {'chunk_size': 64, 'embedding_params': {'model': 'project-model'}, 'search': {'method': 'bm25', 'limit': 1}}, 'policy': {'embedding_concurrency': 1}}}})))
         rag = await project.components.aget("rag")
         document = await rag.aadd_document(title="Manual", content="Alice owns Atlas. " * 12)
@@ -98,7 +100,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
     async def test_tool_conveniences_edit_project_source_and_execution_uses_selection(self):
         tools = ToolRegistry((Tool("echo", "Echo", {"type": "object"}, lambda args: args),))
         provider = ScriptedCompletion([chunk("done", finish="stop")])
-        app = self.backend(components=[RuntimeTools(tools)], engines={"loop": LoopEngine(completion_fn=provider)})
+        app = self.backend(components=[RuntimeTools(tools)], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
         project = await app.projects.acreate(components=["tools"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"tools": {'config': {'enabled': []}}}}))
         data = await project.components.aget("tools")
         path = project.paths.root / "tools" / "component.json"
@@ -192,7 +194,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
     async def test_project_output_policy_is_applied_to_run_and_other_project_inherits_host(self):
         provider = ScriptedCompletion([chunk("one"), chunk("two", finish="stop")], [chunk("other", finish="stop")])
         host = OutputBuffer(batch_size=2, max_delay=.04, max_chars=1000)
-        app = self.backend(services=BackendServices(output_buffer=host), engines={"loop": LoopEngine(completion_fn=provider)})
+        app = self.backend(services=BackendServices(output_buffer=host), engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
         project = await app.projects.acreate(config=ProjectConfig(policies={"output": {"batch_size": 4, "max_chars": 50}}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
         other = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
         seen = []

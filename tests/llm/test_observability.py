@@ -377,7 +377,7 @@ class BoundaryTests(unittest.TestCase):
                                           or isinstance(node.func.value, ast.Call) and isinstance(node.func.value.func, ast.Name)
                                           and node.func.value.func.id == 'litellm_sdk')
                                      for node in ast.walk(tree)), str(path))
-        client = ast.parse((root / 'components/rag/_client.py').read_text())
+        client = ast.parse((root / 'providers/operations.py').read_text())
         self.assertTrue(any(isinstance(node, ast.Await) and isinstance(node.value, ast.Call)
                             and isinstance(node.value.func, ast.Name) and node.value.func.id == 'request_model'
                             for node in ast.walk(client)))

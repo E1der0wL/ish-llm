@@ -1,4 +1,5 @@
 """Hub bootstrap and public llm handles are sufficient; no private backend storage access."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
 
 import tempfile
 import unittest
@@ -22,8 +23,8 @@ class SummaryAPITests(unittest.IsolatedAsyncioTestCase):
             model = ScriptedCompletion(answer(), answer(), answer(), answer(),
                 [chunk(calls=[call('{}', name='source_read')], finish='tool_calls')], answer())
             runtime = HubRuntime(HubConfig(directory, model='test/main', auto_title=False,
-                engine_factories={'loop': lambda: LoopEngine(completion_fn=model)},
-                component_factories=(lambda: MemoryComponent(completion_fn=auxiliary), DataComponent, SourceTools)))
+                engine_factories={'loop': lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
+                component_factories=(lambda: MemoryComponent(completion_adapter=LiteLLMCompletionAdapter(completion_fn=auxiliary)), DataComponent, SourceTools)))
             self.addAsyncCleanup(runtime.close)
             await runtime.start()
             identifier = await runtime.new_session()

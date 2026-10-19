@@ -1,4 +1,6 @@
 """RAG 예제는 공개 Component API만 조합하며 DB 구현을 복제하지 않는다."""
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
 
 from contextlib import redirect_stdout, redirect_stderr
 import importlib.util
@@ -65,9 +67,9 @@ class ComponentExampleTests(unittest.IsolatedAsyncioTestCase):
                                     seed="Alice", exercise_crud=False, ask=None)
 
     async def example(self, completion=None):
-        embedding = EmbeddingModel(model="test/embed", embedding_fn=fake_embedding)
+        embedding = EmbeddingModel(model="test/embed", adapter=LiteLLMOperations(call=fake_embedding))
         def engine(**kwargs):
-            return LoopEngine(completion_fn=completion, **kwargs)
+            return LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion), **kwargs)
         with patch.dict("os.environ", {"GEMINI_API_KEY": "test-placeholder"}), \
                 patch.object(rag_components, "EmbeddingModel", return_value=embedding), \
                 patch.object(rag_components, "TripleExtractor", return_value=Extractor()), \

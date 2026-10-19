@@ -25,6 +25,8 @@ from llm.core.steering import SteeringMode, SteeringRoute
 from llm.components.tools import ToolRegistry
 from llm.providers.streaming import CompletionError, CompletionUpdate, CompletionDecoder, CompletionAdapter
 from llm.providers.parameters import copy_params
+from llm.core.model_protocol import ModelRequest, ModelResponse
+
 from llm.providers.runtime import diagnostic_context, diagnostic_failure
 from llm.services.runtime.usage import current_usage
 from llm.policies.errors import ExecutionLimitError
@@ -318,9 +320,7 @@ class BaseEngine:
                      Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]]] = None,
                  metadata: Optional[dict] = None,
                  error_message: str = "Step execution failed",
-                 completion_fn: Optional[Callable[..., Iterator[Any]]] = None,
                  buffer_size: int = 8,
-                 completion_decoder: Optional[Callable[..., CompletionDecoder]] = None,
                  completion_adapter: Optional[CompletionAdapter] = None) -> None:
         if not isinstance(name, str) or not name.strip() or not isinstance(kind, str) or not kind.strip():
             raise ValueError("Step requires a name and kind")
@@ -335,11 +335,9 @@ class BaseEngine:
         self.action = action
         self.metadata = deepcopy(metadata or {})
         self.error_message = error_message
-        if completion_adapter is not None and (completion_fn is not None or completion_decoder is not None):
-            raise ValueError("Choose a completion adapter or LiteLLM function/decoder")
         if completion_adapter is None:
             from llm.providers.litellm import LiteLLMCompletionAdapter
-            completion_adapter = LiteLLMCompletionAdapter(completion_fn=completion_fn, completion_decoder=completion_decoder)
+            completion_adapter = LiteLLMCompletionAdapter()
         self.completion_adapter = completion_adapter
         self.buffer_size = buffer_size
         if type(buffer_size) is not int or buffer_size < 1:
@@ -428,8 +426,8 @@ class BaseEngine:
         """Copy builtin option containers, keeping live SDK clients/callbacks intact."""
         return copy_params(value)
 
-    async def stream_completion(self, request: Mapping[str, Any], *,
-                                response: Optional[dict] = None,
+    async def stream_completion(self, request: ModelRequest, *,
+                                response: Optional[list[ModelResponse]] = None,
                                 include_events: bool = True,
                                 provider: Optional[dict] = None,
                                 retry_decider=None,
@@ -454,10 +452,14 @@ class BaseEngine:
                 raise ValueError("Completion limits must be positive integers")
         policy = resolve_provider_options(provider if provider is not None else {})
         adapter = self.completion_adapter
+        if not isinstance(request, ModelRequest):
+            raise TypeError("Completion requires ModelRequest")
+        if response is not None and not isinstance(response, list):
+            raise TypeError("Completion capture requires a list of ModelResponse")
+        request = self.copy_params(request)
         maximum = adapter.effective_attempts(request, policy.get("max_attempts", 1)) - 1
         retry = RetryPolicy(maximum + 1, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
                             RetryPolicy.end(policy.get("wall_timeout")), "exponential")
-        request = self.copy_params(dict(request))
         call_id = new_id()
 
         def remaining():
@@ -469,7 +471,7 @@ class BaseEngine:
         for attempt in range(maximum + 1):
             call_details = {"call_id": call_id, "attempt": attempt + 1, **adapter.describe_request(request)}
             progress = {"received": False}
-            invocation = adapter.describe_call(self.copy_params(dict(request)))
+            invocation = adapter.describe_call(self.copy_params(request))
             result = CompletionResult(model=invocation.model)
             usage_scope = current_usage()
             if usage_scope is not None:
@@ -504,7 +506,7 @@ class BaseEngine:
                     error.diagnostic = diagnostic_failure(error, operation="completion",
                         stage="response_validation" if isinstance(error, CompletionError) else "deadline",
                         **call_details, response_received=progress["received"],
-                        finish_reason=result.finish_reason, response_id=result.response_id)
+                        finish_reason=result.finish_reason, termination=result.termination, response_id=result.response_id)
                 result.status = RunStatus.FAILED
                 result.ended_at = now()
                 result.duration_seconds = time.monotonic() - started
@@ -528,6 +530,8 @@ class BaseEngine:
                         raise error
                     if repaired is None:
                         raise
+                    if not isinstance(repaired, ModelRequest):
+                        raise TypeError("Completion recovery must return ModelRequest")
                     remaining()  # The callback cannot renew this invocation's deadline.
                     request = repaired
                     from llm.providers.runtime import diagnostic
@@ -545,8 +549,10 @@ class BaseEngine:
                 if selected is None:
                     raise
                 # Transcript/Tool authority/input budget은 이미 준비됐다. transport만 수정한다.
-                request = change_arguments(request, selected, allowed=adapter.retry_fields(request), copy=self.copy_params,
-                    validate=lambda value: adapter.validate_retry(value, original=request))
+                def validate(parameters):
+                    adapter.validate_retry(replace(request, parameters=parameters), original=request)
+                request = replace(request, parameters=change_arguments(request.parameters, selected,
+                    allowed=adapter.retry_fields(request), copy=self.copy_params, validate=validate))
                 try:
                     delay = retry_delay(retry, attempt + 1, error, policy)
                     if delay is None:
@@ -573,12 +579,12 @@ class BaseEngine:
 
                 return
 
-    async def _stream_completion(self, request: Mapping[str, Any], response: Optional[dict],
+    async def _stream_completion(self, request: ModelRequest, response: Optional[list[ModelResponse]],
                                  result: CompletionResult, progress: dict,
                                  max_tool_calls, max_argument_chars, max_output_chars) -> AsyncIterator[Union[str, EngineEvent]]:
-        params = self.completion_adapter.prepare(self.copy_params(dict(request)))
-        if response is not None and not isinstance(response, dict):
-            raise TypeError("Completion response must be a dictionary")
+        params = self.completion_adapter.prepare(self.copy_params(request))
+        if not isinstance(params, ModelRequest):
+            raise TypeError("Completion adapter must prepare ModelRequest")
         decoder = self.completion_adapter.decoder(max_tool_calls=max_tool_calls,
             max_argument_chars=max_argument_chars, max_output_chars=max_output_chars)
         async with aclosing(self.completion_adapter.stream(
@@ -591,7 +597,7 @@ class BaseEngine:
                     if not isinstance(update, CompletionUpdate):
                         raise TypeError("Completion decoder must yield CompletionUpdate")
                     changed = False
-                    for key in ("response_id", "model", "finish_reason"):
+                    for key in ("response_id", "model", "finish_reason", "termination"):
                         value = getattr(update, key)
                         if value is not None and value != getattr(result, key):
                             setattr(result, key, value)
@@ -610,12 +616,10 @@ class BaseEngine:
                         yield update.text
         result.usage_complete = bool(result.usage)
         message = decoder.finish()
-        if not isinstance(message, dict):
-            raise TypeError("Completion decoder must return a message object")
+        if not isinstance(message, ModelResponse):
+            raise TypeError("Completion decoder must return ModelResponse")
         if response is not None:
-            message = deepcopy(message)
-            response.clear()
-            response.update(message)
+            response[:] = [deepcopy(message)]
 
     def run(self, context: EngineContext) -> Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]:
         """문자열/EngineDelta/마지막 EngineOutput을 yield하거나 EngineOutput/None을 반환한다."""

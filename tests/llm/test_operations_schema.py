@@ -1,3 +1,5 @@
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
 from llm.core.schema import implementation_schema
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.configuration_fixtures import rag_project, rag_settings
@@ -42,7 +44,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(directory.cleanup)
         model = ScriptedCompletion(*(responses or [[chunk("answer", finish="stop")]]))
         app = LargeLanguageModel(directory.name, components=components,
-            engines={"custom": LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=runtime or ToolRuntime()))
+            engines={"custom": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=runtime or ToolRuntime()))
         self.addAsyncCleanup(app.shutdown)
         return app, model
 
@@ -174,6 +176,11 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         plan = await project.arecovery()
         value = runs[0].data
         value.input_message_id = "missing"
+        # Keep the new context envelope internally valid while deliberately
+        # corrupting its external Message reference, as this test requires.
+        from llm.services.infrastructure.storage import revision_token
+        value.metadata["context_snapshot"][-1]["id"] = "missing"
+        value.metadata["context_revision"] = revision_token(value.metadata["context_snapshot"])
         with app.project_manager.ownership.scope():
             app.run_repository.save(value)
         with self.assertRaisesRegex(ValueError, "recovery_conflict"):
@@ -196,8 +203,8 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
                     await project.asave(config=config)
                     await project.aretention()
                     request = calls[-1]
-                    self.assertTrue(request["messages"])
-                    self.assertEqual({key: value for key, value in request.items() if key != "messages"}, params)
+                    self.assertTrue(request.messages)
+                    self.assertEqual(request.parameters, params)
         with self.assertRaises(ValueError):
             ProjectConfig(policies={"retention": {"counter_params": {"messages": []}}})
 
@@ -277,8 +284,8 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         async def extraction(**request):
             return {"choices": [{"message": {"content": '{"entities": [], "relations": []}'}}],
                     "usage": {"total_tokens": 7}}
-        return RAGComponent(embedding=EmbeddingModel(model="test/embedding", embedding_fn=embed or embedding),
-                            extractor=TripleExtractor(model="test/extract", completion_fn=extraction, max_tokens=20))
+        return RAGComponent(embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=embed or embedding)),
+                            extractor=TripleExtractor(model="test/extract", adapter=LiteLLMOperations(call=extraction), max_tokens=20))
 
     async def test_independent_rag_and_loop_share_project_call_quota(self):
         app, model = await self.app(components=[self.rag()])

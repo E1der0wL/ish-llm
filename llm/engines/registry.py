@@ -66,6 +66,48 @@ class EngineRegistry:
     def get(self, name: str) -> Engine:
         return self._engines[name]
 
+    def resolve_agent(self, definition: dict, *, adapter="agent") -> Engine:
+        """Bind one selected definition without invoking its Engine or effects.
+
+        The explicit engine-request-v1 adapter preserves historical checkpoint
+        fingerprints. It is an Agent factory adaptation, never another runtime.
+        """
+        from llm.core.agents import AgentDefinition
+        AgentDefinition.validate("selected", definition)
+        name = definition["engine"]
+        engine = self.get(name)
+        if adapter == "engine-request-v1":
+            if (set(definition) - {"engine", "engine_options", "metadata"}
+                    or definition.get("metadata") != {"compatibility": adapter}):
+                raise ValueError("Invalid legacy Agent factory binding")
+            return self.resolve_request(name, definition.get("engine_options", {}))
+        if adapter != "agent":
+            raise ValueError("Unsupported Agent factory adapter")
+        factory = getattr(engine, "for_agent", None)
+        if not callable(factory):
+            # Minimal custom Engines keep their public request factory. Agent
+            # fields they cannot interpret must not disappear silently.
+            if set(definition) - {"engine", "engine_options", "purpose", "description", "metadata",
+                                  "tools", "resources", "policy", "input_schema", "output_schema", "output_format"}:
+                raise ValueError("Agent configuration requires Engine.for_agent(definition)")
+            return self.resolve_request(name, definition.get("engine_options", {}))
+        bound = factory(deepcopy(definition))
+        if inspect.isawaitable(bound):
+            if inspect.iscoroutine(bound):
+                bound.close()
+            raise TypeError("Engine for_agent must be synchronous")
+        if not callable(getattr(bound, "execute", None)):
+            raise TypeError("for_agent must return an Engine")
+        required_capabilities(bound)
+        if steering_mode(bound) != steering_mode(engine):
+            raise ValueError("Agent binding must preserve Engine steering mode")
+        if steering_mode(bound) == SteeringMode.CONSUME:
+            checkpoint = getattr(bound, "checkpoint_name", None)
+            if (not isinstance(checkpoint, str) or not checkpoint.strip()
+                    or not callable(getattr(bound, "validate_resume", None))):
+                raise ValueError("Steerable Agent engine requires checkpoint_name and validate_resume")
+        return bound
+
     def resolve_request(self, name: str, options: dict) -> Engine:
         """JSON 요청 인자를 실행별 Engine에 연결한다. 등록 인스턴스는 변경하지 않는다.
 

@@ -1,3 +1,4 @@
+from llm.providers.litellm import LiteLLMCompletionAdapter
 from llm.core.schema import implementation_schema
 """Public-schema forms, project lifecycle, and real PTK settings input."""
 
@@ -108,7 +109,7 @@ class SettingsFormTests(unittest.TestCase):
             form.values()
 
     def test_runtime_host_and_client_values_are_not_materialized(self):
-        engine = LoopEngine(completion_fn=lambda **kwargs: iter(()))
+        engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=lambda **kwargs: iter(())))
         view = engine.resolve_config({}, "loop")
         form = SchemaForm(engine.describe_config(), {}, Language("en"), effective={"loop": view})
         model = form.fields[("config", "completion", "model")]
@@ -245,7 +246,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             config = HubConfig(directory, model="test/model", auto_title=False,
                 project_config={"parameters": {"engines": {"loop": {"config": {"system_prompt": "stored prompt"}}}}},
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
@@ -290,7 +291,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
             yield {"choices": [{"index": 0, "delta": {"content": "Done"}, "finish_reason": "stop"}]}
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             config = HubConfig(directory, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
             view, screen = controller.view, controller.view.settings
             path = ("config", "parameters", "engines", "loop", "config", "completion", "reasoning_effort")
