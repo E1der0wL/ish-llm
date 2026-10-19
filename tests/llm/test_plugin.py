@@ -128,7 +128,7 @@ assert manager._get_plugin_entry_point(directory).name == 'llm.py'
 meta = manager._get_plugin_meta(directory / 'llm.py')
 # 현재 호스트는 Python 의존성과 ish 플러그인 요구 사항을 별도로 파싱한다.
 with patch('ish.plugin.manager.has_duplicate_metadata', return_value=False), patch('ish.plugin.manager.has_import', return_value=True) as has_import:
-    assert manager._library_available('rank-bm25|rank_bm25', import_parents=False)
+    assert manager._is_library_available('rank-bm25|rank_bm25', import_parents=False)
 has_import.assert_called_once_with('rank_bm25')
 # No package installs or network requests in a contract test.
 with patch.object(manager, '_ensure_library', return_value=True) as ensure:
