@@ -453,7 +453,8 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         session._model = auxiliary
         original = [CompletionMessage({'role': 'user', 'content': 'work'}, 'input')]
         for identifier, content in (('old', 'x' * 900), ('latest', 'keep')):
-            original.extend([CompletionMessage({'role': 'assistant', 'tool_calls': [{'id': identifier}]}),
+            original.extend([CompletionMessage({'role': 'assistant', 'tool_calls': [{'id': identifier,
+                'function': {'name': 'act', 'arguments': '{}'}}]}),
                              CompletionMessage({'role': 'tool', 'tool_call_id': identifier, 'content': content})])
         for attempt in range(20):
             request = CompletionRequest({}, deepcopy(original), attempt)

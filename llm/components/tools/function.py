@@ -10,6 +10,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 from llm.core.models import ProjectConfig
 from .registry import Tool, ToolContract, ToolRegistry
+from llm.core.model_protocol import ToolDefinition
 
 
 def _supported(annotation):
@@ -72,8 +73,7 @@ def function_tool(name, main) -> Tool:
     parameters = {"type": "object", "properties": properties, "required": required, "additionalProperties": False}
     async def handler(arguments):
         return await main(**arguments)
-    definition = {"type": "function", "function": {"name": name, "description": description,
-        "parameters": parameters, **getattr(main, "__tool_options__", {})}}
+    definition = ToolDefinition(name, description, parameters, **getattr(main, "__tool_options__", {}))
     value = Tool(name, description, parameters, handler, definition, contract)
     ToolRegistry((value,))
     return value

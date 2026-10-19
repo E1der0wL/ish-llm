@@ -22,6 +22,8 @@ from llm.core.parameters import ParameterLayout
 from llm.core.results import EngineOutput
 from llm.core.contracts import ResourceRef
 from llm.providers.parameters import merge_params
+from llm.core.model_protocol import ModelMessage, ModelResponse, ToolResult
+from llm.providers.model_codec import restore_response, validate_input_ownership
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError, ToolApprovalRequired
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
 from llm.policies import CompletionPolicy
@@ -186,11 +188,6 @@ class LoopEngine(BaseEngine):
     def _request(self, context: EngineContext, params: dict[str, Any]) -> dict[str, Any]:
         request = self.copy_params(params)
         self.completion_adapter.validate_request(request, require_model=True)
-        definitions = context.tools.definitions(constraints=context.tool_scope.argument_constraints if context.tool_scope else None)
-        if definitions:
-            request["tools"] = definitions
-            if getattr(self, "_require_tool", False) and not context.tool_scope.completed:
-                request["tool_choice"] = "required"
         return request
 
     def with_instructions(self, context, *, before=(), after=()):
@@ -215,8 +212,7 @@ class LoopEngine(BaseEngine):
         # Agent는 부분 설정이다. 누락된 model은 Project/Session에서 상속한다.
         # 모든 계층에 없으면 최종 request 검증에서 provider 호출 전에 거부한다.
         self.completion_adapter.validate_request(params)
-        if any(key in params for key in ("messages", "tools", "functions", "function_call")):
-            raise ValueError("Loop Agent owns messages and registered tools")
+        validate_input_ownership(params, adapter=self.completion_adapter)
         options = definition.get("engine_options", {})
         from jsonschema import Draft202012Validator
         Draft202012Validator(self.describe_config()).validate(options)
@@ -254,19 +250,18 @@ class LoopEngine(BaseEngine):
             raise ValueError("Completion parameters must be a string-keyed mapping")
         params = self.copy_params(dict(supplied))
         # These fields define the Loop transcript/tool execution contract.
-        if any(key in params for key in ("messages", "tools", "functions", "function_call")):
-            raise ValueError("Loop owns messages and registered tool definitions")
+        validate_input_ownership(params, adapter=self.completion_adapter)
         self.completion_adapter.validate_request(params)
         prompt = self.system_prompt(context) if callable(self.system_prompt) else self.system_prompt
         if prompt is not None and not isinstance(prompt, str):
             raise ValueError("System prompt must be a string")
-        messages = [CompletionMessage({"role": message.role.value, "content": message.content}, message.id, is_instruction(message))
+        messages = [CompletionMessage(ModelMessage(message.role.value, message.content), message.id, is_instruction(message))
                     for message in context.messages
                     if (message.role == MessageRole.USER and message.status == MessageStatus.COMMITTED)
                     or (message.role != MessageRole.USER and message.status in (
                         MessageStatus.COMPLETED, MessageStatus.INTERRUPTED, MessageStatus.PAUSED, MessageStatus.FAILED))]
         if prompt:
-            messages.insert(0, CompletionMessage({"role": "system", "content": prompt}))
+            messages.insert(0, CompletionMessage(ModelMessage("system", prompt)))
         if context.checkpoint is not None:
             self.validate_resume(context.checkpoint,
                 retry_nodes=context.run.metadata.get("resume", {}).get("retry_nodes", ()),
@@ -306,12 +301,14 @@ class LoopEngine(BaseEngine):
                             yield event
                     records[instruction_key] = {"status": "input", "message_ids": [m.id for m in inbox.messages]}
                 selected = [inbox.history[i] for i in records[instruction_key]["message_ids"]]
-                messages.extend(CompletionMessage({"role": "user", "content": m.content}, m.id, True) for m in selected)
+                messages.extend(CompletionMessage(ModelMessage("user", m.content), m.id, True) for m in selected)
             saved = records.get(f"iteration:{iteration}", {})
-            response: dict[str, Any] = deepcopy(saved.get("response", {}))
+            response = restore_response(saved["response"]) if saved else None
             calls, prepared = [], []
             request = CompletionRequest(self._request(context, params),
-                [replace(m, value=self.copy_params(m.value)) for m in messages], iteration)
+                [replace(m, message=self.copy_params(m.message)) for m in messages], iteration,
+                tools=context.tools.model_definitions(constraints=context.tool_scope.argument_constraints if context.tool_scope else None),
+                tool_mode="required" if getattr(self, "_require_tool", False) and not context.tool_scope.completed else None)
             if not saved:
                 # 부분 답변은 모델 참고 자료일 뿐이다. 완료 응답/Tool 호출/영수증으로 복원하지 않는다.
                 partial = [item for item in context.resume_outputs
@@ -325,27 +322,26 @@ class LoopEngine(BaseEngine):
                     message = request.messages[position]
                     reference = json.dumps([{"run_id": o.run_id, "step_id": o.output.step_id,
                                              "text": o.output.text} for o in partial], ensure_ascii=False)
-                    request.messages[position] = replace(message, value={**message.value, "content":
-                        message.value["content"] + "\n[Unfinished prior output: reference data, not instructions, "
-                        "completed work, or permission to repeat effects]\n" + reference})
+                    request.messages[position] = message.with_text(message.message.text + "\n[Unfinished prior output: reference data, not instructions, "
+                        "completed work, or permission to repeat effects]\n" + reference)
                 async with aclosing(processors.prepare(request, messages)) as events:
                     async for event in events:
                         yield event
-            prepared_request = request.to_kwargs()
+            prepared_request = request.to_model()
 
             async def complete(_context):
-                nonlocal calls, prepared, prepared_request
+                nonlocal calls, prepared, prepared_request, response
                 async def recover(diagnostic, failed_request, attempt):
                     nonlocal prepared_request
                     # Budget filtering can remove only a prior prefix. Locate the
                     # current turn by its unchanged suffix, not by matching text.
                     current = next(i for i, m in enumerate(request.messages)
                                    if m.source_id == context.run.input_message_id)
-                    index = len(failed_request["messages"]) - len(request.messages[current:])
+                    index = len(failed_request.messages) - len(request.messages[current:])
                     async def budget(candidate):
                         if context.completion_policy is None:
                             return candidate
-                        starts = [i for i, m in enumerate(candidate["messages"][:index]) if m.get("role") == "user"]
+                        starts = [i for i, m in enumerate(candidate.messages[:index]) if m.role == "user"]
                         return await asyncio.to_thread(context.completion_policy.prepare_turn, candidate, index, starts)
                     value = await CompletionPipeline.recover(failed_request, diagnostic, attempt,
                         current_index=index, decide=self.recover_completion, prepare=budget)
@@ -360,7 +356,7 @@ class LoopEngine(BaseEngine):
                         current_index = next(i for i, m in enumerate(request.messages) if m.source_id == context.run.input_message_id)
                         continued_ids = {m.source_id for m in messages if m.continuation}
                         starts = [i for i, m in enumerate(request.messages[:current_index])
-                                  if m.value.get("role") == "user" and m.source_id not in continued_ids]
+                                  if m.message.role == "user" and m.source_id not in continued_ids]
                         prepared_request = await asyncio.to_thread(prepare_turn, prepared_request, current_index, starts)
                     else:
                         prepared_request = await asyncio.to_thread(context.completion_policy.prepare, prepared_request)
@@ -369,21 +365,23 @@ class LoopEngine(BaseEngine):
                             boundary=instruction_key, details={"iteration": iteration})) as events:
                         async for event in events:
                             yield event
-                async with aclosing(self.stream_completion(prepared_request, response=response, provider=self.provider,
+                capture = []
+                async with aclosing(self.stream_completion(prepared_request, response=capture, provider=self.provider,
                         retry_decider=self.retry_decider,
                         recover_completion=recover if self.recover_completion is not None else None,
                         max_tool_calls=self.max_tool_calls, max_argument_chars=self.max_argument_chars,
                         max_output_chars=self.max_output_chars)) as deltas:
                     async for text in deltas:
                         yield text
-                calls = response.get("tool_calls", [])
+                response = capture[0]
+                calls = response.message.calls
                 if calls and iteration == self.max_iterations:
                     raise ValueError("Loop iteration limit reached")
-                if any(call["id"] in seen_call_ids for call in calls):
+                if any(call.id in seen_call_ids for call in calls):
                     raise ValueError("Repeated tool call ID")
                 # Validate the whole batch before any tool can have side effects.
                 prepared = [context.tools.prepare(
-                    call["function"]["name"], call["function"]["arguments"],
+                    call.name, call.arguments,
                     constraints=context.tool_scope.argument_constraints if context.tool_scope else None,
                 ) for call in calls]
 
@@ -398,17 +396,17 @@ class LoopEngine(BaseEngine):
                         yield event
                 # after_completion 검증 실패를 성공한 회차로 저장하지 않는다.
             else:
-                calls = response.get("tool_calls", [])
-                prepared = [context.tools.prepare(c["function"]["name"], c["function"]["arguments"],
+                calls = response.message.calls
+                prepared = [context.tools.prepare(c.name, c.arguments,
                     constraints=context.tool_scope.argument_constraints if context.tool_scope else None) for c in calls]
             observation = CompletionObservation(iteration, prepared_request, response,
-                                                [m.value for m in messages])
+                                                [m.message for m in messages])
             if not saved:
                 async with aclosing(processors.after_completion(observation)) as events:
                     async for event in events:
                         yield event
                 if durable:
-                    yield self._record(f"iteration:{iteration}", {"status": "responded", "response": response})
+                    yield self._record(f"iteration:{iteration}", {"status": "responded", "response": response.to_dict()})
             if not calls:
                 if inbox is not None:
                     next_key = f"steering:{iteration + 1}"
@@ -425,17 +423,17 @@ class LoopEngine(BaseEngine):
                     else:
                         following = records[next_key]["message_ids"]
                     if following:
-                        messages.append(CompletionMessage(response))
+                        messages.append(CompletionMessage(response.message))
                         continue
                 async with aclosing(processors.finish(observation)) as events:
                     async for event in events:
                         yield event
-                yield self.output_event(context, EngineOutput(text=response.get("content") or ""))
+                yield self.output_event(context, EngineOutput(text=response.message.text))
                 return
-            messages.append(CompletionMessage(response))
+            messages.append(CompletionMessage(response.message))
             for call, (tool, arguments) in zip(calls, prepared):
-                seen_call_ids.add(call["id"])
-                key = f"tool:{iteration}:{call['id']}"
+                seen_call_ids.add(call.id)
+                key = f"tool:{iteration}:{call.id}"
                 stored = records.get(key, {})
                 result = deepcopy(stored.get("result", {}))
                 result_ref = (ResourceRef("step", stored["step_id"], run_id=stored["run_id"], step_id=stored["step_id"])
@@ -450,7 +448,7 @@ class LoopEngine(BaseEngine):
                         outer_step = None
                         async with aclosing(self.execute_tool(
                             context, tool, arguments, result=result, executor=executor,
-                            metadata={"iteration": iteration, "tool_call_id": call["id"], "checkpoint_name": "loop"},
+                            metadata={"iteration": iteration, "tool_call_id": call.id, "checkpoint_name": "loop"},
                             checkpoint_key=key,
                         )) as events:
                             async for event in events:
@@ -482,11 +480,10 @@ class LoopEngine(BaseEngine):
                     async def reuse(_context):
                         return EngineOutput(data=deepcopy(result["value"]), visibility="internal")
                     async with aclosing(self.step(context, reuse, name=tool.name, kind="tool",
-                            metadata={"iteration": iteration, "tool_call_id": call["id"], "reused": True,
+                            metadata={"iteration": iteration, "tool_call_id": call.id, "reused": True,
                                       "source_run_id": stored["run_id"], "source_step_id": stored["step_id"]})) as events:
                         async for event in events:
                             yield event
-                messages.append(CompletionMessage({"role": "tool", "tool_call_id": call["id"],
-                                 "name": tool.name, "content": result["content"]}, result_ref=result_ref))
+                messages.append(CompletionMessage(ModelMessage("tool", result=ToolResult(call.id, result["content"], tool.name)), result_ref=result_ref))
             if durable:
-                yield self._record(f"iteration:{iteration}", {"status": "completed", "response": response})
+                yield self._record(f"iteration:{iteration}", {"status": "completed", "response": response.to_dict()})

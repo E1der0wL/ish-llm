@@ -7,7 +7,6 @@ SDK objects. Runtime options may retain client/callback identity until transport
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from enum import StrEnum
-import json
 import math
 
 
@@ -28,6 +27,12 @@ def json_copy(value):
         raise ValueError('Model state must contain finite JSON values')
     check(value)
     return deepcopy(value)
+
+
+def opaque_copy(value):
+    if not isinstance(value, dict):
+        raise ValueError('Opaque adapter state requires a JSON object')
+    return json_copy(value)
 
 
 def option_copy(value):
@@ -66,7 +71,7 @@ class ContentPart:
             raise ValueError('Invalid model content part')
         if self.media_type is not None and not isinstance(self.media_type, str):
             raise TypeError('Media type must be text')
-        object.__setattr__(self, 'opaque', json_copy(self.opaque))
+        object.__setattr__(self, 'opaque', opaque_copy(self.opaque))
 
     def to_dict(self):
         return dict(kind=self.kind, value=self.value, media_type=self.media_type, opaque=json_copy(self.opaque))
@@ -83,7 +88,7 @@ class ToolCall:
         if any(not isinstance(v, str) or not v for v in (self.id, self.name)) or not isinstance(self.arguments, dict):
             raise ValueError('A completed Tool call requires ID, name and argument object')
         object.__setattr__(self, 'arguments', json_copy(self.arguments))
-        object.__setattr__(self, 'opaque', json_copy(self.opaque))
+        object.__setattr__(self, 'opaque', opaque_copy(self.opaque))
 
     def to_dict(self):
         return dict(id=self.id, name=self.name, arguments=json_copy(self.arguments), opaque=json_copy(self.opaque))
@@ -121,7 +126,7 @@ class ToolDefinition:
         if self.strict is not None and type(self.strict) is not bool:
             raise TypeError('strict must be boolean or None')
         object.__setattr__(self, 'parameters', json_copy(self.parameters))
-        object.__setattr__(self, 'opaque', json_copy(self.opaque))
+        object.__setattr__(self, 'opaque', opaque_copy(self.opaque))
 
     def to_dict(self):
         return dict(name=self.name, description=self.description, parameters=json_copy(self.parameters),
@@ -150,7 +155,7 @@ class ModelMessage:
             raise ValueError('Invalid Tool result message')
         if self.role == 'tool' and (self.result is None or self.content is not None):
             raise ValueError('Tool content belongs to the ToolResult')
-        object.__setattr__(self, 'opaque', json_copy(self.opaque))
+        object.__setattr__(self, 'opaque', opaque_copy(self.opaque))
 
     @property
     def text(self):
@@ -191,6 +196,7 @@ class ModelRequest:
     messages: list[ModelMessage] = field(default_factory=list)
     parameters: dict = field(default_factory=dict)
     tools: tuple[ToolDefinition, ...] = ()
+    tool_mode: str | None = None
 
     def __post_init__(self):
         if not isinstance(self.messages, list) or any(not isinstance(m, ModelMessage) for m in self.messages):
@@ -201,6 +207,8 @@ class ModelRequest:
             raise TypeError('Model request requires typed Tool definitions')
         if len({t.name for t in self.tools}) != len(self.tools):
             raise ValueError('Duplicate model Tool definition')
+        if self.tool_mode not in (None, 'required', 'auto', 'none'):
+            raise ValueError('Invalid model Tool selection')
 
     def validate_exchanges(self, *, complete=True):
         pending, seen = set(), set()
@@ -221,7 +229,7 @@ class ModelRequest:
 
     def to_dict(self):
         return dict(version=1, messages=[m.to_dict() for m in self.messages],
-                    parameters=json_copy(self.parameters), tools=[t.to_dict() for t in self.tools])
+                    parameters=json_copy(self.parameters), tools=[t.to_dict() for t in self.tools], tool_mode=self.tool_mode)
 
     @classmethod
     def from_dict(cls, value):
@@ -229,7 +237,7 @@ class ModelRequest:
         if value.pop('version', None) != 1:
             raise ValueError('Unsupported model request version')
         return cls([ModelMessage.from_dict(m) for m in value['messages']], value['parameters'],
-                   tuple(ToolDefinition(**t) for t in value['tools']))
+                   tuple(ToolDefinition(**t) for t in value['tools']),value.get('tool_mode'))
 
 
 @dataclass(frozen=True, slots=True)
@@ -245,6 +253,9 @@ class ModelResponse:
         if not isinstance(self.message, ModelMessage) or self.message.role != 'assistant':
             raise ValueError('Model response requires an assistant message')
         object.__setattr__(self, 'stop', StopReason(self.stop))
+        if any(v is not None and not isinstance(v, str)
+               for v in (self.response_id, self.model, self.raw_finish_reason)):
+            raise TypeError('Response identities must be text or None')
         if self.usage is not None:
             def validate(value):
                 if not isinstance(value, dict):
@@ -270,3 +281,75 @@ class ModelResponse:
             raise ValueError('Unsupported model response version')
         value['message']=ModelMessage.from_dict(value['message'])
         return cls(**value)
+
+
+@dataclass(frozen=True, slots=True)
+class CompletionUpdate:
+    text: str = ""
+    reasoning: str = ""
+    response_id: str | None = None
+    model: str | None = None
+    usage: dict | None = None
+    finish_reason: str | None = None  # Legacy observation, not interpreted by consumers.
+    termination: StopReason | None = None
+
+    def __post_init__(self):
+        if not isinstance(self.text, str) or not isinstance(self.reasoning, str):
+            raise TypeError("Completion deltas must be text")
+        if any(value is not None and not isinstance(value, str)
+               for value in (self.response_id, self.model, self.finish_reason)):
+            raise TypeError("Completion identities and termination must be text or None")
+        if self.usage is not None:
+            def validate(value):
+                if not isinstance(value, dict):
+                    raise TypeError("Completion usage must be a normalized dictionary")
+                for key, item in value.items():
+                    if not isinstance(key, str):
+                        raise TypeError("Completion usage keys must be text")
+                    if isinstance(item, dict):
+                        validate(item)
+                    elif type(item) is not int or item < 0:
+                        raise ValueError("Completion usage must contain nonnegative integers")
+            validate(self.usage)
+            object.__setattr__(self, "usage", json_copy(self.usage))
+        if self.termination is not None:
+            object.__setattr__(self, "termination", StopReason(self.termination))
+
+
+
+@dataclass(frozen=True, slots=True)
+class EmbeddingResult:
+    vector: tuple[float, ...]
+    usage: dict | None = None
+
+    def __post_init__(self):
+        if (not isinstance(self.vector, tuple) or not self.vector or
+                any(type(v) not in (int, float) or not math.isfinite(v) for v in self.vector)):
+            raise ValueError('Embedding requires a finite nonempty vector')
+        checked = CompletionUpdate(usage=self.usage)
+        object.__setattr__(self, 'usage', checked.usage)
+
+
+@dataclass(frozen=True, slots=True)
+class RankedDocument:
+    index: int
+    score: float
+
+    def __post_init__(self):
+        if (type(self.index) is not int or self.index < 0 or
+                type(self.score) not in (int, float) or not math.isfinite(self.score)):
+            raise ValueError('Ranking requires a nonnegative index and finite score')
+
+
+@dataclass(frozen=True, slots=True)
+class RerankResult:
+    documents: tuple[RankedDocument, ...]
+    usage: dict | None = None
+
+    def __post_init__(self):
+        if (not isinstance(self.documents, tuple) or
+                any(not isinstance(row, RankedDocument) for row in self.documents) or
+                len({row.index for row in self.documents}) != len(self.documents)):
+            raise ValueError('Ranking requires unique typed document results')
+        checked = CompletionUpdate(usage=self.usage)
+        object.__setattr__(self, 'usage', checked.usage)

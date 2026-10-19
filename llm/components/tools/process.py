@@ -228,8 +228,7 @@ def inspect_tool(project, name, data, plugin_lib=None):
     if not isinstance(descriptor, dict) or set(descriptor) != {"name", "description", "parameters", "definition", "contract"} or descriptor["name"] != name:
         raise WorkerError("tool_worker_protocol", "Invalid Tool descriptor")
     if (not isinstance(descriptor["description"], str) or not descriptor["description"].strip()
-            or any(not isinstance(descriptor[key], dict) for key in ("parameters", "definition", "contract"))
-            or not isinstance(descriptor["definition"].get("function"), dict)):
+            or any(not isinstance(descriptor[key], dict) for key in ("parameters", "definition", "contract"))):
         raise WorkerError("tool_worker_protocol", "Invalid Tool descriptor fields")
     try:
         contract = ToolContract(**{**descriptor["contract"], "retry_fields": tuple(descriptor["contract"]["retry_fields"])})

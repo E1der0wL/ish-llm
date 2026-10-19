@@ -16,6 +16,8 @@ from collections.abc import Mapping
 from .streaming import CompletionError, CompletionUpdate
 from .calls import current_calls
 from llm.errors import CodedError, stable_error_code
+from llm.core.model_protocol import ModelRequest, ModelResponse, StopReason, option_copy
+from .model_codec import request_to_legacy, request_from_legacy, message_from_legacy, stop_reason, counter_input
 
 
 class StreamError(CodedError, RuntimeError):
@@ -39,6 +41,9 @@ def describe_call(operation, request):
     from .requests import error_code
     from llm.policies import ExecutionLimitError
 
+    common = request if isinstance(request, ModelRequest) else None
+    request = request_to_legacy(request)
+
     def count_tokens(counter):
         counted = copy_params(request)
         if operation in ("aembedding", "arerank"):
@@ -51,7 +56,7 @@ def describe_call(operation, request):
                 raise ExecutionLimitError("usage_configuration", "Token quota requires an explicit completion output limit")
         else:
             raise ExecutionLimitError("usage_configuration", "Adapter has no token accounting contract for this operation")
-        count = counter(counted)
+        count = counter(counter_input(counter, common if common is not None else counted))
         if type(count) is not int or count < 0:
             raise ExecutionLimitError("usage_configuration", "Token counter must return a nonnegative integer")
         return count + output
@@ -87,6 +92,8 @@ def prepare_stream(request):
 class LiteLLMCompletionAdapter:
     """LiteLLM-specific request/retry/decoder semantics behind a replaceable boundary."""
 
+    model_protocol = 1
+
     def __init__(self, *, completion_fn=None, completion_decoder=None):
         self.completion_fn = completion if completion_fn is None else completion_fn
         self.completion_decoder = LiteLLMCompletionDecoder if completion_decoder is None else completion_decoder
@@ -94,6 +101,11 @@ class LiteLLMCompletionAdapter:
             raise TypeError("Completion function and decoder must be callable")
 
     def prepare(self, request):
+        if isinstance(request, ModelRequest):
+            result = option_copy(request)
+            result.parameters = prepare_stream(result.parameters)
+            result.validate_exchanges()
+            return result
         return prepare_stream(request)
 
     def describe_call(self, request):
@@ -101,11 +113,12 @@ class LiteLLMCompletionAdapter:
 
     def describe_request(self, request):
         from .runtime import request_details
-        return request_details(request)
+        return request_details(request_to_legacy(request))
 
     def effective_attempts(self, request, maximum):
         from .retry import effective_attempts
-        return effective_attempts(request, maximum, sdk_defaults=self.completion_fn is completion)
+        return effective_attempts(request.parameters if isinstance(request, ModelRequest) else request,
+                                  maximum, sdk_defaults=self.completion_fn is completion)
 
     def classify_error(self, error):
         from .requests import error_code
@@ -120,7 +133,7 @@ class LiteLLMCompletionAdapter:
 
     def validate_retry(self, request, *, original):
         from .schema import validate_retry_params
-        validate_retry_params(request, original=original, operation="acompletion")
+        validate_retry_params(request_to_legacy(request), original=request_to_legacy(original), operation="acompletion")
 
     def describe_config(self):
         from .schema import completion_schema
@@ -128,7 +141,7 @@ class LiteLLMCompletionAdapter:
 
     def validate_processing(self, request, *, original):
         # SDK retry controls belong here, never in a shared processor pipeline.
-        for key in ("num_retries", "max_retries", "retry_policy", "client"):
+        for key in ("num_retries", "max_retries", "retry_policy", "client", "tools", "tool_choice", "functions", "function_call", "stream", "n"):
             if (key in request) != (key in original) or request.get(key) != original.get(key):
                 raise ValueError(f"Completion processor cannot change {key}")
 
@@ -141,7 +154,7 @@ class LiteLLMCompletionAdapter:
         return self.completion_decoder(**limits)
 
     def stream(self, request, *, buffer_size):
-        return stream_completion(request, completion_fn=self.completion_fn, buffer_size=buffer_size)
+        return stream_completion(request_to_legacy(request), completion_fn=self.completion_fn, buffer_size=buffer_size)
 
 
 async def stream_completion(
@@ -289,8 +302,12 @@ async def stream_completion(
 def model_token_count(request: dict) -> int:
     """Local LiteLLM token counting; selection belongs to the explicit caller policy."""
     from .runtime import litellm_sdk
+    request = request_to_legacy(request)
     return litellm_sdk().token_counter(model=request.get("model"), messages=request.get("messages"),
                                      tools=request.get("tools"), tool_choice=request.get("tool_choice"))
+
+
+model_token_count.model_protocol = 1
 
 
 def _value(value, key, default=None):
@@ -315,6 +332,16 @@ def _usage(value):
     return result
 
 
+def _merge_opaque(previous, fragment):
+    # LiteLLM emits provider metadata as partial mappings and thinking block lists.
+    if isinstance(previous, Mapping) and isinstance(fragment, Mapping):
+        return {**option_copy(previous), **{k: _merge_opaque(previous.get(k), v)
+                                           for k, v in fragment.items()}}
+    if isinstance(previous, list) and isinstance(fragment, list):
+        return option_copy(previous + fragment)
+    return option_copy(fragment)
+
+
 class LiteLLMCompletionDecoder:
     """Interpret one SDK stream; only normalized observations cross into Engines."""
 
@@ -324,14 +351,19 @@ class LiteLLMCompletionDecoder:
         self.max_output_chars = max_output_chars
         self.content_parts, self.calls = [], {}
         self.finish_reason, self.size = None, 0
+        self.opaque, self.usage, self.response_id, self.model = {}, None, None, None
 
     def decode(self, chunk):
         get = _value
         attributes = {key: value for key, source in (("response_id", "id"), ("model", "model"))
                       if isinstance(value := get(chunk, source), str)}
         usage = _usage(get(chunk, "usage"))
+        self.response_id = attributes.get("response_id", self.response_id)
+        self.model = attributes.get("model", self.model)
+        if usage:
+            self.usage = {**(self.usage or {}), **usage}
         if attributes or usage:
-            yield CompletionUpdate(**attributes, usage=usage)
+            yield CompletionUpdate(**attributes, usage=usage or None)
         choices = get(chunk, "choices", [])
         if not isinstance(choices, (list, tuple)):
             raise CompletionError("Expected a completion choices array")
@@ -341,6 +373,14 @@ class LiteLLMCompletionDecoder:
             raise CompletionError("Expected one completion choice")
         choice = choices[0]
         delta = get(choice, "delta")
+        raw_delta = delta.model_dump(exclude_none=True) if callable(getattr(delta, "model_dump", None)) else delta
+        if isinstance(raw_delta, Mapping):
+            for key, value in raw_delta.items():
+                if key not in ("role", "content", "tool_calls", "function_call") and value is not None:
+                    if key == "reasoning_content" and isinstance(value, str) and isinstance(self.opaque.get(key), str):
+                        self.opaque[key] += value
+                    else:
+                        self.opaque[key] = _merge_opaque(self.opaque.get(key), value)
         content = get(delta, "content")
         reasoning = get(delta, "reasoning_content")
         fragments = get(delta, "tool_calls") or []
@@ -377,6 +417,14 @@ class LiteLLMCompletionDecoder:
             call = self.calls.setdefault(index, {"id": "", "type": "function",
                                                 "function": {"name": "", "arguments": ""}})
             function = get(fragment, "function")
+            raw_fragment = fragment.model_dump(exclude_none=True) if callable(getattr(fragment, "model_dump", None)) else fragment
+            raw_function = function.model_dump(exclude_none=True) if callable(getattr(function, "model_dump", None)) else function
+            if isinstance(raw_fragment, Mapping):
+                call.update({key: option_copy(value) for key, value in raw_fragment.items()
+                             if key not in ("index", "id", "type", "function") and value is not None})
+            if isinstance(raw_function, Mapping):
+                call["function"].update({key: option_copy(value) for key, value in raw_function.items()
+                                         if key not in ("name", "arguments") and value is not None})
             for target, key, value in ((call, "id", get(fragment, "id")),
                                       (call["function"], "name", get(function, "name")),
                                       (call["function"], "arguments", get(function, "arguments"))):
@@ -397,7 +445,7 @@ class LiteLLMCompletionDecoder:
             if self.finish_reason is not None and self.finish_reason != reason:
                 raise CompletionError("Conflicting stream termination")
             self.finish_reason = reason
-            yield CompletionUpdate(finish_reason=reason)
+            yield CompletionUpdate(finish_reason=reason, termination=stop_reason(reason))
         if content:
             yield CompletionUpdate(text=content)
 
@@ -410,7 +458,12 @@ class LiteLLMCompletionDecoder:
         if (any(not call["id"] or not call["function"]["name"] for call in self.calls.values())
                 or len(set(ids)) != len(ids)):
             raise CompletionError("Incomplete or duplicate tool calls")
-        result = {"role": "assistant", "content": "".join(self.content_parts) or None}
+        result = {**self.opaque, "role": "assistant", "content": "".join(self.content_parts) or None}
         if self.calls:
             result["tool_calls"] = [self.calls[index] for index in sorted(self.calls)]
-        return result
+        try:
+            message = message_from_legacy(result)
+        except (KeyError, TypeError, ValueError) as error:
+            raise CompletionError("Invalid completed Tool arguments") from error
+        return ModelResponse(message, stop_reason(self.finish_reason), self.usage,
+                             self.response_id, self.model, self.finish_reason)

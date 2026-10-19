@@ -138,6 +138,7 @@ class CompletionResult:
     model: Optional[str] = None
     response_id: Optional[str] = None
     finish_reason: Optional[str] = None
+    termination: Optional[str] = None
     status: RunStatus = RunStatus.RUNNING
     started_at: str = field(default_factory=now)
     ended_at: Optional[str] = None

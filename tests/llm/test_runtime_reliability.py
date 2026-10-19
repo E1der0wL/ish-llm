@@ -620,10 +620,10 @@ class BudgetAndProjectionTests(unittest.TestCase):
         self.assertLessEqual(len(calls), 14)
 
     def test_budget_preserves_system_current_tool_pairs_and_original_request(self):
-        request = {"model": "test/model", "tools": [{"x": 1}], "messages": [
+        request = {"model": "test/model", "tools": [{"type": "function", "function": {"name": "act", "description": "", "parameters": {"type": "object"}}}], "messages": [
             {"role": "system", "content": "rules"}, {"role": "user", "content": "old"},
             {"role": "assistant", "content": "old answer"}, {"role": "user", "content": "new"},
-            {"role": "assistant", "tool_calls": [{"id": "call"}]},
+            {"role": "assistant", "tool_calls": [{"id": "call", "function": {"name": "act", "arguments": "{}"}}]},
             {"role": "tool", "tool_call_id": "call", "content": "result"}]}
         seen = []
         def counter(value):

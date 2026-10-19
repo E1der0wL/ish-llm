@@ -1,9 +1,9 @@
 """Normalized streaming observations; adapters own SDK chunks and final messages."""
 
-from dataclasses import dataclass
 from typing import Protocol, Iterator, AsyncIterator
 
 from llm.errors import CodedError
+from llm.core.model_protocol import CompletionUpdate, ModelRequest, ModelResponse
 
 
 class CompletionError(CodedError, ValueError):
@@ -14,33 +14,6 @@ class CompletionError(CodedError, ValueError):
         super().__init__(message)
 
 
-@dataclass(frozen=True, slots=True)
-class CompletionUpdate:
-    text: str = ""
-    reasoning: str = ""
-    response_id: str | None = None
-    model: str | None = None
-    usage: dict | None = None
-    finish_reason: str | None = None
-
-    def __post_init__(self):
-        if not isinstance(self.text, str) or not isinstance(self.reasoning, str):
-            raise TypeError("Completion deltas must be text")
-        if any(value is not None and not isinstance(value, str)
-               for value in (self.response_id, self.model, self.finish_reason)):
-            raise TypeError("Completion identities and termination must be text or None")
-        if self.usage is not None:
-            def validate(value):
-                if not isinstance(value, dict):
-                    raise TypeError("Completion usage must be a normalized dictionary")
-                for key, item in value.items():
-                    if not isinstance(key, str):
-                        raise TypeError("Completion usage keys must be text")
-                    if isinstance(item, dict):
-                        validate(item)
-                    elif type(item) is not int or item < 0:
-                        raise ValueError("Completion usage must contain nonnegative integers")
-            validate(self.usage)
 
 
 class CompletionDecoder(Protocol):
@@ -54,7 +27,7 @@ class CompletionDecoder(Protocol):
     """
 
     def decode(self, chunk) -> Iterator[CompletionUpdate]: ...
-    def finish(self) -> dict: ...
+    def finish(self) -> ModelResponse: ...
 
 
 class CompletionAdapter(Protocol):
@@ -69,21 +42,21 @@ class CompletionAdapter(Protocol):
     A replaceable host adapter may expose JSON execution_binding; change it
     whenever its runtime semantics change, so durable approvals cannot outlive it.
 
-    Loop additionally requires describe_config() and validate_request(request,
-    require_model=False). Its canonical messages/tools/assistant protocol stays
-    explicit; an adapter for another SDK translates that protocol at this boundary.
+    Set model_protocol=1. Loop additionally requires describe_config() and
+    validate_request(options, require_model=False). Options belong to the adapter;
+    messages, Tools and completed responses use the common core model protocol.
     """
 
-    def prepare(self, request: dict) -> dict: ...
-    def describe_call(self, request: dict): ...
-    def describe_request(self, request: dict) -> dict: ...
-    def effective_attempts(self, request: dict, maximum: int) -> int: ...
+    def prepare(self, request: ModelRequest) -> ModelRequest: ...
+    def describe_call(self, request: ModelRequest): ...
+    def describe_request(self, request: ModelRequest) -> dict: ...
+    def effective_attempts(self, request: ModelRequest, maximum: int) -> int: ...
     def classify_error(self, error: Exception) -> str: ...
     def retryable(self, error: Exception) -> bool: ...
-    def retry_fields(self, request: dict) -> tuple[str, ...]: ...
-    def validate_retry(self, request: dict, *, original: dict) -> None: ...
+    def retry_fields(self, request: ModelRequest) -> tuple[str, ...]: ...
+    def validate_retry(self, request: ModelRequest, *, original: ModelRequest) -> None: ...
     def validate_processing(self, request: dict, *, original: dict) -> None:
         """Reject processor changes to adapter-owned retry/authority parameters."""
         ...
     def decoder(self, **limits) -> CompletionDecoder: ...
-    def stream(self, request: dict, *, buffer_size: int) -> AsyncIterator: ...
+    def stream(self, request: ModelRequest, *, buffer_size: int) -> AsyncIterator: ...

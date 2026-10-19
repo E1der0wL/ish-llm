@@ -25,6 +25,8 @@ from llm.core.steering import SteeringMode, SteeringRoute
 from llm.components.tools import ToolRegistry
 from llm.providers.streaming import CompletionError, CompletionUpdate, CompletionDecoder, CompletionAdapter
 from llm.providers.parameters import copy_params
+from llm.core.model_protocol import ModelRequest, ModelResponse
+from llm.providers.model_codec import adapter_request, changed_request, response_projection, response_from_legacy
 from llm.providers.runtime import diagnostic_context, diagnostic_failure
 from llm.services.runtime.usage import current_usage
 from llm.policies.errors import ExecutionLimitError
@@ -454,10 +456,10 @@ class BaseEngine:
                 raise ValueError("Completion limits must be positive integers")
         policy = resolve_provider_options(provider if provider is not None else {})
         adapter = self.completion_adapter
+        request = adapter_request(adapter, request)
         maximum = adapter.effective_attempts(request, policy.get("max_attempts", 1)) - 1
         retry = RetryPolicy(maximum + 1, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
                             RetryPolicy.end(policy.get("wall_timeout")), "exponential")
-        request = self.copy_params(dict(request))
         call_id = new_id()
 
         def remaining():
@@ -469,7 +471,7 @@ class BaseEngine:
         for attempt in range(maximum + 1):
             call_details = {"call_id": call_id, "attempt": attempt + 1, **adapter.describe_request(request)}
             progress = {"received": False}
-            invocation = adapter.describe_call(self.copy_params(dict(request)))
+            invocation = adapter.describe_call(self.copy_params(request))
             result = CompletionResult(model=invocation.model)
             usage_scope = current_usage()
             if usage_scope is not None:
@@ -504,7 +506,7 @@ class BaseEngine:
                     error.diagnostic = diagnostic_failure(error, operation="completion",
                         stage="response_validation" if isinstance(error, CompletionError) else "deadline",
                         **call_details, response_received=progress["received"],
-                        finish_reason=result.finish_reason, response_id=result.response_id)
+                        finish_reason=result.finish_reason, termination=result.termination, response_id=result.response_id)
                 result.status = RunStatus.FAILED
                 result.ended_at = now()
                 result.duration_seconds = time.monotonic() - started
@@ -545,8 +547,7 @@ class BaseEngine:
                 if selected is None:
                     raise
                 # Transcript/Tool authority/input budget은 이미 준비됐다. transport만 수정한다.
-                request = change_arguments(request, selected, allowed=adapter.retry_fields(request), copy=self.copy_params,
-                    validate=lambda value: adapter.validate_retry(value, original=request))
+                request = changed_request(request, selected, adapter)
                 try:
                     delay = retry_delay(retry, attempt + 1, error, policy)
                     if delay is None:
@@ -576,9 +577,9 @@ class BaseEngine:
     async def _stream_completion(self, request: Mapping[str, Any], response: Optional[dict],
                                  result: CompletionResult, progress: dict,
                                  max_tool_calls, max_argument_chars, max_output_chars) -> AsyncIterator[Union[str, EngineEvent]]:
-        params = self.completion_adapter.prepare(self.copy_params(dict(request)))
-        if response is not None and not isinstance(response, dict):
-            raise TypeError("Completion response must be a dictionary")
+        params = self.completion_adapter.prepare(self.copy_params(request))
+        if response is not None and not isinstance(response, (dict, list)):
+            raise TypeError("Completion response must be a dictionary or typed response capture")
         decoder = self.completion_adapter.decoder(max_tool_calls=max_tool_calls,
             max_argument_chars=max_argument_chars, max_output_chars=max_output_chars)
         async with aclosing(self.completion_adapter.stream(
@@ -591,7 +592,7 @@ class BaseEngine:
                     if not isinstance(update, CompletionUpdate):
                         raise TypeError("Completion decoder must yield CompletionUpdate")
                     changed = False
-                    for key in ("response_id", "model", "finish_reason"):
+                    for key in ("response_id", "model", "finish_reason", "termination"):
                         value = getattr(update, key)
                         if value is not None and value != getattr(result, key):
                             setattr(result, key, value)
@@ -610,12 +611,17 @@ class BaseEngine:
                         yield update.text
         result.usage_complete = bool(result.usage)
         message = decoder.finish()
-        if not isinstance(message, dict):
+        if not isinstance(message, (ModelResponse, dict)):
             raise TypeError("Completion decoder must return a message object")
         if response is not None:
             message = deepcopy(message)
-            response.clear()
-            response.update(message)
+            if isinstance(response, list):
+                normalized = response_from_legacy(message)
+                response[:] = [normalized]
+            else:
+                legacy = response_projection(message) if isinstance(message, ModelResponse) else message
+                response.clear()
+                response.update(legacy)
 
     def run(self, context: EngineContext) -> Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]:
         """문자열/EngineDelta/마지막 EngineOutput을 yield하거나 EngineOutput/None을 반환한다."""

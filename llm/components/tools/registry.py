@@ -11,6 +11,8 @@ from inspect import getattr_static
 from typing import Any, Optional
 
 from jsonschema import Draft202012Validator
+from llm.core.model_protocol import ToolDefinition
+from llm.providers.model_codec import definition_from_legacy, definition_to_legacy
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,6 +66,16 @@ class Tool:
     contract: Optional[ToolContract] = None
     classification: Optional[ToolClassification] = None
 
+    def __post_init__(self):
+        # The public v1 definition remains an explicit compatibility projection.
+        if isinstance(self.definition, ToolDefinition):
+            object.__setattr__(self, "definition", definition_to_legacy(self.definition))
+
+    @property
+    def model_definition(self):
+        return (definition_from_legacy(self.definition) if self.definition is not None else
+                ToolDefinition(self.name, self.description, self.parameters))
+
 
 # 런타임 함수와 인자 Schema를 등록한다. 저장된 Tool 선택과 분리된다.
 class ToolRegistry:
@@ -94,10 +106,8 @@ class ToolRegistry:
         Draft202012Validator.check_schema(schema)
         definition = deepcopy(tool.definition)
         if definition is not None:
-            function = definition.get("function", {})
-            if (definition.get("type") != "function" or function.get("name") != tool.name
-                    or function.get("parameters") != schema
-                    or function.get("description", "") != tool.description):
+            model = definition_from_legacy(definition)
+            if (model.name != tool.name or model.parameters != schema or model.description != tool.description):
                 raise ValueError("Tool definition does not match its runtime binding")
             json.dumps(definition, allow_nan=False)
         self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition, tool.contract, tool.classification)
@@ -132,16 +142,14 @@ class ToolRegistry:
                          checkpoint_name=record["checkpoint_name"])
 
     def definitions(self, *, constraints=None) -> list[dict[str, Any]]:
+        """Stable public/worker/Graph v1 projection; execution uses model_definitions."""
+        return [definition_to_legacy(t) for t in self.model_definitions(constraints=constraints)]
+
+    def model_definitions(self, *, constraints=None) -> tuple[ToolDefinition, ...]:
+        from dataclasses import replace
         from .constraints import constrained_parameters
-        definitions = [deepcopy(tool.definition) if tool.definition is not None else {"type": "function", "function": {
-            "name": tool.name, "description": tool.description,
-            "parameters": deepcopy(tool.parameters),
-        }} for tool in self._tools.values()]
-        for definition in definitions:
-            function = definition["function"]
-            function["parameters"] = constrained_parameters(function["parameters"],
-                (constraints or {}).get(function["name"], {}))
-        return definitions
+        return tuple(replace(tool.model_definition, parameters=constrained_parameters(tool.parameters,
+            (constraints or {}).get(tool.name, {}))) for tool in self._tools.values())
 
     def names(self) -> tuple[str, ...]:
         return tuple(self._tools)
@@ -173,7 +181,7 @@ class ToolRegistry:
             tool = self._tools[name]
             def reject_constant(value: str) -> None:
                 raise ValueError("Non-finite JSON constant")
-            values = json.loads(arguments, parse_constant=reject_constant)
+            values = deepcopy(arguments) if isinstance(arguments, dict) else json.loads(arguments, parse_constant=reject_constant)
             if not isinstance(values, dict):
                 raise ValueError("Expected argument object")
             json.dumps(values, allow_nan=False)

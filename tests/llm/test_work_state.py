@@ -108,7 +108,7 @@ class WorkStateTests(unittest.IsolatedAsyncioTestCase):
         processor = MemorySession(SimpleNamespace(data=None), SimpleNamespace(
             completion_policy=CompletionPolicy(200, counter=counter)))
         processor.config = {"summary_after_tokens": 80}
-        request = CompletionRequest({"tools": [{"name": "test"}]}, [CompletionMessage({"role": "user", "content": "tiny"})], 0)
+        request = CompletionRequest({"tools": [{"type": "function", "function": {"name": "test", "description": "", "parameters": {"type": "object"}}}]}, [CompletionMessage({"role": "user", "content": "tiny"})], 0)
         self.assertTrue(await processor._threshold(request, 1))
         self.assertIn("tools", seen[0])
         processor.context.completion_policy = None
@@ -122,8 +122,8 @@ class WorkStateTests(unittest.IsolatedAsyncioTestCase):
             run=SimpleNamespace(input_message_id="input", id="run"), completion_policy=None))
         processor.config = {"active_keep_iterations": 1, "summary_after_chars": 1}
         original = [CompletionMessage({"role": "user", "content": "request"}, "input"),
-            CompletionMessage({"role": "assistant", "tool_calls": [{"id": "pending"}]}),
-            CompletionMessage({"role": "assistant", "tool_calls": [{"id": "current"}]})]
+            CompletionMessage({"role": "assistant", "tool_calls": [{"id": "pending", "function": {"name": "act", "arguments": "{}"}}]}),
+            CompletionMessage({"role": "assistant", "tool_calls": [{"id": "current", "function": {"name": "act", "arguments": "{}"}}]})]
         for steering in (False, True):
             messages = deepcopy(original)
             if steering:

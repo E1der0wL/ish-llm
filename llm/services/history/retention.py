@@ -1,5 +1,7 @@
 """프로젝트 보관 정책의 미리보기와 명시적 정리. 재개·외부 효과 기록은 자동 삭제하지 않는다."""
 
+from llm.core.model_protocol import ModelRequest, ModelMessage
+from llm.providers.tokens import count_request
 from datetime import datetime, timezone
 import json
 from llm.core.contracts import ResourceRef
@@ -80,8 +82,7 @@ class HistoryRetention:
                 if policy.get("max_tokens") is not None:
                     if self.counter is None:
                         raise ValueError("Retention requires a registered token counter")
-                    tokens = self.counter({**policy.get("counter_params", {}),
-                        "messages": [{"role": m.role.value, "content": m.content} for m in owned]})
+                    tokens = count_request(self.counter, ModelRequest([ModelMessage(m.role.value, m.content) for m in owned], dict(policy.get("counter_params", {}))))
                     if type(tokens) is not int or tokens < 0:
                         raise ValueError("Retention counter requires nonnegative integer tokens")
                 total_bytes += size
@@ -174,8 +175,7 @@ class HistoryRetention:
             if policy.get("max_tokens") is not None:
                 if self.counter is None:
                     raise ValueError("Retention requires a registered token counter")
-                tokens = self.counter({**policy.get("counter_params", {}),
-                    "messages": [{"role": m.role.value, "content": m.content} for m in messages]})
+                tokens = count_request(self.counter, ModelRequest([ModelMessage(m.role.value, m.content) for m in messages], dict(policy.get("counter_params", {}))))
                 if type(tokens) is not int or tokens < 0:
                     raise ValueError("Retention counter requires nonnegative integer tokens")
             total_bytes += size

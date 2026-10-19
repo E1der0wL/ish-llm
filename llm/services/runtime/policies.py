@@ -37,8 +37,8 @@ class ProjectPolicyResolver:
     """영속 JSON 정책을 실행 객체에 연결한다. 계산기만 백엔드에 등록하고 정책값은 Project가 소유한다."""
 
     def __init__(self, token_counters=None):
-        from llm.providers.litellm import model_token_count
-        self.token_counters = {"model_default": model_token_count, **dict(token_counters or {})}
+        from llm.providers.tokens import default_token_counters
+        self.token_counters = {**default_token_counters(), **dict(token_counters or {})}
         if any(not isinstance(name, str) or not name.strip() or not callable(counter)
                for name, counter in self.token_counters.items()):
             raise ValueError("Token counters require nonempty names and callable implementations")

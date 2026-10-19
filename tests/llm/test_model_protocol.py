@@ -98,3 +98,37 @@ class ModelProtocolTests(unittest.TestCase):
             ModelMessage('user',[{'type':'text','text':'wire'}])
         with self.assertRaises(ValueError):
             ModelMessage('tool','missing reference')
+
+    def test_legacy_processor_mutations_preserve_common_owner_and_opaque(self):
+        from llm.components.processing import CompletionMessage
+        item = CompletionMessage(ModelMessage('assistant', 'before',
+            (ToolCall('a', 'lookup', {'q': 'original'}, {'fake': {'signature': 'call'}}),),
+            opaque={'fake': {'signature': 'message'}}))
+        view = item.value
+        view['tool_calls'][0]['function']['arguments'] = '{"q": "changed"}'
+        view.update(content='after')
+        self.assertEqual(item.message.text, 'after')
+        self.assertEqual(item.message.calls[0].arguments, {'q': 'changed'})
+        self.assertEqual(item.message.opaque['fake'], {'signature': 'message'})
+        self.assertEqual(item.message.calls[0].opaque['fake'], {'signature': 'call'})
+        self.assertEqual(json.loads(json.dumps(view)), dict(item.value))
+        with self.assertRaises(ValueError):
+            view['tool_calls'].append(dict(view['tool_calls'][0]))
+        self.assertEqual(len(item.message.calls), 1)
+        self.assertEqual(len(view['tool_calls']), 1)
+
+    def test_streamed_opaque_metadata_and_content_edits_survive_adapter_round_trip(self):
+        from dataclasses import replace
+        from llm.providers.litellm import LiteLLMCompletionDecoder
+        decoder = LiteLLMCompletionDecoder()
+        for delta, finish in (({'provider_specific_fields': {'signature': 'signed'}, 'reasoning_content': 'think'}, None),
+                              ({'provider_specific_fields': {'cache': 'hint'}, 'content': 'answer'}, 'stop')):
+            list(decoder.decode({'choices': [{'delta': delta, 'finish_reason': finish}]}))
+        response = decoder.finish()
+        self.assertEqual(response.message.opaque['litellm']['provider_specific_fields'],
+                         {'signature': 'signed', 'cache': 'hint'})
+        self.assertEqual(response.message.opaque['litellm']['reasoning_content'], 'think')
+        message = message_from_legacy({'role': 'user', 'content': [
+            {'type': 'image_url', 'image_url': {'url': 'old', 'detail': 'high'}}]})
+        message = replace(message, content=(replace(message.content[0], value='new'),))
+        self.assertEqual(message_to_legacy(message)['content'][0]['image_url'], {'url': 'new', 'detail': 'high'})

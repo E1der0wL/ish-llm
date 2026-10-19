@@ -9,6 +9,9 @@ from dataclasses import dataclass
 from asyncio import timeout
 from llm.providers.parameters import copy_params
 from llm.core.contracts import Diagnostic, ResourceRef
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse
+from llm.providers.model_codec import (message_from_legacy, message_to_legacy, request_from_legacy,
+    request_to_legacy, response_from_legacy, LegacyMessageView)
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,17 +32,34 @@ if TYPE_CHECKING:
     from llm.engines.base import EngineContext, EngineEvent
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class CompletionMessage:
     """모델용 메시지와 원본 출처. 추가 참고자료는 source_id=None이며 ID는 공급자에게 보내지 않는다."""
 
-    value: dict
+    message: ModelMessage
     source_id: Optional[str] = None
     # 같은 작업에 추가된 USER 입력. provider kwargs에는 포함하지 않는다.
     continuation: bool = False
     # Completed result identity, excluded from provider kwargs. Call IDs are local
     # to an execution scope and cannot identify sibling Agent results in a Run.
     result_ref: Optional[ResourceRef] = None
+
+    def __init__(self, value=None, source_id=None, continuation=False, result_ref=None, *, message=None):
+        object.__setattr__(self, 'message', message_from_legacy(value) if value is not None else message)
+        if not isinstance(self.message, ModelMessage):
+            raise TypeError('CompletionMessage requires a model message')
+        object.__setattr__(self, 'source_id', source_id)
+        object.__setattr__(self, 'continuation', continuation)
+        object.__setattr__(self, 'result_ref', result_ref)
+
+    @property
+    def value(self):
+        """Compatibility view for existing application processors."""
+        return LegacyMessageView(self)
+
+    def with_text(self, text):
+        from dataclasses import replace
+        return replace(self, message=self.message.with_text(text))
 
 
 @dataclass(slots=True)
@@ -57,12 +77,23 @@ class CompletionRequest:
     iteration: int
     # 완료된 현재 작업의 접두 Tool 교환만 명시적으로 압축할 수 있다. 공급자 인자가 아니다.
     compacted_tool_calls: tuple[str, ...] = ()
+    tools: tuple = ()
+    tool_mode: str | None = None
 
     def to_kwargs(self) -> dict:
-        return {**copy_params(self.parameters), "messages": [copy_params(m.value) for m in self.messages]}
+        return request_to_legacy(self.to_model())
+
+    def to_model(self) -> ModelRequest:
+        # Old callers may still supply definitions through parameters.
+        result = request_from_legacy(self.parameters)
+        result.messages = [copy_params(m.message) for m in self.messages]
+        if self.tools:
+            result.tools = copy_params(self.tools)
+        result.tool_mode = self.tool_mode
+        return result
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class CompletionObservation:
     """예산 적용 후 모델에 전달한 요청과 응답, 가공 전 대화의 독립 사본.
 
@@ -71,13 +102,30 @@ class CompletionObservation:
     """
 
     iteration: int
-    request: dict
-    response: dict
-    original_messages: list[dict]
+    invocation: ModelRequest
+    answer: ModelResponse
+    messages: list[ModelMessage]
+
+    def __init__(self, iteration, request, response, original_messages):
+        object.__setattr__(self, 'iteration', iteration)
+        object.__setattr__(self, 'invocation', request_from_legacy(request))
+        object.__setattr__(self, 'answer', response_from_legacy(response))
+        object.__setattr__(self, 'messages', [message_from_legacy(m) for m in original_messages])
+
+    @property
+    def request(self):
+        return request_to_legacy(self.invocation)
+
+    @property
+    def response(self):
+        return message_to_legacy(self.answer.message)
+
+    @property
+    def original_messages(self):
+        return [message_to_legacy(m) for m in self.messages]
 
     def snapshot(self):
-        return CompletionObservation(self.iteration, copy_params(self.request),
-                                     copy_params(self.response), copy_params(self.original_messages))
+        return CompletionObservation(self.iteration, self.invocation, self.answer, self.messages)
 
 
 class CompletionSession:
@@ -176,7 +224,7 @@ class CompletionPipeline:
 
     @staticmethod
     def _instruction_text(message):
-        content = message.get("content")
+        content = message.content
         if not isinstance(content, str):
             raise ValueError("Text completion processing requires a string current instruction")
         return content
@@ -189,18 +237,21 @@ class CompletionPipeline:
         reference boundary) stay whole. Earlier bodies and Tool result bodies can
         be shortened; call IDs/arguments/order and all other fields stay exact.
         """
-        original = copy_params(request)
-        messages = original["messages"]
-        if not 0 <= current_index < len(messages) or messages[current_index].get("role") != "user":
+        legacy = not isinstance(request, ModelRequest)
+        original = request_from_legacy(request)
+        messages = original.messages
+        if not 0 <= current_index < len(messages) or messages[current_index].role != "user":
             raise ValueError("Recovery requires the current user input")
         CompletionPipeline._instruction_text(messages[current_index])
         editable = tuple(i for i, message in enumerate(messages)
-            if isinstance(message.get("content"), str)
-            and message.get("role") not in ("system", "developer")
-            and (i < current_index or message.get("role") == "tool"))
+            if (isinstance(message.content, str) or message.result is not None)
+            and message.role not in ("system", "developer")
+            and (i < current_index or message.result is not None))
         if not editable:
             return None
-        selected = decide(CompletionRecovery(Diagnostic.from_dict(diagnostic.to_dict()), copy_params(original), attempt, editable))
+        # Existing repair selectors receive their documented detached kwargs view.
+        selected = decide(CompletionRecovery(Diagnostic.from_dict(diagnostic.to_dict()),
+                          request_to_legacy(original), attempt, editable))
         if inspect.isawaitable(selected):
             selected = await selected
         if selected is None:
@@ -212,51 +263,46 @@ class CompletionPipeline:
             if (type(index) is not int or index not in editable or not isinstance(content, str)
                     or not content.strip()):
                 raise ValueError("Recovery can only replace declared reference bodies")
-            candidate["messages"][index]["content"] = content
-        if sum(len(m.get("content") or "") for m in candidate["messages"] if isinstance(m.get("content"), str)) >= sum(
-                len(m.get("content") or "") for m in messages if isinstance(m.get("content"), str)):
+            candidate.messages[index] = candidate.messages[index].with_text(content)
+        if sum(len(m.text) for m in candidate.messages) >= sum(len(m.text) for m in messages):
             raise ValueError("Context repair must reduce reference content")
-        tail = copy_params(candidate["messages"][current_index:])
-        instructions = [m for m in messages if m.get("role") in ("system", "developer")]
+        tail = copy_params(candidate.messages[current_index:])
+        instructions = [m for m in messages if m.role in ("system", "developer")]
         if prepare is not None:
-            candidate = await prepare(candidate)
-        # Budget preparation may drop whole prior turns, never the protected tail.
-        if (candidate["messages"][-len(tail):] != tail or
-                [m for m in candidate["messages"] if m.get("role") in ("system", "developer")] != instructions or
-                {k: v for k, v in candidate.items() if k != "messages"} !=
-                {k: v for k, v in original.items() if k != "messages"}):
+            candidate = request_from_legacy(await prepare(request_to_legacy(candidate) if legacy else candidate))
+        if (candidate.messages[-len(tail):] != tail or
+                [m for m in candidate.messages if m.role in ("system", "developer")] != instructions or
+                candidate.parameters != original.parameters or candidate.tools != original.tools
+                or candidate.tool_mode != original.tool_mode):
             raise ValueError("Recovery budget processing removed current input or Tool structure")
-        return candidate
+        return request_to_legacy(candidate) if legacy else candidate
 
     @staticmethod
     def _validate(request, original, parameters, current_id):
         if not isinstance(request.parameters, dict) or "messages" in request.parameters:
             raise ValueError("Completion messages must use CompletionRequest.messages")
         # 처리기가 Tool 권한·반복 계약을 우회하거나 메인 모델 자동 재시도를 추가할 수 없다.
-        for key in ("tools", "tool_choice", "functions", "function_call", "stream", "n"):
-            if (key in request.parameters) != (key in parameters) or request.parameters.get(key) != parameters.get(key):
-                raise ValueError(f"Completion processor cannot change {key}")
-        originals = {m.source_id: m.value for m in original if m.source_id is not None}
+        originals = {m.source_id: m.message for m in original if m.source_id is not None}
         seen = set()
         for message in request.messages:
-            if not isinstance(message, CompletionMessage) or not isinstance(message.value, dict):
+            if not isinstance(message, CompletionMessage) or not isinstance(message.message, ModelMessage):
                 raise TypeError("Completion messages require CompletionMessage values")
             if message.source_id is not None:
                 if message.source_id not in originals or message.source_id in seen:
                     raise ValueError("Unknown or duplicate completion message source")
                 seen.add(message.source_id)
-                if message.value.get("role") != originals[message.source_id].get("role"):
+                if message.message.role != originals[message.source_id].role:
                     raise ValueError("Completion processor cannot change an original message role")
         if current_id not in seen:
             raise ValueError("Completion processor must preserve the current user message")
-        current = next(m.value for m in request.messages if m.source_id == current_id)
+        current = next(m.message for m in request.messages if m.source_id == current_id)
         before = originals[current_id]
         # Existing processors can append explicitly configured reference context;
         # they cannot replace the original instruction with a summary or an ID.
         if not CompletionPipeline._instruction_text(current).startswith(CompletionPipeline._instruction_text(before)):
             raise ValueError("Completion processor must preserve the current instruction body")
-        protected = [m.value for m in original if m.value.get("role") in ("system", "developer")]
-        supplied = [m.value for m in request.messages if m.value.get("role") in ("system", "developer")]
+        protected = [m.message for m in original if m.message.role in ("system", "developer")]
+        supplied = [m.message for m in request.messages if m.message.role in ("system", "developer")]
         candidates = iter(supplied)
         if any(not any(value == candidate for candidate in candidates) for value in protected):
             raise ValueError("Completion processor must preserve applied instructions")
@@ -265,14 +311,14 @@ class CompletionPipeline:
             raise ValueError("Completion processor must preserve original message order")
         group = []
         for message in original:
-            if message.value.get("role") == "user" and not message.continuation:
+            if message.message.role == "user" and not message.continuation:
                 kept = [m.source_id in seen for m in group]
                 if any(kept) and not all(kept):
                     raise ValueError("Completion processor must remove whole prior turns")
                 group = []
             if message.source_id == current_id:
                 break
-            if message.source_id is not None and message.value.get("role") not in ("system", "developer"):
+            if message.source_id is not None and message.message.role not in ("system", "developer"):
                 group.append(message)
         # 현재 요청 이후의 Tool 호출/결과는 쌍과 순서를 유지한다. 결과 본문의 압축만 허용한다.
         index = next(i for i, m in enumerate(original) if m.source_id == current_id)
@@ -285,39 +331,46 @@ class CompletionPipeline:
                 raise ValueError("Compaction requires a removed transcript prefix")
             prefix, ids, pending = tail[:removed], [], set()
             for message in prefix:
-                value = message.value
-                if value.get("role") == "assistant" and value.get("tool_calls") and not pending:
-                    pending = {c["id"] for c in value["tool_calls"]}
-                    ids.extend(c["id"] for c in value["tool_calls"])
-                elif value.get("role") == "tool" and value.get("tool_call_id") in pending:
-                    pending.remove(value["tool_call_id"])
+                value = message.message
+                if value.role == "assistant" and value.calls and not pending:
+                    pending = {c.id for c in value.calls}
+                    ids.extend(c.id for c in value.calls)
+                elif value.role == "tool" and value.result.call_id in pending:
+                    pending.remove(value.result.call_id)
                 else:
                     raise ValueError("Compaction requires complete Tool exchanges")
             if pending or tuple(ids) != request.compacted_tool_calls:
                 raise ValueError("Compaction source IDs do not match completed exchanges")
-            if request.messages[request_index].value.get("content") == original[index].value.get("content"):
+            if request.messages[request_index].message.text == original[index].message.text:
                 raise ValueError("Compaction must preserve a summary in the current input")
             tail = tail[removed:]
         if len(tail) != len(actual):
             raise ValueError("Completion processor cannot alter the active tool transcript structure")
         for before, after in zip(tail, actual):
-            left, right = copy_params(before.value), copy_params(after.value)
-            if left.get("role") == "tool":
-                left.pop("content", None)
-                right.pop("content", None)
+            left, right = copy_params(before.message), copy_params(after.message)
+            if left.role == "tool":
+                left = left.with_text("")
+                right = right.with_text("")
             if before.source_id != after.source_id or before.result_ref != after.result_ref or left != right:
                 raise ValueError("Completion processor cannot alter active tool calls or identifiers")
 
     async def prepare(self, request: CompletionRequest, original):
         parameters = copy_params(request.parameters)
+        tools = copy_params(request.tools)
+        tool_mode = request.tool_mode
         self._validate(request, original, parameters, self.context.run.input_message_id)
         for _, session in self.sessions:
             async with aclosing(session.prepare(request)) as events:
                 async for event in events:
                     yield event
             self._validate(request, original, parameters, self.context.run.input_message_id)
+            if request.tools != tools or request.tool_mode != tool_mode:
+                raise ValueError("Completion processor cannot change tools")
             if self.validate_parameters is not None:
                 self.validate_parameters(request.parameters, original=parameters)
+            else:
+                from llm.providers.model_codec import validate_default_processing
+                validate_default_processing(request.parameters, original=parameters)
 
     async def after_completion(self, observation: CompletionObservation):
         for _, session in self.sessions:

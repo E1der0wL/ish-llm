@@ -98,8 +98,8 @@ class ProjectManager:
         self.ownership = repository.ownership
         self.sessions.bind_project_access(self.access)
         self.components = registry
-        from llm.providers.litellm import model_token_count
-        self.usage_counters = {"model_default": model_token_count}
+        from llm.providers.tokens import default_token_counters
+        self.usage_counters = default_token_counters()
         self.backups = backups if backups is not None else DirectoryBackups()
         from llm.services.lifecycle.steps import StepRepository
         self.backup_steps = backup_steps if backup_steps is not None else StepRepository()

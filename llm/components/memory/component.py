@@ -55,11 +55,14 @@ class MemoryComponent(Component):
             "generation": field("string", pattern=r"^[a-f0-9]{32}$"), "revision": field("integer", minimum=1)},
             required=["id", "generation", "revision"]))})
 
-    def __init__(self, *, completion_fn=None, token_counter=None, search_fn=None):
+    def __init__(self, *, completion_fn=None, completion_adapter=None, token_counter=None, search_fn=None):
         """보조 모델과 토큰 계수기는 런타임에 주입한다. 설정/레코드에는 저장하지 않는다."""
         if any(value is not None and not callable(value) for value in (completion_fn, token_counter, search_fn)):
             raise TypeError("Memory model and token counter must be callable")
         self.completion_fn, self.token_counter = completion_fn, token_counter
+        if completion_fn is not None and completion_adapter is not None:
+            raise ValueError("Choose completion_fn or completion_adapter")
+        self.completion_adapter = completion_adapter
         self.search_fn = search_fn
         self._record_cache = OrderedDict()
 
@@ -296,7 +299,7 @@ class MemoryComponent(Component):
         if data.get("search_limit") is not None and data.get("max_search_results") is not None and data["search_limit"] > data["max_search_results"]:
             raise ValueError("Memory search_limit exceeds max_search_results")
         from .processing import resolve_processing_config
-        resolve_processing_config(original, token_counter=self.token_counter)
+        resolve_processing_config(original, token_counter=self.token_counter, completion_adapter=self.completion_adapter)
 
     def describe_config(self):
         from llm.core.schema import object_schema, field
@@ -313,7 +316,8 @@ class MemoryComponent(Component):
             tool_summary_prompt=field("string", minLength=1),
             summary_format=field("string", enum=["text", "work_state"]),
             goal_ids={"type": "array", "uniqueItems": True, "items": field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$")},
-            context_tokens=field(["integer", "null"], minimum=1), completion=completion_schema(),
+            context_tokens=field(["integer", "null"], minimum=1), completion=(self.completion_adapter.describe_config()
+                if self.completion_adapter is not None else completion_schema()),
             provider={**provider_schema(), "type": ["object", "null"]},
             extract_scope=field("string", enum=["session", "project"]),
             extract_prompt_id=field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$"),
@@ -474,14 +478,15 @@ class MemoryComponent(Component):
         if capability == "completion_processors":
             from .processing import MemoryProcessor, resolve_processing_config
             data = data_factory(self.name)
-            config = resolve_processing_config(data.get_config(), token_counter=self.token_counter)
+            config = resolve_processing_config(data.get_config(), token_counter=self.token_counter,
+                                               completion_adapter=self.completion_adapter)
             if "tool_result_mode" in config:
                 selection = config["tool_data"]
                 files = data.related(selection["component"])
                 if not all(callable(getattr(files, name, None)) for name in ("read_file", "write_file", "snapshot")):
                     raise ValueError("tool_data requires a file Component public interface")
                 files.snapshot(selection["identifier"])
-            return MemoryProcessor(data, completion_fn=self.completion_fn,
+            return MemoryProcessor(data, completion_fn=self.completion_fn, completion_adapter=self.completion_adapter,
                                    token_counter=self.token_counter, priority=config.get("priority", 0))
         if capability == "memory":
             return data_factory(self.name)
