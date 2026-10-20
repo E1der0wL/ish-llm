@@ -2,7 +2,8 @@
 
 사용자가 P0의 의존성 충돌을 최신 SDK로 해결한 뒤 P1·A–F로 진행하도록 승인한 작업이다.
 기존 [P0 기록](p0-verification.md)의 실패와 이전 SDK 조합 통과 결과는 보존한다.
-이 전환의 전체 회귀가 끝나기 전에는 P0 완료로 보고하지 않는다.
+전환 커밋 `228446489a06d5a8a12f8199f10d81833875b985`를 Push한 뒤 아래 로컬·원격
+전체 회귀가 통과했다. P0 기준선 검증 완료이며 기존 감사 후보 해결 완료를 뜻하지 않는다.
 
 ## 선언과 설치
 
@@ -73,7 +74,19 @@ SDK의 SSE GET 재연결과 Tool POST 재실행은 다른 동작이다. 읽은 M
 - 의존성 원본/lock/설치 버전, `pip check`, LLM·Hub 환경 검사, 실제 SDK 오프라인 HTTP 시험
   2개, R3 제한 전달 누락 mutation 검사가 각각 exit 0이었다.
 - 로컬 증거는 `/workspace/llm-clean-p0/sdk-full/`에 보존한다. 집중 시험과 전체 회귀는
-  겹치는 집합이므로 합산하지 않는다. 새 커밋의 원격 CI는 별도로 검증한다.
+  겹치는 집합이므로 합산하지 않는다.
+
+| 원격 검증 | LLM | Hub | failure/error/Skip |
+|---|---:|---:|---|
+| [고정 lock CI](https://github.com/E1der0wL/ish-llm/actions/runs/39381250664) | 1,663 pass / 696.278초 | 534 pass / 848.655초 | 각각 0/0/0 |
+| [최신 허용 의존성 평가](https://github.com/E1der0wL/ish-llm/actions/runs/39381388998) | 1,663 pass / 689.109초 | 534 pass / 830.075초 | 각각 0/0/0 |
+
+두 실행 모두 동일 커밋, Python 3.12.14와 고정 host SHA를 사용했고 workflow conclusion은
+success였다. 실제 SDK 오프라인 검사, R3 mutation, 문서·정적 감사, 격리·X11·OCR gate를 포함한다.
+최신 평가에서도 LiteLLM/OpenAI/MCP는 위 lock과 같은 버전으로 확인됐다.
+원격 Bubblewrap 0.9.0은 전역 AppArmor userns 제한 1을 유지하고 별도 unshare가 거부되는
+상태에서 실행했다. raw artifact URL 접근 제한은 남아 있으므로 Checks API의 실제 집계와
+진단 annotation도 로컬 증거 디렉터리에 보존했다.
 
 Cloud 설치 스크립트도 lock hash별 새 환경을 생성하도록 실제 실행·재실행 검증한 뒤
 설정 draft revision 7에 저장했다. 예전 가상환경과 실패 기록은 보존했다.
@@ -82,5 +95,5 @@ draft 저장은 게시 또는 새 Cloud 작업에서의 복원 검증을 뜻하�
 정적 감사의 새 위반·stale 항목은 0이지만 기존 767개 후보는 여전히 미해결이다.
 이는 P0의 증가 방지 기준선이며 전체 하드코딩 제거 완료를 뜻하지 않는다.
 
-실제 인증 모델 호출과 커널 short-write 장애 주입은 계속 미검증이다. P1 및 A–F는
-이 단계의 통과를 확인한 뒤 진행한다.
+실제 인증 모델 호출과 커널 short-write 장애 주입은 계속 미검증이다.
+후속 구현·검증은 [P1 기록](p1-verification.md)에서 추적한다.

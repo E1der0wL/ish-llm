@@ -28,7 +28,7 @@ def resolve_config(layers, *, schema=None, host=None):
                     if child.startswith(pointer + "/"):
                         del sources[child]
 
-    for source, data in [*layers, ("host", host or {})]:
+    for source, data in [*layers, ("host", {} if host is None else host)]:
         ProjectConfig.validate_json(data)
         merge(values, data, source)
     if schema is not None:
@@ -41,13 +41,15 @@ def resolve_config(layers, *, schema=None, host=None):
 
 def resolve_engine_config(config, name, *, session_config=None, agent=None, schema=None):
     """Project → Session → Agent. child는 schema가 지정한 authority를 넓힐 수 없다."""
-    config = ProjectConfig(config)
-    session = session_config or {}
+    config = ProjectConfig.from_dict(config)
+    session = {} if session_config is None else session_config
     ProjectConfig.validate_session(session)
+    agent = {} if agent is None else agent
+    ProjectConfig.validate_json(agent)
     layers = [
         ("project", config.parameters.get("engines", {}).get(name, {})),
         ("session", session.get("parameters", {}).get("engines", {}).get(name, {})),
-        ("agent", agent or {})]
+        ("agent", agent)]
     from .schema import narrowing_paths
     limits = narrowing_paths(schema)
 

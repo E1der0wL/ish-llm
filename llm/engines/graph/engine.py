@@ -466,7 +466,7 @@ class _WorkflowRuntime:
                     result = await self._call(self.handlers[kind], GraphNodeContext(
                         context, info["node_id"], deepcopy(definition), deepcopy(state), node_emit,
                         deepcopy(inputs), invoke_graph if nested is not None else None, key,
-                        record_usage if info["container"] else None, info["decision"].get("approved"), path, pause))
+                        record_usage, info["decision"].get("approved"), path, pause))
             Component.serialize(result)
             validate_value(definition, "output", result)
             updates = bind(definition["outputs"], result) if "outputs" in definition else deepcopy(result)

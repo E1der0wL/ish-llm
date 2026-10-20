@@ -2,11 +2,22 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from enum import StrEnum
 from typing import Optional
 
 from .contracts import Diagnostic, JsonValue
 from .plans import CheckpointPlan
 from llm.errors import CodedError
+
+
+class CheckpointStatus(StrEnum):
+    """공통 실행 기록의 수명. 외부 효과나 승인 상태를 나타내지 않는다."""
+
+    STARTED = "started"
+    COMPLETED = "completed"
+    WAITING = "waiting"
+    RESPONDED = "responded"
+    NOT_APPLIED = "not_applied"
 
 
 class CheckpointError(CodedError, ValueError):
@@ -41,15 +52,16 @@ def checkpoint_lifecycle(payload, lifecycle=None):
     """
     if lifecycle is not None:
         if (not isinstance(lifecycle, dict) or lifecycle.keys() != {"status", "container"}
-                or lifecycle["status"] not in ("started", "completed", "waiting")
+                or lifecycle["status"] not in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
                 or type(lifecycle["container"]) is not bool):
             raise ValueError("Invalid explicit checkpoint lifecycle")
         return lifecycle["status"], lifecycle["container"]
     state = payload.get("status")
-    if state not in ("started", "completed", "waiting", "responded", "not_applied"):
+    if state not in tuple(CheckpointStatus):
         raise ValueError("Private checkpoint states require an explicit lifecycle projection")
-    return (state if state in ("started", "completed", "waiting") else "completed",
-            state != "started" or payload.get("container") is True)
+    return (state if state in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
+            else CheckpointStatus.COMPLETED,
+            state != CheckpointStatus.STARTED or payload.get("container") is True)
 
 
 def build_envelope(*, engine_scope, checkpoint_name, local_key, status, container, requires_retry):
@@ -62,9 +74,9 @@ def build_envelope(*, engine_scope, checkpoint_name, local_key, status, containe
     if any(not isinstance(value, str) or not value.strip()
            for value in (engine_scope, checkpoint_name, local_key)):
         raise ValueError("Checkpoint envelope requires scope, name and local key")
-    if (status not in ("started", "completed", "waiting")
+    if (status not in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING)
             or type(container) is not bool or type(requires_retry) is not bool
-            or requires_retry != (status == "started" and not container)):
+            or requires_retry != (status == CheckpointStatus.STARTED and not container)):
         raise ValueError("Invalid checkpoint envelope lifecycle")
     return {"node_type": "engine_record", "engine_scope": engine_scope,
             "checkpoint_name": checkpoint_name, "local_key": local_key,

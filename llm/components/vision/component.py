@@ -20,6 +20,7 @@ from .backends import TesseractBackend, VisionModel
 
 
 class VisionComponent(Component):
+    FORMAT_VERSION = 1
     name = "vision"
     directory = "vision"
     capabilities = ("vision", "tools")
@@ -97,7 +98,7 @@ class VisionComponent(Component):
 
     def resolve_config(self, project):
         view = super().resolve_config(project)
-        view["enforced"] = {"config": {"completion": {"stream": False, "n": 1}}, "asset_format": 1}
+        view["enforced"] = {"config": {"completion": {"stream": False, "n": 1}}, "asset_format": self.FORMAT_VERSION}
         return view
 
     def binding(self, project):
@@ -109,7 +110,8 @@ class VisionComponent(Component):
                                "sha256", "title", "metadata", "created_at", "deleted", "deleted_at", "origin"}
         if unknown:
             raise ValueError(f"vision/{identifier}: unsupported fields {sorted(unknown)}")
-        if (data.get("id") != identifier or data.get("format_version") != 1
+        if (type(data.get("format_version")) is not int or data["format_version"] != self.FORMAT_VERSION
+                or data.get("id") != identifier
                 or data.get("mime_type") not in ("image/png", "image/jpeg")
                 or any(type(data.get(key)) is not int or data[key] < 1 for key in ("width", "height", "bytes"))
                 or not isinstance(data.get("sha256"), str) or not re.fullmatch("[0-9a-f]{64}", data["sha256"])
@@ -123,7 +125,7 @@ class VisionComponent(Component):
         identifier = new_id() if identifier is None else validate_name(identifier)
         if self._record_path(project, identifier).exists():
             raise FileExistsError("Image IDs cannot be reused, including deleted images")
-        record = {"id": identifier, "format_version": 1, **info, "title": title,
+        record = {"id": identifier, "format_version": self.FORMAT_VERSION, **info, "title": title,
                   "metadata": deepcopy(metadata), "created_at": now(), "deleted": False}
         if origin is not None:
             record["origin"] = deepcopy(origin)

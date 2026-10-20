@@ -38,7 +38,7 @@ class Projects(AsyncFacade):
                conversation_storage: Optional[str] = None) -> "ProjectHandle":
         """대화 저장 방식을 프로젝트에 고정한다. 생략하면 백엔드 기본값을 사용한다."""
         self.app._check_open()
-        config = ProjectConfig(config) if config is not None else None
+        config = ProjectConfig.from_dict(config) if config is not None else None
         return ProjectHandle(self.app, self.app.project_manager.create(
             title, config=config, components=components, conversation_storage=conversation_storage))
 
@@ -123,7 +123,7 @@ class ProjectHandle(AsyncFacade):
         if title is not None:
             current.title = title
         if config is not None:
-            current.config = ProjectConfig(config)
+            current.config = ProjectConfig.from_dict(config)
         if conversation_storage is not None:
             current.conversation_storage = conversation_storage
         self.app.project_manager.save(current, expected_version=expected_version,

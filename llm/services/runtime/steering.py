@@ -7,6 +7,7 @@ from llm.core.steering import (is_instruction, RunInstruction, SteeringTarget, S
                                InstructionDataError, validate_instruction_record, SteeringRoute)
 from llm.services.history.conversation import Conversation
 from llm.services.query import Query
+from llm.services.runtime.tools import ToolExecutionScope
 
 
 def initial_channel(run, mode, input_message_id):
@@ -200,7 +201,7 @@ def close_targets(run, reason):
     run.metadata["steering"]["accepting"] = False
 
 
-def steering_boundary(repository, run, store, event):
+def steering_boundary(repository, run, store, event, *, tool_usage):
     """엔진이 제공한 경계/대상으로 처리한다. 저장 잠금·트랜잭션은 RunManager가 소유한다."""
     from llm.engines.base import EngineEvent, EngineEventType
     data = event.metadata
@@ -300,6 +301,8 @@ def steering_boundary(repository, run, store, event):
         record = {"kind": "instruction", "status": "input", "target_scope": target["scope"], "message_ids": [m.id for m in messages]}
         if envelope is not None:
             record = {**deepcopy(envelope), "payload": record}
+        ToolExecutionScope.validate_usage([tool_usage])
+        record[ToolExecutionScope.CHECKPOINT_FIELD] = deepcopy(tool_usage)
         repository.record_checkpoint(run, EngineEvent(EngineEventType.CHECKPOINT, metadata={
             "name": name, "operation": "record", "key": key, "value": record}))
         return tuple(messages), []

@@ -115,7 +115,7 @@ class ProjectManager:
         selected = self.components.validate(components)
         storage = self.sessions.conversations.resolve(conversation_storage)
         project = Project(project_id, title, self.repository.paths(project_id),
-                          config=deepcopy(config) if config else ProjectConfig(), components=selected,
+                          config=ProjectConfig() if config is None else ProjectConfig.from_dict(config), components=selected,
                           conversation_storage=storage)
         self._validate_config(project)
         self.repository.save(project)
@@ -255,7 +255,7 @@ class ProjectManager:
                           for name in current.components}
         versions = {name: revision_token(value) for name, value in configurations.items()}
         if config is not None:
-            current.config = ProjectConfig(config)
+            current.config = ProjectConfig.from_dict(config)
             self._validate_config(current)
             configurations = {}
         self.components.validate(current.components)

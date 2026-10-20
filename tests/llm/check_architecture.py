@@ -69,9 +69,70 @@ def literal(node):
     return isinstance(node, (ast.List, ast.Tuple, ast.Set)) and any(literal(item) for item in node.elts)
 
 
+def exact_version_guards(tree, fields):
+    """Only accept a direct OR rejection with an exact type and local constant.
+
+    This is a syntactic proof for this shape, not whole-program data-flow proof.
+    Imported versions and arbitrary helpers still require separate review.
+    """
+    accepted = set()
+
+    def field(node):
+        if isinstance(node, ast.Subscript):
+            owner, key = node.value, node.slice
+        elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+              and node.func.attr == "get" and len(node.args) == 1 and not node.keywords):
+            owner, key = node.func.value, node.args[0]
+        else:
+            return None
+        if isinstance(key, ast.Constant) and key.value in fields:
+            return ast.dump(owner, include_attributes=False), key.value
+
+    def terms(node):
+        if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.Or):
+            return [part for item in node.values for part in terms(item)]
+        return [node]
+
+    def visit(node, declarations=None):
+        if isinstance(node, ast.ClassDef):
+            declarations = {
+                target.id for item in node.body if isinstance(item, ast.Assign)
+                for target in item.targets if isinstance(target, ast.Name)
+                and target.id.isupper() and isinstance(item.value, ast.Constant)
+                and type(item.value.value) is int}
+        if (declarations and isinstance(node, ast.If) and len(node.body) == 1
+                and isinstance(node.body[0], ast.Raise) and node.body[0].exc is not None):
+            types, values = {}, {}
+            for part in terms(node.test):
+                if not isinstance(part, ast.Compare) or len(part.ops) != 1:
+                    continue
+                left, right = part.left, part.comparators[0]
+                if (isinstance(part.ops[0], ast.IsNot) and isinstance(right, ast.Name)
+                        and right.id == "int" and isinstance(left, ast.Call)
+                        and isinstance(left.func, ast.Name) and left.func.id == "type"
+                        and len(left.args) == 1 and not left.keywords):
+                    key = field(left.args[0])
+                    if key is not None:
+                        types[key] = part
+                if (isinstance(part.ops[0], ast.NotEq) and isinstance(right, ast.Attribute)
+                        and isinstance(right.value, ast.Name) and right.value.id in ("self", "cls")
+                        and right.attr in declarations):
+                    key = field(left)
+                    if key is not None and right.attr == key[1].upper():
+                        values[key] = part
+            for key in types.keys() & values.keys():
+                accepted.update((types[key], values[key]))
+        for child in ast.iter_child_nodes(node):
+            visit(child, declarations)
+
+    visit(tree)
+    return accepted
+
+
 def scan_source(source, file):
     tree = ast.parse(source, filename=file)
     findings, occurrences = [], Counter()
+    guarded_versions = exact_version_guards(tree, FORMAT_FIELDS)
 
     def add(rule, node, owner, detail):
         normalized = ast.dump(node, include_attributes=False)
@@ -123,7 +184,7 @@ def scan_source(source, file):
             for target in targets:
                 if domain_name(symbol(target)) and literal(node.value):
                     add("S3", node, owner, f"inline domain assignment: {symbol(target)}")
-        if isinstance(node, ast.Compare):
+        if isinstance(node, ast.Compare) and node not in guarded_versions:
             if any(symbol(part) in FORMAT_FIELDS for part in ast.walk(node)):
                 add("S4", node, owner, "verify exact version type and declaration reference")
             if (any(domain_name(symbol(part)) for part in ast.walk(node))

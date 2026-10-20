@@ -22,6 +22,8 @@ def operation_token(project_id: str, session_id: str, key: str) -> str:
 class OperationRepository:
     """호출자는 workspace 소유권 잠금/StorageIO를 유지해야 한다. 임의 reset API는 없다."""
 
+    SCHEMA_VERSION = 1
+
     def _path(self, session, key):
         token = operation_token(session.project_id, session.id, key)
         path = session.paths.state / "tool_operations" / (token + ".json")
@@ -37,7 +39,8 @@ class OperationRepository:
 
     def load(self, session: Session, key: str) -> dict:
         value = read_json(self._path(session, key))
-        if (value["schema_version"] != 1 or value["session_id"] != session.id
+        if (type(value.get("schema_version")) is not int or value["schema_version"] != self.SCHEMA_VERSION
+                or value["session_id"] != session.id
                 or value["project_id"] != session.project_id or value["key"] != key
                 or value["idempotency_key"] != operation_token(session.project_id, session.id, key)
                 or value["status"] not in ("started", "completed", "not_applied")):
@@ -68,7 +71,7 @@ class OperationRepository:
             if value["status"] != "completed":
                 raise ExecutionLimitError("operation_uncertain", "Operation may have executed; reconcile its external result before reuse")
             return {"reused": True, "result": deepcopy(value["result"])}
-        atomic_json(path, {"schema_version": 1, "project_id": session.project_id, "session_id": session.id,
+        atomic_json(path, {"schema_version": self.SCHEMA_VERSION, "project_id": session.project_id, "session_id": session.id,
                           "key": call.operation_key, "idempotency_key": call.idempotency_key,
                           "request_digest": digest, "name": call.name, "arguments": deepcopy(call.arguments),
                           "contract": deepcopy(call.contract), "status": "started",

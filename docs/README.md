@@ -2,7 +2,10 @@
 
 문서 기준은 main `94229cb865374d99f20ec48c5e48269488041a4e`다. 2026-10-20에
 `docs/` 전체와 `llm/`, `hub/` 내부 문서를 재검토했다. P0 검증 도구·테스트·CI와
-[최신 SDK/MCP 전환](llm/p0-sdk-transition.md)을 진행 중이다. P1 및 A–F는 미착수다.
+[최신 SDK/MCP 전환](llm/p0-sdk-transition.md)의 로컬·원격 검증을 완료했다.
+[P1-a 타입·저장 계약](llm/p1-verification.md)은 사용량 소실 문제로 중단한 뒤,
+사용자의 재개 요청에 따라 소유권·복원 검증을 보강하고 LLM·Hub 회귀 검증을 완료했다.
+P1-b/c 및 A–F는 미착수다.
 
 ## 읽는 순서와 적용 범위
 
@@ -13,7 +16,7 @@
    [트랜잭션](llm/storage-transactions.md), [승인](llm/interactions.md), [격리](llm/process-isolation.md).
 4. [현행 공개 API](llm/backend-api.md), [LLM 사용법](../llm/README.md),
    [Hub 설계](hub/README.md), [Hub 사용법](../hub/README.md).
-5. [클린 리팩터링 목표와 단계](llm/clean-refactor.md): 승인된 설계 방향이며 **아직 구현되지 않았다**.
+5. [클린 리팩터링 목표와 단계](llm/clean-refactor.md): 승인된 설계 방향과 단계별 구현 상태.
 6. [P0 검사와 실행 기록](llm/p0-verification.md): 로컬 결과와 원격 CI 검증을 구분한다.
 7. [전체 문서 목록](document-map.md), [문서·코드 불일치와 검증 상태](llm/documentation-review.md).
 

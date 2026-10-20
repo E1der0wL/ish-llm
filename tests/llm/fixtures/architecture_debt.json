@@ -1268,30 +1268,6 @@
       "detail": "inline domain field: isolation"
     },
     {
-      "id": "3c4b9b1d95bd194f49618ef1d9854fc0073fe4082c6e9fe39d38322326b27f30:1",
-      "rule": "S4",
-      "file": "llm/components/tools/builtin/workspaces.py",
-      "symbol": "TestWorkspaces._record",
-      "line": 120,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "321c84ad65b31790c8446a237303ee6b88b4374bf42aa4fbfdc3eae39a52df1c:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/workspaces.py",
-      "symbol": "TestWorkspaces._record",
-      "line": 120,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "798370aa3041fe4b6e3c132b48dddd49afc836b5a6ed99ec7b9253302b975048:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/workspaces.py",
-      "symbol": "TestWorkspaces._create",
-      "line": 174,
-      "detail": "inline domain field: storage_version"
-    },
-    {
       "id": "c7e554897ede4c19bac9e8dc6f62aa5e01e18cdf4f4dffe013bb75a5c2072369:1",
       "rule": "S3",
       "file": "llm/components/tools/builtin/workspaces.py",
@@ -1412,30 +1388,6 @@
       "detail": "inline domain argument: policy"
     },
     {
-      "id": "71fd2b6b3e048b19cf5f9311df7393fe43c12e69f4d4dbbf21c006c23d2a32d0:1",
-      "rule": "S4",
-      "file": "llm/components/vision/component.py",
-      "symbol": "VisionComponent.validate_record",
-      "line": 112,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "9ba5c33d55b3f2a7f2351b6a3efa5c44647cda0f050391813aa2fa55f6f74c23:1",
-      "rule": "S3",
-      "file": "llm/components/vision/component.py",
-      "symbol": "VisionComponent.validate_record",
-      "line": 112,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "3f588760b3acff99f2799cc923bdab90058f50d5a61c4208e584706a5cb2ba08:1",
-      "rule": "S3",
-      "file": "llm/components/vision/component.py",
-      "symbol": "VisionComponent.import_bytes",
-      "line": 126,
-      "detail": "inline domain field: format_version"
-    },
-    {
       "id": "04d8ea8f537fa1e0976c27f7664a2f69f324b150ccabefe41ff13b61387b8008:1",
       "rule": "S3",
       "file": "llm/components/vision/tools.py",
@@ -1508,84 +1460,12 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "c494b03c6406c2cb119dfd45f9213c807afdf01bf2b47dbe9d9f668315ffd6dc:1",
-      "rule": "S3",
-      "file": "llm/core/checkpoints.py",
-      "symbol": "checkpoint_lifecycle",
-      "line": 44,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "0568e283751e0dfc315e636b97a2e50ccc70b06b4eb88d3528326e3d736d37e6:1",
-      "rule": "S3",
-      "file": "llm/core/checkpoints.py",
-      "symbol": "checkpoint_lifecycle",
-      "line": 49,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "bbe48ce3968409fe2aef29aa85411fa2ae9d3521dec6c1268b782a79de8399cf:1",
-      "rule": "S3",
-      "file": "llm/core/checkpoints.py",
-      "symbol": "checkpoint_lifecycle",
-      "line": 51,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "02446419be8772c3b9464cbd1fa14704c8c2eff6388eac04b6ae7dd8e9863dce:1",
-      "rule": "S3",
-      "file": "llm/core/checkpoints.py",
-      "symbol": "checkpoint_lifecycle",
-      "line": 52,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "4d8c6b77b4cb489f21b6e8ad2b516078368b4086674447d3b559329636dcae48:1",
-      "rule": "S3",
-      "file": "llm/core/checkpoints.py",
-      "symbol": "build_envelope",
-      "line": 65,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "13db871a56d9694e1d71b291cf6a6416bcfc3be471e64d3dbc71fdf43aab0b3e:1",
-      "rule": "S3",
-      "file": "llm/core/checkpoints.py",
-      "symbol": "build_envelope",
-      "line": 67,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "a11b24f050362196671648913b799ae4d8db3cdd9453be296e98b384d7d56fdc:1",
-      "rule": "S2",
-      "file": "llm/core/configuration.py",
-      "symbol": "resolve_config",
-      "line": 31,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "721e395c95bc665fba6ea6ae7e085f83906e42b602bd65bbbfc242c1052ce429:1",
       "rule": "S3",
       "file": "llm/core/configuration.py",
       "symbol": "resolve_config",
       "line": 39,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "7805c74ef1c2c3df7046bd76e328a478bdb7e497e35e55e7fec253dddaef0320:1",
-      "rule": "S2",
-      "file": "llm/core/configuration.py",
-      "symbol": "resolve_engine_config",
-      "line": 45,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "16caf1427b2414293cd2810a6bb84b7f49ff61206faf2f1042b12bdcfdc50ef5:1",
-      "rule": "S2",
-      "file": "llm/core/configuration.py",
-      "symbol": "resolve_engine_config",
-      "line": 50,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "55e9bab11aed69b48a35839db1e625f33652f0a1cb874f395c359f5f3ca75b15:1",
@@ -1738,14 +1618,6 @@
       "symbol": "approval_request",
       "line": 263,
       "detail": "inline domain argument: effect"
-    },
-    {
-      "id": "0251879f29b8787db0cd5dd2e06880f24d3e8f749b608bf9b67998952e21494f:1",
-      "rule": "S3",
-      "file": "llm/core/plans.py",
-      "symbol": "ResumePlan",
-      "line": 52,
-      "detail": "inline domain assignment: state"
     },
     {
       "id": "216ad4938d1b5961e079721d8b326ee1735170714e2a27ee1d96355826d19ddd:1",
@@ -3044,38 +2916,6 @@
       "detail": "verify exact version type and declaration reference"
     },
     {
-      "id": "146fd46a4bf633bf3dceb7174e1a43c8310a63b07c765fba8ce2f4211e6fdccd:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/transactions.py",
-      "symbol": "Transaction._entry",
-      "line": 108,
-      "detail": "inline domain field: format_version"
-    },
-    {
-      "id": "cb4c2c6f3e867b4c5479ad1badcd85a09a4d99a7e89e827af54c4433ddd6ae11:1",
-      "rule": "S4",
-      "file": "llm/services/infrastructure/transactions.py",
-      "symbol": "TransactionManager._entries",
-      "line": 287,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "eefa7b1ade471c0bca6729140214c23aa9baf28d928c26dd98d4fc7052476a1a:1",
-      "rule": "S4",
-      "file": "llm/services/infrastructure/transactions.py",
-      "symbol": "TransactionManager._entries",
-      "line": 287,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "601c03046c49c7ba0b1235fc5cb3b7ad0851d5009b4b5ef51e7c316a753e4546:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/transactions.py",
-      "symbol": "TransactionManager._entries",
-      "line": 287,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "179ed1f55150edd9ff30d3ff47a15c0091b1c3bede6b39bece271d0bab4814e5:1",
       "rule": "S4",
       "file": "llm/services/lifecycle/projects.py",
@@ -3140,35 +2980,11 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "efa018a9e9366de546a96a10de49f3ff77a39f869d200331177f7cbdd940f17c:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/checkpoints.py",
-      "symbol": "CheckpointRepository.record",
-      "line": 101,
-      "detail": "inline domain field: schema_version"
-    },
-    {
       "id": "c6040567fcfc05596ef7ee14102239363037a413d494439e18b97db3bb283878:1",
       "rule": "S3",
       "file": "llm/services/runtime/checkpoints.py",
       "symbol": "CheckpointRepository.record",
       "line": 113,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "b9cbba913183c160bf51526bcda6e2d232487bd3b77e51a11e956faba980e3f2:1",
-      "rule": "S4",
-      "file": "llm/services/runtime/checkpoints.py",
-      "symbol": "CheckpointRepository.load",
-      "line": 129,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "643f9d8ea581f13793ee19f25d78c1a7fc148cad57af4d465e85bf0b93eb6069:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/checkpoints.py",
-      "symbol": "CheckpointRepository.load",
-      "line": 129,
       "detail": "inline domain comparison"
     },
     {
@@ -3276,22 +3092,6 @@
       "detail": "inline domain argument: status"
     },
     {
-      "id": "ec712841e6877199f09abfdcf12229c32e5d0dfb92a5828e917b851fa9ce4a8e:1",
-      "rule": "S4",
-      "file": "llm/services/runtime/operations.py",
-      "symbol": "OperationRepository.load",
-      "line": 40,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "bb7d18dcc1a2c22a57c69a092b3c29cb8b52a5482c458a88c657631041a27824:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/operations.py",
-      "symbol": "OperationRepository.load",
-      "line": 40,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "9352d19a645aa95b3c5c9aa31ca0763b1ee4584b960e7c9085dfe561b72dba83:1",
       "rule": "S3",
       "file": "llm/services/runtime/operations.py",
@@ -3330,14 +3130,6 @@
       "symbol": "OperationRepository.claim",
       "line": 68,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "d7de449fd59808567b33f915bb77d43b6ed8bb7baccd2258b8a9f91c5f31fac6:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/operations.py",
-      "symbol": "OperationRepository.claim",
-      "line": 71,
-      "detail": "inline domain field: schema_version"
     },
     {
       "id": "94579eacf0ff594cd504699643568ee52aedf779102652a1ae03475b55a21014:1",
@@ -3644,60 +3436,12 @@
       "detail": "retired reference or argument"
     },
     {
-      "id": "5cb165aee61d1c5093193ff0efc41de505ae5722a42f690ba8041c7dbaef3bf6:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._resume_plan",
-      "line": 1015,
-      "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "96dc53129277145173fbacda04f9fc2f555a184c7698979cec5d3e2a6782ac00:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._resume_plan",
-      "line": 1018,
-      "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "ae5cdca13bf26d91f174dd8632ef2c019c2f84ccac39834f75671ba72e9e9116:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._resume_plan",
-      "line": 1020,
-      "detail": "inline domain assignment: state"
-    },
-    {
       "id": "0889a6bebc90d7a296c1d2b3eefac684b510b419117fbbc2943be4d965bc1095:1",
       "rule": "S3",
       "file": "llm/services/runtime/runs.py",
       "symbol": "RunManager._resume_plan",
       "line": 1023,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "ed45d6ebc3febfd06720a75f7fa5ea3dc39f501f3685ae874306b9a7f85a81ae:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._resume_plan",
-      "line": 1024,
-      "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "9d1ac3c56b6af3d6e283fdce2149153533f0d0e4678cdf9be937923ce894fc61:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._resume_plan",
-      "line": 1026,
-      "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "ed45d6ebc3febfd06720a75f7fa5ea3dc39f501f3685ae874306b9a7f85a81ae:2",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._resume_plan",
-      "line": 1028,
-      "detail": "inline domain assignment: state"
     },
     {
       "id": "2f0e8c682952490af8d144163f15cb323362e0c915a0af7389efe5cf69adb110:1",
@@ -3714,14 +3458,6 @@
       "symbol": "RunManager._resume_plan",
       "line": 1031,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "e4280f3b007ddec8d75d43fa156f31b41bd9a4745c4111fe006b7682ff78b923:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._resume_plan",
-      "line": 1034,
-      "detail": "inline domain assignment: state"
     },
     {
       "id": "5bc5430cd2c69766014626ea9ca323822a8aa76b447a999d7e432a13dc7253d4:1",
@@ -3889,22 +3625,6 @@
       "file": "llm/services/runtime/tools.py",
       "symbol": "ToolRuntime.__post_init__",
       "line": 116,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "87bba205458288160b3b4eb910db6ebd9d63aaa74cf24fa872b5a3e28a1d028f:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutionScope.__init__",
-      "line": 130,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "ca95c2311c84fa9eff19f3fb0688c884a2cc3ae2d52eb1317cf971a04969906c:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutionScope.__init__",
-      "line": 130,
       "detail": "truthiness fallback involving configuration"
     },
     {
@@ -5012,30 +4732,6 @@
       "detail": "truthiness fallback involving configuration"
     },
     {
-      "id": "84c0a1912d80775cee2f5f287f83a4a602d189efcbfafdfcc21ee5debdd32e0c:1",
-      "rule": "S3",
-      "file": "hub/config/preferences.py",
-      "symbol": "PreferencesStore.load",
-      "line": 44,
-      "detail": "inline domain field: version"
-    },
-    {
-      "id": "422adf347126a39420fe5487652b60cc2e4de99b0e81f35a76a76c9657e6cbec:1",
-      "rule": "S4",
-      "file": "hub/config/preferences.py",
-      "symbol": "PreferencesStore.load",
-      "line": 45,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "196d7293a9cd5100d530d68ed044730a4c83d825f4f52ad55a28b2b75d1f5aef:1",
-      "rule": "S3",
-      "file": "hub/config/preferences.py",
-      "symbol": "PreferencesStore.load",
-      "line": 45,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "8af2b3d0bd8725a598aff7a9d16bd98e3ce3f2c9ebf55ef313fd8a0a174d06ef:1",
       "rule": "S1",
       "file": "hub/config/preferences.py",
@@ -5074,14 +4770,6 @@
       "symbol": "PreferencesStore.load",
       "line": 58,
       "detail": "retired field or dynamic API lookup"
-    },
-    {
-      "id": "41e710bef08326833dde5dc1550edd1558178466d6bcac1cedd45c6ff32627cf:1",
-      "rule": "S3",
-      "file": "hub/config/preferences.py",
-      "symbol": "PreferencesStore.save",
-      "line": 76,
-      "detail": "inline domain field: version"
     },
     {
       "id": "c930a79db3998c62a7dd5dbb0d8a8147f8a7366653d8bec55339269a5f7a2f9e:1",
@@ -5194,30 +4882,6 @@
       "symbol": "HubTheme.from_preferences",
       "line": 76,
       "detail": "retired definition"
-    },
-    {
-      "id": "edc2a127d42ea22401be34c015f2a51390c26ca9bd211e349f0062947662cc70:1",
-      "rule": "S3",
-      "file": "hub/config/view_state.py",
-      "symbol": "ViewStateStore._read",
-      "line": 22,
-      "detail": "inline domain field: version"
-    },
-    {
-      "id": "6f01b17e49bab783ff439f2985dd416144a7418905fd96c56febca1b0f97eab5:1",
-      "rule": "S4",
-      "file": "hub/config/view_state.py",
-      "symbol": "ViewStateStore._read",
-      "line": 23,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "92fb3bbaf7467be3f0cb1323b94b526c12614dec1493ae7be37e7f1d64d15bb5:1",
-      "rule": "S3",
-      "file": "hub/config/view_state.py",
-      "symbol": "ViewStateStore._read",
-      "line": 23,
-      "detail": "inline domain comparison"
     },
     {
       "id": "aaa14ad7fe9a9f392d9d5e1c965dcc83457c67620ddd8b1259942f248aaa9db8:1",

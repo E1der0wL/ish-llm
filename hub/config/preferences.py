@@ -36,13 +36,16 @@ def configured_profile(config):
 
 
 class PreferencesStore(WorkspaceJSONStore):
+    VERSION = 1
+
     def __init__(self, workspace):
         super().__init__(workspace, "preferences.json")
         self.sidebar = WorkspaceJSONStore(workspace, "sidebar-width.json")
 
     def load(self):
-        value = self._read_json({"version": 1})
-        if not isinstance(value, dict) or value.get("version") != 1:
+        value = self._read_json({"version": self.VERSION})
+        if (not isinstance(value, dict) or type(value.get("version")) is not int
+                or value["version"] != self.VERSION):
             raise ValueError("Invalid Hub preferences")
         result = {}
         if "profile" in value:
@@ -73,7 +76,7 @@ class PreferencesStore(WorkspaceJSONStore):
         if section not in ("profile", "appearance", "general"):
             raise ValueError("Unknown preference section")
         record = {"profile": UserProfile, "appearance": HubTheme, "general": GeneralSettings}[section](**values)
-        data = {"version": 1, **self.load(), section: asdict(record)}
+        data = {"version": self.VERSION, **self.load(), section: asdict(record)}
         if section == "appearance":
             self.save_sidebar_width(record.sidebar_width)
         self._write_json(data)

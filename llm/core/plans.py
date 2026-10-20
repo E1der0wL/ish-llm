@@ -1,6 +1,7 @@
 """실행 전 검토용 계획. 각 서비스가 원본/정책을 재검증한 뒤 실제 작업을 수행한다."""
 
 from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import Optional
 from .contracts import Diagnostic, JsonValue, ResourceRef
 from .interactions import InteractionView
@@ -40,6 +41,19 @@ class TurnDeletionPlan(JsonValue):
     revision: str
 
 
+class ResumeState(StrEnum):
+    """재개 계획이 관찰한 복원 상태. 실행 권한·예산·효과 상태와 구분한다."""
+
+    UNKNOWN = "unknown"
+    DELETED = "deleted"
+    UNSUPPORTED = "unsupported"
+    CORRUPT = "corrupt"
+    VALID = "valid"
+    MISSING = "missing"
+    INCOMPATIBLE = "incompatible"
+    NOT_CREATED = "not_created"
+
+
 @dataclass(frozen=True, slots=True)
 class ResumePlan(JsonValue):
     source: ResourceRef
@@ -49,7 +63,7 @@ class ResumePlan(JsonValue):
     reused: list[str]
     retry_nodes: list[str]
     blockers: list[Diagnostic]
-    state: str = "unknown"
+    state: ResumeState = ResumeState.UNKNOWN
     revision: Optional[str] = None
     can_restart: bool = False
     restart_blockers: list[Diagnostic] = field(default_factory=list)

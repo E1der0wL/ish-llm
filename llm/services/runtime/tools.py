@@ -120,14 +120,25 @@ class ToolRuntime:
             raise TypeError("Tool adapters must be callable")
 
 
+class ToolUsageError(CodedError, ValueError):
+    """복원할 사용량의 무결성 오류. 승인·실행 권한·예산 소진과 구분한다."""
+
+    code = "tool_usage_corrupt"
+
+
 class ToolExecutionScope:
     """한 Run의 Graph 분기·Agent가 공유하는 호출 예산. asyncio 루프에서만 접근한다."""
+
+    USAGE_COUNTERS = ("calls", "completed", "revision")
+    USAGE_COLLECTIONS = ("pending_approvals", "invocations")
+    CHECKPOINT_FIELD = "runtime_tool_usage"
 
     def __init__(self, runtime: ToolRuntime, *, policy=None, retry=None, operations=None, parent=None):
         # 외부 dict 편집으로 실행 중 승인/제약의 사본이 바뀌지 않게 한다.
         from llm.components.tools.constraints import narrow_constraints
         from llm.core.policies import normalize_policies
-        policy, retry = deepcopy(policy or {}), deepcopy(retry or {})
+        policy = deepcopy({} if policy is None else policy)
+        retry = deepcopy({} if retry is None else retry)
         normalize_policies({"tools": policy, "tool_retry": retry})
         constraints = policy.get("argument_constraints", {})
         self.argument_constraints = (constraints if parent is None else
@@ -154,13 +165,9 @@ class ToolExecutionScope:
                     setattr(self, key, inherited if chosen is None else min(inherited, chosen))
         self.max_retries, self.retry_delay = retry.get("max_retries"), retry.get("delay_seconds")
         self.runtime = runtime
-        self.calls = 0
         self.operations = operations
         self.parent = parent
-        self.completed = 0
-        self.pending_approvals = []
-        self.invocations = set()
-        self.revision = 0
+        self.restore([self.initial_usage()])
         self.revoked = False
 
     def revoke(self):
@@ -175,10 +182,37 @@ class ToolExecutionScope:
         if self.parent is not None:
             self.parent.require_active()
 
+    @classmethod
+    def initial_usage(cls):
+        """새 논리 scope의 초기 상태. 저장 기록의 누락 필드를 채우는 용도가 아니다."""
+        return {**dict.fromkeys(cls.USAGE_COUNTERS, 0),
+                **{key: [] for key in cls.USAGE_COLLECTIONS}}
+
     def checkpoint(self):
         self.revision += 1
-        return {"calls": self.calls, "completed": self.completed, "pending_approvals": list(self.pending_approvals),
-                "invocations": sorted(self.invocations), "revision": self.revision}
+        return {**{key: getattr(self, key) for key in self.USAGE_COUNTERS},
+                **{key: sorted(self.invocations) if key == "invocations" else list(getattr(self, key))
+                   for key in self.USAGE_COLLECTIONS}}
+
+    def checkpoint_record(self, value):
+        """서비스의 모든 durable record에 같은 소유자 스냅샷을 기록한다."""
+        return {**value, self.CHECKPOINT_FIELD: self.checkpoint()}
+
+    @classmethod
+    def checkpoint_usage(cls, records):
+        """Engine payload를 해석하지 않고 필수 공통 사용량을 복원한다."""
+        if not isinstance(records, dict):
+            raise ToolUsageError("Tool usage requires checkpoint records")
+        values = []
+        for key, value in records.items():
+            if not isinstance(value, dict) or cls.CHECKPOINT_FIELD not in value:
+                raise ToolUsageError(f"Tool usage missing from checkpoint record: {key}")
+            values.append(value[cls.CHECKPOINT_FIELD])
+        cls.validate_usage(values)
+        return values
+
+    def restore_checkpoint(self, records):
+        self.restore(self.checkpoint_usage(records))
 
     def binding(self):
         """실행 코드/승인 어댑터 변경 시 호스트가 revision을 올려 이전 승인의 재사용을 막는다."""
@@ -195,13 +229,33 @@ class ToolExecutionScope:
                 "retry_safe_tools": list(self.runtime.retry_safe_tools), "max_retries": self.max_retries,
                 "retry_delay": self.retry_delay, "argument_constraints": deepcopy(self.argument_constraints)}
 
+    @classmethod
+    def validate_usage(cls, records):
+        """저장 상태만 검증한다. 권한 부여·예산 예약·외부 효과 조회를 하지 않는다."""
+        if not isinstance(records, list):
+            raise ToolUsageError("Tool usage records must be a list")
+        fields = {*cls.USAGE_COUNTERS, *cls.USAGE_COLLECTIONS}
+        for item in records:
+            if not isinstance(item, dict) or item.keys() != fields:
+                raise ToolUsageError("Tool usage requires the complete current record")
+            if any(type(item[key]) is not int or item[key] < 0 for key in cls.USAGE_COUNTERS):
+                raise ToolUsageError("Tool usage counters must be nonnegative integers")
+            for key in cls.USAGE_COLLECTIONS:
+                values = item[key]
+                if not isinstance(values, list) or any(not isinstance(value, str) or not value for value in values):
+                    raise ToolUsageError("Tool usage reservations must be lists of nonempty strings")
+            if len(set(item["invocations"])) != len(item["invocations"]):
+                raise ToolUsageError("Tool usage invocation identities must be unique")
+
     def restore(self, records):
+        """검증을 모두 마친 뒤 사용량만 복원한다. 현재 한도·승인 정책은 변경하지 않는다."""
+        self.validate_usage(records)
         if records:
-            latest = max(records, key=lambda item: (item.get("revision", 0), item.get("calls", 0)))
-            self.calls, self.completed = latest.get("calls", 0), latest.get("completed", 0)
-            self.pending_approvals = list(latest.get("pending_approvals", []))
-            self.invocations = set(latest.get("invocations", []))
-            self.revision = latest.get("revision", 0)
+            latest = max(records, key=lambda item: (item["revision"], item["calls"]))
+            for key in self.USAGE_COUNTERS:
+                setattr(self, key, latest[key])
+            self.pending_approvals = list(latest["pending_approvals"])
+            self.invocations = set(latest["invocations"])
 
     def child(self, *, allowed_tools, max_calls=None, argument_constraints=None):
         """Agent 한도를 추가하되 부모의 승인, 실행기, 원장과 예산을 유지한다."""

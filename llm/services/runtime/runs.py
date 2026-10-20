@@ -46,7 +46,7 @@ from llm.services.infrastructure.activity import activity_event
 from llm.services.results import RunResultQuery
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.errors import CodedError, stable_error_code
-from llm.core.plans import ResumePlan
+from llm.core.plans import ResumePlan, ResumeState
 from llm.core.plans import CheckpointPlan
 from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, CheckpointError
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
@@ -54,7 +54,7 @@ from enum import StrEnum
 from asyncio import timeout
 from llm.policies import ExecutionLimitError
 from llm.services.runtime.policies import ProjectPolicyResolver
-from llm.services.runtime.tools import ToolRuntime, ToolExecutionScope
+from llm.services.runtime.tools import ToolRuntime, ToolExecutionScope, ToolUsageError
 from llm.services.runtime.operations import OperationRepository, ToolOperations
 from llm.services.runtime.events import EventHandlers, EventContext, EventSubscriptions
 from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_digest, checkpoint_message_ids
@@ -801,8 +801,8 @@ class RunManager:
         await self._publish_instructions(run, [value])
         return value
 
-    def _steering_boundary(self, run, store, event):
-        return steering_boundary(self.repository, run, store, event)
+    def _steering_boundary(self, run, store, event, tool_usage):
+        return steering_boundary(self.repository, run, store, event, tool_usage=tool_usage)
 
     def _open_resumed_steering(self, run: Run, checkpoint: dict) -> None:
         """재개 원본 검증 뒤에만 접수한다. 검증 실패도 기존 Run 종료 경계에서 처리한다."""
@@ -972,6 +972,7 @@ class RunManager:
         if not name or not callable(getattr(strategy, "validate_resume", None)):
             raise ValueError("Engine does not support checkpoint resume")
         checkpoint = self.repository.resolve_checkpoint(runtime.session, source, name)
+        ToolExecutionScope.checkpoint_usage(checkpoint["records"])
         decisions, receipts, retry_nodes = self.repository.interaction_decisions(
             runtime.session, source, checkpoint, decisions, retry_nodes=retry_nodes, confirm=True)
         strategy.validate_resume(checkpoint, retry_nodes=retry_nodes, **({"decisions": decisions} if decisions else {}))
@@ -1005,38 +1006,42 @@ class RunManager:
             raise CheckpointError("checkpoint_corrupt", "Run lifecycle proof is invalid") from error
         ref = ResourceRef("run", run_id, project_id=project.id, session_id=session.id, run_id=run_id)
         reused, retries, blockers, views, can_resume = [], [], [], [], False
-        state, checkpoint, strategy = "unknown", None, None
+        state, checkpoint, strategy = ResumeState.UNKNOWN, None, None
         store = self._store(session)
         messages, runs = store.list(), self.repository.list(session)
         link = self.repository.resume_link(session, source, store, messages=messages, records=runs)
         try:
             strategy = self.engines.resolve_request(engine, source.metadata.get("engine_options", {}))
             if CheckpointRepository().deletion(source) is not None:
-                state = "deleted"
+                state = ResumeState.DELETED
                 raise ValueError("Checkpoints were explicitly deleted")
             if not getattr(strategy, "checkpoint_name", None) or not callable(getattr(strategy, "validate_resume", None)):
-                state = "unsupported"
+                state = ResumeState.UNSUPPORTED
                 raise ValueError("Engine does not support checkpoint resume")
-            state = "corrupt"
+            state = ResumeState.CORRUPT
             with self.repository._interaction_scope(session, source):
                 checkpoint = self.repository.resolve_checkpoint(session, source, strategy.checkpoint_name)
+                ToolExecutionScope.checkpoint_usage(checkpoint["records"])
                 reused = [k for k, v in checkpoint["records"].items() if v.get("status") == "completed"]
-                state = "valid"
+                state = ResumeState.VALID
                 self.repository.require_resume(source)
-                state = "missing"
+                state = ResumeState.MISSING
                 self._validate_checkpoint_input(store, checkpoint, source.input_message_id, messages=messages)
-                state = "valid"
+                state = ResumeState.VALID
                 views = self.repository.interaction_views(session, source, store, link=link)
                 retries = [v.request.binding["key"] for v in views if v.request.binding.get("target") == "retry_nodes"]
                 if any(v.status in ("pending", "denied", "expired", "cancelled", "submitted", "unavailable") for v in views):
                     blockers.append(Diagnostic("interaction_required", "Resolve pending interactions before execution", source=ref))
                 else:
-                    state = "incompatible"
+                    state = ResumeState.INCOMPATIBLE
                     self._resume_request(SessionRuntime(project, session), run_id, engine, (), {}, preview=True, source=source, link=link)
-                    state, can_resume = "valid", True
+                    state, can_resume = ResumeState.VALID, True
+        except ToolUsageError as error:
+            state = ResumeState.CORRUPT
+            blockers.append(Diagnostic.from_exception(error, code=error.code, source=ref))
         except FileNotFoundError as error:
-            state = ("missing" if source.metadata.get("checkpoints") or "resume" in source.metadata else
-                     "not_created" if source.metadata.get("execution_started") is False else "unknown")
+            state = (ResumeState.MISSING if source.metadata.get("checkpoints") or "resume" in source.metadata else
+                     ResumeState.NOT_CREATED if source.metadata.get("execution_started") is False else ResumeState.UNKNOWN)
             blockers.append(Diagnostic.from_exception(error, code="checkpoint_" + state, source=ref))
         except (ValueError, KeyError, RuntimeError, AttributeError) as error:
             blockers.append(Diagnostic.from_exception(error, code="resume_rejected", source=ref))
@@ -1294,8 +1299,7 @@ class RunManager:
         tool_scope = ToolExecutionScope(self.tool_runtime, policy=run.metadata["policies"].get("tools", {}), retry=retries,
               operations=ToolOperations(deepcopy(runtime.session), self._io, self.repository, steps=self.steps))
         if checkpoint:
-            tool_scope.restore([value["runtime_tool_usage"] for value in checkpoint["records"].values()
-                                if "runtime_tool_usage" in value])
+            tool_scope.restore_checkpoint(checkpoint["records"])
         for name in values.get("tools", ToolRegistry()).names():
             tool_scope.validate(values["tools"].get(name))
         inbox = (SteeringInbox(history=checkpoint_messages(store, checkpoint) if checkpoint else {})
@@ -1383,12 +1387,12 @@ class RunManager:
                 if event.type == EngineEventType.CHECKPOINT and event.metadata.get("operation") == "record":
                     # Run 전체 예산은 서비스 스코프가 소유한다. Engine payload를 해석하지 않고
                     # 같은 durable 저장 경계에 스냅샷을 붙여 명시적 재개가 예산을 초기화하지 않게 한다.
-                    event = replace(event, metadata={**event.metadata, "value": {
-                        **event.metadata["value"], "runtime_tool_usage": context.tool_scope.checkpoint()}})
+                    event = replace(event, metadata={**event.metadata,
+                        "value": context.tool_scope.checkpoint_record(event.metadata["value"])})
                 if event.checkpoint is not None:
                     receipt = event.checkpoint
-                    event = replace(event, checkpoint=replace(receipt, metadata={**receipt.metadata, "value": {
-                        **receipt.metadata["value"], "runtime_tool_usage": context.tool_scope.checkpoint()}}))
+                    event = replace(event, checkpoint=replace(receipt, metadata={**receipt.metadata,
+                        "value": context.tool_scope.checkpoint_record(receipt.metadata["value"])}))
                 value = event.delta if event.type == EngineEventType.TEXT_DELTA else event.output
                 if event.type == EngineEventType.STEERING:
                     if context.steering is None:
@@ -1399,7 +1403,8 @@ class RunManager:
                         if (target["scope"] != channel.scope or target["mode"] != channel.mode
                                 or target["engine"] != channel.engine):
                             raise ValueError("Instruction target does not match its execution channel")
-                    messages, changed = await self._io.run(self._steering_boundary, run, store, event)
+                    usage = context.tool_scope.checkpoint() if event.metadata["operation"] == "select" else None
+                    messages, changed = await self._io.run(self._steering_boundary, run, store, event, usage)
                     if event.metadata["operation"] in ("routes", "bind"):
                         channel.acknowledged = event.metadata["request_id"]
                         if event.metadata["operation"] == "routes":

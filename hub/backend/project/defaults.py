@@ -27,7 +27,7 @@ def rag_defaults():
 
 
 async def create_project(backend, title, *, config, components, conversation_storage):
-    project_config = ProjectConfig(deepcopy(config))
+    project_config = ProjectConfig.from_dict(deepcopy(config))
     # Application creation presets; explicit user policies always win.
     presets = {
         "vision": {"config": {"ocr": {"backend": "tesseract"}}, "policy": {"ocr": {"timeout": 60}}},

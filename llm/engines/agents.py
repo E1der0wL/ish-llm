@@ -16,7 +16,7 @@ from llm.components.tools import Tool, ToolRegistry
 from llm.core.models import new_id
 from llm.services.infrastructure.storage import revision_token
 from llm.core.results import EngineOutput
-from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime
+from llm.services.runtime.tools import ToolExecutionScope, ToolRuntime, ToolUsageError
 from llm.policies import ExecutionLimitError
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType, required_capabilities, steering_mode
 from llm.core.steering import SteeringMode
@@ -39,6 +39,7 @@ class AgentExecution:
     # Graph 모드의 준비/매핑은 외부 효과를 수행하지 않고 자식 작업만 조율한다.
     resumable_container = True
     selection_binding = True
+    USAGE_FIELD = "agent_usage"
 
     @staticmethod
     def describe_config():
@@ -207,6 +208,8 @@ class AgentExecution:
         if isinstance(engine, GraphEngine) and not wrapped_graph:
             return  # Inline Graph children are visited in the parent Graph environment.
         name = getattr(engine, "checkpoint_name", None)
+        if not isinstance(engine, GraphEngine):
+            self._checkpoint_usage(records, owner, name)
         validate = getattr(engine, "validate_selections", None)
         if name is None or not callable(validate):
             return
@@ -216,6 +219,36 @@ class AgentExecution:
         bridge = EngineCheckpointScope(owner, name, records, parent_name=checkpoint_name)
         if bridge.snapshot() is not None:
             validate(bridge.context(context))
+
+    @classmethod
+    def _checkpoint_usage(cls, records, owner, name):
+        """선택한 Agent의 실행 기록만 해석하고 필수 사용량을 검증한다."""
+        from llm.core.checkpoints import unwrap_record, CheckpointStatus
+        from llm.core.steering import validate_instruction_record
+
+        values = []
+        def append(record):
+            usage = record.get(cls.USAGE_FIELD)
+            if not isinstance(usage, dict) or owner not in usage:
+                raise ToolUsageError(f"Tool usage missing from Agent checkpoint: {owner}")
+            values.append(usage[owner])
+
+        selected = [record for record in records.values()
+                    if record.get("engine_scope") == owner and record.get("checkpoint_name") == name]
+        for record in selected:
+            payload, _ = unwrap_record(record)
+            if payload.get("kind") == "instruction":
+                # 지시는 실행 사용량의 소유자가 아니다. 해당 소유자의 계약으로만 구분한다.
+                validate_instruction_record(payload)
+                continue
+            append(record)
+        marker = records.get(owner)
+        if marker is not None:
+            if (cls.USAGE_FIELD in marker or marker.get("node_type") == "agent_container"
+                    or marker["status"] == CheckpointStatus.STARTED):
+                append(marker)
+        ToolExecutionScope.validate_usage(values)
+        return values
 
     def prepare_context(self, definition, context):
         """Request only the selected Agent's public capabilities, before approval/effects."""
@@ -309,9 +342,9 @@ class AgentExecution:
                     allowed_tools=tools.names(), max_calls=policy.get("max_tool_calls"))
                 if node.context.checkpoint:
                     # 완료된 자식 노드를 재사용해도 Agent의 호출 예산/필수 Tool 이력은 보존한다.
-                    scope.restore([record["agent_usage"][node.checkpoint_key]
-                        for record in node.context.checkpoint["records"].values()
-                        if node.checkpoint_key in record.get("agent_usage", {})])
+                    scope.restore(self._checkpoint_usage(node.context.checkpoint["records"],
+                                                         node.checkpoint_key, getattr(engine, "checkpoint_name", None)))
+                await node.record_usage(scope.checkpoint())
                 message = next(item for item in node.context.messages if item.id == node.context.run.input_message_id)
                 message = replace(message, content=json.dumps(inputs, ensure_ascii=False, allow_nan=False))
                 # 부모 Run과 예산은 유지하며 기록/임시 상태와 선택 capability만 분리한다.
@@ -355,7 +388,7 @@ class AgentExecution:
                             raise ValueError("Agent engines cannot own Workflow checkpoint lifecycle")
                         receipt = event.checkpoint or event
                         metadata = deepcopy(receipt.metadata)
-                        metadata["value"].setdefault("agent_usage", {})[node.checkpoint_key] = scope.checkpoint()
+                        metadata["value"].setdefault(self.USAGE_FIELD, {})[node.checkpoint_key] = scope.checkpoint()
                         receipt = replace(receipt, metadata=metadata)
                         event = replace(event, checkpoint=receipt) if event.checkpoint is not None else receipt
                     if event.type == EngineEventType.PAUSED:
@@ -381,7 +414,7 @@ class AgentExecution:
                         bridge.accepted_instruction(event, context.steering)
                     if bridge is not None and (event.type == EngineEventType.CHECKPOINT or event.checkpoint is not None):
                         bridge.accepted(event)
-                    if bridge is not None and event.type in (EngineEventType.STEP_UPDATED, EngineEventType.STEP_FAILED,
+                    if event.type in (EngineEventType.STEP_UPDATED, EngineEventType.STEP_FAILED,
                                                        EngineEventType.STEP_COMPLETED, EngineEventType.STEP_CANCELLED):
                         # 승인 이후 효과 이전에도 예산을 기록한다. 불확실한 작업의 명시적 재시도가
                         # Agent 한도를 초기화하지 않도록 소유 컨테이너 체크포인트를 갱신한다.
@@ -483,7 +516,7 @@ class AgentDelegation:
 
         async def record_usage(usage):
             value = {"node_type": "agent_container", "status": "started", "container": True,
-                "requires_retry": False, "agent_binding": binding, "agent_usage": {owner: usage}}
+                "requires_retry": False, "agent_binding": binding, AgentExecution.USAGE_FIELD: {owner: usage}}
             await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": checkpoint_name,
                 "operation": "record", "key": owner, "value": value}))
 
@@ -512,8 +545,8 @@ class AgentDelegation:
             return output
 
         async def produce():
-            await record_usage((marker or {}).get("agent_usage", {}).get(owner, {
-                "calls": 0, "completed": 0, "pending_approvals": [], "revision": 0}))
+            usage = ToolExecutionScope.initial_usage() if marker is None else marker[AgentExecution.USAGE_FIELD][owner]
+            await record_usage(usage)
             node = SimpleNamespace(context=context, definition=definition, inputs=arguments["input"], state={},
                 node_id=arguments["agent_id"], node_path=owner, checkpoint_key=owner,
                 checkpoint_name=checkpoint_name, emit=emit, record_usage=record_usage, invoke_graph=invoke_graph)

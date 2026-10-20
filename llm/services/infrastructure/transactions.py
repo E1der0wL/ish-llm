@@ -105,7 +105,7 @@ class Transaction:
         self._ensure()
         name = f"{len(self.entries):08d}.json"
         payload = json.dumps(value, sort_keys=True, allow_nan=False).encode()
-        envelope = {"format_version": 1, "operation": value,
+        envelope = {"format_version": self.manager.FORMAT_VERSION, "operation": value,
                     "checksum": hashlib.sha256(payload).hexdigest()}
         _write(self.path / name, json.dumps(envelope, allow_nan=False).encode())
         self.entries.append(value)
@@ -273,6 +273,8 @@ class Transaction:
 class TransactionManager:
     """WorkspaceOwnership 한 개가 소유한다. context는 동기이며 Engine 실행을 감싸지 않는다."""
 
+    FORMAT_VERSION = 1
+
     def __init__(self, root: Path) -> None:
         self.root = Path(root).absolute()
         self.journal = self.root / ".transactions"
@@ -284,7 +286,8 @@ class TransactionManager:
             if path.name != f"{index:08d}.json":
                 raise ValueError("Invalid transaction journal sequence")
             envelope = json.loads(_checked(path).read_text())
-            if type(envelope.get("format_version")) is not int or envelope["format_version"] != 1:
+            if (type(envelope.get("format_version")) is not int
+                    or envelope["format_version"] != self.FORMAT_VERSION):
                 raise ValueError("Unsupported transaction journal format")
             value = envelope["operation"]
             payload = json.dumps(value, sort_keys=True, allow_nan=False).encode()

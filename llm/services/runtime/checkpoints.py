@@ -36,6 +36,8 @@ def checkpoint_message_ids(checkpoint: dict) -> set[str]:
 class CheckpointRepository:
     """체크포인트의 내용은 Engine 소유 JSON이고 저장 경로/Run 연결은 서비스 책임이다."""
 
+    SCHEMA_VERSION = 1
+
     def _checked(self, path):
         for item in (path, *path.parents):
             if item.is_symlink():
@@ -98,7 +100,7 @@ class CheckpointRepository:
         if data["operation"] == "initialize":
             if manifest.exists():
                 raise ValueError("Checkpoint already initialized")
-            atomic_json(manifest, {"schema_version": 1, "run_id": run.id, "engine": run.engine,
+            atomic_json(manifest, {"schema_version": self.SCHEMA_VERSION, "run_id": run.id, "engine": run.engine,
                                   "header": data["header"], "records": data.get("records", {})})
         elif data["operation"] == "record":
             if not manifest.is_file():
@@ -126,7 +128,8 @@ class CheckpointRepository:
             raise ValueError("Checkpoints were explicitly deleted")
         root = self._root(run, name)
         data = read_json(self._checked(root / "checkpoint.json"))
-        if (data["schema_version"] != 1 or data["run_id"] != run.id or data["engine"] != run.engine):
+        if (type(data.get("schema_version")) is not int or data["schema_version"] != self.SCHEMA_VERSION
+                or data["run_id"] != run.id or data["engine"] != run.engine):
             raise ValueError("Checkpoint version or Run ownership mismatch")
         records = dict(data["records"])
         for path in self._checked(root / "records").glob("*.json"):

@@ -33,6 +33,8 @@ class TestWorkspaces:
     디렉터리이며 다른 관리 파일을 넣지 않는다. allow_network는 반드시 호스트가 정한다.
     """
 
+    STORAGE_VERSION = 1
+
     def __init__(self, root: str | Path, *, source_root: str | Path, allow_network: bool,
                  read_only_paths: Sequence[str | Path] = (), env: Mapping[str, str] | None = None,
                  max_output_bytes: int | None = None, memory_bytes: int | None = None,
@@ -117,7 +119,8 @@ class TestWorkspaces:
                     "reason": "missing_record"}
         value = json.loads(path.read_text(encoding="utf-8"))
         fields = {"storage_version", "workspace_id", "project_id", "created_at", "created_by", "source_paths", "ready"}
-        if (not isinstance(value, dict) or set(value) != fields or value["storage_version"] != 1
+        if (not isinstance(value, dict) or set(value) != fields
+                or type(value.get("storage_version")) is not int or value["storage_version"] != self.STORAGE_VERSION
                 or value["project_id"] != project_id or value["workspace_id"] != directory.name
                 or type(value["ready"]) is not bool):
             raise ValueError("Invalid test workspace ownership record")
@@ -171,7 +174,7 @@ class TestWorkspaces:
         with self._lease(call.project_id, identifier) as (directory, _):
             directory.mkdir()
             try:
-                record = {"storage_version": 1, "workspace_id": identifier, "project_id": call.project_id,
+                record = {"storage_version": self.STORAGE_VERSION, "workspace_id": identifier, "project_id": call.project_id,
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "created_by": {"session_id": call.session_id, "run_id": call.run_id, "step_id": call.step_id},
                     "source_paths": [path.relative_to(self.source.root).as_posix() for path in selected], "ready": False}

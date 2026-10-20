@@ -1,9 +1,10 @@
 """Positive and negative fixtures for bounded AST gates, not product mocks."""
 
+import ast
 from pathlib import Path
 import unittest
 
-from tests.llm.check_architecture import collect, compare, scan_source
+from tests.llm.check_architecture import collect, compare, exact_version_guards, scan_source
 
 
 class ArchitectureCheckTests(unittest.TestCase):
@@ -97,3 +98,33 @@ class ArchitectureCheckTests(unittest.TestCase):
         compared = compare(result, baseline)
         self.assertEqual(compared["new"], [])
         self.assertEqual(compared["stale"], [])
+
+
+class VersionGuardTests(unittest.TestCase):
+    def test_rejects_mutated_type_owner_or_boolean_logic(self):
+        source = """
+class Store:
+    FORMAT_VERSION = 1
+    def read(self, record):
+        if type(record.get("format_version")) is not int or record["format_version"] != self.FORMAT_VERSION:
+            raise ValueError("Unsupported current format")
+"""
+        self.assertEqual(len(exact_version_guards(ast.parse(source), {"format_version"})), 2)
+        self.assertEqual(scan_source(source, "llm/example.py"), [])
+        changes = [
+            ("type(record.get", "isinstance(record.get"),
+            ('type(record.get("format_version")) is not int or ', ""),
+            (" is not int", " is int"),
+            (" or ", " and "),
+            ("self.FORMAT_VERSION", "other.FORMAT_VERSION"),
+            ("self.FORMAT_VERSION", "self.BUFFER_SIZE"),
+            ("self.FORMAT_VERSION", "1"),
+            ('record["format_version"]', 'other["format_version"]'),
+            ("FORMAT_VERSION = 1", "FORMAT_VERSION = True"),
+            ('raise ValueError("Unsupported current format")', "pass"),
+        ]
+        for old, new in changes:
+            with self.subTest(old=old, new=new):
+                changed = source.replace(old, new)
+                self.assertEqual(exact_version_guards(ast.parse(changed), {"format_version"}), set())
+                self.assertIn("S4", {item["rule"] for item in scan_source(changed, "llm/example.py")})

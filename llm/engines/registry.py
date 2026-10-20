@@ -35,7 +35,7 @@ class EngineRegistry:
         from jsonschema import Draft202012Validator
         from copy import deepcopy
         import inspect
-        config = ProjectConfig(config)
+        config = ProjectConfig.from_dict(config)
         session = deepcopy(session_config) if session_config is not None else {}
         ProjectConfig.validate_session(session)
         for name, engine in self._engines.items():
@@ -55,7 +55,7 @@ class EngineRegistry:
             describe = getattr(engine, "resolve_config", None)
             if callable(describe):
                 try:
-                    result = describe(ProjectConfig(config), name, session_config=deepcopy(session))
+                    result = describe(ProjectConfig.from_dict(config), name, session_config=deepcopy(session))
                     if inspect.isawaitable(result):
                         if inspect.iscoroutine(result):
                             result.close()

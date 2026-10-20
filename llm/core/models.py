@@ -1,6 +1,7 @@
 """Project → Session → Run → Step의 영속 데이터와 상태를 정의한다. asyncio 객체나 서비스 핸들은 이 모델에 저장하지 않는다."""
 
-from typing import Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
+from collections.abc import Iterator
 import json
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -106,11 +107,17 @@ class ProjectConfig(dict):
 
     Application fields belong to data. Implementation fields are validated
     when constructing or saving; nested mutation is allowed between saves.
+    Pair iterators support Python's dict reconstruction protocol (including
+    dataclasses.asdict). JSON/API inputs must use from_dict, which requires
+    an object before construction and never consumes an iterator.
     """
 
-    def __init__(self, values: Optional[dict] = None, **config) -> None:
+    def __init__(self, values: dict | Iterator[tuple[str, Any]] | None = None, **config) -> None:
         sections = {"policies": {}, "parameters": {}, "data": {}}
         if values is not None:
+            if isinstance(values, Iterator):
+                values = dict(values)
+            self.validate_json(values)
             sections.update(deepcopy(dict(values)))
         sections.update(deepcopy(config))
         super().__init__(sections)

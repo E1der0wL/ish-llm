@@ -125,6 +125,18 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_resume_preserves_one_call_agent_budget_and_blocks_new_effect(self):
         """R3: restoring usage is insufficient if Agent max_tool_calls is dropped."""
+        await self._resume_agent_budget()
+
+    async def test_missing_agent_usage_rejects_before_reopened_resume_effect(self):
+        await self._resume_agent_budget(damage="envelope")
+
+    async def test_missing_agent_usage_counter_rejects_before_reopened_resume_effect(self):
+        await self._resume_agent_budget(damage="counter")
+
+    async def test_missing_latest_agent_usage_does_not_restore_older_usage(self):
+        await self._resume_agent_budget(damage="latest")
+
+    async def _resume_agent_budget(self, *, damage=None):
         from tests.llm.test_loop import call
         effect_file = self.root / "budget-effects.txt"
         async def effect(arguments):
@@ -150,11 +162,50 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
                  for value in record.get("agent_usage", {}).values()]
         self.assertTrue(usage)
         self.assertTrue(any(value["calls"] == 1 for value in usage))
+        changed = {}
+        if damage is not None:
+            candidates = {}
+            for path in (failed.data.paths.state / "checkpoints/graph/records").glob("*.json"):
+                record = json.loads(path.read_text())
+                if "agent_usage" in record["value"]:
+                    candidates[path] = record
+            if damage == "latest":
+                latest = max(candidates, key=lambda path: max(v["revision"]
+                    for v in candidates[path]["value"]["agent_usage"].values()))
+                candidates = {latest: candidates[latest]}
+            for path, record in candidates.items():
+                value = record["value"]
+                if damage in ("envelope", "latest"):
+                    del value["agent_usage"]
+                else:
+                    for saved in value["agent_usage"].values():
+                        del saved["calls"]
+                path.write_text(json.dumps(record))
+                changed[path] = path.read_bytes()
+            self.assertTrue(changed, "Must mutate real persisted Agent usage")
         await self.app.shutdown()
         reopened = LargeLanguageModel(self.root, engines={"graph": self.engine}, components=[
             WorkflowComponent(), AgentComponent(), RuntimeTools(self.tools), SkillComponent()])
         self.addAsyncCleanup(reopened.shutdown)
         session = (await reopened.projects.aload(self.project.id)).sessions.load(self.session.id)
+        if damage is not None:
+            rejected = False
+            try:
+                await (await session.run.resume(failed.id, engine="graph")).wait()
+            except ValueError as error:
+                self.assertRegex(str(error), "Tool usage")
+                rejected = True
+            self.assertEqual(effect_file.read_text(), "first\n", "Agent usage loss admitted a second effect")
+            self.assertTrue(rejected, "Corrupt Agent usage must be rejected before creating a Run")
+            self.assertEqual(len(model.requests), 2)
+            self.assertEqual([run.id for run in await session.run.alist()], [failed.id])
+            plan = await session.run.resume_plan(failed.id, engine="graph")
+            self.assertFalse(plan.can_resume)
+            self.assertEqual(plan.state, "corrupt")
+            self.assertEqual([block.code for block in plan.blockers], ["tool_usage_corrupt"])
+            for path, before in changed.items():
+                self.assertEqual(path.read_bytes(), before)
+            return
         resumed = await (await session.run.resume(failed.id, engine="graph")).wait()
         self.assertNotEqual(resumed.id, failed.id)
         # Assert the real external effect before status so dropped-limit mutation

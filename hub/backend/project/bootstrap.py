@@ -32,7 +32,7 @@ async def select_or_create(backend, config):
             return min(records, key=lambda item: (item[0].created_at, item[0].id))[1]
         from ...config.presets import PresetStore
         preset = await asyncio.to_thread(PresetStore(config._workspace_anchor or config.workspace).selected_project)
-        project_config = ProjectConfig(ProjectConfig.merge(preset["config"], config.project_config) if preset else config.project_config)
+        project_config = ProjectConfig.from_dict(ProjectConfig.merge(preset["config"], config.project_config) if preset else config.project_config)
         supplied = {key: value for key, value in (("model", config.model), ("api_base", config.api_base)) if value is not None}
         if supplied:
             # Title generation resolves the current source settings at execution

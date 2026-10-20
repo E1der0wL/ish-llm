@@ -40,6 +40,12 @@ Hub 초기값도 저장 후에는 일반 Project 설정으로 조회·편집하�
 강제값은 `enforced`에 따로 표시할 수 있다. Schema는 허용 형식만 설명하며 값 생성에 사용하지 않는다.
 `ProjectConfig()`는 빈 section만 가진다. Hub의 새 프로젝트 생성과 Backend의 빈 설정 조회는 다른 경계다.
 
+설정 JSON/API 입력은 `ProjectConfig.from_dict()`로 객체 타입을 먼저 검사한다.
+`ProjectConfig`의 Python 생성자는 dict 재구성 프로토콜의 key/value iterator도 받으므로
+표준 `dataclasses.asdict()`가 사용할 수 있다. 이 생성 계약을 외부 설정 입력의 변환기로
+사용하지 않는다. 배열·잘못된 falsey 객체·iterator를 JSON 설정으로 받아들이지 않으며,
+API 검증은 잘못된 iterator를 소비하기 전 실패한다.
+
 ## 정책 소유권
 
 모든 구현체의 공개 설정은 아래 외형을 사용한다. 두 section은 생략할 수 있는 object이며

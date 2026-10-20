@@ -42,7 +42,7 @@ class SettingsService:
         if not values.get("title", "").strip():
             raise ValueError(self.runtime.t("settings_title_required"))
         from ..execution.engine_selection import selected_engines
-        if not selected_engines(ProjectConfig(values["config"]), self.runtime.backend.engines.names()):
+        if not selected_engines(ProjectConfig.from_dict(values["config"]), self.runtime.backend.engines.names()):
             raise ValueError(self.runtime.t("settings_engine_required"))
 
     async def _project(self, identifier):

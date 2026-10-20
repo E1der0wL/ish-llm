@@ -15,12 +15,15 @@ class ReadingPosition:
 
 
 class ViewStateStore(WorkspaceJSONStore):
+    VERSION = 1
+
     def __init__(self, workspace):
         super().__init__(workspace, "view-state.json")
 
     def _read(self):
-        data = self._read_json({"version": 1, "projects": {}})
-        if not isinstance(data, dict) or data.get("version") != 1 or not isinstance(data.get("projects"), dict):
+        data = self._read_json({"version": self.VERSION, "projects": {}})
+        if (not isinstance(data, dict) or type(data.get("version")) is not int
+                or data["version"] != self.VERSION or not isinstance(data.get("projects"), dict)):
             raise ValueError("Invalid Hub view state")
         return data
 

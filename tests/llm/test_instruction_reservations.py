@@ -283,7 +283,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             "target": {**target.to_dict(), "id": "b"}})
         before = deepcopy(run.metadata)
         with self.assertRaises(ValueError):
-            steering_boundary(None, run, None, event)
+            steering_boundary(None, run, None, event, tool_usage=None)
         self.assertEqual(run.metadata, before)
 
     async def test_invalid_route_or_duplicate_is_atomic_rejection(self):
