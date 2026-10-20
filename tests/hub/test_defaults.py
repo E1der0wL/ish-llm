@@ -141,7 +141,8 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIsNone((await runtime.submission_state(session.id))["run_id"])
                 record = await runtime.settings_service.load_project(runtime.project.id)
                 values = deepcopy(record["values"])
-                values.update(title="New", components=[])
+                values.update(title="New")
+                values.pop("components")
                 created = await runtime.settings_service.create_project(values)
                 self.assertEqual(set(created["values"]["components"]), COMPONENTS)
             finally:

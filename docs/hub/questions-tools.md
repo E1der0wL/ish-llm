@@ -1,9 +1,10 @@
 # 입력창 질문과 내장 도구
 
 Hub 기본 백엔드는 llm의 `BuiltinTools`를 `builtin_tools` Component로 등록합니다.
-내장 파일·셸·프로세스·Git·진단 도구와 Hub의 `ask_user`를 처음에는 활성화합니다.
+새 Project의 생성 프리셋은 내장 파일·셸·프로세스·Git·진단 도구와 Hub의 `ask_user`를 선택합니다.
 이미 저장된 `config.parameters.components.builtin_tools.config.enabled`는 빈 배열을 포함하여 유지합니다.
-기존 Hub 프로젝트에 이 컴포넌트가 없으면 열 때 등록하며, 다른 컴포넌트의 설정은 보존합니다.
+기존 Project에 이 Component나 `enabled`가 없으면 열 때 추가하지 않습니다.
+Component 선택 및 Tool 활성화 변경은 설정 편집에서 명시적으로 저장합니다.
 Python 패키지 `tools`와는 별도 저장소입니다. 가져온 Python 패키지를 자동 활성화하지 않습니다.
 
 `/tools config`에서 내장 도구를 선택하고 Space로 활성/비활성을 바꿉니다.

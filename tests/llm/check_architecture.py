@@ -26,7 +26,7 @@ RULES = {
 RETIRED = {
     "upgrade_backup", "aupgrade_backup", "on_event", "on_run_event", "from_preferences",
     "mouse_mode", "recovery_max_attempts", "provider_error_details",
-    "RunEventPublisher",
+    "RunEventPublisher", "ensure_selected",
 }
 OLD_NAMES = {
     "SettingsLayout", "settings_name", "settings_layout", "ServiceConfig",
@@ -68,6 +68,38 @@ def literal(node):
     if isinstance(node, ast.Constant):
         return node.value is not None
     return isinstance(node, (ast.List, ast.Tuple, ast.Set)) and any(literal(item) for item in node.elts)
+
+
+def predicate(node):
+    """Recognize comparisons and boolean syntax, never infer a value's type.
+
+    Names, attributes, calls (even ``any``/``isinstance``), and subscripts stay
+    candidates: their bindings/return types require owner review. Children are
+    still visited, so a fallback inside a comparison is not hidden.
+    """
+    if isinstance(node, ast.Compare):
+        return True
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+        return True
+    if isinstance(node, ast.Constant) and type(node.value) is bool:
+        return True
+    return isinstance(node, ast.BoolOp) and all(predicate(value) for value in node.values)
+
+
+def key_set_comparison(node):
+    """An exact object-key check declares shape, not field values/versions."""
+    if len(node.ops) != 1 or not isinstance(node.ops[0], (ast.Eq, ast.NotEq)):
+        return False
+    left, right = node.left, node.comparators[0]
+    if isinstance(left, ast.Set):
+        left, right = right, left
+    return (
+        isinstance(right, ast.Set) and bool(right.elts)
+        and all(isinstance(item, ast.Constant) and isinstance(item.value, str) for item in right.elts)
+        and isinstance(left, ast.Call) and not left.keywords
+        and ((isinstance(left.func, ast.Name) and left.func.id == "set" and len(left.args) == 1)
+             or (isinstance(left.func, ast.Attribute) and left.func.attr == "keys" and not left.args))
+    )
 
 
 def exact_version_guards(tree, fields):
@@ -163,7 +195,7 @@ def scan_source(source, file):
                         add("S2", default, owner, f"policy argument default: {arg.arg}")
         if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.Or):
             names = {symbol(part) for part in ast.walk(node)}
-            if any(policy_name(name) for name in names):
+            if any(policy_name(name) for name in names) and not predicate(node):
                 add("S2", node, owner, "truthiness fallback involving configuration")
         if isinstance(node, ast.Call):
             if symbol(node.func) in RETIRED:
@@ -187,7 +219,7 @@ def scan_source(source, file):
             for target in targets:
                 if domain_name(symbol(target)) and literal(node.value):
                     add("S3", node, owner, f"inline domain assignment: {symbol(target)}")
-        if isinstance(node, ast.Compare) and node not in guarded_versions:
+        if isinstance(node, ast.Compare) and node not in guarded_versions and not key_set_comparison(node):
             if any(symbol(part) in FORMAT_FIELDS for part in ast.walk(node)):
                 add("S4", node, owner, "verify exact version type and declaration reference")
             if (any(domain_name(symbol(part)) for part in ast.walk(node))

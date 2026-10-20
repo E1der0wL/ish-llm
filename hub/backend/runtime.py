@@ -136,9 +136,11 @@ class HubRuntime:
         return await self.settings_service.execute(operation, *args)
 
     async def activate_project(self, project, *, session_id=None):
-        if self.builtin_tools:
-            await self.builtin_tools.ensure_selected(project)
         data = await project.aget_data()
+        if self.builtin_tools is not None and self.builtin_tools.name in data.components:
+            # Prepare only the saved selection. Opening a Project never edits
+            # its components or supplies a new enabled-Tool preset.
+            await asyncio.to_thread(self.builtin_tools.resolve, data, "tools")
         sessions = []
         for session in await project.sessions.alist():
             record = await session.aget_data()

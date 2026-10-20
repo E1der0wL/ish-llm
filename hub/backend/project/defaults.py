@@ -8,6 +8,17 @@ from llm.core.models import ProjectConfig
 from ...asset.guides import SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
 
 
+CONVERSATION_STORAGE = "file"
+
+
+def creation_values(backend, values):
+    """Materialize Hub choices only for missing creation fields."""
+    result = deepcopy(values)
+    result.setdefault("conversation_storage", CONVERSATION_STORAGE)
+    result.setdefault("components", list(backend.project_manager.components.names()))
+    return result
+
+
 def provider_defaults():
     """Retry only pre-output transient failures through llm's provider policy."""
     return {"max_attempts": 4, "delay_seconds": 10, "max_delay_seconds": 60}

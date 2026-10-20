@@ -43,18 +43,23 @@ class PreferencesStore(WorkspaceJSONStore):
         super().__init__(workspace, "preferences.json")
         self.sidebar = WorkspaceJSONStore(workspace, "sidebar-width.json")
 
+    @classmethod
+    def validate_section(cls, section, record):
+        """Validate a complete current section, including portable presets."""
+        owner = cls.SECTIONS[section]
+        if not isinstance(record, dict) or record.keys() != {field.name for field in fields(owner)}:
+            raise TypeError(f"Stored {section} must contain exactly the current preference fields")
+        return asdict(owner(**record))
+
     def load(self):
         value = self._read_json({"version": self.VERSION})
         if (not isinstance(value, dict) or type(value.get("version")) is not int
                 or value["version"] != self.VERSION or value.keys() - self.SECTIONS.keys() - {"version"}):
             raise ValueError("Invalid Hub preferences")
         result = {}
-        for section, owner in self.SECTIONS.items():
+        for section in self.SECTIONS:
             if section in value:
-                record = value[section]
-                if not isinstance(record, dict) or record.keys() != {field.name for field in fields(owner)}:
-                    raise TypeError(f"Stored {section} must contain exactly the current preference fields")
-                result[section] = asdict(owner(**record))
+                result[section] = self.validate_section(section, value[section])
         sidebar = self.sidebar._read_json(None)
         if sidebar is not None:
             width = sidebar["sidebar_width"]

@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from llm.core.models import ProjectConfig
-from .defaults import create_project
+from .defaults import CONVERSATION_STORAGE, create_project
 
 
 async def select_or_create(backend, config):
@@ -41,6 +41,6 @@ async def select_or_create(backend, config):
             engines.setdefault("loop", {}).setdefault("config", {}).setdefault("completion", {}).update(supplied)
         return await create_project(backend, "Hub", config=project_config,
             components=preset["components"] if preset else list(backend.describe_project_config()["x-components"]),
-            conversation_storage=preset["conversation_storage"] if preset else "file")
+            conversation_storage=preset["conversation_storage"] if preset else CONVERSATION_STORAGE)
     finally:
         os.close(descriptor)

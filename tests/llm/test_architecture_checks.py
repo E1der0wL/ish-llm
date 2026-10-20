@@ -30,6 +30,7 @@ class ArchitectureCheckTests(unittest.TestCase):
                        "old = getattr(backend, 'upgrade_backup')",
                        "theme = HubTheme.from_preferences(record)",
                        "class RunEventPublisher: pass",
+                       "await builtin.ensure_selected(project)",
                        "value.get('requires_retry', key.startswith('tool:'))",
                        "value.setdefault('requires_retry', False)"):
             with self.subTest(source=source):
@@ -80,6 +81,48 @@ class ArchitectureCheckTests(unittest.TestCase):
         self.assertEqual(self.rules("import litellm\nresult = response['choices'][0]",
                                     "llm/providers/real.py"), set())
         self.assertEqual(self.rules("class SettingsService: pass", "hub/services/settings.py"), set())
+
+    def test_validation_predicates_are_not_value_fallbacks(self):
+        for source in (
+            "type(max_calls) is not int or max_calls < 1",
+            "policy is None or policy.get('max_calls') is None",
+            "not isinstance(config, dict) or len(config) == 0",
+            "config is None or (max_calls is not None and max_calls < 1)",
+            "retry is None or not (retry.allowed() or retry.required())",
+        ):
+            with self.subTest(source=source):
+                # The last expression still contains an unproven nested OR.
+                if "retry.allowed" in source:
+                    self.assertIn("S2", self.rules(source))
+                else:
+                    self.assertNotIn("S2", self.rules(source))
+
+    def test_predicate_context_does_not_hide_nested_or_unproven_fallbacks(self):
+        for source in (
+            "if config or True: execute()",
+            "if (policy or {}) == {} or max_calls is None: execute()",
+            "if not (policy or {}): execute()",
+            "value = policy is None or policy",
+            "value = policy or policy is None",
+            "value = isinstance(config, dict) or config",
+            "value = any(config) or policy is None",
+            "value = limits.ready or max_calls is None",
+            "value = config['enabled'] or policy is None",
+        ):
+            with self.subTest(source=source):
+                self.assertIn("S2", self.rules(source))
+
+    def test_key_shape_is_distinct_from_domain_value_comparison(self):
+        for source in ("set(record) != {'version', 'config'}",
+                       "{'status', 'version'} == record.keys()"):
+            with self.subTest(source=source):
+                self.assertEqual(self.rules(source), set())
+        for source in ("record['version'] != 1",
+                       "record.get('version') != {'version', 'config'}",
+                       "set(record) != record['version']"):
+            with self.subTest(source=source):
+                self.assertIn("S4", self.rules(source))
+        self.assertIn("S2", self.rules("set(config or {}) != {'version', 'config'}"))
 
     def test_mutation_cannot_hide_in_recorded_file_or_move_to_another_owner(self):
         old = scan_source("policy = policy or {}", "llm/example.py")

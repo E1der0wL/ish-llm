@@ -1,6 +1,5 @@
 """Host lifecycle and Project selection for llm's built-in Tool collection."""
 
-import asyncio
 from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
@@ -101,7 +100,7 @@ class HubBuiltinTools(BuiltinToolComponent):
             return self.toolkits[key]
 
     def select_tools(self):
-        """새 Project/최초 연결의 Hub 선택값. 이미 명시한 선택은 호출자가 보존한다."""
+        """새 Project 생성 초기값. 이미 명시한 선택은 호출자가 보존한다."""
         # 선택된 Tool은 Run 시작 전에 검증된다. 사용할 수 없는 선택적 sandbox가
         # 일반 대화까지 막지 않도록 최초 preset에서만 설치 여부를 반영한다.
         return [name for name in self.toolkit.registry.names()
@@ -132,23 +131,6 @@ class HubBuiltinTools(BuiltinToolComponent):
             # handler identity (question broker, process registry, file root).
             handlers = [registry.get(name).handler for name in registry.names()]
             return deepcopy(registry, {id(handler): handler for handler in handlers})
-
-    async def ensure_selected(self, project):
-        record = await project.aget_data()
-        config = record.config.to_dict()
-        settings = config.setdefault("parameters", {}).setdefault("components", {}).setdefault(self.name, {}).setdefault("config", {})
-        selected = list(record.components)
-        changed = self.name not in selected or "enabled" not in settings
-        if self.name not in selected:
-            selected.append(self.name)
-        settings.setdefault("enabled", self.select_tools())
-        if changed:
-            from llm.services.infrastructure.storage import revision_token
-            await project.asave(config=config, components=selected, expected_components=list(record.components),
-                                expected_version=revision_token(record.config.to_dict()))
-        # Build and validate the first snapshot on project opening, off-loop,
-        # before the user submits a request. Selection edits invalidate the key.
-        await asyncio.to_thread(self.resolve, await project.aget_data(), "tools")
 
     async def close(self):
         self.questions.close()

@@ -40,15 +40,13 @@ Enter/Space로 확정합니다. ESC는 변경 없이 닫습니다. 최소화는 
 프리셋은 최초 Hub 루트의 `.hub/presets.json`에 보관합니다. 데이터 루트 변경 후에도
 전역 설정과 같은 시작 루트를 사용합니다. 모든 프로젝트에서 같은 목록을 사용합니다.
 
-```json
-{
-  "version": 1,
-  "global": {"profile": {}, "appearance": {}, "general": {}},
-  "project": {"config": {}, "components": [], "conversation_storage": "file"}
-}
-```
+형식은 `version`, `global`, `project`를 갖습니다. `PresetStore.VERSION`이 현재 형식의
+선언이며 내보내기와 Reader가 함께 사용합니다. `global`의 `profile`, `appearance`,
+`general`은 각각 현재 설정의 **모든 필드**를 포함합니다. 빈 객체로 빠진 필드를 자동 복구하지
+않습니다. `project`는 `config`, `components`, `conversation_storage`를 포함합니다.
+명시적인 `components=[]`는 아무 Component도 선택하지 않는 뜻이며 전체 목록으로 바꾸지 않습니다.
 
-편집기는 현재 저장값으로 위 구조를 채워 줍니다. 프로젝트 이름·ID·세션·문서·실행 이력은
+편집기는 현재 저장값으로 이 구조를 채워 줍니다. 프로젝트 이름·ID·세션·문서·실행 이력은
 프리셋에 포함하지 않습니다. `_hub_title`과 호스트 고정 설정도 임의로 덮어쓸 수 없습니다.
 실행/예약 작업이나 미저장 설정 초안이 있으면 적용을 보류합니다. 전체 유효성 검사 후 기존
 설정 저장 서비스를 사용하며, 일부 저장이 실패하면 실제로 저장된 값과 오류를 표시합니다.

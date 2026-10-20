@@ -72,13 +72,15 @@ P1-b는 아래 항목별 상태와 [실행 기록](p1-verification.md)을 따른
 | D21 | Hub 위험 분류 | `hub/backend/bootstrap.py`, `hub/backend/tools/advice.py:classify_model_risk`, hub-model-risk-v1 | **문서 수정**. trusted hub-risk-v1과 구분; 모델 위험 설명은 승인 증거 아님. 앱 선택 단일 선언은 P1 |
 | D22 | 닫힌 설정·자료 | `ProjectConfig`, 내장 Component Schema와 명시 metadata | **문서 수정**. 열린 SDK/metadata와 backend 필드 구분 |
 | D23 | 공통 정책 목록 | `llm/core/policies.py:describe_policies`, ToolExecutionScope | **문서 수정**. CONFIGURATION 목록에 tools 보완 |
-| D24 | 격리·CI 필수 gate | `.github/workflows/tests.yml`의 bwrap 실패 뒤 테스트 Skip; 32 LLM 모듈만 선택 | **P0 미수정**. 실제 로그/runner 원인 확보, 전체 ID 배정, 격리 약화 금지 |
-| D25 | 실제 ish host 계약 | `tests/llm/test_plugin.py`의 `_library_available`; host의 `_is_library_available` | **P0 미수정**. 기존 assertion 보존한 최소 메서드명 수정 전/후 검증 필요 |
+| D24 | 격리·CI 필수 gate | main 감사 시 `.github/workflows/tests.yml`의 bwrap 실패 뒤 Skip; 32 LLM 모듈만 선택 | **P0 검증 완료**. 전체 ID 배정·Skip 실패 처리, bwrap에 한정한 AppArmor 설정과 전역 제한 유지. 후속 P1-b 원격 두 job도 전체 통과; [실행 기록](p1-verification.md) |
+| D25 | 실제 ish host 계약 | main의 `_library_available`; 실제 host의 `_is_library_available` | **P0 검증 완료**. assertion을 보존하고 실제 host로 수정 전/후 확인. P1-b 전체 회귀도 host 시험 포함 |
 | D26 | 결과 조회·unknown usage | `llm/core/results.py:CompletionResult.for_run/ExecutionResult.from_run` | **유지**. 현재 취소/실패 관찰 투영은 legacy migration이 아님; unknown usage를 0으로 바꾸지 않음 |
 | D27 | Processor hook | CompletionPipeline의 after_completion 관찰/finish; review_final 없음 | **목표 문서화 / F 미구현**. 별도 verdict·예산·checkpoint, 관찰자를 재실행 권한으로 바꾸지 않음 |
 | D28 | 외부 불변식·기술 자원 | SDK retry guard/cost map/stream/n/no-cache, IPC 크기, CRUD 초기 상태 | **유지·owner별 정리**. default/compatibility라는 이름만으로 제거하지 않음 |
 | D29 | 현재 Agent·1:1 실행 | AgentComponent의 purpose/engine, Session.current_run_id, Message.run_id, Run.engine | **목표 문서화 / B–D 미구현**. 독립 Agent·단일 binding·1:N/FIFO/실제 병렬, 현행과 목표 구분 |
 | D30 | Hub 조회·복구·렌더링 | worker 소유 loop, immutable snapshot, resume_plan/restart, journal 조회 | **유지·C/D 직접 이관**. UI 단일 active ID를 권한 원본으로 삼지 않음 |
+| D31 | Hub 생성 시에만 초기값·사용자 빈 목록 우선 | `SettingsService.create_project/save_all`이 components를 덮어씀; `HubBuiltinTools.ensure_selected`가 재열기 때 Component·enabled 저장 | **P1-c 첫 계약군 검증 완료**. 누락 필드만 생성 초기화. 재열기 쓰기 경로 제거·비활성 Tool 실제 효과 0·전체 2,240개 통과; [기록](p1-verification.md) |
+| D32 | 현재 형식만 읽는 preset | `PresetStore.validate/read`의 version 중복·미선택 본문 미검증·빠진 전역 설정 복구 | **P1-c 첫 계약군 검증 완료**. owner 버전·PreferencesStore 필드 검증 공유. 전체 저장 preset 검증·원본 보존 |
 
 D16의 추가 대조: 고정 `EXTRACTION_CONTRACT`와 사용자 의미 지침 `default_prompt()`는 다르다.
 `prompt_id=null` 자체는 유효하며 별도 Prompt가 없다는 뜻이다. 이를 필수 Prompt 누락 결함으로

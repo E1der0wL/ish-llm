@@ -3,7 +3,7 @@
 P0의 [고정 조합과 최신 허용 조합 검증](p0-sdk-transition.md)이 통과한 뒤
 `refactor/llm-clean`에서 진행한다. P1-a에서 누적 Tool 사용량 소실을 재현해 중단한 뒤,
 사용자의 보강·재개 요청에 따라 **책임 분리와 필수 상태 복원을 보강하고 P1-a 검증을 완료**했다.
-P1-b도 호환 경로 제거와 전체 회귀 검증을 완료했다. P1-c와 A–F는 미착수이며
+P1-b도 호환 경로 제거와 전체 회귀 검증을 완료했다. P1-c는 계약군별 진행 중이고 A–F는 미착수이며
 P1 전체를 완료한 것으로 보고하지 않는다.
 main·이전 backend 브랜치·Draft PR #1을 변경하거나 이전 구현을 가져오지 않는다.
 
@@ -386,3 +386,73 @@ LLM 시험·예제 소스는 그대로다. Hub 최종 실행 전후의 전체 Py
 
 P1-b 완료 범위는 현재 Reader/API·구독 소비자 전환·Loop 재시도 증거 검증과 S1 필수 gate다.
 P1-c의 선언·명시 설정 전수 정리와 A–F 기능 구현을 완료한 것으로 보고하지 않는다.
+
+## P1-c 첫 계약군: 생성 프리셋과 현재 저장 형식
+
+시작 커밋은 `ee0f07ccea1977755482c75ce472e465d34d3169`다.
+[해당 원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39399658101)의 실제 Checks
+annotation에서 LLM 1,697개·Hub 534개 통과, failure/error/Skip/누락/중복 모두 0을 확인했다.
+각 job 시간은 710.289초·750.702초이며 Python 3.12.14다.
+
+### 발견·수정
+
+| 파일·심볼 | 문제/판정 근거 | 변경과 검증 경계 |
+|---|---|---|
+| `tests/llm/check_architecture.py:predicate` | S2가 `type(max_calls) is not int or max_calls < 1` 같은 타입/범위 검증도 fallback으로 수집 | Compare/Not/bool/그 조합만 문법적으로 구분. 함수 반환값·Name·Attribute·Subscript 타입을 추정하지 않음. 하위 AST는 계속 순회하여 조건식 안의 `policy or {}`도 검출 |
+| 같은 파일 `key_set_comparison` | 필수 객체 키 집합 검사와 실제 version/status 값 비교가 섞임 | 정확한 `set(record)`/`record.keys()` 대 문자열 Set의 Eq/NotEq만 구분. 실제 버전 비교·중첩 fallback mutation은 계속 검출 |
+| `hub/backend/project/settings.py:create_project,save_all` | 명시한 `components=[]`를 전체 등록 목록으로 덮어씀 | `defaults.creation_values()`가 **누락된 생성 필드만** 채움. 새 Project 저장/조회/편집/일괄 생성에서 빈 목록 보존. 기존 전체 목록 시험은 필드를 생략하는 경우로 구분 |
+| `hub/backend/project/defaults.py`, `bootstrap.py` | 생성 시 conversation 저장 선택이 여러 경로에서 반복 | 생성 owner의 `CONVERSATION_STORAGE`를 조립 경로가 참조. Backend Reader/실행에서는 이 프리셋을 참조하지 않음 |
+| `hub/backend/tools/builtin.py:ensure_selected`, `runtime.py:activate_project` | 첫 수정 후 재열기 시험에서 기존 Project에 builtin_tools와 enabled 초기값이 다시 저장됨 | 자동 쓰기 메서드 삭제. activate는 저장된 Component 선택만 준비. 폐기 메서드 재도입은 S1이 검출. 미선택/선택됐지만 enabled 누락/빈 목록 모두 설정 revision 유지·모델 Tool 목록 비어 있음·파일 효과 0 검증 |
+| `hub/config/presets.py:PresetStore`, `project/presets.py:export` | Reader/내보내기에 version literal 중복; 미선택 프리셋 본문 미검증; 빠진 전역 설정 필드를 dataclass 기본값으로 복구 | `PresetStore.VERSION` 공동 참조. 정확한 int/version·root 필드·선택 대상·모든 저장 프리셋 검증. ProjectConfig는 Backend owner 검증 사용 |
+| `hub/config/preferences.py:validate_section` | Preference와 preset이 같은 전역 설정을 따로 해석 | SECTIONS와 완전한 현재 필드 검증을 Preference owner가 소유. preset은 그 검증 사용; 실패 시 원본 변경 없음 |
+| `docs/hub/questions-tools.md`, `presets-and-resume.md` | 전자는 기존 Project를 열 때 Component 추가를 설명; 후자는 재주입 금지. 빈 전역 설정 객체 예제도 current-only Reader와 충돌 | 사용자 상위 원칙에 따라 생성 초기값/명시 설정 변경/읽기 전용 재열기 구별. 완전한 현재 형식 설명으로 수정 |
+
+정적 후보는 **63건**만 개별 대조 후 제거했다. 타입/조건 논리 S2 50건, 키 집합의 형태 검사
+5건(S3 4·S4 1), 실제 preset 버전 선언/검사 수정 8건(S3 4·S4 4)이다.
+새 허용 항목이나 파일 면제를 추가하지 않았다. 남은 후보는 **620건**이며
+S2 54, S3 527, S4 19, S5 2, S6 18이다. 이 숫자는 미분류/미해결 후보이며
+정적 strict 전체 통과나 P1-c 전체 완료를 뜻하지 않는다.
+
+### 집중 검증과 실패 보존
+
+명령의 Python은 `/workspace/.setup/ish-llm/verified-next/bin/python`이며
+`TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION`을 사용했다.
+증거는 `/workspace/llm-clean-p1/declarations/`에 보존한다.
+
+| 명령/파일 | 실제 결과 |
+|---|---|
+| `python -m unittest tests.hub.test_creation_contracts -v`, `creation-before.log` | 수정 전 5개, failure 9개(서브테스트 포함), error/Skip 0, 3.861초, exit 1. 명시 빈 목록 덮어쓰기·불완전/미선택 preset 수락 재현 |
+| 첫 수정 후 생성/프리셋/Settings/Bootstrap 집중, `creation-after.log` | 36개, failure 1·error/Skip 0, 45.488초, exit 1. 기존 Project 재열기의 builtin_tools 자동 저장 발견 |
+| `python -m unittest tests.hub.test_creation_contracts tests.hub.test_defaults tests.hub.test_presets_widgets tests.hub.test_question_tools tests.hub.test_settings tests.hub.test_bootstrap tests.llm.test_current_contracts -v` | 67개 통과, failure/error/Skip 0, 67.612초, exit 0. 실제 파일 효과·기존 승인 후 Resume·누적 사용량 손상 거부 포함 |
+| `python -m unittest tests.llm.test_architecture_checks -v` | 13개 통과, failure/error/Skip 0, 1.664초, exit 0. 새 규칙의 양성·음성 및 중첩 fallback mutation 포함 |
+| `python -m tests.llm.check_budget_mutation` | 의도한 R3 시험 1개가 두 번째 실제 효과 assertion으로 실패, checker는 탐지 성공 exit 0. 일반 회귀 실패와 구별 |
+| `python -m tests.llm.check_architecture --require S1` | S1 0, new/stale 0, 잔여 후보 620, exit 0 |
+| `python -m tests.llm.check_docs` | 문서 128·Python fence 178·링크 895·anchor 30, 오류 0, exit 0 |
+| `python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12` | Python 3.12.14·깨끗한 실제 host·Xvfb/xclip·bwrap smoke 확인, exit 0 |
+
+전체 LLM·Hub 회귀는 이 계약군의 동일한 Python 소스를 고정하여 각각 실행했다.
+`sources-before.json`과 종료 시 제품/시험/예제의 전체 Python 소스 hash가 일치했다.
+실제 인증 모델 호출·커널 short-write·전원 손실/손상 디스크는 계속 미검증이다.
+
+### 첫 계약군 전체 검증 완료
+
+```bash
+export TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+export HUB_TEST_XVFB=/workspace/.setup/x11/root/usr/bin/Xvfb
+export HUB_TEST_XCLIP=/workspace/.setup/x11/root/usr/bin/xclip
+/workspace/.setup/ish-llm/verified-next/bin/python -m tests.llm.run_regression \
+  --suite llm --output /workspace/llm-clean-p1/declarations/llm-regression.json
+/workspace/.setup/ish-llm/verified-next/bin/python -m tests.llm.run_regression \
+  --suite hub --output /workspace/llm-clean-p1/declarations/hub-regression.json
+```
+
+| 범위 | 발견/실행/통과 | failure/error/Skip/누락/중복 | 시간 | exit |
+|---|---:|---:|---:|---:|
+| LLM | 1,700 / 1,700 / 1,700 | 모두 0 | 343.657초 | 0 |
+| Hub | 540 / 540 / 540 | 모두 0 | 487.990초 | 0 |
+| 합집합 | **2,240 / 2,240 / 2,240** | **모두 0** | 별도 suite 실행 | 둘 다 0 |
+
+`verified-partitions.json`에서 최종 discovery와 두 pass 집합의 정확한 일치·중복 없음을
+확인했다. 실제 host 대상 3개 모듈 44개와 X11 9개도 이 집합에서 전부 실행·통과했다.
+최종 문서 검사는 128개 문서·178개 Python fence·897개 링크·30개 anchor, 오류 0이다.
+이는 P1-c의 **첫 계약군 완료**이며 Tool 실행 선언 및 나머지 owner 정리, A–F는 남아 있다.

@@ -1,6 +1,6 @@
 # 클린 리팩터링 설계와 구현 게이트
 
-**상태: P0·P1-a/b 검증 완료, P1-c 및 A–F 미착수.** 기준은 main
+**상태: P0·P1-a/b 검증 완료, P1-c 진행 중, A–F 미착수.** 기준은 main
 `94229cb865374d99f20ec48c5e48269488041a4e`이며 `refactor/llm-clean`에서 시작한다.
 기존 `refactor/llm-backend`의 코드/커밋을 cherry-pick·merge하지 않는다. main과 기존 Draft PR #1은
 변경하지 않는다. [현행 구조](architecture.md)와 이 목표 구조를 구분한다.

@@ -21,7 +21,7 @@ class PresetService:
         record = await self.settings.load_project(identifier)
         project = {key: deepcopy(record["values"][key]) for key in ("config", "components", "conversation_storage")}
         project["config"].get("parameters", {}).get("engines", {}).pop("_hub_title", None)
-        return {"version": 1, "global": await asyncio.to_thread(self.store.globals, self.settings.runtime.config.user_profile),
+        return {"version": self.store.VERSION, "global": await asyncio.to_thread(self.store.globals, self.settings.runtime.config.user_profile),
                 "project": project}
 
     async def save(self, name, value):

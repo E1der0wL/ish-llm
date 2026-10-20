@@ -118,11 +118,9 @@ class SettingsService:
         return await self.load_project(identifier)
 
     async def create_project(self, values):
-        values = deepcopy(values)
-        values.setdefault("conversation_storage", "file")
-        values["components"] = list(self.runtime.backend.project_manager.components.names())
+        from .defaults import creation_values, create_project
+        values = creation_values(self.runtime.backend, values)
         self._validate(values)
-        from .defaults import create_project
         project = await create_project(self.runtime.backend, values["title"], config=values["config"],
             components=values["components"], conversation_storage=values["conversation_storage"])
         return await self.load_project(project.id)
@@ -200,8 +198,8 @@ class SettingsService:
             elif operation in ("save_project", "create_project"):
                 values = deepcopy(args[1] if operation == "save_project" else args[0])
                 if operation == "create_project":
-                    values.setdefault("conversation_storage", "file")
-                    values["components"] = list(self._schema()["properties"]["components"]["items"]["enum"])
+                    from .defaults import creation_values
+                    values = creation_values(self.runtime.backend, values)
                 self._validate(values)
             else:
                 raise ValueError("Unsupported settings save operation")
