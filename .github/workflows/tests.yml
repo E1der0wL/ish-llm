@@ -59,7 +59,7 @@ jobs:
       - name: Install required Linux test runtimes
         run: |
           sudo apt-get update
-          sudo apt-get install -y bubblewrap xvfb xclip
+          sudo apt-get install -y bubblewrap xvfb xclip tesseract-ocr tesseract-ocr-eng
       - name: Authorize only the packaged namespace launcher
         run: |
           test "$(id -u)" != 0
@@ -99,6 +99,9 @@ jobs:
       - name: Verify R3 dropped-limit mutation detection
         if: ${{ !cancelled() && matrix.suite == 'llm' }}
         run: python -m tests.llm.check_budget_mutation
+      - name: Diagnose real SDK integration with offline transports
+        if: ${{ !cancelled() && matrix.suite == 'llm' && steps.environment.outcome == 'success' }}
+        run: python -m tests.llm.check_provider_environment --output artifacts/provider-environment.json
       - name: Discover and execute every assigned regression test
         if: ${{ !cancelled() && steps.environment.outcome == 'success' }}
         run: >-

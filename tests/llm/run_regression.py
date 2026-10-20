@@ -86,6 +86,8 @@ def publish_annotations(report, result):
     for test, trace in [*result.failures, *result.errors][:5]:
         emit_annotation("Regression failure detail",
                         {"id": test.id(), "trace": trace}, level="error")
+    for skipped in report["skipped"][:5]:
+        emit_annotation("Unverified skipped test", skipped, level="error")
 
 
 def main():

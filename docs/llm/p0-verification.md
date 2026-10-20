@@ -162,3 +162,63 @@ profile의 `unconfined`는 원래 unconfined였던 launcher에 userns 권한을 
 방식이다. 제품의 `--unshare-all`, `--cap-drop ALL`, mount/network 경계는 변경하지 않는다.
 실제 Tool은 sudo로 실행하지 않는다. launcher 권한 추가와 제품 격리를 혼동하지 않으며,
 복구 성공은 동일 runner에서 실제 파일·네트워크 거부 및 전체 회귀가 통과한 뒤에만 판정한다.
+
+## 복구 후 실제 원격 회귀와 P0 차단 상태
+
+[run 39372835749](https://github.com/E1der0wL/ish-llm/actions/runs/39372835749),
+commit `ef35e5111bc4736e43cef823b0828a9d000fdce1`에서 두 job의 환경 gate,
+문서 검사, AST 신규 후보 검사와 LLM R3 변형 검출이 통과했다. 전역 AppArmor 제한은 1,
+일반 unshare는 거부, Tool 시험은 일반 사용자 실행이었다. 전체 회귀는 다음과 같이 **실패**했다.
+
+| 범위 | 발견/실행 | 통과 | 실패 | 오류 | Skip | 시간 |
+|---|---:|---:|---:|---:|---:|---:|
+| LLM | 1,657 / 1,657 | 1,655 | 1 | 0 | 1 | 679.782초 |
+| Hub | 534 / 534 | 533 | 1 | 0 | 0 | 828.434초 |
+
+누락·중복은 두 job 모두 0이다. Hub X11 9개 및 실제 sandbox 시험은 이 집합에 포함되어
+실행됐다. 실패 ID는 `tests.llm.test_loop.LoopTests.test_real_litellm_sdk_with_mock_http_sse_and_tool_loop`,
+`tests.hub.test_http_backend.HTTPBackendTests.test_production_backend_streams_from_configured_endpoint`다.
+이 실행의 annotation에는 Skip의 ID/이유가 없어 정확한 항목은 아직 미확인이다.
+설치 목록에 Tesseract가 빠진 것은 확인되어 CLI와 eng 자료를 추가하고 환경 gate에서 요구한다.
+후속 실행부터 Skip ID/이유도 Checks에 기록한다. 기존 Skip 조건과 assertion은 유지한다.
+
+Cloud의 기존 전체 통과 환경은 LiteLLM 1.103.1 / OpenAI 2.54.0 / MCP 1.30.0이다.
+현재 허용 범위를 새로 설치한 **별도 외부 디렉터리**에서 LiteLLM 1.106.0 / OpenAI 2.54.0 /
+MCP 1.30.0으로 위 두 기존 시험을 실행하자 2 failure / 0 error / 0 Skip으로 재현됐다.
+기존 venv나 제품 파일은 바꾸지 않았다.
+같은 진단 명령을 기존 1.103.1 조합에서 다시 실행한 결과는 2 pass / 0 failure/error/Skip이다.
+
+```bash
+python -m tests.llm.check_provider_environment --output artifacts/provider-environment.json
+```
+
+이 명령은 기존 두 시험의 assertion을 그대로 실행하고 SDK 버전 및 본문·인증정보가 없는
+예외 identity/source 위치를 보존한다. 메모리 HTTP transport/loopback 서버만 사용하므로
+실제 인증 모델 호출 검증은 아니다.
+
+확인한 호출은 LiteLLM `main.completion` → `responses.mcp.chat_completions_handler` →
+`responses.mcp.litellm_proxy_mcp_handler` → `proxy._experimental.mcp_server.catalog`다.
+`tools`가 있으면 일반 Tool도 이 import를 지나며, 마지막 모듈의 `from mcp.types import
+CacheableResult`에서 ImportError가 발생한다. LiteLLM 1.106.0의 MCP extra는 `mcp>=2.2.0,<3`,
+프로젝트의 MCP 계약은 `mcp>=1.30,<2`다. 일반 LiteLLM 설치에는 이 extra 제약이 강제되지 않아
+resolver 성공만으로 런타임 호환성이 증명되지 않는다. 원격의 동일 원인 여부는 새 진단으로
+별도 확인한다.
+
+P0는 **미완료·차단**이다. CI만 예전 SDK로 고정하여 제품의 넓은 허용 범위를 검증 완료로
+표시하지 않는다. 권장 후속 조치는 실제 검증된 SDK/MCP 조합을 프로젝트의 설치 계약으로
+명시하고, 그 조합에서 전체 회귀를 다시 통과시키는 것이다. MCP 2로 전환하려면 실제
+stdio/HTTP/취소·Tool 승인 경계를 먼저 검증해야 하며 단순 버전 상향으로 처리할 수 없다.
+이 핵심 통합 실패가 남아 있는 동안 P1과 A–F 제품 구현에 진입하지 않는다.
+
+## 감사 범위 보완
+
+S3/S4에 `format_version`을 포함하면서 main에 이미 존재한 후보 12개를 추가했다.
+Vision Reader/Writer 3개, DirectoryBackups 5개, Transaction Reader/Writer 4개다.
+세 제품 파일이 기준 main과 byte 단위로 같음을 확인하고 기존 755개 항목도 보존했다.
+정확한 타입을 검사하는 Backup/Transaction Reader도 후보에 포함되므로 미검토 후보 수를
+실제 결함 수로 바꾸지 않는다. 신규 위반을 허용한 것이 아니라 누락된 감사 범위를 확장한 것이다.
+
+현재 후보는 **767개**: S1 36 / S2 109 / S3 568 / S4 34 / S5 2 / S6 18.
+새 후보·오래 남은 목록은 0이며 엄격 gate는 여전히 실패한다. 이 보완 뒤 checker/정책 Reader/
+annotation 집중 시험 21개가 1.489초에 통과했다. 앞서 실행한 전체 2,184 및 원격 2,191의 결과와
+구별한다.

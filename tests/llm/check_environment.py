@@ -76,6 +76,11 @@ def main():
             report[executable] = path
             if not path or not os.access(path, os.X_OK):
                 errors.append(f"required {executable} executable is missing")
+    if args.suite == "llm":
+        report["tesseract"] = command(["tesseract", "--list-langs"])
+        languages = report["tesseract"].get("stdout", "").splitlines()
+        if report["tesseract"]["exit"] != 0 or "eng" not in languages:
+            errors.append("required Tesseract CLI or English language data is missing")
     report["ok"] = not errors
     args.output.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
