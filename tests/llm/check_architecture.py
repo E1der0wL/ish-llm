@@ -33,8 +33,9 @@ OLD_NAMES = {
     "validate_settings", "from_settings", "configuration_schema",
     "effective_configuration", "settings",
 }
-DOMAIN_FIELDS = {
-    "version", "schema_version", "storage_version", "status", "state",
+FORMAT_FIELDS = {"version", "schema_version", "storage_version", "format_version"}
+DOMAIN_FIELDS = FORMAT_FIELDS | {
+    "status", "state",
     "event_type", "error_code", "isolation", "effect", "approval",
 }
 CONFIG_NAMES = {"config", "configuration", "policy", "policies", "session_config",
@@ -123,8 +124,7 @@ def scan_source(source, file):
                 if domain_name(symbol(target)) and literal(node.value):
                     add("S3", node, owner, f"inline domain assignment: {symbol(target)}")
         if isinstance(node, ast.Compare):
-            if any(symbol(part) in {"version", "schema_version", "storage_version"}
-                   for part in ast.walk(node)):
+            if any(symbol(part) in FORMAT_FIELDS for part in ast.walk(node)):
                 add("S4", node, owner, "verify exact version type and declaration reference")
             if (any(domain_name(symbol(part)) for part in ast.walk(node))
                     and any(literal(part) for part in node.comparators)):

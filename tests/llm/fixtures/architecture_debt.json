@@ -1412,6 +1412,30 @@
       "detail": "inline domain argument: policy"
     },
     {
+      "id": "71fd2b6b3e048b19cf5f9311df7393fe43c12e69f4d4dbbf21c006c23d2a32d0:1",
+      "rule": "S4",
+      "file": "llm/components/vision/component.py",
+      "symbol": "VisionComponent.validate_record",
+      "line": 112,
+      "detail": "verify exact version type and declaration reference"
+    },
+    {
+      "id": "9ba5c33d55b3f2a7f2351b6a3efa5c44647cda0f050391813aa2fa55f6f74c23:1",
+      "rule": "S3",
+      "file": "llm/components/vision/component.py",
+      "symbol": "VisionComponent.validate_record",
+      "line": 112,
+      "detail": "inline domain comparison"
+    },
+    {
+      "id": "3f588760b3acff99f2799cc923bdab90058f50d5a61c4208e584706a5cb2ba08:1",
+      "rule": "S3",
+      "file": "llm/components/vision/component.py",
+      "symbol": "VisionComponent.import_bytes",
+      "line": 126,
+      "detail": "inline domain field: format_version"
+    },
+    {
       "id": "04d8ea8f537fa1e0976c27f7664a2f69f324b150ccabefe41ff13b61387b8008:1",
       "rule": "S3",
       "file": "llm/components/vision/tools.py",
@@ -2796,12 +2820,52 @@
       "detail": "inline domain comparison"
     },
     {
+      "id": "099c1287ed54aca0ec84dd9bd723d664fbadb0268f88d36a617cc086478d8d2b:1",
+      "rule": "S3",
+      "file": "llm/services/infrastructure/backups.py",
+      "symbol": "DirectoryBackups.create.build",
+      "line": 79,
+      "detail": "inline domain field: format_version"
+    },
+    {
+      "id": "6dbe8dbd3e00704971e8c1b6d7a6151a6d435a3f305640e375599783a9c9b76a:1",
+      "rule": "S4",
+      "file": "llm/services/infrastructure/backups.py",
+      "symbol": "DirectoryBackups.verify",
+      "line": 87,
+      "detail": "verify exact version type and declaration reference"
+    },
+    {
+      "id": "25dfa51c2eb9e6c500a193406af18dc8e4a5f8688d16d88b50a354def334d0c8:1",
+      "rule": "S4",
+      "file": "llm/services/infrastructure/backups.py",
+      "symbol": "DirectoryBackups.verify",
+      "line": 87,
+      "detail": "verify exact version type and declaration reference"
+    },
+    {
+      "id": "a07a92b3fcf74c30880f5f6a5d48dc8a8afa36d60535dfb46042aac36209943f:1",
+      "rule": "S3",
+      "file": "llm/services/infrastructure/backups.py",
+      "symbol": "DirectoryBackups.verify",
+      "line": 87,
+      "detail": "inline domain comparison"
+    },
+    {
       "id": "6b5168ee62c22cbeab4cd16246f5ab39c966a07c7eb29dc0079880ddbcc98baf:1",
       "rule": "S1",
       "file": "llm/services/infrastructure/backups.py",
       "symbol": "DirectoryBackups.upgrade",
       "line": 102,
       "detail": "retired definition"
+    },
+    {
+      "id": "ce0bf6b70c22b184b4882b04c67979a53bf3974f448adbfbbb2e34df304e9ceb:1",
+      "rule": "S3",
+      "file": "llm/services/infrastructure/backups.py",
+      "symbol": "DirectoryBackups.upgrade.build",
+      "line": 113,
+      "detail": "inline domain field: format_version"
     },
     {
       "id": "c1e666c654d488fe248ca559bf13422b742d1f01732027b653f360c0006a089b:1",
@@ -2978,6 +3042,38 @@
       "symbol": "atomic_domain_json",
       "line": 164,
       "detail": "verify exact version type and declaration reference"
+    },
+    {
+      "id": "146fd46a4bf633bf3dceb7174e1a43c8310a63b07c765fba8ce2f4211e6fdccd:1",
+      "rule": "S3",
+      "file": "llm/services/infrastructure/transactions.py",
+      "symbol": "Transaction._entry",
+      "line": 108,
+      "detail": "inline domain field: format_version"
+    },
+    {
+      "id": "cb4c2c6f3e867b4c5479ad1badcd85a09a4d99a7e89e827af54c4433ddd6ae11:1",
+      "rule": "S4",
+      "file": "llm/services/infrastructure/transactions.py",
+      "symbol": "TransactionManager._entries",
+      "line": 287,
+      "detail": "verify exact version type and declaration reference"
+    },
+    {
+      "id": "eefa7b1ade471c0bca6729140214c23aa9baf28d928c26dd98d4fc7052476a1a:1",
+      "rule": "S4",
+      "file": "llm/services/infrastructure/transactions.py",
+      "symbol": "TransactionManager._entries",
+      "line": 287,
+      "detail": "verify exact version type and declaration reference"
+    },
+    {
+      "id": "601c03046c49c7ba0b1235fc5cb3b7ad0851d5009b4b5ef51e7c316a753e4546:1",
+      "rule": "S3",
+      "file": "llm/services/infrastructure/transactions.py",
+      "symbol": "TransactionManager._entries",
+      "line": 287,
+      "detail": "inline domain comparison"
     },
     {
       "id": "179ed1f55150edd9ff30d3ff47a15c0091b1c3bede6b39bece271d0bab4814e5:1",

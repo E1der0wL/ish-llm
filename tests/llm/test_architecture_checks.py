@@ -22,6 +22,7 @@ class ArchitectureCheckTests(unittest.TestCase):
         for rule, source in cases.items():
             with self.subTest(rule=rule):
                 self.assertIn(rule, self.rules(source))
+        self.assertIn("S4", self.rules("if record['format_version'] != 1: raise ValueError()"))
 
     def test_retired_alias_argument_and_dynamic_lookup_are_detected(self):
         for source in ("old = backend.on_event", "def setup(on_run_event=None): pass",
