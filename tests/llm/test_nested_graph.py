@@ -123,6 +123,48 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(model.requests), 3)
         self.assertTrue(any(s.metadata.get('reused') for s in await resumed.steps.alist()))
 
+    async def test_resume_preserves_one_call_agent_budget_and_blocks_new_effect(self):
+        """R3: restoring usage is insufficient if Agent max_tool_calls is dropped."""
+        from tests.llm.test_loop import call
+        effect_file = self.root / "budget-effects.txt"
+        async def effect(arguments):
+            with effect_file.open("a", encoding="utf-8") as output:
+                output.write(arguments["value"] + "\n")
+            return {"value": arguments["value"]}
+        self.tools = ToolRegistry((Tool("effect", "record", {"type": "object"}, effect),))
+        model = ScriptedCompletion(
+            [chunk(calls=[call('{"value":"first"}', name="effect", call_id="first")], finish="tool_calls")],
+            [ConnectionError("pause after first completed effect")],
+            [chunk(calls=[call('{"value":"second"}', name="effect", call_id="second")], finish="tool_calls")],
+            [chunk("done", finish="stop")])
+        handler = AgentNode(engines={"loop": LoopEngine(completion_fn=model)})
+        # No parent Tool cap: it must not mask a missing Agent limit.
+        await self.setup({"main": action_graph("agent", agent="worker")}, handlers={"agent": handler})
+        await self.agents.acreate({"purpose": "work", "engine": "loop", "completion": {"model": "test"},
+            "tools": ["effect"], "policy": {"max_tool_calls": 1}}, identifier="worker")
+        failed = await self.request()
+        self.assertEqual(failed.data.status, RunStatus.FAILED, failed.data.error)
+        self.assertEqual(effect_file.read_text(), "first\n")
+        checkpoint = await failed.acheckpoint()
+        usage = [value for record in checkpoint["records"].values()
+                 for value in record.get("agent_usage", {}).values()]
+        self.assertTrue(usage)
+        self.assertTrue(any(value["calls"] == 1 for value in usage))
+        await self.app.shutdown()
+        reopened = LargeLanguageModel(self.root, engines={"graph": self.engine}, components=[
+            WorkflowComponent(), AgentComponent(), RuntimeTools(self.tools), SkillComponent()])
+        self.addAsyncCleanup(reopened.shutdown)
+        session = (await reopened.projects.aload(self.project.id)).sessions.load(self.session.id)
+        resumed = await (await session.run.resume(failed.id, engine="graph")).wait()
+        self.assertNotEqual(resumed.id, failed.id)
+        # Assert the real external effect before status so dropped-limit mutation
+        # fails for the safety consequence, not only for an error classification.
+        self.assertEqual(effect_file.read_text(), "first\n", "new Tool effect escaped the resumed Agent budget")
+        self.assertEqual(resumed.data.status, RunStatus.FAILED, resumed.data.error)
+        self.assertEqual(resumed.result.error_code, "tool_budget_exceeded")
+        self.assertEqual(len(model.requests), 3)
+        self.assertEqual(await (await session.run.aload(failed.id)).acheckpoint(), checkpoint)
+
     async def test_loop_inside_subworkflow_retries_only_explicit_uncertain_tool(self):
         from tests.llm.test_loop import call
         async def effect(arguments):

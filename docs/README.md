@@ -1,7 +1,7 @@
 # 개발 문서
 
 문서 기준은 main `94229cb865374d99f20ec48c5e48269488041a4e`다. 2026-10-20에
-`docs/` 전체와 `llm/`, `hub/` 내부 문서를 재검토했다. 이번 변경은 문서 정리이며 제품 구현이 아니다.
+`docs/` 전체와 `llm/`, `hub/` 내부 문서를 재검토했다. 제품 구현은 아직 시작하지 않았으며 P0 검증 도구·테스트·CI를 준비했다.
 
 ## 읽는 순서와 적용 범위
 
@@ -13,7 +13,8 @@
 4. [현행 공개 API](llm/backend-api.md), [LLM 사용법](../llm/README.md),
    [Hub 설계](hub/README.md), [Hub 사용법](../hub/README.md).
 5. [클린 리팩터링 목표와 단계](llm/clean-refactor.md): 승인된 설계 방향이며 **아직 구현되지 않았다**.
-6. [전체 문서 목록](document-map.md), [문서·코드 불일치와 검증 상태](llm/documentation-review.md).
+6. [P0 검사와 실행 기록](llm/p0-verification.md): 로컬 결과와 원격 CI 검증을 구분한다.
+7. [전체 문서 목록](document-map.md), [문서·코드 불일치와 검증 상태](llm/documentation-review.md).
 
 사용자의 최신 필수 원칙·단일 선언 지침 → 현재 명명의 의미와 명시적 설정 계약 →
 A–F 기능·안전성 요구 → 과거 작업 기록 순서로 적용한다. 코드가 문서와 다르다는 이유만으로
