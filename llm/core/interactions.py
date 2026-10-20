@@ -1,14 +1,45 @@
 """UI와 실행기가 공유하는 사용자 요청·선택지·응답. 실행이나 파일 저장을 수행하지 않는다."""
 
 from copy import deepcopy
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import asdict, dataclass, field, fields, replace
 from datetime import datetime, timezone
+from enum import StrEnum
 import hashlib
 import json
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 from .models import ProjectConfig, new_id, now
 from .schema import checked_schema
+
+
+class InteractionStatus(StrEnum):
+    PENDING = "pending"
+    ANSWERED = "answered"
+    EXPIRED = "expired"
+    CANCELLED = "cancelled"
+
+
+class InteractionActor(StrEnum):
+    USER = "user"
+    POLICY = "policy"
+    HOST = "host"
+
+
+def _stored_fields(cls, value):
+    """Creation defaults never repair a persisted interaction snapshot."""
+    if not isinstance(value, dict):
+        raise TypeError(f"{cls.__name__} must be an object")
+    names = {item.name for item in fields(cls)}
+    if value.keys() != names:
+        raise ValueError(f"{cls.__name__} requires all current fields; "
+                         f"missing={sorted(names - value.keys())}, extra={sorted(value.keys() - names)}")
+    ProjectConfig.validate_json(value)
+    return deepcopy(value)
+
+
+def _timestamp(value):
+    if not isinstance(value, str) or datetime.fromisoformat(value).utcoffset() is None:
+        raise ValueError("Interaction timestamps require timezone-aware text")
 
 
 def same_interaction_value(left: Any, right: Any) -> bool:
@@ -41,12 +72,15 @@ class InteractionOption:
 
     @classmethod
     def from_dict(cls, value: dict) -> "InteractionOption":
-        return cls(**deepcopy(value))
+        return cls(**_stored_fields(cls, value))
 
 
 @dataclass(frozen=True, slots=True)
 class InteractionRequest:
     """실행 대상과 UI 선택지를 담은 스냅샷. 추천 선택지는 자동 승인 권한이 아니다."""
+
+    ID_LENGTH: ClassVar[int] = 32
+    FINGERPRINT_LENGTH: ClassVar[int] = hashlib.sha256().digest_size * 2
 
     title: str
     options: tuple[InteractionOption, ...]
@@ -63,18 +97,17 @@ class InteractionRequest:
     source: dict = field(default_factory=dict)
     action: dict = field(default_factory=dict)
     binding: dict = field(default_factory=dict)
-    status: str = "pending"
+    status: str = InteractionStatus.PENDING
     created_at: str = field(default_factory=now)
     expires_at: Optional[str] = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.id, str) or len(self.id) != 32 or any(c not in "0123456789abcdef" for c in self.id):
-            raise ValueError("Invalid interaction ID")
+        self.validate_identity(self.id)
         if type(self.revision) is not int or self.revision < 1:
             raise ValueError("Interaction revision must be positive")
         if not isinstance(self.title, str) or not self.title or not isinstance(self.description, str):
             raise ValueError("Interaction title/description must be text")
-        if self.kind not in ("approval", "confirmation", "choice", "input") or self.status not in ("pending", "answered", "expired", "cancelled"):
+        if self.kind not in ("approval", "confirmation", "choice", "input") or self.status not in InteractionStatus:
             raise ValueError("Invalid interaction kind/status")
         if self.priority not in ("low", "normal", "high", "urgent"):
             raise ValueError("Invalid interaction priority")
@@ -87,12 +120,28 @@ class InteractionRequest:
         if len(ids) != len(set(ids)) or self.recommended_option_id is not None and self.recommended_option_id not in ids:
             raise ValueError("Invalid or duplicate interaction option selection")
         for value in (self.source, self.action, self.binding):
+            if not isinstance(value, dict):
+                raise TypeError("Interaction source/action/binding must be objects")
             ProjectConfig.validate_json(value)
-        for value in (self.created_at, self.expires_at):
-            if value is not None and datetime.fromisoformat(value).utcoffset() is None:
-                raise ValueError("Interaction timestamps require a timezone")
+        _timestamp(self.created_at)
+        if self.expires_at is not None:
+            _timestamp(self.expires_at)
         if self.input_schema is not None:
+            if not isinstance(self.input_schema, dict):
+                raise TypeError("Interaction input_schema must be an object or null")
             checked_schema(self.input_schema)
+
+    @classmethod
+    def validate_identity(cls, identifier):
+        if (not isinstance(identifier, str) or len(identifier) != cls.ID_LENGTH
+                or any(c not in "0123456789abcdef" for c in identifier)):
+            raise ValueError("Invalid interaction ID")
+
+    @classmethod
+    def validate_fingerprint(cls, value):
+        if (not isinstance(value, str) or len(value) != cls.FINGERPRINT_LENGTH
+                or any(c not in "0123456789abcdef" for c in value)):
+            raise ValueError("Interaction fingerprint changed or is invalid")
 
     @property
     def expired(self) -> bool:
@@ -110,8 +159,10 @@ class InteractionRequest:
 
     @classmethod
     def from_dict(cls, value: dict):
-        data = deepcopy(value)
-        data["options"] = tuple(InteractionOption(**o) for o in data["options"])
+        data = _stored_fields(cls, value)
+        if not isinstance(data["options"], list):
+            raise TypeError("Stored interaction options must be an array")
+        data["options"] = tuple(InteractionOption.from_dict(o) for o in data["options"])
         return cls(**data)
 
     def bind(self, checkpoint: str, key: str, *, decision_key: Optional[str] = None,
@@ -208,27 +259,30 @@ class InteractionResponse:
     option_id: str
     request_fingerprint: str
     value: Any = None
-    actor: str = "user"
+    actor: str = InteractionActor.USER
     created_at: str = field(default_factory=now)
     policy_id: Optional[str] = None
 
     def __post_init__(self) -> None:
+        InteractionRequest.validate_identity(self.request_id)
+        InteractionRequest.validate_fingerprint(self.request_fingerprint)
         if type(self.request_revision) is not int or self.request_revision < 1:
             raise ValueError("Invalid interaction response revision")
         if any(not isinstance(v, str) or not v for v in (
                 self.request_id, self.option_id, self.request_fingerprint)):
             raise ValueError("Invalid interaction response identity")
-        if self.actor not in ("user", "policy", "host"):
+        if self.actor not in InteractionActor:
             raise ValueError("Invalid interaction response actor")
-        if datetime.fromisoformat(self.created_at).utcoffset() is None:
-            raise ValueError("Interaction timestamps require a timezone")
+        _timestamp(self.created_at)
         ProjectConfig.validate_json({"value": self.value})
         if self.policy_id is not None and (not isinstance(self.policy_id, str) or not self.policy_id):
             raise ValueError("Invalid interaction policy ID")
+        if (self.actor == InteractionActor.POLICY) != (self.policy_id is not None):
+            raise ValueError("Policy responses require their policy ID")
 
     @classmethod
     def from_dict(cls, value: dict):
-        return cls(**deepcopy(value))
+        return cls(**_stored_fields(cls, value))
 
     def to_dict(self) -> dict:
         value = asdict(self)
@@ -239,10 +293,10 @@ class InteractionResponse:
         if (self.request_id != request.id or self.request_revision != request.revision
                 or self.request_fingerprint != request.fingerprint):
             raise ValueError("Interaction changed; reload before responding")
-        if request.expired or request.status != "pending":
+        if request.expired or request.status != InteractionStatus.PENDING:
             raise ValueError("Interaction is no longer pending")
         self.to_dict()
-        if self.actor not in ("user", "policy", "host"):
+        if self.actor not in InteractionActor:
             raise ValueError("Invalid interaction response actor")
         return request.decision_for(self.option_id, value=self.value)
 

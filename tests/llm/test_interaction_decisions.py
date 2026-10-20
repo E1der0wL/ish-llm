@@ -131,7 +131,8 @@ class DecisionRepositoryTests(unittest.TestCase):
         requests = [approval_request("Review").bind("loop", "key") for _ in range(140)]
         envelopes = {request.id: {"replacement": requests[i + 1].to_dict()}
                      for i, request in enumerate(requests[:-1])}
-        with patch.object(repository, "envelope", side_effect=lambda run, request: envelopes.get(request.id, {})):
+        with patch.object(repository, "envelope",
+                          side_effect=lambda run, request: envelopes.get(request.id, {"replacement": None})):
             self.assertEqual(repository.effective(None, [requests[0]]), [requests[-1]])
             envelopes[requests[-1].id] = {"replacement": requests[0].to_dict()}
             with self.assertRaisesRegex(ValueError, "renewal chain"):
@@ -161,6 +162,20 @@ class DecisionRepositoryTests(unittest.TestCase):
         decisions, receipts, _ = InteractionRepository().decisions([request], [response], {})
         self.assertEqual(decisions, {"key": {"approved": True}})
         self.assertEqual(receipts, [])
+
+    def test_confirmation_with_preserved_response_uses_same_input_contract(self):
+        request = DecisionValueTests().confirmation()
+        response = request.respond("approve")
+        repository = InteractionRepository()
+        for explicit in ({}, {"approved": True}):
+            decisions, receipts, retries = repository.decisions(
+                [request], [response], {"review": explicit})
+            self.assertEqual(decisions, {"review": {"approved": True}})
+            self.assertEqual(receipts, [])
+            self.assertEqual(retries, ())
+        for conflicting in ({"approved": False}, {"approved": 1}, {"state": {"value": 2}}):
+            with self.subTest(conflicting=conflicting), self.assertRaisesRegex(ValueError, "conflicts"):
+                repository.decisions([request], [response], {"review": conflicting})
 
     def test_uncertain_retry_still_requires_its_own_response(self):
         request = replace(approval_request("Retry", category="execution.retry_uncertain"),

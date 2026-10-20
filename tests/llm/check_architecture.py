@@ -111,6 +111,9 @@ def exact_version_guards(tree, fields):
     accepted = set()
 
     def field(node):
+        if (isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name)
+                and node.value.id == "self" and node.attr in fields):
+            return ast.dump(node.value, include_attributes=False), node.attr
         if isinstance(node, ast.Subscript):
             owner, key = node.value, node.slice
         elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)

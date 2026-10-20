@@ -171,6 +171,28 @@ class ArchitectureCheckTests(unittest.TestCase):
 
 
 class VersionGuardTests(unittest.TestCase):
+    def test_typed_record_version_requires_exact_type_and_same_local_declaration(self):
+        source = """
+class Record:
+    STORAGE_VERSION = 1
+    storage_version: int
+    def validate(self):
+        if type(self.storage_version) is not int or self.storage_version != self.STORAGE_VERSION:
+            raise ValueError("Unsupported storage version")
+"""
+        self.assertEqual(scan_source(source, "llm/example.py"), [])
+        for old, new in (
+                ("type(self.storage_version) is not int or ", ""),
+                (" or ", " and "), (" is not int", " is int"),
+                ("!= self.STORAGE_VERSION", "!= 1"),
+                ("!= self.STORAGE_VERSION", "!= other.STORAGE_VERSION"),
+                ("or self.storage_version", "or other.storage_version"),
+                ("STORAGE_VERSION = 1", "STORAGE_VERSION = True"),
+                ('raise ValueError("Unsupported storage version")', "pass")):
+            with self.subTest(old=old, new=new):
+                self.assertIn("S4", {item["rule"] for item in
+                    scan_source(source.replace(old, new), "llm/example.py")})
+
     def test_rejects_mutated_type_owner_or_boolean_logic(self):
         source = """
 class Store:

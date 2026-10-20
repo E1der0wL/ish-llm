@@ -81,6 +81,14 @@ P1-b는 아래 항목별 상태와 [실행 기록](p1-verification.md)을 따른
 | D30 | Hub 조회·복구·렌더링 | worker 소유 loop, immutable snapshot, resume_plan/restart, journal 조회 | **유지·C/D 직접 이관**. UI 단일 active ID를 권한 원본으로 삼지 않음 |
 | D31 | Hub 생성 시에만 초기값·사용자 빈 목록 우선 | `SettingsService.create_project/save_all`이 components를 덮어씀; `HubBuiltinTools.ensure_selected`가 재열기 때 Component·enabled 저장 | **P1-c 첫 계약군 검증 완료**. 누락 필드만 생성 초기화. 재열기 쓰기 경로 제거·비활성 Tool 실제 효과 0·전체 2,240개 통과; [기록](p1-verification.md) |
 | D32 | 현재 형식만 읽는 preset | `PresetStore.validate/read`의 version 중복·미선택 본문 미검증·빠진 전역 설정 복구 | **P1-c 첫 계약군 검증 완료**. owner 버전·PreferencesStore 필드 검증 공유. 전체 저장 preset 검증·원본 보존 |
+| D33 | 명시 Provider 설정·호스트 자원 | `resolve_provider_options`의 복사 전 변환, `ProviderCalls`/counter registry/Memory의 falsey fallback | **해당 계약군 구현·검증 완료**. 잘못된 타입 거부, nullable 해제·0 대기 보존, RetryPolicy의 최초 호출 계산 공유. 기존 작업을 `7b1120b`로 보존 |
+| D34 | nullable 해제와 parent narrowing | CONFIGURATION의 provider=null 해제 설명만 읽으면 Session에서 상위 max_attempts 한도를 제거해도 된다고 오해할 수 있음 | **문서 명확화·집중 검증 완료**. 현재 narrowing 거부를 유지하고 한도 없는 상위 정책의 해제와 구분 |
+| D35 | 현재 승인 요청 Reader의 필수 필드 | `InteractionRequest.from_dict`가 expires_at 누락을 None으로 채움. 만료된 요청을 복사해 필드를 제거하면 expired=False로 읽힘 | **H1 승인 보강·검증 완료**. 현재 형식 Reader가 누락을 거부하며 추가 Run·모델 호출·파일 효과 없음. [수정 전후 기록](lifecycle-verification.md) |
+| D36 | 영속 자료 owner·손상 원본 보존 | 승인 응답 파일 소실·취소 필드 누락 시 pending, Memory/RAG identity 소실 시 조회 중 재생성 | **승인 필수 상태는 H1 보강·검증 완료**. Memory/RAG identity와 owner별 격리/삭제는 남음. [수명주기 계약](data-lifecycle.md) |
+| D37 | 삭제로 예산·원본 초기화 금지 | SessionManager.delete 뒤 같은 Project 호출량 1→0과 추가 호출; RAG active.json 소실 후 compact가 실제 세대 삭제 | **차단·미수정**. 직접/상위 삭제의 증거·참조 보호, 포인터 소실의 빈 저장소 오인 거부 |
+| D38 | 복구와 손상 폐기 구분 | ConversationStore._repair_tail가 newline이 사라진 기존 메시지를 다음 append에서 제거 | **미수정**. 입증된 미확정 쓰기의 undo만 허용, 불명확한 원본 절단 금지 |
+| D39 | owner별 백업·참조 검증 | 손상 승인 envelope의 backup 수락 재현; Agent.references의 Prompt/MCP 참조 누락은 소스 대조 | **승인 backup 검증 연결 완료**. 나머지 owner validators/실제 참조 보강은 남음. 중앙에서 하위 형식 해석 금지 |
+| D40 | Application 보존·대상 선정, Backend 안전한 삭제 | HistoryRetention/RAG maintenance·publish/로그 회전의 선정·시점이 Backend에 남음 | **계약 명시·이관 미완료**. 기술적 transaction GC와 분리, 호환 wrapper 없이 직접 이관 |
 
 D16의 추가 대조: 고정 `EXTRACTION_CONTRACT`와 사용자 의미 지침 `default_prompt()`는 다르다.
 `prompt_id=null` 자체는 유효하며 별도 Prompt가 없다는 뜻이다. 이를 필수 Prompt 누락 결함으로

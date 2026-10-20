@@ -11,6 +11,19 @@ ToolExecutor, receipt 소유 관계는 유지하며 별도 승인 엔진을 만�
 `plugin.get("llm").InteractionRequest`와 같이 접근할 수 있다.
 새 실행 도메인을 추가하지 않으며 요청과 응답은 기존 Run에 귀속된다.
 
+## 영속 무결성 보강 계약
+
+[영속 데이터 수명주기](data-lifecycle.md)는 Resume뿐 아니라 모든 요청·응답·갱신·취소에 적용한다.
+정상 미응답과 필수 증거 소실을 owner가 구분하며 생성 기본값을 저장 Reader에 적용하지 않는다.
+손상 자료는 사용을 차단하고 원본을 보존한다. 격리·삭제는 owner의 안전성 검증이 가능할 때만
+허용하며, 어떤 처리도 승인·예산·효과 상태를 초기화하지 않는다. 관련 상태 변경은 기존
+잠금·트랜잭션에 묶고 알림은 확정 후에 보낸다.
+
+expires_at 누락의 None 복원, 응답 파일 소실·취소 필드 누락의 미응답 오인은 H1에서 차단한다.
+구현과 실제 실패 주입·회귀 결과는 [수명주기 검증 기록](lifecycle-verification.md)을 따른다.
+owner별 격리·안전한 명시적 삭제와 전체 영속 자료 보강은 별도 후속 단계다.
+[원래 실패 및 감사 기록](p1-verification.md)도 보존한다.
+
 | 클래스 | 주요 필드 |
 | --- | --- |
 | InteractionRequest | id, revision, title, description, kind, category, priority, risk, options, recommended_option_id, input_schema, source, action, binding, created_at, expires_at |
@@ -111,8 +124,10 @@ Graph 확인 노드에 `resume_schema`를 정의한 경우만
 ## 저장과 검증
 
 요청은 `Run/state/checkpoints/<엔진>/records/<키 해시>.json`의 waiting 레코드에
-`interaction`으로 포함된다. 응답은 `Run/state/interactions/<request_id>.json`에
-원자적으로 저장한다. 별도 대화 사본이나 Project 결과 파일은 만들지 않는다.
+`interaction`으로 포함된다. 요청 공개와 함께 `Run/state/interactions/<request_id>.json`에
+명시적인 미응답 제어 기록을 저장한다. 이후 응답·취소·갱신은 같은 필수 기록을 원자적으로
+변경하며 파일 부재를 미응답으로 해석하지 않는다. 갱신의 새 요청 기록과 이전 요청 연결도
+한 트랜잭션에 포함한다. 별도 대화 사본이나 Project 결과 파일은 만들지 않는다.
 파일 대화 모드에서 백엔드를 재시작해도 응답을 읽고 명시적으로 재개할 수 있다.
 메모리 대화 모드는 기존과 같이 프로세스 종료 뒤 원본 대화가 없어 재개할 수 없다.
 
@@ -121,6 +136,10 @@ Graph 확인 노드에 `resume_schema`를 정의한 경우만
 - 응답 저장과 재개 큐 등록은 소유권 잠금 안에서 수행한다.
 - 만료는 응답, 재개 접수, 큐에서 실행 시작 시 검사한다.
 - 저장한 답과 저수준 `resume(decisions=...)`가 충돌하면 거부한다.
+- Request·Option·Response의 저장 Reader는 직렬화 필드 전체와 정확한 타입을 검증한다.
+  생성자의 초기값은 저장 파일의 누락을 복구하는 값이 아니다.
+- 새 재개 Run으로 요청을 이어갈 때 응답·취소·갱신 증거를 보존한다. 결과가 불확실한
+  새 실행 시도에는 그 시도의 재승인이 필요하며 과거 효과의 승인을 덮어쓰지 않는다.
 - 기존 엔진의 설정/Tool 계약/호스트 정책 revision 검증을 그대로 적용한다.
 - 추천 선택과 risk/priority만으로 자동 승인하지 않는다. 선택적 Project approval 정책도
   같은 risk_scheme의 Project 규칙만 적용하며 미설정이면 자동 승인하지 않는다. Host 기술적 거절은 우회하지 못한다.

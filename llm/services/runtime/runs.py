@@ -24,7 +24,7 @@ from llm.core.models import (
 )
 from llm.core.paths import RunPaths
 from llm.core.configuration import UNSET
-from llm.core.interactions import InteractionRequest, InteractionResponse
+from llm.core.interactions import InteractionActor, InteractionRequest, InteractionResponse
 from llm.engines.base import EngineContext, EngineEvent, EngineEventType, SteeringInbox, required_capabilities, steering_mode
 from llm.core.steering import RunInstruction, SteeringMode, SteeringRoute, is_instruction, is_queued_request
 from llm.services.runtime.steering import (finish_instructions, checkpoint_messages, steering_boundary,
@@ -242,6 +242,12 @@ class RunRepository:
             for name in run.metadata.get("checkpoints", ()):
                 self.checkpoint(run, name)
             runs.append(run)
+        resolve = self._checkpoint_reader(session, runs)
+        for run in runs:
+            with self._interaction_scope(session, run, resolve) as (interactions, _):
+                interactions.validate_backup(run)
+                self.interaction_requests(session, run)
+                self.interaction_responses(session, run)
         return runs
 
     def paths(self, session: Session, run_id: str) -> RunPaths:
@@ -328,12 +334,31 @@ class RunRepository:
         return list(projection.snapshot().values())
 
     def record_checkpoint(self, run: Run, event: EngineEvent) -> None:
+        interactions = InteractionRepository()
+        name = event.metadata["name"]
+        initialize = event.metadata["operation"] == "initialize"
+        records = (event.metadata.get("records", {}) if initialize else
+                   {event.metadata["key"]: event.metadata["value"]})
+        requests = interactions.requests({"name": name, "records": records}, run)
+        previous = []
+        if requests and not initialize:
+            previous = interactions.requests({**self.checkpoint(run, name), "name": name}, run)
+        known = {request.id for request in previous}
+        for request in requests:
+            interactions.publish(run, request,
+                                 existing=request.id in known or initialize and "resume" in run.metadata)
         CheckpointRepository().record(run, event)
-        if event.metadata["operation"] == "initialize":
+        if initialize:
             # 이 표시를 저장하기 전에는 Engine에 ACK를 보내지 않는다. 초기 복사 전의
             # 재개 시도만 원본으로 복구할 수 있고, 실행 이후 파일 누락은 손상으로 거부한다.
             run.metadata.setdefault("checkpoints", []).append(event.metadata["name"])
             self.save(run)
+
+    def inherit_interactions(self, session, run, checkpoint):
+        """Preserve control evidence even if the later checkpoint copy fails."""
+        source = self.load(session, run.metadata["resume"]["run_id"])
+        InteractionRepository().inherit(source, run,
+            {**checkpoint, "name": run.metadata["resume"]["checkpoint"]})
 
     def instructions(self, session, run, store):
         """본문은 선택한 ConversationStore에서 읽는다. 복제 저장소를 만들지 않는다."""
@@ -364,7 +389,7 @@ class RunRepository:
         self.require_resume(run)
         with self._interaction_scope(session, run) as (interactions, _):
             requests = self.interaction_requests(session, run)
-            if any(interactions.envelope(run, r).get("cancelled") for r in requests):
+            if any(interactions.envelope(run, r)["cancelled"] for r in requests):
                 raise ValueError("Interaction is cancelled; renew before resuming")
             return interactions.decisions(requests, self.interaction_responses(session, run), explicit,
                                           retry_nodes=retry_nodes, confirm=confirm)
@@ -378,16 +403,16 @@ class RunRepository:
             answered = {r.request_id for r in self.interaction_responses(session, run)}
             saved = []
             for request in requests:
-                if (request.id in answered or request.expired or request.risk is None
+                if (request.id in answered or request.expired is True or request.risk is None
                         or request.risk_scheme != policy.get("risk_scheme")
-                        or request.category == "execution.retry_uncertain"
-                        or interactions.envelope(run, request).get("cancelled")):
+                        or request.category == InteractionRepository.RETRY_CATEGORY
+                        or interactions.envelope(run, request)["cancelled"] is True):
                     continue
                 for rule in policy.get("rules", []):
                     if rule["category"] == request.category and request.risk <= rule["max_risk"]:
                         option = request.find_approval()
                         if option is not None:
-                            response = replace(request.respond(option.id), actor="policy", policy_id=rule["id"])
+                            response = replace(request.respond(option.id), actor=InteractionActor.POLICY, policy_id=rule["id"])
                             saved.append(self.respond(session, run, response))
                         break
         return saved
@@ -1328,6 +1353,7 @@ class RunManager:
         try:
             if "resume" in run.metadata:
                 checkpoint = await self._io.run(self._resume_checkpoint, runtime.session, run)
+                await self._io.run(self.repository.inherit_interactions, runtime.session, run, checkpoint)
                 # 실행 설정 검증이 실패해도 재개 시도의 원본 체크포인트는 남긴다.
                 await self._io.run(self.repository.record_checkpoint, run,
                     EngineEvent(EngineEventType.CHECKPOINT, metadata={

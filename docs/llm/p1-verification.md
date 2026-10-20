@@ -3,8 +3,10 @@
 P0의 [고정 조합과 최신 허용 조합 검증](p0-sdk-transition.md)이 통과한 뒤
 `refactor/llm-clean`에서 진행한다. P1-a에서 누적 Tool 사용량 소실을 재현해 중단한 뒤,
 사용자의 보강·재개 요청에 따라 **책임 분리와 필수 상태 복원을 보강하고 P1-a 검증을 완료**했다.
-P1-b도 호환 경로 제거와 전체 회귀 검증을 완료했다. P1-c는 계약군별 진행 중이고 A–F는 미착수이며
-P1 전체를 완료한 것으로 보고하지 않는다.
+P1-b와 P1-c의 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 만료 필드 누락 후
+실제 Tool 효과를 재현하여 기능 단계 진행을 중단한 뒤 H1 승인 무결성을 보강했다.
+이 문서에는 원래 실패와 감사를 보존하며, 이후 결과는 [수명주기 검증](lifecycle-verification.md)을
+따른다. 세 번째 Provider 계약군은 별도 커밋으로 보존한다. A–F는 미착수이며 P1 전체 완료를 뜻하지 않는다.
 main·이전 backend 브랜치·Draft PR #1을 변경하거나 이전 구현을 가져오지 않는다.
 
 ## 중단 원인: 전체 사용량 필드 누락을 빈 이력으로 처리
@@ -549,3 +551,167 @@ new/stale/S1 0, 잔여 596개다. `git diff --check`도 통과했다.
 Host 자원 주입의 잘못된 falsey 객체 수락, 재시도 한도 계산의 중복 선언을 해결한다.
 그 뒤에도 상태·이벤트·오류·저장 형식 등의 owner 정리가 남아 있으므로 P1-c 전체 및
 A–F는 미완료다. 실제 인증 모델·커널 short-write·전원 손실/손상 디스크는 계속 미검증이다.
+
+## P1-c 세 번째 계약군: Provider 설정과 공유 자원 입력
+
+시작 커밋은 `df6b50813eba11776282a3feed8a1abb26d49a7a`이며, 필수 Tool 계약군을
+`refactor/llm-clean`에 Push한 뒤 시작했다. 증거는 `/workspace/llm-clean-p1/provider-choices/`다.
+
+### 발견과 변경
+
+| 소유자·소비자 | 관찰한 문제 | 변경·보존 계약 |
+|---|---|---|
+| `providers/requests.py:resolve_provider_options` | `dict(options)`가 빈 문자열/배열/tuple 및 key-value 배열을 객체로 변환 | 복사 전 객체 타입 검사. 정상 0·False·nullable leaf 및 원본 보존 |
+| `providers/calls.py:ProviderCalls` | False/0/빈 객체를 `ProviderLimits()`로 바꾸어 제한 없는 설정으로 수락 | `ProviderLimits` 또는 None만 수락. 유효한 falsey subclass의 identity와 max_waiting=0/wait_seconds=0 보존. 실제 acquire 경쟁에서 두 번째 호출 거부 |
+| `runtime/policies.py:ProjectPolicyResolver` | 잘못된 falsey registry를 빈 mapping으로 바꾸고 falsey mapping의 등록 counter도 소실 | mapping/None 구분 후 복사. callable/name 검증 유지, 등록 counter 소실 방지 |
+| Memory/Loop Provider 해석 | `provider or {}`로 잘못된 falsey 값과 nullable 해제를 혼합 | None만 명시 해제로 처리하고 다른 값은 Provider owner가 검증. 원본 설정에 빈 정책을 저장하지 않음 |
+| `policies/retry.py:RetryPolicy`, streaming/invoke/SDK retry/Hub 관찰·복구 | 최초 호출 횟수 1을 여러 소비자가 다시 선언 | `INITIAL_ATTEMPTS`와 읽기 전용 `attempts` 계산을 공유. 명시 SDK retry와 outer retry 중첩 금지·수신 후 재시도 금지·취소 유지 |
+| `CONFIGURATION.md`, `project-policies.md` | nullable 해제 설명을 Session에서 상위 한도를 없애도 된다고 읽을 여지 | 기존 narrowing 거부를 명시. 한도 없는 상위 정책의 해제와 구분. 이 계약군에서는 parent 제한 검증을 완화하지 않음 |
+
+정적 후보 9건(S2 8·S3 1)을 실제 변경과 대조해 제거했다. 새 예외/면제는 없으며
+남은 후보는 587개다. 문자열/숫자 전수 제거 또는 P1-c 전체 완료를 뜻하지 않는다.
+
+### 집중 시험과 실패 보존
+
+| 명령/증거 | 실제 결과 |
+|---|---|
+| `python -m unittest tests.llm.test_provider_choices -v`, `before.log` | 6개, failure 26·error 2·Skip 0, 0.014초, exit 1. 잘못된 입력 수락·falsey counter 소실을 재현. error 중 하나는 새 시험이 상위 max_attempts 제거를 허용한다고 잘못 가정한 경우이며, 기존 narrowing 거부와 합법적 null 해제를 각각 검사하도록 바로잡음 |
+| 첫 집중 명령 `focused.log` | 115개, failure 0·error 1·Skip 0, 35.731초, exit 1. `tests.hub.test_retry_status`라는 존재하지 않는 모듈명을 지정한 loader 오류. 114개 성공을 전체 성공으로 보고하지 않음 |
+| `python -m unittest tests.llm.test_provider_choices tests.llm.test_explicit_configuration tests.llm.test_provider_runtime tests.llm.test_provider_diagnostics tests.llm.test_retry tests.hub.test_retry_observations tests.hub.test_retry_ui tests.hub.test_provider_recovery -v`, `corrected.log` | 130개 통과, failure/error/Skip 0, 40.709초, exit 0 |
+| `python -m unittest tests.llm.test_provider_choices tests.llm.test_architecture_checks -v`, `choice-audit.log` | 예외 타입 assertion을 구체화한 최종 새 시험 포함 21개 통과, failure/error/Skip 0, 1.679초, exit 0 |
+| `python -m tests.llm.check_budget_mutation` | R3 필드 전달 누락 시 두 번째 실제 파일 효과 assertion으로 1개 실패, 1.024초. 탐지 checker exit 0 |
+| `python -m tests.llm.check_architecture --require S1` | new/stale/S1 0, 잔여 587개, exit 0 |
+| `python -m tests.llm.check_docs` | 128문서·178 Python fence·898링크·30 anchor, 오류 0 |
+
+전체 회귀는 위 Python 소스 647개를 고정한 상태에서 실행한다. 실제 인증 모델·커널
+short-write·전원 손실/손상 디스크는 계속 별도 미검증이며 fake/offline SDK 시험으로 대체하지 않는다.
+
+### 세 번째 계약군 회귀 결과와 안전성 중단
+
+동일한 Python 소스 647개로 아래 두 명령을 실행하고 시작/종료 hash를 대조했다.
+
+```bash
+export TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+export HUB_TEST_XVFB=/workspace/.setup/x11/root/usr/bin/Xvfb
+export HUB_TEST_XCLIP=/workspace/.setup/x11/root/usr/bin/xclip
+/workspace/.setup/ish-llm/verified-next/bin/python -m tests.llm.run_regression \
+  --suite llm --output /workspace/llm-clean-p1/provider-choices/llm-regression.json
+/workspace/.setup/ish-llm/verified-next/bin/python -m tests.llm.run_regression \
+  --suite hub --output /workspace/llm-clean-p1/provider-choices/hub-regression.json
+```
+
+| 범위 | 발견/실행/통과 | failure/error/Skip/누락/중복 | 시간 | exit |
+|---|---:|---:|---:|---:|
+| 기존 LLM 발견 집합 | 1,714 / 1,714 / 1,714 | 모두 0 | 345.518초 | 0 |
+| Hub | 540 / 540 / 540 | 모두 0 | 488.279초 | 0 |
+| 위 두 집합 | **2,254 / 2,254 / 2,254** | **모두 0** | 별도 suite 실행 | 둘 다 0 |
+| 이후 추가한 실제 만료 손상 시험 | 1 / 1 / 0 | **failure 1**, 나머지 0 | 0.237초 | **1** |
+
+위 기존 집합의 실제 host 44개·X11 9개는 모두 통과했다. 그러나 새로 발견한 안전성 문제를
+별도 시험으로 추가했으므로 **현재 작업 트리 전체를 통과한 것으로 보고하지 않는다.**
+
+#### 새 중단 원인: 만료 필드 누락을 만료 없음으로 복원
+
+[실제 재현 시험](../../tests/llm/test_interaction_storage.py)은 임시 디렉터리의 파일 효과와
+scripted 모델을 사용하며 실제 인증 모델을 호출하지 않는다.
+
+1. 이미 만료된 승인 요청으로 Run을 pause하고 파일 효과가 없음을 확인한다.
+2. 정상 만료 기록에 `decisions={key: True}`로 Resume를 요청하면 거부된다.
+3. 실제 checkpoint record의 `interaction.expires_at` **한 필드만 제거**한다.
+4. 같은 Resume 요청을 보내 실제 종료까지 기다린다.
+5. 기대는 접수 전 거부·Run 1개·모델 1회·효과 0이다. 실제는 **접수 허용·Run 2개·모델 2회·파일 쓰기 1회**였다. 손상 원본은 변경되지 않았다.
+
+```bash
+TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION \
+  /workspace/.setup/ish-llm/verified-next/bin/python \
+  -m unittest tests.llm.test_interaction_storage -v
+```
+
+결과는 **1개 / failure 1 / error·Skip 0 / 0.237초 / exit 1**이다.
+로그는 `provider-choices/interaction-storage-failure.log`이며, 독립 사전 재현의 JSON은
+`/workspace/llm-clean-p1/interaction-expiry-effect-before.json`이다. 정상 승인 assertion을
+삭제하거나 expectedFailure/Skip으로 바꾸지 않았다.
+
+원인은 `llm/core/interactions.py:InteractionRequest.from_dict()`가 `cls(**data)`에
+저장값을 그대로 넘기고, 빠진 `expires_at`을 생성자의 None 기본값으로 보충하는 것이다.
+이 Reader와 expires_at 선언의 AST는 `origin/main` SHA
+`94229cb865374d99f20ec48c5e48269488041a4e`와 동일하다. **실제 효과 재현은 현재 작업 트리에서만
+실행**했으며 main 체크아웃에서도 실행했다고 주장하지 않는다. 이번 Provider 변경이 이
+Reader를 수정한 것은 아니다.
+
+사용자의 “핵심 안전성 회귀가 발생하면 중단하고 보고” 원칙에 따라 이후 제품 구현을 중단했다.
+P1-c 세 번째 계약군과 실패 시험은 **미커밋 작업 트리에 보존**한다. 마지막 검증·Push 커밋은
+`df6b50813eba11776282a3feed8a1abb26d49a7a`다. P1-c 전체 및 A–F는 완료되지 않았다.
+
+#### 재개 시 필요한 수정과 검증
+
+- InteractionRequest/Option/Response의 저장 Reader가 완전한 현재 필드와 타입을 확인하도록
+  한다. 명시적 expires_at=None은 보존하고 필드 누락을 None으로 복구하지 않는다.
+- Checkpoint·InteractionRepository·Resume admission이 같은 owner 검증을 사용하여
+  손상을 새 Run·모델·Tool 실행 전에 거부하는지 확인한다. 승인·권한·사용량·효과 원장의
+  독립 판단을 합치거나, 사용량으로 승인/재개 가능성을 추론하지 않는다.
+- 필드 누락/잘못된 상태·actor·타입, 원본 보존, 정상 승인/거부/만료/갱신, Loop/Graph의
+  재개와 영수증을 검증한다. 구 Reader·자동 변환·허용 확대를 추가하지 않는다.
+- 새 실제 효과 시험, R3 한도 누락 mutation, 전체 LLM/Hub와 정적 gate를 통과한 뒤에만
+  단계 완료·커밋·Push를 판단한다. 인증 모델·커널 short-write는 계속 미검증이다.
+
+### 중단 시 최종 확인
+
+현재 discovery 2,255개와 실행한 세 집합을 대조했다. **2,254 pass / 1 failure /
+0 error / 0 Skip / 0 누락 / 0 중복**이며 전체 성공은 아니다.
+`provider-choices/verified-partitions-with-failure.json`에 실제 test ID 합집합과 소스 보존
+검증을 남겼다. 이전 647개 Python 파일은 전체 실행 당시 그대로이고, 실패 시험 한 파일만
+추가됐다. 문서 검사는 128문서·178 Python fence·900링크·30 anchor, 오류 0이며 정적 검사는
+S1/new/stale 0·미해결 후보 587개다. 원격 main은 기준 SHA 그대로다.
+
+마지막 Push `df6b508`의 [원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39407797300)는
+별도로 성공했다. Checks annotation은 Python 3.12.14, LLM 1,707개(966.638초)·Hub
+540개(840.782초), failure/error/Skip/누락/중복 0을 기록한다. AppArmor 전역 제한 1,
+일반 unshare 거부, 패키지 bwrap smoke·비 root Tool 시험도 확인했다. **이 CI는 미커밋
+Provider 변경과 새 실패 시험을 포함하지 않으며 현재 작업 트리의 성공 증거가 아니다.**
+
+미커밋 변경과 새 시험의 별도 patch는
+`/workspace/llm-clean-p1/p1c-provider-and-safety.patch`에 보존했다.
+
+## 영속 데이터 감사와 추가 원칙
+
+2026-10-20 원감사는 제품·테스트·기존 문서를 변경하지 않고 진행했다. 그 뒤 사용자가 추가한
+소유 구현체·공통 인프라·Application의 책임과 조건부 격리/삭제 원칙은
+[수명주기 계약](data-lifecycle.md)에 문서화했다. **이번 문서 보강은 제품 수정이나 실패 해결이 아니다.**
+기존 미커밋 Provider 변경·승인 실패 시험과 원감사 산출물을 보존한다.
+
+원감사 범위는 llm Python 175개·28,994행, AST 호출 14,977개와 영속 자료 38개 그룹이다.
+문서 129개 목록에는 제품 문서 128개와 테스트 안내 1개가 포함된다. 수명주기/검증 호출 후보
+2,736개와 경로 문자열 후보 322개는 확정 결함 수가 아니다. 외부 Tool·SDK의 임의 저장까지
+실행 검증한 것으로 보고하지 않는다.
+
+원감사 산출물은 `/workspace/llm-clean-p1/lifecycle-audit/REPORT.md`와 같은 디렉터리의
+AST·경로·소유자·지원 행렬·소스 hash·로그에 있다. 아래는 **원감사 때 실행한 결과**이며
+추가 원칙 문서화 후 재실행한 결과가 아니다. Python 3.12.14, 외부 ish 소스 SHA
+`d833790959a76ac457fdeea3f21a6bea1eecfe12`를 사용했다.
+
+| 명령 | 실제 결과 |
+|---|---|
+| `python /workspace/llm-clean-p1/lifecycle-audit/run_focused.py` | 267 통과, failure/error/Skip/누락/중복 0, 42.214초, exit 0 |
+| `python /workspace/llm-clean-p1/lifecycle-audit/run_edges.py` | 36 통과, failure/error/Skip/누락/중복 0, 4.978초, exit 0 |
+| `python -m unittest tests.llm.test_nested_graph.NestedGraphTests.test_resume_preserves_one_call_agent_budget_and_blocks_new_effect -v` | 1 통과, 0.936초, exit 0 |
+| `python -m unittest tests.llm.test_interaction_storage -v` | 1 failure, error/Skip 0, 0.221초, exit 1 |
+| `python -m tests.llm.check_budget_mutation` | 의도된 max_calls 누락 변이를 실제 두 번째 효과로 탐지, detector exit 0; 일반 회귀 수에 합산하지 않음 |
+| `python /workspace/llm-clean-p1/lifecycle-audit/probes.py` | 새 계약 위반 7개 관측, exit 1 |
+| `python /workspace/llm-clean-p1/lifecycle-audit/approval_probes.py` | 새 계약 위반 4개 관측, exit 1 |
+
+일반 unittest는 **305개: 304 통과·1 실패·오류/Skip 0**이다. 11개 probe 관측을 통과
+시험으로 계산하지 않는다. 첫 probes 실행의 감사 스크립트 오류 1건은 초기 로그에 보존하고
+스크립트만 수정해 재실행했다. 전체 LLM/Hub·호스트 API·X11은 원감사에서 재실행하지 않았다.
+실제 인증 모델, 커널 short-write·전원 손실·네트워크 파일시스템은 계속 미검증이다.
+
+승인 상태 소실, RAG 원본 삭제, Session 삭제의 quota 초기화는 A–F 진행을 차단한다.
+수명주기 계약의 H1–H5를 각 owner에서 검증하고 P1을 재검증한다. 자동 삭제 정책·중앙 데이터
+관리자를 추가하지 않으며 격리·삭제로 승인·예산·효과 증거를 초기화하지 않는다.
+
+추가 원칙 문서화 단계에서는 `python -m tests.llm.check_docs --output
+/workspace/llm-clean-p1/lifecycle-principles/docs-check.json`으로 129문서·178 Python fence·
+916 상대 링크·34 anchor, 오류 0을 확인했다. `git diff --check`도 통과했다.
+시작 파일 hash 804개와 대조해 변경이 문서 9개와 새 문서 1개에 한정됨을 확인했다.
+제품·테스트·기존 감사 자료는 보존했고 기능 회귀를 이번에 재실행한 것으로 보고하지 않는다.
+이 문서 변경은 미커밋이며 마지막 검증·Push 커밋 `df6b508`을 바꾸지 않았다.

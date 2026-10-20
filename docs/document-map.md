@@ -56,6 +56,8 @@
 | [docs/llm/configuration-audit.md](llm/configuration-audit.md) | 과거 요구·작업·검증 기록 | 당시 범위·완료/실패·파일 manifest 보존. 현재 계약은 연결된 전용 문서/소스/시험으로 판단; 과거 pass 수 승계 안 함. |
 | [docs/llm/conversation-storage.md](llm/conversation-storage.md) | 현행 기능 계약/사용법 | file/memory 선택과 수명·restart 한계. file 초기 형식은 CRUD 계약이며 숨은 모델 실행 정책과 다름. |
 | [docs/llm/data-contracts.md](llm/data-contracts.md) | 현행 기능 계약/사용법 | ResourceRef/Diagnostic/plan은 데이터 사본. ID/분류/계획 조회가 실행·삭제 권한을 생성하지 않음. |
+| [docs/llm/data-lifecycle.md](llm/data-lifecycle.md) | 필수 설계 계약 + 미해결 감사 요약 | owner의 무결성·수명주기, Application 보존/선정과 Backend 안전한 삭제의 분리. 손상 원본 보존·조건부 격리/삭제·증거 초기화 금지. 구현 완료 아님. |
+| [docs/llm/lifecycle-verification.md](llm/lifecycle-verification.md) | 단계별 보강·실행 기록 | H1 이후 실제 실패·수정·검증 범위와 미완료 항목. |
 | [docs/llm/domain-hardening.md](llm/domain-hardening.md) | 현행 기능 계약/사용법 | 승인 영속화·취소 정리·기억 generation/CAS. 문서 코드 예제는 자동 승인의 일반 허가가 아님. |
 | [docs/llm/engine-output.md](llm/engine-output.md) | 현행 기능 계약/사용법 | append/replace/final 저널·저장 후 알림·Step 소유. F의 final 후보 표현과 같이 검증. |
 | [docs/llm/graph-checkpoints.md](llm/graph-checkpoints.md) | 현행 기능 계약/사용법 | uncertain key 명시 재시도·binding 검증·UI resume. 현재 공통 nested bridge 문서와 함께 해석. |

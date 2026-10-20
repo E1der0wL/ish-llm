@@ -3,18 +3,93 @@
 from copy import deepcopy
 import json
 import hashlib
-from dataclasses import replace
+from dataclasses import asdict, dataclass, fields, replace
 from contextlib import contextmanager
+from datetime import datetime
 
 from llm.core.interactions import (
-    InteractionRequest, InteractionResponse, InteractionView, approval_request, same_interaction_value,
+    InteractionRequest, InteractionResponse, InteractionStatus, InteractionView,
+    approval_request, same_interaction_value,
 )
-from llm.core.models import Run
-from llm.services.infrastructure.storage import atomic_json, read_json
+from llm.core.models import ProjectConfig, Run
+from llm.services.infrastructure.storage import atomic_json, child, read_json
+
+
+@dataclass(frozen=True, slots=True)
+class InteractionRecord:
+    """The complete persisted control state, including an unanswered request."""
+
+    STORAGE_VERSION = 1
+
+    storage_version: int
+    run_id: str
+    request_id: str
+    request_revision: int
+    request_fingerprint: str
+    cancelled: bool
+    response: dict | None
+    replacement: dict | None
+
+    def __post_init__(self):
+        if type(self.storage_version) is not int or self.storage_version != self.STORAGE_VERSION:
+            raise ValueError("Unsupported interaction storage_version")
+        InteractionRequest.validate_identity(self.request_id)
+        InteractionRequest.validate_fingerprint(self.request_fingerprint)
+        if not isinstance(self.run_id, str) or not self.run_id:
+            raise ValueError("Interaction record requires its Run")
+        if type(self.request_revision) is not int or self.request_revision < 1:
+            raise ValueError("Invalid interaction record revision")
+        if type(self.cancelled) is not bool:
+            raise ValueError("Interaction cancellation must be a boolean")
+        if self.response is not None:
+            response = InteractionResponse.from_dict(self.response)
+            if (response.request_id != self.request_id or response.request_revision != self.request_revision
+                    or response.request_fingerprint != self.request_fingerprint):
+                raise ValueError("Interaction response identity changed")
+        if self.replacement is not None:
+            replacement = InteractionRequest.from_dict(self.replacement)
+            if (replacement.id == self.request_id or replacement.revision != self.request_revision + 1
+                    or replacement.status != InteractionStatus.PENDING):
+                raise ValueError("Invalid interaction renewal chain")
+
+    @classmethod
+    def initial(cls, run, request):
+        return cls(cls.STORAGE_VERSION, run.id, request.id, request.revision,
+                   request.fingerprint, False, None, None)
+
+    @classmethod
+    def from_dict(cls, value):
+        if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
+            raise ValueError("Interaction record fields changed or are incomplete")
+        ProjectConfig.validate_json(value)
+        return cls(**deepcopy(value))
+
+    def to_dict(self):
+        return asdict(self)
+
+    def validate_request(self, request):
+        if (request.id != self.request_id or request.revision != self.request_revision
+                or request.fingerprint != self.request_fingerprint):
+            raise ValueError("Interaction request changed after publication")
+        if self.response is not None:
+            response = InteractionResponse.from_dict(self.response)
+            request.decision_for(response.option_id, value=response.value)
+        if self.replacement is not None:
+            replacement = InteractionRequest.from_dict(self.replacement)
+            expected = replace(request, id=replacement.id, revision=request.revision + 1,
+                               created_at=replacement.created_at, expires_at=replacement.expires_at,
+                               status=InteractionStatus.PENDING)
+            if not same_interaction_value(replacement.to_dict(), expected.to_dict()):
+                raise ValueError("Renewal cannot change the execution target or choices")
+            if not self.cancelled and (request.expires_at is None or
+                    datetime.fromisoformat(request.expires_at) > datetime.fromisoformat(replacement.created_at)):
+                raise ValueError("Renewal requires cancellation or expiry evidence")
 
 
 class InteractionRepository:
     """요청은 체크포인트가 원본이다. 응답 저장만으로 작업을 실행하거나 큐에 넣지 않는다."""
+
+    RETRY_CATEGORY = "execution.retry_uncertain"
 
     def __init__(self):
         self._envelopes = None
@@ -27,16 +102,57 @@ class InteractionRepository:
         return path
 
     def _path(self, run, request):
-        path = self._root(run) / (request.id + ".json")
+        path = child(self._root(run), request.id).with_suffix(".json")
         if path.is_symlink():
             raise ValueError("Interaction paths cannot follow links")
         return path
 
     def _save(self, run, request, data):
         path = self._path(run, request)
-        atomic_json(path, data)
+        value = InteractionRecord.from_dict(data)
+        if value.run_id != run.id:
+            raise ValueError("Interaction response Run mismatch")
+        value.validate_request(request)
+        atomic_json(path, value.to_dict())
         if self._envelopes is not None:
             self._envelopes.pop(path, None)
+
+    def initialize(self, run, request):
+        """Only request publication creates pending state; reads never create it."""
+        if self._path(run, request).exists():
+            raise ValueError("Interaction already initialized")
+        self._save(run, request, InteractionRecord.initial(run, request).to_dict())
+
+    def publish(self, run, request, *, existing):
+        """Checkpoint writers must distinguish a new request from retained proof."""
+        if existing or self._path(run, request).exists():
+            self.envelope(run, request)
+        else:
+            self.initialize(run, request)
+
+    def inherit(self, source, run, checkpoint):
+        """Copy existing approval evidence when creating a distinct resume Run."""
+        originals = {r.binding["key"]: r for r in self.requests(checkpoint, source)}
+        for request in self.requests(checkpoint, run):
+            original = originals[request.binding["key"]]
+            if request.id != original.id:
+                self.effective(source, [original])
+                # An uncertain operation in a new attempt needs its own retry
+                # approval. The prior attempt's response remains in the source.
+                self.initialize(run, request)
+                continue
+            visited = set()
+            while True:
+                if request.id in visited:
+                    raise ValueError("Invalid interaction renewal chain")
+                visited.add(request.id)
+                value = self.envelope(source, request)
+                if self._path(run, request).exists():
+                    raise ValueError("Inherited interaction already exists")
+                self._save(run, request, {**value, "run_id": run.id})
+                if value["replacement"] is None:
+                    break
+                request = InteractionRequest.from_dict(value["replacement"])
 
     @contextmanager
     def read_scope(self):
@@ -54,9 +170,12 @@ class InteractionRepository:
         ids = set()
         for key, record in checkpoint["records"].items():
             if record.get("status") == "started" and record.get("requires_retry"):
-                request = approval_request("결과가 불확실한 작업 재실행", category="execution.retry_uncertain",
+                request = approval_request("결과가 불확실한 작업 재실행", category=self.RETRY_CATEGORY,
                     source={"run_id": run.id, "session_id": run.session_id}, action={"checkpoint_record": deepcopy(record)})
-                identity = hashlib.sha256(json.dumps([run.id, checkpoint.get("name"), key]).encode()).hexdigest()[:32]
+                # The same node can start a distinct attempt after resume. Its
+                # prior evidence must not be overwritten under the same ID.
+                identity = hashlib.sha256(json.dumps([run.id, checkpoint.get("name"), key, record],
+                    sort_keys=True, allow_nan=False).encode()).hexdigest()[:InteractionRequest.ID_LENGTH]
                 request = replace(request, id=identity, created_at=run.created_at,
                     binding={"checkpoint": checkpoint.get("name", ""), "key": key, "target": "retry_nodes"})
             elif record.get("status") == "waiting" and "interaction" in record:
@@ -74,12 +193,13 @@ class InteractionRepository:
         if self._envelopes is not None and path in self._envelopes:
             value = self._envelopes[path]
         else:
-            value = read_json(path) if path.exists() else {"run_id": run.id}
+            value = InteractionRecord.from_dict(read_json(path))
+            if value.run_id != run.id:
+                raise ValueError("Interaction response Run mismatch")
             if self._envelopes is not None:
                 self._envelopes[path] = value
-        if value.get("run_id") != run.id:
-            raise ValueError("Interaction response Run mismatch")
-        return deepcopy(value)
+        value.validate_request(request)
+        return value.to_dict()
 
     def effective(self, run, requests):
         result = []
@@ -91,7 +211,7 @@ class InteractionRepository:
                     raise ValueError("Invalid interaction renewal chain")
                 visited.add(request.id)
                 data = self.envelope(run, request)
-                if "replacement" not in data:
+                if data["replacement"] is None:
                     break
                 replacement = InteractionRequest.from_dict(data["replacement"])
                 if replacement.binding != request.binding or replacement.action != request.action:
@@ -102,21 +222,24 @@ class InteractionRepository:
 
     def cancel(self, run, request):
         data = self.envelope(run, request)
+        if data["replacement"] is not None:
+            raise ValueError("Request has already been renewed")
         data["cancelled"] = True
         self._save(run, request, data)
 
     def renew(self, run, request, *, expires_at=None):
         from llm.core.models import new_id, now
         data = self.envelope(run, request)
-        if not request.expired and not data.get("cancelled"):
+        if not request.expired and not data["cancelled"]:
             raise ValueError("Only expired or cancelled requests may be renewed")
-        if "replacement" in data:
+        if data["replacement"] is not None:
             raise ValueError("Request has already been renewed")
         replacement = replace(request, id=new_id(), revision=request.revision + 1,
-                              created_at=now(), expires_at=expires_at, status="pending")
+                              created_at=now(), expires_at=expires_at, status=InteractionStatus.PENDING)
         if replacement.expired:
             raise ValueError("Renewal expiry must be in the future")
         data["replacement"] = replacement.to_dict()
+        self.initialize(run, replacement)
         self._save(run, request, data)
         return replacement
 
@@ -124,7 +247,7 @@ class InteractionRepository:
         values = []
         for request in requests:
             item = self.envelope(run, request)
-            if "response" in item:
+            if item["response"] is not None:
                 response = InteractionResponse.from_dict(item["response"])
                 if (response.request_fingerprint != request.fingerprint or response.request_id != request.id
                         or response.request_revision != request.revision
@@ -139,8 +262,11 @@ class InteractionRepository:
         request = next((r for r in requests if r.id == response.request_id), None)
         if request is None:
             raise ValueError("Interaction does not belong to this Run checkpoint")
-        if self.envelope(run, request).get("cancelled"):
+        control = self.envelope(run, request)
+        if control["cancelled"]:
             raise ValueError("Interaction is cancelled")
+        if control["replacement"] is not None:
+            raise ValueError("Request has already been renewed")
         response.decision(request)
         prior = self.responses(run, [request])
         if prior:
@@ -182,8 +308,14 @@ class InteractionRepository:
                 receipts.append(response)
             if response is not None:
                 value = response.decision(request)
-                if key in decisions and not same_interaction_value(decisions[key], value):
-                    raise ValueError("Explicit decision conflicts with stored interaction response")
+                if key in decisions:
+                    try:
+                        option, supplied = request.select_decision(decisions[key], confirm_empty=True)
+                        explicit_value = request.decision_for(option.id, value=supplied)
+                    except (ValueError, TypeError) as error:
+                        raise ValueError("Explicit decision conflicts with stored interaction response") from error
+                    if not same_interaction_value(explicit_value, value):
+                        raise ValueError("Explicit decision conflicts with stored interaction response")
                 decisions[key] = value
             elif key in decisions:
                 # 저수준 엔진 재개 API도 동일한 선택지/입력 검증과 응답 영수증을 사용한다.
@@ -209,7 +341,7 @@ class InteractionRepository:
                 status, reason = "submitted", "already_resumed"
             elif str(run.status) not in ("paused", "interrupted", "failed"):
                 status, reason = "unavailable", "run_active_or_finished"
-            elif control.get("cancelled"):
+            elif control["cancelled"]:
                 status, reason = "cancelled", "request_cancelled"
             elif request.expired:
                 status, reason = "expired", "request_expired"
@@ -224,3 +356,21 @@ class InteractionRepository:
                 str(resumed_run.status) if resumed_run else "queued" if resume_message else None))
         ready = bool(views) and all(v.can_resume for v in views)
         return [replace(v, can_resume=ready) for v in views]
+
+    def validate_backup(self, run):
+        """Validate this owner's archived controls, including superseded ones."""
+        root = self._root(run)
+        records = {}
+        for path in root.glob("*.json"):
+            if path.is_symlink():
+                raise ValueError("Interaction paths cannot follow links")
+            value = InteractionRecord.from_dict(read_json(child(root, path.stem).with_suffix(".json")))
+            if value.run_id != run.id or value.request_id != path.stem:
+                raise ValueError("Interaction backup ownership mismatch")
+            records[value.request_id] = value
+        for value in records.values():
+            if value.replacement is not None:
+                request = InteractionRequest.from_dict(value.replacement)
+                if request.id not in records:
+                    raise ValueError("Interaction renewal record is missing")
+                records[request.id].validate_request(request)

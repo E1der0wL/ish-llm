@@ -1236,23 +1236,7 @@
       "detail": "inline domain assignment: effect"
     },
     {
-      "id": "0dd650df74cc6b9a42de64997163bec506bc8340a70296310aa4ff2e57b8abbe:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionRequest",
-      "line": 66,
-      "detail": "inline domain assignment: status"
-    },
-    {
       "id": "cc40b04491b7bbf850a67036d67f5c49d0cce5f08d9521f6ec62b5b2d469df20:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionRequest.__post_init__",
-      "line": 77,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "dad2fd4a8e21ba530bb41c5d859b639cfbafd4af771776e15b9c070f30f91d29:1",
       "rule": "S3",
       "file": "llm/core/interactions.py",
       "symbol": "InteractionRequest.__post_init__",
@@ -1289,30 +1273,6 @@
       "file": "llm/core/interactions.py",
       "symbol": "InteractionRequest.find_approval",
       "line": 186,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "9c2c5c3aba38c6f512be0923934ed3f3aec6a2f041ed7a1ef1f859783d9763b4:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionResponse.__post_init__",
-      "line": 221,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "11d17474e0516a7f6dfeaf8a28b0572be290736adcc85d71ab0d54ee71dbdfa8:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionResponse.decision",
-      "line": 242,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "c73dcb26579c73c7d4500aa7cb961f610823f7387710d88b5a253f189f1751d5:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionResponse.decision",
-      "line": 245,
       "detail": "inline domain comparison"
     },
     {
@@ -2348,14 +2308,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "d15e9ab465f7cda1bb27ac36016e4c7c38eb2a5127886d003bea5cabd9371bde:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/interactions.py",
-      "symbol": "InteractionRepository.renew",
-      "line": 116,
-      "detail": "inline domain argument: status"
-    },
-    {
       "id": "701f562628ac9b2b4921f907a7b5b12adf0fdb1434eb667629d44d6ed6789c6d:1",
       "rule": "S3",
       "file": "llm/services/runtime/interactions.py",
@@ -2578,14 +2530,6 @@
       "symbol": "RunPolicy.__post_init__",
       "line": 32,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "86ecc930aae579c61ae6194738339cbde8df03a85f746fb891b8a0367fa9d19d:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunRepository.apply_interaction_policy",
-      "line": 382,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "1dad84e372fe73383cfe4910926107d2524bf5a4cd7aafadd32260e47cdff5f2:1",

@@ -1,6 +1,6 @@
 # 클린 리팩터링 설계와 구현 게이트
 
-**상태: P0·P1-a/b 검증 완료, P1-c 진행 중, A–F 미착수.** 기준은 main
+**상태: P0·P1-a/b 검증 완료, P1-c 중 발견한 수명주기 안전성 보강 중, A–F 미착수.** 기준은 main
 `94229cb865374d99f20ec48c5e48269488041a4e`이며 `refactor/llm-clean`에서 시작한다.
 기존 `refactor/llm-backend`의 코드/커밋을 cherry-pick·merge하지 않는다. main과 기존 Draft PR #1은
 변경하지 않는다. [현행 구조](architecture.md)와 이 목표 구조를 구분한다.
@@ -23,6 +23,9 @@
   Adapter는 유지한다. 외부 SDK 불변식과 현재 sync/async API를 구형 호환 경로로 오판하지 않는다.
 - 기존 Hub·CLI·예제·테스트는 정규 API로 직접 이관한다. wrapper로 옛 실행 경로를 남기지 않는다.
 - Tool 승인·권한·한도·Checkpoint·Resume·효과 영수증·동시성·자료 참조 안전성을 약화하지 않는다.
+- 모든 영속 자료의 무결성과 수명주기는 해당 owner가 정의한다. Application의 보존·대상 선정과
+  Backend의 안전한 삭제 판단·실행을 분리한다. 손상 원본 보존과 격리·삭제의 허용 조건은
+  [영속 데이터 수명주기 계약](data-lifecycle.md)을 따른다. 공통 인프라는 도메인 의미를 해석하지 않는다.
 
 세부 설정 의미는 [CONFIGURATION](../../llm/CONFIGURATION.md), 소유권은
 [Project authority](project-authority.md)와 [Schema ownership](schema-ownership.md), 이름은
@@ -104,6 +107,10 @@ Hub 생성 프리셋·UI 표시·기술 cache sizing은 소유자가 선언할 �
 관련 회귀, 실제 안전성 gate, 전체 LLM/Hub, 정적 감사와 diff를 확인한 뒤 커밋·작업 브랜치 Push한다.
 정상 완료 후에는 별도 승인 대기 없이 다음 단계로 진행한다. 필수 검증이 실패하거나 미확인인 상태에서
 다음 단계의 완료를 선언하지 않는다.
+
+영속 자료 감사에서 추가로 확인한 핵심 실패를 먼저 해결한다. [H1–H5 보강 순서](data-lifecycle.md#후속-구현-게이트)는
+P1의 선행 보강이며 A–F 완료를 대체하지 않는다. 승인·누적 예산·외부 효과 증거를 격리하거나
+삭제하여 실행 가능 상태로 초기화하는 경로가 남으면 다음 기능 단계로 진행하지 않는다.
 
 | 단계 | 변경 경계 | 완료 gate |
 |---|---|---|

@@ -11,7 +11,7 @@ ProjectConfig는 설정의 저장 원본이다. `policies`에는 서비스가 �
 | policies.run | 대기열·실행 기한·capability 확장 한도. RunPolicy/RunManager |
 | policies.approval, tools, tool_retry | 공통 승인, Tool 선택·호출 예산·인자 제약, 조건부 Tool 재시도. 기존 ToolExecutor 계약 |
 | policies.usage | Run/Project의 누적 호출·토큰 사용량. 입력 선택과 독립된 counter |
-| policies.retention | 영속 기록의 명시적 보관·정리 |
+| policies.retention | 현재 Backend의 보관·정리 정책 위치. 대상 선정·기간 정책은 Application 이관 대상 |
 | policies.output | 서비스의 델타 저장 batching |
 | parameters.engines.&lt;이름&gt;.policy.completion | Loop가 해석하는 모델 입력 예산. CompletionPolicy |
 | parameters.engines.&lt;이름&gt;.policy.provider | Loop 스트리밍의 명시적 외부 시도/기한 |
@@ -20,6 +20,11 @@ ProjectConfig는 설정의 저장 원본이다. `policies`에는 서비스가 �
 
 `policies.completion`과 `policies.provider_retry`는 거부한다. 자동 변환·기본값 복원·호환
 별칭은 없다. 사용자 extension namespace는 계속 JSON으로 보존한다.
+
+보존 기간·자동 삭제 여부·대상 선정·시점은 Application이 소유하고 Backend는 안전한 삭제
+가능성 판단과 실행을 소유한다. [수명주기 계약](data-lifecycle.md)이 이 경계의 기준이며,
+현재 policies.retention 경로가 Backend 정책의 영구 유지나 새 자동 정리 구현을 허용하지 않는다.
+직접 이관 후 구 경로의 호환 wrapper·자동 migration을 만들지 않는다.
 
 ## 설정 예
 
@@ -94,6 +99,14 @@ max_attempts는 최초 호출을 포함한다. 미설정은 최초 호출만, wa
 기한 없음이다. SDK retry가 명시되어 활성화되면 외부 시도는 1회로 제한한다. 첫 chunk를
 받은 이후와 취소는 자동 재시도하지 않는다. 이벤트 저장 중인 소비자를 기한 타이머로
 취소하지 않으며 다음 Engine 진행 시 같은 절대 기한을 확인한다.
+
+최초 호출 수는 `RetryPolicy.INITIAL_ATTEMPTS`가 선언하고 `attempts`가 계산한다.
+Backend의 스트리밍/비스트리밍 호출과 Hub의 관찰·복구 표시는 이를 공유한다. 이 계산은
+누락된 설정을 Project나 SDK 요청에 저장하지 않는다. Provider 옵션 Reader는 복사 전에
+객체 타입을 검사하며 배열/빈 문자열을 빈 정책으로 바꾸지 않는다. Loop/Memory의 nullable
+provider는 명시적으로 해제할 수 있지만 Session/Agent가 상위 한도를 없애는 것은 거부한다.
+공유 `ProviderCalls`는 `ProviderLimits` 또는 None만, token counter registry는 mapping
+또는 None만 받는다. 유효한 max_waiting=0/wait_seconds=0은 대기 허용으로 바뀌지 않는다.
 
 변경한 입력/provider 설정은 기존 checkpoint binding에 포함되므로 옛 설정의 명시적
 재개를 조용히 실행하지 않는다. checkpoint/Run/Step 저장 책임은 변경하지 않는다.

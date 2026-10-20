@@ -41,7 +41,16 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
                 path.write_text(json.dumps(value))
                 before = path.read_bytes()
                 with self.subTest(missing=missing):
+                    # The Engine still rejects the malformed effect proof. The
+                    # public path may reject earlier: changing a retry request's
+                    # source record also changes its published control identity.
+                    checkpoint = {"header": {"format": "loop-iterations-v1"},
+                                  "records": {record["key"]: value["value"]}}
                     with self.assertRaisesRegex(ValueError, "explicit container and retry evidence"):
+                        LoopEngine().validate_resume(checkpoint, retry_nodes=[record["key"]])
+                    diagnostic = ("No such file or directory.*interactions" if missing == "container"
+                                  else "explicit container and retry evidence")
+                    with self.assertRaisesRegex(ValueError, diagnostic):
                         await session.run.resume(failed.id, engine="loop", retry_nodes=[record["key"]])
                     self.assertEqual([run.id for run in await session.run.alist()], [failed.id])
                     self.assertEqual(len(model.requests), 1)

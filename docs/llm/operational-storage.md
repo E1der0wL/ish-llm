@@ -4,6 +4,10 @@ Project → Session → Run → Step 관계는 바뀌지 않는다. Engine은 �
 생성하고, RunManager가 검증·저장·알림을 조율한다. 공유 호출 슬롯·버퍼 등의 기술 자원은 BackendServices가, 실행 정책은 ProjectConfig가 소유한다.
 ProjectConfig에 Python 객체를 직렬화하지 않는다.
 
+영속 자료의 무결성·보존·격리·삭제 책임은 [수명주기 계약](data-lifecycle.md)을 따른다.
+Application이 보존·대상 선정·실행 시점을 정하고 Backend의 해당 owner가 안전한 삭제를
+판단·실행한다. 현재 retention·RAG 정리·로그 회전의 정책 경계 이관은 미완료다.
+
 ```python
 from llm.llm import LargeLanguageModel, LoopEngine, BackendServices, ProviderLimits, OutputBuffer
 
@@ -102,6 +106,12 @@ RAG는 작업별 DB 연결을 닫으며 현재 세대의 corpus/Chroma/Kuzu를 �
 공유된 각 Repository.read_backup에 위임한다. 복원은 스테이징을 검증하고 동기화한 뒤
 새 경로로 공개한다. 기존 프로젝트를 덮어쓰지 않으며 Run을 실행하지 않는다. 저장된
 QUEUED 요청은 나중에 Session 런타임을 명시적으로 시작하면 기존 큐 복구 정책을 따른다.
+
+일반 승인 조회가 거부한 손상 envelope를 backup이 수락한 문제는 H1에서 승인 owner의
+검증을 RunRepository.read_backup에 연결하여 차단한다. [검증 범위](lifecycle-verification.md)를 따른다.
+체크섬 일치가 도메인 의미의 무결성을 보장하지 않는다. 나머지 owner의
+read_backup/validate_backup 보강은 계속 필요하며 공통 백업 구현이 승인 형식을 직접 해석하지 않는다.
+자세한 상태는 [수명주기 감사 L07](data-lifecycle.md#감사에서-확인한-미해결-계약)에 기록한다.
 
 현재 휴대 가능한 백업은 file 대화 저장만 지원한다. memory나 외부 주입 대화를 조용히
 누락한 불완전한 백업을 만들지 않는다. `BackendServices.backups`로 복사/검증 구현을
