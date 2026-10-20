@@ -5,6 +5,11 @@ on:
     branches: [main, refactor/llm-clean]
   pull_request:
   workflow_dispatch:
+    inputs:
+      test_latest:
+        description: Resolve latest allowed dependencies for an upgrade assessment
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -24,6 +29,7 @@ jobs:
       HUB_TEST_XCLIP: /usr/bin/xclip
       LITELLM_LOCAL_MODEL_COST_MAP: "True"
       LITELLM_MODE: "PRODUCTION"
+      TEST_LATEST: ${{ inputs.test_latest == true && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v7
       - name: Check out the external host reference
@@ -40,21 +46,22 @@ jobs:
           cache-dependency-path: |
             pyproject.toml
             ish.platform/pyproject.toml
+            tests/llm/dependencies-linux.lock
       - name: Install test dependencies (not the plugin)
         run: |
           python - <<'PY'
-          import ast, subprocess, sys, tomllib
-          from pathlib import Path
-          project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
-          host = tomllib.loads(Path("ish.platform/pyproject.toml").read_text())["project"]
-          module = ast.parse(Path("hub/hub.py").read_text())
-          meta = next(ast.literal_eval(node.value) for node in module.body
-              if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name)
-                  and target.id == "PLUGIN_META" for target in node.targets))
-          dependencies = (project["dependencies"] + project["optional-dependencies"]["rag"]
-              + project["optional-dependencies"]["vision"] + project["optional-dependencies"]["mcp"] + host["dependencies"]
-              + [spec.split("|", 1)[0] for spec in meta["dependencies"]])
-          subprocess.check_call([sys.executable, "-m", "pip", "install", *dependencies])
+          import os, subprocess, sys
+          from tests.llm.dependencies import LOCK, check, lock_inputs
+          errors = check()
+          if errors:
+              raise SystemExit("\n".join(errors))
+          latest = os.environ["TEST_LATEST"] == "true"
+          arguments = (["--upgrade", *lock_inputs()["requirements"]] if latest
+              else ["--require-hashes", "-r", str(LOCK)])
+          subprocess.check_call([sys.executable, "-m", "pip", "install", *arguments])
+          subprocess.check_call([sys.executable, "-m", "pip", "check"])
+          if not latest:
+              subprocess.check_call([sys.executable, "-m", "tests.llm.dependencies", "--installed"])
           PY
       - name: Install required Linux test runtimes
         run: |

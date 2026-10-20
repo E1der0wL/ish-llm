@@ -9,15 +9,26 @@ description = "Durable AI execution plugin for the ish platform"
 requires-python = "==3.12.14"
 classifiers = ["Operating System :: POSIX :: Linux"]
 dependencies = [
-    "litellm>=1.100,<2",
+    "litellm[mcp]>=1.106,<2",
     "jsonschema>=4.23,<5",
+    "pydantic>=2,<3",
+    "packaging>=23",
     "langgraph>=1.2.12,<2",
 ]
 
 [project.optional-dependencies]
 rag = ["chromadb", "kuzu", "rank-bm25"]
 vision = ["Pillow"]
-mcp = ["mcp>=1.30,<2"]
+mcp = ["mcp>=2.3,<3"]
+
+# ish reads a literal PLUGIN_META before importing the plugin. Its dependency
+# list is generated from this file, including these installed feature groups.
+[tool.ish-llm.plugin]
+extras = ["rag", "vision", "mcp"]
+
+[tool.ish-llm.plugin.imports]
+rank-bm25 = "rank_bm25"
+pillow = "PIL"
 
 [tool.setuptools.packages.find]
 include = ["llm", "llm.*"]

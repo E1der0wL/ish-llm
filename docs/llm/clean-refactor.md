@@ -106,7 +106,7 @@ P0 이후 제품 단계는 구현 전이며 기존 브랜치의 완료 상태를
 
 | 단계 | 변경 경계 | 완료 gate |
 |---|---|---|
-| P0 기준선 | host 테스트 메서드명, CI·정적 규칙·test ID 배정 | 실제 host의 실패 전/수정 후 증거, 기존 assertion 보존, 격리 job 필수·전체 발견 테스트 누락 없음 |
+| P0 기준선 | host 테스트 메서드명, CI·정적 규칙·test ID 배정, 승인된 SDK/MCP 전환 | 실제 host·MCP 연결/효과/재개, 의존성 lock·선언 일치, 기존 assertion 보존, 격리 job 필수·전체 발견 테스트 누락 없음 |
 | P1-a 타입·저장 | configuration, Tool scope, checkpoint/operation/Vision/workspace/Hub Reader | 잘못된 falsey 객체·bool/float 버전 거부, 정상 M/N/V·current roundtrip·실패 원본 보존 |
 | P1-b 호환 제거 | Hub preference/theme/profile, backup upgrade, legacy callback·실제 소비자 | 옛 값 명시 거부, 현재 backup/restore/clone·UI·subscription 유지, wrapper 없음 |
 | P1-c 선언 정리 | 각 owner의 버전/상태/이벤트/오류/정책/경로/한도, Hub 생성 프리셋 | Schema/Reader/Writer/소비 일치, 생성값·유효한 falsey 값 저장/조회/편집·재열기 보존·검증 우회 금지, 작은 계약군별 검증·커밋 |

@@ -38,11 +38,12 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
         finally:
             self.connections.append("close")
 
-    async def setup_app(self, connector=None):
+    async def setup_app(self, connector=None, *, revision=MCPComponent.REVISION):
         self.model = ScriptedCompletion(
             [chunk(calls=[call('{"value":"hello"}', name="remote_echo")], finish="tool_calls")],
             [chunk("done", finish="stop")])
-        app = LargeLanguageModel(self.root / "workspace", components=[MCPComponent(connector=connector or self.connector)],
+        app = LargeLanguageModel(self.root / "workspace", components=[MCPComponent(
+            connector=self.connector if connector is None else connector, revision=revision)],
             engines={"loop": LoopEngine(completion_fn=self.model)}, services=BackendServices(tool_runtime=ToolRuntime(
                 classify=lambda call: ToolClassification("remote.call", "test", 1))))
         self.addAsyncCleanup(app.shutdown)
@@ -142,6 +143,55 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 await reopened.shutdown()
 
     @unittest.skipUnless(importlib.util.find_spec("mcp"), "optional MCP SDK is not installed")
+    async def test_real_crash_after_effect_blocks_resume_and_preserves_one_effect(self):
+        with open("/dev/null", "w") as errlog:
+            connector = MCPConnector(errlog=errlog)
+            app, project, session, data = await self.setup_app(connector)
+            await data.aconfigure({"config": {"tools": {"remote_echo": {"server": "server", "tool": "crash"}}}})
+            self.model.responses[0] = [chunk(calls=[call("{}", name="remote_echo")], finish="tool_calls")]
+            paused = await (await session.run.submit("go", engine="loop")).wait()
+            marker = self.root / "marker"
+            self.assertEqual(marker.read_text().splitlines(), ["start"])
+            failed = await (await session.run.resume(paused.id, engine="loop")).wait()
+            self.assertEqual(failed.data.status, "failed")
+            self.assertEqual(failed.data.error_code, "mcp_tool_failed")
+            self.assertEqual(marker.read_text().splitlines(), ["start", "start", "crash-effect"])
+            project_id, session_id, run_id = project.id, session.id, failed.id
+            await app.shutdown()
+            reopened = LargeLanguageModel(self.root / "workspace",
+                components=[MCPComponent(connector=connector)],
+                engines={"loop": LoopEngine(completion_fn=self.model)})
+            try:
+                session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
+                with self.assertRaisesRegex(Exception, "uncertain Tool"):
+                    await session.run.resume(run_id, engine="loop")
+                self.assertEqual(marker.read_text().splitlines(), ["start", "start", "crash-effect"])
+            finally:
+                await reopened.shutdown()
+
+    @unittest.skipUnless(importlib.util.find_spec("mcp"), "optional MCP SDK is not installed")
+    async def test_changed_connector_revision_rejects_resume_before_connection(self):
+        with open("/dev/null", "w") as errlog:
+            connector = MCPConnector(errlog=errlog)
+            app, project, session, data = await self.setup_app(connector, revision="prior-implementation")
+            paused = await (await session.run.submit("go", engine="loop")).wait()
+            self.assertEqual(paused.data.status, "paused")
+            marker = self.root / "marker"
+            self.assertEqual(marker.read_text().splitlines(), ["start"])
+            project_id, session_id = project.id, session.id
+            await app.shutdown()
+            reopened = LargeLanguageModel(self.root / "workspace",
+                components=[MCPComponent(connector=connector)],
+                engines={"loop": LoopEngine(completion_fn=self.model)})
+            try:
+                session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
+                with self.assertRaisesRegex(ValueError, "stale"):
+                    await session.run.resume(paused.id, engine="loop")
+                self.assertEqual(marker.read_text().splitlines(), ["start"])
+            finally:
+                await reopened.shutdown()
+
+    @unittest.skipUnless(importlib.util.find_spec("mcp"), "optional MCP SDK is not installed")
     async def test_real_streamable_http_result_error_and_cancellation(self):
         with socket.socket() as bound:
             bound.bind(("127.0.0.1", 0))
@@ -152,6 +202,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
         try:
             async with asyncio.timeout(10):
                 while True:
+                    self.assertIsNone(process.returncode, "MCP test server exited before readiness")
                     try:
                         reader, writer = await asyncio.open_connection("127.0.0.1", port)
                         writer.close()
@@ -161,7 +212,10 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
                         await asyncio.sleep(.01)  # 테스트 서버 readiness; 제품 재시도 정책이 아니다.
             connector = MCPConnector(timeout_seconds=5, credentials=lambda definition: {"headers": {"Authorization": "Bearer test"}})
             async with connector({"transport": "streamable_http", "url": f"http://127.0.0.1:{port}/mcp"}) as registry:
+                self.assertEqual(set(registry.names()), {"echo", "fail", "wait", "authorization", "crash"})
                 self.assertTrue(registry.get("echo").contract.approval_required)
+                auth = await registry.get("authorization").handler({})
+                self.assertEqual(json.loads(auth["content"][0]["text"]), {"authorization": "Bearer test"})
                 result = await registry.get("echo").handler({"value": "http"})
                 self.assertEqual(json.loads(result["content"][0]["text"]), {"value": "http"})
                 with self.assertRaises(MCPToolError) as failure:
@@ -172,6 +226,12 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 pending.cancel()
                 with self.assertRaises(asyncio.CancelledError):
                     await pending
+            timed = MCPConnector(timeout_seconds=1)
+            async with timed({"transport": "streamable_http", "url": f"http://127.0.0.1:{port}/mcp"}) as registry:
+                with self.assertRaises(MCPToolError) as deadline:
+                    await asyncio.wait_for(registry.get("wait").handler({}), 5)
+                self.assertEqual(deadline.exception.effect, "uncertain")
         finally:
-            process.terminate()
+            if process.returncode is None:
+                process.terminate()
             await asyncio.wait_for(process.wait(), 5)

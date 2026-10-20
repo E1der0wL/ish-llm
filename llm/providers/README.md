@@ -2,6 +2,9 @@
 
 현재 실제 SDK Adapter 계약이다. [A의 공통 typed 모델 전환](../../docs/llm/clean-refactor.md)은 미구현 목표다. 실제 Adapter·외부 프로토콜 불변식은 유지한다.
 
+현재 SDK 지원 범위는 [pyproject.toml](../../pyproject.toml), 검증 조합과 재현 명령은
+[P0 SDK 전환 기록](../../docs/llm/p0-sdk-transition.md)을 따른다.
+
 Engine과 RAG 모델 클라이언트가 LiteLLM을 사용할 때 공유하는 경계입니다. SDK 초기화, 호출 admission, 명시적 timeout/retry, 오류 분류, 로그·진단을 담당합니다. Project/Run/Step 파일은 저장하지 않습니다.
 
 선택적 MCP 어댑터도 이 폴더에서 SDK 연결을 담당합니다. MCP Tool 호출은 모델 호출의
@@ -12,7 +15,7 @@ retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 
 | 파일 | 역할 |
 | --- | --- |
 | [__init__.py](__init__.py) | provider 패키지의 역할을 설명합니다. 함수·클래스는 각 모듈에서 import합니다. |
-| [runtime.py](runtime.py) | LiteLLM 지연 초기화, compatibility/runtime isolation 불변식, SDK 로그·진단 라우팅입니다. |
+| [runtime.py](runtime.py) | LiteLLM 지연 초기화, SDK 재시도·런타임 격리 불변식, 로그·진단 라우팅입니다. |
 | [parameters.py](parameters.py) | 설정 컨테이너를 복사·병합하며 주입된 runtime client의 identity를 유지합니다. |
 | [schema.py](schema.py) | provider 소유 Completion/Embedding/Rerank 설정 계약과 검증입니다. SDK 확장 인자는 변형하지 않고 전달합니다. |
 | [requests.py](requests.py) | request_model 호출 경계와 invoke의 비스트리밍 시도, 명시적 wall timeout/outer retry, ProviderError 분류입니다. |
@@ -47,13 +50,13 @@ decoder/transport 선택을 함께 소유한다. BaseEngine은 `CompletionAdapte
 초기화의 code invariant:
 
 - `LITELLM_LOCAL_MODEL_COST_MAP=True`: LiteLLM import 전에 환경변수에 강제해 외부 cost-map network fetch 대신 bundled map을 사용한다. 매 `litellm_sdk()` 진입에서도 복구하는 runtime isolation invariant이며, 사용자 inference option이나 ProjectConfig default/values가 아니다.
-- `DEFAULT_MAX_RETRIES=0`: 아래의 확인된 SDK retry 호환성 문제를 막는 compatibility invariant다. 명시적 요청 retry는 보존한다.
+- `DEFAULT_MAX_RETRIES=0`: 아래의 확인된 SDK 자동 retry를 막는 Adapter 불변식이다. 명시적 요청 retry는 보존한다.
 
 SDK를 외부 코드가 먼저 import했다면 이미 발생한 초기화 fetch를 되돌릴 수는 없다. 플러그인의 초기화 경계는 `litellm_sdk()`다.
 
 LiteLLM import 전에 `os.environ["DEFAULT_MAX_RETRIES"] = "0"`을 강제로 적용한다.
 `litellm_sdk()`는 import 후와 매 진입 시 `sdk.DEFAULT_MAX_RETRIES = 0`도 적용한다.
-LiteLLM 1.103.1 OpenAI embedding 경로의 `max_retries or DEFAULT_MAX_RETRIES`가
+검증한 LiteLLM OpenAI embedding 경로의 `max_retries or DEFAULT_MAX_RETRIES`가
 명시적 0을 숨은 retry로 바꾸지 못하게 하는 compatibility rule이다.
 
 | 요청 설정 | LiteLLM retry | llm 외부 시도 |
@@ -184,7 +187,7 @@ workspace를 지정했다면 그 경로의 `logs/`를 확인한다. 로그 한 �
 `py.warnings`, LiteLLM, Router, Proxy, httpx/httpcore, `dotenv` 및 하위 logger가 콘솔로 전파되지 않는다.
 애플리케이션의 stdout/stderr 전체를 전역 redirect하지 않는다.
 
-## 임베딩 무결성과 LiteLLM 1.103.1
+## 임베딩 무결성
 
 RAG `EmbeddingModel`은 `caching=False`만으로 cache write가 차단되지 않는 SDK 경로 때문에
 `cache={"no-cache": true, "no-store": true}`도 전달한다. 호스트의 다른 작업이 소유하는

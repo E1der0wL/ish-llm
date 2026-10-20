@@ -4,6 +4,7 @@ ish plugin entry point for one streaming request: python -m llm.llm --help."""
 
 # The platform reads this literal with ast.literal_eval before importing us.
 # requirements lists other ish plugins; dependencies lists Python distributions.
+# dependencies is generated from pyproject.toml by tests.llm.dependencies.
 PLUGIN_META = {
     "name": "llm",
     "version": "0.1.0",
@@ -11,7 +12,7 @@ PLUGIN_META = {
     "author": "",
     "requirements": [],
     "dependencies": [
-        "litellm>=1.100,<2",
+        "litellm[mcp]>=1.106,<2",
         "jsonschema>=4.23,<5",
         "pydantic>=2,<3",
         "packaging>=23",
@@ -20,6 +21,7 @@ PLUGIN_META = {
         "kuzu",
         "rank-bm25|rank_bm25",
         "Pillow|PIL",
+        "mcp>=2.3,<3",
     ],
 }
 

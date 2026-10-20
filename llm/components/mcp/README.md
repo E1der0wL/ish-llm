@@ -26,12 +26,17 @@ await mcp.acreate({
 
 `MCPComponent(connector=..., revision="...")`로 실행 어댑터를 주입합니다. `connector(definition)`은 ToolRegistry를 제공하는 async context manager여야 합니다. Agent가 사용할 서버·Tool을 resources.mcp에 명시하고, 실행 중 연결을 열어 공통 ToolExecutor로 호출합니다.
 
-표준 어댑터는 선택 의존성 `mcp>=1.30,<2`가 필요하며 stdio와 Streamable HTTP를 지원합니다.
+표준 어댑터는 MCP 2 SDK의 stdio와 Streamable HTTP를 지원합니다. 의존성 범위의 원본은
+[pyproject.toml](../../../pyproject.toml)의 `mcp` extra이며 검증한 설치 조합은
+[Linux test lock](../../../tests/llm/dependencies-linux.lock)에 기록합니다.
 SSE 정의는 다른 명시적 connector를 연결할 때 사용할 수 있습니다. 초기화, 발견 pagination,
 호출 및 연결 정리를 SDK에 위임합니다. 취소는 호출과 연결로 전파하며 오류가 났다고 Tool을
 자동 재호출하지 않습니다. 인증은 저장된 env/headers 또는 실행 시 `credentials(definition)`
 callback으로 공급할 수 있습니다. callback 결과는 인증 필드로 제한하며 저장하지 않습니다.
-`timeout_seconds`는 명시했을 때만 적용합니다. stdio는 SDK의 환경 상속 동작을 사용하며
+`timeout_seconds`는 명시했을 때 초기화·발견, SDK 요청, HTTP I/O에 적용합니다.
+None이면 이 connector는 추가 deadline을 설정하지 않습니다. SDK 기본 HTTP timeout을
+숨겨 주입하지 않으며, 인증 headers는 연결에서만 사용합니다.
+stdio는 SDK의 환경 상속 동작을 사용하며
 OS sandbox가 아닙니다. 서버 command를 실행하는 `aprepare`는 신뢰한 애플리케이션 API입니다.
 TUI 호스트는 `MCPConnector(errlog=...)`에 파일 등의 stderr 대상을 명시할 수 있습니다.
 생략하면 stdio SDK의 stderr 동작을 따르며 backend가 서버 로그를 임의로 버리지 않습니다.
@@ -57,7 +62,9 @@ ToolExecutor의 승인 이후에 열립니다. 연결 정의 또는 connector re
 Project 정책의 자동 승인도 receipt를 저장하며 실행에는 명시적 resume이 필요합니다.
 신뢰한 호스트만 `contract(name, remote_definition)` callback으로 실제 계약을 선언합니다.
 
-Agent의 기존 `resources.mcp` 경로도 유지됩니다. 어댑터 의미가 바뀌면 revision을 변경하여
+MCP 2 전환의 구현 revision은 `MCPComponent.REVISION`이 소유합니다. 이전 revision의 발견
+catalog·승인 binding은 stale로 거부하며 자동 변환하지 않습니다. Agent의 `resources.mcp`
+경로도 유지됩니다. 어댑터 의미가 바뀌면 revision을 변경하여
 과거 승인·재개 binding을 거부하세요. 오류 코드는 `mcp_connection_failed`, `mcp_tool_failed`이며
 원격 effect가 불명확한 실패는 자동 재실행하지 않습니다. OAuth 로그인 UI,
 resources/prompts/sampling/elicitation, 연결 pool과 자동 재연결은 이번 범위가 아닙니다.

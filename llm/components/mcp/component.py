@@ -12,6 +12,7 @@ class MCPComponent(DefinitionComponent):
     directory = "mcp"
     capabilities = ("mcp", "tools")
     data_class = MCPData
+    REVISION = "2"
     schema = {
         "type": "object", "required": ["transport"], "additionalProperties": False,
         "properties": {
@@ -30,7 +31,7 @@ class MCPComponent(DefinitionComponent):
         }],
     }
 
-    def __init__(self, *, connector=None, revision="1"):
+    def __init__(self, *, connector=None, revision=REVISION):
         """connector(definition)는 ToolRegistry를 제공하는 async context manager다.
 
         SDK/호스트별 연결은 개발자가 주입한다. CRUD는 연결하지 않고 명시적 준비,

@@ -180,7 +180,7 @@ Kuzu buffer_pool_size/max_num_threads와 Chroma 설정은 명시된 옵션만 �
 |---|---|
 | Loop stream=True, n=1 검증; 추출 stream=False | 이벤트 스트림/단일 assistant/JSON 응답 프로토콜. 해당 Engine/client에서 변경 불가 |
 | RAG caching=False, no-cache/no-store | LiteLLM partial-cache의 벡터 대응 무결성. 변경 불가; llm VectorCache는 명시 설정 |
-| DEFAULT_MAX_RETRIES=0 | LiteLLM 1.103.1 `max_retries or DEFAULT_MAX_RETRIES` 버그 경계. import 전 env, import 후 및 재진입 SDK global에 강제. 명시적 retry kwargs는 변경하지 않음 |
+| DEFAULT_MAX_RETRIES=0 | LiteLLM `max_retries or DEFAULT_MAX_RETRIES` 자동 retry 차단 경계. import 전 env, import 후 및 재진입 SDK global에 강제. 명시적 retry kwargs는 변경하지 않음. 검증 조합은 [SDK 전환 기록](../docs/llm/p0-sdk-transition.md) 참조 |
 | LITELLM_LOCAL_MODEL_COST_MAP=True | LiteLLM 초기화 시 외부 cost-map network fetch 대신 bundled map을 사용하는 runtime isolation invariant. import 전과 재진입 시 env에 강제하며 사용자 override 불가. 사용자 inference option이나 ProjectConfig default/values가 아님 |
 | domain storage_version=1, workflow schema_version=1, graph schema_version=1 | 저장 형식 계약; 자동 migration/옛 default 복원 없음 |
 | checkpoint fingerprint·참조·vector·evidence 검증 | 잘못된 결과 재사용/공개 방지. 변경 불가 |

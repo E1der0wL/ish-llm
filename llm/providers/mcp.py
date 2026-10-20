@@ -3,7 +3,6 @@
 import asyncio
 from contextlib import AsyncExitStack, asynccontextmanager
 from copy import deepcopy
-from datetime import timedelta
 import inspect
 import math
 
@@ -69,25 +68,29 @@ class MCPConnector:
             params = sdk.StdioServerParameters(**{key: definition[key] for key in ("command", "args", "env") if key in definition})
             streams = await stack.enter_async_context(stdio_client(params, **({"errlog": self.errlog} if self.errlog is not None else {})))
         elif transport == "streamable_http":
+            import httpx2
             from mcp.client.streamable_http import streamable_http_client
-            options = {}
-            if "headers" in definition:
-                from mcp.shared._httpx_utils import create_mcp_http_client
-                options["http_client"] = await stack.enter_async_context(create_mcp_http_client(headers=definition["headers"]))
-            streams = await stack.enter_async_context(streamable_http_client(definition["url"], **options))
+            # The connector owns its explicit timeout. None means no additional
+            # deadline; do not inherit the SDK factory's 30/300 second defaults.
+            client = await stack.enter_async_context(httpx2.AsyncClient(
+                headers=definition.get("headers"), timeout=self.timeout_seconds))
+            streams = await stack.enter_async_context(
+                streamable_http_client(definition["url"], http_client=client))
         else:
             raise ValueError("MCPConnector supports stdio and streamable_http; inject another connector for other transports")
         session = await stack.enter_async_context(sdk.ClientSession(*streams[:2],
-            **({"read_timeout_seconds": timedelta(seconds=self.timeout_seconds)} if self.timeout_seconds is not None else {})))
+            **({"read_timeout_seconds": self.timeout_seconds} if self.timeout_seconds is not None else {})))
         await session.initialize()
         return session
 
     async def _discover(self, session):
+        from mcp.types import PaginatedRequestParams
         registry, cursor, seen = ToolRegistry(), None, set()
         while True:
-            page = await session.list_tools(**({"cursor": cursor} if cursor is not None else {}))
+            page = await session.list_tools(
+                **({"params": PaginatedRequestParams(cursor=cursor)} if cursor is not None else {}))
             for item in page.tools:
-                contract = (self.contract(item.name, item.model_dump(mode="json", exclude_none=True))
+                contract = (self.contract(item.name, item.model_dump(mode="json", by_alias=True, exclude_none=True))
                             if self.contract is not None else ToolContract(approval_required=True))
                 if not isinstance(contract, ToolContract):
                     raise TypeError("MCP contract callback must return ToolContract")
@@ -98,11 +101,11 @@ class MCPConnector:
                         raise
                     except Exception as error:
                         raise MCPToolError("MCP Tool transport failed; remote effects are uncertain") from error
-                    if result.isError:
+                    if result.is_error:
                         raise MCPToolError("MCP server reported a Tool error; remote effects are uncertain")
-                    return result.model_dump(mode="json", exclude_none=True)
-                registry.register(Tool(item.name, item.description or "", item.inputSchema, invoke, contract=contract))
-            cursor = page.nextCursor
+                    return result.model_dump(mode="json", by_alias=True, exclude_none=True)
+                registry.register(Tool(item.name, item.description or "", item.input_schema, invoke, contract=contract))
+            cursor = page.next_cursor
             if cursor is None:
                 return registry
             if cursor in seen:
