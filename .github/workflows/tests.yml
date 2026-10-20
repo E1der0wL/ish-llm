@@ -60,6 +60,31 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bubblewrap xvfb xclip
+      - name: Authorize only the packaged namespace launcher
+        run: |
+          test "$(id -u)" != 0
+          test "$(readlink -f "$(command -v bwrap)")" = /usr/bin/bwrap
+          test "$(stat -c %u /usr/bin/bwrap)" = 0
+          test ! -u /usr/bin/bwrap
+          test ! -w /usr/bin/bwrap
+          test "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)" = 1
+          sudo install -m 0644 tests/llm/ci/bwrap.apparmor /etc/apparmor.d/ish-llm-ci-bwrap
+          sudo apparmor_parser -r /etc/apparmor.d/ish-llm-ci-bwrap
+          bwrap --unshare-all --ro-bind / / -- /usr/bin/true
+          # An unrelated launcher must remain restricted; never run Tool tests as sudo.
+          mkdir -p artifacts
+          if unshare --user --map-root-user --net /usr/bin/true > artifacts/unshare-control.log 2>&1; then
+            echo "::error::Unrelated user namespace launcher unexpectedly became unrestricted"
+            exit 1
+          fi
+          test "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)" = 1
+          python - <<'PY'
+          from tests.llm.checks_output import emit_annotation
+          emit_annotation("Namespace launcher policy", {
+              "global_apparmor_restriction": 1, "bwrap_smoke": "passed",
+              "unrelated_unshare": "denied", "tool_tests_run_as_root": False,
+          }, level="notice")
+          PY
       - name: Check environment and namespace isolation
         id: environment
         run: >-

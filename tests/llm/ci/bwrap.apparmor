@@ -1,0 +1,10 @@
+# CI-only permission for Ubuntu's packaged, non-setuid Bubblewrap launcher.
+# The parent process was already unconfined. Permit namespace creation for this
+# executable without disabling the system's unprivileged-userns restriction.
+# Product --unshare-all, --cap-drop ALL, mount and network policy stay in force.
+abi <abi/4.0>,
+include <tunables/global>
+
+profile ish-llm-ci-bwrap /usr/bin/bwrap flags=(unconfined) {
+    userns,
+}

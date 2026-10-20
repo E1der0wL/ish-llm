@@ -143,3 +143,22 @@ UTF-8 크기를 제한한 유효 JSON으로 분리하고, kernel log의 실제 D
 진단 전송 보완 시험은 5개 통과했다. 이 보완은 제품 동작이나 테스트 assertion을 변경하지 않는다.
 새로 추가한 annotation 시험 2개를 포함한 다음 전체 discovery는 2,191개이며 아직 원격
 통과로 보고하지 않는다.
+
+## AppArmor 원인과 CI 한정 복구
+
+[진단 run 39372311849](https://github.com/E1der0wL/ish-llm/actions/runs/39372311849)의
+Checks 기록에서 원인을 확인했다. AppArmor `unprivileged_userns`가 bwrap의
+`setpcap`·`net_admin`, 대조군 unshare의 `sys_admin`을 거부했다. 전역 userns 생성은
+활성화되어 있었고 `kernel.apparmor_restrict_unprivileged_userns=1`, Seccomp=0이었다.
+두 환경 gate가 실패했으므로 이 실행에서는 전체 회귀를 시작하지 않았다.
+
+복구 설정은 [CI 전용 AppArmor profile](../../tests/llm/ci/bwrap.apparmor)과 workflow가
+소유한다. 일반 사용자로 실행하는 root 소유·non-setuid `/usr/bin/bwrap`만 userns를
+사용할 수 있도록 한다. 전역 AppArmor 제한을 1로 유지하고, 별도 `unshare` 명령은
+계속 거부되어야 setup이 통과한다. 이 설정은 일회용 GitHub runner에만 설치하며 제품
+배포 설정이나 사용자 호스트 정책으로 주입하지 않는다.
+
+profile의 `unconfined`는 원래 unconfined였던 launcher에 userns 권한을 명시하는 AppArmor
+방식이다. 제품의 `--unshare-all`, `--cap-drop ALL`, mount/network 경계는 변경하지 않는다.
+실제 Tool은 sudo로 실행하지 않는다. launcher 권한 추가와 제품 격리를 혼동하지 않으며,
+복구 성공은 동일 runner에서 실제 파일·네트워크 거부 및 전체 회귀가 통과한 뒤에만 판정한다.
