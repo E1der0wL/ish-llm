@@ -1,5 +1,7 @@
 # 컴포넌트의 공통 모델 처리기
 
+현재 prepare/after_completion/finish 계약이다. after_completion은 관찰이며 [F의 최종 후보 검토](clean-refactor.md)는 별도 미구현 목표다.
+
 `llm/components/processing.py`는 모델 호출 전후에 컴포넌트가 참여하는 실행 계약이다.
 Memory 저장 방식이나 Skill/MCP 정책을 알지 않는다. 현재 실제 제공자는 Memory이며,
 다른 컴포넌트는 `completion_processors` capability를 export해서 참여한다.

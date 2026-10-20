@@ -1,5 +1,7 @@
 # Providers — SDK 연결과 공통 보호 경계
 
+현재 실제 SDK Adapter 계약이다. [A의 공통 typed 모델 전환](../../docs/llm/clean-refactor.md)은 미구현 목표다. 실제 Adapter·외부 프로토콜 불변식은 유지한다.
+
 Engine과 RAG 모델 클라이언트가 LiteLLM을 사용할 때 공유하는 경계입니다. SDK 초기화, 호출 admission, 명시적 timeout/retry, 오류 분류, 로그·진단을 담당합니다. Project/Run/Step 파일은 저장하지 않습니다.
 
 선택적 MCP 어댑터도 이 폴더에서 SDK 연결을 담당합니다. MCP Tool 호출은 모델 호출의

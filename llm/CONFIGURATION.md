@@ -1,5 +1,11 @@
 # 명시적 설정 계약
 
+기준은 main `94229cb865374d99f20ec48c5e48269488041a4e`의 명시적 설정 계약이다.
+아래 계약을 [클린 리팩터링](../docs/llm/clean-refactor.md)에서도 보존한다.
+Schema·validator·Reader/Writer의 선언은 해당 구현체가 소유하며 전역 상수 모음이나
+자동 migration으로 대체하지 않는다. 코드에 남은 타입 구별·중복 선언·숨은 fallback 문제는
+[검토표](../docs/llm/documentation-review.md)의 미완료 구현 과제다.
+
 `ProjectConfig.policies.tools.argument_constraints`로 Tool 인자를 fixed/bounded/selectable로
 제한한다. ToolRuntime는 Host의 실행·분류 어댑터만 주입한다.
 [소유권 inventory](../docs/llm/project-authority.md), [Tool 제약](../docs/llm/tool-constraints.md).
@@ -96,7 +102,7 @@ Hub는 저장값과 현재 적용값/출처를 구분한다. 외부 adapter가 �
 generic form 지원은 유지한다. 적용값·client 값·runtime 추정값을 저장값에
 자동으로 복사하지 않는다. 여러 Engine이 설정 키를 공유하면 각 Engine의 적용값을 표시한다.
 
-공통 `policies`는 서비스가 집행하는 context/run/approval/tool_retry/usage/retention/output만
+공통 `policies`는 서비스가 집행하는 context/run/tools/approval/tool_retry/usage/retention/output만
 해석한다. Loop 모델 입력은 `parameters.engines[이름].policy.completion`의 CompletionPolicy,
 스트리밍 재시도는 같은 Engine의 `policy.provider`가 담당한다. Memory 보조 모델에는
 `parameters.components.memory.policy.processing.provider`를 사용하며 RAG/Vision도 각자의 policy.provider를

@@ -1,5 +1,7 @@
 # Agent: 재사용 가능한 업무 정의
 
+현재 AgentComponent 정의·Graph/Loop 위임 계약이다. 독립 Project Agent와 root 실행 단일화는 [B/C 목표](clean-refactor.md)이며 아직 구현되지 않았다.
+
 Agent는 목적, 사용할 엔진, 모델/프롬프트, 리소스, 허용 Tool, 입출력 계약과 실행 정책을
 저장한다. 최상위는 알려진 필드만 허용하고 Application 확장은 metadata에 둔다.
 진행 상태와 결과는 Agent JSON에 쓰지 않는다. Workflow의 AgentNode와 Tool-capable Engine의

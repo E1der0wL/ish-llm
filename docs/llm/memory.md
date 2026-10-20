@@ -69,15 +69,15 @@ run = await request.wait()
 
 | Tool | 역할 |
 | --- | --- |
-| `memory_search(query, limit?, status?)` | 기본적으로 확인된 기억을 키워드 검색 |
+| `memory_search(query, limit?, status?)` | 명시한 검색 전략·상태·한도로 검색 |
 | `memory_get(identifier)` | 현재 값과 generation/revision 조회 |
-| `memory_create(content, kind?, tags?, metadata?)` | 새 기억 후보 생성 |
-| `memory_update(identifier, expected_generation, expected_revision, changes)` | 기억 수정; 기본 정책에서는 후보로 전환 |
+| `memory_create(content, kind?, tags?, metadata?)` | 명시한 tool_write_status로 기억 생성 |
+| `memory_update(identifier, expected_generation, expected_revision, changes)` | 기억 수정; 명시한 tool_write_status 적용 |
 | `memory_delete(identifier, expected_generation, expected_revision)` | 복구 가능한 삭제 |
 
 복원·영구 제거·승인은 API/UI로 제공한다. Tool 인자는 파일 경로, 다른 프로젝트 ID, 실행 출처,
-승인 상태를 받지 않는다. 도메인 레코드는 열린 JSON이지만 모델에는 자주 쓰는 필드와 열린
-`metadata` 사전만 노출한다. Agent가 이 Tool을 쓰려면 Agent의 `tools` 허용 목록에도 지정한다.
+승인 상태를 받지 않는다. 도메인 레코드는 닫힌 content Schema이며 Application 확장은
+`metadata` 사전에 둔다. Agent가 이 Tool을 쓰려면 Agent의 `tools` 허용 목록에도 지정한다.
 
 ToolExecutor는 Project의 Tool 허용 목록·승인·예산·시간 제한과 ToolRuntime의 기술적 허가를 적용하고, 승인 Step 이벤트를
 저장한 뒤 핸들러를 실행한다. Tool 결과는 LiteLLM의 tool 메시지로 전달되고 Step에도 남는다.
@@ -92,25 +92,29 @@ ProcessToolRunner에 자동 직렬화되지는 않는다. 주입 runner에서 �
 ## 승인과 검색 설정
 
 ```python
-await memory.aconfigure({'policy': {'tool_write_status': 'candidate', 'max_search_results': 100}, 'config': {'search_status': 'confirmed', 'search_limit': 10, 'ui': {'label': '장기 기억'}}})
+await memory.aconfigure({
+    "config": {"search_strategy": "keyword", "search_status": "confirmed", "search_limit": 10},
+    "policy": {"tool_write_status": "candidate", "max_search_results": 100},
+})
 # UI에서 기억 후보를 확인한 뒤 승인한다.
 record = await memory.aload(identifier)
 await memory.aupdate(identifier, {"status": "confirmed"}, expected_generation=record["generation"], expected_revision=record["revision"])
 ```
 
-`configure`는 설정 전체 교체이며 생략한 동작 설정은 기본값을 사용한다. 기본 정책에서는
-모델이 확인된 기억을 수정해도 `candidate`로 전환되므로 다시 확인하기 전에는 기본 검색에서
-제외된다. `search(status="all")`이나 ID 조회로 후보를 명시적으로 볼 수 있다. `confirmed`는
+`configure`는 설정 전체 교체이며 생략한 실행 정책을 생성하지 않는다. 위 예제는 호출자가
+검색 전략과 후보 쓰기를 명시한 경우다. 이 설정에서는 모델이 확인된 기억을 수정해도
+`candidate`가 되어 confirmed 검색에서 제외된다. Tool 생성·수정에 필요한
+`policy.tool_write_status`가 없으면 오류로 거부한다. `search(status="all")`이나 ID 조회로 후보를 명시적으로 볼 수 있다. `confirmed`는
 검색 상태 표시일 뿐 사실 검증이나 보안 경계가 아니다.
 
-검색은 Unicode 대소문자를 정규화한 단어 부분 일치다. 내용·kind·tags를 검색하고 점수와 ID로
+`config.search_strategy="keyword"`를 선택하면 Unicode 대소문자를 정규화한 단어 부분 일치를 사용한다. 내용·kind·tags를 검색하고 점수와 ID로
 정렬한다. 임베딩/RAG 의존성은 없으며 대량 기억의 색인 검색은 아직 없다. `score` 또는 `search`
 를 재정의한 MemoryComponent를 등록하여 검색 전략을 바꿀 수 있다. `memory` capability는
 수명 검사 핸들을 반환하므로 커스텀 엔진도 같은 API를 활용할 수 있다.
 
 BaseEngine에 Memory 전용 로직을 추가하지 않는다. Loop의 범용 completion_processors 계약을
-통해 Memory 자체가 자동 검색·Tool 결과 압축을 제공하며, 설정 시 증분 요약과 후보 추출도
-수행한다. [장기 문맥 처리 설정](memory-processing.md)을 참고한다. 검색 결과는 참고 데이터다.
+통해 Memory 자체가 명시적으로 켠 검색·Tool 결과 압축·증분 요약·후보 추출을
+수행한다. 검색에는 keyword 선택 또는 주입한 search_fn이 필요하다. [장기 문맥 처리 설정](memory-processing.md)을 참고한다. 검색 결과는 참고 데이터다.
 `expires_at`을 시간대가 있는 ISO 날짜로 지정하면 만료 후 검색에서 제외한다. 데이터는 남는다.
 
 ## 저장과 책임
@@ -137,5 +141,5 @@ Memory 데이터 저장과 Run/Step 기록은 별개 트랜잭션이다. Tool �
 컴포넌트 설정은 `project.json`의 `config.parameters["components"]`에만 저장한다.
 ComponentData.configure 편의 API도 이 설정을 갱신한다.
 
-generation이 없는 기존 저장 기록은 자동 변환하지 않는다. 변경 전 API로 원문을 내보낸 뒤
-새 CRUD로 재등록한다. 자세한 범위와 참조 종류는 [Revision 계약](revisions.md)을 따른다.
+generation이 없는 저장 기록은 거부한다. 구 형식을 읽거나 자동 변환하는 호환 경로를
+추가하지 않는다. 현재 형식의 CRUD·백업/복원 계약만 유지한다. 자세한 범위와 참조 종류는 [Revision 계약](revisions.md)을 따른다.

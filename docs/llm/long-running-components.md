@@ -1,5 +1,10 @@
 # Goal · 작업 상태 요약 · Refinement 구현 기록
 
+> **과거 요구·작업·검증 기록.** 본문과 당시 결과를 보존한다. “현재/최신/통과”는 작성 시점의 표현이며
+> 새 구현의 호환성 의무나 오늘의 회귀 성공을 뜻하지 않는다. [문서 우선순위](../README.md)와
+> [현행 검토 결과](../llm/documentation-review.md)를 먼저 확인한다.
+
+
 2026-10-05. 실행 소유 계층과 Runtime의 책임은 변경하지 않았다.
 `Project → Session → Run → Step`은 실행 원본이며 Goal/요약/Proposal은 Project의 보조 리소스다.
 

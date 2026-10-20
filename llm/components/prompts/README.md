@@ -28,17 +28,20 @@ await prompts.asave("rag-triples", record)
 # configure는 전체 교체이므로 현재 RAG 설정을 읽어 변경한다.
 rag = await project.components.aget("rag")
 configuration = await rag.aget_config()
-configuration.setdefault("extraction", {}).update(
-    prompt_id="rag-triples", repair_attempts=2,
-)
+configuration.setdefault("config", {}).setdefault("extraction", {})["prompt_id"] = "rag-triples"
+configuration.setdefault("policy", {}).setdefault("extraction", {})["repair_attempts"] = 2
 await rag.aconfigure(configuration)
 ```
 
-레코드의 `messages`는 비어 있지 않은 배열입니다. 각 항목은 system/user/assistant 중 하나의 role과 비어 있지 않은 문자열 content를 가집니다. 최상위에 description·라벨 등 JSON 메타데이터를 추가할 수 있습니다.
+레코드의 `messages`는 비어 있지 않은 배열입니다. 각 항목은 system/user/assistant 중 하나의 role과 비어 있지 않은 문자열 content를 가집니다. description은 선언된 최상위 필드이며, 라벨 등 Application 확장은 metadata 안에 둡니다.
 
 ## 저장과 참조
 
-정의는 `<project>/prompts/records/<id>.json`에 저장합니다. RAG가 사용할 ID와 수정 횟수는 `ProjectConfig.parameters.components.rag.extraction`에 둡니다. prompt_id가 null이면 RAG의 내장 프로토콜 지침을 사용합니다.
+정의는 `<project>/prompts/records/<id>.json`에 저장합니다. RAG가 사용할 ID는 `ProjectConfig.parameters.components.rag.config.extraction.prompt_id`,
+수정 횟수는 같은 RAG 설정의 `policy.extraction.repair_attempts`에 둡니다.
+prompt_id의 누락/null은 추가 Prompt 레코드를 사용하지 않는다는 뜻입니다. 추출 결과의 형식·근거를
+규정하는 `EXTRACTION_CONTRACT`는 항상 적용되며, 의미 지침 샘플인 `default_prompt()`를 자동 선택하지 않습니다.
+위 예제처럼 저장하고 ID를 지정했을 때만 그 샘플/사용자 지침을 추가합니다.
 
 삭제·비활성화한 프롬프트를 참조하면 새 문서 준비가 모델 호출 전에 실패합니다. 설정 편집과 기존 문서 조회는 가능합니다. 준비 중 참조 프롬프트가 변경되면 결과 공개가 충돌로 거부됩니다.
 

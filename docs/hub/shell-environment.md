@@ -30,9 +30,11 @@ Hub는 shell 실행 prefix를 직접 고정해 Git prefix와 섞이지 않게 �
 기존 백엔드 검증으로 거부합니다. `workspace_id`가 있는 파일 호출은 격리 공간 기준의
 기존 상대경로 규칙을 그대로 사용합니다.
 
-기존 환경 옵션이 없는 Run, 직접 생성한 HubRuntime 및 독립 실행은 이전 file_root 동작을
-유지합니다. 데이터 저장 루트와 작업 디렉토리는 독립적입니다. llm 및 ish 참조 코드는
-수정하지 않습니다.
+main의 환경 옵션 없는 Run/직접 HubRuntime 생성에는 file_root fallback이 남아 있습니다.
+[클린 리팩터링](../llm/clean-refactor.md)에서는 구 Run 복구용 fallback을 제거하고 새 요청에
+실행 환경을 명시합니다. 직접 생성/독립 실행의 명시 file_root 선택은 구 저장 형식 지원과 구분합니다.
+환경 Adapter의 실제 역할·승인 binding은 유지하며 다른 실행 경로로 승인 검사를 우회하지 않습니다.
+데이터 저장 루트와 작업 디렉토리는 독립적입니다. 아직 제품 코드는 변경하지 않았습니다.
 
 ## 검증
 

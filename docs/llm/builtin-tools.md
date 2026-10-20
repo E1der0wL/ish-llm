@@ -168,5 +168,10 @@ Step 저장 책임은 builtin 구현으로 옮기지 않는다. 작은 모델의
 
 Linux Python 3.12.14로 저장소 루트에서
 python tests/llm/run_linux.py --full --modules tests.llm.test_builtin_tools tests.llm.test_skill_tools
-명령으로 검사한다. [Skill 계약](../../llm/components/skills/README.md),
-[기존 웹 조회 예제](../../examples/llm/bleach_research.py)도 참고할 수 있다.
+명령으로 검사한다. [Skill 계약](../../llm/components/skills/README.md)을 함께 참고한다.
+
+## 실제 웹 조회와 파일 저장 예제
+
+[웹 조회 예제](../../examples/llm/bleach_research.py)는 모델·인증을 명시해 외부 웹을 조회하고
+파일을 저장하는 별도 실행 안내다. 과거 실행 기록은 현재 실모델 검증 성공을 뜻하지 않는다.
+이번 문서 갱신에서는 인증 모델이나 외부 웹을 호출하지 않았다.

@@ -1,5 +1,9 @@
 > 최신 키 변경, XML 출력 객체 및 Tool 관리: [사용법](../docs/hub/output-objects.md). F1–F12는 할당하지 않습니다.
 
+이 사용법은 main `94229cb865374d99f20ec48c5e48269488041a4e` 기준입니다.
+[현재 Hub 설계](../docs/hub/README.md)와 [클린 리팩터링 목표](../docs/llm/clean-refactor.md)를 구분합니다.
+아래의 날짜별 검증 기록은 당시 결과이며 현재 전체 회귀 성공을 뜻하지 않습니다.
+
 # hub
 
 패널·프로필·설정 탐색 및 오류 안내의 최신 사용법은 [패널과 설정 UX](../docs/hub/panel-ux.md)를 참고하세요.
@@ -679,7 +683,8 @@ ESC를 무조건 즉시 확정하는 eager 바인딩은 Alt 조합을 깨뜨리�
   메시지 키 → 번역 문자열 JSON(예: `{"settings_title": "My Settings"}`)을 입력합니다. 기존 코드면 교체하며,
   **팩 삭제**에서 사용자 팩을 제거합니다. 내장 팩은 유지하고 빠진 번역은 영어로 표시합니다.
   팩 변경도 **저장**으로 확정하며 **취소**로 초안을 버립니다. 언어 변경은 다음 Hub 시작부터 적용됩니다.
-  이전 프로필 언어 설정은 일반 언어가 비었을 때 호환 기본값으로 사용합니다.
+  main에는 일반 언어가 비었을 때 이전 프로필 언어를 읽는 fallback이 남아 있습니다.
+  이는 [클린 리팩터링](../docs/llm/clean-refactor.md)의 제거 대상이며 새로운 저장/사용 계약이 아닙니다.
 * 알림: `notification_kinds`는 `error`, `info`, `warning`, `success`의 JSON 배열이며 `[]`로 모두 끕니다.
   `notification_seconds`는 1~120초입니다. 종류 변경은 즉시 반영하고 시간은 이후 생성되는 알림에 적용합니다.
 * 시작 동작: `restore_last_project`, `restore_last_session`을 각각 켜거나 끕니다(기본 `true`).

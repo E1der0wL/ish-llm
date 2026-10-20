@@ -1,5 +1,9 @@
 # ish-llm
 
+이 사용법은 main `94229cb865374d99f20ec48c5e48269488041a4e`의 API를 설명합니다.
+독립 Agent와 수신자 기반 실행은 [클린 리팩터링 목표](../docs/llm/clean-refactor.md)이며 아직 구현되지 않았습니다.
+[현행 설계](../docs/llm/architecture.md)와 [검증 상태](../docs/llm/documentation-review.md)를 함께 확인하세요.
+
 Backend는 mechanism·contract·persistence를 제공하고 Application이 자원 한도·검색 전략·
 모델의 Tool 인자 자유도를 정합니다. [Tool 인자 제약](../docs/llm/tool-constraints.md)은
 fixed/bounded/selectable을 ToolExecutionScope와 ToolExecutor에서 집행합니다. GraphEngine은 저장된 Workflow의

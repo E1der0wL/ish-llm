@@ -78,11 +78,11 @@ async def authorize(call):
         name=call.name, arguments=call.arguments,
     )
 
-services = BackendServices(tool_runtime=ToolRuntime(
-    allowed_tools=("rag_search",),  # None이면 등록된 Tool을 허용
-    max_calls=30,
-    authorize=authorize,
-))
+services = BackendServices(tool_runtime=ToolRuntime(authorize=authorize))
+# 위 services를 백엔드 생성에 주입한다. 실행 선택과 한도는 Project에 저장한다.
+await project.aconfigure_policies({"tools": {
+    "allowed_tools": ["rag_search"], "max_calls": 30,
+}})
 ```
 
 `ui`는 호스트가 제공한다. 정책은 모델이 Tool을 고른 이후 실제 실행 전에 검사한다.
@@ -143,8 +143,9 @@ Run 최종 알림도 이 모드에서 누락될 수 있으므로 request.wait/�
 비활성화해 후속 호출과 무한 종료 대기를 막는다. callback은 취소에 협조해야 한다.
 동기 queued 콜백의 이미 실행 중인 스레드는 종료할 수 없으며 같은 구독에서 새 스레드를
 계속 만들지는 않는다. inline 동기 콜백은 이벤트 루프를 막지 않아야 한다.
-UI에는 queued 전달을 권장한다. 레거시 on_event/on_run_event 직접 콜백에는 이 설정이
-자동 적용되지 않는다.
+UI에는 queued 전달을 권장한다. main의 on_event/on_run_event 직접 콜백 경로에는 이 설정이
+자동 적용되지 않는다. 이 이중 경로는 [클린 리팩터링](clean-refactor.md)에서 소비자를 구독 API로
+직접 이관한 뒤 제거할 대상이다. 호환 wrapper를 추가하지 않는다.
 
 ## 파일 조회 성능과 저장 보장
 
@@ -169,5 +170,6 @@ JSONL fsync 및 UI 통지 전 저장 순서는 유지한다. 첫 대용량 파�
 
 여전히 필요한 운영 작업은 배포 OS의 sandbox 검증, 취소에 협조하지 않는 provider
 스레드 관리, 외부 제공자의 idempotency 연결, 실제 모델/호스트 장시간 부하 검증, 백업 복구
-훈련이다. 자동 요약/압축, Loop 재개, 비용 상한, 저장소 인덱스는 별도 확장 과제다.
-이번 변경만으로 상용 제품과 동등한 운영 보장을 주장하지 않는다.
+훈련이다. 자동 요약/압축, Loop 재개, 사용량 상한과 출력 인덱스는 현재 구현되어 있으며
+[장시간 실행](long-running.md), [저장 운영](operational-storage.md)에 사용 계약이 있다.
+기능 존재와 실제 배포 검증은 구분한다. [현재 검증 상태](documentation-review.md)를 참고한다.

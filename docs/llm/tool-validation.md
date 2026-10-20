@@ -1,5 +1,10 @@
 # Project Tool worker / observability 검증
 
+> **과거 요구·작업·검증 기록.** 본문과 당시 결과를 보존한다. “현재/최신/통과”는 작성 시점의 표현이며
+> 새 구현의 호환성 의무나 오늘의 회귀 성공을 뜻하지 않는다. [문서 우선순위](../README.md)와
+> [현행 검토 결과](../llm/documentation-review.md)를 먼저 확인한다.
+
+
 Linux Python 3.12.14의 native Linux filesystem snapshot에서 실행한다.
 `tests/llm/run_linux.py --full`은 현재 소스를 복사하고 SHA-256 manifest와 focused/suite 로그를 남긴다.
 

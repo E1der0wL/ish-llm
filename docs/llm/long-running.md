@@ -16,12 +16,11 @@ RunManager/Repository가 담당한다. 새 실행 도메인이나 별도 Policy 
 
 ```python
 run = await (await session.run.submit("작업", engine="loop")).wait()
-checkpoint = await run.acheckpoint("loop")
-# 완료 여부가 불확실한 Tool은 외부 결과 확인 뒤에만 명시적으로 재실행한다.
-uncertain = [key for key, value in checkpoint["records"].items()
-             if key.startswith("tool:") and value["status"] == "started"]
-request = await session.run.resume(run.id, engine="loop", retry_nodes=uncertain)
-continued = await request.wait()
+plan = await session.run.resume_plan(run.id, engine="loop")
+# blockers/효과 원장/체크포인트를 검토한다. 불확실한 Tool을 일괄 재실행하지 않는다.
+if plan.can_resume:
+    request = await session.run.resume(run.id, engine="loop", expected_revision=plan.revision)
+    continued = await request.wait()
 ```
 
 `iteration:N`은 모델 응답과 회차 완료를, `tool:N:call_id`는 개별 실행 상태/결과를 저장한다.
@@ -35,7 +34,9 @@ continued = await request.wait()
 Engine은 CHECKPOINT 이벤트만 생성한다. 파일은 RunRepository가
 `runs/<run>/state/checkpoints/loop/`에 저장한다. 과거 대화는 ID로 참조하고 현재 작업의
 모델 응답/Tool 결과만 체크포인트에 보관한다. 설정/Tool 정의 fingerprint가 바뀌면 재개를 거부한다.
-실행 함수의 코드 변경은 프로젝트 engine 설정의 revision 같은 명시적 값을 변경해 표현한다.
+실행 함수 변경은 해당 Engine의 bind_execution 계약, Provider Adapter의 execution_binding,
+ToolRuntime.revision 등 소유 구현체가 제공하는 identity로 표현한다. 닫힌 Engine config에
+선언되지 않은 revision 필드를 임의로 넣지 않는다.
 런타임 클라이언트 객체의 내부 상태/함수 코드 자체를 직렬화하거나 동일성을 보장하지 않는다.
 
 Loop 회차 체크포인트는 최상위 Loop와 Graph Agent 내부 Loop에 적용한다. 자식 체크포인트는
@@ -58,9 +59,11 @@ async def tool_handler(arguments):
 services = BackendServices(tool_runtime=ToolRuntime(authorize=authorize))
 await project.aconfigure_policies({"tool_retry": {"max_retries": 2, "delay_seconds": 1}})
 
-# 승인 대기인 Loop Run은 PAUSED로 종료되어 Session worker를 해제한다.
-request = await session.run.resume(paused_run.id, engine="loop",
-    decisions={"tool:1:call_1": True})  # False는 거절하며 Tool은 실행되지 않는다.
+# 승인 대기인 Run은 PAUSED로 확정된다. 공개 Interaction API로 선택한 응답을 저장한다.
+interactions = await paused_run.ainteractions(pending_only=True)
+interaction = interactions[0]
+await paused_run.arespond(interaction.respond(selected_option_id))
+# selected_option_id는 UI에서 실제 선택한 option.id이며 추천 선택지를 자동 승인하지 않는다.
 ```
 
 일반 예외·timeout·취소는 재시도하지 않는다. retryable=True이며 effect=none이거나,
@@ -74,17 +77,17 @@ SDK/외부 서비스의 중복 방지는 어댑터가 idempotency_key를 실제 
 Graph ToolNode도 동일한 승인 대기를 지원하며 decisions의 키는 체크포인트 노드 키다.
 Agent 내부 Loop도 완료 응답/Tool 영수증과 승인 대기를 부모 Graph에 저장한다.
 경로에는 Workflow·노드·분기/반복 위치·자식 Engine·로컬 호출 키가 포함된다.
-UI는 체크포인트에서 `approval_required`인 레코드를 조회하고 그 키로 승인한다.
-키를 직접 조립하지 않는 것이 좋다.
+UI는 `ainteractions()`의 요청·선택지·최종 인자를 표시하고 실제 선택한 응답을 저장한다.
+체크포인트의 내부 키나 Engine별 decisions 모양을 UI에서 조립하지 않는다.
 
 ```python
-checkpoint = await paused_run.acheckpoint()
-pending = {key: value for key, value in checkpoint['records'].items()
-           if value.get('approval_required')}
-# UI에서 각 pending 레코드의 name/arguments/prompt를 검토하고 선택한 결정만 전달한다.
-await session.run.resume(paused_run.id, engine='graph', decisions={
-    selected_key: {'approved': True},
-})
+plan = await session.run.resume_plan(paused_run.id, engine=paused_run.engine)
+# 승인 응답 저장은 실행이 아니다. 검토를 마친 뒤 명시적으로 재개한다.
+if plan.can_resume:
+    request = await session.run.resume(
+        paused_run.id, engine=paused_run.engine, expected_revision=plan.revision,
+    )
+    continued = await request.wait()
 ```
 
 모든 대기 승인에 결정이 필요하며 False는 실행 없이 거절한다. 자식 승인으로 부모 입력을
@@ -122,7 +125,7 @@ await project.aconfigure_policies({
 })
 # 등록 이름이 loop인 Engine만 이 재시도 설정을 사용한다.
 config = (await project.aget_data()).config
-config.parameters.setdefault("engines", {}).setdefault("loop", {})["provider"] = {
+config.parameters.setdefault("engines", {}).setdefault("loop", {}).setdefault("policy", {})["provider"] = {
     "max_attempts": 3, "delay_seconds": 1, "max_delay_seconds": 10,
 }
 await project.asave(config=config)
@@ -152,7 +155,17 @@ Run 기한 안에서 수행한다. max_attempts는 최초 호출을 포함한다
 ## 현재 작업 문맥 압축
 
 ```python
-await project.components.memory.aconfigure({'policy': {'processing': {'summarize': True, 'compact_active': True, 'active_keep_iterations': 2, 'summary_after_chars': 12000}}, 'config': {'processing': {'summary_chars': 3000, 'completion': {'model': auxiliary_model, 'max_tokens': 1500}}}})
+await project.components.memory.aconfigure({
+    "config": {"processing": {
+        "priority": 100, "summary_chars": 3000,
+        "completion": {"model": auxiliary_model, "max_tokens": 1500},
+    }},
+    "policy": {"processing": {
+        "summarize": True, "compact_active": True, "active_keep_iterations": 2,
+        "keep_turns": 8, "summary_after_chars": 12000, "model_input_chars": 24000,
+        "max_summary_calls": 4, "context_chars": 6000,
+    }},
+})
 ```
 
 Memory의 자동 요약은 기본적으로 꺼져 있다. 켜면 현재 작업에서 완료된 오래된 Tool
@@ -173,7 +186,8 @@ Memory의 자동 요약은 기본적으로 꺼져 있다. 켜면 현재 작업�
 ```python
 await project.aconfigure_policies({"retention": {
     "max_bytes": 5_000_000_000, "max_tokens": 2_000_000,
-    "max_age_seconds": None, "counter": "model_default",
+    "unit": "session", "max_age_seconds": None, "counter": "model_default",
+    "counter_params": {"model": retention_model},
 }})
 plan = await project.aretention()
 # candidates/protected와 예상 용량을 검토한 뒤 명시적으로 적용한다.
@@ -185,13 +199,15 @@ await backend.projects.arecover_deletions()
 view = await run.aview(after=last_sequence, limit=200)
 ```
 
-기본 자동 삭제는 없다. 기본 보관 정리는 완료된 비활성 Session 전체 단위이며 오래된 것부터
+기본 자동 삭제는 없다. 정리 한도를 사용할 때는 unit도 명시한다. 위 예제의 session 단위는
+완료된 비활성 Session 전체를 오래된 것부터
 기간/용량/대화 본문 토큰 조건을 평가한다. 토큰은 API 사용량과 다르다. Tool 작업 원장,
 대기/실행/실패/중단/일시정지 Run, retain 메타데이터, 비파일 대화, 현재 Project 사용량
 집계에 필요한 Session은 보호한다. 따라서 지정 용량까지 줄일 수 없을 수 있으며 사유를 반환한다.
 용량은 Session 도메인 기록/산출물 대상이며 운영 로그는 logger의 회전 설정으로 관리한다.
-Memory/RAG 등 프로젝트 컴포넌트 데이터는 이 API로 지우지 않는다. 적용은 다중 Session 원자
-트랜잭션이 아니며 중간 실패 시 새 계획을 조회한다.
+Memory/RAG 등 프로젝트 컴포넌트 데이터는 이 API로 지우지 않는다. 적용은 workspace 잠금 아래
+트랜잭션에 참여한다. 실패하면 rollback/recovery 후 계획과 저장 상태를 다시 확인한다.
+외부 효과까지 원자화하는 보장은 아니다. [저장 경계](storage-transactions.md)를 따른다.
 
 `retention.unit="run"`은 Session을 유지하고 완료 Run/대화만 정리한다. 이때 보관 삭제 저널이
 남으면 새 실행을 막고 `project.arecover_retention()`으로 이미 승인된 정리를 완료한다.
@@ -205,7 +221,7 @@ recover_deletions는 비활성 workspace에서 이미 시작한 Project/Session 
 
 view는 같은 잠금 아래 Run 상태·전체 출력·cursor·이벤트 페이지를 반환한다. outputs를
 화면의 기준 스냅샷으로 사용했다면 cursor 이후부터 수신한다. 이벤트 페이지를 적용하는
-방식을 선택했다면 마지막 적용한 이벤트 sequence를 사용한다. UI 위젯/알림 렌더링은 ish 책임이다.
+방식을 선택했다면 마지막 적용한 이벤트 sequence를 사용한다. UI 위젯/알림 렌더링은 호출 Application/Hub의 책임이다.
 
 ## 편집 충돌
 
@@ -218,7 +234,8 @@ await project.aconfigure_policies({"context": {"max_turns": 20}}, expected_versi
 ```
 
 공통 ComponentData snapshot/save/update/delete/configure와 Project 설정 저장은 선택적인
-expected_version을 지원한다. 불일치하면 edit_conflict로 거절하며 열린 JSON 형식은 유지한다.
+expected_version을 지원한다. 불일치하면 edit_conflict로 거절하며 owner가 선언한 닫힌 Schema와
+명시적 확장 영역을 검증한다. 임의의 최상위 키를 허용한다는 뜻은 아니다.
 Memory/RAG처럼 자체 revision 계약을 가진 전용 API의 CAS는 expected_generation과
 expected_revision을 함께 사용한다. 생성 세대와 변경 번호의 구분은 [Revision 계약](revisions.md)을 따른다.
 
@@ -237,14 +254,16 @@ await rag.arun_jobs(limit=10)
 
 rag/jobs/<id>/ 아래 입력·작업 상태·준비 결과를 저장한다. 백엔드 시작만으로 모델을 호출하지
 않으며 UI/호스트가 worker API를 시작한다. failed 작업이나 죽은 worker의 running 작업만
-명시적으로 재개한다. 기본 ingestion.max_active=1은 컴포넌트 configuration으로 조절한다.
+명시적으로 재개한다. 동시 작업의 추가 한도는 `policy.ingestion.max_active`에 명시한다.
+누락했을 때 1이라는 숨은 한도를 만들지 않는다.
 워커 생존 여부는 PID가 아니라 OS 파일 잠금으로 판정한다. 같은 프로세스에서 중단된
 coroutine도 잠금이 해제되면 명시적으로 재개할 수 있다. 취소 요청은 배치 경계와 공개 전에
 검사한다. 모델 호출을 강제 종료하지는 않는다.
 준비 완료 문서는 재사용하며, 공개 성공 후 작업 완료 기록만 실패한 경우 동일 문서를 확인한다.
 
-임베딩은 RAGComponent.embedding_batch_size(기본 128), 관계 추출은 extraction_batch_size
-(기본 32개 chunk) 단위로 호출한다. 작업의 jobs/<id>/batches에 완료 배치를 원자적으로 저장해
+임베딩은 청크별 요청이며 `policy.embedding_concurrency`로 명시한 동시 호출 수를 제한한다.
+삭제된 embedding_batch_size 설정을 사용하지 않는다. 관계 추출의 묶음 크기는
+`config.extraction_batch_size`에 명시한다. 작업의 jobs/<id>/batches에 완료 준비 결과를 원자적으로 저장해
 준비 중 실패해도 재사용한다. 배치 입력/설정 해시가 달라지면 새 작업을 요청해야 한다.
 모델 응답 이후 영수증 저장 전 장애는 해당 모델 배치를 다시 호출할 수 있다. 사용자 prepare
 재정의는 기존 계약을 유지하며 배치 저장을 강제하지 않는다. 완료 후 준비 사본은 정리한다.
@@ -252,8 +271,8 @@ coroutine도 잠금이 해제되면 명시적으로 재개할 수 있다. 취소
 Chroma/Kuzu를 복사한 뒤 변경 문서의 벡터/관계만 갱신하고 원자적으로 공개한다. 실패하면
 기존 세대가 유지된다. 첫 색인은 전체 생성이다. 사용자 _build 재정의는 그대로 사용한다.
 지원하는 Linux 파일시스템에서는 reflink로 DB 데이터 블록을 공유하고 수정 시 분리한다.
-미지원 파일시스템은 일반 복사한다. BM25 모델은 불변 세대별로 재사용하며 search_cache_chars
-(기본 원문 1,000,000글자, 0은 캐시 끄기)로 컴포넌트의 전체 캐시 한도를 조절한다. 이 값은
+미지원 파일시스템은 일반 복사한다. 명시적으로 선택한 BM25 검색은 불변 세대별 모델을 사용하며
+`config.search_cache_chars`로 캐시 문자 용량을 지정한다. 누락/0이면 캐시를 끈다. 이 값은
 실제 RAM 바이트 한도가 아니다. 원본 corpus JSON 읽기/쓰기와 일반 DB 복사 비용, 검색/공개 중
 공유 저장 잠금은 남아 있다. 대용량 코퍼스 전체를 디스크 스트리밍 방식으로 처리하지는 않는다.
 

@@ -1,5 +1,10 @@
 # Closed contracts / semantic ownership 작업 결과
 
+> **과거 요구·작업·검증 기록.** 본문과 당시 결과를 보존한다. “현재/최신/통과”는 작성 시점의 표현이며
+> 새 구현의 호환성 의무나 오늘의 회귀 성공을 뜻하지 않는다. [문서 우선순위](../README.md)와
+> [현행 검토 결과](../llm/documentation-review.md)를 먼저 확인한다.
+
+
 ## 기준과 범위
 
 1. **Base commit:** `f25a84de6759b9d723baf402f79ed451de1e84e8`. 시작 시 origin/main을 fetch하여 확인했다.

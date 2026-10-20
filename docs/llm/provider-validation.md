@@ -1,5 +1,7 @@
 > 현재 설정 계약은 [CONFIGURATION.md](../../llm/CONFIGURATION.md)를 따른다. 아래 이전 측정 수치는 해당 명시적 fixture에 대한 기록이다.
 
+아래 Adapter 계약과 날짜별 시험 기록을 구분한다. 과거 시험 수는 현재 성공 근거로 승계하지 않으며 [현행 검증 상태](documentation-review.md)를 따른다.
+
 # 단일 청크 임베딩 실행 검증
 
 이번 변경은 llm/ 및 허용된 루트 테스트 파일에 한정한다.

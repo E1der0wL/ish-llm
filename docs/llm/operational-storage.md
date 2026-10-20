@@ -1,11 +1,11 @@
 # 실행 자원과 저장 정책
 
 Project → Session → Run → Step 관계는 바뀌지 않는다. Engine은 이벤트를
-생성하고, RunManager가 검증·저장·알림을 조율한다. 아래 정책은 런타임 서비스 설정이며
+생성하고, RunManager가 검증·저장·알림을 조율한다. 공유 호출 슬롯·버퍼 등의 기술 자원은 BackendServices가, 실행 정책은 ProjectConfig가 소유한다.
 ProjectConfig에 Python 객체를 직렬화하지 않는다.
 
 ```python
-from llm.llm import LargeLanguageModel, LoopEngine, BackendServices, ProviderLimits, OutputBuffer, RunPolicy
+from llm.llm import LargeLanguageModel, LoopEngine, BackendServices, ProviderLimits, OutputBuffer
 
 backend = LargeLanguageModel(
     "workspace",
@@ -24,8 +24,8 @@ project = await backend.projects.acreate(config={"policies": {
 ## 공급자 호출
 
 `ProviderCalls`는 실제 동기 completion 호출과 스트림 close가 끝날 때까지 슬롯을
-보유한다. 소비자 취소/Run 종료만으로 슬롯을 반환하지 않는다. 대기 수와 대기 시간도
-유한하며 한도 초과는 `provider_capacity` Run 오류 코드로 조회한다.
+보유한다. 소비자 취소/Run 종료만으로 슬롯을 반환하지 않는다. 대기 수와 대기 시간은 명시한 값으로
+제한하며 한도 초과는 `provider_capacity` Run 오류 코드로 조회한다.
 `backend.provider_calls.stats`는 `active`, `waiting` 스냅샷이다.
 
 active/waiting/wait_seconds는 명시한 경우에만 제한한다. `BackendServices.provider_calls`로
@@ -49,10 +49,11 @@ RunPolicy.timeout_seconds로 조절한다. 실제 호출이 영원히 반환하�
 timeout/context manager의 수명을 보존한다. 생산 큐도 batch_size로 제한한다.
 max_chars는 묶음을 내보낼 기준이며 단일 이벤트 자체를 자르는 제한은 아니다.
 
-Run 출력 저널과 Conversation 각각 한 묶음을 append/fsync한 뒤 개별 이벤트 순서대로
-알린다. 순번, append/replace, Step 소유권과 visibility는 유지한다. 두 파일이 하나의
-원자적 트랜잭션이 되는 것은 아니다. 중간 I/O 실패 시 Run은 성공으로 보고되지 않으며,
-출력 저널이 대화 투영보다 앞설 수 있다. 저장된 출력 조회와 Run 상태를 함께 확인한다.
+Run 출력 저널과 Conversation의 묶음 쓰기는 같은 workspace 트랜잭션으로 확정하며,
+commit 뒤 개별 이벤트 순서대로 알린다. 순번, append/replace, Step 소유권과 visibility는 유지한다.
+확정 전 I/O 실패는 rollback/recovery 대상이며 성공 알림을 보내지 않는다. commit marker 이후
+fsync 실패처럼 확정 여부가 불명확하면 복구 후 저장 상태를 조회한다.
+[저장 트랜잭션](storage-transactions.md)의 경계와 파일시스템 전제를 따른다.
 
 Step/Tool 승인/체크포인트/종료/사용자 확장 이벤트는 경계다. 앞선 델타를 확정하고
 해당 이벤트를 처리한 뒤에만 Engine을 계속 진행한다. QUEUED 요청은 묶지 않는다.
@@ -78,7 +79,7 @@ Step/Tool 승인/체크포인트/종료/사용자 확장 이벤트는 경계다.
 전체 출력 투영과 최초 인덱스 작성은 여전히 전체 기록에 비례한다. 인덱스는 일반적인
 append-only 파일을 전제로 하며 외부 작성자의 임의 변조를 검증하는 감사 장치는 아니다.
 
-## 백업, 복원과 형식 변경
+## 현재 형식의 백업과 복원
 
 ```python
 # 프로젝트의 모든 Session 런타임을 먼저 해제한다. 활성 작업 중에는 백업을 거부한다.
@@ -106,16 +107,14 @@ QUEUED 요청은 나중에 Session 런타임을 명시적으로 시작하면 기
 누락한 불완전한 백업을 만들지 않는다. `BackendServices.backups`로 복사/검증 구현을
 교체할 수 있지만 다른 대화 저장소의 내보내기 계약은 별도로 구현해야 한다.
 
-Project/Session/Run/Step metadata는 `storage_version=1`를 명시한다. 지원하지 않거나
-누락된 버전은 읽기/덮어쓰기 전에 거부한다. **버전 필드가 없던 기존 workspace도 명시적
-변환이 필요하다.** 사용자 workspace는 이번 변경에서 자동 수정하지 않는다.
-열린 ProjectConfig/Component 레코드에는 고정 설정 키를 강제하지 않는다.
+Project/Session/Run/Step metadata는 각 저장 계약의 `storage_version`을 명시한다.
+지원하지 않거나 누락된 버전은 읽기/덮어쓰기 전에 거부한다. ProjectConfig와 내장 Component
+레코드는 닫힌 Schema이며 metadata/SDK 인자처럼 owner가 선언한 확장 영역만 열린다.
 
-`backend.projects.aupgrade_backup(source, destination, transform=...)`은 신뢰한 개발자
-함수를 복사본에 적용하고 현재 저장소/Component로 검증한 뒤 새 백업을 공개한다.
-변환 실패는 원본을 수정하지 않는다. 향후 알려진 형식 변경마다 변환 함수와 검증을
-추가한다. 과거 형식을 추정하는 호환 리더는 제공하지 않는다. 버전 없는 기존 데이터는
-먼저 DirectoryBackups.create로 원본을 보존한 뒤 명시적 변환 대상으로 사용할 수 있다.
+main에는 `projects.aupgrade_backup(..., transform=...)`이 남아 있다. 이는 출시 전
+[호환 제거 대상](clean-refactor.md)이며 새 사용법이나 미래 지원 계약으로 삼지 않는다.
+구 Reader·자동/명시 migration·변환 Facade를 추가하지 않는다. 현재 형식의 검증된 backup/restore는
+유지한다. 이 문서 변경으로 해당 제품 API가 제거된 것은 아니다.
 
 ## 구조 검토
 
@@ -136,5 +135,6 @@ RunPolicy.max_capability_rounds로 노출했다. 저장 버전·이벤트 이름
 않으며 모든 요청에 engine 이름을 지정한다. UI 생성·선택 정책은 호출 애플리케이션이 소유한다.
 
 추가 제한: 백업은 workspace 잠금을 유지하므로 큰 프로젝트에서는 다른 CRUD가 기다린다.
-온라인 백업, 외부 SDK의 강제 종료, 파일 간 원자적 출력 커밋은 이번 구현의 보장이 아니다.
+온라인 백업과 외부 SDK의 강제 종료는 제공하지 않는다. 파일 출력의 원자성은 위 트랜잭션 범위에 한정하며
+외부 Tool 효과나 다른 workspace까지 묶지 않는다.
 장시간 실제 공급자/배포 환경 검증은 자동 회귀 테스트와 별도로 수행해야 한다.

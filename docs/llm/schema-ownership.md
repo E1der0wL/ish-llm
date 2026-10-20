@@ -1,8 +1,10 @@
 # Schema와 설정의 소유권
 
-기준 main: `f25a84de6759b9d723baf402f79ed451de1e84e8`.
+이 계약은 main `94229cb865374d99f20ec48c5e48269488041a4e`에서도 적용한다.
+처음 정리한 기준은 `f25a84de6759b9d723baf402f79ed451de1e84e8`이며 아래 날짜별 검증은 당시 기록이다.
 Backend는 계약·검증·집행을 제공하고 Application은 프리셋·한계값·검색 전략·UX를 선택한다.
-이번 변경은 값의 기본값, 저장 버전, 실행 소유 계층을 바꾸지 않는다.
+아래 Agent 필드는 현재 AgentComponent 계약이다. 독립 Agent로의 [B/C 전환](clean-refactor.md)에서는
+같은 소유권 원칙으로 현재 형식을 직접 교체하고 구 Reader/별칭을 남기지 않는다.
 
 ## 원칙
 

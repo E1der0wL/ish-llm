@@ -3,6 +3,8 @@
 이 문서는 ish-llm의 명명 계약이다. 같은 이름은 같은 의미로 사용한다. 이름을 짧게
 만들기 위해 의미나 소유권을 바꾸지 않는다. 실행 계층은 Project → Session → Run → Step이며,
 Component는 데이터/capability, Engine은 실행 전략을 소유한다.
+이 의미 규칙은 [클린 리팩터링](clean-refactor.md)에도 적용한다. 아래의 현재 API 예시는
+main `94229cb` 기준이며 구 API나 저장 어휘를 영구 보존하라는 요구가 아니다.
 
 ## 표기와 길이
 
@@ -59,7 +61,8 @@ Host 기술적 승인/거절 함수, runner, classifier, operation adapter 묶�
 
 `OutputBuffer`는 델타 저장 batching/flush 설정이다. max_chars는 flush 조건이지
 출력 자르기가 아니다. Host 초기 구성을 `BackendServices.output_buffer`로 주입하고,
-기존 Project `policies.output` 값은 `for_project()`에서 적용한다. 저장 키는 변경하지 않는다.
+현재 Project `policies.output` 값은 `for_project()`에서 적용한다. 새 형식에서 이름을 바꿀 때도
+출력 batching과 실행 한도의 의미·소유자를 혼동하지 않는다.
 `BackendServices` (`services/composition.py`)는 저장소/함수/공유 자원 조립 객체다.
 `LogConfig`는 Host가 명시하는 로깅 설정이며 `DomainLogger(config=...)`가 사용한다.
 
@@ -86,7 +89,8 @@ Hub의 `SettingsService`, Settings 화면, GeneralSettings는 Project config/pol
 | `set` | 단순 대입, 일반 config mutation 이름으로 쓰지 않음 |
 | `initialize` | lifecycle 초기화, 설정 resolution과 구별 |
 
-`EngineRegistry.resolve_request()`는 for_request factory를 해석하므로 resolve를 유지한다.
+현재 `EngineRegistry.resolve_request()`는 for_request factory 해석을 표현하는 이름이다.
+클린 B/C에서는 이 공개 요청 경로를 Agent binding으로 직접 대체하며 호환 별칭을 두지 않는다.
 `ComponentRegistry.resolve()`는 선택 capability들을 구성하므로 get으로 바꾸지 않는다.
 
 ## Identity와 변경 식별자
@@ -113,8 +117,9 @@ Run/Step metadata의 내부 실행 bookkeeping을 naming 때문에 이동하지 
 Registry는 등록/조회, Repository는 영속 접근, Manager는 lifecycle 조율,
 Handle은 특정 객체에 bound된 facade, Execution/Executor는 실행 경계,
 Contract는 trusted invariant/declaration, Policy는 행동 규칙을 뜻한다.
-`ToolContract`, `ToolClassification`, `ToolExecutor`, `AgentComponent`, `AgentExecution`,
-`AgentNode`, `ComponentRegistry`, `EngineRegistry`를 유지한다.
+`ToolContract`, `ToolClassification`, `ToolExecutor`, `AgentExecution`, `AgentNode`,
+`ComponentRegistry`, `EngineRegistry`는 이 의미를 따른다. 현재 `AgentComponent`의 정의 저장 책임은
+클린 B에서 독립 Agent 도메인으로 이동하며 이름 보존을 위한 façade를 만들지 않는다.
 `required_components`는 정확한 persistent Component identity 의존성,
 `required_capabilities`는 consumer가 요구하는 실행 기능, `capabilities`는 제공 기능이다.
 
@@ -125,14 +130,15 @@ Graph의 자체 LangGraph 호출용 dict는 `invoke_options`다.
 
 기존 승인/checkpoint 지문의 `tool_policy`, Loop/Memory 지문 입력의 `settings`,
 snapshot의 `configuration`, `configuration_key`, `policy_schema`는 저장/관찰 payload의
-확정된 필드다. Python runtime API 이름과 별개이며 변경하지 않는다. 이 키를 runtime
-속성의 alias로 제공하지 않는다. 그 외 기존 ProjectConfig JSON, 정책/Component 키,
-도메인 필드, Workflow schema와 버전은 그대로다. 자동 migration/호환 별칭은 없다.
+현재 main에서 사용하는 필드다. Python runtime API 이름과 별개이며 runtime 속성의 alias로
+제공하지 않는다. 새 형식에서는 해당 owner의 의미에 맞는 정규 어휘를 선언하고 Reader/Writer와
+소비자를 함께 변경한다. 옛 지문과 바이트 호환을 유지하려고 이 이름을 복제하지 않는다.
+변경된 형식/필수 binding은 명시 검증하며 자동 migration·구 Reader·호환 별칭을 추가하지 않는다.
 
 과거 reports와 handoff의 날짜별 기록은 당시 API를 설명하는 역사 기록이므로 수정하지 않는다.
-새 코드는 이 문서와 현재 public API를 따른다.
+새 코드는 이 문서의 의미 규칙과 선택한 단계의 정규 API를 따른다. 미구현 목표 API는 현행 사용법과 구분한다.
 
-## 이번 감사의 변경 목록
+## 이전 Naming 정리의 변경 기록
 
 | 이전 | 현재 | 이유 |
 | --- | --- | --- |
@@ -162,6 +168,7 @@ snapshot의 `configuration`, `configuration_key`, `policy_schema`는 저장/관�
 새 abstraction은 추가하지 않았다. class/module 이동은 이름 정합성에 필요한
 `core/settings.py → core/parameters.py`, `services/configuration.py → services/composition.py`뿐이다.
 
+위 표는 main 이전 Naming 정리의 기록이며 클린 A–F 구현 완료를 뜻하지 않는다.
 Python import·호출부와 사용자 정의 Engine/Component/client의 메서드 구현은 위 이름으로
 직접 수정해야 한다. 저장된 Project/Session/Workflow/승인 기록은 수정하지 않는다.
 UI schema annotation `x-settings-key`는 `x-parameter-key`로 바뀌며, Host 관찰 응답도

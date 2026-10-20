@@ -1,5 +1,10 @@
 # Project authority / risk / Agent delegation 작업 보고
 
+> **과거 요구·작업·검증 기록.** 본문과 당시 결과를 보존한다. “현재/최신/통과”는 작성 시점의 표현이며
+> 새 구현의 호환성 의무나 오늘의 회귀 성공을 뜻하지 않는다. [문서 우선순위](../README.md)와
+> [현행 검토 결과](../llm/documentation-review.md)를 먼저 확인한다.
+
+
 2026-10-07. 정책·소유권의 현재 계약은 [project-authority.md](project-authority.md),
 영속·실행 관계는 [architecture.md](architecture.md)에 있다.
 아래 번호는 작업 지침서의 최종 보고 79개 항목과 대응한다.

@@ -1,61 +1,46 @@
-# 운영 준비 상태
+# 운영 준비 상태와 검증 한계
 
-2026-09-28 메인 도메인 후속 보강: 출력/대화의 버퍼 누적, 출력 저널 순차 투영,
-Graph 준비 스냅샷 공유, 노드 계산과 수명 관리 분리, 역순 페이지 복사 제거를 적용했다.
-Linux Python 3.12.14에서 전체 **831개** 회귀가 통과했다. 합성 10,000델타에서
-출력 누적 약 9.3배·저널 복원 약 8배·대화 복원 약 27배 단축을 측정했다.
-통합 Graph 5 Session의 완료·Step 결과·재개방도 확인했다. 미세 측정과 실제 저장 부하는
-구분하며, 일부 버퍼의 최고 할당량은 약 13% 늘었다. 조건과 한계는 handoff.md 및
-examples/llm/domain_performance.md에 기록했다. 사내 규모의 운영 보장으로 해석하지 않는다.
+기준: main `94229cb865374d99f20ec48c5e48269488041a4e`, 문서 검토일 2026-10-20.
+[현행 아키텍처](architecture.md)와 [검토 기록](documentation-review.md)을 함께 읽는다.
+이전 날짜별 시험·성능 기록은 [보존본](production-readiness-history.md)에 있다.
+문서 최신화가 제품 구현이나 배포 준비 완료를 뜻하지 않는다.
 
-2026-09-28 안정성 보강: Engine 입력/최종 설정 검증 분리, Run 출력 검증 상태 분리와
-확정 결과의 중복 메모리 해제, 목록/검색 상위 항목 정렬을 적용했다. 전체 774개 회귀가
-통과했고 합성 Engine 5 Session/60초/655 Run 및 정상 종료 후 새 백엔드 조회를 확인했다.
-운영 측정은 examples/llm/operational_probe.py로 반복할 수 있다. 이 결과는 아래의 실제 공급자,
-3시간·2GB 규모와 강제 장애 검증 한계를 해소한 것으로 해석하지 않는다.
+## 현재 구현한 제어
 
-최근 보강: ToolContract 사전 검증과 정책 revision, 외부 결과 probe/CAS, Project 무결성
-검사·명시적 복구, Run 단위 보관 정리·중단 복구, Component maintenance를 추가했다.
-독립 RAG 모델 호출도 사용량을 예약하여 Run과 같은 Project 한도에 참여한다.
-UI는 `describe_project_config()`와 `adescribe_config()`으로 등록별 타입·기본값·제약·실제 값을 받는다.
-상세 범위와 사용법은 [운영 및 UI 설정](operations-and-ui-settings.md)을 참고한다.
+- workspace ownership, 원자적 도메인 트랜잭션, append-only 대화/출력, 명시 복구·보관.
+- durable 요청, Run/Step 수명, 최상위·중첩 Loop/Graph checkpoint, 명시적 Resume와 restart admission.
+- Tool 승인·권한·한도·retry·operation receipt·불확실 효과 재실행 차단.
+- 실제 Provider Adapter의 admission·사용량·retry·stream/진단 및 선택적 Linux Tool 격리.
+- Component별 generation/revision·참조·CAS, RAG Job/청크/세대 공개, Memory 처리와 자료 provenance.
+- Hub의 정규 오류/복구 API 연결, 승인 UI, 작업 환경 binding, immutable 화면 projection.
 
-현재 구현은 Linux에서 동작하는 로컬 `ish` 플러그인이다. 기능 회귀 검사를 통과해도
-장시간 무인 운영, 임의 외부 Tool의 정확히 한 번 실행, 모든 공급자 장애 복구까지
-보장하는 것은 아니다. 최신 검사 결과는 [handoff](handoff.md)를 기준으로 판단한다.
+이 목록은 모든 입력과 장애가 검증됐다는 뜻이 아니다. 특히 [알려진 구현 차이](documentation-review.md)의
+truthiness·버전 타입·호환 Reader·이중 경로는 아직 제품에 남아 있다. A–F 클린 설계는 구현 전이다.
 
-## 구현된 제어
+## 기준선과 완료 판정
 
-- Project → Session → Run → Step 책임 분리와 파일/메모리 대화 선택.
-- workspace 프로세스 잠금, 원자적 메타데이터 교체, append-only 대화/출력 저널,
-  선택적 델타 묶음 저장과 백그라운드 파일 I/O.
-- 영속 요청 대기열, 명시적 중단, stale Run/Step 복구, Loop 회차 및 Graph 노드 재개.
-- Tool 승인·허용 목록·한도·조건부 재시도, 선택적 Linux 프로세스/Bubblewrap 실행,
-  Session 작업 키 원장과 외부 결과 확인 API.
-- BaseEngine 모델 호출의 누적 사용량 예약과 응답 전 일시적 오류 재시도.
-- Memory 기반 과거/현재 작업 요약, 원본 Tool 결과 부분 조회와 문맥 예산.
-- 중첩 Loop Agent의 회차·Tool 영수증·승인 재개와 누적 Agent 예산 복원.
-- RAG 영속 등록 작업, OS worker lease, 준비 배치 복구, 변경 문서의 벡터/관계 갱신과 검색 세대 공개.
-- 비활성 Project 백업/복원, 출력 본문·부분 삭제 복구, 명시적 기록 보관 정리.
-- 다중 이벤트 구독, UI 재연결 출력/커서 조회, 설정·컴포넌트 낙관적 편집 충돌 검사.
+같은 main SHA의 Python 3.12.14·실제 ish 검증 기준선은 LLM 1,635개 중 1,634 pass/1 fail,
+Hub 534 pass다. 실패는 host의 `_is_library_available` 대신 `_library_available`을 참조하는 테스트다.
+로컬 Xvfb/xclip 9개는 실행·통과했다. GitHub bwrap 단계 실패와 뒤 테스트 Skip은 별개이며 미해결이다.
+이 결과는 이번 문서 변경 후 전체 suite를 다시 실행했다는 의미가 아니다.
 
-설정과 API는 [장시간 실행 안내](long-running.md), [운영 저장 계약](operational-storage.md),
-[Tool 격리](process-isolation.md), [공통 처리기](completion-processing.md)에 있다.
+기능/Schema·문서 예제·정적 게이트·실제 효과·회귀·필수 CI를 각각 기록한다. 날짜별 pass 수를 합치거나
+Skip/환경 차단을 pass로 바꾸지 않는다. 실제 인증 모델 호출과 kernel short-write는 계속 미검증이다.
 
-## 남아 있는 검증과 제한
+## 운영 경계
 
-| 영역 | 현재 경계 / 다음 검증 |
-| --- | --- |
-| 장시간·대용량 | 평균 5 Session / 3시간 / 원본 문서 2GB는 목표 규모다. 실제 공급자·배포 디스크에서 RSS, 지연, 취소/재시작과 디스크 부족을 측정해야 한다. 자동 회귀 결과를 이 규모의 성능 보장으로 해석하지 않는다. |
-| RAG 비용 | BM25 캐시와 reflink 지원 시 복사 최적화가 있지만 corpus JSON·일반 DB 복사·공유 잠금 비용은 남는다. 분할·검색은 완전한 디스크 스트리밍 방식이 아니다. 전역 GraphRAG 요약은 별도 기능이다. |
-| 재개 범위 | 최상위/중첩 Loop는 완료 응답/Tool 영수증, Graph는 노드 경계다. 진행 중인 공급자 스트림·LangGraph 프레임 자체를 복원하지 않는다. 준비·완료 훅은 개발자가 재실행에 안전하게 작성한다. |
-| 외부 효과 | 기록 직전 프로세스가 죽으면 결과가 불확실하다. 외부 idempotency 키 지원/조회가 필요하며 불확실한 동작은 명시적으로 확인한다. 외부 서비스 트랜잭션을 보장하지 않는다. |
-| 모델 호출 | 동기 SDK 호출은 스레드를 강제 종료할 수 없다. 공급자별 timeout/close 동작을 검증한다. Project Component API의 관찰 가능한 RAG 호출은 사용량 한도에 참여하지만, 사용자 코드의 직접 SDK 호출을 자동 감시하지 않는다. |
-| 사용량 | 입력 계산기와 출력 한도로 예약하며 관찰된 usage로 정산한다. 모델별 청구/공급자 내부 재시도를 보장하지 않는다. Project 합계의 stat/집계 및 컴포넌트 영수증 조회 비용은 기록 수에 비례한다. 영수증 자동 삭제/청구 조정은 별도다. |
-| 저장 | 협조하지 않는 외부 파일 작성자, NFS/SMB, 전원 손실의 모든 시점을 보장하지 않는다. 삭제·여러 컴포넌트 변경은 다중 파일 트랜잭션이 아니다. |
-| 보관 | 기본 무삭제, 명시적 Session 또는 완료 Run 단위 정리다. 재개·출처·작업 원장·사용량 보호 때문에 요청 용량보다 크게 남을 수 있다. Component maintenance는 소유 구현이 지원하는 자료만 정리한다. 로그는 별도 관리한다. |
-| UI | 플러그인은 데이터/API를 제공한다. 승인 화면·상태 표시·재연결 처리는 ish UI에서 연결해야 한다. |
-| 운영 | Linux CI, 고정 의존성 업데이트 절차, 공급자별 실제 호출 검사, 백업 복구 훈련과 장애 대응 절차를 운영 환경에서 확인해야 한다. |
+| 영역 | 보장 범위와 남은 검증 |
+|---|---|
+| 저장 | 로컬 Linux atomic rename/hard link/fsync·협력 잠금 아래의 transaction. 외부 직접 작성자, NFS/SMB, 전원 차단·손상 디스크 전체를 보장하지 않음. |
+| 효과 | 외부 Tool 효과와 receipt는 원자화할 수 없음. 실제 idempotency 지원·외부 조회·uncertain 보호 필요. |
+| 취소 | 동기 SDK 스레드를 강제로 종료하지 못함. PendingWork/슬롯/ownership은 실제 정리까지 유지. |
+| 재개 | 완료된 모델/Tool·노드 경계의 기록 복원. 공급자 스트림 바이트나 임의 LangGraph 프레임 복원 아님. |
+| 사용량 | 명시 counter/출력 상한으로 예약, unknown/부분 usage 보존. 공급자 내부 retry·실제 청구의 정확한 비용 보장 아님. |
+| RAG | 청크별 embedding, 명시 concurrency, cache/Job fingerprint·generation 검증. 대형 corpus JSON·DB 복사·잠금 비용은 남음. |
+| 부하 | 5 Session/3시간/2GB 같은 과거 목표는 실환경 측정 필요. 짧은 합성 시험으로 운영 보장하지 않음. |
+| sandbox | 실제 bwrap·network deny·mount·process 종료 검증 필수. 실패 시 비격리 실행으로 강등하거나 Skip하지 않음. |
+| 확장 | trusted host callback/custom Engine이 직접 호출하는 SDK·외부 저장을 자동 감시/원자화하지 않음. |
+| 보관 | 자동 무음 삭제 없음. 명시 계획/CAS와 checkpoint·receipt·usage·자료 참조 보호. 로그 회전은 별도 명시 설정. |
 
-기본 Session 동시 실행 수, Run 전체 시간, 사용량, 기록 보관은 무제한이다. 개별 모델/Tool의
-안전 한도와 provider 슬롯은 별개다. 상한이 필요하면 Project 정책 또는 호스트 어댑터로 지정한다.
+추가 제한의 부재와 알고리즘 필수값 누락은 다르다. 필요한 기능 설정은 실행 전에 거부하고,
+Host 공유 자원과 Project 제품 정책을 분리한다. 구체적인 완료 gate는 [클린 계획](clean-refactor.md)에 있다.

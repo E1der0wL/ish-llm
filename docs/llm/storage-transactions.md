@@ -22,7 +22,7 @@
 | 자동 승인 정책 | 해당 정책 평가의 응답 전체. PAUSED 확정 후 별도 저장 단위 |
 | Tool 원장 | 예약·완료·효과 없음 영수증과 소유 Step의 operation_receipt 근거 |
 | 외부 결과 확인 | CAS 원장 반영과 원래 Step의 근거 갱신 |
-| Project 생성·기본 Project | project.json, Session/Component 초기화, 기본 참조 |
+| Project 생성 | project.json, Session/Component 디렉토리 초기화; 기본 Project 선택은 Application 소유 |
 | Project 설정·Component 선택 | 설정·선택과 신규 Component 디렉토리 초기화 |
 | Component 영구 제거 | Project의 선택/설정 제거와 컴포넌트 디렉토리 격리 |
 | Session 생성·수정·삭제·복원 | Session 레코드 및 디렉토리 수명 |
@@ -80,8 +80,10 @@ Project/Session/Run/Step의 상태 전이 규칙을 결정하지 않는다. 서�
 Tool 실행 전의 원장 예약과 실행 후의 결과 저장은 별개 트랜잭션이다. 외부 효과와
 로컬 파일을 하나의 원자 작업으로 만들 수는 없다. 결과/Step 저장이 실패하면 원장은
 started로 남아 불확실한 효과를 보호한다. 명시적 외부 확인 후에만 재사용한다.
-None 반환도 정상 완료 결과다. Step의 최종 상태와 이후 체크포인트는 각각의 Engine
-이벤트가 기록한다. 나중 이벤트를 기다리며 트랜잭션을 열어 두지 않는다.
+None 반환도 정상 완료 결과다. `STEP_COMPLETED`에 첨부된 checkpoint receipt는 Step 최종 상태와
+같은 트랜잭션으로 저장하며 둘 모두 확정된 뒤 알린다. 별도의 CHECKPOINT 이벤트는 해당 이벤트의
+저장 단위를 갖는다. 미래 이벤트를 기다리며 트랜잭션을 열어 두지 않는다.
+[완료·receipt 계약](shared-contracts.md)을 함께 따른다.
 
 자동 승인 정책은 PAUSED 확정 뒤 별도로 실행한다. 정책 응답 저장 실패는 응답 묶음을
 되돌리고 PAUSED는 유지한다. 정책 응답을 저장하는 것만으로 재개하지 않는다.
@@ -92,7 +94,7 @@ UI 응답/취소/갱신의 INTERACTION_CHANGED 알림 예약도 after_commit에 
 RAG는 계속 자체 세대·DB 구조를 소유한다. 모델 준비는 잠금 밖에서 진행하고 공개
 단계만 참여한다. 새 세대, 활성 포인터 및 정리 작업의 파일 연동을 보호한다.
 Memory 병합도 공통 JSON 쓰기에 참여하므로 서비스 호출 실패는 변경 전 기록으로
-돌아간다. 프로젝트 밖 백업 생성·변환은 기존 검증된 준비 디렉토리의 원자 공개를
+돌아간다. 프로젝트 밖 백업 준비·공개는 기존 검증된 준비 디렉토리의 원자 공개를
 유지한다. workspace와 외부 백업 경로를 묶는 분산 트랜잭션은 제공하지 않는다.
 
 ## 확장 저장소와 사용 조건
