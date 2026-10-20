@@ -17,6 +17,7 @@ from llm.engines.graph.checkpoints import EngineCheckpointScope
 from llm.engines.loop import LoopEngine
 from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.tools import ToolExecutor, ToolInvocationError
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class DecisionValueTests(unittest.TestCase):
@@ -182,8 +183,8 @@ class ToolDecisionTests(unittest.IsolatedAsyncioTestCase):
     async def test_invalid_raw_graph_decision_fails_before_step_or_worker(self):
         request = approval_request("Tool", action={"tool": "act", "arguments": {}}).bind(
             "graph", "key", decision_key="approved")
-        handler = AsyncMock()
-        tool = Tool("act", "fixture", {"type": "object"}, handler)
+        handler = AsyncMock(spec=lambda arguments: None)
+        tool = Tool("act", "fixture", {"type": "object"}, handler, contract=TEST_CONTRACT)
         for value in ({"approved": 1}, {"approved": 0}, {"approved": "true"}, {}, None):
             with self.subTest(value=value), self.assertRaises(ToolInvocationError), \
                     patch("llm.components.tools.process.invoke_worker") as worker:
@@ -195,8 +196,8 @@ class ToolDecisionTests(unittest.IsolatedAsyncioTestCase):
     async def test_ambiguous_option_and_boolean_number_arguments_cannot_reuse_approval(self):
         request = approval_request("Tool", action={"tool": "act", "arguments": {"flag": True}}).bind("loop", "key")
         ambiguous = replace(request, options=(*request.options, InteractionOption("other", "Other", effect="approve", value=True)))
-        handler = AsyncMock()
-        tool = Tool("act", "fixture", {"type": "object"}, handler)
+        handler = AsyncMock(spec=lambda arguments: None)
+        tool = Tool("act", "fixture", {"type": "object"}, handler, contract=TEST_CONTRACT)
         for current, arguments in ((ambiguous, {"flag": True}), (request, {"flag": 1})):
             with self.assertRaises(ToolInvocationError):
                 async for _ in ToolExecutor().execute(tool, arguments, result={},

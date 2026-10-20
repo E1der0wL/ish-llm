@@ -60,7 +60,7 @@ services = BackendServices(tool_runtime=ToolRuntime(decide_retry=choose_retry))
 선택기가 없어도 기존 `retryable=True` + 안전한 효과 조건의 동일 인자 재시도는 유지된다.
 선택기가 없으면 Backend가 수정안을 생성하지 않는다.
 
-Tool 구현은 `ToolContract(retry_fields=("path",))` 또는 `@tool(retry_fields=("path",))`로
+Tool 구현은 모든 필수 선택을 포함한 `ToolContract`의 `retry_fields=("path",)`로
 수정 가능한 parameter를 선언한다. 이 선언 자체는 오류의 안전성을 보장하지 않는다.
 실행이 효과를 전혀 발생시키지 않았음을 아는 경우에만 다음 오류를 사용한다.
 

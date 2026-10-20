@@ -74,6 +74,6 @@ def function_tool(name, main) -> Tool:
         return await main(**arguments)
     definition = {"type": "function", "function": {"name": name, "description": description,
         "parameters": parameters, **getattr(main, "__tool_options__", {})}}
-    value = Tool(name, description, parameters, handler, definition, contract)
+    value = Tool(name, description, parameters, handler, definition, contract=contract)
     ToolRegistry((value,))
     return value

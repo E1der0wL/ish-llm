@@ -14,6 +14,7 @@ from hub.asset.guides import SKILLS, SYSTEM_PROMPT
 from hub.config.environment import ENVIRONMENT_OPTION, ShellEnvironment
 from llm.engines.loop import LoopEngine
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
@@ -79,7 +80,7 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
             release.wait(3)
             return {"skills": []}
         original = ToolRegistry((Tool("skill_list", "list", {"type": "object"}, listing,
-            contract=ToolContract(effect="read_only", revision="snapshot")),))
+            contract=ToolContract(revision='snapshot', effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=())),))
         with patch.object(SkillComponent, "resolve", return_value=original):
             tools = HubSkillComponent().resolve(None, "tools")
         self.assertEqual(tools.contracts(), original.contracts())

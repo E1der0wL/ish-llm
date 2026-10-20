@@ -15,6 +15,7 @@ from llm.services.runtime.runs import RunRequestError
 from tests.llm.test_loop import chunk, call
 from tests.llm.support.runtime_tools import RuntimeTools
 from llm.components.tools import Tool, ToolRegistry
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class Model:
@@ -96,7 +97,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await release.wait()
             effects.append(1)
-        component = RuntimeTools(ToolRegistry([Tool("act", "test", {"type": "object"}, act)]))
+        component = RuntimeTools(ToolRegistry([Tool("act", "test", {"type": "object"}, act, contract=TEST_CONTRACT)]))
         model = Model([chunk(calls=[call("{}", name="act")], finish="tool_calls")],
                       [chunk("done", finish="stop")], gate=False)
         app, session, request, run = await self.setup_backend(model, components=[component])
@@ -208,7 +209,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             entered.set()
             await asyncio.Event().wait()
-        component = RuntimeTools(ToolRegistry([Tool("act", "test", {"type": "object"}, act)]))
+        component = RuntimeTools(ToolRegistry([Tool("act", "test", {"type": "object"}, act, contract=TEST_CONTRACT)]))
         model = Model([chunk(calls=[call("{}", name="act")], finish="tool_calls")],
                       [chunk("next", finish="stop")], gate=False)
         _, session, request, run = await self.setup_backend(model, components=[component])
@@ -449,7 +450,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         effects = []
         async def act(arguments):
             effects.append(1)
-        component = RuntimeTools(ToolRegistry([Tool("act", "test", {"type": "object"}, act)]))
+        component = RuntimeTools(ToolRegistry([Tool("act", "test", {"type": "object"}, act, contract=TEST_CONTRACT)]))
         model = Model([chunk(calls=[call("{}", name="act")], finish="tool_calls")],
                       [ConnectionError("offline")], [chunk("done", finish="stop")])
         _, session, request, run = await self.setup_backend(model, components=[component])
@@ -524,7 +525,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             effects.append(1)
             return "result" * 100
-        tools = RuntimeTools(ToolRegistry([Tool("act", "test", {"type": "object"}, act)]))
+        tools = RuntimeTools(ToolRegistry([Tool("act", "test", {"type": "object"}, act, contract=TEST_CONTRACT)]))
         model = Model([chunk("draft", finish="stop")],
             [chunk(calls=[call("{}", name="act", call_id="one")], finish="tool_calls")],
             [chunk(calls=[call("{}", name="act", call_id="two")], finish="tool_calls")],

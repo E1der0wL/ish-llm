@@ -24,6 +24,7 @@ from llm.services.runtime.runs import RunRequestError
 from llm.services.composition import BackendServices
 from llm.services.runtime.tools import ToolRuntime
 from tests.llm.test_loop import ScriptedCompletion, chunk
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 def action_graph(kind="work", **options):
@@ -57,7 +58,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         async def effect(arguments):
             self.effects.append(arguments)
             return {"value": arguments.get("value", "done")}
-        self.tools = ToolRegistry((Tool("effect", "record", {"type": "object"}, effect),))
+        self.tools = ToolRegistry((Tool("effect", "record", {"type": "object"}, effect, contract=TEST_CONTRACT),))
 
     async def setup(self, graphs, *, handlers=None, services=None, policies=None, **options):
         async def work(node):
@@ -143,7 +144,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             with effect_file.open("a", encoding="utf-8") as output:
                 output.write(arguments["value"] + "\n")
             return {"value": arguments["value"]}
-        self.tools = ToolRegistry((Tool("effect", "record", {"type": "object"}, effect),))
+        self.tools = ToolRegistry((Tool("effect", "record", {"type": "object"}, effect, contract=TEST_CONTRACT),))
         model = ScriptedCompletion(
             [chunk(calls=[call('{"value":"first"}', name="effect", call_id="first")], finish="tool_calls")],
             [ConnectionError("pause after first completed effect")],
@@ -223,7 +224,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             if len(self.effects) == 1:
                 raise RuntimeError('effect receipt lost')
             return None
-        self.tools = ToolRegistry((Tool('effect', 'record', {'type':'object'}, effect),))
+        self.tools = ToolRegistry((Tool('effect', 'record', {'type':'object'}, effect, contract=TEST_CONTRACT),))
         model = ScriptedCompletion([chunk(calls=[call('{}', name='effect')], finish='tool_calls')],
                                    [chunk('done', finish='stop')])
         handler = AgentNode(engines={'loop': LoopEngine(completion_fn=model)})
@@ -514,7 +515,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         async def uncertain(arguments):
             self.effects.append("effect")
             raise ValueError("uncertain remote result")
-        self.tools = ToolRegistry((Tool("effect", "uncertain", {"type": "object"}, uncertain),))
+        self.tools = ToolRegistry((Tool("effect", "uncertain", {"type": "object"}, uncertain, contract=TEST_CONTRACT),))
         child_engine = GraphEngine(handlers={"tool": ToolNode()})
         agent = AgentNode(engines={"graph": child_engine})
         await self.setup({"main": action_graph("agent", agent="coordinator"),

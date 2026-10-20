@@ -21,6 +21,7 @@ from llm.providers.calls import ProviderLimits, ProviderCalls
 from llm.providers.requests import invoke, ProviderError
 from llm.providers.litellm import stream_completion
 from llm.services.runtime.tools import ToolExecutor
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 def chunks(text="ok"):
@@ -160,7 +161,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         async def slow(args):
             await asyncio.sleep(.02)
             return None
-        tool = Tool("slow", "slow", {"type": "object"}, slow)
+        tool = Tool("slow", "slow", {"type": "object"}, slow, contract=TEST_CONTRACT)
         result = {}
         events = [e async for e in ToolExecutor().execute(tool, {}, result=result)]
         self.assertEqual(result["value"], None)
@@ -172,7 +173,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await asyncio.Event().wait()
         async def consume():
-            return [e async for e in ToolExecutor().execute(Tool("wait", "wait", {"type": "object"}, wait), {}, result={})]
+            return [e async for e in ToolExecutor().execute(Tool("wait", "wait", {"type": "object"}, wait, contract=TEST_CONTRACT), {}, result={})]
         pending = asyncio.create_task(consume())
         await entered.wait()
         pending.cancel()

@@ -19,6 +19,7 @@ from llm.services.runtime.events import EventSubscriptions
 from llm.providers.calls import ProviderCalls
 from tests.llm import test_tool_packages as package_tests
 from tests.llm.test_tool_workers import source
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
@@ -29,7 +30,7 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
         scope = scope or ToolExecutionScope(ToolRuntime())
         context = SimpleNamespace(project=SimpleNamespace(id="p"), session=SimpleNamespace(id="s"),
                                   run=SimpleNamespace(id="r", input_message_id="m"), tool_scope=scope)
-        tool = Tool("act", "fixture", {"type": "object"}, handler)
+        tool = Tool("act", "fixture", {"type": "object"}, handler, contract=TEST_CONTRACT)
         with observer.scope():
             async for _ in ToolExecutor().execute(tool, {}, result={}, context=context, decision=decision):
                 pass
@@ -61,7 +62,7 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
     async def test_actual_approval_resume_request_is_counted_once(self):
         async def ask(call):
             raise ToolApprovalRequired()
-        project, session, _ = await self.setup_runtime(source('return None', decorator='@tool(approval_required=True)'),
+        project, session, _ = await self.setup_runtime(source('return None', decorator='@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))'),
                                                        runtime=ToolRuntime(authorize=ask))
         app = project.app
         paused = await (await session.run.submit("private prompt", engine="loop")).wait()
@@ -145,14 +146,14 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
             tool_scope=ToolExecutionScope(ToolRuntime()),
             checkpoint={'records': {
                 'a': {'status': 'waiting', 'interaction': approval_request('Tool',
-                    action={'tool': 'act', 'arguments': {}, 'contract': None,
+                    action={'tool': 'act', 'arguments': {}, 'contract': TEST_CONTRACT.to_dict(),
                             'classification': {'category': 'tool.execute', 'risk_scheme': None, 'risk': None},
                             'policy': ToolExecutionScope(ToolRuntime()).binding()}).bind('custom', 'a').to_dict()},
                 'b': {'status': 'waiting', 'interaction': approval_request('Pause',
                     action={'node_id': 'b'}).bind('custom', 'b').to_dict()}}})
         async def handler(arguments):
             return None
-        tool = Tool('act', 'fixture', {'type': 'object'}, handler)
+        tool = Tool('act', 'fixture', {'type': 'object'}, handler, contract=TEST_CONTRACT)
         # a의 Tool 승인 요청은 이미 관찰했다. b는 단순 Graph pause_before였으므로 새 Tool 요청이다.
         observer.record('tools', 'requests')
         with observer.scope():
@@ -224,7 +225,7 @@ class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
             (), checkpoint={'records': records or {}}, tool_scope=scope or ToolExecutionScope(ToolRuntime()))
 
     def waiting(self, key, *, tool='act', arguments=None, graph=False):
-        request = approval_request('Tool', action={'tool': tool, 'arguments': arguments or {}, 'contract': None,
+        request = approval_request('Tool', action={'tool': tool, 'arguments': arguments or {}, 'contract': TEST_CONTRACT.to_dict(),
             'classification': {'category': 'tool.execute', 'risk_scheme': None, 'risk': None},
             'policy': ToolExecutionScope(ToolRuntime()).binding()})
         return {'status': 'waiting', 'interaction': request.bind('custom', key,
@@ -240,7 +241,7 @@ class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
             if len(attempts) == 1:
                 raise ToolExecutionError('retry', effect='none', retryable=True)
             return None
-        tool = Tool('act', 'fixture', {'type': 'object'}, handler)
+        tool = Tool('act', 'fixture', {'type': 'object'}, handler, contract=TEST_CONTRACT)
         class CustomEngine(BaseEngine):
             async def execute(self, context):
                 from contextlib import aclosing
@@ -264,8 +265,8 @@ class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_missing_wrong_or_conflicting_binding_fails_before_execution(self):
         from unittest.mock import AsyncMock
-        handler = AsyncMock()
-        tool = Tool('act', 'fixture', {'type': 'object'}, handler)
+        handler = AsyncMock(spec=lambda arguments: None)
+        tool = Tool('act', 'fixture', {'type': 'object'}, handler, contract=TEST_CONTRACT)
         cases = [(None, True, {}), ('typo', True, {}), ('a', False, {}), ('a', None, {}),
                  ('a', True, {'changed': True})]
         for key, decision, arguments in cases:
@@ -286,7 +287,7 @@ class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
         executed = []
         async def handler(arguments):
             executed.append(arguments)
-        tool = Tool('act', 'fixture', {'type': 'object'}, handler)
+        tool = Tool('act', 'fixture', {'type': 'object'}, handler, contract=TEST_CONTRACT)
         keys = ['["parent","loop",0,"tool"]', '["parent","loop",1,"tool"]']
         records = {key: self.waiting(key, graph=True) for key in keys}
         context = self.context(records=records, decisions={key: {'approved': True} for key in keys})
@@ -298,8 +299,8 @@ class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_denial_reuses_request_without_execution(self):
         from unittest.mock import AsyncMock
-        observer, handler = Observability(), AsyncMock()
-        tool = Tool('act', 'fixture', {'type': 'object'}, handler)
+        observer, handler = Observability(), AsyncMock(spec=lambda arguments: None)
+        tool = Tool('act', 'fixture', {'type': 'object'}, handler, contract=TEST_CONTRACT)
         context = self.context(records={'a': self.waiting('a')}, decisions={'a': False})
         with observer.scope():
             observer.record('tools', 'requests')
@@ -313,15 +314,15 @@ class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
     async def test_plain_host_decision_without_checkpoint_remains_supported(self):
         async def handler(arguments):
             return None
-        tool = Tool('act', 'fixture', {'type': 'object'}, handler)
+        tool = Tool('act', 'fixture', {'type': 'object'}, handler, contract=TEST_CONTRACT)
         async for _ in ToolExecutor().execute(tool, {}, result={}, context=self.context(), decision=True):
             pass
 
     async def test_checkpoint_confirmation_cannot_be_forwarded_as_tool_approval(self):
         from dataclasses import replace
         from unittest.mock import AsyncMock
-        handler = AsyncMock()
-        tool = Tool('act', 'fixture', {'type': 'object'}, handler)
+        handler = AsyncMock(spec=lambda arguments: None)
+        tool = Tool('act', 'fixture', {'type': 'object'}, handler, contract=TEST_CONTRACT)
         pause = replace(approval_request('Continue', category='workflow.continue', action={'node': 'b'}),
                         kind='confirmation').bind('graph', 'b', decision_key='approved').to_dict()
         for record in ({'status': 'waiting', 'interaction': pause},
@@ -338,8 +339,8 @@ class ToolInvocationTests(unittest.IsolatedAsyncioTestCase):
     async def test_helper_ignores_confirmation_and_runs_host_authorization(self):
         from dataclasses import replace
         from unittest.mock import AsyncMock
-        handler, authorize = AsyncMock(), AsyncMock(return_value=False)
-        tool = Tool('act', 'fixture', {'type': 'object'}, handler)
+        handler, authorize = AsyncMock(spec=lambda arguments: None), AsyncMock(return_value=False)
+        tool = Tool('act', 'fixture', {'type': 'object'}, handler, contract=TEST_CONTRACT)
         pause = replace(approval_request('Continue'), kind='confirmation').bind(
             'graph', 'b', decision_key='approved').to_dict()
         context = self.context(records={'b': {'status': 'waiting', 'interaction': pause}},

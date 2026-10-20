@@ -15,6 +15,8 @@ from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.services.runtime.tools import ToolRuntime, ToolExecutionScope, ToolExecutor, ToolExecutionError
 from llm.engines.base import EngineEventType
 from tests.llm import test_long_running, test_loop
+from llm.components.tools import ToolEffect, ToolIsolation
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 SCHEMA = {"type": "object", "properties": {"path": {"type": "string"}, "note": {"type": ["string", "null"]}},
@@ -191,7 +193,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_reserved_checkpoint_namespace_cannot_collide_with_custom_engine(self):
         handler = AsyncMock()
-        tool = Tool('read', 'read', SCHEMA, handler)
+        tool = Tool('read', 'read', SCHEMA, handler, contract=TEST_CONTRACT)
         with self.assertRaisesRegex(ValueError, 'reserved retry namespace'):
             async for _ in ToolExecutor().execute(tool, {'path': 'a'}, result={}, request_key='@tool-retry:x'):
                 pass
@@ -203,7 +205,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
         context = SimpleNamespace(project=SimpleNamespace(id='p'), session=SimpleNamespace(id='s'),
             run=SimpleNamespace(id='r', input_message_id='m', metadata={}), tool_scope=scope)
         result, events = {}, []
-        tool = Tool('read', 'read', SCHEMA, handler, contract=contract or ToolContract(retry_fields=('path',)))
+        tool = Tool('read', 'read', SCHEMA, handler, contract=contract or ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=('path',)))
         async for event in ToolExecutor().execute(tool, {'path': 'bad'}, result=result, context=context):
             events.append(event)
         return result, events, scope
@@ -274,7 +276,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             [test_loop.chunk(calls=[test_loop.call('{"path":"bad"}', name='act')], finish='tool_calls')],
             [test_loop.chunk('finished', finish='stop')]], ToolRuntime(decide_retry=choose),
             policies={'tool_retry': {'max_retries': 1}}, tool_schema=SCHEMA,
-            tool_contract=ToolContract(approval_required=True, retry_fields=('path',)))
+            tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=('path',)))
         initial = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual(initial.data.status, 'paused', initial.data.error)
         self.assertEqual(calls, [])
@@ -305,7 +307,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             [test_loop.chunk(calls=[test_loop.call('{"path":"bad"}', name='act')], finish='tool_calls')]],
             ToolRuntime(decide_retry=lambda failure: RetryDecision({'path': 'next'})),
             policies={'tool_retry': {'max_retries': 1}}, tool_schema=SCHEMA,
-            tool_contract=ToolContract(retry_fields=('path',)))
+            tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=('path',)))
         failed = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual(failed.data.status, 'failed')
         self.assertEqual(calls, ['bad', 'next'])
@@ -357,7 +359,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
         def backend(root):
             return LargeLanguageModel(root,
                 components=[RuntimeTools(ToolRegistry((Tool('act', 'action', SCHEMA, handler,
-                    contract=ToolContract(approval_required=True, retry_fields=('path',))),))), WorkflowComponent()],
+                    contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=('path',))),))), WorkflowComponent()],
                 engines={'graph': GraphEngine(handlers={'tool': ToolNode()})},
                 services=BackendServices(tool_runtime=ToolRuntime(decide_retry=choose)))
         with tempfile.TemporaryDirectory() as directory:
@@ -404,7 +406,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
                 ToolRuntime(operation_key=lambda call: 'work' if same_key else call.arguments['path'],
                     decide_retry=lambda failure: RetryDecision({'path': 'good'})),
                 policies={'tool_retry': {'max_retries': 1}}, tool_schema=SCHEMA,
-                tool_contract=ToolContract(operation_key_required=True, retry_fields=('path',)))
+                tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=True, retry_fields=('path',)))
             run = await (await session.run.submit('go', engine='loop')).wait()
             receipt = await session.run.aoperation('work' if same_key else 'bad')
             self.assertEqual(receipt['status'], 'not_applied')

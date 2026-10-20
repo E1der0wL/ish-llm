@@ -215,6 +215,9 @@ def scan_source(source, file):
                 if domain_name(symbol(key)) and literal(value):
                     add("S3", value, owner, f"inline domain field: {symbol(key)}")
         if isinstance(node, (ast.Assign, ast.AnnAssign)):
+            if (file == "llm/components/tools/registry.py" and owner == "ToolContract"
+                    and isinstance(node, ast.AnnAssign) and node.value is not None):
+                add("S2", node, owner, "trusted Tool execution declaration cannot supply defaults")
             targets = node.targets if isinstance(node, ast.Assign) else [node.target]
             for target in targets:
                 if domain_name(symbol(target)) and literal(node.value):

@@ -14,11 +14,13 @@ from llm.core.models import ProjectConfig
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
 from llm.core.interactions import InteractionRequest, InteractionOption
 from llm.engines.graph.checkpoints import EngineCheckpointScope
+from llm.components.tools import ToolEffect, ToolIsolation
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class SchemaBoundaryTests(unittest.TestCase):
     def check(self, schema):
-        ToolRegistry((Tool("sample", "sample", schema, lambda args: None),))
+        ToolRegistry((Tool("sample", "sample", schema, lambda args: None, contract=TEST_CONTRACT),))
         AgentComponent().validate_record("sample", {
             "purpose": "sample", "engine": "custom", "input_schema": deepcopy(schema)})
         validate_contract({"input_schema": deepcopy(schema)})
@@ -37,7 +39,7 @@ class SchemaBoundaryTests(unittest.TestCase):
         self.check({"type": "object", "$defs": {"text": {"type": "string"}},
                     "properties": {"payload": {"$ref": "#/$defs/text"}}})
         for key in ("$ref", "$dynamicRef"):
-            for check in (lambda s: ToolRegistry((Tool("sample", "", s, lambda a: None),)),
+            for check in (lambda s: ToolRegistry((Tool("sample", "", s, lambda a: None, contract=TEST_CONTRACT),)),
                           lambda s: AgentComponent().validate_record("sample", {
                               "purpose": "sample", "engine": "custom", "input_schema": s}),
                           lambda s: validate_contract({"input_schema": s})):
@@ -53,7 +55,7 @@ class SchemaBoundaryTests(unittest.TestCase):
                 return None
         with self.assertRaisesRegex(ValueError, "selected Tool bindings.*retry_fields"):
             ToolRegistry((Tool("select", "", {"type": "object", "properties": {"target": {"type": "string"}}},
-                Selected(), contract=ToolContract(retry_fields=("target",))),))
+                Selected(), contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=('target',))),))
 
 
 
@@ -185,7 +187,7 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
             effects.append(arguments)
             return "done"
         registry = ToolRegistry((Tool("write", "write", {"type": "object"}, write,
-                                      contract=ToolContract(approval_required=True)),))
+                                      contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),))
         _, session, parent, child = await AgentDelegationTests.setup(self,
             registry=registry, child_tools=("write",), child_responses=[
                 [chunk(calls=[call("{}", name="write")], finish="tool_calls")],
@@ -214,7 +216,7 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
                 async def write(arguments):
                     return None
                 registry = ToolRegistry((Tool("write", "write", {"type": "object"}, write,
-                    contract=ToolContract(approval_required=waiting)),))
+                    contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=waiting, operation_key_required=False, retry_fields=())),))
                 _, session, parent, _ = await AgentDelegationTests.setup(self,
                     registry=registry, child_tools=("write",), child_responses=[
                         [chunk(calls=[call("{}", name="write")], finish="tool_calls")],
@@ -328,7 +330,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
             return "done"
         graph = WorkflowGraph(entry="write").node("write", "execute", tool="write").node("end", "end").connect("write", "end")
         _, _, session = await self.setup_graph(graph.to_dict(), {"execute": ToolNode()}, (
-            Tool("write", "write", {"type": "object"}, write, contract=ToolContract(approval_required=True)),))
+            Tool("write", "write", {"type": "object"}, write, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),))
         run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)
         self.assertEqual(effects, [])
@@ -354,7 +356,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
                  .node("b", "agent", agent="b").node("end", "end").connect("a", "b").connect("b", "end"))
         profile = {"purpose": "test", "engine": "loop", "completion": {"model": "test"}}
         _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})},
-            (Tool("write", "write", {"type": "object"}, write, contract=ToolContract(approval_required=True)),),
+            (Tool("write", "write", {"type": "object"}, write, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),),
             agents=(("a", {**profile, "tools": ["write"]}), ("b", profile)))
         run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)
@@ -387,7 +389,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         graph = (WorkflowGraph(entry="a").node("a", "agent", agent="worker").node("b", "agent", agent="worker")
                  .node("end", "end").connect("a", "b").connect("b", "end"))
         app, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})},
-            (Tool("echo", "echo", {"type": "object", "properties": {"value": {"type": "string"}}}, echo),),
+            (Tool("echo", "echo", {"type": "object", "properties": {"value": {"type": "string"}}}, echo, contract=TEST_CONTRACT),),
             agents=(("worker", {"purpose": "echo", "engine": "loop", "completion": {"model": "test"}, "tools": ["echo"]}),))
         run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)

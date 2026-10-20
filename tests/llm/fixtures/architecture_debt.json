@@ -516,14 +516,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "5a8f3d9b4f487a7cc5a053683f7cbecdf2d5c3e2c4312709b4a15dd1f0589799:1",
-      "rule": "S3",
-      "file": "llm/components/memory/tools.py",
-      "symbol": "memory_tools",
-      "line": 65,
-      "detail": "inline domain argument: effect"
-    },
-    {
       "id": "29fd5a46b8e05c419b29c6b6b765320f514d33a322fbe6cb330cf3ae9386b7ba:1",
       "rule": "S2",
       "file": "llm/components/processing.py",
@@ -1004,52 +996,12 @@
       "detail": "verify exact version type and declaration reference"
     },
     {
-      "id": "cc731a7e81f1d6e7116d18e2e01b735035b3ae07589eb11a3b8eb33151d890d0:1",
-      "rule": "S3",
-      "file": "llm/components/skills/tools.py",
-      "symbol": "skill_tools",
-      "line": 13,
-      "detail": "inline domain argument: effect"
-    },
-    {
-      "id": "aa5de23d0bcb0270406ae7f23b60fe62d5a1591266417fb60d5cc2c8362dc9ca:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/catalog.py",
-      "symbol": "BuiltinTools.__init__",
-      "line": 64,
-      "detail": "inline domain argument: effect"
-    },
-    {
-      "id": "fb364ae1fdbbfb509797fa4ba15d2ea584438b024e454adecf501fd1a4fe53a4:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/catalog.py",
-      "symbol": "BuiltinTools.__init__",
-      "line": 89,
-      "detail": "inline domain argument: effect"
-    },
-    {
       "id": "22f6ba69525c8a12645a763c25698238acbf6d51eb5371c682c9fd2712dd3808:1",
       "rule": "S3",
       "file": "llm/components/tools/builtin/catalog.py",
       "symbol": "BuiltinTools.__init__",
       "line": 89,
       "detail": "inline domain argument: retry_fields"
-    },
-    {
-      "id": "fb364ae1fdbbfb509797fa4ba15d2ea584438b024e454adecf501fd1a4fe53a4:2",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/catalog.py",
-      "symbol": "BuiltinTools.__init__",
-      "line": 97,
-      "detail": "inline domain argument: effect"
-    },
-    {
-      "id": "722735d3a09a6956d17028fbd79422ff8050cf4658d64ffcf0f146671ec57d08:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/catalog.py",
-      "symbol": "BuiltinTools.__init__",
-      "line": 103,
-      "detail": "inline domain argument: isolation"
     },
     {
       "id": "22b31f5ec5abe43a0a686f938e7fec21ba4370ea694d3db900358ef699ba88a0:1",
@@ -1108,30 +1060,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "fea9b1b5a910c447cdaeb25470f60a1300a86c8ce796f33da922499069afbb82:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/workspaces.py",
-      "symbol": "TestWorkspaces.__init__",
-      "line": 53,
-      "detail": "inline domain field: isolation"
-    },
-    {
-      "id": "c7e554897ede4c19bac9e8dc6f62aa5e01e18cdf4f4dffe013bb75a5c2072369:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/workspaces.py",
-      "symbol": "BuiltinToolRunner.validate_tool",
-      "line": 297,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "2d29943de77d67963647e7a4e36f123326bc2d342ec47ef0b3a091739af4dd03:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/workspaces.py",
-      "symbol": "BuiltinToolRunner.__call__",
-      "line": 312,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "49fa9aea97465496d4d2969f1d57c51157371ce667fae43629aca125f998279e:1",
       "rule": "S3",
       "file": "llm/components/tools/component.py",
@@ -1180,38 +1108,6 @@
       "detail": "inline domain argument: max_workers"
     },
     {
-      "id": "4fc833859fbd5dad7b05b94aacc6471117aa51bceb89bfce3c31b8358278acff:1",
-      "rule": "S3",
-      "file": "llm/components/tools/registry.py",
-      "symbol": "ToolContract",
-      "line": 35,
-      "detail": "inline domain assignment: effect"
-    },
-    {
-      "id": "c4fa4e2195244553e24891724ad83fd2e3c3452df412c9b3f915a42354d9c1f1:1",
-      "rule": "S3",
-      "file": "llm/components/tools/registry.py",
-      "symbol": "ToolContract",
-      "line": 36,
-      "detail": "inline domain assignment: isolation"
-    },
-    {
-      "id": "95fded4d5573e3892bea377aa4512a19501025955aeb77195fe3ef16c577ab2a:1",
-      "rule": "S3",
-      "file": "llm/components/tools/registry.py",
-      "symbol": "ToolContract.__post_init__",
-      "line": 44,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "26aff3752f0d3f555cd55ce1f7ae0a6624b2dedf0e3aaec9f466e871eb24d40b:1",
-      "rule": "S3",
-      "file": "llm/components/tools/registry.py",
-      "symbol": "ToolContract.__post_init__",
-      "line": 44,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "9a778bb84c5950137b76f3da95a35b47abbd24d03f52884a0c113837e93d819b:1",
       "rule": "S2",
       "file": "llm/components/tools/registry.py",
@@ -1234,22 +1130,6 @@
       "symbol": "VisionComponent",
       "line": 26,
       "detail": "inline domain argument: policy"
-    },
-    {
-      "id": "04d8ea8f537fa1e0976c27f7664a2f69f324b150ccabefe41ff13b61387b8008:1",
-      "rule": "S3",
-      "file": "llm/components/vision/tools.py",
-      "symbol": "vision_tools",
-      "line": 34,
-      "detail": "inline domain argument: effect"
-    },
-    {
-      "id": "3d95df851f02b745a669522406a547fd6bab3c2046435f248034c734f2a42d8a:1",
-      "rule": "S3",
-      "file": "llm/components/vision/tools.py",
-      "symbol": "vision_tools",
-      "line": 40,
-      "detail": "inline domain argument: effect"
     },
     {
       "id": "c045028c8438f6cea7556d38033a68f37b6ff164a3f51d78ffb0c14fb1efa382:1",
@@ -2748,62 +2628,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "e3d06ac278014fe8146bbb58765ea5e6073ecc28bb7a3ae683b90567cc351d25:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/processes.py",
-      "symbol": "ProcessToolRunner.__init__",
-      "line": 49,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "ce1adbb63d162738b5cba2ca1ad036e205fc5ab719384b40a8da4fd6bc5f2687:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/processes.py",
-      "symbol": "ProcessToolRunner.__init__",
-      "line": 51,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "4bb2c2e554299ebcbbd183b23aa78da2576697eb2c027202632f59bbb456f284:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/processes.py",
-      "symbol": "ProcessToolRunner._sandbox",
-      "line": 82,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "242e3f777a897a1b49b86873f055b970ff588484767f04a8547fca8710555bc3:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/processes.py",
-      "symbol": "ProcessToolRunner._launch",
-      "line": 112,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "5895db619025752132ff084c3a6d029f87405fc2f8b418a582d2b3b292d03fcc:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/processes.py",
-      "symbol": "ProcessToolRunner.validate_tool",
-      "line": 207,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "3459f0e2948fbf81487a06ee82cbf489473e9c0e230493b414b182c8a5cada8c:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/processes.py",
-      "symbol": "ProcessToolRunner.validate_tool",
-      "line": 207,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "fca38618d3211313dfcadbbf156a9e61d430e4d6f2aa0ea3bfff7b146375b2a8:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/processes.py",
-      "symbol": "ProcessToolRunner.validate_tool",
-      "line": 209,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "86ecc930aae579c61ae6194738339cbde8df03a85f746fb891b8a0367fa9d19d:1",
       "rule": "S2",
       "file": "llm/services/runtime/runs.py",
@@ -3002,14 +2826,6 @@
       "symbol": "ToolExecutionScope.binding",
       "line": 192,
       "detail": "inline domain field: retry_selector"
-    },
-    {
-      "id": "1da338c2df0369d65f9f51b48c87ac45ca7f5134c224485f6cfa4b79721de44b:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutionScope.validate",
-      "line": 227,
-      "detail": "inline domain comparison"
     },
     {
       "id": "01f0d7dfa32988e3a4432959cda86a7ddbb59eed6b870e31a52ae9956268e830:1",
@@ -3970,14 +3786,6 @@
       "symbol": "HubRuntime.snapshot",
       "line": 506,
       "detail": "inline domain argument: status"
-    },
-    {
-      "id": "9c2c49225993aebf3d9b3dccc437ff04451791adafe08b03d179535139e0411e:1",
-      "rule": "S3",
-      "file": "hub/backend/tools/builtin.py",
-      "symbol": "HubBuiltinTools._create",
-      "line": 74,
-      "detail": "inline domain argument: effect"
     },
     {
       "id": "520c8bf5d61eeb280b1107193263cb250c4aa02d939eafcfbff7837f770ad38b:1",

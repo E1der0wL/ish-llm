@@ -37,8 +37,12 @@ class ToolCall:
     operation_key: Optional[str] = None
     idempotency_key: Optional[str] = None
     input_message_id: Optional[str] = None
-    contract: Optional[dict] = None
+    contract: dict = field(kw_only=True)
     classification: Optional[dict] = None
+
+    def __post_init__(self):
+        from llm.components.tools.registry import ToolContract
+        object.__setattr__(self, "contract", ToolContract.from_dict(self.contract).to_dict())
 
 
 _tool_call = ContextVar("llm_tool_call", default=None)
@@ -271,14 +275,15 @@ class ToolExecutionScope:
         from llm.components.tools.constraints import constrained_parameters
         constrained_parameters(tool.parameters, self.argument_constraints.get(tool.name, {}))
         contract = tool.contract
-        if contract is None:
-            return
+        from llm.components.tools.registry import ToolContract, ToolIsolation
+        if not isinstance(contract, ToolContract):
+            raise TypeError("Tool contract must be ToolContract")
         root = self
         while root.parent is not None:
             root = root.parent
         if contract.operation_key_required and self.runtime.operation_key is None:
             raise ExecutionLimitError("tool_contract", "Tool requires an operation key adapter")
-        if contract.isolation != "none":
+        if contract.isolation != ToolIsolation.NONE:
             validate = getattr(self.runtime.runner, "validate_tool", None)
             if validate is None:
                 raise ExecutionLimitError("tool_contract", "Tool requires a compatible isolated runner")
@@ -321,7 +326,7 @@ class ToolExecutionScope:
                     else:
                         if allowed is not True:
                             raise ExecutionLimitError("tool_denied", f"Tool authorization denied: {call.name}")
-                if decision is not True and (call.contract or {}).get("approval_required"):
+                if decision is not True and call.contract["approval_required"]:
                     raise ToolApprovalRequired()
         except ToolApprovalRequired:
             self.pending_approvals.append(identity)
@@ -350,7 +355,7 @@ class ToolExecutor:
         if scope is not None and scope.runtime.classify is not None:
             classification = scope.runtime.classify(ToolCall(tool.name, deepcopy(arguments), "",
                 context.project.id, context.session.id, context.run.id,
-                contract=tool.contract.to_dict() if tool.contract else None))
+                contract=tool.contract.to_dict()))
             if inspect.isawaitable(classification):
                 classification = await classification
         if not isinstance(classification, ToolClassification):
@@ -408,7 +413,7 @@ class ToolExecutor:
                     raise ValueError("Operation keys require a Session-bound operation service")
                 call = replace(call, operation_key=key,
                                idempotency_key=operation_token(call.project_id, call.session_id, key))
-        if tool.contract is not None and tool.contract.operation_key_required and call.operation_key is None:
+        if tool.contract.operation_key_required and call.operation_key is None:
             raise ExecutionLimitError("tool_contract", "Tool operation key cannot be empty")
         return call
 
@@ -449,7 +454,7 @@ class ToolExecutor:
                 raise ToolInvocationError("Durable Tool approval classification changed")
             if scope is not None and not same_interaction_value(action.get("policy"), scope.binding()):
                 raise ToolInvocationError("Durable Tool approval policy/adapter binding changed")
-            if not same_interaction_value(action.get("contract"), tool.contract.to_dict() if tool.contract else None):
+            if not same_interaction_value(action.get("contract"), tool.contract.to_dict()):
                 raise ToolInvocationError("Durable Tool approval Tool contract changed")
             if scope is not None and not same_interaction_value(
                     action.get("policy", {}).get("argument_constraints", {}), scope.argument_constraints):
@@ -488,7 +493,7 @@ class ToolExecutor:
                         context.project.id if context else None, context.session.id if context else None,
                         context.run.id if context else None,
                         input_message_id=context.run.input_message_id if context else None,
-                        contract=tool.contract.to_dict() if tool.contract is not None else None,
+                        contract=tool.contract.to_dict(),
                         classification=classification)
         # Project의 제한은 모든 엔진이 공유하며 로컬 호출은 좁히기만 한다.
         def narrow(left, right):
@@ -584,7 +589,7 @@ class ToolExecutor:
                                 or tool.name in scope.runtime.retry_safe_tools)
                         retryable = isinstance(error, ToolExecutionError) and error.retryable
                         repairable = (isinstance(error, ToolExecutionError) and error.recoverable
-                                      and not uncertain_attempt and bool(tool.contract and tool.contract.retry_fields))
+                                      and not uncertain_attempt and bool(tool.contract.retry_fields))
                         if isinstance(error, ToolExecutionError) and error.effect == "none" and not uncertain_attempt and call.operation_key is not None:
                             try:
                                 await scope.operations.not_applied(call, str(error))

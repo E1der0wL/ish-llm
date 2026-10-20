@@ -124,6 +124,15 @@ class ArchitectureCheckTests(unittest.TestCase):
                 self.assertIn("S4", self.rules(source))
         self.assertIn("S2", self.rules("set(config or {}) != {'version', 'config'}"))
 
+    def test_tool_contract_defaults_cannot_return_through_owner_declarations(self):
+        file = "llm/components/tools/registry.py"
+        self.assertEqual(self.rules("class ToolContract:\n    approval_required: bool\n", file), set())
+        for value in ("False", "DEFAULT_APPROVAL", "field(default=False)",
+                      "field(default_factory=choose_approval)"):
+            with self.subTest(value=value):
+                self.assertIn("S2", self.rules(
+                    "class ToolContract:\n    approval_required: bool = " + value, file))
+
     def test_mutation_cannot_hide_in_recorded_file_or_move_to_another_owner(self):
         old = scan_source("policy = policy or {}", "llm/example.py")
         baseline = {"findings": old}

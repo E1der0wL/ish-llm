@@ -11,6 +11,8 @@ from llm.engines.loop import LoopEngine
 from llm.services.runtime.tools import ToolRuntime
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
+from llm.components.tools import ToolEffect, ToolIsolation
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
@@ -55,7 +57,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
             effects.append(args)
             return "written"
         registry = ToolRegistry((Tool("write", "write", {"type": "object", "additionalProperties": False}, write,
-            contract=ToolContract(approval_required=True), classification=ToolClassification("file.write", "test", 40)),))
+            contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()), classification=ToolClassification("file.write", "test", 40)),))
         app, session, parent, child = await self.setup(child_tools=("write",), registry=registry,
             policies={"tools": {"max_calls": 2}},
             child_responses=[[chunk(calls=[call("{}", name="write")], finish="tool_calls")],
@@ -87,8 +89,8 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
             effects.append(args["value"])
             return None
         schema = {"type": "object", "properties": {"value": {"type": "integer"}}, "required": ["value"]}
-        registry = ToolRegistry((Tool("first", "first", schema, work),
-            Tool("second", "second", schema, work, contract=ToolContract(approval_required=True))))
+        registry = ToolRegistry((Tool("first", "first", schema, work, contract=TEST_CONTRACT),
+            Tool("second", "second", schema, work, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))))
         app, session, parent, child = await self.setup(registry=registry, child_tools=registry.names(),
             policies={"tools": {"max_calls": 3}}, child_responses=[
                 [chunk(calls=[call('{"value":1}', name="first")], finish="tool_calls")],
@@ -109,7 +111,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
         effects = []
         async def write(args):
             effects.append(args)
-        registry = ToolRegistry((Tool("write", "write", {"type": "object"}, write),))
+        registry = ToolRegistry((Tool("write", "write", {"type": "object"}, write, contract=TEST_CONTRACT),))
         _, session, _, _ = await self.setup(child_tools=("write",), registry=registry,
             policies={"tools": {"max_calls": 1}},
             child_responses=[[chunk(calls=[call("{}", name="write")], finish="tool_calls")]])
@@ -132,7 +134,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
         effects = []
         async def write(args):
             effects.append(args)
-        registry = ToolRegistry((Tool("write", "write", {"type": "object"}, write),))
+        registry = ToolRegistry((Tool("write", "write", {"type": "object"}, write, contract=TEST_CONTRACT),))
         _, session, _, child = await self.setup(child_tools=("write",), registry=registry,
             policies={"tools": {"allowed_tools": ["agent_run"]}})
         run = await (await session.run.submit("go", engine="parent")).wait(timeout=10)
@@ -149,7 +151,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             finally:
                 stopped.set()
-        registry = ToolRegistry((Tool("work", "work", {"type": "object"}, work),))
+        registry = ToolRegistry((Tool("work", "work", {"type": "object"}, work, contract=TEST_CONTRACT),))
         _, session, _, _ = await self.setup(child_tools=("work",), registry=registry,
             child_responses=[[chunk(calls=[call("{}", name="work")], finish="tool_calls")]])
         request = await session.run.submit("go", engine="parent")
@@ -165,7 +167,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
             effects.append(args)
             return "done"
         registry = ToolRegistry((Tool("work", "work", {"type": "object", "properties": {
-            "target": {"type": "string"}}}, work),))
+            "target": {"type": "string"}}}, work, contract=TEST_CONTRACT),))
         _, session, _, child = await self.setup(child_tools=("work",), registry=registry,
             policies={"tools": {"argument_constraints": {"work": {"target": {"mode": "fixed", "value": "safe"}}}}},
             child_responses=[[chunk(calls=[call("{}", name="work")], finish="tool_calls")],

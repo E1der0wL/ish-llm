@@ -3,7 +3,7 @@
 from dataclasses import replace
 from pathlib import Path
 
-from llm.components.tools import ToolContract, ToolRegistry
+from llm.components.tools import ToolRegistry
 
 
 def relative_path(root: Path, value):
@@ -38,7 +38,7 @@ def bind_paths(toolkit):
     for name in toolkit.registry.names():
         tool = toolkit.registry.get(name)
         if name.startswith("file_") or name in ("process_start", "shell_execute", "test_workspace_create"):
-            contract = tool.contract or ToolContract()
+            contract = tool.contract
             tool = replace(tool, handler=handler(tool), contract=replace(contract,
                 revision="hub-relative-paths-v1:" + contract.revision))
         tools.append(tool)

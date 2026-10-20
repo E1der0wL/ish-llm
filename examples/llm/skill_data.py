@@ -21,7 +21,12 @@ async def create_example(app):
     manual = await data.asnapshot("manual")
     manual = await data.awrite_file("manual", "reference.md", "# Reference\nUse explicit input values.\n",
                                     expected_revision=manual["version"])
-    await tools.acreate({"source": 'from llm.components.tools import tool\n@tool()\nasync def main(text: str):\n    """Return supplied text."""\n    return text\n'}, identifier="echo")
+    await tools.acreate({"source": '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
+async def main(text: str):
+    """Return supplied text."""
+    return text
+'''}, identifier="echo")
     tool = await tools.asnapshot("echo")
     await skills.acreate({"instructions": "Read the reference and validate the result."}, identifier="guide")
     guide = await skills.asnapshot("guide")

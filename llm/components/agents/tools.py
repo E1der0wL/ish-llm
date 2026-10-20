@@ -3,6 +3,7 @@
 from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.core.schema import object_schema, field, open_schema
 from llm.engines.agents import AgentExecution, AgentDelegation
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 def agent_tools(engines):
@@ -12,4 +13,7 @@ def agent_tools(engines):
         object_schema({"agent_id": field("string", minLength=1),
                        "input": open_schema("selected saved Agent input_schema", category="implementation")},
                       required=["agent_id", "input"]),
-        handler, contract=ToolContract()),))
+        handler, contract=ToolContract(
+            revision='1', effect=ToolEffect.UNKNOWN,
+            isolation=ToolIsolation.NONE, approval_required=False,
+            operation_key_required=False, retry_fields=())),))

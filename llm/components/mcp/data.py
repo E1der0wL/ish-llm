@@ -13,7 +13,7 @@ from llm.services.runtime.tools import ToolExecutionError
 
 def tool_snapshot(tool):
     return {"name": tool.name, "description": tool.description, "parameters": deepcopy(tool.parameters),
-            "contract": (tool.contract or ToolContract(approval_required=True)).to_dict(),
+            "contract": tool.contract.to_dict(),
             "classification": asdict(tool.classification) if tool.classification is not None else None}
 
 
@@ -79,10 +79,10 @@ class MCPData(ComponentData):
             descriptor = next((item for item in snapshot["tools"] if item["name"] == selection["tool"]), None)
             if descriptor is None:
                 raise ValueError(f"MCP Tool is unavailable: {alias}")
-            contract = {**descriptor["contract"], "retry_fields": tuple(descriptor["contract"]["retry_fields"])}
+            contract = ToolContract.from_dict(descriptor["contract"])
             classification = descriptor["classification"]
             result.register(Tool(alias, descriptor["description"], descriptor["parameters"],
-                RemoteTool(self, selection["server"], snapshot, descriptor), contract=ToolContract(**contract),
+                RemoteTool(self, selection["server"], snapshot, descriptor), contract=contract,
                 classification=ToolClassification(**classification) if classification is not None else None))
         return result
 

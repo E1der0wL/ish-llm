@@ -16,6 +16,7 @@ from llm.llm import LargeLanguageModel, LoopEngine, BackendServices
 from llm.providers.mcp import MCPConnector, MCPToolError
 from llm.services.runtime.tools import ToolRuntime
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
@@ -34,7 +35,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             return arguments
         try:
             yield ToolRegistry((Tool("echo", "echo", self.schema, echo,
-                contract=ToolContract(approval_required=True)),))
+                contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),))
         finally:
             self.connections.append("close")
 
@@ -95,7 +96,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 finally:
                     closed.append("call")
             try:
-                yield ToolRegistry((Tool("echo", "echo", self.schema, wait, contract=ToolContract(approval_required=True)),))
+                yield ToolRegistry((Tool("echo", "echo", self.schema, wait, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),))
             finally:
                 closed.append("connection")
         app, project, session, _ = await self.setup_app(connector)

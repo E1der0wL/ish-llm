@@ -23,6 +23,7 @@ from llm.policies import ExecutionLimitError
 from llm.services.infrastructure.storage import atomic_json, drain_on_cancel, sync_directory
 from llm.services.runtime.processes import ProcessToolRunner, copy_env
 from llm.services.runtime.tools import current_tool_call
+from llm.components.tools.registry import ToolIsolation
 from .files import FileTools
 
 
@@ -52,7 +53,7 @@ class TestWorkspaces:
             if (mount == Path("/") or mount in (self.root, *self.root.parents)
                     or mount in (self.source.root, *self.source.root.parents)):
                 raise ValueError("Read-only mounts cannot expose test storage or the source root")
-        self._runtime = {"isolation": "sandbox", "allow_network": allow_network,
+        self._runtime = {"isolation": ToolIsolation.SANDBOX, "allow_network": allow_network,
             "read_only_paths": mounts, "env": deepcopy(env), "max_output_bytes": max_output_bytes,
             "memory_bytes": memory_bytes, "python_executable": python_executable}
         # 생성 시 호스트 옵션을 검증하되 bwrap/명령 프로세스는 시작하지 않는다.
@@ -297,7 +298,7 @@ class BuiltinToolRunner:
         self.fallback = fallback
 
     def validate_tool(self, name, isolation):
-        if name == "test_workspace_execute" and isolation == "sandbox":
+        if name == "test_workspace_execute" and isolation == ToolIsolation.SANDBOX:
             if shutil.which("bwrap") is None:
                 raise ExecutionLimitError("sandbox_unavailable", "Linux Bubblewrap is required")
             return
@@ -312,6 +313,6 @@ class BuiltinToolRunner:
             return await tool.handler(call.arguments)
         if self.fallback is not None:
             return await self.fallback(tool, call)
-        if tool.contract is not None and tool.contract.isolation != "none":
+        if tool.contract.isolation != ToolIsolation.NONE:
             raise ExecutionLimitError("tool_contract", "Tool requires another isolation runner")
         return await tool.handler(call.arguments)

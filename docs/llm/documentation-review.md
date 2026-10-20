@@ -51,9 +51,9 @@ P1-b는 아래 항목별 상태와 [실행 기록](p1-verification.md)을 따른
 |---|---|---|---|
 | D01 | CONFIGURATION의 Missing/Null/Value | `llm/core/configuration.py`의 `resolve_config`, `llm/services/runtime/tools.py`의 `ToolExecutionScope`에서 `or {}` 사용; falsey 객체 수락 관찰 | **P1-a 검증 완료**. 해당 설정·scope 경계는 타입 검사 후 presence 처리; False/0/[]와 nullable leaf 구별. 다른 owner의 fallback 정리는 P1-c |
 | D02 | Schema·현재 저장 형식 | `llm/services/runtime/checkpoints.py:CheckpointRepository.load`, `llm/services/runtime/operations.py:OperationRepository.load`, TestWorkspace/Vision/Preferences Reader의 bool/float 버전 수락 관찰 | **P1-a 검증 완료**. owner별 정확한 타입·버전 검사와 current roundtrip·실패 원본 보존 시험 통과. 추가 선언 정리는 P1-c |
-| D03 | 명시 실행 정책·단일 선언 | `llm/components/tools/registry.py:ToolContract`, `llm/components/tools/decorator.py`의 revision/effect/isolation/approval/operation-key 기본 선언 반복 | **P1 미수정**. trusted 등록 시 선택과 선언 소유자 단일화; 승인 우회 금지 |
+| D03 | 명시 실행 정책·단일 선언 | `llm/components/tools/registry.py:ToolContract`, `llm/components/tools/decorator.py`의 revision/effect/isolation/approval/operation-key 기본 선언 반복 | **P1-c 해당 계약군 검증 완료**. 필수 ToolContract·effect/isolation owner와 명시 등록으로 단일화. LLM 1,707·Hub 540개 통과; 실패·수정 근거는 [P1 기록](p1-verification.md) |
 | D04 | 부모 Tool scope·권한 비상승 | `llm/services/runtime/tools.py`, `llm/engines/agents.py`에서 scope 없으면 `ToolExecutionScope(ToolRuntime())` 생성 | **P1/C 미수정**. 정규 Run 경로의 scope 필수, trusted 직접 helper 경계 별도. 정상 Run 승인 우회를 재현한 결과는 아님 |
-| D05 | 구현체별 Schema/설정 소유 | Loop layout/option 목록/Schema, effect/isolation 목록, 저장 버전 Reader·Writer의 반복 선언 | **P1 미수정**. owner별 정리; 전역 constants 집합이나 후보 일괄 삭제 금지 |
+| D05 | 구현체별 Schema/설정 소유 | Loop layout/option 목록/Schema, effect/isolation 목록, 저장 버전 Reader·Writer의 반복 선언 | **P1-c 일부 검증 완료**. Tool effect/isolation은 owner enum으로 전환. 나머지 layout/Schema·상태·버전 정리는 남음; 전역 constants 집합이나 후보 일괄 삭제 금지 |
 | D06 | 구 저장 형식 금지 | `hub/config/preferences.py`가 mouse_mode/recovery_max_attempts/provider_error_details를 제거; `test_global_preferences`가 변환 요구 | **P1-b 검증 완료**. 옛 키를 명시 거부하고 실패 원본 보존 시험으로 전환 |
 | D07 | 구 저장 형식 금지 | `hub/config/theme.py:HubTheme.from_preferences`가 accent→accent1 변환·옛 widget 키 제거; 실제 수락 재현 | **P1-b 검증 완료**. 변환 Reader 제거, 현재 UI 파생 색상 property 유지 |
 | D08 | Hub 언어 설정 | `hub/config/preferences.py`의 general→profile→config 순서; legacy profile 시험 | **P1-b 검증 완료**. 완전한 현재 profile만 읽음. Hub 생성 초기값 저장과 명시 앱 초기 언어 선택은 유지 |

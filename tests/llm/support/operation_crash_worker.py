@@ -10,6 +10,7 @@ from llm.llm import LargeLanguageModel
 from llm.services.composition import BackendServices
 from llm.services.runtime.tools import ToolRuntime
 from tests.llm.test_isolated_tools import ToolEngine
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 async def main():
@@ -20,7 +21,7 @@ async def main():
             stream.flush()
             os.fsync(stream.fileno())
         os._exit(23)
-    tools = RuntimeTools(ToolRegistry([Tool("external", "external", {"type": "object"}, effect)]))
+    tools = RuntimeTools(ToolRegistry([Tool("external", "external", {"type": "object"}, effect, contract=TEST_CONTRACT)]))
     async with LargeLanguageModel(root, components=[tools], engines={"tool": ToolEngine()},
             services=BackendServices(tool_runtime=ToolRuntime(operation_key=lambda call: call.arguments["operation"]))) as app:
         session = await (await app.projects.aload(project_id)).sessions.aload(session_id)

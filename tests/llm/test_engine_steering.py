@@ -19,6 +19,7 @@ from llm.core.results import EngineOutput
 from llm.services.runtime.runs import RunRequestError
 from tests.llm.test_loop import chunk
 from tests.llm.test_loop_steering import Model
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 def agent_graph(agent="writer"):
@@ -331,7 +332,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
             raise ToolApprovalRequired("review")
         model = Model([chunk("draft", finish="stop")],
                       [chunk(calls=[call("{}", name="act")], finish="tool_calls")], [chunk("done", finish="stop")])
-        component = RuntimeTools(ToolRegistry([Tool("act", "act", {"type": "object"}, act)]))
+        component = RuntimeTools(ToolRegistry([Tool("act", "act", {"type": "object"}, act, contract=TEST_CONTRACT)]))
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         self.app = LargeLanguageModel(folder.name, components=[WorkflowComponent(), AgentComponent(), component],

@@ -29,6 +29,7 @@ from llm.services.history.conversation import ConversationStore
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.runtime.runs import RunManager
 from llm.services.lifecycle.sessions import SessionManager
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 def chunk(text: Optional[str] = None, *, calls: Optional[list] = None,
@@ -88,7 +89,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         self.tool = Tool("add", "Add two numbers", {
             "type": "object", "properties": {"a": {"type": "number"}, "b": {"type": "number"}},
             "required": ["a", "b"], "additionalProperties": False,
-        }, add)
+        }, add, contract=TEST_CONTRACT)
 
     def observe(self, run, event) -> None:
         self.events.append(event)
@@ -371,7 +372,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
     async def test_tool_failure_reports_diagnostics_without_retry(self) -> None:
         async def failing(arguments):
             raise RuntimeError("tool failure detail")
-        tool = Tool("add", "fail", self.tool.parameters, failing)
+        tool = Tool("add", "fail", self.tool.parameters, failing, contract=TEST_CONTRACT)
         completion_fn = ScriptedCompletion([chunk(calls=[call()], finish="tool_calls")])
         self.engine(completion_fn, tools=ToolRegistry((tool,)))
         await self.submit()
@@ -458,7 +459,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             finally:
                 cancelled.set()
-        tool = Tool("add", "blocking", self.tool.parameters, blocking)
+        tool = Tool("add", "blocking", self.tool.parameters, blocking, contract=TEST_CONTRACT)
         completion_fn = ScriptedCompletion([chunk(calls=[call()], finish="tool_calls")])
         self.engine(completion_fn, tools=ToolRegistry((tool,)))
         await self.manager.submit("first", engine="loop")
@@ -476,7 +477,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
     async def test_tool_timeout_fails_without_next_llm_call(self) -> None:
         async def blocking(arguments):
             await asyncio.Event().wait()
-        tool = Tool("add", "blocking", self.tool.parameters, blocking)
+        tool = Tool("add", "blocking", self.tool.parameters, blocking, contract=TEST_CONTRACT)
         completion_fn = ScriptedCompletion([chunk(calls=[call()], finish="tool_calls")])
         self.engine(completion_fn, tools=ToolRegistry((tool,)), tool_timeout=0.05)
         await self.submit()
@@ -639,8 +640,8 @@ class ConfigurationTests(unittest.TestCase):
         async def handler(arguments):
             return arguments
         with self.assertRaises(ValueError):
-            ToolRegistry((Tool("x", "x", {"type": "object", "$ref": "https://example.com/schema"}, handler),))
-        registry = ToolRegistry((Tool("x", "x", {"type": "object"}, handler),))
+            ToolRegistry((Tool("x", "x", {"type": "object", "$ref": "https://example.com/schema"}, handler, contract=TEST_CONTRACT),))
+        registry = ToolRegistry((Tool("x", "x", {"type": "object"}, handler, contract=TEST_CONTRACT),))
         for arguments in ('{"x":NaN}', '{"x":1e999}', '[]', 'broken'):
             with self.subTest(arguments=arguments), self.assertRaises(ValueError):
                 registry.prepare("x", arguments)

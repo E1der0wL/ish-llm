@@ -26,6 +26,7 @@ from tests.llm import test_conversation_turns as turns, test_rag_components as r
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 from tests.llm.test_error_boundaries import UntrustedError
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class DiagnosticContracts(unittest.TestCase):
@@ -231,7 +232,7 @@ class CompletionRecoveryTests(unittest.IsolatedAsyncioTestCase):
             effects.append("read")
             return "original log " * 100
         tools = RuntimeTools(ToolRegistry([Tool("read", "Read", {"type": "object", "properties": {},
-            "additionalProperties": False}, read)]))
+            "additionalProperties": False}, read, contract=TEST_CONTRACT)]))
         model = ScriptedCompletion(*responses)
         backend = LargeLanguageModel(temporary.name, engines={"loop": LoopEngine(completion_fn=model,
             recover_completion=decide)}, components=[tools])
@@ -338,7 +339,7 @@ class DiagnosticRuntimeContracts(unittest.IsolatedAsyncioTestCase):
                     calls.append(arguments)
                     raise failure
                 tools = RuntimeTools(ToolRegistry([Tool("read", "Read", {"type": "object",
-                    "properties": {}, "additionalProperties": False}, invoke)]))
+                    "properties": {}, "additionalProperties": False}, invoke, contract=TEST_CONTRACT)]))
                 model = ScriptedCompletion([chunk(calls=[call("{}", name="read")], finish="tool_calls")])
                 backend = LargeLanguageModel(root, engines={"loop": LoopEngine(completion_fn=model)}, components=[tools])
                 try:

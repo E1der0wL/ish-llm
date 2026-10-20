@@ -23,6 +23,8 @@ from llm.llm import LargeLanguageModel
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 from tests.llm import test_nested_graph as nested
+from llm.components.tools import ToolEffect, ToolIsolation
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 SCHEMA = {"type": "object", "properties": {
@@ -36,7 +38,7 @@ FIELDS = {"limit": {"mode": "bounded", "minimum": 1, "maximum": 20},
 
 class ConstraintSchemaTests(unittest.TestCase):
     def setUp(self):
-        self.registry = ToolRegistry([Tool("rag_search", "test", deepcopy(SCHEMA), AsyncMock())])
+        self.registry = ToolRegistry([Tool("rag_search", "test", deepcopy(SCHEMA), AsyncMock(), contract=TEST_CONTRACT)])
 
     def test_modes_preserve_original_and_reject_wrong_values(self):
         before = self.registry.definitions()
@@ -114,7 +116,7 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_direct_execution_revalidates_before_authorization_or_effect(self):
         handler, authorize = AsyncMock(return_value=None), AsyncMock(return_value=True)
-        tool = Tool("rag_search", "test", SCHEMA, handler)
+        tool = Tool("rag_search", "test", SCHEMA, handler, contract=TEST_CONTRACT)
         context = self.context(ToolRuntime(authorize=authorize), constraints={"rag_search": FIELDS})
         with self.assertRaises(ValidationError):
             await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid", "max_hops": 3}, context)
@@ -126,7 +128,7 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_durable_approval_binding_rejects_changed_constraints(self):
         handler = AsyncMock(return_value=None)
-        tool = Tool("rag_search", "test", SCHEMA, handler, contract=ToolContract(approval_required=True))
+        tool = Tool("rag_search", "test", SCHEMA, handler, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))
         runtime = ToolRuntime()
         with self.assertRaises(ToolApprovalRequired) as pending:
             await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, self.context(runtime, constraints={"rag_search": FIELDS}), request_key="tool-1")
@@ -136,7 +138,7 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ToolInvocationError, "binding changed"):
             await self.execute(tool, {"query": "q", "limit": 5, "method": "hybrid"}, self.context(runtime,
                 constraints={"rag_search": changed}, checkpoint=saved, decisions={"tool-1": True}), request_key="tool-1")
-        for contract in (ToolContract(revision="2", approval_required=True), ToolContract()):
+        for contract in (ToolContract(revision='2', effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()), ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=())):
             with self.subTest(contract=contract), self.assertRaisesRegex(ToolInvocationError, "contract changed"):
                 await self.execute(replace(tool, contract=contract), {"query": "q", "limit": 5, "method": "hybrid"},
                     self.context(runtime, constraints={"rag_search": FIELDS}, checkpoint=saved,
@@ -175,8 +177,8 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_loop_model_schema_and_actual_arguments_agree(self):
         with tempfile.TemporaryDirectory() as root:
-            handler = AsyncMock(return_value="found")
-            registry = ToolRegistry([Tool("rag_search", "test", SCHEMA, handler)])
+            handler = AsyncMock(return_value="found", spec=lambda arguments: None)
+            registry = ToolRegistry([Tool("rag_search", "test", SCHEMA, handler, contract=TEST_CONTRACT)])
             model = ScriptedCompletion([chunk(calls=[call('{"query":"q","limit":5,"method":"hybrid"}', name="rag_search")], finish="tool_calls")],
                                        [chunk("done", finish="stop")])
             async with LargeLanguageModel(root, components=[RuntimeTools(registry)],
@@ -198,7 +200,8 @@ class GraphConstraintTests(unittest.IsolatedAsyncioTestCase):
     request = nested.NestedGraphTests.request
 
     async def test_graph_tool_node_uses_host_constraints(self):
-        self.tools = ToolRegistry([Tool("effect", "test", SCHEMA, AsyncMock(return_value="found"))])
+        self.tools = ToolRegistry([Tool("effect", "test", SCHEMA,
+            AsyncMock(return_value="found", spec=lambda arguments: None), contract=TEST_CONTRACT)])
         await self.setup({"main": nested.action_graph("tool", tool="effect", arguments={"query": "q", "limit": 5, "method": "hybrid"})},
                          handlers={"tool": ToolNode()}, policies={"tools": {"argument_constraints": {"effect": FIELDS}}})
         run = await self.request()
@@ -208,8 +211,8 @@ class GraphConstraintTests(unittest.IsolatedAsyncioTestCase):
     async def test_reopen_with_changed_host_constraint_rejects_graph_resume(self):
         async def ask(call):
             raise ToolApprovalRequired()
-        handler = AsyncMock(return_value="found")
-        self.tools = ToolRegistry([Tool("effect", "test", SCHEMA, handler)])
+        handler = AsyncMock(return_value="found", spec=lambda arguments: None)
+        self.tools = ToolRegistry([Tool("effect", "test", SCHEMA, handler, contract=TEST_CONTRACT)])
         await self.setup({"main": nested.action_graph("tool", tool="effect", arguments={"query": "q", "limit": 5, "method": "hybrid"})},
             handlers={"tool": ToolNode()}, services=BackendServices(tool_runtime=ToolRuntime(authorize=ask)),
             policies={"tools": {"argument_constraints": {"effect": FIELDS}}})

@@ -77,7 +77,7 @@ Project `policies.approval`은 enabled, risk_scheme, rules를 가진다. rule의
 불확실한 효과의 재시도는 자동 승인하지 않는다. 응답 저장은 resume를 자동 호출하지 않는다.
 
 ```python
-from llm.components.tools import ToolClassification, ToolContract
+from llm.components.tools import ToolClassification, ToolContract, ToolEffect, ToolIsolation
 from llm.services.runtime.tools import ToolRuntime
 from llm.services.composition import BackendServices
 
@@ -86,7 +86,9 @@ def classify(call):
     # call.arguments는 fixed/bounded/selectable 적용과 schema 검증을 마친 사본이다.
     return ToolClassification(category="file.write", risk_scheme="my-app-v1", risk=10)
 
-contract = ToolContract(effect="external", approval_required=True)  # custom Tool 등록 시 전달
+contract = ToolContract(
+    revision="1", effect=ToolEffect.EXTERNAL, isolation=ToolIsolation.NONE,
+    approval_required=True, operation_key_required=False, retry_fields=())
 # 내장 file_create 등은 이 계약을 이미 선언한다.
 services = BackendServices(tool_runtime=ToolRuntime(classify=classify, revision="2"))
 policies = {

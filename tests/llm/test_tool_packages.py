@@ -14,10 +14,11 @@ from llm.components.tools import ToolComponent, ToolRegistry, ToolPaths, tool
 from llm.components.tools.function import function_tool
 from llm.components.tools import packages
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
+from llm.components.tools import ToolContract, ToolEffect, ToolIsolation
 
 
-SOURCE = '''from llm.components.tools import tool
-@tool(effect="read_only", revision="2")
+SOURCE = '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision='2', effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
 async def main(query: str, limit: int = 10):
     """Search documents."""
     return {"query": query, "limit": limit}
@@ -174,7 +175,7 @@ class FunctionTests(unittest.TestCase):
         async def main(query: str):
             """Search."""
             return query
-        self.assertIs(tool(effect="read_only")(main), main)
+        self.assertIs(tool(ToolContract(revision="1", effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))(main), main)
         with self.assertRaises(FrozenInstanceError):
             main.__tool_contract__.revision = "changed"
         with self.assertRaises(TypeError):
@@ -182,14 +183,14 @@ class FunctionTests(unittest.TestCase):
         item = function_tool("search", main)
         self.assertNotIn("strict", item.definition["function"])
         self.assertEqual(item.contract.effect, "read_only")
-        explicit = self.compile(SOURCE.replace('@tool(effect="read_only", revision="2")', '@tool(strict=False)'))
+        explicit = self.compile(SOURCE.replace("@tool(ToolContract(revision='2', effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))", '@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()), strict=False)'))
         self.assertIs(explicit.definition["function"]["strict"], False)
 
     def test_supported_annotations_constraints_required_and_defaults(self):
         value = self.compile('''from typing import Annotated, Literal, Optional, Union
 from pydantic import Field
-from llm.components.tools import tool
-@tool()
+from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
 async def main(query: Annotated[str, Field(description="Query")],
                limit: Annotated[int, Field(ge=1, le=20)] = 5, *,
                number: float = 1.5, flag: bool = False, empty: None = None,
@@ -237,8 +238,8 @@ async def main(query: Annotated[str, Field(description="Query")],
                     ValueError, "default does not satisfy its annotation: " + name):
                 self.compile('''from typing import Annotated, Literal
 from pydantic import Field
-from llm.components.tools import tool
-@tool()
+from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
 async def main(''' + parameter + '''):
     """Default validation."""
 ''')
@@ -246,8 +247,8 @@ async def main(''' + parameter + '''):
     def test_signature_alone_owns_defaults_and_nullable_none_is_preserved(self):
         value = self.compile('''from typing import Annotated
 from pydantic import Field
-from llm.components.tools import tool
-@tool()
+from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
 async def main(required: Annotated[int, Field(default=100, ge=1, le=20)],
                limit: Annotated[int, Field(default=100, ge=1, le=20)] = 10,
                query: str | None = None):
@@ -267,8 +268,8 @@ async def main(required: Annotated[int, Field(default=100, ge=1, le=20)],
                                       ('number: float = float("inf")', ValueError),
                                       ('values: list[int] = {1, 2}', TypeError)):
             with self.subTest(parameter=parameter), self.assertRaises(error_type):
-                self.compile('''from llm.components.tools import tool
-@tool()
+                self.compile('''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
 async def main(''' + parameter + '''):
     """JSON-safe defaults only."""
 ''')
@@ -296,10 +297,10 @@ class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_file_tool_retry_step_and_normal_none_completion(self):
         from llm.services.runtime.tools import ToolRuntime
-        source = '''from llm.components.tools import tool
+        source = '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
 from llm.services.runtime.tools import ToolExecutionError
 from pathlib import Path
-@tool(effect="read_only")
+@tool(ToolContract(revision="1", effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
 async def main():
     """Retry only a known no-effect failure."""
     receipt = Path(__file__).parents[2] / "retry-fixture"
@@ -319,9 +320,9 @@ async def main():
         self.assertEqual(model.requests[1]["messages"][-1]["content"], "null")
 
     async def test_file_tool_coded_error_preserved_through_step_and_run(self):
-        source = '''from llm.components.tools import tool
+        source = '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
 from llm.providers.requests import ProviderError
-@tool()
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
 async def main():
     """Fail with a classified error."""
     raise ProviderError("provider_rate_limit")
@@ -339,8 +340,8 @@ async def main():
         async def approve(call):
             approvals.append(call)
             return True
-        source = '''from llm.components.tools import tool
-@tool(effect="external", approval_required=True, operation_key_required=True)
+        source = '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.EXTERNAL, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=True, retry_fields=()))
 async def main():
     """Return a recorded result after authorization."""
     return {"done": True}
@@ -360,8 +361,8 @@ async def main():
 
     async def test_updated_source_is_used_by_next_run(self):
         from tests.llm.test_loop import chunk, call
-        source = '''from llm.components.tools import tool
-@tool()
+        source = '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
 async def main():
     """Report source revision."""
     return "first"

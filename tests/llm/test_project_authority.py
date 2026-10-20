@@ -8,6 +8,7 @@ from llm.components.tools import ToolClassification, ToolContract
 from llm.services.runtime.tools import ToolRuntime, ToolApprovalRequired
 from tests.llm import test_long_running as long_running
 from tests.llm.test_loop import call, chunk
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 class OwnershipTests(unittest.TestCase):
@@ -63,7 +64,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                         stopped.set()
                 _, session, _ = await self.setup_app(act, [
                     [chunk(calls=[call("{}", name="act")], finish="tool_calls")]],
-                    ToolRuntime(classify=classify), tool_contract=ToolContract(approval_required=True))
+                    ToolRuntime(classify=classify), tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))
                 handle = await session.run.submit("go", engine="loop")
                 await asyncio.wait_for(started.wait(), 10)
                 if interrupted:
@@ -111,7 +112,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                     [chunk(calls=[call("{}", name="act")], finish="tool_calls")],
                     [chunk("done", finish="stop")]], ToolRuntime(authorize=authorize if change == "deny" else None,
                         classify=lambda call: ToolClassification("execute", "app", state["risk"])),
-                    tool_contract=ToolContract(approval_required=True),
+                    tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()),
                     policies={"approval": {"enabled": True, "risk_scheme": "app", "rules": [
                         {"id": "execute", "category": "execute", "max_risk": 20}]}} if change == "deny" else {})
                 run = await (await session.run.submit("go", engine="loop")).wait()
@@ -147,7 +148,7 @@ class ApprovalAuthorityTests(unittest.IsolatedAsyncioTestCase):
                             {"id": "write", "category": "file.write", "max_risk": 20}]},
                         "tools": {"argument_constraints": {"act": {"command": {"mode": "fixed", "value": "x"}}}}},
                     tool_schema={"type": "object", "properties": {"risk": {"type": "integer"}, "command": {"type": "string"}}},
-                    tool_contract=ToolContract(approval_required=True))
+                    tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))
                 run = await (await session.run.submit("go", engine="loop")).wait()
                 self.assertEqual(run.data.status, "paused", run.data.error)
                 self.assertEqual(effects, [])

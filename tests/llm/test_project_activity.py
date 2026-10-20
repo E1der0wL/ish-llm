@@ -22,6 +22,7 @@ from llm.providers.requests import ProviderError, invoke
 from llm.services.infrastructure.activity import activity_event, read_activity, _recent_lines
 from llm.services.infrastructure.storage import atomic_json
 from llm.services.infrastructure.transactions import TransactionManager, current_transaction
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class VendorError(Exception):
@@ -266,7 +267,7 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
         class ToolEngine:
             async def execute(self, context):
                 tool = Tool("lookup", "SECRET-DESCRIPTION", {"type": "object",
-                    "properties": {"query": {"type": "string"}}}, fail)
+                    "properties": {"query": {"type": "string"}}}, fail, contract=TEST_CONTRACT)
                 async for event in ToolExecutor().execute(tool, {"query": "SECRET-TOOL-ARG"}, result={}):
                     yield event
         await self.setUpBackend(ToolEngine())

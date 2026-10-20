@@ -10,6 +10,7 @@ from llm.components.tools.registry import Tool, ToolContract, ToolRegistry
 from llm.errors import CodedError
 from llm.core.contracts import Diagnostic
 from llm.services.runtime.tools import ToolExecutionError
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 class MCPConnectionError(CodedError, RuntimeError):
@@ -38,6 +39,10 @@ class MCPConnector:
     승인/재시도 권한으로 사용하지 않는다. 미선언 원격 Tool에는 approval_required를
     강제한다: 외부 실행 효과를 추측해서 승인을 생략하지 않기 위한 경계다.
     """
+
+    REMOTE_CONTRACT = ToolContract(
+        revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE,
+        approval_required=True, operation_key_required=False, retry_fields=())
 
     def __init__(self, *, credentials=None, contract=None, timeout_seconds=None, errlog=None):
         if credentials is not None and not callable(credentials) or contract is not None and not callable(contract):
@@ -91,7 +96,7 @@ class MCPConnector:
                 **({"params": PaginatedRequestParams(cursor=cursor)} if cursor is not None else {}))
             for item in page.tools:
                 contract = (self.contract(item.name, item.model_dump(mode="json", by_alias=True, exclude_none=True))
-                            if self.contract is not None else ToolContract(approval_required=True))
+                            if self.contract is not None else self.REMOTE_CONTRACT)
                 if not isinstance(contract, ToolContract):
                     raise TypeError("MCP contract callback must return ToolContract")
                 async def invoke(arguments, name=item.name):

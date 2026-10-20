@@ -41,9 +41,13 @@ Project는 Python 소스를 소유하고, ish Host는 공용 의존성을 소유
 ```python
 from typing import Annotated
 from pydantic import Field
-from llm.components.tools import tool
+from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
 
-@tool(effect="read_only", revision="1")
+contract = ToolContract(
+    revision="1", effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE,
+    approval_required=False, operation_key_required=False, retry_fields=())
+
+@tool(contract)
 async def main(
     query: Annotated[str, Field(description="Search query")],
     limit: Annotated[int, Field(ge=1, le=20)] = 5,
@@ -53,8 +57,12 @@ async def main(
     return []
 ```
 
-`@tool`은 원래 함수를 반환하고 기존 불변 `ToolContract`를 붙인다.
-revision/effect/isolation/approval_required/operation_key_required/retry_fields를 지원한다.
+`@tool(contract)`은 원래 함수를 반환하고 전달받은 불변 `ToolContract`를 붙인다.
+revision/effect/isolation/approval_required/operation_key_required/retry_fields는 모두 필수다.
+실행 선언은 각 trusted 구현이 소유하며, decorator가 별도의 기본값을 생성하지 않는다.
+직접 등록하는 `Tool(..., contract=contract)`도 계약이 필수이며 None을 받지 않는다.
+`ToolEffect`와 `ToolIsolation`이 지원하는 값을 단일 선언으로 소유한다.
+현재 저장 Reader는 모든 필드가 있는 계약만 읽고 누락값을 복구하지 않는다.
 provider의 `strict`는 명시한 경우에만 definition에 포함된다.
 description은 비어 있지 않은 docstring, parameters는 signature/type hints에서 파생한다.
 str/int/float/bool/None, Optional/Union/`|`, Literal, list[T], dict[str,T], Annotated를 지원한다.

@@ -57,7 +57,7 @@ def bind_advice(toolkit: BuiltinTools) -> None:
     tools = []
     for name in toolkit.registry.names():
         tool = toolkit.registry.get(name)
-        if tool.contract is not None and tool.contract.approval_required:
+        if tool.contract.approval_required:
             parameters = deepcopy(tool.parameters)
             parameters.setdefault("properties", {})[FIELD] = {
                 "type": "object", "description": "Risk assessment recorded for this exact action; never authorization.",

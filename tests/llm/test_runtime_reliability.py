@@ -31,6 +31,7 @@ from llm.services.runtime.runs import RunRequestError
 from llm.services.runtime.tools import ToolRuntime
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 from tests.llm.test_graph_engine import parallel
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class Echo(BaseEngine):
@@ -49,7 +50,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             self.effects.append(arguments)
             return "done"
 
-        self.tools = RuntimeTools(ToolRegistry([Tool("act", "act", {"type": "object"}, action)]))
+        self.tools = RuntimeTools(ToolRegistry([Tool("act", "act", {"type": "object"}, action, contract=TEST_CONTRACT)]))
 
     async def backend(self, *, engines=None, components=(), services=None, name="workspace", policies=None):
         app = LargeLanguageModel(self.root / name, engines=engines or {"echo": Echo()},

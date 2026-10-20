@@ -15,6 +15,7 @@ from llm.engines.loop import LoopEngine
 from llm.policies.retry import RetryDecision
 from llm.services.runtime.tools import ToolExecutionError
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 class ExampleTools(Component):
@@ -23,7 +24,7 @@ class ExampleTools(Component):
 
     def __init__(self, handler, contract=None):
         self.handler = handler
-        self.contract = contract or ToolContract(effect="read_only", retry_fields=("format",))
+        self.contract = contract or ToolContract(revision="1", effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=('format',))
 
     def resolve(self, project, capability):
         if capability != "tools":
@@ -211,7 +212,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             [chunk("done", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = await self.runtime(root, provider, component_factories=(lambda: ExampleTools(handler,
-                ToolContract(approval_required=True, retry_fields=("format",))),), tool_retry_chooser=choose)
+                ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=('format',))),), tool_retry_chooser=choose)
             session = await runtime.project.sessions.acreate("approval")
             initial = await (await session.run.submit("go", engine="loop")).wait()
             self.assertEqual(str(initial.data.status), "paused", initial.data.error)

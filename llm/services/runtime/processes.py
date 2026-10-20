@@ -13,6 +13,7 @@ from llm._platform import require_linux
 from llm.services.infrastructure.processes import kill_process_tree
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.policies import ExecutionLimitError
+from llm.components.tools.registry import ToolIsolation
 
 if TYPE_CHECKING:
     from llm.services.runtime.tools import ToolCall
@@ -46,9 +47,9 @@ class ProcessToolRunner:
                  allow_network: Optional[bool] = None,
                  python_executable: Optional[Union[str, Path]] = None):
         require_linux()
-        if isolation not in ("sandbox", "process"):
+        if isolation not in (ToolIsolation.SANDBOX, ToolIsolation.PROCESS):
             raise ValueError("Choose sandbox or process")
-        if isolation == "sandbox" and type(allow_network) is not bool:
+        if isolation == ToolIsolation.SANDBOX and type(allow_network) is not bool:
             raise ValueError("allow_network must be boolean")
         for value in (max_output_bytes, memory_bytes, max_concurrency):
             if value is not None and (type(value) is not int or value < 1):
@@ -79,7 +80,7 @@ class ProcessToolRunner:
         return self._sandbox(command)
 
     def _sandbox(self, command):
-        if self.isolation == "process":
+        if self.isolation == ToolIsolation.PROCESS:
             return command
         bwrap = shutil.which("bwrap")
         if not bwrap:
@@ -109,7 +110,7 @@ class ProcessToolRunner:
         return args
 
     async def _launch(self, command, input_value, *, pass_fds=()):
-        env = {} if self.isolation == "sandbox" else copy_env(self.env)
+        env = {} if self.isolation == ToolIsolation.SANDBOX else copy_env(self.env)
         data = {"argv": command, "cwd": str(self.cwd), "env": env, "payload": input_value, "memory_bytes": self.memory_bytes}
         payload = json.dumps(data, ensure_ascii=False, allow_nan=False).encode("utf-8")
         worker = Path(__file__).with_name("_worker.py")
@@ -204,9 +205,9 @@ class ProcessToolRunner:
 
     def validate_tool(self, name, isolation):
         """실행 계약이 요구하는 격리 수준과 등록 명령을 사전 검증한다."""
-        if name not in self.commands or isolation == "sandbox" and self.isolation != "sandbox":
+        if name not in self.commands or isolation == ToolIsolation.SANDBOX and self.isolation != ToolIsolation.SANDBOX:
             raise ExecutionLimitError("tool_contract", "Runner does not satisfy Tool isolation requirements")
-        if self.isolation == "sandbox" and shutil.which("bwrap") is None:
+        if self.isolation == ToolIsolation.SANDBOX and shutil.which("bwrap") is None:
             raise ExecutionLimitError("tool_contract", "Bubblewrap is required")
 
     async def __call__(self, tool: Any, call: "ToolCall") -> Any:

@@ -232,10 +232,10 @@ def inspect_tool(project, name, data, plugin_lib=None):
             or not isinstance(descriptor["definition"].get("function"), dict)):
         raise WorkerError("tool_worker_protocol", "Invalid Tool descriptor fields")
     try:
-        contract = ToolContract(**{**descriptor["contract"], "retry_fields": tuple(descriptor["contract"]["retry_fields"])})
+        contract = ToolContract.from_dict(descriptor["contract"])
         request["descriptor_hash"] = descriptor_fingerprint(descriptor)
         tool = Tool(name, descriptor["description"], descriptor["parameters"],
-                    ProjectToolHandler(request), descriptor["definition"], contract)
+                    ProjectToolHandler(request), descriptor["definition"], contract=contract)
         registry = ToolRegistry((tool,))
         return registry.get(name)
     except Exception as error:

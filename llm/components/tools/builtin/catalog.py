@@ -3,6 +3,7 @@
 import asyncio
 import math
 from copy import deepcopy
+from dataclasses import replace
 from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence
 
@@ -13,6 +14,7 @@ from .files import FileTools
 from .processes import ProcessTools
 from .diagnostics import DiagnosticTools
 from .workspaces import TestWorkspaces
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 def schema(properties, required=()):
@@ -30,6 +32,24 @@ class BuiltinTools:
     ToolComponent는 Project Python 소스만 담당하며 이 런타임 객체를 받지 않는다.
     allow_commands는 임의의 호스트 코드 실행을 허용한다. 경로 제한형 샌드박스가 아니다.
     """
+
+    READ_CONTRACT = ToolContract(
+        revision="1", effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE,
+        approval_required=False, operation_key_required=False, retry_fields=())
+    MUTATION_CONTRACT = ToolContract(
+        revision="1", effect=ToolEffect.EXTERNAL, isolation=ToolIsolation.NONE,
+        approval_required=True, operation_key_required=False, retry_fields=())
+    EXECUTION_CONTRACT = ToolContract(
+        revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE,
+        approval_required=True, operation_key_required=False, retry_fields=())
+    SANDBOX_CONTRACT = ToolContract(
+        revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.SANDBOX,
+        approval_required=True, operation_key_required=False, retry_fields=())
+    # External query adapters are explicitly supplied by the trusted Host.
+    # Their opaque effects are not a proof of no effect or permission to retry.
+    QUERY_CONTRACT = ToolContract(
+        revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE,
+        approval_required=False, operation_key_required=False, retry_fields=())
 
     def __init__(self, root, *, allow_commands: bool = False, git: bool = False, diagnostics: bool = False,
                  checks: Optional[Mapping[str, Sequence[str]]] = None,
@@ -61,8 +81,8 @@ class BuiltinTools:
         environment["additionalProperties"] = {"type": "string", "pattern": "^[^\\u0000]*$"}
         # 효과를 낼 수 있는 Tool은 항상 결정이 필요하다. 자동 응답의 위험 기준은
         # Project가 소유하며, 이 계약은 사람의 승인만을 강제하는 정책이 아니다.
-        mutation = ToolContract(effect="external", approval_required=True)
-        execution = ToolContract(approval_required=True)
+        mutation = self.MUTATION_CONTRACT
+        execution = self.EXECUTION_CONTRACT
         file_mutations = {"file_create", "file_patch", "file_move", "file_delete", "file_restore"}
         specs = {
             "file_read": ("Read UTF-8 source or logs and the whole-file SHA-256. Use line ranges or tail_lines (mutually exclusive). expected_sha256 rejects a changed file.", schema({"path": path, "start_line": {"type": "integer", "minimum": 1}, "max_lines": {"type": "integer", "minimum": 1}, "tail_lines": {"type": "integer", "minimum": 1}, "expected_sha256": digest}, ["path"])),
@@ -86,7 +106,7 @@ class BuiltinTools:
                 return await drain_on_cancel(asyncio.to_thread(getattr(self.files.for_arguments(args), operation), args))
             self._register(name, description, parameters, file_call,
                            contract=mutation if name in file_mutations else
-                           ToolContract(effect="read_only", retry_fields=("path",)) if name == "file_read" else None)
+                           replace(self.READ_CONTRACT, retry_fields=("path",)) if name == "file_read" else self.READ_CONTRACT)
 
         if test_workspaces is not None:
             identity = {"workspace_id": string(pattern="^[0-9a-f]{32}$")}
@@ -94,13 +114,13 @@ class BuiltinTools:
                 schema({"source_paths": {"type": "array", "items": path, "uniqueItems": True}}, ["source_paths"]),
                 test_workspaces.create, contract=mutation)
             self._register("test_workspace_list", "List this Project's retained test workspaces, including incomplete creations. Does not replay commands.",
-                schema({}), test_workspaces.list, contract=ToolContract(effect="read_only"))
+                schema({}), test_workspaces.list, contract=self.READ_CONTRACT)
             self._register("test_workspace_delete", "Permanently delete a test workspace and its results. Rejects a busy workspace; source files are untouched.",
                 schema(identity, ["workspace_id"]), test_workspaces.delete, contract=mutation)
             # 실행 handler의 타입/호스트 binding을 runner가 검사한다. 일반 guarded closure로 감싸지 않는다.
             self.registry.register(Tool("test_workspace_execute", "Execute argv in a Linux OS sandbox inside a retained test workspace. Requires an absolute executable. Returns stdout, stderr and returncode; use file tools with workspace_id to inspect results. No host fallback.",
                 schema({**identity, "argv": {"type": "array", "minItems": 1, "items": string()}, "env": deepcopy(environment)}, ["workspace_id", "argv"]),
-                test_workspaces, contract=ToolContract(approval_required=True, isolation="sandbox")))
+                test_workspaces, contract=self.SANDBOX_CONTRACT))
 
         limits = {"timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
                   "max_output_bytes": {"type": "integer", "minimum": 1}}
@@ -135,11 +155,11 @@ class BuiltinTools:
         if allow_commands or commands or git:
             for name, method in (("process_status", self.processes.status), ("process_cancel", self.processes.cancel)):
                 self._register(name, "Inspect or cancel a process started by this Tool collection.", schema({"process_id": string()}, ["process_id"]), method,
-                               contract=mutation if name == "process_cancel" else None)
+                               contract=mutation if name == "process_cancel" else self.READ_CONTRACT)
             self._register("process_output", "Read retained process output incrementally. Offsets count decoded Unicode characters independently in stdout/stderr. Use next offsets to avoid duplicate text. truncated means configured capture discarded output; stream ordering is not a global event timeline.",
                 schema({"process_id": string(), "stdout_offset": {"type": "integer", "minimum": 0},
                         "stderr_offset": {"type": "integer", "minimum": 0}, "max_chars": {"type": "integer", "minimum": 1, "description": "Maximum characters per stream in this page."}},
-                       ["process_id"]), self.processes.output)
+                       ["process_id"]), self.processes.output, contract=self.READ_CONTRACT)
         if diagnostics:
             inspector = DiagnosticTools(self.files.root)
             diagnostic_specs = {
@@ -152,15 +172,15 @@ class BuiltinTools:
             for name, (description, parameters, operation) in diagnostic_specs.items():
                 async def inspect(args, operation=operation):
                     return await asyncio.to_thread(operation, args)
-                self._register(name, description, parameters, inspect)
+                self._register(name, description, parameters, inspect, contract=self.READ_CONTRACT)
         if git:
             prefix = ["git", "--no-optional-locks", "-c", "core.fsmonitor=false", "--no-pager"]
             async def status(args):
                 return await self.processes.execute({"argv": prefix + ["status", "--porcelain=v1"]})
             async def diff(args):
                 return await self.processes.execute({"argv": prefix + ["diff", "--no-ext-diff", "--no-textconv"] + (["--cached"] if args.get("staged") else [])})
-            self._register("git_status", "Read Git working tree status.", schema({}), status)
-            self._register("git_diff", "Read a Git diff without external diff/textconv programs.", schema({"staged": {"type": "boolean"}}), diff)
+            self._register("git_status", "Read Git working tree status.", schema({}), status, contract=self.READ_CONTRACT)
+            self._register("git_diff", "Read a Git diff without external diff/textconv programs.", schema({"staged": {"type": "boolean"}}), diff, contract=self.READ_CONTRACT)
 
         adapter_specs = {
             "web_search": schema({"query": string(minLength=1), "limit": {"type": "integer", "minimum": 1}}, ["query"]),
@@ -187,9 +207,9 @@ class BuiltinTools:
                            else f"Invoke the configured host adapter: {name}.")
             # 브라우저 이동/조작과 커널 코드/초기화는 외부 세션을 변경한다.
             self._register(name, description, adapter_specs[name], handler,
-                           contract=execution if name in {"browser_open", "browser_act", "kernel_execute", "kernel_reset"} else None)
+                           contract=execution if name in {"browser_open", "browser_act", "kernel_execute", "kernel_reset"} else self.QUERY_CONTRACT)
 
-    def _register(self, name, description, parameters, handler, *, contract=None):
+    def _register(self, name, description, parameters, handler, *, contract):
         async def guarded(args):
             if self.closed:
                 raise RuntimeError("BuiltinTools is closed")
@@ -200,7 +220,7 @@ class BuiltinTools:
         """조회만 공개한다. 영속 지침 변경은 별도의 Refinement 승인 경계를 사용한다."""
         async def read(args):
             return await agents.aprompt(args["agent_id"])
-        self._register("prompt_read", "Read a saved Agent prompt and revision.", schema({"agent_id": string()}, ["agent_id"]), read)
+        self._register("prompt_read", "Read a saved Agent prompt and revision.", schema({"agent_id": string()}, ["agent_id"]), read, contract=self.READ_CONTRACT)
 
     async def close(self):
         if not self.closed:

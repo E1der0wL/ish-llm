@@ -2,6 +2,7 @@
 
 from llm.components.tools import Tool, ToolContract, ToolRegistry
 from .component import TARGET, EVIDENCE, IDENTIFIER, PARENT, RefinementComponent
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 def refinement_tools(data, *, apply=False, operations=()):
@@ -51,7 +52,10 @@ def refinement_tools(data, *, apply=False, operations=()):
     def item(name, description, props, required, fn, *, mutation=False, approval=False):
         return Tool(name, description, {"type": "object", "properties": props,
             "required": required, "additionalProperties": False}, fn,
-            contract=ToolContract(effect="unknown" if mutation else "read_only", approval_required=approval))
+            contract=ToolContract(
+                revision='1', effect=ToolEffect.UNKNOWN if mutation else ToolEffect.READ_ONLY,
+                isolation=ToolIsolation.NONE, approval_required=approval,
+                operation_key_required=False, retry_fields=()))
 
     common = {"identifier": IDENTIFIER, "expected_version": {"type": "string", "minLength": 1}}
     reads = [

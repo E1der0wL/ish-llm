@@ -19,6 +19,7 @@ from llm.services.runtime.output import OutputBuffer, consume_events
 from llm.engines.graph import GraphEngine
 from tests.llm.test_loop import ScriptedCompletion, chunk
 from tests.llm.test_rag_components import Extractor, fake_embedding
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
@@ -96,7 +97,7 @@ class ProjectComponentSettingsTests(unittest.IsolatedAsyncioTestCase):
         Draft202012Validator(view["schema"]).validate(view["values"])
 
     async def test_tool_conveniences_edit_project_source_and_execution_uses_selection(self):
-        tools = ToolRegistry((Tool("echo", "Echo", {"type": "object"}, lambda args: args),))
+        tools = ToolRegistry((Tool("echo", "Echo", {"type": "object"}, lambda args: args, contract=TEST_CONTRACT),))
         provider = ScriptedCompletion([chunk("done", finish="stop")])
         app = self.backend(components=[RuntimeTools(tools)], engines={"loop": LoopEngine(completion_fn=provider)})
         project = await app.projects.acreate(components=["tools"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"tools": {'config': {'enabled': []}}}}))

@@ -20,6 +20,8 @@ from llm.services.runtime.tools import ToolRuntime, ToolCall
 from llm.services.runtime.operations import operation_token
 from llm.services.infrastructure.storage import atomic_json, read_json
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
+from llm.components.tools import ToolEffect, ToolIsolation
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
@@ -35,7 +37,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
             step = app.step_manager.create(run, "tool", "act")
             app.step_manager.interrupt(step)
         return ToolCall("act", arguments, step.id, project.id, session.id, run.id, "work",
-                        operation_token(project.id, session.id, "work"))
+                        operation_token(project.id, session.id, "work"), contract=TEST_CONTRACT.to_dict())
 
     async def app(self, *, responses=None, components=(), runtime=None):
         directory = tempfile.TemporaryDirectory()
@@ -109,7 +111,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         effects = []
         async def effect(arguments):
             effects.append(arguments)
-        for contract in (ToolContract(operation_key_required=True), ToolContract(isolation="sandbox")):
+        for contract in (ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=True, retry_fields=()), ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.SANDBOX, approval_required=False, operation_key_required=False, retry_fields=())):
             app, model = await self.app(components=[RuntimeTools(ToolRegistry((Tool("act", "Act", {"type": "object"}, effect, contract=contract),)))])
             project = await app.projects.acreate(components=["tools"], config={"parameters": {"engines": {"custom": {'config': {'completion': {'model': 'test'}}}}}})
             await project.components.tools.aenable("act")
@@ -437,7 +439,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         async def effect(arguments):
             self.fail("old approval must not execute")
         app, _ = await self.app(components=[RuntimeTools(ToolRegistry((
-            Tool("act", "Act", {"type": "object"}, effect, contract=ToolContract(approval_required=True)),)))],
+            Tool("act", "Act", {"type": "object"}, effect, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),)))],
             responses=[[chunk(calls=[call('{}', name="act")], finish="tool_calls")]], runtime=ToolRuntime(authorize=approve))
         project = await app.projects.acreate(components=["tools"], config={"parameters": {"engines": {"custom": {'config': {'completion': {'model': 'test'}}}}}})
         await project.components.tools.aenable("act")

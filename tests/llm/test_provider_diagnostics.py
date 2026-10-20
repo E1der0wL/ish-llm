@@ -23,6 +23,7 @@ from llm.providers.runtime import (ProviderDiagnostics, logging_scope, diagnosti
 from llm.services.runtime.tools import ToolRuntime
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 def failure(status=400, *, retry_after_value=None):
@@ -227,7 +228,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             effects.append(arguments)
         model = ScriptedCompletion(*responses)
         tools = ToolRegistry((Tool("act", "write", {"type": "object"}, effect,
-            contract=ToolContract(approval_required=approval)),))
+            contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=approval, operation_key_required=False, retry_fields=())),))
         app = LargeLanguageModel(temporary.name, components=[RuntimeTools(tools)], engines={"loop": LoopEngine(completion_fn=model)},
             services=BackendServices(provider_diagnostics=ProviderDiagnostics(error_details=True, request_summary=True),
                 tool_runtime=ToolRuntime(classify=lambda _: ToolClassification("file.write", "test", 10))))

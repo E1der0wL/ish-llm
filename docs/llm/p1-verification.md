@@ -456,3 +456,96 @@ export HUB_TEST_XCLIP=/workspace/.setup/x11/root/usr/bin/xclip
 확인했다. 실제 host 대상 3개 모듈 44개와 X11 9개도 이 집합에서 전부 실행·통과했다.
 최종 문서 검사는 128개 문서·178개 Python fence·897개 링크·30개 anchor, 오류 0이다.
 이는 P1-c의 **첫 계약군 완료**이며 Tool 실행 선언 및 나머지 owner 정리, A–F는 남아 있다.
+
+## P1-c 두 번째 계약군: 필수 Tool 실행 선언
+
+시작 커밋은 `ac0ef8d4f24c3bea3f9017db11c27a545192f912`다.
+[첫 계약군 원격 CI](https://github.com/E1der0wL/ish-llm/actions/runs/39404149845)의 Checks
+annotation에서 LLM 1,700개·Hub 540개 통과와 failure/error/Skip/누락/중복 0을 확인했다.
+각 job은 678.321초·692.743초다. 전역 AppArmor 제한 1, 일반 unshare 거부,
+패키지 bwrap smoke와 비 root Tool 시험도 통과했다.
+
+### 선언과 소비 경계
+
+- `llm/components/tools/registry.py`의 `ToolContract`는 revision/effect/isolation/
+  approval_required/operation_key_required/retry_fields를 모두 필수로 받는다.
+  `ToolEffect`, `ToolIsolation`이 허용 값을 소유하고 runner가 이를 참조한다.
+  `from_dict()`는 완전한 현재 필드·정확한 값 타입을 검증하며 누락을 보충하지 않는다.
+- `Tool`·`ToolCall`·`tool()`은 명시 계약을 요구한다. decorator의 반복 기본값과
+  registry/runtime/worker의 계약 없음 분기를 제거했다. immutable Python 선언과
+  저장용 JSON snapshot의 변환은 동일한 owner를 사용한다.
+- Builtin/Memory/RAG/Agent/Goals/Refinement/Skills/Vision 및 Hub 등록자는 의미에 맞는
+  계약을 각 구현체에서 선언한다. Memory의 기존 write-policy·provenance, Tool의 승인·
+  operation key·격리는 유지한다. MCPConnector는 원격 Tool의 unknown effect와 승인 필수를
+  adapter가 명시한다. 원격 annotation은 실행 권한의 근거가 아니다.
+- `OperationRepository.load()`와 worker/MCP descriptor Reader는 계약의 누락 필드를
+  거부한다. 이전 None/불완전 계약으로 저장된 자료를 자동 변환하지 않으며 원본은 보존한다.
+- 테스트/예제/내장 Python Tool 소스도 정규 선언으로 이관했다. 승인 지문·실제 handler
+  효과·재개 receipt assertion은 유지한다. 테스트 fixture의 `TEST_CONTRACT`는 테스트만의
+  명시 선택이며 제품의 fallback으로 사용하지 않는다.
+- 정적 검사 S2는 owner의 ToolContract 필드에 literal/symbol/field factory 기본값이
+  추가되는 경우를 검출한다. 해결한 effect/isolation S3 후보 24개만 근거와 함께 제거했다.
+  새 예외는 없고 잔여 후보는 596개(S2 54, S3 503, S4 19, S5 2, S6 18)다.
+  P1-c 전체 완료나 strict 전체 통과가 아니다.
+
+### 집중 시험과 실패 기록
+
+증거 디렉터리는 `/workspace/llm-clean-p1/tool-declarations/`다. Python 3.12.14와
+이전 계약군의 환경 변수를 사용했다.
+
+| 실행 | 실제 결과와 조치 |
+|---|---|
+| `python -m unittest tests.llm.test_tool_declarations -v`, `before.log` | 수정 전 5개, failed subtest 8개·error 2·Skip 0, 0.002초, exit 1. 누락 선언 수락 및 새 정규 API 부재 재현 |
+| `focused.log` | 관련 12개 모듈 209개, failure 4·error 1·Skip 0, 101.050초, exit 1. 세 constraint 시험과 Hub fixture의 unspecced AsyncMock이 가짜 execution_binding을 만들었고, crash subprocess fixture가 새 필수 계약을 빠뜨림 |
+| fixture 수정 | AsyncMock의 실제 함수 spec을 명시하고 subprocess ToolCall에 완전한 계약 전달. 제품 binding JSON 검증·원래 crash exit 및 효과 assertion은 그대로 유지 |
+| `corrected.log` | Tool 선언/constraint/격리/workspace/operation/current-reader/static/Hub questions 120개 통과, failure/error/Skip 0, 38.689초, exit 0 |
+| `python -m tests.llm.check_budget_mutation` | R3 필드 전달 누락 시 두 번째 실제 효과 assertion으로 1개 시험 실패, 탐지 checker exit 0, 1.072초. 일반 회귀의 성공으로 세지 않음 |
+
+전체 회귀의 결과와 추가 실패는 아래에 별도 기록한다. 이 지점의 집중 시험 성공만으로
+전체 승인·Resume 회귀 통과를 선언하지 않았다.
+
+첫 LLM 전체 회귀 `llm-regression.json`은 1,707개 발견/실행, 1,655개 통과,
+실패한 상위 시험 52개(failure 1·error 54, 서브테스트 포함), Skip/누락/중복 0,
+338.419초, exit 1이었다. 공용 `LongRunningTests.setup_app()`의 `tool_contract=None`
+52건과 수동 승인 snapshot의 `contract=None` 3건이 원인이었다. 집중 시험에서 이 소비자를
+놓쳤으며 전체 성공으로 처리하지 않는다. 테스트 데이터만 완전한 명시 계약으로 바꾸고
+기존 승인 거부·지문 변경 거부·실제 효과·재시작 assertion을 유지한 재검증이 필요하다.
+
+수정 후 `python -m unittest tests.llm.test_long_running tests.llm.test_contracts
+ tests.llm.test_domain_hardening tests.llm.test_execution_boundaries tests.llm.test_interactions
+ tests.llm.test_observability tests.llm.test_project_authority -v`는 **113개 통과**, failure/error/
+Skip 0, 20.944초, exit 0이었다(`fixtures-corrected.log`).
+
+Hub 전체 `hub-regression.json`은 **540개 발견/실행/통과**, failure/error/Skip/누락/중복 0,
+491.142초, exit 0이다. X11 9개도 모두 통과했다. 두 전체 실행이 끝날 때까지 전체 Python
+소스 hash 646개가 시작 snapshot과 같았음을 확인했다. 이후 수정은 위 두 LLM fixture
+파일뿐이며 공통 제품·예제·Hub 시험은 그대로다. 최종 LLM 전체는 다시 실행한다.
+
+### 두 번째 계약군 전체 검증 완료
+
+```bash
+export TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+export HUB_TEST_XVFB=/workspace/.setup/x11/root/usr/bin/Xvfb
+export HUB_TEST_XCLIP=/workspace/.setup/x11/root/usr/bin/xclip
+/workspace/.setup/ish-llm/verified-next/bin/python -m tests.llm.run_regression \
+  --suite llm --output /workspace/llm-clean-p1/tool-declarations/llm-final.json
+/workspace/.setup/ish-llm/verified-next/bin/python -m tests.llm.run_regression \
+  --suite hub --output /workspace/llm-clean-p1/tool-declarations/hub-regression.json
+```
+
+| 범위 | 발견/실행/통과 | failure/error/Skip/누락/중복 | 시간 | exit |
+|---|---:|---:|---:|---:|
+| LLM 최종 | 1,707 / 1,707 / 1,707 | 모두 0 | 339.063초 | 0 |
+| Hub | 540 / 540 / 540 | 모두 0 | 491.142초 | 0 |
+| 합집합 | **2,247 / 2,247 / 2,247** | **모두 0** | 별도 suite 실행 | 둘 다 0 |
+
+`verified-partitions.json`에서 최종 discovery와 통과 집합의 정확한 일치·중복 없음을
+검증했다. 최종 LLM 시작/종료 소스 hash 646개가 일치하고, Hub 실행 이후에는 LLM fixture
+두 파일만 변경됐다. 실제 ish 대상 44개와 X11 9개가 모두 통과 집합에 포함된다.
+원래 실패 JSON/로그와 수정 후 결과는 각각 보존했다. `check_architecture --require S1`은
+new/stale/S1 0, 잔여 596개다. `git diff --check`도 통과했다.
+
+**완료 범위는 필수 Tool 계약군**이다. 다음 P1-c 계약군에서 Provider/Memory 설정과
+Host 자원 주입의 잘못된 falsey 객체 수락, 재시도 한도 계산의 중복 선언을 해결한다.
+그 뒤에도 상태·이벤트·오류·저장 형식 등의 owner 정리가 남아 있으므로 P1-c 전체 및
+A–F는 미완료다. 실제 인증 모델·커널 short-write·전원 손실/손상 디스크는 계속 미검증이다.

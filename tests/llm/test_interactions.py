@@ -13,6 +13,7 @@ from tests.llm import test_long_running
 from tests.llm import test_graph_checkpoints
 from tests.llm.test_graph_engine import straight
 from tests.llm.test_loop import chunk, call
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class InteractionModelTests(unittest.TestCase):
@@ -230,7 +231,7 @@ class GraphInteractionTests(unittest.IsolatedAsyncioTestCase):
             self.authorizations.append(call)
             return await authorize(call)
         self.app = LargeLanguageModel(self.root, components=[WorkflowComponent(), RuntimeTools(
-            ToolRegistry((Tool('act', 'action', {'type': 'object'}, act),)))],
+            ToolRegistry((Tool('act', 'action', {'type': 'object'}, act, contract=TEST_CONTRACT),)))],
             engines={'graph': GraphEngine(handlers={'tool': ToolNode()})},
             services=BackendServices(tool_runtime=ToolRuntime(authorize=checked)))
         self.addAsyncCleanup(self.app.shutdown)

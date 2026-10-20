@@ -25,6 +25,7 @@ from llm.engines.loop import LoopEngine
 from tests.hub.support import auxiliary, SizedOutput, eventually
 from tests.hub.test_live import until
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
@@ -99,7 +100,8 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 original = BuiltinToolComponent.resolve
                 with patch.object(BuiltinToolComponent, "resolve", autospec=True, side_effect=original) as resolve:
                     first = component.resolve(project, "tools")
-                    first.register(Tool("test_extra", "local only", {"type": "object"}, AsyncMock()))
+                    first.register(Tool("test_extra", "local only", {"type": "object"},
+                        AsyncMock(spec=lambda arguments: None), contract=TEST_CONTRACT))
                     second = component.resolve(project, "tools")
                     self.assertNotIn("test_extra", second.names())
                     self.assertIs(first.get("ask_user").handler, second.get("ask_user").handler)

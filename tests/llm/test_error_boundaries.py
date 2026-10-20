@@ -20,6 +20,7 @@ from llm.providers.requests import ProviderError
 from llm.providers.calls import ProviderCapacityError
 from llm.policies import ExecutionLimitError
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class UntrustedError(Exception):
@@ -198,7 +199,7 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             raise ToolExecutionError("no effect", effect="none", retryable=True)
         events = []
         with self.assertRaises(ToolExecutionError):
-            async for event in ToolExecutor().execute(Tool("fail", "fail", {"type": "object"}, failed), {}, result={}):
+            async for event in ToolExecutor().execute(Tool("fail", "fail", {"type": "object"}, failed, contract=TEST_CONTRACT), {}, result={}):
                 events.append(event)
         diagnostic = events[-1].diagnostic
         self.assertEqual(diagnostic.code, "tool_failed")
@@ -207,7 +208,7 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.Event().wait()
         events = []
         with self.assertRaises(ExecutionLimitError):
-            async for event in ToolExecutor(timeout_seconds=.01).execute(Tool("slow", "slow", {"type": "object"}, slow), {}, result={}):
+            async for event in ToolExecutor(timeout_seconds=.01).execute(Tool("slow", "slow", {"type": "object"}, slow, contract=TEST_CONTRACT), {}, result={}):
                 events.append(event)
         self.assertEqual(events[-1].diagnostic.code, "tool_timeout")
 

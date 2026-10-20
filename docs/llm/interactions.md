@@ -52,7 +52,8 @@ Run 마감 전의 요청은 제외한다. 이미 재개된 원본 Run에는 응�
 
 ## Tool 승인 연결
 
-일반 승인 경로는 Tool 등록 시 `ToolContract(approval_required=True)`를 전달한다.
+일반 승인 경로는 Tool 등록 시 모든 필수 선택을 포함한 `ToolContract`에서
+`approval_required=True`를 선언한다.
 `ToolRuntime(authorize=None, classify=classify)`여도 ToolExecutor가 요청을 저장한다.
 Run이 PAUSED로 확정된 뒤 Project의 approval rule은 policy 응답 또는 사용자 대기를
 결정하며, policy 응답도 명시적 resume 전에는 효과를 실행하지 않는다.

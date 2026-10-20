@@ -29,6 +29,7 @@ from llm.engines.graph.tool import ToolNode
 from llm.llm import LargeLanguageModel
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
 from tests.llm.test_rag_components import Extractor, fake_embedding
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 def answer(text):
@@ -57,7 +58,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         self.catalog = ToolRegistry(tuple(Tool(name, name, {
             "type": "object", "properties": {"value": {"type": "string"}},
             "required": ["value"], "additionalProperties": False,
-        }, echo) for name in ("echo", "forbidden")))
+        }, echo, contract=TEST_CONTRACT) for name in ("echo", "forbidden")))
         self.profile = {"engine": "loop", "purpose": "Write", "system_prompt": "Follow the provided request.",
                         "completion": {"model": "test/writer", "temperature": 0.2},
                         "tools": ["echo"], "engine_options": {'policy': {'max_iterations': 3}}}
@@ -234,7 +235,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             finally:
                 closed.set()
-        self.catalog = ToolRegistry((Tool("echo", "wait", {"type": "object"}, blocking),
+        self.catalog = ToolRegistry((Tool("echo", "wait", {"type": "object"}, blocking, contract=TEST_CONTRACT),
                                      self.catalog.get("forbidden")))
         model = ScriptedCompletion([chunk(calls=[call('{}', name="echo")]), chunk(finish="tool_calls")],
                                    answer("next"))
@@ -382,7 +383,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(10)
             finally:
                 closed.set()
-        self.catalog = ToolRegistry((Tool("echo", "slow", {"type": "object"}, slow),
+        self.catalog = ToolRegistry((Tool("echo", "slow", {"type": "object"}, slow, contract=TEST_CONTRACT),
                                      self.catalog.get("forbidden")))
         self.profile["policy"] = {"timeout_seconds": 1}
         model = ScriptedCompletion([chunk(calls=[call('{}', name="echo")]), chunk(finish="tool_calls")])
@@ -437,7 +438,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         @asynccontextmanager
         async def connector(definition):
             try:
-                yield ToolRegistry((Tool("wait", "wait", {"type": "object"}, wait_tool),))
+                yield ToolRegistry((Tool("wait", "wait", {"type": "object"}, wait_tool, contract=TEST_CONTRACT),))
             finally:
                 closed.append("session")
         self.profile["resources"] = {"mcp": {"local": {"wait_remote": "wait"}}}

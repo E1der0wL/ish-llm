@@ -15,7 +15,12 @@ from tests.llm.test_loop import ScriptedCompletion, chunk, call
 import json
 
 
-SOURCE = 'from llm.components.tools import tool\n@tool()\nasync def main():\n    """Example."""\n    return "ok"\n'
+SOURCE = '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
+async def main():
+    """Example."""
+    return "ok"
+'''
 
 
 class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):

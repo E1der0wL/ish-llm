@@ -19,6 +19,7 @@ from llm.components.tools.builtin.workspaces import TestWorkspaces
 from llm.components.vision.component import VisionComponent
 from hub.config.preferences import PreferencesStore
 from hub.config.view_state import ViewStateStore, ReadingPosition
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class PresenceContracts(unittest.TestCase):
@@ -103,7 +104,7 @@ class VersionContracts(unittest.TestCase):
         session = SimpleNamespace(id="session", project_id="project",
                                   paths=SimpleNamespace(state=self.root / "state", root=self.root))
         call = ToolCall("effect", {}, "step", "project", "session", "run", "key",
-                        operation_token("project", "session", "key"))
+                        operation_token("project", "session", "key"), contract=TEST_CONTRACT.to_dict())
         repository = OperationRepository()
         self.assertEqual(repository.claim(session, call), {"reused": False})
         self.rejects_invalid_versions_without_writing(
@@ -114,7 +115,7 @@ class VersionContracts(unittest.TestCase):
         source = self.root / "source"
         source.mkdir()
         spaces = TestWorkspaces(self.root / "spaces", source_root=source, allow_network=False)
-        call = ToolCall("create", {}, "step", "project", "session", "run")
+        call = ToolCall("create", {}, "step", "project", "session", "run", contract=TEST_CONTRACT.to_dict())
         value = spaces._create(call, [])
         identifier = value["workspace_id"]
         directory = self.root / "spaces/project" / identifier
@@ -235,7 +236,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                 model = ScriptedCompletion(
                     [chunk(calls=[call("{}", name="effect")], finish="tool_calls")],
                     [chunk("done", finish="stop")])
-                component = RuntimeTools(ToolRegistry((Tool("effect", "effect", {"type": "object"}, effect),)))
+                component = RuntimeTools(ToolRegistry((Tool("effect", "effect", {"type": "object"}, effect, contract=TEST_CONTRACT),)))
                 engine = LoopEngine(completion_fn=model)
                 services = BackendServices(tool_runtime=ToolRuntime(authorize=authorize))
                 async with LargeLanguageModel(root / "workspace", components=[component],
@@ -309,7 +310,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                 model = ScriptedCompletion(
                     [chunk(calls=[call('{"value":"first"}', name="effect", call_id="first")], finish="tool_calls")],
                     [ConnectionError("stop after committed effect")], continuation)
-                component = RuntimeTools(ToolRegistry((Tool("effect", "effect", {"type": "object"}, effect),)))
+                component = RuntimeTools(ToolRegistry((Tool("effect", "effect", {"type": "object"}, effect, contract=TEST_CONTRACT),)))
                 engine = LoopEngine(completion_fn=model)
                 async with LargeLanguageModel(root / "workspace", components=[component], engines={"loop": engine}) as app:
                     project = await app.projects.acreate(components=["tools"], config={
@@ -363,7 +364,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                 [ConnectionError("stop after persisted effect")],
                 [chunk(calls=[call('{"value":"second"}', name="effect", call_id="second")], finish="tool_calls")],
                 [chunk("done", finish="stop")])
-            component = RuntimeTools(ToolRegistry((Tool("effect", "effect", {"type": "object"}, effect),)))
+            component = RuntimeTools(ToolRegistry((Tool("effect", "effect", {"type": "object"}, effect, contract=TEST_CONTRACT),)))
             engine = LoopEngine(completion_fn=model)
             async with LargeLanguageModel(root / "workspace", components=[component], engines={"loop": engine}) as app:
                 project = await app.projects.acreate(components=["tools"], config={

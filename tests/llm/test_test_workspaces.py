@@ -24,6 +24,7 @@ from llm.policies import ExecutionLimitError
 from llm.services.runtime.processes import ProcessToolRunner
 from llm.services.runtime.tools import ToolCall, ToolRuntime
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class WorkspaceTests(unittest.IsolatedAsyncioTestCase):
@@ -47,7 +48,7 @@ class WorkspaceTests(unittest.IsolatedAsyncioTestCase):
     @contextmanager
     def owner(self, project_id="project"):
         with patch("llm.components.tools.builtin.workspaces.current_tool_call", return_value=
-                   ToolCall("test", {}, "step", project_id=project_id, session_id="session", run_id="run")):
+                   ToolCall("test", {}, "step", project_id=project_id, session_id="session", run_id="run", contract=TEST_CONTRACT.to_dict())):
             yield
 
     async def invoke(self, name, **args):
@@ -224,9 +225,10 @@ import asyncio
 from unittest.mock import patch
 from llm.components.tools.builtin import TestWorkspaces
 from llm.services.runtime.tools import ToolCall
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 async def main():
     w=TestWorkspaces({str(self.storage)!r},source_root={str(self.source)!r},allow_network=False)
-    with patch('llm.components.tools.builtin.workspaces.current_tool_call',return_value=ToolCall('test',{{}},'s',project_id='project')):
+    with patch('llm.components.tools.builtin.workspaces.current_tool_call',return_value=ToolCall('test',{{}},'s',project_id='project',contract=TEST_CONTRACT.to_dict())):
         try: await w.delete({{'workspace_id':{identifier!r}}})
         except ValueError as error: print(str(error))
         else: raise AssertionError('busy workspace deleted')
@@ -311,10 +313,11 @@ from unittest.mock import patch
 from pathlib import Path
 from llm.components.tools.builtin import TestWorkspaces
 from llm.services.runtime.tools import ToolCall
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 async def main():
     spaces=TestWorkspaces({str(self.storage)!r}, source_root={str(self.source)!r}, allow_network=False,
                          read_only_paths={[sys.base_prefix,sys.prefix]!r})
-    with patch('llm.components.tools.builtin.workspaces.current_tool_call', return_value=ToolCall('test',{{}},'s',project_id='project')):
+    with patch('llm.components.tools.builtin.workspaces.current_tool_call', return_value=ToolCall('test',{{}},'s',project_id='project',contract=TEST_CONTRACT.to_dict())):
         task=asyncio.create_task(spaces({{'workspace_id':{identifier!r},'argv':{self.python(code)!r}}}))
         while not Path({str(ready)!r}).exists():
             if task.done(): raise RuntimeError(await task)

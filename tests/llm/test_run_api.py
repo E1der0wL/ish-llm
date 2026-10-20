@@ -333,7 +333,12 @@ class OpenComponentTests(unittest.TestCase):
             self.assertEqual(self.projects.component(clone, name).list(), self.projects.component(self.project, name).list())
         with self.assertRaises(ValueError):
             ComponentToolResolver(self.components).resolve_tools(self.projects.load(self.project.id))
-        data.save("offline", {"source": 'from llm.components.tools import tool\n@tool()\nasync def main():\n    """Offline tool."""\n    return "ok"\n'})
+        data.save("offline", {"source": '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
+async def main():
+    """Offline tool."""
+    return "ok"
+'''})
         self.assertEqual(ComponentToolResolver(self.components).resolve_tools(self.projects.load(self.project.id)).names(), ("offline",))
         data.configure({'config': {'enabled': []}})
         data.delete("offline")

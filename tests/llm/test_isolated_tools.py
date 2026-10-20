@@ -24,6 +24,7 @@ from llm.services.composition import BackendServices
 from llm.services.runtime.tools import ToolCall, ToolExecutor, ToolRuntime
 from llm.services.runtime.processes import ProcessToolRunner
 from llm.policies import ExecutionLimitError
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class ToolEngine:
@@ -73,7 +74,7 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
             return {"receipt": "receipt-1"}
 
         self.engine = ToolEngine()
-        self.tools = RuntimeTools(ToolRegistry([Tool("external", "external", {"type": "object"}, handler)]))
+        self.tools = RuntimeTools(ToolRegistry([Tool("external", "external", {"type": "object"}, handler, contract=TEST_CONTRACT)]))
         self.services = BackendServices(tool_runtime=ToolRuntime(operation_key=lambda call: call.arguments["operation"]))
         self.app = self.open()
         self.project = await self.app.projects.acreate("test", components=["tools"])
@@ -189,7 +190,7 @@ class ProcessTests(unittest.IsolatedAsyncioTestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.call = ToolCall("worker", {"text": "한글"}, "step", idempotency_key="stable-key")
+        self.call = ToolCall("worker", {"text": "한글"}, "step", idempotency_key="stable-key", contract=TEST_CONTRACT.to_dict())
 
     def runner(self, code, **options):
         return ProcessToolRunner({"worker": [sys.executable, "-I", "-c", code]}, cwd=self.root,
@@ -287,9 +288,10 @@ import asyncio, os, sys
 from pathlib import Path
 from llm.services.runtime.processes import ProcessToolRunner
 from llm.services.runtime.tools import ToolCall
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 async def main():
     runner = ProcessToolRunner({{'worker': [sys.executable, '-I', '-c', {child_code!r}]}}, cwd={str(self.root)!r}, isolation='process')
-    pending = asyncio.create_task(runner(None, ToolCall('worker', {{}}, 'step')))
+    pending = asyncio.create_task(runner(None, ToolCall('worker', {{}}, 'step', contract=TEST_CONTRACT.to_dict())))
     while not Path({str(ready)!r}).exists():
         if pending.done():
             await pending

@@ -1,8 +1,13 @@
 from llm.core.schema import implementation_schema
 """실행 정책 테스트용 Component capability 제공자. Project Tool 저장소를 사용하지 않는다."""
 from llm.components.base import Component
-from llm.components.tools import ToolRegistry, ToolData
+from llm.components.tools import ToolRegistry, ToolData, ToolContract, ToolEffect, ToolIsolation
 from llm.services.infrastructure.storage import make_directory
+
+
+TEST_CONTRACT = ToolContract(
+    revision="test", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE,
+    approval_required=False, operation_key_required=False, retry_fields=())
 
 
 class RuntimeTools(Component):

@@ -26,6 +26,7 @@ from llm.services.runtime.runs import RunManager
 from llm.services.infrastructure.storage import atomic_json, read_json
 from llm.services.lifecycle.sessions import SessionManager
 from tests.llm.support.fake_engine import FakeStreamingEngine
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class BoundaryTests(unittest.IsolatedAsyncioTestCase):
@@ -39,7 +40,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
             self.calls.append(arguments)
             return "5"
 
-        self.catalog = ToolRegistry((Tool("add", "add", {"type": "object"}, add),))
+        self.catalog = ToolRegistry((Tool("add", "add", {"type": "object"}, add, contract=TEST_CONTRACT),))
         self.components = ComponentRegistry((RuntimeTools(self.catalog), WorkflowComponent()))
         self.sessions = SessionManager()
         self.projects = ProjectManager(ProjectRepository(self.root), self.sessions, components=self.components)

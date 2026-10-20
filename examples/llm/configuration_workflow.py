@@ -35,6 +35,7 @@ from llm.services.infrastructure.storage import (atomic_json, drain_on_cancel, m
     prepare_replace, reject_links, sync_directory, temporary_file)
 from llm.services.runtime.tools import ToolApprovalRequired
 from .graph_rag import configure_logging, validate_config
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 AGENT_PROMPT = """You propose changes to a user's configuration files. You cannot apply changes.
@@ -374,7 +375,10 @@ def backend(workspace, config, review, *, completion_fn=None, rag_component=None
     registry = ToolRegistry((Tool("apply_configuration", "Apply exactly the reviewed configuration after approval.",
         {"type": "object", "required": ["package"], "properties": {"package": {"type": "object"}},
          "additionalProperties": False}, review.apply,
-        contract=ToolContract(effect="external", approval_required=True, operation_key_required=True)),))
+        contract=ToolContract(
+            revision='1', effect=ToolEffect.EXTERNAL,
+            isolation=ToolIsolation.NONE, approval_required=True,
+            operation_key_required=True, retry_fields=())),))
     graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": loop}),
         "snapshot": review.snapshot, "validate_candidate": review.validate, "tool": ToolNode()})
     return LargeLanguageModel(workspace, engines={"graph": graph, "loop": loop}, components=[

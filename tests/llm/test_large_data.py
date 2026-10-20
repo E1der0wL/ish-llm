@@ -17,6 +17,7 @@ from llm.components.tools import Tool, ToolContract, ToolRegistry, ToolClassific
 from llm.llm import LargeLanguageModel, LoopEngine
 from tests.llm.configuration_fixtures import memory_settings, configure_engine
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 def answer(text="done"):
@@ -36,7 +37,7 @@ class SourceTools(Component):
             self.calls += 1
             return self.content
         return ToolRegistry((Tool("source_read", "Read a large result", {"type": "object", "properties": {},
-            "additionalProperties": False}, read, contract=ToolContract(effect="read_only")),))
+            "additionalProperties": False}, read, contract=ToolContract(revision="1", effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=())),))
 
 
 class LargeDataTests(unittest.IsolatedAsyncioTestCase):
@@ -296,7 +297,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
                 effects.append(True)
                 return {"content": [{"type": "text", "text": "remote " * 200}]}
             yield ToolRegistry((Tool("remote", "external", {"type": "object", "properties": {}}, invoke,
-                contract=ToolContract(approval_required=True),
+                contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()),
                 classification=ToolClassification("remote.call", "test", 1)),))
         await self.app.shutdown()
         self.app = LargeLanguageModel(self.root, components=[self.memory_component, DataComponent(), self.source,

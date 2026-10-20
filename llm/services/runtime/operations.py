@@ -45,13 +45,13 @@ class OperationRepository:
                 or value["idempotency_key"] != operation_token(session.project_id, session.id, key)
                 or value["status"] not in ("started", "completed", "not_applied")):
             raise ValueError("Invalid operation record")
+        from llm.components.tools.registry import ToolContract
+        ToolContract.from_dict(value["contract"])
         return value
 
     def claim(self, session: Session, call: "ToolCall") -> dict:
         path = self._path(session, call.operation_key)
-        request = {"name": call.name, "arguments": call.arguments}
-        if call.contract is not None:
-            request["contract"] = call.contract
+        request = {"name": call.name, "arguments": call.arguments, "contract": call.contract}
         ProjectConfig.validate_json(request)
         digest = hashlib.sha256(json.dumps(request, sort_keys=True, ensure_ascii=False,
                                           allow_nan=False).encode()).hexdigest()

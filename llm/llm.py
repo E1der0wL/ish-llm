@@ -959,8 +959,8 @@ class LargeLanguageModel:
 
 
 ADD_TOOL_SOURCE = '\n'.join([
-    'from llm.components.tools import tool',
-    '@tool(effect="read_only")',
+    'from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation',
+    '@tool(ToolContract(revision="1", effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))',
     'async def main(a: float, b: float) -> dict:',
     '    """Add two numbers."""',
     '    return {"result": a + b}',

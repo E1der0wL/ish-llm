@@ -9,6 +9,7 @@ from llm.components.workflows import WorkflowComponent
 from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.services.runtime.tools import current_tool_call
 from ...components import component_spec
+from llm.components.tools import ToolEffect, ToolIsolation
 
 IDENTIFIER = {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}
 
@@ -23,7 +24,10 @@ def owner(data):
 def tool(name, description, properties, required, handler, *, write=False):
     return Tool(name, description, {"type": "object", "properties": properties,
         "required": required, "additionalProperties": False}, handler,
-        contract=ToolContract(effect="unknown" if write else "read_only", approval_required=write))
+        contract=ToolContract(
+            revision='1', effect=ToolEffect.UNKNOWN if write else ToolEffect.READ_ONLY,
+            isolation=ToolIsolation.NONE, approval_required=write,
+            operation_key_required=False, retry_fields=()))
 
 
 def authoring_tools(data, component, *, discover=True, schema_extensions=None):

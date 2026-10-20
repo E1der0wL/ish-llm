@@ -16,8 +16,8 @@ from llm.services.runtime.tools import ToolExecutionError, ToolApprovalRequired,
 from tests.llm import test_tool_packages as packages_tests
 
 
-def source(body, imports="", decorator="@tool()"):
-    return ('from llm.components.tools import tool\n' + imports + '\n' + decorator +
+def source(body, imports="", decorator='@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))'):
+    return ('from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation\n' + imports + '\n' + decorator +
             '\nasync def main():\n    """Worker fixture."""\n' +
             '\n'.join('    ' + line for line in body.splitlines()) + '\n')
 
@@ -34,9 +34,9 @@ class WorkerTests(unittest.IsolatedAsyncioTestCase):
         from llm.policies import RetryDecision
         from llm.services.runtime.tools import ToolExecutionScope, ToolExecutor
         from types import SimpleNamespace
-        text = '''from llm.components.tools import tool
+        text = '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
 from llm.services.runtime.tools import ToolExecutionError
-@tool(retry_fields=("path",))
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=('path',)))
 async def main(path: str):
     """Recoverable worker fixture."""
     if path == "bad":
@@ -79,12 +79,12 @@ async def main(path: str):
             await tool.handler({})
 
     async def test_dynamic_signature_cannot_change_between_inspection_and_execution(self):
-        text = '''from llm.components.tools import tool
+        text = '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
 from pathlib import Path
 marker = Path(__file__).parents[2] / "descriptor-fixture"
 count = int(marker.read_text()) + 1 if marker.exists() else 1
 marker.write_text(str(count))
-@tool()
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))
 async def main(limit: int = count):
     """Dynamic defaults must not contradict inspected metadata."""
     return limit
@@ -151,7 +151,7 @@ async def main(limit: int = count):
             raise ToolApprovalRequired()
         for approve in (True, False):
             project, session, _ = await self.setup_runtime(source('return "approved"',
-                decorator='@tool(approval_required=True)'), runtime=ToolRuntime(authorize=ask))
+                decorator='@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))'), runtime=ToolRuntime(authorize=ask))
             executed = []
             original = process.invoke_worker
             async def observe(request):
@@ -182,7 +182,7 @@ async def main(limit: int = count):
                     services=BackendServices(tool_runtime=ToolRuntime(authorize=ask))) as app:
                     project = await app.projects.acreate(components=['tools', 'workflows'])
                     await project.components.tools.acreate({'source': source('return None',
-                        decorator='@tool(approval_required=True)')}, identifier='act')
+                        decorator='@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))')}, identifier='act')
                     await project.components.tools.aprepare('act')
                     await project.components.tools.aenable('act')
                     graph = (WorkflowGraph(entry='act').node('act', 'tool', tool='act', pause_before=True)
@@ -262,7 +262,7 @@ async def main(limit: int = count):
     async def test_changed_source_cannot_reuse_approval(self):
         async def ask(call):
             raise ToolApprovalRequired()
-        text = source('return 1', decorator='@tool(approval_required=True)')
+        text = source('return 1', decorator='@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))')
         project, session, _ = await self.setup_runtime(text, runtime=ToolRuntime(authorize=ask))
         paused = await (await session.run.submit('act', engine='loop')).wait()
         request, = await paused.ainteractions()

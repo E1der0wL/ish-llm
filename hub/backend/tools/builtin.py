@@ -12,6 +12,7 @@ from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from .test_workspaces import HubTestWorkspaces
 
 from ..interactions.questions import QuestionBroker
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 class HubBuiltinTools(BuiltinToolComponent):
@@ -70,7 +71,10 @@ class HubBuiltinTools(BuiltinToolComponent):
             {"type": "object", "properties": {"question": {"type": "string", "minLength": 1},
                 "description": {"type": "string"}, "choices": {"type": "array", "items": {"type": "string"}}},
              "required": ["question"], "additionalProperties": False},
-            self.questions.ask, contract=ToolContract(effect="read_only")))
+            self.questions.ask, contract=ToolContract(
+                revision='1', effect=ToolEffect.READ_ONLY,
+                isolation=ToolIsolation.NONE, approval_required=False,
+                operation_key_required=False, retry_fields=())))
         from .paths import bind_paths
         bind_paths(toolkit)
         from .advice import bind_advice

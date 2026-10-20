@@ -4,13 +4,17 @@ from copy import deepcopy
 
 from llm.components.tools import Tool, ToolContract, ToolRegistry
 from llm.services.infrastructure.storage import revision_token
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 def skill_tools(records: dict, *, read_resource=None) -> ToolRegistry:
     """목록은 요약만, 본문은 선택한 ID만 반환한다. 지침의 실행을 보장하지 않는다."""
     records = deepcopy(records)
     revisions = {name: revision_token(value) for name, value in records.items()}
-    contract = ToolContract(effect="read_only", revision=revision_token(records))
+    contract = ToolContract(
+        revision=revision_token(records), effect=ToolEffect.READ_ONLY,
+        isolation=ToolIsolation.NONE, approval_required=False,
+        operation_key_required=False, retry_fields=())
 
     async def listing(arguments):
         terms = arguments.get("query", "").casefold().split()

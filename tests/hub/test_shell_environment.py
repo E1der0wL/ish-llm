@@ -16,6 +16,7 @@ from hub.ui.live import LiveController, LiveHubView
 from hub.model import HubSnapshot, SessionSummary
 from llm.engines.loop import LoopEngine
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 def snapshot(root, marker):
@@ -82,9 +83,9 @@ class ShellSnapshotTests(unittest.TestCase):
         from llm.engines.base import EngineContext
         from llm.components.tools import Tool, ToolRegistry
         from unittest.mock import AsyncMock
-        builtin, custom = Tool("file_read", "read", {"type": "object"}, AsyncMock()), Tool(
-            "custom", "custom", {"type": "object"}, AsyncMock())
-        bound = Tool("file_read", "read", {"type": "object"}, AsyncMock())
+        builtin, custom = Tool("file_read", "read", {"type": "object"}, AsyncMock(spec=lambda arguments: None), contract=TEST_CONTRACT), Tool(
+            "custom", "custom", {"type": "object"}, AsyncMock(spec=lambda arguments: None), contract=TEST_CONTRACT)
+        bound = Tool("file_read", "read", {"type": "object"}, AsyncMock(spec=lambda arguments: None), contract=TEST_CONTRACT)
         component = NS(name="builtin_tools", resolve_environment=Mock(return_value=ToolRegistry((bound,))))
         engine = EnvironmentEngine(NS(), component, snapshot("/tmp", "test"))
         context = EngineContext(NS(components=["builtin_tools"]), NS(), NS(), ())

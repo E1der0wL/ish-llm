@@ -75,10 +75,12 @@ settings = await project.adescribe_config()
 
 ```python
 from llm.llm import Tool, ToolContract, ToolRuntime
+from llm.components.tools import ToolEffect, ToolIsolation
 
 tool = Tool("deploy", "Deploy approved artifact", parameters, handler,
-    contract=ToolContract(revision="2", effect="external",
-        isolation="sandbox", approval_required=True, operation_key_required=True))
+    contract=ToolContract(revision="2", effect=ToolEffect.EXTERNAL,
+        isolation=ToolIsolation.SANDBOX, approval_required=True, operation_key_required=True,
+        retry_fields=()))
 
 runtime = ToolRuntime(authorize=authorize, runner=process_runner,
                     operation_key=operation_key, operation_probe=probe,

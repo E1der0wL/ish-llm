@@ -254,7 +254,12 @@ class ToolDataTests(unittest.IsolatedAsyncioTestCase):
                           "parameters": {"type": "object", "properties": {"a": {"type": "number"}},
                                          "required": ["a"], "additionalProperties": False},
                           "strict": True}}
-            source = {"source": 'from llm.components.tools import tool\n@tool(strict=True)\nasync def main(a: float):\n    """new"""\n    return "result"\n'}
+            source = {"source": '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
+@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()), strict=True)
+async def main(a: float):
+    """new"""
+    return "result"
+'''}
             self.assertEqual(data.create(source, identifier="add"), "add")
             data.configure({'config': {'enabled': []}})
             data.enable("add")

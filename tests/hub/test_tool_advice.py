@@ -14,6 +14,7 @@ from hub.locales import Language
 from llm.components.tools import Tool, ToolClassification, ToolContract, ToolRegistry
 from llm.engines.loop import LoopEngine
 from tests.llm.test_loop import ScriptedCompletion, call, chunk
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
@@ -38,7 +39,7 @@ class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
         toolkit = NS(registry=ToolRegistry((Tool("file_create", "Create", {
             "type": "object", "properties": {"path": {"type": "string"}},
             "required": ["path"], "additionalProperties": False}, operation,
-            contract=ToolContract(approval_required=True)),)))
+            contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),)))
         bind_advice(toolkit)
         arguments = {"path": "file.txt", FIELD: {"level": "low", "reason": "Creates one new local file."}}
         toolkit.registry.prepare("file_create", json.dumps(arguments))

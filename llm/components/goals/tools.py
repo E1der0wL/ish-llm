@@ -1,6 +1,7 @@
 """목표 읽기와 승인 대상 변경 Tool. 실행 권한·영수증은 ToolExecutor가 소유한다."""
 
 from llm.components.tools import Tool, ToolContract, ToolRegistry
+from llm.components.tools import ToolEffect, ToolIsolation
 
 
 def goal_tools(data, *, write=False):
@@ -37,7 +38,10 @@ def goal_tools(data, *, write=False):
     def item(name, description, properties, required, handler, write=False):
         return Tool(name, description, {"type": "object", "properties": properties,
                     "required": required, "additionalProperties": False}, handler,
-                    contract=ToolContract(effect="unknown" if write else "read_only", approval_required=write))
+                    contract=ToolContract(
+                        revision='1', effect=ToolEffect.UNKNOWN if write else ToolEffect.READ_ONLY,
+                        isolation=ToolIsolation.NONE, approval_required=write,
+                        operation_key_required=False, retry_fields=()))
     reads = (
         item("goal_list", "List project/current Session goals and their versions.",
              {"status": {"enum": ["active", "paused", "completed"]}}, [], listing),

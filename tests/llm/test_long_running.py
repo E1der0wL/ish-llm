@@ -13,6 +13,7 @@ from tests.llm.configuration_fixtures import configure_engine
 from llm.llm import LargeLanguageModel, ProjectConfig, LoopEngine, Tool, ToolRegistry, ToolComponent, BackendServices
 from llm.services.runtime.tools import ToolRuntime, ToolExecutionError, ToolApprovalRequired
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
+from tests.llm.support.runtime_tools import TEST_CONTRACT
 
 
 class LongRunningTests(unittest.IsolatedAsyncioTestCase):
@@ -143,7 +144,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         root, project_id, session_id = project.data.paths.root.parent.parent, project.id, session.id
         await app.shutdown()
         reopened = LargeLanguageModel(root, components=[RuntimeTools(ToolRegistry((
-            Tool('act', 'action', {'type': 'object'}, act),)))], engines={'loop': LoopEngine(completion_fn=model)})
+            Tool('act', 'action', {'type': 'object'}, act, contract=TEST_CONTRACT),)))], engines={'loop': LoopEngine(completion_fn=model)})
         self.addAsyncCleanup(reopened.shutdown)
         session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
         resumed = await (await session.run.resume(failed.id, engine='loop')).wait()
@@ -212,7 +213,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         app = LargeLanguageModel(Path(temporary.name),
-            components=[RuntimeTools(ToolRegistry((Tool('act', 'action', {'type': 'object'}, act),))), WorkflowComponent()],
+            components=[RuntimeTools(ToolRegistry((Tool('act', 'action', {'type': 'object'}, act, contract=TEST_CONTRACT),))), WorkflowComponent()],
             engines={'graph': GraphEngine(handlers={'tool': ToolNode()})},
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         self.addAsyncCleanup(app.shutdown)
@@ -340,7 +341,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, 'edit_conflict'):
             await tools.aconfigure({'config': {'enabled': ['act']}}, expected_version=snapshot['version'])
 
-    async def setup_app(self, handler, responses, runtime=None, *, policies=None, tool_schema=None, tool_contract=None):
+    async def setup_app(self, handler, responses, runtime=None, *, policies=None, tool_schema=None, tool_contract=TEST_CONTRACT):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         model = ScriptedCompletion(*responses)

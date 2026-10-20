@@ -4,7 +4,8 @@ Explicitly registered async tools; no automatic shell or filesystem access."""
 
 import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field, fields
+from enum import StrEnum
 from collections.abc import Awaitable, Callable
 from copy import deepcopy
 from inspect import getattr_static
@@ -28,21 +29,33 @@ class ToolClassification:
         validate_risk(self.risk_scheme, self.risk)
 
 
+class ToolEffect(StrEnum):
+    READ_ONLY = "read_only"
+    EXTERNAL = "external"
+    UNKNOWN = "unknown"
+
+
+class ToolIsolation(StrEnum):
+    NONE = "none"
+    PROCESS = "process"
+    SANDBOX = "sandbox"
+
+
 @dataclass(frozen=True, slots=True)
 class ToolContract:
     """신뢰한 개발자의 실행 선언. 모델용 함수 정의나 Project 레코드로 권한을 바꿀 수 없다."""
-    revision: str = "1"
-    effect: str = "unknown"
-    isolation: str = "none"
-    approval_required: bool = False
-    operation_key_required: bool = False
-    retry_fields: tuple[str, ...] = ()
+    revision: str
+    effect: ToolEffect
+    isolation: ToolIsolation
+    approval_required: bool
+    operation_key_required: bool
+    retry_fields: tuple[str, ...]
 
     def __post_init__(self):
         if not isinstance(self.revision, str) or not self.revision:
             raise ValueError("Tool contract revision is required")
-        if self.effect not in ("read_only", "external", "unknown") or self.isolation not in ("none", "process", "sandbox"):
-            raise ValueError("Invalid Tool effect/isolation contract")
+        object.__setattr__(self, "effect", ToolEffect(self.effect))
+        object.__setattr__(self, "isolation", ToolIsolation(self.isolation))
         if type(self.approval_required) is not bool or type(self.operation_key_required) is not bool:
             raise TypeError("Tool contract requirements must be boolean")
         if (not isinstance(self.retry_fields, tuple) or any(not isinstance(k, str) or not k for k in self.retry_fields)
@@ -50,7 +63,17 @@ class ToolContract:
             raise ValueError("Tool retry_fields must be distinct parameter names")
 
     def to_dict(self):
-        return {**asdict(self), "retry_fields": list(self.retry_fields)}
+        return {**asdict(self), "effect": self.effect.value, "isolation": self.isolation.value,
+                "retry_fields": list(self.retry_fields)}
+
+    @classmethod
+    def from_dict(cls, value):
+        """Read only a complete current execution declaration."""
+        if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
+            raise ValueError("Tool contract requires exactly the current fields")
+        if not isinstance(value["retry_fields"], list):
+            raise TypeError("Stored Tool retry_fields must be an array")
+        return cls(**{**value, "retry_fields": tuple(value["retry_fields"])})
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,8 +84,12 @@ class Tool:
     handler: Callable[[dict[str, Any]], Awaitable[Any]]
     # Optional native definition preserves provider extensions such as strict.
     definition: Optional[dict[str, Any]] = None
-    contract: Optional[ToolContract] = None
+    contract: ToolContract = field(kw_only=True)
     classification: Optional[ToolClassification] = None
+
+    def __post_init__(self):
+        if not isinstance(self.contract, ToolContract):
+            raise TypeError("Tool contract must be ToolContract")
 
 
 # 런타임 함수와 인자 Schema를 등록한다. 저장된 Tool 선택과 분리된다.
@@ -75,18 +102,18 @@ class ToolRegistry:
     def register(self, tool: Tool) -> None:
         if tool.classification is not None and not isinstance(tool.classification, ToolClassification):
             raise TypeError("Tool classification must be ToolClassification")
-        if tool.contract is not None and not isinstance(tool.contract, ToolContract):
+        if not isinstance(tool.contract, ToolContract):
             raise TypeError("Tool contract must be ToolContract")
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", tool.name) or tool.name in self._tools:
             raise ValueError("Invalid or duplicate tool name")
         schema = deepcopy(tool.parameters)
         if schema.get("type") != "object":
             raise ValueError("Tool parameters must describe an object")
-        if tool.contract is not None and set(tool.contract.retry_fields) - schema.get("properties", {}).keys():
+        if set(tool.contract.retry_fields) - schema.get("properties", {}).keys():
             raise ValueError("Tool retry_fields must name declared parameters")
         # A durable selected child cannot change identity through argument repair.
         # A new selection requires a new invocation and its own approval binding.
-        if (tool.contract is not None and tool.contract.retry_fields
+        if (tool.contract.retry_fields
                 and getattr_static(tool.handler, "bind_arguments", None) is not None):
             raise ValueError("Durable selected Tool bindings do not support retry_fields; start a new invocation")
         from llm.core.schema import validate_local_refs
@@ -100,20 +127,20 @@ class ToolRegistry:
                     or function.get("description", "") != tool.description):
                 raise ValueError("Tool definition does not match its runtime binding")
             json.dumps(definition, allow_nan=False)
-        self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition, tool.contract, tool.classification)
+        self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition,
+                                     contract=tool.contract, classification=tool.classification)
 
     def contracts(self):
         contracts = {}
         for name, tool in self._tools.items():
             if tool.classification is not None:
                 contracts[name] = {"classification": asdict(tool.classification)}
-            if tool.contract is not None:
-                contracts.setdefault(name, {}).update(tool.contract.to_dict())
-                # 신뢰한 실행 adapter의 immutable binding도 승인/재개 fingerprint에 포함한다.
-                binding = getattr(tool.handler, "execution_binding", None)
-                if binding is not None:
-                    json.dumps(binding, allow_nan=False)
-                    contracts[name]["execution_binding"] = deepcopy(binding)
+            contracts.setdefault(name, {}).update(tool.contract.to_dict())
+            # 신뢰한 실행 adapter의 immutable binding도 승인/재개 fingerprint에 포함한다.
+            binding = getattr(tool.handler, "execution_binding", None)
+            if binding is not None:
+                json.dumps(binding, allow_nan=False)
+                contracts[name]["execution_binding"] = deepcopy(binding)
         return contracts
 
     def validate_selections(self, context):
@@ -153,7 +180,7 @@ class ToolRegistry:
         except KeyError:
             raise ValueError("Tool handler is unavailable") from None
         return Tool(tool.name, tool.description, deepcopy(tool.parameters), tool.handler,
-                    deepcopy(tool.definition), tool.contract, tool.classification)
+                    deepcopy(tool.definition), contract=tool.contract, classification=tool.classification)
 
     def select(self, names: tuple[str, ...]) -> "ToolRegistry":
         if len(set(names)) != len(names):
