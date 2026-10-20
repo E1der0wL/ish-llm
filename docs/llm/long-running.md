@@ -188,6 +188,16 @@ usage.counter로 선택한 계산기의 입력 토큰 + 출력 상한을 예약�
 이 설명을 누적 Tool 호출 예산의 초기화로 적용하지 않는다. Project Component API로 호출한 RAG 모델은 컴포넌트
 영수증으로 같은 Project 한도에 참여하며, Tool 안의 호출은 현재 Run 한도에도 참여한다.
 
+`services/runtime/usage.py`가 기간 계산과 삭제 시 예산 증거 보호를 소유한다.
+Session의 명시적 영구 삭제, Session/Run 정리 계획과 Component 삭제는 현재 Project 정책뿐
+아니라 실행 중인 Run의 고정된 정책 사본에도 필요한 영수증을 보호한다. 현재 정책을
+완화해도 기존 Run의 한도를 과거 Session 삭제로 초기화할 수 없다.
+`model_usage()`는 현재 Project 기간을 표시하는 조회이며 삭제 가능성의 증명은 아니다.
+기간 경계는 호출 승인·조회·삭제에서 같은 계산을 사용한다. 명시 기간 밖의 영수증도
+다른 활성 정책에 필요하면 삭제하지 않는다. 보존 정책과 대상 선정의 Application 이관은
+별도 후속 작업이며, 새 자동 삭제 정책은 추가하지 않는다.
+[검증 범위와 미완료 계약](lifecycle-verification.md)을 함께 따른다.
+
 Engine의 provider는 BaseEngine completion 경로에서 첫 chunk 이전의 일시적인 공급자 오류만 재시도한다.
 부분 응답 이후에는 재시도하지 않는다. 각 시도는 별도 Completion ID와 사용량 예약을 가지며
 Run 기한 안에서 수행한다. max_attempts는 최초 호출을 포함한다. 명시적 SDK retry가 켜져 있으면

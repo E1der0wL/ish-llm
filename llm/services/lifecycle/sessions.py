@@ -333,6 +333,15 @@ class SessionManager:
             raise TypeError("permanent must be a bool")
         current = self.require_inactive(session)
         if permanent:
+            from llm.services.runtime.usage import has_limit, project_usage_policies, protects_project_usage
+            project = self._owner(current, allow_deleted=True)
+            policies = project_usage_policies(project, self)
+            if any(has_limit(policy, project=True) for policy in policies):
+                if self.run_repository is None:
+                    raise ValueError("Session quota evidence requires a Run repository")
+                entries = self.run_repository.completion_history(current)
+                if protects_project_usage(entries, policies):
+                    raise ValueError("Session usage receipts are required by a live Project quota")
             self.repository.delete(current)
             self._discard_conversation(current)
         else:

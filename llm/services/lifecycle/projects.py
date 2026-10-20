@@ -167,17 +167,15 @@ class ProjectManager:
     @workspace_locked
     def model_usage(self, project):
         """Run과 컴포넌트의 원본 영수증을 조회한다. 프로젝트 합계 파일은 만들지 않는다."""
-        from llm.services.runtime.usage import component_usage
-        from datetime import datetime, timezone, timedelta
+        from llm.services.runtime.usage import component_usage, period_entries
         current = self.access.require(project)
         records = [{**entry, "source": "run", "session_id": session.id, "run_id": run.id}
                    for session in self.sessions.list(current, include_deleted=True)
                    for run in self.sessions.run_repository.list(session)
                    for entry in run.metadata.get("completions", [])]
         records.extend({**entry, "source": "component"} for entry in component_usage(self.components, current))
-        period = current.config.policies.get("usage", {}).get("period_seconds")
-        cutoff = datetime.now(timezone.utc) - timedelta(seconds=period) if period is not None else None
-        records = [r for r in records if cutoff is None or datetime.fromisoformat(r["started_at"]) >= cutoff]
+        policy = current.config.policies.get("usage", {})
+        records = period_entries(records, policy)
         known, reserved, unknown = 0, 0, 0
         for entry in records:
             tokens = entry.get("usage", {}).get("total_tokens")
@@ -188,7 +186,7 @@ class ProjectManager:
             else:
                 unknown += 1
         return {"calls": records, "call_count": len(records), "known_tokens": known,
-                "reserved_tokens": reserved, "unknown_calls": unknown, "period_seconds": period}
+                "reserved_tokens": reserved, "unknown_calls": unknown, "period_seconds": policy.get("period_seconds")}
 
     @workspace_locked
     def maintenance(self, project, *, apply=False, expected_version=None):
@@ -349,16 +347,12 @@ class ProjectManager:
             self.components.require_unreferenced(current, name)
         self.components.validate(tuple(item for item in current.components if item != name))
         if permanent:
-            from datetime import datetime, timezone, timedelta
-            usage = current.config.policies.get("usage", {})
+            from llm.services.runtime.usage import project_usage_policies, protects_project_usage
             reader = getattr(component, "model_usage", None)
             receipts = reader(current) if reader else []
-            period = usage.get("period_seconds")
-            cutoff = datetime.now(timezone.utc) - timedelta(seconds=period) if period is not None else None
             if any(r.get("status") == "started" for r in receipts):
                 raise ValueError("Component has unfinished model usage reservations")
-            if (usage.get("project_max_calls") is not None or usage.get("project_max_tokens") is not None) and any(
-                    cutoff is None or datetime.fromisoformat(r["started_at"]) >= cutoff for r in receipts):
+            if protects_project_usage(receipts, project_usage_policies(current, self.sessions)):
                 raise ValueError("Component usage receipts are required by the active quota period")
             for session in self.sessions.list(current, include_deleted=True):
                 self.sessions.require_inactive(session)

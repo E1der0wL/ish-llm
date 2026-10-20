@@ -7,10 +7,10 @@
 사용자의 재개 요청에 따라 소유권·복원 검증을 보강하고 LLM·Hub 회귀 검증을 완료했다.
 P1-b와 P1-c 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 만료 필드 누락 후
 실제 Tool 효과를 재현하여 기능 단계 진행을 중단했고, 이후 H1 승인 무결성을 보강했다.
-[검증 기록](llm/lifecycle-verification.md)의 최신 RAG 단계 전체 LLM 1,734개·Hub 540개는 모두 통과했다.
+[검증 기록](llm/lifecycle-verification.md)의 최신 H1 예산 단계 전체 LLM 1,741개·Hub 540개는 모두 통과했다.
 기존 세 번째 Provider 계약군도 별도 커밋으로 보존한다. A–F는 미착수다.
 이후 영속 데이터 감사에서도 RAG 원본 삭제와 Session 삭제의 Project 예산 초기화를 재현했다.
-[수명주기 계약](llm/data-lifecycle.md)의 Session 삭제/예산 및 H2–H5 보강은 남아 있다.
+[수명주기 계약](llm/data-lifecycle.md)의 H1 세 계약군을 보강했으며 H2–H5는 남아 있다.
 
 ## 읽는 순서와 적용 범위
 

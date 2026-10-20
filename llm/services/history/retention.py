@@ -6,6 +6,7 @@ from llm.core.contracts import ResourceRef
 from llm.core.plans import RetentionPlan
 from llm.core.models import now, new_id
 from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, reject_links
+from llm.services.runtime.usage import project_usage_policies, protects_project_usage
 
 
 class HistoryRetention:
@@ -25,6 +26,7 @@ class HistoryRetention:
 
     def _run_plan(self, project):
         policy, refs = project.config.policies.get("retention", {}), self._references(project)
+        usage_policies = project_usage_policies(project, self.manager.sessions)
         rows, protected, sources = [], [], []
         clock = datetime.now(timezone.utc)
         total_bytes = total_tokens = 0
@@ -95,11 +97,8 @@ class HistoryRetention:
                     blocked.append("unfinished_or_resumable_run")
                 if run.id in keep:
                     blocked.append("recent_or_referenced")
-                usage = project.config.policies.get("usage", {})
-                if usage.get("project_max_calls") is not None or usage.get("project_max_tokens") is not None:
-                    if any(usage.get("period_seconds") is None or (clock - datetime.fromisoformat(e["started_at"])).total_seconds() <= usage.get("period_seconds")
-                           for e in run.metadata.get("completions", [])):
-                        blocked.append("active_usage_accounting")
+                if protects_project_usage(run.metadata.get("completions", []), usage_policies, at=clock):
+                    blocked.append("active_usage_accounting")
                 (protected if blocked else rows).append({**row, **({"reasons": blocked} if blocked else {})})
         left_bytes, left_tokens, selected = total_bytes, total_tokens, []
         for row in sorted(rows, key=lambda r: (r["last_activity"], r["session_id"], r["run_id"])):
@@ -153,6 +152,7 @@ class HistoryRetention:
             return self._run_plan(project)
         policy = project.config.policies.get("retention", {})
         refs = self._references(project)
+        usage_policies = project_usage_policies(project, self.manager.sessions)
         items, protected = [], []
         total_bytes = total_tokens = 0
         now = datetime.now(timezone.utc)
@@ -198,12 +198,9 @@ class HistoryRetention:
                 reasons.append("pinned")
             if project.conversation_storage != "file":
                 reasons.append("non_file_conversation")
-            usage = project.config.policies.get("usage", {})
-            if usage.get("project_max_calls") is not None or usage.get("project_max_tokens") is not None:
-                period = usage.get("period_seconds")
-                if any(period is None or (now - datetime.fromisoformat(e["started_at"])).total_seconds() <= period
-                       for r in runs for e in r.metadata.get("completions", [])):
-                    reasons.append("active_usage_accounting")
+            if protects_project_usage([e for r in runs for e in r.metadata.get("completions", [])],
+                                      usage_policies, at=now):
+                reasons.append("active_usage_accounting")
             end = max([r.ended_at or r.created_at for r in runs] + [session.created_at])
             row = {"session_id": session.id, "bytes": size, "tokens": tokens, "last_activity": end,
                    "revision": revision_token(stamps)}

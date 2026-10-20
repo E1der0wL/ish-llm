@@ -85,7 +85,7 @@ P1-b는 아래 항목별 상태와 [실행 기록](p1-verification.md)을 따른
 | D34 | nullable 해제와 parent narrowing | CONFIGURATION의 provider=null 해제 설명만 읽으면 Session에서 상위 max_attempts 한도를 제거해도 된다고 오해할 수 있음 | **문서 명확화·집중 검증 완료**. 현재 narrowing 거부를 유지하고 한도 없는 상위 정책의 해제와 구분 |
 | D35 | 현재 승인 요청 Reader의 필수 필드 | `InteractionRequest.from_dict`가 expires_at 누락을 None으로 채움. 만료된 요청을 복사해 필드를 제거하면 expired=False로 읽힘 | **H1 승인 보강·검증 완료**. 현재 형식 Reader가 누락을 거부하며 추가 Run·모델 호출·파일 효과 없음. [수정 전후 기록](lifecycle-verification.md) |
 | D36 | 영속 자료 owner·손상 원본 보존 | 승인 응답 파일 소실·취소 필드 누락 시 pending, Memory/RAG identity 소실 시 조회 중 재생성 | **승인 필수 상태·RAG identity는 H1 보강·검증 완료**. Memory identity와 owner별 격리/삭제는 남음. [수명주기 계약](data-lifecycle.md) |
-| D37 | 삭제로 예산·원본 초기화 금지 | SessionManager.delete 뒤 같은 Project 호출량 1→0과 추가 호출; RAG active.json 소실 후 compact가 실제 세대 삭제 | **RAG 포인터 소실·모순의 삭제 차단 검증 완료**. Session 예산·상위 삭제 증거와 참조 보호는 남음. [수정 전후 기록](lifecycle-verification.md) |
+| D37 | 삭제로 예산·원본 초기화 금지 | SessionManager.delete 뒤 같은 Project 호출량 1→0과 추가 호출; RAG active.json 소실 후 compact가 실제 세대 삭제 | **H1 포인터·Session quota 보호 검증 완료**. 현재 Project와 활성 Run 정책 사본의 증거를 함께 보호. 상위 삭제·전체 참조 보호는 H2–H5에 남음. [수정 전후 기록](lifecycle-verification.md) |
 | D38 | 복구와 손상 폐기 구분 | ConversationStore._repair_tail가 newline이 사라진 기존 메시지를 다음 append에서 제거 | **미수정**. 입증된 미확정 쓰기의 undo만 허용, 불명확한 원본 절단 금지 |
 | D39 | owner별 백업·참조 검증 | 손상 승인 envelope의 backup 수락 재현; Agent.references의 Prompt/MCP 참조 누락은 소스 대조 | **승인 backup 검증 연결 완료**. 나머지 owner validators/실제 참조 보강은 남음. 중앙에서 하위 형식 해석 금지 |
 | D40 | Application 보존·대상 선정, Backend 안전한 삭제 | HistoryRetention/RAG maintenance·publish/로그 회전의 선정·시점이 Backend에 남음 | **계약 명시·이관 미완료**. 기술적 transaction GC와 분리, 호환 wrapper 없이 직접 이관 |

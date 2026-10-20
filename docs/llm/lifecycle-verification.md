@@ -132,9 +132,65 @@ python -m unittest tests.llm.test_rag_storage tests.llm.test_rag_components \
 최종 회귀 동안 649개 Python 파일의 hash는 일치했다. 정적 검사는 new/stale/S1 0,
 잔여 후보 580개이고, 문서·링크·Python 예제 구문 검사의 오류도 없다.
 
+## H1 Session 삭제와 Project 예산
+
+RAG 단계 `6a6e33f`를 Push한 뒤 시작했다. 기존 Run Completion 영수증을 그대로 사용하며
+사용량 합계 파일이나 중앙 데이터 관리자를 추가하지 않는다.
+
+수정 전 영구 Session 삭제로 Project 호출량이 1→0이 되어 한도 1에서 실제 테스트 모델의
+두 번째 호출이 실행됐다. 추가로 현재 Project 정책을 완화하고 과거 Session을 삭제하면
+이미 실행 중인 Run의 고정된 한도 2도 우회해 세 번째 호출이 실행됐다.
+Session/Run 정리 계획 역시 과거 사용량을 보호하지 못했다. 두 시험 모두 실제 후속 호출까지
+관찰한 뒤 실패했다(2개 failure, error·Skip 0, 0.562초).
+
+### 변경 소유자와 범위
+
+| 구현체 | 변경 |
+|---|---|
+| `runtime/usage.py:period_entries` | Project 기간의 단일 계산. 호출 예약·사용량 조회·삭제 보호가 공유하며 누락/잘못된 기간 증거를 0으로 복원하지 않음 |
+| `runtime/usage.py:project_usage_policies/protects_project_usage` | 현재 Project 정책과 활성 Session이 소유한 Run 정책 사본을 확인. 어떤 살아 있는 Project quota라도 필요한 영수증을 보호 |
+| `lifecycle/sessions.py:SessionManager.delete` | workspace 잠금 안에서 최신 소유자·상태와 quota 증거를 검사한 뒤 명시적 영구 삭제를 허용/거부 |
+| `lifecycle/projects.py:model_usage/remove_component` | 조회 기간과 Component 삭제 보호에 같은 사용량 owner 계약 사용. 미완료 예약 보호 유지 |
+| `history/retention.py:HistoryRetention` | Session/Run 계획 모두 같은 quota 보호. 기존 revision 재검증과 트랜잭션을 사용하고 새 자동 삭제 정책은 추가하지 않음 |
+
+### 검증
+
+| 검사 | 실제 결과 |
+|---|---|
+| 수정 전 Project·활성 Run 한도 우회 | 2개 모두 failure |
+| 최초 집중 회귀 | 68개 중 error 1, 10.239초. 새 시험에서 삭제 후 핸들의 data를 재조회한 시험 오류 |
+| 시험 경로 캡처 수정 후 집중 회귀 | 68개 통과, failure·error·Skip 0, 10.245초 |
+| 전체 LLM | 1,741개 통과, failure·error·Skip 0, 356.123초 |
+| 전체 Hub | 540개 통과, failure·error·Skip 0, 493.166초 |
+
+시험은 실제 테스트 모델 호출 수, 현재 정책 완화와 활성 Run의 정책 사본, soft delete 후
+지속 집계, 현재 토큰 한도에서 미계수 과거 호출 보호, 명시 기간 밖의 정상 삭제,
+기간 증거 손상 시 원본 보존과 정확한 경계 시각을 확인한다.
+
+```bash
+python -m unittest tests.llm.test_usage_deletion tests.llm.test_operations_schema \
+  tests.llm.test_long_running tests.llm.test_lifecycle_logging -v
+```
+
+전체 회귀·정적 검사 명령과 환경은 앞 단계와 같다. 로그·JSON·소스 hash는
+`/workspace/llm-clean-p1/h1-usage/`에 보존한다. 원본 Completion 컨테이너나 Run 파일 자체의
+소실을 포함한 전체 Reader 무결성, Session 상위/하위 참조·효과 원장 수명주기,
+손상 자료의 안전한 격리/삭제와 Backend 보존 정책의 Application 이관은 H2–H5에 남아 있다.
+최종 전체 회귀 동안 650개 Python 파일의 hash가 일치했다. 정적 검사는 new/stale/S1 0,
+잔여 후보 580개이며 새 면제는 없다. R3 한도 누락 mutation도 두 번째 실제 파일 효과로
+탐지해 도구 exit 0이었다. 실제 ish 통합과 Xvfb/xclip 9개 시험을 포함해 Skip은 없다.
+
 ## 남은 게이트
 
-H1의 승인·RAG 활성 포인터 보강은 검증을 완료했으며 Session 삭제의 Project quota 초기화 차단은 아직 미구현이다.
+H1의 승인·RAG 활성 포인터·Session 삭제의 예산 보호는 각 단계의 집중·전체 회귀 검증을 완료했다.
 H2–H5의 owner별 필수 존재·손상 처리·안전한 격리/삭제·Application 정리 정책·참조 보호도
 남아 있다. 이 안전성 보강 전 P1의 나머지 계약군과 A–F를 완료로 표시하지 않는다.
 실제 인증 모델·커널 short-write·전원 손실·네트워크 파일시스템은 미검증이다.
+
+다음 H2는 `core/models.py`, `services/lifecycle/projects.py`,
+`services/runtime/runs.py`, `components/memory/component.py`,
+`services/history/conversation.py`와 각 Component Reader의 존재·필수 상태 계약부터 다룬다.
+Project 삭제 상태·Completion 컨테이너 누락, Memory identity 소실, 불명확한 JSONL tail의
+기본값 복원·자동 절단이 남은 주요 위험이다. 변경 시 생성 기본값과 저장 Reader를 분리하고
+실제 원본 손상·재시작 시험을 각각 먼저 만든다. H3–H5에서는 소유자별 격리/삭제 증명,
+상위 삭제·참조·백업과 Application 정책 이관을 별도로 검증한다.

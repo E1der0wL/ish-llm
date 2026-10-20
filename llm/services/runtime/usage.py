@@ -8,7 +8,7 @@ from contextvars import ContextVar
 from datetime import datetime, timezone, timedelta
 
 from llm.policies import ExecutionLimitError
-from llm.core.models import now, new_id
+from llm.core.models import now, new_id, RunStatus, SessionStatus
 from llm.providers.observations import ModelCall
 
 _current = ContextVar("llm_usage_scope", default=None)
@@ -63,17 +63,54 @@ def check_admission(run, result, reservation, project_entries, component_entries
     if has_limit(policy):
         check([*run.metadata.get("completions", []), *component_entries], "max_calls", "max_tokens")
     if has_limit(policy, project=True):
-        seconds = policy.get("period_seconds")
-        cutoff = datetime.now(timezone.utc) - timedelta(seconds=seconds) if seconds is not None else None
-        entries = [e for e in project_entries
-                   if cutoff is None or datetime.fromisoformat(e["started_at"]) >= cutoff]
-        check(entries, "project_max_calls", "project_max_tokens")
+        check(period_entries(project_entries, policy), "project_max_calls", "project_max_tokens")
 
 
 def has_limit(policy, *, project=False):
     """상한이 있는 범위만 과거 영수증을 조회한다. 새 호출 기록 여부와는 무관하다."""
     prefix = "project_" if project else ""
     return any(policy.get(prefix + key) is not None for key in ("max_calls", "max_tokens"))
+
+
+def period_entries(entries, policy, *, at=None):
+    """The same explicit Project window governs admission, queries and deletion."""
+    seconds = policy.get("period_seconds")
+    if seconds is None:
+        return list(entries)
+    clock = datetime.now(timezone.utc) if at is None else at
+    cutoff = clock - timedelta(seconds=seconds)
+    selected = []
+    for entry in entries:
+        started = datetime.fromisoformat(entry["started_at"])
+        if started.utcoffset() is None:
+            raise ValueError("Usage period evidence requires a timezone")
+        if started >= cutoff:
+            selected.append(entry)
+    return selected
+
+
+def project_usage_policies(project, sessions):
+    """Read current policy and active Run snapshots under workspace ownership."""
+    policies = [project.config.policies.get("usage", {})]
+    for session in sessions.list(project, include_deleted=True):
+        if session.current_run_id is None:
+            if session.status == SessionStatus.RUNNING:
+                raise ValueError("Active Session requires its Run for quota evidence")
+            continue
+        if sessions.run_repository is None:
+            raise ValueError("Active quota evidence requires a Run repository")
+        run = sessions.run_repository.load(session, session.current_run_id)
+        if run.status not in (RunStatus.PENDING, RunStatus.RUNNING):
+            raise ValueError("Session quota owner is not an active Run")
+        policies.append(run.metadata["policies"].get("usage", {}))
+    return policies
+
+
+def protects_project_usage(entries, policies, *, at=None):
+    """Evidence required by any live quota cannot be physically removed."""
+    clock = datetime.now(timezone.utc) if at is None else at
+    return any(has_limit(policy, project=True) and period_entries(entries, policy, at=clock)
+               for policy in policies)
 
 
 def component_usage(registry, project):
