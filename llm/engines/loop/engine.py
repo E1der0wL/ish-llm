@@ -187,7 +187,8 @@ class LoopEngine(BaseEngine):
         view = resolve_engine_config(config, key, session_config=session_config,
             agent=self.parameter_layout.pack(overrides), schema=self.describe_config())
         CompletionPolicy.validate_config(view["values"].get("policy", {}).get("completion"))
-        resolve_provider_options(view["values"].get("policy", {}).get("provider") or {})
+        provider = view["values"].get("policy", {}).get("provider")
+        resolve_provider_options({} if provider is None else provider)
         view["runtime"] = []
         return view
 

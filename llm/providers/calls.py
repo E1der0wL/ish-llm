@@ -43,7 +43,9 @@ class ProviderCalls:
     """공급자에 독립적인 슬롯 소유자. 별도 백엔드는 별도 인스턴스를 사용한다."""
 
     def __init__(self, limits: Optional[ProviderLimits] = None):
-        self.limits = limits or ProviderLimits()
+        if limits is not None and not isinstance(limits, ProviderLimits):
+            raise TypeError("Provider limits must be ProviderLimits or None")
+        self.limits = limits if limits is not None else ProviderLimits()
         self._mutex = threading.Lock()
         self._active = self._waiting = 0
         self._waiters = set()

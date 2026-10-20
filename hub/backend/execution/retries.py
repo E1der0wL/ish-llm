@@ -9,6 +9,8 @@ from time import monotonic
 from llm.engines.loop import LoopEngine
 from llm.engines.base import EngineEventType
 from llm.core.contracts import Diagnostic
+from llm.policies.retry import RetryPolicy
+from llm.providers.requests import resolve_provider_options
 from llm.providers.runtime import diagnostic_scope
 from ...model import RetrySummary
 from .provider_recovery import CompletionRecoveryMixin
@@ -109,7 +111,7 @@ class RetryMonitor:
         watch.call_id = call_id
         self.states.pop((watch.run_id, "recovery"), None)
         self.set(id(watch), watch.run_id, RetrySummary(attempt - 1,
-            watch.policy.get("max_attempts", 1), monotonic() + delay))
+            RetryPolicy(watch.policy.get("max_attempts")).attempts, monotonic() + delay))
 
     def view(self, run_id: str) -> RetrySummary | None:
         states = [item.summary for item in self.states.values() if item.run_id == run_id]
@@ -151,7 +153,9 @@ class RetryObservationMixin:
                 async for event in events:
                     yield event
             return
-        watch = CompletionWatch(monitor.run.get(), dict(kwargs.get("provider") or {}))
+        provider = kwargs.get("provider")
+        watch = CompletionWatch(monitor.run.get(),
+                                resolve_provider_options({} if provider is None else provider))
         try:
             async with aclosing(super().stream_completion(request, **kwargs)) as events:
                 while True:
@@ -172,7 +176,7 @@ class RetryObservationMixin:
                         if watch.attempt > 1:
                             monitor.states.pop((watch.run_id, "recovery"), None)
                             monitor.set(id(watch), watch.run_id, RetrySummary(
-                                watch.attempt, watch.policy.get("max_attempts", 1)))
+                                watch.attempt, RetryPolicy(watch.policy.get("max_attempts")).attempts))
                     yield event
         finally:
             monitor.states.pop(id(watch), None)

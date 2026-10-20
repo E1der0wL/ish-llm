@@ -1,6 +1,7 @@
 """실행 한도와 실패 계약. Engine 종류나 저장 구현에 의존하지 않는다."""
 
 import math
+from collections.abc import Mapping
 from typing import Optional
 
 from llm.policies import errors
@@ -38,7 +39,10 @@ class ProjectPolicyResolver:
 
     def __init__(self, token_counters=None):
         from llm.providers.litellm import model_token_count
-        self.token_counters = {"model_default": model_token_count, **dict(token_counters or {})}
+        if token_counters is not None and not isinstance(token_counters, Mapping):
+            raise TypeError("Token counters must be a mapping or None")
+        self.token_counters = {"model_default": model_token_count,
+                               **({} if token_counters is None else dict(token_counters))}
         if any(not isinstance(name, str) or not name.strip() or not callable(counter)
                for name, counter in self.token_counters.items()):
             raise ValueError("Token counters require nonempty names and callable implementations")

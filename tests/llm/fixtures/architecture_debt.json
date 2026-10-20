@@ -300,14 +300,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "4b2afc0209e04d24243516d836f27ab33c12e670f9d00aa0f30ad390d97067c3:1",
-      "rule": "S2",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "resolve_processing_config",
-      "line": 42,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "269d12d45196b7a18431107f3852fe241b8733043b5151549bdd2c7930789899:1",
       "rule": "S3",
       "file": "llm/components/memory/processing.py",
@@ -1444,14 +1436,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "d39d8e51f39ccbcb5ebe10d870ee37021713c29d82ae136344b35d88fa836da1:1",
-      "rule": "S2",
-      "file": "llm/engines/base.py",
-      "symbol": "BaseEngine.stream_completion",
-      "line": 457,
-      "detail": "policy lookup supplies a literal fallback"
-    },
-    {
       "id": "8d3aca5a593cb5df9fba7bc2f9c2ba22ce8ba112a260ec47a7ca859702b29922:1",
       "rule": "S2",
       "file": "llm/engines/base.py",
@@ -1676,14 +1660,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "3a385cf60e6022a82bb2271951c86ee11174b391ecaecdcbf37d59a677814f8d:1",
-      "rule": "S2",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine.resolve_config",
-      "line": 182,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "d29b74b4e1fd5a660c620da0a6825cd8cfaead43e29193de13a1b73fda6430ae:1",
       "rule": "S3",
       "file": "llm/engines/loop/engine.py",
@@ -1804,22 +1780,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "052c69641e879e3f66b637463eb21fe264e5544852642829396efba59a3027b3:1",
-      "rule": "S3",
-      "file": "llm/policies/retry.py",
-      "symbol": "RetryPolicy.__post_init__",
-      "line": 57,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "48535186dc1271bb403233f68af0940aab49f476e128402e0c63ca355b27eaf4:1",
-      "rule": "S2",
-      "file": "llm/providers/calls.py",
-      "symbol": "ProviderCalls.__init__",
-      "line": 46,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "ee7254b73e289bb5acc59393973f599b1b427a59e2356dbc630bf993e6cb3a04:1",
       "rule": "S3",
       "file": "llm/providers/litellm.py",
@@ -1898,14 +1858,6 @@
       "symbol": "error_code",
       "line": 76,
       "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "60c5b31c7add0db1db21c1a0cc56bea5d47107a7ea3197b7c53ed584e93a4775:1",
-      "rule": "S2",
-      "file": "llm/providers/requests.py",
-      "symbol": "invoke",
-      "line": 115,
-      "detail": "policy lookup supplies a literal fallback"
     },
     {
       "id": "2ee75fe49bb1ab850fc27af48075fc5e2cbf30bc7ac97c278e0ec06cc207eee3:1",
@@ -3108,14 +3060,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "4dd258db99f2dc17e16b0598bd6ed7839295b98346438e376d46094bc07b8001:1",
-      "rule": "S2",
-      "file": "hub/backend/execution/provider_recovery.py",
-      "symbol": "ProviderRecovery.stream",
-      "line": 172,
-      "detail": "policy lookup supplies a literal fallback"
-    },
-    {
       "id": "59a2789e7a0227edd9808bf959c0c09bf3f13ade3438bc583f88ec8c6564a1c1:1",
       "rule": "S3",
       "file": "hub/backend/execution/provider_recovery.py",
@@ -3148,28 +3092,12 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "aefffb5f36c83f5d6a4d07d7892e519a5da92113ef667bb01a90fb2e4ce00a33:1",
-      "rule": "S2",
-      "file": "hub/backend/execution/retries.py",
-      "symbol": "RetryMonitor.observe_provider",
-      "line": 112,
-      "detail": "policy lookup supplies a literal fallback"
-    },
-    {
       "id": "a5447c8eed67e5ae533d90c5e34fe385312bd72052a5eb1cc7bc4be6453d7747:1",
       "rule": "S3",
       "file": "hub/backend/execution/retries.py",
       "symbol": "RetryMonitor.view",
       "line": 116,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "40fae819c6624092213e6afaa0141bf1fdec505d779ab8ce7632c9ddb6b8d5de:1",
-      "rule": "S2",
-      "file": "hub/backend/execution/retries.py",
-      "symbol": "RetryObservationMixin.stream_completion",
-      "line": 175,
-      "detail": "policy lookup supplies a literal fallback"
     },
     {
       "id": "bda97da65808fa8ab82be102dd2ec0241dc0c6b003bca4be67bc9c36e1329e9d:1",

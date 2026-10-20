@@ -454,8 +454,8 @@ class BaseEngine:
                 raise ValueError("Completion limits must be positive integers")
         policy = resolve_provider_options(provider if provider is not None else {})
         adapter = self.completion_adapter
-        maximum = adapter.effective_attempts(request, policy.get("max_attempts", 1)) - 1
-        retry = RetryPolicy(maximum + 1, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
+        attempts = adapter.effective_attempts(request, RetryPolicy(policy.get("max_attempts")).attempts)
+        retry = RetryPolicy(attempts, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
                             RetryPolicy.end(policy.get("wall_timeout")), "exponential")
         request = self.copy_params(dict(request))
         call_id = new_id()
@@ -466,7 +466,7 @@ class BaseEngine:
             except TimeoutError as error:
                 raise ProviderError("provider_timeout") from error
 
-        for attempt in range(maximum + 1):
+        for attempt in range(attempts):
             call_details = {"call_id": call_id, "attempt": attempt + 1, **adapter.describe_request(request)}
             progress = {"received": False}
             invocation = adapter.describe_call(self.copy_params(dict(request)))

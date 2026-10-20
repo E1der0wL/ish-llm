@@ -39,7 +39,8 @@ def resolve_processing_config(configuration: dict, *, token_counter=None) -> dic
         raise ValueError("Memory processing must be an object")
     config = deepcopy(value)
     from llm.providers.requests import resolve_provider_options
-    resolve_provider_options(config.get("provider") or {})
+    provider = config.get("provider")
+    resolve_provider_options({} if provider is None else provider)
     if "priority" in config and type(config["priority"]) is not int:
         raise ValueError("Memory processing priority must be an integer")
     for key in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active"):

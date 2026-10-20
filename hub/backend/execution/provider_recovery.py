@@ -10,6 +10,8 @@ from llm.components.summarization import SummaryResult, summarize_fragments
 from llm.engines.loop import LoopEngine
 from llm.llm import Diagnostic, CompletionRepair
 from llm.policies import ExecutionLimitError
+from llm.policies.retry import RetryPolicy
+from llm.providers.requests import resolve_provider_options
 from llm.providers.runtime import diagnostic
 
 from ...model import RetrySummary
@@ -37,7 +39,7 @@ class RecoveryState:
     frame: object
     attempts: int = 0
     deadline: float | None = None
-    maximum: int = 1
+    maximum: int = RetryPolicy.INITIAL_ATTEMPTS
     summaries: dict = field(default_factory=dict)
     outcome: str = ""
     explanation: str = ""
@@ -169,7 +171,9 @@ class ProviderRecovery:
                     yield event
             return
         state.attempts, state.deadline, state.outcome, state.explanation = 0, None, "", ""
-        state.maximum = (kwargs.get("provider") or {}).get("max_attempts", 1)
+        provider = kwargs.get("provider")
+        policy = resolve_provider_options({} if provider is None else provider)
+        state.maximum = RetryPolicy(policy.get("max_attempts")).attempts
         received = False
         try:
             async with aclosing(stream(request, kwargs)) as events:

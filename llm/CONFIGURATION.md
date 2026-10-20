@@ -126,6 +126,8 @@ RunPolicy는 공통 대기열·기한·capability 확장 제한을 표현한다.
 Engine policy.completion.counter와 독립이다. 등록된 계산기는 UI schema에서 조회할 수 있다.
 Loop policy.completion/policy.provider 전체의 null은 상속값을 해제한다. missing은 상위 명시값을
 상속하고 모두 missing이면 정책 객체나 SDK 옵션을 생성하지 않는다.
+단, Session/Agent의 null로 상위의 명시 실행 한도를 제거할 수는 없다. 현재 narrowing 검증이
+이 변경을 거부하며, 한도가 없는 상위 정책의 nullable 해제와 구분한다.
 [설정 예·실행 경계](../docs/llm/project-policies.md)를 참고한다.
 
 ## 미설정 시 실행

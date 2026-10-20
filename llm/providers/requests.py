@@ -16,7 +16,7 @@ from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_a
 def provider_schema():
     from llm.core.schema import object_schema, field
     return object_schema({
-        "max_attempts": field("integer", minimum=1, **{"x-narrowing": "maximum"}),
+        "max_attempts": field("integer", minimum=RetryPolicy.INITIAL_ATTEMPTS, **{"x-narrowing": "maximum"}),
         "wall_timeout": field(["number", "null"], exclusiveMinimum=0, **{"x-narrowing": "maximum"}),
         "delay_seconds": field("number", minimum=0),
         "max_delay_seconds": field("number", minimum=0),
@@ -27,6 +27,8 @@ def provider_schema():
 
 def resolve_provider_options(options):
     from jsonschema import Draft202012Validator
+    if not isinstance(options, dict):
+        raise TypeError("Provider options must be an object")
     result = dict(options)
     Draft202012Validator(provider_schema()).validate(result)
     if "max_attempts" in result and type(result["max_attempts"]) is not int:
@@ -112,7 +114,8 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
     options = resolve_provider_options(options)
     started = time.monotonic()
     end = RetryPolicy.end(options.get("wall_timeout"), deadline)
-    attempts = effective_attempts(request, options.get("max_attempts", 1), sdk_defaults=sdk_defaults)
+    attempts = effective_attempts(request, RetryPolicy(options.get("max_attempts")).attempts,
+                                  sdk_defaults=sdk_defaults)
     policy = RetryPolicy(attempts, options.get("delay_seconds"), options.get("max_delay_seconds"), end, "exponential")
     request = copy_params(request)
     call_id = call_id or uuid4().hex

@@ -7,7 +7,7 @@ import random
 import time
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, ClassVar
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,6 +47,8 @@ class RetryPolicy:
     실제 deadline 초과 오류 코드와 영속 횟수는 각 실행 경계가 소유한다.
     """
 
+    INITIAL_ATTEMPTS: ClassVar[int] = 1
+
     max_attempts: int | None = None
     delay_seconds: float | None = None
     max_delay_seconds: float | None = None
@@ -54,7 +56,8 @@ class RetryPolicy:
     backoff: str = "fixed"
 
     def __post_init__(self):
-        if self.max_attempts is not None and (type(self.max_attempts) is not int or self.max_attempts < 1):
+        if self.max_attempts is not None and (type(self.max_attempts) is not int
+                                             or self.max_attempts < self.INITIAL_ATTEMPTS):
             raise ValueError("Retry max_attempts must be a positive integer")
         for value in (self.delay_seconds, self.max_delay_seconds):
             if value is not None and (type(value) not in (int, float) or not math.isfinite(value) or value < 0):
@@ -63,6 +66,14 @@ class RetryPolicy:
             raise ValueError("Retry deadline must be finite")
         if self.backoff not in ("fixed", "exponential"):
             raise ValueError("Unknown retry backoff")
+
+    @property
+    def attempts(self) -> int:
+        """An absent retry limit permits the initial call, never an extra retry.
+
+        This is a calculation; the explicit configuration remains absent.
+        """
+        return self.INITIAL_ATTEMPTS if self.max_attempts is None else self.max_attempts
 
     @staticmethod
     def end(timeout=None, deadline=None):

@@ -6,6 +6,7 @@ import time
 from email.utils import parsedate_to_datetime
 
 from llm.errors import exception_chain
+from llm.policies.retry import RetryPolicy
 
 
 def retry_after(error):
@@ -62,7 +63,8 @@ def sdk_retry_enabled(request, *, sdk_defaults=False):
 
 
 def effective_attempts(request, maximum, *, sdk_defaults=False):
-    attempts = 1 if sdk_retry_enabled(request, sdk_defaults=sdk_defaults) else maximum
+    attempts = (RetryPolicy.INITIAL_ATTEMPTS
+                if sdk_retry_enabled(request, sdk_defaults=sdk_defaults) else maximum)
     if attempts < maximum:
         from .runtime import diagnostic
         diagnostic("provider_retry_delegated", model=request.get("model"),
