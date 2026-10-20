@@ -11,7 +11,7 @@ from unittest.mock import patch, AsyncMock
 from llm.core.plans import CheckpointPlan
 from llm.core.checkpoints import ResumeAbandonment
 from llm.core.models import RunStatus
-from llm.services.infrastructure.storage import atomic_json
+from llm.services.infrastructure.storage import atomic_json, read_json
 from llm.components.rag.jobs import RAGJobs
 from llm.llm import LargeLanguageModel
 from llm.components.workflows import WorkflowComponent
@@ -376,7 +376,10 @@ class RAGCheckpointTests(unittest.IsolatedAsyncioTestCase):
         plan = await self.rag.acheckpoint_plan(job["id"])
         self.assertIn("batches/embedding_0.json", plan.checkpoints)
         self.assertTrue(plan.can_delete)
-        self.assertFalse((self.project.paths.root / "rag" / "active.json").exists())
+        root = self.project.paths.root / "rag"
+        self.assertEqual(read_json(root / "active.json"), {"generation": None})
+        self.assertFalse((root / "generations").exists())
+        self.assertEqual(await self.rag.alist_documents(), [])
         await self.rag.adelete_job(job["id"], expected_revision=plan.revision)
 
     async def test_stale_running_job_can_be_abandoned_without_replay(self):

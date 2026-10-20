@@ -128,13 +128,24 @@ response = await run.aresponse()
 ```text
 project/rag/
 ├── records/                   # 정의 JSON
-├── identity.json              # 삭제 후 재생성을 구분하는 ID
-├── active.json                # 공개된 세대 ID
+├── identity.json              # 생성 시 발급하는 필수 저장소 ID
+├── active.json                # 필수 공개 포인터; 최초 빈 저장소만 generation=null
 └── generations/<id>/
     ├── corpus.json            # 원문·절·문단·벡터·관계·revision
     ├── chroma/                # 벡터 색인
     └── graph.kuzu             # 근거 관계 색인
 ```
+
+RAGComponent가 두 필수 파일의 생성·검증을 소유한다. 새 Component 생성 시 함께 저장하며
+조회·재선택·복원에서 파일이 없으면 거부한다. 조회 중 identity를 재발급하거나 포인터 부재를
+빈 코퍼스로 해석하지 않는다. 명시적인 `generation=null`도 저장된 세대가 있으면 모순으로
+거부한다. 실제 문서를 모두 삭제한 코퍼스는 문서가 없는 **공개 세대**를 가진다.
+기존 자료를 새 형식으로 자동 변환하지 않는다.
+
+조회·등록·compact·백업은 같은 owner의 포인터·세대 검증을 사용한다. 필수 증거 손상 시
+원본을 보존하며 정리를 거부한다. Component 루트 전체 소실과 상위 삭제/참조 보호의
+완전한 검증은 후속 수명주기 단계에 남아 있다. 기존 publish의 자동 compact와 유지보수
+대상 선정은 Application 이관 대상이며 이번 포인터 보강만으로 이관 완료를 뜻하지 않는다.
 
 BM25는 저장 문단에서 재구성한다. 새 DB를 완성하고 닫은 뒤 active.json을 원자적으로
 교체한다. DB 준비는 공유 workspace 잠금과 StorageIO에서 수행한다. 변경된 문서만

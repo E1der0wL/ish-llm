@@ -36,6 +36,12 @@ class RAGConflictError(RuntimeError):
 class RAGComponent(DefinitionComponent):
     """Application 메모 CRUD와 문서 색인 API를 분리하고 모델 인자는 선택 구현체에 위임한다."""
 
+    IDENTITY_FILE = "identity.json"
+    ACTIVE_FILE = "active.json"
+    GENERATIONS_DIRECTORY = "generations"
+    IDENTITY_PATTERN = re.compile(r"[a-f0-9]{32}")
+    GRAPH_SCHEMA_VERSION = 1
+
     name = "rag"
     directory = "rag"
     capabilities = ("rag", "tools")
@@ -71,7 +77,24 @@ class RAGComponent(DefinitionComponent):
         self.snapshot_cache = SnapshotCache()
 
     def _generation_path(self, project, generation):
-        return self._checked(self.root(project) / "generations" / validate_name(generation))
+        self._validate_identity(generation)
+        return self._checked(self.root(project) / self.GENERATIONS_DIRECTORY / generation)
+
+    @classmethod
+    def _validate_identity(cls, value):
+        if not isinstance(value, str) or cls.IDENTITY_PATTERN.fullmatch(value) is None:
+            raise ValueError("RAG identity and generation require a stored UUID")
+
+    def initialize(self, project):
+        root = self._checked(self.root(project))
+        if root.exists():
+            # Reselecting/restoring existing data cannot manufacture missing proof.
+            self.snapshot(project)
+            super().initialize(project)
+            return
+        super().initialize(project)
+        atomic_json(root / self.IDENTITY_FILE, {"id": uuid4().hex})
+        atomic_json(root / self.ACTIVE_FILE, {"generation": None})
 
     def _checked_tree(self, path):
         self._checked(path)
@@ -83,22 +106,22 @@ class RAGComponent(DefinitionComponent):
         build_index(path / "chroma", documents, batch_size=self.index_batch_size)
         build_graph(path / "graph.kuzu", documents, options=self.graph_options)
 
-    @staticmethod
-    def _validate_versions(documents):
+    @classmethod
+    def _validate_versions(cls, documents):
         for identifier, document in documents.items():
             if (document.get("id") != identifier or type(document.get("revision")) is not int
                     or document["revision"] < 1 or not isinstance(document.get("generation"), str)
-                    or not re.fullmatch(r"[a-f0-9]{32}", document["generation"])):
+                    or cls.IDENTITY_PATTERN.fullmatch(document["generation"]) is None):
                 raise ValueError("RAG documents require a stored generation and positive revision; re-register sources without them")
 
-    @staticmethod
-    def _check_revision(document, expected_revision, expected_generation):
+    @classmethod
+    def _check_revision(cls, document, expected_revision, expected_generation):
         """명시적인 CAS는 문서 생성 세대까지 비교한다. 코퍼스 publish 세대와는 별개다."""
         if expected_revision is None and expected_generation is None:
             return  # 두 값 모두 생략한 기존 unconditional document API 계약.
         if type(expected_revision) is not int or expected_revision < 1:
             raise ValueError("Document CAS requires a positive expected_revision")
-        if not isinstance(expected_generation, str) or not re.fullmatch(r"[a-f0-9]{32}", expected_generation):
+        if not isinstance(expected_generation, str) or cls.IDENTITY_PATTERN.fullmatch(expected_generation) is None:
             raise ValueError("Document CAS requires expected_generation from the document")
         if (document["generation"], document["revision"]) != (expected_generation, expected_revision):
             raise RAGConflictError("Document generation or revision changed")
@@ -311,16 +334,13 @@ class RAGComponent(DefinitionComponent):
 
     def validate_backup(self, project):
         super().validate_backup(project)
-        active = self._checked(self.root(project) / "active.json")
-        if active.exists():
-            generation = validate_name(read_json(active)["generation"])
+        snapshot = self.snapshot(project)
+        generation = snapshot["generation"]
+        if generation is not None:
             path = self._generation_path(project, generation)
-            corpus = read_json(self._checked(path / "corpus.json"))
-            # 백업·복원도 일반 조회와 같은 문서 identity/generation/revision 계약을 따른다.
-            self._validate_versions(corpus["documents"])
             if not (path / "chroma").is_dir() or not (path / "graph.kuzu").is_file():
                 raise ValueError("RAG backup requires matching vector and graph generation")
-            for document in corpus["documents"].values():
+            for document in snapshot["documents"].values():
                 validate_graph(document["graph"], document["chunks"])
 
     def resolve(self, project, capability):
@@ -338,14 +358,23 @@ class RAGComponent(DefinitionComponent):
     def corpus_version(self, project):
         """잠금 안에서 작은 포인터만 읽는다. 불변 코퍼스 전체를 다시 읽지 않는다."""
         root = self.root(project)
-        identity_path = self._checked(root / "identity.json")
-        if not identity_path.exists():
-            atomic_json(identity_path, {"id": uuid4().hex})
-        identity = read_json(identity_path)["id"]
-        active = self._checked(root / "active.json")
-        if not active.exists():
-            return identity, None
-        generation = validate_name(read_json(active)["generation"])
+        identity = read_json(self._checked(root / self.IDENTITY_FILE))
+        active = read_json(self._checked(root / self.ACTIVE_FILE))
+        if not isinstance(identity, dict) or identity.keys() != {"id"}:
+            raise ValueError("RAG identity record is incomplete or changed")
+        if not isinstance(active, dict) or active.keys() != {"generation"}:
+            raise ValueError("RAG active pointer is incomplete or changed")
+        identity = identity["id"]
+        self._validate_identity(identity)
+        generation = active["generation"]
+        if generation is None:
+            generations = self._checked(root / self.GENERATIONS_DIRECTORY)
+            if generations.exists() and any(generations.iterdir()):
+                raise ValueError("Empty RAG pointer conflicts with stored generations")
+        else:
+            path = self._generation_path(project, generation)
+            if not self._checked(path / "corpus.json").is_file():
+                raise FileNotFoundError("RAG active generation requires its corpus")
         return identity, generation
 
     def snapshot(self, project):
@@ -363,7 +392,8 @@ class RAGComponent(DefinitionComponent):
         cached = value is not None
         if not cached:
             value = read_json(source)
-        if value.get("graph_schema_version") != 1:
+        if (type(value.get("graph_schema_version")) is not int
+                or value["graph_schema_version"] != self.GRAPH_SCHEMA_VERSION):
             raise ValueError("Unsupported RAG graph schema; re-register source documents in a new RAG Project")
         self._validate_versions(value["documents"])
         if any(not isinstance(doc.get("graph"), dict) or
@@ -612,7 +642,7 @@ class RAGComponent(DefinitionComponent):
             atomic_json(path / "catalog.json", [{key: doc[key] for key in
                 ("id", "title", "description", "generation", "revision") if key in doc}
                 for _, doc in sorted(documents.items())])
-            atomic_json(path / "corpus.json", {"graph_schema_version": 1, "documents": documents,
+            atomic_json(path / "corpus.json", {"graph_schema_version": self.GRAPH_SCHEMA_VERSION, "documents": documents,
                                               "profile": profiles[0] if profiles else None})
         except BaseException:
             remove_named_tree(path.parent, path, generation)
@@ -621,7 +651,7 @@ class RAGComponent(DefinitionComponent):
         # 오류가 나더라도 여기서 지우지 않아 active가 없는 DB를 가리키지 않게 한다.
         if progress:
             progress("publishing")
-        atomic_json(self.root(project) / "active.json", {"generation": generation})
+        atomic_json(self.root(project) / self.ACTIVE_FILE, {"generation": generation})
         # 이미 공개한 세대의 성공을 정리 실패로 바꾸지 않는다. compact로 재시도할 수 있다.
         try:
             self.compact(project)
@@ -632,7 +662,7 @@ class RAGComponent(DefinitionComponent):
     def compact(self, project):
         # 삭제 전에는 활성 코퍼스가 실제로 읽히는지 확인해 손상된 포인터로 정리하지 않는다.
         active = self.snapshot(project)["generation"]
-        root = self._checked(self.root(project) / "generations")
+        root = self._checked(self.root(project) / self.GENERATIONS_DIRECTORY)
         recover_deletions(root, protected=(active,))
         for path in list(root.iterdir()) if root.exists() else ():
             if path.name != active:

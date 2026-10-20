@@ -122,6 +122,12 @@ LiteLLM DEFAULT_MAX_RETRIES는 import 전 환경변수와 import 후 전역값 �
 
 ## 캐시와 재개
 
+`RAGComponent.initialize`는 새 저장소에서만 `identity.json`과 명시적인 빈 `active.json`을
+생성합니다. 기존 저장소의 파일·필드 소실은 조회·재선택·compact·백업에서 거부하며
+identity 재발급이나 빈 코퍼스 복구를 하지 않습니다. 세대가 남아 있는데 포인터가 null인
+경우도 정리를 허용하지 않습니다. [영속 수명주기 계약](../../../docs/llm/data-lifecycle.md)과
+[단계별 검증 범위](../../../docs/llm/lifecycle-verification.md)를 따릅니다.
+
 ### 조회 최적화
 
 `config.query_cache_max_bytes`는 query embedding 벡터, `config.snapshot_cache_max_bytes`는

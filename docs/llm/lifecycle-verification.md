@@ -82,10 +82,59 @@ python -m tests.llm.check_docs --output /tmp/docs.json
 전체 회귀 중 제품·테스트 Python 파일은 변경하지 않는다.
 최종 전체 회귀에서 648개 Python 파일의 전후 hash가 일치했다. 실제 ish 통합과
 Xvfb/xclip 9개 시험도 실행되었으며 Skip은 없다.
+기존 Provider 작업은 `7b1120b`, 승인 보강은 `fdc2718`로 분리하여 원격 브랜치에 Push했다.
+[승인 단계 GitHub Actions](https://github.com/E1der0wL/ish-llm/actions/runs/39425735628)의
+contracts (llm)·contracts (hub)도 모두 success다.
+
+## H1 RAG 활성 포인터
+
+승인 단계 `fdc2718`을 Push한 뒤 시작했다. 수정 전 실제 문서 등록 후 active.json을
+제거하면 조회가 빈 코퍼스를 반환하고 compact가 원래 세대를 삭제했다. identity.json을
+제거하면 조회가 새 ID를 만들었다. 영구 회귀 두 개 모두 실패했다(0.705초, exit 1).
+
+RAGComponent가 identity/active/generations 경로·UUID 형식·graph schema 버전을 소유한다.
+새 Component의 명시적 초기화에서 필수 identity와 `generation=null` 포인터를 함께 만들며,
+기존 자료를 조회·재선택할 때는 필수 기록을 검증한다. nullable 포인터와 실제 세대 존재가
+모순되거나 활성 corpus가 사라지면 거부한다. 백업도 같은 snapshot 검증을 사용한다.
+bool·float로 저장된 버전을 정수 버전으로 수락하지 않는다.
+
+| 검사 | 실제 결과 |
+|---|---|
+| 수정 전 실제 포인터·identity 소실 | 2개 모두 failure, error·Skip 0 |
+| 최초 집중 RAG·운영 저장 회귀 | 60개 통과, 10.563초 |
+| 확대 RAG·운영 저장 회귀 | 124개 통과, failure·error·Skip 0, 21.545초 |
+| 첫 전체 LLM/Hub | 실행 세션 중단, 완료 JSON 없음; 통과로 집계하지 않음 |
+| 옛 빈 상태 기대값의 독립 재현 | 1개 failure, 0.153초 |
+| 기대값 수정 후 RAG·checkpoint | 26개 통과, failure·error·Skip 0, 4.919초 |
+| 재실행 전체 LLM | 1,734개 통과, failure·error·Skip 0, 354.185초 |
+| 재실행 전체 Hub | 540개 통과, failure·error·Skip 0, 491.192초 |
+
+첫 전체 실행 중 `test_cancel_preserves_finished_chunks_then_explicit_delete`가 옛 형식의
+active.json 부재를 기대해 실패했다. 공개 세대가 없다는 의미를 현재의 필수
+`{"generation": null}` 포인터·세대 디렉터리 부재·빈 문서 목록으로 확인하도록 변경했다.
+완료한 배치 보존·lease·명시 삭제의 기존 assertion은 유지했다.
+
+새 시험은 조회·새 등록·compact·백업·재선택의 거부와 원본 파일 hash 보존, 모델 호출 없음,
+정상 빈 저장소, 재선택 시 identity 유지, 초기 포인터 저장 실패의 rollback을 검증한다.
+실제 Chroma/Kuzu를 사용하고 임베딩은 테스트 모델이다.
+
+```bash
+python -m unittest tests.llm.test_rag_storage tests.llm.test_rag_components \
+  tests.llm.test_rag_optimization tests.llm.test_rag_resilience \
+  tests.llm.test_rag_extraction_repair tests.llm.test_unified_rag \
+  tests.llm.test_markdown_rag tests.llm.test_operational_storage -v
+```
+
+전체 회귀·정적 검사 명령과 환경은 승인 단계와 같다. 원시 로그·JSON·소스 hash는
+`/workspace/llm-clean-p1/h1-rag/`에 보존한다. Component 루트 전체 소실의 존재 증거,
+상위 삭제/참조 보호와 기존 publish 자동 compact의 Application 이관은 이 단계에서
+해결했다고 주장하지 않는다.
+최종 회귀 동안 649개 Python 파일의 hash는 일치했다. 정적 검사는 new/stale/S1 0,
+잔여 후보 580개이고, 문서·링크·Python 예제 구문 검사의 오류도 없다.
 
 ## 남은 게이트
 
-H1의 RAG 활성 포인터 소실과 Session 삭제의 Project quota 초기화 차단은 아직 미구현이다.
+H1의 승인·RAG 활성 포인터 보강은 검증을 완료했으며 Session 삭제의 Project quota 초기화 차단은 아직 미구현이다.
 H2–H5의 owner별 필수 존재·손상 처리·안전한 격리/삭제·Application 정리 정책·참조 보호도
 남아 있다. 이 안전성 보강 전 P1의 나머지 계약군과 A–F를 완료로 표시하지 않는다.
 실제 인증 모델·커널 short-write·전원 손실·네트워크 파일시스템은 미검증이다.
