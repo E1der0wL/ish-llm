@@ -12,6 +12,8 @@ import sys
 import time
 import unittest
 
+from tests.llm.checks_output import emit_annotation
+
 
 SUITES = {"llm": "tests/llm", "hub": "tests/hub"}
 
@@ -76,6 +78,16 @@ def summarize(expected, result):
     return report
 
 
+def publish_annotations(report, result):
+    """Keep actual counts and failure excerpts readable via the Checks API."""
+    counts = {key: len(value) if isinstance(value, list) else value
+              for key, value in report.items()}
+    emit_annotation("Regression summary", counts, level="notice" if report["ok"] else "error")
+    for test, trace in [*result.failures, *result.errors][:5]:
+        emit_annotation("Regression failure detail",
+                        {"id": test.id(), "trace": trace}, level="error")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--suite", choices=(*SUITES, "all"), required=True)
@@ -98,6 +110,7 @@ def main():
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: (len(value) if isinstance(value, list) else value)
                       for key, value in report.items()}, ensure_ascii=False))
+    publish_annotations(report, result)
     return int(not report["ok"])
 
 

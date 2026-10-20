@@ -119,3 +119,27 @@ backend 브랜치/PR #1을 수정하지 않았다. **원격 CI 검증 전이므�
 `llm/services/runtime/{tools,checkpoints,operations}.py`와 각 저장 Reader owner 및 관련 테스트다.
 False/0/[]를 정책 없음으로 바꾸는 경로, bool/float 버전 수락, Reader 거부 시 원본 보존을 먼저
 검증한다. 이어 호환 소비자 직접 이관·owner별 선언 정리를 마친 후 A의 Provider 경계로 진행한다.
+
+## 첫 원격 CI 실패와 진단 보완
+
+[run 39370650287](https://github.com/E1der0wL/ish-llm/actions/runs/39370650287)은
+`847612f`에서 LLM/Hub 두 job 모두 실패했다. 두 job의 전체 회귀 step도 실행됐지만 실패했으며,
+로그/zip 보관소로 향하는 네트워크 프록시 터널이 `403 Forbidden`이어서 원격 테스트별
+통과·실패 수를 확인하지 못했다. 로컬 통과 수로 원격 결과를 대체하지 않는다.
+
+Checks API에서 확보한 실제 환경은 Python 3.12.14, 지정 host SHA, Ubuntu 24.04 runner의
+kernel `6.17.0-1022-azure`, bwrap 0.9.0이다. 기존 격리 smoke가
+`bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`로 exit 1,
+별도 user/network namespace 진단도 `/proc/self/uid_map: Operation not permitted`로
+exit 1이었다. 이 시점에는 AppArmor/seccomp 중 원인을 확정하지 않았다.
+
+환경 annotation은 GitHub에서 4,096자에 잘려 커널 거절 부분을 읽지 못했다. 이후 진단은
+UTF-8 크기를 제한한 유효 JSON으로 분리하고, kernel log의 실제 DENIED 항목을 별도로 남긴다.
+테스트의 실제 집계와 실패 일부도 Checks API에 남기며 원본 전체는 artifact에 보존한다.
+두 job 모두 namespace 검사를 수행한다. 환경 검사 실패는 job 실패이고, 그 실행의
+회귀 미실행을 명시한다. 환경이 통과한 뒤에만 전체 회귀를 시작하며, 실패 환경을 우회하거나
+시험 Skip을 통과로 처리하지 않는다. CI job 실행 기한은 workflow 소유의 30분으로 명시한다.
+
+진단 전송 보완 시험은 5개 통과했다. 이 보완은 제품 동작이나 테스트 assertion을 변경하지 않는다.
+새로 추가한 annotation 시험 2개를 포함한 다음 전체 discovery는 2,191개이며 아직 원격
+통과로 보고하지 않는다.

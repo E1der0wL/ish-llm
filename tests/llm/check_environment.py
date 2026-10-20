@@ -9,6 +9,8 @@ import shutil
 import subprocess
 import tomllib
 
+from tests.llm.checks_output import emit_annotation
+
 
 def command(arguments):
     try:
@@ -42,27 +44,33 @@ def main():
     report = {"python": platform.python_version(), "host": host, "host_status": host_status,
               "kernel": platform.release(),
               "suite": args.suite, "errors": errors}
-    if args.suite == "llm":
-        report["bubblewrap"] = command(["bwrap", "--version"])
-        report["sandbox_smoke"] = command(["bwrap", "--unshare-all", "--ro-bind", "/", "/",
-                                           "--", "/usr/bin/true"])
-        if report["sandbox_smoke"]["exit"] != 0:
-            errors.append("required unprivileged namespace isolation is unavailable")
-            report["namespace_smoke"] = command(["unshare", "--user", "--map-root-user",
-                                                 "--net", "/usr/bin/true"])
-            if os.environ.get("GITHUB_ACTIONS") == "true":
-                # Read-only diagnosis; the Tool process itself is never run as sudo.
-                report["kernel_denials"] = command(["sudo", "-n", "journalctl", "-k",
-                    "--since=-5min", "--no-pager", "-g", "apparmor|SECCOMP|bwrap"])
-        report["namespace_policy"] = {}
-        for name in ("kernel/unprivileged_userns_clone", "user/max_user_namespaces",
-                     "kernel/apparmor_restrict_unprivileged_userns"):
-            path = Path("/proc/sys") / name
-            report["namespace_policy"][name] = path.read_text().strip() if path.exists() else None
-        path = Path("/proc/self/status")
-        report["process_security"] = [line for line in path.read_text().splitlines()
-                                      if line.startswith(("CapEff:", "NoNewPrivs:", "Seccomp:"))]
-    else:
+    report["bubblewrap"] = command(["bwrap", "--version"])
+    report["sandbox_smoke"] = command(["bwrap", "--unshare-all", "--ro-bind", "/", "/",
+                                       "--", "/usr/bin/true"])
+    if report["sandbox_smoke"]["exit"] != 0:
+        errors.append("required unprivileged namespace isolation is unavailable")
+        report["namespace_smoke"] = command(["unshare", "--user", "--map-root-user",
+                                             "--net", "/usr/bin/true"])
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            # Read-only diagnosis; the Tool process itself is never run as sudo.
+            report["kernel_denials"] = command(["sudo", "-n", "journalctl", "-k",
+                "--since=-5min", "--no-pager", "-g", 'apparmor="DENIED"|type=1326'])
+    report["namespace_policy"] = {}
+    for name in ("kernel/unprivileged_userns_clone", "user/max_user_namespaces",
+                 "kernel/apparmor_restrict_unprivileged_userns"):
+        path = Path("/proc/sys") / name
+        report["namespace_policy"][name] = path.read_text().strip() if path.exists() else None
+    path = Path("/proc/self/status")
+    report["process_security"] = [line for line in path.read_text().splitlines()
+                                  if line.startswith(("CapEff:", "NoNewPrivs:", "Seccomp:"))]
+    path = Path("/proc/self/attr/current")
+    try:
+        report["apparmor_context"] = path.read_text().strip() if path.exists() else None
+    except OSError as error:
+        report["apparmor_context"] = {"unavailable": str(error)}
+    report["bwrap_profiles"] = {str(path): path.read_text() for path in
+                                Path("/etc/apparmor.d").glob("*bwrap*") if path.is_file()}
+    if args.suite == "hub":
         for executable, variable in (("Xvfb", "HUB_TEST_XVFB"), ("xclip", "HUB_TEST_XCLIP")):
             path = os.environ.get(variable) or shutil.which(executable)
             report[executable] = path
@@ -73,11 +81,13 @@ def main():
     text = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     args.output.write_text(text, encoding="utf-8")
     print(text, end="")
-    if errors and os.environ.get("GITHUB_ACTIONS") == "true":
-        # Accessible through the Checks API even when blob log downloads fail.
-        diagnostic = json.dumps(report, ensure_ascii=False)
-        diagnostic = diagnostic.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-        print(f"::error title=Required test environment::{diagnostic}")
+    brief = {key: value for key, value in report.items() if key not in ("kernel_denials", "bwrap_profiles")}
+    emit_annotation("Required test environment", brief, level="error" if errors else "notice")
+    denials = report.get("kernel_denials", {})
+    for line in denials.get("stdout", "").splitlines()[-4:]:
+        emit_annotation("Kernel denial", {"line": line}, level="error")
+    if report.get("bwrap_profiles"):
+        emit_annotation("Installed Bubblewrap profiles", report["bwrap_profiles"], level="notice")
     return int(bool(errors))
 
 

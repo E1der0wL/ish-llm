@@ -12,6 +12,7 @@ permissions:
 jobs:
   contracts:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -60,6 +61,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bubblewrap xvfb xclip
       - name: Check environment and namespace isolation
+        id: environment
         run: >-
           python -m tests.llm.check_environment --suite "${{ matrix.suite }}"
           --host-revision "$ISH_REVISION" --output artifacts/environment.json
@@ -73,7 +75,7 @@ jobs:
         if: ${{ !cancelled() && matrix.suite == 'llm' }}
         run: python -m tests.llm.check_budget_mutation
       - name: Discover and execute every assigned regression test
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.environment.outcome == 'success' }}
         run: >-
           python -m tests.llm.run_regression --suite "${{ matrix.suite }}"
           --output artifacts/regression.json
