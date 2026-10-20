@@ -44,6 +44,48 @@ Loop 회차 체크포인트는 최상위 Loop와 Graph Agent 내부 Loop에 적�
 완료된 모델 응답의 after_completion 훅은 재실행하지 않지만 새 처리기 세션을 생성한다.
 finish 등 외부 쓰기 훅은 재개/실패를 고려하여 멱등하게 구현해야 한다.
 
+## Resume의 실행 수명·예산·승인
+
+Resume는 새 Run ID·상태·실행 소유권을 만들고 원본 Run을 보존한다. 이어가는 작업의
+Tool 결과와 사용량은 각각 복원한다. 결과를 재사용한다고 사용량이 자동 복원되는 것은 아니다.
+아래는 main의 주요 한도이며 이름이 비슷해도 집계 범위를 합치지 않는다.
+
+| 대상 | 새 Run/Resume에서의 범위 | 설정·집행·복원 소유자 |
+|---|---|---|
+| Run 실행 기한 | 새 Run의 실행 경계에서 시작 | `policies.run.timeout_seconds`, `RunManager._consume_limited` |
+| 모델 호출·토큰 한도 | 새 Run의 Completion 기록과 해당 Run의 Component 호출 기준 | `policies.usage.max_calls/max_tokens`, `usage.check_admission` |
+| Project 모델 사용량 | Resume 이전 기록도 명시 기간 안이면 포함; 기간 미지정은 전체 | `policies.usage.project_max_calls/project_max_tokens/period_seconds`, Project 사용량 집계 |
+| 공통 Tool 호출 한도 | Resume 계보의 이전 논리 호출량·예약을 이어받음 | `policies.tools.max_calls`, `RunManager._context` → `ToolExecutionScope.restore(runtime_tool_usage)` |
+| Agent Tool 호출 한도 | 같은 Agent 실행 경로의 사용량을 이어받고 부모 한도도 집행 | Agent `policy.max_tool_calls`, `AgentExecution`의 자식 scope와 `agent_usage` |
+| Loop 응답의 Tool 개수 | 개별 모델 응답을 해석할 때 적용; 누적 실행 한도가 아님 | Loop `policy.max_tool_calls`, 선택 Completion Adapter/Decoder |
+| Tool 조건부 retry | 저장된 동일 호출의 시도·수정 횟수를 복원해 재개로 초기화하지 않음 | `policies.tool_retry.max_retries`, `ToolExecutor._retry_state` |
+
+`ToolExecutionScope.restore()`는 calls/completed/pending_approvals/invocations/revision을 복원한다.
+상한 값은 해당 정책에서 전달받으므로 **사용량 복원과 상한 전달을 모두 검증해야 한다**.
+상한이 누락되어 None이 되면 이전 호출량만 복원해도 새 호출을 차단할 수 없다.
+예약한 동일 invocation이나 승인 대기의 재개는 다시 계수하지 않는다. 명시적 uncertain 재시도도
+새 논리 호출인지 동일 호출의 재시도인지 구분하며, 이를 예산 초기화의 증거로 해석하지 않는다.
+
+예를 들어 누적 한도 1에서 A의 효과가 완료되면 사용량은 1/1이다. 재개 후 A의 저장 결과를
+읽는 것은 추가 실행/추가 차감이 아니며, 새로운 논리 호출 B는 한도 초과로 차단해야 한다.
+Tool 결과 재사용·논리 호출량·실제 실행 시도 횟수·조건부 retry 횟수는 서로 다른 관찰값이다.
+
+재개 admission은 현재 Project 정책과 선택 구현체의 binding을 이전 checkpoint/승인과 대조한다.
+정책·정의·인자·환경 변경으로 binding이 달라지면 재개가 거부될 수 있다. “현재 정책 적용”을
+이전 승인을 새 조건에 자동 적용한다는 뜻으로 사용하지 않는다. 저장된 approve도 Host technical
+deny를 해제하지 않는다. 완료 효과는 receipt로 재사용하고, uncertain 효과는 명시 검토 없이
+재실행하지 않는다. 응답 저장과 실행은 계속 분리한다.
+
+코드 근거는 [RunManager](../../llm/services/runtime/runs.py)의 `_context/_resume_request`,
+[ToolExecutionScope](../../llm/services/runtime/tools.py)의 `checkpoint/restore/authorize`,
+[AgentExecution](../../llm/engines/agents.py), [사용량 admission](../../llm/services/runtime/usage.py)이다.
+관련 기존 시험은 `test_agent_workflow.test_require_tool_and_agent_call_budget_are_enforced`,
+`test_nested_graph.test_loop_agent_approval_reopen_preserves_tool_receipts_and_budget`,
+`test_retry.test_failed_repair_budget_cannot_reset_on_explicit_resume`다.
+첫 시험은 한도 1, 두 번째는 한도 2의 승인/재시작을 검증하므로 이들을 합쳐
+새 R3의 “한도 1 → Resume → 새로운 두 번째 효과 0회”가 검증됐다고 보고하지 않는다.
+[R3 계획](clean-refactor.md#안전성실패-주입)의 실제 효과·상한 전달 누락 mutation 시험은 별도 필요하다.
+
 ## Tool 조건부 재시도와 영속 승인
 
 ```python
@@ -141,8 +183,9 @@ usage.counter로 선택한 계산기의 입력 토큰 + 출력 상한을 예약�
 프로젝트 집계는 Run의 Completion 원본에서 계산한다. 기본 전체 기간 또는 period_seconds의
 이동 창을 사용한다. 변경 감지 캐시로 같은 Run의 JSON 재파싱과 조회 로그 쓰기를 줄인다.
 많은 Run의 파일 stat·기간 집계 비용은 여전히 기록 수에 비례한다. 동시 호출은
-동일 workspace 잠금으로 예약해 한도를 중복 배정하지 않는다. 재개 Run은 새로운 Run 한도를
-갖지만 Project 기간 한도는 공유한다. Project Component API로 호출한 RAG 모델은 컴포넌트
+동일 workspace 잠금으로 예약해 한도를 중복 배정하지 않는다. 재개 Run의 모델 사용량은
+`usage.max_calls/max_tokens`의 새 Run 범위로 집계하지만 Project 기간 한도는 공유한다.
+이 설명을 누적 Tool 호출 예산의 초기화로 적용하지 않는다. Project Component API로 호출한 RAG 모델은 컴포넌트
 영수증으로 같은 Project 한도에 참여하며, Tool 안의 호출은 현재 Run 한도에도 참여한다.
 
 Engine의 provider는 BaseEngine completion 경로에서 첫 chunk 이전의 일시적인 공급자 오류만 재시도한다.

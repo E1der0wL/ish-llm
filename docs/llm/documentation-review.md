@@ -143,7 +143,7 @@ R3 `max_tool_calls=1`은 root/nested·승인→Resume·재시작을 통과해도
 새 R3 시험과 A–F 기능은 아직 구현하지 않았다. 승인 우회·한도 소실·Tool 중복 실행·자료 손실 위험·
 미해결 핵심 회귀가 있으면 다음 구현 단계로 진행하지 않는다.
 
-## 이번 문서 변경 뒤 실행한 검증
+## 첫 문서 최신화 단계에서 실행한 검증
 
 Python 3.12.14에서 다음을 실행했다. 제품 코드 변경이 없어 전체 LLM/Hub를 반복 실행하지 않았으며,
 위의 기존 전체 실패 1건을 이번 집중 통과 결과로 덮지 않는다.
@@ -182,3 +182,29 @@ git diff --check
 RAG embedding/추출·Memory 요약·retention 삭제를 실제 실행한 결과는 아니다.
 새 `max_tool_calls=1` 예제의 설정 전달 확인도 **R3의 실제 두 번째 Tool 효과 차단 시험을 대신하지 않는다**.
 실제 승인·Resume·새 A–F·CI·인증 모델·kernel short-write의 미검증 상태는 위 계획대로 유지한다.
+
+## 후속 정정: Resume의 Tool 예산
+
+첫 문서 커밋 `f7dad4c`에는 runtime-reliability의 “새 Run이므로 새 예산”이라는 충돌 문장이
+남아 있었다. 이를 정정하고 long-running에 실행 수명·모델 사용량·공통/Agent Tool 한도·
+개별 응답 Tool 개수·조건부 retry의 owner와 복원 범위를 구분했다. 완료 결과 재사용과 사용량 복원,
+상한 전달은 각각 검증해야 하며 현재 정책·binding과 이전 승인/효과 영수증도 따로 대조한다.
+제품 구현은 변경하지 않았다.
+
+Python 3.12.14에서 아래 기존 집중 시험 **5 pass / 0 fail / 0 error / 0 Skip**, 2.390초, exit 0을 확인했다.
+
+```bash
+TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION \
+  .venv-linux312/bin/python -m unittest -v \
+  tests.llm.test_agent_workflow.AgentWorkflowTests.test_require_tool_and_agent_call_budget_are_enforced \
+  tests.llm.test_nested_graph.NestedGraphTests.test_loop_agent_approval_reopen_preserves_tool_receipts_and_budget \
+  tests.llm.test_nested_graph.NestedGraphTests.test_graph_agent_pause_reuses_tool_receipt_under_parent_run_policy \
+  tests.llm.test_nested_graph.NestedGraphTests.test_graph_agent_explicit_retry_uses_new_runs_parent_budget \
+  tests.llm.test_retry.ToolRetryTests.test_failed_repair_budget_cannot_reset_on_explicit_resume
+```
+
+`test_graph_agent_explicit_retry_uses_new_runs_parent_budget`라는 기존 시험명은 예산 초기화의 근거가
+아니다. 동일 invocation의 명시 재시도와 새로운 논리 호출을 구분해야 한다. 새 R3의 한도 1·
+재개 뒤 새로운 두 번째 효과 차단·상한 전달 누락 mutation을 위 시험들로 대체하지 않는다.
+원본 로그는 작업 공간 `/workspace/llm-docs-clarifications/resume-tests.log`에 보존한다.
+전체 회귀·실인증 모델·kernel short-write는 이번 후속 문서 작업에서 실행하지 않았다.

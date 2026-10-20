@@ -98,8 +98,14 @@ Tool Step은 `phase=authorizing`으로 먼저 저장된다. 승인 후 `STEP_UPD
 
 LoopEngine, Graph의 ToolNode, Graph Agent가 동일한 **Run별** ToolExecutionScope를
 공유한다. 병렬 분기도 예산을 중복 할당하지 않는다. 허용 목록 검사를 통과한 승인
-시도부터 호출 예산을 소비하며 거절/실패 시 반환하지 않는다. 재개는 새 Run이므로
-새 예산과 현재 승인 정책을 적용한다. 임의 개발자 핸들러의 직접 I/O까지 가로채지는 않는다.
+시도부터 호출 예산을 소비하며 거절/실패 시 반환하지 않는다. Resume는 새 Run 기록과
+실행 수명을 만들지만, 체크포인트의 `runtime_tool_usage`를 복원하므로 누적 Tool 호출량을
+초기화하지 않는다. Agent의 자식 scope도 해당 실행 경로의 `agent_usage`를 복원한다.
+이미 예약한 동일 논리 호출은 중복 계수하지 않으며, 완료 결과 재사용과 사용량 복원은 별개다.
+현재 정책·실행 binding과 이전 승인/효과 영수증을 검증하고 Host의 기술적 거부를 유지한다.
+Run별 모델 사용량·Project 기간 사용량·Tool 한도의 차이는
+[Resume의 예산과 승인](long-running.md#resume의-실행-수명예산승인)을 따른다.
+임의 개발자 핸들러의 직접 I/O까지 가로채지는 않는다.
 새 Engine은 `ToolExecutor.execute(..., context=context)`를 통해 공통 정책에 참여한다.
 
 격리 실행이 필요하면 async `runner(tool, call)`을 주입한다. 결과는 기존 Tool과 같이
