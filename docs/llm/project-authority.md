@@ -3,6 +3,10 @@
 이 문서는 설정 소유권의 현재 계약이다. 영속 실행 관계는 Project → Session → Run → Step이며
 Engine은 실행 전략, Component는 선택된 데이터와 capability를 소유한다.
 Application은 제품의 한계값·프리셋·위험 분류를 선택한다. Backend는 그 값을 검증하고 집행한다.
+이 선택은 매번 사람의 수동 입력을 요구하지 않는다. Hub가 소유한 초기값을 새 Project 설정으로
+저장해 제공할 수 있으며, 사용자의 유효한 명시값이 우선한다. 기존 Project를 열 때의 재주입은
+허용하지 않는다. [생성·조회·편집 계약](../hub/presets-and-resume.md#hub-초기값의-소유권과-저장-계약)을 따르며
+Backend는 Hub 프리셋의 이름·선택 규칙을 알지 못한다.
 
 ## 설정 inventory
 

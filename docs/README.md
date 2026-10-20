@@ -26,6 +26,8 @@ A–F 기능·안전성 요구 → 과거 작업 기록 순서로 적용한다. 
 필수값 누락은 명시적으로 거부하고 Missing/Null/Value를 구분한다. 버전·상태·이벤트·오류·정책·경로·
 한도는 해당 구현체가 한 선언으로 소유한다. 제품에 남은 위반은 문서 수정으로 해결된 것이 아니다.
 [알려진 차이](llm/documentation-review.md)를 구현 단계에서 제거하고 검증한다.
+소유자와 저장 출처가 명확한 [Hub 생성 초기값](hub/presets-and-resume.md#hub-초기값의-소유권과-저장-계약)은 허용한다.
+사용자 명시값 우선·조회/편집·재열기 시 재주입 금지·Backend 검증을 지키며 매번 수동 선택을 요구하지 않는다.
 
 현재 공개 API의 일반 Facade, sync/async 호출, 실제 Provider Adapter는 구 API 호환 계층과 다르다.
 Tool 승인·권한·한도·Checkpoint·Resume·효과 영수증·동시성 안전성은 유지한다.

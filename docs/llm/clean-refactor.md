@@ -14,6 +14,9 @@
   검증하고 지원하지 않는 자료는 실행·쓰기 전에 명시 거부한다. 원본을 자동 삭제/변환하지 않는다.
 - 필수값 누락은 거부한다. Missing/Null/Value와 선택 기능의 비활성·추가 제한 없음은 필드 owner가
   명시한다. `x or fallback`으로 False/0/빈 객체/잘못된 타입을 같은 값으로 바꾸지 않는다.
+- Hub가 소유한 생성 초기값은 허용한다. 새 Project에 저장하고 사용자 명시값을 우선하며,
+  조회·편집 가능해야 한다. 기존 Project 재열기/실행 시 재주입하지 않는다. 매번 사용자에게
+  선택을 요구하지 않으며 Backend는 Hub의 프리셋 이름·선택 규칙을 알지 못한다.
 - 버전·상태·이벤트·오류 코드·정책·경로·한도는 해당 구현체가 단일 선언으로 소유한다.
   Schema·검증기·Reader/Writer·소비자는 그 선언을 사용한다. 기존 값도 전수 목록에서 정리한다.
 - 전역 상수 파일에 몰거나 고정 helper를 위해 새 추상 계층을 만들지 않는다. 실제 Provider
@@ -24,6 +27,7 @@
 세부 설정 의미는 [CONFIGURATION](../../llm/CONFIGURATION.md), 소유권은
 [Project authority](project-authority.md)와 [Schema ownership](schema-ownership.md), 이름은
 [Naming](naming-conventions.md)을 따른다. 문서의 예제 숫자는 제품 기본값 선언이 아니다.
+Hub 초기값의 단일 선언·M/N/V·검증 경계는 [생성 프리셋 계약](../hub/presets-and-resume.md#hub-초기값의-소유권과-저장-계약)에 있다.
 
 ## 목표 구조와 단일 경로
 
@@ -67,7 +71,7 @@ Agent의 의미 차이는 유지하며, Graph 조율에 불필요한 모델·Too
 | 버전·경로·저장 키 | 해당 record/Repository/저장 구현 | 정확한 타입·필수 필드·현재 형식 Reader/Writer. 모든 버전을 전역 숫자로 합치지 않음 |
 | checkpoint | 공통 envelope 저장소 + 내부 의미 Engine/handler | 완료 receipt·source digest·선택 binding·abandonment/CAS 유지 |
 | 효과 원장 | OperationRepository/ToolExecutor | Tool call ID와 business key 구분, uncertain 자동 반복 금지 |
-| 앱 preset·UI·환경 | Hub의 해당 구현체 | 생성 시 명시 선택, 자료 형식 변환과 runtime fallback 제거, 표현 값은 UI 소유 |
+| 앱 preset·UI·환경 | Hub의 해당 기능/프리셋 구현체 | 생성 초기값을 정규 설정으로 저장, 사용자 값 우선·재주입 금지, 자료 형식 변환과 숨은 runtime fallback 제거 |
 
 정적 감사는 literal/default/branch/Schema/call/storage 목록과 실제 호출 관계를 결합한다.
 일치하는 문자열 개수만으로 위반/완료를 판정하지 않는다. 변경 owner의 미분류 후보는 남기지 않으며,
@@ -81,7 +85,7 @@ Agent의 의미 차이는 유지하며, Graph 조율에 불필요한 모델·Too
 | 규칙 | 검출·판정 기준 |
 |---|---|
 | S1 현재 경로 하나 | 제거 inventory의 API/import/구 저장 필드/변환 Reader와 모든 실제 소비자를 추적. wrapper/alias/옛 형식 분기 잔존 시 실패 |
-| S2 Presence와 필수값 | 타입 검증 전 `or {}`/`or default`, 정책 `get`/`setdefault`/생성자 기본값을 분류. M/N/V·False/0/빈 컬렉션을 잃거나 필수값을 생성하면 실패 |
+| S2 Presence와 필수값 | 타입 검증 전 `or {}`/`or default`, 정책 `get`/`setdefault`/생성자 기본값을 분류. M/N/V·False/0/빈 컬렉션을 잃거나 Backend 조회/실행 중 숨은 정책을 생성하면 실패. Hub owner의 새 Project 생성 프리셋은 저장·사용자 값 우선·검증 경계로 판정 |
 | S3 단일 선언 | 버전·상태·이벤트·오류·필드·경로·한도의 owner 선언과 Schema/validator/Reader/Writer/소비 참조를 대조. 별도 허용 목록·literal 재선언은 제거 |
 | S4 형식·Schema | version은 정확한 타입+지원 값, 조건부 필수 필드·nullable·closed object 검사. open boundary에는 실제 child/SDK/metadata owner 필요 |
 | S5 네이밍·책임 | config/policy/runtime/settings, id/key/revision/version의 의미와 저장·실행 owner 대조. 과거 digest 동결을 현재 계약 시험으로 대체 |
@@ -89,7 +93,7 @@ Agent의 의미 차이는 유지하며, Graph 조율에 불필요한 모델·Too
 | S7 필수 검증 배정 | discovery test ID를 CI job별 집합과 대조. host/X11/sandbox 필수 시험 누락·중복 효과 assertion 약화·Skip 확대를 완료로 허용하지 않음 |
 
 숫자/문자열 0건을 목표로 하지 않는다. 프로토콜 불변식·CRUD 초기 상태·명시 Tool Python 인자·
-UI 표시·기술 cache sizing은 소유자가 선언할 수 있다. 검출하지 못한 동적 호출·미분류 후보는
+Hub 생성 프리셋·UI 표시·기술 cache sizing은 소유자가 선언할 수 있다. 검출하지 못한 동적 호출·미분류 후보는
 보고서에 남기며 정적 검사만으로 실제 승인/효과 안전성이 입증됐다고 보고하지 않는다.
 
 ## 단계별 의존성과 완료 조건
@@ -103,7 +107,7 @@ UI 표시·기술 cache sizing은 소유자가 선언할 수 있다. 검출하�
 | P0 기준선 | host 테스트 메서드명, CI·정적 규칙·test ID 배정 | 실제 host의 실패 전/수정 후 증거, 기존 assertion 보존, 격리 job 필수·전체 발견 테스트 누락 없음 |
 | P1-a 타입·저장 | configuration, Tool scope, checkpoint/operation/Vision/workspace/Hub Reader | 잘못된 falsey 객체·bool/float 버전 거부, 정상 M/N/V·current roundtrip·실패 원본 보존 |
 | P1-b 호환 제거 | Hub preference/theme/profile, backup upgrade, legacy callback·실제 소비자 | 옛 값 명시 거부, 현재 backup/restore/clone·UI·subscription 유지, wrapper 없음 |
-| P1-c 선언 정리 | 각 owner의 버전/상태/이벤트/오류/정책/경로/한도 | Schema/Reader/Writer/소비 일치, 작은 계약군별 집중 검증·커밋 |
+| P1-c 선언 정리 | 각 owner의 버전/상태/이벤트/오류/정책/경로/한도, Hub 생성 프리셋 | Schema/Reader/Writer/소비 일치, 생성값·유효한 falsey 값 저장/조회/편집·재열기 보존·검증 우회 금지, 작은 계약군별 검증·커밋 |
 | A Provider | 공통 모델 → Completion/Processor/Tool → RAG/Vision/operation → worker/Hub | 비 OpenAI Fake Adapter로 실제 Tool 효과·결과·최종 응답, SDK wire 유출 없음, opaque/usage/retry/취소/승인 보존 |
 | B Agent | 독립 record·Repository/Manager/Handle, 참조·CAS | CRUD·선택 Engine 검증·수정/삭제 보호·clone/backup·Skill/Workflow/Refinement 참조 |
 | C 실행 | root/nested 단일 binding·Run API·Hub/CLI/예제 | 자동 Agent/engine 호환 경로 없음, 환경·정의·한도 보존, R3 실제 효과 시험 |

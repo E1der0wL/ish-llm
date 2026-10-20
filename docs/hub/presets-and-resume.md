@@ -58,6 +58,49 @@ Enter/Space로 확정합니다. ESC는 변경 없이 닫습니다. 최소화는 
 프로젝트를 만들 때도 사용합니다. 명시적인 설치 설정은 이 생성 기본값보다 우선합니다.
 기존 프로젝트를 다시 열 때 자동으로 프리셋을 덮어쓰지 않습니다.
 
+## Hub 초기값의 소유권과 저장 계약
+
+Hub는 매번 사용자에게 입력을 요구하지 않고 새 프로젝트의 초기값을 제공할 수 있습니다.
+금지 대상은 소유자·출처가 불명확한 숨은 기본값입니다. Hub가 선언하고 실제 Project 설정에
+저장한 초기값은 Backend에 전달된 명시값이며, 사용자가 직접 입력한 값과 같은 검증을 받습니다.
+
+1. **선언 소유자:** 해당 Hub 기능 또는 프리셋 구현체가 초기값을 한 곳에서 소유합니다.
+   생성 코드는 그 선언을 조합하며 UI·Reader·실행 경로마다 값을 반복하지 않습니다.
+   여러 도메인의 값을 전역 상수 파일 하나로 모으지 않습니다.
+2. **생성 시 적용:** 새 프로젝트를 만들 때만 누락된 설정에 초기값을 적용하고 저장합니다.
+   기존 프로젝트를 열거나 설정을 조회하거나 Run을 시작할 때 재주입하지 않습니다.
+   프리셋 선언을 바꿔도 기존 프로젝트의 저장값은 바뀌지 않습니다.
+3. **사용자 값 우선:** 명시한 설정이 생성 초기값보다 우선합니다. 0, False, None, 빈 목록도
+   해당 필드가 허용하는 의미대로 유지합니다. `value or preset`으로 누락 취급하지 않습니다.
+   허용되지 않은 타입/값은 Backend 오류로 거부하며 초기값으로 조용히 대체하지 않습니다.
+4. **조회·편집:** 적용된 값은 Project의 정규 설정 조회·편집에 나타나야 합니다. UI에만 표시하고
+   실행 시 다시 추측하는 값으로 두지 않습니다. 사용자가 수정한 값은 재접속 후에도 유지합니다.
+5. **명시적 재적용:** 사용자가 기존 프로젝트에서 프리셋 적용을 선택하는 것은 설정 편집입니다.
+   현재 Schema·CAS·활성 작업·미저장 초안 검사를 거칩니다. 프로젝트 재열기와 구분합니다.
+6. **안전성:** 초기값도 Tool 승인·권한·실행 한도·retry eligibility·부모 제한·Host technical deny를
+   우회할 수 없습니다. retry 횟수가 있다는 이유만으로 불확실한 효과를 재실행하지 않습니다.
+7. **Backend 독립성:** Backend는 정규 설정 값과 계약만 검증·집행합니다. Hub 프리셋 이름·버전·
+   선택 규칙을 읽거나 이름에 따라 정책을 분기하지 않습니다. Hub의 생성 출처 안내도 Hub 책임입니다.
+
+예를 들어 Hub 프리셋이 `policies.tool_retry.max_retries=2`를 선언하면, 새 프로젝트에서 해당
+키가 누락됐을 때 2를 저장할 수 있습니다. 사용자가 0을 지정하면 0을 저장하고, nullable인
+이 필드에 None을 지정하면 null을 유지합니다. False는 이 integer 필드의 유효값이 아니므로
+거부해야 합니다. False나 빈 목록을 허용하는 다른 필드에서는 그 값을 그대로 존중합니다.
+필드별 허용 형식은 Backend Schema가 소유하며 Hub가 다시 정의하지 않습니다.
+
+현재 main의 생성 조립은 `hub/backend/project/defaults.py:create_project`,
+기존 프로젝트 선택은 `hub/backend/project/bootstrap.py:select_or_create`가 담당합니다.
+`create_project`는 Tool retry 초기값을 구성해 공개 `projects.acreate(config=...)`에 넘기며,
+`select_or_create`는 기존 프로젝트가 있으면 생성 코드를 호출하지 않고 반환합니다.
+명시적 프리셋 적용은 `hub/backend/project/presets.py:PresetService`의 별도 경로입니다.
+
+기존 관련 시험은 `test_bootstrap.test_concurrent_start_creates_once_and_reopen_preserves_edits`,
+`test_response_reliability.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded`,
+`test_presets_widgets.test_export_save_apply_and_startup_template_preserve_identity`입니다.
+각 시험의 통과를 모든 필드의 M/N/V 조합 검증으로 확대하지 않습니다. 후속 구현 gate에는
+누락/0/False/None/빈 목록의 **유효 필드별** 생성·저장·조회·편집·재열기, 잘못된 타입 거부,
+프리셋 변경 후 기존 값 보존과 승인/한도 우회 차단을 포함합니다.
+
 ## 재시작
 
 Ctrl+W 또는 상단 재시작 버튼은 신규 요청을 막고 진행 중인 컴포넌트 명령을 취소합니다.

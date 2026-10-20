@@ -10,7 +10,10 @@ Schema·validator·Reader/Writer의 선언은 해당 구현체가 소유하며 �
 제한한다. ToolRuntime는 Host의 실행·분류 어댑터만 주입한다.
 [소유권 inventory](../docs/llm/project-authority.md), [Tool 제약](../docs/llm/tool-constraints.md).
 
-ish-llm은 사용자가 설정하지 않은 정책을 대신 결정하지 않는다. SDK 옵션을 생략하면 SDK의 native behavior를 사용하며, 프로토콜·저장 무결성·취소 회수에 필요한 강제값만 예외로 둔다.
+Backend는 호출자가 전달하지 않은 실행 정책을 숨은 기본값으로 만들지 않는다.
+호출자는 사용자 입력뿐 아니라 Hub가 소유한 생성 프리셋을 정규 Project 설정으로 저장해 전달할 수 있다.
+매번 수동 선택을 요구하는 계약이 아니다. [Hub 초기값 계약](../docs/hub/presets-and-resume.md#hub-초기값의-소유권과-저장-계약)을 따른다.
+SDK 옵션을 생략하면 SDK의 native behavior를 사용하며, 프로토콜·저장 무결성·취소 회수에 필요한 강제값은 구분한다.
 
 Backend가 소유한 설정은 closed by default다. ProjectConfig 최상위는 `policies`, `parameters`,
 `data`이며, Application 확장은 `data`에 둔다. 각 구현체는 자기 설정만 해석한다.
@@ -32,7 +35,10 @@ Agent completion은 model 없는 부분 설정도 허용한다. 모델이 모든
 
 Component의 설정은 **주입 client.params → ProjectConfig.parameters["components"][name]**이다. 주입 client는 Project보다 낮은 명시적 baseline이며 숨은 ceiling이 아니다. Component는 Session 소유가 아니다. 서비스 정책은 Run 시작 시 스냅샷으로 저장한다. Tool 재시도는 Project policies.tool_retry만 사용한다. ProviderLimits는 Backend 전체 공유 자원 용량으로 별도 적용되며 describe_host()에서 읽기 전용으로 조회한다.
 
-`values/sources/overridden/editable`은 유지한다. 사용자 설정 출처 `default`는 없다. 강제값은 `enforced`에 따로 표시할 수 있다. Schema는 허용 형식만 설명하며 값 생성에 사용하지 않는다. `ProjectConfig()`는 빈 section만 가진다.
+`values/sources/overridden/editable`은 유지한다. Backend의 설정 해석에는 숨은 `default` 계층이 없다.
+Hub 초기값도 저장 후에는 일반 Project 설정으로 조회·편집하며, Backend에 Hub 프리셋 계층이나 이름별 분기를 추가하지 않는다.
+강제값은 `enforced`에 따로 표시할 수 있다. Schema는 허용 형식만 설명하며 값 생성에 사용하지 않는다.
+`ProjectConfig()`는 빈 section만 가진다. Hub의 새 프로젝트 생성과 Backend의 빈 설정 조회는 다른 경계다.
 
 ## 정책 소유권
 

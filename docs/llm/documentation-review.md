@@ -208,3 +208,33 @@ TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION \
 재개 뒤 새로운 두 번째 효과 차단·상한 전달 누락 mutation을 위 시험들로 대체하지 않는다.
 원본 로그는 작업 공간 `/workspace/llm-docs-clarifications/resume-tests.log`에 보존한다.
 전체 회귀·실인증 모델·kernel short-write는 이번 후속 문서 작업에서 실행하지 않았다.
+
+## 후속 명확화: Hub가 소유한 생성 초기값
+
+사용자의 추가 원칙에 따라 [Hub 초기값 계약](../hub/presets-and-resume.md#hub-초기값의-소유권과-저장-계약)을
+정규 기준으로 명시했다. Hub 기능/프리셋 owner의 단일 선언 → 새 Project의 누락값에 적용 →
+Backend 검증 → 실제 저장·조회·편집을 허용한다. 매번 수동 선택을 요구하지 않으며,
+사용자의 유효한 0/False/None/빈 목록을 보존한다. 기존 Project 재열기/실행 때 재주입하지 않고
+사용자가 선택한 명시적 프리셋 재적용은 별도 설정 편집으로 검증한다.
+Backend는 Hub 프리셋 이름이나 선택 규칙에 의존하지 않는다. 안전성 검증은 초기값에도 동일하다.
+
+CONFIGURATION의 “default 출처 없음”은 Backend에 숨은 해석 계층이 없다는 뜻으로 좁혔다.
+저장된 Hub 초기값은 일반 Project 출처이며 별도 Backend preset 계층을 만들지 않는다.
+클린 설계의 정적 규칙 S2와 P1-c gate도 합법적인 생성 프리셋을 위반으로 오판하지 않도록 수정했다.
+허용되지 않은 False/null 등을 유효값으로 바꾸라는 요구가 아니며 필드 owner의 Schema를 따른다.
+
+Python 3.12.14에서 아래 기존 시험 **12 pass / 0 fail / 0 error / 0 Skip**, 13.716초, exit 0을 확인했다.
+
+```bash
+TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION \
+  .venv-linux312/bin/python -m unittest -v \
+  tests.hub.test_bootstrap \
+  tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded \
+  tests.hub.test_presets_widgets.PresetBackendTests tests.hub.test_project_authority
+```
+
+로그는 `/workspace/llm-docs-clarifications/hub-preset-tests.log`에 보존한다. 이는 모든 필드의
+생성/편집/재열기 M/N/V 조합을 새로 검증했다는 뜻이 아니며 그 전수 gate는 P1-c에 남긴다.
+후속 문서 125개의 Python fence 178개는 문법 오류가 없고 상대 파일/절 링크의 잔여 누락은 0이다.
+제품 Python 627개와 실행 자산 9개의 SHA-256, 과거 본문 보존 4개도 동일하며 `git diff --check`가 통과했다.
+검사 도구·JSON은 `/workspace/llm-docs-clarifications/`에 보존한다. 제품/테스트/CI 구현 변경은 없다.
