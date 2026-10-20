@@ -21,6 +21,7 @@ from llm.core.configuration import resolve_engine_config, UNSET
 from llm.core.parameters import ParameterLayout
 from llm.core.results import EngineOutput
 from llm.core.contracts import ResourceRef
+from llm.core.checkpoints import CheckpointStatus
 from llm.providers.parameters import merge_params
 from llm.services.runtime.tools import ToolExecutor, ToolExecutionError, ToolApprovalRequired
 from llm.engines.base import BaseEngine, EngineContext, EngineEvent, EngineEventType
@@ -78,18 +79,25 @@ class LoopEngine(BaseEngine):
         """완료 Tool은 재사용하고 효과가 불확실한 Tool만 명시적 재실행 승인을 받는다."""
         if checkpoint["header"].get("format") != "loop-iterations-v1":
             raise ValueError("Checkpoint does not belong to LoopEngine")
+        uncertain = set()
         for key, value in checkpoint["records"].items():
             if key.startswith("steering:"):
                 validate_instruction_record(value)
-        uncertain = {key for key, value in checkpoint["records"].items()
-                     if value["status"] == "started" and value.get("requires_retry", key.startswith("tool:"))}
+            if value["status"] == CheckpointStatus.STARTED:
+                if (type(value.get("requires_retry")) is not bool or type(value.get("container")) is not bool
+                        or value["requires_retry"] == value["container"]):
+                    raise ValueError("Started Loop checkpoint requires explicit container and retry evidence")
+                if value["requires_retry"]:
+                    uncertain.add(key)
         if len(set(retry_nodes)) != len(retry_nodes) or set(retry_nodes) != uncertain:
             raise ValueError(f"Explicit retry_nodes must match uncertain Tool keys: {sorted(uncertain)}")
         if context is not None and checkpoint["header"]["binding"] != self._binding(context):
             raise ValueError("Loop configuration or Tool definitions changed; start a new request")
         if context is not None:
             context.tools.validate_selections(replace(context, checkpoint=checkpoint))
-        decisions = decisions or {}
+        decisions = {} if decisions is None else decisions
+        if not isinstance(decisions, dict):
+            raise TypeError("Loop decisions must be an object")
         waiting = {key for key, value in checkpoint["records"].items() if value["status"] == "waiting"}
         if set(decisions) - waiting:
             raise ValueError("Loop decisions require waiting checkpoint keys")

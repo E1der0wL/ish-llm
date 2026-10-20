@@ -22,8 +22,8 @@ async def run_request(args: argparse.Namespace, *, workspace: Path,
     async with LargeLanguageModel(
         workspace,
         engines={"loop": LoopEngine()},
-        on_event=print_event,
     ) as backend:
+        backend.events.subscribe(print_event, channel="engine")
         project = (await backend.projects.aload(args.project_id) if args.project_id
                    else await backend.projects.acreate("ish LoopEngine test", conversation_storage="file"))
         config = (await project.aget_data()).config

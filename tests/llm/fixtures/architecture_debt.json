@@ -1932,14 +1932,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "a9d193d8b289d87ba24cb7138b52ffb3e5b3d6d8e5e58e6a95da61c148fe462c:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine.validate_resume",
-      "line": 85,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "b8cbd5949dc8a5f0bf0b23b903f1f9e2fe824da46145e4f782d552e9b8b0884a:1",
       "rule": "S2",
       "file": "llm/engines/loop/engine.py",
@@ -2122,102 +2114,6 @@
       "symbol": "<module>",
       "line": 9,
       "detail": "inline domain field: version"
-    },
-    {
-      "id": "a3df4f64bbea5dd8a912de4e63d09b6676a42b8696ea237c9f49d9278c7586b9:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel.__init__",
-      "line": 745,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "b0fe80e97c08c0c400534038e45b6dcc3b338bdaaa2b3b38fd27dae9075ff3e5:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel.__init__",
-      "line": 746,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "a656a90f5057268178eb37d521d69d92557237f94210e53edb10eb3a52259631:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel.__init__",
-      "line": 783,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "43b36d7230a8bc49c5b67f9386927caf87eb767859ade38f802872f985acac7e:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel.__init__",
-      "line": 783,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "4ea56760df19bcf58ed3069cb8a0af8fd85557b33d4647bf51d809f783662010:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel.__init__",
-      "line": 784,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "bd394138e284f4e01e29a528554efa383601f256f8fd89bc0eca7e86ca03d3ce:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel.__init__",
-      "line": 784,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "cf8384ce9cf2c443fd529a416b800e6f3c568a1d9a133f4ed17d1ca8c646e6d1:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel._interaction_changed.schedule.publish",
-      "line": 818,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "643bbe219d702d827d311bb7eca2dc04f18cc2f48f91fd5b47d361c9fca24855:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel._manager",
-      "line": 887,
-      "detail": "retired callback argument"
-    },
-    {
-      "id": "eb4eafa3cfa9c1bd83cc2c3343c0ff2cb58caa4ce0f76a0e8299f46fa564a48d:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel._manager",
-      "line": 887,
-      "detail": "retired callback argument"
-    },
-    {
-      "id": "9713e769678e614b9e56aa3fec4b18cda0123f5d48fcfeba3ae0beab0fffe3fe:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel._manager",
-      "line": 887,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "614c285c2fac7789e5a1b024cabbda63216d88db4dd61b1549cd01bb3290709b:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "LargeLanguageModel._manager",
-      "line": 887,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "a7bf870f543cdf8f04e40407e3127539abb064805cbc85f18143f365846c1b78:1",
-      "rule": "S1",
-      "file": "llm/llm.py",
-      "symbol": "run_request",
-      "line": 986,
-      "detail": "retired callback argument"
     },
     {
       "id": "dc20528ef95fad53e2235a3c4ed243117281e282b82eca3a843a231a327cccfc:1",
@@ -2436,46 +2332,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "c3c7e1ce2470f3ea369dc718150099cf45809c952f9ee0a5993976794810ae9f:1",
-      "rule": "S1",
-      "file": "llm/services/api.py",
-      "symbol": "Projects.upgrade_backup",
-      "line": 64,
-      "detail": "retired definition"
-    },
-    {
-      "id": "98952788d1679a0cc029518f1f29b5b48b351001761bed1a30d56445fa912eef:1",
-      "rule": "S1",
-      "file": "llm/services/api.py",
-      "symbol": "Projects.upgrade_backup",
-      "line": 66,
-      "detail": "retired call"
-    },
-    {
-      "id": "14de41c1caca1b7f82dbf36b53451b123134f6ea288af2f5e8f98171002c59bb:1",
-      "rule": "S1",
-      "file": "llm/services/api.py",
-      "symbol": "Projects.upgrade_backup",
-      "line": 66,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "110a1f53d47d7e7e0a90ba502ac21b5aca6f94fd3539408ea71ddb0029d6db1b:1",
-      "rule": "S1",
-      "file": "llm/services/api.py",
-      "symbol": "Projects",
-      "line": 69,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "186376403fd29421c1c921dd94626d57df1206b91d1d1d65fa54bdbbe35485d9:1",
-      "rule": "S1",
-      "file": "llm/services/api.py",
-      "symbol": "Projects",
-      "line": 69,
-      "detail": "retired reference or argument"
-    },
-    {
       "id": "d9afc6a875b8ada4e7b778ee09f9be2a095ba25a944e7c4660e8b8408386a3e2:1",
       "rule": "S3",
       "file": "llm/services/api.py",
@@ -2692,54 +2548,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "099c1287ed54aca0ec84dd9bd723d664fbadb0268f88d36a617cc086478d8d2b:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/backups.py",
-      "symbol": "DirectoryBackups.create.build",
-      "line": 79,
-      "detail": "inline domain field: format_version"
-    },
-    {
-      "id": "6dbe8dbd3e00704971e8c1b6d7a6151a6d435a3f305640e375599783a9c9b76a:1",
-      "rule": "S4",
-      "file": "llm/services/infrastructure/backups.py",
-      "symbol": "DirectoryBackups.verify",
-      "line": 87,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "25dfa51c2eb9e6c500a193406af18dc8e4a5f8688d16d88b50a354def334d0c8:1",
-      "rule": "S4",
-      "file": "llm/services/infrastructure/backups.py",
-      "symbol": "DirectoryBackups.verify",
-      "line": 87,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "a07a92b3fcf74c30880f5f6a5d48dc8a8afa36d60535dfb46042aac36209943f:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/backups.py",
-      "symbol": "DirectoryBackups.verify",
-      "line": 87,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "6b5168ee62c22cbeab4cd16246f5ab39c966a07c7eb29dc0079880ddbcc98baf:1",
-      "rule": "S1",
-      "file": "llm/services/infrastructure/backups.py",
-      "symbol": "DirectoryBackups.upgrade",
-      "line": 102,
-      "detail": "retired definition"
-    },
-    {
-      "id": "ce0bf6b70c22b184b4882b04c67979a53bf3974f448adbfbbb2e34df304e9ceb:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/backups.py",
-      "symbol": "DirectoryBackups.upgrade.build",
-      "line": 113,
-      "detail": "inline domain field: format_version"
-    },
-    {
       "id": "c1e666c654d488fe248ca559bf13422b742d1f01732027b653f360c0006a089b:1",
       "rule": "S4",
       "file": "llm/services/infrastructure/journal.py",
@@ -2930,14 +2738,6 @@
       "symbol": "ProjectManager.remove_component",
       "line": 358,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "0938fc5800fd52ca1a7165e939c039dd00119c26065434685904ec6543c9b8d8:1",
-      "rule": "S1",
-      "file": "llm/services/lifecycle/projects.py",
-      "symbol": "ProjectManager.upgrade_backup",
-      "line": 463,
-      "detail": "retired definition"
     },
     {
       "id": "40c315cdfd928805a19c38e66ea8b0718103fefea548ef8897c3c5305677b31f:1",
@@ -3356,46 +3156,6 @@
       "detail": "truthiness fallback involving configuration"
     },
     {
-      "id": "5b29932b63f7bfa52e2613dd5027a5c5871371b1bd4fe06a73a047b6cef22928:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager.__init__",
-      "line": 674,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "eb43311e1fda2d555096e18822613022e885777c4f9357001fbc7522af823f3f:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager.__init__",
-      "line": 675,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "7e439caa96a54a50ac8c00698c5bffb395339b5b3d0cbc1785318441ace374d1:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager.__init__",
-      "line": 697,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "d871f8d43a689ded43e9667a7856b0f30724cb43c68c556ffffb0297b8b3b415:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager.__init__",
-      "line": 698,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "e0debb3c51c071582f36155908bbccbfc44080f65fa44c951db0988aebf11f3a:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager.__init__",
-      "line": 698,
-      "detail": "retired reference or argument"
-    },
-    {
       "id": "1dad84e372fe73383cfe4910926107d2524bf5a4cd7aafadd32260e47cdff5f2:1",
       "rule": "S3",
       "file": "llm/services/runtime/runs.py",
@@ -3410,30 +3170,6 @@
       "symbol": "RunManager._accept_instruction",
       "line": 788,
       "detail": "inline domain field: status"
-    },
-    {
-      "id": "0f89e8ad1a0d5b099e56e7d3c2da8ca6b0c5fab200563568daea79b8fad470fd:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._publish_run",
-      "line": 817,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "210af7852d260f9c82174a89dc3eb0a19f603056b4a9dcea128771045b9538ed:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._publish_run",
-      "line": 819,
-      "detail": "retired call"
-    },
-    {
-      "id": "0f89e8ad1a0d5b099e56e7d3c2da8ca6b0c5fab200563568daea79b8fad470fd:2",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._publish_run",
-      "line": 819,
-      "detail": "retired reference or argument"
     },
     {
       "id": "0889a6bebc90d7a296c1d2b3eefac684b510b419117fbbc2943be4d965bc1095:1",
@@ -3482,30 +3218,6 @@
       "symbol": "RunManager._worker",
       "line": 1660,
       "detail": "inline domain argument: status"
-    },
-    {
-      "id": "813fa7c9d0f54de91683a262db588b00cf3317a46701f2c2d78125258ae11a72:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager.on_event",
-      "line": 1674,
-      "detail": "retired definition"
-    },
-    {
-      "id": "25f69cbc5dc707f275628baf0d586b7060facfca115caef485608ceaec8fb16c:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager.on_event",
-      "line": 1678,
-      "detail": "retired definition"
-    },
-    {
-      "id": "f126645bf2afd230f5cd39d5b6324fbb5212d2fc377a76e7f97718ce9449113e:1",
-      "rule": "S1",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager.on_event",
-      "line": 1677,
-      "detail": "retired reference or argument"
     },
     {
       "id": "e07dd7c59e88f00d5a8eb986c1fc9403c3a058611f27a26f6c91198808ca2018:1",
@@ -4732,46 +4444,6 @@
       "detail": "truthiness fallback involving configuration"
     },
     {
-      "id": "8af2b3d0bd8725a598aff7a9d16bd98e3ce3f2c9ebf55ef313fd8a0a174d06ef:1",
-      "rule": "S1",
-      "file": "hub/config/preferences.py",
-      "symbol": "PreferencesStore.load",
-      "line": 51,
-      "detail": "retired call"
-    },
-    {
-      "id": "df4c6d48c84957f09f6d73afc0d27134688e3b0a525db6409747212382113c25:1",
-      "rule": "S1",
-      "file": "hub/config/preferences.py",
-      "symbol": "PreferencesStore.load",
-      "line": 51,
-      "detail": "retired reference or argument"
-    },
-    {
-      "id": "5e5a09cc5a3cf20bddb8dfb6fb248cb3882fb51dcbc7f5dd031c0c0b8f54e069:1",
-      "rule": "S1",
-      "file": "hub/config/preferences.py",
-      "symbol": "PreferencesStore.load",
-      "line": 56,
-      "detail": "retired field or dynamic API lookup"
-    },
-    {
-      "id": "046f0bb03bc6b086384c1dbdc6a0b725b9a3b2a2e42134637eb6c700fbd6c037:1",
-      "rule": "S1",
-      "file": "hub/config/preferences.py",
-      "symbol": "PreferencesStore.load",
-      "line": 57,
-      "detail": "retired field or dynamic API lookup"
-    },
-    {
-      "id": "eeddcb9f297424c6d5134a657eda38f8e5d03c8ed9ea78e59e7cb411247e7f8d:1",
-      "rule": "S1",
-      "file": "hub/config/preferences.py",
-      "symbol": "PreferencesStore.load",
-      "line": 58,
-      "detail": "retired field or dynamic API lookup"
-    },
-    {
       "id": "c930a79db3998c62a7dd5dbb0d8a8147f8a7366653d8bec55339269a5f7a2f9e:1",
       "rule": "S4",
       "file": "hub/config/presets.py",
@@ -4874,14 +4546,6 @@
       "symbol": "restart_config",
       "line": 41,
       "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "e030b568a9e4994d872a288672d5c1729d006a9f976879c7185edd782440bcb4:1",
-      "rule": "S1",
-      "file": "hub/config/theme.py",
-      "symbol": "HubTheme.from_preferences",
-      "line": 76,
-      "detail": "retired definition"
     },
     {
       "id": "aaa14ad7fe9a9f392d9d5e1c965dcc83457c67620ddd8b1259942f248aaa9db8:1",

@@ -458,9 +458,3 @@ class ProjectManager:
         self.backups.restore(source, destination,
                              validate=self._validate_archive)
         return self.repository.load(project.id)
-
-    @workspace_locked
-    def upgrade_backup(self, source: Path, destination: Path, *, transform) -> Path:
-        """개발자가 제공한 변환 함수를 별도 백업에 적용하고 현재 형식으로 검증한다."""
-        return self.backups.upgrade(source, self._backup_destination(destination), transform=transform,
-                                   validate=self._validate_archive)

@@ -3,6 +3,7 @@
 import tempfile
 import asyncio
 import threading
+import json
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -15,6 +16,37 @@ from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
 class LongRunningTests(unittest.IsolatedAsyncioTestCase):
+    async def test_missing_retry_evidence_rejects_resume_without_repeating_effect(self):
+        with tempfile.TemporaryDirectory() as root:
+            effect = Path(root) / "effect.txt"
+            async def act(arguments):
+                with effect.open("a") as stream:
+                    stream.write("effect\n")
+                raise RuntimeError("receipt not completed")
+            app, session, model = await self.setup_app(
+                act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]])
+            failed = await (await session.run.submit("go", engine="loop")).wait()
+            self.assertEqual(failed.data.status, "failed")
+            self.assertEqual(effect.read_text(), "effect\n")
+            candidates = []
+            for path in (failed.data.paths.state / "checkpoints/loop/records").glob("*.json"):
+                record = json.loads(path.read_text())
+                if record["value"]["status"] == "started":
+                    candidates.append((path, record))
+            self.assertEqual(len(candidates), 1)
+            path, record = candidates[0]
+            for missing in ("container", "requires_retry"):
+                value = {**record, "value": {name: data for name, data in record["value"].items() if name != missing}}
+                path.write_text(json.dumps(value))
+                before = path.read_bytes()
+                with self.subTest(missing=missing):
+                    with self.assertRaisesRegex(ValueError, "explicit container and retry evidence"):
+                        await session.run.resume(failed.id, engine="loop", retry_nodes=[record["key"]])
+                    self.assertEqual([run.id for run in await session.run.alist()], [failed.id])
+                    self.assertEqual(len(model.requests), 1)
+                    self.assertEqual(effect.read_text(), "effect\n")
+                    self.assertEqual(path.read_bytes(), before)
+
     async def test_resume_partial_output_is_opt_in_and_completed_tools_are_reused(self):
         for include in (False, True):
             with self.subTest(partial_output=include):

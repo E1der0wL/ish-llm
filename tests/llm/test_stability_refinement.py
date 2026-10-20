@@ -112,8 +112,8 @@ class PersistenceBoundaryTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             observed = []
             async with LargeLanguageModel(root, components=[], engines={"echo": FakeStreamingEngine(chunks=("a", "b"))},
-                    on_event=lambda run, event: observed.append((run.id, event.type)),
                     services=BackendServices(output_buffer=OutputBuffer(batch_size=8))) as backend:
+                backend.events.subscribe(lambda run, event: observed.append((run.id, event.type)), channel="engine")
                 project = await backend.projects.acreate()
                 session = await project.sessions.acreate()
                 with patch.object(backend.run_repository, "record_outputs", side_effect=OSError("disk full")):

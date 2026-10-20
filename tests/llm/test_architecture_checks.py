@@ -28,9 +28,27 @@ class ArchitectureCheckTests(unittest.TestCase):
     def test_retired_alias_argument_and_dynamic_lookup_are_detected(self):
         for source in ("old = backend.on_event", "def setup(on_run_event=None): pass",
                        "old = getattr(backend, 'upgrade_backup')",
-                       "theme = HubTheme.from_preferences(record)"):
+                       "theme = HubTheme.from_preferences(record)",
+                       "class RunEventPublisher: pass",
+                       "value.get('requires_retry', key.startswith('tool:'))",
+                       "value.setdefault('requires_retry', False)"):
             with self.subTest(source=source):
                 self.assertIn("S1", self.rules(source))
+        self.assertNotIn("S1", self.rules("type(value.get('requires_retry')) is bool"))
+
+    def test_example_consumers_are_included_in_retired_api_gate(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sample = root / "examples/llm/demo.py"
+            sample.parent.mkdir(parents=True)
+            sample.write_text("backend = LargeLanguageModel(on_event=display)\n")
+            report = collect(root)
+            self.assertIn("examples/llm/demo.py", report["files"])
+            self.assertTrue(report["findings"])
+            self.assertEqual({item["rule"] for item in report["findings"]}, {"S1"})
+            sample.write_text("backend.events.subscribe(display, channel='engine')\n")
+            self.assertEqual(collect(root)["findings"], [])
 
     def test_cli_ratchet_is_not_a_zero_debt_claim(self):
         import json

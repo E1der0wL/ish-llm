@@ -146,7 +146,7 @@ from llm.llm import LargeLanguageModel, ProjectConfig, LoopEngine, RunStatus
 from llm.engines.base import EngineEventType
 
 
-def on_event(run, event):
+def observe(run, event):
     if event.type == EngineEventType.TEXT_DELTA and event.delta is not None:
         if event.delta.visibility == "user":
             print(event.delta.text or "", end="", flush=True)
@@ -156,8 +156,8 @@ async def main():
     async with LargeLanguageModel(
         "/home/user/.ish/llm-workspace",
         engines={"loop": LoopEngine()},
-        on_event=on_event,
     ) as backend:
+        backend.events.subscribe(observe, channel="engine")
         project = await backend.projects.acreate(
             "첫 프로젝트",
             config=ProjectConfig(parameters={
@@ -281,7 +281,7 @@ Graph는 `await run.ainstruction_targets()`의 실행 목록을 UI에 표시하�
 
 설정이 없으면 임의의 사용자 정책을 만들지 않습니다. SDK 옵션은 생략하여 SDK 동작에 맡깁니다. 설정 누락은 상위 명시값을 상속하고, 지원되는 필드의 명시적 `null`은 상위 값을 덮어씁니다. 상세 우선순위와 강제 불변식은 [설정 계약](CONFIGURATION.md)에 있습니다.
 
-상시 UI에서는 백엔드를 유지하고 종료 시 `await backend.shutdown()`을 호출합니다. `on_event`는 Engine 진행, `on_run_event`는 저장 후 Run 수명 알림입니다. 느린 UI에는 queued 구독을 사용하고, 화면 해제 시 `await subscription.aclose()`로 자원을 정리합니다. 이벤트 누락 가능성이 있는 관찰 구독은 `run.aview()`, `run.aoutput_events()`, `run.steps.alist()`로 저장 상태를 다시 읽어야 합니다. [서비스](services/README.md)와 [이벤트·구독](services/runtime/README.md)을 참고하세요.
+상시 UI에서는 백엔드를 유지하고 종료 시 `await backend.shutdown()`을 호출합니다. `backend.events.subscribe`의 `engine` 채널은 Engine 진행, `run` 채널은 저장 후 Run 수명 알림입니다. 느린 UI에는 queued 구독을 사용하고, 화면 해제 시 `await subscription.aclose()`로 자원을 정리합니다. 이벤트 누락 가능성이 있는 관찰 구독은 `run.aview()`, `run.aoutput_events()`, `run.steps.alist()`로 저장 상태를 다시 읽어야 합니다. [서비스](services/README.md)와 [이벤트·구독](services/runtime/README.md)을 참고하세요.
 
 승인과 재개는 `run.ainteraction_views()`, `run.arespond(...)`, `session.run.resume(..., engine=...)`로 연결합니다. 승인이 재개 실행 자체를 뜻하지는 않습니다. 명시적 재개는 새 Run을 만들며, 부작용이 불확실한 Tool을 자동 재실행하지 않습니다.
 

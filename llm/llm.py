@@ -32,7 +32,7 @@ import sys
 from contextvars import ContextVar
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Callable, Iterable, Mapping, Optional, Union
+from typing import Any, Iterable, Mapping, Optional, Union
 
 from llm._platform import require_linux
 from llm.core.models import ProjectConfig, Run, RunStatus, Session
@@ -146,11 +146,8 @@ class LargeLanguageModel:
         archive = await project.abackup("backups/project-copy")
         # 동일 ID가 없는 별도 backend에서만 복원한다.
         restored = await other_backend.projects.arestore_backup(archive)
-        upgraded = await backend.projects.aupgrade_backup(
-            archive, "backups/upgraded", transform=convert_project_copy)
-
-    변환 함수는 사본의 Path를 받는 신뢰한 개발자 코드다. 원본을 변경하지 않고 현재
-    저장 형식으로 검증한다. memory/외부 대화는 휴대 가능한 파일 백업에서 거부한다.
+    백업은 현재 저장 형식으로 검증한다. 지원하지 않는 형식은 원본을 변경하지 않고
+    거부한다. memory/외부 대화는 휴대 가능한 파일 백업에서 거부한다.
     자세한 보장/제한과 저장 버전 정책은 docs/llm/operational-storage.md를 참고한다.
 
     생성 및 최소 실행 예제::
@@ -186,7 +183,7 @@ class LargeLanguageModel:
         services=BackendServices(...)로 저장소·계산기·로그·이벤트 처리기를 주입한다.
         실행 정책은 ProjectConfig.policies, 구현체 인자는 parameters에 저장한다.
         conversation_storage는 새 Project의 저장 방식이며 기존 Project의 명시된 선택은 보존한다.
-        on_event(run, event), on_run_event(event)는 실행 관찰 콜백이다.
+        events.subscribe(callback, channel="engine" 또는 "run")으로 실행을 관찰한다.
 
     동기/비동기 사용 규칙:
         create/load/list/save 등의 동기 API에는 acreate/aload/alist/asave처럼
@@ -744,8 +741,6 @@ class LargeLanguageModel:
     def __init__(self, workspace: Union[str, Path] = "workspace", *,
                  components: Optional[Iterable[ProjectComponent]] = None,
                  engines: Optional[Mapping[str, Engine]] = None,
-                 on_event: Optional[Callable[[Run, EngineEvent], None]] = None,
-                 on_run_event: Optional[Callable[[RunEvent], None]] = None,
                  services: Optional[BackendServices] = None,
                  conversation_storage: Optional[str] = None) -> None:
         require_linux()
@@ -782,8 +777,6 @@ class LargeLanguageModel:
         self.event_handlers = self.services.event_handlers
         self.projects = Projects(self)
         self.project_manager.bind_config_validator(self.engines.validate_config)
-        self.on_event = on_event
-        self.on_run_event = on_run_event
         self._managers: dict[tuple[str, str], RunManager] = {}
         self._stopping: set[tuple[str, str]] = set()
         self._loop = None
@@ -816,8 +809,6 @@ class LargeLanguageModel:
         def schedule():
             async def publish():
                 event = EngineEvent(EngineEventType.INTERACTION_CHANGED, metadata={"interactions": values})
-                from llm.services.runtime.runs import RunEventPublisher
-                await RunEventPublisher(self.on_event).publish(run, event)
                 await self.events.publish("engine", run, event)
             pending = asyncio.create_task(publish())
             self._observation_tasks.add(pending)
@@ -886,7 +877,6 @@ class LargeLanguageModel:
                 self.project_manager.sessions, self.engines, session=session,
                 repository=self.run_repository, steps=self.step_manager,
                 capabilities=self.project_manager.components,
-                on_event=self.on_event, on_run_event=self.on_run_event,
                 event_handlers=self.event_handlers, subscriptions=self.events,
                 tool_runtime=self.services.tool_runtime, policy_resolver=self.policy_resolver,
                 provider_calls=self.provider_calls, output_buffer=self.services.output_buffer,
@@ -985,10 +975,11 @@ def print_event(run: Run, event: EngineEvent) -> None:
 
 async def run_request(args: argparse.Namespace) -> int:
     async with LargeLanguageModel(
-        args.workspace, components=[ToolComponent()], on_event=print_event,
+        args.workspace, components=[ToolComponent()],
         conversation_storage=args.conversation_storage,
         engines={"loop": LoopEngine()},
     ) as backend:
+        backend.events.subscribe(print_event, channel="engine")
         project = await backend.projects.acreate("LoopEngine demo", config=ProjectConfig(parameters={"engines": {"loop": {
             'policy': {key: value for key, value in {'max_iterations': args.max_iterations, 'request_timeout': args.timeout}.items() if value is not None},
             'config': {'completion': {key: value for key, value in {'model': args.model, 'temperature': args.temperature, 'api_base': args.api_base}.items() if value is not None}}}}}),

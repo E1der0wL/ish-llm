@@ -61,12 +61,7 @@ class Projects(AsyncFacade):
         self.app._check_open()
         return ProjectHandle(self.app, self.app.project_manager.restore_backup(source))
 
-    def upgrade_backup(self, source, destination, *, transform):
-        self.app._check_open()
-        return self.app.project_manager.upgrade_backup(source, destination, transform=transform)
-
     arestore_backup = async_method(restore_backup)
-    aupgrade_backup = async_method(upgrade_backup)
 
     acreate = async_method(create)
     aload = async_method(load)

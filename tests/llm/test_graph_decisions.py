@@ -98,11 +98,13 @@ class DecisionTests(unittest.TestCase):
 
 
 class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
-    async def setup_graph(self, definition, work, *, on_event=None):
+    async def setup_graph(self, definition, work, *, observer=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.app = LargeLanguageModel(temporary.name,
-            engines={"graph": GraphEngine(handlers={"work": work})}, on_event=on_event)
+            engines={"graph": GraphEngine(handlers={"work": work})})
+        if observer is not None:
+            self.app.events.subscribe(observer, channel="engine")
         self.addAsyncCleanup(self.app.shutdown)
         project = await self.app.projects.acreate(components=["workflows"])
         await project.components.workflows.acreate(definition, identifier="flow")
@@ -140,7 +142,7 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
             .connect("first", "review").connect("review", "route")
             .connect("route", "yes", port="yes").connect("route", "no", port="no")
             .connect("yes", "end").connect("no", "end").to_dict())
-        await self.setup_graph(graph, work, on_event=observe)
+        await self.setup_graph(graph, work, observer=observe)
         paused = await (await self.session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait(timeout=15)
         self.assertEqual(paused.data.status, RunStatus.PAUSED)
         checkpoint = await paused.acheckpoint()

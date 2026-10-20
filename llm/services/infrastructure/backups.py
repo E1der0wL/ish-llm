@@ -12,7 +12,9 @@ from llm.services.infrastructure.transactions import current_transaction
 
 
 class DirectoryBackups:
-    """신규 경로로만 공개하며, 실패한 변환/복원은 원본과 기존 대상을 수정하지 않는다."""
+    """신규 경로로만 공개하며, 실패한 복원은 원본과 기존 대상을 수정하지 않는다."""
+
+    FORMAT_VERSION = 1
 
     @staticmethod
     def _checked(path):
@@ -76,7 +78,8 @@ class DirectoryBackups:
             after = self._inventory(stage / "project")
             if before != after or before != self._inventory(source):
                 raise RuntimeError("Source changed while creating backup")
-            atomic_json(stage / "manifest.json", {"format_version": 1, "metadata": metadata, "files": after})
+            atomic_json(stage / "manifest.json", {"format_version": self.FORMAT_VERSION,
+                                                 "metadata": metadata, "files": after})
         return self._publish(destination, build)
 
     def verify(self, source):
@@ -84,7 +87,8 @@ class DirectoryBackups:
         self._checked(source / "project")
         self._checked(source / "manifest.json")
         manifest = read_json(source / "manifest.json")
-        if type(manifest.get("format_version")) is not int or manifest["format_version"] != 1:
+        if (type(manifest.get("format_version")) is not int
+                or manifest["format_version"] != self.FORMAT_VERSION):
             raise ValueError("Unsupported backup format_version")
         if manifest["files"] != self._inventory(source / "project"):
             raise ValueError("Backup checksum mismatch")
@@ -97,19 +101,4 @@ class DirectoryBackups:
             if self._inventory(stage) != self.verify(source)["files"]:
                 raise ValueError("Backup changed during restore")
             validate(stage)
-        return self._publish(destination, build)
-
-    def upgrade(self, source, destination, *, transform, validate):
-        """명시적 변환을 복사본에 적용한다. transform은 신뢰한 개발자 코드다."""
-        self.verify(source)
-        def build(stage):
-            root = stage / "project"
-            shutil.copytree(Path(source) / "project", root)
-            if self._inventory(root) != self.verify(source)["files"]:
-                raise ValueError("Backup changed during upgrade")
-            transform(root)
-            validate(root)
-            files = self._inventory(root)
-            atomic_json(stage / "manifest.json", {"format_version": 1,
-                        "metadata": {"upgraded_from": str(Path(source).absolute())}, "files": files})
         return self._publish(destination, build)

@@ -24,8 +24,8 @@ async def main():
 
         async with LargeLanguageModel(
             directory, engines={"echo": EchoEngine("Echo response", kind="text")},
-            on_event=display,
         ) as backend:
+            backend.events.subscribe(display, channel="engine")
             project = await backend.projects.acreate("Example")
             session = await project.sessions.acreate("Conversation")
             request = await session.run.submit("hello", engine="echo")

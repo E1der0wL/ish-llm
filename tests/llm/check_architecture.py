@@ -26,6 +26,7 @@ RULES = {
 RETIRED = {
     "upgrade_backup", "aupgrade_backup", "on_event", "on_run_event", "from_preferences",
     "mouse_mode", "recovery_max_attempts", "provider_error_details",
+    "RunEventPublisher",
 }
 OLD_NAMES = {
     "SettingsLayout", "settings_name", "settings_layout", "ServiceConfig",
@@ -168,6 +169,8 @@ def scan_source(source, file):
             if symbol(node.func) in RETIRED:
                 add("S1", node, owner, "retired call")
             if isinstance(node.func, ast.Attribute) and node.func.attr in ("get", "setdefault"):
+                if len(node.args) >= 2 and symbol(node.args[0]) == "requires_retry":
+                    add("S1", node, owner, "checkpoint retry evidence must not be inferred")
                 if len(node.args) >= 2 and policy_name(symbol(node.args[0])) and literal(node.args[1]):
                     add("S2", node, owner, "policy lookup supplies a literal fallback")
             for keyword in node.keywords:
@@ -220,13 +223,16 @@ def scan_source(source, file):
 
 def collect(root):
     files, findings = [], []
-    for folder in ("llm", "hub"):
+    for folder in ("llm", "hub", "examples"):
         for path in sorted((root / folder).rglob("*.py")):
             if "__pycache__" in path.parts:
                 continue
             file = path.relative_to(root).as_posix()
             files.append(file)
-            findings.extend(scan_source(path.read_text(encoding="utf-8-sig"), file))
+            candidates = scan_source(path.read_text(encoding="utf-8-sig"), file)
+            # Examples are real API consumers. Their explicit demonstration
+            # policies are not backend defaults; audit retired API use here.
+            findings.extend(item for item in candidates if folder != "examples" or item["rule"] == "S1")
     return {"files": files, "findings": findings}
 
 

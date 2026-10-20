@@ -165,8 +165,9 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
             yield "partial"
             yield "more"
         with tempfile.TemporaryDirectory() as root:
-            async with LargeLanguageModel(root, engines={"test": BaseEngine(action=work)}, on_event=observe,
+            async with LargeLanguageModel(root, engines={"test": BaseEngine(action=work)},
                     services=BackendServices(output_buffer=OutputBuffer(batch_size=2))) as app:
+                app.events.subscribe(observe, channel="engine")
                 session = await (await app.projects.acreate()).sessions.acreate()
                 request = await session.run.submit("go", engine="test")
                 await asyncio.wait_for(entered.wait(), 3)
@@ -300,7 +301,7 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
                                 after=event.delta.sequence - 1, limit=1), [event.delta])
                         except Exception as error:
                             errors.append(error)
-                backend.on_event = observe
+                backend.events.subscribe(observe, channel="engine")
                 with patch.object(backend.run_repository.output_journal, "append",
                                   wraps=backend.run_repository.output_journal.append) as append:
                     run = await (await session.run.submit("go", engine="test")).wait(timeout=10)
@@ -328,21 +329,18 @@ class BatchTests(unittest.IsolatedAsyncioTestCase):
 
 
 class BackupTests(unittest.IsolatedAsyncioTestCase):
-    async def test_unversioned_backup_requires_explicit_transform(self):
+    async def test_unversioned_backup_is_rejected_without_transforming_source(self):
         path = self.project.paths.root / "project.json"
         data = read_json(path)
         data.pop("storage_version")
         atomic_json(path, data)
         source = DirectoryBackups().create(self.project.paths.root, self.root / "old", metadata={})
+        original = (source / "project" / "project.json").read_bytes()
         with self.assertRaisesRegex(ValueError, "storage_version"):
             await self.app.projects.arestore_backup(source)
-        def upgrade(root):
-            current = read_json(root / "project.json")
-            current["storage_version"] = 1
-            atomic_json(root / "project.json", current)
-        converted = await self.app.projects.aupgrade_backup(source, self.root / "converted", transform=upgrade)
         self.assertNotIn("storage_version", read_json(source / "project" / "project.json"))
-        self.assertEqual(read_json(converted / "project" / "project.json")["storage_version"], 1)
+        self.assertEqual((source / "project" / "project.json").read_bytes(), original)
+        self.assertEqual(path.read_bytes(), original)
 
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -383,23 +381,22 @@ class BackupTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             await self.project.abackup(self.root / "linked-backup")
 
-    async def test_explicit_upgrade_copies_source_and_rolls_back_failure(self):
+    async def test_restore_copies_source_and_rolls_back_validation_failure(self):
         backup = await self.project.abackup(self.root / "backup")
         original = (backup / "project" / "project.json").read_bytes()
         def broken(root):
             (root / "project.json").write_text("broken")
-            raise RuntimeError("transform failed")
+            raise RuntimeError("validation failed")
         with self.assertRaises(RuntimeError):
-            await self.app.projects.aupgrade_backup(backup, self.root / "failed", transform=broken)
+            DirectoryBackups().restore(backup, self.root / "failed", validate=broken)
         self.assertFalse((self.root / "failed").exists())
+        self.assertEqual(list(self.root.glob(".llm-backup-*")), [])
         self.assertEqual((backup / "project" / "project.json").read_bytes(), original)
-        def change(root):
-            data = read_json(root / "project.json")
-            data["config"].setdefault("data", {})["future_setting"] = True
-            atomic_json(root / "project.json", data)
-        upgraded = await self.app.projects.aupgrade_backup(backup, self.root / "upgraded", transform=change)
-        DirectoryBackups().verify(upgraded)
-        self.assertTrue(read_json(upgraded / "project" / "project.json")["config"]["data"]["future_setting"])
+        def validate(root):
+            self.assertEqual((root / "project.json").read_bytes(), original)
+        restored = DirectoryBackups().restore(backup, self.root / "restored", validate=validate)
+        DirectoryBackups().verify(backup)
+        self.assertEqual((restored / "project.json").read_bytes(), original)
         self.assertEqual((backup / "project" / "project.json").read_bytes(), original)
 
     async def test_unknown_version_refuses_load_and_stale_repository_save(self):

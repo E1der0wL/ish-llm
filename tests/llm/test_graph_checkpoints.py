@@ -73,8 +73,8 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         self.events = []
         host = {key: options.pop(key) for key in ("revision", "config_keys", "parameter_key") if key in options}
         self.engine = GraphEngine(handlers={"work": work}, **host)
-        self.app = LargeLanguageModel(self.root, engines={"graph": self.engine},
-                                     on_run_event=lambda event: self.events.append(event))
+        self.app = LargeLanguageModel(self.root, engines={"graph": self.engine})
+        self.app.events.subscribe(lambda event: self.events.append(event), channel="run")
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("test", components=["workflows"], config={
             "parameters": {"engines": {"graph": GraphEngine.parameter_layout.pack(options)}}})
@@ -183,7 +183,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
             if (event.type == EngineEventType.CHECKPOINT and event.metadata.get("key") == '["fork","branch","a","a"]'
                     and event.metadata.get("value", {}).get("status") == "completed"):
                 finished.set()
-        self.app._manager(self.session._snapshot).on_event = observe
+        self.app._manager(self.session._snapshot).subscriptions.subscribe(observe, channel="engine")
         failed = await self.run_graph()
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         resumed = await self.resume(failed, retry_nodes=await self.uncertain(failed))

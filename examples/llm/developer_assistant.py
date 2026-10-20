@@ -62,7 +62,8 @@ async def run_request(args):
     async with BuiltinTools(work, **config.get("builtin", {})) as toolkit:
         async with LargeLanguageModel(workspace,
                 components=[BuiltinToolComponent(toolkit, name="computer"), SkillComponent()],
-                engines={"loop": LoopEngine()}, on_event=print_event) as backend:
+                engines={"loop": LoopEngine()}) as backend:
+            backend.events.subscribe(print_event, channel="engine")
             project = (await backend.projects.aload(args.project_id) if args.project_id else
                        await backend.projects.acreate("Developer assistant", components=["computer", "skills"],
                            config=ProjectConfig(config["project_config"])))

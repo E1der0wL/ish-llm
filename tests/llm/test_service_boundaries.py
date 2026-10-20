@@ -137,7 +137,8 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
     async def test_observer_errors_do_not_fail_execution_or_drop_queued_requests(self):
         def broken(run, event):
             raise RuntimeError("private display error")
-        manager = self.manager(on_event=broken)
+        manager = self.manager()
+        manager.subscriptions.subscribe(broken, channel="engine")
         await manager.submit("one", engine="fake")
         await manager.submit("two", engine="fake")
         await manager.wait_idle()

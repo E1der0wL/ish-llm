@@ -365,8 +365,8 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
         async def action(context):
             yield "streamed text"
         self.events = []
-        self.app = LargeLanguageModel(self.temp.name, engines={"test": BaseEngine(action=action)},
-                                     on_event=lambda run, event: self.events.append(event))
+        self.app = LargeLanguageModel(self.temp.name, engines={"test": BaseEngine(action=action)})
+        self.app.events.subscribe(lambda run, event: self.events.append(event), channel="engine")
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate()
         self.session = await self.project.sessions.acreate()

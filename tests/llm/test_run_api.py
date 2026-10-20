@@ -94,7 +94,8 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         store.create(MessageRole.USER, "explicit", MessageStatus.QUEUED,
                      metadata={"engine": "fake"})
         events = []
-        manager = self.manager(on_run_event=events.append)
+        manager = self.manager()
+        manager.subscriptions.subscribe(events.append, channel="run")
         await manager.start()
         await manager.wait_idle()
         failed, completed = manager.repository.list(self.session)
@@ -153,7 +154,8 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
             persisted = manager.repository.load(self.session, event.run.id)
             self.assertEqual(persisted.status, event.run.status)
             events.append(event)
-        manager = self.manager(on_run_event=observe)
+        manager = self.manager()
+        manager.subscriptions.subscribe(observe, channel="run")
         await manager.submit("request", engine="fake")
         await manager.wait_idle()
         self.assertEqual([event.type for event in events], [RunEventType.STARTED, RunEventType.COMPLETED])
@@ -168,7 +170,8 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
                 yield
         self.engines.register("broken", Broken())
         events = []
-        manager = self.manager(on_run_event=events.append)
+        manager = self.manager()
+        manager.subscriptions.subscribe(events.append, channel="run")
         await manager.submit("bad", engine="broken")
         await manager.submit("good", engine="fake")
         await manager.wait_idle()
@@ -190,7 +193,8 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         data.create({"source": "# incomplete"}, identifier="offline")
         data.configure({'config': {'enabled': ['offline']}})
         events = []
-        manager = self.manager(capabilities=self.components, on_run_event=events.append)
+        manager = self.manager(capabilities=self.components)
+        manager.subscriptions.subscribe(events.append, channel="run")
         await manager.submit("request", engine="fake")
         await manager.wait_idle()
         self.assertEqual(events[-1].type, RunEventType.FAILED)
@@ -203,7 +207,8 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         request = store.create(MessageRole.USER, "old request", MessageStatus.QUEUED,
                                metadata={"engine": "removed_engine"})
         events = []
-        manager = self.manager(on_run_event=events.append)
+        manager = self.manager()
+        manager.subscriptions.subscribe(events.append, channel="run")
         await manager.start()
         await manager.wait_idle()
         run = manager.repository.list(self.session)[0]
@@ -217,7 +222,8 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         def observe(event):
             called.append(event.type)
             raise RuntimeError("display failure")
-        manager = self.manager(on_run_event=observe)
+        manager = self.manager()
+        manager.subscriptions.subscribe(observe, channel="run")
         await manager.submit("one", engine="fake")
         await manager.submit("two", engine="fake")
         await manager.wait_idle()
@@ -228,7 +234,8 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         self.engine.gate = asyncio.Event()
         other = self.sessions.create(self.project, "Other")
         events = []
-        first = self.manager(on_run_event=events.append)
+        first = self.manager()
+        first.subscriptions.subscribe(events.append, channel="run")
         second = self.manager(other)
         await first.submit("first", engine="fake")
         await second.submit("other", engine="fake")
@@ -264,7 +271,7 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
             store.create(MessageRole.ASSISTANT, "partial", MessageStatus.STREAMING,
                          message_id=run.assistant_message_id, run_id=run.id)
         events = []
-        manager.on_run_event = events.append
+        manager.subscriptions.subscribe(events.append, channel="run")
         await manager.start()
         await manager.wait_idle()
         self.assertEqual(len(events), 1)

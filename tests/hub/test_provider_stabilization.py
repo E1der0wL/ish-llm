@@ -32,7 +32,11 @@ class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             store = PreferencesStore(root)
             store._write_json({"version": 1, "general": {"provider_error_details": False}})
-            values = store.load()["general"]
+            original = store.path.read_bytes()
+            with self.assertRaises(TypeError):
+                store.load()
+            self.assertEqual(store.path.read_bytes(), original)
+            values = asdict(GeneralSettings())
             self.assertNotIn("provider_error_details", values)
             form = GeneralForm(NS(t=Language()), values)
             self.assertNotIn(("provider_error_details",), form.form.fields)

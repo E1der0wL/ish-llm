@@ -39,9 +39,9 @@ Provider retry loop, 오류 classifier를 만들지 않는다. UI 질문·모델
 단일 Run→Agent→Engine API로 직접 이관한다. 제목 생성·일반 대화·Graph 위임·자원 편집·환경 캡처를
 같이 검증하며 호환 wrapper를 추가하지 않는다. D의 다중 Run에서도 UI 상태는 backend 원본의 투영이다.
 
-옛 preferences/theme/profile 변환과 환경 없는 구 Run fallback은 main에 남아 있다.
-이 문서 정리로 제거된 것이 아니며 [제거 계획](../llm/clean-refactor.md)에 따라 현재 Reader 하나로 바꾼다.
-현재 저장값을 문서 작업 중 변환하거나 삭제하지 않는다.
+P1-b에서 옛 preferences/theme/profile 변환을 제거했다. 저장된 각 section은 현재 필드 전체를
+가져야 하며 Reader는 누락 필드·옛 키를 거부하고 원본을 보존한다. 생성·편집 시 owner의 초기값을
+적용한 완전한 section을 저장한다. 환경 없는 구 Run fallback은 C의 실행 binding 전환 대상이다.
 
 ## 사용법·검증 기록
 

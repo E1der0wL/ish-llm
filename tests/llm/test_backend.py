@@ -68,8 +68,8 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
         self.engine = FakeStreamingEngine()
         self.events = []
         self.app = LargeLanguageModel(self.tmp.name, engines={"loop": self.engine},
-                                     components=[ToolComponent(), WorkflowComponent()],
-                                     on_run_event=self.events.append)
+                                     components=[ToolComponent(), WorkflowComponent()])
+        self.app.events.subscribe(self.events.append, channel="run")
         self.addAsyncCleanup(self.app.shutdown)
         self.project = self.app.projects.create("project")
         self.session = self.project.sessions.create()

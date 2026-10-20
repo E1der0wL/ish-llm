@@ -177,7 +177,8 @@ async def run_demo(workspace: Path, *, model=None, completion_fn=None, max_attem
         elif event.type == EngineEventType.TEXT_DELTA and event.delta.visibility == "user":
             print(event.delta.text, end="", flush=True)
 
-    async with LargeLanguageModel(workspace, engines={"graph": engine}, on_event=observe) as backend:
+    async with LargeLanguageModel(workspace, engines={"graph": engine}) as backend:
+        backend.events.subscribe(observe, channel="engine")
         project = await backend.projects.acreate("Code repair workflow", components=["agents", "workflows"])
         agents = await project.components.aget("agents")
         workflows = await project.components.aget("workflows")

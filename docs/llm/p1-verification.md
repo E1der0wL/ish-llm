@@ -3,7 +3,8 @@
 P0의 [고정 조합과 최신 허용 조합 검증](p0-sdk-transition.md)이 통과한 뒤
 `refactor/llm-clean`에서 진행한다. P1-a에서 누적 Tool 사용량 소실을 재현해 중단한 뒤,
 사용자의 보강·재개 요청에 따라 **책임 분리와 필수 상태 복원을 보강하고 P1-a 검증을 완료**했다.
-P1-b/c와 A–F는 미착수이며 P1 전체를 완료한 것으로 보고하지 않는다.
+P1-b도 호환 경로 제거와 전체 회귀 검증을 완료했다. P1-c와 A–F는 미착수이며
+P1 전체를 완료한 것으로 보고하지 않는다.
 main·이전 backend 브랜치·Draft PR #1을 변경하거나 이전 구현을 가져오지 않는다.
 
 ## 중단 원인: 전체 사용량 필드 누락을 빈 이력으로 처리
@@ -21,7 +22,7 @@ Resume했다. 현재 정책의 `max_calls=1`은 그대로인데도 두 번째 To
 상한 자체가 없어지는 R3와는 경로가 다르지만, 재개 계보의 누적 사용량이 사라져
 `max_calls=1`에서 실제 호출 2회를 허용한다.
 
-이 추출 코드는 이번 P1에서 변경하지 않았고 P0 커밋 `2284464`에도 동일하게 존재한다.
+중단 재현 시점까지 이 추출 코드는 변경하지 않았고 P0 커밋 `2284464`에도 동일하게 존재한다.
 이번 재현 실행은 P1 작업 트리에서 수행했다. P0 체크아웃에서 동일한 효과 시험을 실행한
 것으로 보고하지 않는다. P1에서 추가한 개별 usage 필드 검사는 전체 필드가 추출에서
 제외되는 경우까지 보호하지 못한다.
@@ -242,3 +243,146 @@ Python은 3.12.14이며 P0의 hash lock과 동일 host SHA를 사용한다.
 안전성 차단 해결·검증 뒤 P1-b의 변경 대상은 Hub preference/theme Reader, backup upgrade, 직접 callback과
 실제 구독 소비자, Loop의 누락 requires_retry 추론이다. 관찰 callback을 durable handler로
 바꾸거나 uncertain Tool의 재실행 권한을 넓히지 않아야 한다.
+
+## P1-b: 현재 API와 저장 Reader 하나로 통일
+
+P1-a 커밋 `e37a3e0be09492c1c1d0f9d2ebde48f7a4e56895`를 원격
+`refactor/llm-clean`에 Push한 뒤 진행했다. P1-b는 아래 실패와 수정 후 전체 검증 기록으로 완료했다.
+P1-c와 A–F의 완료를 뜻하지 않는다.
+
+| 변경 경계 | 변경과 유지한 계약 |
+|---|---|
+| `hub/config/preferences.py`, `theme.py` | 옛 필드 삭제·이름 변환 Reader 제거. section 소유 dataclass 필드 집합과 정확히 일치하는 현재 저장값만 수락. 알 수 없는 root section도 거부. 실패한 읽기/저장은 원본 bytes 보존. 생성·편집 입력에는 Hub owner의 초기값을 적용해 완전한 section 저장. False·빈 dict·빈 email 등 해당 필드에서 유효한 값 유지. |
+| `services/infrastructure/backups.py`, `lifecycle/projects.py`, `services/api.py` | upgrade·upgrade_backup·aupgrade_backup 제거. manifest 버전은 DirectoryBackups.FORMAT_VERSION 단일 선언. 현재 backup/restore/clone, checksum·도메인/Component 검증·staging·원본 보존 유지. |
+| `llm.py`, `services/runtime/runs.py` | 직접 on_event/on_run_event 인자·속성·RunEventPublisher 제거. CLI·테스트의 실제 관찰자는 EventSubscriptions로 이관. 저장 후 알림·snapshot·비동기 callback·실패 격리·구독 해제 유지. 실행에 영향을 주는 EventHandlers는 그대로 유지. |
+| `engines/loop/engine.py` | started record의 container/requires_retry를 정확한 bool로 요구하고 서로의 일관성 검증. 누락 시 key가 tool:로 시작하는지로 추론하던 경로 제거. 명시 재시도 선택·현재 binding·선택 Tool 검증 유지. 잘못된 falsey decisions를 빈 객체로 바꾸지 않음. |
+| `tests/llm/check_architecture.py`, workflow | 폐기 publisher 이름과 requires_retry fallback 재도입 검출 추가. CI에서 `--require S1` 강제. 해결한 S1 36건·S3 4건·S4 2건만 기존 부채에서 제거. new/stale 0, 남은 후보 683건; strict 전체 통과가 아님. |
+| 현재 API 문서·예제 | 구독 예제와 현재 backup/restore·Hub Reader 계약 갱신. architecture-history/backend-api-history/handoff의 과거 기록은 현재 계약과 구분해 보존. |
+
+호환 동작 자체를 요구하던 시험은 현재 형식 거부·원본 보존으로 바꿨다. 정상 UI·저장·승인·효과
+assertion을 없애거나 Skip을 확대하지 않았다. 새로운 검증은
+`tests.llm.test_current_api`와 `tests.llm.test_long_running`에 있다. 실제 효과 시험은 파일을
+쓴 직후 handler를 실패시켜 started 기록을 남긴다. container 또는 requires_retry를 지운 뒤
+재개를 요청해 **새 Run 0, 추가 모델 호출 0, 추가 파일 쓰기 0, 손상 원본 변경 0**을 확인한다.
+
+### 집중 검증과 실패 기록
+
+공통 실행기: `/workspace/.setup/ish-llm/verified-next/bin/python` (Python 3.12.14).
+환경: `TERM=xterm-256color`, `LITELLM_LOCAL_MODEL_COST_MAP=True`, `LITELLM_MODE=PRODUCTION`.
+
+| 명령/증거 | 실제 결과 |
+|---|---|
+| `python -m unittest tests.llm.test_current_api` — 구현 전 `compat/before.log` | 4 tests, subtest failures 51, error 1, Skip 0, exit 1. 옛 API/불완전한 Reader 수락을 검출. 별도 error 1은 새 시험이 유효하지 않은 빈 display_name을 사용한 fixture 오류로, 유효한 빈 email 시험으로 수정했다. 제품 성공으로 계산하지 않음. |
+| `python -m unittest tests.llm.test_current_api tests.llm.test_operational_storage tests.llm.test_service_boundaries tests.llm.test_run_api tests.llm.test_run_transitions tests.llm.test_loop_steering tests.llm.test_graph_decisions tests.llm.test_transactions tests.llm.test_interactions tests.hub.test_global_preferences tests.hub.test_provider_stabilization tests.hub.test_auxiliary tests.hub.test_render_intervals` | 177 pass, failure/error/Skip 0, 23.608초, exit 0. |
+| `python -m unittest tests.llm.test_current_api tests.llm.test_long_running tests.llm.test_loop tests.llm.test_graph_checkpoints tests.llm.test_nested_graph tests.llm.test_current_contracts tests.llm.test_engine_steering tests.llm.test_interaction_decisions` | 173 pass, failure/error/Skip 0, 32.987초, exit 0. |
+| `python -m unittest tests.llm.test_architecture_checks tests.llm.test_current_api` | 14 pass, failure/error/Skip 0, 1.569초, exit 0. |
+| `python -m tests.llm.check_budget_mutation` | max_tool_calls 전달 제거 mutation에서 실제 두 번째 효과 assertion 실패를 검출. mutation 검사기 exit 0. 의도한 변이 시험의 실패를 일반 회귀 실패/성공 수에 섞지 않음. |
+| `python -m tests.llm.check_architecture --require S1` | 필수 S1 0건, new/stale 0, outstanding 683. |
+| `python -m tests.llm.check_docs` | 128문서, Python fence 178, 상대 링크 892, anchor 30, error 0. |
+
+실행 로그/JSON은 `/workspace/llm-clean-p1/compat/`에 보존한다. 저장소에 편입된 동일 검사기로
+재현하며, Cloud 전용 임시 도구를 완료 조건으로 삼지 않는다. 외부 host SHA는
+`d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지하고 부모 Git에 포함하지 않는다.
+
+### P1-a 원격 CI 후속 확인
+
+[39395147762](https://github.com/E1der0wL/ish-llm/actions/runs/39395147762)는
+`e37a3e0be09492c1c1d0f9d2ebde48f7a4e56895`의 두 job 모두 success다.
+Checks annotation으로 Python 3.12.14, LLM 1,690 pass / Hub 534 pass,
+failure/error/Skip/missing/duplicate 0을 확인했다. 각각 748.242초 / 846.612초다.
+AppArmor 전역 제한 1, bwrap smoke 성공, 일반 unshare 거부, Tool 테스트 비 root 실행도
+annotation으로 확인했다. 원시 job log 다운로드는 저장소 blob endpoint의 Forbidden으로
+실패했으며, 읽지 못한 원시 로그를 검증 증거로 주장하지 않는다.
+
+### P1-b 전체 회귀 중 소비자 누락 발견
+
+첫 전체 회귀에서 `examples/llm/`의 직접 콜백 인자 7곳이 남아 있는 것을 발견했다.
+`code_workflow`, `graph_rag`, `ish_loop`, `recovery_probe` 관련 시험이 생성자 TypeError로
+실패했다. 좁힌 재현 명령은 다음과 같으며 **2 tests / 1 failure / 1 error / Skip 0,
+0.004초, exit 1**이다.
+
+```bash
+python -m unittest \
+  tests.llm.test_graph_engine.CodingWorkflowTests.test_iteration_exhaustion_does_not_report_success \
+  tests.llm.test_ishrc_loop.IshrcLoopTests.test_default_project_reuse_and_session_history_with_real_loop
+```
+
+LLM/Hub 패키지 밖의 실행 소비자를 첫 이관에서 놓친 문제다. `custom_engine`,
+`developer_assistant`, `bleach_research`를 포함한 7개 예제를 구독 API로 직접 옮겼다.
+S1 수집 범위에도 examples의 Python API 소비자를 추가하고 재도입 fixture로 검증한다.
+예제의 명시 실행 숫자를 Backend 기본값으로 간주하지 않으므로 examples에서는 S1을 검사한다.
+LLM/Hub 제품 코드에 적용하는 S2–S6 범위를 줄이거나 부채를 추가하지 않았다.
+
+첫 전체 실행의 LLM 구간이 끝난 뒤 이 소비자 수정과 검사기/검사기 시험 변경만 적용했다.
+Hub 제품·시험 및 공통 llm 제품 코드는 그대로 유지했다. 첫 전체 명령의 실패를 성공으로
+바꾸지 않고 LLM 전체를 다시 실행해 1,697 pass, failure/error/Skip/missing/duplicate 0,
+342.606초, exit 0을 확인했다. 예제/복구/CLI 집중 45개도 28.784초에 통과했고,
+`python -m examples.llm.custom_engine`은 `Echo: hello`를 출력하고 exit 0이었다.
+
+첫 전체 실행은 2,230 discovered/started, 2,216 pass, 실패한 parent test ID 14개,
+failure 기록 11개·error 4개·Skip 0, 801.871초, exit 1이었다. 동일 parent의 실패 subtest가
+포함되므로 failure/error 기록 개수의 합과 실패 test ID 수는 다르다.
+Hub에서는 `test_page_layout`의 옛 팔레트 자동 변환을 요구하는 시험 1개가 error였다.
+옛 Reader를 복구하지 않고 옛 형식 거부·원본 보존 및 별도 현재 workspace에서 명시 팔레트
+생성·색상/필드/저장 roundtrip으로 이관했다. 기존 현재 색상·필드 집합·roundtrip assertion은
+유지했다. 해당 집중 시험은 exit 0이며 Hub 전체를 다시 실행한다. 이 후속 변경은
+`tests/hub/test_page_layout.py` 한 파일뿐이고 LLM/Hub 제품 및 LLM 시험은 변경하지 않았다.
+두 범위의 최종 발견 ID, pass 집합과 소스 hash 대조 결과를 아래 완료 기록에 남긴다.
+
+### 다음 P1-c의 작업 경계와 남은 위험
+
+P1-b의 S1 0건은 inventory에 정의한 호환 API 제거를 뜻한다. 모든 동적 경로나 앞으로 C에서
+전환할 Hub의 환경 없는 Run fallback까지 제거됐다는 뜻은 아니다. 잔여 후보는 S2 104,
+S3 535, S4 24, S5 2, S6 18이다. S6 Provider 해석 경계는 A에서 완료할 대상이다.
+
+1. `tests/llm/check_architecture.py`의 S2는 현재 조건식의 논리 OR도 후보로 수집한다.
+   타입 검증용 OR와 값을 고르는 fallback을 AST 문맥으로 구분하고, 실제 fallback을 놓치지
+   않는 양성/음성 fixture를 먼저 보강한다. 파일 단위 면제나 후보 일괄 삭제는 하지 않는다.
+2. `components/tools/{registry,decorator}.py`, 내장 Tool·MCP·Hub 등록 소비자와
+   `services/runtime/tools.py`에서 실행 선언의 소유자를 통일한다. 현재 `Tool.contract=None`
+   허용과 반복 생성 기본값을 명시 trusted 등록 계약으로 정리해야 한다. 단순히 None을
+   기본 계약으로 바꾸는 호환 처리를 만들지 않는다. 승인 binding·격리 runner·실제 효과
+   재실행 방지 시험이 필수다. 정상 Run에서 권한 우회를 새로 재현한 결과는 아니다.
+3. `core/policies.py`, Engine/Component별 schema·validator·Reader/Writer와 runtime의
+   상태·오류·버전을 계약군별로 정리한다. `runtime_tool_usage`, `agent_usage`, 현재 한도와
+   승인·효과 원장을 혼합하거나 사용량 손상을 기본값으로 복구하지 않는다.
+4. `hub/backend/project/defaults.py`, `hub/config/presets.py`는 생성 프리셋 소유자다.
+   허용되는 초기값을 제거하지 않고 선언을 집중하며, 사용자 값 우선·저장·조회·편집·재열기
+   무주입·Backend 안전성 검증을 실제 프로젝트로 확인한다.
+
+P1-c 전체 및 A–F는 미완료다. 실제 인증 모델 호출, 커널 short-write 장애 주입,
+전원 손실/손상 디스크는 계속 별도 미검증이며, 기존 crash/fsync 시험으로 대체해 통과 처리하지 않는다.
+
+
+### P1-b 최종 전체 검증
+
+최종 두 명령은 각각 전체 suite를 discovery하고 실행했다. **첫 `--suite all` 명령은
+실패 그대로 보존**하며, 수정 후 성공한 LLM/Hub 두 실행의 합집합을 현재 discovery와 대조했다.
+
+```bash
+export TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION
+export HUB_TEST_XVFB=/workspace/.setup/x11/root/usr/bin/Xvfb
+export HUB_TEST_XCLIP=/workspace/.setup/x11/root/usr/bin/xclip
+/workspace/.setup/ish-llm/verified-next/bin/python -m tests.llm.run_regression \
+  --suite llm --output /workspace/llm-clean-p1/compat/llm-final.json
+/workspace/.setup/ish-llm/verified-next/bin/python -m tests.llm.run_regression \
+  --suite hub --output /workspace/llm-clean-p1/compat/hub-final.json
+```
+
+| 범위 | 발견/실행/통과 | failure/error/Skip | 누락/중복 | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| LLM | 1,697 / 1,697 / 1,697 | 0 / 0 / 0 | 0 / 0 | 342.606초 | 0 |
+| Hub | 534 / 534 / 534 | 0 / 0 / 0 | 0 / 0 | 470.362초 | 0 |
+| 최종 합집합 | **2,231 / 2,231 / 2,231** | **0 / 0 / 0** | **0 / 0** | 별도 suite 실행 | 두 명령 모두 0 |
+
+Hub의 Xvfb/xclip 9개는 모두 실행·통과했다. Python 3.12.14와 실제 ish SHA
+`d833790959a76ac457fdeea3f21a6bea1eecfe12`를 사용했다. 격리 제품 경로를 바꾸지 않고
+Cloud 명령 sandbox 밖에서 실제 Bubblewrap 시험을 실행했다.
+
+`verified-partitions.json`은 최종 discovery가 두 pass 집합과 정확히 일치하고 중복이 없음을
+기록한다. LLM 최종 실행 이후에는 `tests/hub/test_page_layout.py`만 변경됐으며, 공통 제품과
+LLM 시험·예제 소스는 그대로다. Hub 최종 실행 전후의 전체 Python 소스 hash도 일치한다.
+초기 전체 실행 JSON·로그 및 모든 실패 재현은 별도로 보존한다.
+
+P1-b 완료 범위는 현재 Reader/API·구독 소비자 전환·Loop 재시도 증거 검증과 S1 필수 gate다.
+P1-c의 선언·명시 설정 전수 정리와 A–F 기능 구현을 완료한 것으로 보고하지 않는다.

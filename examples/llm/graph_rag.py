@@ -219,7 +219,8 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
         extraction["prompt_id"] = prompt_id
         components = [rag_component or RAGComponent(), AgentComponent(), WorkflowComponent(), PromptComponent()]
         engines = {"loop": loop, "graph": graph}
-        async with LargeLanguageModel(workspace, components=components, engines=engines, on_event=observe) as backend:
+        async with LargeLanguageModel(workspace, components=components, engines=engines) as backend:
+            backend.events.subscribe(observe, channel="engine")
             project = await phase("create_project", backend.projects.acreate(
                 "Graph and RAG integration test", config=config,
                 components=["rag", "agents", "workflows", "prompts"], conversation_storage="file"))

@@ -1,6 +1,6 @@
 """Global Hub preferences anchored to the installation's initial workspace."""
 
-from dataclasses import asdict, replace
+from dataclasses import asdict, fields, replace
 
 from .store import WorkspaceJSONStore
 from .profile import UserProfile
@@ -37,6 +37,7 @@ def configured_profile(config):
 
 class PreferencesStore(WorkspaceJSONStore):
     VERSION = 1
+    SECTIONS = {"profile": UserProfile, "appearance": HubTheme, "general": GeneralSettings}
 
     def __init__(self, workspace):
         super().__init__(workspace, "preferences.json")
@@ -45,21 +46,15 @@ class PreferencesStore(WorkspaceJSONStore):
     def load(self):
         value = self._read_json({"version": self.VERSION})
         if (not isinstance(value, dict) or type(value.get("version")) is not int
-                or value["version"] != self.VERSION):
+                or value["version"] != self.VERSION or value.keys() - self.SECTIONS.keys() - {"version"}):
             raise ValueError("Invalid Hub preferences")
         result = {}
-        if "profile" in value:
-            result["profile"] = asdict(UserProfile(**value["profile"]))
-        if "appearance" in value:
-            result["appearance"] = asdict(HubTheme.from_preferences(value["appearance"]))
-        if "general" in value:
-            general = dict(value["general"])
-            # Retire the removed option without preventing existing users from
-            # opening Hub. The next save omits it; all other keys stay validated.
-            general.pop("mouse_mode", None)
-            general.pop("recovery_max_attempts", None)
-            general.pop("provider_error_details", None)
-            result["general"] = asdict(GeneralSettings(**general))
+        for section, owner in self.SECTIONS.items():
+            if section in value:
+                record = value[section]
+                if not isinstance(record, dict) or record.keys() != {field.name for field in fields(owner)}:
+                    raise TypeError(f"Stored {section} must contain exactly the current preference fields")
+                result[section] = asdict(owner(**record))
         sidebar = self.sidebar._read_json(None)
         if sidebar is not None:
             width = sidebar["sidebar_width"]
@@ -73,9 +68,11 @@ class PreferencesStore(WorkspaceJSONStore):
         return width
 
     def save(self, section, values):
-        if section not in ("profile", "appearance", "general"):
+        if section not in self.SECTIONS:
             raise ValueError("Unknown preference section")
-        record = {"profile": UserProfile, "appearance": HubTheme, "general": GeneralSettings}[section](**values)
+        # Creation/edit input may omit owner-defined initial values. The saved
+        # section is complete; load never fills missing stored fields.
+        record = self.SECTIONS[section](**values)
         data = {"version": self.VERSION, **self.load(), section: asdict(record)}
         if section == "appearance":
             self.save_sidebar_width(record.sidebar_width)

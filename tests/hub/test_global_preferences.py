@@ -25,25 +25,26 @@ from tests.hub.test_settings import settings_backend
 
 
 class GlobalPreferenceTests(unittest.TestCase):
-    def test_removed_mouse_option_does_not_break_existing_preferences(self):
+    def test_removed_mouse_option_is_rejected_without_rewriting_preferences(self):
         with tempfile.TemporaryDirectory() as directory:
             store = PreferencesStore(directory)
             for mode in ("auto", "hub", "terminal"):
                 with self.subTest(mode=mode):
                     store._write_json({"version": 1, "general": {"mouse_mode": mode, "editor": "nano"}})
-                    values = store.load()["general"]
-                    self.assertNotIn("mouse_mode", values)
-                    self.assertEqual(values["editor"], "nano")
-                    store.save("general", values)
-                    self.assertNotIn("mouse_mode", json.loads(store.path.read_text())["general"])
+                    original = store.path.read_bytes()
+                    with self.assertRaises(TypeError):
+                        store.load()
+                    with self.assertRaises(TypeError):
+                        store.save("general", {"editor": "nano"})
+                    self.assertEqual(store.path.read_bytes(), original)
             store._write_json({"version": 1, "general": {"unknown_option": True}})
             with self.assertRaises(TypeError):
                 store.load()
 
-    def test_legacy_profile_editor_roundtrip_and_language_on_startup(self):
+    def test_created_profile_editor_roundtrip_and_language_on_startup(self):
         with tempfile.TemporaryDirectory() as directory:
             store = PreferencesStore(directory)
-            store.save("profile", {"display_name": "Old profile"})
+            store.save("profile", {"display_name": "New profile"})
             self.assertEqual(store.load()["profile"]["email"], "")
             profile = {"display_name": "Reader", "language": "en", "email": "reader@example.com", "phone": "+82 10 1234 5678"}
             store.save("profile", profile)

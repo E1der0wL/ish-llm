@@ -79,7 +79,7 @@ class InteractionRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 checkpoint = app.run_repository.checkpoint(run, event.interaction.binding['checkpoint'])
                 persisted = checkpoint['records'][event.interaction.binding['key']]['interaction']
                 self.events.append((event.interaction, persisted))
-        app._manager(session._snapshot).on_event = observe
+        app._manager(session._snapshot).subscriptions.subscribe(observe, channel="engine")
         run = await (await session.run.submit('go', engine='loop')).wait()
         self.assertEqual(run.data.status, 'paused', run.data.error)
         self.assertEqual(self.effects, [])

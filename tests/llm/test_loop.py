@@ -78,7 +78,8 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         self.events = []
         self.observer_errors = []
         self.addCleanup(lambda: self.assertEqual(self.observer_errors, []))
-        self.manager = RunManager(self.sessions, self.registry, session=self.session, on_event=self.observe, capabilities=self.components)
+        self.manager = RunManager(self.sessions, self.registry, session=self.session, capabilities=self.components)
+        self.observation = self.manager.subscriptions.subscribe(self.observe, channel="engine")
         self.addAsyncCleanup(self.manager.shutdown)
         self.tool_arguments = []
         async def add(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -520,7 +521,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
             yield chunk("done", finish="stop")
         self.engine(completion_fn)
         # The default observer asserts the primary Session's conversation only.
-        self.manager.on_event = None
+        self.observation()
         other = self.sessions.create(self.project, "other")
         other_manager = RunManager(self.sessions, self.registry, session=other, capabilities=self.components)
         self.addAsyncCleanup(other_manager.shutdown)

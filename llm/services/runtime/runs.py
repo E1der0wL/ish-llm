@@ -9,7 +9,6 @@ from llm.services.runtime.output import OutputBuffer, OutputProjection, RunOutpu
 from typing import Optional, Union
 from types import SimpleNamespace
 import asyncio
-import inspect
 import json
 import time
 from contextlib import closing, contextmanager
@@ -572,26 +571,6 @@ class RunRepository:
         return [self.load(owners[row.session_id], row.id) for row in selected]
 
 
-class RunEventPublisher:
-    def __init__(self, callback: Optional[Callable[[Run, EngineEvent], None]] = None, on_error=None) -> None:
-        self.callback = callback
-        self.on_error = on_error
-
-    async def publish(self, run: Run, event: EngineEvent) -> None:
-        # UI callbacks must be synchronous and nonblocking. Persistence has
-        # already succeeded; a display exception must not fail the Engine.
-        if self.callback is not None:
-            try:
-                result = self.callback(deepcopy(run), deepcopy(event))
-                if inspect.isawaitable(result):
-                    await result
-            except Exception:
-                if self.on_error is not None:
-                    self.on_error(run)
-                else:
-                    log_event(run.paths.logs, "observer.failed", entity_id=run.id)
-
-
 class RunErrorCode(StrEnum):
     ENGINE_REQUIRED = "engine_required"
     ENGINE_NOT_REGISTERED = "engine_not_registered"
@@ -671,8 +650,6 @@ class RunManager:
 
     def __init__(self, sessions: SessionManager, engines: EngineRegistry, *, session: Session,
                  steps: Optional[StepManager] = None,
-                 on_event: Optional[Callable[[Run, EngineEvent], None]] = None,
-                 on_run_event: Optional[Callable[[RunEvent], None]] = None,
                  repository: Optional[RunRepository] = None,
                  capabilities: Optional[Union[CapabilityResolver, ComponentRegistry]] = None,
                  conversations: Optional[Callable[[Session], Conversation]] = None,
@@ -694,8 +671,6 @@ class RunManager:
         self.steps = steps if steps is not None else StepManager()
         self.recorder = StepEventRecorder(self.steps)
         self.results = RunResultQuery(sessions, self.repository)
-        self.events = RunEventPublisher(on_event, self._observer_failed)
-        self.on_run_event = on_run_event
         self.event_handlers = event_handlers if event_handlers is not None else EventHandlers()
         self.subscriptions = subscriptions if subscriptions is not None else EventSubscriptions()
         self._owns_subscriptions = subscriptions is None
@@ -761,7 +736,6 @@ class RunManager:
         event = EngineEvent(EngineEventType.STEERING_CHANGED,
                            metadata={"instructions": [v.to_dict() for v in values],
                                      "targets": deepcopy(list(run.metadata["steering"].get("targets", {}).values()))})
-        await self.events.publish(run, event)
         await self.subscriptions.publish("engine", run, event, on_error=lambda: self._observer_failed(run))
 
     def _accept_instruction(self, run_id, content, targets, reserved=False):
@@ -814,13 +788,6 @@ class RunManager:
         self._notify_requests()
         event = RunEvent(RunEventType(run.status.value if run.status != RunStatus.RUNNING else "started"),
                          deepcopy(run))
-        if self.on_run_event is not None:
-            try:
-                result = self.on_run_event(deepcopy(event))
-                if inspect.isawaitable(result):
-                    await result
-            except Exception:
-                self._observer_failed(run)
         await self.subscriptions.publish("run", event, on_error=lambda: self._observer_failed(run))
 
     def _store(self, session: Session) -> Conversation:
@@ -1457,7 +1424,6 @@ class RunManager:
             if pending_outputs:
                 await drain_on_cancel(self._io.run(self._record_deltas, run, store, pending_outputs, pending_deltas))
             for event in notifications:
-                await self.events.publish(run, event)
                 await self.subscriptions.publish("engine", run, event, on_error=lambda: self._observer_failed(run))
 
         try:
@@ -1675,14 +1641,6 @@ class RunManager:
                 runtime.queue.task_done()
 
     # 공개 API
-    @property
-    def on_event(self) -> Optional[Callable[[Run, EngineEvent], None]]:
-        return self.events.callback
-
-    @on_event.setter
-    def on_event(self, callback: Optional[Callable[[Run, EngineEvent], None]]) -> None:
-        self.events.callback = callback
-
     @property
     def session(self) -> Session:
         return deepcopy(self._session)

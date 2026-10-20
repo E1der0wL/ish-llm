@@ -72,7 +72,8 @@ async def hold_workspace(root, spec):
         if event.type == EngineEventType.TEXT_DELTA:
             streamed.set()
     async with LargeLanguageModel(root / "workspace", components=[],
-            engines={"probe": probe_engine(root, gate)}, on_event=observe) as app:
+            engines={"probe": probe_engine(root, gate)}) as app:
+        app.events.subscribe(observe, channel="engine")
         project = await app.projects.acreate("Recovery probe", components=[])
         session = await project.sessions.acreate()
         first = await session.run.submit("blocked", engine="probe")

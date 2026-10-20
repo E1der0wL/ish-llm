@@ -171,7 +171,8 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
             events.append(event)
             if cancel_before_execution and event.type == RunEventType.STARTED:
                 manager._active.interrupt_requested = True
-        manager = RunManager(projects.sessions, registry, session=session, on_run_event=observe)
+        manager = RunManager(projects.sessions, registry, session=session)
+        manager.subscriptions.subscribe(observe, channel="run")
         async def cleanup():
             try:
                 await manager.shutdown()

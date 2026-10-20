@@ -192,8 +192,8 @@ async def run_demo(output: Path, *, model: str = "", api_base: str = "") -> dict
             engine = LoopEngine() if model else GraphEngine(handlers={"tool": ToolNode(), "compose": compose, "verify": verify})
             components = [BuiltinToolComponent(tools, name="computer")] + ([] if model else [WorkflowComponent()])
             async with LargeLanguageModel(output / "workspace", engines={"research": engine},
-                                          components=components,
-                                          on_event=progress) as backend:
+                                          components=components) as backend:
+                backend.events.subscribe(progress, channel="engine")
                 project = await backend.projects.acreate("BLEACH web research", components=["computer"] + ([] if model else ["workflows"]),
                     config={"parameters": {"engines": {"research": engine_config} if model else {},
                         "components": {"computer": {"config": {"enabled": ["web_fetch", "file_create", "file_read"]}}}}})

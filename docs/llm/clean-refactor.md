@@ -1,6 +1,6 @@
 # 클린 리팩터링 설계와 구현 게이트
 
-**상태: P0·P1-a 검증 완료, P1-b/c 및 A–F 미착수.** 기준은 main
+**상태: P0·P1-a/b 검증 완료, P1-c 및 A–F 미착수.** 기준은 main
 `94229cb865374d99f20ec48c5e48269488041a4e`이며 `refactor/llm-clean`에서 시작한다.
 기존 `refactor/llm-backend`의 코드/커밋을 cherry-pick·merge하지 않는다. main과 기존 Draft PR #1은
 변경하지 않는다. [현행 구조](architecture.md)와 이 목표 구조를 구분한다.
@@ -191,9 +191,11 @@ Resume는 새 Run이며 원본은 보존한다. Run 사용량, Project 기간 qu
 
 ## CI 복구와 기록
 
-현재 원격 bwrap 단계 실패와 뒤 단계 Skip은 확인했으나 raw log 접근이 Forbidden이라 정확한
-runner 원인은 미확정이다. 로그/runner image/kernel/bwrap/userns/netns/보안 profile·실제 명령/exit를
-확보한 뒤 진단한다. core, 실제 ish/X11, sandbox를 분리하되 모두 필수 gate로 두고 전체 test ID를 배정한다.
+main 감사 당시에는 원격 bwrap 실패·후속 Skip과 raw log 접근 Forbidden을 기록했다.
+이후 [P0 검증](p0-sdk-transition.md)에서 패키지 bwrap에만 적용하는 AppArmor profile과
+전역 제한 유지·일반 unshare 거부를 실제 CI로 검증했다. [P1-a 원격 검증](p1-verification.md)도
+두 job 모두 통과했다. core, 실제 ish/X11, sandbox는 계속 필수이며 전체 test ID를 배정한다.
+후속 커밋의 결과는 각 실행의 실제 증거로 확인하며 이전 성공을 승계하지 않는다.
 
 네트워크 공유·비격리 강등·sudo로 실행 의미 변경·전역 보안 완화·Skip 확대·continue-on-error로 통과시키지 않는다.
 network deny·mount/capability·승인 전 spawn 금지·process 종료·효과 후 crash 보호를 실제 제품 runner로 검증한다.

@@ -22,8 +22,8 @@ class SessionDomainTests(unittest.IsolatedAsyncioTestCase):
             yield 'Session reply'
 
         with tempfile.TemporaryDirectory() as directory:
-            async with LargeLanguageModel(directory, components=[], engines={'probe': BaseEngine(action=respond)},
-                                          on_run_event=events.append) as app:
+            async with LargeLanguageModel(directory, components=[], engines={'probe': BaseEngine(action=respond)}) as app:
+                app.events.subscribe(events.append, channel="run")
                 config = ProjectConfig(data={'language': 'ko'})
                 project = await app.projects.acreate('Project', config=config, components=[])
                 session = await project.sessions.acreate('Conversation', config={'data': {'language': 'ko'}})

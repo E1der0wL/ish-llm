@@ -60,7 +60,7 @@ class RenderIntervalTests(unittest.IsolatedAsyncioTestCase):
     def test_intervals_persist_validate_and_default_for_existing_preferences(self):
         self.assertEqual(HubTheme().output_refresh_interval, 0.1)
         self.assertEqual(HubTheme().progress_refresh_interval, 0.1)
-        self.assertEqual(HubTheme.from_preferences({"foreground": "default"}).output_refresh_interval, 0.1)
+        self.assertEqual(HubTheme(foreground="default").output_refresh_interval, 0.1)
         for key in ("output_refresh_interval", "progress_refresh_interval"):
             for invalid in (0, -1, 11, True, "0.1", float("inf"), float("nan")):
                 with self.subTest(key=key, invalid=invalid), self.assertRaises(ValueError):

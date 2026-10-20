@@ -391,7 +391,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
             if value.get("status") == "completed" and "step_id" in value:
                 step = app.step_manager.load(run, value["step_id"])
                 observed.append((step.status, step.output.data))
-        app._manager(session._snapshot).on_event = observe
+        app._manager(session._snapshot).subscriptions.subscribe(observe, channel="engine")
         run = await (await session.run.submit("go", engine="loop")).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(observed, [("completed", "completed result")])

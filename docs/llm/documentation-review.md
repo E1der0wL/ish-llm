@@ -43,24 +43,25 @@ review/audit/handoff 등 과거 기록에는 상태 표지를 추가했다. 날�
 
 ## 감사표: 문서·파일·심볼·처리 상태
 
-**문서 수정 완료**는 제품 결함 해결을 뜻하지 않는다. `P0/P1/A–F`는 모두 앞으로 구현할 단계다.
+**문서 수정 완료**는 제품 결함 해결을 뜻하지 않는다. P0와 P1-a는 검증을 완료했고,
+P1-b는 아래 항목별 상태와 [실행 기록](p1-verification.md)을 따른다. P1-c와 A–F는 미완료다.
 파일 경로는 저장소 루트 기준이다. 구체적인 선언 책임과 gate는 [구현 계획](clean-refactor.md)에 있다.
 
 | ID | 문서 근거 | 소스·심볼·확인 증거 | 처리/남은 작업 |
 |---|---|---|---|
-| D01 | CONFIGURATION의 Missing/Null/Value | `llm/core/configuration.py`의 `resolve_config`, `llm/services/runtime/tools.py`의 `ToolExecutionScope`에서 `or {}` 사용; falsey 객체 수락 관찰 | **P1 미수정**. 타입 검사 후 presence 처리; False/0/[]와 nullable leaf 구별 |
-| D02 | Schema·현재 저장 형식 | `llm/services/runtime/checkpoints.py:CheckpointRepository.load`, `llm/services/runtime/operations.py:OperationRepository.load`, TestWorkspace/Vision/Preferences Reader의 bool/float 버전 수락 관찰 | **P1 미수정**. owner별 정확한 type+version 선언, Reader/Writer 동시 검증, 거부 시 원본 보존 |
+| D01 | CONFIGURATION의 Missing/Null/Value | `llm/core/configuration.py`의 `resolve_config`, `llm/services/runtime/tools.py`의 `ToolExecutionScope`에서 `or {}` 사용; falsey 객체 수락 관찰 | **P1-a 검증 완료**. 해당 설정·scope 경계는 타입 검사 후 presence 처리; False/0/[]와 nullable leaf 구별. 다른 owner의 fallback 정리는 P1-c |
+| D02 | Schema·현재 저장 형식 | `llm/services/runtime/checkpoints.py:CheckpointRepository.load`, `llm/services/runtime/operations.py:OperationRepository.load`, TestWorkspace/Vision/Preferences Reader의 bool/float 버전 수락 관찰 | **P1-a 검증 완료**. owner별 정확한 타입·버전 검사와 current roundtrip·실패 원본 보존 시험 통과. 추가 선언 정리는 P1-c |
 | D03 | 명시 실행 정책·단일 선언 | `llm/components/tools/registry.py:ToolContract`, `llm/components/tools/decorator.py`의 revision/effect/isolation/approval/operation-key 기본 선언 반복 | **P1 미수정**. trusted 등록 시 선택과 선언 소유자 단일화; 승인 우회 금지 |
 | D04 | 부모 Tool scope·권한 비상승 | `llm/services/runtime/tools.py`, `llm/engines/agents.py`에서 scope 없으면 `ToolExecutionScope(ToolRuntime())` 생성 | **P1/C 미수정**. 정규 Run 경로의 scope 필수, trusted 직접 helper 경계 별도. 정상 Run 승인 우회를 재현한 결과는 아님 |
 | D05 | 구현체별 Schema/설정 소유 | Loop layout/option 목록/Schema, effect/isolation 목록, 저장 버전 Reader·Writer의 반복 선언 | **P1 미수정**. owner별 정리; 전역 constants 집합이나 후보 일괄 삭제 금지 |
-| D06 | 구 저장 형식 금지 | `hub/config/preferences.py`가 mouse_mode/recovery_max_attempts/provider_error_details를 제거; `test_global_preferences`가 변환 요구 | **P1 미수정**. 옛 입력 명시 거부·현재 roundtrip으로 소비자/시험 직접 전환 |
-| D07 | 구 저장 형식 금지 | `hub/config/theme.py:HubTheme.from_preferences`가 accent→accent1 변환·옛 widget 키 제거; 실제 수락 재현 | **P1 미수정**. 현재 형식 Reader 하나로; 현재 UI 파생 색상 property는 유지 |
-| D08 | Hub 언어 설정 | `hub/config/preferences.py`의 general→profile→config 순서; legacy profile 시험 | **문서 수정 / P1 미수정**. 구 profile 읽기 제거와 명시 앱 초기 언어 선택 구분 |
+| D06 | 구 저장 형식 금지 | `hub/config/preferences.py`가 mouse_mode/recovery_max_attempts/provider_error_details를 제거; `test_global_preferences`가 변환 요구 | **P1-b 검증 완료**. 옛 키를 명시 거부하고 실패 원본 보존 시험으로 전환 |
+| D07 | 구 저장 형식 금지 | `hub/config/theme.py:HubTheme.from_preferences`가 accent→accent1 변환·옛 widget 키 제거; 실제 수락 재현 | **P1-b 검증 완료**. 변환 Reader 제거, 현재 UI 파생 색상 property 유지 |
+| D08 | Hub 언어 설정 | `hub/config/preferences.py`의 general→profile→config 순서; legacy profile 시험 | **P1-b 검증 완료**. 완전한 현재 profile만 읽음. Hub 생성 초기값 저장과 명시 앱 초기 언어 선택은 유지 |
 | D09 | Hub 요청 환경·승인 binding | `hub/backend/execution/environment.py:EnvironmentEngine.for_request/bind_context`의 환경 누락 fallback | **문서 수정 / C 미수정**. ish 캡처·독립 실행 명시 환경, cwd/env/Tool revision 보존 |
-| D10 | 관찰 구독 계약 | `llm/llm.py`, `llm/services/runtime/runs.py`의 직접 on_event/on_run_event와 EventSubscriptions 이중 경로 | **문서 수정 / P1 미수정**. 실제 소비자를 구독 API로 직접 전환. durable EventHandlers는 관찰과 다른 역할 |
-| D11 | 백업/복원과 구 형식 | `DirectoryBackups.upgrade`, `ProjectManager.upgrade_backup`, 공개 Projects 경로 | **문서 수정 / P1 미수정**. upgrade 제거; checksum·Component 검증·staging·현재 backup/restore/clone 유지 |
+| D10 | 관찰 구독 계약 | `llm/llm.py`, `llm/services/runtime/runs.py`의 직접 on_event/on_run_event와 EventSubscriptions 이중 경로 | **P1-b 검증 완료**. 실제 소비자를 구독 API로 직접 전환. durable EventHandlers의 실행 계약 유지 |
+| D11 | 백업/복원과 구 형식 | `DirectoryBackups.upgrade`, `ProjectManager.upgrade_backup`, 공개 Projects 경로 | **P1-b 검증 완료**. upgrade 제거; checksum·Component 검증·staging·현재 backup/restore/clone 유지 |
 | D12 | Provider·Processor 계약 | `llm/engines/loop/engine.py:execute`, `llm/components/processing.py`, Tool 정의·worker·RAG·Vision의 canonical dict | **A 미구현**. 공통 typed 모델과 실제 Adapter로 소비자 전환; SDK opaque/usage·pair 유지 |
-| D13 | 재개 증거·불확실 효과 | `LoopEngine.validate_resume`가 requires_retry 누락 시 tool: 키로 추론; started 레코드가 키에 따라 수락/거부됨 | **P1 미수정**. 종류별 필수 증거 선언, control record 정상 의미와 원장 보호 유지 |
+| D13 | 재개 증거·불확실 효과 | `LoopEngine.validate_resume`가 requires_retry 누락 시 tool: 키로 추론; started 레코드가 키에 따라 수락/거부됨 | **P1-b 검증 완료**. started Loop의 container/requires_retry 필수·정확한 bool 검증. 키 이름 추론 제거, 실제 효과 중복 방지 시험 통과 |
 | D14 | Naming 의미·공개 API | `llm/engines/registry.py`, `llm/components/agents`, Loop binding, `test_naming_contract`의 옛 Schema digest 고정 | **문서 수정 / B/C 미구현**. 의미 규칙 보존, 구 API·옛 지문 지원 의무 제거; 현재 계약 시험으로 직접 전환 |
 | D15 | long-running의 provider 예제 | `LoopEngine.resolve_config`가 평면 provider 거부, policy.provider 수락 | **문서 수정**. 정규 경로 사용; 변환기 추가 없음 |
 | D16 | Prompts README | `RAGComponent.parameter_layout/validate_config`, `PromptComponent.schema`, `TripleExtractor.extract` | **문서 수정**. config.extraction.prompt_id·policy.extraction.repair_attempts·metadata. null/누락은 추가 Prompt 없음 |

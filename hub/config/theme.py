@@ -72,17 +72,6 @@ class HubTheme:
     alert_info_foreground = property(lambda self: self.accent2)
     alert_success_foreground = property(lambda self: self.accent1)
 
-    @classmethod
-    def from_preferences(cls, values: dict) -> "HubTheme":
-        """Read older Hub palettes without retaining individual widget overrides."""
-        values = dict(values)
-        for old, new in (("accent", "accent1"), ("user", "accent2"), ("notice", "accent3"), ("muted", "comment")):
-            if old in values:
-                values.setdefault(new, values.pop(old))
-        obsolete = {name for name, value in vars(cls).items() if isinstance(value, property)}
-        obsolete.update(("button_focused_background", "checklist_focused_background", "scrollbar_background"))
-        return cls(**{key: value for key, value in values.items() if key not in obsolete})
-
     def __post_init__(self) -> None:
         for field in fields(self):
             value = getattr(self, field.name)

@@ -44,7 +44,8 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.engine = GraphEngine(handlers=handlers or {"agent": self.handler})
         self.events = []
         self.app = LargeLanguageModel(self.root, engines={"graph": self.engine},
-            components=[WorkflowComponent(), AgentComponent()], on_event=lambda r, e: self.events.append(e))
+            components=[WorkflowComponent(), AgentComponent()])
+        self.app.events.subscribe(lambda r, e: self.events.append(e), channel="engine")
         self.addAsyncCleanup(self.app.shutdown)
         for model in models.values():
             self.addAsyncCleanup(self.release_model, model)

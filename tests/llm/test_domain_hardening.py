@@ -160,7 +160,7 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
                 # 알림에서 조회해도 이미 영수증이 저장되어 있다.
                 if run.interaction_responses():
                     notified.set()
-        app.on_event = observe
+        app.events.subscribe(observe, channel="engine")
         await run.arespond(renewed.respond("approve"))
         await asyncio.wait_for(notified.wait(), 3)
         resumed = await (await session.run.resume(run.id, engine="loop")).wait()

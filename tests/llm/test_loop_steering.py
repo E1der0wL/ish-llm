@@ -38,11 +38,13 @@ class Model:
 
 
 class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
-    async def setup_backend(self, model, *, options=None, config=None, components=None, on_event=None, services=None):
+    async def setup_backend(self, model, *, options=None, config=None, components=None, observer=None, services=None):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         app = LargeLanguageModel(Path(folder.name), components=components or [], services=services,
-            engines={"worker": LoopEngine(completion_fn=model)}, on_event=on_event)
+            engines={"worker": LoopEngine(completion_fn=model)})
+        if observer is not None:
+            app.events.subscribe(observer, channel="engine")
         self.addAsyncCleanup(app.shutdown)
         self.addCleanup(model.release.set)
         project = await app.projects.acreate("test", config=ProjectConfig(ProjectConfig.merge(
@@ -62,7 +64,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         events = []
         model = Model([chunk("draft", finish="stop")], [chunk("revised", finish="stop")],
                       [chunk("next", finish="stop")])
-        app, session, request, run = await self.setup_backend(model, on_event=lambda r, e: events.append(e))
+        app, session, request, run = await self.setup_backend(model, observer=lambda r, e: events.append(e))
         a = await session.run.steer(run.id, "first correction")
         b = await session.run.steer(run.id, "second correction")
         following = await session.run.submit("ordinary request", engine="worker")
@@ -181,7 +183,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
                 entered.set()
                 await release.wait()
         model = Model([chunk("done", finish="stop")])
-        _, session, request, run = await self.setup_backend(model, on_event=observe)
+        _, session, request, run = await self.setup_backend(model, observer=observe)
         model.release.set()
         await asyncio.wait_for(entered.wait(), 10)
         try:

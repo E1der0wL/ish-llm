@@ -163,7 +163,7 @@ class ThemeModeTests(unittest.TestCase):
         dark, light = HubTheme(), HubTheme(mode='light')
         self.assertNotEqual(dark.code_background, light.code_background)
         self.assertNotEqual(dark.code_foreground, light.code_foreground)
-        self.assertEqual(HubTheme.from_preferences(asdict(light)), light)
+        self.assertEqual(HubTheme(**asdict(light)), light)
         self.assertEqual(dark.background, light.background)
         self.assertNotEqual(replace(dark, background='#123456').button_background,
                             replace(light, background='#123456').button_background)

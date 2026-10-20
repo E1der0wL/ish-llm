@@ -112,7 +112,7 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 await asyncio.to_thread(controller.close)
 
-    def test_legacy_preferences_reduce_to_six_palette_colors(self):
+    def test_current_palette_roundtrip_and_legacy_source_is_preserved(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / ".hub" / "preferences.json"
             path.parent.mkdir()
@@ -120,9 +120,21 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                 "accent": "#123456", "user": "#234567", "muted": "#345678", "notice": "#456789",
                 "header_background": "#111111", "button_focused_background": "#222222", "sidebar_width": 30}}))
             store = PreferencesStore(directory)
-            values = store.load()["appearance"]
+            original = path.read_bytes()
+            with self.assertRaises(TypeError):
+                store.load()
+            with self.assertRaises(TypeError):
+                store.save("appearance", asdict(HubTheme()))
+            self.assertEqual(path.read_bytes(), original)
+            # Current input is created explicitly in a separate workspace.
+            # The reader never translates old names or discards widget fields.
+            current = PreferencesStore(Path(directory) / "current")
+            values = current.save("appearance", asdict(HubTheme(
+                accent1="#123456", accent2="#234567", comment="#345678",
+                accent3="#456789", sidebar_width=30)))
             self.assertEqual(values["accent1"], "#123456")
             self.assertEqual(values["comment"], "#345678")
             self.assertEqual(set(values), set(asdict(HubTheme())))
-            store.save("appearance", values)
-            self.assertEqual(store.load()["appearance"], values)
+            current.save("appearance", values)
+            self.assertEqual(current.load()["appearance"], values)
+            self.assertEqual(path.read_bytes(), original)

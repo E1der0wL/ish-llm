@@ -111,10 +111,9 @@ Project/Session/Run/Step metadata는 각 저장 계약의 `storage_version`을 �
 지원하지 않거나 누락된 버전은 읽기/덮어쓰기 전에 거부한다. ProjectConfig와 내장 Component
 레코드는 닫힌 Schema이며 metadata/SDK 인자처럼 owner가 선언한 확장 영역만 열린다.
 
-main에는 `projects.aupgrade_backup(..., transform=...)`이 남아 있다. 이는 출시 전
-[호환 제거 대상](clean-refactor.md)이며 새 사용법이나 미래 지원 계약으로 삼지 않는다.
-구 Reader·자동/명시 migration·변환 Facade를 추가하지 않는다. 현재 형식의 검증된 backup/restore는
-유지한다. 이 문서 변경으로 해당 제품 API가 제거된 것은 아니다.
+P1-b에서 백업 변환 API를 제거했다. 구 Reader·자동/명시 migration·변환 Facade는 제공하지 않는다.
+현재 형식의 backup/restore는 checksum·Component 검증·staging 경계를 유지한다. 잘못된 형식이나
+복원 검증 실패는 원본을 수정하지 않으며 새 대상도 공개하지 않는다.
 
 ## 구조 검토
 

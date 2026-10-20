@@ -149,9 +149,8 @@ Run 최종 알림도 이 모드에서 누락될 수 있으므로 request.wait/�
 비활성화해 후속 호출과 무한 종료 대기를 막는다. callback은 취소에 협조해야 한다.
 동기 queued 콜백의 이미 실행 중인 스레드는 종료할 수 없으며 같은 구독에서 새 스레드를
 계속 만들지는 않는다. inline 동기 콜백은 이벤트 루프를 막지 않아야 한다.
-UI에는 queued 전달을 권장한다. main의 on_event/on_run_event 직접 콜백 경로에는 이 설정이
-자동 적용되지 않는다. 이 이중 경로는 [클린 리팩터링](clean-refactor.md)에서 소비자를 구독 API로
-직접 이관한 뒤 제거할 대상이다. 호환 wrapper를 추가하지 않는다.
+UI에는 queued 전달을 권장한다. 실행 관찰은 `backend.events.subscribe` 하나를 사용한다.
+P1-b에서 직접 콜백 경로와 소비자를 정규 구독 API로 전환했다. 호환 wrapper는 제공하지 않는다.
 
 ## 파일 조회 성능과 저장 보장
 

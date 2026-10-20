@@ -110,7 +110,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
         def observe(run, event):
             if event.type == "text_delta" and event.delta.text == "answer:held":
                 streaming.set()
-        app.on_event = observe
+        app.events.subscribe(observe, channel="engine")
         first = await session.run.submit("held", engine="test")
         await asyncio.wait_for(streaming.wait(), 10)
         queued = await session.run.submit("next", engine="test")
