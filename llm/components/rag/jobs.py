@@ -10,7 +10,7 @@ from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, Che
 from llm.core.contracts import ResourceRef, Diagnostic
 from llm.core.plans import CheckpointPlan, JobResumePlan
 from llm.services.infrastructure.locking import workspace_locked
-from llm.services.infrastructure.storage import atomic_json, read_json, revision_token, remove_named_tree, tree_snapshot
+from llm.services.infrastructure.storage import read_json, revision_token, tree_snapshot
 from .job_storage import JobStorage
 
 
@@ -40,9 +40,10 @@ class RAGJobs:
         delete = list(common)
         if not abandoned and job["status"] not in ("completed", "cancelled"):
             delete.append(Diagnostic("resume_required", "Abandon the Job before deleting it", source=source))
-        keys = sorted(key for key in files if key == "prepared.json" or key.startswith("batches/"))
+        declarations = self._storage().inventory()[0]["jobs"][identifier]["checkpoints"]
+        keys = sorted(declarations)
         return CheckpointPlan(source, keys, sum(v["bytes"] for v in files.values()), abandoned,
-            abandon, delete, revision_token({"source": source.to_dict(), "job": job, "files": files, "live": live}))
+            abandon, delete, revision_token({"source": source.to_dict(), "job": job, "files": files, "checkpoints": declarations, "live": live}))
 
     def _resume_plan(self, identifier, *, live):
         project, component = self.data._current()
@@ -62,14 +63,7 @@ class RAGJobs:
             payload = read_json(root / "input.json")
             if revision_token(payload) != job["input_digest"]:
                 raise ValueError("Job input changed")
-            for key in files:
-                if key == "prepared.json" or key.startswith("batches/"):
-                    saved = read_json(root / key)
-                    if not isinstance(saved, dict):
-                        raise ValueError("Invalid Job checkpoint")
-                    if key.startswith("batches/") and (set(saved) != {"signature", "value"} or not isinstance(saved["signature"], str)):
-                        raise ValueError("Invalid batch checkpoint")
-                    reused.append(key)
+            reused.extend(sorted(self._storage().checkpoints(identifier)[1]))
             if job["status"] != "queued" and job.get("configuration") != component._configuration_version:
                 state = "incompatible"
                 block("checkpoint_configuration", "RAG configuration differs from the Job's preparation")
@@ -229,6 +223,7 @@ class RAGJobs:
         payload = read_json(root / "input.json")
         if revision_token(payload) != job["input_digest"]:
             raise ValueError("Job input changed")
+        self._storage().checkpoints(identifier)
         # Archive the previous attempt only after admission succeeds. These are
         # observations in the same Job, never receipts or permission to retry.
         if "diagnostic" in job:
@@ -244,10 +239,10 @@ class RAGJobs:
 
     @workspace_locked
     def _prepared(self, identifier, document=None):
-        root = self._path(identifier)
+        storage = self._storage()
         if document is not None:
-            atomic_json(root / "prepared.json", document)
-        return read_json(root / "prepared.json") if (root / "prepared.json").exists() else None
+            storage.write_checkpoint(identifier, JobStorage.PREPARED, document)
+        return storage.read_checkpoint(identifier, JobStorage.PREPARED)
 
     @workspace_locked
     def _commit(self, identifier, document):
@@ -286,18 +281,12 @@ class RAGJobs:
         job = self.get(identifier)
         job.update(status="completed", phase="completed", progress={"completed": 1, "total": 1, "unit": "job"}, ended_at=now())
         self._storage().save(job)
-        # 공개된 원문/벡터는 corpus 세대가 소유한다. 완료 뒤 준비 결과의 중복 사본을 없앤다.
-        try:
-            from llm.services.infrastructure.storage import unlink_file
-            prepared = self._path(identifier) / "prepared.json"
-            if prepared.exists():
-                unlink_file(prepared)
-            batches = self._path(identifier) / "batches"
-            if batches.exists():
-                remove_named_tree(batches.parent, batches, "batches")
-        except OSError:
-            pass  # 공개 성공을 정리 실패로 되돌리지 않는다.
         return job
+
+    @workspace_locked
+    def _cleanup(self, identifier):
+        # A separate transaction keeps cleanup failure outside publication success.
+        self._storage().clear_checkpoints(identifier)
 
     @workspace_locked
     def _finish_error(self, identifier, error, cancelled):
@@ -333,15 +322,15 @@ class RAGJobs:
 
     @workspace_locked
     def _batch(self, identifier, key, signature, value=None):
-        root = self._path(identifier)
-        path = root / "batches" / (validate_name(key) + ".json")
+        key = JobStorage.BATCHES + "/" + validate_name(key) + ".json"
         if self.get(identifier).get("cancel_requested"):
             raise asyncio.CancelledError()
+        storage = self._storage()
         if value is not None:
-            atomic_json(path, {"signature": signature, "value": value})
-        if not path.exists():
+            storage.write_checkpoint(identifier, key, {"signature": signature, "value": value})
+        saved = storage.read_checkpoint(identifier, key)
+        if saved is None:
             return None
-        saved = read_json(path)
         if saved["signature"] != signature:
             raise CheckpointError("checkpoint_configuration", "Prepared batch configuration changed; enqueue a new job")
         return saved["value"]
@@ -413,7 +402,12 @@ class RAGJobs:
                         document["description"] = payload["description"]
                     document["preparation_configuration"] = component._configuration_version
                 await self.data._async_call(self._prepared, identifier, document)
-            return await self.data._async_call(self._commit, identifier, document)
+            result = await self.data._async_call(self._commit, identifier, document)
+            try:
+                await self.data._async_call(self._cleanup, identifier)
+            except OSError:
+                pass  # The failed cleanup rolled back; committed publication remains valid.
+            return result
         except BaseException as error:
             if claimed:
                 await self.data._async_call(self._finish_error, identifier, error, isinstance(error, asyncio.CancelledError))

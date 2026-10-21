@@ -9,6 +9,87 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-i RAG 준비·배치 영수증 — H2-h/i Level 3 묶음 게이트
+
+H2-h 로컬 커밋 `b362b79f93f7ba107816623da0b9020ec5c842ec`에서 이어서 준비 결과와
+배치 영수증의 필수 존재를 보강했다. H2-h 때 별도로 기록한 실제 두 번째 embedding/파일 효과
+재현을 저장소 회귀에 편입했다. 구현 전 1 failure, error·Skip 0, 1.125초, exit 1이다.
+
+JobStorage가 각 Job의 revision과 준비/배치 checkpoint 목록·내용 hash를 함께 소유한다.
+기록이 아직 생성되지 않은 경우만 None이며 선언된 기록의 소실·Null·변조·미선언 추가는
+거부한다. Reader와 Writer, 실행 claim, 재개 계획, backup/clone이 같은 owner 검증을 쓴다.
+재개 계획의 missing/corrupt 진단과 실제 효과 재실행 차단을 함께 유지한다. 원본을 자동
+복구하거나 현재 형식이 아닌 기록을 migration하지 않는다.
+
+준비/배치 기록과 목록은 한 저장 transaction으로 확정한다. 완료된 corpus 공개와 Job 완료를
+확정한 뒤 별도 transaction에서 준비 자료를 정리한다. 정리 실패는 모든 준비 자료와 목록을
+되돌리며 이미 확정된 공개는 유지한다. 정리 예외를 공개 transaction 안에서 삼켜 부분 삭제를
+확정하지 않는다. Job 삭제 정책이나 승인·예산·외부 효과 실행 규칙은 바꾸지 않았다.
+
+### 검증과 범위
+
+RAG 저장 owner와 상태/재개/공개 경계가 연결되므로 H2-h/i를 묶어 현재 통합 소스의 전체
+LLM/Hub 검증으로 승격했다. 집중 실행은 아래 명령의 7개 모듈이며 JSON에 정확한 발견 목록을
+보존했다. 이후 추가 원자성 시험은 test_rag_checkpoint_integrity 전체 모듈로 실행했다.
+
+```bash
+python -m tests.llm.run_regression --suite llm --modules \
+  tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_job_integrity \
+  tests.llm.test_backend_contracts tests.llm.test_checkpoint_lifecycle \
+  tests.llm.test_rag_components tests.llm.test_rag_resilience tests.llm.test_rag_optimization \
+  --output /workspace/llm-clean-resume/h2-i/focused-2.json
+python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/h2-i/final/llm.json
+python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/h2-i/final/hub.json
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-i/final/architecture.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-i/final/docs.json
+```
+
+위 python은 `.venv-linux312/bin/python` 3.12.14이며 TERM=xterm-256color,
+LITELLM_LOCAL_MODEL_COST_MAP=True, LITELLM_MODE=PRODUCTION,
+HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb,
+HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip으로 실행했다. host는 기존
+ish d833790959a76ac457fdeea3f21a6bea1eecfe12이며 비root 실제 bwrap/X11 경로를 유지했다.
+
+| 실행 | 실제 결과 |
+|---|---|
+| 최초 집중 | 132 실행, 117 pass, failure 3/error 14, 38.353초, exit 1 |
+| 계획 변수 수정 후 집중 | 132 pass, failure/error/Skip 0, 39.620초, exit 0 |
+| 추가 owner/정리 장애 검증 | 6 pass, 3.038초, exit 0 |
+| 프로세스 중단 최초 검증 | 7 실행, 6 pass/error 7(한 부모 시험), 9.683초, exit 1 |
+| 재열기 API 수정 후 | 7 pass, failure/error/Skip 0, 9.710초, exit 0 |
+| 전체 LLM | 1,846 discovered/started/pass, 580.481초, exit 0 |
+| 전체 Hub | 540 discovered/started/pass, 690.030초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 후보 552개, exit 0 |
+| R3 mutation | 실제 두 번째 파일 효과 assertion으로 한도 누락 탐지, detector exit 0 |
+| 문서 검사 | 문서 131개, Python fence 178개, 상대 링크 949개, anchor 34개, 오류 0, exit 0 |
+
+최초 집중 실패는 계획 경로의 미정의 declarations 변수였고, 프로세스 중단 시험의 오류는
+재열기에 존재하지 않는 aget을 사용한 fixture였다. 정규 aload로 고쳤으며 원래 실패 재현과
+실제 효과 횟수 assertion은 유지했다. 최종 새 시험은 저장·목록·commit 및 정리의 실제
+exit 77 7개 경계에 도달했음을 witness로 확인하고 재열기에서 원본 또는 완전한 새 상태,
+확정된 corpus, 추가 효과 없음까지 검증한다. 각 실행의 로그·JSON·실패 증거는
+`/workspace/llm-clean-resume/h2-i/`에 보존한다.
+
+전체 두 suite 각각 발견=실행=pass이며 failure/error/Skip/expected failure/unexpected success/
+missing/unexpected/duplicate는 모두 0이다. 서로 다른 집중 실행을 전체 실행으로 합산하지
+않았다. 전체 전후 Python 662개 manifest는
+83d861a6dc92a68417052a84dd8bd9ee8f02386c121af056302e6055e5d31c74,
+제품·시험·Fixture/자산 821개와 의존성 136개/host/실행 환경을 포함한 manifest는
+d819e8440b2303efb4e348c6e6c5fc429b915716fee9088641d0345c00e487d0로 각각 일치한다.
+H2-h와 host/status/Python/kernel/packages/환경/실행 바이너리 동일성도 확인했다.
+
+통과 직후 문서를 먼저 갱신하고 H2-h/i를 묶어 작업 브랜치에 Push한다. GitHub Actions의
+필수 전체 검증은 유지한다. 현재 API의 Forbidden으로 정확한 SHA의 원격 CI 결과를 확인할 수
+없으므로 원격 CI 통과로 보고하지 않는다. 실제 인증 모델·전원 단절·network filesystem은
+이 검증의 보장 범위가 아니다.
+
+별도 Memory summary-loss probe는 저장된 요약 소실을 빈 상태로 읽고 generation/revision을
+새로 발급하는 두 실패를 재현했다(2 failure, error·Skip 0, 0.225초, exit 1).
+이 시험은 위 전체 suite에 아직 편입되지 않았고 실패가 해결된 것으로 보고하지 않는다.
+다음 H2 보강에서 우선 수정한다. Job 상태별 부가 증거·Memory와 나머지 owner 계약,
+H2 전체·H3–H5·P1 잔여 작업·A–F는 미완료다. 이전 38개 데이터군 원감사와 과거 실행은 보존한다.
+
 ## H2-h RAG Job 존재 목록과 worker lease — Level 2
 
 H2-g/정책 묶음 Push `1b6f824c5684874cd89b298dee813aa3c52afb79`에서 이어서 진행했다.

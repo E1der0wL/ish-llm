@@ -17,7 +17,10 @@ class JobStorage:
     MANIFEST = "jobs.manifest.json"
     DIRECTORY = "jobs"
     LEASE = "worker.lock"
-    STATUSES = frozenset(("queued", "running", "completed", "failed", "cancelled"))
+    COMPLETED = "completed"
+    STATUSES = frozenset(("queued", "running", COMPLETED, "failed", "cancelled"))
+    PREPARED = "prepared.json"
+    BATCHES = "batches"
     REQUIRED = frozenset(("id", "status", "created_at", "input_digest", "phase"))
 
     def __init__(self, project, component):
@@ -104,10 +107,17 @@ class JobStorage:
         if actual != manifest["jobs"].keys():
             raise ValueError("RAG Jobs are missing or undeclared")
         records = {}
-        for identifier, revision in manifest["jobs"].items():
+        for identifier, entry in manifest["jobs"].items():
+            if (not isinstance(entry, dict) or entry.keys() != {"revision", "checkpoints"}
+                    or not isinstance(entry["checkpoints"], dict)):
+                raise ValueError("Invalid RAG Job inventory entry")
+            for key, revision in entry["checkpoints"].items():
+                self.checkpoint_path(identifier, key)
+                if not isinstance(revision, str) or re.fullmatch(r"[a-f0-9]{64}", revision) is None:
+                    raise ValueError("Invalid RAG Job checkpoint revision")
             root = self.path(identifier)
             job = self.validate(self._json(root / "job.json"), identifier)
-            if revision != revision_token(job):
+            if entry["revision"] != revision_token(job):
                 raise ValueError("RAG Job revision changed")
             self._lease_path(identifier)
             records[identifier] = job
@@ -119,7 +129,84 @@ class JobStorage:
         for identifier, job in records.items():
             if revision_token(self._json(self.path(identifier) / "input.json")) != job["input_digest"]:
                 raise ValueError("RAG Job input changed")
+            self.checkpoints(identifier)
         return manifest, records
+
+    def checkpoint_path(self, identifier, key):
+        if key != self.PREPARED:
+            prefix = self.BATCHES + "/"
+            if not isinstance(key, str) or not key.startswith(prefix) or not key.endswith(".json"):
+                raise ValueError("Invalid RAG Job checkpoint path")
+            validate_name(key[len(prefix):-len(".json")])
+        return self.checked(self.path(identifier) / key)
+
+    @classmethod
+    def validate_checkpoint(cls, key, value):
+        if not isinstance(value, dict):
+            raise ValueError("RAG Job checkpoint must be an object")
+        if key != cls.PREPARED and (value.keys() != {"signature", "value"}
+                or not isinstance(value["signature"], str) or not value["signature"]
+                or value["value"] is None):
+            raise ValueError("Invalid RAG Job batch receipt")
+
+    def checkpoints(self, identifier):
+        manifest, records = self.inventory()
+        if identifier not in records:
+            raise FileNotFoundError("RAG Job does not exist")
+        declared = manifest["jobs"][identifier]["checkpoints"]
+        root = self.path(identifier)
+        actual = set()
+        for path in root.iterdir():
+            self.checked(path)
+            if path.name in ("job.json", "input.json", self.LEASE):
+                continue
+            if path.name == self.BATCHES and path.is_dir():
+                for entry in path.iterdir():
+                    key = self.BATCHES + "/" + entry.name
+                    self.checkpoint_path(identifier, key)
+                    actual.add(key)
+            elif path.name == self.PREPARED:
+                actual.add(self.PREPARED)
+            else:
+                raise ValueError("Undeclared RAG Job contents")
+        if actual - declared.keys():
+            raise ValueError("Undeclared RAG Job checkpoint")
+        if declared.keys() - actual:
+            raise FileNotFoundError("Required RAG Job checkpoint is missing")
+        values = {}
+        for key, revision in declared.items():
+            value = self._json(self.checkpoint_path(identifier, key))
+            self.validate_checkpoint(key, value)
+            if revision_token(value) != revision:
+                raise ValueError("RAG Job checkpoint revision changed")
+            values[key] = value
+        return manifest, values
+
+    def read_checkpoint(self, identifier, key):
+        self.checkpoint_path(identifier, key)
+        return self.checkpoints(identifier)[1].get(key)
+
+    def write_checkpoint(self, identifier, key, value):
+        manifest, _ = self.checkpoints(identifier)
+        path = self.checkpoint_path(identifier, key)
+        self.validate_checkpoint(key, value)
+        atomic_json(path, value)
+        manifest["jobs"][identifier]["checkpoints"][key] = revision_token(value)
+        atomic_json(self.manifest, manifest)
+
+    def clear_checkpoints(self, identifier):
+        _, records = self.inventory()
+        if records[identifier]["status"] != self.COMPLETED:
+            raise ValueError("Only completed Job preparation copies can be cleared")
+        manifest, values = self.checkpoints(identifier)
+        from llm.services.infrastructure.storage import unlink_file
+        if self.PREPARED in values:
+            unlink_file(self.checkpoint_path(identifier, self.PREPARED))
+        batches = self.checked(self.path(identifier) / self.BATCHES)
+        if batches.exists():
+            remove_named_tree(batches.parent, batches, self.BATCHES)
+        manifest["jobs"][identifier]["checkpoints"] = {}
+        atomic_json(self.manifest, manifest)
 
     def create(self, job, payload):
         manifest, records = self.inventory()
@@ -132,12 +219,13 @@ class JobStorage:
         root = self.path(identifier)
         atomic_json(root / "input.json", payload)
         atomic_bytes(root / self.LEASE, identifier.encode("utf-8"))
+        manifest["jobs"][identifier] = {"revision": revision_token(job), "checkpoints": {}}
         self._write(job, manifest)
 
     def _write(self, job, manifest):
         identifier = job["id"]
         atomic_json(self.path(identifier) / "job.json", job)
-        manifest["jobs"][identifier] = revision_token(job)
+        manifest["jobs"][identifier]["revision"] = revision_token(job)
         atomic_json(self.manifest, manifest)
 
     def save(self, job):

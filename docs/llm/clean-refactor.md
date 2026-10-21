@@ -8,8 +8,8 @@
 2026-10-21 H2-a/b/c/d/e/f는 도메인 필수 기록·외부 작업 원장·Checkpoint·출력 원본·
 Component 저장소 이력/사용량 영수증/개별 JSON 기록 보강의 집중/전체 회귀를 통과했다.
 H2-g도 Python Tool 패키지 목록·worker·Hub 가져오기 경계를 보강하고 전체 회귀를 통과했다.
-H2-h는 RAG Job 목록·lease를 보강하고 Level 2 로컬 검증을 통과했다. 전체 회귀와 Push는 다음 RAG 묶음 게이트에서 수행한다.
-H2 전체는 미완료이며 준비/배치 영수증 소실의 별도 1개 실패와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
+H2-h/i는 RAG Job 목록·lease와 준비/배치 영수증 소실을 보강하고 묶음 Level 3 전체 회귀를 통과했다.
+H2 전체는 미완료이며 Memory 요약 소실의 별도 2개 실패와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
 먼저 확인하며 이 실패를 해결하기 전 다음 기능 단계로 진행하지 않는다.
 
 ## 필수 원칙

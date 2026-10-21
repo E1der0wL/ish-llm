@@ -206,7 +206,7 @@ class JobLossTests(unittest.IsolatedAsyncioTestCase):
         for value in cases:
             with self.subTest(value=value):
                 path.write_text(json.dumps(value))
-                manifest['jobs'][job['id']] = revision_token(value)
+                manifest['jobs'][job['id']]['revision'] = revision_token(value)
                 storage.manifest.write_text(json.dumps(manifest))
                 before = self.snapshot(storage)
                 with self.assertRaises(ValueError):

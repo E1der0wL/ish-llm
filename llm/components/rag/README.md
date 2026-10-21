@@ -223,9 +223,13 @@ identity가 있는 worker.lock을 함께 저장한다. 정확한 Job 집합·리
 재개한다. 기존 서비스 소유 checkpoint 디렉터리 `jobs/<id>/batches/` 아래에
 `embedding_<original_position>.json`을 쓴다. 이 디렉터리는 추출 checkpoint도 공유하므로 이름을 유지한다.
 embedding 파일의 outer signature와 value의 fingerprint/text_hash/vector를 검증한다.
-worker는 progress callback만 호출하며 RAGJobs가 workspace 잠금과 atomic_json으로 저장한다.
+worker는 progress callback만 호출하며 RAGJobs가 workspace 잠금 아래 JobStorage에 저장을 위임한다.
 완료 순서와 파일 번호는 무관하고 보존된 완료 checkpoint는 재개 시 호출하지 않는다.
-준비 결과·배치 영수증 자체의 소실을 거부하는 존재 증거는 H2 잔여 보강이며, 별도 재현 실패는
+Job 목록은 각 Job의 revision과 checkpoint별 hash를 소유한다. 준비/배치 원본과 목록을 같은
+transaction으로 확정하며 아직 생성하지 않은 경우만 None이다. 선언된 원본의 소실·Null·변조나
+미선언 추가는 재실행 허가가 되지 않는다. Reader·Writer·claim·재개 계획·backup/clone에서 검증한다.
+공개와 완료 확정 후 별도 transaction으로 준비 자료를 정리한다. 정리 실패는 준비 자료와 목록을
+함께 되돌리며 이미 확정된 공개는 유지한다. 실제 장애/중단 검증 범위는
 [검증 기록](../../../docs/llm/lifecycle-verification.md)에 남긴다.
 
 실패하면 새 청크 배정을 중단하고 진행 중 요청의 성공 checkpoint를 보존한다.
