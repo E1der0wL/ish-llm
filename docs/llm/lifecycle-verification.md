@@ -9,6 +9,78 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-g Python Tool 패키지 존재와 worker 검증
+
+H2-f `0a2f3a0`에서 이어서 Tool 패키지 소실의 세 실패를 저장소 회귀에 편입했다.
+구현 전 3 failure, error·Skip 0, 0.930초, exit 1이다. 빈 requirements.txt가 사라진 뒤
+이미 해석한 worker가 실제 파일에 두 번째 효과를 쓴 재현을 포함한다. 이후 검증 정책을
+`a2f9c01`로 독립 커밋했으며 현재 소단계는 [Level 3](verification-policy.md)으로 검증했다.
+Tool 저장 형식·worker 입력·Hub 공개 소비자에 걸친 통합 변경이 승격 근거다.
+
+### 변경과 영향
+
+- ToolPaths가 자신의 필수 packages.manifest.json을 소유한다. 새 저장소 생성 때만 빈 목록을
+  확정하고 현재 버전·Project/Component·정확한 패키지/파일 집합·원본 SHA-256을 검증한다.
+  requirements의 선언된 부재와 명시적 빈 파일을 구별하며 소실을 의존성 없음으로 복원하지 않는다.
+- 생성·수정·삭제는 소스·requirements·목록을 기존 transaction으로 함께 확정한다. 원본 소실,
+  임의 추가·변경, 잘못된 현재 필드, symlink·FIFO를 보존·거부한다. 의미 검증도 유지한다.
+- inspector/execution worker는 부모가 전달한 Project 소유권과 패키지 목록을 import 전에
+  검증한다. 기존 source/requirements·descriptor binding, 승인·원장·격리 경계는 유지한다.
+- Hub의 외부 패키지 가져오기는 owner의 read_source_package를 호출한다. 신규 입력의 정규 파일·
+  정적 텍스트를 검증한 뒤 명시적으로 생성한다. Project 내부 저장소 조회는 필수 목록 검증을
+  계속 요구한다. 가져오기에서 소스 실행·의존성 설치는 하지 않는다.
+
+관련 소비자는 Tool CRUD/prepare/resolve, 실제 worker, 비활성 owner 재선택·backup·clone·제거,
+Hub Tool 관리다. 15개 회귀에는 manifest 저장 실패와 실제 자식 프로세스 exit 77의 11개 조합
+(생성/수정의 source·requirements·manifest·commit 뒤, 삭제의 rename·manifest·commit 뒤),
+원본 복구·명시적 빈 의존성 보존·두 번째 실제 효과 차단·외부 가져오기 특수 파일 거부가 포함된다.
+
+### 실행 결과
+
+첫 집중 49개는 45 pass/4 failure(51.888초), 두 번째 83개는 82 pass/1 error(56.410초)였다.
+기존 두 테스트의 manifest 경로 기대값과 손상 후 원본 확인 경로를 보강했다. 원래 assertion은
+유지했으며 세 번째 75개는 모두 통과했다(10.606초). 최초 전체 LLM은 1,821 pass(563.582초,
+exit 0), Hub는 539 pass/1 error(687.997초, exit 1)였다. Hub 외부 가져오기가 내부 ToolPaths의
+필수 Project 인자를 누락한 실제 소비자 오류였다. 별도 입력 경계로 수정하고 73개 집중/통합
+시험을 34.775초에 통과했다. 이후 현재 통합 소스의 전체 LLM/Hub를 다시 실행했다.
+
+| 검사 | 실제 결과 |
+|---|---|
+| 최종 전체 LLM | 1,828 discovered/started/pass, failure·error·Skip 0, 561.588초, exit 0 |
+| 최종 전체 Hub | 540 discovered/started/pass, failure·error·Skip 0, 689.757초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 남은 후보 553개, exit 0 |
+| R3 mutation | 실제 두 번째 파일 효과 assertion으로 한도 누락 탐지, detector exit 0 |
+| 실제 환경 | LLM/Hub 각각 고정 ish SHA·비 root bwrap·X11 도구, 오류 0, exit 0 |
+| 문서 검사 | 131개 문서, Python fence 178개, 상대 링크 945개, anchor 34개, 오류 0, exit 0 |
+
+두 최종 실행 모두 expected failure/unexpected success/missing/unexpected/duplicate 0이다.
+새 실행기 시험 5개도 포함하며 --modules 없는 CI와 같은 전체 실행 경로를 사용했다.
+명령은 아래와 같고 환경 변수·Python 3.12.14·고정 host/lock은 앞선 정책 검증 기록과 같다.
+
+```sh
+.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/h2-g/final/llm.json
+.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/h2-g/final/hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-g/final/architecture-final.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/h2-g/final/environment-hub.json
+```
+
+최초 전체 실행 전후 Python 659개 manifest는
+44cdbc4090f21e65abe2f502fee4505a0b759ef25a84b5428bb69ac11eee6169,
+최종 전체 실행 전후는 7286883be0d3ca201f1220c784f60a1f15968d59ce628a001467b3dcf2f1055b로
+각각 같다. 제품·시험·예제 소스를 실행 중 변경하지 않았다. 최초 실행과 최종 실행의 결과는
+합산하지 않는다. 로그·JSON·manifest는 /workspace/llm-clean-resume/h2-g/final/에 보존한다.
+통과 뒤 문서를 먼저 갱신하고 문서 검사 후 정책 커밋과 묶어 Push한다. GitHub API Forbidden으로
+원격 CI 성공은 아직 확인하지 못했다. 누적 I/O·대용량 성능·실제 인증 모델은 미검증이다.
+
+### 다음 H2 차단 항목
+
+별도 rag-job-loss-probe.py는 Job 원본 소실을 빈 큐로 처리하는 경로와, 실행 중 worker.lock
+소실 후 시험용 embedding 호출/실제 파일 효과가 두 번 발생하는 경로를 재현했다.
+2 failure, error·Skip 0, 1.300초, exit 1이다. 현재 전체 suite에 아직 편입하지 않은 별도
+실패이며 H2-g 성공으로 해결됐다고 보고하지 않는다. 다음 H2 보강에서 우선 수정·검증한다.
+Memory 부가 자료와 나머지 owner도 남아 있다. H2 전체·H3–H5·P1 잔여 작업·A–F는 미완료다.
+
 ## H2-f 개별 Component 원본의 존재·리비전
 
 H2-e 커밋 `2878acbb737ee7a6cc7acde1748bc194ac020904`에서 이어서 작업했다.

@@ -223,11 +223,14 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         data = read_json(path)
         data.pop("components")
         atomic_json(path, data)
-        ToolPaths.for_project(self.project).root.mkdir()
+        tool_root = ToolPaths.for_project(self.project).root
+        tool_root.mkdir()
         with self.assertRaisesRegex(ValueError, "missing=\\['components'\\]"):
             self.projects.load(self.project.id)
         self.assertEqual(read_json(path), data)
-        self.assertFalse((ToolPaths.for_project(self.project).root / "component.json").exists())
+        self.assertFalse((tool_root / "component.json").exists())
+        with self.assertRaisesRegex(ValueError, "Undeclared"):
+            ToolPaths.for_project(self.project)
 
     async def test_component_owns_custom_layout_and_failed_initialization_is_rolled_back(self):
         class Custom(Component):

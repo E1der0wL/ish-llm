@@ -3,12 +3,10 @@
 from copy import deepcopy
 from typing import Sequence
 from llm.components.base import Component, validate_name
-from llm.components.usage import ModelUsageRecord
 from llm.core.parameters import ParameterLayout
-from llm.services.infrastructure.storage import remove_named_tree
 from .registry import ToolRegistry
 from .data import ToolData
-from .packages import ToolPaths, read_package, write_package, load_tool
+from .packages import ToolPaths, read_package, write_package, delete_package, load_tool
 
 
 class ToolComponent(Component):
@@ -45,7 +43,13 @@ class ToolComponent(Component):
 
     def initialize(self, project):
         self.get_config(project)
+        created = self.name not in project.initialized_components
         self._initialize_storage(project, records=False, record_catalog=False)
+        paths = ToolPaths(self.root(project), project.id)
+        if created:
+            paths.initialize()
+        else:
+            paths.inventory()
 
     def enabled(self, project):
         return self._options(project).get("enabled", [])
@@ -62,9 +66,9 @@ class ToolComponent(Component):
         return read_package(ToolPaths.for_project(project), identifier)
 
     def list(self, project):
-        root = ToolPaths.for_project(project).root
-        return {path.name: self.load(project, path.name) for path in sorted(root.iterdir())
-                if path.name != ModelUsageRecord.DIRECTORY}
+        if not self._has_storage(project):
+            return {}
+        return ToolPaths.for_project(project).inventory()[1]
 
     def save(self, project, identifier, data):
         self.load(project, identifier)
@@ -75,7 +79,7 @@ class ToolComponent(Component):
             raise ValueError("Disable the tool before deleting its package")
         self.load(project, identifier)
         paths = ToolPaths.for_project(project)
-        remove_named_tree(paths.root, paths.package(identifier), identifier)
+        delete_package(paths, identifier)
 
     def prepare(self, project, identifier):
         value = load_tool(project, identifier, prepare=True)

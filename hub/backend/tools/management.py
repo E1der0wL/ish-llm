@@ -71,13 +71,13 @@ class ToolManagement:
         return entries
 
     async def import_package(self, argument: str) -> list[dict]:
-        from llm.components.tools.packages import ToolPaths, read_package
+        from llm.components.tools.packages import read_source_package
 
         source = Path(argument).expanduser()
         if not source.is_absolute():
             source = Path(self.root or self.record.paths.root) / source
         # The component rejects links/extra files and copies under its lifecycle lock.
-        package = await asyncio.to_thread(read_package, ToolPaths(source.parent), source.name)
+        package = await asyncio.to_thread(read_source_package, source)
         await self.data.acreate(package, identifier=source.name)
         return await self.list()
 

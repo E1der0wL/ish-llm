@@ -106,8 +106,9 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
   prompts/records/guide.json       # 공통 JSON 레코드
   agents/records/reviewer.json
   workflows/records/review.json
+  tools/packages.manifest.json    # Tool owner의 패키지 목록·파일 해시
   tools/search/search.py           # Tool 전용 Python 패키지
-  tools/search/requirements.txt    # 선택적 의존성
+  tools/search/requirements.txt    # 존재가 선언된 경우 필수인 의존성 파일
   skills/review/skill.json         # 지침·참조·파일 manifest
   skills/review/files/example.md
   data/manual/data.json            # 자료 설명·파일 manifest

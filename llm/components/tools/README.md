@@ -29,14 +29,20 @@ Project는 Python 소스를 소유하고, ish Host는 공용 의존성을 소유
 기존 `ToolRegistry → ToolExecutor`가 Run/Step 실행을 담당한다.
 
 ```text
-<project>/tools/web_search/
-  web_search.py
-  requirements.txt   (선택)
+<project>/tools/
+  packages.manifest.json    # 필수 패키지 목록·소유권·파일 해시
+  usage/                   # 모델 사용량 owner의 영수증·manifest
+  web_search/
+    web_search.py
+    requirements.txt       # manifest가 존재를 선언한 경우 필수
 ```
 
 이름은 디렉토리명이며 진입점은 같은 이름의 `.py` 안에 있는 `async main`이다.
 경로·이름은 고정 계약이다. symlink, 특수 파일, 다른 파일은 허용하지 않는다.
-별도 manifest, JSON Tool record, 생성된 definition cache는 저장하지 않는다.
+ToolPaths가 필수 packages.manifest.json을 소유한다. 정확한 패키지/파일 집합과 원본 해시를
+검증하며 선언된 부재와 빈 requirements.txt를 구별한다. 소실·임의 변경은 보존·거부한다.
+새 저장소 생성 때만 빈 목록을 확정하고 CRUD는 원본·목록을 함께 확정한다. JSON Tool 정의
+레코드와 생성된 definition cache는 저장하지 않는다.
 
 ```python
 from typing import Annotated
@@ -92,7 +98,7 @@ create는 중복을, save는 없는 패키지를, delete는 enabled 패키지를
 CRUD는 소스를 실행하지 않는다. enable은 정적 패키지 검증만 수행한다.
 prepare는 의존성이 없어도 inspector child에서 import와 main/schema 검증을 수행한다.
 backend에서는 Project source, decorator, type hints를 실행하지 않는다. Run/Step은 만들지 않는다.
-선택은 ProjectConfig.parameters.components.tools.enabled에만 저장한다.
+선택은 ProjectConfig.parameters.components.tools.config.enabled에만 저장한다.
 설정 저장은 list[str]/중복만 검증하며 패키지 유효성은 준비/실행 경계에서 확인한다.
 
 ## Dependencies
@@ -118,10 +124,14 @@ backend handler는 Project 함수가 아닌 trusted process adapter다.
 실제 호출마다 fresh execution child가 생성된다. pyc나 함수/모듈 캐시는 재사용하지 않는다.
 모듈 전역 counter/cache/client는 호출 간 보존되지 않는다. 영속 상태는 Project 자료나 외부 저장소를 사용한다.
 Run은 해석 당시 source/requirements SHA-256 binding을 유지한다. child가 실제 읽은 내용의
-fingerprint를 다시 확인하며, 변경되었으면 실행을 거부한다. 다음 Run은 새 소스를 해석한다.
+fingerprint를 다시 확인하며, 변경되었으면 실행을 거부한다. child는 import 전에 부모가 전달한
+Project 소유권·필수 목록도 검증하며 명시적 빈 requirements 파일 소실도 실행을 차단한다. 다음 Run은 새 소스를 해석한다.
 소스가 같아도 import 시 동적으로 생성한 schema/default/contract가 달라지면 descriptor hash 검사로 실행을 거부한다.
 binding은 Loop/Graph 승인·재개 검사에도 포함되므로 변경된 소스에 과거 승인을 적용할 수 없다.
-clone/backup은 소스와 requirements만 포함한다. backup 검증은 정적이며 restore는 설치하지 않는다.
+clone은 소스·requirements를 새 Project 소유 목록에 명시적으로 생성한다. backup은 owner의
+패키지 목록과 사용량 영수증도 보존한다. backup 검증은 정적이며 restore는 설치하지 않는다.
+Hub 외부 패키지 가져오기는 read_source_package로 정규 파일·정적 텍스트를 검증한 뒤
+새 패키지를 생성한다. 내부 저장소의 필수 목록 검증을 생략하는 조회 경로로 사용하지 않는다.
 Project 삭제가 Host의 공용 plugin/lib를 삭제하지 않는다.
 
 소스는 신뢰한 Host/UI 관리 코드다. worker는 Python runtime isolation이며 **OS sandbox가 아니다**.

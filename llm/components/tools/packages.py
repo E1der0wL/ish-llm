@@ -6,6 +6,8 @@
 from contextlib import ExitStack
 from copy import deepcopy
 import importlib
+import hashlib
+import re
 import importlib.metadata
 import os
 from pathlib import Path
@@ -19,7 +21,7 @@ from typing import ClassVar
 from llm.components.base import validate_name
 from llm.components.usage import ModelUsageRecord
 from llm.services.infrastructure.storage import (reject_links, make_directory, prepare_replace,
-    temporary_file, sync_directory, unlink_file)
+    temporary_file, sync_directory, unlink_file, atomic_json, read_json, remove_named_tree)
 from .process import inspect_tool
 
 
@@ -32,14 +34,22 @@ def _checked(path):
 @dataclass(frozen=True, slots=True)
 class ToolPaths:
     COMPONENT: ClassVar[str] = "tools"
+    SCHEMA_VERSION = 1
+    MANIFEST = "packages.manifest.json"
     root: Path
+    project_id: str
+
+    def __post_init__(self):
+        validate_name(self.project_id)
 
     @classmethod
     def for_project(cls, project):
         root = _checked(project.paths.root / cls.COMPONENT)
+        if cls.COMPONENT not in project.initialized_components and root.exists():
+            raise ValueError("Undeclared Tool storage exists")
         if cls.COMPONENT in project.initialized_components and not root.is_dir():
             raise ValueError("Initialized Tool storage is missing")
-        return cls(root)
+        return cls(root, project.id)
 
     def package(self, name):
         if name == ModelUsageRecord.DIRECTORY:
@@ -51,6 +61,74 @@ class ToolPaths:
 
     def requirements(self, name):
         return _checked(self.package(name) / "requirements.txt")
+
+    @property
+    def manifest(self):
+        return _checked(self.root / self.MANIFEST)
+
+    def initialize(self):
+        if self.manifest.exists():
+            raise FileExistsError("Tool package manifest already exists")
+        if {path.name for path in self.root.iterdir()} != {ModelUsageRecord.DIRECTORY}:
+            raise ValueError("Cannot adopt undeclared Tool packages")
+        atomic_json(self.manifest, {"schema_version": self.SCHEMA_VERSION,
+            "project_id": self.project_id, "component": self.COMPONENT, "packages": {}})
+
+    @staticmethod
+    def fingerprints(value):
+        return {"source": hashlib.sha256(value["source"].encode("utf-8")).hexdigest(),
+                "requirements": hashlib.sha256(value["requirements"].encode("utf-8")).hexdigest()
+                    if "requirements" in value else None}
+
+    def inventory(self):
+        """Owner-local existence and content proof; never import package code."""
+        if not self.manifest.is_file():
+            raise ValueError("Tool package manifest must be a regular file")
+        manifest = read_json(self.manifest)
+        if (not isinstance(manifest, dict)
+                or manifest.keys() != {"schema_version", "project_id", "component", "packages"}
+                or type(manifest["schema_version"]) is not int
+                or manifest["schema_version"] != self.SCHEMA_VERSION
+                or manifest["project_id"] != self.project_id or manifest["component"] != self.COMPONENT
+                or not isinstance(manifest["packages"], dict)):
+            raise ValueError("Invalid Tool package manifest")
+        for name, entry in manifest["packages"].items():
+            self.package(name)
+            if (not isinstance(entry, dict) or entry.keys() != {"source", "requirements"}
+                    or not isinstance(entry["source"], str) or not re.fullmatch(r"[a-f0-9]{64}", entry["source"])
+                    or entry["requirements"] is not None and (not isinstance(entry["requirements"], str)
+                        or not re.fullmatch(r"[a-f0-9]{64}", entry["requirements"]))):
+                raise ValueError("Invalid Tool package content declaration")
+        actual = set()
+        for path in self.root.iterdir():
+            _checked(path)
+            if path.name in (self.MANIFEST, ModelUsageRecord.DIRECTORY):
+                continue
+            if not path.is_dir():
+                raise ValueError("Tool packages must be directories")
+            actual.add(validate_name(path.name))
+        if actual != manifest["packages"].keys():
+            raise ValueError("Tool packages are missing or undeclared")
+        packages = {}
+        for name in sorted(manifest["packages"]):
+            entry = manifest["packages"][name]
+            expected = {name + ".py"}
+            if entry["requirements"] is not None:
+                expected.add("requirements.txt")
+            actual = set()
+            for path in self.package(name).iterdir():
+                if not stat.S_ISREG(_checked(path).stat().st_mode):
+                    raise ValueError("Tool package contents must be regular files")
+                actual.add(path.name)
+            if actual != expected:
+                raise ValueError("Tool package files are missing or undeclared")
+            value = {"source": self.source(name).read_bytes().decode("utf-8")}
+            if entry["requirements"] is not None:
+                value["requirements"] = self.requirements(name).read_bytes().decode("utf-8")
+            if self.fingerprints(value) != entry:
+                raise ValueError("Tool package integrity mismatch")
+            packages[name] = validate_source(value)
+        return manifest, packages
 
 
 def requirements(text):
@@ -84,16 +162,29 @@ def validate_source(data):
 
 
 def read_package(paths, name):
-    directory = paths.package(name)
-    if not directory.is_dir():
+    paths.package(name)
+    _, packages = paths.inventory()
+    if name not in packages:
         raise FileNotFoundError("Tool package does not exist")
-    allowed = {name + ".py", "requirements.txt"}
+    return packages[name]
+
+
+def read_source_package(directory):
+    """Read an explicit external import, before it becomes Project-owned storage."""
+    directory = _checked(Path(directory))
+    name = validate_name(directory.name)
+    if name == ModelUsageRecord.DIRECTORY:
+        raise ValueError("Reserved Tool package identifier")
+    files = {}
     for path in directory.iterdir():
-        if path.name not in allowed or not stat.S_ISREG(_checked(path).stat().st_mode):
-            raise ValueError("Tool package supports only its source and requirements.txt regular files")
-    value = {"source": paths.source(name).read_text(encoding="utf-8")}
-    if paths.requirements(name).exists():
-        value["requirements"] = paths.requirements(name).read_text(encoding="utf-8")
+        if not stat.S_ISREG(_checked(path).stat().st_mode):
+            raise ValueError("Tool package contents must be regular files")
+        files[path.name] = path
+    if set(files) not in ({name + ".py"}, {name + ".py", "requirements.txt"}):
+        raise ValueError("Tool source package requires source and optional requirements")
+    value = {"source": files[name + ".py"].read_bytes().decode("utf-8")}
+    if "requirements.txt" in files:
+        value["requirements"] = files["requirements.txt"].read_bytes().decode("utf-8")
     return validate_source(value)
 
 
@@ -113,12 +204,25 @@ def _write_text(path, text):
 
 def write_package(paths, name, data):
     data = validate_source(data)
+    manifest, _ = paths.inventory()
     make_directory(paths.package(name))
     _write_text(paths.source(name), data["source"])
     if "requirements" in data:
         _write_text(paths.requirements(name), data["requirements"])
     elif paths.requirements(name).exists():
         unlink_file(paths.requirements(name))
+    manifest["packages"][name] = paths.fingerprints(data)
+    atomic_json(paths.manifest, manifest)
+
+
+def delete_package(paths, name):
+    paths.package(name)
+    manifest, packages = paths.inventory()
+    if name not in packages:
+        raise FileNotFoundError("Tool package does not exist")
+    remove_named_tree(paths.root, paths.package(name), name)
+    del manifest["packages"][name]
+    atomic_json(paths.manifest, manifest)
 
 
 def _installed(target):

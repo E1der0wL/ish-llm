@@ -13,7 +13,7 @@ def load(request):
     from llm.components.tools.packages import ToolPaths, read_package
     from llm.components.tools.process import fingerprint
     source = Path(request["source_path"])
-    data = read_package(ToolPaths(source.parent.parent), request["tool_name"])
+    data = read_package(ToolPaths(source.parent.parent, request["project_id"]), request["tool_name"])
     if (fingerprint(data["source"]) != request["source_hash"] or
             fingerprint(data.get("requirements", "")) != request["requirements_hash"]):
         raise ValueError("Tool package changed after resolution; resolve again")

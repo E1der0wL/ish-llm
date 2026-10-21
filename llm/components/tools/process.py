@@ -210,7 +210,7 @@ class ProjectToolHandler:
 
 def inspect_tool(project, name, data, plugin_lib=None):
     from .packages import ToolPaths
-    request = {"operation": "inspect", "tool_name": name,
+    request = {"operation": "inspect", "tool_name": name, "project_id": project.id,
                "source_path": str(ToolPaths.for_project(project).source(name).absolute()),
                "source_hash": fingerprint(data["source"]),
                "requirements_hash": fingerprint(data.get("requirements", "")),
