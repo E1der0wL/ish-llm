@@ -90,6 +90,7 @@ class ToolDeclarationTests(unittest.TestCase):
             session = SimpleNamespace(id="session", project_id="project",
                 paths=SimpleNamespace(state=Path(root) / "state", root=Path(root)))
             repository = OperationRepository()
+            repository.initialize(session)
             call = ToolCall("effect", {}, "step", "project", "session", "run", "business-key",
                 operation_token("project", "session", "business-key"),
                 contract=ToolContract(**DECLARATION).to_dict())

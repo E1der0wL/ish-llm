@@ -281,6 +281,9 @@ class RunRepository:
     def claim_tool_operation(self, session, call):
         return OperationRepository().claim(session, call)
 
+    def has_tool_operations(self, session):
+        return OperationRepository().has_records(session)
+
     def complete_tool_operation(self, session, call, result):
         return OperationRepository().complete(session, call, result)
 

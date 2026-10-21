@@ -109,12 +109,20 @@ operation_key 콜백은 동기 함수이며 문자열 또는 None을 반환한�
 저장 구조:
 
 ```text
+project/sessions/<session_id>/state/tool_operations/manifest.json
 project/sessions/<session_id>/state/tool_operations/<sha256>.json
 ```
 
-기록에는 원본 Run/Step ID, 업무 키, Tool 이름과 인자의 digest, started/completed 상태,
-완료 결과 및 확인 근거가 들어간다. 실행 기록의 별도 계층을 만드는 것이 아니라 Session
-안의 여러 Run에서 같은 외부 작업을 반복하지 않기 위한 인덱스다. Run/Step 저장은
+새 Session 생성 때 명시적인 빈 manifest를 만들며 이후 조회/재시작에서 재생성하지 않는다.
+manifest는 owner·현재 버전·필수 원장 파일과 내용 리비전을 선언한다. 목록과 실제 파일이
+다르거나 원장/manifest/루트가 소실되면 재실행 전에 거부하고 원본을 보존한다.
+
+기록에는 원본 Run/Step ID, 업무 키, Tool 이름·인자·계약의 digest,
+started/completed/not_applied 상태, 완료 결과·확인 근거·시도/외부 관찰 이력이 들어간다.
+모든 현재 저장 필드는 필수다. started의 ended_at/evidence/result는 명시 null이며
+terminal 상태에는 종료 시각·근거가 필요하다. completed 결과 null은 유효하다.
+명시적인 무효과 증거가 있는 not_applied만 다시 예약할 수 있다. 이 원장은 Session
+안의 여러 Run에서 같은 외부 작업을 반복하지 않기 위한 영속 증거다. Run/Step 저장은
 계속 기존 서비스가 맡는다. `RunRepository`의 메서드로 사용자 저장소도 대체할 수 있다.
 
 1. 승인 기록을 Step에 저장한다.
@@ -131,7 +139,9 @@ operation_uncertain으로 차단한다. 병렬 Graph 분기도 동일한 원장�
 
 이 설계는 자동 재실행을 막는 것이며 외부 서버의 exactly-once를 단독으로 보장하지 않는다.
 제공자의 idempotency 지원/보관 기간과 조회 API가 필요하다. 키가 없는 호출, 다른 Session,
-원장 삭제/오래된 백업 복원, 핸들러 내부의 독자적인 재시도는 별도 고려 대상이다.
+오래된 백업 복원, 핸들러 내부의 독자적인 재시도는 별도 고려 대상이다. 소유자가 검증하는
+원장 파일의 소실은 차단하지만 외부 작성자가 모든 관련 증거를 함께 제거하는 공격까지
+로컬 manifest만으로 탐지한다고 보장하지 않는다.
 원장은 memory 대화 모드에서도 영속적이며 Session 복제는 새 작업 범위를 만든다.
 
 ## 결과 확인과 복구

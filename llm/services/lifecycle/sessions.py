@@ -49,8 +49,11 @@ class SessionRepository:
         if data["id"] != session_id or data["project_id"] != project_id:
             raise ValueError("Session ownership mismatch")
         ProjectConfig.validate_session(data["config"])
+        session = Session.from_record(data, paths)
+        from llm.services.runtime.operations import OperationRepository
+        OperationRepository().has_records(session)
         log_event(paths.logs, "session.loaded", entity_id=session_id)
-        return Session.from_record(data, paths)
+        return session
 
     def read_backup(self, project):
         """Session 파일/대화만 검증한다. 실행 복구나 로그 쓰기를 하지 않는다."""
@@ -67,6 +70,8 @@ class SessionRepository:
             if session.status == SessionStatus.RUNNING or session.current_run_id is not None:
                 raise ValueError("Backup contains an active Session")
             ConversationStore(session.paths.conversation).list()
+            from llm.services.runtime.operations import OperationRepository
+            OperationRepository().validate_backup(session)
             sessions.append(session)
         return sessions
 
@@ -80,7 +85,15 @@ class SessionRepository:
 
     def save(self, session: Session) -> None:
         ProjectConfig.validate_session(session.config)
+        from llm.services.runtime.operations import OperationRepository
+        operations = OperationRepository()
+        creating = not session.paths.root.exists()
+        if not creating:
+            Session.from_record(read_domain_record(session.paths.root / "session.json"), session.paths)
+            operations.has_records(session)
         atomic_domain_json(session.paths.root / "session.json", record(session))
+        if creating:
+            operations.initialize(session)
         log_event(session.paths.logs, "session.saved", entity_id=session.id, status=session.status)
 
     def load(self, project: Project, session_id: str) -> Session:

@@ -106,6 +106,7 @@ class VersionContracts(unittest.TestCase):
         call = ToolCall("effect", {}, "step", "project", "session", "run", "key",
                         operation_token("project", "session", "key"), contract=TEST_CONTRACT.to_dict())
         repository = OperationRepository()
+        repository.initialize(session)
         self.assertEqual(repository.claim(session, call), {"reused": False})
         self.rejects_invalid_versions_without_writing(
             repository._path(session, "key"), "schema_version",

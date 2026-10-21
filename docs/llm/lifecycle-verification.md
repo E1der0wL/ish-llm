@@ -5,6 +5,62 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-b 외부 작업 원장의 필수 존재·상태 증거
+
+H2-a 커밋 `ad0eda7f532a7175293207cfc0bc8e85b2981afd`에서 이어서 작업했다.
+아래 H2-a 당시의 원장 소실/무효과 증거 소실 2개 실패를 저장소 회귀로 편입했다.
+
+### 구현 경계
+
+- 새 Session 생성 때 `OperationRepository`가 명시적인 빈 `manifest.json`을 만든다.
+  기존 Session의 조회·저장·재시작에서 누락된 manifest나 원장 루트를 다시 만들지 않는다.
+  manifest는 현재 schema version·Project/Session owner·원장 파일 목록과 리비전을 요구한다.
+  선언된 파일 소실·미선언 파일·링크·현재 내용 리비전 불일치를 거부한다.
+- `OperationRecord`는 현재 직렬화 필드 전부를 요구한다. started의 종료 시각·증거·결과는
+  명시 null이며, completed/not_applied는 종료 시각과 비어 있지 않은 근거가 필수다.
+  완료 결과 null도 유효하다. 요청 digest, Tool 계약, 시각·시도 이력·외부 관찰을 검증하며
+  증거가 빠진 not_applied를 새 실행 허가로 바꾸지 않는다.
+- 원장 파일·manifest·Step receipt는 기존 workspace transaction에서 함께 확정한다.
+  Session 백업은 원장 owner의 전체 검증을 호출한다. 보관 판단도 owner의 기록 존재 조회를
+  사용하므로 생성 시 빈 manifest가 모든 Session을 불필요하게 고정하지 않는다.
+  manifest와 checksum은 삭제 허가나 외부 효과 취소 증거가 아니다.
+
+### 실패 재현과 검증 — 2026-10-21
+
+보강 전 새 원장 회귀 2개는 모두 실패했다. 이후 집중 검증은 56 pass(10.774초),
+69 pass(14.686초), 마지막 원장·정적 검사 계약 22 pass(3.392초)였다.
+각 묶음의 failure·error·Skip은 0이다. 중복된 집중 시험 수를 독립 전체 시험 수에 더하지 않는다.
+
+`tests.llm.test_operation_integrity`는 실제 파일 효과, 원장/manifest/루트 소실,
+필수 필드·상태 증거, 완료 manifest 저장 실패 rollback을 검증한다. 별도 프로세스가 예약
+레코드 저장 직후 manifest 저장 전에 exit 77로 종료되면 기존 transaction 복구로 미확정
+예약을 되돌린다. 그때 효과는 0이며 재시작 후 첫 정규 실행만 효과 1회다. 완료 기록 저장
+실패 후에는 started를 유지하고 같은 작업을 다시 실행하지 않는다.
+
+| 검사 | 실제 결과 |
+|---|---|
+| 전체 LLM | 1,759 pass, failure·error·Skip 0, 504.286초, exit 0 |
+| 전체 Hub | 540 pass, failure·error·Skip 0, 672.254초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 미정리 후보 561개, exit 0 |
+| R3 mutation | 한도 전달 누락에 따른 두 번째 실제 파일 효과 검출, 검사 도구 exit 0 |
+| 문서 검사 | 130개 문서, Python fence 178개, 상대 링크 931개, anchor 34개, 오류 0 |
+
+발견/시작 ID는 각각 1,759/540개이고 누락·중복·예상 밖 ID는 0이다.
+상태 선언으로 해소한 기존 정적 후보 16개만 baseline에서 제거했다. 남은 561개는 예외 승인이 아니다.
+Python·잠긴 의존성·ish 호스트·실제 격리/X11 실행 환경은 H2-a와 같다.
+전체 회귀 동안 제품·테스트·예제 Python 653개의 SHA-256이 동일했다. manifest SHA-256은
+`01e057f3f7dd2f6a17fe27e7a0a1407575305346320b402c73e73ed8f30c81af`이며,
+원시 로그·JSON·전후 manifest는 `/workspace/llm-clean-resume/h2-b/final/`에 있다.
+사용자 지침에 따라 전체 검증 성공 후 문서를 먼저 갱신하고 커밋·Push한다.
+
+### H2의 남은 차단 항목
+
+별도 `checkpoint-loss-probe.py`에서 완료한 Graph 노드의 개별 기록 파일을 제거한 뒤
+재시작·Resume하면 파일 효과가 `first`에서 `first/first/second`로 늘었다. 1 failure,
+error·Skip 0, 1.241초, exit 1이며 전체 suite 성공에 합산하지 않는다.
+다음 H2 계약군은 이 Checkpoint 기록 소실을 먼저 막는다. 출력 저널과 나머지 Component의
+존재/필드/상태 계약, H3–H5, P1 잔여 작업과 A–F는 아직 완료하지 않았다.
+
 ## H2-a 도메인 필수 기록·사용량·Refinement
 
 재개 시 실제 원격 `refactor/llm-clean`은 `89f3a771d4f21630c92f31827fe86868064c8554`였다.
@@ -76,10 +132,10 @@ Python 3.12.14와 hash 고정된 `tests/llm/dependencies-linux.lock`, 위 ish �
 `73593a5ecf288f77e3c3ae6e517e4d421548b8d782d66b6eacd77c6b04c4a6cd`다.
 원시 로그·JSON·전후 manifest는 `/workspace/llm-clean-resume/h2-a/final/`에 있다.
 
-### H2 잔여 안전성 차단
+### H2-a 당시 추가로 확인한 실패
 
-H2-a 통과는 H2 전체 완료가 아니다. 전체 회귀의 소스를 고정한 상태에서 별도 실제 효과
-시험으로 다음 두 미해결 경로를 확인했다.
+H2-a 통과는 H2 전체 완료가 아니었다. 전체 회귀의 소스를 고정한 상태에서 별도 실제 효과
+시험으로 다음 두 경로를 확인했다. 위 H2-b에서 보강·검증했으며 원래 실패 기록을 보존한다.
 
 1. 완료된 외부 작업 원장 JSON 하나를 제거하고 재시작하면 동일 business key의 Tool이 다시
    실행된다. 기존 Step receipt가 남아 있어도 원장이 재생성되고 파일에 효과 2회가 기록됐다.
@@ -88,8 +144,8 @@ H2-a 통과는 H2 전체 완료가 아니다. 전체 회귀의 소스를 고정�
 
 `/workspace/llm-clean-resume/operation-loss-probe.py`의 별도 시험은 2 failure, error·Skip 0,
 0.358초, exit 1이다. 기존 전체 suite 성공에 합쳐 통과로 계산하지 않는다.
-원장 필수 존재·상태별 증거를 owner가 보강하기 전 H2 완료나 P1/A–F 진행은 금지한다.
-Checkpoint 개별 기록·출력 저널·나머지 Component 존재/상태 계약, H3–H5도 남아 있다.
+원장 두 실패는 H2-b의 집중/전체 검증을 통과했다. Checkpoint 개별 기록·출력 저널·
+나머지 Component 존재/상태 계약, H3–H5는 별도로 남아 있다.
 
 ## H1 승인 기록
 

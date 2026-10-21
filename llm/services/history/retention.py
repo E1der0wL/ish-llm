@@ -46,7 +46,7 @@ class HistoryRetention:
             if any((session.paths.state / "maintenance").glob("*.json")):
                 reasons.append("pending_maintenance")
             # 외부 효과 원장은 Run 제거와 독립적으로 수명을 정해야 하므로 보수적으로 유지한다.
-            if (session.paths.state / "tool_operations").exists():
+            if self.manager.sessions.run_repository.has_tool_operations(session):
                 reasons.append("external_operation_history")
             keep = set(refs["run_ids"])
             protected_messages = set(refs["message_ids"])
@@ -192,7 +192,7 @@ class HistoryRetention:
             completed = {r.id for r in runs if r.status == "completed"}
             if any(m.status in ("queued", "streaming") or m.status == "committed" and m.run_id not in completed for m in messages):
                 reasons.append("pending_message")
-            if (session.paths.state / "tool_operations").exists():
+            if self.manager.sessions.run_repository.has_tool_operations(session):
                 reasons.append("external_operation_history")
             if session.metadata.get("retain"):
                 reasons.append("pinned")
