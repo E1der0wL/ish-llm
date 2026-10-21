@@ -76,22 +76,6 @@
       "detail": "SDK-shaped field indexing outside Provider package"
     },
     {
-      "id": "37eaa1af6847b19787713a433fdb62857e0f434fbbe782ebd676774b68bda1fd:1",
-      "rule": "S3",
-      "file": "llm/components/rag/component.py",
-      "symbol": "RAGComponent.prepare",
-      "line": 537,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "68958c7f94bdfd1b506a7384609bfd3671e7648864597076f0e252b0e74e5e31:1",
-      "rule": "S3",
-      "file": "llm/components/rag/extraction.py",
-      "symbol": "TripleExtractor.extract",
-      "line": 130,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "db849b1b98142469bfec265b09446dc99b6d8c91eb0fbe52e7db21987c970f80:1",
       "rule": "S6",
       "file": "llm/components/rag/extraction.py",

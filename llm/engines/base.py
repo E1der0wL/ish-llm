@@ -2,6 +2,7 @@
 
 Engine contract, Step event lifecycle, and adapter-owned model streaming."""
 
+from llm.providers.codes import ProviderErrorCode
 import asyncio
 import inspect
 import json
@@ -464,7 +465,7 @@ class BaseEngine:
             try:
                 return retry.remaining()
             except TimeoutError as error:
-                raise ProviderError("provider_timeout") from error
+                raise ProviderError(ProviderErrorCode.TIMEOUT.value) from error
 
         for attempt in range(attempts):
             call_details = {"call_id": call_id, "attempt": attempt + 1, **adapter.describe_request(request)}
@@ -477,7 +478,7 @@ class BaseEngine:
                     async with timeout(remaining()):
                         result.reserved_tokens = await usage_scope.reservation(invocation)
                 except TimeoutError as error:
-                    raise ProviderError("provider_timeout") from error
+                    raise ProviderError(ProviderErrorCode.TIMEOUT.value) from error
             started = time.monotonic()
             if include_events:
                 yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
@@ -493,7 +494,7 @@ class BaseEngine:
                         except StopAsyncIteration:
                             break
                         except TimeoutError as error:
-                            raise ProviderError("provider_timeout") from error
+                            raise ProviderError(ProviderErrorCode.TIMEOUT.value) from error
                         if include_events or isinstance(item, str):
                             yield item
             except (asyncio.CancelledError, GeneratorExit):
@@ -541,7 +542,7 @@ class BaseEngine:
                                 adapter.classify_error(error), adapter.classify_error(error).replace("_", " "), attempt + 1, True,
                             adapter.retry_fields(request)), retry_decider)
                 except TimeoutError as timeout_error:
-                    raise ProviderError("provider_timeout") from timeout_error
+                    raise ProviderError(ProviderErrorCode.TIMEOUT.value) from timeout_error
                 if selected is None:
                     raise
                 # Transcript/Tool authority/input budget은 이미 준비됐다. transport만 수정한다.
@@ -555,7 +556,7 @@ class BaseEngine:
                                    reason="retry_after_exceeds_max_delay")
                         raise error
                 except TimeoutError as timeout_error:
-                    raise ProviderError("provider_timeout") from timeout_error
+                    raise ProviderError(ProviderErrorCode.TIMEOUT.value) from timeout_error
                 from llm.providers.observations import record_retry
                 # 확정된 대기 시작을 알린다. UI의 countdown/취소 관찰 계약을 유지한다.
                 record_retry("completion")

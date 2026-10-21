@@ -1,5 +1,6 @@
 """문서·임베딩·색인의 세대 관리. 공개 핸들은 잠금 아래에서 이 구현을 호출한다."""
 
+from llm.providers.codes import ProviderErrorCode
 from copy import copy, deepcopy
 from dataclasses import fields
 from hashlib import sha256
@@ -761,12 +762,12 @@ class RAGComponent(DefinitionComponent):
                     code = error_code(error)
                     # 저장/한도/프로그래밍 오류는 best_effort로 숨기지 않는다.
                     if policy != ExtractionFailurePolicy.BEST_EFFORT.value or not (isinstance(error, GraphValidationError) or code in (
-                            "provider_timeout", "provider_connection", "provider_unavailable",
-                            "provider_rate_limit", "provider_empty_response", "provider_invalid_response")):
+                            ProviderErrorCode.TIMEOUT.value, ProviderErrorCode.CONNECTION.value, ProviderErrorCode.UNAVAILABLE.value,
+                            ProviderErrorCode.RATE_LIMIT.value, ProviderErrorCode.EMPTY_RESPONSE.value, ProviderErrorCode.INVALID_RESPONSE.value)):
                         raise
                     document["graph_complete"] = False
                     document["graph_diagnostics"].append(diagnostic("graph_incomplete", severity="warning",
-                        batch_offset=offset, cause=code if code != "provider_failed" else "graph_validation_failed").to_dict())
+                        batch_offset=offset, cause=code if code != ProviderErrorCode.FAILED.value else "graph_validation_failed").to_dict())
                     continue
                 finally:
                     extraction_done += 1

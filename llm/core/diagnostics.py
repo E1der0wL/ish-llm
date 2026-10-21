@@ -1,5 +1,6 @@
 """Pure projections of owner-supplied diagnostics; classification grants no authority."""
 
+from llm.providers.codes import ProviderErrorCode
 from dataclasses import dataclass, field
 from .contracts import Diagnostic, JsonValue
 
@@ -20,14 +21,14 @@ def classify_diagnostic(value: Diagnostic) -> ErrorClassification:
     projection cannot classify them. Never infer authority from a category.
     """
     known = {
-        "provider_authentication": ("access", "authentication"),
-        "provider_rate_limit": ("service", "rate_limit"),
-        "provider_timeout": ("service", "timeout"),
-        "provider_connection": ("service", "connection"),
-        "provider_unavailable": ("service", "unavailable"),
-        "provider_invalid_response": ("contract", "response"),
-        "provider_empty_response": ("contract", "response"),
-        "provider_invalid_request": ("contract", "request"),
+        ProviderErrorCode.AUTHENTICATION.value: ("access", "authentication"),
+        ProviderErrorCode.RATE_LIMIT.value: ("service", "rate_limit"),
+        ProviderErrorCode.TIMEOUT.value: ("service", "timeout"),
+        ProviderErrorCode.CONNECTION.value: ("service", "connection"),
+        ProviderErrorCode.UNAVAILABLE.value: ("service", "unavailable"),
+        ProviderErrorCode.INVALID_RESPONSE.value: ("contract", "response"),
+        ProviderErrorCode.EMPTY_RESPONSE.value: ("contract", "response"),
+        ProviderErrorCode.INVALID_REQUEST.value: ("contract", "request"),
         "completion_incomplete": ("execution", "incomplete"),
         "completion_output_limit": ("resource", "output"),
         "completion_tool_limit": ("resource", "tools"),
@@ -39,7 +40,7 @@ def classify_diagnostic(value: Diagnostic) -> ErrorClassification:
         "usage_limit": ("resource", "usage"),
         "run_timeout": ("execution", "timeout"),
         "step_timeout": ("execution", "timeout"),
-        "provider_cancelled": ("execution", "cancelled"),
+        ProviderErrorCode.CANCELLED.value: ("execution", "cancelled"),
     }
     if value.severity != "error" or value.code not in known:
         return ErrorClassification("unknown", "unknown", "unknown", {"code": value.code})
@@ -47,7 +48,7 @@ def classify_diagnostic(value: Diagnostic) -> ErrorClassification:
     evidence = {"code": value.code}
     if value.code == "completion_incomplete" and value.details.get("finish_reason") == "length":
         return ErrorClassification("resource", "output", "explicit", {**evidence, "finish_reason": "length"})
-    if value.code == "provider_invalid_request":
+    if value.code == ProviderErrorCode.INVALID_REQUEST.value:
         # Only the provider adapter owns these normalized, cause-local hints.
         hint = value.details.get("request_failure")
         if isinstance(hint, dict) and hint.get("reason") in ("context", "parameter"):

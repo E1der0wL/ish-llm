@@ -1,5 +1,6 @@
 """Repair failed model input within a live Loop, never replay a Run or Tool."""
 
+from llm.providers.codes import ProviderErrorCode
 import asyncio
 from contextlib import aclosing, contextmanager, suppress
 from contextvars import ContextVar
@@ -197,7 +198,7 @@ class ProviderRecovery:
             # Explanations may still be useful for invalid parameters/unknown
             # responses. This terminal path cannot submit a corrected request.
             if (not received and not state.outcome and self.settings.recovery_model_analysis
-                    and issue.code in ("provider_invalid_request", "provider_failed", "completion_invalid_response")
+                    and issue.code in (ProviderErrorCode.INVALID_REQUEST.value, ProviderErrorCode.FAILED.value, "completion_invalid_response")
                     and issue.classification.reason != "context"):
                 state.deadline = monotonic() + self.settings.recovery_timeout_seconds
                 try:

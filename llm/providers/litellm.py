@@ -2,6 +2,7 @@
 
 Adapt synchronous LiteLLM streaming without blocking the application's loop."""
 
+from .codes import ProviderErrorCode
 import asyncio
 import concurrent.futures
 import inspect
@@ -277,7 +278,7 @@ async def stream_completion(
                 from .requests import error_code
                 code = stable_error_code(value) or error_code(value)
                 # 확장 함수의 미분류 내부 오류는 engine_failed로 남긴다. 알려진 transport 오류만 분류한다.
-                if code == "provider_failed" and completion_fn is not completion:
+                if code == ProviderErrorCode.FAILED.value and completion_fn is not completion:
                     code = None
                 raise StreamError(code.replace("_", " ") if code else str(value),
                                   code=code, diagnostic=failure_diagnostic) from value

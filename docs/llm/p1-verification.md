@@ -15,6 +15,60 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c41: Provider 오류 코드의 소유 선언 — 로컬 Level 2
+
+순수 ProviderErrorCode 선언이 기존 10개 코드 문자열을 소유한다. Provider·Engine·진단·RAG·
+Hub 복구의 7개 제품 파일에서 52개 참조를 연결했다. .value는 기존 str이고 ProviderError의
+모듈·서명·상속·생성 동작과 알려지지 않은 명시 코드 보존, TRANSIENT 집합을 유지한다.
+RAG best_effort의 여섯 허용 오류와 추출 복구의 두 오류는 각 소비자의 별도 계약을 유지한다.
+패키지 초기화와 선언은 SDK/runtime을 가져오지 않는다. 실행 권한·재시도·예산·저장 및
+시험은 변경하지 않았다. 이전 backend의 ProviderError/error_code 부분만 조회해 변경 전
+AST가 같음을 확인했으며 코드나 과거 검증을 이식하지 않았다.
+
+새 선언을 제거하고 참조/import를 되돌리면 README 포함 8개 기존 파일의 원문이 같다.
+S3 비교 2건을 제거했다. 기존 감사 28건의 소스 의존성을 재검토했고 나머지 pin·사유·계약·
+시험을 유지했다. 기존에 검토된 진단 tuple과 RAG S2 후보도 실제 감사에서 사라졌다.
+S2 검사기는 문자열 provider_timeout의 접미사를 탐지했으나 enum 참조는 그 이름이 아니다.
+검사기·불리언 조건·여섯 값은 그대로다. 사라진 두 리뷰는 외부 증거에 원문을 보존했다.
+감사 준비 도구가 S2 대체 후보 1건을 예상해 Fixture 수정 전에 exit1로 중단했으며, 실제
+4건 제거/새 후보0과 검사기 원인을 확인해 수정했다. 제품 시험 실패나 검사 완화는 아니다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 183/183/183 | 0/0/0 | 34.890초 | 0 |
+| 집중 HUB | 34/34/34 | 0/0/0 | 44.822초 | 0 |
+| 추가 Level 2 LLM | 371/371/371 | 0/0/0 | 99.487초 | 0 |
+| 추가 Level 2 HUB | 32/32/32 | 0/0/0 | 101.826초 | 0 |
+
+각 실행의 expected failure·unexpected success·missing·unexpected·duplicates도 0이다.
+집중은 Provider·RAG·복구·경계 소비자, 추가 실행은 나머지 직접 참조 소비자·공통 안전성
+9개 모듈·감사 검사기·Hub 실제 Provider 로그/복구 설정 및 RAG Job/삭제를 포함한다.
+정확한 기존 리뷰 시험 ID 51개가 통과했다. 선택 집합은 서로 중복되지 않는다.
+제품/시험705개·입력865개·환경/의존성 및 전체 발견 목록2101/577개가 같고 감사 Fixture
+2개만 바뀌어 감사 시험은 새로 실행했다. 서로 다른 선택 실행을 전체 실행으로 합산하지 않는다.
+R3 mutation True/outer exit0, 정적 raw185·reviewed153·미해결32(S3 14·S6 18),
+new/stale/review 오류·필수 S1/S2/S4/S5 미해결0/exit0, 문서 오류0/exit0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c41-focused/llm.json --modules tests.llm.test_provider_runtime tests.llm.test_provider_diagnostics tests.llm.test_retry tests.llm.test_rag_extraction_repair tests.llm.test_rag_resilience tests.llm.test_backend_contracts tests.llm.test_adapter_boundaries tests.llm.test_base_engine tests.llm.test_rag_components
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c41-focused/hub.json --modules tests.hub.test_provider_recovery tests.hub.test_error_contract tests.hub.test_rag_defaults
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c41-level2/llm.json --modules tests.llm.test_builtin_tools tests.llm.test_completion_processing tests.llm.test_configuration_validation tests.llm.test_explicit_configuration tests.llm.test_loop tests.llm.test_naming_contract tests.llm.test_observability tests.llm.test_operational_storage tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_optimization tests.llm.test_schema_ownership tests.llm.test_settings_contract tests.llm.test_unified_rag tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions tests.llm.test_architecture_checks tests.llm.test_architecture_reviews
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c41-level2/hub.json --modules tests.hub.test_provider_activity tests.hub.test_provider_stabilization tests.hub.test_rag_jobs tests.hub.test_rag_retention
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c41-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c41-level2/aux/docs.json
+```
+
+실행 HEAD `3b8ccefa093a0b3a7e1407f0b93c3e5f4c5cc8fb`에 c41 변경을 더했다. 소스 hash `4d82d3d66eb02b516c7022c556513c4211d5a78d0e2413b225aec7fe5ba59971`,
+입력/환경 hash `7d1f2ee7e033edefb890822aa816c0f2bd467f817a5a8d73e9777c9909a1f791`가 실행 전후 같다. Python3.12.14·136 의존성·env5개와
+host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다. 원시 명령·exit·ID·log·manifest와 재사용/실패 증거는
+`/workspace/llm-clean-resume/p1/c41-level2/`, `c41-focused/`, `c41-before/` 및 c41 감사 증거에 보존했다.
+
+결과 문서를 먼저 갱신한 뒤 소스 동일성과 staged diff를 확인해 로컬 커밋한다.
+**이번 소단계는 전체 회귀를 실행하지 않았다.** 동일 코드 값 참조로 영향을 한정했으며,
+남은 P1 선언을 묶은 Level3에서 전체 회귀 후 Push한다. P1 최종 S1–S5 및 A–F는 미완료이고
+원격 CI 실제 결과도 미확인이다. 보호 브랜치와 PR은 유지한다.
+
 ## P1-c40: 상태·출처·관찰·제목 해시의 소유 선언 — c39–c40 묶음 Level 3
 
 9개 파일에서 기존 값의 소유 선언을 연결했다. RAGJobs의 다섯 Job 재개 상태는 열린 문자열

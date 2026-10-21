@@ -18,6 +18,7 @@ retry 경로에 넣지 않으며, 승인·효과 영수증·재시도는 기존 
 | [runtime.py](runtime.py) | LiteLLM 지연 초기화, SDK 재시도·런타임 격리 불변식, 로그·진단 라우팅입니다. |
 | [parameters.py](parameters.py) | 설정 컨테이너를 복사·병합하며 주입된 runtime client의 identity를 유지합니다. |
 | [schema.py](schema.py) | provider 소유 Completion/Embedding/Rerank 설정 계약과 검증입니다. SDK 확장 인자는 변형하지 않고 전달합니다. |
+| [codes.py](codes.py) | SDK/runtime에 의존하지 않는 정규 Provider 오류 코드 선언입니다. |
 | [requests.py](requests.py) | request_model 호출 경계와 invoke의 비스트리밍 시도, 명시적 wall timeout/outer retry, ProviderError 분류입니다. |
 | [retry.py](retry.py) | 일시적 오류와 명시적 SDK retry를 판단하고 중첩 retry를 방지합니다. |
 | [calls.py](calls.py) | ProviderCalls/ProviderLimits가 호스트의 명시적 동시 호출·대기 제한을 적용합니다. |
@@ -44,6 +45,12 @@ decoder/transport 선택을 함께 소유한다. BaseEngine은 `CompletionAdapte
 있으며 SDK 필드명으로 분기하지 않는다. 다른 어댑터도 ProviderCalls admission, 사용량,
 취소, 진단, 명시적 상한 집행을 제공해야 한다. 부분 chunk 수신 이후 재시도 금지는 공통
 실행 경계에서 유지한다. Loop는 canonical 메시지/Tool 대화 계약을 계속 사용한다.
+
+정규 Provider 실패 코드는 `codes.py`의 `ProviderErrorCode`가 소유한다. 분류·발생 경계와
+Engine/RAG/Hub·순수 진단 투영은 동일한 문자열 값을 참조한다. 알 수 없는 명시적
+CodedError는 계속 보존하며 이 enum으로 허용 코드를 제한하지 않는다. `ProviderError`의
+기존 공개 위치·생성자는 유지한다. RAG의 허용 실패 집합과 transport의 TRANSIENT는
+각 owner의 별도 판단이며 코드 선언 공유가 재시도 권한·예산을 만들지 않는다.
 
 ## 초기화와 retry 계약
 

@@ -1,5 +1,6 @@
 """모델 응답을 출처가 있는 엔티티·트리플로 변환한다. 저장은 Component가 담당한다."""
 
+from llm.providers.codes import ProviderErrorCode
 import hashlib
 import json
 import re
@@ -208,7 +209,7 @@ class TripleExtractor(ModelClient):
                     **({"response_format": {"type": "json_object"}} if mode in (ExtractionJSONMode.STRICT.value, ExtractionJSONMode.AUTO.value) else {"_without_response_format": True} if mode == ExtractionJSONMode.OFF.value else {}),
                     messages=messages)
             except Exception as error:
-                if mode != ExtractionJSONMode.AUTO.value or error_code(error) not in ("provider_empty_response", "provider_invalid_response"):
+                if mode != ExtractionJSONMode.AUTO.value or error_code(error) not in (ProviderErrorCode.EMPTY_RESPONSE.value, ProviderErrorCode.INVALID_RESPONSE.value):
                     raise
                 mode = ExtractionJSONMode.OFF.value
                 diagnostic("provider_json_mode_fallback", operation="acompletion")

@@ -1,5 +1,6 @@
 """안전하게 반복 가능한 비스트리밍 추론 호출의 제한·오류 분류. Tool에는 적용하지 않는다."""
 
+from .codes import ProviderErrorCode
 import asyncio
 import time
 import math
@@ -52,38 +53,38 @@ def error_code(error):
         return known
     for error in exception_chain(error):
         if isinstance(error, asyncio.CancelledError):
-            return "provider_cancelled"
+            return ProviderErrorCode.CANCELLED.value
         code = getattr(error, "code", None)
         if isinstance(error, CodedError) and isinstance(code, str) and code.strip():
             return code
         status = getattr(error, "status_code", None)
         if status in (401, 403):
-            return "provider_authentication"
+            return ProviderErrorCode.AUTHENTICATION.value
         if status == 429:
-            return "provider_rate_limit"
+            return ProviderErrorCode.RATE_LIMIT.value
         if status == 408:
-            return "provider_timeout"
+            return ProviderErrorCode.TIMEOUT.value
         # LiteLLM이 빈/잘못된 응답에 붙이는 synthetic 500만 따로 분류한다.
         # 실제 서버 500과 나머지 5xx는 계속 unavailable로 유지한다.
         text = str(error).lower()
         if status == 500 and "empty or invalid response from llm endpoint" in text:
-            return "provider_invalid_response"
+            return ProviderErrorCode.INVALID_RESPONSE.value
         if isinstance(status, int) and 500 <= status < 600:
-            return "provider_unavailable"
+            return ProviderErrorCode.UNAVAILABLE.value
         if isinstance(status, int) and 400 <= status < 500:
-            return "provider_invalid_request"
+            return ProviderErrorCode.INVALID_REQUEST.value
         name = type(error).__name__.lower()
         if "empty or invalid response" in text or "received: none" in text:
-            return "provider_invalid_response"
+            return ProviderErrorCode.INVALID_RESPONSE.value
         if isinstance(error, (TimeoutError, asyncio.TimeoutError)) or "timeout" in name:
-            return "provider_timeout"
+            return ProviderErrorCode.TIMEOUT.value
         if isinstance(error, ConnectionError) or name in ("apiconnectionerror", "connecterror", "readerror", "remoteprotocolerror"):
-            return "provider_connection"
-    return "provider_failed"
+            return ProviderErrorCode.CONNECTION.value
+    return ProviderErrorCode.FAILED.value
 
 
-TRANSIENT = {"provider_timeout", "provider_connection", "provider_rate_limit", "provider_unavailable",
-             "provider_empty_response", "provider_invalid_response"}
+TRANSIENT = {ProviderErrorCode.TIMEOUT.value, ProviderErrorCode.CONNECTION.value, ProviderErrorCode.RATE_LIMIT.value, ProviderErrorCode.UNAVAILABLE.value,
+             ProviderErrorCode.EMPTY_RESPONSE.value, ProviderErrorCode.INVALID_RESPONSE.value}
 
 
 async def request_model(operation, request, options, *, call=None, deadline=None,
@@ -124,7 +125,7 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
         try:
             remaining = policy.remaining()
         except TimeoutError as error:
-            raise ProviderError("provider_timeout") from error
+            raise ProviderError(ProviderErrorCode.TIMEOUT.value) from error
         try:
             # 취소는 BaseException이므로 retry되지 않는다. 각 시도에 가변 인자 사본을 전달한다.
             async def checked(**params):
@@ -138,17 +139,17 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
                     if admission is not None:
                         admission.release()
                 if result is None:
-                    raise ProviderError("provider_empty_response")
+                    raise ProviderError(ProviderErrorCode.EMPTY_RESPONSE.value)
                 if operation == "acompletion":
                     from .embeddings import value
                     choices = value(result, "choices")
                     if not isinstance(choices, list) or not choices:
-                        raise ProviderError("provider_invalid_response")
+                        raise ProviderError(ProviderErrorCode.INVALID_RESPONSE.value)
                     content = value(value(choices[0], "message"), "content")
                     if content is None or isinstance(content, str) and not content.strip():
-                        raise ProviderError("provider_empty_response")
+                        raise ProviderError(ProviderErrorCode.EMPTY_RESPONSE.value)
                     if not isinstance(content, str):
-                        raise ProviderError("provider_invalid_response")
+                        raise ProviderError(ProviderErrorCode.INVALID_RESPONSE.value)
                 return result
             with diagnostic_context(**details, attempt=attempt + 1):
                 from .litellm import describe_call
@@ -157,9 +158,9 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
             code = error_code(error)
             failure = diagnostic_failure(error, operation=operation, stage="invoke", attempt=attempt + 1,
                                **details, elapsed_seconds=time.monotonic() - started)
-            correctable = code == "provider_invalid_request" and decide is not None and bool(changeable)
+            correctable = code == ProviderErrorCode.INVALID_REQUEST.value and decide is not None and bool(changeable)
             if (code not in TRANSIENT and not correctable) or not policy.allows(attempt + 1):
-                if (code == "provider_failed" and not sdk_defaults) or not code.startswith("provider_"):
+                if (code == ProviderErrorCode.FAILED.value and not sdk_defaults) or not code.startswith("provider_"):
                     raise
                 raise ProviderError(code, diagnostic=failure) from error
             try:
@@ -177,7 +178,7 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
                                call_id=call_id, reason="retry_after_exceeds_max_delay")
                     raise ProviderError(code, diagnostic=failure) from error
             except TimeoutError as timeout_error:
-                raise ProviderError("provider_timeout") from timeout_error
+                raise ProviderError(ProviderErrorCode.TIMEOUT.value) from timeout_error
             diagnostic("provider_retry", operation=operation, attempt=attempt + 2,
                        call_id=call_id, delay_seconds=delay, modified=bool(selected.changes))
             from .observations import record_retry
