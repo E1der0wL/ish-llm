@@ -12,6 +12,7 @@ from unittest.mock import patch
 from llm.llm import LargeLanguageModel, LoopEngine, ProjectConfig, EngineEventType, BackendServices
 from llm.core.steering import InstructionStatus
 from llm.services.runtime.runs import RunRequestError
+from llm.services.infrastructure.storage import atomic_domain_json, record as stored_record
 from tests.llm.test_loop import chunk, call
 from tests.llm.support.runtime_tools import RuntimeTools
 from llm.components.tools import Tool, ToolRegistry
@@ -350,7 +351,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
             record = app.run_repository.load(session.data, run.id)
             record.status, record.ended_at = RunStatus.RUNNING, None
             record.metadata["steering"]["accepting"] = True
-            app.run_repository.save(record)
+            atomic_domain_json(record.paths.root / "run.json", stored_record(record))
             store = app.project_manager.sessions.conversations(session.data)
             store.set_status(record.assistant_message_id, MessageStatus.STREAMING)
             return store.create(MessageRole.USER, "pending before crash", MessageStatus.QUEUED, run_id=run.id,
@@ -378,7 +379,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         def make_stale():
             saved = app.run_repository.load(session.data, run.id)
             saved.status, saved.ended_at = RunStatus.RUNNING, None
-            app.run_repository.save(saved)
+            atomic_domain_json(saved.paths.root / "run.json", stored_record(saved))
             store = app.project_manager.sessions.conversations(session.data)
             store.set_status(saved.assistant_message_id, MessageStatus.STREAMING)
             store.create(MessageRole.USER, "old pending instruction", MessageStatus.QUEUED, run_id=run.id,

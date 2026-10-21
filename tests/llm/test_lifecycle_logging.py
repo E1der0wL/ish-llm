@@ -96,7 +96,18 @@ class LifecycleTests(unittest.TestCase):
                              for item in records(self.project.paths.logs)))
 
     def test_permanent_delete_rejects_persisted_active_run(self) -> None:
+        from llm.core.models import Run, RunStatus, new_id
+        identifier = new_id()
+        store = ConversationStore(self.session.paths.conversation)
+        request = store.create(MessageRole.USER, "active", MessageStatus.COMMITTED, run_id=identifier)
+        assistant = store.create(MessageRole.ASSISTANT, "", MessageStatus.STREAMING, run_id=identifier)
+        repository = self.sessions.run_repository
+        run = Run(identifier, self.session.id, request.id, assistant.id, "fake",
+                  repository.paths(self.session, identifier), status=RunStatus.RUNNING)
+        run.started_at = run.created_at
+        repository.create(run)
         self.session.status = SessionStatus.RUNNING
+        self.session.current_run_id = run.id
         self.sessions.repository.save(self.session)
         for manager, item in ((self.sessions, self.session), (self.projects, self.project)):
             with self.assertRaises(ValueError):

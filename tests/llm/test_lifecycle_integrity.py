@@ -194,11 +194,11 @@ class DomainRecordTests(unittest.TestCase):
         runs = RunRepository()
         run_id = new_id()
         run = Run(run_id, self.session.id, new_id(), new_id(), 'loop', runs.paths(self.session, run_id))
-        runs.save(run)
+        runs.create(run)
         steps = StepRepository()
         step_id = new_id()
         step = Step(step_id, run.id, 'tool', 'effect', steps.paths(run, step_id))
-        steps.save(step)
+        steps.create(step)
         cases = [
             (self.project.paths.root / 'project.json', lambda: self.projects.load(self.project.id)),
             (self.session.paths.root / 'session.json', lambda: self.sessions.load(self.project, self.session.id)),

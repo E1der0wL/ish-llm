@@ -218,7 +218,11 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                                           run_id=run_id)
             run = Run(run_id, self.session.id, message.id, assistant.id, "fake",
                       self.manager.repository.paths(self.session, run_id), status=status)
-            self.manager.repository.save(run)
+            if status in Run.STARTED_STATES:
+                run.started_at = run.created_at
+            if status not in Run.ACTIVE_STATES:
+                run.ended_at = run.created_at
+            self.manager.repository.create(run)
             self.store.bind_run(message.id, run.id)
             self.manager.steps.create(run, "tool", "pending")
             step = self.manager.steps.create(run, "llm", "running")
@@ -247,7 +251,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         run_id = new_id()
         run = Run(run_id, self.session.id, claimed.id, new_id(), "fake",
                   self.manager.repository.paths(self.session, run_id))
-        self.manager.repository.save(run)
+        self.manager.repository.create(run)
         self.store.create(MessageRole.USER, "future", MessageStatus.QUEUED, metadata={"engine": "fake"})
         await self.manager.start()
         await self.idle()

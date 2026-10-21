@@ -12,6 +12,7 @@ from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.configuration_fixtures import configure_engine
 from llm.llm import LargeLanguageModel, ProjectConfig, LoopEngine, Tool, ToolRegistry, ToolComponent, BackendServices
 from llm.services.runtime.tools import ToolRuntime, ToolExecutionError, ToolApprovalRequired
+from llm.services.infrastructure.storage import atomic_domain_json, record as domain_record
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 from tests.llm.support.runtime_tools import TEST_CONTRACT
 
@@ -124,7 +125,8 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(repository.completion_history(session.data), first)
         updated = run.data
         updated.metadata['completions'][0]['reserved_tokens'] = 777
-        repository.save(updated)
+        # Replace the source to test cache invalidation, bypassing normal immutable receipts.
+        atomic_domain_json(updated.paths.root / 'run.json', domain_record(updated))
         self.assertEqual(repository.completion_history(session.data)[0]['reserved_tokens'], 777)
 
     async def test_prior_uncertain_retry_never_becomes_no_effect_receipt(self):
@@ -205,7 +207,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         record = first.data
         from llm.core.models import RunStatus
         record.status = RunStatus.FAILED
-        repository.save(record)
+        atomic_domain_json(record.paths.root / 'run.json', domain_record(record))
         self.assertEqual([item.id for item in await session.run.alist(query=Query(status='failed'))], [first.id])
 
     async def test_graph_tool_approval_waits_and_executes_once(self):

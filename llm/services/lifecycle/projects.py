@@ -38,11 +38,28 @@ class ProjectRepository:
         return Project.from_record(data, ProjectPaths(root))
 
     @workspace_locked
+    def create(self, project: Project) -> None:
+        if project.paths.root.exists():
+            raise FileExistsError("Project storage already exists")
+        self._write(project)
+
+    @workspace_locked
     def save(self, project: Project) -> None:
+        self.load(project.id)
+        self._write(project)
+
+    def _write(self, project: Project) -> None:
+        if project.paths.root.absolute() != self.paths(project.id).root.absolute():
+            raise ValueError("Project path mismatch")
         project.config.validate()
         project.validate_conversation_storage()
         data = record(project)
         data["config"] = project.config.to_dict()
+        for key in Project.COMPONENT_FIELDS:
+            if not isinstance(data[key], (tuple, list)):
+                raise ValueError("Project Component identities must be a sequence")
+            data[key] = list(data[key])
+        Project.from_record(data, project.paths)
         atomic_domain_json(project.paths.root / "project.json", data)
         log_event(project.paths.logs, "project.saved", entity_id=project.id)
 
@@ -111,8 +128,9 @@ class ProjectManager:
                           config=ProjectConfig() if config is None else ProjectConfig.from_dict(config), components=selected,
                           conversation_storage=storage)
         self._validate_config(project)
-        from llm.services.infrastructure.storage import make_directory
-        make_directory(project.paths.root)
+        project.components = ()
+        self.repository.create(project)
+        project.components = selected
         self.components.initialize(project)
         self.repository.save(project)
         self.sessions.initialize(deepcopy(project))

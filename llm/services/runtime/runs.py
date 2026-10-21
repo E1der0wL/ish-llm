@@ -228,10 +228,22 @@ class RunRepository:
     def record_paths(self, session):
         """Discover owned Run directories, including records missing from damaged trees."""
         from llm.services.infrastructure.storage import reject_links
+        from llm.services.history.conversation import ConversationStore
+        paths = {}
         for directory in session.paths.runs.glob("*"):
             reject_links(directory)
             if directory.is_dir() and not directory.name.startswith("."):
-                yield self.paths(session, directory.name).root / "run.json"
+                paths[directory.name] = self.paths(session, directory.name).root / "run.json"
+        required = {session.current_run_id} if session.current_run_id is not None else set()
+        # File conversations retain independent witnesses even if an entire Run tree is lost.
+        # Memory conversations need not have this file; a missing optional file is not created.
+        reject_links(session.paths.conversation)
+        if session.paths.conversation.exists():
+            required.update(message.run_id for message in ConversationStore(session.paths.conversation).list()
+                            if message.run_id is not None)
+        if not required <= paths.keys():
+            raise ValueError("Missing referenced Run record")
+        yield from paths.values()
 
     def delete_history(self, session, run_id):
         """보관 서비스가 승인한 완료 Run의 기록만 삭제한다. 재실행/상태 전이는 하지 않는다."""
@@ -299,16 +311,31 @@ class RunRepository:
     def verify_tool_operation(self, session, key, observation, expected_version):
         return OperationRepository().verify(session, key, observation, expected_version)
 
+    def create(self, run: Run) -> None:
+        if run.paths.root.exists():
+            raise FileExistsError("Run storage already exists")
+        run.metadata.setdefault("completions", [])
+        self._write(run, creating=True)
+
     def save(self, run: Run) -> None:
         path = run.paths.root / "run.json"
-        creating = not run.paths.root.exists()
-        if path.exists():
-            prior = Run.from_record(read_domain_record(path), run.paths)
-            self.completion_records(prior.metadata)
-        elif run.paths.root.exists():
+        if not path.exists():
             raise ValueError("Existing Run directory requires its stored record")
-        else:
-            run.metadata.setdefault("completions", [])
+        prior = Run.from_record(read_domain_record(path), run.paths)
+        if prior.id != run.id or prior.session_id != run.session_id:
+            raise ValueError("Run ownership mismatch")
+        if prior.status != run.status:
+            validate_run_transition(prior.status, run.status)
+        previous = {entry["id"]: entry for entry in self.completion_records(prior.metadata)}
+        current = {entry["id"]: entry for entry in self.completion_records(run.metadata)}
+        if not previous.keys() <= current.keys():
+            raise ValueError("Run update cannot remove stored completion receipts")
+        for identifier, entry in previous.items():
+            CompletionResult.validate_update(entry, current[identifier])
+        self._write(run, creating=False)
+
+    def _write(self, run: Run, *, creating: bool) -> None:
+        path = run.paths.root / "run.json"
         self.completion_records(run.metadata)
         if run.status not in (RunStatus.PENDING, RunStatus.RUNNING) and "completions" in run.metadata:
             run.metadata["completions"] = [asdict(CompletionResult.for_run(data, run))
@@ -1239,7 +1266,7 @@ class RunManager:
         if steering_mode(strategy) != SteeringMode.UNSUPPORTED:
             run.metadata["steering"] = ({"accepting": False} if "resume" in run.metadata
                                         else initial_channel(run, steering_mode(strategy), message.id))
-        self.repository.save(run)
+        self.repository.create(run)
         store.bind_run(message.id, run.id)
         store.set_status(message.id, MessageStatus.COMMITTED)
         store.create(MessageRole.ASSISTANT, "", MessageStatus.STREAMING,

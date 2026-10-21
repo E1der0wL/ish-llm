@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from llm.llm import LargeLanguageModel, LoopEngine, Tool, ToolRegistry
+from llm.services.infrastructure.storage import atomic_domain_json, record
 from tests.llm.support.runtime_tools import RuntimeTools, TEST_CONTRACT
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
@@ -127,7 +128,8 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
         with app.project_manager.ownership.scope():
             run = app.run_repository.load(session.data, first.id)
             run.metadata["completions"][0]["started_at"] = "2000-01-01T00:00:00+00:00"
-            app.run_repository.save(run)
+            # Time-shift the fixture; normal updates cannot rewrite completed evidence.
+            atomic_domain_json(run.paths.root / "run.json", record(run))
         self.assertEqual((await project.amodel_usage())["call_count"], 0)
         other = await project.sessions.acreate()
         self.assertEqual((await self.run_once(other)).data.status, "completed")

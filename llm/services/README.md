@@ -55,6 +55,8 @@ RunManager는 종료 상태와 오류의 조합, Session의 current_run_id를 �
 - 사용자 이벤트 처리기는 기존 EventContext API를 사용합니다. 정책·출력·체크포인트 등 소유자가 정해진 메타데이터를 덮어쓰지 않습니다.
 - UI 구독은 관찰용입니다. 저장소 원본과 누락 복구 경로를 유지하세요.
 - Repository 교체 시 Facade 조회와 runtime이 같은 인스턴스를 사용하도록 BackendServices에서 구성합니다.
+- Project/Session/Run/Step Repository는 신규 `create`와 기존 `save`를 구분합니다. 생성은 기존 디렉터리를 채택하지 않고, 갱신은 필수 원본과 새 값을 검증합니다. 저장된 종료 상태를 되돌리거나 호출 영수증·확정 사용량을 지우는 갱신은 거부합니다.
+- 현재 Run 포인터나 저장된 대화가 참조하는 Run의 소실은 조회·집계·시작·백업에서도 거부합니다. 메모리 대화에는 파일을 생성하지 않습니다.
 - 새 코드는 책임별 하위 패키지에 둡니다. 단순 폴더 분류를 새 실행 계층으로 만들지 않습니다.
 
 [이벤트·구독 예제](runtime/README.md), [서비스 확장 계약](../../docs/llm/service-extensions.md), [공통 데이터 API](../../docs/llm/data-contracts.md)에 세부 계약이 있습니다.

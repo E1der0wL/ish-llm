@@ -9,7 +9,7 @@ from llm.engines import EngineRegistry
 from llm.engines.loop import LoopEngine
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.runtime.runs import RunManager
-from llm.services.infrastructure.storage import StorageIO, atomic_json, read_json
+from llm.services.infrastructure.storage import StorageIO, atomic_json, read_json, atomic_domain_json, record
 from llm.services.lifecycle.sessions import SessionManager
 from tests.llm.support.fake_engine import FakeStreamingEngine
 from tests.llm.test_loop import ScriptedCompletion, chunk
@@ -165,9 +165,12 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         await self.manager.shutdown()
         self.assertFalse((self.project.paths.state / "executions").exists())
         run.status = RunStatus.RUNNING
+        run.ended_at = None
         run.metadata["completions"][0]["status"] = RunStatus.RUNNING
+        run.metadata["completions"][0]["ended_at"] = None
         run.metadata["completions"][0]["usage_complete"] = False
-        self.manager.repository.save(run)
+        # Inject a process-death snapshot; normal updates cannot reopen a terminal Run.
+        atomic_domain_json(run.paths.root / "run.json", record(run))
         other = RunManager(self.sessions, self.engines, session=self.session)
         try:
             await other.start()
@@ -249,7 +252,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         await self.manager.shutdown()
         run.status = RunStatus.RUNNING
         run.ended_at = None
-        self.manager.repository.save(run)
+        atomic_domain_json(run.paths.root / "run.json", record(run))
         self.assertEqual(self.projects.results.list(self.project), [])
         self.assertEqual(self.projects.results.list(self.project, include_running=True)[0].status, RunStatus.RUNNING)
         self.assertIsNone(self.sessions.results.load(self.session, run.id).duration_seconds)

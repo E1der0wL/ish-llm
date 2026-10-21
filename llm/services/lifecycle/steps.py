@@ -5,7 +5,7 @@ from llm.services.infrastructure.storage import read_domain_record, atomic_domai
 from llm.services.query import FileCatalog, Query, select
 from copy import deepcopy
 from typing import Optional
-from llm.core.models import ProjectConfig, Run, Step, StepStatus, new_id, now
+from llm.core.models import ProjectConfig, Run, Step, StepStatus, new_id, now, validate_step_transition
 from llm.core.paths import StepPaths
 from llm.core.results import EngineOutput
 from llm.engines.base import EngineEvent, EngineEventType
@@ -49,8 +49,23 @@ class StepRepository:
             if directory.is_dir() and not directory.name.startswith("."):
                 yield self.paths(run, directory.name).root / "step.json"
 
+    def create(self, step: Step) -> None:
+        if step.paths.root.exists():
+            raise FileExistsError("Step storage already exists")
+        self._write(step)
+
     def save(self, step: Step) -> None:
-        atomic_domain_json(step.paths.root / "step.json", record(step))
+        prior = Step.from_record(read_domain_record(step.paths.root / "step.json"), step.paths)
+        if prior.id != step.id or prior.run_id != step.run_id:
+            raise ValueError("Step ownership mismatch")
+        if prior.status != step.status:
+            validate_step_transition(prior.status, step.status)
+        self._write(step)
+
+    def _write(self, step: Step) -> None:
+        data = record(step)
+        Step.from_record(data, step.paths)
+        atomic_domain_json(step.paths.root / "step.json", data)
         log_event(step.paths.logs, "step.saved", entity_id=step.id, status=step.status)
 
     def load(self, run: Run, step_id: str) -> Step:
@@ -79,10 +94,7 @@ class StepManager:
     def _finish(self, step: Step, status: StepStatus, error: Optional[str] = None) -> None:
         from llm.services.infrastructure.transactions import watch
         watch(step)
-        if step.status not in (StepStatus.PENDING, StepStatus.RUNNING):
-            raise ValueError("Step is already terminal")
-        if status == StepStatus.COMPLETED and step.status != StepStatus.RUNNING:
-            raise ValueError("Only running Steps can complete")
+        validate_step_transition(step.status, status)
         step.status = status
         step.ended_at = now()
         step.error = error
@@ -104,7 +116,7 @@ class StepManager:
             raise ValueError("Duplicate Step ID")
         step = Step(identifier, run.id, kind, name, self.repository.paths(run, identifier),
                     metadata=metadata or {})
-        self.save(step)
+        self.repository.create(step)
         log_event(step.paths.logs, "step.created", entity_id=step.id, related_id=run.id)
         return step
 
@@ -122,8 +134,7 @@ class StepManager:
     def start(self, step: Step) -> None:
         from llm.services.infrastructure.transactions import watch
         watch(step)
-        if step.status != StepStatus.PENDING:
-            raise ValueError("Only pending Steps can start")
+        validate_step_transition(step.status, StepStatus.RUNNING)
         step.status = StepStatus.RUNNING
         step.started_at = now()
         self.save(step)

@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from llm.core.models import MessageRole as Role, MessageStatus as Status, RunStatus
+from llm.core.models import MessageRole as Role, MessageStatus as Status, RunStatus, Run, new_id
 from llm.core.checkpoints import build_envelope
 from llm.components.workflows import WorkflowGraph, WorkflowComponent
 from llm.engines.base import BaseEngine
@@ -27,10 +27,18 @@ class ConversationTurnTests(unittest.IsolatedAsyncioTestCase):
                     project = app.projects.create("P", components=[], conversation_storage=storage)
                     session = project.sessions.create("S")
                     store = app.project_manager.sessions.conversations(session.data)
-                    first = store.create(Role.USER, "first", Status.COMMITTED, run_id="first-run")
-                    second = store.create(Role.USER, "second", Status.COMMITTED, run_id="second-run")
-                    store.create(Role.ASSISTANT, "first reply", Status.COMPLETED, run_id="first-run")
-                    store.create(Role.ASSISTANT, "second reply", Status.COMPLETED, run_id="second-run")
+                    first_run, second_run = new_id(), new_id()
+                    first = store.create(Role.USER, "first", Status.COMMITTED, run_id=first_run)
+                    second = store.create(Role.USER, "second", Status.COMMITTED, run_id=second_run)
+                    first_reply = store.create(Role.ASSISTANT, "first reply", Status.COMPLETED, run_id=first_run)
+                    second_reply = store.create(Role.ASSISTANT, "second reply", Status.COMPLETED, run_id=second_run)
+                    with app.project_manager.ownership.scope():
+                        for source, reply in ((first, first_reply), (second, second_reply)):
+                            run = Run(source.run_id, session.id, source.id, reply.id, "test",
+                                      app.run_repository.paths(session.data, source.run_id),
+                                      status=RunStatus.COMPLETED, created_at=source.created_at,
+                                      started_at=source.created_at, ended_at=reply.created_at)
+                            app.run_repository.create(run)
                     self.assertEqual([[m.content for m in turn] for turn in session.turns()],
                                      [["first", "first reply"], ["second", "second reply"]])
                     clone = session.clone(through_message_id=first.id, title="branch")

@@ -468,6 +468,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_stale_run_recovery_finishes_reservation_without_scheduling_it(self):
         from llm.core.models import RunStatus, MessageRole, MessageStatus
+        from llm.services.infrastructure.storage import atomic_domain_json, record as stored_record
         from llm.services.runtime.steering import reservation_receipts
         model = Model([chunk("done", finish="stop")], gate=False)
         routes = await self.gated({"writer": model})
@@ -478,7 +479,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             record = self.app.run_repository.load(self.session.data, run.id)
             record.status, record.ended_at = RunStatus.RUNNING, None
             record.metadata["steering"]["accepting"] = True
-            self.app.run_repository.save(record)
+            atomic_domain_json(record.paths.root / "run.json", stored_record(record))
             store = self.app.project_manager.sessions.conversations(self.session.data)
             store.set_status(record.assistant_message_id, MessageStatus.STREAMING)
             return store.create(MessageRole.USER, "pending before crash", MessageStatus.QUEUED, run_id=run.id,

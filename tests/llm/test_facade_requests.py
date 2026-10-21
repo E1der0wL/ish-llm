@@ -17,6 +17,7 @@ from llm.services.api import RequestHandle
 from llm.services.infrastructure.locking import WorkspaceBusyError
 from llm.services.lifecycle.projects import ProjectRepository
 from llm.services.runtime.runs import RunRepository
+from llm.services.infrastructure.storage import atomic_domain_json, record
 from tests.llm.test_loop import ScriptedCompletion, chunk
 
 
@@ -146,8 +147,9 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         await self.session.run.shutdown()
         state = await run.aget_data()
         state.status = RunStatus.RUNNING
+        state.ended_at = None
         with self.app.project_manager.ownership.scope():
-            RunRepository().save(state)
+            atomic_domain_json(state.paths.root / "run.json", record(state))
         with patch.object(self.engine, "execute", side_effect=AssertionError("must not replay")):
             recovered = await request.wait(timeout=5)
         self.assertEqual(recovered.id, run.id)

@@ -32,8 +32,9 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         run = Run(identifier, session.id, new_id(), new_id(), "custom",
                   app.run_repository.paths(session.data, identifier))
         run.status = RunStatus.INTERRUPTED
+        run.ended_at = run.created_at
         with app.project_manager.ownership.scope():
-            app.run_repository.save(run)
+            app.run_repository.create(run)
             step = app.step_manager.create(run, "tool", "act")
             app.step_manager.interrupt(step)
         return ToolCall("act", arguments, step.id, project.id, session.id, run.id, "work",

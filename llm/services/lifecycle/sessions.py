@@ -83,15 +83,22 @@ class SessionRepository:
         make_directory(project.paths.sessions)
         log_event(project.paths.logs, "sessions.initialized", entity_id=project.id)
 
+    def create(self, session: Session) -> None:
+        if session.paths.root.exists():
+            raise FileExistsError("Session storage already exists")
+        self._write(session, creating=True)
+
     def save(self, session: Session) -> None:
+        self._load(session.paths, session.id, session.project_id)
+        self._write(session, creating=False)
+
+    def _write(self, session: Session, *, creating: bool) -> None:
         ProjectConfig.validate_session(session.config)
         from llm.services.runtime.operations import OperationRepository
         operations = OperationRepository()
-        creating = not session.paths.root.exists()
-        if not creating:
-            Session.from_record(read_domain_record(session.paths.root / "session.json"), session.paths)
-            operations.has_records(session)
-        atomic_domain_json(session.paths.root / "session.json", record(session))
+        data = record(session)
+        Session.from_record(data, session.paths)
+        atomic_domain_json(session.paths.root / "session.json", data)
         if creating:
             operations.initialize(session)
         log_event(session.paths.logs, "session.saved", entity_id=session.id, status=session.status)
@@ -312,7 +319,7 @@ class SessionManager:
         session_id = new_id()
         session = Session(session_id, project.id, title, self.repository.paths(project, session_id),
                     config=config)
-        self.repository.save(session)
+        self.repository.create(session)
         log_event(session.paths.logs, "session.created", entity_id=session.id,
                   related_id=project.id)
         return session

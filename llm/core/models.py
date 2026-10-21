@@ -89,7 +89,7 @@ class RunStatus(StrEnum):
     PAUSED = "paused"
 
 
-def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: str) -> None:
+def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: str | None = None) -> None:
     """Run 상태 변경의 순수 검증. 저장·시각 생성·다른 도메인 변경은 하지 않는다.
 
     종료한 실행 시도는 다시 열지 않는다. resume는 서비스가 별도 Run을 생성한다.
@@ -97,15 +97,16 @@ def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: st
     대기 요청 취소는 Run 전이가 아니라 Message의 CANCELLED 전이다.
     """
     current, target = RunStatus(current), RunStatus(target)
-    if reason == "start":
-        allowed = current == RunStatus.PENDING and target == RunStatus.RUNNING
-    elif reason == "finish":
-        allowed = current == RunStatus.RUNNING and target in (
-            RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.INTERRUPTED, RunStatus.PAUSED)
-    elif reason == "recovery":
-        allowed = current in (RunStatus.PENDING, RunStatus.RUNNING) and target == RunStatus.INTERRUPTED
-    else:
+    transitions = {
+        "start": {(RunStatus.PENDING, RunStatus.RUNNING)},
+        "finish": {(RunStatus.RUNNING, status) for status in (
+            RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.INTERRUPTED, RunStatus.PAUSED)},
+        "recovery": {(status, RunStatus.INTERRUPTED) for status in (RunStatus.PENDING, RunStatus.RUNNING)},
+    }
+    if reason is not None and reason not in transitions:
         raise ValueError(f"Unknown Run transition reason: {reason}")
+    edges = transitions.values() if reason is None else (transitions[reason],)
+    allowed = any((current, target) in values for values in edges)
     if not allowed:
         raise ValueError(f"Invalid Run transition ({reason}): {current.value} -> {target.value}")
 
@@ -117,6 +118,19 @@ class StepStatus(StrEnum):
     INTERRUPTED = "interrupted"
     CANCELLED = "cancelled"
     FAILED = "failed"
+
+
+def validate_step_transition(current: StepStatus, target: StepStatus) -> None:
+    """The Step owner permits pre-start failure, interruption and cancellation."""
+    current, target = StepStatus(current), StepStatus(target)
+    allowed = (
+        current == StepStatus.PENDING and target == StepStatus.RUNNING
+        or current == StepStatus.RUNNING and target == StepStatus.COMPLETED
+        or current in (StepStatus.PENDING, StepStatus.RUNNING)
+        and target in (StepStatus.FAILED, StepStatus.INTERRUPTED, StepStatus.CANCELLED)
+    )
+    if not allowed:
+        raise ValueError(f"Invalid Step transition: {current.value} -> {target.value}")
 
 
 # ---------------------------------------------------------------------------
@@ -268,6 +282,8 @@ class ProjectConfig(dict):
 @dataclass(slots=True)
 # 프로젝트의 영속 데이터. 직접 실행하거나 런타임 객체를 저장하지 않는다.
 class Project:
+    COMPONENT_FIELDS = ("components", "initialized_components")
+
     id: str
     title: str
     paths: ProjectPaths
@@ -291,7 +307,7 @@ class Project:
             raise ValueError("Stored Project configuration requires policies, parameters and data")
         if type(data["deleted"]) is not bool:
             raise ValueError("Project deleted must be a boolean")
-        for key in ("components", "initialized_components"):
+        for key in cls.COMPONENT_FIELDS:
             values = data[key]
             if (not isinstance(values, list) or any(not isinstance(name, str) or not name for name in values)
                     or len(set(values)) != len(values)):
@@ -338,7 +354,12 @@ class Session:
     def from_record(cls, data, paths):
         _stored_fields(cls, data)
         ProjectConfig.validate_session(data["config"])
-        return cls(**{**data, "status": SessionStatus(data["status"]), "paths": paths})
+        status = SessionStatus(data["status"])
+        current = data["current_run_id"]
+        if ((status == SessionStatus.RUNNING) != (current is not None)
+                or (current is not None and not current.strip())):
+            raise ValueError("Session execution state requires its current Run declaration")
+        return cls(**{**data, "status": status, "paths": paths})
 
 
 # ---------------------------------------------------------------------------
@@ -369,6 +390,9 @@ class Message:
 @dataclass(slots=True)
 # 하나의 사용자 요청에 대응하는 실행 기록.
 class Run:
+    ACTIVE_STATES = frozenset((RunStatus.PENDING, RunStatus.RUNNING))
+    STARTED_STATES = frozenset((RunStatus.RUNNING, RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.PAUSED))
+
     id: str
     session_id: str
     input_message_id: str
@@ -387,7 +411,12 @@ class Run:
     @classmethod
     def from_record(cls, data, paths):
         _stored_fields(cls, data)
-        return cls(**{**data, "status": RunStatus(data["status"]), "paths": paths})
+        status = RunStatus(data["status"])
+        if ((status in cls.STARTED_STATES and data["started_at"] is None)
+                or (status == RunStatus.PENDING and data["started_at"] is not None)
+                or ((status not in cls.ACTIVE_STATES) != (data["ended_at"] is not None))):
+            raise ValueError("Run state requires its original start and end evidence")
+        return cls(**{**data, "status": status, "paths": paths})
 
 
 # ---------------------------------------------------------------------------
@@ -397,6 +426,9 @@ class Run:
 @dataclass(slots=True)
 # Run 내부의 관찰 가능한 작업 기록.
 class Step:
+    ACTIVE_STATES = frozenset((StepStatus.PENDING, StepStatus.RUNNING))
+    STARTED_STATES = frozenset((StepStatus.RUNNING, StepStatus.COMPLETED))
+
     id: str
     run_id: str
     kind: str
@@ -413,7 +445,12 @@ class Step:
     @classmethod
     def from_record(cls, data, paths):
         _stored_fields(cls, data)
-        return cls(**{**data, "status": StepStatus(data["status"]), "paths": paths})
+        status = StepStatus(data["status"])
+        if ((status in cls.STARTED_STATES and data["started_at"] is None)
+                or (status == StepStatus.PENDING and data["started_at"] is not None)
+                or ((status not in cls.ACTIVE_STATES) != (data["ended_at"] is not None))):
+            raise ValueError("Step state requires its original start and end evidence")
+        return cls(**{**data, "status": status, "paths": paths})
 
     @property
     def progress(self):

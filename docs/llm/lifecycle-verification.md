@@ -9,6 +9,143 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-x 도메인 상태·갱신·Run 참조 — H2 최종 Level 3
+
+기준 `eef949c401c8cc093da1eb9480e2ffeaa90e0546`의 H2-w 이후, 기존 도메인 감사의
+상태·시각·오래된 객체 저장·참조 항목을 보강했다. 원래 38개 데이터군 원감사는 재작성하지 않았다.
+
+- Project/Session/Run/Step Repository의 `create`는 신규 생성만 담당하며 기존 또는 일부 소실된
+  디렉터리를 채택하지 않는다. `save`는 기존 기록의 필수 필드·소유권·owner 증거를 먼저
+  읽고 새 기록도 같은 Reader로 검증한다. 파일 또는 전체 트리가 소실되거나 현재 기록이
+  손상됐을 때 오래된 객체가 원본을 복원하거나 생성 기본값을 재주입하지 못한다.
+- Project 생성은 기존 workspace transaction 안에서 빈 선택의 원본을 명시 생성한 뒤
+  Component 초기화·선택 이력을 확정한다. Project.COMPONENT_FIELDS를 Reader/Writer가
+  함께 쓰고 저장 배열을 명시적으로 직렬화한다. 초기화 이력을 미리 조작하지 않는다.
+- Session RUNNING은 비어 있지 않은 current_run_id 선언을 요구하며 다른 상태에는 이를
+  허용하지 않는다. Run/Step owner는 시작·종료 증거의 조건을 선언한다. 시작 전 Run 복구와
+  Step 실패·중단·취소는 계속 허용한다. 임의의 시각 순서 계약은 추가하지 않았다.
+- Run/Step 상태 전이는 해당 owner의 단일 규칙을 Manager와 Repository에서 함께 검증한다.
+  저장된 종료 상태를 오래된 객체로 다시 열지 못한다. Run 갱신은 기존 모델 호출 영수증 ID를
+  제거할 수 없다. CompletionResult owner는 종료 영수증과 확정 사용량의 되돌림을 거부한다.
+- CompletionResult Reader는 상태와 종료 증거를 대조하고, RESERVATION_FIELDS는 원래 ID·
+  Step·시작 시각·예약량을 보존한다. 응답의 model/부분 usage는 계속 진행될 수 있으며
+  nullable duration 같은 관측값에 임의의 필수 계약을 추가하지 않는다.
+- RunRepository.record_paths는 Session.current_run_id와 실제 ConversationStore owner가
+  검증한 메시지 참조를 현재 Run 목록과 대조한다. 개별 파일뿐 아니라 참조가 남아 있는
+  전체 Run 트리 소실도 조회·시작/복구·예산 집계·백업에서 거부한다. 메모리 대화에는 파일을
+  생성하지 않는다. 모든 독립 증거를 함께 지운 외부 작성자까지 탐지한다는 주장은 하지 않는다.
+- 신규 호출부와 주입 Repository 시험은 `create`로 직접 이관했다. 정상 갱신으로 종료 상태를
+  되돌리던 장애/기간 만료/캐시 교체 fixture는 명시적인 원본 파일 주입으로 옮겼다.
+  원래 복구·기간 quota·실제 호출 횟수·캐시 갱신 Assertion은 유지했다. 호환 저장 경로는 없다.
+
+새 24개 회귀는 상태별 필수 증거, Writer/backup 동일 검증, 소실 파일/트리 재생성 거부,
+기존 디렉터리 재생성 거부, 현재 손상 보존, 종료 상태 되돌림과 영수증 소실/사용량 되돌림을
+검사한다. 처음 상태 재현은 3개 실패 시험/23 failure Assertion, 파일/트리 소실은 2개 실패
+시험/6 Assertion, 종료·영수증 소실은 2개 실패 시험/3 Assertion, 최종 사용량은 1 failure였다.
+모두 원본 bytes를 비교하며 원래 실패 로그를 보존했다.
+잔여 증거 8개 재현에서는 6개 실패 시험/14 Assertion을 확인했다. 특히 Run 트리를 제거한
+뒤 대화의 참조가 남아 있는데도 사용량이 0으로 계산되어, 같은 Session 및 다른 Session에서
+한도 1을 넘어 실제 모델 호출이 2회가 됐다. 원래 거부·효과 횟수 Assertion을 유지해 차단했다.
+추가 3개는 손상 백업의 원본/대상 보존, 정상 메모리 재시작, 파일 없는 Session의 현재 Run
+포인터 보호를 검증한다. 새로운 상태를 추정 복원하거나 권한·예산 계약을 완화하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `baseline` | 4/4 | 1 | 23/0/0 | 0.061초 | 1 |
+| `focused-2` | 80/80 | 13 | 2/65/0 | 10.246초 | 1 |
+| `focused-3` | 81/81 | 80 | 0/1/0 | 19.268초 | 1 |
+| `focused-4` | 82/82 | 82 | 0/0/0 | 19.905초 | 0 |
+| `loss-baseline` | 8/8 | 6 | 6/0/0 | 0.098초 | 1 |
+| `focused-5` | 157/157 | 156 | 0/1/0 | 33.549초 | 1 |
+| `focused-6` | 205/205 | 204 | 0/1/0 | 37.432초 | 1 |
+| `focused-7` | 26/26 | 26 | 0/0/0 | 0.687초 | 0 |
+| `update-baseline` | 12/12 | 10 | 3/0/0 | 0.157초 | 1 |
+| `focused-8` | 103/103 | 100 | 1/3/0 | 22.383초 | 1 |
+| `receipt-baseline` | 13/13 | 12 | 1/0/0 | 0.164초 | 1 |
+| `focused-9` | 104/104 | 103 | 0/1/0 | 22.211초 | 1 |
+| `focused-10` | 43/43 | 41 | 0/2/0 | 9.560초 | 1 |
+| `focused-11` | 66/66 | 66 | 0/0/0 | 11.757초 | 0 |
+| `remaining-baseline` | 8/8 | 2 | 14/0/0 | 0.715초 | 1 |
+| `focused-12` | 108/108 | 108 | 0/0/0 | 27.868초 | 0 |
+| `focused-13` | 125/125 | 125 | 0/0/0 | 31.148초 | 0 |
+| `focused-14` | 76/76 | 75 | 0/2/0 | 22.054초 | 1 |
+| `focused-15` | 76/76 | 76 | 0/0/0 | 22.607초 | 0 |
+| `focused-16` | 5/5 | 5 | 0/0/0 | 1.159초 | 0 |
+| 첫 전체 LLM | 1971/1971 | 1966 | 0/5/0 | 683.976초 | 1 |
+| 첫 전체 HUB | 540/540 | 540 | 0/0/0 | 707.693초 | 0 |
+| 두 번째 전체 LLM (`final-2`) | 1982/1982 | 1981 | 0/1/0 | 690.370초 | 1 |
+| 현재 전체 LLM (`final-3`) | 1982/1982 | 1982 | 0/0/0 | 671.495초 | 0 |
+| 전체 Hub (`final-2`, 재사용) | 540/540 | 540 | 0/0/0 | 709.270초 | 0 |
+
+failure 열은 subTest Assertion 수이며 실패한 메서드 수와 다를 수 있다. 모든 실행에서
+expected failure/unexpected success/누락/미발견 실행/중복은 각각 0이다. `focused-1`은
+존재하지 않는 test_run_semantics 모듈 선택으로 실행 전에 exit 2였으며 성공으로 계산하지 않는다.
+update-baseline의 첫 wrapper 시작도 출력 디렉터리 부재로 시험 전 exit 1이었고, 디렉터리
+생성 후 위 실제 재현을 실행했다. 초기 focused-2는 Project tuple 직렬화 결함, focused-3/6은
+불완전한 상태 fixture, focused-5는 기존 필수 Run 소실 오류 계약의 회귀였다. focused-8의
+오류 3개와 파생 failure 1개, focused-9/10의 오류는 위 장애/기간/캐시 fixture를 바로잡았다.
+원래 Assertion을 삭제하거나 테스트 집계에서 제외하지 않았다.
+첫 전체 LLM의 오류 5개도 완료 Run을 되돌리는 장애/캐시 fixture였다. facade_requests,
+instruction_reservations, loop_steering, optimized_queries의 원래 Assertions를 유지하면서
+파일 상태 주입으로 이관했다. 첫 전체 Hub의 성공은 별도 기록이며, 제품 보강 뒤 아래 새
+전체 LLM/Hub(`final-2`)를 모두 실행했다. 두 번째 LLM의 오류 1개는 ConversationTurn fixture가
+실제 Run 없이 first-run/second-run 참조만 만든 경우였다. 실제 Run을 추가하는 focused-14에서는
+기존 문자열 ID가 현재 32자리 hex 경로 계약을 위반해 두 subTest가 error였다. 생성 owner의
+new_id와 유효한 기록으로 고친 focused-15는 통과했다. 현재 Run 포인터 소실 시험도 유효한
+32자리 ID로 정확히 한정해 focused-16에서 통과했다. 분기/삭제/재열기 Assertions는 유지했다.
+
+이후 변경은 위 두 LLM 시험 파일의 fixture뿐이다. `final-3/hub-reuse-proof.json`은 제품 코드,
+Hub 시험/공유 fixture·의존성·환경·host·필수 범위가 동일하고 두 변경 모듈이 Hub 발견 경로에
+로드되지 않음을 확인한다. 발견/실행 ID 540개 목록 hash는 `f017cd5603e8d8cfcce262c10b8370c08692fd3ddfb6fe541961fd2915e0c0d6`로
+동일하고 누락/중복은 0이다. 따라서 Hub는 실제 `final-2` 성공을 재사용하고 LLM은 `final-3`에서
+전체를 새로 실행했다. 서로 다른 소스의 결과를 한 전체 실행으로 합산하지 않았다.
+
+공통 도메인 Reader/Writer·생성·사용량 이력에 영향을 주므로 별도 Level 2 실행을 반복하지
+않고 최종 집중 후 현재 통합 상태의 전체 LLM/Hub로 승격했다. 승인·예산·외부 효과·
+Checkpoint·Resume·삭제와 실제 원본 보존/장애 주입, 직접 Repository/Component/Engine/
+Application 소비자를 포함한다. 정적 new/stale/S1 0, 기존 debt 531,
+exit 0이며 R3 Mutation도 실제 두 번째 효과 Assertion으로 탐지했다(True, detector exit 0).
+
+전후 Python 680개 hash `bc6ab0a5fb008c36738a6349e10feb1a3a7646f10a20b933e1581b837c741a32`와
+전체 입력 839개/환경 hash `4ae0f0974de22c0dad481c21ee741e293b15a750ede838ba82d4db174556c071`는 각각 동일했다.
+재사용 Hub의 `final-2` 소스 hash는 `b3884d247feb921326b8b9dfd7daa5cc6e9e447038e627f8d2041f721c8e019e`,
+입력/환경 hash는 `d235ab5a3afaa911dafba4276d665b963106706baef439e049222d8955c9f4c8`이며
+그 실행 전후에도 각각 동일했다. 위 두 fixture 외 차이가 없다는 비교 증거를 별도로 보존했다.
+Python 3.12.14·136 packages·UID 1000·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와
+기존 bwrap/Xvfb/xclip·5개 환경 변수를 유지했다. 성공 후 문서를 먼저 갱신했다.
+문서 검사는 131개 문서·178개 Python fence·953개 상대 링크·34개 anchor에서 오류 0, exit 0이다.
+실제 argv/exit/요약과 모든 실패 로그는 `/workspace/llm-clean-resume/h2-x/`에 보존한다.
+
+```bash
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-x/focused-15 tests.llm.test_conversation_turns tests.llm.test_turn_deletion tests.llm.test_checkpoint_lifecycle tests.llm.test_backend_contracts tests.llm.test_run_reference_integrity
+python /workspace/llm-clean-resume/h2-m/run-full.py llm /workspace/llm-clean-resume/h2-x/final-3
+python /workspace/llm-clean-resume/h2-m/run-full.py hub /workspace/llm-clean-resume/h2-x/final-2
+python /workspace/llm-clean-resume/h2-x/prove-hub-reuse.py
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-x/static-7.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-x/docs.json
+```
+
+### H2 종결 대조와 남은 단계
+
+기존 감사의 owner 목록과 단계별 검증을 재사용하고 이번 도메인 상태/갱신/참조 변경만
+갱신했다. 외부 원감사 REPORT.md가 현재 환경에 없다는 사실은 유지하며 이를 다시 읽거나
+38개 원행렬을 재작성했다고 보고하지 않는다. 보존된 감사 요약의 H2 항목은 다음과 연결된다.
+
+| 필수 필드·존재·상태/갱신 owner | 현재 증거 |
+|---|---|
+| 승인·응답·제어·만료·revision | H1 승인과 H2-a, 현재 interaction_storage/interaction 관련 전체 회귀 |
+| 도메인·Completion·Conversation·Refinement | H2-a/x, 필드/상태/소실·원본·예약·참조 거부 |
+| 외부 효과 원장·Checkpoint·출력 | H2-b/c/d, 원본 목록/리비전·재개/실제 효과·장애 경계 |
+| Component 이력·사용량·JSON/File/Tool 패키지 | H2-e/f/g, 생성 구분·manifest·세대/CAS·worker/Hub 소비자 |
+| Memory 요약·압축·병합·기록 이력 | H2-j/k/l/m, cursor·원본 참조·원자 갱신과 중단 회귀 |
+| RAG Job·lease·준비/배치·게시·원문 | H2-h/i/n/o/p/q/r/s/t/u/v/w, 현재 입력/배치/게시 연결과 실제 재개 효과 |
+
+H2의 로컬 상위 검증 게이트는 완료했다. 잔여 정적 debt 531과 H3의 안전한 격리/명시 삭제,
+H4의 Application 보존 정책 이관, H5의 백업/참조·나머지 Component 기능, P1 잔여·A–F는
+각각 남아 있으며 H2 성공으로 승계하지 않는다. 원격 CI 통과는 해당 Push SHA의 실제 결과를
+확인하기 전까지 선언하지 않는다. H1–H5가 모두 끝나기 전에는 이전 backend 브랜치를 읽지 않는다.
+
 ## H2-w 배치와 원문 chunk 연결 — H2-v/w 묶음 Level 3
 
 H2-v 로컬 커밋 `4da18b9955e409ce5adbcf23ec7d4dde0d9b1a83`에서 이어서 배치 영수증의

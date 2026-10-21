@@ -146,7 +146,7 @@ class PersistenceTests(unittest.TestCase):
         runs = RunRepository()
         run_id = new_id()
         run = Run(run_id, self.session.id, new_id(), new_id(), "fake", runs.paths(self.session, run_id))
-        runs.save(run)
+        runs.create(run)
         self.assertEqual(runs.load(self.session, run.id).status, RunStatus.PENDING)
         manager = StepManager()
         recorder = StepEventRecorder(manager)

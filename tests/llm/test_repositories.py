@@ -27,7 +27,7 @@ class RepositoryTests(unittest.TestCase):
         run_id = new_id()
         self.run = Run(run_id, self.session.id, new_id(), new_id(), "fake",
                        self.runs.paths(self.session, run_id))
-        self.runs.save(self.run)
+        self.runs.create(self.run)
         self.steps = StepManager(repository=StepRepository())
         self.step = self.steps.create(self.run, "llm", "Completion")
 
@@ -80,6 +80,7 @@ class RepositoryTests(unittest.TestCase):
         repository.paths.side_effect = SessionRepository().paths
         stored = {}
         repository.save.side_effect = lambda session: stored.update({session.id: deepcopy(session)})
+        repository.create.side_effect = repository.save.side_effect
         repository.reload.side_effect = lambda session: deepcopy(stored[session.id])
         repository.load.side_effect = lambda project, session_id: deepcopy(stored[session_id])
         repository.list.side_effect = lambda project, include_deleted=False: [
@@ -110,6 +111,7 @@ class RepositoryTests(unittest.TestCase):
         stored = {}
         repository.exists.side_effect = lambda run, step_id: step_id in stored
         repository.save.side_effect = lambda step: stored.update({step.id: deepcopy(step)})
+        repository.create.side_effect = repository.save.side_effect
         repository.load.side_effect = lambda run, step_id: deepcopy(stored[step_id])
         repository.list.side_effect = lambda run: [deepcopy(step) for step in stored.values()]
         manager = StepManager(repository=repository)

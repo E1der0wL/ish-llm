@@ -111,7 +111,7 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
                 run = Run(identifier, session.id, new_id(), new_id(), "test", repository.paths(session, identifier))
                 run.status = RunStatus.COMPLETED if index % 3 else RunStatus.FAILED
                 run.started_at = run.ended_at = f"2026-10-16T00:00:{index:02d}+00:00"
-                repository.save(run)
+                repository.create(run)
                 runs.append(run)
         read_json = storage.read_json
         def read_count(mock):
@@ -130,7 +130,7 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
         changed = runs[0]
         changed.status, changed.ended_at = RunStatus.COMPLETED, "2026-10-16T01:00:00+00:00"
         with self.app.project_manager.ownership.scope():
-            repository.save(changed)
+            storage.atomic_domain_json(changed.paths.root / "run.json", storage.record(changed))
         with patch.object(storage, "read_json", wraps=read_json) as read:
             page = await self.project.results.alist(query=Query(descending=True, limit=1))
             self.assertEqual([row.run_id for row in page], [changed.id])

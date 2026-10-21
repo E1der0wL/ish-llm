@@ -266,8 +266,9 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         run_id = new_id()
         run = Run(run_id, self.session.id, request.id, new_id(), "fake",
                   manager.repository.paths(self.session, run_id), status=RunStatus.RUNNING)
+        run.started_at = run.created_at
         with self.projects.ownership.scope():
-            manager.repository.save(run)
+            manager.repository.create(run)
             store.create(MessageRole.ASSISTANT, "partial", MessageStatus.STREAMING,
                          message_id=run.assistant_message_id, run_id=run.id)
         events = []

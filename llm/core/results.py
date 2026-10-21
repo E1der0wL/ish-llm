@@ -134,6 +134,8 @@ class ResumeOutput:
 @dataclass(slots=True)
 # 개별 모델 호출의 종료 이유, 시간과 사용량을 기록한다.
 class CompletionResult:
+    RESERVATION_FIELDS = ("id", "step_id", "started_at", "reserved_tokens")
+
     id: str = field(default_factory=new_id)
     step_id: Optional[str] = None
     model: Optional[str] = None
@@ -179,7 +181,10 @@ class CompletionResult:
             raise ValueError("Invalid Completion duration")
         if not isinstance(data["reasoning_content"], str):
             raise ValueError("Invalid Completion reasoning content")
-        return cls(**{**deepcopy(data), "status": RunStatus(data["status"])})
+        status = RunStatus(data["status"])
+        if (status not in Run.ACTIVE_STATES) != (data["ended_at"] is not None):
+            raise ValueError("Completion state requires its original end evidence")
+        return cls(**{**deepcopy(data), "status": status})
 
     @classmethod
     def for_run(cls, data: dict, run: Run) -> "CompletionResult":
@@ -190,6 +195,16 @@ class CompletionResult:
             result.ended_at = run.ended_at
             result.duration_seconds = duration_seconds(result.started_at, result.ended_at)
         return result
+
+    @classmethod
+    def validate_update(cls, previous: dict, current: dict) -> None:
+        before, after = cls.from_record(previous), cls.from_record(current)
+        if any(getattr(before, name) != getattr(after, name) for name in cls.RESERVATION_FIELDS):
+            raise ValueError("Completion reservation identity changed")
+        if before.status not in Run.ACTIVE_STATES and before != after:
+            raise ValueError("Completed model call evidence is immutable")
+        if before.usage_complete and (not after.usage_complete or before.usage != after.usage):
+            raise ValueError("Completion update cannot erase final usage")
 
 
 @dataclass(slots=True)

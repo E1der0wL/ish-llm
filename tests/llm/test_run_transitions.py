@@ -16,6 +16,7 @@ from llm.services.history.recovery import recover_session
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.lifecycle.sessions import SessionRuntime
 from llm.services.runtime.runs import RunManager, RunEventType, _RunOutcome
+from llm.services.infrastructure.storage import atomic_domain_json, record
 
 
 class TransitionRuleTests(unittest.TestCase):
@@ -124,7 +125,9 @@ class RunStorageTests(unittest.TestCase):
                 run = self.begin()
                 with self.projects.ownership.scope():
                     run.status = status  # process death fixture
-                    self.manager.repository.save(run)
+                    if status == RunStatus.PENDING:
+                        run.started_at = None
+                    atomic_domain_json(run.paths.root / 'run.json', record(run))
                     recovered = recover_session(self.sessions, self.manager.repository, self.manager.steps,
                                                 self.session, self.store)
                 self.assertEqual([r.id for r in recovered], [run.id])
