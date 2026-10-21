@@ -16,7 +16,7 @@ from typing import Any, Optional, Union
 from contextlib import aclosing
 from llm.components.processing import CompletionMessage, CompletionRequest, CompletionObservation, CompletionPipeline
 from llm.core.models import MessageRole, MessageStatus
-from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record
+from llm.core.steering import is_instruction, SteeringMode, validate_instruction_record, INSTRUCTION_INPUT_STATUS
 from llm.core.configuration import resolve_engine_config, UNSET
 from llm.core.parameters import ParameterLayout
 from llm.core.results import EngineOutput
@@ -313,7 +313,7 @@ class LoopEngine(BaseEngine):
                                                                   boundary=instruction_key)) as events:
                         async for event in events:
                             yield event
-                    records[instruction_key] = {"status": "input", "message_ids": [m.id for m in inbox.messages]}
+                    records[instruction_key] = {"status": INSTRUCTION_INPUT_STATUS, "message_ids": [m.id for m in inbox.messages]}
                 selected = [inbox.history[i] for i in records[instruction_key]["message_ids"]]
                 messages.extend(CompletionMessage({"role": "user", "content": m.content}, m.id, True) for m in selected)
             saved = records.get(f"iteration:{iteration}", {})
@@ -430,7 +430,7 @@ class LoopEngine(BaseEngine):
                                 yield event
                         following = [m.id for m in inbox.messages]
                         if following:
-                            records[next_key] = {"status": "input", "message_ids": following}
+                            records[next_key] = {"status": INSTRUCTION_INPUT_STATUS, "message_ids": following}
                     else:
                         following = records[next_key]["message_ids"]
                     if following:

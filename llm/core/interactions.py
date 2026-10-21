@@ -339,6 +339,15 @@ def approval_request(title: str, *, description: str = "", source: Optional[dict
 @dataclass(frozen=True, slots=True)
 class InteractionView:
     """불변 요청과 현재 처리 상태의 투영. 사용자 결정과 실제 실행 결과를 구분한다."""
+
+    PENDING: ClassVar[str] = "pending"
+    ANSWERED: ClassVar[str] = "answered"
+    DENIED: ClassVar[str] = "denied"
+    EXPIRED: ClassVar[str] = "expired"
+    CANCELLED: ClassVar[str] = "cancelled"
+    SUBMITTED: ClassVar[str] = "submitted"
+    UNAVAILABLE: ClassVar[str] = "unavailable"
+
     request: InteractionRequest
     response: Optional[InteractionResponse]
     status: str

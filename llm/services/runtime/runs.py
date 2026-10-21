@@ -24,7 +24,7 @@ from llm.core.models import (
 )
 from llm.core.paths import RunPaths
 from llm.core.configuration import UNSET
-from llm.core.interactions import InteractionActor, InteractionRequest, InteractionResponse
+from llm.core.interactions import InteractionActor, InteractionRequest, InteractionResponse, InteractionView
 from llm.engines.base import EngineContext, EngineEvent, EngineEventType, SteeringInbox, required_capabilities, steering_mode
 from llm.core.steering import InstructionStatus, RunInstruction, SteeringMode, SteeringRoute, is_instruction, is_queued_request
 from llm.services.runtime.steering import (finish_instructions, checkpoint_messages, steering_boundary,
@@ -47,7 +47,7 @@ from llm.core.contracts import Diagnostic, ResourceRef
 from llm.errors import CodedError, stable_error_code
 from llm.core.plans import ResumePlan, ResumeState
 from llm.core.plans import CheckpointPlan
-from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, CheckpointError
+from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, CheckpointError, CheckpointStatus
 from llm.core.results import CompletionResult, EngineOutput, EngineDelta
 from enum import StrEnum
 from asyncio import timeout
@@ -1092,7 +1092,7 @@ class RunManager:
             with self.repository._interaction_scope(session, source):
                 checkpoint = self.repository.resolve_checkpoint(session, source, strategy.checkpoint_name)
                 ToolExecutionScope.checkpoint_usage(checkpoint["records"])
-                reused = [k for k, v in checkpoint["records"].items() if v.get("status") == "completed"]
+                reused = [k for k, v in checkpoint["records"].items() if v.get("status") == CheckpointStatus.COMPLETED.value]
                 state = ResumeState.VALID
                 self.repository.require_resume(source)
                 state = ResumeState.MISSING
@@ -1100,7 +1100,8 @@ class RunManager:
                 state = ResumeState.VALID
                 views = self.repository.interaction_views(session, source, store, link=link)
                 retries = [v.request.binding["key"] for v in views if v.request.binding.get("target") == "retry_nodes"]
-                if any(v.status in ("pending", "denied", "expired", "cancelled", "submitted", "unavailable") for v in views):
+                if any(v.status in (InteractionView.PENDING, InteractionView.DENIED, InteractionView.EXPIRED,
+                                    InteractionView.CANCELLED, InteractionView.SUBMITTED, InteractionView.UNAVAILABLE) for v in views):
                     blockers.append(Diagnostic("interaction_required", "Resolve pending interactions before execution", source=ref))
                 else:
                     state = ResumeState.INCOMPATIBLE

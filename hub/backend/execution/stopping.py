@@ -10,6 +10,7 @@ import asyncio
 from dataclasses import replace
 from datetime import datetime, timezone
 
+from llm.llm import InteractionView
 from llm.services.query import Query
 
 STOPPED = "hub_stopped_runs"
@@ -60,14 +61,14 @@ async def reopen_questions(session, handle, *, unavailable):
             if str(run.status) not in (RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
                 return False
             views = handle.interaction_views()
-            actionable = [v for v in views if v.can_respond or v.status in ("cancelled", "expired")]
+            actionable = [v for v in views if v.can_respond or v.status in (InteractionView.CANCELLED, InteractionView.EXPIRED)]
             if not actionable:
                 return False
             state = session.run.status(queued_limit=0)
             if state.active_run_id or state.queued_count:
                 raise ValueError(unavailable)
             for view in actionable:
-                if view.status in ("cancelled", "expired"):
+                if view.status in (InteractionView.CANCELLED, InteractionView.EXPIRED):
                     handle.renew_interaction(view.request)
             marks = dict(record.metadata.get(STOPPED, {}))
             marks.pop(run.id, None)

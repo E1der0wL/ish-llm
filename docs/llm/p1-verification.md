@@ -15,6 +15,68 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c27: Checkpoint·지시 입력·InteractionView 상태 — 로컬 Level 2
+
+Tool retry/binding 영수증과 승인 대기, Run 재사용은 기존 CheckpointStatus를 참조한다.
+지시 입력의 input 값은 core.steering이 단일 선언하며 Reader와 서비스·Loop·Graph가
+참조한다. InteractionView의 일곱 표시값은 그 클래스의 ClassVar로 소유하고 저장소의
+뷰 계산·재개 미리보기·Hub 재질문에서 참조한다. 영속 InteractionStatus, 지시 반영 상태,
+Tool 관찰값과 분리한다. 승인·예산·재개 분기와 저장값/타입은 그대로다.
+
+9개 제품 파일의 새 선언/import를 제외하고 참조를 원래 값으로 복원하면 기존 AST와 같다.
+뷰 dataclass의 필드·타입·default와 기존 요청 enum도 동일하다. 첫 읽기 전용 보조 검사는
+같은 이름의 기존 enum 상수까지 제거해 비교에 실패했다. 원본 helper/실패를 c27-dry-run에
+보존하고 제거 범위를 뷰 클래스에 한정해 통과한 뒤 제품에 적용했다. 제품 실패로 계산하지
+않으며 원래 시험 Assertion은 바꾸지 않았다. 이전 backend의 관련 뷰 구조만 참고했고
+구형 Reader/default/승인 계약이나 과거 통과 증거는 이식하지 않았다.
+
+S3 16건을 제거했다. 기존 review 14건의 분류 함수 AST는 모두 그대로다. MCP/Tool 관리
+CAS, Tool 계약/허가·기한, Graph 명시 retry, cache의 수학적 경계, 관찰 사실과 누적 사용량
+조건을 각각 재검토하고 달라진 상태 참조 의존성만 갱신했다. 다른 hash·근거·계약·시험 ID는
+유지했고 해당 구체적 시험이 현재 선택 실행에서 모두 통과했다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM(근거 재사용) | 182/182 | 182 | 0/0/0 | 56.867초 | 0 |
+| 집중 Hub(근거 재사용) | 34/34 | 34 | 0/0/0 | 65.684초 | 0 |
+| 새 Level 2 LLM | 255/255 | 255 | 0/0/0 | 77.291초 | 0 |
+| 새 Level 2 Hub | 41/41 | 41 | 0/0/0 | 36.142초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각각 0이다. 집중은
+실제 승인/응답·지시 예약·중첩 checkpoint·Tool retry와 Hub 질문을, 새 Level 2는 남은
+공통 안전성·MCP 실제 연결/중단/효과·예산·삭제·원본 보존/장애 주입·중단/재질문·감사를
+검증했다. 두 실행의 제품·시험·환경은 같고 입력 866개 중 감사 fixture 두 개만 바뀌었다.
+이 fixture는 집중 시험에서 읽지 않으며 새 Level 2의 감사 시험에서 검증했다. 나머지
+864개 입력과 host/Python/136 의존성/바이너리/env 5개/HEAD, 전체 discovery LLM 2101·
+Hub 577개가 같다. 같은 suite의 선택 ID는 서로 겹치지 않는다. 개별 ID/소스 hash는
+`/workspace/llm-clean-resume/p1/c27-level2/reuse-proof.json`에 보존하고 다른 실행을 하나의 full로 합산하지 않는다.
+
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 251·reviewed 76·미해결 175
+(S3 157·S6 18), new/stale/review 오류와 S1/S2/S4/S5 미해결 0/exit 0이다.
+문서 132개·Python fence 182개·상대 링크 959개·anchor 34개, 오류 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c27-focused/llm.json --modules tests.llm.test_interactions tests.llm.test_interaction_decisions tests.llm.test_interaction_storage tests.llm.test_interaction_presence tests.llm.test_engine_steering tests.llm.test_loop_steering tests.llm.test_instruction_reservations tests.llm.test_checkpoint_integrity tests.llm.test_graph_checkpoints tests.llm.test_retry
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c27-focused/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_question_tools tests.hub.test_question_card tests.hub.test_tool_retry
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c27-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_catalog_presence tests.llm.test_common_boundaries tests.llm.test_error_boundaries tests.llm.test_explicit_configuration tests.llm.test_lifecycle_deletion_integrity tests.llm.test_lifecycle_integrity tests.llm.test_long_running tests.llm.test_mcp_runtime tests.llm.test_nested_graph tests.llm.test_observability tests.llm.test_operation_integrity tests.llm.test_operations_schema tests.llm.test_rag_storage tests.llm.test_stability_refinement tests.llm.test_tool_declarations tests.llm.test_transactions tests.llm.test_usage_deletion
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c27-level2/hub.json --modules tests.hub.test_interrupt_feedback tests.hub.test_paused_stop tests.hub.test_request_history tests.hub.test_retry_ui
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c27-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c27-level2/aux/docs.json
+```
+
+실행 HEAD `777b3cc5f346bd86f9f7d77a9c9e53360f234dc5`에 c27 변경을 더한 소스다.
+704 Python 소스 hash `03409ee5280821e10bea9e52a56f48e5ca656d276998f84f1fd70ad355839b6c`, Level 2의 866 입력/환경 hash
+`ca26779ed63fb09f880db3300762edf966e63fcc703a2261f85196b5509738af`가 전후 동일하다. 집중 실행도 자체 전후 동일성을 확인했다.
+Python 3.12.14, 고정 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 사용했고 원시 명령·exit·로그·
+manifest는 위 검증 경로에 보존한다. 결과 문서를 먼저 갱신하고 소스-커밋 동일성 및
+staged diff를 확인해 로컬 커밋한다.
+
+**이번 소단계는 전체 LLM/Hub를 실행하지 않았다.** 기존 값/조건의 소유 참조 정리로
+영향을 한정하고 관련 실제 안전성/소비자를 검증했다. 후속 관련 선언 작업과 묶은 Level 3에서
+전체 회귀·정적·R3·문서·환경 검증 후 Push한다. P1 최종 S1–S5와 A–F는 미완료이며
+원격 CI는 미확인이다. main·backend·Draft PR #1 및 기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c26: RAG Job 상태 소유 선언 — c24–c26 묶음 Level 3
 
 RAGJobStatus가 기존 JobStorage의 다섯 상태를 소유하고 공개 API로 제공한다. 저장소의

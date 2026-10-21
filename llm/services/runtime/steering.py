@@ -3,6 +3,7 @@
 from copy import deepcopy
 
 from llm.core.models import Message, MessageRole, MessageStatus, now, new_id
+from llm.core.steering import INSTRUCTION_INPUT_STATUS
 from llm.core.steering import (InstructionStatus, is_instruction, RunInstruction, SteeringTarget, SteeringMode,
                                InstructionDataError, validate_instruction_record, SteeringRoute)
 from llm.services.history.conversation import Conversation
@@ -298,7 +299,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
                     for mid in value["message_ids"]}
         if selected.intersection(m.id for m in messages):
             raise ValueError("Apply the selected instruction boundary before selecting again")
-        record = {"kind": "instruction", "status": "input", "target_scope": target["scope"], "message_ids": [m.id for m in messages]}
+        record = {"kind": "instruction", "status": INSTRUCTION_INPUT_STATUS, "target_scope": target["scope"], "message_ids": [m.id for m in messages]}
         if envelope is not None:
             record = {**deepcopy(envelope), "payload": record}
         ToolExecutionScope.validate_usage([tool_usage])

@@ -2,6 +2,7 @@
 
 import json
 from copy import deepcopy
+from llm.core.steering import INSTRUCTION_INPUT_STATUS
 from llm.core.interactions import InteractionRequest
 from llm.core.checkpoints import CheckpointStatus, build_envelope
 from dataclasses import replace
@@ -112,5 +113,5 @@ class EngineCheckpointScope:
         if event.metadata["operation"] == "select" and not inbox.closed:
             data = event.metadata
             self.records[data["boundary"]] = {**deepcopy(data["envelope"]), "payload": {
-                "kind": "instruction", "status": "input", "target_scope": self.owner,
+                "kind": "instruction", "status": INSTRUCTION_INPUT_STATUS, "target_scope": self.owner,
                 "message_ids": [m.id for m in inbox.messages]}}

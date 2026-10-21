@@ -155,6 +155,10 @@ Workflow `pause_before`를 입력 변경 없이 직접 `resume()`하는 기존 �
 현재 UI 상태는 `ainteraction_views()`로 조회한다. 취소/갱신, 재개 미리보기와 자동 승인
 설정은 [보강 API 문서](domain-hardening.md)를 참고한다.
 
+뷰의 pending/answered/denied/expired/cancelled/submitted/unavailable은 `InteractionView`가
+표시 계약의 상수로 소유한다. 영속 요청의 `InteractionStatus`와 분리하며, 현재 Run·응답·
+취소·만료에서 상태와 can_respond/can_resume를 계산하는 조건은 그대로 유지한다.
+
 ## UI 알림과 저장 완료 경계
 
 - Engine CHECKPOINT/PAUSED 알림의 interaction은 이미 저장된 요청이다. 하지만

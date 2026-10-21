@@ -11,6 +11,9 @@ from .models import Message, MessageRole, MessageStatus
 from llm.errors import CodedError
 
 
+INSTRUCTION_INPUT_STATUS = "input"
+
+
 class InstructionDataError(ValueError, CodedError):
     """지시 저장 계약 위반. 누락된 대상을 추측하거나 옛 형식을 변환하지 않는다."""
 
@@ -27,7 +30,7 @@ def _text(value):
 def validate_instruction_record(value):
     """Engine의 현재 input 기록만 검증한다. 임의 checkpoint payload는 해석하지 않는다."""
     if (not isinstance(value, dict) or value.get("kind") != "instruction"
-            or value.get("status") != "input" or "target_scope" not in value
+            or value.get("status") != INSTRUCTION_INPUT_STATUS or "target_scope" not in value
             or value["target_scope"] is not None and not _text(value["target_scope"])):
         raise InstructionDataError("checkpoint kind/status/target_scope")
     ids = value.get("message_ids")

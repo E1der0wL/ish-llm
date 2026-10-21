@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass, field, replace
 from typing import Callable, Optional
 
 from asyncio import timeout
+from llm.core.checkpoints import CheckpointStatus
 from llm.core.contracts import Diagnostic
 from llm.errors import CodedError, stable_error_code
 from llm.services.infrastructure.observability import record
@@ -375,7 +376,7 @@ class ToolExecutor:
             return {"original": deepcopy(arguments), "arguments": deepcopy(arguments),
                     "attempt": 0, "repairs": 0, "failures": [], "uncertain": False,
                     "pending": True, "last_error": None}
-        if saved.get("node_type") != "tool_retry" or saved.get("status") != "completed" or not isinstance(saved.get("retry"), dict):
+        if saved.get("node_type") != "tool_retry" or saved.get("status") != CheckpointStatus.COMPLETED.value or not isinstance(saved.get("retry"), dict):
             raise ToolInvocationError("Invalid Tool retry checkpoint")
         state = deepcopy(saved["retry"])
         if (set(state) != {"original", "arguments", "attempt", "repairs", "failures", "uncertain", "pending", "last_error"}
@@ -402,7 +403,7 @@ class ToolExecutor:
         if name is None or request_key is None:
             return None
         return EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": "record",
-            "key": "@tool-retry:" + request_key, "value": {"status": "completed", "node_type": "tool_retry",
+            "key": "@tool-retry:" + request_key, "value": {"status": CheckpointStatus.COMPLETED.value, "node_type": "tool_retry",
             "container": True, "retry": deepcopy(state)}})
 
     def _operation_call(self, call, scope, tool):
@@ -428,7 +429,7 @@ class ToolExecutor:
 
         def tool_approval(record):
             interaction = record.get("interaction", {})
-            return (record.get("status") == "waiting" and interaction.get("kind") == InteractionRequest.KIND_APPROVAL
+            return (record.get("status") == CheckpointStatus.WAITING.value and interaction.get("kind") == InteractionRequest.KIND_APPROVAL
                     and "tool" in interaction.get("action", {})
                     and "arguments" in interaction.get("action", {}))
 
@@ -728,7 +729,7 @@ class ToolExecutor:
                 raise ToolInvocationError("Selected Tool execution configuration changed")
             # Selection is durable before ASK, authorization, or any Tool effect.
             yield EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": name, "operation": "record", "key": key,
-                "value": {"node_type": "tool_binding", "status": "completed", "container": True, "selection": selected,
+                "value": {"node_type": "tool_binding", "status": CheckpointStatus.COMPLETED.value, "container": True, "selection": selected,
                           "request_key": request_key, "checkpoint_name": name}})
         decision, resumed = self._request_state(tool, arguments, context, decision, request_key, classification)
         if scope is not None and request_key is not None:

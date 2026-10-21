@@ -337,24 +337,24 @@ class InteractionRepository:
             control = self.envelope(run, request)
             reason = None
             if resume_abandoned:
-                status, reason = "unavailable", "resume_abandoned"
+                status, reason = InteractionView.UNAVAILABLE, "resume_abandoned"
             elif resumed_run is not None or resume_message is not None:
-                status, reason = "submitted", "already_resumed"
+                status, reason = InteractionView.SUBMITTED, "already_resumed"
             elif str(run.status) not in (RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
-                status, reason = "unavailable", "run_active_or_finished"
+                status, reason = InteractionView.UNAVAILABLE, "run_active_or_finished"
             elif control["cancelled"]:
-                status, reason = "cancelled", "request_cancelled"
+                status, reason = InteractionView.CANCELLED, "request_cancelled"
             elif request.expired:
-                status, reason = "expired", "request_expired"
+                status, reason = InteractionView.EXPIRED, "request_expired"
             elif response is not None:
                 option = next(o for o in request.options if o.id == response.option_id)
-                status = "denied" if option.effect == InteractionOption.EFFECT_DENY else "answered"
+                status = InteractionView.DENIED if option.effect == InteractionOption.EFFECT_DENY else InteractionView.ANSWERED
             else:
-                status = "pending"
-            views.append(InteractionView(request, response, status, status == "pending",
-                status == "answered", reason,
+                status = InteractionView.PENDING
+            views.append(InteractionView(request, response, status, status == InteractionView.PENDING,
+                status == InteractionView.ANSWERED, reason,
                 resumed_run.id if resumed_run else None,
-                str(resumed_run.status) if resumed_run else "queued" if resume_message else None))
+                str(resumed_run.status) if resumed_run else RunStatus.QUEUED.value if resume_message else None))
         ready = bool(views) and all(v.can_resume for v in views)
         return [replace(v, can_resume=ready) for v in views]
 

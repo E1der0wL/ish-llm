@@ -164,6 +164,8 @@ Tool 묶음을 마친 뒤 다음 completion에 반영한다. Graph는 LangGraph 
 Workflow 상태 binding을 유지하며 Workflow 정의 자체를 변경하지 않는다.
 
 선택 체크포인트는 `kind=instruction`, `status=input`으로 구분하고 메시지 ID와 대상 scope만 저장한다.
+input 값은 `llm.core.steering.INSTRUCTION_INPUT_STATUS`가 단일 선언하며 Reader와 서비스·
+Loop·Graph의 입력 기록이 이를 참조한다. 지시 반영 상태인 `InstructionStatus`와는 구분한다.
 다른 custom Engine의 일반 input 기록은 해석하지 않는다. 자식 입력 기록은 기존
 engine_record envelope로 Graph 체크포인트에 연결한다. 명시적 재개에서 Engine은
 선택된 ID를 `context.steering.history`에서 읽어 원래 입력 위치에 복원하고 완료 작업은
