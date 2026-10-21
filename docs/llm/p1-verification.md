@@ -15,6 +15,61 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c28: 구현체의 실제 ParameterLayout 선언 판정 — 로컬 Level 2
+
+RAG·BuiltinTool·Tool·Vision·Graph·Loop의 config/policy 위치 및 Loop input_policy 경로
+10건을 실제 소유 선언으로 개별 분류했다. 각 구현체의 describe_config/schema·unpack과
+필요한 pack/설정 해석이 같은 layout을 소비한다. 위치 선언은 실행 값/기본 정책을 생성하지
+않고 별도의 허용 값 목록도 아니다. 기존 Memory 선언 판정과 같은 현재 계약을 적용했다.
+각 발생의 owner·의미·계약·전체 소스 hash·구체적 시험을 연결하고 원시 finding은 보존한다.
+제품·시험·검사 규칙은 변경하지 않았다. 이전 backend의 ParameterLayout 선언 부분은
+같은 위치 분류 구조인지 참고했으며 코드·구형 계약·과거 검증 결과를 가져오지 않았다.
+
+새 집중 검증 9개 모듈은 설정 저장 전 검증·M/N/V·정책 경로 우회 거부·명시 SDK 옵션,
+Tool 선택/실제 파일 효과·승인/재개·Vision OCR와 구성 binding·RAG child 위임 및 감사
+검사기를 포함한다. 공통 안전성은 동일 소스의 c27 결과에서 해당 9개 모듈 116개를 재사용했다.
+직접 Hub Tool 설정/승인 소비자 두 모듈 17개도 같은 조건으로 재사용했다. 새 review 10건의
+구체적 시험 ID 17개가 이 실행 집합에서 모두 통과했다.
+
+| 검증 증거 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|
+| 새 LLM 선택 실행 | 127/127/127 | 0/0/0 | 15.475초 | 0 |
+| c27 공통 안전성 재사용 | 현재 선택 ID 116개 모두 통과 | 0/0/0 | c27 원실행 기록 | 원실행 0 |
+| c27 직접 Hub 소비자 재사용 | 현재 선택 ID 17개 모두 통과 | 0/0/0 | c27 원실행 기록 | 원실행 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각각 0이다.
+현재 전체 discovery LLM 2101·Hub 577개를 새로 발견해 이전 목록과 대조했고, 재사용할
+각 모듈의 모든 현재 ID가 실제 통과한 집합과 정확히 같다. 새 실행과 재사용 ID는 겹치지
+않는다. c27의 이전 감사 시험은 fixture가 바뀌어 재사용하지 않고 새로 실행했다.
+
+704 Python 소스·시험은 모두 같고 866 입력 중 차이는 c27 결과 문서와 감사 fixture 두 개뿐이다.
+선택한 재사용 시험이 읽는 제품/Fixture·의존성·host·바이너리·env는 동일하다. 다른 HEAD는
+이 소스 hash로 동일성을 증명하며 과거 결과를 새 실행으로 표시하지 않는다. 원실행 명령·exit는
+c27 절과 `/workspace/llm-clean-resume/p1/c28-level2/reuse-proof.json`의 개별 report/hash/실행 HEAD로 추적한다.
+
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 251·reviewed 86·미해결 165
+(S3 147·S6 18), new/stale/review 오류와 S1/S2/S4/S5 미해결 0/exit 0이다.
+문서 132개·Python fence 182개·링크 959개·anchor 34개, 오류 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c28-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_settings_contract tests.llm.test_naming_contract tests.llm.test_configuration_validation tests.llm.test_schema_ownership tests.llm.test_tool_data tests.llm.test_vision tests.llm.test_builtin_tools
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c28-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c28-level2/aux/docs.json
+```
+
+실행 HEAD `1b7f4e2dfd3a8a43c57764731033b07764988450`에 개별 분류 fixture만 더한 상태다.
+소스 hash `03409ee5280821e10bea9e52a56f48e5ca656d276998f84f1fd70ad355839b6c`, 입력/환경 hash
+`a1a788b04a689e2be0aa479ec09dfb16c50f625088834642117b94ba6f5fe396`는 새 실행 전후 동일하다.
+Python 3.12.14·136 의존성·env 5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다.
+원시 명령·exit·ID·로그·manifest를 위 경로에 보존하고 문서를 먼저 갱신한 뒤 소스-커밋
+동일성·staged diff를 확인해 로컬 커밋한다.
+
+**이번 소단계는 전체 LLM/Hub를 실행하지 않았다.** 제품 변경 없는 정확한 선언 분류에
+영향을 한정했으며 새 감사/소비자 검증과 증명된 동일 소스의 핵심 안전성을 모두 포함했다.
+후속 관련 소단계와 묶은 Level 3에서 전체 회귀 후 Push한다. P1 최종 S1–S5와 A–F는
+미완료, 원격 CI는 미확인이다. main·backend·Draft PR #1은 변경하지 않는다.
+
 ## P1-c27: Checkpoint·지시 입력·InteractionView 상태 — 로컬 Level 2
 
 Tool retry/binding 영수증과 승인 대기, Run 재사용은 기존 CheckpointStatus를 참조한다.

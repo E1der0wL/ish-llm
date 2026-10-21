@@ -2709,6 +2709,353 @@
         "tests.llm.test_rag_retry_presence.RAGRetryPresenceTests.test_invalid_truthy_flag_cannot_retry_failed_job_but_true_can",
         "tests.llm.test_rag_retry_presence.RAGRetryPresenceTests.test_omitted_and_false_flags_run_queued_jobs_without_retry_permission"
       ]
+    },
+    {
+      "id": "e2a29a10c65e4104a7bdf89990c2366113aa32a1153066deec77eb54fd09fb22:1",
+      "rule": "S3",
+      "owner": "RAGComponent",
+      "reason": "RAGComponent.parameter_layout is the actual single owner declaration of config field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_naming_contract.py": "51298ff4290aa101d77af6ebeff8245e3038f0027d4a2772c6a51b701d02b12b",
+        "tests/llm/test_schema_ownership.py": "33f4cdd7a7b066e4acbfe7962f3734688a5ca5f751df9b2d4153d335badfe989",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_naming_contract.NamingContractTests.test_current_implementation_fields_are_closed_and_owned",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_component_client_source_and_snapshot_detachment",
+        "tests.llm.test_schema_ownership.OwnershipIntegrationTests.test_rag_delegates_unknown_child_fields_without_interpreting_them"
+      ]
+    },
+    {
+      "id": "22b31f5ec5abe43a0a686f938e7fec21ba4370ea694d3db900358ef699ba88a0:1",
+      "rule": "S3",
+      "owner": "BuiltinToolComponent",
+      "reason": "BuiltinToolComponent.parameter_layout is the actual single owner declaration of config field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/components/tools/builtin/catalog.py": "615c1d2cc1772c2243491d4aeb1f9f50214a5a148145945c4195d50c5f697e23",
+        "llm/components/tools/builtin/component.py": "eb670c38a118bd3e585bdd7c85b3ebd1e7a67ad9ef71cf52bec8114b37ff73c6",
+        "llm/components/tools/registry.py": "b58b9f9f6aebf111c183dcc5cc4c7591148c425f2698ca97214f36888b79e320",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/hub/test_question_tools.py": "322a417b3b21b613dbfac168e05254ccd764e57c11c83012231a9529c18aad39",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_builtin_tools.py": "42f6d8e730631b3103434f23bf2ece92bbe7f407c087b9b11f9d2bebfa8aa155",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_builtin_tools.BuiltinTests.test_builtin_project_threshold_without_host_ask_and_environment_binding",
+        "tests.hub.test_question_tools.QuestionToolTests.test_builtin_selection_persists_and_approval_resumes"
+      ]
+    },
+    {
+      "id": "49fa9aea97465496d4d2969f1d57c51157371ce667fae43629aca125f998279e:1",
+      "rule": "S3",
+      "owner": "ToolComponent",
+      "reason": "ToolComponent.parameter_layout is the actual single owner declaration of config field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/components/tools/component.py": "3fec2a69a202e84fcb64cec1d2d6a7cad2718b93fd6fd16438be8ceef2a499e0",
+        "llm/components/tools/data.py": "eb6d1d867974df5843bb8ae8d15f55e86116933e598ca31fc7961119eee82a63",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640",
+        "tests/llm/test_tool_data.py": "c42310660455e6b6e6db9f2dd38b9fc5b75e5baa368563246b25900868049da1"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_tool_data.ToolSelectionTests.test_invalid_selection_never_changes_persisted_configuration",
+        "tests.llm.test_tool_data.ToolSelectionTests.test_selection_survives_reload_and_clone_without_cross_project_changes"
+      ]
+    },
+    {
+      "id": "755d517eebc69152fa9d1db38316e3cb6f5156018342a9ad9c7580ad4dac4e22:1",
+      "rule": "S3",
+      "owner": "VisionComponent",
+      "reason": "VisionComponent.parameter_layout is the actual single owner declaration of config field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/components/vision/component.py": "9b953bc3e3b6d80d31ae837b115c10d4d93e9a6f16d321b9218448f2b8112c6a",
+        "llm/components/vision/data.py": "96b2b92d03237ad36f9cb5259667165ff84299185cd3a57a1fad87a8680fc059",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_naming_contract.py": "51298ff4290aa101d77af6ebeff8245e3038f0027d4a2772c6a51b701d02b12b",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640",
+        "tests/llm/test_vision.py": "750099dff6414a475cdf453eab943e5100a2f640517a8e3dc4bc8680b2b2486e"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_naming_contract.NamingContractTests.test_current_implementation_fields_are_closed_and_owned",
+        "tests.llm.test_vision.VisionTests.test_missing_explicit_selection_overrides_and_schema",
+        "tests.llm.test_vision.RuntimeTests.test_graph_approval_and_configuration_binding"
+      ]
+    },
+    {
+      "id": "8e2c3a07f289760e6b8f2920801d6fb6de436ef29e88425b22509877ea7c4e2f:1",
+      "rule": "S3",
+      "owner": "VisionComponent",
+      "reason": "VisionComponent.parameter_layout is the actual single owner declaration of policy field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/components/vision/component.py": "9b953bc3e3b6d80d31ae837b115c10d4d93e9a6f16d321b9218448f2b8112c6a",
+        "llm/components/vision/data.py": "96b2b92d03237ad36f9cb5259667165ff84299185cd3a57a1fad87a8680fc059",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_naming_contract.py": "51298ff4290aa101d77af6ebeff8245e3038f0027d4a2772c6a51b701d02b12b",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640",
+        "tests/llm/test_vision.py": "750099dff6414a475cdf453eab943e5100a2f640517a8e3dc4bc8680b2b2486e"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_naming_contract.NamingContractTests.test_current_implementation_fields_are_closed_and_owned",
+        "tests.llm.test_vision.VisionTests.test_missing_explicit_selection_overrides_and_schema",
+        "tests.llm.test_vision.RuntimeTests.test_graph_approval_and_configuration_binding"
+      ]
+    },
+    {
+      "id": "b482eecb276e22f98deb998fd36054505032e23d8f68896cd1160989efe3467f:1",
+      "rule": "S3",
+      "owner": "GraphEngine",
+      "reason": "GraphEngine.parameter_layout is the actual single owner declaration of config field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/engines/graph/engine.py": "f6ec002353d3fff98e4252ed20fef37ac31563cfc55d3abd0c0cb7a24222afa2",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_configuration_validation.py": "3b366926be156749d65b7adce3198dd500a91a85ebd58cb48ef1d201179ebc97",
+        "tests/llm/test_naming_contract.py": "51298ff4290aa101d77af6ebeff8245e3038f0027d4a2772c6a51b701d02b12b",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_naming_contract.NamingContractTests.test_current_implementation_fields_are_closed_and_owned",
+        "tests.llm.test_configuration_validation.ConfigurationValidationTests.test_graph_settings_validate_without_loading_workflow",
+        "tests.llm.test_configuration_validation.ConfigurationValidationTests.test_invalid_save_preserves_project_and_session_records"
+      ]
+    },
+    {
+      "id": "6858b9bab732d176b34829acd5f4ebf71f4340cc23bdd9e725d8c07b4bfa9dbb:1",
+      "rule": "S3",
+      "owner": "GraphEngine",
+      "reason": "GraphEngine.parameter_layout is the actual single owner declaration of policy field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/engines/graph/engine.py": "f6ec002353d3fff98e4252ed20fef37ac31563cfc55d3abd0c0cb7a24222afa2",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_configuration_validation.py": "3b366926be156749d65b7adce3198dd500a91a85ebd58cb48ef1d201179ebc97",
+        "tests/llm/test_naming_contract.py": "51298ff4290aa101d77af6ebeff8245e3038f0027d4a2772c6a51b701d02b12b",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_naming_contract.NamingContractTests.test_current_implementation_fields_are_closed_and_owned",
+        "tests.llm.test_configuration_validation.ConfigurationValidationTests.test_graph_settings_validate_without_loading_workflow",
+        "tests.llm.test_configuration_validation.ConfigurationValidationTests.test_invalid_save_preserves_project_and_session_records"
+      ]
+    },
+    {
+      "id": "f683e91fdd5460f4a5c0c93566ce4698ceb76a303770fb6a636354571a2a441b:1",
+      "rule": "S3",
+      "owner": "LoopEngine",
+      "reason": "LoopEngine.parameter_layout is the actual single owner declaration of config field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/engines/loop/engine.py": "3cead040fbf54e0868c2461eba752ac1eb50aa3e9d9272a842f66d86baf0dc4c",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_builtin_tools.py": "42f6d8e730631b3103434f23bf2ece92bbe7f407c087b9b11f9d2bebfa8aa155",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_project_session_agent_sources_and_limits_are_identical",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_layout_roundtrip_preserves_explicit_null_and_sdk_options",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_internal_policy_names_cannot_enter_through_open_config",
+        "tests.llm.test_builtin_tools.BuiltinTests.test_loop_executes_file_tool_and_persists_arguments_result"
+      ]
+    },
+    {
+      "id": "55f64bd7b7ebb6794dae7e837e5f96adbe30d73b47a6bcb89ba72da1b46531bc:1",
+      "rule": "S3",
+      "owner": "LoopEngine",
+      "reason": "LoopEngine.parameter_layout is the actual single owner declaration of policy field placement. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/engines/loop/engine.py": "3cead040fbf54e0868c2461eba752ac1eb50aa3e9d9272a842f66d86baf0dc4c",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_builtin_tools.py": "42f6d8e730631b3103434f23bf2ece92bbe7f407c087b9b11f9d2bebfa8aa155",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_project_session_agent_sources_and_limits_are_identical",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_layout_roundtrip_preserves_explicit_null_and_sdk_options",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_internal_policy_names_cannot_enter_through_open_config",
+        "tests.llm.test_builtin_tools.BuiltinTests.test_loop_executes_file_tool_and_persists_arguments_result"
+      ]
+    },
+    {
+      "id": "e84aa23fdb76e1f381765e0337d4b7e7884ee7951673e9b770e7b3032bb44f83:1",
+      "rule": "S3",
+      "owner": "LoopEngine",
+      "reason": "LoopEngine.parameter_layout is the actual single owner declaration of the input_policy to policy.completion path. Its schema and unpack consumers read this same layout; pack uses the same mapping for explicit constructor/client inputs. It declares field locations, not default values or a second list of allowed policy values. Current envelope validation, missing/null/value preservation and policy placement rejection remain unchanged; the listed owner consumer tests retain real configuration/effect and source-preservation assertions.",
+      "contracts": [
+        "docs/llm/naming-conventions.md",
+        "docs/llm/settings-consistency.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/engines/loop/engine.py": "3cead040fbf54e0868c2461eba752ac1eb50aa3e9d9272a842f66d86baf0dc4c",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_builtin_tools.py": "42f6d8e730631b3103434f23bf2ece92bbe7f407c087b9b11f9d2bebfa8aa155",
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640"
+      },
+      "tests": [
+        "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_declared_settings_require_explicit_classification",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_project_session_agent_sources_and_limits_are_identical",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_layout_roundtrip_preserves_explicit_null_and_sdk_options",
+        "tests.llm.test_settings_contract.SettingsContractTests.test_internal_policy_names_cannot_enter_through_open_config",
+        "tests.llm.test_builtin_tools.BuiltinTests.test_loop_executes_file_tool_and_persists_arguments_result"
+      ]
     }
   ]
 }

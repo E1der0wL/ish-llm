@@ -124,14 +124,6 @@
       "detail": "SDK-shaped field indexing outside Provider package"
     },
     {
-      "id": "e2a29a10c65e4104a7bdf89990c2366113aa32a1153066deec77eb54fd09fb22:1",
-      "rule": "S3",
-      "file": "llm/components/rag/component.py",
-      "symbol": "RAGComponent",
-      "line": 46,
-      "detail": "inline domain argument: config"
-    },
-    {
       "id": "27b460003d9e4f9cb4e83c1590fb36a2061a5243c17e5795b0d77637466e3cbb:1",
       "rule": "S3",
       "file": "llm/components/rag/component.py",
@@ -340,14 +332,6 @@
       "detail": "inline domain argument: retry_fields"
     },
     {
-      "id": "22b31f5ec5abe43a0a686f938e7fec21ba4370ea694d3db900358ef699ba88a0:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/component.py",
-      "symbol": "BuiltinToolComponent",
-      "line": 15,
-      "detail": "inline domain argument: config"
-    },
-    {
       "id": "d58a444086316c9440dca9ef57b22ef7ec5225b12793a027c3e4e0c3428a00b1:1",
       "rule": "S3",
       "file": "llm/components/tools/builtin/files.py",
@@ -388,14 +372,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "49fa9aea97465496d4d2969f1d57c51157371ce667fae43629aca125f998279e:1",
-      "rule": "S3",
-      "file": "llm/components/tools/component.py",
-      "symbol": "ToolComponent",
-      "line": 18,
-      "detail": "inline domain argument: config"
-    },
-    {
       "id": "886212a99b99e927e1a7fa535a3cad55379d94664dda115704c64b4d4c6937f3:1",
       "rule": "S3",
       "file": "llm/components/tools/process.py",
@@ -410,22 +386,6 @@
       "symbol": "inspect_tool",
       "line": 226,
       "detail": "inline domain argument: max_workers"
-    },
-    {
-      "id": "755d517eebc69152fa9d1db38316e3cb6f5156018342a9ad9c7580ad4dac4e22:1",
-      "rule": "S3",
-      "file": "llm/components/vision/component.py",
-      "symbol": "VisionComponent",
-      "line": 26,
-      "detail": "inline domain argument: config"
-    },
-    {
-      "id": "8e2c3a07f289760e6b8f2920801d6fb6de436ef29e88425b22509877ea7c4e2f:1",
-      "rule": "S3",
-      "file": "llm/components/vision/component.py",
-      "symbol": "VisionComponent",
-      "line": 26,
-      "detail": "inline domain argument: policy"
     },
     {
       "id": "721e395c95bc665fba6ea6ae7e085f83906e42b602bd65bbbfc242c1052ce429:1",
@@ -484,22 +444,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "b482eecb276e22f98deb998fd36054505032e23d8f68896cd1160989efe3467f:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "GraphEngine",
-      "line": 626,
-      "detail": "inline domain argument: config"
-    },
-    {
-      "id": "6858b9bab732d176b34829acd5f4ebf71f4340cc23bdd9e725d8c07b4bfa9dbb:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "GraphEngine",
-      "line": 627,
-      "detail": "inline domain argument: policy"
-    },
-    {
       "id": "69932e90e5f8eb607cd399bfcfbfeecc5a11bbe1795ed533d00fe7f08cd4633b:1",
       "rule": "S3",
       "file": "llm/engines/graph/engine.py",
@@ -514,30 +458,6 @@
       "symbol": "GraphEngine._execution_config",
       "line": 662,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "f683e91fdd5460f4a5c0c93566ce4698ceb76a303770fb6a636354571a2a441b:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine",
-      "line": 109,
-      "detail": "inline domain argument: config"
-    },
-    {
-      "id": "55f64bd7b7ebb6794dae7e837e5f96adbe30d73b47a6bcb89ba72da1b46531bc:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine",
-      "line": 110,
-      "detail": "inline domain argument: policy"
-    },
-    {
-      "id": "e84aa23fdb76e1f381765e0337d4b7e7884ee7951673e9b770e7b3032bb44f83:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine",
-      "line": 112,
-      "detail": "inline domain field: input_policy"
     },
     {
       "id": "2d16cc5a9abfbc71038babda18fd31364db4d01d15ed9695373d20929c9096a3:1",
