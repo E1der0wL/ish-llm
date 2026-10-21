@@ -9,6 +9,7 @@ from typing import Callable, Optional
 from weakref import ref
 from asyncio import timeout
 from llm.services.runtime.policies import positive_seconds
+from llm.services.infrastructure.observability import ObservationKind, ObservationStatus
 
 
 _current_subscription = ContextVar("llm_event_subscription", default=None)
@@ -183,7 +184,7 @@ class EventSubscriptions:
 
     async def _call(self, entry, args, on_error):
         guard = timeout(entry["timeout"])
-        started, status = time.monotonic(), "delivered"
+        started, status = time.monotonic(), ObservationStatus.DELIVERED.value
         entry["invoking"] += 1
         token = _current_subscription.set(entry)
         try:
@@ -191,13 +192,13 @@ class EventSubscriptions:
                 await self._invoke(entry, args)
             entry["delivered"] += 1
         except asyncio.TimeoutError:
-            status = "failed"
+            status = ObservationStatus.FAILED.value
             # 멈춘 동기 콜백 스레드는 강제 종료할 수 없다. 구독을 꺼 후속 스레드 증가를 막는다.
             expired = guard.expired() if callable(guard.expired) else guard.expired
             if expired:
                 self._unsubscribe(entry)
                 entry["timed_out"] += 1
-                status = "timed_out"
+                status = ObservationStatus.TIMED_OUT.value
             entry["failures"] += 1
             if on_error is not None:
                 on_error()
@@ -208,14 +209,14 @@ class EventSubscriptions:
             if on_error is not None:
                 on_error()
         except Exception:
-            status = "failed"
+            status = ObservationStatus.FAILED.value
             entry["failures"] += 1
             # 관찰자 실패가 이미 저장된 실행 결과를 바꾸면 안 된다.
             if on_error is not None:
                 on_error()
         finally:
             if self.observability is not None and status is not None:
-                self.observability.record("events", status, duration_seconds=time.monotonic() - started)
+                self.observability.record(ObservationKind.EVENTS.value, status, duration_seconds=time.monotonic() - started)
             _current_subscription.reset(token)
             entry["invoking"] -= 1
             self._retire(entry)
@@ -258,7 +259,7 @@ class EventSubscriptions:
                 queue.task_done()
                 entry["dropped"] += 1
                 if self.observability is not None:
-                    self.observability.record("events", "dropped")
+                    self.observability.record(ObservationKind.EVENTS.value, ObservationStatus.DROPPED.value)
         else:
             # queue.put만 기다리면 해제 후 종료 신호 뒤에 알림을 넣을 수 있다.
             # 공간/해제 신호마다 상태를 재검사해 막힌 생산자도 빠져나오게 한다.

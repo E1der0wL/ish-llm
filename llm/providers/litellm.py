@@ -188,7 +188,7 @@ async def stream_completion(
 
     def produce() -> None:
         nonlocal failure_diagnostic
-        from llm.services.infrastructure.observability import record
+        from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
         from .requests import error_code
         from .runtime import diagnostic_failure
         started = time.monotonic()
@@ -208,7 +208,7 @@ async def stream_completion(
             if stopped.is_set():
                 return
             invoked = True
-            record("providers", "calls", name="completion")
+            record(ObservationKind.PROVIDERS.value, ObservationStatus.CALLS.value, name="completion")
             stream = completion_fn(**request)
             stage = "stream_open"
             iterator = iter(stream)
@@ -243,7 +243,7 @@ async def stream_completion(
                         failure = error
             try:
                 if invoked:
-                    record("providers", "cancelled" if stopped.is_set() else "failed" if failure is not None else "completed",
+                    record(ObservationKind.PROVIDERS.value, ObservationStatus.CANCELLED.value if stopped.is_set() else ObservationStatus.FAILED.value if failure is not None else ObservationStatus.COMPLETED.value,
                            code=error_code(failure) if failure is not None else None,
                            name="completion", duration_seconds=time.monotonic() - started)
                 if not stopped.is_set():

@@ -372,14 +372,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "886212a99b99e927e1a7fa535a3cad55379d94664dda115704c64b4d4c6937f3:1",
-      "rule": "S3",
-      "file": "llm/components/tools/process.py",
-      "symbol": "invoke_worker",
-      "line": 96,
-      "detail": "inline domain assignment: status"
-    },
-    {
       "id": "0db670a771a2b84e47aa4fc36a7c1823d0c57c6b3a0e7764a620995ec1326972:1",
       "rule": "S3",
       "file": "llm/components/tools/process.py",
@@ -514,14 +506,6 @@
       "symbol": "MCPConnector.__init__",
       "line": 47,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "2b8ed45514657a72a4e953dcab593f7c1ca0359e05f67e7422242c65f8fd6260:1",
-      "rule": "S3",
-      "file": "llm/providers/observations.py",
-      "symbol": "provider_attempt",
-      "line": 67,
-      "detail": "inline domain assignment: status"
     },
     {
       "id": "a8c0182870203f42e2fea475a43e2d595da13f0237208705e5be7cfe9c26c8ff:1",
@@ -676,60 +660,12 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "a0237d29a6ee7090a8f704c3d5735a5ffeb75a0840f4fce7581c75ea4169657a:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/observability.py",
-      "symbol": "Observability.record",
-      "line": 66,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "fd42d35b211b1f05aaf01e52b83311cbe07292f9736b3690baabe2bf95d05c5e:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/observability.py",
-      "symbol": "Observability.record",
-      "line": 68,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "fd42d35b211b1f05aaf01e52b83311cbe07292f9736b3690baabe2bf95d05c5e:2",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/observability.py",
-      "symbol": "Observability.record",
-      "line": 70,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "829f8985a063619d3ed0f1e4993e34fca67e6758dd84a4c02969a5939a64d3f1:1",
       "rule": "S3",
       "file": "llm/services/infrastructure/observability.py",
       "symbol": "Observability.record",
       "line": 73,
       "detail": "inline domain field: max_seconds"
-    },
-    {
-      "id": "383774400a5d1de1dc823e24650ac940ec7f59be7c7e2bec1c6925574213bc1b:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/events.py",
-      "symbol": "EventSubscriptions._call",
-      "line": 194,
-      "detail": "inline domain assignment: status"
-    },
-    {
-      "id": "4d22b2f7ca077665238540f5cd6f9741755996cfe07466d6c3a9d14f21cefc53:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/events.py",
-      "symbol": "EventSubscriptions._call",
-      "line": 200,
-      "detail": "inline domain assignment: status"
-    },
-    {
-      "id": "383774400a5d1de1dc823e24650ac940ec7f59be7c7e2bec1c6925574213bc1b:2",
-      "rule": "S3",
-      "file": "llm/services/runtime/events.py",
-      "symbol": "EventSubscriptions._call",
-      "line": 211,
-      "detail": "inline domain assignment: status"
     },
     {
       "id": "701f562628ac9b2b4921f907a7b5b12adf0fdb1434eb667629d44d6ed6789c6d:1",
@@ -834,38 +770,6 @@
       "symbol": "ToolExecutor._retry_state",
       "line": 322,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "0124eaa94dada1c934bf0060153a98ced8828e6c6f28f33a04a11a29c166f911:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor.execute",
-      "line": 683,
-      "detail": "inline domain assignment: status"
-    },
-    {
-      "id": "0124eaa94dada1c934bf0060153a98ced8828e6c6f28f33a04a11a29c166f911:2",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor.execute",
-      "line": 686,
-      "detail": "inline domain assignment: status"
-    },
-    {
-      "id": "ce5e0a63f1f7c270e14ad018b0692e3817801ef9a59fbeb5e4d7563acd5c3530:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor.execute",
-      "line": 688,
-      "detail": "inline domain assignment: status"
-    },
-    {
-      "id": "87021039db69d95fe92180c5703de21a92136dfe91f8e725e6f0d786a2294256:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor.execute",
-      "line": 692,
-      "detail": "inline domain assignment: status"
     },
     {
       "id": "3f5ace377ed99c816fac8a5362415c4610e04ff23c46106cdad270ec97f3f0be:1",

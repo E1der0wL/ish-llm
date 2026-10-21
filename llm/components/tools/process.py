@@ -75,7 +75,7 @@ def _decode(payload, operation):
 
 
 async def invoke_worker(request):
-    from llm.services.infrastructure.observability import record
+    from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
     from llm.services.infrastructure.processes import current_process_cancellation
     cancellation = current_process_cancellation()
     loop, task = asyncio.get_running_loop(), asyncio.current_task()
@@ -85,25 +85,25 @@ async def invoke_worker(request):
         except RuntimeError:
             pass  # worker loop가 이미 정리된 경우
     started = time.monotonic()
-    status, code = "completed", None
+    status, code = ObservationStatus.COMPLETED.value, None
     try:
         with cancellation.register(cancel) if cancellation is not None else nullcontext():
             return await _invoke_worker(request)
     except WorkerError as error:
-        status, code = "failed", error.code
+        status, code = ObservationStatus.FAILED.value, error.code
         raise
     except asyncio.CancelledError:
-        status = "cancelled"
+        status = ObservationStatus.CANCELLED.value
         raise
     finally:
-        record("workers", status, code=code, name=request["operation"],
+        record(ObservationKind.WORKERS.value, status, code=code, name=request["operation"],
                duration_seconds=time.monotonic() - started)
 
 
 async def _invoke_worker(request):
     """새 process group에서 실행한다. 취소/실패/정상 완료 모두 descendants를 회수한다."""
     from llm._platform import require_linux
-    from llm.services.infrastructure.observability import record
+    from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
     require_linux()
     root = Path(__file__).resolve().parents[3]
     worker = Path(__file__).with_name("_worker.py")
@@ -123,7 +123,7 @@ async def _invoke_worker(request):
         nonlocal spawned
         if not spawned:
             spawned = True
-            record("workers", "spawned", name=request["operation"])
+            record(ObservationKind.WORKERS.value, ObservationStatus.SPAWNED.value, name=request["operation"])
     try:
         process = await asyncio.shield(pending)
         note_spawn()

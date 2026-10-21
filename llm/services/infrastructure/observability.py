@@ -4,19 +4,51 @@ from collections import Counter, deque
 from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
+from enum import StrEnum
 from datetime import datetime, timezone
 import math
 import re
 import threading
 
+class ObservationKind(StrEnum):
+    """관찰 사실의 집계 경계. 실행 권한이나 영속 도메인이 아니다."""
+
+    RUNS = 'runs'
+    TOOLS = 'tools'
+    PROVIDERS = 'providers'
+    WORKERS = 'workers'
+    EVENTS = 'events'
+
+
+class ObservationStatus(StrEnum):
+    """기존 관찰 사실의 이름. 각 경계의 허용 집합은 별도로 유지한다."""
+
+    STARTED = 'started'
+    COMPLETED = 'completed'
+    FAILED = 'failed'
+    INTERRUPTED = 'interrupted'
+    PAUSED = 'paused'
+    REQUESTS = 'requests'
+    EXECUTIONS = 'executions'
+    REUSED = 'reused'
+    APPROVAL_REQUIRED = 'approval_required'
+    CANCELLED = 'cancelled'
+    CALLS = 'calls'
+    RETRIES = 'retries'
+    SPAWNED = 'spawned'
+    DELIVERED = 'delivered'
+    DROPPED = 'dropped'
+    TIMED_OUT = 'timed_out'
+
+
 _current = ContextVar("llm_observability", default=None)
 _fields = frozenset(("name", "project_id", "session_id", "run_id", "step_id"))
 _statuses = {
-    "runs": {"started", "completed", "failed", "interrupted", "paused"},
-    "tools": {"requests", "executions", "reused", "approval_required", "completed", "failed", "cancelled"},
-    "providers": {"calls", "completed", "failed", "retries", "cancelled"},
-    "workers": {"spawned", "completed", "failed", "cancelled"},
-    "events": {"delivered", "dropped", "failed", "timed_out"},
+    ObservationKind.RUNS.value: {ObservationStatus.STARTED.value, ObservationStatus.COMPLETED.value, ObservationStatus.FAILED.value, ObservationStatus.INTERRUPTED.value, ObservationStatus.PAUSED.value},
+    ObservationKind.TOOLS.value: {ObservationStatus.REQUESTS.value, ObservationStatus.EXECUTIONS.value, ObservationStatus.REUSED.value, ObservationStatus.APPROVAL_REQUIRED.value, ObservationStatus.COMPLETED.value, ObservationStatus.FAILED.value, ObservationStatus.CANCELLED.value},
+    ObservationKind.PROVIDERS.value: {ObservationStatus.CALLS.value, ObservationStatus.COMPLETED.value, ObservationStatus.FAILED.value, ObservationStatus.RETRIES.value, ObservationStatus.CANCELLED.value},
+    ObservationKind.WORKERS.value: {ObservationStatus.SPAWNED.value, ObservationStatus.COMPLETED.value, ObservationStatus.FAILED.value, ObservationStatus.CANCELLED.value},
+    ObservationKind.EVENTS.value: {ObservationStatus.DELIVERED.value, ObservationStatus.DROPPED.value, ObservationStatus.FAILED.value, ObservationStatus.TIMED_OUT.value},
 }
 
 
@@ -61,13 +93,13 @@ class Observability:
                 event["duration_seconds"] = duration
             with self._lock:
                 # EventSubscriptions만 전달 count를 소유한다. 여기서는 최근 사실만 보관한다.
-                if kind != "events":
+                if kind != ObservationKind.EVENTS.value:
                     self._counts[kind][status] += 1
-                if kind == "tools" and status == "executions" and retry:
-                    self._counts[kind]["retries"] += 1
-                if kind == "workers" and status == "failed" and code == "tool_worker_protocol":
+                if kind == ObservationKind.TOOLS.value and status == ObservationStatus.EXECUTIONS.value and retry:
+                    self._counts[kind][ObservationStatus.RETRIES.value] += 1
+                if kind == ObservationKind.WORKERS.value and status == ObservationStatus.FAILED.value and code == "tool_worker_protocol":
                     self._counts[kind]["protocol_failed"] += 1
-                if status == "failed" and "code" in event:
+                if status == ObservationStatus.FAILED.value and "code" in event:
                     self._failures[code] += 1
                 if "duration_seconds" in event:
                     aggregate = self._latency.setdefault(kind, {"count": 0, "total_seconds": 0., "max_seconds": 0.})
@@ -84,9 +116,9 @@ class Observability:
     def snapshot(self):
         with self._lock:
             values = {kind: {key: self._counts[kind][key] for key in statuses}
-                      for kind, statuses in _statuses.items() if kind != "events"}
-            values["tools"]["retries"] = self._counts["tools"]["retries"]
-            values["workers"]["protocol_failed"] = self._counts["workers"]["protocol_failed"]
+                      for kind, statuses in _statuses.items() if kind != ObservationKind.EVENTS.value}
+            values[ObservationKind.TOOLS.value][ObservationStatus.RETRIES.value] = self._counts[ObservationKind.TOOLS.value][ObservationStatus.RETRIES.value]
+            values[ObservationKind.WORKERS.value]["protocol_failed"] = self._counts[ObservationKind.WORKERS.value]["protocol_failed"]
             return deepcopy({**values, "failures_by_code": dict(self._failures),
                              "latency": self._latency, "recent": list(self._recent)})
 
@@ -100,8 +132,8 @@ class ObservabilityView:
     def snapshot(self):
         value = self._observer.snapshot()
         value["runtime"] = self._runtime()
-        value["providers"].update(self._providers.stats)
-        value["events"] = self._events.stats
+        value[ObservationKind.PROVIDERS.value].update(self._providers.stats)
+        value[ObservationKind.EVENTS.value] = self._events.stats
         return value
 
     async def asnapshot(self):

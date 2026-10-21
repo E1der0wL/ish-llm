@@ -60,6 +60,7 @@ from llm.services.runtime.checkpoints import CheckpointRepository, checkpoint_di
 from llm.services.runtime.interactions import InteractionRepository
 from llm.services.runtime.pending import PendingWork
 from llm.services.runtime.usage import UsageScope, check_admission, has_limit
+from llm.services.infrastructure.observability import ObservationKind, ObservationStatus
 
 
 # 실행 메타데이터를 저장한다. Facade와 실행 서비스가 같은 인스턴스를 공유한다.
@@ -1695,7 +1696,7 @@ class RunManager:
                 if run is None:
                     continue
                 started = time.monotonic()
-                self.observability.record("runs", "started", run_id=run.id,
+                self.observability.record(ObservationKind.RUNS.value, ObservationStatus.STARTED.value, run_id=run.id,
                     project_id=runtime.project.id, session_id=runtime.session.id)
                 await self._publish_run(run)
                 runtime.preparing = False
@@ -1723,7 +1724,7 @@ class RunManager:
                     try:
                         changed = await self._io.run(self._finish, runtime, run,
                                                      outcome.status, outcome.error, outcome.error_code)
-                        self.observability.record("runs", outcome.status.value, code=outcome.error_code,
+                        self.observability.record(ObservationKind.RUNS.value, outcome.status.value, code=outcome.error_code,
                             duration_seconds=time.monotonic() - started, run_id=run.id,
                             project_id=runtime.project.id, session_id=runtime.session.id)
                         if outcome.status == RunStatus.PAUSED:

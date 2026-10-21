@@ -15,6 +15,69 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c29: 관찰 경계·사실 이름의 소유 선언 — c27–c29 묶음 Level 3
+
+Observability가 ObservationKind 5개·ObservationStatus 16개를 단일 선언한다. 기존 허용
+집합과 Tool·Run·Provider·worker·이벤트 관찰 소비자 7개 파일의 91개 참조가 같은 문자열
+값을 사용한다. 각 경계가 허용하는 사실 집합·원시 문자열 타입·초기 snapshot을 실제 이전
+구현과 비교해 동일함을 확인했다. enum에 있는 값도 기존 경계의 허용 집합을 넓히지 않는다.
+상태 참조를 원래 값으로 복원하고 새 선언/import를 제거하면 7개 파일의 AST가 같다.
+
+영속 상태·승인/예산·Checkpoint/효과 영수증·로그 상태·구독 소유 counter의 계약은 유지한다.
+Run 종료의 domain status는 기존대로 관찰 경계에 전달한다. 시험은 바꾸지 않았다. 이전
+backend의 관찰 선언 부분만 참고했으며 같은 허용 집합을 확인했고 코드나 과거 검증은 이식하지 않았다.
+S3 참조 12건을 실제 제거했다. 관찰 집계의 수학적 초기값 등 별도 후보는 여전히 미해결이다.
+
+기존 review 13건은 변경된 의존성과 관찰 선언을 재검토했다. 기존 분류 함수는 새 관찰
+참조를 원래 문자열로 복원하면 동일하고, 다른 source hash·근거·계약·시험은 그대로다.
+MCP/Tool CAS·명시 retry·기한·예산·RAG retry의 구체적 시험 ID가 이번 full 실행에서 모두
+통과했다. 분류 규칙이나 안전성 Assertion을 완화하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 135/135 | 135 | 0/0/0 | 47.133초 | 0 |
+| 집중 HUB | 15/15 | 15 | 0/0/0 | 85.109초 | 0 |
+| 전체 LLM | 2101/2101 | 2101 | 0/0/0 | 729.136초 | 0 |
+| 전체 HUB | 577/577 | 577 | 0/0/0 | 712.222초 | 0 |
+
+첫 full 시도는 환경 전환으로 LLM 1633개·Hub 454개 시작 로그에서 중단됐다. 완료 JSON과
+exit 정보가 없어 전체 성공으로 처리하지 않았다. 원시 로그와 중단 당시 동일한 source/input
+manifest를 `c27-c29-level3-interrupted-20261021/`에 보존했다. 위 전체 결과는 두 suite를
+처음부터 다시 실행한 결과이며, 중단된 부분 실행을 합산하지 않는다.
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각각 0이다. 집중
+검증은 실제 관찰/stream/worker/구독 경계와 Hub 소비자를 포함한다. 여러 실행 경계의
+공통 관찰 선언과 c27의 영수증/재개 참조, c28의 현재 감사 근거를 묶어 전체 회귀로 검증했다.
+별도 c29 Level 2를 중복 실행하지 않았다. 각 full은 현재 통합 소스의 단일 실행이며 앞선
+선택 실행이나 재사용 증거를 합산한 결과가 아니다. 승인·예산·중복 효과·Resume·RAG·삭제·
+원본 보존/중단·트랜잭션 장애 주입과 실제 Hub 소비자가 포함된다.
+
+R3 실제 효과 mutation True/outer exit 0, 실제 LLM/Hub 환경 검사 각각 ok/exit 0이다.
+정적 raw 239·reviewed 86·미해결 153(S3 135·S6 18), new/stale/review 오류와 필수
+S1/S2/S4/S5 미해결 0/exit 0이다. 문서 132개·Python fence 182개·링크 959개·anchor
+34개, 오류 0이다. P1 최종 S1–S5 및 A–F는 아직 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c29-focused/llm.json --modules tests.llm.test_observability tests.llm.test_provider_runtime tests.llm.test_provider_diagnostics tests.llm.test_tool_workers tests.llm.test_service_extensions tests.llm.test_runtime_reliability
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c29-focused/hub.json --modules tests.hub.test_backend_diagnostics tests.hub.test_provider_activity tests.hub.test_retry_observations tests.hub.test_snapshot_projection
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c27-c29-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c27-c29-level3/hub.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c27-c29-level3/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c27-c29-level3/aux/docs.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c27-c29-level3/aux/env-llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c27-c29-level3/aux/env-hub.json
+```
+
+실행 HEAD `6038d6c3f48d319e88022723881fc4a4b102911b`에 c29 변경을 더한 소스다.
+704 Python 소스 hash `55ff1dff966131cd9962418330f8d491ee3486eff6ab135ed28c81c4fdd6a7b3`, 866 입력/환경 hash
+`70d61fc46873231f1d4abd05c7af0da6b7067a2688414077dd37208456df5b4b`가 전체 실행 전후 동일하다.
+Python 3.12.14·136 의존성·env 5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 바이너리를 기록했다.
+집중 실행도 자체 전후 동일성을 확인했다. 소스·시험·Fixture·문서를 고정해 검증하고 전후
+대조 후 결과 문서를 먼저 갱신한다. 원시 명령·exit·개별 ID·로그·manifest는 `/workspace/llm-clean-resume/p1/c27-c29-level3/`에
+보존한다. 소스-커밋 동일성과 staged diff 확인 후 작업 브랜치에 묶음 Push한다.
+원격 CI 실제 결과는 미확인이며 main·backend·Draft PR #1과 기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c28: 구현체의 실제 ParameterLayout 선언 판정 — 로컬 Level 2
 
 RAG·BuiltinTool·Tool·Vision·Graph·Loop의 config/policy 위치 및 Loop input_policy 경로

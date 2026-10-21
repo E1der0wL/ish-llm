@@ -27,6 +27,10 @@ print(snapshot["events"])     # delivered, dropped, failures, timed_out, pending
 Component별 record 호출을 추가하지 않는다. 공통 ComponentData.model_scope는 Host observer를
 provider boundary로 전달만 한다. Run의 중첩 Engine/Agent도 같은 문맥을 사용한다.
 
+관찰 경계와 사실 이름은 `observability.py`의 `ObservationKind`와 `ObservationStatus`가
+단일 선언한다. 각 경계의 기존 허용 집합과 문자열 출력은 유지하며, 영속 Run/Checkpoint
+상태나 실행 허가로 사용하지 않는다. Enum에 있는 값도 해당 경계의 허용 집합에 없으면 집계하지 않는다.
+
 현재 provider active/waiting은 ProviderCalls.stats, 이벤트 통계는 EventSubscriptions.stats,
 Run/queue/unfinished 값은 기존 manager runtime에서 snapshot 시 읽는다. 독립 gauge를 만들지 않는다.
 snapshot은 순간별 projection이며 여러 owner를 하나의 트랜잭션으로 잠근 일관된 도메인 snapshot은 아니다.

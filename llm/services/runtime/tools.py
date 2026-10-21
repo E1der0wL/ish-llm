@@ -14,7 +14,7 @@ from asyncio import timeout
 from llm.core.checkpoints import CheckpointStatus
 from llm.core.contracts import Diagnostic
 from llm.errors import CodedError, stable_error_code
-from llm.services.infrastructure.observability import record
+from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
 from llm.core.configuration import UNSET
 from llm.core.models import ProjectConfig, new_id
 from llm.core.results import EngineOutput
@@ -534,7 +534,7 @@ class ToolExecutor:
                 reservation = await scope.operations.claim(call) if call.operation_key is not None else {"reused": False}
             value = reservation.get("result")
             if reservation["reused"]:
-                record("tools", "reused", name=tool.name)
+                record(ObservationKind.TOOLS.value, ObservationStatus.REUSED.value, name=tool.name)
             if not reservation["reused"]:
                 attempt = retry_state["attempt"]
                 uncertain_attempt = retry_state["uncertain"]
@@ -549,7 +549,7 @@ class ToolExecutor:
                             event = self._retry_event(retry_state, metadata, request_key)
                             if event is not None:
                                 yield event
-                        record("tools", "executions", retry=attempt > 0, name=tool.name,
+                        record(ObservationKind.TOOLS.value, ObservationStatus.EXECUTIONS.value, retry=attempt > 0, name=tool.name,
                                run_id=call.run_id, step_id=call.step_id)
                         stream = getattr(tool.handler, "execute_events", None)
                         if getattr(tool.handler, "resumable_container", False) is True and callable(stream):
@@ -660,7 +660,7 @@ class ToolExecutor:
                                 reservation = await scope.operations.claim(call)
                             if reservation["reused"]:
                                 value = reservation["result"]
-                                record("tools", "reused", name=tool.name)
+                                record(ObservationKind.TOOLS.value, ObservationStatus.REUSED.value, name=tool.name)
             ProjectConfig.validate_json({"result": value})
             content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)
             if output_limit is not None and len(content) > output_limit:
@@ -736,28 +736,28 @@ class ToolExecutor:
             invocation = json.dumps([getattr(context, "checkpoint_scope", None), request_key])
             resumed = resumed or invocation in scope.invocations
         if not resumed:
-            record("tools", "requests", name=tool.name)
+            record(ObservationKind.TOOLS.value, ObservationStatus.REQUESTS.value, name=tool.name)
         started = time.monotonic()
-        status, code = "completed", None
+        status, code = ObservationStatus.COMPLETED.value, None
         try:
             async with aclosing(self._execute(tool, arguments, result=result, metadata=metadata,
                                               context=context, decision=decision, classification=classification,
                                               request_key=request_key, retry_state=retry_state)) as events:
                 async for event in events:
                     if event.type == EngineEventType.PAUSED:
-                        status = "paused"
+                        status = ObservationStatus.PAUSED.value
                     yield event
             if result.get("paused"):
-                status = "paused"
+                status = ObservationStatus.PAUSED.value
         except ToolApprovalRequired:
-            status = "approval_required"
+            status = ObservationStatus.APPROVAL_REQUIRED.value
             raise
         except (asyncio.CancelledError, GeneratorExit):
             if not result.get("paused"):
-                status = "cancelled"
+                status = ObservationStatus.CANCELLED.value
             raise
         except Exception as error:
-            status, code = "failed", stable_error_code(error) or ToolExecutionError.code
+            status, code = ObservationStatus.FAILED.value, stable_error_code(error) or ToolExecutionError.code
             raise
         finally:
-            record("tools", status, code=code, name=tool.name, duration_seconds=time.monotonic() - started)
+            record(ObservationKind.TOOLS.value, status, code=code, name=tool.name, duration_seconds=time.monotonic() - started)

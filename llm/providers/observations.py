@@ -57,25 +57,25 @@ async def observed_call(invocation: ModelCall, request, call):
 @contextmanager
 def provider_attempt(invocation: ModelCall):
     """공통 SDK 호출 경계. SDK 내부 retry 횟수는 관찰할 수 없으므로 추측하지 않는다."""
-    from llm.services.infrastructure.observability import record
+    from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
     operation = invocation.operation
-    started, status, code = time.monotonic(), "completed", None
-    record("providers", "calls", name=operation)
+    started, status, code = time.monotonic(), ObservationStatus.COMPLETED.value, None
+    record(ObservationKind.PROVIDERS.value, ObservationStatus.CALLS.value, name=operation)
     try:
         yield
     except asyncio.CancelledError:
-        status = "cancelled"
+        status = ObservationStatus.CANCELLED.value
         raise
     except BaseException as error:
-        status, code = "failed", invocation.classify_error(error)
+        status, code = ObservationStatus.FAILED.value, invocation.classify_error(error)
         raise
     finally:
-        record("providers", status, code=code, name=operation, duration_seconds=time.monotonic() - started)
+        record(ObservationKind.PROVIDERS.value, status, code=code, name=operation, duration_seconds=time.monotonic() - started)
 
 
 def record_retry(operation):
-    from llm.services.infrastructure.observability import record
-    record("providers", "retries", name=operation)
+    from llm.services.infrastructure.observability import record, ObservationKind, ObservationStatus
+    record(ObservationKind.PROVIDERS.value, ObservationStatus.RETRIES.value, name=operation)
 
 
 def observe_component_models(method):
