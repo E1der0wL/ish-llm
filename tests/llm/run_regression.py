@@ -1,7 +1,8 @@
 """Discover every LLM/Hub test and fail on missing, duplicate or skipped tests.
 
 The JSON artifact records discovered and actually started IDs, and each outcome.
-Use the same entry point locally and in CI; suite selection assigns entire trees.
+Use the same strict result checks locally and in CI. By default a suite assigns
+an entire tree; explicit modules select whole discovered modules for local gates.
 """
 
 import argparse
@@ -90,24 +91,53 @@ def publish_annotations(report, result):
         emit_annotation("Unverified skipped test", skipped, level="error")
 
 
+def select_modules(suite, modules):
+    """Select whole discovered modules; reject typos, overlap and hidden duplicates."""
+    tests = list(flatten(suite))
+    available = [test.id() for test in tests]
+    if not modules or len(set(modules)) != len(modules):
+        raise ValueError("Module selection must be nonempty and unique")
+    if len(set(available)) != len(available):
+        raise ValueError("Discovery contains duplicate test IDs")
+    known = {identifier.rsplit(".", 2)[0] for identifier in available}
+    unknown = sorted(set(modules) - known)
+    if unknown:
+        raise ValueError(f"Modules absent from discovery: {unknown}")
+    selected = [test for test in tests if test.id().rsplit(".", 2)[0] in modules]
+    return unittest.TestSuite(selected)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--suite", choices=(*SUITES, "all"), required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--modules", nargs="+", help="Exact discovered module names for a local partial gate")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     names = SUITES if args.suite == "all" else (args.suite,)
     suite = unittest.TestSuite()
+    discovery_errors = []
     for name in names:
         loader = unittest.TestLoader()
         suite.addTests(loader.discover(str(root / SUITES[name]), top_level_dir=str(root)))
         if loader.errors:
+            discovery_errors.extend(loader.errors)
             print("\n".join(loader.errors), file=sys.stderr)
+    available = [test.id() for test in flatten(suite)]
+    if args.modules is not None:
+        if discovery_errors:
+            parser.error("Discovery failed; refusing partial execution")
+        try:
+            suite = select_modules(suite, args.modules)
+        except ValueError as error:
+            parser.error(str(error))
     ids = [test.id() for test in flatten(suite)]
     start = time.monotonic()
     result = unittest.TextTestRunner(verbosity=2, resultclass=Result).run(suite)
     report = summarize(ids, result)
-    report.update(suite=args.suite, python=sys.version, seconds=time.monotonic() - start)
+    report.update(suite=args.suite, python=sys.version, seconds=time.monotonic() - start,
+                  scope="selected" if args.modules is not None else "full",
+                  modules=args.modules, available=available)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: (len(value) if isinstance(value, list) else value)

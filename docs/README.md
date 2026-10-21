@@ -12,6 +12,9 @@ P1-b와 P1-c 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 만�
 이후 영속 데이터 감사에서도 RAG 원본 삭제와 Session 삭제의 Project 예산 초기화를 재현했다.
 [수명주기 계약](llm/data-lifecycle.md)의 H1 세 계약군을 보강했으며 H2–H5는 남아 있다.
 
+후속 구현의 집중·소단계·전체 게이트와 CI 운영은
+[Level 1–3 검증 정책](llm/verification-policy.md)을 따른다.
+
 ## 읽는 순서와 적용 범위
 
 1. [현행 아키텍처](llm/architecture.md): 현재 제품의 도메인·실행·저장 소유권.

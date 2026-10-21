@@ -321,3 +321,50 @@ data-lifecycle, clean-refactor, storage-transactions, Memory 문서와 Component
 먼저 갱신했다. 원본 목록의 필수 존재와 원자 저장, 캐시 전 검증, File 패키지와 Vision 삭제
 표식의 소실 차단을 기록했다. 초기 집중 실패와 fixture 수정, 의미 검증의 독립성을 보존했다.
 H2-e의 두 개별 기록 실패 해결과 별도 Tool 패키지 실패·나머지 H2–H5 작업을 구분했다.
+
+
+## 2026-10-21 검증 실행 정책 정리
+
+사용자의 최신 지침을 [검증 정책](verification-policy.md)의 단일 선언으로 반영했다.
+clean-refactor·data-lifecycle의 매 소단계 전체 회귀/Push 표현을 Level 1–3와 묶음 게이트로
+바꾸고, lifecycle-verification·p1-verification의 과거 결과와 당시 지침은 그대로 보존했다.
+storage-transactions에는 원자성·장애 주입 계약 유지와 영향 불명확 시 승격 조건을 연결했다.
+
+변경 owner는 tests.llm.run_regression이다. 기존 --suite의 전체 발견·실행 경로를 유지하고
+--modules가 발견된 정확한 모듈 전체만 선택하게 했다. 빈·중복·미발견 모듈과 discovery 오류를
+먼저 거부한다. 부분 실행의 available/discovered/started와 scope를 보고하며 기존 엄격한 결과
+집계를 공유한다. 실제 CLI 부분 실행과 기본 전체 경로, 누락된 import 오류 차단, 잘못된 선택,
+unexpected success 거부 시험 5개를 추가했다. CI workflow·제품 실행·저장 계약은 이 정책 변경에
+포함하지 않았다. 동시에 진행 중인 H2-g 제품 변경은 별도 검증 범위다.
+
+Level 2 검증은 검사 도구의 직접 소비자와 공통 안전성 12개 모듈을 선택했다. 작업 경로는
+/workspace/ish-llm, Python은 .venv-linux312/bin/python 3.12.14, host는
+ d833790959a76ac457fdeea3f21a6bea1eecfe12다. 고정 lock과 기존 격리 조건을 유지했다.
+TERM=xterm-256color, LITELLM_LOCAL_MODEL_COST_MAP=True, LITELLM_MODE=PRODUCTION,
+HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb,
+HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip으로 실행했다.
+
+```sh
+.venv-linux312/bin/python -m tests.llm.run_regression --suite all --modules tests.llm.test_regression_runner tests.llm.test_documentation_checks tests.llm.test_architecture_checks tests.llm.test_checks_output tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_nested_graph tests.llm.test_transactions --output /workspace/llm-clean-resume/verification-policy/focused.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/verification-policy/architecture.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/verification-policy/docs.json
+```
+
+집중/통합/안전성은 132 discovered/started/pass, failure/error/Skip/expected failure/
+unexpected success/missing/unexpected/duplicate 0, 41.392초, exit 0이다. 전체 discovery 2,366개
+중 선택한 132개만 실행했다. 정적 감사 new/stale/S1 0, 남은 후보 553개, exit 0이다.
+R3 mutation은 실제 두 번째 파일 효과 assertion 실패를 검출했으며 detector exit 0이다.
+변이 내부의 의도된 실패는 일반 회귀 성공·실패에 합산하지 않는다. 문서 검사도 exit 0이다.
+
+이 실행 중 제품·시험 소스를 수정하지 않았다. 실행 후 Python 659개 manifest는
+9693966b4c0f432960807c4aeb5738b52874601a1d980f4010aed32e2fc4d90d이며,
+HEAD 0a2f3a0 위의 H2-g 미커밋 변경과 정책 실행기 변경을 포함한다. 이 hash를 실행 전
+측정값이라고 보고하지 않는다. 기존 결과를 재사용한 실행이 아니며 원시 증거는
+/workspace/llm-clean-resume/verification-policy/에 남긴다.
+
+이번 정책 소단계에서 전체 회귀는 수행하지 않았다. 영향은 실행기의 명시적 선택과 보고에
+한정하고 기본 전체 경로를 별도로 검증했다. 다음 Level 3은 H2-g의 Tool/Hub 소비자 통합
+게이트이며 새 실행기와 테스트도 포함한다. 이미 실행한 H2-g 최초 전체의 LLM 1,821 pass와
+Hub 539 pass/1 error는 그 실행의 별도 결과다. 합쳐서 정책 변경의 전체 통과로 보고하지 않는다.
+GitHub API 조회가 Forbidden으로 거부되어 현재 원격 CI 성공은 확인하지 못했다.
