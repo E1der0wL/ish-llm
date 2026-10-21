@@ -111,7 +111,7 @@ class JobStorage:
 
     def __init__(self, project, component):
         self.project_id, self.component = project.id, component.name
-        self.validate_document = component.validate_prepared_document
+        self.validate_document = component.validate_document
         self.checked = component._checked
         root = self.checked(component.root(project))
         self.directory = self.checked(root / self.DIRECTORY)

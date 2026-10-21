@@ -47,7 +47,7 @@ class PreparedContractTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_every_stored_document_field_is_required_even_with_a_matching_hash(self):
         original = await self.prepared()
-        for key in RAGComponent.PREPARED_FIELDS:
+        for key in RAGComponent.DOCUMENT_FIELDS:
             with self.subTest(key=key):
                 value = deepcopy(original)
                 del value[key]
@@ -97,12 +97,12 @@ class PreparedContractTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(key=key, replacement=replacement):
                 value = deepcopy(original)
                 value[key] = replacement
-                RAGComponent.validate_prepared_document(value)
+                RAGComponent.validate_document(value)
                 await self.reject(value)
         value = deepcopy(original)
         value['content'] += '\nUnrequested new source.'
         value['sha256'] = sha256(value['content'].encode()).hexdigest()
-        RAGComponent.validate_prepared_document(value)
+        RAGComponent.validate_document(value)
         await self.reject(value)
 
     async def test_boolean_cannot_replace_original_numeric_metadata(self):
@@ -176,7 +176,7 @@ class PreparedContractTests(unittest.IsolatedAsyncioTestCase):
             await self.rag._async_call(self.jobs._prepared, self.job['id'], {})
         self.assertEqual(self.snapshot(), before)
         self.assertEqual(self.effects.read_text(), 'called\n')
-        self.assertEqual(RAGComponent.validate_prepared_document(original), original)
+        self.assertEqual(RAGComponent.validate_document(original), original)
         await self.project.abackup(self.root / 'backup')
         self.assertTrue((self.root / 'backup').exists())
         self.assertEqual((await self.rag.arun_job(self.job['id'], retry=True))['status'], 'completed')
@@ -196,7 +196,7 @@ class PreparedContractTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(value['graph_complete'])
                 self.assertTrue(value['graph_diagnostics'])
                 self.assertIsNone(value['graph_diagnostics'][0]['source'])
-                RAGComponent.validate_prepared_document(value)
+                RAGComponent.validate_document(value)
                 effects = self.effects.read_bytes()
                 self.assertTrue((await self.rag.aresume_plan(self.job['id'])).can_resume)
                 await self.rag.arun_job(self.job['id'], retry=True)

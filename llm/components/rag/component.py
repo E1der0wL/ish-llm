@@ -45,7 +45,7 @@ class RAGComponent(DefinitionComponent):
     GENERATIONS_DIRECTORY = "generations"
     IDENTITY_PATTERN = re.compile(r"[a-f0-9]{32}")
     GRAPH_SCHEMA_VERSION = 1
-    PREPARED_FIELDS = frozenset(("id", "title", "content", "metadata", "revision", "generation",
+    DOCUMENT_FIELDS = frozenset(("id", "title", "content", "metadata", "revision", "generation",
         "sections", "chunks", "sha256", "vectors", "embedding_fingerprint", "ingestion", "profile",
         "graph_complete", "graph_diagnostics", "graph", "extraction_manifest",
         "preparation_configuration", "preparation_fingerprint"))
@@ -117,14 +117,19 @@ class RAGComponent(DefinitionComponent):
         build_graph(path / "graph.kuzu", documents, options=self.graph_options)
 
     @classmethod
-    def validate_prepared_document(cls, document):
-        """Validate stored preparation without filling fields or consulting live settings."""
-        if (not isinstance(document, dict) or not cls.PREPARED_FIELDS <= document.keys()
-                or document.keys() - cls.PREPARED_FIELDS - {"description"}):
+    def validate_document(cls, document):
+        """Validate a stored RAG document without filling fields or consulting live settings."""
+        if not isinstance(document, dict):
+            raise ValueError("Stored RAG document must be an object")
+        identifier = validate_name(document.get("id"))
+        cls._validate_versions({identifier: document})
+        graph = document.get("graph")
+        if not isinstance(graph, dict) or not {"entities", "relations"} <= graph.keys():
+            raise ValueError("RAG documents require graph entities and relations")
+        if (not cls.DOCUMENT_FIELDS <= document.keys()
+                or document.keys() - cls.DOCUMENT_FIELDS - {"description"}):
             raise ValueError("Prepared RAG document fields are incomplete or unknown")
         ProjectConfig.validate_json(document)
-        identifier = validate_name(document["id"])
-        cls._validate_versions({identifier: document})
         if (not isinstance(document["title"], str) or not document["title"].strip()
                 or not isinstance(document["content"], str) or not document["content"].strip()
                 or not isinstance(document["metadata"], dict)
@@ -202,7 +207,7 @@ class RAGComponent(DefinitionComponent):
             covered.update(indices)
             graph = select_graph(grouped, entry["entity_ids"], chunks[entry["offset"]:entry["offset"] + entry["count"]])
             if revision_token(graph) != entry["digest"]:
-                raise ValueError("Prepared RAG extraction batch digest changed")
+                raise GraphValidationError("Stored extraction batch integrity mismatch")
         if document["graph_complete"] and covered != set(range(len(chunks))):
             raise ValueError("Prepared RAG complete graph has missing extraction batches")
         return document
@@ -214,6 +219,25 @@ class RAGComponent(DefinitionComponent):
                     or document["revision"] < 1 or not isinstance(document.get("generation"), str)
                     or cls.IDENTITY_PATTERN.fullmatch(document["generation"]) is None):
                 raise ValueError("RAG documents require a stored generation and positive revision; re-register sources without them")
+
+    @classmethod
+    def validate_corpus(cls, value):
+        """Published and prepared documents use the same owning field contract."""
+        if (not isinstance(value, dict) or type(value.get("graph_schema_version")) is not int
+                or value["graph_schema_version"] != cls.GRAPH_SCHEMA_VERSION):
+            raise ValueError("Unsupported RAG graph schema; re-register source documents in a new RAG Project")
+        if value.keys() != {"graph_schema_version", "documents", "profile"} or not isinstance(value["documents"], dict):
+            raise ValueError("Invalid RAG corpus fields")
+        documents = value["documents"]
+        for identifier, document in documents.items():
+            cls.validate_document(document)
+            if document["id"] != identifier:
+                raise ValueError("RAG corpus document identity changed")
+            if document["profile"] != value["profile"]:
+                raise ValueError("RAG corpus and document embedding profiles disagree")
+        if not documents and value["profile"] is not None:
+            raise ValueError("Empty RAG corpus requires an explicit null profile")
+        return value
 
     @classmethod
     def _check_revision(cls, document, expected_revision, expected_generation):
@@ -433,8 +457,6 @@ class RAGComponent(DefinitionComponent):
             path = self._generation_path(project, generation)
             if not (path / "chroma").is_dir() or not (path / "graph.kuzu").is_file():
                 raise ValueError("RAG backup requires matching vector and graph generation")
-            for document in snapshot["documents"].values():
-                validate_graph(document["graph"], document["chunks"])
 
     def resolve(self, project, capability):
         if capability == "tools":
@@ -484,15 +506,9 @@ class RAGComponent(DefinitionComponent):
         value = self.snapshot_cache.get(key, maximum)
         cached = value is not None
         if not cached:
-            value = read_json(source)
-        if (type(value.get("graph_schema_version")) is not int
-                or value["graph_schema_version"] != self.GRAPH_SCHEMA_VERSION):
-            raise ValueError("Unsupported RAG graph schema; re-register source documents in a new RAG Project")
-        self._validate_versions(value["documents"])
-        if any(not isinstance(doc.get("graph"), dict) or
-               not {"entities", "relations"}.issubset(doc["graph"])
-               for doc in value["documents"].values()):
-            raise ValueError("RAG documents require graph entities and relations")
+            value = self.validate_corpus(read_json(source))
+        if not self._checked(path / "chroma").is_dir():
+            raise FileNotFoundError("RAG generation requires its vector index")
         if not self._checked(path / "graph.kuzu").is_file():
             raise FileNotFoundError("RAG generation requires graph.kuzu")
         if not cached:
@@ -709,10 +725,16 @@ class RAGComponent(DefinitionComponent):
             raise RAGConflictError("Corpus changed during preparation; reload and retry explicitly")
         if progress:
             progress("validating")
-        self._validate_versions(documents)
-        profiles = [doc["profile"] for doc in documents.values()]
-        if profiles and any(profile != profiles[0] for profile in profiles):
-            raise ValueError("Cannot mix embedding models/dimensions in one corpus")
+        if not isinstance(documents, dict):
+            raise ValueError("RAG corpus documents must be an object")
+        profile = None
+        if documents:
+            first = next(iter(documents.values()))
+            if not isinstance(first, dict) or "profile" not in first:
+                raise ValueError("RAG document requires its embedding profile")
+            profile = first["profile"]
+        corpus = self.validate_corpus({"graph_schema_version": self.GRAPH_SCHEMA_VERSION,
+            "documents": documents, "profile": profile})
         generation = uuid4().hex
         path = self._generation_path(project, generation)
         from llm.services.infrastructure.storage import make_directory
@@ -735,8 +757,7 @@ class RAGComponent(DefinitionComponent):
             atomic_json(path / "catalog.json", [{key: doc[key] for key in
                 ("id", "title", "description", "generation", "revision") if key in doc}
                 for _, doc in sorted(documents.items())])
-            atomic_json(path / "corpus.json", {"graph_schema_version": self.GRAPH_SCHEMA_VERSION, "documents": documents,
-                                              "profile": profiles[0] if profiles else None})
+            atomic_json(path / "corpus.json", corpus)
         except BaseException:
             remove_named_tree(path.parent, path, generation)
             raise

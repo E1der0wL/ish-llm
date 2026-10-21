@@ -9,6 +9,85 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-p RAG 게시 코퍼스 필수 필드 — Level 2
+
+H2-n/o 묶음 Push `b41599b4025428a1597d3eebefde27897042ac31`에서 이어서 게시 코퍼스를 보강했다.
+이전 고정 소스의 외부 재현은 corpus.profile/게시 문서 title 소실을 backup이 수락하는 2 failure,
+error·Skip 0, 1.149초, exit 1이었다. 두 원래 Assertion을 `test_rag_corpus_integrity`에 편입했다.
+
+- RAGComponent의 `DOCUMENT_FIELDS`/`validate_document`를 준비·게시 문서가 함께 사용한다.
+  준비 전용 이름을 바꾸고 모든 JobStorage/테스트 소비자를 직접 이관했으며 호환 wrapper는 없다.
+- `validate_corpus`는 현재 root 필드·정확한 schema version·문서 mapping/ID·모든 문서와 corpus의
+  profile 일치를 확인한다. 비어 있는 코퍼스만 명시 None profile을 허용한다. 기존 generation/
+  positive revision 및 extraction integrity mismatch의 거부 계약과 Assertion을 유지한다.
+- publish는 새 세대를 만들기 전에 검증하고, snapshot은 원본을 검증한 뒤 cache에 넣는다.
+  기존 독립 cache 복사와 source stat key를 유지해 반환값 수정·파일 손상을 숨기지 않는다.
+  원본 조회·추가/수정·compact·재선택·backup/clone에서 누락을 기본값으로 복원하지 않는다.
+
+영향 범위는 RAG 문서 snapshot/prepare/publish/조회·쓰기·복제/백업·cache와 직접 소비자다.
+저장 형식·트랜잭션 쓰기 경계·승인/예산/효과 정책은 바꾸지 않았다. H2-n의 실제 호출 관계와
+공통 안전성 목록에 prepared/corpus owner 모듈을 추가했다. `modules.json`의 LLM 42개·Hub 6개
+모듈 전체를 선택했고 실제 발견 목록에서 누락/중복을 검사했다. interaction_storage·usage_deletion·
+operation_integrity·checkpoint_integrity·rag_storage·lifecycle_integrity, 기존 Job/Checkpoint 실제
+중단·쓰기 장애와 직접 RAG 소비자 통합 검증을 포함한다. 필드 손상 matrix에서는 원본 hash와
+실제 모델 효과 파일을 매 거부 뒤 비교한다. 새 공통 인프라/공개 정책 경계는 추가하지 않았다.
+
+| 현재 브랜치 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중, 3 modules | 30/30 | 30 | 0/0/0 | 24.457초 | 0 |
+| 초기 Level 2 LLM | 605/605 | 603 | 1/1/0 | 228.178초 | 1 |
+| 초기 Level 2 Hub | 33/33 | 33 | 0/0/0 | 86.342초 | 0 |
+| 그래프 거부 계약 보정 후 집중 | 23/23 | 23 | 0/0/0 | 22.602초 | 0 |
+| Level 2 LLM, 42 modules | 605/605 | 605 | 0/0/0 | 230.035초 | 0 |
+| Level 2 Hub, 6 modules | 33/33 | 33 | 0/0/0 | 87.218초 | 0 |
+
+expected failure/unexpected success/발견 후 미실행/미발견 실행/중복은 각각 0이다. 전체 발견 목록은
+LLM 1917개·Hub 540개이며 위 실행은 **선택한 모듈의 부분 검증**이다.
+초기 Level 2의 그래프 관련 두 실패는 손상이 수락된 경우가 아니다. 누락된 graph의 기존 조회
+거부 문구를 문서 owner로 옮겨 유지했다. Writer 시험은 후단 DB 구축의 KeyError 대신 같은
+owner의 사전 ValueError와 `require graph` 문구를 검사하도록 명확히 했다. 기존 활성 세대·
+보존 문서 Assertion과 새 전체 파일 hash 검사는 유지한다. 보정 후 집중 및 두 Level 2 suite를
+새로 실행했으며 초기 실패를 최종 통과로 합산하거나 제외하지 않았다.
+정적 감사 신규/stale/S1 0, 기존 debt 531, exit 0이다. R3 Mutation은 실제 두 번째 파일 효과
+Assertion으로 호출 한도 누락을 검출(True, detector exit 0)했다. 문서는 이 검증 후 커밋보다 먼저 갱신한다.
+문서 검사는 131 documents·178 Python fences·953 relative links·34 anchors, 오류 0, exit 0이다.
+
+별도 Git 메타데이터 없는 복사본의 초안 결과는 현재 브랜치 검증으로 승계하지 않았다.
+초안 첫 실행 84개 중 1개는 조기 손상 거부 메시지가 기존 `integrity mismatch` Assertion과 달라
+실패했다(83 pass/1 failure, error·Skip 0, 39.964초, exit 1). 구현의 기존 오류 계약을 복원했다.
+후속 초안 33개(17.479초)·52개(19.393초)는 exit 0이며 현재 브랜치에서는 위 검증을 새로 수행했다.
+
+실제 명령과 전체 argv/요약/로그는 `/workspace/llm-clean-resume/h2-p/`에 보존했다.
+
+```bash
+python -m tests.llm.run_regression --suite llm --modules tests.llm.test_rag_corpus_integrity tests.llm.test_rag_prepared_integrity tests.llm.test_record_generations --output /workspace/llm-clean-resume/h2-p/focused-1.json
+python -m tests.llm.run_regression --suite llm --modules tests.llm.test_unified_rag tests.llm.test_rag_corpus_integrity tests.llm.test_rag_prepared_integrity --output /workspace/llm-clean-resume/h2-p/focused-2.json
+python /workspace/llm-clean-resume/h2-p/run-level2.py llm /workspace/llm-clean-resume/h2-p/final-2
+python /workspace/llm-clean-resume/h2-p/run-level2.py hub /workspace/llm-clean-resume/h2-p/final-2
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-p/static-2.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-p/docs-final.json
+```
+
+실행은 `.venv-linux312/bin/python` 3.12.14, UID 1000, host
+`d833790959a76ac457fdeea3f21a6bea1eecfe12`, 136 packages와 직전 H2-o와 동일한 bwrap/Xvfb/xclip·
+5개 환경 변수를 사용한다. 전후 Python 670개 hash는 `0e11190ddb10d905451714e18c6c5f8f01500401f64c9e8cb13c36c75124f6f0`,
+전체 입력 829개/환경 hash는 `d6f24324e8456b83b1eccee7036449c185d8b5607bd7689a73dbfd2ad1e95a2e`로 각각 동일하다.
+초기 Level 2의 source/input 환경 hash도 각각
+`95ccc8b2fa239717568dcd3c50957201bf8b4a36fbf2e57791bd46b6a66d351a`와
+`2437030f0f495973c9e537f942922c01641d107d4fb071eb75eb2b4103463392`로 실행 전후 동일하다.
+
+전체 LLM/Hub는 이 소단계에서 **실행하지 않았다**. 변경이 RAG owner 검증과 직접 소비자로
+한정되고 위 관련 통합·안전성 검증이 통과했으므로 Level 2 로컬 완료로 보존한다. RAG 제어/목록
+연결·나머지 배치 의미와 관련 소단계를 묶은 다음 Level 3에서 전체를 실행한 뒤 Push한다.
+이전 H2-n/o 전체 결과를 변경 후 코퍼스 구현의 전체 통과로 승계하지 않는다. H2 전체·원격 CI
+완료가 아니며 H3–H5·P1 잔여·A–F는 아직 진입하지 않는다.
+다음 목록 owner에서는 catalog.json 소실의 backup 수락과 빈 catalog의 게시 문서 은폐를
+외부 재현했다(2 failure, error·Skip 0, 1.038초, exit 1). 증거는
+`/workspace/llm-clean-resume/h2-q/catalog-loss-probe.log`, 소스는 이 `final-2/inputs-before.json`이다.
+고정 suite 밖의 다음 범위 실패를 위 부분 검증의 통과로 표현하지 않으며 목록·게시 세대 연결을
+보강하기 전 H2 전체를 완료하지 않는다.
+
 ## H2-o RAG 준비 문서·입력 연결 — H2-n/o 묶음 Level 3
 
 H2-n 로컬 커밋 `71d0370cc64ce2442deb177d9fab115797e8fc86`에서 이어서 준비 영수증의 의미를

@@ -96,7 +96,7 @@ class UnifiedRAGTests(unittest.IsolatedAsyncioTestCase):
         project = manager.load(self.project.id)
         with manager.ownership.scope():
             previous = self.rag.snapshot(project)
-            with self.assertRaises(KeyError):
+            with self.assertRaisesRegex(ValueError, "require graph"):
                 self.rag.publish(project, previous, {"invalid": document})
             self.assertEqual(self.rag.snapshot(project)["generation"], previous["generation"])
         self.assertEqual([d["id"] for d in await self.data.alist_documents()], ["kept"])
