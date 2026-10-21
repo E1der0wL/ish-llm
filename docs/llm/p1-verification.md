@@ -15,6 +15,65 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c35: 대화 선택 모드의 Project 정책 선언 — c33–c35 묶음 Level 3
+
+순수 Project 정책 계약 `core/policies.py`에 ContextMode 5개를 단일 선언했다. Project
+Schema, ContextPolicy 검증·대화 선택, Hub의 명시적 full 선택이 같은 문자열 값을 사용한다.
+core는 서비스/실행 객체에 새로 의존하지 않는다. 실제 이전/현재 Project Schema와
+ContextPolicy의 필드·타입·기본값, 허용 값의 순서/원시 문자열 타입이 같다. 새 선언/import와
+참조를 되돌리면 3개 파일의 원문이 같다. 시험은 바꾸지 않았다.
+
+None·필수 max_turns/max_chars·현재 입력 보존·완료 턴 판정·추가 지시/재개 계보·출력
+영수증·예산 계약은 유지한다. 이전 backend의 ContextPolicy 검증 부분만 참고해 같은
+모드/필수 한도임을 확인했으며 코드·과거 검증을 이식하지 않았다. 미해결 S3 참조 2건을
+실제 제거했다. 기존 review 13건은 원문 복원·실제 Schema/필드 동일성과 나머지 source pin을
+대조해 재검토했다. 근거·계약·시험은 유지하고 정규 모드 선언 의존성을 연결했다. 해당 정확한
+시험 ID 14개가 이번 전체 실행에서 모두 통과했다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 89/89/89 | 0/0/0 | 19.117초 | 0 |
+| 집중 HUB | 40/40/40 | 0/0/0 | 69.208초 | 0 |
+| 전체 LLM | 2101/2101/2101 | 0/0/0 | 729.495초 | 0 |
+| 전체 HUB | 577/577/577 | 0/0/0 | 716.395초 | 0 |
+
+첫 full 시도는 exec-server 연결 단절로 LLM 839개·Hub 262개 시작 로그에서 중단됐다.
+완료 JSON·exit 정보가 없어 전체 성공으로 처리하지 않았다. 원시 로그와 중단 시점의 동일한
+source/input manifest를 `c33-c35-level3-interrupted-exec-server-20261021/`에 보존했다.
+위 전체 결과는 환경 확인 후 두 suite를 처음부터 다시 실행한 결과이며 부분 실행을 합산하지 않는다.
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각 실행에서 0이다.
+집중 검증은 공통 정책/설정·문맥 선택·Loop 추가 지시 및 Hub 문맥/후속 요청/요청 이력/Provider
+복구를 포함한다. 공유 Project Schema의 현재 통합 상태와 c33 소비 참조·c34 개별 감사 근거를
+묶어 전체 검증했다. 별도 c35 Level 2를 중복 실행하지 않았다. 각 full은 현재 소스의 단일
+전체 실행이며 과거 선택 실행/재사용 결과를 합산하지 않았다. 승인·예산·중복 효과·Resume·
+RAG·삭제·원본 보존·중단/트랜잭션 장애 주입과 실제 Hub 소비자가 포함된다.
+
+R3 실제 효과 mutation True/outer exit 0, 실제 LLM/Hub 환경 검사 각각 ok/exit 0,
+정적 raw 209·reviewed 118·미해결 91(S3 73·S6 18), new/stale/review 오류와 필수
+S1/S2/S4/S5 미해결 0/exit 0, 문서 검사 오류 0/exit 0이다.
+P1 최종 S1–S5와 A–F는 아직 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c35-focused/llm.json --modules tests.llm.test_service_extensions tests.llm.test_project_policies tests.llm.test_policy_ownership tests.llm.test_policy_consumers tests.llm.test_loop_steering tests.llm.test_configuration_validation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c35-focused/hub.json --modules tests.hub.test_context tests.hub.test_followup tests.hub.test_request_history tests.hub.test_provider_recovery
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c33-c35-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c33-c35-level3/hub.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c33-c35-level3/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c33-c35-level3/aux/docs.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c33-c35-level3/aux/env-llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c33-c35-level3/aux/env-hub.json
+```
+
+실행 HEAD `393fbe83223e070b55fefcef7d51d57bc760bca7`에 c35 변경을 더했다. 소스704개 hash
+`1414b7f7be9beb137bd50ec3e484aafaa55bebd6494493ba4c2477002131e13a`, 입력/환경866개 hash `ba31afc83813e1f816e930ebf82c5c3afffe0e204039e33a683a0eb67134f494`가 전체 실행 전후 같다.
+Python 3.12.14·136 의존성·env5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 바이너리를 기록했다.
+집중 실행도 자체 전후 동일성을 확인했다. 소스·시험·Fixture·문서를 고정해 검증하고 결과
+문서를 먼저 갱신한다. 원시 명령·exit·ID·로그·manifest는 `/workspace/llm-clean-resume/p1/c33-c35-level3/`와 `c35-focused/`에
+보존한다. 소스-커밋 동일성·staged diff 확인 후 작업 브랜치에 묶음 Push한다. 원격 CI 실제
+결과는 미확인이며 main·backend·Draft PR #1과 기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c34: 외부 프로토콜·기술적 집계/flush 선언 판정 — 로컬 Level 2
 
 HTTP 오류 분류 6건·최초 HTTP 400 원인의 진단 1건, X11 Property/변환 반환 코드 3건,

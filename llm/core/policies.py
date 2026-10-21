@@ -1,9 +1,20 @@
 """프로젝트의 명시적 JSON 정책 스키마·검증. 서비스나 실행 객체에는 의존하지 않는다."""
 
 from copy import deepcopy
+from enum import StrEnum
 import json
 import math
 from jsonschema import Draft202012Validator
+
+
+class ContextMode(StrEnum):
+    """Project context policy choices shared by Schema and runtime selection."""
+
+    FULL = "full"
+    RECENT = "recent"
+    COMPLETED = "completed"
+    RECENT_COMPLETED = "recent_completed"
+    BUDGET = "budget"
 
 
 def validate_tool_constraints(constraints: dict) -> None:
@@ -84,7 +95,7 @@ def describe_policies() -> dict:
             "argument_constraints": tool_constraints_schema()}),
         "context": section({
             "mode": field("string", "엔진에 전달할 과거 대화 선택 방식",
-                          enum=["full", "recent", "completed", "recent_completed", "budget"]),
+                          enum=[mode.value for mode in ContextMode]),
             "max_turns": field("integer", "recent 계열의 과거 턴 수; 현재 입력은 별도", minimum=1),
             "max_chars": field(["integer", "null"], "현재 입력 포함 대화 본문 문자 상한", minimum=1)}),
         "output": section({

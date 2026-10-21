@@ -3,6 +3,7 @@
 Build conversation context for Runs and clones, independent of storage."""
 
 from copy import deepcopy
+from llm.core.policies import ContextMode
 
 from llm.core.models import Message, MessageRole, MessageStatus
 from llm.core.steering import InstructionStatus, is_instruction, RunInstruction
@@ -17,15 +18,15 @@ class ContextPolicy:
     max_chars: Optional[int] = None
 
     def __post_init__(self):
-        if self.mode not in (None, "full", "recent", "completed", "recent_completed", "budget"):
+        if self.mode not in (None, *(mode.value for mode in ContextMode)):
             raise ValueError("Unknown context policy")
         if self.max_turns is not None and (type(self.max_turns) is not int or self.max_turns < 1):
             raise ValueError("max_turns must be positive")
         if self.max_chars is not None and (type(self.max_chars) is not int or self.max_chars < 1):
             raise ValueError("max_chars must be positive")
-        if self.mode in ("recent", "recent_completed") and self.max_turns is None:
+        if self.mode in (ContextMode.RECENT.value, ContextMode.RECENT_COMPLETED.value) and self.max_turns is None:
             raise ValueError("Recent context requires explicit max_turns")
-        if self.mode == "budget" and self.max_chars is None:
+        if self.mode == ContextMode.BUDGET.value and self.max_chars is None:
             raise ValueError("budget policy requires max_chars")
 
 
@@ -45,11 +46,11 @@ class ConversationContextBuilder:
             if (message.role == MessageRole.USER and not is_instruction(message)) or not groups:
                 groups.append([])
             groups[-1].append(message)
-        if policy.mode in ("completed", "recent_completed"):
+        if policy.mode in (ContextMode.COMPLETED.value, ContextMode.RECENT_COMPLETED.value):
             groups = [group for group in groups if any(
                 item.role == MessageRole.ASSISTANT and item.status == MessageStatus.COMPLETED for item in group)
                 and not any(item.status in (MessageStatus.FAILED, MessageStatus.INTERRUPTED) for item in group)]
-        if policy.mode in ("recent", "recent_completed"):
+        if policy.mode in (ContextMode.RECENT.value, ContextMode.RECENT_COMPLETED.value):
             groups = groups[-policy.max_turns:]
         if policy.max_chars is not None:
             budget = policy.max_chars - len(current.content)

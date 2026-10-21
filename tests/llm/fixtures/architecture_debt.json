@@ -284,22 +284,6 @@
       "detail": "inline domain argument: timeout"
     },
     {
-      "id": "0fcf21e5357d232cc17ba435c76ecc9d033b5bd3d36b38059f0cbd0f6dcacd33:1",
-      "rule": "S3",
-      "file": "llm/services/history/context.py",
-      "symbol": "ConversationContextBuilder._select",
-      "line": 48,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "cfbe79d71fa496be2be56639317b5a36101c201a179015ccdf327e4bbff398ed:1",
-      "rule": "S3",
-      "file": "llm/services/history/context.py",
-      "symbol": "ConversationContextBuilder._select",
-      "line": 52,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "b55ce89acc69519271bd331499ab9b7d1e5b99b611738a593aad6a1a1d8d27d3:1",
       "rule": "S3",
       "file": "llm/services/history/recovery.py",
