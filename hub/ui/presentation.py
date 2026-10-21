@@ -1,5 +1,6 @@
 """Pure localized display transformations, executed on the UI thread."""
 
+from llm.core.models import MessageStatus, RunStatus
 from dataclasses import dataclass, replace
 from datetime import datetime
 
@@ -18,17 +19,17 @@ class Presentation:
 def present_message(item: ChatMessage, t) -> ChatMessage:
     text = item.text
     if item.role == "assistant":
-        text, _ = split_followup(text, final=item.status not in ("streaming", "committed"))
-    if item.role == "assistant" and not text and item.status in ("streaming", "committed"):
+        text, _ = split_followup(text, final=item.status not in (MessageStatus.STREAMING, MessageStatus.COMMITTED))
+    if item.role == "assistant" and not text and item.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED):
         return replace(item, text="", phase=item.phase or "preparing")
-    if item.role == "assistant" and item.status == "failed":
+    if item.role == "assistant" and item.status == MessageStatus.FAILED:
         text = t("response_failed")
         if item.failure is not None:
             text += "\n\n" + failure_text(item.failure, t)
         item = replace(item, role="system", id=item.id + ":failure" if item.id else "",
                        tools=(), trace=(), phase="", activity="")
     elif not text and not item.tools:
-        text = t("status_" + item.status) if item.status in ("interrupted", "cancelled", "paused", "completed") else t("waiting")
+        text = t("status_" + item.status) if item.status in (MessageStatus.INTERRUPTED, MessageStatus.CANCELLED, MessageStatus.PAUSED, MessageStatus.COMPLETED) else t("waiting")
     return replace(item, text=text,
         time=datetime.fromisoformat(item.time).astimezone().strftime("%Y-%m-%d %H:%M:%S") if item.time else "")
 
@@ -54,7 +55,7 @@ class MessagePresentationCache:
                     partial = replace(cached[2], elapsed_seconds=item.elapsed_seconds) if cached[2] else None
                 else:
                     projected, partial = present_message(item, t), None
-                    if item.role == "assistant" and item.status == "failed" and item.text.strip():
+                    if item.role == "assistant" and item.status == MessageStatus.FAILED and item.text.strip():
                         # Keep model output separate; parse it only when changed.
                         text, _ = split_followup(item.text, final=True)
                         partial = replace(item, text=text, failure=None)
@@ -78,7 +79,7 @@ def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
     if run:
         if run.error:
             notice = f"{t.status(run.status)}: {run.error}"
-        elif run.status == "paused":
+        elif run.status == RunStatus.PAUSED:
             notice = t("paused")
     if snapshot.status in ("waiting_input", "waiting_approval"):
         status = t.status(snapshot.status)

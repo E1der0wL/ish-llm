@@ -1,5 +1,6 @@
 """Session turn management and project execution activity dialogs."""
 
+from llm.core.models import RunStatus
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Label
 from ...widget.controls import TextArea
@@ -106,7 +107,7 @@ class HistoryUI:
                 return
             identifier = identifiers[0]
             row = popup.rows[identifier]
-            if operation == "retry_turn" and row["status"] not in ("interrupted", "failed"):
+            if operation == "retry_turn" and row["status"] not in (RunStatus.INTERRUPTED, RunStatus.FAILED):
                 view.close_dialog()
                 view.notice = t("history_retry_unavailable")
                 return

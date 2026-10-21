@@ -1,5 +1,6 @@
 """Rich Markdown rendered into PTK cells, without printing to the terminal."""
 
+from llm.core.models import MessageStatus
 from ...model import ChatMessage
 from ...asset.icon import for_style
 from bisect import bisect_right
@@ -80,7 +81,7 @@ def render_messages(messages: tuple[ChatMessage, ...], width: int, theme: HubThe
             return [_trim_right([(_segment_style(segment.style, theme.code_background), segment.text)
                                 for segment in segments if not segment.control]) for segments in rendered]
         if renderers is not None and message.role == "assistant":
-            parsed = blocks if blocks is not None else OutputParser().parse(message.text, final=message.status not in ("streaming", "committed"))
+            parsed = blocks if blocks is not None else OutputParser().parse(message.text, final=message.status not in (MessageStatus.STREAMING, MessageStatus.COMMITTED))
             context = RenderContext(message_width, theme, t, Path(root or Path.cwd()), invalidate or get_app().invalidate)
             body = []
             for block in parsed:

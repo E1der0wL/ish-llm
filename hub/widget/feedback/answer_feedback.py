@@ -1,5 +1,6 @@
 """Local answer acknowledgement, without changing durable execution states."""
 
+from llm.core.models import MessageStatus
 from dataclasses import dataclass, replace
 from llm.core.interactions import InteractionOption
 
@@ -48,7 +49,7 @@ def project_answers(responses, messages):
     for message in messages:
         tools = tuple(tool(step) for step in message.tools)
         trace = tuple(tool(step) for step in message.trace)
-        phase = headers.get(message.id, message.phase) if message.status == "paused" else message.phase
+        phase = headers.get(message.id, message.phase) if message.status == MessageStatus.PAUSED else message.phase
         result.append(replace(message, tools=tools, trace=trace, phase=phase)
                       if (tools, trace, phase) != (message.tools, message.trace, message.phase) else message)
     return tuple(result)

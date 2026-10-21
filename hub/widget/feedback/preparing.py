@@ -1,5 +1,6 @@
 """Immediate local submission feedback, separate from durable chat history."""
 
+from llm.core.models import MessageStatus
 from prompt_toolkit.application.current import get_app
 import asyncio
 from dataclasses import replace
@@ -63,7 +64,7 @@ class PreparingResponse:
         activity = retry_text(run.retry if run and run.active else None, self.view.t)
         for index in range(len(messages) - 1, -1, -1):
             message = messages[index]
-            if message.role == "assistant" and message.status in ("streaming", "committed"):
+            if message.role == "assistant" and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED):
                 elapsed = clock[1] + monotonic() - clock[2] if clock and message.id == clock[0] else message.elapsed_seconds
                 messages = (*messages[:index], replace(message, elapsed_seconds=elapsed, activity=activity), *messages[index + 1:])
                 break
@@ -120,7 +121,7 @@ class PreparingResponse:
         self.clocks = {k: v for k, v in self.clocks.items()
                        if k[0] == snapshot.project_id and any(s.id == k[1] for s in snapshot.sessions)}
         last = next((m for m in reversed(snapshot.messages) if m.role == "assistant"), None)
-        if last and last.role == "assistant" and last.status in ("streaming", "committed") and last.elapsed_seconds is not None:
+        if last and last.role == "assistant" and last.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED) and last.elapsed_seconds is not None:
             self.clocks[key] = (last.id, last.elapsed_seconds, monotonic())
         else:
             self.clocks.pop(key, None)
@@ -150,7 +151,7 @@ class PreparingResponse:
         following = messages[index + 1:]
         # Queue admission during another Run is already represented as queued.
         # For a new Run retain preparation until its own assistant is observed.
-        if request.status == "cancelled" or (request.status == "queued" and snapshot.run and snapshot.run.active):
+        if request.status == MessageStatus.CANCELLED or (request.status == MessageStatus.QUEUED and snapshot.run and snapshot.run.active):
             self.finish(key)
         elif following and following[0].role in ("assistant", "reasoning"):
             self.finish(key)

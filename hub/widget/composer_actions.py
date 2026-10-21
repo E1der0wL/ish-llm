@@ -1,5 +1,6 @@
 """Mouse actions share the composer's keyboard submission and stop handlers."""
 
+from llm.core.models import RunStatus
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.layout import VSplit
 
@@ -29,7 +30,7 @@ class ComposerActions(VSplit):
         if key in self.view.preparing.pending or key in self.view.interrupting.pending:
             return self.view.icons.auxiliary["stop"]
         snapshot = getattr(self.view, "_last_snapshot", None)
-        return self.view.icons.auxiliary["resume" if run and not run.active and run.status == "interrupted"
+        return self.view.icons.auxiliary["resume" if run and not run.active and run.status == RunStatus.INTERRUPTED
                                          and not snapshot.queued_count else "stop"]
 
     def interrupt(self):

@@ -1,5 +1,6 @@
 """Presentation data shared by Hub's backend adapter and widgets."""
 
+from llm.core.models import SessionStatus
 from dataclasses import dataclass
 
 from .errors.contracts import ErrorInfo
@@ -106,7 +107,7 @@ class HubSnapshot:
     selected_id: str
     messages: tuple[ChatMessage, ...]
     run: RunSummary | None = None
-    status: str = "idle"
+    status: str = SessionStatus.IDLE.value
     queued_count: int = 0
     model_required: bool = False
     title_error: ErrorInfo | None = None

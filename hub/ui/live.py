@@ -1,5 +1,6 @@
 """UI-thread controller; backend handles never cross into PTK callbacks."""
 
+from llm.core.models import MessageStatus, RunStatus
 import asyncio
 from dataclasses import replace
 
@@ -69,7 +70,7 @@ class LiveHubView(HubView):
         self._submitted_messages = {key: value for key, value in self._submitted_messages.items()
                                     if key[0] == snapshot.project_id and key[1] in sessions}
         snapshot = replace(snapshot, messages=tuple(replace(item, failure=self.failure_diagnoses.get(
-            (snapshot.project_id, snapshot.selected_id, item.run_id))) if item.status == "failed" else item
+            (snapshot.project_id, snapshot.selected_id, item.run_id))) if item.status == MessageStatus.FAILED else item
             for item in snapshot.messages))
         display = present(snapshot, self.t, self._presentation_cache)
         current_id = self.sessions[self.selected].id
@@ -310,7 +311,7 @@ class LiveController:
     def _diagnose(self, snapshot):
         identity = snapshot.project_id, snapshot.selected_id
         candidates = [item.run_id for item in snapshot.messages if item.role == "assistant"
-                      and item.status == "failed" and item.run_id][-256:]
+                      and item.status == MessageStatus.FAILED and item.run_id][-256:]
         missing = [rid for rid in candidates
                    if (*identity, rid) not in self.view.failure_diagnoses
                    and (*identity, rid) not in self._diagnosing][-64:]
@@ -575,7 +576,7 @@ class LiveController:
             return
         snapshot = getattr(self.view, "_last_snapshot", None)
         if (snapshot and snapshot.selected_id == session_id and snapshot.run
-                and not snapshot.run.active and snapshot.run.status == "interrupted"
+                and not snapshot.run.active and snapshot.run.status == RunStatus.INTERRUPTED
                 and not snapshot.queued_count and key not in self.view.preparing.pending):
             from .chat.resume import resume_turn
             resume_turn(self, session_id, snapshot.run.id)

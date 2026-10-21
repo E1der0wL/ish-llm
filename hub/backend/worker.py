@@ -1,5 +1,6 @@
 """Keep the LLM loop alive between ish's repeated prompt_async invocations."""
 
+from llm.core.models import SessionStatus, MessageStatus
 import asyncio
 from contextlib import nullcontext
 from concurrent.futures import Future
@@ -89,7 +90,7 @@ class BackendWorker:
             dirty = self.runtime.dirty.is_set()
             self.runtime.dirty.clear()
             active = last is None or bool(getattr(getattr(last, "run", None), "active", False)) or bool(getattr(last, "queued_count", 0))
-            active = active or any(getattr(s, "status", "") in ("running", "streaming", "queued") or getattr(s, "queued_count", 0)
+            active = active or any(getattr(s, "status", "") in (SessionStatus.RUNNING, MessageStatus.STREAMING, MessageStatus.QUEUED) or getattr(s, "queued_count", 0)
                                    for s in getattr(last, "sessions", ()))
             # Idle reconciliation is a safety net. Events wake it immediately,
             # throttled only by the configured output interval.

@@ -1,5 +1,6 @@
 """Session-bound Hub operations through LargeLanguageModel's public facade."""
 
+from llm.core.models import MessageStatus, RunStatus
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -412,7 +413,7 @@ class HubRuntime:
         # No extra reads after admission: a later read failure must not make a
         # durable request look rejected. The next snapshot supplies exact state.
         return SubmissionResult(message=ChatMessage("user", text, timestamp,
-            status="queued", id=identifier, author=self.config.user_profile.display_name))
+            status=MessageStatus.QUEUED.value, id=identifier, author=self.config.user_profile.display_name))
 
     async def submission_state(self, session_id: str) -> dict:
         status = await self.sessions[session_id].run.astatus(queued_limit=0)
@@ -455,7 +456,7 @@ class HubRuntime:
         turn = index.turns[-1]
         session = self.sessions[session_id]
         run = await (await session.run.aload(turn.latest.run_id)).aget_data()
-        if str(display_run(await session.aget_data(), run).status) != "interrupted":
+        if str(display_run(await session.aget_data(), run).status) != RunStatus.INTERRUPTED:
             return None
         return await self.history.retry(session_id, turn.id, run.id)
 
@@ -499,7 +500,7 @@ class HubRuntime:
             identifier, record, runtime, run = item.session_id, item.record, item.runtime, item.run
             self.notifications.observe_session(project_id, identifier, record.title, run, item.questions)
             if record.metadata.get("hub_auto_title") and not runtime.active_run_id:
-                if run is not None and str(run.status) == "completed":
+                if run is not None and str(run.status) == RunStatus.COMPLETED:
                     self.namer.schedule(self.sessions[identifier], run.id)
                 elif run is None and record.metadata.get("hub_title_engine"):
                     self.namer.schedule(self.sessions[identifier], "clone")

@@ -15,6 +15,66 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c24: Hub 상태 표시·입력·렌더링 참조 — 로컬 Level 2
+
+Hub의 메시지 표시·실패 진단 연결·입력 이력·재개 버튼·제안·렌더링 cache와 준비/중단
+피드백, Step 표시와 제출 영수증·제목 조건·갱신 주기가 기존 RunStatus·MessageStatus·
+StepStatus·SessionStatus를 참조한다. 15개 파일의 30개 식을 변경했다. 원래 문자열로
+복원하고 import만 제거하면 기존 AST와 같으며, 문자열 필드의 생성값에는 value를 써서
+같은 타입과 값을 유지했다. enum 선언·전이·저장/공개 필드·시험은 변경하지 않았다.
+SessionSummary의 실행 중 값은 SessionRuntimeView.status에서 오며 메시지 상태와
+구분해 참조한다. UI 전용 준비·질문 대기·단계 표시 문자열은 별도 후속 선언 검토 대상이다.
+
+이전 backend의 해당 presentation 비교는 필요한 부분만 읽었으며 알고리즘·파일·과거
+검증 결과는 승계하지 않았다. S3 후보 30건을 제거했고 새 후보는 없다. runtime.py를
+참조하는 ToolManagement.delete/toggle_builtin의 정확한 CAS review 두 건을 다시
+검토했다. HubConfig·관리 진입 함수 AST와 ToolManagement 소스가 그대로임을 확인했고
+실제 import/삭제·선택 저장/승인/재개 시험은 새 Level 2에서 실행했다.
+
+변경 직후 UI·렌더링·입력 집중 검증을 하고 직접 snapshot·이력·승인·Tool 효과/재시도·
+삭제 소비자 및 공통 9개 안전성 모듈/정적 검사기를 검증했다. 원본 보존·장애 주입·누적
+예산·중복 효과·Checkpoint/Resume·RAG 검증과 기존 Assertion을 유지했다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 Hub(검증 근거 재사용) | 51/51 | 51 | 0/0/0 | 11.102초 | 0 |
+| 새 Level 2 LLM | 139/139 | 139 | 0/0/0 | 49.979초 | 0 |
+| 새 Level 2 Hub | 58/58 | 58 | 0/0/0 | 99.144초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각각 0이다.
+집중 51개는 제품·시험·Fixture·환경·의존성과 발견 범위를 확인해 재사용했다. 두 실행 사이
+865 입력 중 변경은 Hub 집중 시험이 읽지 않는 정적 감사 fixture 두 개뿐이고 나머지 863개와
+Python/패키지/host/바이너리/env/HEAD는 동일하다. 703 Python 소스는 동일하며 전체 Hub
+discovery 577개와 두 선택 실행의 pass ID가 서로 겹치지 않음을 대조했다. 재검토한 두
+review의 구체적 시험도 이 집합에 포함된다. 서로 다른 실행을 하나의 full로 합산하지 않는다.
+
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 304·reviewed 76·미해결 228
+(S2 1·S3 209·S6 18), new/stale/review 오류·S1/S4/S5 미해결 0/exit 0이다.
+문서 검사 132문서·182 Python fence·958링크·34 anchor, 오류 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c24-focused/hub.json --modules tests.hub.test_live tests.hub.test_render_pipeline tests.hub.test_stream_output tests.hub.test_submission_latency tests.hub.test_composer_history tests.hub.test_followup tests.hub.test_interrupt_feedback tests.hub.test_header_actions
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c24-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c24-level2/hub.json --modules tests.hub.test_snapshot_projection tests.hub.test_request_history tests.hub.test_tool_history tests.hub.test_question_tools tests.hub.test_interaction_updates tests.hub.test_notifications tests.hub.test_tool_retry tests.hub.test_history_retention
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c24-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c24-docs-final.json
+```
+
+실행 HEAD `25e33ccb72786f59630a711cd1d81d8bc7902d7e`에 c24 변경을 더한 소스다.
+703 소스 hash `d653105a72efc8778ecda0376fe4f836f945654d11f713cd8a8b39a405dff25c`, Level 2의 865 입력/환경 hash
+`482b9fdd9416cff703efa91d90aa71c832bdcb5a6f175e7cfbefb04f711b6020`가 실행 전후 각각 동일했다.
+집중 입력 hash는 `aabc2e88949bad30131294a9a7763ab3f6a058de868d233104193b18f5cff018`이며
+동일성/개별 test ID 근거는 `/workspace/llm-clean-resume/p1/c24-level2/reuse-proof.json`에 있다.
+Python 3.12.14·136 의존성·env 5개·고정 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를
+사용했다. 원시 명령·exit·로그·manifest는 각 실행 디렉터리에 보존하며 전후 동일성 확인
+후 문서를 먼저 갱신한다. 소스-커밋 동일성과 staged diff를 확인해 로컬 커밋한다.
+
+영향은 같은 상태값의 Hub 투영 소비자에 한정되고 실행 권한·예산·트랜잭션 구현은 그대로다.
+**이번 소단계에서 전체 LLM/Hub는 실행하지 않았다.** 후속 관련 선언 정리와 묶은 Level 3에서
+전체 회귀·정적·R3·문서·실제 환경 검사 후 Push한다. P1 최종 S1–S5와 A–F 및 원격 CI는
+미완료/미확인이다. 보호 브랜치·Draft PR #1과 기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c23: Run·Message·Step 상태 참조 — c22–c23 묶음 Level 3
 
 기존 core.models의 RunStatus·MessageStatus·StepStatus를 서비스와 Hub 소비자 15개 파일의

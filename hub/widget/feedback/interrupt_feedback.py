@@ -1,5 +1,6 @@
 """Immediate stop feedback, including preparation before a Run is observed."""
 
+from llm.core.models import RunStatus
 from dataclasses import dataclass, replace
 
 from ...model import ChatMessage, HubSnapshot
@@ -20,7 +21,7 @@ class InterruptFeedback:
     def start(self, key: tuple[str, str]) -> PendingInterrupt | None:
         snapshot = getattr(self.view, "_last_snapshot", None)
         run = snapshot.run if snapshot and key == (snapshot.project_id, snapshot.selected_id) else None
-        running = run and run.status in ("pending", "running", "paused")
+        running = run and run.status in (RunStatus.PENDING, RunStatus.RUNNING, RunStatus.PAUSED)
         if not running and key not in self.view.preparing.pending:
             return None
         # The submit receipt and first Run snapshot may still be in flight.
@@ -55,7 +56,7 @@ class InterruptFeedback:
             request.run_id = run.id
         # Runtime active flags and durable status can straddle cancellation.
         # Wait for the target's terminal status, not just active=False.
-        if not run or run.status not in ("pending", "running", "paused") or run.id != request.run_id:
+        if not run or run.status not in (RunStatus.PENDING, RunStatus.RUNNING, RunStatus.PAUSED) or run.id != request.run_id:
             self.pending.pop(key)
 
     def project(self, key: tuple[str, str], messages: tuple[ChatMessage, ...]) -> tuple[ChatMessage, ...]:

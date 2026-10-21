@@ -1,5 +1,6 @@
 """Session-local ghost input, accepted explicitly with Right at end of input."""
 
+from llm.core.models import MessageStatus
 from prompt_toolkit.auto_suggest import AutoSuggest, Suggestion
 from ...backend.execution.followup import split_followup
 
@@ -18,7 +19,7 @@ class FollowupSuggestion(AutoSuggest):
             self.source = source
             self.key = key
             self.text = (split_followup(item.text)[1]
-                         if item and item.role == "assistant" and item.status == "completed" else "")
+                         if item and item.role == "assistant" and item.status == MessageStatus.COMPLETED else "")
         self.update(self.view.composer.buffer)
 
     def bind(self, buffer):

@@ -1,5 +1,6 @@
 """Project execution observations without presenting checkpoint reuse as work."""
 
+from llm.core.models import StepStatus
 from hashlib import sha256
 import json
 
@@ -26,9 +27,9 @@ def display_steps(steps) -> tuple[StepSummary, ...]:
                 key = [step.name, metadata.get("checkpoint_name"), node_key,
                        metadata.get("iteration"), call_id]
                 identity = "tool:" + sha256(json.dumps(key, ensure_ascii=False).encode()).hexdigest()
-            if status == "cancelled" and metadata.get("phase") == "waiting_approval":
+            if status == StepStatus.CANCELLED and metadata.get("phase") == "waiting_approval":
                 status = "waiting_approval"
-            elif status == "running" and metadata.get("phase") in ("repairing", "retrying"):
+            elif status == StepStatus.RUNNING and metadata.get("phase") in ("repairing", "retrying"):
                 status = "retrying"
         result.append(StepSummary(step.name, status, kind, identity, getattr(step, "started_at", None) or "",
                                   getattr(step, "id", "")))

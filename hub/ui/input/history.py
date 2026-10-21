@@ -1,5 +1,6 @@
 """Session-local composer recall; editing a recalled request exits navigation."""
 
+from llm.core.models import MessageStatus
 from prompt_toolkit.document import Document
 
 
@@ -54,7 +55,7 @@ class ComposerHistory:
         if not self.browsing:
             self._key = self.view._draft_key(self.view.selected)
             self._items = tuple(message.text for message in self.view.sessions[self.view.selected].messages
-                                if message.role == "user" and message.status != "cancelled" and message.text.strip())
+                                if message.role == "user" and message.status != MessageStatus.CANCELLED and message.text.strip())
             self._items += tuple(self._recovered.get(self._key, ()))
             self._index = len(self._items)
         self._index = max(0, min(len(self._items), self._index + direction))

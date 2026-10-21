@@ -1,5 +1,6 @@
 """Worker-owned caches and immutable prefix/tail display frames."""
 
+from llm.core.models import MessageStatus
 from bisect import bisect_right
 from collections.abc import Sequence
 from collections import ChainMap
@@ -84,7 +85,7 @@ class MessageRenderCache:
             identifier = message.id or f"index:{index}"
             previous = self.items.get(identifier, {})
             body_key = (message.role, "" if message.trace else message.text,
-                        message.status not in ("streaming", "committed"), index if not message.id else None, bool(message.trace))
+                        message.status not in (MessageStatus.STREAMING, MessageStatus.COMMITTED), index if not message.id else None, bool(message.trace))
             blocks = previous.get("blocks", ())
             if previous.get("body_key") != body_key:
                 blocks = self.parser.parse(message.text, final=body_key[2]) if message.role == "assistant" else ()
@@ -149,7 +150,7 @@ class MessageRenderCache:
         # Keep that whole changing region out of the historical prefix too.
         tail_start = next((index for index, message in enumerate(messages)
                            if message.role == "reasoning" or message.role == "assistant"
-                           and message.status in ("streaming", "committed")), len(entries) - 1)
+                           and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED)), len(entries) - 1)
         prefix_key = tuple(id(entry) for entry in entries[:tail_start])
         if prefix_key != self._prefix_key:
             self._prefix = self._assemble(entries[:tail_start], messages, 0)
