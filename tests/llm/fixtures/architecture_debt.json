@@ -1532,14 +1532,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "7c97cd0b409a85b296d37766975f080155b235fded99bad3dbfcbce2ef26285d:1",
-      "rule": "S2",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.read",
-      "line": 197,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "04aadafd2f6c1ac69165782fc32a99a05fc93a3bf8653f30d0feb8de755fb35f:1",
       "rule": "S3",
       "file": "hub/backend/project/memory_management.py",
@@ -1898,14 +1890,6 @@
       "symbol": "LiveHubView.apply_snapshot",
       "line": 72,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "0d1de3b49bec60155d0165070b21c2ae882731be003d39604029be14fa8c6ac2:1",
-      "rule": "S2",
-      "file": "hub/ui/live.py",
-      "symbol": "LiveController.__init__",
-      "line": 200,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "a8e1aed8cd5e8778b3c385e721510c5e9a4db19d2654acc53716a163cedb355c:1",

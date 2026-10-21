@@ -194,5 +194,6 @@ class SnapshotReader:
             model_required=requires_model(engines, data.config, config.engine, session_config) if selected else False,
             title_error=title_errors.get(selected_id),
             engines=selected_engines(data.config, engines.names()),
-            file_root=str(config.file_root or project.paths.root), components=tuple(data.components), questions=questions)
+            file_root=str(project.paths.root if config.file_root is None else config.file_root),
+            components=tuple(data.components), questions=questions)
         return snapshot, tuple(observations)

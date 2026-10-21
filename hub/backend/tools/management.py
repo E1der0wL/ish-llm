@@ -32,7 +32,7 @@ class ToolManagement:
         self.data = data
         self.record = record
         self.paths = paths
-        self.root = root
+        self.root = str(root) if isinstance(root, str) else root
         self.builtin = builtin
 
     @classmethod
@@ -75,7 +75,7 @@ class ToolManagement:
 
         source = Path(argument).expanduser()
         if not source.is_absolute():
-            source = Path(self.root or self.record.paths.root) / source
+            source = Path(self.record.paths.root if self.root is None else self.root) / source
         # The component rejects links/extra files and copies under its lifecycle lock.
         package = await asyncio.to_thread(read_source_package, source)
         await self.data.acreate(package, identifier=source.name)

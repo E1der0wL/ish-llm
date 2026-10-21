@@ -45,6 +45,11 @@ class HubConfig:
 
     def __post_init__(self) -> None:
         Language(self.language, self.language_packs)
+        if self.file_root is not None:
+            # Validate path input without changing its value or resolution time.
+            value = str(self.file_root) if isinstance(self.file_root, str) else self.file_root
+            Path(value)
+            object.__setattr__(self, "file_root", value)
         if self.log_sink is not None and not callable(self.log_sink):
             raise TypeError("log_sink must be callable")
         if self.tool_retry_chooser is not None and not callable(self.tool_retry_chooser):

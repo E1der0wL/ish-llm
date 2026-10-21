@@ -11,6 +11,7 @@ from ...components import component_spec
 
 class RecordManagement:
     def __init__(self, data, name, root):
+        root = str(root) if isinstance(root, str) else root
         self.data, self.name, self.root = data, name, Path(root)
         self.spec = component_spec(name)
 
@@ -23,14 +24,15 @@ class RecordManagement:
         if not isinstance(data, spec.data_type()):
             raise ValueError("Unsupported component data contract")
         record = await project.aget_data()
+        root = record.paths.root if root is None else root
         if spec.manager == "document":
             from .rag_management import RAGManagement
-            return RAGManagement(data, name, root or record.paths.root, project.id, rag_jobs, project=project)
+            return RAGManagement(data, name, root, project.id, rag_jobs, project=project)
         if spec.manager == "memory":
             from .memory_management import MemoryManagement
-            return MemoryManagement(data, name, root or record.paths.root, project)
+            return MemoryManagement(data, name, root, project)
         manager = {"record": cls, "agent": AgentManagement}[spec.manager]
-        return manager(data, name, root or record.paths.root)
+        return manager(data, name, root)
 
     def source_path(self, argument):
         source = Path(argument).expanduser()

@@ -15,6 +15,63 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c22: 명시 file_root와 실제 파일 효과 — 로컬 Level 2
+
+HubConfig와 BuiltinTools·Tool/RecordManagement·retry evidence·snapshot·초기 UI가
+file_root의 None만 미지정으로 처리한다. Path 파싱 전에 문자열 하위 타입을 기본 문자열로
+전달하며, 문자열 내용·상대 경로의 해석 시점은 유지한다. 빈 문자열은 CLI Path와 같이 현재
+디렉터리다. False/0/컬렉션은 HubConfig에서 효과 전에 거부한다. ish 환경의 cwd 우선순위,
+승인 identity·권한·저장 형식·CAS·예산·재개 계약은 바꾸지 않았다.
+
+새 시험 7개는 실제 선택 경로와 Project 경로의 파일 효과, import 원본/내용, snapshot와
+초기 UI를 검사한다. 수정 전 1 pass·6 failed ID·9 failure·error/Skip 0, 4.240초/exit 1이었다.
+첫 수정 집중 검증은 28개 중 27 pass·1 error, 46.182초/exit 1이었다. Python 3.12 Path가
+falsey 문자열 하위 타입을 잘못 파싱한 오류를 보존하고 문자열 전달을 보강했다. 실패 로그와
+각 당시 소스는 c22-before/c22-focused에 있으며 원래 새 시험과 실제 효과 Assertion은
+byte 단위로 동일하다. 실패를 집계에서 제외하거나 Skip으로 바꾸지 않았다.
+
+직접 호출 관계상 영향을 받는 Tool 생성/승인/재시도/재개, package·Skill·Memory import,
+snapshot/UI/시작을 검증했다. 공통 9개 안전성 모듈과 정적 검사기 시험을 별도 실행해 승인·
+누적 예산·중복 효과·Checkpoint/RAG·삭제·트랜잭션 원본 보존 및 장애 주입을 유지했다.
+S2 경로 fallback 두 건을 제거했다. ToolManagement.delete/toggle_builtin의 기존 CAS
+함수 AST가 그대로임을 대조하고 정확한 review 두 건의 변경된 의존성만 재검토했다.
+두 review의 실제 소비자 시험도 통과했다. 과거 backend의 같은 선택식은 참고만 했고
+구형 구현·과거 검증 결과는 승계하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 Hub 수정 후 | 45/45 | 45 | 0/0/0 | 74.787초 | 0 |
+| Level 2 LLM | 139/139 | 139 | 0/0/0 | 50.736초 | 0 |
+| Level 2 Hub | 91/91 | 91 | 0/0/0 | 169.849초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각각 0이다.
+집중 검증과 Level 2는 겹치는 선택 실행이며 pass를 합산해 전체 회귀로 표현하지 않는다.
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 378·reviewed 76·미해결 302
+(S2 1·S3 283·S6 18), new/stale/review 오류·S1/S4/S5 미해결 0/exit 0이다.
+문서 검사 132문서·182 Python fence·958링크·34 anchor, 오류 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c22-focused-fixed/hub.json --modules tests.hub.test_file_root_presence tests.hub.test_shell_environment tests.hub.test_component_managers tests.hub.test_tool_history tests.hub.test_interaction_updates tests.hub.test_question_tools
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c22-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c22-level2/hub.json --modules tests.hub.test_file_root_presence tests.hub.test_shell_environment tests.hub.test_component_managers tests.hub.test_tool_history tests.hub.test_interaction_updates tests.hub.test_question_tools tests.hub.test_tool_retry tests.hub.test_retry_observations tests.hub.test_retry_ui tests.hub.test_memory_manager tests.hub.test_snapshot_projection tests.hub.test_live tests.hub.test_bootstrap tests.hub.test_resource_tools
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c22-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c22-docs-final.json
+```
+
+실행 HEAD `39f87eaa7c15cdae2529f05562abccf452011a15`에 c22 변경을 더한 소스다.
+703 Python 소스 hash `078f29058ae20dc7897cffa34bb5deb686b65ad8aa56c95cd2e753fccefdf1b6`, 865 입력/환경 hash
+`e7300ed6f76f75708901ae79cb13591d72373e3d501aa04dd1050c3dcad985c2`가 Level 2 전후 각각 동일했다.
+Python 3.12.14·136 의존성·env 5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와
+바이너리를 기록했다. 검증 중 소스·시험·Fixture·문서를 고정했고 전후 확인 후 문서를 먼저
+갱신했다. 원시 로그·명령·exit·test ID·manifest는 `/workspace/llm-clean-resume/p1/c22-level2/`에 있다.
+
+이번 소단계는 로컬 Level 2 완료다. 영향은 명시 파일 경로의 선택/표시 소비자로 한정되며
+공통 트랜잭션·허가·예산 구현은 그대로다. **전체 LLM/Hub는 이번에 실행하지 않았다.**
+후속 선언 정리와 묶은 Level 3에서 전체 회귀·R3·정적·문서·실제 환경 검사 후 Push한다.
+P1 최종 S1–S5와 A–F는 미완료이며 원격 CI도 확인하지 않았다. 보호 브랜치·PR과 기존
+인증 모델/커널 장애 검증 한계는 유지한다.
+
 ## P1-c21: 언어의 명시값·저장 전 검증 — c19–c21 묶음 Level 3
 
 기존 언어 처리의 truthiness 결함을 실제 설정 파일로 재현했다. 명시된 falsey 문자열 en이

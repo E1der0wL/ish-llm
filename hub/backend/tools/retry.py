@@ -84,7 +84,8 @@ class ToolRetrySelector:
             await frame.emit(EngineEvent(EngineEventType.STEP_UPDATED, step_id=call.step_id,
                 metadata={"phase": "repairing", "retry_attempt": failure.attempt}))
             root = frame.environment.cwd if frame.environment else (
-                str(self.builtins.file_root or context.project.paths.root) if self.builtins else None)
+                str(context.project.paths.root if self.builtins.file_root is None else self.builtins.file_root)
+                if self.builtins else None)
             payload = ToolRetryRequest(deepcopy(failure), tool.description, deepcopy(tool.parameters),
                 next((item.content for item in context.messages if item.id == context.run.input_message_id), ""),
                 root, {}, deepcopy(context.tool_scope.argument_constraints.get(tool.name, {}))

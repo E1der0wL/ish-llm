@@ -197,7 +197,7 @@ class LiveController:
         self.view.settings.drafts.applied_preferences = startup_settings(config, view.general)
         self.view.settings.drafts.workspace_anchor = config._workspace_anchor
         self.view.on_output_position_changed = self._reading_changed
-        self.view.file_root = config.file_root or config.workspace
+        self.view.file_root = config.workspace if config.file_root is None else config.file_root
         self.environment_provider = None
         if config.engine_factories:
             self.view.engines = tuple(config.engine_factories)

@@ -19,14 +19,15 @@ class HubBuiltinTools(BuiltinToolComponent):
     capabilities = ("tools", "completion_processors")
 
     def __init__(self, file_root=None, *, test_root=None):
-        self.file_root = Path(file_root).expanduser().absolute() if file_root else None
+        file_root = str(file_root) if isinstance(file_root, str) else file_root
+        self.file_root = Path(file_root).expanduser().absolute() if file_root is not None else None
         self.test_root = Path(test_root).expanduser().absolute() if test_root is not None else None
         self.questions = QuestionBroker()
         self.toolkits = {}
         self._resolved = {}
         self._toolkit_lock = Lock()
         # Schema discovery needs an existing host directory, not a Project.
-        super().__init__(self._create(self.file_root or Path.cwd()), name="builtin_tools")
+        super().__init__(self._create(Path.cwd() if self.file_root is None else self.file_root), name="builtin_tools")
 
     def _create(self, root, environment=None):
         # Hub 제품 preset: 네트워크 차단, 명시적으로 선택한 파일만 복사.
@@ -100,7 +101,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         key = project.id
         with self._toolkit_lock:
             if key not in self.toolkits:
-                self.toolkits[key] = self._create(self.file_root or project.paths.root)
+                self.toolkits[key] = self._create(project.paths.root if self.file_root is None else self.file_root)
             return self.toolkits[key]
 
     def select_tools(self):
