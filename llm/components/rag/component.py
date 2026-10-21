@@ -42,6 +42,13 @@ class RAGComponent(DefinitionComponent):
 
     IDENTITY_FILE = "identity.json"
     ACTIVE_FILE = "active.json"
+    CONTROL_FILE = "corpus.manifest.json"
+    SCHEMA_VERSION = 1
+    CONTROL_FIELDS = frozenset(("schema_version", "project_id", "component", "identity_revision",
+                                "active_revision", "corpus_revision", "catalog_revision"))
+    CORPUS_FILE = "corpus.json"
+    CATALOG_FILE = "catalog.json"
+    CATALOG_FIELDS = frozenset(("id", "title", "generation", "revision"))
     GENERATIONS_DIRECTORY = "generations"
     IDENTITY_PATTERN = re.compile(r"[a-f0-9]{32}")
     GRAPH_SCHEMA_VERSION = 1
@@ -102,8 +109,10 @@ class RAGComponent(DefinitionComponent):
             super().initialize(project)
             return
         super().initialize(project)
-        atomic_json(root / self.IDENTITY_FILE, {"id": uuid4().hex})
+        identity = uuid4().hex
+        atomic_json(root / self.IDENTITY_FILE, {"id": identity})
         atomic_json(root / self.ACTIVE_FILE, {"generation": None})
+        self._write_control(project, identity, None, None, None)
         JobStorage(project, self).initialize()
 
     def _checked_tree(self, path):
@@ -470,36 +479,99 @@ class RAGComponent(DefinitionComponent):
         from .tools import search_tools
         return search_tools(data_factory(self.name))
 
-    def corpus_version(self, project):
-        """잠금 안에서 작은 포인터만 읽는다. 불변 코퍼스 전체를 다시 읽지 않는다."""
+    def _read_evidence(self, path):
+        path = self._checked(path)
+        if not path.is_file():
+            raise FileNotFoundError(f"RAG evidence requires a regular file: {path.name}")
+        return read_json(path)
+
+    def _write_control(self, project, identity, generation, corpus, catalog):
+        atomic_json(self.root(project) / self.CONTROL_FILE, {
+            "schema_version": self.SCHEMA_VERSION, "project_id": project.id, "component": self.name,
+            "identity_revision": revision_token({"id": identity}),
+            "active_revision": revision_token({"generation": generation}),
+            "corpus_revision": None if corpus is None else revision_token(corpus),
+            "catalog_revision": None if catalog is None else revision_token(catalog)})
+
+    def _corpus_control(self, project):
+        """Read the current owner proof without parsing the immutable corpus."""
         root = self.root(project)
-        identity = read_json(self._checked(root / self.IDENTITY_FILE))
-        active = read_json(self._checked(root / self.ACTIVE_FILE))
+        identity = self._read_evidence(root / self.IDENTITY_FILE)
+        active = self._read_evidence(root / self.ACTIVE_FILE)
         if not isinstance(identity, dict) or identity.keys() != {"id"}:
             raise ValueError("RAG identity record is incomplete or changed")
         if not isinstance(active, dict) or active.keys() != {"generation"}:
             raise ValueError("RAG active pointer is incomplete or changed")
+        control = self._read_evidence(root / self.CONTROL_FILE)
+        if not isinstance(control, dict) or control.keys() != self.CONTROL_FIELDS:
+            raise ValueError("RAG corpus manifest is incomplete or changed")
+        if type(control["schema_version"]) is not int or control["schema_version"] != self.SCHEMA_VERSION:
+            raise ValueError("Unsupported RAG corpus manifest version")
+        if control["project_id"] != project.id or control["component"] != self.name:
+            raise ValueError("RAG corpus manifest ownership mismatch")
+        if (control["identity_revision"] != revision_token(identity)
+                or control["active_revision"] != revision_token(active)):
+            raise ValueError("RAG identity or active pointer integrity mismatch")
         identity = identity["id"]
         self._validate_identity(identity)
         generation = active["generation"]
+        for name in ("corpus_revision", "catalog_revision"):
+            value = control[name]
+            if generation is None:
+                if value is not None:
+                    raise ValueError("Empty RAG storage cannot declare published evidence")
+            elif not isinstance(value, str) or re.fullmatch(r"[a-f0-9]{64}", value) is None:
+                raise ValueError("RAG publication requires its corpus and catalog revisions")
         if generation is None:
             generations = self._checked(root / self.GENERATIONS_DIRECTORY)
             if generations.exists() and any(generations.iterdir()):
                 raise ValueError("Empty RAG pointer conflicts with stored generations")
         else:
             path = self._generation_path(project, generation)
-            if not self._checked(path / "corpus.json").is_file():
+            if not self._checked(path / self.CORPUS_FILE).is_file():
                 raise FileNotFoundError("RAG active generation requires its corpus")
+        return identity, generation, control
+
+    def corpus_version(self, project):
+        """잠금 안에서 작은 포인터와 연결 증거만 읽는다."""
+        identity, generation, _ = self._corpus_control(project)
         return identity, generation
 
+    @classmethod
+    def _catalog_rows(cls, documents):
+        return [{key: doc[key] for key in (*sorted(cls.CATALOG_FIELDS), "description") if key in doc}
+                for _, doc in sorted(documents.items())]
+
+    def _catalog(self, project, generation, control):
+        rows = self._read_evidence(self._generation_path(project, generation) / self.CATALOG_FILE)
+        if not isinstance(rows, list):
+            raise ValueError("RAG catalog must be a list")
+        identifiers = []
+        for row in rows:
+            if (not isinstance(row, dict) or not self.CATALOG_FIELDS <= row.keys()
+                    or row.keys() - self.CATALOG_FIELDS - {"description"}):
+                raise ValueError("RAG catalog requires complete current document fields")
+            identifier = validate_name(row["id"])
+            self._validate_versions({identifier: row})
+            if not isinstance(row["title"], str) or not row["title"].strip():
+                raise ValueError("RAG catalog title must be non-empty text")
+            if "description" in row and not isinstance(row["description"], str):
+                raise ValueError("RAG catalog description must be text")
+            identifiers.append(identifier)
+        if identifiers != sorted(set(identifiers)):
+            raise ValueError("RAG catalog identifiers must be unique and sorted")
+        if revision_token(rows) != control["catalog_revision"]:
+            raise ValueError("RAG catalog integrity mismatch")
+        return rows
+
     def snapshot(self, project):
-        identity, generation = self.corpus_version(project)
+        identity, generation, control = self._corpus_control(project)
         if generation is None:
             return {"identity": identity, "generation": None, "documents": {}, "profile": None}
         path = self._generation_path(project, generation)
-        source = self._checked(path / "corpus.json")
+        source = self._checked(path / self.CORPUS_FILE)
         info = source.stat()  # Deletion/replacement must never be hidden by a cached generation.
-        key = (str(source), identity, generation, info.st_dev, info.st_ino,
+        key = (str(source), identity, generation, control["corpus_revision"], info.st_dev, info.st_ino,
                info.st_size, info.st_mtime_ns, info.st_ctime_ns)
         # Missing means inactive, not a tuning default or a materialized configuration value.
         maximum = 0 if self.snapshot_cache_max_bytes is None else self.snapshot_cache_max_bytes
@@ -507,6 +579,11 @@ class RAGComponent(DefinitionComponent):
         cached = value is not None
         if not cached:
             value = self.validate_corpus(read_json(source))
+            if revision_token(value) != control["corpus_revision"]:
+                raise ValueError("RAG corpus integrity mismatch")
+        catalog = self._catalog(project, generation, control)
+        if revision_token(catalog) != revision_token(self._catalog_rows(value["documents"])):
+            raise ValueError("RAG catalog disagrees with its published corpus")
         if not self._checked(path / "chroma").is_dir():
             raise FileNotFoundError("RAG generation requires its vector index")
         if not self._checked(path / "graph.kuzu").is_file():
@@ -519,7 +596,7 @@ class RAGComponent(DefinitionComponent):
         """현재 세대에 함께 공개된 설명 목록만 읽는다. 원본은 corpus가 소유한다."""
         if type(limit) is not int or limit < 1:
             raise ValueError("Catalog limit must be a positive integer")
-        identity, generation = self.corpus_version(project)
+        identity, generation, control = self._corpus_control(project)
         after = ""
         if cursor is not None:
             if not isinstance(cursor, dict) or set(cursor) != {"identity", "generation", "after"}:
@@ -527,7 +604,7 @@ class RAGComponent(DefinitionComponent):
             if (cursor["identity"], cursor["generation"]) != (identity, generation):
                 raise RAGConflictError("RAG catalog changed; restart pagination")
             after = validate_name(cursor["after"])
-        rows = [] if generation is None else read_json(self._checked(self._generation_path(project, generation) / "catalog.json"))
+        rows = [] if generation is None else self._catalog(project, generation, control)
         selected = [row for row in rows if row["id"] > after][:limit + 1]
         more = len(selected) > limit
         selected = selected[:limit]
@@ -720,8 +797,9 @@ class RAGComponent(DefinitionComponent):
         return document
 
     def publish(self, project, previous, documents, *, progress=None):
-        """DB를 완성·닫은 뒤 단일 포인터를 원자적으로 교체한다. 실패 세대는 검색되지 않는다."""
-        if self.corpus_version(project) != (previous["identity"], previous["generation"]):
+        """DB를 닫고 포인터·필수 증거를 같은 workspace transaction으로 확정한다."""
+        current = self.snapshot(project)
+        if (current["identity"], current["generation"]) != (previous["identity"], previous["generation"]):
             raise RAGConflictError("Corpus changed during preparation; reload and retry explicitly")
         if progress:
             progress("validating")
@@ -754,10 +832,9 @@ class RAGComponent(DefinitionComponent):
                 self._build(path, documents)
             if progress:
                 progress("writing_metadata")
-            atomic_json(path / "catalog.json", [{key: doc[key] for key in
-                ("id", "title", "description", "generation", "revision") if key in doc}
-                for _, doc in sorted(documents.items())])
-            atomic_json(path / "corpus.json", corpus)
+            catalog = self._catalog_rows(documents)
+            atomic_json(path / self.CATALOG_FILE, catalog)
+            atomic_json(path / self.CORPUS_FILE, corpus)
         except BaseException:
             remove_named_tree(path.parent, path, generation)
             raise
@@ -766,6 +843,7 @@ class RAGComponent(DefinitionComponent):
         if progress:
             progress("publishing")
         atomic_json(self.root(project) / self.ACTIVE_FILE, {"generation": generation})
+        self._write_control(project, previous["identity"], generation, corpus, catalog)
         # 이미 공개한 세대의 성공을 정리 실패로 바꾸지 않는다. compact로 재시도할 수 있다.
         try:
             self.compact(project)

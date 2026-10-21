@@ -113,7 +113,8 @@ UI 응답/취소/갱신의 INTERACTION_CHANGED 알림 예약도 after_commit에 
 알림 전달은 관찰 기능이며 실제 상태는 승인 조회 API와 Run 기록이 원본이다.
 
 RAG는 계속 자체 세대·DB 구조를 소유한다. 모델 준비는 잠금 밖에서 진행하고 공개
-단계만 참여한다. 새 세대, 활성 포인터 및 정리 작업의 파일 연동을 보호한다.
+단계만 참여한다. 새 세대의 corpus/catalog, 활성 포인터와 RAG owner의 필수 corpus.manifest.json을
+같은 transaction으로 확정하며 정리 작업의 파일 연동을 보호한다.
 JobStorage는 준비/배치 원본과 필수 목록을 함께 확정한다. 공개·Job 완료의 commit 후
 별도 transaction으로 준비 자료를 정리하며 정리 실패는 그 자료와 목록 전체를 되돌린다.
 Memory의 Session 요약과 압축 상태는 각 owner의 존재 목록과 함께 확정한다. Tool 요약의

@@ -9,6 +9,79 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-q RAG 목록·현재 게시 증거 — H2-p/q 묶음 Level 3
+
+H2-p 로컬 커밋 `59cc889461a8468fa18f8239a33693ee8ed04968`에서 이어서 RAG 게시 연결을 보강했다.
+이전 고정 소스의 외부 재현은 catalog 소실의 backup 수락과 빈 catalog의 게시 문서 은폐라는
+2 failure, error·Skip 0, 1.038초, exit 1이었다. 원래 두 Assertion을 새
+`test_rag_catalog_integrity`에 편입했다. 게시 직전 검증도 별도로 재현했다. 유효한 snapshot을
+준비한 뒤 catalog가 소실됐는데 저수준 publish가 이를 덮어쓰던 1 failure(1.005초, exit 1)를
+같은 테스트에 보존하고, 게시가 현재 snapshot을 다시 검증한 뒤에만 진행하도록 수정했다.
+
+- RAGComponent가 필수 `corpus.manifest.json`의 현재 version·Project/Component 소유권과
+  identity/active/corpus/catalog revision을 소유한다. 새 저장소만 명시적인 빈 증거를 만들며
+  기존 기록의 소실을 자동 초기화·변환하지 않는다. identity 재발급·이전 active 포인터 재사용이
+  최신 원본의 정리 허가가 되지 않는다.
+- 목록 owner는 필수 ID/title/generation/revision·선택 description의 타입, 정렬·중복 및 게시
+  revision을 검증한다. 목록 조회는 코퍼스 본문을 파싱하지 않는다. snapshot은 corpus의 의미와
+  revision, catalog 투영 일치, 실제 DB 존재를 검사하며 cache key에도 corpus revision을 포함한다.
+- 새 세대의 catalog/corpus, active와 필수 manifest는 기존 workspace transaction에 함께 참여한다.
+  공통 저장 인프라·승인/예산/효과 정책은 변경하지 않는다. 직접 저수준 호출도 기존 ownership.scope
+  계약을 따른다. 게시/목록/원본 조회·수정·compact·재선택·backup/clone이 현재 owner 검증을 사용한다.
+
+새 12개 회귀는 원래 2개 재현, 소실·필수 필드·잘못된 타입/버전/소유권·변조·이전 포인터,
+link/directory/FIFO 거부, cache와 정상 빠른 목록 조회, 게시 직전 재검사를 포함한다. 거부마다
+실제 원본 hash와 모델 효과 파일을 비교한다. 4개 저장 경계의 쓰기 후 예외와 실제 자식 프로세스
+exit 77의 5개 경계(catalog/corpus/active/manifest 저장 후, commit 후)를 확인했다. 미확정 상태는
+원본 바이트로 되돌아가고 확정된 새 상태만 보존하며 재시작/backup은 추가 모델 효과를 만들지 않는다.
+기존 Assertion·skip 조건·CI 필수 Job·정적 검사기를 완화하지 않았다.
+
+| 현재 브랜치 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 1, 6 modules | 71/71 | 71 | 0/0/0 | 37.293초 | 0 |
+| 게시 직전 재현 | 1/1 | 0 | 1/0/0 | 1.005초 | 1 |
+| 보정 후 집중 2, 4 modules | 66/66 | 66 | 0/0/0 | 29.606초 | 0 |
+| 전체 LLM | 1929/1929 | 1929 | 0/0/0 | 663.150초 | 0 |
+| 전체 Hub | 540/540 | 540 | 0/0/0 | 712.420초 | 0 |
+
+expected failure/unexpected success/발견 후 미실행/미발견 실행/중복은 각각 0이다. 이번에는 관련
+소단계를 묶는 Level 3이고 현재 게시 저장 증거가 변경되므로 부분 Level 2를 중복 실행하지 않고
+전체 LLM/Hub로 검증했다. 승인·usage deletion·operation/checkpoint/lifecycle 무결성과 기존
+Job 중단·재개·실제 효과, 직접 Repository/Component/Engine/Application/Hub 소비자를 포함한다.
+이전 H2-p 부분 결과를 현재 전체 결과로 합산하거나 승계하지 않았다.
+
+첫 정적 감사는 신규 S4 2개로 exit 1이었다. manifest version을 필드 owner의 SCHEMA_VERSION
+단일 선언으로 정리한 뒤 정적 감사 new/stale/S1 0, 기존 debt 531, exit 0이다. 새 면제나 baseline
+추가는 없다. R3 Mutation은 실제 두 번째 파일 효과 Assertion으로 호출 한도 누락을 검출했다
+(True, detector exit 0; 내부 의도된 실패를 일반 회귀에 합산하지 않는다). 문서는 검증 후 커밋보다
+먼저 갱신했다. 문서 검사는 131 documents·178 Python fences·953 relative links·34 anchors,
+오류 0, exit 0이다. 원격 CI 통과는 확인되지 않았다. 기존 API 접근 Forbidden 상태와 로컬 결과를 구분한다.
+
+실제 명령·전체 argv/요약/로그는 `/workspace/llm-clean-resume/h2-q/`에 보존했다.
+
+```bash
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-q/focused-1 tests.llm.test_rag_catalog_integrity tests.llm.test_rag_corpus_integrity tests.llm.test_rag_storage tests.llm.test_rag_components tests.llm.test_unified_rag tests.llm.test_record_generations
+python -m unittest tests.llm.test_rag_catalog_integrity.CatalogIntegrityTests.test_owner_rechecks_required_catalog_before_publishing_a_prepared_snapshot
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-q/focused-2 tests.llm.test_rag_catalog_integrity tests.llm.test_rag_optimization tests.llm.test_optimized_queries tests.llm.test_rag_resilience
+python /workspace/llm-clean-resume/h2-m/run-full.py llm /workspace/llm-clean-resume/h2-q/final
+python /workspace/llm-clean-resume/h2-m/run-full.py hub /workspace/llm-clean-resume/h2-q/final
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-q/static-3.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-q/docs.json
+```
+
+실행은 `.venv-linux312/bin/python` 3.12.14, UID 1000, host
+`d833790959a76ac457fdeea3f21a6bea1eecfe12`, 136 packages 및 직전과 같은 bwrap/Xvfb/xclip·
+5개 환경 변수를 사용했다. 전후 Python 671개 hash는 `29670d0f5cdcecbd7908a52d03d66ed2e0fbf710b930cff6b0a54e631f11ef89`,
+전체 입력 830개/환경 hash는 `67bce3319a50d7d3a90ea57847a3154f226c3ad527db8114d560a84220720c36`로 각각 동일하다.
+
+H2 전체는 아직 미완료다. 다음 배치 owner의 외부 재현은 빈 embedding payload와 일치하는
+manifest hash를 backup이 수락하는 1 failure, error·Skip 0, 0.390초, exit 1이다.
+`/workspace/llm-clean-resume/h2-r/batch-payload-probe.log`에 원래 Assertion/실제 효과와 원본 보존
+검사를 보존했다. 소스는 위 final/inputs-before.json이며 현재 고정 suite 밖의 실패를 전체 회귀의
+통과로 표현하지 않는다. 배치 의미·관측/읽기 경계와 나머지 owner 계약을 이어서 보강하며
+H2 완료 전 H3–H5·P1·A–F로 진입하지 않는다.
+
 ## H2-p RAG 게시 코퍼스 필수 필드 — Level 2
 
 H2-n/o 묶음 Push `b41599b4025428a1597d3eebefde27897042ac31`에서 이어서 게시 코퍼스를 보강했다.

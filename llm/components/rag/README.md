@@ -123,8 +123,12 @@ LiteLLM DEFAULT_MAX_RETRIES는 import 전 환경변수와 import 후 전역값 �
 
 ## 캐시와 재개
 
-`RAGComponent.initialize`는 새 저장소에서만 `identity.json`과 명시적인 빈 `active.json`을
-생성합니다. 기존 저장소의 파일·필드 소실은 조회·재선택·compact·백업에서 거부하며
+`RAGComponent.initialize`는 새 저장소에서만 `identity.json`, 명시적인 빈 `active.json`과
+필수 `corpus.manifest.json`을 생성합니다. RAG owner는 현재 version·Project/Component 소유권과
+identity/active/corpus/catalog revision을 검증합니다. 목록은 정확한 필드·타입·정렬/중복·revision을
+검사하며 코퍼스 본문을 파싱하지 않습니다. snapshot은 코퍼스와 목록 투영의 일치도 검사합니다.
+게시 직전 현재 원본을 재검증하고 새 catalog/corpus·active·manifest를 같은 workspace transaction으로
+확정합니다. 유효한 형식의 이전 포인터나 다른 identity도 원래 연결 증거와 다르면 거부합니다. 기존 저장소의 파일·필드 소실은 조회·재선택·compact·백업에서 거부하며
 identity 재발급이나 빈 코퍼스 복구를 하지 않습니다. 세대가 남아 있는데 포인터가 null인
 경우도 정리를 허용하지 않습니다. [영속 수명주기 계약](../../../docs/llm/data-lifecycle.md)과
 [단계별 검증 범위](../../../docs/llm/lifecycle-verification.md)를 따릅니다.
@@ -141,7 +145,7 @@ Query 캐시는 Project, 모델 identity, 실제 모델 인자, document/query k
 실패·취소 결과는 보관하지 않으며 검색 결과나 rerank 결과는 캐시하지 않습니다.
 모델 호출이 필요한 miss는 기존 ProviderCalls·사용량 관찰 경로를 그대로 사용합니다.
 
-코퍼스 캐시는 세대·코퍼스 identity·파일 경로와 stat 정보를 함께 검사합니다. 파일 삭제·교체나
+코퍼스 캐시는 세대·코퍼스 identity·필수 corpus revision·파일 경로와 stat 정보를 함께 검사합니다. 파일 삭제·교체나
 수정은 캐시로 숨기지 않습니다. 원본은 계속 `corpus.json`이고 반환값은 독립 사본입니다.
 캐시 용량은 보관하는 Python payload 크기로 계산하며 프로세스 전체 RSS 제한을 뜻하지 않습니다.
 코퍼스가 용량보다 크면 보관하지 않습니다. 재시작하면 두 메모리 캐시는 사라집니다.

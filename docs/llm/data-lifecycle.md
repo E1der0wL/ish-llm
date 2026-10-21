@@ -17,8 +17,8 @@ Hub 가져오기 경계도 전체 회귀를 통과했다. H2-h/i는 RAG Job 목�
 영수증 소실을 보강하고 묶음 Level 3 전체 회귀를 통과했다. H2-j/k도 Memory Session 요약과
 압축 요청/cursor·Tool 원본 참조를 보강하고 묶음 전체 회귀를 통과했다. H2-l/m의 Memory
 병합 저널·영수증과 기록 이력도 묶음 전체 회귀를 통과했다. H2-n/o의 RAG Job 상태·취소·포기와
-준비 문서·입력 연결도 묶음 전체 회귀를 통과했다. H2-p의 게시 코퍼스 필수 필드·profile 연결은 두 실패를 해결하고 Level 2 로컬 검증을 통과했다.
-RAG 제어/목록 연결·나머지 배치 의미와 owner 계약은 남아 있다. H2 전체는 미완료이며
+준비 문서·입력 연결도 묶음 전체 회귀를 통과했다. H2-p/q의 게시 코퍼스 필수 필드·profile 및 identity/active/catalog 연결은 묶음 Level 3 전체 회귀를 통과했다.
+RAG 나머지 배치 의미·관측/읽기 경계와 owner 계약은 남아 있다. H2 전체는 미완료이며
 이 차단 항목들을 해결하기 전 P1/A–F로 넘어가지 않는다.
 기준 작업 트리는 `refactor/llm-clean`, HEAD `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 보존 중인 P1-c 변경이다. main이나 이전 backend 브랜치의 검증 결과를 승계하지 않는다.
