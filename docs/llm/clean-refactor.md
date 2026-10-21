@@ -15,8 +15,8 @@ H2-n/o의 RAG Job 상태·취소·포기와 준비 문서·입력 연결은 묶�
 H2-p/q의 게시 코퍼스 필수 필드·profile 및 identity/active/catalog 연결은 묶음 Level 3 전체 회귀를 통과했다.
 H2-r/s/t/u는 임베딩·그래프 배치 필드, 모델 호출 전후 읽기 증거와 배치 key 연결을 보강했다.
 영수증 이름 변경 후 실제 중복 효과를 수정하고 새 전체 LLM/Hub 검증으로 묶음 Level 3을 통과했다.
-H2-v 원본 입력의 필수 필드·생성 기본값 구분·Job 연결은 Level 2 로컬 검증을 통과했다.
-H2 전체는 미완료이며 RAG 원문/입력 연결·관측 의미와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
+H2-v/w 원본 입력·생성 기본값 구분·Job 연결과 배치 원문 증거도 묶음 Level 3 전체 회귀를 통과했다.
+H2 전체는 미완료이며 도메인 기록의 상태·갱신 연결과 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
 먼저 확인하며 남은 H2 계약을 해결하기 전 다음 기능 단계로 진행하지 않는다.
 
 H1–H5 완료 후 P1부터 A–F 각 단계에 필요한 `refactor/llm-backend` 소스·테스트만 읽기 전용으로

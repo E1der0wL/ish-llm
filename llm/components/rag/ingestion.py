@@ -51,10 +51,18 @@ def vector_key(fingerprint, text):
     return fingerprint + ":" + hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+CHECKPOINT_FIELDS = frozenset(("fingerprint", "text_hash", "vector", "chunk", "chunk_size"))
+
+
 def validate_chunk_checkpoint(value, signature):
     """Validate a stored single-chunk receipt without reconstructing missing fields."""
-    if not isinstance(value, dict) or value.keys() != {"fingerprint", "text_hash", "vector"}:
+    if not isinstance(value, dict) or value.keys() != CHECKPOINT_FIELDS:
         raise ValueError("Incomplete embedding chunk checkpoint")
+    from .splitting import validate_chunk
+    chunk = validate_chunk(value["chunk"])
+    if (type(value["chunk_size"]) is not int or value["chunk_size"] < 1
+            or hashlib.sha256(chunk["text"].encode("utf-8")).hexdigest() != value["text_hash"]):
+        raise ValueError("Embedding checkpoint original chunk changed")
     for key in ("fingerprint", "text_hash"):
         if not isinstance(value[key], str) or re.fullmatch(r"[a-f0-9]{64}", value[key]) is None:
             raise ValueError("Invalid embedding chunk checkpoint identity")
@@ -76,6 +84,12 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
     if type(concurrency) is not int or concurrency < 1:
         raise ValueError("embedding_concurrency must be a positive integer")
     texts = [chunk["text"] for chunk in document["chunks"]]
+    if progress:
+        from .splitting import validate_chunk
+        if type(component.chunk_size) is not int or component.chunk_size < 1:
+            raise ValueError("Checkpoint source requires a positive chunk_size")
+        for chunk in document["chunks"]:
+            validate_chunk(chunk)
     fingerprint = revision_token({"contract": "single-chunk-v1", "model": component._identity(),
         "params": getattr(component.embedding, "params", {}), "document_kwargs": component.document_kwargs,
         "query_kwargs": component.query_kwargs, "client": type(component.embedding).__qualname__})
@@ -173,7 +187,8 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
         for position in ordinals:
             if progress and position not in saved_positions:
                 await progress(f"embedding_{position}", signature, validate_chunk_checkpoint(
-                    {"fingerprint": fingerprint, "text_hash": text_hash, "vector": vector}, signature))
+                    {"fingerprint": fingerprint, "text_hash": text_hash, "vector": vector,
+                     "chunk": document["chunks"][position], "chunk_size": component.chunk_size}, signature))
             vectors[position] = list(vector)
             stats["chunks_completed"] += 1
         component.vector_cache.put(vector_key(cache_prefix, text), vector, maximum)

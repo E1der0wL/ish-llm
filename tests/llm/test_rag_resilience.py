@@ -3,6 +3,7 @@ from tests.llm.configuration_fixtures import rag_settings, rag_project
 
 import asyncio
 import json
+from hashlib import sha256
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,6 +11,7 @@ from unittest.mock import AsyncMock
 
 from llm.components.rag import RAGComponent, EmbeddingModel, TripleExtractor
 from llm.components.rag.ingestion import prepare_vectors, VectorCache
+from llm.components.rag.splitting import split_markdown
 from llm.llm import LargeLanguageModel, ProjectConfig
 from llm.providers.requests import ProviderError
 
@@ -23,6 +25,9 @@ async def extract(**request):
 
 
 class IngestionTests(unittest.IsolatedAsyncioTestCase):
+    def checkpoint_document(self, component, texts):
+        return split_markdown("\n\n".join(texts), "fixture", chunk_size=component.chunk_size)
+
     def component(self, call=embedding):
         from types import SimpleNamespace
         return RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=call),
@@ -84,7 +89,7 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
             return saved.get(key)
         component = self.component(reverse)
         component.embedding_concurrency = 10
-        document = {"chunks": [{"text": str(i)} for i in range(10)]}
+        document = self.checkpoint_document(component, [str(i) for i in range(10)])
         await asyncio.wait_for(prepare_vectors(component, document, progress=progress), 5)
         self.assertEqual(completed, list(reversed(range(10))))
         for position in range(10):
@@ -107,7 +112,7 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
                 checkpointed.set()
             return saved.get(key)
         component = self.component(block)
-        document = {"chunks": [{"text": str(i)} for i in range(1000)]}
+        document = self.checkpoint_document(component, [str(i) for i in range(1000)])
         task = asyncio.create_task(prepare_vectors(component, document, progress=progress))
         await asyncio.wait_for(checkpointed.wait(), 5)
         await entered.wait()
@@ -126,10 +131,13 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
             component._embedding_dimensions = 2
             with patch.object(component.vector_cache, "get", return_value=cached), self.assertRaises(ValueError):
                 await prepare_vectors(component, {"chunks": [{"text": "one"}]})
+        component = self.component()
+        document = self.checkpoint_document(component, ["one"])
         async def corrupt(*args):
-            return {"fingerprint": "wrong", "text_hash": "wrong", "vector": [1, 2]}
+            return {"fingerprint": "wrong", "text_hash": sha256(b"one").hexdigest(), "vector": [1, 2],
+                    "chunk": document["chunks"][0], "chunk_size": component.chunk_size}
         with self.assertRaisesRegex(ValueError, "identity"):
-            await prepare_vectors(self.component(), {"chunks": [{"text": "one"}]}, progress=corrupt)
+            await prepare_vectors(component, document, progress=corrupt)
 
     async def test_removed_batch_settings_and_concurrency_schema(self):
         component = self.component()
@@ -204,7 +212,7 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
                 saved[key] = (signature, value)
             entry = saved.get(key)
             return entry[1] if entry and entry[0] == signature else None
-        doc = {"chunks": [{"text": text} for text in ["a", "bb", "ccc", "dddd"]]}
+        doc = self.checkpoint_document(component, ["a", "bb", "ccc", "dddd"])
         with self.assertRaises(ProviderError):
             await prepare_vectors(component, doc, progress=progress)
         self.assertEqual(set(saved), {"embedding_0", "embedding_1", "embedding_3"})

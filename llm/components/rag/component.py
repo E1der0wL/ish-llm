@@ -15,8 +15,8 @@ from llm.services.infrastructure.logging import log_event
 from .data import RAGData
 from .indexing import build_index, update_index
 from .search import search, search_schema
-from .splitting import split_markdown
-from .extraction import validate_graph, validate_graph_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
+from .splitting import split_markdown, CHUNK_FIELDS
+from .extraction import validate_graph, validate_extraction_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
 from .prompts import extraction_schema
 from .graph_indexing import build_graph, update_graph
 from .graph_search import graph_search, related_graph
@@ -141,7 +141,7 @@ class RAGComponent(DefinitionComponent):
         return source
 
     @classmethod
-    def validate_batch_checkpoint(cls, job, key, receipt):
+    def validate_batch_checkpoint(cls, job, key, receipt, payload):
         name = key.removeprefix(JobStorage.BATCHES + "/").removesuffix(".json")
         batch = re.fullmatch(r"(?:d(0|[1-9][0-9]*)_)?(embedding|graph)_(0|[1-9][0-9]*)", name)
         if batch is None:
@@ -151,12 +151,18 @@ class RAGComponent(DefinitionComponent):
                 raise ValueError("RAG checkpoint document position changed")
         elif batch[1] is not None:
             raise ValueError("Single-document Job cannot have a batch document checkpoint")
+        source = payload["documents"][int(batch[1])] if batch[1] is not None else payload
+        value = receipt["value"]
         if batch[2] == "embedding":
-            validate_chunk_checkpoint(receipt["value"], receipt["signature"])
+            validate_chunk_checkpoint(value, receipt["signature"])
+            actual = [value["chunk"]]
         else:
-            if re.fullmatch(r"[a-f0-9]{64}", receipt["signature"]) is None:
-                raise GraphValidationError("Stored extraction checkpoint signature is invalid")
-            validate_graph_checkpoint(receipt["value"])
+            validate_extraction_checkpoint(value, receipt["signature"])
+            actual = value["chunks"]
+        chunks = split_markdown(source["content"], source["identifier"], chunk_size=value["chunk_size"])["chunks"]
+        offset = int(batch[3])
+        if revision_token(chunks[offset:offset + len(actual)]) != revision_token(actual):
+            raise ValueError("RAG checkpoint differs from its original input chunks")
 
     @classmethod
     def validate_document(cls, document):
@@ -201,7 +207,7 @@ class RAGComponent(DefinitionComponent):
                 raise ValueError("Invalid prepared RAG section")
         for position, chunk in enumerate(chunks, 1):
             if (not isinstance(chunk, dict)
-                    or chunk.keys() != {"id", "document_id", "section_id", "heading", "text"}
+                    or chunk.keys() != CHUNK_FIELDS
                     or chunk["id"] != f"{identifier}:c{position}" or chunk["document_id"] != identifier
                     or not isinstance(chunk["section_id"], str) or chunk["section_id"] not in sections
                     or chunk["heading"] != sections[chunk["section_id"]]["heading"]
@@ -782,7 +788,8 @@ class RAGComponent(DefinitionComponent):
             reuse_signature = revision_token({"request": signature,
                 "implementation": type(self.extractor).__module__ + "." + type(self.extractor).__qualname__})
             key = f"graph_{offset}"
-            graph = await progress(key, signature) if progress else None
+            saved = await progress(key, signature) if progress else None
+            graph = validate_extraction_checkpoint(saved, signature) if saved is not None else None
             if graph is None and reuse_signature in previous_batches:
                 entry = previous_batches[reuse_signature]
                 graph = select_graph(previous_graph, entry["entity_ids"], batch,
@@ -792,7 +799,7 @@ class RAGComponent(DefinitionComponent):
                 reused_sources.update(chunk["id"] for chunk in batch)
                 document["ingestion"]["extraction_batches_reused"] += 1
                 if progress:
-                    await progress(key, signature, graph)
+                    await progress(key, signature, {"chunks": batch, "chunk_size": self.chunk_size, "graph": graph})
             if graph is None:
                 started = time.monotonic()
                 try:
@@ -817,9 +824,9 @@ class RAGComponent(DefinitionComponent):
                     diagnostic("rag_extraction_progress", **document["ingestion"])
                     await extraction_progress()
                 if progress:
-                    await progress(key, signature, graph)
+                    await progress(key, signature, {"chunks": batch, "chunk_size": self.chunk_size, "graph": graph})
             else:
-                graph = validate_graph(validate_graph_checkpoint(graph), batch,
+                graph = validate_graph(graph, batch,
                                        relation_types=self.extraction_options.get("relation_types", ()))
                 extraction_done += 1
                 await extraction_progress()

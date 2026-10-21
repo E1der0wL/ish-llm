@@ -72,29 +72,29 @@ class GraphReceiptTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_missing_stored_relation_metadata_is_not_defaulted_during_resume(self):
         value = deepcopy(self.original)
-        del value['value']['relations'][0]['metadata']
+        del value['value']['graph']['relations'][0]['metadata']
         await self.reject(value)
 
     async def test_current_graph_fields_types_and_canonical_identities_are_required(self):
         cases = []
-        for key in self.original['value']:
+        for key in self.original['value']['graph']:
             value = deepcopy(self.original)
-            del value['value'][key]
+            del value['value']['graph'][key]
             cases.append(value)
         for kind in ('entities', 'relations'):
-            for key in self.original['value'][kind][0]:
+            for key in self.original['value']['graph'][kind][0]:
                 value = deepcopy(self.original)
-                del value['value'][kind][0][key]
+                del value['value']['graph'][kind][0][key]
                 cases.append(value)
         for kind, key, changed in (('entities', 'id', 'changed'), ('entities', 'name', ' Alice '),
                                     ('relations', 'source', 'unknown'), ('relations', 'target', False),
                                     ('relations', 'type', ' owns '), ('relations', 'source_id', None),
                                     ('relations', 'evidence', ''), ('relations', 'metadata', [])):
             value = deepcopy(self.original)
-            value['value'][kind][0][key] = changed
+            value['value']['graph'][kind][0][key] = changed
             cases.append(value)
         value = deepcopy(self.original)
-        value['value']['entities'].append(value['value']['entities'][0])
+        value['value']['graph']['entities'].append(value['value']['graph']['entities'][0])
         cases.append(value)
         cases.append({**deepcopy(self.original), 'signature': 'invalid'})
         for index, value in enumerate(cases):

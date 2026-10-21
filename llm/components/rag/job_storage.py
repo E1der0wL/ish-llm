@@ -264,12 +264,12 @@ class JobStorage:
                 or value["value"] is None):
             raise ValueError("Invalid RAG Job batch receipt")
         document_batch = re.fullmatch(r"batches/document_(0|[1-9][0-9]*)\.json", key)
+        payload = self.read_input(identifier, job)
         if key != self.PREPARED and document_batch is None:
-            self.validate_batch_checkpoint(job, key, value)
+            self.validate_batch_checkpoint(job, key, value, payload)
             return
         if not self.ATTEMPT_FIELDS <= job.keys():
             raise ValueError("Prepared RAG document requires its Job attempt")
-        payload = self.read_input(identifier, job)
         if "document_ids" in job:
             inputs, expected = payload["documents"], job["document_ids"]
             if document_batch is not None:

@@ -9,6 +9,83 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-w 배치와 원문 chunk 연결 — H2-v/w 묶음 Level 3
+
+H2-v 로컬 커밋 `4da18b9955e409ce5adbcf23ec7d4dde0d9b1a83`에서 이어서 배치 영수증의
+원문 검증을 보강했다. 기존 shape/hash 검사만으로는 원문에 없는 그래프 인용 또는 원문과
+관계없는 embedding text_hash도 일치하는 목록 hash와 함께 백업될 수 있었다.
+최초 재현은 1 failure/1 error(0.693초/exit 1)였다. 그래프 fixture에 실제 관계가 없어 생긴
+error를 관계가 있는 입력으로 고친 뒤 원래 두 거부 Assertion 모두 failure였다
+(2 failure/error·Skip 0, 0.671초, exit 1). 오류와 실패 로그를 각각 보존했다.
+
+- splitting owner의 CHUNK_FIELDS/validate_chunk가 현재 chunk 모양을 선언한다. 저장 시에는
+  실제 splitter가 만든 ID/문서/section/heading/text와 당시 chunk_size를 보존한다.
+- ingestion.CHECKPOINT_FIELDS는 기존 fingerprint/text_hash/vector에 chunk/chunk_size를
+  필수로 포함한다. Writer/Reader는 text_hash와 실제 chunk text를 대조하며, checkpoint를
+  만드는 경로는 모델 호출 전에 chunk와 분할 크기를 검증한다.
+- extraction.CHECKPOINT_FIELDS는 실제 요청 chunks/chunk_size와 검증된 graph를 보관한다.
+  validate_extraction_checkpoint는 필수 원본·정규 graph·실제 chunk 인용을 검사한다.
+  모델 설정 전체를 복제하지 않는다. 기존 요청 signature 및 재개 때 실제 요청과의 비교는 유지한다.
+- RAGComponent는 JobStorage의 검증된 원본 입력에서 **저장된** chunk_size로 분할 결과를
+  구하고, 배치 이름의 문서 위치/ordinal/offset과 저장 chunk를 정확히 대조한다. Reader/Writer,
+  claim/재개 계획, backup/clone에서 같은 owner 검증을 사용한다. 현재 설정으로 과거 원문을
+  추정하거나 인용을 합성하지 않는다. 새 필수 증거가 없는 기존 영수증은 원본을 보존하며 거부한다.
+
+새 5개 회귀는 원래 백업 실패 두 건, graph 원본 필드·타입·인용/ID matrix, 유효한 hash를
+함께 바꾼 embedding 원문·위치 손상, 현재 설정 변경 후 정상 옛 영수증의 백업/재개 거부를
+검사한다. 거부 후 실제 embedding/extraction 파일 효과와 원본 bytes를 비교한다.
+기존 graph payload 시험은 새 소유 envelope 아래로 경로만 이관했다. 기존 Checkpoint lifecycle의
+모의 완료 영수증과 ingestion 병렬/취소 시험 fixture도 실제 splitter의 chunk를 사용한다.
+호출 횟수·순서·취소·재개·원본 보존 Assertion은 제거하거나 완화하지 않았다.
+
+최초 집중 79개는 75 pass/1 failure/3 error/Skip 0, 39.350초, exit 1이었다.
+모두 이전 text-only fixture 또는 불완전한 모의 영수증이 새 필수 chunk 계약을 충족하지 못한
+경로였다. 이를 수정하고 원문/설정 검증을 추가한 뒤 82 pass/37.887초/exit 0을 확인했다.
+이후 첫 전체 LLM은 1956 pass,
+failure 2/error 0/Skip 0,
+690.628초/exit 1였다. 가벼운 모델 import가
+저장 helper의 최상위 import로 llm.services/core를 불러오는 회귀였다. 저장 검증 함수가
+필요한 시점에 같은 helper를 import하도록 옮겼으며 원래 모델 import Assertion은 유지했다.
+첫 Hub 전체 540 pass/710.527초/
+exit 0도 별도 증거로 보존했다. 변경 후 아래 집중/전체 LLM/Hub를
+새로 실행했으며 이전 Hub 실행을 새 전체 통합 실행에 합산하지 않았다.
+
+| 현재 브랜치 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 최종 집중 3 modules | 42/42 | 42 | 0/0/0 | 17.573초 | 0 |
+| 전체 LLM | 1958/1958 | 1958 | 0/0/0 | 679.263초 | 0 |
+| 전체 Hub | 540/540 | 540 | 0/0/0 | 709.665초 | 0 |
+
+expected failure/unexpected success/누락/미발견 실행/중복은 각각 0이다. 필수 영수증 변경과
+V/W 묶음 게이트이므로 별도 Level 2를 반복하지 않고 집중 후 전체 회귀로 승격했다.
+현재 통합 상태에서 승인·예산·효과·Checkpoint·삭제·원본 보존·실제 프로세스 중단/장애 주입과
+직접 Repository/Component/Engine/Application/Hub 소비자를 검증했다. 정적 new/stale/S1 0,
+기존 debt 531, exit 0이며 R3 Mutation은 실제 두 번째 효과 Assertion으로 누락을 검출했다
+(True, detector exit 0). 이전 V의 부분 결과를 전체 실행으로 합산하지 않았다.
+
+전후 Python 677개 hash `04ea8c9bf851596b26930916fd1bc97db4449365dc240cf6cfa506c4b0d6c0f0`,
+전체 입력 836개/환경 hash `dfd0845d88a8b9d88615883ebad631144140c76d052ce5b1b750676965200378`는 각각 동일했다.
+Python 3.12.14·136 packages·UID 1000·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와
+기존 bwrap/Xvfb/xclip·5개 환경 변수를 유지했다. 성공 후 문서를 먼저 갱신했다.
+문서 검사는 131개 문서·178개 Python fence·953개 상대 링크·34개 anchor에서 오류 0, exit 0이다.
+실제 argv/exit/요약·원래 실패 로그는 `/workspace/llm-clean-resume/h2-w/`에 보존한다.
+
+```bash
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-w/baseline-2 tests.llm.test_rag_batch_source
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-w/focused-3 tests.llm.test_rag_batch_source tests.llm.test_rag_components tests.llm.test_rag_models
+python /workspace/llm-clean-resume/h2-m/run-full.py llm /workspace/llm-clean-resume/h2-w/final-2
+python /workspace/llm-clean-resume/h2-m/run-full.py hub /workspace/llm-clean-resume/h2-w/final-2
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-w/static-3.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-w/docs.json
+```
+
+RAG ingestion 통계의 현행 소비자는 진행 표시이며 실행 권한·예산·재개 허가가 아니다.
+기존 owner의 dict/JSON·진행 상태 검증은 유지하고 임의의 필수 통계 필드를 추가하지 않았다.
+이 결과는 V/W 묶음의 완료다. 도메인 기록의 상태·갱신 연결과 남은 owner 계약을 확인해야
+H2 전체를 완료할 수 있다. H3–H5·P1·A–F에는 아직 진입하지 않는다. 원격 CI 통과는 실제
+결과를 확인하기 전까지 선언하지 않는다.
+
 ## H2-v 원본 입력의 생성·저장 검증 — Level 2 로컬 완료
 
 `69e775a7378f8d384af58812a2dbc53c74986b2d`에서 이어서 RAG 입력의 남은 필수 필드와

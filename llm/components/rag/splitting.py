@@ -3,6 +3,17 @@
 import hashlib
 import re
 
+CHUNK_FIELDS = frozenset(("id", "document_id", "section_id", "heading", "text"))
+
+
+def validate_chunk(chunk):
+    """Validate a stored chunk shape; original input binding belongs to its owner."""
+    if (not isinstance(chunk, dict) or chunk.keys() != CHUNK_FIELDS
+            or any(not isinstance(chunk[key], str) for key in CHUNK_FIELDS)
+            or any(not chunk[key].strip() for key in CHUNK_FIELDS - {"heading"})):
+        raise ValueError("Invalid stored RAG chunk")
+    return chunk
+
 
 def split_markdown(content: str, document_id: str, *, chunk_size: int) -> dict:
     """ATX 제목/문단을 분할한다. 코드 펜스 내부의 #는 제목으로 취급하지 않는다."""

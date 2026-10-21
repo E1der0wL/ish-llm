@@ -251,6 +251,11 @@ transaction으로 확정하며 아직 생성하지 않은 경우만 None이다. 
 배치 envelope는 필수 key/signature/value를 저장하고 key가 실제 파일 경로와 같아야 한다.
 완료 영수증의 파일명만 바꿔 이미 수행한 chunk를 새 작업으로 오인하지 않으며, key가 없는
 기존 기록도 자동 복원하지 않는다. Writer는 JobStorage.write_batch의 같은 선언을 사용한다.
+embedding payload는 fingerprint/text_hash/vector와 실제 chunk/chunk_size를 필수로 저장합니다.
+extraction payload는 graph와 실제 요청 chunks/chunk_size를 저장하며 인용을 그 원문과 대조합니다.
+Component는 검증된 Job 입력을 저장된 chunk_size로 분할해 문서 위치·ordinal/offset·chunk를
+확인합니다. 이 검증은 현재 모델 설정에 의존하지 않습니다. 기존 요청 signature 비교와 설정
+변경 시 재개 거부는 유지하며, 백업 검증을 위해 모델 인자 전체를 복제하지 않습니다.
 준비·게시 문서의 필수 원문·절/청크·벡터/profile·추출 manifest·저장 그래프 증거는 동일한 RAG
 문서 owner가 검증한다. 게시 코퍼스는 정확한 root 필드·문서 ID·모든 문서/profile 일치를 요구한다.
 빈 코퍼스만 명시 None profile을 허용한다. 새 세대 생성 전과 snapshot cache 저장 전에 원본을

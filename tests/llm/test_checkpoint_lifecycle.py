@@ -253,8 +253,11 @@ class RAGCheckpointTests(unittest.IsolatedAsyncioTestCase):
         # must include the owning payload fields even when the provider is mocked.
         identity = {"fingerprint": revision_token({"fixture": "completed-embedding"}),
                     "text_hash": hashlib.sha256(b"Alice owns Atlas").hexdigest()}
+        from llm.components.rag.splitting import split_markdown
+        chunk_size = jobs.data._current()[1].chunk_size
+        chunk = split_markdown("Alice owns Atlas", "manual", chunk_size=chunk_size)["chunks"][0]
         jobs._batch(identifier, "embedding_0", revision_token(identity),
-                    {**identity, "vector": [1.0, 2.0]})
+                    {**identity, "vector": [1.0, 2.0], "chunk_size": chunk_size, "chunk": chunk})
 
     async def test_failed_job_abandon_delete_after_reopen(self):
         job = await self.enqueue()

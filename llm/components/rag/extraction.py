@@ -2,12 +2,16 @@
 
 import hashlib
 import json
+import re
 from copy import copy, deepcopy
 from datetime import datetime, timezone
 
 from llm.components.rag._client import ModelClient
 from .prompts import EXTRACTION_CONTRACT
 from llm.errors import CodedError
+from .splitting import validate_chunk
+
+CHECKPOINT_FIELDS = frozenset(("chunks", "chunk_size", "graph"))
 
 
 class GraphValidationError(CodedError, ValueError):
@@ -102,6 +106,24 @@ def validate_graph_checkpoint(graph):
             json.dumps(edge["metadata"], ensure_ascii=False, allow_nan=False)
         except (TypeError, ValueError) as error:
             raise GraphValidationError("Stored extraction metadata requires finite JSON") from error
+    return graph
+
+
+def validate_extraction_checkpoint(value, signature):
+    """Validate the actual request chunks and response without live settings."""
+    from llm.services.infrastructure.storage import revision_token
+    if (not isinstance(value, dict) or value.keys() != CHECKPOINT_FIELDS
+            or type(value["chunk_size"]) is not int or value["chunk_size"] < 1):
+        raise GraphValidationError("Incomplete extraction checkpoint source")
+    if (not isinstance(value["chunks"], list) or not value["chunks"]
+            or not isinstance(signature, str) or re.fullmatch(r"[a-f0-9]{64}", signature) is None):
+        raise GraphValidationError("Invalid stored extraction request chunks or signature")
+    for chunk in value["chunks"]:
+        validate_chunk(chunk)
+    graph = validate_graph_checkpoint(value["graph"])
+    canonical = validate_graph(graph, value["chunks"])
+    if revision_token(canonical) != revision_token(graph):
+        raise GraphValidationError("Stored extraction response is not canonical")
     return graph
 
 
