@@ -108,11 +108,13 @@ class ProjectManager:
         self.ownership = repository.ownership
         self.sessions.bind_project_access(self.access)
         self.components = registry
+        self.sessions.components = registry
         from llm.providers.litellm import model_token_count
         self.usage_counters = {"model_default": model_token_count}
         self.backups = backups if backups is not None else DirectoryBackups()
         from llm.services.lifecycle.steps import StepRepository
         self.backup_steps = backup_steps if backup_steps is not None else StepRepository()
+        self.sessions.step_repository = self.backup_steps
 
     def _validate_config(self, project) -> None:
         self.components.validate_config(project)
@@ -409,6 +411,8 @@ class ProjectManager:
             self.sessions.require_inactive(session)
         if permanent:
             self._validate_components(current)
+            for session in sessions:
+                self.sessions.validate_removal(session, project_ending=True)
             self.repository.delete(current)
             for session in sessions:
                 self.sessions._discard_conversation(session)

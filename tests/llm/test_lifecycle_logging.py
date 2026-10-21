@@ -53,8 +53,18 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(self.store.list()[0].content, "retained history")
 
     def test_permanent_session_delete_removes_descendants_preserves_sibling_and_parent_log(self) -> None:
+        from llm.core.models import Run, RunStatus, new_id
         sibling = self.sessions.create(self.project, "Sibling")
-        artifact = self.session.paths.root / "runs" / "nested" / "artifact.txt"
+        identifier = new_id()
+        repository = self.sessions.run_repository
+        with self.projects.ownership.scope():
+            request = self.store.create(MessageRole.USER, "completed work", MessageStatus.COMMITTED, run_id=identifier)
+            assistant = self.store.create(MessageRole.ASSISTANT, "done", MessageStatus.COMPLETED, run_id=identifier)
+            run = Run(identifier, self.session.id, request.id, assistant.id, "fake",
+                      repository.paths(self.session, identifier), status=RunStatus.COMPLETED)
+            run.started_at = run.ended_at = run.created_at
+            repository.create(run)
+        artifact = run.paths.root / "artifacts" / "nested" / "artifact.txt"
         artifact.parent.mkdir(parents=True)
         artifact.write_text("artifact", encoding="utf-8")
         self.sessions.delete(self.session, permanent=True)

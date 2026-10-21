@@ -152,6 +152,8 @@ class SessionManager:
                                                   file_cache_size=conversation_cache_size)
         self.context_builder = context_builder if context_builder is not None else ConversationContextBuilder()
         self.run_repository = runs
+        self.step_repository = None
+        self.components = None
         self.config_validator = None
 
     def _conversation_storage(self, session: Session) -> Optional[str]:
@@ -351,12 +353,34 @@ class SessionManager:
         return self.repository.list(project, include_deleted=include_deleted)
 
     @workspace_locked
+    def validate_removal(self, session: Session, *, project_ending=False) -> Session:
+        """Parent deletion requires the same child-owner evidence as ordinary reads."""
+        current = self.require_inactive(session)
+        if self.run_repository is None or self.step_repository is None:
+            raise ValueError("Session deletion requires bound Run and Step evidence readers")
+        messages = self.conversations(current).list()
+        from llm.services.runtime.operations import OperationRepository
+        OperationRepository().validate_backup(current)
+        runs = self.run_repository.read_backup(current)
+        for run in runs:
+            self.step_repository.read_backup(run)
+        if not project_ending:
+            if self.components is None:
+                raise ValueError("Session deletion requires bound Component reference readers")
+            refs = self.components.history_references(self._owner(current, allow_deleted=True))
+            if (current.id in refs["session_ids"] or any(run.id in refs["run_ids"] for run in runs)
+                    or any(message.id in refs["message_ids"] for message in messages)):
+                raise ValueError("Session history is referenced by a stored Component")
+        return current
+
+    @workspace_locked
     def delete(self, session: Session, *, permanent: bool = False) -> None:
         """Mark deleted by default; permanent=True removes history and artifacts."""
         if type(permanent) is not bool:
             raise TypeError("permanent must be a bool")
         current = self.require_inactive(session)
         if permanent:
+            self.validate_removal(current)
             from llm.services.runtime.usage import has_limit, project_usage_policies, protects_project_usage
             project = self._owner(current, allow_deleted=True)
             policies = project_usage_policies(project, self)

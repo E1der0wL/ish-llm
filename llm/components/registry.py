@@ -87,6 +87,18 @@ class ComponentRegistry:
         if refs:
             raise ValueError(f"Resource is referenced; remove references first: {refs}")
 
+    def history_references(self, project):
+        """Direct deletion and retention share the stored owners' history references."""
+        self.stored(project)
+        refs = {"session_ids": set(), "run_ids": set(), "message_ids": set()}
+        for component in self._components.values():
+            reader = getattr(component, "history_references", None)
+            if reader:
+                for kind, values in reader(deepcopy(project)).items():
+                    if kind in refs:
+                        refs[kind].update(values)
+        return refs
+
     def validate_selection(self, project, names):
         """남길 소비자가 참조하는 영속 Component를 선택 해제하지 않는다."""
         for name in set(project.components) - set(names):

@@ -501,7 +501,12 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         run, _ = await self.run_loop(model=model)
         self.assertEqual(run.data.status, 'completed', run.data.error)
         await self.session.run.shutdown()
-        await self.session.adelete(permanent=True)
+        with self.assertRaisesRegex(ValueError, 'referenced'):
+            await self.session.adelete(permanent=True)
+        # Normal deletion preserves live references. Inject external source loss
+        # to retain the independent cancellation/release/Resume failure scenario.
+        import shutil
+        shutil.rmtree(self.session.paths.root)
         view = await self.memory.aget_context(self.session.id)
         self.assertEqual(view['request']['status'], 'partial')
         with self.assertRaisesRegex(ValueError, 'Session was removed'):

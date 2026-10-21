@@ -9,6 +9,98 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H3-b 상위 삭제 증거·저장 참조 — H3 최종 Level 3
+
+기준 `06c6e5a182f912fd47ccdd4fe774ffb498fecc1b`의 H3-a 뒤 상위 삭제의 남은 증거를
+보강했다. 기존 감사와 H2 기록은 다시 작성하지 않았다.
+
+- SessionManager.validate_removal은 현재 비활성 상태와 선택한 Conversation owner,
+  OperationRepository, RunRepository, 주입된 StepRepository의 기존 무결성 검증을 호출한다.
+  직접 Session 삭제와 Project 영구 삭제가 같은 검증을 사용한다. 다른 owner의 내부 형식을
+  해석하거나 손상된 하위 기록을 재생성하지 않는다. 정상 파일/메모리 대화의 명시적 종료는
+  유지하며 메모리 대화를 파일 모드로 바꾸지 않는다.
+- ProjectManager는 같은 StepRepository와 ComponentRegistry를 SessionManager에 연결한다.
+  ComponentRegistry.history_references는 기존 owner 선언을 집계한다. 직접 Session 삭제와
+  보관 계획이 이를 함께 사용하므로 비활성 Goal/Memory의 Session·Run·메시지 참조도 보존한다.
+  참조 owner 증거가 소실되면 참조 없음으로 간주하지 않는다. 전체가 유효한 Project의 명시적
+  종료는 내부 참조 양쪽을 함께 제거한다. 살아 있는 Project의 quota 보호는 그대로 유지한다.
+- 원래 상위 삭제는 손상된 승인·Checkpoint·Run·Step·대화·효과 영수증을 지웠다. 새 7개 시험의
+  12 failure Assertion으로 재현하고 거부·원본 바이트·실제 파일 효과 횟수를 유지해 수정했다.
+  추가 Goal/Memory 참조와 참조 소실은 3개 시험/4 failure였다. 신규 총 14개 시험은 필수 파일
+  소실, 주입 owner 거부, 정상 파일/메모리 종료, 비활성 참조와 정상 Project 종료를 포함한다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `b-baseline` | 7/7 | 0 | 10/2/0 | 2.528초 | 1 |
+| `b-baseline-2` | 7/7 | 0 | 12/0/0 | 3.084초 | 1 |
+| `b-focused-1` | 147/147 | 147 | 0/0/0 | 25.936초 | 0 |
+| `b-focused-2` | 94/94 | 94 | 0/0/0 | 67.407초 | 0 |
+| `b-reference-baseline` | 14/14 | 11 | 4/0/0 | 5.808초 | 1 |
+| `b-focused-3` | 113/113 | 113 | 0/0/0 | 27.555초 | 0 |
+| `b-focused-4` | 58/58 | 58 | 0/0/0 | 32.936초 | 0 |
+| 첫 전체 LLM (`final`) | 2013/2013 | 2011 | 0/2/0 | 702.358초 | 1 |
+| 현재 전체 LLM (`final-2`) | 2013/2013 | 2013 | 0/0/0 | 689.973초 | 0 |
+| 전체 Hub (`final`, 재사용) | 540/540 | 540 | 0/0/0 | 704.879초 | 0 |
+
+첫 baseline의 2 error는 손상 Run의 경로를 fixture가 다시 읽다가 발생했다. 손상 전에 경로를
+확보하고 원래 Assertion을 유지한 두 번째 baseline에서 12 failure/0 error를 확인했다.
+모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+실패 로그와 재현 시험 소스는 `/workspace/llm-clean-resume/h3/b-baseline*` 및
+`b-reference-baseline`에 보존한다. 이전 실행을 합쳐 전체 실행으로 표현하지 않는다.
+
+첫 전체 LLM의 2 error는 정상 API로 참조 중인 Session을 지우던 LargeData fixture와
+유효한 Run 기록 없이 `runs/nested` 폴더를 만든 logging fixture였다. 전자는 정상 삭제 거부를
+추가하고 외부 원본 소실을 명시적으로 주입했으며 원래 취소/참조 해제/재개 거부 Assertion을
+유지했다. 후자는 실제 유효한 완료 Run 안에 산출물을 만들고 하위 트리 삭제·형제 보존·로그
+Assertion을 유지했다. 제품 코드를 완화하지 않았고 두 이전 fixture는 `final/`에 보존했다.
+
+Hub 재사용은 `prove-hub-reuse.py`의 실제 검증과 `final-2/hub-reuse-proof.json`에 근거한다.
+유일한 변경 파일은 두 LLM fixture이며 logging 모듈은 Hub에서 로드하지 않는다. LargeData
+모듈은 LLM 시험 메서드 한 개의 body를 제외한 전체 AST가 동일하고, Hub의 두 import는
+변경되지 않은 SourceTools/answer만 소비한다. 제품·Hub 시험·공유 fixture·의존성·환경 및
+540개 발견 목록(중복 0)이 동일하다. 발견 hash는
+`f017cd5603e8d8cfcce262c10b8370c08692fd3ddfb6fe541961fd2915e0c0d6`이다.
+Hub를 새로 실행했다고 기록하지 않는다.
+
+```bash
+.venv-linux312/bin/python /workspace/llm-clean-resume/h2-m/run-full.py llm /workspace/llm-clean-resume/h3/final-2
+.venv-linux312/bin/python /workspace/llm-clean-resume/h2-m/run-full.py hub /workspace/llm-clean-resume/h3/final
+.venv-linux312/bin/python /workspace/llm-clean-resume/h3/prove-hub-reuse.py
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h3/b-static-2.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h3/b-docs.json
+```
+
+집중 실행의 정확한 모듈·명령·exit code는 각 디렉터리의 `llm-command.json`과
+`llm-execution.json`에 기록했다. 상위 삭제가 여러 도메인에 영향을 주므로 이번 H3-b와 H3
+완료는 Level 3으로 승격했다. 첫 전체 실행 뒤 fixture 2개를 수정한 현재 LLM은 새 전체
+실행으로 검증했고 Hub는 위 동일성 입증에 한해 재사용했다. 정적 감사는
+new/stale/S1 미해결 0, 기존 debt 531이며 R3 Mutation은 실제 효과 Assertion 검출 True,
+exit 0이다. 제품/시험 682개 source hash는
+`4f100c9b715b1c03c59de3452cf2c168e068d101e7d5ac956cf2e0d92ccc3cae`,
+문서/fixture 포함 841개 입력 hash는
+`a08ef141f3b335afc92e31610b98d31094fef726a7dfdda30e5e92ec6363f6bc`로 전후 동일했다.
+첫 전체 LLM/Hub의 source/input hash는 각각
+`242040347db9e94915a41764d2edfc2967a211ff295ac7d41dad0c70fc04cd95` /
+`94fc138ed66b79017b0f75d5cc53165450824b67b9154a1d229612c8ea9f5311`이며 그 실행 전후도 동일했다.
+Python 3.12.14·136개 의존성·호스트 SHA·UID 1000·bwrap/X11·5개 환경변수는 H3-a와 같다.
+문서는 현재 전체 LLM 실행 종료와 소스 동일성 확인 뒤에 갱신했다.
+문서 검사는 131개 문서·179개 Python fence·953개 상대 링크·34개 anchor, 오류 0, exit 0이다.
+
+H3의 owner별 허용/거부 범위는 다음과 같다. CRUD 대칭을 위해 증거의 격리·삭제를 추가하지 않는다.
+
+| owner 범위 | H3 지원과 보호 | 검증 근거 |
+|---|---|---|
+| Data 첨부 | 유효한 원래 정의·목록·참조·실행 증거가 있는 경우만 보존 격리·명시 삭제. 일반 재사용/상위 삭제 거부 | H3-a 17개 신규, 실제 exit 77 9지점, Skill/Memory 소비자·quota |
+| 승인·사용량·효과·Run/Checkpoint | 손상 증거의 추정 복구/격리/삭제 API 없음. 허용된 명시 Checkpoint 포기/삭제의 기존 조건 유지. 상위 삭제도 owner 검증 | H1/H2 및 현재 전체 interaction/usage/operation/checkpoint/lifecycle 회귀, R3 Mutation |
+| RAG Job/코퍼스 | 기존 유효 Job의 명시 포기/삭제·lease·CAS만 허용. identity/active/원본/배치 증거 손상 시 원위치 거부 | 현재 전체 RAG storage/job/checkpoint/catalog 회귀와 실제 중단·모델 효과 검사 |
+| Memory·기타 Component | 새 손상 격리 API 없음. 기존 owner의 엄격한 Reader·참조·삭제 조건 유지, 상위 Component/Project가 검증 위임 | H2 owner 회귀 및 현재 전체 Component/Memory/Refinement/Skill/Tool 검사 |
+| Project/Session | 현재 owner 무결성·실행 상태·보존 참조·살아 있는 Project quota를 검사. 정상 도메인 전체 종료와 예산 초기화를 구분 | H3-b 14개 신규·정상 파일/메모리 종료·보관/삭제/트랜잭션 소비자 |
+
+H3 로컬 상위 게이트를 완료했다. 원격 CI는 정확한 Push SHA의 실제 결과가 확인되기 전까지
+미확인이다. 다음은 H4 Application 보존 정책, H5 백업/참조 잔여 계약이며 P1/A–F에는 아직
+진입하지 않는다. H1–H5 완료 후에만 이전 backend 브랜치를 읽기 전용 참고자료로 사용한다.
+
 ## H3-a Data 첨부 격리와 Component 상위 삭제 — 로컬 Level 2
 
 기준 `d7d9347c9075cffef7144be2d514a670e601b819`에서 Data owner에 제한된 명시적 격리를

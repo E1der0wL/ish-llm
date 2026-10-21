@@ -14,15 +14,7 @@ class HistoryRetention:
         self.manager, self.counter = manager, counter
 
     def _references(self, project):
-        refs = {"session_ids": set(), "run_ids": set(), "message_ids": set()}
-        for name in self.manager.components.names():
-            component = self.manager.components.get(name)
-            reader = getattr(component, "history_references", None)
-            if reader:
-                for kind, values in reader(project).items():
-                    if kind in refs:
-                        refs[kind].update(values)
-        return refs
+        return self.manager.components.history_references(project)
 
     def _run_plan(self, project):
         policy, refs = project.config.policies.get("retention", {}), self._references(project)
