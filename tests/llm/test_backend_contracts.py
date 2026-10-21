@@ -518,7 +518,7 @@ class JobResumeContracts(unittest.IsolatedAsyncioTestCase):
             await self.rag.arun_job(job["id"], retry=True, expected_revision=plan.revision)
         self.assertEqual(rejected.exception.code, "checkpoint_conflict")
         self.assertEqual(await self.rag.ajob_diagnostic(job["id"]), diagnostic)
-        self.assertNotIn("failures", await self.rag.ajob(job["id"]))
+        self.assertEqual((await self.rag.ajob(job["id"]))["failures"], [])
         plan = await self.rag.aresume_plan(job["id"])
         self.assertIn("batches/embedding_0.json", plan.checkpoints)
         original_commit = RAGJobs._commit

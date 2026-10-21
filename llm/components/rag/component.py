@@ -296,7 +296,7 @@ class RAGComponent(DefinitionComponent):
                         stamps[str(entry.relative_to(path.parent))] = [stat.st_size, stat.st_mtime_ns]
                 sources.append([job, stamps])
                 abandoned = None
-                if "resume_abandonment" in job:
+                if job["resume_abandonment"] is not None:
                     from llm.core.checkpoints import ResumeAbandonment
                     abandoned = ResumeAbandonment.from_dict(job["resume_abandonment"])
                 ended = abandoned.abandoned_at if abandoned else job.get("ended_at", job["created_at"])

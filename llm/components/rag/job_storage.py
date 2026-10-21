@@ -1,6 +1,7 @@
 """RAG-owned Job inventory and persistent worker lease identity."""
 
 from datetime import datetime
+from dataclasses import fields
 import fcntl
 import os
 import re
@@ -8,6 +9,7 @@ import stat
 
 from llm.components.base import validate_name
 from llm.core.checkpoints import ResumeAbandonment
+from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef
 from llm.services.infrastructure.storage import (
     atomic_bytes, atomic_json, make_directory, read_json, remove_named_tree, revision_token)
 
@@ -17,11 +19,95 @@ class JobStorage:
     MANIFEST = "jobs.manifest.json"
     DIRECTORY = "jobs"
     LEASE = "worker.lock"
-    COMPLETED = "completed"
-    STATUSES = frozenset(("queued", "running", COMPLETED, "failed", "cancelled"))
+    QUEUED, RUNNING, COMPLETED, FAILED, CANCELLED = "queued", "running", "completed", "failed", "cancelled"
+    STATUSES = frozenset((QUEUED, RUNNING, COMPLETED, FAILED, CANCELLED))
+    TRANSITIONS = {QUEUED: (QUEUED, RUNNING, CANCELLED), RUNNING: (RUNNING, COMPLETED, FAILED, CANCELLED),
+                   FAILED: (FAILED, RUNNING, CANCELLED), COMPLETED: (COMPLETED,), CANCELLED: (CANCELLED,)}
+    KIND = "rag_job"
     PREPARED = "prepared.json"
     BATCHES = "batches"
-    REQUIRED = frozenset(("id", "status", "created_at", "input_digest", "phase"))
+    CREATION_FIELDS = frozenset(("id", "created_at", "input_digest"))
+    REQUIRED = CREATION_FIELDS | {"status", "phase", "cancel_requested", "resume_abandonment", "failures", "progress", "ingestion"}
+    ATTEMPT_FIELDS = frozenset(("started_at", "pid", "configuration"))
+    ERROR_FIELDS = frozenset(("failed_phase", "error", "diagnostic_code", "diagnostic"))
+    FAILURE_FIELDS = ERROR_FIELDS | {"status", "started_at", "ended_at"}
+    FIELDS = REQUIRED | ATTEMPT_FIELDS | ERROR_FIELDS | {"ended_at", "document_id", "document_ids", "resume_abandonment"}
+
+    @staticmethod
+    def _time(value):
+        if not isinstance(value, str) or datetime.fromisoformat(value).utcoffset() is None:
+            raise ValueError("RAG Job time requires timezone-aware ISO text")
+
+    @staticmethod
+    def _diagnostic(value):
+        if (not isinstance(value["failed_phase"], str) or not value["failed_phase"]
+                or not isinstance(value["diagnostic"], dict)
+                or value["diagnostic"].keys() != {field.name for field in fields(Diagnostic)}):
+            raise ValueError("Invalid RAG Job failure evidence")
+        source = value["diagnostic"]["source"]
+        if not isinstance(source, dict) or source.keys() != {field.name for field in fields(ResourceRef)}:
+            raise ValueError("RAG Job diagnostic requires its complete source")
+        diagnostic = Diagnostic.from_dict(value["diagnostic"])
+        if (diagnostic.code != value["error"] or diagnostic.code != value["diagnostic_code"]
+                or diagnostic.source is None):
+            raise ValueError("RAG Job diagnostic disagrees with its failure")
+
+    @classmethod
+    def _state(cls, job, identifier):
+        status, present = job["status"], job.keys()
+        if (present - cls.FIELDS or type(job["cancel_requested"]) is not bool
+                or not isinstance(job["failures"], list) or not isinstance(job["progress"], dict)
+                or not isinstance(job["ingestion"], dict)):
+            raise ValueError("Invalid RAG Job state fields")
+        try:
+            OperationProgress(ResourceRef(cls.KIND, identifier), job["phase"], **job["progress"])
+        except TypeError as error:
+            raise ValueError("Invalid RAG Job progress") from error
+        attempted = bool(present & cls.ATTEMPT_FIELDS)
+        if attempted:
+            if not cls.ATTEMPT_FIELDS <= present:
+                raise ValueError("RAG Job attempt evidence is incomplete")
+            cls._time(job["started_at"])
+            if (type(job["pid"]) is not int or job["pid"] < 1
+                    or not isinstance(job["configuration"], str)
+                    or re.fullmatch(r"[a-f0-9]{64}", job["configuration"]) is None):
+                raise ValueError("Invalid RAG Job worker or configuration evidence")
+        elif status in (cls.RUNNING, cls.COMPLETED, cls.FAILED):
+            raise ValueError("RAG Job requires its stored attempt evidence")
+        terminal_failure = status == cls.FAILED or (status == cls.CANCELLED and attempted)
+        if terminal_failure:
+            if not cls.ERROR_FIELDS <= present or "ended_at" not in job:
+                raise ValueError("RAG Job requires its stored failure evidence")
+            cls._diagnostic(job)
+        elif present & cls.ERROR_FIELDS:
+            raise ValueError("RAG Job has failure evidence outside a failed attempt")
+        if status == cls.COMPLETED or terminal_failure:
+            if "ended_at" not in job:
+                raise ValueError("RAG Job requires its stored completion time")
+            cls._time(job["ended_at"])
+        elif "ended_at" in job:
+            raise ValueError("RAG Job ended before a terminal attempt")
+        if status == cls.RUNNING:
+            if job["phase"] in cls.STATUSES:
+                raise ValueError("Running RAG Job requires an active phase")
+        elif job["phase"] != status:
+            raise ValueError("RAG Job status and phase disagree")
+        if not attempted and (job["failures"] or job["progress"] or job["ingestion"]):
+            raise ValueError("Unstarted RAG Job has attempt observations")
+        if status == cls.QUEUED and (attempted or job["cancel_requested"]):
+            raise ValueError("Queued RAG Job has execution or cancellation evidence")
+        if status == cls.CANCELLED and not attempted and not job["cancel_requested"]:
+            raise ValueError("Unstarted cancelled RAG Job requires its cancellation")
+        if status == cls.COMPLETED and (job["cancel_requested"] or
+                job["progress"] != {"completed": 1, "total": 1, "unit": "job"}):
+            raise ValueError("Completed RAG Job requires its publication progress")
+        for failure in job["failures"]:
+            if (not isinstance(failure, dict) or failure.keys() != cls.FAILURE_FIELDS
+                    or failure["status"] != cls.FAILED):
+                raise ValueError("Invalid RAG Job failure history")
+            cls._time(failure["started_at"])
+            cls._time(failure["ended_at"])
+            cls._diagnostic(failure)
 
     def __init__(self, project, component):
         self.project_id, self.component = project.id, component.name
@@ -55,10 +141,8 @@ class JobStorage:
                 or not isinstance(job["input_digest"], str)
                 or re.fullmatch(r"[a-f0-9]{64}", job["input_digest"]) is None):
             raise ValueError("Invalid RAG Job record")
-        if not isinstance(job["created_at"], str):
-            raise ValueError("RAG Job creation time is required")
-        if datetime.fromisoformat(job["created_at"]).utcoffset() is None:
-            raise ValueError("RAG Job creation time requires a timezone")
+        cls._time(job["created_at"])
+        cls._state(job, identifier)
         if ("document_id" in job) == ("document_ids" in job):
             raise ValueError("RAG Job requires exactly one document declaration")
         if "document_id" in job:
@@ -71,7 +155,10 @@ class JobStorage:
                 validate_name(value)
             if len(set(identifiers)) != len(identifiers):
                 raise ValueError("RAG Job document IDs must be unique")
-        if "resume_abandonment" in job:
+        if job["resume_abandonment"] is not None:
+            if (not isinstance(job["resume_abandonment"], dict)
+                    or job["resume_abandonment"].keys() != {field.name for field in fields(ResumeAbandonment)}):
+                raise ValueError("RAG Job abandonment requires its complete receipt")
             ResumeAbandonment.from_dict(job["resume_abandonment"])
         return job
 
@@ -235,10 +322,16 @@ class JobStorage:
         if identifier not in records:
             raise FileNotFoundError("RAG Job does not exist")
         previous = records[identifier]
-        immutable = self.REQUIRED - {"status", "phase"}
+        immutable = self.CREATION_FIELDS
         immutable |= {key for key in ("document_id", "document_ids") if key in previous}
         if any(job.get(key) != previous[key] for key in immutable):
             raise ValueError("RAG Job creation evidence cannot change")
+        if job["status"] not in self.TRANSITIONS[previous["status"]]:
+            raise ValueError("Invalid RAG Job state transition")
+        if previous["cancel_requested"] and not job["cancel_requested"]:
+            raise ValueError("RAG Job cancellation cannot be revoked")
+        if previous["resume_abandonment"] is not None and job["resume_abandonment"] != previous["resume_abandonment"]:
+            raise ValueError("RAG Job abandonment evidence cannot change")
         self._write(job, manifest)
 
     def delete(self, identifier):

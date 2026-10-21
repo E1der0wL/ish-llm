@@ -79,7 +79,8 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
             return SimpleNamespace(can_resume=True, revision="r", blockers=[])
         async def execute(*args, **kwargs):
             await asyncio.sleep(.02)
-        job = {"id": "j", "document_id": "d", "status": "failed", "phase": "failed", "created_at": "now"}
+        job = {"id": "j", "document_id": "d", "status": "failed", "phase": "failed", "created_at": "now",
+               "resume_abandonment": None}
         data = SimpleNamespace(ajob=AsyncMock(return_value=job), aresume_plan=inspect,
             ajob_progress=AsyncMock(), arun_job=AsyncMock(side_effect=execute))
         manager = RAGManagement(data, "rag", Path("."), "project")
@@ -92,7 +93,8 @@ class RAGJobTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_poll_is_lightweight_and_retry_passes_reviewed_revision(self):
         from types import SimpleNamespace
-        job = {"id": "j", "document_id": "d", "status": "failed", "phase": "failed", "created_at": "now"}
+        job = {"id": "j", "document_id": "d", "status": "failed", "phase": "failed", "created_at": "now",
+               "resume_abandonment": None}
         plan = SimpleNamespace(can_resume=True, revision="reviewed", blockers=[])
         data = SimpleNamespace(ajobs=AsyncMock(return_value=[job]), ajob=AsyncMock(return_value=job),
             aresume_plan=AsyncMock(return_value=plan), ajob_progress=AsyncMock(),

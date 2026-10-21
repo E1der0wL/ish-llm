@@ -33,7 +33,7 @@ def job_entry(job, *, live=False, elapsed=None, plan=None):
             "progress": dict(job.get("progress", {})), "elapsed": elapsed, "live": live,
             "failures": list(job.get("failures", [])),
             "retryable": (False if live or status in ("completed", "cancelled") or job.get("cancel_requested")
-                or "resume_abandonment" in job else True if status == "queued"
+                or job["resume_abandonment"] is not None else True if status == "queued"
                 else plan.can_resume if plan is not None else None),
             "resume_blockers": tuple(item.to_dict() for item in plan.blockers) if plan is not None else ()}
 

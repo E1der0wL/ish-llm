@@ -96,7 +96,7 @@ class RAGManagement(DocumentManagement):
         else:
             raise FileExistsError(identifier)
         if any(identifier in document_ids(job) and job["status"] in ("queued", "running", "failed")
-               and "resume_abandonment" not in job and not job.get("cancel_requested")
+               and job["resume_abandonment"] is None and not job.get("cancel_requested")
                for job in await self.data.ajobs()):
             raise OperationBlocked("hub_existing_rag_job", "An unfinished RAG job already exists; select it and retry or delete it")
 

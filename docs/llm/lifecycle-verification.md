@@ -9,6 +9,93 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-n RAG Job 상태·취소·재개 포기 — Level 2
+
+H2-l/m 묶음 Push `419ddd85826099dd661d5abd012dff6f7e46e550`에서 이어서 Job 상태를 보강했다.
+취소 표식/포기 영수증 소실 뒤의 실제 모델 파일 효과, 실행 시작 증거/실패 진단 소실의 조회
+수락 네 재현을 원래 assertion으로 편입했다. 저장소 구현 전 4 discovered/started/failure,
+error·Skip 0, 1.748초, exit 1이다. 빈 prepared 영수증의 backup 수락은 별도 owner 작업으로
+남아 있으며 이 소단계의 해결 범위에 포함하지 않는다.
+
+JobStorage가 상태·전이·필수 필드 집합을 선언하고 RAGJobs Writer와 모든 Reader가 사용한다.
+생성 시 cancel_requested=False, resume_abandonment=None, failures=[], progress/ingestion={}를
+명시한다. Reader는 필드 소실을 정상 미취소·미포기·빈 이력으로 복원하지 않는다. 실행한
+Job은 started_at/pid/configuration이 필요하고, 실패·실행 후 취소는 종료 시각/실패 phase/
+error/diagnostic_code/diagnostic을 요구한다. 실행 전 취소는 시도 필드 없이 취소 표식을
+보존한다. 생성 근거는 불변이고 저장 전 상태 전이를 확인하며 취소와 포기를 되돌릴 수 없다.
+
+진행·진단·출처·포기 영수증은 기존 공개 계약의 선언과 검증기에 위임하며 저장된 필드의
+존재를 추가 확인한다. 제공자가 명시한 Diagnostic source는 기존 계약대로 보존한다.
+관찰 출처는 실행/재시도 권한이 아니며 Job 상태·취소·포기·lease/configuration을 별도로
+검증한다. 재시도는 입장 성공 뒤에만 기존 진단을 이력으로 보존한다. Backend 일괄 실행과
+Hub 등록/진행도 명시적인 미포기 None을 사용한다. 저장 트랜잭션 경계는 바꾸지 않았다.
+
+새 13개 시험은 matching-hash 필드 소실·잘못된 타입·상태/phase 모순·진단 code/source 형식·
+실패 이력 소실을 조회/진행/재개 계획/backup/clone에서 거부하고 Job 원본과 모델 효과를
+보존하는지 검사한다. 정상 취소·재시도와 벡터 재사용, 포기의 재시작 차단, owner의 취소/포기
+철회 거부, 기록/목록 쓰기 직후 네 장애 지점의 rollback도 포함한다. 기존 Job·Checkpoint
+실제 process-death·원본 보존 시험과 공통 승인/예산/효과/재개/삭제/트랜잭션 검증을 유지했다.
+
+### 실제 실행과 실패 보존
+
+| 실행 | 실제 결과 |
+|---|---|
+| 최초 LLM 집중 5개 모듈 | 69 pass, failure/error/Skip 0, 29.979초, exit 0 |
+| 최초 Hub 집중 3개 모듈 | 22 중 20 pass, 1 failure/1 error, Skip 0, 36.327초, exit 1 |
+| Hub 모의 Job의 명시 None 반영 | 22 pass, failure/error/Skip 0, 36.312초, exit 0 |
+| 추가 owner 최초 실행 | 12 중 11 pass, 1 error, failure/Skip 0, 6.362초, exit 1 |
+| 포기 영수증/진단 출처 필드 보강 | 12 pass, failure/error/Skip 0, 6.753초, exit 0 |
+| 최초 Level 2 LLM 선택 | 586 중 585 pass, 1 failure, error/Skip 0, 204.156초, exit 1 |
+| 최초 Level 2 Hub 선택 | 33 pass, failure/error/Skip 0, 85.715초, exit 0 |
+| 빈 실패 이력 Assertion 갱신 후 Backend 모듈 | 27 pass, failure/error/Skip 0, 7.903초, exit 0 |
+| 명시적 제공자 진단 출처의 별도 재현 | 1 error, failure/Skip 0, 0.150초, exit 1 |
+| 제공자 출처 보존 후 전체 owner 모듈 | 13 pass, failure/error/Skip 0, 6.914초, exit 0 |
+| 최종 Level 2 LLM 선택 | 587 discovered/started/pass, 206.423초, exit 0 |
+| 최종 Level 2 Hub 선택 | 33 discovered/started/pass, 83.912초, exit 0 |
+| 최종 정적 감사 | 후보 531개, new/stale/S1 0, exit 0 |
+| 최종 R3 Mutation | 실제 두 번째 Tool 파일 효과로 한도 누락 탐지, detector exit 0 |
+| 문서 검사 | 문서 131개, Python fence 178개, 상대 링크 953개, anchor 34개, 오류 0, exit 0 |
+
+Hub의 초기 실패는 mock Job의 resume_abandonment 누락이었다. 기존 동시 재시도/관찰 수
+Assertion을 유지하고 명시 None을 추가했다. owner의 빈 포기 영수증은 공통 dataclass
+생성자의 TypeError를 노출했으므로 저장 필드의 완전성을 먼저 확인하도록 수정했다.
+최초 Level 2 실패는 stale 재시도 거부 뒤 failures 필드가 없어야 한다는 과거 표현이었다.
+이를 정확한 빈 []로 갱신했고 stale CAS 거부·현재 진단 보존·모델 재사용 Assertion을 유지했다.
+
+이때 39개 LLM 모듈 559개/수정 모듈 27개/Hub 33개를 재사용할 동일성 근거를 별도로
+계산했지만 최종 검토에서 새 Reader의 진단 출처 제한이 기존 공개 계약보다 좁음을 발견했다.
+공개 계약은 명시된 제공자 출처를 보존한다. 해당 경우를 실제 회귀로 추가하고 Reader를
+바로잡았으며 제품 변경으로 앞선 재사용 근거를 무효화했다. reuse-invalidation.json에 이유를
+남기고 최종 선택 게이트를 다시 실행했다. 과거 실패를 성공 집계로 바꾸지 않는다.
+
+### 범위와 동일성
+
+H2-h의 RAG 영향도 목록 43개를 재사용하고 Job 상태·H2-i checkpoint·Hub 확장 소비자
+모듈을 더했다. 실제 Job API 호출과 nullable 포기 표식 소비자를 다시 확인했다. 최종 목록과
+근거는 modules.json이다. LLM 40개 모듈/Hub 6개 모듈을 동일한 고정 소스에서 독립 실행했다.
+명령은 `.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --modules
+<기록한 40개 모듈> --output /workspace/llm-clean-resume/h2-n/final/level2-llm.json`과 같은
+형식의 `--suite hub --modules <기록한 6개 모듈>`이다. 정확한 argv/exit code는
+final/level2-llm-execution.json과 level2-hub-execution.json에 있다. 두 선택 실행이며 하나의
+전체 실행으로 합산하지 않는다. 최종 각각 failure/error/Skip/expected failure/unexpected
+success/missing/unexpected/duplicate가 모두 0이고 발견·실행 ID는 모두 보존한다.
+
+최종 전후 Python 668개 manifest는 5ba3f1024b990c7da26cbfe1200a4af1df88a4949037cdcc55d52df90cb57b8a,
+파일 827개/의존성 136개 및 host·Python·실행 환경 manifest는 d17efb1089d21aaba54f16ff9427e67e84b3bea060271be12ad4b50e3225b245로 각각 일치한다.
+환경은 H2-m과 같은 Python 3.12.14, host d833790959a76ac457fdeea3f21a6bea1eecfe12,
+TERM=xterm-256color, LITELLM_LOCAL_MODEL_COST_MAP=True, LITELLM_MODE=PRODUCTION,
+HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb, HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip이다.
+정적 명령은 check_architecture --require S1, R3는 check_budget_mutation이다. 최초 정적
+검사는 new 0/stale 17로 exit 1이었다. 실제 RAGJobs의 소유 상태 선언으로 해소한 S3 17개만
+resolved-debt.json에 기록하고 부채 목록에서 제거했다. 새 허용 항목이나 검사기 변경은 없다.
+문서 명령은 check_docs --output /workspace/llm-clean-resume/h2-n/docs.json이다.
+전체 원시 증거와 사전 격리 사본 시험은 `/workspace/llm-clean-resume/h2-n/`에 보존한다.
+
+이번 소단계는 **전체 LLM/Hub 회귀를 실행하지 않았다**. 영향이 RAG Job owner와 확인한
+소비자로 제한됨을 근거로 Level 2를 적용했다. 문서를 우선 갱신한 뒤 로컬 커밋하며, 다음
+prepared 영수증 owner 보강과 묶은 Level 3 전체 게이트에서 Push한다. 로컬 완료는 이 Job 상태 범위만을 뜻한다. 별도 prepared 원본의 의미 검증은 미해결로 남아 있다. H2 전체·H3–H5·
+P1 잔여·A–F는 미완료이며 기존 38개 데이터군 보고서는 이번 변경 범위만 갱신한다.
+
 ## H2-m Memory 기록 이력 — H2-l/m Level 3 묶음 게이트
 
 H2-l 로컬 커밋 `733e953bf163a2c69de03ff6291f217eb0284042`에서 이어서 Memory 기록 이력을

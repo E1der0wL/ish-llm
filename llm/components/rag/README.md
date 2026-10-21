@@ -219,6 +219,14 @@ identity가 있는 worker.lock을 함께 저장한다. 정확한 Job 집합·리
 입력 소실은 재개 계획에서 missing/실행 불가로 보고하고 backup·clone은 거부한다.
 유효한 Job 메타데이터 조회와 안전성이 확인된 명시 삭제는 기존 진단·삭제 계약을 따른다.
 
+Job은 생성 시 미취소 False·미포기 None·빈 실패 이력 []·진행/관찰 객체를 명시한다.
+필드 소실을 이 초기 상태로 복원하지 않는다. 실행한 Job은 시작 시각·worker PID·설정 증거,
+실패/실행 후 취소는 종료 시각과 완전한 진단을 요구한다. 실행 전 취소와 구분하며 기록·
+목록을 같은 transaction으로 확정한다. 취소와 포기는 조회·재시작·재시도로 철회할 수 없다.
+재시도 입장 거부는 실패 이력을 늘리지 않고 기존 진단을 보존한다. 명시된 Diagnostic source는
+제공자의 관찰 출처를 유지하며 실행/재시도 허가는 Job 상태·취소·포기·lease/설정으로 검사한다.
+이 필드/상태 검증은 조회·재개 계획·backup/clone과 Hub 소비자에 동일하게 적용한다.
+
 긴 문서는 enqueue_document → arun_job을 권장한다. 실패 후 arun_job(id, retry=True)로 명시적으로
 재개한다. 기존 서비스 소유 checkpoint 디렉터리 `jobs/<id>/batches/` 아래에
 `embedding_<original_position>.json`을 쓴다. 이 디렉터리는 추출 checkpoint도 공유하므로 이름을 유지한다.

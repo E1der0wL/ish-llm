@@ -257,7 +257,7 @@ class RAGData(ComponentData):
             raise ValueError("limit must be positive")
         results = []
         for job in await self.ajobs():
-            if job["status"] != "queued" or "resume_abandonment" in job:
+            if job["status"] != "queued" or job["resume_abandonment"] is not None:
                 continue
             try:
                 results.append(await self.arun_job(job["id"]))

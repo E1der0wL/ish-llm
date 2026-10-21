@@ -30,15 +30,15 @@ class RAGJobs:
     def _plan(self, identifier, *, live, job=None):
         project, _ = self.data._current()
         job = self.get(identifier) if job is None else job
-        source = ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name)
+        source = ResourceRef(JobStorage.KIND, identifier, project_id=project.id, component=self.data.name)
         files = tree_snapshot(self._path(identifier), exclude=(JobStorage.LEASE,))
-        abandoned = "resume_abandonment" in job
+        abandoned = job["resume_abandonment"] is not None
         common = [Diagnostic("active_worker", "Indexing worker is still alive; cancel and await it first", source=source)] if live else []
         abandon = list(common)
-        if abandoned or job["status"] in ("completed", "cancelled"):
+        if abandoned or job["status"] in (JobStorage.COMPLETED, JobStorage.CANCELLED):
             abandon.append(Diagnostic("not_resumable", "Job is already terminal or abandoned", source=source))
         delete = list(common)
-        if not abandoned and job["status"] not in ("completed", "cancelled"):
+        if not abandoned and job["status"] not in (JobStorage.COMPLETED, JobStorage.CANCELLED):
             delete.append(Diagnostic("resume_required", "Abandon the Job before deleting it", source=source))
         declarations = self._storage().inventory()[0]["jobs"][identifier]["checkpoints"]
         keys = sorted(declarations)
@@ -48,23 +48,23 @@ class RAGJobs:
     def _resume_plan(self, identifier, *, live):
         project, component = self.data._current()
         job = self.get(identifier)
-        source = ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name)
+        source = ResourceRef(JobStorage.KIND, identifier, project_id=project.id, component=self.data.name)
         root = self._path(identifier)
         blockers, reused = [], []
-        state = "not_created" if job["status"] == "queued" else "available"
+        state = "not_created" if job["status"] == JobStorage.QUEUED else "available"
         files = tree_snapshot(root, exclude=(JobStorage.LEASE,))
         def block(code, message):
             blockers.append(Diagnostic(code, message, source=source))
         if live:
             block("active_worker", "Cancel and await the active Job worker first")
-        if "resume_abandonment" in job or job.get("cancel_requested") or job["status"] in ("completed", "cancelled", "queued"):
+        if job["resume_abandonment"] is not None or job["cancel_requested"] or job["status"] in (JobStorage.COMPLETED, JobStorage.CANCELLED, JobStorage.QUEUED):
             block("not_resumable", "Only an inactive failed or interrupted Job can resume")
         try:
             payload = read_json(root / "input.json")
             if revision_token(payload) != job["input_digest"]:
                 raise ValueError("Job input changed")
             reused.extend(sorted(self._storage().checkpoints(identifier)[1]))
-            if job["status"] != "queued" and job.get("configuration") != component._configuration_version:
+            if job["status"] != JobStorage.QUEUED and job.get("configuration") != component._configuration_version:
                 state = "incompatible"
                 block("checkpoint_configuration", "RAG configuration differs from the Job's preparation")
         except FileNotFoundError as error:
@@ -75,7 +75,7 @@ class RAGJobs:
             block("checkpoint_corrupt", str(error))
         return JobResumePlan(source, state, not blockers, sorted(reused), blockers,
             revision_token({"job": job, "files": files, "live": live, "configuration": component._configuration_version}),
-            live, "resume_abandonment" in job)
+            live, job["resume_abandonment"] is not None)
 
     @workspace_locked
     def resume_plan(self, identifier):
@@ -96,10 +96,7 @@ class RAGJobs:
         payload = {"title": title, "content": content, "metadata": metadata or {}, "identifier": identifier}
         if description is not None:
             payload["description"] = description
-        job = {"id": job_id, "document_id": identifier, "status": "queued", "created_at": now(),
-               "input_digest": revision_token(payload), "phase": "queued"}
-        self._storage().create(job, payload)
-        return job
+        return self._enqueue(job_id, payload, document_id=identifier)
 
     @workspace_locked
     def enqueue_documents(self, documents):
@@ -107,8 +104,12 @@ class RAGJobs:
         inputs = validate_documents(documents)
         job_id = uuid4().hex
         payload = {"documents": inputs}
-        job = {"id": job_id, "document_ids": [item["identifier"] for item in inputs],
-               "status": "queued", "created_at": now(), "input_digest": revision_token(payload), "phase": "queued"}
+        return self._enqueue(job_id, payload, document_ids=[item["identifier"] for item in inputs])
+
+    def _enqueue(self, identifier, payload, **documents):
+        job = {"id": identifier, **documents, "status": JobStorage.QUEUED, "created_at": now(),
+               "input_digest": revision_token(payload), "phase": JobStorage.QUEUED,
+               "cancel_requested": False, "resume_abandonment": None, "failures": [], "progress": {}, "ingestion": {}}
         self._storage().create(job, payload)
         return job
 
@@ -124,8 +125,8 @@ class RAGJobs:
         from llm.core.contracts import OperationProgress, ResourceRef
         project, _ = self.data._current()
         job = self.get(identifier)
-        return OperationProgress(ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name),
-            job["phase"], **job.get("progress", {}), message=job.get("error", ""))
+        return OperationProgress(ResourceRef(JobStorage.KIND, identifier, project_id=project.id, component=self.data.name),
+            job["phase"], **job["progress"], message=job.get("error", ""))
 
     @workspace_locked
     def list(self):
@@ -135,12 +136,12 @@ class RAGJobs:
     @workspace_locked
     def cancel(self, identifier):
         job = self.get(identifier)
-        if job["status"] in ("completed", "cancelled"):
+        if job["status"] in (JobStorage.COMPLETED, JobStorage.CANCELLED):
             return job
         job["cancel_requested"] = True
-        if job["status"] != "running":
-            job["status"] = "cancelled"
-            job["phase"] = "cancelled"
+        if job["status"] != JobStorage.RUNNING:
+            job["status"] = JobStorage.CANCELLED
+            job["phase"] = JobStorage.CANCELLED
         self._storage().save(job)
         return job
 
@@ -193,17 +194,17 @@ class RAGJobs:
                 raise CheckpointError("checkpoint_conflict", "review a fresh Job resume plan")
             if not plan.can_resume:
                 raise CheckpointError("checkpoint_protected", "Job resume is blocked", blockers=plan.blockers)
-        if "resume_abandonment" in job:
+        if job["resume_abandonment"] is not None:
             raise ValueError("Job resume was abandoned")
-        if job["status"] == "running":
+        if job["status"] == JobStorage.RUNNING:
             if not retry:
                 raise ValueError("Interrupted indexing job requires explicit retry=True")
-        elif job["status"] != "queued" and not (retry and job["status"] == "failed"):
+        elif job["status"] != JobStorage.QUEUED and not (retry and job["status"] == JobStorage.FAILED):
             raise ValueError("Job is not executable")
-        if job.get("cancel_requested"):
+        if job["cancel_requested"]:
             raise ValueError("Job was cancelled")
         project, component = self.data._current()
-        if job["status"] != "queued" and job.get("configuration") != component._configuration_version:
+        if job["status"] != JobStorage.QUEUED and job.get("configuration") != component._configuration_version:
             raise CheckpointError("checkpoint_configuration", "RAG configuration changed; enqueue a new Job")
         maximum = component._options(project).get("ingestion", {}).get("max_active")
         if maximum is not None and (type(maximum) is not int or maximum < 1):
@@ -211,7 +212,7 @@ class RAGJobs:
         if maximum is not None:
             active = 0
             for item in self.list():
-                if item["id"] == identifier or item["status"] != "running":
+                if item["id"] == identifier or item["status"] != JobStorage.RUNNING:
                     continue
                 lease = self._lease(item["id"], probe=True)
                 if lease is None:
@@ -227,12 +228,10 @@ class RAGJobs:
         # Archive the previous attempt only after admission succeeds. These are
         # observations in the same Job, never receipts or permission to retry.
         if "diagnostic" in job:
-            job.setdefault("failures", []).append({key: job[key] for key in (
-                "status", "started_at", "ended_at", "failed_phase", "error", "diagnostic_code", "diagnostic"
-            ) if key in job})
-        for key in ("error", "diagnostic_code", "diagnostic", "failed_phase", "ended_at"):
+            job["failures"].append({key: job[key] for key in JobStorage.FAILURE_FIELDS})
+        for key in JobStorage.ERROR_FIELDS | {"ended_at"}:
             job.pop(key, None)
-        job.update(status="running", phase="preparing", progress={}, pid=os.getpid(), started_at=now(),
+        job.update(status=JobStorage.RUNNING, phase="preparing", progress={}, pid=os.getpid(), started_at=now(),
                    configuration=component._configuration_version)
         self._storage().save(job)
         return payload
@@ -247,7 +246,7 @@ class RAGJobs:
     @workspace_locked
     def _commit(self, identifier, document):
         job = self.get(identifier)
-        if job.get("cancel_requested"):
+        if job["cancel_requested"]:
             raise asyncio.CancelledError()
         project, component = self.data._current()
         snapshot = component.snapshot(project)
@@ -279,7 +278,7 @@ class RAGJobs:
             options = {"progress": lambda phase: self._telemetry(identifier, {"phase": phase})} if type(component).publish is RAGComponent.publish else {}
             component.publish(project, snapshot, documents, **options)
         job = self.get(identifier)
-        job.update(status="completed", phase="completed", progress={"completed": 1, "total": 1, "unit": "job"}, ended_at=now())
+        job.update(status=JobStorage.COMPLETED, phase=JobStorage.COMPLETED, progress={"completed": 1, "total": 1, "unit": "job"}, ended_at=now())
         self._storage().save(job)
         return job
 
@@ -291,17 +290,17 @@ class RAGJobs:
     @workspace_locked
     def _finish_error(self, identifier, error, cancelled):
         job = self.get(identifier)
-        if job["status"] != "completed":
+        if job["status"] != JobStorage.COMPLETED:
             from llm.errors import stable_error_code
             code = "rag_cancelled" if cancelled else stable_error_code(error) or "rag_failed"
             project, _ = self.data._current()
             diagnostic = Diagnostic.from_exception(error, code=code, boundary="component",
-                source=ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name))
+                source=ResourceRef(JobStorage.KIND, identifier, project_id=project.id, component=self.data.name))
             if diagnostic.code != code:
                 diagnostic = Diagnostic(code, diagnostic.message, source=diagnostic.source,
                     details={**diagnostic.details, "observed_code": diagnostic.code})
             job["failed_phase"] = job["phase"]
-            job.update(status="cancelled" if cancelled else "failed", phase="cancelled" if cancelled else "failed",
+            job.update(status=JobStorage.CANCELLED if cancelled else JobStorage.FAILED, phase=JobStorage.CANCELLED if cancelled else JobStorage.FAILED,
                        error=code, diagnostic_code=code, diagnostic=diagnostic.to_dict(), ended_at=now())
             self._storage().save(job)
 
@@ -311,7 +310,7 @@ class RAGJobs:
         if "phase" in values:
             job["phase"] = values["phase"]
             job["progress"] = {key: values[key] for key in ("completed", "total", "unit") if key in values}
-        job["ingestion"] = {**job.get("ingestion", {}), **{key: value for key, value in values.items()
+        job["ingestion"] = {**job["ingestion"], **{key: value for key, value in values.items()
                            if key not in ("phase", "completed", "total", "unit")}}
         self._storage().save(job)
 
