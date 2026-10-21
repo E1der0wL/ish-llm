@@ -44,13 +44,15 @@ class CorpusContractTests(unittest.IsolatedAsyncioTestCase):
         self.corpus = root / 'generations' / generation / 'corpus.json'
         self.original = json.loads(self.corpus.read_bytes())
         self.assertEqual(self.effects.read_text(), 'called\n')
+        self.compaction = await self.rag.acompaction_plan()
 
     snapshot_files = storage.RAGStorageTests.snapshot_files
 
     async def reject(self, value):
         self.corpus.write_text(json.dumps(value))
         before = self.snapshot_files()
-        for operation in (self.rag.alist_documents, self.rag.acompact,
+        for operation in (self.rag.alist_documents,
+                          lambda: self.rag.acompact([], expected_version=self.compaction["version"]),
                           lambda: self.rag.aget_document(self.identifier),
                           lambda: self.rag.aadd_document(title='New', content='backup'),
                           lambda: self.rag.aupdate_document(self.identifier, title='Changed'),

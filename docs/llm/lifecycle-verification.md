@@ -9,6 +9,66 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H4-a RAG 세대 보존의 Application 선택 — 로컬 Level 2
+
+기준 `a915191212eb4a79eddefffdc9e9187f8d3b5ac3` 뒤 RAG 세대 정리만 이관했다.
+H4 전체 완료나 원격 CI 통과를 뜻하지 않는다. History 보존, RAG Job 유지보수와 로그 정책은 남아 있다.
+
+- RAGComponent.publish는 이전 세대를 자동 선정·삭제하지 않는다. 이미 확정된 삭제 의도의
+  기술적 GC만 recover_compaction으로 마무리한다. 새 계획은 원본을 수정하지 않는다.
+- compaction_plan은 identity/active/control과 현재 코퍼스·catalog를 검증하고 비활성 세대의
+  필수 corpus/catalog/index, 정확한 루트 항목, 일반 파일과 raw hash를 확인한다. 활성 세대는
+  protected이며 candidates는 삭제 가능 목록일 뿐이다. arbitrary 과거 세대 조회 API는 없고
+  비동기 조회/등록은 기존 source_version을 다시 확인한다. Job/사용량/효과 영수증은 대상 밖이다.
+- compact(generations, expected_version=...)는 고유한 명시 대상과 최신 계획을 같은 소유권
+  잠금에서 재검증한다. stale·활성·미확인 대상, 원본/포인터/identity 손상, 링크·FIFO·알 수 없는
+  항목은 원위치 보존한다. 공유 TransactionManager의 삭제·rollback·commit을 그대로 사용한다.
+- Hub RAGManagement.compact_retired는 명시 호출 시에만 후보 전체를 선택한다. 소유 구현체의
+  거부를 우회하거나 stale 계획으로 재선정하지 않는다. 기존 소비자는 새 API로 직접 이관했다.
+  손상 테스트는 손상 전에 확보한 유효한 요청을 제출하여 인자 오류가 아닌 실제 owner 거부를 확인한다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `a-baseline` llm | 6/6 | 0 | 1/5/0 | 2.015초 | 1 |
+| `a-focused-1` llm | 6/6 | 6 | 0/0/0 | 2.520초 | 0 |
+| `a-focused-2` llm | 76/76 | 75 | 1/0/0 | 44.278초 | 1 |
+| `a-focused-2` hub | 15/15 | 15 | 0/0/0 | 25.894초 | 0 |
+| `a-focused-3` llm | 23/23 | 23 | 0/0/0 | 23.597초 | 0 |
+| `a-focused-3` hub | 2/2 | 2 | 0/0/0 | 1.269초 | 0 |
+| `a-level2` llm | 386/386 | 386 | 0/0/0 | 185.971초 | 0 |
+| `a-level2` hub | 32/32 | 32 | 0/0/0 | 60.917초 | 0 |
+
+최초 6개 재현은 자동 삭제 1 failure와 새 API 부재 5 error였다. `a-focused-2`의 1 failure는
+공개 commit 후 자동 정리를 기대한 기존 중단 시험이었다. 과거 fixture를 보존하고 이전 세대의
+바이트 보존을 추가한 뒤 명시 정리 후 원래 세대 수 Assertion을 유지했다. 실제 모델 효과
+1회·손상 보존·rollback Assertion은 제거하지 않았다. 신규 LLM 11개/Hub 2개에는 실제 child
+exit 77의 두 삭제 경계·COMMITTED marker·commit 이후, 취소 drain, 동시 CAS와 기술적 GC가 포함된다.
+모든 실행의 expected failure·unexpected success·누락·중복·unexpected·Skip은 0이다.
+
+Level 2는 전체 RAG 계약군, 검색/예제/CRUD/백업과 직접 Hub 소비자 및 승인·Project quota·
+효과 원장·Checkpoint·수명주기 삭제·트랜잭션을 포함한다. 제품 변경은 RAG 세대 선정 경계와
+Hub의 명시 소비자에 한정되며 공유 저장/승인/예산 실행은 바꾸지 않았다. 전체 LLM/Hub는
+이번 소단계에서 실행하지 않았고 H4 상위 Level 3 게이트에서 실행한 뒤 묶어 Push한다.
+정적 감사 `a-static-3`은 new/stale/S1 미해결 0, 기존 debt 531, exit 0이다. 초기 감사의 CAS
+비교 후보는 기존 check_revision을 사용하도록 정리했다. R3 Mutation은 실제 효과 Assertion의
+누락 한도 검출 True, outer exit 0이며 의도한 inner 실패 로그도 보존한다.
+문서 검사는 131개 문서·180개 Python fence·954개 상대 링크·34개 anchor, 오류 0, exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/h4/a-level2/llm.json --modules tests.llm.test_rag_batch_identity tests.llm.test_rag_batch_source tests.llm.test_rag_catalog_integrity tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_components tests.llm.test_rag_corpus_integrity tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_extraction_repair tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_input_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_job_state_integrity tests.llm.test_rag_models tests.llm.test_rag_optimization tests.llm.test_rag_prepared_integrity tests.llm.test_rag_query_evidence tests.llm.test_rag_resilience tests.llm.test_rag_retention_policy tests.llm.test_rag_storage tests.llm.test_unified_rag tests.llm.test_search_tools tests.llm.test_markdown_rag tests.llm.test_graph_rag_example tests.llm.test_optimized_queries tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_operations_schema tests.llm.test_service_extensions
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/h4/a-level2/hub.json --modules tests.hub.test_rag_retention tests.hub.test_rag_jobs tests.hub.test_rag_defaults tests.hub.test_rag_extensions tests.hub.test_component_managers tests.hub.test_component_catalog
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h4/a-static-3.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h4/a-docs.json
+```
+
+실행 환경은 Python 3.12.14/136개 의존성, 실제 host 소스 `d833790959a76ac457fdeea3f21a6bea1eecfe12`,
+기존 TERM/LiteLLM/Xvfb/xclip 설정이다. Level 2 전후 684개 Python source hash는
+`b14e6ab4c65f25396b69cf7a72cabea90d6e169c978765ada12297a9f1bc7e65`, 843개 전체 입력·환경 hash는
+`652eb811e79c78e5445ef2dccbfc8bbe452d4db83ab06bb2d793558cb6db20a5`로 각각 동일했다. 실행별 정확한 명령/exit/집계/실패 로그와
+원래 fixture는 `/workspace/llm-clean-resume/h4/`에 보존했다. 이전 성공 실행들을 합쳐 하나의
+전체 실행으로 표현하지 않는다. 후속 H4-b부터 History 보존 선택을 이관하며 H5/P1/A–F는 미완료다.
+
 ## H3-b 상위 삭제 증거·저장 참조 — H3 최종 Level 3
 
 기준 `06c6e5a182f912fd47ccdd4fe774ffb498fecc1b`의 H3-a 뒤 상위 삭제의 남은 증거를

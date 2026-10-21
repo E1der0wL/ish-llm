@@ -59,7 +59,8 @@ class CatalogIntegrityTests(unittest.IsolatedAsyncioTestCase):
 
     async def reject(self, *, catalog=True):
         before = self.snapshot_files()
-        operations = [self.rag.alist_documents, self.rag.acompact,
+        operations = [self.rag.alist_documents,
+                      lambda: self.rag.acompact([], expected_version=self.compaction["version"]),
                       lambda: self.rag.aget_document(self.identifier),
                       lambda: self.rag.aadd_document(title='New', content='backup'),
                       lambda: self.rag.aupdate_document(self.identifier, title='Changed'),
@@ -125,8 +126,7 @@ class CatalogIntegrityTests(unittest.IsolatedAsyncioTestCase):
         identity = self.rag_root / RAGComponent.IDENTITY_FILE
         old_pointer = active.read_bytes()
         old_generation = self.corpus.parent
-        with patch.object(RAGComponent, 'compact', side_effect=OSError('cleanup pending')):
-            await self.rag.aupdate_document(self.identifier, title='Newest')
+        await self.rag.aupdate_document(self.identifier, title='Newest')
         newest = active.read_bytes()
         self.assertTrue(old_generation.is_dir())
         active.write_bytes(old_pointer)
@@ -137,7 +137,8 @@ class CatalogIntegrityTests(unittest.IsolatedAsyncioTestCase):
         await self.reject()
         identity.write_bytes(original_identity)
         self.assertEqual((await self.rag.aget_document(self.identifier))['title'], 'Newest')
-        await self.rag.acompact()
+        plan = await self.rag.acompaction_plan()
+        await self.rag.acompact([old_generation.name], expected_version=plan["version"])
         self.assertFalse(old_generation.exists())
 
     async def test_required_evidence_refuses_links_directories_and_fifos_before_read(self):
@@ -299,6 +300,13 @@ class PublicationCrashTests(unittest.IsolatedAsyncioTestCase):
                     if boundary != 'committed':
                         self.assertEqual(after, context['before'])
                     else:
+                        # Publication preserves every previous generation byte until explicit selection.
+                        previous = {key: value for key, value in context["before"].items()
+                                    if key.startswith("generations/")}
+                        self.assertEqual({key: after[key] for key in previous}, previous)
+                        plan = await rag.acompaction_plan()
+                        await rag.acompact([row["generation"] for row in plan["candidates"]],
+                                          expected_version=plan["version"])
                         self.assertEqual(len(list((source / RAGComponent.GENERATIONS_DIRECTORY).iterdir())), 1)
                     await project.abackup(root / 'backup')
                     self.assertEqual((root / 'effects').read_text(), 'called\n')

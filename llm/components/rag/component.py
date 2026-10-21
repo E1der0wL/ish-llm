@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from llm.components.base import validate_name
 from llm.components.definitions import DefinitionComponent
-from llm.services.infrastructure.storage import atomic_json, read_json, remove_named_tree, recover_deletions, revision_token
+from llm.services.infrastructure.storage import atomic_json, read_json, remove_named_tree, recover_deletions, revision_token, tree_snapshot, check_revision
 from llm.services.infrastructure.logging import log_event
 from .data import RAGData
 from .indexing import build_index, update_index
@@ -904,21 +904,68 @@ class RAGComponent(DefinitionComponent):
             progress("publishing")
         atomic_json(self.root(project) / self.ACTIVE_FILE, {"generation": generation})
         self._write_control(project, previous["identity"], generation, corpus, catalog)
-        # 이미 공개한 세대의 성공을 정리 실패로 바꾸지 않는다. compact로 재시도할 수 있다.
+        # Finish only previously committed deletion intents; publication never selects old generations.
         try:
-            self.compact(project)
+            self.recover_compaction(project)
         except (OSError, ValueError):
             log_event(project.paths.logs, "rag.cleanup_pending", entity_id=project.id)
         log_event(project.paths.logs, "rag.published", entity_id=project.id, count=len(documents))
 
-    def compact(self, project):
-        # 삭제 전에는 활성 코퍼스가 실제로 읽히는지 확인해 손상된 포인터로 정리하지 않는다.
+    def recover_compaction(self, project):
+        """Complete existing deletion intents without selecting new targets."""
         active = self.snapshot(project)["generation"]
         root = self._checked(self.root(project) / self.GENERATIONS_DIRECTORY)
-        recover_deletions(root, protected=(active,))
-        for path in list(root.iterdir()) if root.exists() else ():
-            if path.name != active:
-                remove_named_tree(root, path, validate_name(path.name))
+        return recover_deletions(root, protected=(active,))
+
+    def compaction_plan(self, project):
+        """Inspect eligible generations; Application alone selects which ones to discard."""
+        current = self.snapshot(project)
+        root = self._checked(self.root(project) / self.GENERATIONS_DIRECTORY)
+        journal = self._checked(root / ".deletions")
+        if journal.exists() and any(journal.iterdir()):
+            raise ValueError("Pending RAG generation deletion must be recovered first")
+        candidates, protected = [], []
+        for path in sorted(root.iterdir()) if root.exists() else ():
+            if path.name == journal.name:
+                continue
+            generation = path.name
+            self._generation_path(project, generation)
+            if generation != current["generation"]:
+                if {entry.name for entry in path.iterdir()} != {self.CORPUS_FILE, self.CATALOG_FILE, "chroma", "graph.kuzu"}:
+                    raise ValueError("Retired RAG generation has incomplete or unknown entries")
+                corpus = self.validate_corpus(self._read_evidence(path / self.CORPUS_FILE))
+                catalog = self._read_evidence(path / self.CATALOG_FILE)
+                if revision_token(catalog) != revision_token(self._catalog_rows(corpus["documents"])):
+                    raise ValueError("Retired RAG catalog disagrees with its source corpus")
+                if not self._checked(path / "chroma").is_dir() or not self._checked(path / "graph.kuzu").is_file():
+                    raise ValueError("Retired RAG generation requires its stored indexes")
+            files = tree_snapshot(path)
+            row = {"generation": generation, "bytes": sum(item["bytes"] for item in files.values()),
+                   "revision": revision_token(files)}
+            (protected if generation == current["generation"] else candidates).append(row)
+        result = {"identity": current["identity"], "active_generation": current["generation"],
+                  "candidates": candidates, "protected": protected}
+        return {**result, "version": revision_token(result)}
+
+    def compact(self, project, generations, *, expected_version):
+        if not isinstance(generations, (list, tuple)):
+            raise ValueError("RAG compaction requires an explicit sequence of generations")
+        for generation in generations:
+            self._validate_identity(generation)
+        if len(generations) != len(set(generations)):
+            raise ValueError("RAG compaction targets must be unique")
+        if not isinstance(expected_version, str) or not expected_version:
+            raise ValueError("RAG compaction requires a current plan version")
+        plan = self.compaction_plan(project)
+        current = dict(plan)
+        current.pop("version")
+        check_revision(current, expected_version)
+        eligible = {row["generation"] for row in plan["candidates"]}
+        if any(generation not in eligible for generation in generations):
+            raise ValueError("RAG compaction cannot delete protected or unknown generations")
+        root = self._checked(self.root(project) / self.GENERATIONS_DIRECTORY)
+        for generation in generations:
+            remove_named_tree(root, self._generation_path(project, generation), generation)
 
     def search(self, project, snapshot, query, vector, **options):
         if snapshot["generation"] is None:

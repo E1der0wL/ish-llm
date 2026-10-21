@@ -228,6 +228,7 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(chunks.iterations, 1)
 
     async def test_compaction_does_not_delete_generations_when_active_corpus_is_unreadable(self):
+        plan = await self.data.acompaction_plan()
         project = self.project.data
         with self.app.project_manager.ownership.scope():
             snapshot = self.component.snapshot(project)
@@ -239,7 +240,7 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
             corpus.write_text("broken JSON", encoding="utf-8")
         try:
             with self.assertRaises(ValueError):
-                await self.data.acompact()
+                await self.data.acompact([], expected_version=plan["version"])
             self.assertTrue(inactive.is_dir())
         finally:
             corpus.write_bytes(original)

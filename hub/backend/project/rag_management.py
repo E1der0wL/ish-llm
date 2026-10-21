@@ -88,6 +88,14 @@ class RAGManagement(DocumentManagement):
             plan = await self.data.acheckpoint_plan(identifier)
         await self.data.adelete_job(identifier, expected_revision=plan.revision)
 
+    async def compact_retired(self):
+        """Explicit Application policy: discard all currently eligible retired generations."""
+        await self.data.arecover_compaction()
+        plan = await self.data.acompaction_plan()
+        selected = [row["generation"] for row in plan["candidates"]]
+        await self.data.acompact(selected, expected_version=plan["version"])
+        return selected
+
     async def _require_new(self, identifier):
         try:
             await self.data.aget_document(identifier)

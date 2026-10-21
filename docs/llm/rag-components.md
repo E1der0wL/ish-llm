@@ -143,9 +143,10 @@ RAGComponent가 두 필수 파일의 생성·검증을 소유한다. 새 Compone
 기존 자료를 새 형식으로 자동 변환하지 않는다.
 
 조회·등록·compact·백업은 같은 owner의 포인터·세대 검증을 사용한다. 필수 증거 손상 시
-원본을 보존하며 정리를 거부한다. Component 루트 전체 소실과 상위 삭제/참조 보호의
-완전한 검증은 후속 수명주기 단계에 남아 있다. 기존 publish의 자동 compact와 유지보수
-대상 선정은 Application 이관 대상이며 이번 포인터 보강만으로 이관 완료를 뜻하지 않는다.
+원본을 보존하며 정리를 거부한다. publish는 이전 세대를 자동 삭제하지 않는다. Application이
+보존 대상과 실행 시점을 정하고 Backend는 명시 대상의 안전성·최신 리비전을 재검증한다.
+H4-a 세대 선택은 로컬 Level 2를 통과했으며 Job 유지보수 선정은 후속 H4 범위다.
+상위 완료/미검증 범위는 [수명주기 검증](lifecycle-verification.md)을 따른다.
 
 BM25는 저장 문단에서 재구성한다. 새 DB를 완성하고 닫은 뒤 active.json을 원자적으로
 교체한다. DB 준비는 공유 workspace 잠금과 StorageIO에서 수행한다. 변경된 문서만
@@ -154,7 +155,18 @@ _build 재정의는 전체 생성 경로를 쓴다. 복제와 삭제에는 모�
 영속 등록 작업, 준비 결과 재사용, 임베딩 배치와 남아 있는 전체 corpus/DB 복사 비용은
 [장시간 실행 안내](long-running.md)를 참고한다.
 공개 포인터 교체 직후 디스크 오류가 발생하면 이미 새 세대가 공개되었을 수 있으므로
-재조회 후 명시적으로 재시도한다. 비활성 세대 정리는 `await rag.acompact()`로 재시도한다.
+재조회 후 명시적으로 재시도한다. `arecover_compaction()`은 기존 확정 삭제 의도만 마무리한다.
+새 삭제는 read-only 계획의 후보 중 Application이 선택한 세대와 같은 version을 제출한다.
+활성 세대, stale 계획과 손상된 필수 증거는 거부하고 원본을 보존한다. 단일 정리는 원자적으로
+확정되며 취소는 진행 중 저장을 마칠 때까지 기다린다. Hub의 `RAGManagement.compact_retired()`는
+명시 호출 시 모든 적격 비활성 세대를 선택하는 Application 정책이다.
+
+```python
+await rag.arecover_compaction()
+plan = await rag.acompaction_plan()
+selected = [row["generation"] for row in plan["candidates"]]  # Application의 명시적 선택
+await rag.acompact(selected, expected_version=plan["version"])
+```
 
 RAGComponent/rag가 문서와 관계를 함께 관리한다. 구형 graphrag 병합 함수와 벡터 전용
 세대 읽기는 제공하지 않는다. 공개 세대에는 corpus.json의 graph.entities/relations와

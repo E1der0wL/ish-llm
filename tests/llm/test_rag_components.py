@@ -275,6 +275,8 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
         await self.rag.adelete_document("manual", expected_revision=2, expected_generation=updated["generation"])
         self.assertEqual(await self.rag.asearch_documents("Seoul"), [])
         self.assertEqual(await self.rag.alist_documents(), [])
+        plan = await self.rag.acompaction_plan()
+        await self.rag.acompact([row["generation"] for row in plan["candidates"]], expected_version=plan["version"])
         self.assertEqual(len(list((self.project.paths.root / "rag" / "generations").iterdir())), 1)
 
     async def test_graph_shared_evidence_deleted_only_for_own_document(self):
@@ -322,7 +324,8 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
                 await self.rag.aupdate_document("doc", content="Seoul deployment")
         self.assertEqual((await self.rag.aget_document("doc"))["revision"], 1)
         self.assertTrue(await self.rag.asearch_documents("backup"))
-        await self.rag.acompact()
+        plan = await self.rag.acompaction_plan()
+        await self.rag.acompact([row["generation"] for row in plan["candidates"]], expected_version=plan["version"])
 
     async def test_clone_isolated_and_reopen_without_provider(self):
         await self.graph.aadd_document(title="one", content="Alice owns Atlas", identifier="one")

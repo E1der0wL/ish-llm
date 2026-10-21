@@ -368,11 +368,23 @@ class RAGData(ComponentData):
     agraph_search = async_method(graph_search)
 
     @workspace_locked
-    def compact(self) -> None:
+    def compaction_plan(self):
         project, component = self._current()
-        component.compact(project)
+        return component.compaction_plan(project)
+
+    @workspace_locked
+    def recover_compaction(self):
+        project, component = self._current()
+        return component.recover_compaction(project)
+
+    @workspace_locked
+    def compact(self, generations, *, expected_version) -> None:
+        project, component = self._current()
+        component.compact(project, generations, expected_version=expected_version)
 
     aget_document = async_method(get_document)
     alist_documents = async_method(list_documents)
     adelete_document = async_method(delete_document)
     acompact = async_method(compact)
+    acompaction_plan = async_method(compaction_plan)
+    arecover_compaction = async_method(recover_compaction)

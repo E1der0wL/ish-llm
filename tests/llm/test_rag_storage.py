@@ -20,10 +20,13 @@ class RAGStorageTests(unittest.IsolatedAsyncioTestCase):
     async def test_missing_active_pointer_blocks_cleanup_and_preserves_documents(self):
         await self.add(identifier="original")
         root = self.project.paths.root / "rag"
+        plan = await self.rag.acompaction_plan()
+        async def compact():
+            await self.rag.acompact([], expected_version=plan["version"])
         (root / "active.json").unlink()
         before = self.snapshot_files()
         rejected = []
-        for operation in (self.rag.alist_documents, self.rag.acompact):
+        for operation in (self.rag.alist_documents, compact):
             try:
                 await operation()
             except (OSError, ValueError):
@@ -54,7 +57,8 @@ class RAGStorageTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(json.loads((root / "active.json").read_text()), {"generation": None})
         identity = (root / "identity.json").read_bytes()
         self.assertEqual(await self.rag.alist_documents(), [])
-        await self.rag.acompact()
+        plan = await self.rag.acompaction_plan()
+        await self.rag.acompact([], expected_version=plan["version"])
         await self.project.components.aselect(["rag"])
         self.assertEqual((root / "identity.json").read_bytes(), identity)
         self.assertEqual(await self.rag.alist_documents(), [])
@@ -62,6 +66,9 @@ class RAGStorageTests(unittest.IsolatedAsyncioTestCase):
     async def test_corrupt_metadata_blocks_read_write_backup_and_reinitialization(self):
         await self.add(identifier="original")
         root = self.project.paths.root / "rag"
+        plan = await self.rag.acompaction_plan()
+        async def compact():
+            await self.rag.acompact([], expected_version=plan["version"])
         originals = {name: (root / name).read_bytes() for name in ("active.json", "identity.json")}
         cases = [
             ("active.json", None), ("active.json", {}), ("active.json", {"generation": None}),
@@ -85,7 +92,7 @@ class RAGStorageTests(unittest.IsolatedAsyncioTestCase):
                 async def reselect():
                     await self.project.components.aselect(["rag"])
                 with patch.object(self.embed, "embed", side_effect=AssertionError("No model call on corrupt corpus")):
-                    for operation in (self.rag.alist_documents, self.rag.acompact, add, backup, reselect):
+                    for operation in (self.rag.alist_documents, compact, add, backup, reselect):
                         with self.subTest(operation=operation.__name__), self.assertRaises((OSError, ValueError)):
                             await operation()
                         self.assertEqual(self.snapshot_files(), before)
@@ -113,6 +120,7 @@ class RAGStorageTests(unittest.IsolatedAsyncioTestCase):
         generation = json.loads((root / "active.json").read_text())["generation"]
         path = root / "generations" / generation / "corpus.json"
         original = json.loads(path.read_text())
+        plan = await self.rag.acompaction_plan()
         for version in (None, True, 1.0, 2):
             with self.subTest(version=version):
                 value = {**original, "graph_schema_version": version}
@@ -121,7 +129,7 @@ class RAGStorageTests(unittest.IsolatedAsyncioTestCase):
                 path.write_text(json.dumps(value))
                 before = self.snapshot_files()
                 with self.assertRaisesRegex(ValueError, "Unsupported RAG graph schema"):
-                    await self.rag.acompact()
+                    await self.rag.acompact([], expected_version=plan["version"])
                 self.assertEqual(self.snapshot_files(), before)
 
 
