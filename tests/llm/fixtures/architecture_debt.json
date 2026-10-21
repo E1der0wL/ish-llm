@@ -1324,22 +1324,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "b5e0384d8c0fa24bb1ab516b74934a77daaec3634b3c72385c074b188c9d4181:1",
-      "rule": "S2",
-      "file": "llm/services/query.py",
-      "symbol": "FileCatalog.__init__",
-      "line": 101,
-      "detail": "policy argument default: max_entries"
-    },
-    {
-      "id": "6f8d436b6e5c1a7fd2db1b0dc67a508f01e28fdf4c6cbd5098db0e0b08956dc1:1",
-      "rule": "S3",
-      "file": "llm/services/query.py",
-      "symbol": "FileCatalog.__init__",
-      "line": 102,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "9d2dd0518d89a9f27a50b93fd6ae2735c9dfa58180786eec3f03815614518183:1",
       "rule": "S3",
       "file": "llm/services/results.py",

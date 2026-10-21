@@ -15,6 +15,61 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c14: FileCatalog 주입값과 캐시 선언 — 로컬 Level 2
+
+FileCatalog가 `projection or default`로 명시적인 falsey callable을 버렸다. 실제 record 파일로
+재현하면 요청한 projection의 결과 대신 기본 상태를 반환하고 호출 증거 파일도 생성되지 않았다.
+잘못된 falsey/noncallable 입력 6종도 생성자에서 거부하지 않았다. 새 시험 4개 중 1개만 통과했고,
+7개 Assertion 실패·2개 error(호출되지 않은 projection의 증거 파일 부재)를 원본 로그와 함께 보존했다.
+이번 수정은 None만 기본 projection을 선택하고 명시한 나머지 값은 callable인지 검증한다.
+시험·Assertion은 수정 전후 동일하다. 타입/identity/version 손상은 projection 전에 거부하며
+실제 원본 byte 보존, 캐시 hit의 단일 호출, 0 비활성/1 eviction과 Run/Step 선택값을 검사한다.
+
+기술 캐시 초기값 4096은 FileCatalog.DEFAULT_MAX_ENTRIES가 한 번 선언하고 RunRepository와
+StepRepository 생성자가 소비한다. 저장 원본·실행 한도·정책·캐시 동작은 바꾸지 않았다.
+음수 거부의 0은 현재 계약에 명시된 비음수 캐시 용량의 수학적 경계로 개별 S3 판정했다.
+변경으로 무효화된 Graph/ToolRuntime review 2건은 runs.py의 생성자 기본 인자 한 곳만 바뀐
+diff와 관련 소비자 시험을 확인하여 갱신했다. 정적 검사의 사전 exit 1은 이 변경을 실제로 탐지했다.
+BaseEngine.step의 c13 근거 문구도 실제 None 분기와 math.isfinite 검증으로 정확히 고쳤다.
+정적 AST 규칙·기존 Assertion·필수 CI 배정은 유지한다.
+
+| 실행 | discovered/started | pass | failed ID/failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| c14-before llm | 4/4 | 1 | 3/7/2/0 | 0.005초 | 1 |
+| c14-focused llm | 57/57 | 57 | 0/0/0/0 | 6.868초 | 0 |
+| c14-level2 llm | 329/329 | 329 | 0/0/0/0 | 82.792초 | 0 |
+| c14-level2 hub | 35/35 | 35 | 0/0/0/0 | 46.014초 | 0 |
+
+모든 실행에서 expected failure·unexpected success·누락·중복·unexpected는 0이며, 재현 이후
+완료 실행의 failure/error/Skip도 0이다. 집중 범위는 조회/캐시·서비스·출력 저장이다. Level 2는
+Run/Step 공개 API·상태 전이·참조·최적화 조회, Graph/불확실 효과, 공통 승인·예산·효과·Checkpoint·
+RAG·수명주기/삭제·중첩 Graph·트랜잭션, Hub 이력·승인·삭제의 실제 소비 경로를 포함한다.
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 457·reviewed 67·미해결 390(S2 22·S3 350·S6 18),
+new/stale/review 오류·S1/S4/S5 미해결 0/exit 0, 문서 132/182/959/34·오류 0/exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c14-before/llm.json --modules tests.llm.test_catalog_presence
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c14-focused/llm.json --modules tests.llm.test_catalog_presence tests.llm.test_stability_refinement tests.llm.test_service_extensions tests.llm.test_operational_storage
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c14-level2/llm.json --modules tests.llm.test_catalog_presence tests.llm.test_stability_refinement tests.llm.test_service_extensions tests.llm.test_operational_storage tests.llm.test_optimized_queries tests.llm.test_run_api tests.llm.test_run_transitions tests.llm.test_run_reference_integrity tests.llm.test_runtime tests.llm.test_long_running tests.llm.test_graph_checkpoints tests.llm.test_base_engine tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c14-level2/hub.json --modules tests.hub.test_request_history tests.hub.test_tool_history tests.hub.test_history_retention tests.hub.test_approval_continuation tests.hub.test_history_alerts
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c14-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c14-docs-before.json
+```
+
+기준은 c13 로컬 75cfd99와 위 미커밋 변경이다. Level 2 전후 698 Python 소스 hash
+`2ad91de87fdfcc3d385e08a3b32c747c620e1f80d60e0e0855111299875dc672`, 860 입력/환경 hash
+`9c89779be4d66ee172501dff5594ba936af236b49adacec56dcd81ae81f98564`가 각각 동일했다.
+Python 3.12.14·136 의존성·깨끗한 host d833790959a76ac457fdeea3f21a6bea1eecfe12·env 5개는
+c12와 같다. 명령/exit/discovery/원본 로그·이전 제품/시험·전후 manifest는 c14-before,
+c14-focused, c14-level2에 보존했다. 변경된 제품 범위는 이전 통과를 재사용하지 않고 실행했다.
+이전 backend의 FileCatalog 100–128행만 읽기 전용 비교했다. 같은 truthiness 문제와 제거된
+reader hook이 있어 가져오지 않았다. 현재 알고리즘·closed Reader와 기존 실패 사례를 유지한다.
+
+범위가 캐시와 직접 소비자로 입증되어 이번 전체 회귀는 유예한다. 문서를 먼저 최신화하고 로컬
+독립 커밋하며, c13 이후 관련 소단계를 묶은 다음 Level 3에서 전체 LLM/Hub 후 Push한다.
+P1 최종 S1–S5와 A–F는 남아 있다. 원격 마지막 확인은 568af3f, CI 실제 결과는 미확인이다.
+
 ## P1-c13: 검증·조건식 11건의 개별 판정 — 로컬 Level 2
 
 제품·시험 Python·실행 정책·저장 형식·AST 규칙은 그대로다. S2 후보 11건을 현행 계약에 따라

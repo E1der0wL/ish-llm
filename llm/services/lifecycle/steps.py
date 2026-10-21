@@ -17,7 +17,7 @@ from llm.services.infrastructure.logging import log_event
 class StepRepository:
     """Step metadata and paths beneath the owning Run's steps root."""
 
-    def __init__(self, *, catalog_size=4096):
+    def __init__(self, *, catalog_size=FileCatalog.DEFAULT_MAX_ENTRIES):
         self.catalog = FileCatalog(catalog_size)
 
     def read_backup(self, run):

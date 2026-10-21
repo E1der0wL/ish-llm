@@ -2101,7 +2101,7 @@
       "id": "eb877fcfded501076e3854ab23c8bc94acec15b5a2df71f12b410f7c71f8df58:1",
       "rule": "S2",
       "owner": "BaseEngine.step",
-      "reason": "After the explicit None/type checks, this condition rejects boolean, non-finite and non-positive supplied deadlines. It is validation, not a value fallback; the actual timed-out step is finalized as failed and its coroutine is closed.",
+      "reason": "Under the explicit non-None branch, this condition rejects boolean, non-finite and non-positive supplied deadlines; math.isfinite rejects nonnumeric objects. It is validation, not a value fallback. The actual timed-out step is finalized as failed and its coroutine is closed.",
       "contracts": [
         "docs/llm/runtime-reliability.md",
         "docs/llm/engine-output.md"
@@ -2131,7 +2131,7 @@
         "docs/llm/graph-engine.md": "d0b59e39fb3423ea2cd730817e6c1116a1150dc14314e61452de2a8b75d718ea",
         "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
         "llm/engines/graph/engine.py": "01497417e1556270d9cddb8eb70732575e1dd469514509c52a288812dfb3532d",
-        "llm/services/runtime/runs.py": "b308a5acbc85fcd018d5daa951bb04a36bc6c7229ed3169555dfcac8c2ab0f40",
+        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_graph_checkpoints.py": "802697da33c39b9f22f89bb28fc28e53b90e19ed8c68526a2cab5724aab19702"
       },
@@ -2197,7 +2197,7 @@
         "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
         "docs/llm/tool-constraints.md": "204943fa586671ba4cfd964f340b187e641b9fdc3fdb625f73386bf0c08b85d0",
         "llm/engines/loop/engine.py": "f286a714ee07c92a68dc8d1f3afed29de19d63bec21f03aa83750dfe7971bfac",
-        "llm/services/runtime/runs.py": "b308a5acbc85fcd018d5daa951bb04a36bc6c7229ed3169555dfcac8c2ab0f40",
+        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
         "llm/services/runtime/tools.py": "ea5326075a0768e14e9cb0e2de08880bd3e19f1f564088ef20dd15fdd8cbc93f",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_long_running.py": "f34dca56b2970845d7b64e63be2f483ed9a1b73f5a5fea9c5f515d8c1a5bb3ca"
@@ -2294,6 +2294,34 @@
       "tests": [
         "tests.hub.test_settings.SettingsFormTests.test_missing_null_nested_and_unknown_values_survive",
         "tests.hub.test_settings.SettingsFormTests.test_shared_settings_key_uses_all_engine_locks_and_views"
+      ]
+    },
+    {
+      "id": "6f8d436b6e5c1a7fd2db1b0dc67a508f01e28fdf4c6cbd5098db0e0b08956dc1:1",
+      "rule": "S3",
+      "owner": "FileCatalog.__init__",
+      "reason": "Zero is the mathematical lower boundary of the owner-declared technical cache capacity. Zero disables caching, positive capacities only evict derived projections, and negative/non-integer inputs are rejected. It is not a domain execution or retention limit. Actual file tests preserve authoritative bytes and identity/version rejection; Run/Step repositories consume FileCatalog.DEFAULT_MAX_ENTRIES as their single sizing declaration.",
+      "contracts": [
+        "docs/llm/configuration-audit.md",
+        "docs/llm/long-running.md"
+      ],
+      "sources": {
+        "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
+        "docs/llm/long-running.md": "0045bab529a43a393505905e23dc93115a14d51ac88296afdf0dde18436adc8d",
+        "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
+        "llm/services/lifecycle/steps.py": "d74810e098ef4da2397903e0316fa04d1e230302783909d6932d661144d8b0dc",
+        "llm/services/query.py": "950526d7dce7cc5dd5f60550b4d07351fe33f6bf9720f7e324f9326598c4ffd8",
+        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_catalog_presence.py": "91e8d647230699ff65be8193cbbf1c7ea225b1da82464c1de7893088804c4866",
+        "tests/llm/test_stability_refinement.py": "9a6f964146bb22fd91b3cf6e960d9ec4679e8a96d18a1128640207e1b1e3303b"
+      },
+      "tests": [
+        "tests.llm.test_catalog_presence.CatalogPresenceTests.test_falsey_projection_is_called_once_for_cached_actual_file",
+        "tests.llm.test_catalog_presence.CatalogPresenceTests.test_zero_and_bounded_cache_preserve_files_and_repository_choices",
+        "tests.llm.test_catalog_presence.CatalogPresenceTests.test_corrupt_version_or_identity_never_reaches_projection",
+        "tests.llm.test_stability_refinement.CatalogTests.test_bounded_selection_matches_full_sort_for_all_query_modes",
+        "tests.llm.test_stability_refinement.CatalogTests.test_small_page_still_detects_corruption_after_selected_rows"
       ]
     }
   ]

@@ -96,15 +96,23 @@ def queryable(method):
 
 
 class FileCatalog:
-    """목록용 작은 메타데이터만 캐시한다. 파일 변경을 stat으로 확인하고 선택한 항목만 완전히 로드한다."""
+    """목록용 파생 메타데이터 캐시. 용량 0은 캐시를 끄며 영속 원본을 삭제하지 않는다.
 
-    def __init__(self, max_entries=4096, *, projection=None):
+    projection은 None일 때만 기본 투영을 사용한다. 캐시 용량의 기술 초기값은 이 owner가
+    선언하며 Run/Step Repository도 같은 선언을 소비한다.
+    """
+
+    DEFAULT_MAX_ENTRIES = 4096
+
+    def __init__(self, max_entries=DEFAULT_MAX_ENTRIES, *, projection=None):
         if type(max_entries) is not int or max_entries < 0:
             raise ValueError("Catalog size must be nonnegative")
+        if projection is not None and not callable(projection):
+            raise TypeError("Catalog projection must be callable or None")
         self.max_entries = max_entries
         self.entries = OrderedDict()
-        self.projection = projection or (lambda r: SimpleNamespace(
-            id=r["id"], status=r["status"], created_at=r["created_at"]))
+        self.projection = (lambda r: SimpleNamespace(
+            id=r["id"], status=r["status"], created_at=r["created_at"])) if projection is None else projection
 
     def read(self, path):
         """파일 교체를 확인한 뒤 지정된 투영을 반환한다. 호출자는 같은 저장 잠금을 사용한다."""

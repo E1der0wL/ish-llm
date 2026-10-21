@@ -66,7 +66,7 @@ from llm.services.runtime.usage import UsageScope, check_admission, has_limit
 class RunRepository:
     """Run metadata and paths beneath the owning Session's runs root."""
 
-    def __init__(self, *, output_index_stride: int = 128, catalog_size: int = 4096):
+    def __init__(self, *, output_index_stride: int = 128, catalog_size: int = FileCatalog.DEFAULT_MAX_ENTRIES):
         self._interaction_reads = ContextVar("run_interaction_reads", default=None)
         self.output_journal = OutputJournal(index_stride=output_index_stride)
         self.catalog = FileCatalog(catalog_size)
