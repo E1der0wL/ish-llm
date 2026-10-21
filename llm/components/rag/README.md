@@ -173,6 +173,11 @@ manifest/fingerprint가 없거나 일치하지 않으면 재계산하며 저장 
 
 `aadd_documents(documents)`는 호출자가 명시한 문서 목록을 준비한 후 **한 세대**로 공개합니다.
 각 항목은 `identifier`(선택), `title`, `content`, `metadata`(선택), `description`(선택)입니다.
+생성 시 identifier/metadata의 부재 또는 None에만 초기값을 적용하며 False/0/잘못된 타입은
+거부합니다. 저장한 입력에서는 RAGComponent.INPUT_FIELDS의 모든 필드가 필수이며,
+RAGComponent.validate_input와 JobStorage가 Job의 문서 수·순서·ID·digest를 함께 검증합니다.
+description은 부재/None/문자열을 허용합니다. 저장 Reader·claim·재개 계획·backup/clone에서
+소실된 필드를 생성 기본값으로 채우지 않고 원본을 보존하며 거부합니다.
 새 문서 생성만 지원하며 중복 ID나 이미 등록된 ID를 덮어쓰지 않습니다.
 
 ```python

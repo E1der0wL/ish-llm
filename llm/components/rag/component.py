@@ -52,6 +52,7 @@ class RAGComponent(DefinitionComponent):
     GENERATIONS_DIRECTORY = "generations"
     IDENTITY_PATTERN = re.compile(r"[a-f0-9]{32}")
     GRAPH_SCHEMA_VERSION = 1
+    INPUT_FIELDS = frozenset(("identifier", "title", "content", "metadata"))
     DOCUMENT_FIELDS = frozenset(("id", "title", "content", "metadata", "revision", "generation",
         "sections", "chunks", "sha256", "vectors", "embedding_fingerprint", "ingestion", "profile",
         "graph_complete", "graph_diagnostics", "graph", "extraction_manifest",
@@ -124,6 +125,20 @@ class RAGComponent(DefinitionComponent):
     def _build(self, path, documents):
         build_index(path / "chroma", documents, batch_size=self.index_batch_size)
         build_graph(path / "graph.kuzu", documents, options=self.graph_options)
+
+    @classmethod
+    def validate_input(cls, source):
+        """Require a complete original document input without creation defaults."""
+        if (not isinstance(source, dict) or not cls.INPUT_FIELDS <= source.keys()
+                or source.keys() - cls.INPUT_FIELDS - {"description"}):
+            raise ValueError("RAG document input fields are incomplete or unknown")
+        ProjectConfig.validate_json(source)
+        validate_name(source["identifier"])
+        if (any(not isinstance(source[key], str) or not source[key].strip() for key in ("title", "content"))
+                or not isinstance(source["metadata"], dict)
+                or (source.get("description") is not None and not isinstance(source["description"], str))):
+            raise ValueError("Invalid RAG document input")
+        return source
 
     @classmethod
     def validate_batch_checkpoint(cls, job, key, receipt):

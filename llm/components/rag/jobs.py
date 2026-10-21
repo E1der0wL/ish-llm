@@ -10,7 +10,7 @@ from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, Che
 from llm.core.contracts import ResourceRef, Diagnostic
 from llm.core.plans import CheckpointPlan, JobResumePlan
 from llm.services.infrastructure.locking import workspace_locked
-from llm.services.infrastructure.storage import read_json, revision_token, tree_snapshot
+from llm.services.infrastructure.storage import revision_token, tree_snapshot
 from .job_storage import JobStorage
 
 
@@ -60,9 +60,7 @@ class RAGJobs:
         if job["resume_abandonment"] is not None or job["cancel_requested"] or job["status"] in (JobStorage.COMPLETED, JobStorage.CANCELLED, JobStorage.QUEUED):
             block("not_resumable", "Only an inactive failed or interrupted Job can resume")
         try:
-            payload = read_json(root / "input.json")
-            if revision_token(payload) != job["input_digest"]:
-                raise ValueError("Job input changed")
+            self._storage().read_input(identifier, job)
             reused.extend(sorted(self._storage().checkpoints(identifier)[1]))
             if job["status"] != JobStorage.QUEUED and job.get("configuration") != component._configuration_version:
                 state = "incompatible"
@@ -89,13 +87,13 @@ class RAGJobs:
 
     @workspace_locked
     def enqueue(self, *, title, content, metadata=None, identifier=None, description=None):
-        if description is not None and not isinstance(description, str):
-            raise ValueError("Document description must be text")
+        from .data import validate_documents
         job_id = uuid4().hex
-        identifier = validate_name(identifier or job_id)
-        payload = {"title": title, "content": content, "metadata": metadata or {}, "identifier": identifier}
+        identifier = job_id if identifier is None else identifier
+        payload = {"title": title, "content": content, "metadata": metadata, "identifier": identifier}
         if description is not None:
             payload["description"] = description
+        payload = validate_documents([payload])[0]
         return self._enqueue(job_id, payload, document_id=identifier)
 
     @workspace_locked
@@ -186,7 +184,6 @@ class RAGJobs:
 
     @workspace_locked
     def _claim(self, identifier, retry, expected_revision=None):
-        root = self._path(identifier)
         job = self.get(identifier)
         if expected_revision is not None:
             plan = self._resume_plan(identifier, live=False)
@@ -221,9 +218,7 @@ class RAGJobs:
                     lease.close()
             if active >= maximum:
                 raise ValueError("rag_capacity: indexing concurrency limit reached; job remains queued")
-        payload = read_json(root / "input.json")
-        if revision_token(payload) != job["input_digest"]:
-            raise ValueError("Job input changed")
+        payload = self._storage().read_input(identifier, job)
         self._storage().checkpoints(identifier)
         # Archive the previous attempt only after admission succeeds. These are
         # observations in the same Job, never receipts or permission to retry.

@@ -113,6 +113,7 @@ class JobStorage:
     def __init__(self, project, component):
         self.project_id, self.component = project.id, component.name
         self.validate_document = component.validate_document
+        self.validate_input_document = component.validate_input
         self.validate_batch_checkpoint = component.validate_batch_checkpoint
         self.checked = component._checked
         root = self.checked(component.root(project))
@@ -219,10 +220,33 @@ class JobStorage:
         """Backup/clone require input proof; resume diagnostics inspect missing inputs."""
         manifest, records = self.inventory()
         for identifier, job in records.items():
-            if revision_token(self._json(self.path(identifier) / "input.json")) != job["input_digest"]:
-                raise ValueError("RAG Job input changed")
+            self.read_input(identifier, job)
             self.checkpoints(identifier)
         return manifest, records
+
+    def validate_input(self, job, payload):
+        if revision_token(payload) != job["input_digest"]:
+            raise ValueError("RAG Job input changed")
+        if "document_ids" in job:
+            if (not isinstance(payload, dict) or payload.keys() != {"documents"}
+                    or not isinstance(payload["documents"], list)):
+                raise ValueError("Invalid RAG Job batch input")
+            inputs, expected = payload["documents"], job["document_ids"]
+        else:
+            inputs, expected = [payload], [job["document_id"]]
+        if len(inputs) != len(expected):
+            raise ValueError("RAG Job input count changed")
+        for source, identifier in zip(inputs, expected):
+            self.validate_input_document(source)
+            if source["identifier"] != identifier:
+                raise ValueError("RAG Job input identity changed")
+        return payload
+
+    def read_input(self, identifier, job):
+        path = self.checked(self.path(identifier) / "input.json")
+        if not path.exists():
+            raise FileNotFoundError("Required RAG Job input is missing")
+        return self.validate_input(job, self._json(path))
 
     def checkpoint_path(self, identifier, key):
         if key != self.PREPARED:
@@ -245,14 +269,8 @@ class JobStorage:
             return
         if not self.ATTEMPT_FIELDS <= job.keys():
             raise ValueError("Prepared RAG document requires its Job attempt")
-        payload = self._json(self.path(identifier) / "input.json")
-        if revision_token(payload) != job["input_digest"]:
-            raise ValueError("RAG Job input changed")
+        payload = self.read_input(identifier, job)
         if "document_ids" in job:
-            if (not isinstance(payload, dict) or payload.keys() != {"documents"}
-                    or not isinstance(payload["documents"], list)
-                    or len(payload["documents"]) != len(job["document_ids"])):
-                raise ValueError("Invalid RAG Job batch input")
             inputs, expected = payload["documents"], job["document_ids"]
             if document_batch is not None:
                 position = int(document_batch[1])
@@ -274,10 +292,7 @@ class JobStorage:
             raise ValueError("Prepared RAG document count changed")
         for source, expected_id, document in zip(inputs, expected, documents):
             self.validate_document(document)
-            if (not isinstance(source, dict)
-                    or not {"identifier", "title", "content", "metadata"} <= source.keys()
-                    or source.keys() - {"identifier", "title", "content", "metadata", "description"}
-                    or document["id"] != expected_id or source["identifier"] != expected_id
+            if (document["id"] != expected_id
                     or document["revision"] != 1
                     or any(document[field] != source[field] for field in ("title", "content"))):
                 raise ValueError("Prepared RAG document disagrees with its original Job input or attempt")
@@ -359,8 +374,7 @@ class JobStorage:
         self.validate(job, identifier)
         if identifier in records:
             raise FileExistsError("RAG Job already exists")
-        if revision_token(payload) != job["input_digest"]:
-            raise ValueError("RAG Job input changed")
+        self.validate_input(job, payload)
         root = self.path(identifier)
         atomic_json(root / "input.json", payload)
         atomic_bytes(root / self.LEASE, identifier.encode("utf-8"))

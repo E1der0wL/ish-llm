@@ -9,6 +9,69 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-v 원본 입력의 생성·저장 검증 — Level 2 로컬 완료
+
+`69e775a7378f8d384af58812a2dbc53c74986b2d`에서 이어서 RAG 입력의 남은 필수 필드와
+Job 연결을 보강했다. 기존 전체 감사와 관련 소비자 목록을 재사용하고 변경 범위만 조사했다.
+변경 전 집중 재현은 2개 중 failure 1/error 1(0.218초), 백업 재현 추가 후 3개 중
+failure 2/error 1(0.290초), 각각 Skip 0/exit 1이었다. `metadata=False`가 빈 객체로
+수락됐고, metadata를 제거한 저장 입력도 일치하는 digest/manifest가 있으면 백업됐다.
+실행에서는 모델 효과 전에 KeyError가 났지만 이미 claim/실패 상태를 기록했다. 이 결과를
+모델 중복 효과로 보고하지 않는다. 원래 입력 거부·실제 효과 0·원본 보존 Assertion을 유지했다.
+
+- RAGComponent.INPUT_FIELDS/validate_input가 identifier/title/content/metadata의 필수 존재,
+  정확한 값 종류·유효 ID·비어 있지 않은 본문/제목·유한 JSON을 검증한다. description은
+  선택 필드이며 부재/None/문자열을 허용한다. 저장 Reader는 기본값을 주입하지 않는다.
+- 생성용 validate_documents는 identifier와 metadata의 부재/None에만 기존 생성 초기값을
+  적용한 뒤 같은 owner를 호출한다. 단일 enqueue도 이 경로를 사용하고 False/0/잘못된 빈
+  컬렉션을 기본값으로 바꾸지 않는다. ID 미지정 단일 Job의 document_id=job_id 계약을 유지한다.
+- JobStorage는 단일/배치 입력의 정확한 envelope·문서 수·순서/ID와 digest를 검증한다.
+  create, claim, 재개 계획, 준비 문서 영수증, backup/clone이 같은 Reader/Writer 검증을 사용한다.
+  claim은 이 검증 후에만 attempt를 변경한다. 누락 파일은 기존 missing 진단을 유지한다.
+- 새 8개 회귀는 기존 세 실패, 저장 필드/타입/ID matrix, 배치 순서·수, 생성 세 경로의
+  잘못된 타입, Writer 쓰기 전 거부, 정상 None 초기값·nullable description을 검사한다.
+  모든 거부에서 원본과 실제 모델 파일 효과를 비교한다. FIFO 시험의 Component test double에는
+  새 owner callback만 연결했고 기존 장애/바이트 보존 Assertion은 변경하지 않았다.
+
+영향 범위는 RAG 직접 배치 생성·단일/배치 enqueue·Job claim/재개·준비 결과·backup/clone이다.
+기존 H2-s 영향도 목록에 T/U/V 모듈을 추가했다. 직접 Repository/Component/Engine/Application/Hub
+소비자, 승인·예산·효과·Checkpoint·삭제·트랜잭션, 실제 프로세스 중단/장애 주입 검증을 포함한다.
+공통 저장 트랜잭션·실행 권한·예산 정책·효과 재시도 규칙은 변경하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 5 modules | 76/76 | 76 | 0/0/0 | 40.967초 | 0 |
+| Level 2 LLM, 48 modules | 641/641 | 641 | 0/0/0 | 257.151초 | 0 |
+| Level 2 Hub, 6 modules | 33/33 | 33 | 0/0/0 | 85.526초 | 0 |
+
+expected failure/unexpected success/누락/미발견 실행/중복은 각각 0이며 발견 가능한 전체 목록은
+LLM 1953/Hub 540개다. 정적 검사 new/stale/S1 0, 기존 debt 531,
+exit 0이다. R3 Mutation은 실제 두 번째 효과 Assertion으로 누락을 검출했다(True, exit 0).
+전체 LLM/Hub 회귀는 **이번 소단계에서 수행하지 않았다**. 위 범위 제한과 관련 통합/핵심 안전성
+통과를 근거로 로컬 완료하며, 남은 관련 H2 계약과 묶는 다음 Level 3에서 전체 실행 후 Push한다.
+이전 U 전체 결과를 변경된 제품의 통과로 재사용하지 않는다. H2 전체·원격 CI 완료는 아니다.
+
+전후 Python 676개 hash `041cf4d3117e78e8eb83a575851f615f1a0f5b7bcc9f40ab5cbe65f82dd4aab6`,
+전체 입력 835개/환경 hash `885a0fb1626eafd5caa394e61d9bc312cbe821e5c2de0ba2b94b8e8d1ecd62c8`는 각각 동일했다.
+Python 3.12.14·136 packages·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`, UID 1000과
+기존 bwrap/Xvfb/xclip·5개 환경 변수는 그대로다. 성공 후 문서를 먼저 갱신했다.
+문서 검사는 131개 문서·178개 Python fence·953개 상대 링크·34개 anchor에서 오류 0, exit 0이다.
+실제 argv/exit/요약·원래 실패 로그는 `/workspace/llm-clean-resume/h2-v/`에 보존한다.
+
+```bash
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-v/baseline-2 tests.llm.test_rag_input_integrity
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-v/focused-1 tests.llm.test_rag_input_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_prepared_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_rag_optimization
+python /workspace/llm-clean-resume/h2-v/run-level2.py llm /workspace/llm-clean-resume/h2-v/final
+python /workspace/llm-clean-resume/h2-v/run-level2.py hub /workspace/llm-clean-resume/h2-v/final
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-v/static-1.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-v/docs.json
+```
+
+남은 RAG 배치와 원문 연결·관측 의미 및 나머지 owner 계약은 별도 후속 범위다.
+현재 raw graph의 원문 인용 검사는 실제 재사용 때 수행한다. 저장 시점 설정과 원문에 대한
+추가 증거 없이 현재 설정으로 과거 receipt의 의미를 추정하지 않는다.
+
 ## H2-u 배치 영수증 key 연결 — H2-r/s/t/u 묶음 Level 3
 
 H2-t 로컬 커밋 `76110ec0c96664f99a1f3e2f7b916f282aa10b48`에서 이어서 실제 중복 효과 결함을

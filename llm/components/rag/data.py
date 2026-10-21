@@ -19,27 +19,20 @@ def document_view(document: dict) -> dict:
 
 def validate_documents(documents):
     """Validate the entire explicit create batch before model calls or queue admission."""
-    from llm.core.models import ProjectConfig
+    from .component import RAGComponent
     if not isinstance(documents, list) or not documents:
         raise ValueError("documents must be a nonempty list")
     result, identifiers = [], set()
     for position, source in enumerate(documents):
-        if not isinstance(source, dict) or source.keys() - {"identifier", "title", "content", "metadata", "description"}:
+        if not isinstance(source, dict):
             raise ValueError(f"documents[{position}] has unsupported fields")
-        ProjectConfig.validate_json(source)
         item = deepcopy(source)
-        for key in ("title", "content"):
-            if not isinstance(item.get(key), str) or not item[key].strip():
-                raise ValueError(f"documents[{position}].{key} must be nonempty text")
-        if item.get("description") is not None and not isinstance(item["description"], str):
-            raise ValueError(f"documents[{position}].description must be text")
-        if item.get("metadata") is not None and not isinstance(item["metadata"], dict):
-            raise ValueError(f"documents[{position}].metadata must be an object")
         identifier = uuid4().hex if item.get("identifier") is None else validate_name(item["identifier"])
         if identifier in identifiers:
             raise ValueError(f"Duplicate document identifier: {identifier}")
         identifiers.add(identifier)
         item.update(identifier=identifier, metadata={} if item.get("metadata") is None else item["metadata"])
+        RAGComponent.validate_input(item)
         result.append(item)
     return result
 
