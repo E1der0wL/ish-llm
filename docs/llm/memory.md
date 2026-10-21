@@ -125,6 +125,7 @@ BaseEngine에 Memory 전용 로직을 추가하지 않는다. Loop의 범용 com
   records.manifest.json # 필수 기록 목록·원본 바이트 해시
   records/
     <id>.json   # {record: 현재 값, history: 변경별 스냅샷 목록}
+  contexts.manifest.json # 필수 Session 요약 목록·내용 revision
   contexts/
     <session-id>.json  # 원문 범위를 확인할 수 있는 최신 파생 요약 캐시
 ```
@@ -140,7 +141,11 @@ generation으로 바꾸지 않는다. 원본 해시와 기록/이력의 의미 �
 `identity.json`은 새 Memory 저장소 생성 때만 발급한다. 기존 루트의 조회·재선택·백업은
 32자리 hex ID를 담은 현재 형식을 요구하며, 파일 소실을 새 ID 발급으로 처리하지 않는다.
 Project의 initialized_components 이력은 선택 해제 후에도 남으며 선언된 루트 전체 소실을
-재초기화하지 않는다. 요약·병합 등 부가 자료와 모든 상위 삭제·참조 보호의 완전한 검증은
+재초기화하지 않는다. SummaryStorage는 contexts.manifest.json의 현재 버전·소유권·정확한
+요약 집합·내용 revision과 요약의 필수 의미를 검증한다. 생성 전과 명시 clear 후에만 None이며
+선언된 요약/목록/디렉터리 소실을 새 generation으로 복원하지 않는다. publish/clear는 원본과
+목록을 함께 확정한다. 조회·처리 snapshot·이력 참조·backup/clone·재선택에서 동일하게 검증한다.
+압축 요청·Tool 결과 요약·병합 등 나머지 부가 자료와 상위 삭제·참조 보호의 완전한 검증은
 H2–H5 잔여 항목이다.
 
 Memory 데이터 저장과 Run/Step 기록은 별개 트랜잭션이다. Tool 효과 후 Run 기록 실패 시

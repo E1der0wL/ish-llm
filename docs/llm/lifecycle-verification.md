@@ -9,6 +9,71 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-j Memory Session 요약 존재 증거 — Level 2
+
+H2-h/i 묶음 Push `2cd77b5522525ad667e36966acb4513182e28fe3`에서 이어서 진행했다.
+저장된 요약 소실을 None으로 읽고 generation/revision을 새로 발급하는 두 실패를 회귀에
+편입했다. 구현 전 2 failure, error·Skip 0, 0.168초, exit 1이다.
+
+Memory의 SummaryStorage가 필수 contexts.manifest.json, 현재 버전·Project/Component 소유권,
+정확한 Session 요약 집합과 내용 revision을 소유한다. 새 Memory 때만 빈 목록을 만든다.
+아직 생성하지 않았거나 명시적으로 지운 요약은 None이지만 선언된 요약/목록/디렉터리 소실,
+미선언 추가·손상·링크·비정규 파일은 원본을 보존하고 거부한다. publish/clear는 요약과 목록을
+같은 transaction으로 확정한다. 기존 명시 삭제 후 새 generation과 revision 1로 재생성하는
+계약, generation+revision CAS는 유지한다. 필수 generation·metadata·source 의미 검증은
+hash와 별도로 수행하며 저장 JSON의 비객체 값은 owner의 손상 ValueError로 보고한다.
+
+조회·처리 snapshot·이력 참조·backup/clone·재선택이 같은 owner 검증을 사용한다. 비활성
+Memory도 필수 존재를 보호한다. clone이 Session 요약을 복사하지 않는 기존 의미는 유지한다.
+공통 저장/실행 정책이나 모델·Tool 한도는 변경하지 않았다.
+
+### 검증과 범위
+
+실제 MemoryComponent/MemoryData/요약/이력 소비자, Hub Memory 선택·관리 소비자에 공통
+안전성·Project/Component/삭제·원자성 모듈을 더했다. 선택된 fixture를 import하는 테스트도
+역방향 의존성을 따라 포함한 72개 모듈이다. 모듈별 선정 근거는
+`/workspace/llm-clean-resume/h2-j/modules.json`, 실제 argv는 `level2-command.json`이다.
+명령은 `.venv-linux312/bin/python -m tests.llm.run_regression --suite all --modules
+<기록한 72개 모듈> --output /workspace/llm-clean-resume/h2-j/level2.json`이다.
+all은 discovery 범위이며 전체 실행이 아니다. Python/host/환경 변수는 H2-i와 동일하다.
+
+| 실행 | 실제 결과 |
+|---|---|
+| 기존 직접 소비자 집중 | 66 pass, failure/error/Skip 0, 56.971초, exit 0 |
+| 추가 손상·중단 최초 | 9 실행, 8 pass/error 2(한 부모 시험), 4.536초, exit 1 |
+| owner 오류 통일 후 | 9 pass, failure/error/Skip 0, 4.442초, exit 0 |
+| 최종 Level 2 | 863 discovered/started/pass, 507.923초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 후보 552개, exit 0 |
+| R3 mutation | 실제 두 번째 Tool 파일 효과로 한도 누락 탐지, detector exit 0 |
+| 문서 검사 | 문서 131개, Python fence 178개, 상대 링크 951개, anchor 34개, 오류 0, exit 0 |
+
+추가 시험의 두 오류는 Null/array JSON을 공통 deserialize가 TypeError로 거부한 경우였다.
+owner에서 손상 ValueError로 전달하도록 수정하고 기존 거부·원본 보존 assertion은 유지했다.
+새 시험에는 생성/수정/삭제 각각 원본·목록·commit의 실제 exit 77 9개 경계, 도달 witness,
+재열기 후 전체 원본 또는 완전한 새 상태, 장애 후 CAS와 명시 삭제 상태를 포함한다.
+실패 로그를 포함한 개별 실행 증거는 `/workspace/llm-clean-resume/h2-j/`에 보존한다.
+정적 검사 명령은 check_architecture --require S1, 안전성 검사는 check_budget_mutation이다.
+문서 명령은 `.venv-linux312/bin/python -m tests.llm.check_docs --output
+/workspace/llm-clean-resume/h2-j/docs.json`이며 갱신 후 실행했다.
+
+Level 2는 전체 discovery 2,395개 중 위 모듈을 선택했으며 failure/error/Skip/
+expected failure/unexpected success/missing/unexpected/duplicate는 모두 0이다.
+전후 Python 664개 manifest는 1f6d28c21ba4385f7caf567352ab52677fb22e8518a779d7dfa4f3c07dc282a2,
+제품·시험·Fixture/자산 823개·설치 의존성 136개·host/환경 manifest는
+5ed4043fe6bcc0a3614243bd1b0b6e419ba32ae6491c12e0ac0760c5cbf65e71로 각각 일치한다.
+
+이번 소단계는 **전체 LLM/Hub 회귀를 수행하지 않았다**. 새 저장 owner와 확인한 소비자로
+영향이 제한되며 전체 gate는 다음 Memory 압축 상태 보강과 묶는다. 문서를 우선 갱신하고
+독립 로컬 커밋으로 보존한다. 상위 H2 완료·Push·원격 CI 완료를 뜻하지 않는다.
+
+다음 별도 압축 상태 probe는 요청 파일 소실의 빈 상태 처리, 저장 cursor 소실 후 실제 모델
+파일 효과 반복, Tool 요약 참조 소실 후 실제 원본 파일 삭제를 재현했다(3 failure,
+error·Skip 0, 1.872초, exit 1). 최초 probe는 import한 fixture 클래스까지 22개 시험을 실행해
+19 pass/3 failure, 18.507초, exit 1이었으며 로그를 보존했다. 발견 범위만 세 재현으로 바로잡고
+assertion은 유지했다. 이 세 실패는 위 Level 2에 아직 편입되지 않았다. 다음 H2에서 우선
+수정하며 H2 전체·H3–H5·P1 잔여·A–F로 넘어가지 않는다. 나머지 owner 감사는 기존 기록을
+유지하며 미완료다. 실제 인증 모델 호출이나 전원 단절은 검증하지 않았다.
+
 ## H2-i RAG 준비·배치 영수증 — H2-h/i Level 3 묶음 게이트
 
 H2-h 로컬 커밋 `b362b79f93f7ba107816623da0b9020ec5c842ec`에서 이어서 준비 결과와

@@ -397,3 +397,10 @@ JobStorage의 준비/배치 존재 증거와 공개 후 원자 정리 계약, H2
 [수명주기 검증](lifecycle-verification.md)에 갱신했다. 기존 준비 영수증 소실 재현의 해결과
 별도 Memory 요약 소실 2개 실패를 구분했다. 기존 38개 데이터군과 docs 전문 검토 결과를
 재사용하며 변경된 owner만 갱신했다. H2 전체·원격 CI 완료로 표시하지 않는다.
+
+## 2026-10-21 H2-j Level 2 후 문서 우선 갱신
+
+Memory Session 요약의 존재 증거·원자 publish/clear·공통 소비자 검증을 반영했다.
+선택 검증과 전체 회귀 유예, 별도 압축 요청/cursor·Tool 원본 참조 소실의 세 실패는
+[수명주기 검증](lifecycle-verification.md)에 구분했다. 38개 데이터군 원감사·기존 실행 기록을
+재사용하고 바뀐 owner만 갱신했다. H2 전체·원격 CI 완료로 표시하지 않는다.

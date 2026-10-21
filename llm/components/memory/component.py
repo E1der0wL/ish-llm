@@ -15,6 +15,7 @@ from llm.core.schema import object_schema, metadata_schema, field
 from jsonschema import Draft202012Validator
 from llm.errors import CodedError
 from .data import MemoryData
+from .summary_storage import SummaryStorage
 from llm.services.infrastructure.storage import atomic_json, read_json
 
 
@@ -87,21 +88,25 @@ class MemoryComponent(Component):
             yield path.stem, deepcopy(record)
 
     def _summary_path(self, project, session_id):
-        return self._checked(self.root(project) / "contexts" / (validate_name(session_id) + ".json"))
+        return SummaryStorage(project, self).path(session_id)
 
     def _validate_summary(self, session_id, value):
-        validate_name(value.get("generation"))
+        if (not isinstance(value, dict) or not isinstance(value.get("generation"), str)
+                or re.fullmatch(r"[a-f0-9]{32}", value["generation"]) is None):
+            raise ValueError("Invalid Session summary generation")
         if value.get("session_id") != session_id or type(value.get("revision")) is not int or value["revision"] < 1:
             raise ValueError("Invalid Session summary identity")
         if not isinstance(value.get("content"), str) or not value["content"].strip():
             raise ValueError("Invalid Session summary content")
-        metadata = value.get("metadata", {})
+        metadata = value.get("metadata")
+        if not isinstance(metadata, dict):
+            raise ValueError("Invalid Session summary metadata")
         if "work_state" in metadata:
             from .work_state import SUMMARY_FORMAT_VERSION, validate_work_state
             if metadata.get("summary_format_version") != SUMMARY_FORMAT_VERSION:
                 raise ValueError("Invalid work state format version")
             validate_work_state(metadata["work_state"])
-        if not isinstance(metadata, dict) or type(metadata.get("coverage_count")) is not int or metadata["coverage_count"] < 0:
+        if type(metadata.get("coverage_count")) is not int or metadata["coverage_count"] < 0:
             raise ValueError("Invalid Session summary coverage")
         partial = metadata.get("partial")
         if metadata["coverage_count"] == 0 and not partial:
@@ -214,12 +219,7 @@ class MemoryComponent(Component):
 
     # 공개 API: ComponentData가 아래 트랜잭션 전체를 workspace 잠금으로 보호한다.
     def summary(self, project, session_id):
-        path = self._summary_path(project, session_id)
-        if not path.exists():
-            return None
-        value = self.deserialize(path.read_text(encoding="utf-8"))
-        self._validate_summary(session_id, value)
-        return value
+        return SummaryStorage(project, self).read(session_id)
 
     def publish_summary(self, project, session_id, value, *, expected_revision, expected_generation):
         current = self.summary(project, session_id)
@@ -230,7 +230,7 @@ class MemoryComponent(Component):
         result.update(session_id=session_id, revision=expected_revision + 1,
                       generation=current["generation"] if current else new_id())
         self._validate_summary(session_id, result)
-        atomic_json(self._summary_path(project, session_id), result)
+        SummaryStorage(project, self).write(session_id, result)
         return result
 
     def clear_summary(self, project, session_id, *, expected_revision, expected_generation):
@@ -238,18 +238,18 @@ class MemoryComponent(Component):
         if current is None:
             raise FileNotFoundError("Session summary does not exist")
         self._check_revision(current, expected_revision, expected_generation)
-        from llm.services.infrastructure.storage import unlink_file
-        path = self._summary_path(project, session_id)
-        unlink_file(path)
+        SummaryStorage(project, self).clear(session_id)
 
     def initialize(self, project):
         root = self._checked(self.root(project))
         if self.name in project.initialized_components:
             self.identity(project)
             super().initialize(project)
+            SummaryStorage(project, self).inventory()
             return
         super().initialize(project)
         atomic_json(root / "identity.json", {"id": new_id()})
+        SummaryStorage(project, self).initialize()
 
     def identity(self, project):
         path = self._checked(self.root(project) / "identity.json")
@@ -261,6 +261,8 @@ class MemoryComponent(Component):
 
     def history_references(self, project):
         runs, messages, sessions = set(), set(), set()
+        if not self._has_storage(project):
+            return {"run_ids": [], "message_ids": [], "session_ids": []}
         def source(value):
             if isinstance(value, dict):
                 if value.get("run_id"):
@@ -274,9 +276,7 @@ class MemoryComponent(Component):
             for entry in envelope["history"]:
                 source(entry.get("source"))
         # 요약의 coverage hash는 전체 원본 접두부를 검증한다. 부분 삭제로 이를 깨지 않는다.
-        for path in self._checked(self.root(project) / "contexts").glob("*.json"):
-            value = read_json(self._checked(path))
-            self._validate_summary(path.stem, value)
+        for value in SummaryStorage(project, self).inventory()[1].values():
             sessions.add(value["session_id"])
             source(value.get("source"))
         for path in self._checked(self.root(project) / "compactions").glob("*/*.json"):
@@ -460,8 +460,7 @@ class MemoryComponent(Component):
         self.identity(project)
         self.get_config(project)
         list(self._all_records(project))
-        for path in self._checked(self.root(project) / "contexts").glob("*.json"):
-            self.summary(project, path.stem)
+        SummaryStorage(project, self).inventory()
         from .compaction import validate_checkpoint
         for directory in ("compactions", "tool_summaries"):
             for path in self._checked(self.root(project) / directory).glob("*/*.json"):
@@ -470,6 +469,7 @@ class MemoryComponent(Component):
                     validate_checkpoint(request["checkpoint"])
 
     def clone(self, source, destination):
+        SummaryStorage(source, self).inventory()
         for identifier, _ in self._all_records(source):
             # 출처는 원래 Project/Run을 유지하며 복제 과정에서 새 기억으로 다시 작성하지 않는다.
             if self._record_path(destination, identifier).exists():
