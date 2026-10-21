@@ -126,6 +126,7 @@ BaseEngine에 Memory 전용 로직을 추가하지 않는다. Loop의 범용 com
   records/
     <id>.json   # {record: 현재 값, history: 변경별 스냅샷 목록}
   contexts.manifest.json # 필수 Session 요약 목록·내용 revision
+  compactions.manifest.json # 문맥/Tool 요약 목록·scope·내용 revision
   contexts/
     <session-id>.json  # 원문 범위를 확인할 수 있는 최신 파생 요약 캐시
 ```
@@ -145,8 +146,12 @@ Project의 initialized_components 이력은 선택 해제 후에도 남으며 �
 요약 집합·내용 revision과 요약의 필수 의미를 검증한다. 생성 전과 명시 clear 후에만 None이며
 선언된 요약/목록/디렉터리 소실을 새 generation으로 복원하지 않는다. publish/clear는 원본과
 목록을 함께 확정한다. 조회·처리 snapshot·이력 참조·backup/clone·재선택에서 동일하게 검증한다.
-압축 요청·Tool 결과 요약·병합 등 나머지 부가 자료와 상위 삭제·참조 보호의 완전한 검증은
-H2–H5 잔여 항목이다.
+Compactions는 compactions.manifest.json에 문맥/Tool 요약의 정확한 파일 집합·scope·revision을
+보존한다. 조회·저장·재개·이력/원본 참조 수집·backup/clone·재선택에서 필수 존재와 상태별
+필드·cursor를 함께 검증한다. Tool의 reference/summary mode는 저장된 필수 값이다.
+정상 압축 옵션 Reader/Writer는 같은 검증 함수를 사용한다. 기록과 목록, Tool 원본과 참조의
+생성·명시 삭제는 한 transaction이다. 병합 등 나머지 자료와 상위 삭제·참조 보호의 완전한
+검증은 H2–H5 잔여 항목이다.
 
 Memory 데이터 저장과 Run/Step 기록은 별개 트랜잭션이다. Tool 효과 후 Run 기록 실패 시
 기억은 이미 반영됐을 수 있으므로 출처와 이력을 확인한다. 실패한 Tool 효과를 자동 재시도하지

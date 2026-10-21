@@ -9,6 +9,88 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-k Memory 압축 요청·cursor·원본 참조 — H2-j/k Level 3 묶음 게이트
+
+H2-j 로컬 커밋 `73dbe9df1ff1f077ce97ddf3eee255339eeace66`에서 이어서 압축 상태를 보강했다.
+요청 파일 소실의 빈 상태 처리, cursor 소실 뒤 실제 두 번째 모델 파일 효과, Tool 참조 소실
+뒤 실제 원본 파일 삭제의 세 재현을 회귀에 편입했다. 구현 전 3 failure, error·Skip 0,
+1.829초, exit 1이다. 모델과 Tool은 시험용 adapter이며 인증 모델 호출은 아니다.
+
+Compactions가 현재 버전·Project/Component 소유권과 정확한 문맥/Tool 요약 파일 집합,
+scope·revision을 compactions.manifest.json으로 소유한다. 새 Memory에만 빈 목록과 두
+디렉터리를 만든다. 생성 전/명시 삭제 후 상태만 빈 값이며 소실·미선언 기록·변조·링크·비정규
+파일은 보존·거부한다. 기록·목록 및 Tool 원본 파일/참조 생성, 명시 삭제는 기존 workspace
+transaction에 함께 참여한다. 비활성 Memory와 backup/clone/재선택도 같은 owner 검증을 쓴다.
+
+현재 문맥의 scope·토큰 Nullable 값·턴 출처, 요청의 상태·옵션·원본 리비전, 실행 Run,
+부분/완료 cursor와 적용된 요약, Tool reference/summary mode·원본 참조를 hash와 별도로
+검증한다. 정상 압축 옵션 Reader/Writer는 한 검증 함수를 쓴다. Tool mode는 Writer가 명시한다.
+조회·재개·참조 수집·삭제에서 손상 자료를 기본값으로 바꾸지 않는다. 원래의 명시 resume,
+취소·삭제 허용 상태와 모델/Tool 한도·외부 효과 실행 정책은 유지한다.
+
+### 검증과 범위
+
+Memory 저장 상태·원본 파일 참조·Hub 압축 API가 연결되므로 H2-j/k의 현재 통합 소스를
+전체 LLM/Hub로 검증했다. 최초 집중은 memory_compaction_integrity, large_data,
+memory_processing, memory_summary_integrity, Hub summary_api 5개 모듈이다. 추가 안전성은
+memory_compaction_integrity 전체, 마지막 Reader/Writer 검증은 그 모듈과 large_data 전체다.
+실행 명령의 공통 형태는 아래와 같고 각 JSON에 전체 발견/실행 식별자를 보존했다.
+
+```bash
+python -m tests.llm.run_regression --suite all --modules tests.llm.test_memory_compaction_integrity tests.llm.test_large_data tests.llm.test_memory_processing tests.llm.test_memory_summary_integrity tests.hub.test_summary_api --output /workspace/llm-clean-resume/h2-k/focused-2.json
+python -m tests.llm.run_regression --suite llm --modules tests.llm.test_memory_compaction_integrity tests.llm.test_large_data --output /workspace/llm-clean-resume/h2-k/focused-4.json
+python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/h2-k/final/llm.json
+python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/h2-k/final/hub.json
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-k/final/architecture.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-k/final/docs.json
+```
+
+python은 `.venv-linux312/bin/python` 3.12.14다. TERM=xterm-256color,
+LITELLM_LOCAL_MODEL_COST_MAP=True, LITELLM_MODE=PRODUCTION,
+HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb,
+HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip을 사용했다. host는 기존
+ish d833790959a76ac457fdeea3f21a6bea1eecfe12이며 비root 실제 bwrap/X11 경로를 유지했다.
+
+| 실행 | 실제 결과 |
+|---|---|
+| 최초 직접 소비자 | 67 실행, 66 pass/error 1, 72.335초, exit 1 |
+| owner fixture 이관 후 | 67 pass, failure/error/Skip 0, 72.559초, exit 0 |
+| 추가 필드·원본·중단 검증 | 9 pass, 9.191초, exit 0 |
+| Reader/Writer 옵션 검증 후 | 28 pass, failure/error/Skip 0, 26.532초, exit 0 |
+| 전체 LLM | 1,864 discovered/started/pass, 594.062초, exit 0 |
+| 전체 Hub | 540 discovered/started/pass, 692.921초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 후보 552개, exit 0 |
+| R3 mutation | 실제 두 번째 Tool 파일 효과 assertion으로 한도 누락 탐지, detector exit 0 |
+| 문서 검사 | 문서 131개, Python fence 178개, 상대 링크 952개, anchor 34개, 오류 0, exit 0 |
+
+최초 오류는 옵션 원본만 바꾸던 fixture가 새 존재/내용 검증에서 먼저 차단된 경우였다.
+정규 writer로 옵션을 바꾸도록 이관하고 기존 cursor로 모델을 다시 호출하지 않는 assertion을
+유지했다. 최초 정적 검사의 신규 5개 후보는 owner 상태 상수와 조건별 검증으로 해소했으며
+검사기나 부채 baseline을 완화하지 않았다. 모든 실패 로그는 보존한다.
+
+새 시험은 생성/수정/삭제의 원본·목록·commit과 Tool 원본 생성 중간을 포함한 실제 exit 77
+13개 경계를 도달 witness로 확인한다. 재열기 후 원본 또는 완전한 새 상태, 원본/참조의 동시
+rollback, 확정된 참조의 실제 파일 삭제 차단까지 확인한다. 필수 필드 소실은 해당 기록의
+내용 hash를 맞춘 경우에도 의미 검증으로 거부한다. 실제 전원 단절·network filesystem은
+이 검증 범위가 아니다.
+
+전체 두 suite 각각 발견=실행=pass이며 failure/error/Skip/expected failure/unexpected success/
+missing/unexpected/duplicate는 모두 0이다. 서로 다른 실행을 전체 실행으로 합산하지 않았다.
+전체 전후 Python 665개 manifest는 d5a880d938e1981fe96613211e4a607934c01f1eb82058bb011e65b0072960d2,
+제품·시험·Fixture/자산 824개·의존성 136개·host/환경 manifest는
+3a9f133dcac8b8cb9c156f8e147a555535d38c52becd87d4bb4a26430403c5de로 각각 일치한다.
+통과 후 문서를 먼저 갱신하고 H2-j/k를 묶어 작업 브랜치에 Push한다. 필수 GitHub Actions는
+그대로 전체 실행한다. API Forbidden으로 원격 CI를 확인하지 못했으므로 통과로 보고하지 않는다.
+
+별도 Memory 병합 probe는 완료 영수증 소실을 backup이 수락, pending 저널 소실 후 읽기
+차단 해제, entries=[]인 손상 저널이 제안을 적용하지 않고 완료 영수증을 생성하는 세 실패를
+재현했다(3 failure, error·Skip 0, 0.381초, exit 1). pending 상태는 정상 journal Writer의
+복구 인계 지점에 장애를 주입해 보존했으며 실제 프로세스 중단 상태라는 주장은 하지 않는다.
+이 세 시험은 위 전체 suite에 아직 포함되지 않았으며 다음 H2 보강에서 우선 수정한다.
+나머지 owner 계약·H2 전체·H3–H5·P1 잔여·A–F는 미완료다. 기존 38개 데이터군 감사와 과거
+결과는 유지하고 이번 owner의 변경 사항만 갱신한다.
+
 ## H2-j Memory Session 요약 존재 증거 — Level 2
 
 H2-h/i 묶음 Push `2cd77b5522525ad667e36966acb4513182e28fe3`에서 이어서 진행했다.

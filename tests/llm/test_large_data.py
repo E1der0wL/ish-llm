@@ -405,9 +405,10 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, 'integrity'):
             await self.memory.aget_context(self.session.id)
         atomic_json(storage.path, state)
-        # Simulate an out-of-band configuration edit: identity must still reject reuse.
+        # A valid owner-written option change must still reject reuse of the old cursor.
         state['request']['options']['prompt'] = 'a different instruction'
-        atomic_json(storage.path, state)
+        with self.app.project_manager.ownership.scope():
+            storage.write(state)
         view = await self.memory.aget_context(self.session.id)
         await self.memory.aresume_compaction(self.session.id, expected_revision=view['revision'])
         count = len(self.requests)

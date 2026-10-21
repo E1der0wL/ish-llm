@@ -5,15 +5,17 @@ from contextlib import aclosing
 from dataclasses import replace
 import asyncio
 import json
+import re
 
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, ValidationError
 
 from llm.core.models import new_id, ProjectConfig
 from llm.core.schema import object_schema, field
 from llm.providers.schema import completion_schema, validate_model_params
 from llm.providers.requests import provider_schema
 from llm.components.summarization import SummaryResult, summarize_fragments
-from llm.services.infrastructure.storage import atomic_json, read_json, revision_token, record, unlink_file
+from llm.components.base import validate_name
+from llm.services.infrastructure.storage import atomic_json, make_directory, revision_token, record, unlink_file
 
 
 def compaction_schema():
@@ -28,6 +30,16 @@ def compaction_schema():
         "completion": completion_schema(), "provider": provider_schema(),
         "timeout_seconds": field("number", exclusiveMinimum=0),
     }, required=["method", "keep_turns", "summary_chars", "model_input_chars", "max_summary_calls", "prompt", "completion"])
+
+
+def validate_compaction_options(options):
+    ProjectConfig.validate_json(options)
+    Draft202012Validator(compaction_schema()).validate(options)
+    validate_model_params(options["completion"], require_model=True)
+    if options["completion"].get("stream", True) is not True or options["completion"].get("n", 1) != 1:
+        raise ValueError("Compaction requires stream=True and n=1")
+    if any(key in options["completion"] for key in ("messages", "tools", "functions", "function_call", "tool_choice")):
+        raise ValueError("Compaction owns its auxiliary messages and cannot execute tools")
 
 
 class CompactionStopped(RuntimeError):
@@ -68,10 +80,193 @@ def validate_checkpoint(value):
 class Compactions:
     """ComponentData의 잠금 경계에서만 호출하는 Memory 소유 파생 자료 저장소."""
 
+    SCHEMA_VERSION = 1
+    MANIFEST = "compactions.manifest.json"
+    CONTEXTS = "compactions"
+    TOOLS = "tool_summaries"
+    RUNNING, PARTIAL, APPLIED = "running", "partial", "applied"
+    STATUSES = frozenset(("pending", RUNNING, PARTIAL, "failed", "interrupted", "cancelled", "stale", APPLIED))
+
+    @classmethod
+    def key(cls, session_id, scope, tool_id=None):
+        validate_name(session_id)
+        if scope is not None and (not isinstance(scope, str) or not scope):
+            raise ValueError("Compaction scope must be a nonempty checkpoint scope or null")
+        if tool_id is not None:
+            if scope is not None:
+                raise ValueError("Tool summary storage has no context scope")
+            return f"{cls.TOOLS}/{session_id}/{validate_name(tool_id)}.json"
+        return f"{cls.CONTEXTS}/{session_id}/{revision_token({'scope': scope})}.json"
+
+    @classmethod
+    def initialize(cls, project, component):
+        root = component.root(project)
+        paths = [component._checked(root / name) for name in (cls.MANIFEST, cls.CONTEXTS, cls.TOOLS)]
+        if any(path.exists() for path in paths):
+            raise ValueError("Cannot adopt existing Memory compaction storage")
+        for path in paths[1:]:
+            make_directory(path)
+        atomic_json(paths[0], {"schema_version": cls.SCHEMA_VERSION, "project_id": project.id,
+                              "component": component.name, "records": {}})
+
+    @staticmethod
+    def _sources(value, hash_field):
+        if not isinstance(value, list):
+            raise ValueError("Invalid compaction source list")
+        identifiers = set()
+        for source in value:
+            if (not isinstance(source, dict) or source.keys() != {"id", hash_field}
+                    or not isinstance(source[hash_field], str)
+                    or re.fullmatch(r"[a-f0-9]{64}", source[hash_field]) is None):
+                raise ValueError("Invalid compaction source identity")
+            identifier = validate_name(source["id"])
+            if identifier in identifiers:
+                raise ValueError("Duplicate compaction source")
+            identifiers.add(identifier)
+        return identifiers
+
+    @classmethod
+    def validate_state(cls, state, *, scope, tool_id):
+        if not isinstance(state, dict) or not state or state.keys() - {"view", "request", "applied"}:
+            raise ValueError("Invalid stored compaction state")
+        if tool_id is None:
+            view = state.get("view")
+            if (not isinstance(view, dict) or view.keys() != {
+                    "run_id", "scope", "iteration", "tokens", "max_tokens", "reserve_tokens", "turns"}
+                    or view["scope"] != scope or type(view["iteration"]) is not int or view["iteration"] < 0
+                    or not isinstance(view["turns"], list)):
+                raise ValueError("Invalid stored compaction context")
+            validate_name(view["run_id"])
+            for key in ("tokens", "max_tokens", "reserve_tokens"):
+                if view[key] is not None and (type(view[key]) is not int or view[key] < 0):
+                    raise ValueError("Invalid stored compaction token count")
+            for group in view["turns"]:
+                cls._sources(group, "digest")
+        elif "view" in state or "request" not in state:
+            raise ValueError("Tool summary requires its stored request")
+        if "request" in state:
+            request = state["request"]
+            if (not isinstance(request, dict) or not {"id", "status", "options"} <= request.keys()
+                    or not isinstance(request["status"], str) or request["status"] not in cls.STATUSES
+                    or not isinstance(request["options"], dict)):
+                raise ValueError("Invalid stored compaction request")
+            validate_name(request["id"])
+            if "run_id" in request:
+                validate_name(request["run_id"])
+            if request["status"] == cls.RUNNING and "run_id" not in request:
+                raise ValueError("Running summary requires its Run")
+            if "error" in request and request["error"] is not None and not isinstance(request["error"], str):
+                raise ValueError("Invalid summary error")
+            if tool_id is None:
+                try:
+                    validate_compaction_options(request["options"])
+                except ValidationError as error:
+                    raise ValueError("Invalid stored compaction options") from error
+                ids = cls._sources(request.get("sources"), "digest")
+                if not ids or ids != cls._sources(request.get("stored_sources"), "revision"):
+                    raise ValueError("Missing compaction source evidence")
+            else:
+                reference = request.get("reference")
+                if (request["id"] != tool_id or request.get("mode") not in ("reference", "summary")
+                        or not isinstance(request.get("tool_call_id"), str) or not request["tool_call_id"]
+                        or not isinstance(reference, dict)
+                        or reference.keys() != {"component", "identifier", "path", "revision"}
+                        or not isinstance(reference["path"], str) or not reference["path"]
+                        or not isinstance(reference["revision"], str)
+                        or re.fullmatch(r"[a-f0-9]{64}", reference["revision"]) is None):
+                    raise ValueError("Invalid Tool summary reference")
+                validate_name(reference["component"])
+                validate_name(reference["identifier"])
+                if request["mode"] == "summary":
+                    options = request["options"]
+                    if not isinstance(options.get("prompt"), str) or not options["prompt"]:
+                        raise ValueError("Invalid Tool summary options")
+                    for key in ("summary_chars", "model_input_chars", "max_summary_calls"):
+                        if type(options.get(key)) is not int or options[key] < 1:
+                            raise ValueError("Invalid Tool summary options")
+                    try:
+                        validate_model_params(options.get("completion"), require_model=True)
+                    except ValidationError as error:
+                        raise ValueError("Invalid stored Tool summary completion") from error
+                elif request["status"] != cls.APPLIED or state.get("applied") != {} or "checkpoint" in request:
+                    raise ValueError("Invalid reference-only Tool state")
+            if "checkpoint" in request:
+                validate_checkpoint(request["checkpoint"])
+            if request["status"] == cls.PARTIAL and "checkpoint" not in request:
+                raise ValueError("Partial summary requires its completed cursor")
+            if request["status"] == cls.APPLIED and not (tool_id is not None and request["mode"] == "reference"):
+                checkpoint = request.get("checkpoint")
+                if (not isinstance(checkpoint, dict) or checkpoint["offset"] != checkpoint["total_chars"]
+                        or not isinstance(state.get("applied"), dict)
+                        or state["applied"].get("summary") != checkpoint["summary"]):
+                    raise ValueError("Applied summary requires its complete cursor")
+        if "applied" in state:
+            applied = state["applied"]
+            if not isinstance(applied, dict):
+                raise ValueError("Invalid applied summary")
+            if tool_id is None:
+                if (applied.keys() != {"summary", "sources", "source"} or not isinstance(applied["source"], dict)
+                        or not cls._sources(applied["sources"], "digest")):
+                    raise ValueError("Invalid applied context sources")
+            if applied and (not isinstance(applied.get("summary"), str) or not applied["summary"].strip()):
+                raise ValueError("Invalid applied summary content")
+
+    @classmethod
+    def inventory(cls, project, component):
+        root = component.root(project)
+        def read(path):
+            path = component._checked(path)
+            if not path.is_file():
+                raise ValueError("Memory compaction evidence must be a regular file")
+            try:
+                return component.deserialize(path.read_text(encoding="utf-8"))
+            except TypeError as error:
+                raise ValueError("Invalid Memory compaction JSON") from error
+        manifest = read(root / cls.MANIFEST)
+        if (manifest.keys() != {"schema_version", "project_id", "component", "records"}
+                or type(manifest["schema_version"]) is not int or manifest["schema_version"] != cls.SCHEMA_VERSION
+                or manifest["project_id"] != project.id or manifest["component"] != component.name
+                or not isinstance(manifest["records"], dict)):
+            raise ValueError("Invalid Memory compaction manifest")
+        paths = {}
+        for kind in (cls.CONTEXTS, cls.TOOLS):
+            directory = component._checked(root / kind)
+            if not directory.is_dir():
+                raise ValueError("Memory compaction directory is missing")
+            for session in directory.iterdir():
+                component._checked(session)
+                validate_name(session.name)
+                if not session.is_dir():
+                    raise ValueError("Invalid compaction Session directory")
+                for path in session.iterdir():
+                    component._checked(path)
+                    if path.suffix != ".json" or not path.is_file():
+                        raise ValueError("Invalid compaction entry")
+                    validate_name(path.stem)
+                    paths[path.relative_to(root).as_posix()] = path
+        if paths.keys() != manifest["records"].keys():
+            raise ValueError("Memory compaction records are missing or undeclared")
+        records = {}
+        for key, entry in manifest["records"].items():
+            if not isinstance(entry, dict) or entry.keys() != {"scope", "revision"}:
+                raise ValueError("Invalid compaction inventory entry")
+            path = paths[key]
+            tool_id = path.stem if path.parent.parent.name == cls.TOOLS else None
+            if cls.key(path.parent.name, entry["scope"], tool_id) != key:
+                raise ValueError("Compaction scope identity changed")
+            state = read(path)
+            cls.validate_state(state, scope=entry["scope"], tool_id=tool_id)
+            if entry["revision"] != revision_token(state):
+                raise ValueError("Memory compaction integrity changed")
+            records[key] = state
+        return manifest, records
+
     def __init__(self, data, session_id, scope, *, tool_id=None):
-        from llm.components.base import validate_name
         self.data, self.session_id = data, session_id
         project, component = data._current()
+        self.project, self.component = project, component
+        self.scope, self.tool_id = scope, tool_id
+        self.record_key = self.key(session_id, scope, tool_id)
         if data._sessions is None:
             raise RuntimeError("Session resources are not bound")
         # Project-owned derived records outlive a purged Session. They remain
@@ -80,13 +275,7 @@ class Compactions:
             self.session = data._sessions.load(project, session_id)
         except FileNotFoundError:
             self.session = None
-        if scope is not None and (not isinstance(scope, str) or not scope):
-            raise ValueError("Compaction scope must be a nonempty checkpoint scope or null")
-        self.path = component._checked(component.root(project) / "compactions" / validate_name(session_id) /
-                                       (revision_token({"scope": scope}) + ".json"))
-        if tool_id is not None:
-            self.path = component._checked(component.root(project) / "tool_summaries" /
-                                           validate_name(session_id) / (validate_name(tool_id) + ".json"))
+        self.path = component._checked(component.root(project) / self.record_key)
 
     @staticmethod
     def _view(state):
@@ -94,13 +283,14 @@ class Compactions:
                 "request": deepcopy(state.get("request"))}
 
     def read(self):
-        state = read_json(self.path) if self.path.exists() else {}
-        if "checkpoint" in state.get("request", {}):
-            validate_checkpoint(state["request"]["checkpoint"])
-        return state
+        return self.inventory(self.project, self.component)[1].get(self.record_key, {})
 
     def write(self, value):
+        manifest, _ = self.inventory(self.project, self.component)
+        self.validate_state(value, scope=self.scope, tool_id=self.tool_id)
+        manifest["records"][self.record_key] = {"scope": self.scope, "revision": revision_token(value)}
         atomic_json(self.path, value)
+        atomic_json(self.component.root(self.project) / self.MANIFEST, manifest)
 
     def recover(self):
         """Read once and mark orphaned work inactive; never replay it automatically."""
@@ -186,16 +376,15 @@ class Compactions:
             raise ValueError("Finish or cancel summary work before deleting its derived state")
         if revision_token(state) != expected_revision:
             raise ValueError("Summary request changed")
+        manifest, _ = self.inventory(self.project, self.component)
+        if self.record_key not in manifest["records"]:
+            raise FileNotFoundError("Compaction does not exist")
+        del manifest["records"][self.record_key]
         unlink_file(self.path)
+        atomic_json(self.component.root(self.project) / self.MANIFEST, manifest)
 
     def request(self, options, expected_revision):
-        ProjectConfig.validate_json(options)
-        Draft202012Validator(compaction_schema()).validate(options)
-        validate_model_params(options["completion"], require_model=True)
-        if options["completion"].get("stream", True) is not True or options["completion"].get("n", 1) != 1:
-            raise ValueError("Compaction requires stream=True and n=1")
-        if any(key in options["completion"] for key in ("messages", "tools", "functions", "function_call", "tool_choice")):
-            raise ValueError("Compaction owns its auxiliary messages and cannot execute tools")
+        validate_compaction_options(options)
         state = self.recover()
         if expected_revision != revision_token(state):
             raise ValueError("Compaction context changed; reload before requesting")

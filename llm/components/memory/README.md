@@ -86,6 +86,9 @@ Loop의 추가 지시는 원래 사용자 요청과 같은 턴으로 요약·보
 요청을 저장하고 다음 Loop 입력 준비 경계에서 처리합니다. API 호출 자체는 모델을 실행하지 않습니다.
 모델·프롬프트·최근 보존 턴·요약 크기·model_input_chars·max_summary_calls는 애플리케이션이 명시합니다.
 
+Compactions는 compactions.manifest.json으로 문맥·Tool 요약의 존재·scope·revision을
+검증합니다. 아직 생성하지 않은 상태만 비어 있으며, 소실된 요청·cursor·원본 참조를 빈 값으로
+복원하지 않습니다. 기록과 목록, Tool 원본과 참조 생성은 같은 transaction입니다.
 조각별 최신 누적 체크포인트를 저장하고 완료·검증 후에만 원자적으로 적용합니다.
 부분 결과는 적용하지 않습니다. `aresume_compaction`은 같은 요청을 다음 입력 경계에 다시
 예약하고 `acancel_compaction`은 미사용 예약 또는 다음 저장 경계 이후의 결과를 취소합니다.

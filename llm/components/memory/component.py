@@ -241,15 +241,18 @@ class MemoryComponent(Component):
         SummaryStorage(project, self).clear(session_id)
 
     def initialize(self, project):
+        from .compaction import Compactions
         root = self._checked(self.root(project))
         if self.name in project.initialized_components:
             self.identity(project)
             super().initialize(project)
             SummaryStorage(project, self).inventory()
+            Compactions.inventory(project, self)
             return
         super().initialize(project)
         atomic_json(root / "identity.json", {"id": new_id()})
         SummaryStorage(project, self).initialize()
+        Compactions.initialize(project, self)
 
     def identity(self, project):
         path = self._checked(self.root(project) / "identity.json")
@@ -279,8 +282,10 @@ class MemoryComponent(Component):
         for value in SummaryStorage(project, self).inventory()[1].values():
             sessions.add(value["session_id"])
             source(value.get("source"))
-        for path in self._checked(self.root(project) / "compactions").glob("*/*.json"):
-            state = read_json(self._checked(path))
+        from .compaction import Compactions
+        for key, state in Compactions.inventory(project, self)[1].items():
+            if not key.startswith(Compactions.CONTEXTS + "/"):
+                continue
             messages.update(item["id"] for item in state.get("applied", {}).get("sources", []))
             if state.get("request", {}).get("status") in ("pending", "running", "partial", "failed", "interrupted"):
                 messages.update(item["id"] for item in state["request"]["sources"])
@@ -288,9 +293,13 @@ class MemoryComponent(Component):
 
     def references(self, project):
         refs = []
-        for path in self._checked(self.root(project) / "tool_summaries").glob("*/*.json"):
-            request = read_json(self._checked(path))["request"]
-            refs.append({**request["reference"], "source": request["id"]})
+        if not self._has_storage(project):
+            return refs
+        from .compaction import Compactions
+        for key, state in Compactions.inventory(project, self)[1].items():
+            if key.startswith(Compactions.TOOLS + "/"):
+                request = state["request"]
+                refs.append({**request["reference"], "source": request["id"]})
         return refs
 
     def validate_config(self, data):
@@ -461,15 +470,13 @@ class MemoryComponent(Component):
         self.get_config(project)
         list(self._all_records(project))
         SummaryStorage(project, self).inventory()
-        from .compaction import validate_checkpoint
-        for directory in ("compactions", "tool_summaries"):
-            for path in self._checked(self.root(project) / directory).glob("*/*.json"):
-                request = read_json(self._checked(path)).get("request", {})
-                if "checkpoint" in request:
-                    validate_checkpoint(request["checkpoint"])
+        from .compaction import Compactions
+        Compactions.inventory(project, self)
 
     def clone(self, source, destination):
         SummaryStorage(source, self).inventory()
+        from .compaction import Compactions
+        Compactions.inventory(source, self)
         for identifier, _ in self._all_records(source):
             # 출처는 원래 Project/Run을 유지하며 복제 과정에서 새 기억으로 다시 작성하지 않는다.
             if self._record_path(destination, identifier).exists():

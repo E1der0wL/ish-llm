@@ -205,7 +205,7 @@ class MemoryData(ComponentData):
         snapshot = files.write_file(destination["identifier"], path, text, expected_revision=snapshot["version"])
         reference = {**destination, "path": path, "revision": revision_token(snapshot["data"]["files"][path])}
         state = {"request": {"id": identifier, "status": "applied" if mode == "reference" else "pending",
-            "options": deepcopy(options), "reference": reference, "tool_call_id": call_id}}
+            "mode": mode, "options": deepcopy(options), "reference": reference, "tool_call_id": call_id}}
         if mode == "reference":
             state["applied"] = {}
         storage.write(state)  # Source + reference share the workspace transaction.
@@ -262,10 +262,13 @@ class MemoryData(ComponentData):
         from .compaction import Compactions
         project, component = self._current()
         from llm.components.base import validate_name
-        root = component._checked(component.root(project) / "tool_summaries" / validate_name(session_id))
+        validate_name(session_id)
+        prefix = Compactions.TOOLS + "/" + session_id + "/"
         result = []
-        for path in sorted(root.glob("*.json")):
-            result.append(Compactions(self, session_id, None, tool_id=path.stem).view())
+        for key in sorted(Compactions.inventory(project, component)[1]):
+            if key.startswith(prefix):
+                identifier = key.removeprefix(prefix).removesuffix(".json")
+                result.append(Compactions(self, session_id, None, tool_id=identifier).view())
         return result
 
     @workspace_locked
