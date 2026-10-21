@@ -254,16 +254,18 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await project.aretention()).candidates, [])
 
     async def test_component_maintenance_is_opt_in_and_preserves_failed_jobs(self):
-        app, _ = await self.app(components=[RAGComponent()])
+        component = self.rag()
+        app, _ = await self.app(components=[component])
         project = await app.projects.acreate(components=["rag"], config=rag_project())
         data = project.components.rag
-        first = await data.aenqueue_document(title="one", content="# One")
-        second = await data.aenqueue_document(title="two", content="# Two")
+        with patch("llm.components.rag.jobs.now", return_value="2000-01-01T00:00:00+00:00"):
+            first = await data.aenqueue_document(title="one", content="# One")
+            second = await data.aenqueue_document(title="two", content="# Two")
+            await data.arun_job(first["id"])
+            with patch.object(component.embedding, "embed", side_effect=ConnectionError("offline")):
+                with self.assertRaises(ConnectionError):
+                    await data.arun_job(second["id"])
         root = project.paths.root / "rag" / "jobs"
-        for job, status in ((first, "completed"), (second, "failed")):
-            value = read_json(root / job["id"] / "job.json")
-            value.update(status=status, ended_at="2000-01-01T00:00:00+00:00")
-            atomic_json(root / job["id"] / "job.json", value)
         self.assertEqual((await project.amaintenance())["components"]["rag"]["candidates"], [])
         await data.aconfigure({'policy': {'retention': {'job_max_age_seconds': 60}}})
         plan = await project.amaintenance()

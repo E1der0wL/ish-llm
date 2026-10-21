@@ -13,8 +13,9 @@ Checkpoint 개별 기록 소실 후 중복 효과를 보강하고 집중/전체 
 H2-e도 Component 저장소 이력·사용량 manifest·필수 영수증 필드를 보강하고 집중/전체 회귀를
 통과했다. H2-f는 공통 JSON 기록·File 패키지의 존재 목록, Memory 캐시와 Vision 삭제 표식
 소실 경로를 보강하고 집중/전체 회귀를 통과했다. H2-g의 Python Tool 패키지 목록·worker·
-Hub 가져오기 경계도 전체 회귀를 통과했다. RAG Job/실행 중 lease 소실의 별도 2개 실패와
-나머지 owner 계약은 남아 있다. H2 전체는 미완료이며
+Hub 가져오기 경계도 전체 회귀를 통과했다. H2-h는 RAG Job 목록·lease 보강의 Level 2 로컬
+검증을 통과했으며 전체 회귀는 다음 RAG 묶음 게이트로 유예했다. 준비/배치 영수증 소실의
+별도 1개 실패와 나머지 owner 계약은 남아 있다. H2 전체는 미완료이며
 이 차단 항목들을 해결하기 전 P1/A–F로 넘어가지 않는다.
 기준 작업 트리는 `refactor/llm-clean`, HEAD `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 보존 중인 P1-c 변경이다. main이나 이전 backend 브랜치의 검증 결과를 승계하지 않는다.

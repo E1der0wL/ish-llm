@@ -321,7 +321,7 @@ class RAGCheckpointTests(unittest.IsolatedAsyncioTestCase):
         def fail(*args):
             remove_named_tree(*args)
             raise OSError("disk failure")
-        with patch("llm.components.rag.jobs.remove_named_tree", side_effect=fail):
+        with patch("llm.components.rag.job_storage.remove_named_tree", side_effect=fail):
             with self.assertRaises(OSError):
                 await self.rag.adelete_job(job["id"], expected_revision=plan.revision)
         self.assertTrue(path.exists())
@@ -346,7 +346,7 @@ class RAGCheckpointTests(unittest.IsolatedAsyncioTestCase):
             if not release.wait(10):
                 raise RuntimeError("Test gate timed out")
             remove_named_tree(*args)
-        with patch("llm.components.rag.jobs.remove_named_tree", side_effect=delayed):
+        with patch("llm.components.rag.job_storage.remove_named_tree", side_effect=delayed):
             operation = asyncio.create_task(self.rag.adelete_job(job["id"], expected_revision=plan.revision))
             try:
                 self.assertTrue(await asyncio.to_thread(entered.wait, 5))
@@ -385,20 +385,17 @@ class RAGCheckpointTests(unittest.IsolatedAsyncioTestCase):
     async def test_stale_running_job_can_be_abandoned_without_replay(self):
         job = await self.enqueue()
         jobs = RAGJobs(self.rag)
-        root = jobs._path(job["id"])
-        atomic_json(root / "job.json", {**job, "status": "running", "phase": "preparing"})
+        jobs._claim(job["id"], False)
         plan = await self.rag.acheckpoint_plan(job["id"])
         self.assertTrue(plan.can_abandon)  # OS lease, not a stale status/PID, owns execution.
         await self.rag.aabandon_job(job["id"], expected_revision=plan.revision)
         await self.rag.adelete_job(job["id"], expected_revision=(await self.rag.acheckpoint_plan(job["id"])).revision)
 
     async def test_abandoned_job_retention_is_explicit_and_live_lease_is_protected(self):
-        job = await self.enqueue()
-        await self.rag.aabandon_job(job["id"], expected_revision=(await self.rag.acheckpoint_plan(job["id"])).revision)
+        with patch("llm.components.rag.jobs.now", return_value="2020-01-01T00:00:00+00:00"):
+            job = await self.enqueue()
+            await self.rag.aabandon_job(job["id"], expected_revision=(await self.rag.acheckpoint_plan(job["id"])).revision)
         jobs = RAGJobs(self.rag)
-        stored = jobs.get(job["id"])
-        stored["resume_abandonment"]["abandoned_at"] = "2020-01-01T00:00:00+00:00"
-        atomic_json(jobs._path(job["id"]) / "job.json", stored)
         project, component = self.rag._current()
         self.assertFalse(component.maintenance(project)["candidates"])
         await self.rag.aconfigure({"policy": {"retention": {"job_max_age_seconds": 60}}})

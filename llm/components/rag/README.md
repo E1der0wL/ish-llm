@@ -33,6 +33,7 @@ Markdown 문서를 분할하고 임베딩과 관계를 추출하여 Chroma/BM25/
 | [ingestion.py](ingestion.py) | 청크별 bounded 임베딩, 중복 제거, 캐시·이전 벡터 재사용과 진행 전달입니다. |
 | [cache.py](cache.py) | 명시적인 용량 안에서 불변 세대의 코퍼스 읽기 사본을 보관합니다. |
 | [jobs.py](jobs.py) | 등록 Job, 청크·추출 checkpoint와 명시적 재개를 관리합니다. |
+| [job_storage.py](job_storage.py) | 필수 Job 목록·리비전·worker lease identity와 원자적 저장을 소유합니다. |
 | [files.py](files.py) | 세대 구성 시 파일 복사/reflink 등 Linux 파일 처리를 돕습니다. |
 | [indexing.py](indexing.py) | 문서 벡터를 Chroma 색인으로 구성합니다. |
 | [graph_indexing.py](graph_indexing.py) | Kuzu 엔티티·관계·출처 색인을 구성합니다. |
@@ -212,12 +213,20 @@ llm VectorCache만 사용한다. 용량이 없거나 0이면 LRU를 끈다. fing
 구 fingerprint는 일치하지 않으므로 다음 update에서 재계산한다. 기존 corpus는 자동 변경하지 않는다. 현재 graph_schema_version은 1이며 지원하지 않는 저장 형식은 거부한다. 이전 batch checkpoint를 새 청크 결과로 해석하지 않는다.
 설정이 달라진 prepared Job은 새 Job으로 등록해야 한다.
 
+RAG 생성 때 필수 jobs.manifest.json과 jobs 디렉터리를 확정한다. Job 생성은 입력·Job·목록과
+identity가 있는 worker.lock을 함께 저장한다. 정확한 Job 집합·리비전·소유권을 검증하며
+소실·미선언 기록을 빈 큐로 해석하지 않는다. 조회·재시도·maintenance는 lease를 만들지 않는다.
+입력 소실은 재개 계획에서 missing/실행 불가로 보고하고 backup·clone은 거부한다.
+유효한 Job 메타데이터 조회와 안전성이 확인된 명시 삭제는 기존 진단·삭제 계약을 따른다.
+
 긴 문서는 enqueue_document → arun_job을 권장한다. 실패 후 arun_job(id, retry=True)로 명시적으로
 재개한다. 기존 서비스 소유 checkpoint 디렉터리 `jobs/<id>/batches/` 아래에
 `embedding_<original_position>.json`을 쓴다. 이 디렉터리는 추출 checkpoint도 공유하므로 이름을 유지한다.
 embedding 파일의 outer signature와 value의 fingerprint/text_hash/vector를 검증한다.
 worker는 progress callback만 호출하며 RAGJobs가 workspace 잠금과 atomic_json으로 저장한다.
-완료 순서와 파일 번호는 무관하고 완료된 청크는 재개 시 호출하지 않는다.
+완료 순서와 파일 번호는 무관하고 보존된 완료 checkpoint는 재개 시 호출하지 않는다.
+준비 결과·배치 영수증 자체의 소실을 거부하는 존재 증거는 H2 잔여 보강이며, 별도 재현 실패는
+[검증 기록](../../../docs/llm/lifecycle-verification.md)에 남긴다.
 
 실패하면 새 청크 배정을 중단하고 진행 중 요청의 성공 checkpoint를 보존한다.
 취소하면 모든 worker를 취소하고 종료를 기다린다. 완료 checkpoint는 유지하고 미완료 세대는

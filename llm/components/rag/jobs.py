@@ -11,6 +11,7 @@ from llm.core.contracts import ResourceRef, Diagnostic
 from llm.core.plans import CheckpointPlan, JobResumePlan
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import atomic_json, read_json, revision_token, remove_named_tree, tree_snapshot
+from .job_storage import JobStorage
 
 
 class RAGJobs:
@@ -19,15 +20,18 @@ class RAGJobs:
     def __init__(self, data):
         self.data, self.ownership = data, data.ownership
 
-    def _path(self, identifier):
+    def _storage(self):
         project, component = self.data._current()
-        return component._checked(component.root(project) / "jobs" / validate_name(identifier))
+        return JobStorage(project, component)
+
+    def _path(self, identifier):
+        return self._storage().path(identifier)
 
     def _plan(self, identifier, *, live, job=None):
         project, _ = self.data._current()
         job = self.get(identifier) if job is None else job
         source = ResourceRef("rag_job", identifier, project_id=project.id, component=self.data.name)
-        files = tree_snapshot(self._path(identifier), exclude=("worker.lock",))
+        files = tree_snapshot(self._path(identifier), exclude=(JobStorage.LEASE,))
         abandoned = "resume_abandonment" in job
         common = [Diagnostic("active_worker", "Indexing worker is still alive; cancel and await it first", source=source)] if live else []
         abandon = list(common)
@@ -47,7 +51,7 @@ class RAGJobs:
         root = self._path(identifier)
         blockers, reused = [], []
         state = "not_created" if job["status"] == "queued" else "available"
-        files = tree_snapshot(root, exclude=("worker.lock",))
+        files = tree_snapshot(root, exclude=(JobStorage.LEASE,))
         def block(code, message):
             blockers.append(Diagnostic(code, message, source=source))
         if live:
@@ -98,11 +102,9 @@ class RAGJobs:
         payload = {"title": title, "content": content, "metadata": metadata or {}, "identifier": identifier}
         if description is not None:
             payload["description"] = description
-        root = self._path(job_id)
-        atomic_json(root / "input.json", payload)
         job = {"id": job_id, "document_id": identifier, "status": "queued", "created_at": now(),
                "input_digest": revision_token(payload), "phase": "queued"}
-        atomic_json(root / "job.json", job)
+        self._storage().create(job, payload)
         return job
 
     @workspace_locked
@@ -111,21 +113,17 @@ class RAGJobs:
         inputs = validate_documents(documents)
         job_id = uuid4().hex
         payload = {"documents": inputs}
-        root = self._path(job_id)
-        atomic_json(root / "input.json", payload)
         job = {"id": job_id, "document_ids": [item["identifier"] for item in inputs],
                "status": "queued", "created_at": now(), "input_digest": revision_token(payload), "phase": "queued"}
-        atomic_json(root / "job.json", job)
+        self._storage().create(job, payload)
         return job
 
     @workspace_locked
     def get(self, identifier):
-        job = read_json(self._path(identifier) / "job.json")
-        if job["id"] != identifier or job["status"] not in ("queued", "running", "completed", "failed", "cancelled"):
-            raise ValueError("Invalid RAG job identity or status")
-        if "resume_abandonment" in job:
-            ResumeAbandonment.from_dict(job["resume_abandonment"])
-        return job
+        _, records = self._storage().inventory()
+        if identifier not in records:
+            raise FileNotFoundError("RAG Job does not exist")
+        return records[identifier]
 
     @workspace_locked
     def progress(self, identifier):
@@ -137,9 +135,8 @@ class RAGJobs:
 
     @workspace_locked
     def list(self):
-        project, component = self.data._current()
-        root = component._checked(component.root(project) / "jobs")
-        return [read_json(component._checked(p)) for p in sorted(root.glob("*/job.json"))]
+        _, records = self._storage().inventory()
+        return [records[identifier] for identifier in sorted(records)]
 
     @workspace_locked
     def cancel(self, identifier):
@@ -150,7 +147,7 @@ class RAGJobs:
         if job["status"] != "running":
             job["status"] = "cancelled"
             job["phase"] = "cancelled"
-        atomic_json(self._path(identifier) / "job.json", job)
+        self._storage().save(job)
         return job
 
     @workspace_locked
@@ -173,7 +170,7 @@ class RAGJobs:
             require_checkpoint_plan(plan, expected_revision, action="abandon")
             job = self.get(identifier)
             job["resume_abandonment"] = ResumeAbandonment(now(), "explicit").to_dict()
-            atomic_json(self._path(identifier) / "job.json", job)
+            self._storage().save(job)
             return job
         finally:
             if lease is not None:
@@ -187,8 +184,7 @@ class RAGJobs:
         try:
             plan = self._plan(identifier, live=lease is None)
             require_checkpoint_plan(plan, expected_revision, action="delete")
-            root = self._path(identifier)
-            remove_named_tree(root.parent, root, identifier)
+            self._storage().delete(identifier)
         finally:
             if lease is not None:
                 lease.close()
@@ -243,7 +239,7 @@ class RAGJobs:
             job.pop(key, None)
         job.update(status="running", phase="preparing", progress={}, pid=os.getpid(), started_at=now(),
                    configuration=component._configuration_version)
-        atomic_json(root / "job.json", job)
+        self._storage().save(job)
         return payload
 
     @workspace_locked
@@ -289,7 +285,7 @@ class RAGJobs:
             component.publish(project, snapshot, documents, **options)
         job = self.get(identifier)
         job.update(status="completed", phase="completed", progress={"completed": 1, "total": 1, "unit": "job"}, ended_at=now())
-        atomic_json(self._path(identifier) / "job.json", job)
+        self._storage().save(job)
         # 공개된 원문/벡터는 corpus 세대가 소유한다. 완료 뒤 준비 결과의 중복 사본을 없앤다.
         try:
             from llm.services.infrastructure.storage import unlink_file
@@ -318,7 +314,7 @@ class RAGJobs:
             job["failed_phase"] = job["phase"]
             job.update(status="cancelled" if cancelled else "failed", phase="cancelled" if cancelled else "failed",
                        error=code, diagnostic_code=code, diagnostic=diagnostic.to_dict(), ended_at=now())
-            atomic_json(self._path(identifier) / "job.json", job)
+            self._storage().save(job)
 
     @workspace_locked
     def _telemetry(self, identifier, values):
@@ -328,28 +324,12 @@ class RAGJobs:
             job["progress"] = {key: values[key] for key in ("completed", "total", "unit") if key in values}
         job["ingestion"] = {**job.get("ingestion", {}), **{key: value for key, value in values.items()
                            if key not in ("phase", "completed", "total", "unit")}}
-        atomic_json(self._path(identifier) / "job.json", job)
+        self._storage().save(job)
 
     @workspace_locked
     def _lease(self, identifier, *, probe=False):
-        # PID 재사용/같은 프로세스의 죽은 coroutine 대신 실제 OS 잠금 수명으로 판정한다.
-        import fcntl
-        root = self._path(identifier)
-        path = root / "worker.lock"
-        if path.is_symlink():
-            raise ValueError("Job lease cannot follow links")
-        stream = path.open("a+b")
-        try:
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            stream.close()
-            if probe:
-                return None
-            raise ValueError("Indexing worker is still alive") from None
-        except BaseException:
-            stream.close()
-            raise
-        return stream
+        # A lease is created only with a new Job; reads/retries never recreate it.
+        return self._storage().lease(identifier, probe=probe)
 
     @workspace_locked
     def _batch(self, identifier, key, signature, value=None):

@@ -796,14 +796,6 @@
       "detail": "inline domain field: status"
     },
     {
-      "id": "b5d0b348c2c79b1ed171fc1c9292be6b4c4a96a72532d14e9407733fd775b136:1",
-      "rule": "S3",
-      "file": "llm/components/rag/jobs.py",
-      "symbol": "RAGJobs.get",
-      "line": 124,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "8463d5ce1ca28cf32b2a04752acdf0120c6294299078ebbe7a17725e67d97705:1",
       "rule": "S3",
       "file": "llm/components/rag/jobs.py",

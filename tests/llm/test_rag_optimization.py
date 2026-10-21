@@ -365,14 +365,14 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
             self.assertFalse((project.paths.root / "rag" / "jobs" / job["id"] / "batches").exists())
 
     async def test_bulk_job_receipt_failure_rolls_back_then_reuses_prepared_documents(self):
-        from llm.components.rag.jobs import atomic_json
+        from llm.components.rag.job_storage import atomic_json
         job = await self.rag.aenqueue_documents(self.inputs())
         before = self.component.corpus_version(self.project.data)
         def write(path, value):
             if path.name == "job.json" and value.get("status") == "completed":
                 raise OSError("receipt unavailable")
             return atomic_json(path, value)
-        with patch("llm.components.rag.jobs.atomic_json", side_effect=write):
+        with patch("llm.components.rag.job_storage.atomic_json", side_effect=write):
             with self.assertRaises(OSError):
                 await self.rag.arun_job(job["id"])
         self.assertEqual(self.component.corpus_version(self.project.data), before)

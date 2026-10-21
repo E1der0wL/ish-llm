@@ -9,6 +9,72 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-h RAG Job 존재 목록과 worker lease — Level 2
+
+H2-g/정책 묶음 Push `1b6f824c5684874cd89b298dee813aa3c52afb79`에서 이어서 진행했다.
+Job 원본 소실을 빈 큐로 처리하고, 실행 중 worker.lock 소실 후 두 번째 embedding 호출과
+실제 파일 효과를 허용하는 두 재현을 회귀에 편입했다. 수정 전 2 failure, error·Skip 0,
+1.071초, exit 1이다. 모델은 시험용 adapter이며 실제 인증 모델 호출은 아니다.
+
+JobStorage가 현재 버전·Project/Component 소유권·정확한 Job ID/리비전과 필수 lease를
+소유한다. 새 RAG 생성 때만 빈 목록을 만들고 Job 생성 시 입력·identity가 있는 lease·Job·
+목록을 함께 확정한다. 조회·재시도·정리는 lease를 재생성하지 않는다. Job 갱신·명시 삭제·
+maintenance 삭제도 원본과 목록을 함께 확정하며 초기 생성 증거는 변경하지 못한다.
+RAGComponent는 재선택·backup·clone에서 owner 검증에 위임한다. 비활성 owner도 적용한다.
+
+Job 메타데이터 검증과 재개 입력 증거를 구분한다. 입력이 소실돼도 유효한 Job의 재개 계획은
+기존 계약대로 missing/재개 불가 진단을 제공한다. 실행 전 입력 해시와 backup/clone의 필수
+입력 검증을 유지하며 소실된 입력을 기본값으로 복원하지 않는다. 안전성이 확인된 취소/포기
+Job의 기존 명시 삭제 계약도 유지한다. 보존 대상을 고르는 정책은 이번에 변경하지 않았다.
+
+### 검증과 범위
+
+변경은 RAG Job 저장 owner, RAGJobs 상태 writer·lease, Component의 직접 소비자에 한정된다.
+실제 RAGComponent/Job 호출 소비자와 공통 안전성 집합의 43개 모듈을 선택했다. Repository,
+Component, Engine/RAG 연동, Application·Hub Job 관리, backup·clone·삭제·quota·Checkpoint,
+실제 파일 효과·원본 보존·장애 주입을 포함한다. 모듈 선택 근거·정확한 argv는
+`/workspace/llm-clean-resume/h2-h/modules.json`과 `level2-final-command.json`에 보존한다.
+실행기는 `python -m tests.llm.run_regression --suite all --modules <기록한 43개 모듈>
+--output /workspace/llm-clean-resume/h2-h/level2-final.json`이다. all은 discovery 범위이며
+전체 실행이 아니다. 실행 환경 변수와 Python/host/lock은 H2-g와 같다.
+
+| 실행 | 실제 결과 |
+|---|---|
+| 최초 직접 소비자 | 55 pass, 14.304초, exit 0 |
+| 손상·원자성 보강 | 9 pass, 4.978초, exit 0; 생성·취소·삭제의 실제 exit 77 10개 지점 포함 |
+| 최초 Level 2 | 591 발견/실행, 584 pass, failure 3/error 4/Skip 0, 257.497초, exit 1 |
+| 실패 소비자 수정 후 집중 | 106 pass, failure/error/Skip 0, 32.791초, exit 0 |
+| 최종 Level 2 | 592 discovered/started/pass, failure/error/Skip 0, 251.499초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 후보 552개, exit 0 |
+| R3 mutation | 실제 두 번째 파일 효과로 한도 누락 탐지, detector exit 0 |
+| 문서 검사 | 131개 문서, Python fence 178개, 상대 링크 948개, anchor 34개, 오류 0, exit 0 |
+
+최초 7개 실패는 입력 소실의 재개 진단/삭제 계획을 너무 일찍 차단한 구현, raw Job을 만들던
+fixture 세 곳, 이동한 저장 owner에 도달하지 못한 장애 주입 세 곳이었다. 기존 안전성 assertion을
+유지하고 정상 writer로 fixture를 생성하며 주입 대상을 현재 owner로 옮겼다. get의 inline 상태
+비교를 JobStorage.STATUSES로 옮긴 S3 한 항목만 부채 목록에서 제거했다. 부채 전체 해결은 아니다.
+최종 실행은 전체 discovery 2,379개 중 592개를 선택했다. expected failure/unexpected success/
+missing/unexpected/duplicate는 0이다. 체크 명령은 check_architecture --require S1,
+check_budget_mutation이며 JSON·로그와 개별 exit를 함께 보존했다.
+
+최초 Level 2 전후 Python 661개 manifest는
+72b3941465714c3d10952d72fafa7ae722688cae40db4f73fff7676120b21945,
+제품·시험·Fixture/자산 820개·설치 의존성 136개·host/환경을 포함한 manifest는
+052f93ce6c99b286c0e8e870166cf0ab77cc4602beb2779ce17afe3a7af44c8b로 각각 일치한다.
+최종 실행 전후 Python manifest는 b7e2de3d27684c77627aacc7c091462ec6cb1548a4eaf99d5a1f4c67b43bf4b3,
+전체 검증 입력 manifest는 e7731e2270082686144a11315ef195d06754ceb52e3a35fc094c397494d1f415로
+각각 일치한다. 서로 다른 실행을 전체 회귀 한 번으로 합산하지 않는다.
+
+이 소단계는 **전체 LLM/Hub 회귀를 수행하지 않았다**. 영향이 RAG owner와 확인한 소비자로
+제한됨을 근거로 Level 2 로컬 검증만 완료했다. 문서를 먼저 갱신하고 독립 커밋으로 보존하며,
+다음 준비/배치 영수증 보강과 묶은 Level 3 전체 게이트가 통과한 뒤 Push한다. 원격 CI 완료가 아니다.
+
+별도 rag-prepared-loss-probe.py는 공개 실패 후 이미 저장된 prepared.json과 batches가 함께
+소실되면 재시도에서 시험용 embedding/실제 파일 효과가 반복됨을 재현했다(1 failure,
+error·Skip 0, 1.221초, exit 1). 이 실패는 위 592개에 포함되지 않으며 해결된 것으로 보고하지
+않는다. 다음 H2 보강에서 우선 해결한다. Job 상태별 부가 증거·Memory와 나머지 owner,
+H2 전체·H3–H5·P1 잔여 작업·A–F는 미완료다.
+
 ## H2-g Python Tool 패키지 존재와 worker 검증
 
 H2-f `0a2f3a0`에서 이어서 Tool 패키지 소실의 세 실패를 저장소 회귀에 편입했다.

@@ -27,6 +27,7 @@ from llm.providers.requests import provider_schema, error_code
 from llm.providers.embeddings import extract_single_embedding
 from llm.providers.runtime import diagnostic, diagnostic_scope
 from .ingestion import VectorCache, prepare_vectors, vector_key
+from .job_storage import JobStorage
 
 
 class RAGConflictError(RuntimeError):
@@ -90,11 +91,13 @@ class RAGComponent(DefinitionComponent):
         if self.name in project.initialized_components:
             # Reselecting/restoring existing data cannot manufacture missing proof.
             self.snapshot(project)
+            JobStorage(project, self).validate_sources()
             super().initialize(project)
             return
         super().initialize(project)
         atomic_json(root / self.IDENTITY_FILE, {"id": uuid4().hex})
         atomic_json(root / self.ACTIVE_FILE, {"generation": None})
+        JobStorage(project, self).initialize()
 
     def _checked_tree(self, path):
         self._checked(path)
@@ -277,20 +280,18 @@ class RAGComponent(DefinitionComponent):
 
     def maintenance(self, project, *, apply=False, expected_version=None):
         """활성 코퍼스와 재개 자료를 보존하고, 만료된 종료/명시적 포기 작업만 정리한다."""
-        import fcntl
         from datetime import datetime, timezone
         maximum = self._options(project).get("retention", {}).get("job_max_age_seconds")
-        root = self._checked(self.root(project) / "jobs")
+        storage = JobStorage(project, self)
+        _, jobs = storage.inventory()
+        root = storage.directory
         candidates, protected, leases, sources = [], [], [], []
         try:
-            for path in sorted(root.glob("*/job.json")):
-                path = self._checked(path)
-                job = read_json(path)
-                if job["id"] != path.parent.name:
-                    raise ValueError("Invalid RAG job identity")
+            for identifier, job in sorted(jobs.items()):
+                path = storage.path(identifier) / "job.json"
                 stamps = {}
                 for entry in self._checked_tree(path.parent).rglob("*"):
-                    if entry.is_file() and entry.name != "worker.lock":
+                    if entry.is_file() and entry.name != JobStorage.LEASE:
                         stat = entry.stat()
                         stamps[str(entry.relative_to(path.parent))] = [stat.st_size, stat.st_mtime_ns]
                 sources.append([job, stamps])
@@ -304,16 +305,10 @@ class RAGComponent(DefinitionComponent):
                 if (job["status"] not in ("completed", "cancelled") and abandoned is None) or not expired:
                     protected.append({**row, "reason": "unfinished_or_retained"})
                     continue
-                stream = self._checked(path.parent / "worker.lock").open("a+b")
-                try:
-                    fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                except BlockingIOError:
-                    stream.close()
+                stream = storage.lease(identifier, probe=True)
+                if stream is None:
                     protected.append({**row, "reason": "active_worker"})
                     continue
-                except BaseException:
-                    stream.close()
-                    raise
                 leases.append(stream)
                 candidates.append(row)
             pending = [read_json(self._checked(p)) for p in sorted(self._checked(root / ".deletions").glob("*.json"))]
@@ -325,8 +320,7 @@ class RAGComponent(DefinitionComponent):
                 recover_deletions(root)
                 for row in candidates:
                     identifier = validate_name(row["job_id"])
-                    if (root / identifier).exists():
-                        remove_named_tree(root, root / identifier, identifier)
+                    storage.delete(identifier)
             return {**result, "version": version}
         finally:
             for stream in leases:
@@ -334,6 +328,7 @@ class RAGComponent(DefinitionComponent):
 
     def validate_backup(self, project):
         super().validate_backup(project)
+        JobStorage(project, self).validate_sources()
         snapshot = self.snapshot(project)
         generation = snapshot["generation"]
         if generation is not None:
@@ -717,6 +712,7 @@ class RAGComponent(DefinitionComponent):
                 "graph_complete": not incomplete, "graph_incomplete_documents": incomplete}
 
     def clone(self, source, destination):
+        JobStorage(source, self).validate_sources()
         super().clone(source, destination)
         snapshot = self.snapshot(source)
         if snapshot["generation"] is not None:
