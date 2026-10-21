@@ -11,9 +11,18 @@ H2-g도 Python Tool 패키지 목록·worker·Hub 가져오기 경계를 보강�
 H2-h/i는 RAG Job 목록·lease와 준비/배치 영수증 소실을 보강하고 묶음 Level 3 전체 회귀를 통과했다.
 H2-j/k도 Memory Session 요약과 압축 요청/cursor·Tool 원본 참조를 보강하고 묶음 Level 3 전체 회귀를 통과했다.
 H2-l/m의 Memory 병합 저널·영수증과 기록 이력도 묶음 Level 3 전체 회귀를 통과했다.
-H2-n의 RAG Job 상태·취소·포기 계약은 Level 2 로컬 검증을 통과했다.
-H2 전체는 미완료이며 RAG 준비 영수증의 별도 1개 실패와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
+H2-n/o의 RAG Job 상태·취소·포기와 준비 문서·입력 연결은 묶음 Level 3 전체 회귀를 통과했다.
+H2 전체는 미완료이며 게시 코퍼스 필드 소실의 별도 2개 실패와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
 먼저 확인하며 이 실패를 해결하기 전 다음 기능 단계로 진행하지 않는다.
+
+H1–H5 완료 후 P1부터 A–F 각 단계에 필요한 `refactor/llm-backend` 소스·테스트만 읽기 전용으로
+참고한다. 알고리즘·객체 구조·실행 흐름·실패 사례를 현재 기능과 비교해 중복 구현을 피한다.
+구현 기준은 `refactor/llm-clean` 하나이며 이 문서·data-lifecycle·verification-policy와 현행 계약이
+과거 코드/문서보다 우선한다. 전체 merge·무검증 cherry-pick·파일 통째 복사·구형 Schema/Reader/Writer/
+호환 계층 복원은 하지 않는다. 가치 있는 구현은 현재 owner·상태/필수 증거·Revision/CAS·트랜잭션·
+승인/예산/Resume 계약에 맞춰 이식하거나 재구현한다. 과거 완료/테스트 결과는 현재 증거로 승계하지
+않는다. R3 Agent Tool 호출 한도 누락·정책 합성 회귀와 기존 실제 효과/중단/재개 Assertion을 보호하고
+Level 1–3을 따른다. 차용한 설계/테스트와 채택하지 않은 구형 계약만 필요한 범위에서 기록한다.
 
 ## 필수 원칙
 

@@ -9,6 +9,93 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-o RAG 준비 문서·입력 연결 — H2-n/o 묶음 Level 3
+
+H2-n 로컬 커밋 `71d0370cc64ce2442deb177d9fab115797e8fc86`에서 이어서 준비 영수증의 의미를
+보강했다. manifest hash까지 갱신한 빈 prepared 객체를 backup이 수락하는 원래 Assertion을
+유지했다. 구현 전 1 discovered/started/failure, pass/error/Skip 0, 0.384초, exit 1이다.
+
+- RAGComponent가 준비 문서의 필수 필드·원문 hash·문서/절/청크 연결·벡터/profile·추출 manifest를
+  검증한다. 저장 그래프의 완전한 출처·시각·가중치·중복 증거는 extraction owner가 검증한다.
+  모델 응답의 생성용 정규화로 저장된 필드를 복원하지 않는다.
+- JobStorage는 단건/배치 envelope와 원래 입력의 digest·문서 순서·title/content/metadata/description·
+  초기 revision·시도 configuration 연결을 소유한다. `batches/document_N.json`도 같은 문서 owner에
+  위임한다. metadata는 정규 JSON hash로 비교해 Python의 숫자/bool 동등 비교를 허용하지 않는다.
+  준비 기록은 실행 시도의 증거 없이 존재하거나 새로 기록될 수 없다.
+- 불완전/비활성 그래프의 진단, 명시 None description, 정상 재시도와 이미 수행한 모델 효과의
+  재사용은 유지한다. 손상 때 재개·backup·clone을 거부하고 실제 효과 파일과 원본 바이트를 보존한다.
+
+변경 영향은 Job의 claim/준비/재개/정리, RAG backup/clone, 공유 그래프 문서 형식과 Hub 소비자다.
+H2-n의 영향도 목록과 기존 Job/Checkpoint의 실제 중단·쓰기 장애 테스트를 재사용했다. 이번에는
+관련 소단계를 묶는 Level 3이므로 전체 LLM/Hub를 실행했다. 제품의 승인·예산·효과 정책과 CI의
+필수 전체 Job은 변경하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 초기 집중, 5 modules | 77/77 | 77 | 0/0/0 | 37.398초 | 0 |
+| 새 필드·입력 연결 회귀 | 8/8 | 8 | 0/0/0 | 12.072초 | 0 |
+| 그래프 보강 포함 집중, 6 modules | 102/102 | 102 | 0/0/0 | 52.946초 | 0 |
+| FIFO 대역 수정 후 Job 회귀 | 11/11 | 11 | 0/0/0 | 5.554초 | 0 |
+| 최초 전체 LLM | 1908/1908 | 1907 | 1/0/0 | 644.545초 | 1 |
+| FIFO 수정 후 전체 LLM, JSON 타입 보강 전 | 1908/1908 | 1908 | 0/0/0 | 625.590초 | 0 |
+| 최초 전체 Hub, JSON 타입 보강 전 | 540/540 | 540 | 0/0/0 | 709.571초 | 0 |
+| JSON 타입 보강 후 준비 문서 집중 | 11/11 | 11 | 0/0/0 | 15.207초 | 0 |
+| 최종 전체 LLM | 1910/1910 | 1910 | 0/0/0 | 640.639초 | 0 |
+| 최종 전체 Hub | 540/540 | 540 | 0/0/0 | 707.209초 | 0 |
+
+각 실행의 expected failure/unexpected success/누락/미발견 실행/중복은 모두 0이다.
+최초 전체 LLM의 실패는 Job lease/FIFO 테스트 자식 프로세스의 SimpleNamespace owner가 새
+문서 검증 메서드를 제공하지 않아 원래 안전성 Assertion 전에 중단된 것이다. 제품 검증기를
+그대로 연결했고 FIFO·symlink·identity·실제 모델 효과 횟수 Assertion은 유지했다. 해당 Job 모듈
+집중 검증 뒤 LLM 전체를 다시 실행했다. 이때 Job 테스트 대역만 바뀌어 Hub 전체의 소스·환경·
+발견 540개 동일성을 `final-2/hub-reuse-evidence.json`으로 입증했다. 그러나 추가 검토의 외부
+metadata-type-probe에서 metadata 숫자 1→True 변조의 backup 수락을 1 failure, error/Skip 0,
+0.365초, exit 1로 재현했다. Python 동등 비교를 JSON hash 비교로 수정하고 원래 Assertion과
+중첩 int/float/bool 4종 변조·재개/복제/실제 효과 보존 검증을 편입했다. 이 제품 변경은 앞선
+재사용 근거를 무효화하므로 `reuse-invalidation.json`에 남기고 두 전체 suite를 새로 실행했다.
+최종 게이트에는 `final-3/`의 새 전체 결과만 사용한다. 과거 통과/실패는 보존하며 서로 다른
+실행을 한 번의 전체 실행으로 합치지 않는다. R3 Mutation은 실제 두 번째 파일 효과 Assertion으로 누락된 호출 한도를
+검출(True, detector exit 0)했다. 정적 감사는 신규/stale/S1 0, 기존 debt 531, exit 0이다.
+앞선 정적 검사 두 번의 exit 1은 configuration 비교를 포함한 복합 guard의 S2 후보였다.
+비교 guard를 분리했으며 검사기·기존 debt·Assertion에 예외를 추가하지 않았다.
+문서 검사는 131 documents·178 Python fences·953 relative links·34 anchors, 오류 0, exit 0이다.
+
+실제 명령은 다음과 같다. 모든 실행의 argv/exit/summary와 전체 로그는
+`/workspace/llm-clean-resume/h2-o/`에 보존했다. 최종 전체는 `final-3/`의 suite별 execution.json을 따른다.
+
+```bash
+python -m tests.llm.run_regression --suite llm --modules tests.llm.test_rag_prepared_integrity tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_job_state_integrity tests.llm.test_rag_components tests.llm.test_rag_optimization tests.llm.test_rag_resilience --output /workspace/llm-clean-resume/h2-o/focused-3.json
+python -m tests.llm.run_regression --suite llm --modules tests.llm.test_rag_job_integrity --output /workspace/llm-clean-resume/h2-o/focused-4.json
+python -m tests.llm.run_regression --suite llm --modules tests.llm.test_rag_prepared_integrity --output /workspace/llm-clean-resume/h2-o/focused-5.json
+python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/h2-o/final-3/llm.json
+python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/h2-o/final-3/hub.json
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-o/static-4.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-o/docs-final.json
+```
+
+실행 Python은 `.venv-linux312/bin/python` 3.12.14, UID 1000이며 실제 bwrap·X11 경로를 사용했다.
+TERM=xterm-256color, LITELLM_LOCAL_MODEL_COST_MAP=True, LITELLM_MODE=PRODUCTION,
+HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb, HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip이다.
+host는 `d833790959a76ac457fdeea3f21a6bea1eecfe12`, 의존성은 136 packages다. 검증 전후 Python
+669개 source hash는 `67586ff467d145216a549b44cea55ad8520134e3be36034fa0714bdbd05379b6`, 전체 입력 828개와 환경 hash는
+`77cbcc6d1eda3df6981b7814689ca05aeafcf0b15c3e9817c552d5aad3d04e4e`로 각각 동일하다. 이전 Hub 실행의 Python source hash는
+`2341b60b08946f7489cfeb2dce79199c05829d2b0dcbc11238594ca96a411397`, 입력/환경 hash는
+`5afaad909c1d47c436d7d0e927e116a26fc94f206d0ca1821135cd8c33adaaba`이고 해당 실행 전후도 동일하다.
+중간 LLM 실행의 Python source/input 환경 hash도 각각
+`05baa7895c9f49dbd6f5c4c2ce8af88f0d61a6db1d2ad4b91d0b111951c9965f`와
+`7bfb2425231c2f4cd65ce2cc7866701f2ac00b76e8b4e26e73d736d58670396e`로 실행 전후 동일하다.
+문서는 이 동일성을 확인한 뒤 커밋보다 먼저 갱신했다.
+
+이 결과는 H2-n/o의 묶음 로컬 전체 게이트 통과다. 정확한 Push SHA의 원격 CI는 접근 제한으로
+성공을 확인하지 못했으며 통과로 기록하지 않는다. H2 전체는 미완료다. 다음 RAG 게시 코퍼스의
+profile/문서 title 소실을 backup이 수락하는 외부 재현 2 failure, error/Skip 0, 1.149초, exit 1을
+`/workspace/llm-clean-resume/h2-p/corpus-loss-probe.log`에 별도로 보존했다. 고정 suite의 발견 목록에는
+포함하지 않은 다음 owner의 미해결 근거이며 이 두 실패를 전체 통과로 표현하지 않는다.
+재현 소스는 `final/inputs-before.json`이고 해당 corpus Reader는 이후 변경되지 않았다.
+게시 코퍼스·제어/목록 연결·나머지 배치 의미와 owner 계약을 보강한 뒤 H2 최종 전체 게이트를
+실행한다. H3–H5, P1 잔여, A–F는 아직 진입하지 않는다.
+
 ## H2-n RAG Job 상태·취소·재개 포기 — Level 2
 
 H2-l/m 묶음 Push `419ddd85826099dd661d5abd012dff6f7e46e550`에서 이어서 Job 상태를 보강했다.

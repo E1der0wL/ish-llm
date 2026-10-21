@@ -72,6 +72,32 @@ def enrich_graph(graph: dict, document_id: str) -> dict:
         {**edge, "weight": len(sources[key[:3]])} for key, edge in edges.items()]}
 
 
+def validate_stored_graph(graph: dict, chunks: list, document_id: str):
+    """Require the complete enriched Writer result; never synthesize stored evidence."""
+    normalized = validate_graph(graph, chunks)
+    if graph.keys() != {"entities", "relations"} or graph["entities"] != normalized["entities"]:
+        raise GraphValidationError("Stored graph entities are not canonical")
+    sources, seen = {}, set()
+    for edge, canonical in zip(graph["relations"], normalized["relations"]):
+        if (edge.keys() != canonical.keys() | {"document_id", "extracted_at", "weight"}
+                or any(edge[key] != value for key, value in canonical.items())
+                or edge["document_id"] != document_id
+                or not isinstance(edge["extracted_at"], str)
+                or datetime.fromisoformat(edge["extracted_at"]).utcoffset() is None
+                or type(edge["weight"]) is not int or edge["weight"] < 1):
+            raise GraphValidationError("Incomplete or invalid stored graph evidence")
+        triple = edge["source"], edge["type"], edge["target"]
+        key = (*triple, edge["source_id"], edge["evidence"])
+        if key in seen:
+            raise GraphValidationError("Duplicate stored graph evidence")
+        seen.add(key)
+        sources.setdefault(triple, set()).add(edge["source_id"])
+    for edge in graph["relations"]:
+        if edge["weight"] != len(sources[edge["source"], edge["type"], edge["target"]]):
+            raise GraphValidationError("Stored graph weight differs from its source evidence")
+    return graph
+
+
 def group_evidence(graph):
     """Build a disposable source lookup once, rather than scanning all edges per batch."""
     by_source = {}

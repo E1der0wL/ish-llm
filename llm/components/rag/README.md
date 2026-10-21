@@ -236,6 +236,12 @@ worker는 progress callback만 호출하며 RAGJobs가 workspace 잠금 아래 J
 Job 목록은 각 Job의 revision과 checkpoint별 hash를 소유한다. 준비/배치 원본과 목록을 같은
 transaction으로 확정하며 아직 생성하지 않은 경우만 None이다. 선언된 원본의 소실·Null·변조나
 미선언 추가는 재실행 허가가 되지 않는다. Reader·Writer·claim·재개 계획·backup/clone에서 검증한다.
+준비 문서의 필수 원문·절/청크·벡터/profile·추출 manifest·저장 그래프 증거는 각 RAG owner가
+검증한다. JobStorage는 원래 입력 digest·문서 순서·내용·초기 revision·시도 configuration의 연결을
+검증한다. 배치의 document_N 준비 영수증도 동일하다. hash가 맞아도 빈 문서·필수 필드 소실·
+입력 불일치는 재개/backup/clone을 허가하지 않는다. metadata는 정규 JSON hash로 숫자/bool 타입도
+구분한다. 실행 시도 없는 준비 기록은 거부한다.
+비활성/불완전 그래프의 명시 진단과 정상 재시도의 기존 모델 효과 재사용은 유지한다.
 공개와 완료 확정 후 별도 transaction으로 준비 자료를 정리한다. 정리 실패는 준비 자료와 목록을
 함께 되돌리며 이미 확정된 공개는 유지한다. 실제 장애/중단 검증 범위는
 [검증 기록](../../../docs/llm/lifecycle-verification.md)에 남긴다.

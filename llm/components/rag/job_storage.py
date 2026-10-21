@@ -111,6 +111,7 @@ class JobStorage:
 
     def __init__(self, project, component):
         self.project_id, self.component = project.id, component.name
+        self.validate_document = component.validate_prepared_document
         self.checked = component._checked
         root = self.checked(component.root(project))
         self.directory = self.checked(root / self.DIRECTORY)
@@ -204,6 +205,8 @@ class JobStorage:
                     raise ValueError("Invalid RAG Job checkpoint revision")
             root = self.path(identifier)
             job = self.validate(self._json(root / "job.json"), identifier)
+            if entry["checkpoints"] and not self.ATTEMPT_FIELDS <= job.keys():
+                raise ValueError("RAG Job checkpoints require their stored attempt evidence")
             if entry["revision"] != revision_token(job):
                 raise ValueError("RAG Job revision changed")
             self._lease_path(identifier)
@@ -227,14 +230,60 @@ class JobStorage:
             validate_name(key[len(prefix):-len(".json")])
         return self.checked(self.path(identifier) / key)
 
-    @classmethod
-    def validate_checkpoint(cls, key, value):
+    def validate_checkpoint(self, identifier, job, key, value):
         if not isinstance(value, dict):
             raise ValueError("RAG Job checkpoint must be an object")
-        if key != cls.PREPARED and (value.keys() != {"signature", "value"}
+        if key != self.PREPARED and (value.keys() != {"signature", "value"}
                 or not isinstance(value["signature"], str) or not value["signature"]
                 or value["value"] is None):
             raise ValueError("Invalid RAG Job batch receipt")
+        document_batch = re.fullmatch(r"batches/document_(0|[1-9][0-9]*)\.json", key)
+        if key != self.PREPARED and document_batch is None:
+            return  # Embedding/extraction payload semantics belong to their respective owners.
+        if not self.ATTEMPT_FIELDS <= job.keys():
+            raise ValueError("Prepared RAG document requires its Job attempt")
+        payload = self._json(self.path(identifier) / "input.json")
+        if revision_token(payload) != job["input_digest"]:
+            raise ValueError("RAG Job input changed")
+        if "document_ids" in job:
+            if (not isinstance(payload, dict) or payload.keys() != {"documents"}
+                    or not isinstance(payload["documents"], list)
+                    or len(payload["documents"]) != len(job["document_ids"])):
+                raise ValueError("Invalid RAG Job batch input")
+            inputs, expected = payload["documents"], job["document_ids"]
+            if document_batch is not None:
+                position = int(document_batch[1])
+                if position >= len(inputs):
+                    raise ValueError("Undeclared prepared RAG document position")
+                inputs, expected = [inputs[position]], [expected[position]]
+                documents = [value["value"]]
+                if value["signature"] != revision_token({"input": inputs[0], "configuration": job["configuration"]}):
+                    raise ValueError("Prepared RAG document batch signature changed")
+            else:
+                if value.keys() != {"documents"} or not isinstance(value["documents"], list):
+                    raise ValueError("Invalid prepared RAG batch envelope")
+                documents = value["documents"]
+        else:
+            if document_batch is not None:
+                raise ValueError("Single-document RAG Job has a document batch")
+            inputs, expected, documents = [payload], [job["document_id"]], [value]
+        if len(documents) != len(expected):
+            raise ValueError("Prepared RAG document count changed")
+        for source, expected_id, document in zip(inputs, expected, documents):
+            self.validate_document(document)
+            if (not isinstance(source, dict)
+                    or not {"identifier", "title", "content", "metadata"} <= source.keys()
+                    or source.keys() - {"identifier", "title", "content", "metadata", "description"}
+                    or document["id"] != expected_id or source["identifier"] != expected_id
+                    or document["revision"] != 1
+                    or any(document[field] != source[field] for field in ("title", "content"))):
+                raise ValueError("Prepared RAG document disagrees with its original Job input or attempt")
+            if revision_token(document["metadata"]) != revision_token(source["metadata"]):
+                raise ValueError("Prepared RAG document metadata differs from its original JSON input")
+            if document.get("description") != source.get("description"):
+                raise ValueError("Prepared RAG document description differs from its input")
+            if document["preparation_configuration"] != job["configuration"]:
+                raise ValueError("Prepared RAG document configuration differs from its Job attempt")
 
     def checkpoints(self, identifier):
         manifest, records = self.inventory()
@@ -263,7 +312,7 @@ class JobStorage:
         values = {}
         for key, revision in declared.items():
             value = self._json(self.checkpoint_path(identifier, key))
-            self.validate_checkpoint(key, value)
+            self.validate_checkpoint(identifier, records[identifier], key, value)
             if revision_token(value) != revision:
                 raise ValueError("RAG Job checkpoint revision changed")
             values[key] = value
@@ -276,7 +325,10 @@ class JobStorage:
     def write_checkpoint(self, identifier, key, value):
         manifest, _ = self.checkpoints(identifier)
         path = self.checkpoint_path(identifier, key)
-        self.validate_checkpoint(key, value)
+        job = self.validate(self._json(self.path(identifier) / "job.json"), identifier)
+        if not self.ATTEMPT_FIELDS <= job.keys():
+            raise ValueError("RAG Job checkpoints require their stored attempt evidence")
+        self.validate_checkpoint(identifier, job, key, value)
         atomic_json(path, value)
         manifest["jobs"][identifier]["checkpoints"][key] = revision_token(value)
         atomic_json(self.manifest, manifest)

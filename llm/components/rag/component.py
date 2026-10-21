@@ -1,6 +1,8 @@
 """문서·임베딩·색인의 세대 관리. 공개 핸들은 잠금 아래에서 이 구현을 호출한다."""
 
 from copy import copy, deepcopy
+from dataclasses import fields
+from hashlib import sha256
 import re
 import time
 import shutil
@@ -14,13 +16,14 @@ from .data import RAGData
 from .indexing import build_index, update_index
 from .search import search, search_schema
 from .splitting import split_markdown
-from .extraction import validate_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
+from .extraction import validate_graph, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
 from .prompts import extraction_schema
 from .graph_indexing import build_graph, update_graph
 from .graph_search import graph_search, related_graph
 from .files import copy_file
 from llm.core.configuration import resolve_config, require_config
 from llm.core.models import ProjectConfig
+from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.parameters import ParameterLayout
 from llm.core.schema import object_schema, metadata_schema
 from llm.providers.requests import provider_schema, error_code
@@ -42,6 +45,10 @@ class RAGComponent(DefinitionComponent):
     GENERATIONS_DIRECTORY = "generations"
     IDENTITY_PATTERN = re.compile(r"[a-f0-9]{32}")
     GRAPH_SCHEMA_VERSION = 1
+    PREPARED_FIELDS = frozenset(("id", "title", "content", "metadata", "revision", "generation",
+        "sections", "chunks", "sha256", "vectors", "embedding_fingerprint", "ingestion", "profile",
+        "graph_complete", "graph_diagnostics", "graph", "extraction_manifest",
+        "preparation_configuration", "preparation_fingerprint"))
 
     name = "rag"
     directory = "rag"
@@ -108,6 +115,97 @@ class RAGComponent(DefinitionComponent):
     def _build(self, path, documents):
         build_index(path / "chroma", documents, batch_size=self.index_batch_size)
         build_graph(path / "graph.kuzu", documents, options=self.graph_options)
+
+    @classmethod
+    def validate_prepared_document(cls, document):
+        """Validate stored preparation without filling fields or consulting live settings."""
+        if (not isinstance(document, dict) or not cls.PREPARED_FIELDS <= document.keys()
+                or document.keys() - cls.PREPARED_FIELDS - {"description"}):
+            raise ValueError("Prepared RAG document fields are incomplete or unknown")
+        ProjectConfig.validate_json(document)
+        identifier = validate_name(document["id"])
+        cls._validate_versions({identifier: document})
+        if (not isinstance(document["title"], str) or not document["title"].strip()
+                or not isinstance(document["content"], str) or not document["content"].strip()
+                or not isinstance(document["metadata"], dict)
+                or not isinstance(document["ingestion"], dict)
+                or ("description" in document and not isinstance(document["description"], str))):
+            raise ValueError("Invalid prepared RAG document source or observations")
+        if document["sha256"] != sha256(document["content"].encode("utf-8")).hexdigest():
+            raise ValueError("Prepared RAG content digest changed")
+        for key in ("embedding_fingerprint", "preparation_fingerprint", "preparation_configuration"):
+            value = document[key]
+            if key == "preparation_configuration" and value is None:
+                continue  # Standalone preparation has no bound Project configuration.
+            if not isinstance(value, str) or re.fullmatch(r"[a-f0-9]{64}", value) is None:
+                raise ValueError("Invalid prepared RAG configuration evidence")
+        sections, chunks = document["sections"], document["chunks"]
+        if not isinstance(sections, dict) or not sections or not isinstance(chunks, list) or not chunks:
+            raise ValueError("Prepared RAG document requires sections and chunks")
+        if sections.keys() != {f"{identifier}:s{position}" for position in range(1, len(sections) + 1)}:
+            raise ValueError("Invalid prepared RAG section identities")
+        for key, section in sections.items():
+            if (not isinstance(section, dict) or section.keys() != {"id", "heading", "heading_path", "text"}
+                    or section["id"] != key
+                    or not isinstance(section["heading"], str) or not isinstance(section["heading_path"], list)
+                    or any(not isinstance(item, str) for item in section["heading_path"])
+                    or not isinstance(section["text"], str) or not section["text"]
+                    or section["text"] not in document["content"]):
+                raise ValueError("Invalid prepared RAG section")
+        for position, chunk in enumerate(chunks, 1):
+            if (not isinstance(chunk, dict)
+                    or chunk.keys() != {"id", "document_id", "section_id", "heading", "text"}
+                    or chunk["id"] != f"{identifier}:c{position}" or chunk["document_id"] != identifier
+                    or not isinstance(chunk["section_id"], str) or chunk["section_id"] not in sections
+                    or chunk["heading"] != sections[chunk["section_id"]]["heading"]
+                    or not isinstance(chunk["text"], str) or not chunk["text"].strip()
+                    or chunk["text"] not in sections[chunk["section_id"]]["text"]):
+                raise ValueError("Invalid prepared RAG chunk source")
+        profile = document["profile"]
+        if (not isinstance(profile, dict) or profile.keys() != {"model", "dimensions"}
+                or not isinstance(profile["model"], str) or not profile["model"]
+                or type(profile["dimensions"]) is not int or profile["dimensions"] < 1):
+            raise ValueError("Invalid prepared RAG embedding profile")
+        from llm.providers.embeddings import validate_vectors
+        vectors = validate_vectors(document["vectors"], dimensions=profile["dimensions"])
+        if len(vectors) != len(chunks):
+            raise ValueError("Prepared RAG chunk/vector count mismatch")
+        validate_stored_graph(document["graph"], chunks, identifier)
+        if type(document["graph_complete"]) is not bool or not isinstance(document["graph_diagnostics"], list):
+            raise ValueError("Invalid prepared RAG graph observations")
+        for value in document["graph_diagnostics"]:
+            if not isinstance(value, dict) or value.keys() != {field.name for field in fields(Diagnostic)}:
+                raise ValueError("Incomplete prepared RAG graph diagnostic")
+            source = value["source"]
+            if source is not None and (not isinstance(source, dict)
+                    or source.keys() != {field.name for field in fields(ResourceRef)}):
+                raise ValueError("Incomplete prepared RAG graph diagnostic source")
+            Diagnostic.from_dict(value)
+        manifest = document["extraction_manifest"]
+        if not isinstance(manifest, list):
+            raise ValueError("Invalid prepared RAG extraction manifest")
+        grouped, covered = group_evidence(document["graph"]), set()
+        for entry in manifest:
+            if (not isinstance(entry, dict) or entry.keys() != {"signature", "entity_ids", "offset", "count", "digest"}
+                    or type(entry["offset"]) is not int or type(entry["count"]) is not int
+                    or entry["offset"] < 0 or entry["count"] < 1
+                    or entry["offset"] + entry["count"] > len(chunks)
+                    or not isinstance(entry["entity_ids"], list)
+                    or any(not isinstance(item, str) for item in entry["entity_ids"])
+                    or len(set(entry["entity_ids"])) != len(entry["entity_ids"])
+                    or any(not isinstance(entry[key], str) or re.fullmatch(r"[a-f0-9]{64}", entry[key]) is None
+                           for key in ("signature", "digest"))):
+                raise ValueError("Invalid prepared RAG extraction batch")
+            indices = set(range(entry["offset"], entry["offset"] + entry["count"]))
+            if covered & indices:
+                raise ValueError("Overlapping prepared RAG extraction batches")
+            covered.update(indices)
+            graph = select_graph(grouped, entry["entity_ids"], chunks[entry["offset"]:entry["offset"] + entry["count"]])
+            if revision_token(graph) != entry["digest"]:
+                raise ValueError("Prepared RAG extraction batch digest changed")
+        if document["graph_complete"] and covered != set(range(len(chunks))):
+            raise ValueError("Prepared RAG complete graph has missing extraction batches")
+        return document
 
     @classmethod
     def _validate_versions(cls, documents):
