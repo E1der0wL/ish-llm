@@ -9,6 +9,70 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-s 그래프 배치 필수 증거 — Level 2
+
+H2-r 로컬 커밋 `bb67fb5bc8b5d50eca26cc896e31d52ce198d184`에서 이어서 저장 그래프 배치를 보강했다.
+이전 고정 소스의 외부 재현은 빈 graph payload와 일치하는 manifest hash를 backup이 수락하는
+1 failure, error·Skip 0, 0.349초, exit 1이었다. 원래 Assertion을 `test_rag_graph_checkpoint`에 편입했다.
+
+- extraction의 `validate_graph_checkpoint`가 저장된 정규 graph의 정확한 root/entity/relation 필드,
+  canonical 이름/ID·중복·엔티티 참조·필수 metadata와 finite JSON을 검증한다. 저장 영수증에서
+  빠진 metadata를 공급자 응답용 기본값으로 복원하지 않는다. 모델 응답 정규화는 기존대로 유지한다.
+- RAGComponent/JobStorage가 graph key·단건/배치 문서 위치·signature 형식과 payload owner 검증을
+  Reader/Writer·claim/재개·backup/clone에서 공유한다. 준비 재사용도 같은 검증 후 실제 chunk의
+  원문 인용을 검사한다. 실제 재개 시 signature/configuration·인용 검사는 제거하지 않았다.
+- 새 4개 회귀는 원래 빈 payload, 필수 metadata 소실, 필드·타입·canonical ID 손상 matrix 및 정상
+  retry를 검사한다. 매 거부 뒤 원본 바이트와 embedding/extraction의 실제 파일 효과를 비교하고
+  정상 retry도 두 모델 효과를 반복하지 않는다. 저장 형식·트랜잭션·승인/예산/효과 정책은 그대로다.
+
+이 범위는 저장된 raw graph의 현재 필드 의미다. backup 때 live 설정을 이용해 과거 signature를
+재계산하거나, 실제 원문 대신 만든 인용 문맥으로 검증하지 않는다. 그래프의 전체 원문/signature
+연결, 임의 key 및 나머지 owner 계약까지 완료했다는 뜻은 아니다.
+
+영향 범위는 extraction 재사용→Component→JobStorage의 직접 소비자다. H2-r의 호출 관계와 공통
+안전성 목록에 새 graph 모듈만 추가했다. LLM 45개·Hub 6개 모듈 전체에서 승인·usage deletion·
+operation/checkpoint/lifecycle 무결성, 실제 중단·저장 실패·재개 및 직접 소비자 통합을 유지했다.
+
+| 현재 브랜치 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중, 5 modules | 52/52 | 52 | 0/0/0 | 25.536초 | 0 |
+| Level 2 LLM | 624/624 | 624 | 0/0/0 | 248.414초 | 0 |
+| Level 2 Hub | 33/33 | 33 | 0/0/0 | 85.619초 | 0 |
+
+expected failure/unexpected success/미실행/미발견 실행/중복은 각각 0이다. 전체 발견 목록은
+LLM 1936개·Hub 540개이며 위 실행은 **선택 모듈의 부분 검증**이다.
+정적 감사 new/stale/S1 0, 기존 debt 531, exit 0이다. R3 Mutation은 실제 두 번째 파일 효과
+Assertion으로 호출 한도 누락을 검출했다(True, detector exit 0). 문서는 이 검증 후 커밋보다 먼저 갱신했다.
+문서 검사는 131 documents·178 Python fences·953 relative links·34 anchors, 오류 0, exit 0이다.
+
+별도 Git 메타데이터 없는 복사본의 최초 초안은 52개 중 51 pass/1 error, 26.225초, exit 1이었다.
+새 테스트가 공개 document view에 없는 raw graph를 조회했다. 실제 공개 graph search로 관계를
+확인하도록 고쳤고 모델 효과/관계 존재 Assertion은 유지했다. 후속 4개는 3.387초, exit 0이다.
+이 초안 결과는 현재 검증으로 승계하지 않고 실제 브랜치에서 위 검증을 새로 수행했다.
+전후 Python 673개 hash는 `b151b2af2bffa71095373dd3ea59c2aea825f4d1253daf50b800f91ca1561104`,
+전체 입력 832개/환경 hash는 `ed07a3f72490addd7fc44e29c2e664a6dc54402e5e89517c4b523a3099f323aa`로 각각 동일하다. Python 3.12.14·UID 1000·
+136 packages·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존 bwrap/Xvfb/xclip·
+5개 환경 변수를 유지했다.
+
+전체 argv/요약/로그·원본 실패는 `/workspace/llm-clean-resume/h2-s/`에 보존했다.
+
+```bash
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-s/focused-1 tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_extraction_repair tests.llm.test_rag_optimization tests.llm.test_unified_rag
+python /workspace/llm-clean-resume/h2-s/run-level2.py llm /workspace/llm-clean-resume/h2-s/final
+python /workspace/llm-clean-resume/h2-s/run-level2.py hub /workspace/llm-clean-resume/h2-s/final
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-s/static-1.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-s/docs.json
+```
+
+전체 LLM/Hub는 이 소단계에서 **실행하지 않았다**. 변경이 그래프 영수증 owner와 직접 소비자에
+한정되고 관련 통합·핵심 안전성 검증을 통과했으므로 Level 2 로컬 완료로 보존한다. 다음 읽기
+경계와 H2-r/s를 묶은 Level 3에서 전체 검증 후 Push한다. 과거 전체 결과를 현재 통과로 승계하지
+않는다. H2 전체·원격 CI 완료가 아니며 H3–H5·P1·A–F에는 아직 진입하지 않는다.
+다음 읽기 경계에서는 rerank 중 catalog가 소실돼도 결과를 반환하는 1 failure, error·Skip 0,
+1.088초, exit 1을 재현했다. `/workspace/llm-clean-resume/h2-t/query-evidence-probe.log`와 위
+고정 소스에 증거를 남겼다. 이 suite 밖의 실패를 부분 검증 통과로 표현하지 않는다.
+
 ## H2-r 임베딩 배치 영수증 — Level 2
 
 H2-p/q 묶음 Push `e474f38974e485f40f028570f8119a5d874c06e1`에서 이어서 임베딩 영수증 owner를

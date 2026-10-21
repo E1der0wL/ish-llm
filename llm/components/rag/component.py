@@ -16,7 +16,7 @@ from .data import RAGData
 from .indexing import build_index, update_index
 from .search import search, search_schema
 from .splitting import split_markdown
-from .extraction import validate_graph, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
+from .extraction import validate_graph, validate_graph_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
 from .prompts import extraction_schema
 from .graph_indexing import build_graph, update_graph
 from .graph_search import graph_search, related_graph
@@ -128,15 +128,20 @@ class RAGComponent(DefinitionComponent):
     @classmethod
     def validate_batch_checkpoint(cls, job, key, receipt):
         name = key.removeprefix(JobStorage.BATCHES + "/").removesuffix(".json")
-        chunk = re.fullmatch(r"(?:d(0|[1-9][0-9]*)_)?embedding_(0|[1-9][0-9]*)", name)
-        if chunk is None:
+        batch = re.fullmatch(r"(?:d(0|[1-9][0-9]*)_)?(embedding|graph)_(0|[1-9][0-9]*)", name)
+        if batch is None:
             return
         if "document_ids" in job:
-            if chunk[1] is None or int(chunk[1]) >= len(job["document_ids"]):
-                raise ValueError("Embedding checkpoint document position changed")
-        elif chunk[1] is not None:
+            if batch[1] is None or int(batch[1]) >= len(job["document_ids"]):
+                raise ValueError("RAG checkpoint document position changed")
+        elif batch[1] is not None:
             raise ValueError("Single-document Job cannot have a batch document checkpoint")
-        validate_chunk_checkpoint(receipt["value"], receipt["signature"])
+        if batch[2] == "embedding":
+            validate_chunk_checkpoint(receipt["value"], receipt["signature"])
+        else:
+            if re.fullmatch(r"[a-f0-9]{64}", receipt["signature"]) is None:
+                raise GraphValidationError("Stored extraction checkpoint signature is invalid")
+            validate_graph_checkpoint(receipt["value"])
 
     @classmethod
     def validate_document(cls, document):
@@ -780,7 +785,8 @@ class RAGComponent(DefinitionComponent):
                 if progress:
                     await progress(key, signature, graph)
             else:
-                graph = validate_graph(graph, batch, relation_types=self.extraction_options.get("relation_types", ()))
+                graph = validate_graph(validate_graph_checkpoint(graph), batch,
+                                       relation_types=self.extraction_options.get("relation_types", ()))
                 extraction_done += 1
                 await extraction_progress()
             entities.update({e["id"]: e for e in graph["entities"]})

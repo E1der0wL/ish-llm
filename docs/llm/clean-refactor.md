@@ -13,7 +13,7 @@ H2-j/k도 Memory Session 요약과 압축 요청/cursor·Tool 원본 참조를 �
 H2-l/m의 Memory 병합 저널·영수증과 기록 이력도 묶음 Level 3 전체 회귀를 통과했다.
 H2-n/o의 RAG Job 상태·취소·포기와 준비 문서·입력 연결은 묶음 Level 3 전체 회귀를 통과했다.
 H2-p/q의 게시 코퍼스 필수 필드·profile 및 identity/active/catalog 연결은 묶음 Level 3 전체 회귀를 통과했다.
-H2-r 임베딩 배치의 필수 payload·signature 연결은 Level 2 로컬 검증을 통과했다.
+H2-r/s 임베딩·그래프 배치의 필수 payload와 현재 필드는 각각 Level 2 로컬 검증을 통과했다.
 H2 전체는 미완료이며 RAG 나머지 배치 의미·관측/읽기 경계와 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
 먼저 확인하며 남은 H2 계약을 해결하기 전 다음 기능 단계로 진행하지 않는다.
 

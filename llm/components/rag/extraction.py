@@ -72,6 +72,39 @@ def enrich_graph(graph: dict, document_id: str) -> dict:
         {**edge, "weight": len(sources[key[:3]])} for key, edge in edges.items()]}
 
 
+def validate_graph_checkpoint(graph):
+    """Require the normalized stored response; quotation checks still use real chunks."""
+    if (not isinstance(graph, dict) or graph.keys() != {"entities", "relations"}
+            or not isinstance(graph["entities"], list) or not isinstance(graph["relations"], list)):
+        raise GraphValidationError("Stored extraction checkpoint requires entities and relations")
+    identities = set()
+    for entity in graph["entities"]:
+        if (not isinstance(entity, dict) or entity.keys() != {"id", "name"}
+                or not isinstance(entity["name"], str) or not entity["name"].strip()
+                or entity["name"] != entity["name"].strip()):
+            raise GraphValidationError("Stored extraction entity is incomplete or noncanonical")
+        expected = hashlib.sha256(entity["name"].casefold().encode("utf-8")).hexdigest()
+        if entity["id"] != expected or expected in identities:
+            raise GraphValidationError("Stored extraction entity identity changed or is duplicated")
+        identities.add(expected)
+    for edge in graph["relations"]:
+        if (not isinstance(edge, dict)
+                or edge.keys() != {"source", "target", "type", "source_id", "evidence", "metadata"}):
+            raise GraphValidationError("Stored extraction relation requires all evidence fields")
+        for key in ("source", "target", "type", "source_id", "evidence"):
+            if not isinstance(edge[key], str) or not edge[key].strip():
+                raise GraphValidationError("Stored extraction evidence must be non-empty text")
+        if edge["source"] not in identities or edge["target"] not in identities:
+            raise GraphValidationError("Stored extraction relation references an unknown entity")
+        if edge["type"] != edge["type"].strip() or not isinstance(edge["metadata"], dict):
+            raise GraphValidationError("Stored extraction relation is not canonical")
+        try:
+            json.dumps(edge["metadata"], ensure_ascii=False, allow_nan=False)
+        except (TypeError, ValueError) as error:
+            raise GraphValidationError("Stored extraction metadata requires finite JSON") from error
+    return graph
+
+
 def validate_stored_graph(graph: dict, chunks: list, document_id: str):
     """Require the complete enriched Writer result; never synthesize stored evidence."""
     normalized = validate_graph(graph, chunks)

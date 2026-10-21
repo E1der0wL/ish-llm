@@ -250,6 +250,9 @@ transaction으로 확정하며 아직 생성하지 않은 경우만 None이다. 
 임베딩 배치 영수증의 fingerprint/text_hash/vector 필수 필드·signature·유효 벡터는 ingestion owner가
 생성/재사용과 JobStorage Reader/Writer/backup에서 함께 검증한다. 단건/배치 문서 위치도
 RAGComponent가 확인하며 손상 payload를 비어 있는 새 작업으로 복원하지 않는다.
+저장된 graph 배치는 extraction owner가 정규 entity/relation의 정확한 필드·ID·참조·필수 metadata를
+검증한다. 저장 metadata 소실은 모델 응답용 기본값으로 복원하지 않는다. 준비 재사용은 이어서 실제
+chunk의 원문 인용과 기존 signature/configuration을 검증한다.
 비활성/불완전 그래프의 명시 진단과 정상 재시도의 기존 모델 효과 재사용은 유지한다.
 공개와 완료 확정 후 별도 transaction으로 준비 자료를 정리한다. 정리 실패는 준비 자료와 목록을
 함께 되돌리며 이미 확정된 공개는 유지한다. 실제 장애/중단 검증 범위는
