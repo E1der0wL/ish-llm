@@ -15,6 +15,68 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c18: 명시 RAG 재시도 허가 — c16–c18 묶음 Level 3
+
+RAGData.arun_job의 retry는 호출자가 주는 재실행 허가이며 자동 Provider 정책이 아니다.
+기존 내부 실행기는 truthiness로 판단하여 문자열 `"false"`로 실패한 Job을 다시 실행했다.
+새 실제 파일 시험 3개 중 2개 ID에서 9개 failure를 재현했다(1 pass·error/Skip 0,
+4.963초, exit 1). 잘못된 값 8종은 대기 Job에서 모델 효과를
+발생시켰고, 실패 Job의 문자열 재시도는 실제 모델 호출 파일을 1회에서 2회로 늘렸다.
+이 실패 로그·제품 원본·새 시험 원본을 c18-before에 보존했다.
+
+RAGJobs.run은 전달된 retry가 정확한 bool인지 lease 획득 전에 검사한다. 공개 arun_job만
+정상 대기 실행의 False 기본값을 소유하고 내부 실행기는 인자를 필수로 받는다. 내부 잠금 취소
+시험의 유일한 직접 호출에 False를 명시했으며 반복 취소·descriptor 닫힘 Assertion은 유지했다.
+claim의 Revision/CAS·재개 계획·포기·취소·구성·usage/receipt 검증과 저장 형식은 바꾸지 않았다.
+새 시험은 잘못된 값의 효과 0과 모든 Project 파일 byte 보존, 기본/False 정상 실행,
+실패 뒤 False 거부, 현재 resume-plan revision과 명시 True의 정상 재시도를 검사한다.
+**수정 전후 새 시험 파일은 byte가 동일하다.**
+
+내부 중복 기본값 S2 하나를 제거하고 공개 command 기본값 하나만 정확한 발생 ID와 owner·
+계약·소스/Fixture hash·구체적 시험으로 판정했다. 변경 의존성을 가진 기존 RAG review 두 건은
+API diff와 실제 consumer 결과를 재검토하고 test_rag_components/configuration_fixtures 및
+필요한 checkpoint helper 근거를 보강했다. prepare의 graph 재사용/best_effort 의미는 같다.
+AST 규칙이나 실패 판정은 완화하지 않았다. 원격 backend의 해당 retry 서명/claim만 참고했으며
+같은 truthiness 구현이므로 이식하지 않았고 이전 검증 결과도 승계하지 않았다.
+
+이번 변경은 재시도 허가 경계이므로 집중 검증 뒤 c16 Interaction·c17 audit와 함께 현재 통합
+소스를 Level 3으로 검증했다. 별도의 반복 Level 2 전체 실행은 추가하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 수정 후 집중 | 90/90 | 90 | 0/0/0 | 29.942초 | 0 |
+| 전체 LLM | 2101/2101 | 2101 | 0/0/0 | 737.909초 | 0 |
+| 전체 Hub | 563/563 | 563 | 0/0/0 | 715.317초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 모두 0이다. 각 전체 suite는
+한 번의 full 실행이며 집중 또는 과거 결과를 합산한 수가 아니다. 공통 승인·사용량/삭제·효과·
+Checkpoint·RAG·수명주기·중첩 Agent·트랜잭션의 실제 효과/장애 주입 시험이 모두 포함됐다.
+R3 실제 효과 mutation True/outer exit 0, 실제 LLM/Hub 환경 검사 각각 ok/exit 0이다.
+정적 raw 412·reviewed 76·미해결 336(S2 12·S3 306·S6 18), new/stale/review 오류와
+S1/S4/S5 미해결 0/exit 0이다. P1 최종 S1–S5 및 A–F는 아직 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c18-focused/llm.json --modules tests.llm.test_rag_retry_presence tests.llm.test_rag_components tests.llm.test_rag_resilience tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_extraction_repair tests.llm.test_rag_optimization
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c16-c18-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c16-c18-level3/hub.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c16-c18-level3/env-llm.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c16-c18-level3/env-hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c18-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c18-docs-final.json
+```
+
+실행 HEAD는 `fd53ddd85535f423bc41568375670f7d7befad20`와 당시 c18 미커밋 변경이다. 700 Python 소스 hash
+`b13ff913b34bf21cb639684c6ed527386dd7210d47c5cb1a4948dbbc60440f48`, 862개 입력/환경 manifest hash
+`7721d13deb8e73630f689780bd9268877a682c0d76371bc9b94b353d371edbcf`가 실행 전후 각각 동일했다.
+Python 3.12.14·136 의존성·env 5개·고정 host `d833790959a76ac457fdeea3f21a6bea1eecfe12` 및 바이너리를 기록했다.
+전체 실행 중 소스·시험·Fixture·문서를 고정했고, 전후 대조 뒤 결과 문서를 먼저 갱신한다.
+명령·exit·발견/실행 ID·원시 로그와 manifest는 `/workspace/llm-clean-resume/p1/c16-c18-level3/`에 있다.
+문서 검사는 132문서·182 Python fence·959링크·34 anchor, 오류 0이다.
+소스-커밋 동일성 및 staged diff 검사 후 c16–c18을 작업 브랜치에 묶어 Push한다.
+원격 CI 실제 결과는 기존 접근 제한으로 미확인이며 로컬 전체 성공과 구분한다.
+main·backend·Draft PR #1을 변경하지 않으며 기존 실제 인증 모델·커널 장애 검증 한계는 유지한다.
+
 ## P1-c17: 조건식·관찰용 입력 8건의 판정 — 로컬 Level 2
 
 제품·시험·AST 규칙을 바꾸지 않고 S2 발생 8건을 개별 판정했다. RAG의 동일 내용/지문과 graph

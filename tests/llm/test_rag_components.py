@@ -111,7 +111,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
             await release.wait()
             return SimpleNamespace(close=lambda: closed.append(True))
         jobs = RAGJobs(SimpleNamespace(ownership=None, _async_call=acquire))
-        worker = asyncio.create_task(jobs.run('job'))
+        worker = asyncio.create_task(jobs.run('job', retry=False))
         await started.wait()
         worker.cancel()
         await asyncio.sleep(0)

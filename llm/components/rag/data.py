@@ -254,7 +254,7 @@ class RAGData(ComponentData):
     aprune_jobs = async_method(prune_jobs)
 
     @observe_component_models
-    async def arun_job(self, identifier, *, retry=False, expected_revision=None):
+    async def arun_job(self, identifier, *, retry: bool = False, expected_revision=None):
         from .jobs import RAGJobs
         return await RAGJobs(self).run(identifier, retry=retry, expected_revision=expected_revision)
 

@@ -205,6 +205,11 @@ await rag.arun_job(job["id"])
 # await rag.arun_job(job["id"], retry=True)
 ```
 
+`retry`는 자동 재시도 정책이 아니라 해당 호출의 명시적 재시도 허가입니다.
+공개 `arun_job`만 기본값 `False`를 소유하며 내부 실행기에 그대로 전달합니다.
+`True`와 `False` 이외의 값(`None`, 숫자, 문자열 포함)은 잠금·상태 변경·모델 호출 전에 거부합니다.
+`False` 또는 생략은 대기 작업만 실행하며, 실패·중단된 작업의 재실행을 허용하지 않습니다.
+
 일괄 Job은 `document_ids`를 기록합니다. `batches/document_<position>.json`에 완료한 문서 준비 결과,
 `batches/d<position>_embedding_<ordinal>.json`과 `d<position>_graph_<offset>.json`에 작업 중 조각을
 보관합니다. 입력/설정 signature가 일치하는 결과만 재사용합니다. 모든 문서가 준비된 뒤 한 번 공개하고

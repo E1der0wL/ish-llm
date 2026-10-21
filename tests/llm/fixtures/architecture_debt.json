@@ -220,14 +220,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "e4c3552b1f8ea482bde60cd3a7b2b6be49ca45de5470df5a5ae080a149c6486a:1",
-      "rule": "S2",
-      "file": "llm/components/rag/data.py",
-      "symbol": "RAGData.arun_job",
-      "line": 250,
-      "detail": "policy argument default: retry"
-    },
-    {
       "id": "ac99bed27362b37e8e7e7b1c2a156a33138f9f8d7ae1dcfad4df337750139d27:1",
       "rule": "S3",
       "file": "llm/components/rag/data.py",
@@ -290,14 +282,6 @@
       "symbol": "RAGJobs._resume_plan",
       "line": 76,
       "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "a33e49542e8e11535334c8f92a549badc1e6057296770b36813665349d40933d:1",
-      "rule": "S2",
-      "file": "llm/components/rag/jobs.py",
-      "symbol": "RAGJobs.run",
-      "line": 401,
-      "detail": "policy argument default: retry"
     },
     {
       "id": "56807c4a976b350bd3874e5fb306f6a0d561be973246f2ee2162473bcd0aa5c4:1",

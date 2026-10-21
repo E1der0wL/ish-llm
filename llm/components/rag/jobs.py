@@ -419,7 +419,9 @@ class RAGJobs:
             "documents_completed": len(inputs), "documents_total": len(inputs)})
         return {"documents": prepared}
 
-    async def run(self, identifier, *, retry=False, expected_revision=None):
+    async def run(self, identifier, *, retry: bool, expected_revision=None):
+        if type(retry) is not bool:
+            raise TypeError("retry must be a boolean")
         # 잠금 획득 직후 취소되어도 descriptor를 잃지 않고 반드시 닫는다.
         pending = asyncio.create_task(self.data._async_call(self._lease, identifier))
         cancelled = False
