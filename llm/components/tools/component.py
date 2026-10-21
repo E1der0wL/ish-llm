@@ -45,7 +45,7 @@ class ToolComponent(Component):
 
     def initialize(self, project):
         self.get_config(project)
-        self._initialize_storage(project, records=False)
+        self._initialize_storage(project, records=False, record_catalog=False)
 
     def enabled(self, project):
         return self._options(project).get("enabled", [])

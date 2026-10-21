@@ -70,13 +70,16 @@ class MemoryComponent(Component):
 
     def _all_records(self, project):
         self._assert_ready(project)
+        if not self._has_storage(project):
+            return
         limit = self._options(project).get("cache_records", 0)
-        for path in sorted(self._checked(self.root(project) / "records").glob("*.json")):
-            path = self._checked(path)
+        _, records = self._record_inventory(project)
+        for identifier, raw in records.items():
+            path = self._record_path(project, identifier)
             stat = path.stat()
             signature = (stat.st_dev, stat.st_ino, stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size)
             cached = self._record_cache.pop(str(path), None)
-            record = cached[1] if cached and cached[0] == signature else self._read(project, path.stem)["record"]
+            record = cached[1] if cached and cached[0] == signature else self._decode_record(identifier, raw)["record"]
             if limit:
                 self._record_cache[str(path)] = (signature, deepcopy(record))
             while len(self._record_cache) > limit:

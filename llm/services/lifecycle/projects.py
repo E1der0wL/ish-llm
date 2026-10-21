@@ -354,6 +354,7 @@ class ProjectManager:
                 raise ValueError("Component usage receipts are required by the active quota period")
             for session in self.sessions.list(current, include_deleted=True):
                 self.sessions.require_inactive(session)
+            component.delete_directory(current)
         current.components = tuple(item for item in current.components if item != name)
         if permanent:
             current.config.parameters.get("components", {}).pop(name, None)
@@ -363,8 +364,6 @@ class ProjectManager:
         self.repository.save(current)
         project.components = current.components
         project.initialized_components = current.initialized_components
-        if permanent:
-            component.delete_directory(current)
         log_event(current.paths.logs, "component.removed", entity_id=current.id,
                   permanent=permanent)
 

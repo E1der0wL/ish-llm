@@ -5,9 +5,9 @@
 기존 `refactor/llm-backend`의 코드/커밋을 cherry-pick·merge하지 않는다. main과 기존 Draft PR #1은
 변경하지 않는다. [현행 구조](architecture.md)와 이 목표 구조를 구분한다.
 
-2026-10-21 H2-a/b/c/d/e는 도메인 필수 기록·외부 작업 원장·Checkpoint·출력 원본·
-Component 저장소 이력/사용량 영수증 보강의 집중/전체 회귀를 통과했다. H2 전체는 미완료이며
-개별 Component 기록 소실의 별도 2개 실패와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
+2026-10-21 H2-a/b/c/d/e/f는 도메인 필수 기록·외부 작업 원장·Checkpoint·출력 원본·
+Component 저장소 이력/사용량 영수증/개별 JSON 기록 보강의 집중/전체 회귀를 통과했다.
+H2 전체는 미완료이며 Python Tool 패키지 소실의 별도 3개 실패와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
 먼저 확인하며 이 실패를 해결하기 전 다음 기능 단계로 진행하지 않는다.
 
 ## 필수 원칙

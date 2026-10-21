@@ -55,11 +55,24 @@ class FileComponent(DefinitionComponent):
         return self._checked(self._package(project, identifier) / "files" / file_path(path))
 
     def _definition(self, project, identifier):
-        path = self._record_path(project, identifier)
-        with self._stream(path) as stream:
-            value = self.deserialize(stream.read().decode("utf-8"))
-        self.validate_record(identifier, value)
-        return value
+        return super().load(project, identifier)
+
+    def _record_files(self, project):
+        root = self.root(project)
+        if self._checked(root / "records").exists():
+            raise ValueError("Legacy records directory is unsupported")
+        paths = {}
+        for package in root.iterdir():
+            self._checked(package)
+            if package.name in (ModelUsageRecord.DIRECTORY, self.RECORDS_MANIFEST):
+                continue
+            if not package.is_dir():
+                raise ValueError("Invalid Component package entry")
+            path = self._record_path(project, package.name)
+            if not path.is_file():
+                raise ValueError("Component package definition is missing")
+            paths[package.name] = path
+        return paths
 
     @staticmethod
     def _stream(path):
@@ -143,7 +156,6 @@ class FileComponent(DefinitionComponent):
         if self._package(project, identifier).exists():
             raise FileExistsError("Package already exists")
         self.validate_record(identifier, data)
-        make_directory(self._package(project, identifier))
         self._write(project, identifier, data)
         return identifier
 
@@ -153,11 +165,10 @@ class FileComponent(DefinitionComponent):
         return value
 
     def list(self, project):
-        root = self.root(project)
-        if self._checked(root / "records").exists():
-            raise ValueError("Legacy records directory is unsupported")
-        return {p.name: self.load(project, p.name) for p in sorted(root.iterdir())
-                if p.name != ModelUsageRecord.DIRECTORY} if root.exists() else {}
+        records = super().list(project)
+        for identifier, value in records.items():
+            self._verify(project, identifier, value)
+        return records
 
     def save(self, project, identifier, data):
         old = self.load(project, identifier)
@@ -167,6 +178,9 @@ class FileComponent(DefinitionComponent):
 
     def delete(self, project, identifier):
         self.load(project, identifier)
+        super().delete(project, identifier)
+
+    def _remove_record(self, project, identifier):
         remove_named_tree(self.root(project), self._package(project, identifier), identifier)
 
     def read_file(self, project, identifier, path, *, offset=0, length=None):

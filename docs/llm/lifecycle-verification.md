@@ -5,6 +5,82 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-f 개별 Component 원본의 존재·리비전
+
+H2-e 커밋 `2878acbb737ee7a6cc7acde1748bc194ac020904`에서 이어서 작업했다.
+일반 Component 기록 소실을 빈 목록으로 읽기, 사라진 Memory 기록을 같은 ID의 새
+generation으로 생성하는 두 재현을 저장소 회귀에 편입했다. 구현 전 2 failure,
+error·Skip 0, 0.144초, exit 1이었다.
+
+### 구현 경계
+
+- 공통 JSON 기록 owner는 생성 시 필수 records.manifest.json을 확정한다. Component가
+  현재 버전·Project/Component 소유권·정확한 ID 집합·원본 바이트 SHA-256을 검증한다.
+  빈 목록은 명시된 빈 manifest 또는 한 번도 생성하지 않은 저장소에서만 반환한다.
+  기록·목록·records 디렉터리 소실, 미선언 기록, 내용 변경은 보존·거부한다.
+- 생성·수정·명시 삭제는 기록과 목록을 기존 workspace transaction으로 함께 확정한다.
+  존재 검증과 의미 검증은 별개다. 조회와 목록은 각 owner의 validate_record를 유지하며,
+  Memory의 손상 이력과 Vision 버전은 목록 해시가 일치하는 자료에서도 별도로 거부한다.
+- Memory는 목록과 원본 해시를 검증한 뒤 캐시를 사용한다. 소실을 빈 검색 결과로 숨기거나
+  새 세대를 발급하지 않는다. Vision의 삭제 표식도 목록에 남으며 소실 후 ID 재사용을 막는다.
+- FileComponent는 공통 records 경로 대신 자신의 패키지 정의 파일 집합을 제공한다.
+  Skill/Data 전체 패키지 소실도 검출하며 기존 첨부 파일 검증과 CAS를 유지한다.
+  Python Tool 패키지와 외부 저장 owner의 형식을 이 공통 JSON reader가 해석하지 않는다.
+- Component 영구 제거는 아직 유효한 Project 저장소 이력·설정으로 owner 검증을 수행한 뒤
+  디렉터리와 이력을 같은 transaction에서 제거한다. 현재 자료가 손상되면 원위치에 보존한다.
+  모든 상위 도메인의 삭제·참조 보호가 완료됐다는 뜻은 아니다.
+
+### 집중 검증과 수정
+
+첫 72개 실행은 잘못 지정한 test_skills 모듈의 import error 1개와 Memory 이력 오류
+메시지 기대값 failure 1개였다(13.731초). 실제 test_skill_packages로 바로잡고, Memory 시험은
+원본 해시 거부와 해시가 일치하는 손상 이력 거부를 각각 검증하도록 보강했다.
+이후 95 pass(18.200초)를 확인했다. 추가 176개는 175 pass·error 1개(72.287초)였다.
+영속 정의가 없는 RuntimeTools fixture가 공통 파일 목록을 상속한 문제였으며 해당 fixture의
+빈 저장 계약을 명시했다. 수정·추가 검증은 90 pass(16.561초), failure·error·Skip 0이다.
+
+첫 전체 LLM의 2 failure는 Memory 세대 불일치/누락 자료가 새 원본 해시 검증에서 먼저
+거부되면서 발생한 기존 메시지 기대값 충돌이었다. 테스트를 보강해 해시 불일치 거부와,
+해시가 일치해도 세대 필수값·이력 연결을 거부함을 각각 검증한다. 제품 코드는 바꾸지 않았다.
+수정 후 62 pass(15.650초), failure·error·Skip 0을 확인하고 전체 LLM을 다시 실행했다.
+
+실제 자식 프로세스 exit 77은 생성·수정·삭제 각각에서 기록 변경 후, manifest 변경 후,
+API commit 반환 후의 아홉 조합을 검증한다. 재열기에서 미확정 변경은 원래 기록·목록으로
+rollback하고 확정된 변경만 유지한다. manifest 저장 실패도 원본 바이트와 목록을 함께
+보존한다. 캐시 이후 소실/변경, 비활성 owner의 재선택·백업·영구 제거, File 패키지 소실,
+Vision tombstone 소실과 실패한 clone의 목적지 비공개를 확인했다.
+
+### 전체 회귀 — 2026-10-21
+
+| 검사 | 실제 결과 |
+|---|---|
+| 최초 전체 LLM | 1,806 pass, failure 2, error·Skip 0, 557.146초, exit 1 |
+| 전체 LLM | 1,808 pass, failure·error·Skip 0, 541.819초, exit 0 |
+| 전체 Hub | 540 pass, failure·error·Skip 0, 691.145초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 미정리 후보 553개, exit 0 |
+| R3 mutation | 한도 전달 누락 시 두 번째 실제 파일 효과 검출, 검사 도구 exit 0 |
+| 문서 검사 | 130개 문서, Python fence 178개, 상대 링크 932개, anchor 34개, error 0 |
+
+발견/시작 ID의 누락·중복·예상 밖 ID는 0이다. 버전 선언명과 필드명이 다른 첫 정적 감사의
+S4 후보 2개는 해당 owner의 SCHEMA_VERSION 선언으로 해소했다. 검사나 debt fixture를
+약화하지 않았으며 기존 553개 후보는 승인된 예외가 아니다. 실행 환경·명령은 H2-a/b와 같다.
+최초 전체 실행 전후 Python 658개 manifest는
+`dbee20127af71882761598b93d52a8b52781a3d8debc53921d26328f4b19357e`로 같다.
+Hub 통과 후 변경은 test_record_generations.py의 테스트 자료 하나뿐이다. 제품·Hub 소스와
+Hub가 소비하는 자료는 그대로이며 차이를 source-change.json에 기록했다. 전체 Hub는
+반복하지 않았다. 최종 LLM 실행 전후 Python 658개 manifest는 `d8b0c5474f22811e03a793f31000bb96d7ccc7818e9f7b25f10f831745d963cd`로 같다.
+원시 로그·JSON·소스 manifest는 `/workspace/llm-clean-resume/h2-f/final/`에 보존한다.
+원본 해시 검증의 누적 I/O와 대용량 저장소 성능은 별도로 측정하지 않았다.
+전체 통과 뒤 문서를 먼저 갱신하고 문서 검사 후 커밋·Push한다.
+
+### H2 잔여 항목
+
+별도 tool-package-loss-probe.py는 Python Tool의 requirements.txt 소실을 의존성 없는 패키지로,
+전체 패키지 소실을 빈 목록으로 읽는 경로와 명시적으로 빈 requirements.txt 소실 후 기존
+워커가 추가 로컬 파일 효과를 실행하는 경로를 재현했다(3 failure, error·Skip 0, 0.867초,
+exit 1). H2-f 성공에 합산하지 않는다. Tool 패키지와 Memory 부가 자료·나머지 owner의
+필수 필드·상태·존재 계약, H3–H5·P1 잔여 작업·A–F는 미완료다.
+
 ## H2-e Component 저장소 이력·사용량 영수증
 
 H2-d 커밋 `0085b7c47d7498e35b62a6b6f94f69c218c08917`에서 이어서 작업했다.
@@ -83,8 +159,8 @@ source-change.json에 기록했다. 최종 LLM 실행 전후 Python 657개 manif
 
 별도 component-record-loss-probe.py는 2 failure, error·Skip 0, 0.143초, exit 1이다.
 일반 Component 개별 기록 소실을 빈 목록으로 읽고, 사라진 Memory 기록을 같은 ID의 새
-generation으로 다시 만드는 경로다. H2-e 성공에 합산하지 않는다. 개별 자료의 존재·필드·
-상태 계약과 H3–H5·P1 잔여 작업·A–F는 아직 완료하지 않았다.
+generation으로 다시 만드는 경로다. 이 두 실패는 위 H2-f에서 보강·검증했다. 나머지 owner의
+존재·필드·상태 계약과 H3–H5·P1 잔여 작업·A–F는 아직 완료하지 않았다.
 
 ## H2-d 출력 원본·필수 manifest·현재 출력 필드
 

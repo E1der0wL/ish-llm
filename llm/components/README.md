@@ -102,6 +102,7 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
   project.json                     # 선택·initialized_components 이력·parameters.components
   <component>/usage/manifest.json   # 필수 영수증 파일 집합·리비전
   <component>/usage/<id>.json       # 모델 호출 예약·종료 증거
+  <json-owner>/records.manifest.json # JSON 기록의 필수 ID 집합·원본 해시
   prompts/records/guide.json       # 공통 JSON 레코드
   agents/records/reviewer.json
   workflows/records/review.json
@@ -127,6 +128,13 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 재선택은 남은 자료를 검증합니다. 백업은 비활성 상태로 보존된 owner의 scope와 validator도
 호출하며 미등록 owner를 생략하지 않습니다. 삭제·clone·backup은 Project 서비스의 수명 검사를
 통과해야 합니다.
+
+공통 JSON 저장은 `records.manifest.json`으로 전체 기록의 존재와 원본 바이트를 검증합니다.
+기록·목록·디렉터리 소실이나 미선언 자료를 빈 상태로 읽거나 다시 만들지 않습니다.
+생성·수정·삭제는 기록과 목록을 같은 transaction으로 확정하며 `validate_record`의 의미
+검증도 유지합니다. FileComponent는 자신의 Skill/Data 패키지 정의 경로를 제공하고 첨부
+파일 검증을 추가합니다. Memory 캐시도 원본 검증을 거칩니다. Tool Python 패키지와 외부
+저장소는 별도 owner 계약을 따릅니다. 원본 해시 검증의 대용량 비용은 아직 측정하지 않았습니다.
 
 별도 `component.json`이나 과거 형식의 자동 변환은 제공하지 않습니다. JSON 정의는 기본 복제로 복사되지만 색인·특수 파일을 가진 Component는 자신의 clone 계약을 구현해야 합니다.
 

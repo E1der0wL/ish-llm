@@ -18,7 +18,7 @@ class RuntimeTools(Component):
         self.registry = registry if registry is not None else ToolRegistry()
 
     def initialize(self, project):
-        self._initialize_storage(project, records=False)
+        self._initialize_storage(project, records=False, record_catalog=False)
 
     def describe_config(self):
         return implementation_schema(config={'type': 'object', 'properties': {'enabled': {'type': 'array', 'items': {'type': 'string'}, 'uniqueItems': True, 'x-suggestions': list(self.registry.names())}}})
@@ -33,6 +33,10 @@ class RuntimeTools(Component):
 
     def load(self, project, name):
         return ToolRegistry((self.registry.get(name),)).definitions()[0]
+
+    def list(self, project):
+        # This fixture owns runtime capabilities, with no persisted definitions.
+        return {}
 
     def resolve(self, project, capability):
         if capability != "tools":

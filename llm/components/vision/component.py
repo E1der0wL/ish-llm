@@ -14,7 +14,7 @@ from llm.core.parameters import ParameterLayout
 from llm.core.schema import object_schema, checked_schema
 from llm.providers.requests import provider_schema, resolve_provider_options
 from llm.services.infrastructure.storage import (
-    atomic_json, make_directory, prepare_replace, temporary_file, sync_directory, revision_token,
+    make_directory, prepare_replace, temporary_file, sync_directory, revision_token,
 )
 from .backends import TesseractBackend, VisionModel
 
@@ -145,8 +145,7 @@ class VisionComponent(Component):
         return data
 
     def list(self, project):
-        root = self._checked(self.root(project) / "records")
-        records = {p.stem: self._record(project, p.stem) for p in sorted(root.glob("*.json"))}
+        records = super().list(project)
         return {key: value for key, value in records.items() if not value["deleted"]}
 
     def save(self, project, identifier, data):
@@ -160,7 +159,7 @@ class VisionComponent(Component):
         record = self.load(project, identifier)
         record.update(deleted=True, deleted_at=now())
         # 원본은 RAG/Step의 해시 참조를 위해 유지한다. 이미지 ID는 재사용하지 않는다.
-        atomic_json(self._record_path(project, identifier), record)
+        self._write(project, identifier, record)
 
     def read_image(self, project, identifier):
         record = self.load(project, identifier)
@@ -172,19 +171,17 @@ class VisionComponent(Component):
     def validate_backup(self, project):
         self.model_usage(project)
         self.get_config(project)
-        for path in self._checked(self.root(project) / "records").glob("*.json"):
-            record = self._record(project, path.stem)
+        for record in super().list(project).values():
             raw = self._blob(project, record["sha256"]).read_bytes()
             if len(raw) != record["bytes"] or hashlib.sha256(raw).hexdigest() != record["sha256"]:
                 raise ValueError("Image asset integrity mismatch")
 
     def clone(self, source, destination):
         self.validate_backup(source)
-        for path in sorted(self._checked(self.root(source) / "records").glob("*.json")):
-            record = self._record(source, path.stem)
+        for identifier, record in super().list(source).items():
             self._write_blob(destination, self._blob(source, record["sha256"]).read_bytes(), record["sha256"])
             # tombstone도 복제해 기존 출처와 ID 불변성을 유지한다.
-            super().create(destination, record, identifier=path.stem)
+            super().create(destination, record, identifier=identifier)
 
     def resolve_runtime(self, project, capability, *, data_factory):
         data = data_factory(self.name)

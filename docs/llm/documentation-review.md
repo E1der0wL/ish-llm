@@ -313,3 +313,11 @@ storage-transactions와 Component README를 먼저 갱신했다. 선택 해제�
 무제한 호출에서도 수행하는 저장 원본 검증과 quota 합산 생략을 구분했다. 기존 테스트 자료의
 실패·수정과 성능 예제의 누락된 소비 경로도 보존하며 소규모 smoke를 성능 개선으로 주장하지 않는다.
 기존 4개 실패의 해결과 새 개별 Component 기록 소실 2개 실패·나머지 H2–H5 작업을 구분했다.
+
+## 2026-10-21 H2-f 검증 후 문서 우선 갱신
+
+개별 Component 원본·목록 보강의 전체 LLM/Hub 회귀가 통과한 뒤 lifecycle-verification,
+data-lifecycle, clean-refactor, storage-transactions, Memory 문서와 Component README를
+먼저 갱신했다. 원본 목록의 필수 존재와 원자 저장, 캐시 전 검증, File 패키지와 Vision 삭제
+표식의 소실 차단을 기록했다. 초기 집중 실패와 fixture 수정, 의미 검증의 독립성을 보존했다.
+H2-e의 두 개별 기록 실패 해결과 별도 Tool 패키지 실패·나머지 H2–H5 작업을 구분했다.

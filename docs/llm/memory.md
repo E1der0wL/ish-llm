@@ -122,21 +122,26 @@ BaseEngine에 Memory 전용 로직을 추가하지 않는다. Loop의 범용 com
 ```text
 <project>/memory/
   identity.json
+  records.manifest.json # 필수 기록 목록·원본 바이트 해시
   records/
     <id>.json   # {record: 현재 값, history: 변경별 스냅샷 목록}
   contexts/
     <session-id>.json  # 원문 범위를 확인할 수 있는 최신 파생 요약 캐시
 ```
 
-현재 값과 이력은 한 파일의 원자적 교체로 함께 공개한다. ComponentData의 기존 workspace
-잠금과 수명 검사를 공유하고 비동기 API는 파일 I/O를 StorageIO로 넘긴다. Project clone과
+현재 값과 이력은 한 파일에 저장하며 해당 원본과 records.manifest.json을 같은 transaction으로
+공개한다. 기록의 전체 집합·해시 검증 후 캐시를 사용하므로 소실을 빈 목록이나 같은 ID의 새
+generation으로 바꾸지 않는다. 원본 해시와 기록/이력의 의미 검증은 별개다. ComponentData의
+기존 workspace 잠금과 수명 검사를 공유하고 비동기 API는 파일 I/O를 StorageIO로 넘긴다. Project clone과
 백업은 삭제된 기록을 포함해 이력과 generation/revision을 보존하며, clone의 원본 출처 ID는 그대로 유지한다.
 기억 수정은 해당 파일의 전체 이력을 읽고 다시 쓰며 검색은 모든 기록을 순회한다. 큰 규모의
 저장소에서는 별도 색인/이력 저장 전략이 필요하다.
 
 `identity.json`은 새 Memory 저장소 생성 때만 발급한다. 기존 루트의 조회·재선택·백업은
 32자리 hex ID를 담은 현재 형식을 요구하며, 파일 소실을 새 ID 발급으로 처리하지 않는다.
-루트 전체 소실과 상위 삭제·참조 보호의 완전한 검증은 H2–H5 잔여 항목이다.
+Project의 initialized_components 이력은 선택 해제 후에도 남으며 선언된 루트 전체 소실을
+재초기화하지 않는다. 요약·병합 등 부가 자료와 모든 상위 삭제·참조 보호의 완전한 검증은
+H2–H5 잔여 항목이다.
 
 Memory 데이터 저장과 Run/Step 기록은 별개 트랜잭션이다. Tool 효과 후 Run 기록 실패 시
 기억은 이미 반영됐을 수 있으므로 출처와 이력을 확인한다. 실패한 Tool 효과를 자동 재시도하지

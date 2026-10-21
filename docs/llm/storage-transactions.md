@@ -29,6 +29,7 @@
 | Project 생성 | project.json, Session/Component 디렉토리 초기화; 기본 Project 선택은 Application 소유 |
 | Project 설정·Component 선택 | 설정·선택, initialized_components 이력과 신규 Component 저장소/사용량 manifest 초기화 |
 | Component 모델 호출 | 호출 전 예약과 호출 후 종료 각각의 영수증·파일 리비전 manifest |
+| Component JSON 기록 | 생성·수정·명시 삭제의 원본과 records.manifest.json; Skill/Data 패키지 정의 포함 |
 | Component 영구 제거 | 안전성 검증 후 Project 선택/설정/저장소 이력 제거와 Component 디렉토리 격리 |
 | Session 생성·수정·삭제·복원 | Session 레코드 및 디렉토리 수명; 생성 시에만 빈 외부 작업 원장 manifest 확정 |
 | Project/Session 복제 | 목적지 메타데이터·Component 자료·선택 저장소의 대화. Run 기록은 복사하지 않음 |

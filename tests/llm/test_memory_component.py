@@ -156,6 +156,14 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         content = json.loads(path.read_text())
         content["history"].pop()
         path.write_text(json.dumps(content))
+        with self.assertRaisesRegex(ValueError, "integrity"):
+            await self.project.abackup(self.root / "corrupt")
+        # Check semantic history independently of the byte inventory.
+        import hashlib
+        manifest_path = path.parent.parent / self.component.RECORDS_MANIFEST
+        manifest = json.loads(manifest_path.read_bytes())
+        manifest["records"]["m"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        manifest_path.write_text(json.dumps(manifest))
         with self.assertRaisesRegex(ValueError, "history"):
             await self.project.abackup(self.root / "corrupt")
 

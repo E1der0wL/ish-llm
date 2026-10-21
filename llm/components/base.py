@@ -3,6 +3,7 @@
 Project-owned JSON definitions and directories, independent of execution."""
 
 from copy import deepcopy
+import hashlib
 import json
 import re
 from contextlib import nullcontext
@@ -53,6 +54,8 @@ class Component:
 
     name: str
     directory: str
+    SCHEMA_VERSION = 1
+    RECORDS_MANIFEST = "records.manifest.json"
     capabilities: tuple[str, ...] = ()
     # 영속 도메인의 정확한 identity 의존성이다. runtime capability와 별개다.
     required_components: tuple[str, ...] = ()
@@ -186,15 +189,60 @@ class Component:
         atomic_json(root / (record.id + ".json"), value)
         atomic_json(root / ModelUsageRecord.MANIFEST, manifest)
 
-    def _initialize_storage(self, project, *, records=True):
+    def _record_files(self, project):
+        root = self._checked(self.root(project) / "records")
+        if not root.is_dir():
+            raise ValueError("Component records directory is missing")
+        paths = {}
+        for path in root.iterdir():
+            self._checked(path)
+            if path.suffix != ".json" or not path.is_file():
+                raise ValueError("Invalid Component record entry")
+            paths[validate_name(path.stem)] = path
+        return paths
+
+    def _record_inventory(self, project):
+        """Validate existence and bytes before an owner decodes or caches records."""
+        from llm.services.infrastructure.storage import read_json
+        if not self._has_storage(project):
+            raise ValueError("Component record storage is not initialized")
+        manifest = read_json(self._checked(self.root(project) / self.RECORDS_MANIFEST))
+        if (not isinstance(manifest, dict)
+                or manifest.keys() != {"schema_version", "project_id", "component", "records"}
+                or type(manifest["schema_version"]) is not int
+                or manifest["schema_version"] != self.SCHEMA_VERSION
+                or manifest["project_id"] != project.id or manifest["component"] != self.name
+                or not isinstance(manifest["records"], dict)):
+            raise ValueError("Invalid Component record manifest")
+        for identifier, digest in manifest["records"].items():
+            validate_name(identifier)
+            if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
+                raise ValueError("Invalid Component record digest")
+        paths = self._record_files(project)
+        if paths.keys() != manifest["records"].keys():
+            raise ValueError("Component records are missing or undeclared")
+        records = {}
+        for identifier in sorted(paths):
+            raw = paths[identifier].read_bytes()
+            if hashlib.sha256(raw).hexdigest() != manifest["records"][identifier]:
+                raise ValueError("Component record integrity mismatch")
+            records[identifier] = raw
+        return manifest, records
+
+    def _decode_record(self, identifier, raw):
+        value = self.deserialize(raw.decode("utf-8"))
+        self.validate_record(identifier, value)
+        return value
+
+    def _initialize_storage(self, project, *, records=True, record_catalog=True):
         from llm.components.usage import ModelUsageRecord
         from llm.services.infrastructure.storage import make_directory
         self.get_config(project)
         root = self.root(project)
         if self.name in project.initialized_components:
             self._model_usage_records(project)
-            if records and not self._checked(root / "records").is_dir():
-                raise ValueError("Component records directory is missing")
+            if record_catalog:
+                self._record_inventory(project)
             return
         if root.exists():
             raise ValueError("Cannot initialize undeclared Component storage")
@@ -202,6 +250,10 @@ class Component:
         atomic_json(root / ModelUsageRecord.DIRECTORY / ModelUsageRecord.MANIFEST, {
             "schema_version": ModelUsageRecord.SCHEMA_VERSION, "project_id": project.id,
             "component": self.name, "records": {}})
+        if record_catalog:
+            atomic_json(root / self.RECORDS_MANIFEST, {
+                "schema_version": self.SCHEMA_VERSION, "project_id": project.id,
+                "component": self.name, "records": {}})
 
     def resolve_runtime(self, project: Project, capability: str, *, data_factory):
         """필요한 경우 현재 프로젝트의 수명 검사 핸들로 실행 기능을 구성한다.
@@ -249,16 +301,24 @@ class Component:
     def _write(self, project: Project, identifier: str, data: dict) -> None:
         value = self.deserialize(self.serialize(data))
         self.validate_record(identifier, value)
-        atomic_json(self._record_path(project, identifier), value)
+        manifest, _ = self._record_inventory(project)
+        path = self._record_path(project, identifier)
+        atomic_json(path, value)
+        manifest["records"][identifier] = hashlib.sha256(path.read_bytes()).hexdigest()
+        atomic_json(self.root(project) / self.RECORDS_MANIFEST, manifest)
 
     def load(self, project: Project, identifier: str) -> dict:
-        data = self.deserialize(self._record_path(project, identifier).read_text(encoding="utf-8"))
-        self.validate_record(identifier, data)
-        return data
+        self._record_path(project, identifier)
+        _, records = self._record_inventory(project)
+        if identifier not in records:
+            raise FileNotFoundError(identifier)
+        return self._decode_record(identifier, records[identifier])
 
     def list(self, project: Project) -> dict[str, dict]:
-        root = self._checked(self.root(project) / "records")
-        return {path.stem: self.load(project, path.stem) for path in sorted(root.glob("*.json"))}
+        if not self._has_storage(project):
+            return {}
+        _, records = self._record_inventory(project)
+        return {identifier: self._decode_record(identifier, raw) for identifier, raw in records.items()}
 
     def save(self, project: Project, identifier: str, data: dict) -> None:
         """Replace an existing definition; create is explicit."""
@@ -275,14 +335,24 @@ class Component:
         return data
 
     def delete(self, project: Project, identifier: str) -> None:
+        self._record_path(project, identifier)
+        manifest, records = self._record_inventory(project)
+        if identifier not in records:
+            raise FileNotFoundError(identifier)
+        self._decode_record(identifier, records[identifier])
+        self._remove_record(project, identifier)
+        del manifest["records"][identifier]
+        atomic_json(self.root(project) / self.RECORDS_MANIFEST, manifest)
+
+    def _remove_record(self, project, identifier):
         from llm.services.infrastructure.storage import unlink_file
-        path = self._record_path(project, identifier)
-        unlink_file(path)
+        unlink_file(self._record_path(project, identifier))
 
     def delete_directory(self, project: Project) -> None:
         """Explicit permanent removal, including component-owned artifacts."""
         root = self.root(project)
         if root.exists():
+            self.validate_backup(project)
             remove_named_tree(project.paths.root, root, self.directory)
 
     def resolve(self, project: Project, capability: str) -> Any:

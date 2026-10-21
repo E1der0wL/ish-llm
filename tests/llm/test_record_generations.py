@@ -1,6 +1,7 @@
 """같은 ID를 재사용해도 이전 generation/revision으로 새 자료를 변경하지 못한다."""
 
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -45,6 +46,13 @@ class MemoryGenerationTests(unittest.IsolatedAsyncioTestCase):
         deleted = await self.memory.adelete(record["id"], **expected(record))
         await self.memory.apurge(record["id"], **expected(deleted))
         return await self.create(record["id"], content="new incarnation")
+
+    def match_record_manifest(self, path):
+        # Exercise the semantic generation guard independently of byte integrity.
+        manifest_path = path.parent.parent / MemoryComponent.RECORDS_MANIFEST
+        manifest = json.loads(manifest_path.read_bytes())
+        manifest["records"][path.stem] = hashlib.sha256(path.read_bytes()).hexdigest()
+        manifest_path.write_text(json.dumps(manifest))
 
     async def test_stale_generation_rejects_every_record_mutation(self):
         old = await self.create()
@@ -94,6 +102,9 @@ class MemoryGenerationTests(unittest.IsolatedAsyncioTestCase):
         value = json.loads(path.read_text())
         value["history"][0]["data"]["generation"] = "0" * 32
         path.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError, "integrity"):
+            await self.memory.aload("item")
+        self.match_record_manifest(path)
         with self.assertRaisesRegex(ValueError, "generations"):
             await self.memory.aload("item")
 
@@ -104,6 +115,9 @@ class MemoryGenerationTests(unittest.IsolatedAsyncioTestCase):
         del value["record"]["generation"]
         path.write_text(json.dumps(value))
         before = path.read_bytes()
+        with self.assertRaisesRegex(ValueError, "integrity"):
+            await self.memory.aload("item")
+        self.match_record_manifest(path)
         with self.assertRaisesRegex(ValueError, "generation"):
             await self.memory.aload("item")
         self.assertEqual(path.read_bytes(), before)
