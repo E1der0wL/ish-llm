@@ -4966,7 +4966,7 @@
         "docs/llm/architecture-reviews.md"
       ],
       "sources": {
-        "docs/llm/model-protocol.md": "32e1e34efaa11eec4f0de40a4dd133635b06e1e379d105bfc55e967a96a0ba8b",
+        "docs/llm/model-protocol.md": "5587491ad49141fdaf64812feaf78a0d5530330b753f6ee74f2e5b43a6c077ba",
         "docs/llm/clean-refactor.md": "96da5764abcbc07614b0bf781daccc1a24d7b1ba3f671ba871a1614f2d50a668",
         "docs/llm/architecture-reviews.md": "80fc62ec8c1be56ce2185bcf6744fc6fa9d9d45033d52388b2afd4dc48689daa",
         "llm/core/model_protocol.py": "0c93f86b3881878137d7be937168c3fcb4968650e33ec271920e2cdc935d3162",
@@ -4991,7 +4991,7 @@
         "docs/llm/architecture-reviews.md"
       ],
       "sources": {
-        "docs/llm/model-protocol.md": "32e1e34efaa11eec4f0de40a4dd133635b06e1e379d105bfc55e967a96a0ba8b",
+        "docs/llm/model-protocol.md": "5587491ad49141fdaf64812feaf78a0d5530330b753f6ee74f2e5b43a6c077ba",
         "docs/llm/clean-refactor.md": "96da5764abcbc07614b0bf781daccc1a24d7b1ba3f671ba871a1614f2d50a668",
         "docs/llm/architecture-reviews.md": "80fc62ec8c1be56ce2185bcf6744fc6fa9d9d45033d52388b2afd4dc48689daa",
         "llm/core/model_protocol.py": "0c93f86b3881878137d7be937168c3fcb4968650e33ec271920e2cdc935d3162",
