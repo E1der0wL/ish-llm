@@ -196,4 +196,3 @@ class CheckpointStorageIntegrityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'undeclared'):
             self.repository.load(self.run, 'custom')
         self.assertEqual(extra.read_bytes(), before)
-
