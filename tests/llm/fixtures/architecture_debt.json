@@ -1908,28 +1908,12 @@
       "detail": "truthiness fallback involving configuration"
     },
     {
-      "id": "116483fc4d1230657db11855935b28338be7259da625762bc1d280bf5182faff:1",
-      "rule": "S2",
-      "file": "hub/backend/bootstrap.py",
-      "symbol": "create_backend",
-      "line": 39,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "3f5ace377ed99c816fac8a5362415c4610e04ff23c46106cdad270ec97f3f0be:1",
       "rule": "S3",
       "file": "hub/backend/bootstrap.py",
       "symbol": "create_backend",
       "line": 40,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "66eab5330fa181e2b832bddbddd2d2f8ca416181a54a666066b9cdaa9592a66e:1",
-      "rule": "S2",
-      "file": "hub/backend/bootstrap.py",
-      "symbol": "create_backend",
-      "line": 60,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "f88224415ce074c7ab2cdf6e257ee0c150913df62e9c05a98b017a2e8542859d:1",

@@ -15,6 +15,65 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c10: Hub 팩토리 Presence — 로컬 Level 2
+
+HubConfig와 create_backend의 Engine/Component 팩토리 입력 두 경로를 정리했다. 내용이 있지만
+False로 평가되는 dict를 넘기면 지정 모델 대신 기본 모델이 호출됐고, 같은 성질의 list/tuple은
+명시한 Component 교체가 누락됐다. `or {}`/`or ()`를 None 전용 선택으로 바꿨다.
+None·빈 컬렉션은 기본 등록을 유지하며 명시한 nonempty 컬렉션은 truthiness와 무관하게 쓴다.
+HubConfig는 Engine dict·문자열 이름·callable, Component list/tuple·callable을 구성 전에 검증한다.
+list는 기존 실제 소비자가 사용하는 형식이므로 유지하고 annotation에 명시했다. 잘못된 Engine
+입력의 AttributeError 6건과 조용히 수락하던 Component 입력 7건은 정상 입력 오류로 거부한다.
+팩토리 생성은 기존대로 backend thread가 담당하며 검증 때 실행하지 않는다.
+
+새 시험 4개에서 실제 모델 파일 효과가 수정 전 **기본 1/명시 0**, 수정 후 **기본 0/명시 1**임을
+검증했다. falsey list/tuple의 팩토리 실제 파일 효과·동일 Component·실제 Prompt 저장/조회,
+잘못된 입력의 무생성 거부, None/빈 컬렉션의 기본 Engine/Component 등록도 확인했다.
+수정 전 실패 10·error 6은 실패 test ID 3개의 subtest 결과다. Assertion이나 파일 효과 검사를
+완화하지 않았고 원래 제품 코드·시험·로그를 `c10-before/`에 보존했다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c10-before` hub | 4/4 | 1 | 10/6/0 | 9.498초 | 1 |
+| `c10-focused` hub | 25/25 | 25 | 0/0/0 | 64.373초 | 0 |
+| `c10-level2` llm | 277/277 | 277 | 0/0/0 | 71.179초 | 0 |
+| `c10-level2` hub | 84/84 | 84 | 0/0/0 | 225.863초 | 0 |
+
+모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+Level 2 LLM 21개 모듈은 감사 검사기·현재 설정/Schema·Loop/Graph/Agent Workflow·정책 소유권/
+합성·Tool 제약과 공통 승인·누적 예산·효과·Checkpoint·RAG·삭제·트랜잭션 안전성을 포함한다.
+Hub 12개 모듈은 생성/재열기·설정·모델/Component 주입·실제 RAG/자원 Tools·승인 질문·재시도/
+Provider 복구 소비자다. 실제 효과·중단/재개·원본 보존과 장애 주입 검증을 유지했다.
+
+Backend 저장 형식·실행 정책은 변경하지 않았다. 기존 None·일반 dict/list/tuple의 등록 조합은
+같으며 잘못된 입력과 falsey nonempty 컬렉션의 처리가 변경 범위다. Hub의 언어 상속·작업 경로
+선택 등 다른 Presence 후보까지 완료했다고 보고하지 않는다. 이 범위와 필수 관련 안전성이
+통과했으므로 이번 소단계의 전체 LLM/Hub는 유예한다. 다음 P1 묶음 Level 3에서 현재 통합 소스의
+전체 검증 후 Push한다. 앞선 c7–c9 전체 통과를 변경된 c10의 전체 결과로 재사용하지 않는다.
+
+정적 검사 new/stale/review 오류/S1·S5 미해결 0, reviewed 46·미해결 412, exit 0이다.
+실제 수정된 create_backend의 두 S2 발생만 제거했고 AST 규칙·기존 분류·다른 후보는 유지했다.
+R3 실제 효과 Mutation 검출 True/outer exit 0, 문서 검사 132/182/959/34·오류 0/exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c10-before/hub.json --modules tests.hub.test_factory_presence
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c10-focused/hub.json --modules tests.hub.test_factory_presence tests.hub.test_bootstrap tests.hub.test_creation_contracts tests.hub.test_defaults tests.hub.test_rag_defaults tests.hub.test_retry_observations
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c10-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_current_contracts tests.llm.test_configuration_validation tests.llm.test_schema_ownership tests.llm.test_settings_contract tests.llm.test_agent_workflow tests.llm.test_graph_engine tests.llm.test_loop tests.llm.test_project_policies tests.llm.test_policy_consumers tests.llm.test_policy_ownership tests.llm.test_tool_constraints tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c10-level2/hub.json --modules tests.hub.test_factory_presence tests.hub.test_bootstrap tests.hub.test_creation_contracts tests.hub.test_defaults tests.hub.test_rag_defaults tests.hub.test_components tests.hub.test_resource_tools tests.hub.test_question_tools tests.hub.test_tool_retry tests.hub.test_retry_observations tests.hub.test_provider_recovery tests.hub.test_settings
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S5 --output /workspace/llm-clean-resume/p1/c10-static-final.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c10-docs-before.json
+```
+
+Level 2 전후 697개 Python 소스 hash `d5f60784afb1329a302a583b3435585269af5324572a5ccb8782b85c6c960f1b`,
+859개 입력/환경 hash `9c1a4a46089cf23acf453a31f19078606f184fe77ac1e3a8b1cd7e3d4253dece`가 각각 동일했다.
+Python 3.12.14·136개 의존성·실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 바로 앞
+c7–c9 게이트의 TERM/LiteLLM/Xvfb/xclip 환경을 유지했다. 실제 명령·exit·discovery·원본 로그는
+`/workspace/llm-clean-resume/p1/c10-before/`, `c10-focused/`, `c10-level2/`에 보존한다.
+이전 backend 브랜치의 bootstrap 30–65행·HubConfig 19–61행만 읽기 전용 대조했다.
+동일한 truthiness 구현이 있어 가져오지 않았으며 현재 Presence 계약에 따라 수정했다.
+P1 전체·A–F·원격 CI 완료를 뜻하지 않는다.
+
 ## P1-c9: Hub 표시·생성 선언 분류와 c7–c9 묶음 Level 3
 
 제품 코드·AST 검출 규칙·실행 정책은 변경하지 않았다. 개별 후보 33건을 실제 소유자와

@@ -37,7 +37,7 @@ def create_backend(config: "HubConfig"):
     recovery = ProviderRecovery(general, monitor, general.language or config.language)
     diagnostics = ProviderDiagnostics(error_details=True,
         request_summary=general.provider_request_summary, max_detail_chars=general.provider_max_detail_chars)
-    factories = {"loop": HubLoopEngine, **(config.engine_factories or {})}
+    factories = {"loop": HubLoopEngine, **(config.engine_factories if config.engine_factories is not None else {})}
     if config.engine not in factories and config.engine != "graph":
         raise ValueError("Register the selected engine in HubConfig.engine_factories")
     engines = {name: factory() for name, factory in factories.items()}
@@ -58,7 +58,7 @@ def create_backend(config: "HubConfig"):
                    HubWorkflowComponent(handlers=getattr(engines["graph"], "handlers", {})), MemoryComponent(),
                    HubGoalComponent(), RefinementComponent(), PromptComponent(),
                    HubBuiltinTools(config.file_root, test_root=Path(config.workspace).expanduser() / ".hub" / "test-workspaces"))}
-    for factory in config.component_factories or ():
+    for factory in config.component_factories if config.component_factories is not None else ():
         component = factory()
         components[component.name] = component
     from .execution.environment import EnvironmentEngine

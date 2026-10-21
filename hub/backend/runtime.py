@@ -17,6 +17,12 @@ from .bootstrap import create_backend
 
 @dataclass(frozen=True, slots=True)
 class HubConfig:
+    """Host choices; explicit factory collections extend or replace core registrations.
+
+    Only None means no supplied collection. Empty collections add no overrides;
+    nonempty collections retain their entries regardless of custom truthiness.
+    Factories are validated here and constructed later on the backend thread.
+    """
     workspace: str | Path = field(default_factory=lambda: Path.home() / ".ish/hub-workspace")
     engine: str = "loop"
     model: str | None = None
@@ -25,7 +31,7 @@ class HubConfig:
     session_id: str | None = None
     language: str = "ko"
     engine_factories: dict[str, Callable] | None = None
-    component_factories: tuple[Callable, ...] | None = None
+    component_factories: tuple[Callable, ...] | list[Callable] | None = None
     tool_classifier: Callable | None = None
     project_config: dict = field(default_factory=dict)
     file_root: str | Path | None = None
@@ -51,11 +57,18 @@ class HubConfig:
         if self.session_id and not self.project_id:
             raise ValueError("session_id requires project_id")
         if self.engine_factories is not None:
+            if not isinstance(self.engine_factories, dict):
+                raise TypeError("engine_factories must be a dictionary or None")
             if self.engine not in ("loop", "graph") and self.engine not in self.engine_factories:
                 raise ValueError("Initial engine must be registered in engine_factories")
-            if any(not name.strip() or name.startswith("_hub_") or not callable(factory)
+            if any(not isinstance(name, str) or not name.strip() or name.startswith("_hub_") or not callable(factory)
                    for name, factory in self.engine_factories.items()):
                 raise ValueError("Use nonempty engine names and callable factories; _hub_ is reserved")
+        if self.component_factories is not None:
+            if not isinstance(self.component_factories, (tuple, list)):
+                raise TypeError("component_factories must be a tuple, list or None")
+            if any(not callable(factory) for factory in self.component_factories):
+                raise ValueError("Component factories must be callable")
 
 
 class HubRuntime:
