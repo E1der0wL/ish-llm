@@ -2236,14 +2236,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "c6040567fcfc05596ef7ee14102239363037a413d494439e18b97db3bb283878:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/checkpoints.py",
-      "symbol": "CheckpointRepository.record",
-      "line": 113,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "383774400a5d1de1dc823e24650ac940ec7f59be7c7e2bec1c6925574213bc1b:1",
       "rule": "S3",
       "file": "llm/services/runtime/events.py",

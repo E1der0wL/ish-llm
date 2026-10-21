@@ -1,17 +1,19 @@
 """Run 소유 체크포인트 저장. Engine은 이벤트만 보내고 서비스가 원자적으로 기록한다.
 
-헤더와 상속 스냅샷은 한 번 저장하고, 이후에는 변경된 노드만 교체한다.
+헤더와 상속 스냅샷에 노드별 파일 리비전을 연결하고 Run에 manifest 리비전을 기록한다.
 파일 I/O는 호출자의 StorageIO/워크스페이스 소유권 안에서 수행한다.
 """
 
 from copy import deepcopy
 import hashlib
 import json
+import re
 
 from llm.components.base import validate_name
 from llm.core.models import ProjectConfig
 from llm.core.interactions import InteractionRequest
-from llm.services.infrastructure.storage import atomic_json, read_json
+from llm.core.checkpoints import CheckpointStatus
+from llm.services.infrastructure.storage import atomic_json, read_json, make_directory, revision_token
 
 
 def checkpoint_digest(value: dict) -> str:
@@ -86,56 +88,128 @@ class CheckpointRepository:
         if root.exists():
             remove_named_tree(root.parent, root, "checkpoints")
         run.metadata.pop("checkpoints", None)
+        run.metadata.pop("checkpoint_revisions", None)
         # 승인 조회 증거만 남긴다. require_resume이 이 표식을 거부하므로 실행 권한은 없다.
         run.metadata["checkpoint_deletion"] = {"deleted_at": now(), "revision": revision,
             "names": list(names), "interactions": [request.to_dict() for request in interactions]}
+
+    def names(self, run):
+        """Run declaration and owner revision distinguish absent from lost state."""
+        names = run.metadata.get("checkpoints", [])
+        revisions = run.metadata.get("checkpoint_revisions", {})
+        if (not isinstance(names, list) or len(set(names)) != len(names)
+                or not isinstance(revisions, dict) or set(names) != set(revisions)):
+            raise ValueError("Invalid checkpoint declarations")
+        for name in names:
+            validate_name(name)
+            if not isinstance(revisions[name], str) or not re.fullmatch(r"[a-f0-9]{64}", revisions[name]):
+                raise ValueError("Invalid checkpoint revision")
+        if ("checkpoints" in run.metadata) != ("checkpoint_revisions" in run.metadata):
+            raise ValueError("Checkpoint declaration requires its revision witness")
+        root = self._checked(run.paths.state / "checkpoints")
+        actual = {self._checked(path).name for path in root.iterdir()} if root.exists() else set()
+        if actual != set(names):
+            raise ValueError("Checkpoint directories are missing or undeclared")
+        return list(names)
+
+    def _stored(self, run, name):
+        names = self.names(run)
+        root = self._root(run, name)
+        data = read_json(self._checked(root / "checkpoint.json"))
+        if name not in names:
+            raise ValueError("Checkpoint is not declared by its Run")
+        if (not isinstance(data, dict) or data.keys() != {
+                "schema_version", "run_id", "engine", "header", "records", "record_revisions"}):
+            raise ValueError("Checkpoint requires all current storage fields")
+        if (type(data["schema_version"]) is not int or data["schema_version"] != self.SCHEMA_VERSION
+                or data["run_id"] != run.id or data["engine"] != run.engine):
+            raise ValueError("Checkpoint version or Run ownership mismatch")
+        if revision_token(data) != run.metadata["checkpoint_revisions"][name]:
+            raise ValueError("Checkpoint manifest revision mismatch")
+        if (not isinstance(data["header"], dict) or not isinstance(data["records"], dict)
+                or not isinstance(data["record_revisions"], dict)):
+            raise ValueError("Checkpoint requires object header, records and revisions")
+        ProjectConfig.validate_json(data)
+        for key, value in data["records"].items():
+            self._entry(key, value)
+        directory = self._checked(root / "records")
+        if {self._checked(path).name for path in root.iterdir()} != {"checkpoint.json", "records"}:
+            raise ValueError("Invalid checkpoint storage entries")
+        expected = set()
+        for key, revision in data["record_revisions"].items():
+            if not isinstance(key, str) or not key or not isinstance(revision, str) or not re.fullmatch(r"[a-f0-9]{64}", revision):
+                raise ValueError("Invalid checkpoint record revision")
+            expected.add(self._filename(key))
+        if {self._checked(path).name for path in directory.iterdir()} != expected:
+            raise ValueError("Checkpoint records are missing or undeclared")
+        records = deepcopy(data["records"])
+        for key, revision in data["record_revisions"].items():
+            value = read_json(self._checked(directory / self._filename(key)))
+            if (not isinstance(value, dict) or value.keys() != {"key", "value"}
+                    or value["key"] != key or revision_token(value) != revision):
+                raise ValueError("Checkpoint record identity or revision mismatch")
+            self._entry(key, value["value"])
+            records[key] = value["value"]
+        return data, records
+
+    @staticmethod
+    def _entry(key, value):
+        if not isinstance(key, str) or not key or not isinstance(value, dict):
+            raise ValueError("Checkpoint record requires a nonempty key and object value")
+        ProjectConfig.validate_json(value)
+
+    @staticmethod
+    def _filename(key):
+        return hashlib.sha256(key.encode("utf-8")).hexdigest() + ".json"
+
+    def _manifest(self, run, name, data):
+        atomic_json(self._root(run, name) / "checkpoint.json", data)
+        run.metadata.setdefault("checkpoint_revisions", {})[name] = revision_token(data)
 
     def record(self, run, event) -> None:
         if self.deletion(run) is not None:
             raise ValueError("Checkpoints were deleted; start a new Run")
         data = deepcopy(event.metadata)
         ProjectConfig.validate_json(data)
-        root = self._root(run, data["name"])
-        manifest = self._checked(root / "checkpoint.json")
+        name = data["name"]
+        root = self._root(run, name)
         if data["operation"] == "initialize":
-            if manifest.exists():
+            names = self.names(run)
+            if name in names or root.exists():
                 raise ValueError("Checkpoint already initialized")
-            atomic_json(manifest, {"schema_version": self.SCHEMA_VERSION, "run_id": run.id, "engine": run.engine,
-                                  "header": data["header"], "records": data.get("records", {})})
+            records = data["records"] if "records" in data else {}
+            if not isinstance(data["header"], dict) or not isinstance(records, dict):
+                raise ValueError("Checkpoint initialization requires object header and records")
+            for key, value in records.items():
+                self._entry(key, value)
+            make_directory(self._checked(root / "records"))
+            self._manifest(run, name, {"schema_version": self.SCHEMA_VERSION, "run_id": run.id,
+                "engine": run.engine, "header": data["header"], "records": records, "record_revisions": {}})
+            run.metadata.setdefault("checkpoints", []).append(name)
         elif data["operation"] == "record":
-            if not manifest.is_file():
-                raise ValueError("Initialize checkpoint before recording nodes")
-            key = data["key"]
-            if not isinstance(key, str) or not key:
-                raise ValueError("Checkpoint record key must be nonempty text")
-            raw = data["value"].get("interaction")
+            stored, _ = self._stored(run, name)
+            key, value = data["key"], data["value"]
+            self._entry(key, value)
+            raw = value.get("interaction")
             if raw is not None:
                 request = InteractionRequest.from_dict(raw)
-                if (request.binding.get("checkpoint") != data["name"] or request.binding.get("key") != key
-                        or data["value"].get("status") != "waiting"):
+                if (request.binding.get("checkpoint") != name or request.binding.get("key") != key
+                        or value.get("status") != CheckpointStatus.WAITING):
                     raise ValueError("Interaction checkpoint binding mismatch")
                 if event.interaction is not None and event.interaction.to_dict() != raw:
                     raise ValueError("Interaction event differs from persisted request")
             elif event.interaction is not None:
                 raise ValueError("Interaction event requires a persisted request")
-            filename = hashlib.sha256(key.encode("utf-8")).hexdigest() + ".json"
-            atomic_json(self._checked(root / "records" / filename), {"key": key, "value": data["value"]})
+            item = {"key": key, "value": value}
+            atomic_json(self._checked(root / "records" / self._filename(key)), item)
+            stored["record_revisions"][key] = revision_token(item)
+            self._manifest(run, name, stored)
         else:
             raise ValueError("Unknown checkpoint operation")
 
     def load(self, run, name: str) -> dict:
         if self.deletion(run) is not None:
             raise ValueError("Checkpoints were explicitly deleted")
-        root = self._root(run, name)
-        data = read_json(self._checked(root / "checkpoint.json"))
-        if (type(data.get("schema_version")) is not int or data["schema_version"] != self.SCHEMA_VERSION
-                or data["run_id"] != run.id or data["engine"] != run.engine):
-            raise ValueError("Checkpoint version or Run ownership mismatch")
-        records = dict(data["records"])
-        for path in self._checked(root / "records").glob("*.json"):
-            item = read_json(self._checked(path))
-            expected = hashlib.sha256(item["key"].encode("utf-8")).hexdigest() + ".json"
-            if path.name != expected:
-                raise ValueError("Checkpoint record identity mismatch")
-            records[item["key"]] = item["value"]
-        return {**data, "records": records}
+        data, records = self._stored(run, name)
+        return {key: records if key == "records" else value
+                for key, value in data.items() if key != "record_revisions"}

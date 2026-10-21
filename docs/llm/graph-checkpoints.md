@@ -82,7 +82,10 @@ admission 거부는 `RunRequestError.code == RunErrorCode.RESUME_REJECTED`다.
 그 시도에 상속한 체크포인트는 남으므로 정의를 원래대로 복원한 뒤 최신 Run을 재개할 수 있다.
 Run 생성 직후 초기 체크포인트 복사 전에 종료된 시도는 원본 연결과 digest를 검사해 복원한다.
 초기화 완료가 저장된 뒤 파일이 사라진 경우는 손상으로 거부한다. `metadata.checkpoints`의
-초기화 표시와 `metadata.resume`은 서비스가 관리하며 사용자 이벤트 처리기로 덮어쓸 수 없다.
+초기화 표시·`metadata.checkpoint_revisions`·`metadata.resume`은 서비스가 관리하며 사용자
+이벤트 처리기로 덮어쓸 수 없다. manifest의 `record_revisions`와 실제 개별 파일을 대조하므로
+완료/불확실 기록 하나가 사라져도 새 노드로 간주하지 않는다. 모든 현재 저장 필드와 정확한
+타입·소유자·내용 리비전이 필요하며 손상 원본을 자동 수리하거나 초기화하지 않는다.
 프로세스 재시작 시 stale Run은 INTERRUPTED로만 복구한다. 이전에 사용자가 명시적으로
 수락시킨 **QUEUED 재개 요청**만 파일 큐의 일반 요청처럼 예약된다.
 
@@ -158,8 +161,9 @@ projects/<project-id>/
 ```
 
 체크포인트는 Run별 최신 상태이며 시도별 이력은 이전 Run과 Step에 남는다. 변경될 때마다
-모든 결과를 다시 쓰지 않고 해당 노드만 교체한다. 재개 Run의 초기 헤더는 원본 결과를
-상속하므로 이전 파일을 수정하지 않는다. 파일을 직접 조작하는 대신 서비스 API를 사용한다.
+해당 노드 파일·manifest의 파일 리비전·Run의 manifest 리비전을 같은 transaction에서
+갱신한 뒤 ACK한다. 재개 Run의 헤더는 원본 결과를 상속하며 원본 Run은 수정하지 않는다.
+현재 구현은 갱신 시 manifest와 Run도 다시 쓰고 읽기 시 기록 전체의 리비전을 검사한다. 파일을 직접 조작하는 대신 서비스 API를 사용한다.
 
 ## 후속 보강
 

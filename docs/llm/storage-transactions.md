@@ -19,8 +19,8 @@
 | 출력 델타 묶음 | outputs.jsonl 추가와 대화 JSONL 추가 |
 | 최종 출력·Step 완료 | 출력 저널과 Run 결과/대화 또는 Step 결과 |
 | Step 생성·시작·수정·종료 | 이벤트 하나에 대응하는 Step 기록 |
-| 체크포인트 초기화 | 체크포인트 원본과 Run.metadata.checkpoints 연결 |
-| 체크포인트 갱신 | 노드·Loop 회차·영수증 레코드 |
+| 체크포인트 초기화 | 체크포인트 원본과 Run.metadata.checkpoints/checkpoint_revisions 연결 |
+| 체크포인트 갱신 | 노드·Loop 회차·영수증 레코드, 파일 리비전 manifest와 Run의 manifest 리비전 |
 | 승인 응답·취소·갱신 | 해당 요청의 응답/제어 레코드 |
 | 명시적 재개 | 승인 응답 영수증과 새 QUEUED 요청; 원본 Run은 유지 |
 | 자동 승인 정책 | 해당 정책 평가의 응답 전체. PAUSED 확정 후 별도 저장 단위 |

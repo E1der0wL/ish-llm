@@ -213,6 +213,15 @@ class UsageContracts(unittest.TestCase):
 
 
 class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
+    @staticmethod
+    def store_payload(app, run, value):
+        # Keep a valid storage envelope so this tests the Engine's semantic usage
+        # guard independently of the checkpoint owner's byte/revision guard.
+        from llm.engines.base import EngineEvent, EngineEventType
+        with app.project_manager.ownership.scope():
+            app.run_repository.record_checkpoint(run, EngineEvent(EngineEventType.CHECKPOINT,
+                metadata={"name": "loop", "operation": "record", **value}))
+
     async def test_approval_reservation_current_authority_and_corrupt_usage_are_distinct(self):
         from llm.components.tools import Tool, ToolRegistry
         from llm.engines.loop import LoopEngine
@@ -259,7 +268,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                         if outcome == "corrupt":
                             value = json.loads(path.read_text())
                             del value["value"]["runtime_tool_usage"]
-                            path.write_text(json.dumps(value))
+                            self.store_payload(app, paused.data, value)
                         records[path] = path.read_bytes()
                     project_id, session_id, run_id = project.id, session.id, paused.id
                 mode[0] = "deny" if outcome == "host_deny" else "ask"
@@ -385,7 +394,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                             del value["value"]["runtime_tool_usage"]
                         else:
                             del value["value"]["runtime_tool_usage"]["calls"]
-                        path.write_text(json.dumps(value))
+                        self.store_payload(app, failed.data, value)
                         changed[path] = path.read_bytes()
                 self.assertTrue(changed, "Test must reach a persisted usage record")
                 project_id, session_id, run_id = project.id, session.id, failed.id

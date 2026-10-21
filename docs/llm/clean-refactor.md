@@ -5,8 +5,9 @@
 기존 `refactor/llm-backend`의 코드/커밋을 cherry-pick·merge하지 않는다. main과 기존 Draft PR #1은
 변경하지 않는다. [현행 구조](architecture.md)와 이 목표 구조를 구분한다.
 
-2026-10-21 H2-a와 외부 작업 원장 존재/상태 증거를 보강한 H2-b는 집중/전체 회귀를
-통과했다. H2 전체는 미완료이며 별도 실험에서 Checkpoint 개별 기록 소실 후 중복 효과를 확인했다. [현재 검증과 차단 항목](lifecycle-verification.md)을
+2026-10-21 H2-a/b/c는 도메인 필수 기록·외부 작업 원장·Checkpoint 기록 소실 보강의
+집중/전체 회귀를 통과했다. H2 전체는 미완료이며 출력 저널 끝줄 손상·필수 final 누락
+3개 실패와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
 먼저 확인하며 이 실패를 해결하기 전 다음 기능 단계로 진행하지 않는다.
 
 ## 필수 원칙

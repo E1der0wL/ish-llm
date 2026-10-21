@@ -5,6 +5,79 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-c Checkpoint 개별 기록·manifest·Run 연결
+
+H2-b 커밋 `b2447472f6ba2e561ee91df2467e98c5f04f9a35`에서 이어서 작업했다.
+완료된 Graph 노드의 기록 파일 하나를 제거하면 Resume가 실제 효과를 반복하던 실패를
+`tests.llm.test_checkpoint_integrity`에 편입했다. 구현 전 저장소 회귀는 1 failure,
+error·Skip 0, 1.181초, exit 1이었다.
+
+### 구현 경계
+
+- Checkpoint owner는 현재 manifest의 모든 필드와 객체 타입을 요구한다. `record_revisions`는
+  개별 기록 파일의 존재·내용 리비전을 선언한다. Run의 `checkpoints`와 `checkpoint_revisions`는
+  같은 이름 집합을 가지며 manifest의 리비전을 검증한다. 명시적으로 초기화한 빈 기록은 유효하다.
+- 필수 필드·manifest·디렉터리·개별 파일 소실, 미선언 파일, key/파일명/리비전 불일치는
+  원본을 보존하고 조회·Resume·갱신·백업에서 거부한다. 초기화한 이름을 파일 소실 뒤 다시
+  초기화하지 않는다. Engine payload의 의미는 해당 Engine에 남기고 저장 owner가 추측하지 않는다.
+- 노드 파일·manifest·Run의 리비전과 연결은 기존 transaction에서 ACK 전에 확정한다.
+  명시적인 Checkpoint 삭제는 파일과 두 연결 필드의 제거·삭제 표식을 함께 확정한다.
+  초기 Resume 사본 생성 실패에 한정한 검증된 원본 참조는 유지한다.
+- EngineContext의 Run은 실행 시작 snapshot이므로 Repository 조회는 현재 Run의 저장된
+  리비전을 읽는다. 최신 기록을 읽기 위해 EngineContext를 가변 실행 상태로 바꾸지 않는다.
+  갱신 시 manifest와 Run도 쓰며 읽기 시 기록 전체의 리비전을 검사한다. 대용량 부하와
+  이 추가 I/O의 운영 비용은 별도 측정하지 않았다.
+
+### 집중 검증과 수정
+
+첫 관련 62개 검증에서 기존 오류 기대값 4개가 실패했다. 저장 리비전 검사가 더 이른 경계에서
+거부하기 때문이다. Tool/Agent 사용량 시험은 저장 owner를 통해 손상된 의미 payload를 기록해
+물리 무결성과 독립적으로 `tool_usage_corrupt`를 계속 확인한다. 파일 변조/소실 시험은 별도로
+리비전 오류와 실제 추가 효과 0·원본 보존을 확인한다. 의미 검증을 checksum 성공으로 대체하지 않는다.
+
+수정 후 90 pass(26.168초)였다. 추가 180개 중 1 failure(52.346초)는 handler가 오래된
+EngineContext의 Run으로 최신 Checkpoint를 조회하는 실제 경로였다. Repository의 현재 Run
+조회로 수정한 뒤 관련 86 pass(20.247초)를 확인했다. 각 성공 묶음의 failure·error·Skip은 0이다.
+
+새 회귀에는 완료 manifest 저장 실패 rollback과 실제 자식 프로세스 exit 77이 포함된다.
+완료 파일 저장 직후 및 manifest 저장 직후/Run 저장 전 종료 모두 재시작 후 started 근거를
+유지한다. 실제 파일 효과는 1회이고 자동/승인 없는 Resume의 추가 효과는 0이다.
+기존 중첩 Engine·승인·추가 지시·계보·삭제·R3 예산 경계도 함께 검증했다.
+
+### 전체 회귀 — 2026-10-21
+
+| 검사 | 실제 결과 |
+|---|---|
+| 최초 전체 LLM | 1,766개 중 1,765 pass, 실패 test ID 1개(하위 assertion failure 2), error·Skip 0, 530.276초, exit 1 |
+| 최종 전체 LLM | 1,766 pass, failure·error·Skip 0, 519.114초, exit 0 |
+| 전체 Hub | 540 pass, failure·error·Skip 0, 681.701초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 미정리 후보 560개, exit 0 |
+| R3 mutation | 한도 전달 누락 시 두 번째 실제 파일 효과 검출, 검사 도구 exit 0 |
+| 문서 검사 | 130개 문서, Python fence 178개, 상대 링크 931개, anchor 34개, 오류 0 |
+
+발견/시작 ID는 각각 1,766/540개이며 누락·중복·예상 밖 ID는 0이다.
+상태 선언으로 해소한 기존 정적 후보 1개만 제거했고 남은 560개는 승인된 예외가 아니다.
+최초 전체 실패는 재시도 증거를 물리적으로 변조한 시험의 공개 경로 오류 기대값 2개였다.
+독립적인 Engine 의미 검증과 실제 효과·원본 보존 assertion은 유지하며 공개 경로의 리비전
+오류 기대값만 수정했다. 관련 30개가 10.037초에 통과한 뒤 LLM 전체를 다시 실행했다.
+제품과 Hub 소스는 Hub 전체 통과 때와 같고 바뀐 Python 파일은 `test_long_running.py` 하나다.
+Hub 전체를 반복하지 않았으며 이 차이는 `source-change.json`에 기록했다.
+
+실행 환경과 명령은 H2-a/b와 같다. 최초 전체 실행 전후 Python 654개 manifest는
+`bfcc159602e6188bc7e975e6a98d4fb6b6558188f6236c483746a4467668b0b5`로 같았다.
+최종 LLM 실행 전후 같은 654개 manifest는
+`1b3ad766bfd7114c0417c4ef921ae7bde755792ecbfb8e45b34504f2c41dc774`로 같다.
+로그·JSON·전후 manifest는 `/workspace/llm-clean-resume/h2-c/final/`에 보존한다.
+전체 검증 성공 후 문서를 먼저 갱신하고 커밋·Push한다.
+
+### H2 잔여 항목
+
+별도 `output-integrity-probe.py`는 3 failure, error·Skip 0, 0.002초, exit 1이다.
+출력 JSONL 끝 newline 소실을 빈 출력으로 읽고, 손상 끝줄 뒤에 append하며, 저장된
+EngineOutput의 누락된 final을 True로 채우는 경로를 확인했다. 이 실패는 H2-c 전체 suite
+성공에 합산하지 않는다. 출력 저널·나머지 Component/도메인의 존재·필드·상태 계약,
+H3–H5·P1 잔여 작업·A–F는 아직 완료하지 않았다.
+
 ## H2-b 외부 작업 원장의 필수 존재·상태 증거
 
 H2-a 커밋 `ad0eda7f532a7175293207cfc0bc8e85b2981afd`에서 이어서 작업했다.
@@ -53,12 +126,12 @@ Python·잠긴 의존성·ish 호스트·실제 격리/X11 실행 환경은 H2-a
 원시 로그·JSON·전후 manifest는 `/workspace/llm-clean-resume/h2-b/final/`에 있다.
 사용자 지침에 따라 전체 검증 성공 후 문서를 먼저 갱신하고 커밋·Push한다.
 
-### H2의 남은 차단 항목
+### H2-b 당시 다음 차단 항목
 
 별도 `checkpoint-loss-probe.py`에서 완료한 Graph 노드의 개별 기록 파일을 제거한 뒤
 재시작·Resume하면 파일 효과가 `first`에서 `first/first/second`로 늘었다. 1 failure,
 error·Skip 0, 1.241초, exit 1이며 전체 suite 성공에 합산하지 않는다.
-다음 H2 계약군은 이 Checkpoint 기록 소실을 먼저 막는다. 출력 저널과 나머지 Component의
+이 Checkpoint 기록 소실은 위 H2-c에서 보강·검증했다. 출력 저널과 나머지 Component의
 존재/필드/상태 계약, H3–H5, P1 잔여 작업과 A–F는 아직 완료하지 않았다.
 
 ## H2-a 도메인 필수 기록·사용량·Refinement

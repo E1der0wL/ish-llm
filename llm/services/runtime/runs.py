@@ -264,7 +264,7 @@ class RunRepository:
             self.output_events(run)
             CheckpointRepository().deletion(run)
             self.resume_abandoned(run)
-            for name in run.metadata.get("checkpoints", ()):
+            for name in CheckpointRepository().names(run):
                 self.checkpoint(run, name)
             runs.append(run)
         resolve = self._checkpoint_reader(session, runs)
@@ -314,6 +314,7 @@ class RunRepository:
                                            for data in run.metadata["completions"]]
         data = record(run)
         Run.from_record(data, run.paths)
+        CheckpointRepository().names(run)
         atomic_domain_json(path, data)
         log_event(run.paths.logs, "run.saved", entity_id=run.id, status=run.status)
 
@@ -327,6 +328,7 @@ class RunRepository:
         self.completion_records(run.metadata)
         self.resume_abandoned(run)
         CheckpointRepository().deletion(run)
+        CheckpointRepository().names(run)
         return run
 
     def record_output(self, run: Run, value: Union[EngineDelta, EngineOutput]) -> None:
@@ -388,11 +390,9 @@ class RunRepository:
             interactions.publish(run, request,
                                  existing=request.id in known or initialize and "resume" in run.metadata)
         CheckpointRepository().record(run, event)
-        if initialize:
-            # 이 표시를 저장하기 전에는 Engine에 ACK를 보내지 않는다. 초기 복사 전의
-            # 재개 시도만 원본으로 복구할 수 있고, 실행 이후 파일 누락은 손상으로 거부한다.
-            run.metadata.setdefault("checkpoints", []).append(event.metadata["name"])
-            self.save(run)
+        # File, manifest and Run revision commit before the Engine receives ACK.
+        # Only a failed initial copy may resolve the verified source checkpoint.
+        self.save(run)
 
     def inherit_interactions(self, session, run, checkpoint):
         """Preserve control evidence even if the later checkpoint copy fails."""
@@ -588,7 +588,12 @@ class RunRepository:
 
     def checkpoint(self, run: Run, name: str | None = None) -> dict:
         from llm.core.checkpoints import select_checkpoint
-        return CheckpointRepository().load(run, select_checkpoint(run.metadata.get("checkpoints", []), name))
+        # EngineContext retains a Run-start snapshot. The storage owner reads
+        # the current revision witness, including when called from a handler.
+        current = Run.from_record(read_domain_record(run.paths.root / "run.json"), run.paths)
+        if (current.id, current.session_id, current.engine) != (run.id, run.session_id, run.engine):
+            raise ValueError("Checkpoint Run ownership mismatch")
+        return CheckpointRepository().load(current, select_checkpoint(current.metadata.get("checkpoints", []), name))
 
     def resolve_checkpoint(self, session: Session, run: Run, name: str | None = None) -> dict:
         from llm.core.checkpoints import select_checkpoint

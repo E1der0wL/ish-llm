@@ -62,6 +62,10 @@ RunManager가 다른 소유자의 payload를 추측하거나 예외 목록으로
 체크포인트가 정확히 하나일 때만 선택하며 특정 Engine 이름을 기본값으로 사용하지 않는다.
 초기 재개 사본 생성 전에 실패한 Run은 저장된 명시적 resume 참조를 기존 lineage/digest
 검증으로 해석한다. 초기화가 완료된 체크포인트의 유실을 원본으로 우회하지 않는다.
+현재 manifest는 필수 필드·객체 타입·개별 기록 파일 리비전을 요구한다. Run의 이름 선언과
+manifest 리비전도 대조하며 빈 초기 기록은 명시적인 빈 객체/디렉터리다. 개별 기록 소실을
+미실행으로 바꾸지 않는다. EngineContext처럼 오래된 Run snapshot으로 조회해도
+RunRepository는 현재 저장된 Run의 리비전을 검증한다.
 부분 출력과 중첩 기록의 전달 계약은 [공통 경계](shared-contracts.md)를 참고한다.
 
 `CheckpointPlan`은 다음 필드를 가진 JSON 직렬화 가능한 관찰 계약이다.

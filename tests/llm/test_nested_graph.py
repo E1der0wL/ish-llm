@@ -181,7 +181,13 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
                 else:
                     for saved in value["agent_usage"].values():
                         del saved["calls"]
-                path.write_text(json.dumps(record))
+                # Keep storage revisions valid to reach the Agent's semantic
+                # budget validation independently of the file integrity guard.
+                from llm.engines.base import EngineEvent, EngineEventType
+                with self.app.project_manager.ownership.scope():
+                    self.app.run_repository.record_checkpoint(failed.data,
+                        EngineEvent(EngineEventType.CHECKPOINT, metadata={
+                            "name": "graph", "operation": "record", **record}))
                 changed[path] = path.read_bytes()
             self.assertTrue(changed, "Must mutate real persisted Agent usage")
         await self.app.shutdown()

@@ -435,7 +435,7 @@ class GraphCheckpointTests(unittest.IsolatedAsyncioTestCase):
         await blocker.wait()
         failed = await queued.wait()
         self.assertEqual(failed.data.status, RunStatus.FAILED)
-        self.assertIn("changed after admission", failed.data.error)
+        self.assertIn("Checkpoint manifest revision mismatch", failed.data.error)
         self.assertEqual(calls, [])
 
     async def test_resume_after_failed_preparation_keeps_checkpoint_for_later_attempt(self):

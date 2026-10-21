@@ -286,3 +286,11 @@ LLM 63개이며 읽기 시작 snapshot은 1,537,531 bytes다. 114개 파일/행 
 storage-transactions를 먼저 갱신했다. H2-a에서 발견한 원장 두 실패는 보강된 범위로 기록하고
 원래 실패 수·로그를 보존했다. 새 Checkpoint 파일 소실 후 중복 효과는 별도 미해결 항목이며
 H2/P1/A–F 완료로 표시하지 않는다. 문서 재검토 기록은 위 91개 전문 검토를 이어간다.
+
+## 2026-10-21 H2-c 검증 후 문서 우선 갱신
+
+Checkpoint 필수 파일·리비전·현재 Run 조회 보강의 전체 LLM/Hub 회귀가 통과한 뒤
+lifecycle-verification, data-lifecycle, clean-refactor, checkpoints, graph-checkpoints,
+storage-transactions를 먼저 갱신했다. 변경 노드만 쓰던 설명을 manifest/Run 리비전의
+원자 갱신으로 고쳤고 추가 I/O의 대용량 운영 비용은 미측정으로 남겼다. H2-b 때의
+Checkpoint 실패 기록은 보존하고, 출력 저널의 별도 실패 3개와 H2–H5 잔여 작업을 구분했다.

@@ -7,9 +7,10 @@
 현재 구현 범위·실패·통과·미검증 항목은 [단계별 검증 기록](lifecycle-verification.md)을 따른다.
 2026-10-21 H2-a의 도메인 필수 필드·Completion quota·Memory identity·Conversation 끝줄·
 Refinement 이력은 집중/전체 회귀를 통과했다. H2-b는 외부 작업 원장 파일/무효과 증거
-소실 뒤의 실제 추가 효과 2개 실패를 보강하고 전체 LLM/Hub 회귀를 통과했다. 별도 실험에서
-Checkpoint 개별 기록 소실 후 중복 효과를 확인했다. H2 전체는 미완료이며 이 차단 항목을
-해결하기 전 P1/A–F로 넘어가지 않는다.
+소실 뒤의 실제 추가 효과 2개 실패를 보강하고 전체 LLM/Hub 회귀를 통과했다. H2-c도
+Checkpoint 개별 기록 소실 후 중복 효과를 보강하고 집중/전체 검증을 통과했다. 출력 저널의
+끝줄 손상·필수 final 누락 3개 실패와 나머지 owner 계약은 남아 있다. H2 전체는 미완료이며
+이 차단 항목들을 해결하기 전 P1/A–F로 넘어가지 않는다.
 기준 작업 트리는 `refactor/llm-clean`, HEAD `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 보존 중인 P1-c 변경이다. main이나 이전 backend 브랜치의 검증 결과를 승계하지 않는다.
 
