@@ -1,5 +1,6 @@
 """Read the owning failed Step into Hub's error contract; no recovery or UI."""
 
+from llm.core.models import RunStatus, StepStatus
 from collections import OrderedDict
 
 from llm.llm import Diagnostic
@@ -10,11 +11,11 @@ from ...errors.contracts import ErrorOrigin
 def _step_evidence(steps, code, project_id, session_id, run_id):
     """Read the owning failed Step; never select an earlier recovered failure."""
     generic = ("", "engine_failed", "step_failed", "execution_failed")
-    matching = [step for step in steps if code not in generic and str(step.status) == "failed"
+    matching = [step for step in steps if code not in generic and str(step.status) == StepStatus.FAILED
                 and step.diagnostic is not None and step.diagnostic.code == code]
     # A Graph parent may fail after a child completed or a sibling was cancelled.
     final = max(matching or steps, key=lambda step: step.ended_at or step.started_at or step.created_at, default=None)
-    if final is None or str(final.status) != "failed":
+    if final is None or str(final.status) != StepStatus.FAILED:
         return None
     diagnostic = final.diagnostic
     if diagnostic is None:
@@ -51,7 +52,7 @@ class FailureDiagnostics:
                     run = await handle.aget_data()
                 except FileNotFoundError:
                     continue
-                if str(run.status) != "failed":
+                if str(run.status) != RunStatus.FAILED:
                     continue
                 code = str(run.error_code or "")
                 try:

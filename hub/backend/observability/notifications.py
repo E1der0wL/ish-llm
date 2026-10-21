@@ -1,5 +1,6 @@
 """Bounded, deduplicated notifications shared by events and snapshot reconciliation."""
 
+from llm.core.models import RunStatus
 from collections import deque
 from collections.abc import Mapping
 from typing import Any
@@ -40,7 +41,7 @@ class NotificationBuffer:
 
     def record_run(self, run: Any) -> None:
         identity = self._sessions.get(run.session_id)
-        already_paused = str(run.status) == "paused" and self._runs.get(run.session_id) == (run.id, "paused")
+        already_paused = str(run.status) == RunStatus.PAUSED and self._runs.get(run.session_id) == (run.id, RunStatus.PAUSED.value)
         if identity is not None and not run.engine.startswith("_hub_") and not already_paused:
             self._record_run(*identity, run)
 

@@ -2,7 +2,7 @@
 
 from dataclasses import replace
 from collections.abc import Sequence
-from llm.core.models import Message
+from llm.core.models import MessageStatus, Message
 from ...model import ChatMessage
 from .trace import merge_trace
 
@@ -58,7 +58,7 @@ def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessag
             result.append(message)
     visible = []
     for message in result:
-        if (message.id in reasoning or message.id in tools) and message.status in ("streaming", "committed", "paused"):
+        if (message.id in reasoning or message.id in tools) and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED, MessageStatus.PAUSED):
             visible.append(ChatMessage("reasoning", reasoning.get(message.id, ""), id=message.id + ":reasoning",
                                        tools=tuple(tools.get(message.id, {}).values()), trace=traces.get(message.id, ())))
         visible.append(message)

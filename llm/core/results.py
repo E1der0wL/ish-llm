@@ -9,7 +9,7 @@ import math
 from typing import Any, Optional
 
 from .contracts import Diagnostic, ResourceRef
-from .models import ProjectConfig, Run, RunStatus, Step, new_id, now
+from .models import StepStatus, ProjectConfig, Run, RunStatus, Step, new_id, now
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,7 +125,7 @@ class ResumeOutput:
             if self.output.step_id is not None:
                 raise ValueError("Resume output requires its owning Step")
         elif (self.step.id != self.output.step_id or self.step.run_id != self.run_id
-              or self.step.status == "completed"):
+              or self.step.status == StepStatus.COMPLETED):
             raise ValueError("Resume output Step ownership/status mismatch")
         object.__setattr__(self, "output", deepcopy(self.output))
         object.__setattr__(self, "step", deepcopy(self.step))

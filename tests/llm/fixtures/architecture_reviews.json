@@ -2019,7 +2019,7 @@
         "docs/llm/data-contracts.md": "8941704d76420c4fa9ad396b7ed59ad92e910dc926fd3f5767819ffa937a8e3d",
         "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
         "docs/llm/revisions.md": "205b68c85574b75f892feec82351476bdb84c939b0a526fe1a39859f82c13aee",
-        "llm/core/contracts.py": "ed4326394e854fc488f60029e14287a75f68f97bc216fccb3e6df926418f5047",
+        "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
         "llm/core/paths.py": "2917152a6299e2d11c11b6353eadff451ac37318d97a6b7ec584ff6080c48dc5",
         "llm/llm.py": "2887948b2f758bf678ad42e04d0cbb35faa1191f7953ed17c7369b58d015f012",
         "llm/services/infrastructure/activity.py": "92f5a4c2cb958d3d25c5e93b368d406f14f90cd64138bfbfa00052158c7240e4",
@@ -2027,7 +2027,8 @@
         "llm/services/lifecycle/projects.py": "e4d965188b9d2f7329ee7cd2590be55e1c08e94f2de0257dd2859d187e1d6da6",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_loop.py": "44a4539d8a15ee90d77909888c5d146dc6c7324bee8ba5c692ceb4eaae18e57c",
-        "tests/llm/test_project_activity.py": "c27ddfb555bb3fc0ce8788851126a75cc87d804a8ac6900bbd9d11625ca6f472"
+        "tests/llm/test_project_activity.py": "c27ddfb555bb3fc0ce8788851126a75cc87d804a8ac6900bbd9d11625ca6f472",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7"
       },
       "tests": [
         "tests.llm.test_project_activity.ActivityStorageTests.test_contract_is_frozen_and_allowlisted",
@@ -2051,14 +2052,15 @@
         "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
         "docs/llm/revisions.md": "205b68c85574b75f892feec82351476bdb84c939b0a526fe1a39859f82c13aee",
         "docs/llm/storage-transactions.md": "ed27cbb6ece9605de8978b90d50f7b6c92a32e0030435e4c39605d8746e5f807",
-        "llm/core/contracts.py": "ed4326394e854fc488f60029e14287a75f68f97bc216fccb3e6df926418f5047",
+        "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
         "llm/llm.py": "2887948b2f758bf678ad42e04d0cbb35faa1191f7953ed17c7369b58d015f012",
         "llm/services/history/recovery.py": "859208990e046cc4f29e301aeb11fa830387f1f4e2bdee9885dd72ca5a3767eb",
         "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
         "llm/services/lifecycle/projects.py": "e4d965188b9d2f7329ee7cd2590be55e1c08e94f2de0257dd2859d187e1d6da6",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_loop.py": "44a4539d8a15ee90d77909888c5d146dc6c7324bee8ba5c692ceb4eaae18e57c",
-        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611"
+        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7"
       },
       "tests": [
         "tests.llm.test_operations_schema.OperationsSchemaTests.test_recovery_rejects_changed_plan_and_does_not_guess_missing_history",
@@ -2081,15 +2083,16 @@
         "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
         "docs/llm/revisions.md": "205b68c85574b75f892feec82351476bdb84c939b0a526fe1a39859f82c13aee",
         "docs/llm/storage-transactions.md": "ed27cbb6ece9605de8978b90d50f7b6c92a32e0030435e4c39605d8746e5f807",
-        "llm/core/contracts.py": "ed4326394e854fc488f60029e14287a75f68f97bc216fccb3e6df926418f5047",
+        "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
         "llm/llm.py": "2887948b2f758bf678ad42e04d0cbb35faa1191f7953ed17c7369b58d015f012",
-        "llm/services/history/retention.py": "b67be0879e91d2869cdf4ee974ac0a0517ef184471ebffd2de484e61fa17a4d7",
+        "llm/services/history/retention.py": "c125a5c8664333c55b5b4eb563e0882af5f851cc96e6fd278e16edf114c25e42",
         "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
         "llm/services/lifecycle/projects.py": "e4d965188b9d2f7329ee7cd2590be55e1c08e94f2de0257dd2859d187e1d6da6",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_history_retention_integrity.py": "137a607cf614f86366399e836a67ae73d99bd3b5c8a277f0c3a4202b121cabde",
         "tests/llm/test_loop.py": "44a4539d8a15ee90d77909888c5d146dc6c7324bee8ba5c692ceb4eaae18e57c",
-        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611"
+        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7"
       },
       "tests": [
         "tests.llm.test_history_retention_integrity.HistoryRetentionIntegrityTests.test_raw_source_change_cannot_reuse_plan_with_preserved_size_and_mtime",

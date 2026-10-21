@@ -1,5 +1,6 @@
 """Read-only projection through llm services; no scheduling or localized strings."""
 
+from llm.core.models import RunStatus, MessageStatus
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -65,7 +66,7 @@ class SnapshotReader:
         if len(self.trace_history) > 1024:
             self.trace_history.pop(next(iter(self.trace_history)))
         elapsed = None
-        active = str(run.status) in ("pending", "running")
+        active = str(run.status) in (RunStatus.PENDING, RunStatus.RUNNING)
         started_at = requested_at or run.started_at
         if started_at and (run.ended_at or active):
             end = datetime.fromisoformat(run.ended_at) if run.ended_at else datetime.now(timezone.utc)
@@ -90,7 +91,7 @@ class SnapshotReader:
                 continue
             elapsed = None
             if role == "assistant" and message.run_id:
-                active = str(message.status) in ("streaming", "committed", "paused")
+                active = str(message.status) in (MessageStatus.STREAMING, MessageStatus.COMMITTED, MessageStatus.PAUSED)
                 reasoning, elapsed = await self.run_display(session, message.run_id,
                     run=latest if latest is not None and latest.id == message.run_id else None,
                     requested_at=requests.get(message.run_id))
@@ -100,7 +101,7 @@ class SnapshotReader:
                 if active:
                     if latest is not None and latest.id == message.run_id:
                         tools = tuple(step for step in display_steps(latest_steps) if step.kind == "tool")
-                        if str(latest.status) == "paused":
+                        if str(latest.status) == RunStatus.PAUSED:
                             self.tool_history[message.run_id] = tools
                     elif message.run_id in self.tool_history:
                         tools = self.tool_history[message.run_id]
@@ -108,7 +109,7 @@ class SnapshotReader:
                         try:
                             steps = await (await session.run.aload(message.run_id)).steps.alist()
                             tools = tuple(step for step in display_steps(steps) if step.kind == "tool")
-                            if str(message.status) == "paused":
+                            if str(message.status) == MessageStatus.PAUSED:
                                 self.tool_history[message.run_id] = tools
                         except FileNotFoundError:
                             pass
@@ -120,13 +121,13 @@ class SnapshotReader:
                     visible.append(ChatMessage("reasoning", reasoning, id=message.id + ":reasoning", tools=tools,
                                                trace=trace))
             status = str(message.metadata.get("steering", {}).get("status", message.status))
-            if status == "paused" and message.run_id in stopped_runs:
-                status = "interrupted"
+            if status == MessageStatus.PAUSED and message.run_id in stopped_runs:
+                status = MessageStatus.INTERRUPTED.value
             phase = (self.thinking.activity(latest)
                      if role == "assistant" and latest is not None and latest.id == message.run_id
-                     and status in ("streaming", "committed") else "")
+                     and status in (MessageStatus.STREAMING, MessageStatus.COMMITTED) else "")
             timestamp = (message.created_at if role == "user" else
-                         (self.ended_times.get(message.run_id) or message.created_at) if status == "failed" else "")
+                         (self.ended_times.get(message.run_id) or message.created_at) if status == MessageStatus.FAILED else "")
             visible.append(ChatMessage(role, message.content or "", timestamp,
                                        status=status, id=message.id,
                                        author=author if role == "user" else "",
@@ -148,12 +149,12 @@ class SnapshotReader:
                 latest = await session.run.alist(query=Query(descending=True, limit=1))
                 handle = latest[0] if latest else None
                 run = display_run(record, await handle.aget_data()) if handle else None
-                question_handle = handle if run and str(run.status) == "paused" else None
+                question_handle = handle if run and str(run.status) == RunStatus.PAUSED else None
                 target = record.metadata.get(RESUME_INTERACTIONS)
                 if target and not runtime.active_run_id and not runtime.queued_count:
                     try:
                         candidate = handle if run and run.id == target else await session.run.aload(target)
-                        if str((await candidate.aget_data()).status) in ("paused", "interrupted", "failed"):
+                        if str((await candidate.aget_data()).status) in (RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
                             question_handle = candidate
                     except FileNotFoundError:
                         pass

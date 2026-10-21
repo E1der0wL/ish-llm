@@ -1,5 +1,6 @@
 """Request history operations through the public Session/Run facades."""
 
+from llm.core.models import RunStatus, MessageStatus
 import hashlib
 import json
 
@@ -34,7 +35,7 @@ class TurnHistory:
         for turn in index.turns:
             request = turn.latest
             run = await (await session.run.aload(request.run_id)).aget_data() if request.run_id else None
-            if run and str(run.status) == "paused":
+            if run and str(run.status) == RunStatus.PAUSED:
                 record = record or await session.aget_data()
                 run = display_run(record, run)
             records = [m for group in turn.active for m in group]
@@ -43,7 +44,7 @@ class TurnHistory:
             status = request.status
             if run:
                 status = run.status
-            elif assistants and str(status) not in ("queued", "cancelled"):
+            elif assistants and str(status) not in (MessageStatus.QUEUED, MessageStatus.CANCELLED):
                 status = assistants[-1].status
             rows.append({"id": turn.id, "request_id": request.id, "text": turn.active[0][0].content,
                          "time": turn.attempts[0][0].created_at,
@@ -67,11 +68,11 @@ class TurnHistory:
         handle = await session.run.aload(expected_run_id)
         run = await handle.aget_data()
         status = str(run.status)
-        if status == "paused":
+        if status == RunStatus.PAUSED:
             status = str(display_run(await session.aget_data(), run).status)
-        if status not in ("interrupted", "failed"):
+        if status not in (RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise OperationBlocked("hub_not_resumable", runtime.t("history_retry_unavailable"))
-        if str(run.status) == "paused" and await reopen_questions(
+        if str(run.status) == RunStatus.PAUSED and await reopen_questions(
                 session, handle, unavailable=runtime.t("history_retry_question_unavailable")):
             runtime.snapshot_reader.invalidate(session_id)
             runtime.dirty.set()
@@ -115,7 +116,7 @@ class TurnHistory:
         if not latest.run_id:
             raise OperationBlocked("hub_edit_unavailable", runtime.t("history_edit_unavailable"))
         run = await (await session.run.aload(latest.run_id)).aget_data()
-        if str(run.status) not in ("completed", "interrupted", "failed", "cancelled", "paused"):
+        if str(run.status) not in (RunStatus.COMPLETED, RunStatus.INTERRUPTED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.PAUSED):
             raise OperationBlocked("hub_edit_unavailable", runtime.t("history_edit_unavailable"))
         return await self._edit_request(session_id, latest, run, text)
 
@@ -131,7 +132,7 @@ class TurnHistory:
                 continue
             seen.add(turn.id)
             # Queue cancellation only affects the selected queued attempt.
-            if str(turn.latest.status) == "queued" and not turn.latest.run_id:
+            if str(turn.latest.status) == MessageStatus.QUEUED and not turn.latest.run_id:
                 items.append({"id": turn.latest.id, "queued": True})
                 continue
             for group in reversed(turn.attempts):

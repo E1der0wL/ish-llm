@@ -9,7 +9,7 @@ from pathlib import Path
 from types import UnionType
 from typing import Any, Optional, Union, get_args, get_origin, get_type_hints
 
-from .models import ProjectConfig
+from .models import RunStatus, StepStatus, ProjectConfig
 from llm.errors import exception_chain, stable_error_code, get_error_attribute
 
 
@@ -187,10 +187,10 @@ class ProjectActivityEvent(JsonValue):
     def __post_init__(self):
         from datetime import datetime
         JsonValue.__post_init__(self)
-        states = {"run.started": "running", "run.completed": "completed",
-                  "run.failed": "failed", "run.interrupted": "interrupted",
-                  "run.paused": "paused", "step.failed": "failed"}
-        valid = (self.status in {"paused", "failed", "interrupted"} if self.event == "run.resume_abandoned"
+        states = {"run.started": RunStatus.RUNNING.value, "run.completed": RunStatus.COMPLETED.value,
+                  "run.failed": RunStatus.FAILED.value, "run.interrupted": RunStatus.INTERRUPTED.value,
+                  "run.paused": RunStatus.PAUSED.value, "step.failed": StepStatus.FAILED.value}
+        valid = (self.status in {RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED} if self.event == "run.resume_abandoned"
                  else self.event in states and self.status == states[self.event])
         if not valid:
             raise ValueError("Invalid activity lifecycle")

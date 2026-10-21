@@ -1,5 +1,6 @@
 """Logical conversation positions over durable edit and checkpoint attempts."""
 
+from llm.core.models import MessageStatus
 from dataclasses import dataclass, field, replace
 
 from llm.services.history.turns import conversation_turns
@@ -24,7 +25,7 @@ class LogicalTurn:
     @property
     def active(self):
         attempts = [group for index, group in enumerate(self.attempts)
-                    if index == 0 or str(group[0].status) != "cancelled"]
+                    if index == 0 or str(group[0].status) != MessageStatus.CANCELLED]
         start = 0
         for index, group in enumerate(attempts):
             if group[0].metadata.get("restart") or edit_source(group[0]) and not group[0].metadata.get("resume"):

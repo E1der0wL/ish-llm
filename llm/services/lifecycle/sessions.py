@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 from collections.abc import Callable
 
-from llm.core.models import Project, ProjectConfig, Session, SessionStatus, new_id
+from llm.core.models import MessageStatus, Project, ProjectConfig, Session, SessionStatus, new_id
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.plans import TurnDeletionPlan
@@ -182,7 +182,7 @@ class SessionManager:
             raise ValueError("Session is deleted")
         store = self.conversations(session)
         messages = store.list()
-        if any(m.status in ("queued", "streaming") for m in messages):
+        if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING) for m in messages):
             raise ValueError("Finish pending work before deleting conversation turns")
         group = next((g for g in conversation_turns(messages) if g[0].id == request_id), None)
         if group is None:

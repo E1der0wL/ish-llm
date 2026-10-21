@@ -444,14 +444,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "55e9bab11aed69b48a35839db1e625f33652f0a1cb874f395c359f5f3ca75b15:1",
-      "rule": "S3",
-      "file": "llm/core/contracts.py",
-      "symbol": "ProjectActivityEvent.__post_init__",
-      "line": 193,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "1fb20f5f35dc00aec4baf73c0c10d68236ddc46976aa2f368a44b02844e9a828:1",
       "rule": "S3",
       "file": "llm/core/diagnostics.py",
@@ -482,14 +474,6 @@
       "symbol": "classify_diagnostic",
       "line": 48,
       "detail": "SDK-shaped field lookup outside Provider package"
-    },
-    {
-      "id": "216ad4938d1b5961e079721d8b326ee1735170714e2a27ee1d96355826d19ddd:1",
-      "rule": "S3",
-      "file": "llm/core/results.py",
-      "symbol": "ResumeOutput.__post_init__",
-      "line": 127,
-      "detail": "inline domain comparison"
     },
     {
       "id": "b7c6bafb2d31f051e361033af48f1f247b8d2c960829488f09ddf3b3bb791924:1",
@@ -788,70 +772,6 @@
       "detail": "inline domain argument: status"
     },
     {
-      "id": "b0f345d90b935f1a7365ca69a9fcc3cef0c3bf962c852a3b7383de54218ef58d:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention._run_plan",
-      "line": 40,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "36b0f957dfd6153f81d9a6f2caf37288eba0724dc5c46a6a9f74fadf89e6c41c:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention._run_plan",
-      "line": 59,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "36b0f957dfd6153f81d9a6f2caf37288eba0724dc5c46a6a9f74fadf89e6c41c:2",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention._run_plan",
-      "line": 94,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "c0f40fcc1db3e3bb7156a9af26fefcdcb69737611b9dbe4285d1e6589150caf9:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention._finish",
-      "line": 130,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "3892e96b6f948d0df592971ab81dc14b219f3b7212d96268b69a7d5fdd3a2e6a:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention.plan",
-      "line": 190,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "7684e855a52bf7ad72b7cf508c63bfd09a65f22095febca50b345b0ba9f410b5:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention.plan",
-      "line": 192,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "512217a0e08d27b1f22214ac42a93f8844123a4247346caea01eca9d8a497387:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention.plan",
-      "line": 193,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "163224877afe8e99053e21997f019046c7854c0b3ef0082ee21d32cbdb18fde3:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention.plan",
-      "line": 193,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "17f9a81bc28fb6c36b02910d685f39ea1ccd05f2c2c87278e231d782eb69ce14:1",
       "rule": "S3",
       "file": "llm/services/infrastructure/logging.py",
@@ -908,22 +828,6 @@
       "detail": "inline domain field: max_seconds"
     },
     {
-      "id": "40c315cdfd928805a19c38e66ea8b0718103fefea548ef8897c3c5305677b31f:1",
-      "rule": "S3",
-      "file": "llm/services/lifecycle/sessions.py",
-      "symbol": "SessionManager._turn_deletion",
-      "line": 159,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "9d2dd0518d89a9f27a50b93fd6ae2735c9dfa58180786eec3f03815614518183:1",
-      "rule": "S3",
-      "file": "llm/services/results.py",
-      "symbol": "RunResultQuery.tool_result",
-      "line": 75,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "383774400a5d1de1dc823e24650ac940ec7f59be7c7e2bec1c6925574213bc1b:1",
       "rule": "S3",
       "file": "llm/services/runtime/events.py",
@@ -953,14 +857,6 @@
       "file": "llm/services/runtime/interactions.py",
       "symbol": "InteractionRepository.decisions",
       "line": 167,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "55997ccd6f14168a13f78bfd395a264e53a268260e9c83e7f81398533601809a:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/interactions.py",
-      "symbol": "InteractionRepository.views",
-      "line": 210,
       "detail": "inline domain comparison"
     },
     {
@@ -1180,14 +1076,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "f88224415ce074c7ab2cdf6e257ee0c150913df62e9c05a98b017a2e8542859d:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/continuations.py",
-      "symbol": "continued_messages",
-      "line": 61,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "59a2789e7a0227edd9808bf959c0c09bf3f13ade3438bc583f88ec8c6564a1c1:1",
       "rule": "S3",
       "file": "hub/backend/execution/provider_recovery.py",
@@ -1260,30 +1148,6 @@
       "detail": "inline domain assignment: status"
     },
     {
-      "id": "a0a5964ae52348639ae0d94c976e809e73013545d0bade732c5fa4319d95b3d0:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/stopping.py",
-      "symbol": "stopped",
-      "line": 19,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "070316ab1f67f87a677d4a3fe5665efe95fa1ebbfa27df8d81569054253860dc:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/stopping.py",
-      "symbol": "stop_paused.stop",
-      "line": 39,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "1ffd404ad14b78d7e7267ddf457c88ac187353c60eeb412063c4eb1a923f5e0c:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/stopping.py",
-      "symbol": "reopen_questions.reopen",
-      "line": 59,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "e954db7c531a5412b62179be6a678717a889f8c7b16b553444658cc00c5d5b60:1",
       "rule": "S3",
       "file": "hub/backend/execution/stopping.py",
@@ -1297,102 +1161,6 @@
       "file": "hub/backend/execution/stopping.py",
       "symbol": "reopen_questions.reopen",
       "line": 69,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "2c2d7243cd56f8dac998e109ec19ef145a3548a0b9fce74b0867f48983f51192:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/thinking.py",
-      "symbol": "ThinkingPhases.observe",
-      "line": 21,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "c6c837bbc26c45c0a402bed03b1ed16d990964030bd23d205f85c10abf2179f4:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/thinking.py",
-      "symbol": "ThinkingPhases.observe",
-      "line": 45,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "c1fe5468022122bd94462bbbb7f625c5d1b434465576ece8de6dd2170cf4324a:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/thinking.py",
-      "symbol": "ThinkingPhases.activity",
-      "line": 54,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "da20bc3884825e2b9e16cd1a2dd31b6869aafb02bce3139d4bf5e1ac2f7aee03:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/thinking.py",
-      "symbol": "ThinkingPhases.activity",
-      "line": 61,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "dd1042be2eea5833d7ff4fb4a9481eb4d21ee1ee7b79c9b6611e666b0f80f783:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/turns.py",
-      "symbol": "LogicalTurn.active",
-      "line": 27,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "193292057a58ce4bdd67f0b1ec166246e303d773600fa53eeae533035350781a:1",
-      "rule": "S3",
-      "file": "hub/backend/history.py",
-      "symbol": "TurnHistory.rows",
-      "line": 37,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "d2adbdb091151a48525a69ee3b59d48c497710e1895e50dbb4c5035494b8f8ab:1",
-      "rule": "S3",
-      "file": "hub/backend/history.py",
-      "symbol": "TurnHistory.rows",
-      "line": 46,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "ce62ef55af5f64629cd06b55411fa0f4008c07758738018b1beec99b8d372855:1",
-      "rule": "S3",
-      "file": "hub/backend/history.py",
-      "symbol": "TurnHistory.retry",
-      "line": 70,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "ee5d932e2b3141d980ee1d0a9bbf1acc2fb8425e8a90afd052eab8b86441b853:1",
-      "rule": "S3",
-      "file": "hub/backend/history.py",
-      "symbol": "TurnHistory.retry",
-      "line": 72,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "472d221f7a8e49d13ba4bb5b5219aa36308ea98f5fb26f48ec4f1560e6b553bd:1",
-      "rule": "S3",
-      "file": "hub/backend/history.py",
-      "symbol": "TurnHistory.retry",
-      "line": 74,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "2ab2a0b15ba256736a2109ea002a3a771c37e5ede88ebc8cca69ae626c26cb1f:1",
-      "rule": "S3",
-      "file": "hub/backend/history.py",
-      "symbol": "TurnHistory.edit",
-      "line": 118,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "9094f5f33b66d63f7583b7def87f9857c3d4d8b83435e3fe81531caea9e52a95:1",
-      "rule": "S3",
-      "file": "hub/backend/history.py",
-      "symbol": "TurnHistory.deletion_plan",
-      "line": 134,
       "detail": "inline domain comparison"
     },
     {
@@ -1412,124 +1180,12 @@
       "detail": "SDK-shaped field lookup outside Provider package"
     },
     {
-      "id": "816471b4af5c258f429333fbae32285f3aa7986507b6d3ac9c8966066d06146c:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/failures.py",
-      "symbol": "_step_evidence",
-      "line": 13,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "675cf2a426638c07699e9940cda9b183874189b644374f0d916ce6a13d8d7cb7:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/failures.py",
-      "symbol": "_step_evidence",
-      "line": 17,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "4bad639f36bbf7bb8c866af546662c680c647e9e77d75107a730121498cd6a7e:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/failures.py",
-      "symbol": "FailureDiagnostics.read",
-      "line": 54,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "c2227bcb4b7ada2b5e233cc77f3265236f64ba6837eb15a937d8caa8eba35b7b:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/notifications.py",
-      "symbol": "NotificationBuffer.record_run",
-      "line": 43,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "4d533b4dee2ac6538ec0b4eeda5073be6f71185bf1b56ef98668a16efbc79098:1",
       "rule": "S3",
       "file": "hub/backend/observability/provider_logs.py",
       "symbol": "_read_error",
       "line": 82,
       "detail": "inline domain field: status"
-    },
-    {
-      "id": "4ba112a523894b99329a9b6206122ca7866c33d3b2324cc6458c077d4cebbfe3:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.run_display",
-      "line": 68,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "8cdd8428b22b8e862390f16b1b699966fafe5909105d6cd1171f3b451bd2be45:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.messages",
-      "line": 93,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "bf67aec13d9fb12ffc23fe0324ccaf0ea55455a2a143d1ec971ab2570155f7d5:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.messages",
-      "line": 103,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "4e61472f94d37bb0c147d259aa73b2ad53e97c5d34f50859806a641ab61b374c:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.messages",
-      "line": 111,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "b94711341d5b1f3d5ddbab421a4d0029feb0c12786fd882279499dde9da37b83:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.messages",
-      "line": 123,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "c1f86fbf349833d40048528d268c77fb6796034bcca246caf2b83afce7df6f86:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.messages",
-      "line": 124,
-      "detail": "inline domain assignment: status"
-    },
-    {
-      "id": "2af650e59b12ac4562df42035b8474269e91f202d3f733e794cdb440cf6ba86d:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.messages",
-      "line": 127,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "6b40b98fa793b8fdeae678b66c36ce29d253c358187a4a8e9bf9069effa0224e:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.messages",
-      "line": 129,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "d7a6303b303715b2ecfbc7a1c0c54efa7a5429f6fa5179985e7a54c28bbfe403:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.read",
-      "line": 151,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "dfdece8b106e742fa4e339d540f50ff37bd78acce8590ac387470e692a691790:1",
-      "rule": "S3",
-      "file": "hub/backend/observability/snapshot.py",
-      "symbol": "SnapshotReader.read",
-      "line": 156,
-      "detail": "inline domain comparison"
     },
     {
       "id": "04aadafd2f6c1ac69165782fc32a99a05fc93a3bf8653f30d0feb8de755fb35f:1",
@@ -1554,14 +1210,6 @@
       "symbol": "SessionNamer._name",
       "line": 101,
       "detail": "inline domain field: version"
-    },
-    {
-      "id": "9e5c87ea3eba691dfdc36129a47da3092b73ecafffbc38a7e87b687759ada6e6:1",
-      "rule": "S3",
-      "file": "hub/backend/project/naming.py",
-      "symbol": "SessionNamer._name",
-      "line": 116,
-      "detail": "inline domain comparison"
     },
     {
       "id": "dfce2d23dd48d4e70601ae6f13fbe39641d438714e7ef1f3c8ed00b4204aa80e:1",

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import json
 from llm.core.contracts import ResourceRef
 from llm.core.plans import RetentionPlan, RetentionUnit
-from llm.core.models import now, new_id, RunStatus, ProjectConfig
+from llm.core.models import MessageStatus, now, new_id, RunStatus, ProjectConfig
 from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, reject_links, tree_snapshot, child
 from llm.services.runtime.usage import project_usage_policies, protects_project_usage
 
@@ -64,7 +64,7 @@ class HistoryRetention:
                 reasons.append("runtime_attached")
             if project.conversation_storage != "file":
                 reasons.append("non_file_conversation")
-            if any(m.status in ("queued", "streaming") for m in messages):
+            if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING) for m in messages):
                 reasons.append("pending_message")
             if session.metadata.get("retain") or session.id in refs["session_ids"]:
                 reasons.append("pinned_or_component_reference")
@@ -80,7 +80,7 @@ class HistoryRetention:
                 source = run.metadata.get("resume", {}).get("run_id")
                 if source:
                     keep.add(source)
-                if run.status != "completed":
+                if run.status != RunStatus.COMPLETED:
                     for name in run.metadata.get("checkpoints", []):
                         checkpoint = self.manager.sessions.run_repository.checkpoint(run, name)
                         sources.append(checkpoint)
@@ -107,7 +107,7 @@ class HistoryRetention:
                        "bytes": size, "tokens": tokens, "last_activity": run.ended_at or run.created_at,
                        "revision": revision_token(stamps), "record_revision": revision_token(record(run))}
                 blocked = list(reasons)
-                if run.status != "completed":
+                if run.status != RunStatus.COMPLETED:
                     blocked.append("unfinished_or_resumable_run")
                 if run.id in keep:
                     blocked.append("recent_or_referenced")
@@ -130,7 +130,7 @@ class HistoryRetention:
                 run = repository.load(session, row["run_id"])
             except FileNotFoundError:
                 continue
-            if run.status != "completed" or revision_token(record(run)) != row["record_revision"]:
+            if run.status != RunStatus.COMPLETED or revision_token(record(run)) != row["record_revision"]:
                 raise ValueError("Retention source changed; manual review is required")
         # 의도를 먼저 저장한 뒤 대화를 정리한다. 중단 시 runtime 재접속을 차단한다.
         store = self.manager.sessions.conversations(session)
@@ -177,10 +177,10 @@ class HistoryRetention:
                 reasons.append("pending_maintenance")
             if self.manager.ownership.session_attached((project.id, session.id)):
                 reasons.append("runtime_attached")
-            if session.current_run_id or any(r.status != "completed" for r in runs):
+            if session.current_run_id or any(r.status != RunStatus.COMPLETED for r in runs):
                 reasons.append("unfinished_or_resumable_run")
-            completed = {r.id for r in runs if r.status == "completed"}
-            if any(m.status in ("queued", "streaming") or m.status == "committed" and m.run_id not in completed for m in messages):
+            completed = {r.id for r in runs if r.status == RunStatus.COMPLETED}
+            if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING) or m.status == MessageStatus.COMMITTED and m.run_id not in completed for m in messages):
                 reasons.append("pending_message")
             if self.manager.sessions.run_repository.has_tool_operations(session):
                 reasons.append("external_operation_history")

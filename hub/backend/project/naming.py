@@ -1,5 +1,6 @@
 """Automatic titles use an ordinary, isolated backend Session/Run."""
 
+from llm.core.models import RunStatus
 import asyncio
 from contextlib import aclosing
 from copy import deepcopy
@@ -113,7 +114,7 @@ class SessionNamer:
             request = await job.run.submit(text, engine=TITLE_ENGINE)
             handle = await request.wait()
             result = await handle.aresult()
-            if str(result.status) != "completed":
+            if str(result.status) != RunStatus.COMPLETED:
                 raise RuntimeError(result.error or str(result.status))
             response = await handle.aresponse()
             title = " ".join(response.content.split()).strip('"\'`# ')[:60]

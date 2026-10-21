@@ -7,7 +7,7 @@ from typing import Optional, Protocol, Union
 import json
 import hashlib
 
-from llm.core.models import Project, Run, Session, SessionStatus
+from llm.core.models import StepStatus, Project, Run, Session, SessionStatus
 from llm.core.results import ExecutionResult
 from llm.services.infrastructure.locking import WorkspaceOwnership, workspace_locked
 
@@ -72,7 +72,7 @@ class RunResultQuery:
         session = self.sessions.load(project, session_id)
         run = self.runs.load(session, run_id)
         step = steps.load(run, step_id)
-        if step.kind != "tool" or step.status != "completed" or step.output is None:
+        if step.kind != "tool" or step.status != StepStatus.COMPLETED or step.output is None:
             raise ValueError("Completed Tool result required")
         value = step.output.data
         content = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, allow_nan=False)

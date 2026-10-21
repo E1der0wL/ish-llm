@@ -12,7 +12,7 @@ from llm.core.interactions import (
     approval_request, same_interaction_value,
 )
 from llm.core.checkpoints import CheckpointStatus
-from llm.core.models import ProjectConfig, Run
+from llm.core.models import RunStatus, ProjectConfig, Run
 from llm.services.infrastructure.storage import atomic_json, child, read_json
 
 
@@ -340,7 +340,7 @@ class InteractionRepository:
                 status, reason = "unavailable", "resume_abandoned"
             elif resumed_run is not None or resume_message is not None:
                 status, reason = "submitted", "already_resumed"
-            elif str(run.status) not in ("paused", "interrupted", "failed"):
+            elif str(run.status) not in (RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
                 status, reason = "unavailable", "run_active_or_finished"
             elif control["cancelled"]:
                 status, reason = "cancelled", "request_cancelled"

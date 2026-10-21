@@ -1,5 +1,6 @@
 """Transient provider-exposed reasoning phases; never a second transcript."""
 
+from llm.core.models import RunStatus
 from collections import OrderedDict
 from ...model import TraceItem
 from .trace import merge_trace
@@ -18,7 +19,7 @@ class ThinkingPhases:
         self.runs = OrderedDict()
 
     def observe(self, run, event):
-        if str(run.status) not in ("pending", "running"):
+        if str(run.status) not in (RunStatus.PENDING, RunStatus.RUNNING):
             self.runs.pop(run.id, None)
             return
         state = self.runs.setdefault(run.id, {"seen": {}, "text": "", "phase": None,
@@ -42,7 +43,7 @@ class ThinkingPhases:
                 state["text"] += ("\n\n" if state["text"] and not previous else "") + added
                 state["phase"] = completion.id
                 state["activity"] = "thinking"
-            if str(getattr(completion, "status", "running")) not in ("pending", "running"):
+            if str(getattr(completion, "status", RunStatus.RUNNING.value)) not in (RunStatus.PENDING, RunStatus.RUNNING):
                 state["activity"] = "running"
         delta = getattr(event, "delta", None)
         output = getattr(event, "output", None)
@@ -51,14 +52,14 @@ class ThinkingPhases:
 
     def activity(self, run) -> str:
         """Execution observation, independent of whether thought text is exposed."""
-        if run is None or str(run.status) not in ("pending", "running"):
+        if run is None or str(run.status) not in (RunStatus.PENDING, RunStatus.RUNNING):
             return ""
         state = self.runs.get(run.id)
         if state and state["activity"]:
             return state["activity"]
         completions = run.metadata.get("completions", [])
         if completions:
-            return "thinking" if completions[-1].get("status") in ("pending", "running") else "running"
+            return "thinking" if completions[-1].get("status") in (RunStatus.PENDING, RunStatus.RUNNING) else "running"
         return "resuming" if run.metadata.get("resume") else "preparing"
 
     def visible(self, run_id, fallback, *, active, content):

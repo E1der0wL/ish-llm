@@ -15,6 +15,67 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c23: Run·Message·Step 상태 참조 — c22–c23 묶음 Level 3
+
+기존 core.models의 RunStatus·MessageStatus·StepStatus를 서비스와 Hub 소비자 15개 파일의
+47개 식에서 참조한다. Activity의 Run/Step 값, ResumeOutput의 Step 완료 검사, Tool 결과
+조회, 보존/삭제의 Run·Message 보호, InteractionView의 Run 재개 조건과 Hub의 이력·중단·
+실패·알림·제목·snapshot·추론 표시가 대상이다. 문자열 자체가 필요한 투영에는 value를
+사용했다. 기존 enum 값·Reader/Writer·상태 전이·저장 형식·시험은 그대로다.
+
+각 변경에서 추가 참조를 원래 값으로 복원하고 추가 import만 제거하면 기존 AST와 일치한다.
+같은 단어를 쓰는 InteractionView 상태, checkpoint receipt, Tool 관찰값이나 UI phase는
+별도 소유자를 따르며 이번 치환에 섞지 않았다. 과거 backend의 retention 소스는 필요한
+부분만 읽었고 구형 저장/삭제 계약이나 과거 검증 성공을 승계하지 않았다.
+
+S3 후보 44건을 실제 제거했다. ProjectActivityEvent의 source 형식, ProjectRecovery.apply와
+HistoryRetention.apply의 내용 기반 CAS review 3건은 변경된 의존성만 재검토하고 현재
+상태 선언의 hash를 연결했다. 실제 손상 원본 보존·동일 크기/mtime 변경·잘못된 선택·실제
+pruning 뒤 rollback·프로세스 중단 시험을 포함한 기존 구체적 시험 ID가 모두 통과했다.
+AST 규칙이나 분류 기준은 완화하지 않았다.
+
+집중 검증 후 c22의 명시 file_root 변경과 현재 통합 소스를 묶음 Level 3으로 검증했다.
+공통 상태의 소비 범위가 서비스와 Hub 양쪽에 걸치므로 전체 회귀로 승격했고, 중복되는
+별도 c23 Level 2 실행은 추가하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 146/146 | 146 | 0/0/0 | 31.426초 | 0 |
+| 집중 Hub | 59/59 | 59 | 0/0/0 | 49.669초 | 0 |
+| 전체 LLM | 2101/2101 | 2101 | 0/0/0 | 732.164초 | 0 |
+| 전체 Hub | 577/577 | 577 | 0/0/0 | 718.973초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각각 0이다. 전체 결과는
+각각 현재 소스의 단일 full 실행이며 이전 집중/Level 2 결과를 합산하지 않았다. 공통 승인·
+누적 예산·외부 효과·Checkpoint/Resume·RAG·삭제/수명주기·저장 트랜잭션 장애 주입과
+Hub의 실제 소비자가 포함된다. R3 실제 효과 mutation True/outer exit 0, 실제 LLM/Hub
+환경 검사 각각 ok/exit 0이다. 정적 raw 334·reviewed 76·미해결 258(S2 1·S3 239·S6 18),
+new/stale/review 오류와 S1/S4/S5 미해결 0/exit 0이다. P1 최종 S1–S5와 A–F는 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c23-focused/llm.json --modules tests.llm.test_domain_state_integrity tests.llm.test_project_activity tests.llm.test_history_retention_integrity tests.llm.test_operations_schema tests.llm.test_configuration_results tests.llm.test_session_domain tests.llm.test_interaction_presence tests.llm.test_interaction_decisions tests.llm.test_interactions tests.llm.test_backend_contracts
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c23-focused/hub.json --modules tests.hub.test_snapshot_projection tests.hub.test_tool_history tests.hub.test_request_history tests.hub.test_history_retention tests.hub.test_notifications tests.hub.test_naming tests.hub.test_failure_diagnosis tests.hub.test_interrupt_feedback tests.hub.test_approval_continuation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c22-c23-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c22-c23-level3/hub.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c22-c23-level3/env-llm.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c22-c23-level3/env-hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c23-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c23-docs-final.json
+```
+
+실행 HEAD `695b4d0a92f164546b6379ce1428357824ef3ac2`에 c23 변경을 더한 소스다.
+703 Python 소스 hash `560ae1940ae32b1c721bc615ba9508bd8af0bfbaf68254c4fa09c0e076536358`, 865 입력/환경 hash
+`96734cfb5657b58baf89740b4a0f0b3e5ba1bf321c61728dc42284e831bc96f6`가 전체 실행 전후 각각 동일했다.
+Python 3.12.14·136 의존성·env 5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와
+바이너리를 기록했다. 집중 실행도 자체 전후 hash가 동일하며 전체 실행과 환경/관련 소스가
+같지만 별도 실행으로 기록한다. 전체 검증 중 소스·시험·Fixture·문서를 고정했고 전후 확인
+후 결과 문서를 먼저 갱신한다. 문서 검사 132문서·182 Python fence·958링크·34 anchor, 오류 0이다.
+명령·exit·test ID·로그·manifest는 `/workspace/llm-clean-resume/p1/c22-c23-level3/`에 보존한다.
+소스-커밋 동일성과 staged diff 검사 후 c22–c23을 작업 브랜치에 Push한다. 원격 CI의 실제
+결과는 미확인이며 로컬 전체 성공과 구분한다. main·backend·Draft PR #1과 기존 실제 환경
+검증 한계는 유지한다.
+
 ## P1-c22: 명시 file_root와 실제 파일 효과 — 로컬 Level 2
 
 HubConfig와 BuiltinTools·Tool/RecordManagement·retry evidence·snapshot·초기 UI가

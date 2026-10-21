@@ -5,6 +5,7 @@ remains immutable; Hub stores its stop intent on the Session and cancels pending
 interactions. Shared projections show that intent as interrupted after restart.
 """
 
+from llm.core.models import RunStatus
 import asyncio
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -16,11 +17,11 @@ RESUME_INTERACTIONS = "hub_resume_interactions"
 
 
 def stopped(record, run):
-    return bool(run and str(run.status) == "paused" and run.id in record.metadata.get(STOPPED, {}))
+    return bool(run and str(run.status) == RunStatus.PAUSED and run.id in record.metadata.get(STOPPED, {}))
 
 
 def display_run(record, run):
-    return replace(run, status=type(run.status)("interrupted")) if stopped(record, run) else run
+    return replace(run, status=type(run.status)(RunStatus.INTERRUPTED)) if stopped(record, run) else run
 
 
 async def stop_paused(session):
@@ -36,7 +37,7 @@ async def stop_paused(session):
                 return False
             handle = handles[0]
             run, record = handle.data, session.data
-            if str(run.status) != "paused" or stopped(record, run):
+            if str(run.status) != RunStatus.PAUSED or stopped(record, run):
                 return False
             for request in handle.interactions(pending_only=True):
                 handle.cancel_interaction(request)
@@ -56,7 +57,7 @@ async def reopen_questions(session, handle, *, unavailable):
     def reopen():
         with session.app.project_manager.ownership.scope():
             record, run = session.data, handle.data
-            if str(run.status) not in ("paused", "interrupted", "failed"):
+            if str(run.status) not in (RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
                 return False
             views = handle.interaction_views()
             actionable = [v for v in views if v.can_respond or v.status in ("cancelled", "expired")]
