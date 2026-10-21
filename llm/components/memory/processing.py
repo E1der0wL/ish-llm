@@ -105,11 +105,16 @@ class MemoryProcessor:
 
     name = "memory"
     close_timeout = None  # CompletionSession.aclose는 자원을 소유하지 않는 no-op이다.
+    UNCONFIGURED_PRIORITY = 0  # Neutral ordering; enabled processing requires an explicit config priority.
 
-    def __init__(self, data, *, completion_fn=None, token_counter=None, priority=0):
+    def __init__(self, data, *, completion_fn=None, token_counter=None, priority=UNCONFIGURED_PRIORITY):
+        if any(value is not None and not callable(value) for value in (completion_fn, token_counter)):
+            raise TypeError("Memory model and token counter must be callable")
+        if type(priority) is not int:
+            raise TypeError("Memory processor priority must be an integer")
         self.data = data
         self.priority = priority
-        self.completion_fn = completion_fn or completion
+        self.completion_fn = completion if completion_fn is None else completion_fn
         self.token_counter = token_counter
 
     def session(self, context):

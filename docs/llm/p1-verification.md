@@ -13,6 +13,65 @@ P1-b와 P1-c의 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 �
 따른다. 세 번째 Provider 계약군은 별도 커밋으로 보존한다. A–F는 미착수이며 P1 전체 완료를 뜻하지 않는다.
 main·이전 backend 브랜치·Draft PR #1을 변경하거나 이전 구현을 가져오지 않는다.
 
+## H1–H5 이후 P1-c4: Memory 런타임 주입 — 로컬 Level 2
+
+H1–H5 로컬 상위 게이트와 Push `a2b78e17b7ae0814e4b1ed6fc237d173c86a73e2` 뒤 P1-c 잔여를
+재개했다. 아래 과거 중단/검증 기록은 수정하지 않는다. 이번은 c4의 제한된 로컬 완료이며 P1
+전체/A–F/원격 CI 완료가 아니다. 나머지 owner 선언·현재 Schema 계약은 계속 남아 있다.
+
+MemoryProcessor가 callable 객체의 truthiness로 completion_fn을 선택하여 명시한 falsey 모델을
+기본 함수로 바꾸는 결함을 재현했다. 실제 호출 파일에 injected='' / default='unexpected default\n',
+auxiliary_calls=1/main_calls=1이 남았다. 잘못된 모델·계수기·priority도 생성 시 거부하지 않았다.
+수정은 None일 때만 기본 함수를 선택하고 callable 또는 None, 정확한 int priority를 owner에서
+검증한다. falsey callable identity, 명시한 0/음수 우선순위는 보존한다. 미설정 중립 정렬값은
+MemoryProcessor.UNCONFIGURED_PRIORITY 하나로 선언하고 Component resolver가 재사용한다.
+활성 기능의 명시 priority 요구·저장 형식·승인·예산·효과 알고리즘은 변경하지 않았다.
+
+새 4개 시험은 직접 owner 입력과 실제 Memory 추출을 검증한다. 수정 뒤 intended 파일에
+auxiliary 1줄, 기본 함수 파일 없음, 주/보조 모델 각 1회와 저장 설정 동일성을 확인한다.
+초기 baseline은 실패 test ID 3개/Assertion 19건이다. 원래 효과 횟수와 거부 Assertion,
+초기 제품/fixture·로그를 보존했다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c4-baseline` llm | 4/4 | 1 | 19/0/0 | 0.365초 | 1 |
+| `c4-focused-1` llm | 68/68 | 68 | 0/0/0 | 50.796초 | 0 |
+| `c4-level2` llm | 411/411 | 411 | 0/0/0 | 175.151초 | 0 |
+| `c4-level2` hub | 25/25 | 25 | 0/0/0 | 62.356초 | 0 |
+
+모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+Level 2의 30개 LLM 모듈은 Memory 전체 owner/저장·문맥/실제 모델·Agent·설정 소비자와
+승인·예산·효과·Checkpoint·RAG·삭제·트랜잭션을 포함한다. Hub 6개는 Memory 관리·문맥·
+Component·설정·Project 소비자다. 변경은 Memory 런타임 선택 경계로 한정되며 위 통합/안전성
+검증이 통과했으므로 전체 LLM/Hub는 이번 소단계에서 실행하지 않았다. P1 관련 소단계를 묶는
+상위 Level 3에서 현재 통합 소스 전체를 검증한 뒤 Push한다.
+
+정적 c4-static-1은 new/stale/S1 미해결 0, 기존 debt 518, exit 0이다. 기준은 바꾸지 않았다.
+이 결함은 기존 AST 후보에 없었으며 실제 호출 관계로 발견했다. 다른 owner의 미분류 후보를
+해결했다고 주장하지 않는다. R3 실제 효과 mutation 검출 True, outer exit 0이며 의도한 inner
+실패도 보존한다. 현재 계약 문서 검사는 131/182/955/34, 오류 0, exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c4-level2/llm.json --modules tests.llm.test_agent_delegation tests.llm.test_agent_workflow tests.llm.test_checkpoint_integrity tests.llm.test_completion_integrity tests.llm.test_completion_processing tests.llm.test_component_record_integrity tests.llm.test_component_storage_integrity tests.llm.test_configuration_validation tests.llm.test_current_contracts tests.llm.test_goals tests.llm.test_interaction_storage tests.llm.test_lifecycle_deletion_integrity tests.llm.test_lifecycle_integrity tests.llm.test_memory_compaction_integrity tests.llm.test_memory_component tests.llm.test_memory_consolidation_integrity tests.llm.test_memory_conversation tests.llm.test_memory_history_integrity tests.llm.test_memory_processing tests.llm.test_memory_runtime_choices tests.llm.test_memory_summary_integrity tests.llm.test_nested_graph tests.llm.test_operation_integrity tests.llm.test_project_authority tests.llm.test_project_policies tests.llm.test_provider_runtime tests.llm.test_rag_storage tests.llm.test_settings_contract tests.llm.test_transactions tests.llm.test_usage_deletion
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c4-level2/hub.json --modules tests.hub.test_memory_manager tests.hub.test_context tests.hub.test_component_managers tests.hub.test_settings tests.hub.test_settings_project_flow tests.hub.test_project_authority
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/p1/c4-static-1.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c4-docs.json
+```
+
+Level 2 전후 693개 Python 소스 hash `640525a4da7276a270ff4e28c560ba73c703529fe0ea0adb849acfae9fa77853`,
+853개 입력/환경 hash `46fa56619429e17026cf1d1be9da54005973887d2bb2a8e225a9d04b19d9447b`가 각각 동일했다.
+Python 3.12.14/136개 의존성, 실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존
+TERM/LiteLLM/Xvfb/xclip 환경을 유지했다. 실행별 정확한 명령·exit·JSON/로그·원래 fixture는
+`/workspace/llm-clean-resume/p1/`에 보존했다. 다른 실행을 하나의 전체 실행으로 합산하지 않는다.
+
+이 단계에서 처음 이전 backend `bb0946257ab6bcabb9a3ef04d3d854e5333b07d5`를 읽기 전용으로
+참고했다. Memory processing의 설정/생성자와 test_memory_processing의 요약·중단·재시작·
+잘못된 설정 시나리오만 조회했다. 동일 알고리즘/시험은 현재에도 있어 중복 이식하지 않았다.
+옛 Adapter 객체의 직접 주입은 identity 보존의 참고 근거이며 A의 Adapter 전환을 앞당겨 복사하지
+않았다. 옛 provider or {}는 현재 strict None/타입 계약과 달라 채택하지 않았다. 브랜치 merge,
+cherry-pick, 파일 통째 복사·구형 Schema/호환 계층 복원은 없으며 과거 결과를 현재 증거로 승계하지 않는다.
+
 ## 중단 원인: 전체 사용량 필드 누락을 빈 이력으로 처리
 
 실제 Tool이 파일에 `first`를 쓴 뒤 다음 모델 요청을 실패시켜 체크포인트를 남겼다.

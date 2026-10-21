@@ -538,7 +538,8 @@ class MemoryComponent(Component):
                     raise ValueError("tool_data requires a file Component public interface")
                 files.snapshot(selection["identifier"])
             return MemoryProcessor(data, completion_fn=self.completion_fn,
-                                   token_counter=self.token_counter, priority=config.get("priority", 0))
+                                   token_counter=self.token_counter,
+                                   priority=config.get("priority", MemoryProcessor.UNCONFIGURED_PRIORITY))
         if capability == "memory":
             return data_factory(self.name)
         if capability == "tools":

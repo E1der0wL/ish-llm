@@ -32,6 +32,10 @@
 
 추출의 의미 지침은 Project의 `config.processing.extract_prompt_id`로 선택한 Prompt 레코드에서
 공급합니다. MemoryComponent 생성자는 모델·검색·토큰 계수기 구현만 주입받습니다.
+MemoryProcessor도 모델·계수기에 None 또는 callable만 받으며 falsey callable의 identity를
+보존합니다. completion_fn이 None일 때만 현재 Provider 기본 함수를 선택합니다. 잘못된 타입을
+기본 함수로 바꾸지 않습니다. 처리 우선순위는 정확한 int이고 명시한 0/음수도 보존합니다.
+미설정 시 중립 정렬값은 MemoryProcessor가 선언하며, 활성 기능의 명시 priority 요구는 유지합니다.
 둘 다 없으면 추출을 실행하지 않고 오류를 반환합니다. 처리기 시작 시 지침/버전을 고정하고
 candidate metadata에 출처를 남깁니다. JSON 형태, replaces의 id/generation/revision, 근거 없는 성공 금지는
 backend 계약입니다. 무엇을 기억할지는 애플리케이션이 결정합니다.
