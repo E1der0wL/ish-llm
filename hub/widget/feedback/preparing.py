@@ -42,7 +42,7 @@ class PreparingResponse:
                         break
             self.resuming[key] = (resume_run_id, anchor, assistant)
         if text:
-            self.drafts[key] = ChatMessage("user", text, status="preparing", id=f"draft:{key[1]}",
+            self.drafts[key] = ChatMessage("user", text, status=ChatMessage.PREPARING, id=f"draft:{key[1]}",
                                           author=self.view.user_profile.display_name)
         self.view.composer.buffer.suggestion = None
         self.paint()
@@ -81,13 +81,13 @@ class PreparingResponse:
                             continue
                         message = replace(message, role="assistant", id=assistant or message.id, text="")
                     if message.role == "assistant" and message.run_id == run_id:
-                        message = replace(message, status="preparing", phase="preparing", activity="")
+                        message = replace(message, status=ChatMessage.PREPARING, phase="preparing", activity="")
                     prepared.append(message)
                 messages = tuple(prepared)
             else:
                 if key in self.drafts:
                     messages = (*messages, self.drafts[key])
-                messages = (*messages, ChatMessage("assistant", "", status="preparing",
+                messages = (*messages, ChatMessage("assistant", "", status=ChatMessage.PREPARING,
                     id=f"preparing:{key[1]}", elapsed_seconds=monotonic() - self.started[key]))
         return self.view.deleting.project(key, self.view.interrupting.project(key, messages))
 

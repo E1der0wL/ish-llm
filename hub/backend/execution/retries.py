@@ -54,8 +54,9 @@ class RetryMonitor:
         if event.type == EngineEventType.STEP_STARTED and event.kind == "tool":
             policy = context.run.metadata.get("policies", {}).get("tool_retry", {})
             if policy.get("max_retries"):
+                delay = policy.get("delay_seconds")
                 self.tools[key] = ToolWatch(event.name, policy["max_retries"] + 1,
-                                            policy.get("delay_seconds") or 0)
+                                            0 if delay is None else delay)
         watch = self.tools.get(key)
         if watch is None:
             return

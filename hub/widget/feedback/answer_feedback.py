@@ -3,6 +3,7 @@
 from llm.core.models import MessageStatus
 from dataclasses import dataclass, replace
 from llm.core.interactions import InteractionOption
+from ...model import StepSummary
 
 
 @dataclass(slots=True)
@@ -44,7 +45,7 @@ def project_answers(responses, messages):
         return messages
     def tool(step):
         status = tools_by_id.get(step.id)
-        return replace(step, status=status) if status and step.status == "waiting_approval" else step
+        return replace(step, status=status) if status and step.status == StepSummary.WAITING_APPROVAL else step
     result = []
     for message in messages:
         tools = tuple(tool(step) for step in message.tools)

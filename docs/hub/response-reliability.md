@@ -32,6 +32,12 @@ Loop와 제목 생성에 각각 이 정책을 저장합니다. 기존 프로젝�
 
 ## 재시도·승인 UI
 
+화면 전용 상태는 표시 모델이 선언한다. `ChatMessage.PREPARING`,
+`StepSummary.WAITING_APPROVAL/RETRYING`, `SessionSummary.WAITING_INPUT/WAITING_APPROVAL`은
+기존 화면 문자열이며 영속 상태·승인·재실행 권한을 생성하지 않는다. Run·Message·Step·Session의
+영속 상태를 표시할 때는 해당 backend 상태 선언을 참조한다. Tool countdown은 정책의 명시된
+대기를 보존하고 None에만 추가 대기 없음을 적용하며, 실행 횟수·대기·기한 판단은 llm이 소유한다.
+
 기본 `HubLoopEngine`은 `RetryObservationMixin`으로 기존 Loop를 관찰합니다.
 `BackendServices.observability_sink`의 확정된 `providers/retries` 사실만 사용하므로
 인증 오류·부분 출력·최종 실패를 재시도 대기로 잘못 표시하지 않습니다. 재시도 실행·상한·

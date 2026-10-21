@@ -2,12 +2,15 @@
 
 from llm.core.models import SessionStatus
 from dataclasses import dataclass
+from typing import ClassVar
 
 from .errors.contracts import ErrorInfo
 
 
 @dataclass(frozen=True, slots=True)
 class ChatMessage:
+    PREPARING: ClassVar[str] = "preparing"
+
     role: str
     text: str
     time: str = ""
@@ -50,6 +53,9 @@ class SubmissionResult:
 
 @dataclass(frozen=True, slots=True)
 class SessionSummary:
+    WAITING_INPUT: ClassVar[str] = "waiting_input"
+    WAITING_APPROVAL: ClassVar[str] = "waiting_approval"
+
     id: str
     title: str
     status: str
@@ -67,6 +73,9 @@ class SessionNotification:
 
 @dataclass(frozen=True, slots=True)
 class StepSummary:
+    WAITING_APPROVAL: ClassVar[str] = "waiting_approval"
+    RETRYING: ClassVar[str] = "retrying"
+
     name: str
     status: str
     kind: str = ""

@@ -11,6 +11,8 @@ from prompt_toolkit.widgets import Frame
 from rich.cells import chop_cells
 
 from ..summary import clipped_summary
+from llm.core.models import RunStatus
+from ...model import SessionSummary
 
 
 @dataclass(frozen=True, slots=True)
@@ -109,14 +111,15 @@ class SessionToasts:
         self.app = None
 
     def push(self, title, status, session_key):
-        level = ("error" if status == "failed" else "success" if status == "completed" else
-                 "warning" if status in ("interrupted", "cancelled", "paused", "waiting_input", "waiting_approval") else "info")
+        level = ("error" if status == RunStatus.FAILED else "success" if status == RunStatus.COMPLETED else
+                 "warning" if status in (RunStatus.INTERRUPTED, RunStatus.CANCELLED, RunStatus.PAUSED,
+                                        SessionSummary.WAITING_INPUT, SessionSummary.WAITING_APPROVAL) else "info")
         self.alert(title, self.view.t.status(status), level, session_key, status=status)
 
     def reconcile_waiting(self, project_id, sessions):
-        waiting = {item.id for item in sessions if item.status in ("waiting_input", "waiting_approval")}
+        waiting = {item.id for item in sessions if item.status in (SessionSummary.WAITING_INPUT, SessionSummary.WAITING_APPROVAL)}
         self.items = deque((item for item in self.items if not (
-            item.status in ("waiting_input", "waiting_approval") and isinstance(item.key, tuple)
+            item.status in (SessionSummary.WAITING_INPUT, SessionSummary.WAITING_APPROVAL) and isinstance(item.key, tuple)
             and len(item.key) == 2 and item.key[0] == project_id and item.key[1] not in waiting)), maxlen=3)
 
     def alert(self, title, text, level="info", key=None, *, status=""):

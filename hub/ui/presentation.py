@@ -81,7 +81,7 @@ def present(snapshot: HubSnapshot, t, cache=None) -> Presentation:
             notice = f"{t.status(run.status)}: {run.error}"
         elif run.status == RunStatus.PAUSED:
             notice = t("paused")
-    if snapshot.status in ("waiting_input", "waiting_approval"):
+    if snapshot.status in (SessionSummary.WAITING_INPUT, SessionSummary.WAITING_APPROVAL):
         status = t.status(snapshot.status)
         if snapshot.questions:
             status += " · " + snapshot.questions[0]["request"]["title"]

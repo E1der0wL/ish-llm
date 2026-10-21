@@ -28,9 +28,9 @@ def display_steps(steps) -> tuple[StepSummary, ...]:
                        metadata.get("iteration"), call_id]
                 identity = "tool:" + sha256(json.dumps(key, ensure_ascii=False).encode()).hexdigest()
             if status == StepStatus.CANCELLED and metadata.get("phase") == "waiting_approval":
-                status = "waiting_approval"
+                status = StepSummary.WAITING_APPROVAL
             elif status == StepStatus.RUNNING and metadata.get("phase") in ("repairing", "retrying"):
-                status = "retrying"
+                status = StepSummary.RETRYING
         result.append(StepSummary(step.name, status, kind, identity, getattr(step, "started_at", None) or "",
                                   getattr(step, "id", "")))
     return tuple(result)

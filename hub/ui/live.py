@@ -6,7 +6,7 @@ from dataclasses import replace
 
 from .view import HubView
 from ..backend.runtime import HubConfig
-from ..model import HubSnapshot, SubmissionResult, SessionView
+from ..model import HubSnapshot, SubmissionResult, SessionView, SessionSummary
 from .presentation import present, present_message, MessagePresentationCache
 from .snapshot_inbox import SnapshotInbox
 from .requests import UIRequests
@@ -279,11 +279,11 @@ class LiveController:
             if notification.sequence <= self._last_notification:
                 continue
             self._last_notification = notification.sequence
-            if (notification.status in ("waiting_input", "waiting_approval")
+            if (notification.status in (SessionSummary.WAITING_INPUT, SessionSummary.WAITING_APPROVAL)
                     and notification.project_id == snapshot.project_id
                     and displayed_status.get(notification.session_id) != notification.status):
                 continue  # A coalesced snapshot can already contain the answer.
-            if (notification.status in ("waiting_input", "waiting_approval") or not self.view.visible
+            if (notification.status in (SessionSummary.WAITING_INPUT, SessionSummary.WAITING_APPROVAL) or not self.view.visible
                     or (notification.project_id, notification.session_id) != current):
                 self.view.toasts.push(notification.title, notification.status,
                     (notification.project_id, notification.session_id))

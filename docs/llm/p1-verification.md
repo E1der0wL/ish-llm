@@ -15,6 +15,73 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c25: Hub 임시 표시 상태·대기값 Presence — 로컬 Level 2
+
+기존 preparing·waiting_input·waiting_approval·retrying 표시값을 ChatMessage,
+SessionSummary, StepSummary 각 소유 모델의 ClassVar 다섯 개로 선언했다. 질문 상태 생성,
+준비/중단/답변 표시, Step 투영, runtime와 알림/화면 소비자가 이를 참조한다. 영속 상태와
+섞인 비교는 해당 MessageStatus/RunStatus를 참조한다. Tool metadata.phase나 UI phase,
+번역/아이콘 키와 같은 별도 의미를 화면 status로 치환하지 않았다.
+
+11개 제품 파일 중 선언/참조 10개는 추가 참조를 원래 문자열로 복원하고 추가 선언/import를
+제거하면 기존 AST와 같다. 세 모델의 dataclass 필드·타입·default도 같다. 첫 보조 AST 검사기는
+enum을 원래 문자열 값으로 변환하지 않아 비교에 실패했고, 원본 보조 코드/실패를 c25-before에
+보존한 뒤 검사기만 수정해 통과했다. 제품·원래 시험 Assertion을 이 실패에 맞춰 바꾸지 않았다.
+
+나머지 RetryMonitor 변경은 delay의 None만 추가 대기 없음으로 처리한다. 명시된 0/대기값을
+그대로 전달하며 정책을 저장하거나 실행을 예약하지 않는다. 실제 정책은 ProjectConfig 검증과
+Run snapshot, ToolExecutionScope/RetryPolicy를 따른다. observe_tool은 서비스가 이벤트를
+소비한 뒤 countdown만 투영한다. 이번 변경의 수정 전 제품 실패를 주장하지 않는다.
+
+S2 한 건과 S3 17건을 제거했다. S2 미해결이 0이 되어 로컬 정적 필수 gate에 S2를 추가했다.
+기존 review 27건의 변경된 의존성만 다시 검토했다: 표시 목적이 같은 ko/en 문자열 24건,
+실행 접수/효과 증거를 먼저 검사하는 RecoveryPolicy.tool, 내용 token을 먼저 검사하는
+ToolManagement 두 건이다. MESSAGES·Language·복구 허가/CAS 함수와 나머지 hash는
+그대로이며, 해당 구체적 시험 ID를 현재 Level 2에서 실행했다. 분류 범위나 AST 규칙은 유지했다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 Hub(검증 근거 재사용) | 42/42 | 42 | 0/0/0 | 14.280초 | 0 |
+| 새 Level 2 LLM | 180/180 | 180 | 0/0/0 | 54.304초 | 0 |
+| 새 Level 2 Hub | 85/85 | 85 | 0/0/0 | 115.032초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각각 0이다.
+집중 검증은 준비/중단/질문/알림·실제 재시도 표시를, 새 Level 2는 공통 9개 안전성 모듈,
+current 계약·retry, 승인·실제 Tool 효과·재시도/예산·설정·언어·실제 X11과 감사 검사기를
+포함한다. 원본 보존·장애 주입·효과 횟수 Assertion은 그대로다. 시험 파일은 변경하지 않았다.
+
+집중 42개는 소스·환경 동일성을 증명해 재사용했다. 집중과 새 Level 2 사이 865 입력 중
+변경은 Hub 집중 시험이 읽지 않는 감사 fixture 두 개뿐이며 나머지 863개와 Python/패키지/
+host/바이너리/env/HEAD가 같다. Hub 전체 discovery 577개와 서로 겹치지 않는 두 선택 실행의
+ID, 27개 review의 구체적 시험 포함을 확인했다. 다른 실행을 하나의 full로 합산하지 않는다.
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 286·reviewed 76·미해결 210
+(S3 192·S6 18), new/stale/review 오류와 S1/S2/S4/S5 미해결 0/exit 0이다.
+문서 검사 132문서·182 Python fence·958링크·34 anchor, 오류 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c25-focused/hub.json --modules tests.hub.test_retry_observations tests.hub.test_notifications tests.hub.test_question_card tests.hub.test_submission_latency tests.hub.test_interrupt_feedback tests.hub.test_header_actions tests.hub.test_live
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c25-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions tests.llm.test_current_contracts tests.llm.test_retry
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c25-level2/hub.json --modules tests.hub.test_component_managers tests.hub.test_error_contract tests.hub.test_general_options tests.hub.test_interaction_updates tests.hub.test_language_presence tests.hub.test_question_tools tests.hub.test_retry_ui tests.hub.test_settings tests.hub.test_x11_clipboard tests.hub.test_tool_retry
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c25-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c25-docs-final.json
+```
+
+실행 HEAD `72a0fe1bdd572ade9f5b449f3e378ad1b00bc8ee`에 c25 변경을 더한 소스다.
+703 소스 hash `33ff7fd2973cea457895136d5192c8f102ca3253e1d54fb118e70acfb9be72a7`, Level 2의 865 입력/환경 hash
+`2637e385f02c58cc698b5e407af6b3126ebc4c3de73a3834cefa9e09c51e767b`가 실행 전후 각각 동일했다.
+집중 입력 hash는 `dfc33dff1ab5356591f8f4032117c86ea7eb6ce50463de82589d4c9e50112c7e`이며
+동일성과 개별 ID는 `/workspace/llm-clean-resume/p1/c25-level2/reuse-proof.json`에 있다.
+Python 3.12.14·136 의존성·env 5개·고정 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를
+사용했다. 원시 명령·exit·로그·manifest를 보존하고 전후 대조 후 문서를 먼저 갱신한다.
+소스-커밋 동일성과 staged diff를 확인해 로컬 커밋한다.
+
+**이번 소단계는 전체 LLM/Hub를 실행하지 않았다.** 같은 값의 순수 표시 계약과 None-only
+countdown으로 영향이 한정되고 허가·예산·저장 트랜잭션은 변경하지 않았다. 후속 관련 선언
+정리와 묶은 Level 3에서 전체 회귀·정적·R3·문서·실제 환경 검사 후 Push한다.
+P1 최종 S1–S5와 A–F는 미완료, 원격 CI는 미확인이다. 보호 브랜치·Draft PR #1과 기존
+실제 환경 검증 한계는 유지한다.
+
 ## P1-c24: Hub 상태 표시·입력·렌더링 참조 — 로컬 Level 2
 
 Hub의 메시지 표시·실패 진단 연결·입력 이력·재개 버튼·제안·렌더링 cache와 준비/중단

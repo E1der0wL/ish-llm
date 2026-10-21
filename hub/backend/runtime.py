@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from ..model import ChatMessage, HubSnapshot, SubmissionResult
+from ..model import ChatMessage, HubSnapshot, SubmissionResult, SessionSummary
 from ..locales import Language
 from ..config.profile import UserProfile
 from .execution.engine_selection import requires_model, selected_engines
@@ -527,7 +527,7 @@ class HubRuntime:
         from .interactions.questions import waiting_status
         waiting = {item.session_id for item in self.builtin_tools.questions.pending.values()
                    if item.project_id == snapshot.project_id} if self.builtin_tools else set()
-        sessions = tuple(replace(item, status="waiting_input") if item.id in waiting else item for item in snapshot.sessions)
+        sessions = tuple(replace(item, status=SessionSummary.WAITING_INPUT) if item.id in waiting else item for item in snapshot.sessions)
         return replace(snapshot, notifications=self.notifications.items(), questions=questions, sessions=sessions,
                        status=waiting_status(questions) if questions else snapshot.status)
 

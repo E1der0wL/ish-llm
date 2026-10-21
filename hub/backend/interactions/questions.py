@@ -5,10 +5,13 @@ from dataclasses import dataclass
 
 from llm.core.interactions import InteractionOption, InteractionRequest
 from llm.services.runtime.tools import current_tool_call
+from ...model import SessionSummary
 
 
 def waiting_status(questions):
-    return "waiting_approval" if any(item["request"].get("kind") == InteractionRequest.KIND_APPROVAL for item in questions) else "waiting_input"
+    return (SessionSummary.WAITING_APPROVAL
+            if any(item["request"].get("kind") == InteractionRequest.KIND_APPROVAL for item in questions)
+            else SessionSummary.WAITING_INPUT)
 
 
 @dataclass(slots=True)

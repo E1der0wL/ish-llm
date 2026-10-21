@@ -1,6 +1,6 @@
 """Immediate stop feedback, including preparation before a Run is observed."""
 
-from llm.core.models import RunStatus
+from llm.core.models import RunStatus, MessageStatus
 from dataclasses import dataclass, replace
 
 from ...model import ChatMessage, HubSnapshot
@@ -65,10 +65,10 @@ class InterruptFeedback:
             return messages
         for index in range(len(messages) - 1, -1, -1):
             message = messages[index]
-            if message.role == "assistant" and message.status in ("streaming", "committed", "preparing", "paused"):
+            if message.role == "assistant" and message.status in (MessageStatus.STREAMING, MessageStatus.COMMITTED, ChatMessage.PREPARING, MessageStatus.PAUSED):
                 # Change only the header. Preserve text, reasoning, durable
                 # status and the Markdown body cache; hide retry information.
                 return (*messages[:index], replace(message, phase="interrupting", activity=""), *messages[index + 1:])
         # A Run can be active before its assistant message is published.
-        return (*messages, ChatMessage("assistant", "", status="preparing", phase="interrupting",
+        return (*messages, ChatMessage("assistant", "", status=ChatMessage.PREPARING, phase="interrupting",
                                       id=f"interrupting:{request.run_id or key[1]}"))
