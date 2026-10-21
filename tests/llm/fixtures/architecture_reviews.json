@@ -3609,6 +3609,361 @@
         "tests.hub.test_x11_clipboard.NativeClipboardTests.test_targets_legacy_encoding_and_owner_cleanup",
         "tests.hub.test_x11_clipboard.NativeClipboardTests.test_helperless_unicode_roundtrip_and_ownership_replacement"
       ]
+    },
+    {
+      "id": "a8c0182870203f42e2fea475a43e2d595da13f0237208705e5be7cfe9c26c8ff:1",
+      "rule": "S3",
+      "owner": "error_code",
+      "reason": "These are external HTTP authentication/authorization response codes, not a configurable risk or retry limit. Classification preserves the current stable-code/exception-chain priority; permanent failures still make one physical call.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/providers/README.md",
+        "docs/llm/retry.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
+        "llm/providers/README.md": "53fa384b33bec48d4c402a812e9e5747000ec036cb8df11ab250e8bac83c7aac",
+        "llm/providers/litellm.py": "cc766af4ddb5c0efa1de28039dc960f62c20f3f53c4eea491fed8ff1536aca52",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "llm/providers/retry.py": "7aca51217eecc24b814656e7b64998bd6cf5468d8a9f560f2d8938a3a2e7e4f1",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_provider_runtime.py": "914262a249f32281ede42d19ccffd041ac3c8fa3a0008e4dccb9ef19f637989b"
+      },
+      "tests": [
+        "tests.llm.test_provider_runtime.RuntimeTests.test_permanent_errors_never_retry"
+      ]
+    },
+    {
+      "id": "6a20abe5d3036db8ff94e6bf25f5070d0c9e7ccd7224a3d705353384ca3b2832:1",
+      "rule": "S3",
+      "owner": "error_code",
+      "reason": "429 is the HTTP rate-limit response code interpreted at the owning Provider boundary. It identifies an observed transport failure and does not itself select attempt counts or authorize another call.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/providers/README.md",
+        "docs/llm/retry.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
+        "llm/providers/README.md": "53fa384b33bec48d4c402a812e9e5747000ec036cb8df11ab250e8bac83c7aac",
+        "llm/providers/litellm.py": "cc766af4ddb5c0efa1de28039dc960f62c20f3f53c4eea491fed8ff1536aca52",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "llm/providers/retry.py": "7aca51217eecc24b814656e7b64998bd6cf5468d8a9f560f2d8938a3a2e7e4f1",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_provider_diagnostics.py": "a9fb309fff00c6d9e1480b26318e7bff76cfc079b15deff9820f06737cd33716",
+        "tests/llm/test_provider_runtime.py": "914262a249f32281ede42d19ccffd041ac3c8fa3a0008e4dccb9ef19f637989b"
+      },
+      "tests": [
+        "tests.llm.test_provider_runtime.RuntimeTests.test_transient_bounded_retry_and_attempt_observation",
+        "tests.llm.test_provider_diagnostics.RetryTests.test_server_wait_cannot_exceed_explicit_cap_or_deadline"
+      ]
+    },
+    {
+      "id": "d05aeaecb68cdf857e0b4c97708029448c4932a515586ae692d8d5918a263441:1",
+      "rule": "S3",
+      "owner": "error_code",
+      "reason": "408 is the HTTP request-timeout response code, not a duration or execution allowance. Existing timeout classification and explicit deadline/cancellation behavior remain unchanged. The referenced tests cover timeout/deadline behavior; no exhaustive HTTP-408-specific assertion is claimed.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/providers/README.md",
+        "docs/llm/retry.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
+        "llm/providers/README.md": "53fa384b33bec48d4c402a812e9e5747000ec036cb8df11ab250e8bac83c7aac",
+        "llm/providers/litellm.py": "cc766af4ddb5c0efa1de28039dc960f62c20f3f53c4eea491fed8ff1536aca52",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "llm/providers/retry.py": "7aca51217eecc24b814656e7b64998bd6cf5468d8a9f560f2d8938a3a2e7e4f1",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_provider_runtime.py": "914262a249f32281ede42d19ccffd041ac3c8fa3a0008e4dccb9ef19f637989b"
+      },
+      "tests": [
+        "tests.llm.test_provider_runtime.RuntimeTests.test_deadline_and_cancellation_during_call_and_backoff"
+      ]
+    },
+    {
+      "id": "eb0db22f573117b850bc7030044409bbfcfd4d95ce0d82a3cad82389de083746:1",
+      "rule": "S3",
+      "owner": "error_code",
+      "reason": "500 is the external/synthetic HTTP status used by the explicitly documented LiteLLM malformed-response exception. Only the exact synthetic message precedes generic 5xx classification; this is not a duplicated application policy value.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/providers/README.md",
+        "docs/llm/retry.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
+        "llm/providers/README.md": "53fa384b33bec48d4c402a812e9e5747000ec036cb8df11ab250e8bac83c7aac",
+        "llm/providers/litellm.py": "cc766af4ddb5c0efa1de28039dc960f62c20f3f53c4eea491fed8ff1536aca52",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "llm/providers/retry.py": "7aca51217eecc24b814656e7b64998bd6cf5468d8a9f560f2d8938a3a2e7e4f1",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_provider_runtime.py": "914262a249f32281ede42d19ccffd041ac3c8fa3a0008e4dccb9ef19f637989b"
+      },
+      "tests": [
+        "tests.llm.test_provider_runtime.RuntimeTests.test_only_specific_synthetic_500_precedes_generic_5xx",
+        "tests.llm.test_provider_runtime.RuntimeTests.test_500_without_explicit_retry_calls_once"
+      ]
+    },
+    {
+      "id": "5e960643b9fdd701fb4f07b38f86091062e59182c38b96e00d2a4033f67406a9:1",
+      "rule": "S3",
+      "owner": "error_code",
+      "reason": "The half-open range is the external HTTP server-error class. The actual integer-status guard and cause priority remain unchanged; it does not invent a retry count or widen the configured execution budget.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/providers/README.md",
+        "docs/llm/retry.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
+        "llm/providers/README.md": "53fa384b33bec48d4c402a812e9e5747000ec036cb8df11ab250e8bac83c7aac",
+        "llm/providers/litellm.py": "cc766af4ddb5c0efa1de28039dc960f62c20f3f53c4eea491fed8ff1536aca52",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "llm/providers/retry.py": "7aca51217eecc24b814656e7b64998bd6cf5468d8a9f560f2d8938a3a2e7e4f1",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_provider_runtime.py": "914262a249f32281ede42d19ccffd041ac3c8fa3a0008e4dccb9ef19f637989b"
+      },
+      "tests": [
+        "tests.llm.test_provider_runtime.RuntimeTests.test_all_integer_5xx_and_wrapped_causes_are_unavailable",
+        "tests.llm.test_provider_runtime.RuntimeTests.test_500_without_explicit_retry_calls_once"
+      ]
+    },
+    {
+      "id": "81382a1ff06a3a39ec348f44d029bc564fe80ec670a4f9dcb1623572eea89c04:1",
+      "rule": "S3",
+      "owner": "error_code",
+      "reason": "The half-open range is the external HTTP client-error class after more specific statuses are classified. It is not a hidden execution bound; permanent request failures still do not retry.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/providers/README.md",
+        "docs/llm/retry.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
+        "llm/providers/README.md": "53fa384b33bec48d4c402a812e9e5747000ec036cb8df11ab250e8bac83c7aac",
+        "llm/providers/litellm.py": "cc766af4ddb5c0efa1de28039dc960f62c20f3f53c4eea491fed8ff1536aca52",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "llm/providers/retry.py": "7aca51217eecc24b814656e7b64998bd6cf5468d8a9f560f2d8938a3a2e7e4f1",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_provider_diagnostics.py": "a9fb309fff00c6d9e1480b26318e7bff76cfc079b15deff9820f06737cd33716",
+        "tests/llm/test_provider_runtime.py": "914262a249f32281ede42d19ccffd041ac3c8fa3a0008e4dccb9ef19f637989b"
+      },
+      "tests": [
+        "tests.llm.test_provider_runtime.RuntimeTests.test_permanent_errors_never_retry",
+        "tests.llm.test_provider_diagnostics.RuntimeTests.test_400_after_successful_tool_stops_without_tool_or_model_retry"
+      ]
+    },
+    {
+      "id": "b6c9da2bf016c2dc6483af51683b8eca68d7c630cdc147040a0c4e3e0c868b8a:1",
+      "rule": "S3",
+      "owner": "diagnostic_failure",
+      "reason": "400 is an external HTTP bad-request code. The diagnostic owner interprets only the first HTTP cause and its own request hints, without creating retry or execution authority. Exact-int validation, cause locality and opt-in details remain unchanged.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/providers/README.md",
+        "docs/llm/shared-contracts.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/shared-contracts.md": "3936c5ad645623c175dd7e8cd6703e60c418b9c227e7d8922c86227ec60f6089",
+        "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
+        "llm/core/diagnostics.py": "f138640ed2f8288a3295dfd413febaa69220a0cdb870f4e86507cb73266c12f0",
+        "llm/errors.py": "c231a2edf1fce9ff124d8b327362d8f4e3fc0203ca2c9632a066bf519d81b787",
+        "llm/providers/README.md": "53fa384b33bec48d4c402a812e9e5747000ec036cb8df11ab250e8bac83c7aac",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_backend_contracts.py": "356330065783182d9fbcdf9a8dff7b34d74a92216406b691bab70318ea2d0c6c",
+        "tests/llm/test_provider_diagnostics.py": "a9fb309fff00c6d9e1480b26318e7bff76cfc079b15deff9820f06737cd33716"
+      },
+      "tests": [
+        "tests.llm.test_backend_contracts.DiagnosticContracts.test_provider_cause_local_hints_and_opt_in_details",
+        "tests.llm.test_provider_diagnostics.DiagnosticTests.test_real_sdk_error_body_and_request_id_are_preserved_without_full_response"
+      ]
+    },
+    {
+      "id": "829f8985a063619d3ed0f1e4993e34fca67e6758dd84a4c02969a5939a64d3f1:1",
+      "rule": "S3",
+      "owner": "Observability.record",
+      "reason": "Zero is the neutral initial maximum of observed finite nonnegative durations. It is updated by max with actual samples and neither caps execution time nor configures a runtime fallback. Existing observer aggregation/privacy and physical-attempt tests are retained; no exhaustive latency-arithmetic test is claimed.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/services/infrastructure/OBSERVABILITY.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/providers/observations.py": "f0fec35635f9d3b001f79e090ce1c79c8b9cfeddac403e418abe61bf03675e08",
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_observability.py": "1f183cdcf5510502152d3027a738329249e4fbc94b70b02a484842be14b8792c"
+      },
+      "tests": [
+        "tests.llm.test_observability.ObservabilityTests.test_provider_common_boundary_counts_retries_and_streaming",
+        "tests.llm.test_observability.ObservabilityTests.test_bounded_thread_safe_aggregate_and_allowlisted_facts"
+      ]
+    },
+    {
+      "id": "427ee24a191123b21381804ef3c6679b89c38816132e9db48d36d1d5b8c1f638:1",
+      "rule": "S3",
+      "owner": "OutputBuffer",
+      "reason": "OutputBuffer is the actual owning declaration of the technical max_delay flush default. Project overrides and validation consume this same dataclass field. It schedules bounded output flushing rather than deleting output, setting model quotas or acknowledging a Tool barrier early; default batch_size one remains immediate.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/project-authority.md",
+        "docs/llm/engine-output.md",
+        "docs/llm/runtime-reliability.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/engine-output.md": "5251e7b587113d30e03f246b016ee69ec696881e6c7889f8d016269cd4666fdb",
+        "docs/llm/project-authority.md": "e1b62858c824112048faf8389f3d7a77ad8a10dbae9cbb41db796c387629137d",
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "llm/services/composition.py": "a9280bc49834ade4e6fc694fcf11a4cae9214964965bdd914f4de16b00aa9623",
+        "llm/services/runtime/output.py": "49b3f1f55ac572f4ffbacc8abae54e647a23797fef15f2fb01ece87b241589b6",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_operational_storage.py": "37bd54dc01509c02cd677cafd666ce16c55d135a12ea73aaac3b3855c6921707"
+      },
+      "tests": [
+        "tests.llm.test_operational_storage.BatchTests.test_barrier_is_persisted_before_effect_and_generator_keeps_same_task",
+        "tests.llm.test_operational_storage.BatchTests.test_timer_and_cancel_flush_accepted_output",
+        "tests.llm.test_operational_storage.BatchTests.test_storage_failure_does_not_ack_tool_barrier"
+      ]
+    },
+    {
+      "id": "667f9adb4e6bb68cee1e2952f086a65bd1198b16aa65d3080d55d912aeba63c5:1",
+      "rule": "S3",
+      "owner": "OutputBuffer",
+      "reason": "OutputBuffer is the actual owning declaration of the technical max_chars flush default. Project overrides and validation consume this same dataclass field. It schedules bounded output flushing rather than deleting output, setting model quotas or acknowledging a Tool barrier early; default batch_size one remains immediate.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/project-authority.md",
+        "docs/llm/engine-output.md",
+        "docs/llm/runtime-reliability.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/engine-output.md": "5251e7b587113d30e03f246b016ee69ec696881e6c7889f8d016269cd4666fdb",
+        "docs/llm/project-authority.md": "e1b62858c824112048faf8389f3d7a77ad8a10dbae9cbb41db796c387629137d",
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "llm/services/composition.py": "a9280bc49834ade4e6fc694fcf11a4cae9214964965bdd914f4de16b00aa9623",
+        "llm/services/runtime/output.py": "49b3f1f55ac572f4ffbacc8abae54e647a23797fef15f2fb01ece87b241589b6",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_operational_storage.py": "37bd54dc01509c02cd677cafd666ce16c55d135a12ea73aaac3b3855c6921707"
+      },
+      "tests": [
+        "tests.llm.test_operational_storage.BatchTests.test_barrier_is_persisted_before_effect_and_generator_keeps_same_task",
+        "tests.llm.test_operational_storage.BatchTests.test_timer_and_cancel_flush_accepted_output",
+        "tests.llm.test_operational_storage.BatchTests.test_storage_failure_does_not_ack_tool_barrier"
+      ]
+    },
+    {
+      "id": "f45d3337da3e90c5b5ab3fdb8e3a52ff27e0d3de31436e87b4909cea680b0af4:1",
+      "rule": "S3",
+      "owner": "Selection.read",
+      "reason": "Zero is the native X11 PropertyNewValue event code used by the incremental receive handshake. It is an external protocol discriminator, not a domain lifecycle or permission value.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/widget/_x11_selection.py": "03eb346f639c05c9dd27a4377b9090cbc872b247fa3269cb04a6228c3057264a",
+        "hub/widget/clipboard.py": "dd35a9c53a2fa46e127f641748fbcbb1b4133f0a13a6d6cb1386107b4ecd4934",
+        "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
+        "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_large_incremental_transfers_both_directions",
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_targets_legacy_encoding_and_owner_cleanup"
+      ]
+    },
+    {
+      "id": "457333253eb4e4f1079c61358b7a3bfe0f4ec6b9e20e03adc2065e0a9d0f8c9c:1",
+      "rule": "S3",
+      "owner": "Selection.convert",
+      "reason": "Zero is the Xlib text-conversion success return code. Nonzero/lossy conversion remains rejected rather than being reported as a successful clipboard transfer; no domain status is invented.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/widget/_x11_selection.py": "03eb346f639c05c9dd27a4377b9090cbc872b247fa3269cb04a6228c3057264a",
+        "hub/widget/clipboard.py": "dd35a9c53a2fa46e127f641748fbcbb1b4133f0a13a6d6cb1386107b4ecd4934",
+        "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
+        "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_large_incremental_transfers_both_directions",
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_targets_legacy_encoding_and_owner_cleanup"
+      ]
+    },
+    {
+      "id": "151cce9e7187392b595d612225de787f0b7e78489256e762154ca736c3ea7ce4:1",
+      "rule": "S3",
+      "owner": "Selection.copy",
+      "reason": "One is the native X11 PropertyDelete event code that advances an incremental send after the receiver consumes a property. It is an external handshake discriminator, not a retry or execution allowance.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/widget/_x11_selection.py": "03eb346f639c05c9dd27a4377b9090cbc872b247fa3269cb04a6228c3057264a",
+        "hub/widget/clipboard.py": "dd35a9c53a2fa46e127f641748fbcbb1b4133f0a13a6d6cb1386107b4ecd4934",
+        "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
+        "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_large_incremental_transfers_both_directions",
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_targets_legacy_encoding_and_owner_cleanup"
+      ]
     }
   ]
 }

@@ -15,6 +15,58 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c34: 외부 프로토콜·기술적 집계/flush 선언 판정 — 로컬 Level 2
+
+HTTP 오류 분류 6건·최초 HTTP 400 원인의 진단 1건, X11 Property/변환 반환 코드 3건,
+관찰 latency 최대값의 중립 초기값 1건, OutputBuffer의 실제 소유 flush 기본값 2건을
+개별 판정했다. 원시 finding은 유지하고 owner·현행 계약·소스 hash·구체적 시험 ID를 연결했다.
+제품·시험·검사 규칙은 변경하지 않았다. 상태 코드가 retry 횟수/권한을 만들지 않고, 최초
+원인의 진단은 다른 cause에서 의미를 빌리지 않는다. X11의 손실 변환은 계속 거부한다.
+출력 flush는 삭제/절단·모델 예산이 아니며 승인/효과 barrier를 먼저 ACK하지 않는다.
+
+새 Provider/진단/observer·감사 검사기 및 Hub 복구 소비자 검증을 실행했다. 동일한 c33
+소스의 공통 안전성 9개 모듈과 출력 저장/실제 효과 barrier 1개 모듈, Hub X11/재시도 관찰
+결과를 선택 재사용했다. 실제 서버 5xx 전체·좁은 synthetic 500 예외·인증/요청 오류의 호출
+횟수·기한/취소·원인별 진단·실제 X11 전송·출력 저장 실패 시 효과 0을 포함한다.
+HTTP 408 개별 입력과 latency 산술의 모든 조합을 직접 시험했다고 주장하지 않는다.
+해당 발생은 외부 프로토콜 값/수학적 중립값으로 판정했으며 기존 시험 범위와 동작은 유지했다.
+새 review 13건의 정확한 시험 ID 17개는 아래 실행 집합에서 모두 통과했다.
+
+| 검증 증거 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 새 LLM 선택 실행 | 117/117/117 | 0/0/0 | 24.934초 | 0 |
+| 새 HUB 선택 실행 | 19/19/19 | 0/0/0 | 42.068초 | 0 |
+| c33 LLM 선택 재사용 | 현재 ID 141개 모두 통과 | 0/0/0 | c33 원실행 | 원실행 0 |
+| c33 Hub 선택 재사용 | 현재 ID 14개 모두 통과 | 0/0/0 | c33 원실행 | 원실행 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각 실행에서 0이다.
+현재 전체 discovery LLM 2101·Hub 577개와 각 선택 모듈의 전체 ID를 대조했다. 새 실행과
+재사용 ID가 겹치지 않는다. 이전 감사 시험은 Fixture가 바뀌어 재사용하지 않았다.
+제품/시험704개와 입력863개·136 의존성·host·바이너리·env5개가 같고 결과 문서와 감사
+Fixture 두 개만 다르다. 서로 다른 HEAD를 소스 hash로 연결했다. 원실행 명령·exit·HEAD·
+report hash·ID는 `/workspace/llm-clean-resume/p1/c34-level2/reuse-proof.json`으로 추적하며 새 전체 실행으로 합산하지 않았다.
+
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 211·reviewed 118·미해결 93
+(S3 75·S6 18), new/stale/review 오류·필수 S1/S2/S4/S5 미해결 0/exit 0,
+문서 검사 오류 0/exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c34-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_provider_runtime tests.llm.test_provider_diagnostics tests.llm.test_backend_contracts tests.llm.test_observability
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c34-level2/hub.json --modules tests.hub.test_provider_recovery
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c34-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c34-level2/aux/docs.json
+```
+
+실행 HEAD `5922a0a0c06d5aada264c8a7974814337e27df10`에 개별 감사 Fixture 변경을 더했다. 소스 hash
+`7bfbec137be837e1dbe09c7fe8be4db3df1feb68005c90da0d5b5d8eae637489`, 입력/환경 hash `6562ad4d430e9e9d55d0921d81fa3cf270e4b277e7d92b9e6ceb42779a3a48d7`가 새 실행 전후 같다.
+Python 3.12.14·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다. 원시 기록은 위 경로에 보존하고
+문서를 먼저 갱신한 뒤 소스-커밋 동일성·staged diff를 확인해 로컬 커밋한다.
+**이번 소단계는 전체 회귀를 새로 실행하지 않았다.** 제품 변경 없는 정확한 감사 판정이며
+새 관련 검증과 동일성이 증명된 핵심 안전성 결과를 모두 포함했다. 후속 관련 변경과 묶은
+Level 3에서 전체 회귀 후 Push한다. P1 최종 S1–S5와 A–F는 미완료, 원격 CI는 미확인이다.
+main·backend·Draft PR #1은 변경하지 않는다.
+
 ## P1-c33: 기존 상태·버전 선언의 남은 소비 참조 — 로컬 Level 2
 
 7개 파일에서 기존 MemoryComponent·GoalStatus·WorkflowGraph·OperationStatus·

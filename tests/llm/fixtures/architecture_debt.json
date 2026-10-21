@@ -284,62 +284,6 @@
       "detail": "inline domain argument: timeout"
     },
     {
-      "id": "a8c0182870203f42e2fea475a43e2d595da13f0237208705e5be7cfe9c26c8ff:1",
-      "rule": "S3",
-      "file": "llm/providers/requests.py",
-      "symbol": "error_code",
-      "line": 58,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "6a20abe5d3036db8ff94e6bf25f5070d0c9e7ccd7224a3d705353384ca3b2832:1",
-      "rule": "S3",
-      "file": "llm/providers/requests.py",
-      "symbol": "error_code",
-      "line": 60,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "d05aeaecb68cdf857e0b4c97708029448c4932a515586ae692d8d5918a263441:1",
-      "rule": "S3",
-      "file": "llm/providers/requests.py",
-      "symbol": "error_code",
-      "line": 62,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "eb0db22f573117b850bc7030044409bbfcfd4d95ce0d82a3cad82389de083746:1",
-      "rule": "S3",
-      "file": "llm/providers/requests.py",
-      "symbol": "error_code",
-      "line": 67,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "5e960643b9fdd701fb4f07b38f86091062e59182c38b96e00d2a4033f67406a9:1",
-      "rule": "S3",
-      "file": "llm/providers/requests.py",
-      "symbol": "error_code",
-      "line": 69,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "81382a1ff06a3a39ec348f44d029bc564fe80ec670a4f9dcb1623572eea89c04:1",
-      "rule": "S3",
-      "file": "llm/providers/requests.py",
-      "symbol": "error_code",
-      "line": 71,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "b6c9da2bf016c2dc6483af51683b8eca68d7c630cdc147040a0c4e3e0c868b8a:1",
-      "rule": "S3",
-      "file": "llm/providers/runtime.py",
-      "symbol": "diagnostic_failure",
-      "line": 350,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "0fcf21e5357d232cc17ba435c76ecc9d033b5bd3d36b38059f0cbd0f6dcacd33:1",
       "rule": "S3",
       "file": "llm/services/history/context.py",
@@ -396,36 +340,12 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "829f8985a063619d3ed0f1e4993e34fca67e6758dd84a4c02969a5939a64d3f1:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/observability.py",
-      "symbol": "Observability.record",
-      "line": 73,
-      "detail": "inline domain field: max_seconds"
-    },
-    {
       "id": "701f562628ac9b2b4921f907a7b5b12adf0fdb1434eb667629d44d6ed6789c6d:1",
       "rule": "S3",
       "file": "llm/services/runtime/interactions.py",
       "symbol": "InteractionRepository.decisions",
       "line": 167,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "427ee24a191123b21381804ef3c6679b89c38816132e9db48d36d1d5b8c1f638:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/output.py",
-      "symbol": "OutputBuffer",
-      "line": 115,
-      "detail": "inline domain assignment: max_delay"
-    },
-    {
-      "id": "667f9adb4e6bb68cee1e2952f086a65bd1198b16aa65d3080d55d912aeba63c5:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/output.py",
-      "symbol": "OutputBuffer",
-      "line": 116,
-      "detail": "inline domain assignment: max_chars"
     },
     {
       "id": "2f0e8c682952490af8d144163f15cb323362e0c915a0af7389efe5cf69adb110:1",
@@ -762,30 +682,6 @@
       "symbol": "HubView.show",
       "line": 383,
       "detail": "inline domain assignment: timeoutlen"
-    },
-    {
-      "id": "f45d3337da3e90c5b5ab3fdb8e3a52ff27e0d3de31436e87b4909cea680b0af4:1",
-      "rule": "S3",
-      "file": "hub/widget/_x11_selection.py",
-      "symbol": "Selection.read",
-      "line": 156,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "457333253eb4e4f1079c61358b7a3bfe0f4ec6b9e20e03adc2065e0a9d0f8c9c:1",
-      "rule": "S3",
-      "file": "hub/widget/_x11_selection.py",
-      "symbol": "Selection.convert",
-      "line": 199,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "151cce9e7187392b595d612225de787f0b7e78489256e762154ca736c3ea7ce4:1",
-      "rule": "S3",
-      "file": "hub/widget/_x11_selection.py",
-      "symbol": "Selection.copy",
-      "line": 270,
-      "detail": "inline domain comparison"
     },
     {
       "id": "7de6ec8299d075126a4488b812c9f306a0a26aa397c9fb12fef48ce392929294:1",
