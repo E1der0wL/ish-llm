@@ -16,6 +16,8 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+후속 A의 변경과 검증은 [Provider 전환 기록](provider-refactor-verification.md)에서 이어간다.
+
 ## P1-c42 및 P1 최종 로컬 Level 3
 
 12개 제품 파일의 남은 owner 선언을 연결했다. InteractionRepository가 retry_nodes binding

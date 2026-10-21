@@ -4954,6 +4954,56 @@
       "tests": [
         "tests.hub.test_escape_navigation.EscapeNavigationTests.test_panel_stop_alt_scope_and_host_timeouts"
       ]
+    },
+    {
+      "id": "19b2e5e0cca279e814552247422ff98a2ac143a0326bdf382a20c2f708b40a6d:1",
+      "rule": "S4",
+      "owner": "_record",
+      "reason": "This is the exact-type/version rejection in the model-value reader, parameterized by the actual ModelMessage, ModelRequest or ModelResponse owner. All three declare their own integer VERSION; no imported/global version, old-format branch or inferred value is used. The same helper then requires every current dataclass field, and nested readers independently require all fields including nullable evidence. The AST local-class heuristic cannot prove this explicit helper call relation. Bool, float, text, missing, unsupported versions and missing/extra nested fields are tested without mutating source records. This review covers only these precise checks, not other version readers.",
+      "contracts": [
+        "docs/llm/model-protocol.md",
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/model-protocol.md": "32e1e34efaa11eec4f0de40a4dd133635b06e1e379d105bfc55e967a96a0ba8b",
+        "docs/llm/clean-refactor.md": "96da5764abcbc07614b0bf781daccc1a24d7b1ba3f671ba871a1614f2d50a668",
+        "docs/llm/architecture-reviews.md": "80fc62ec8c1be56ce2185bcf6744fc6fa9d9d45033d52388b2afd4dc48689daa",
+        "llm/core/model_protocol.py": "0c93f86b3881878137d7be937168c3fcb4968650e33ec271920e2cdc935d3162",
+        "tests/llm/test_model_protocol.py": "02dd53b1becade0ccd541ac526f6d0edc55370bd756693a9bb3208d0e13c3bdd",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.llm.test_model_protocol.ModelProtocolTests.test_missing_extra_or_mistyped_version_is_rejected_without_input_mutation",
+        "tests.llm.test_model_protocol.ModelProtocolTests.test_nested_optional_fields_cannot_be_recreated_by_reader_defaults",
+        "tests.llm.test_model_protocol.ModelProtocolTests.test_current_records_roundtrip_preserves_falsey_null_and_opaque",
+        "tests.llm.test_model_protocol.ModelProtocolTests.test_old_wire_messages_and_invalid_container_shapes_are_rejected"
+      ]
+    },
+    {
+      "id": "26774ebf85b85e93b35f57ab5eac7fe0e4755c3aff544cd398b2b307aa46a89b:1",
+      "rule": "S4",
+      "owner": "_record",
+      "reason": "This is the exact-type/version rejection in the model-value reader, parameterized by the actual ModelMessage, ModelRequest or ModelResponse owner. All three declare their own integer VERSION; no imported/global version, old-format branch or inferred value is used. The same helper then requires every current dataclass field, and nested readers independently require all fields including nullable evidence. The AST local-class heuristic cannot prove this explicit helper call relation. Bool, float, text, missing, unsupported versions and missing/extra nested fields are tested without mutating source records. This review covers only these precise checks, not other version readers.",
+      "contracts": [
+        "docs/llm/model-protocol.md",
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/model-protocol.md": "32e1e34efaa11eec4f0de40a4dd133635b06e1e379d105bfc55e967a96a0ba8b",
+        "docs/llm/clean-refactor.md": "96da5764abcbc07614b0bf781daccc1a24d7b1ba3f671ba871a1614f2d50a668",
+        "docs/llm/architecture-reviews.md": "80fc62ec8c1be56ce2185bcf6744fc6fa9d9d45033d52388b2afd4dc48689daa",
+        "llm/core/model_protocol.py": "0c93f86b3881878137d7be937168c3fcb4968650e33ec271920e2cdc935d3162",
+        "tests/llm/test_model_protocol.py": "02dd53b1becade0ccd541ac526f6d0edc55370bd756693a9bb3208d0e13c3bdd",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.llm.test_model_protocol.ModelProtocolTests.test_missing_extra_or_mistyped_version_is_rejected_without_input_mutation",
+        "tests.llm.test_model_protocol.ModelProtocolTests.test_nested_optional_fields_cannot_be_recreated_by_reader_defaults",
+        "tests.llm.test_model_protocol.ModelProtocolTests.test_current_records_roundtrip_preserves_falsey_null_and_opaque",
+        "tests.llm.test_model_protocol.ModelProtocolTests.test_old_wire_messages_and_invalid_container_shapes_are_rejected"
+      ]
     }
   ]
 }
