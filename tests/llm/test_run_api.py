@@ -66,7 +66,7 @@ class PublicRunTests(unittest.IsolatedAsyncioTestCase):
         data["default_engine"] = "fake"
         encoded = json.dumps(data)
         path.write_text(encoded, encoding="utf-8")
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(ValueError, "unexpected=\\['default_engine'\\]"):
             self.sessions.load(self.project, self.session.id)
         self.assertEqual(path.read_text(encoding="utf-8"), encoded)
 

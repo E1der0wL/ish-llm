@@ -113,7 +113,7 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
                 incomplete = dict(data)
                 incomplete.pop(field)
                 atomic_json(path, incomplete)
-                with self.assertRaisesRegex(ValueError, "requires components and conversation_storage"):
+                with self.assertRaisesRegex(ValueError, f"missing=\\['{field}'\\]"):
                     await app.projects.aload(project.id)
                 self.assertEqual(read_json(path), incomplete)
         atomic_json(path, data)

@@ -67,9 +67,7 @@ class Conversation(ABC):
             data = event["message"]
             if data["id"] in self._messages:
                 raise ValueError("Duplicate message ID")
-            self._messages[data["id"]] = Message(
-                **{**data, "role": MessageRole(data["role"]),
-                   "status": MessageStatus(data["status"])})
+            self._messages[data["id"]] = Message.from_record(data)
             self._counts[(data["role"], data["status"])] += 1
         else:
             message = self._messages[event["id"]]
@@ -240,44 +238,9 @@ class ConversationStore(Conversation):
             self._offset = 0
             self._clear()
 
-    def _repair_tail(self) -> None:
-        # A crash can leave an incomplete last append. Never discard a full line.
-        if not self.path.exists():
-            return
-        with self.path.open("r+b") as stream:
-            stream.seek(0, os.SEEK_END)
-            end = stream.tell()
-            if not end:
-                return
-            stream.seek(end - 1)
-            if stream.read(1) == b"\n":
-                return
-            position = end
-            while position:
-                start = max(0, position - 8192)
-                stream.seek(start)
-                block = stream.read(position - start)
-                newline = block.rfind(b"\n")
-                if newline != -1:
-                    transaction = current_transaction()
-                    if transaction is not None and transaction.owns(self.path):
-                        transaction.before_truncate(self.path, start + newline + 1)
-                    stream.truncate(start + newline + 1)
-                    break
-                position = start
-            else:
-                transaction = current_transaction()
-                if transaction is not None and transaction.owns(self.path):
-                    transaction.before_truncate(self.path, 0)
-                stream.truncate(0)
-            stream.flush()
-            os.fsync(stream.fileno())
-
     def _append(self, event: dict) -> None:
         data = (json.dumps(event, ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
         self._enlist()
-        if self._signature is not None and self._offset < self._signature[2]:
-            self._repair_tail()
         append_bytes(self.path, data)
         # Apply the serialized snapshot only after fsync succeeds.
         self._apply(json.loads(data))
@@ -300,8 +263,6 @@ class ConversationStore(Conversation):
         data = b"".join((json.dumps(event, ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
                         for event in events)
         self._enlist()
-        if self._signature is not None and self._offset < self._signature[2]:
-            self._repair_tail()
         append_bytes(self.path, data)
         for line in data.splitlines():
             self._apply(json.loads(line))
@@ -333,7 +294,7 @@ class ConversationStore(Conversation):
                 stream.seek(self._offset)
                 for line in stream:
                     if not line.endswith(b"\n"):
-                        break
+                        raise ValueError("Incomplete conversation event; preserve the original journal")
                     self._apply(json.loads(line))
                     self._offset += len(line)
             self._signature = stamp

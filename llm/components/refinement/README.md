@@ -88,6 +88,11 @@ ToolExecutor가 proposal approval와 apply를 허용합니다. 선택적 ToolRun
 - `project/refinement/records/<id>.json`: immutable 제안, evidence 참조, before,
   target expected_version, status/history, applied_target(식별자/적용 후 버전).
 - 상태: proposed → approved → applied → rolled_back. proposed/approved에서 rejected/failed 가능.
+- 상태와 전이는 `lifecycle.py`가 선언합니다. 저장 history는 최초 proposed/source부터 끊김 없이
+  이어지고 마지막 상태와 일치해야 합니다. 시간대 없는 시각·역전된 시각·반복 전이는 거부합니다.
+  evaluations는 생성 때 명시적인 빈 배열이며 저장 필드 누락을 빈 평가로 복원하지 않습니다.
+  applied/rolled_back에는 적용 receipt가 필수이고 다른 상태에는 허용하지 않습니다.
+  fork의 parent와 bind_skills의 skill_versions도 해당 연산의 필수 증거입니다.
 - 일반 target은 기존 JSON 내용 해시 expected_version을 사용합니다. Agent도 같은 정의 지문을
   검사하고 공개 revise를 사용합니다. Memory는 공개 revision API를 그대로 사용합니다.
 - proposal 버전과 target 버전을 모두 검사합니다. stale 변경은 거부하고 자동 재병합하지 않습니다.
@@ -109,6 +114,7 @@ Memory 적용은 **새 candidate**를 만들며 before의 확정 기억은 바�
 | --- | --- |
 | __init__.py | 공개 Component/Data import |
 | component.py | 설정/레코드 schema, capability, clone/보관 참조 |
+| lifecycle.py | 제안 상태와 허용 전이의 단일 선언 |
 | data.py | 근거 검증, immutable proposal, 승인, 대상 CAS와 원자 적용/되돌리기 |
 | tools.py | 일반 Run에서 사용하는 읽기·제안·승인 대상 Tool 연결 |
 

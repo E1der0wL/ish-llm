@@ -240,17 +240,21 @@ class MemoryComponent(Component):
         unlink_file(path)
 
     def initialize(self, project):
+        root = self._checked(self.root(project))
+        if root.exists():
+            self.identity(project)
+            super().initialize(project)
+            return
         super().initialize(project)
-        path = self._checked(self.root(project) / "identity.json")
-        if not path.exists():
-            atomic_json(path, {"id": new_id()})
+        atomic_json(root / "identity.json", {"id": new_id()})
 
     def identity(self, project):
         path = self._checked(self.root(project) / "identity.json")
-        # 처리기 도입 전의 기존 기억 데이터도 그대로 둔 채, 처리기 세대 표지만 초기화한다.
-        if not path.exists():
-            atomic_json(path, {"id": new_id()})
-        return read_json(path)["id"]
+        value = read_json(path)
+        if (not isinstance(value, dict) or set(value) != {"id"}
+                or not isinstance(value["id"], str) or not re.fullmatch(r"[a-f0-9]{32}", value["id"])):
+            raise ValueError("Invalid Memory identity")
+        return value["id"]
 
     def history_references(self, project):
         runs, messages, sessions = set(), set(), set()
@@ -449,6 +453,7 @@ class MemoryComponent(Component):
         return [path.stem for path in MemoryConsolidation(self, project).pending()]
 
     def validate_backup(self, project):
+        self.identity(project)
         self.get_config(project)
         list(self._all_records(project))
         for path in self._checked(self.root(project) / "contexts").glob("*.json"):

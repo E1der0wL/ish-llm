@@ -5,6 +5,92 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-a 도메인 필수 기록·사용량·Refinement
+
+재개 시 실제 원격 `refactor/llm-clean`은 `89f3a771d4f21630c92f31827fe86868064c8554`였다.
+같은 체크아웃에서 이어가며 실제 ish 호스트 소스는
+`E1der0wL/ish@d833790959a76ac457fdeea3f21a6bea1eecfe12`를 `ish.platform`으로 연결한다.
+
+### 구현 경계
+
+- Project·Session·Run·Step·Message의 현재 직렬화 필드는 저장 Reader에서 필수다.
+  생성 기본값으로 누락 필드를 채우지 않는다. nullable 필드는 명시적인 null을 유지한다.
+  Project의 policies/parameters/data 컨테이너도 저장 시 필수다.
+- Session·Run·Step 목록은 소유 디렉터리의 필수 레코드 소실을 건너뛰지 않는다.
+  Run의 completions는 생성 때 빈 배열로 저장하고 이후 누락을 거부한다.
+  Completion은 모든 필드, 시각·토큰·예약의 타입과 범위, 중복 ID를 검사한다.
+  quota 투영도 같은 Completion Reader를 사용한다. 기존 Run 디렉터리에 run.json이
+  없으면 오래된 메모리 핸들로 저장해 되살리지 않는다.
+- Memory identity는 생성 때만 발급하고 조회·재선택·백업에서 누락을 거부한다.
+  끝 newline이 없는 Conversation journal은 읽기·append를 막고 바이트를 보존한다.
+  기존 트랜잭션이 입증하는 append rollback은 유지한다.
+- Refinement의 상태는 자체 `lifecycle.py`가 선언한다. 비어 있거나 끊어진 승인 이력,
+  마지막 이력과 다른 상태, 적용 상태와 맞지 않는 effect receipt, 누락된 평가 컨테이너,
+  fork/binding의 누락된 revision 증거를 거부한다. 대상 변경과 적용 receipt·상태·이력은
+  기존 workspace transaction에서 확정하며 proposal을 중간 상태로 저장하지 않는다.
+
+### 실패 재현과 집중 검증
+
+재개 작업 산출물은 `/workspace/llm-clean-resume/`에 보존한다. 새
+`tests.llm.test_lifecycle_integrity`는 실제 호출 수·대상 snapshot·원본 바이트를 확인한다.
+
+- 보강 전 Completion 컨테이너·run.json·session.json 소실과 Project policies 소실은
+  호출 한도 1에서 두 번째 모델 호출로 이어졌다. 승인 이력을 비운 Refinement도 대상 변경을
+  실행했다. Memory identity 재발급, Project 삭제 상태 기본값 복원, JSONL 끝줄 손실도 재현했다.
+- 첫 관련 집중 묶음은 154개 중 error 2였다. 하나는 새 회귀에서 소실 뒤 핸들의 동적
+  data 조회가 먼저 실패한 시험 구성 오류이며, 다른 하나는 기존 시험의 빈 completions
+  배열 인덱싱이다. 손상 전 snapshot 확보와 실제 usage가 관측될 때까지 기다리는 조건으로
+  수정했다. 기존 중단·사용량 assertion은 유지한다.
+- 수정 후 lifecycle integrity·configuration results·Refinement 37개가 9.830초에 통과했다.
+  정적 감사에서 새 후보는 없으며 Refinement 상태 선언 이관으로 해소된 기존 후보 3개만
+  baseline에서 제거했다. 남은 후보 577개는 승인된 예외가 아니다.
+
+### 전체 회귀와 소스 일치 — 2026-10-21
+
+| 검사 | 실제 결과 |
+|---|---|
+| 최초 전체 LLM | 1,752개 중 1,745 pass, 실패한 test ID 7개(하위 assertion failure 8, error 4), Skip 0, 496.818초, exit 1 |
+| 최초 전체 Hub | 540 pass, failure·error·Skip 0, 673.990초, exit 0 |
+| 실패 관련 집중 재검증 | 100 pass, failure·error·Skip 0, 11.039초, exit 0 |
+| 최종 전체 LLM | 1,752 pass, failure·error·Skip 0, 500.472초, exit 0 |
+| 최종 전체 Hub | 540 pass, failure·error·Skip 0, 672.442초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 미정리 후보 577개, exit 0 |
+| R3 mutation | 한도 전달 누락 시 두 번째 실제 파일 효과를 assertion이 탐지, 검사 도구 exit 0 |
+| 문서 검사 | 130개 문서, Python fence 178개, 상대 링크 931개, anchor 34개, 오류 0 |
+
+최초 전체 실패는 불명확한 JSONL 끝줄을 무시·수리하던 기대값, 필수 필드 오류 문구/타입,
+Refinement의 빈 history fixture였다. 저장 오류에는 누락·미지원 필드 이름을 제공하고,
+현재 형식의 fixture와 원본 보존 assertion으로 수정했다. 손상 허용·Skip·실제 효과 검사를
+완화하지 않았다. 전체 발견/시작 ID는 각각 1,752/540개이며 누락·중복·예상 밖 ID도 0이다.
+
+Python 3.12.14와 hash 고정된 `tests/llm/dependencies-linux.lock`, 위 ish 호스트 소스를 사용했다.
+`.venv-linux312/bin/python -m tests.llm.run_regression --suite llm|hub --output <JSON>`으로
+검증하고, 실제 Bubblewrap 검사는 일반 사용자 uid의 escalated execution에서 실행했다.
+`TERM=xterm-256color`, `LITELLM_LOCAL_MODEL_COST_MAP=True`, `LITELLM_MODE=PRODUCTION`,
+`HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb`,
+`HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip`을 사용했다. 실제 ish/X11·MCP·프로세스
+격리 시험을 포함하며 인증 모델 endpoint 시험은 아니다.
+
+최종 전체 회귀 동안 제품·테스트·예제 Python 652개의 SHA-256이 일치했다.
+정렬된 manifest 파일의 SHA-256은
+`73593a5ecf288f77e3c3ae6e517e4d421548b8d782d66b6eacd77c6b04c4a6cd`다.
+원시 로그·JSON·전후 manifest는 `/workspace/llm-clean-resume/h2-a/final/`에 있다.
+
+### H2 잔여 안전성 차단
+
+H2-a 통과는 H2 전체 완료가 아니다. 전체 회귀의 소스를 고정한 상태에서 별도 실제 효과
+시험으로 다음 두 미해결 경로를 확인했다.
+
+1. 완료된 외부 작업 원장 JSON 하나를 제거하고 재시작하면 동일 business key의 Tool이 다시
+   실행된다. 기존 Step receipt가 남아 있어도 원장이 재생성되고 파일에 효과 2회가 기록됐다.
+2. `not_applied` 원장의 `evidence`를 제거하면 다음 호출을 허용한다. handler 진입 2회,
+   새 파일 효과 1회, 손상 원본 덮어쓰기를 관찰했다.
+
+`/workspace/llm-clean-resume/operation-loss-probe.py`의 별도 시험은 2 failure, error·Skip 0,
+0.358초, exit 1이다. 기존 전체 suite 성공에 합쳐 통과로 계산하지 않는다.
+원장 필수 존재·상태별 증거를 owner가 보강하기 전 H2 완료나 P1/A–F 진행은 금지한다.
+Checkpoint 개별 기록·출력 저널·나머지 Component 존재/상태 계약, H3–H5도 남아 있다.
+
 ## H1 승인 기록
 
 ### 구현 범위

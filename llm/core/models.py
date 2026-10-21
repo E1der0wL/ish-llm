@@ -4,7 +4,7 @@ from typing import Any, Optional, TYPE_CHECKING
 from collections.abc import Iterator
 import json
 from copy import deepcopy
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
 from enum import StrEnum
 from uuid import uuid4
@@ -28,6 +28,28 @@ def new_id() -> str:
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _stored_fields(model, data):
+    """The domain's serialized fields are mandatory even when creation has defaults."""
+    declarations = [item for item in fields(model) if item.name != "paths"]
+    if not isinstance(data, dict):
+        raise ValueError(f"{model.__name__} record requires all current fields")
+    expected = {item.name for item in declarations}
+    if data.keys() != expected:
+        raise ValueError(f"{model.__name__} record requires all current fields; "
+                         f"missing={sorted(expected - data.keys())}, "
+                         f"unexpected={sorted(data.keys() - expected)}")
+    for item in declarations:
+        value = data[item.name]
+        if item.type in (str, dict, bool) and not isinstance(value, item.type):
+            raise ValueError(f"Invalid {model.__name__} {item.name}")
+        if item.type == Optional[str] and value is not None and not isinstance(value, str):
+            raise ValueError(f"Invalid {model.__name__} {item.name}")
+    for name in ("created_at", "started_at", "ended_at"):
+        if name in data and data[name] is not None:
+            if datetime.fromisoformat(data[name]).tzinfo is None:
+                raise ValueError(f"{model.__name__} {name} requires a timezone")
 
 
 # ---------------------------------------------------------------------------
@@ -258,6 +280,25 @@ class Project:
     conversation_storage: Optional[str] = None
     storage_version: int = DOMAIN_STORAGE_VERSION
 
+    @classmethod
+    def from_record(cls, data: dict, paths: ProjectPaths) -> "Project":
+        """Read the current record without applying creation defaults."""
+        _stored_fields(cls, data)
+        ProjectConfig.validate_session(data["config"], project=True)
+        if not isinstance(data["config"], dict) or data["config"].keys() != {"policies", "parameters", "data"}:
+            raise ValueError("Stored Project configuration requires policies, parameters and data")
+        if type(data["deleted"]) is not bool:
+            raise ValueError("Project deleted must be a boolean")
+        if not isinstance(data["components"], list) or any(not isinstance(name, str) for name in data["components"]):
+            raise ValueError("Invalid Project component selection")
+        if not isinstance(data["title"], str) or not isinstance(data["created_at"], str):
+            raise ValueError("Invalid Project title or creation time")
+        created = datetime.fromisoformat(data["created_at"])
+        if created.tzinfo is None:
+            raise ValueError("Project creation time requires a timezone")
+        return cls(**{**data, "paths": paths, "components": tuple(data["components"]),
+                      "config": ProjectConfig.from_dict(data["config"])})
+
     def __post_init__(self) -> None:
         self.validate_conversation_storage()
 
@@ -285,6 +326,12 @@ class Session:
     config: dict = field(default_factory=dict)
     storage_version: int = DOMAIN_STORAGE_VERSION
 
+    @classmethod
+    def from_record(cls, data, paths):
+        _stored_fields(cls, data)
+        ProjectConfig.validate_session(data["config"])
+        return cls(**{**data, "status": SessionStatus(data["status"]), "paths": paths})
+
 
 # ---------------------------------------------------------------------------
 # Message: JSONL 이벤트로 복원하는 Session 대화 상태
@@ -300,6 +347,11 @@ class Message:
     run_id: Optional[str] = None
     created_at: str = field(default_factory=now)
     metadata: dict = field(default_factory=dict)
+
+    @classmethod
+    def from_record(cls, data):
+        _stored_fields(cls, data)
+        return cls(**{**data, "role": MessageRole(data["role"]), "status": MessageStatus(data["status"])})
 
 
 # ---------------------------------------------------------------------------
@@ -324,6 +376,11 @@ class Run:
     error_code: Optional[str] = None
     storage_version: int = DOMAIN_STORAGE_VERSION
 
+    @classmethod
+    def from_record(cls, data, paths):
+        _stored_fields(cls, data)
+        return cls(**{**data, "status": RunStatus(data["status"]), "paths": paths})
+
 
 # ---------------------------------------------------------------------------
 # Step: observable execution unit inside a Run
@@ -344,6 +401,11 @@ class Step:
     error: Optional[str] = None
     metadata: dict = field(default_factory=dict)
     storage_version: int = DOMAIN_STORAGE_VERSION
+
+    @classmethod
+    def from_record(cls, data, paths):
+        _stored_fields(cls, data)
+        return cls(**{**data, "status": StepStatus(data["status"]), "paths": paths})
 
     @property
     def progress(self):

@@ -73,10 +73,26 @@ class RunRepository:
         self.result_catalog = FileCatalog(catalog_size, projection=lambda r: SimpleNamespace(
             id=r["id"], session_id=r["session_id"], status=RunStatus(r["status"]),
             started_at=r["started_at"], ended_at=r["ended_at"]))
-        self.usage_catalog = FileCatalog(catalog_size, projection=lambda r: (
-            r["session_id"], [{key: entry[key] for key in (
-                "started_at", "usage", "usage_complete", "reserved_tokens") if key in entry}
-                for entry in r.get("metadata", {}).get("completions", [])]))
+        self.usage_catalog = FileCatalog(catalog_size, projection=self._usage_record)
+
+    def _usage_record(self, data):
+        run = Run.from_record(data, None)
+        return run.session_id, [{key: entry[key] for key in (
+            "started_at", "usage", "usage_complete", "reserved_tokens")}
+            for entry in self.completion_records(run.metadata)]
+
+    @staticmethod
+    def completion_records(metadata):
+        """A missing receipt container is not evidence of zero model usage."""
+        if not isinstance(metadata, dict) or not isinstance(metadata.get("completions"), list):
+            raise ValueError("Run requires a stored completions container")
+        identifiers = set()
+        for entry in metadata["completions"]:
+            result = CompletionResult.from_record(entry)
+            if result.id in identifiers:
+                raise ValueError("Duplicate Run completion record")
+            identifiers.add(result.id)
+        return metadata["completions"]
 
     @contextmanager
     def _interaction_scope(self, session, run, resolve=None):
@@ -199,15 +215,23 @@ class RunRepository:
     def completion_history(self, session):
         """프로젝트 한도 검사에는 사용량 투영만 읽고 전체 Run 객체/조회 로그를 만들지 않는다."""
         if type(self).list is not RunRepository.list or type(self).load is not RunRepository.load:
-            return [entry for run in self.list(session) for entry in run.metadata.get("completions", [])]
+            return [entry for run in self.list(session) for entry in self.completion_records(run.metadata)]
         entries = []
-        for path in session.paths.runs.glob("*/run.json"):
+        for path in self.record_paths(session):
             self.paths(session, path.parent.name)
             owner, values = self.usage_catalog.read(path)
             if owner != session.id:
                 raise ValueError("Run ownership mismatch")
             entries.extend(deepcopy(values))
         return entries
+
+    def record_paths(self, session):
+        """Discover owned Run directories, including records missing from damaged trees."""
+        from llm.services.infrastructure.storage import reject_links
+        for directory in session.paths.runs.glob("*"):
+            reject_links(directory)
+            if directory.is_dir() and not directory.name.startswith("."):
+                yield self.paths(session, directory.name).root / "run.json"
 
     def delete_history(self, session, run_id):
         """보관 서비스가 승인한 완료 Run의 기록만 삭제한다. 재실행/상태 전이는 하지 않는다."""
@@ -229,11 +253,12 @@ class RunRepository:
     def read_backup(self, session):
         """자신이 소유하는 Run/출력/체크포인트만 읽어서 검증한다."""
         runs = []
-        for path in session.paths.runs.glob("*/run.json"):
+        for path in self.record_paths(session):
             data = read_domain_record(path)
             if child(session.paths.runs, data["id"]) != path.parent or data["session_id"] != session.id:
                 raise ValueError("Backup Run ownership mismatch")
-            run = Run(**{**data, "paths": RunPaths(path.parent), "status": RunStatus(data["status"])})
+            run = Run.from_record(data, RunPaths(path.parent))
+            self.completion_records(run.metadata)
             if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
                 raise ValueError("Backup contains an unfinished Run")
             self.output_events(run)
@@ -272,10 +297,21 @@ class RunRepository:
         return OperationRepository().verify(session, key, observation, expected_version)
 
     def save(self, run: Run) -> None:
+        path = run.paths.root / "run.json"
+        if path.exists():
+            prior = Run.from_record(read_domain_record(path), run.paths)
+            self.completion_records(prior.metadata)
+        elif run.paths.root.exists():
+            raise ValueError("Existing Run directory requires its stored record")
+        else:
+            run.metadata.setdefault("completions", [])
+        self.completion_records(run.metadata)
         if run.status not in (RunStatus.PENDING, RunStatus.RUNNING) and "completions" in run.metadata:
             run.metadata["completions"] = [asdict(CompletionResult.for_run(data, run))
                                            for data in run.metadata["completions"]]
-        atomic_domain_json(run.paths.root / "run.json", record(run))
+        data = record(run)
+        Run.from_record(data, run.paths)
+        atomic_domain_json(path, data)
         log_event(run.paths.logs, "run.saved", entity_id=run.id, status=run.status)
 
     def load(self, session: Session, run_id: str) -> Run:
@@ -284,7 +320,8 @@ class RunRepository:
         if data["id"] != run_id or data["session_id"] != session.id:
             raise ValueError("Run ownership mismatch")
         log_event(paths.logs, "run.loaded", entity_id=run_id)
-        run = Run(**{**data, "status": RunStatus(data["status"]), "paths": paths})
+        run = Run.from_record(data, paths)
+        self.completion_records(run.metadata)
         self.resume_abandoned(run)
         CheckpointRepository().deletion(run)
         return run
@@ -565,9 +602,9 @@ class RunRepository:
 
     def list(self, session: Session, *, query=None) -> list[Run]:
         if type(query) is Query:
-            return [self.load(session, identifier) for identifier in self.catalog.select(session.paths.runs.glob("*/run.json"), query)]
+            return [self.load(session, identifier) for identifier in self.catalog.select(self.record_paths(session), query)]
         return select(sorted((self.load(session, path.parent.name)
-                       for path in session.paths.runs.glob("*/run.json")),
+                       for path in self.record_paths(session)),
                       key=lambda run: (run.created_at, run.id)), query)
 
     def list_results(self, sessions, *, include_running=False, query=None) -> "list[Run]":
@@ -585,7 +622,7 @@ class RunRepository:
         owners = {session.id: session for session in sessions}
         def rows():
             for session in sessions:
-                for path in session.paths.runs.glob("*/run.json"):
+                for path in self.record_paths(session):
                     self.paths(session, path.parent.name)
                     row = self.result_catalog.read(path)
                     if row.session_id != session.id:

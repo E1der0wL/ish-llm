@@ -2,6 +2,9 @@
 
 이 문서는 문서 최신화 시점의 기록이다. 이후 host 수정·P0 검증 도구·회귀 결과는
 [P0 실행 기록](p0-verification.md)에 별도로 남긴다.
+2026-10-21 `docs/` 전체 재검토와 H2-a 문서 갱신은 아래 후속 기록 및
+[수명주기 검증](lifecycle-verification.md)을 따른다. 아래 main 기준 수치를 현재 브랜치의
+회귀 결과로 승계하지 않는다.
 
 기준은 `94229cb865374d99f20ec48c5e48269488041a4e`, 검토일은 2026-10-20이다.
 작업 브랜치는 `refactor/llm-clean`이며 기존 backend 브랜치의 제품 변경을 가져오지 않았다.
@@ -252,3 +255,26 @@ TERM=xterm-256color LITELLM_LOCAL_MODEL_COST_MAP=True LITELLM_MODE=PRODUCTION \
 후속 문서 125개의 Python fence 178개는 문법 오류가 없고 상대 파일/절 링크의 잔여 누락은 0이다.
 제품 Python 627개와 실행 자산 9개의 SHA-256, 과거 본문 보존 4개도 동일하며 `git diff --check`가 통과했다.
 검사 도구·JSON은 `/workspace/llm-docs-clarifications/`에 보존한다. 제품/테스트/CI 구현 변경은 없다.
+
+## 2026-10-21 전체 docs 재검토와 H2-a 갱신
+
+사용자의 요청에 따라 `docs/`의 91개 Markdown 전문을 읽었다. 루트 2개, Hub 26개,
+LLM 63개이며 읽기 시작 snapshot은 1,537,531 bytes다. 114개 파일/행 구간으로 나누어
+끝까지 검토하고 이후 편집 전 원본 hash가 모두 같음을 확인했다. 목록·파일별 SHA-256,
+전문 구간·읽은 구간·검토 메모는 `/workspace/llm-clean-resume/docs-review/`에 보존한다.
+과거 요구·작업·검증 기록도 읽었으나 현재 구현의 호환성·기본값·Skip·게시 권한으로 해석하지 않는다.
+
+적용 순서는 사용자 지침 → 현행 수명주기·명명·명시 설정·소유권 → A–F 기능/안전성 →
+과거 기록이다. H2-a 전체 회귀가 통과한 뒤 다음 문서를 우선 갱신했다.
+
+| 문서/계약 | 반영 내용 |
+|---|---|
+| lifecycle-verification, data-lifecycle, clean-refactor | H2-a 실제 집중/전체 결과와 소스 hash, 원장 소실의 별도 실패 2건, H2–H5/P1/A–F 미완료 구분 |
+| storage-transactions, conversation-storage | 근거 없는 Conversation 끝줄 절단 제거와 원본 보존; 입증된 transaction undo 유지 |
+| memory, Refinement README | identity 발급/조회 분리와 필수 이력·평가 컨테이너·상태/receipt 일치 |
+| project-settings | 부모의 유한한 timeout을 Session null로 해제한다는 오래된 예제를 수정; 현행 narrowing 계약과 일치 |
+
+출력 저널의 tail 무시, 일부 오래된 UI 설명, test-workspace missing-record 삭제와
+상위 참조/효과 보호는 현재 코드·별도 owner 감사와 대조할 잔여 항목이다. 문서 검토가
+모든 예제의 실행이나 이 항목들의 해결을 뜻하지 않는다. H2의 추가 원장 실패를 전체 suite
+성공으로 덮지 않으며 실제 인증 모델·전원 손실·네트워크 파일시스템은 미검증이다.

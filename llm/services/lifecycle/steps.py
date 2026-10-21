@@ -22,11 +22,11 @@ class StepRepository:
 
     def read_backup(self, run):
         steps = []
-        for path in run.paths.steps.glob("*/step.json"):
+        for path in self.record_paths(run):
             data = read_domain_record(path)
             if child(run.paths.steps, data["id"]) != path.parent or data["run_id"] != run.id:
                 raise ValueError("Backup Step ownership mismatch")
-            step = Step(**{**data, "paths": StepPaths(path.parent), "status": StepStatus(data["status"])})
+            step = Step.from_record(data, StepPaths(path.parent))
             if step.status in (StepStatus.PENDING, StepStatus.RUNNING):
                 raise ValueError("Backup contains an unfinished Step")
             steps.append(step)
@@ -36,7 +36,18 @@ class StepRepository:
         return StepPaths(child(run.paths.steps, step_id))
 
     def exists(self, run: Run, step_id: str) -> bool:
-        return (self.paths(run, step_id).root / "step.json").exists()
+        paths = self.paths(run, step_id)
+        if paths.root.exists():
+            self.load(run, step_id)
+            return True
+        return False
+
+    def record_paths(self, run):
+        from llm.services.infrastructure.storage import reject_links
+        for directory in run.paths.steps.glob("*"):
+            reject_links(directory)
+            if directory.is_dir() and not directory.name.startswith("."):
+                yield self.paths(run, directory.name).root / "step.json"
 
     def save(self, step: Step) -> None:
         atomic_domain_json(step.paths.root / "step.json", record(step))
@@ -48,13 +59,13 @@ class StepRepository:
         if data["id"] != step_id or data["run_id"] != run.id:
             raise ValueError("Step ownership mismatch")
         log_event(paths.logs, "step.loaded", entity_id=step_id)
-        return Step(**{**data, "status": StepStatus(data["status"]), "paths": paths})
+        return Step.from_record(data, paths)
 
     def list(self, run: Run, *, query=None) -> list[Step]:
         if type(query) is Query:
-            return [self.load(run, identifier) for identifier in self.catalog.select(run.paths.steps.glob("*/step.json"), query)]
+            return [self.load(run, identifier) for identifier in self.catalog.select(self.record_paths(run), query)]
         return select(sorted((self.load(run, path.parent.name)
-                       for path in run.paths.steps.glob("*/step.json")),
+                       for path in self.record_paths(run)),
                       key=lambda step: (step.created_at, step.id)), query)
 
 

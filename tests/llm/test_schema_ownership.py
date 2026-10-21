@@ -81,7 +81,9 @@ class DefinitionOwnershipTests(unittest.TestCase):
         proposal = {"target": {"component": "skills", "identifier": "review"}, "operation": "create",
                     "expected_version": None, "reason": "review", "evidence": [{"session_id": "s", "run_id": "r"}],
                     "patch": {"instructions": "review"}, "status": "proposed", "before": {},
-                    "source": {"kind": "api"}, "history": []}
+                    "source": {"kind": "api"}, "history": [{"status": "proposed",
+                    "at": "2026-10-21T00:00:00+00:00", "source": {"kind": "api"}}],
+                    "evaluations": []}
         validator = Draft202012Validator(RefinementComponent.schema)
         validator.validate(proposal)
         for key in ("foo", "status2"):

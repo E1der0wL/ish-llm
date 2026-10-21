@@ -2,9 +2,10 @@
 
 Persistable execution observations, separate from Project configuration."""
 
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import asdict, dataclass, field, fields, replace
 from copy import deepcopy
 from datetime import datetime
+import math
 from typing import Any, Optional
 
 from .contracts import Diagnostic, ResourceRef
@@ -149,8 +150,40 @@ class CompletionResult:
     reasoning_content: str = ""
 
     @classmethod
+    def from_record(cls, data):
+        if not isinstance(data, dict) or data.keys() != {item.name for item in fields(cls)}:
+            raise ValueError("Completion record requires all current fields")
+        if not isinstance(data["id"], str) or not data["id"]:
+            raise ValueError("Completion record requires an ID")
+        for key in ("step_id", "model", "response_id", "finish_reason"):
+            if data[key] is not None and not isinstance(data[key], str):
+                raise ValueError(f"Invalid Completion {key}")
+        for key in ("started_at", "ended_at"):
+            if key == "ended_at" and data[key] is None:
+                continue
+            if not isinstance(data[key], str) or datetime.fromisoformat(data[key]).utcoffset() is None:
+                raise ValueError("Completion timestamps require a timezone")
+        if type(data["usage_complete"]) is not bool or not isinstance(data["usage"], dict):
+            raise ValueError("Invalid Completion usage")
+        for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+            value = data["usage"].get(key)
+            if value is not None and (type(value) is not int or value < 0):
+                raise ValueError("Completion usage must contain nonnegative token counts")
+        if data["usage_complete"] and type(data["usage"].get("total_tokens")) is not int:
+            raise ValueError("Complete usage requires total_tokens")
+        reservation = data["reserved_tokens"]
+        if reservation is not None and (type(reservation) is not int or reservation < 0):
+            raise ValueError("Invalid Completion token reservation")
+        duration = data["duration_seconds"]
+        if duration is not None and (type(duration) not in (int, float) or not math.isfinite(duration) or duration < 0):
+            raise ValueError("Invalid Completion duration")
+        if not isinstance(data["reasoning_content"], str):
+            raise ValueError("Invalid Completion reasoning content")
+        return cls(**{**deepcopy(data), "status": RunStatus(data["status"])})
+
+    @classmethod
     def for_run(cls, data: dict, run: Run) -> "CompletionResult":
-        result = cls(**{**deepcopy(data), "status": RunStatus(data["status"])})
+        result = cls.from_record(data)
         if (run.status not in (RunStatus.PENDING, RunStatus.RUNNING)
                 and result.status in (RunStatus.PENDING, RunStatus.RUNNING)):
             result.status = run.status if run.status != RunStatus.COMPLETED else RunStatus.INTERRUPTED

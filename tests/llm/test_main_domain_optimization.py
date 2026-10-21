@@ -159,12 +159,16 @@ class ConversationBufferTests(unittest.TestCase):
             store.set_status(message.id, MessageStatus.COMPLETED)
             store.reconcile(message.id, "복구 결과", run_id="run")
             store.prune([deleted.id])
+            self.assertEqual([m.content for m in ConversationStore(path).list()], ["복구 결과"])
             with path.open("ab") as stream:
                 stream.write(b'{"type":')
+            damaged = path.read_bytes()
             reopened = ConversationStore(path)
-            self.assertEqual([m.content for m in reopened.list()], ["복구 결과"])
-            reopened.update_metadata(message.id, {"checked": True})
-            self.assertEqual(ConversationStore(path).get(message.id).content, "복구 결과")
+            with self.assertRaisesRegex(ValueError, "Incomplete conversation event"):
+                reopened.list()
+            with self.assertRaisesRegex(ValueError, "Incomplete conversation event"):
+                reopened.update_metadata(message.id, {"checked": True})
+            self.assertEqual(path.read_bytes(), damaged)
 
 
 class GraphPreparationTests(unittest.TestCase):

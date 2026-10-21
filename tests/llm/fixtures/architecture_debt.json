@@ -924,30 +924,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "34c95093406753e7953be2f2826ed29d316360be34413407347e06ca389c6021:1",
-      "rule": "S3",
-      "file": "llm/components/refinement/data.py",
-      "symbol": "RefinementData._apply_authorized",
-      "line": 149,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "7879f6c216ffc09e6bba98a8f3b8bad3df39490a120dd2134f610884d195c9a4:1",
-      "rule": "S3",
-      "file": "llm/components/refinement/data.py",
-      "symbol": "RefinementData.create",
-      "line": 169,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "7879f6c216ffc09e6bba98a8f3b8bad3df39490a120dd2134f610884d195c9a4:2",
-      "rule": "S3",
-      "file": "llm/components/refinement/data.py",
-      "symbol": "RefinementData.create",
-      "line": 173,
-      "detail": "inline domain field: status"
-    },
-    {
       "id": "2ff3001121dc6185164801b1ccc430b4617841cbaa522eb4728f094fc8f3199a:1",
       "rule": "S3",
       "file": "llm/components/refinement/data.py",

@@ -1,8 +1,11 @@
 """제안은 실행 기록의 참조 데이터다. 자동 모델 호출이나 Run 수명은 소유하지 않는다."""
 
+from datetime import datetime
+
 from llm.components.definitions import DefinitionComponent
 from llm.core.schema import object_schema, implementation_schema, field, open_schema, metadata_schema
 from .data import RefinementData
+from .lifecycle import RefinementStatus, TRANSITIONS
 
 
 IDENTIFIER = field("string", pattern="^[A-Za-z0-9_-]{1,64}$")
@@ -42,13 +45,41 @@ class RefinementComponent(DefinitionComponent):
         "reason": field("string", minLength=1),
         "evidence": {"type": "array", "minItems": 1, "items": EVIDENCE},
         "patch": open_schema("Refinement target EDITABLE and selected target validator", category="implementation", minProperties=1),
-        "status": field("string", enum=["proposed", "approved", "rejected", "applied", "rolled_back", "failed"]),
+        "status": field("string", enum=list(RefinementStatus)),
         "before": open_schema("selected target record snapshot", category="implementation"),
-        "metadata": metadata_schema(), "source": SOURCE, "history": {"type": "array", "items": HISTORY},
+        "metadata": metadata_schema(), "source": SOURCE, "history": {"type": "array", "items": HISTORY, "minItems": 1},
         "evaluations": {"type": "array", "items": STORED_EVALUATION},
-        "applied_target": object_schema({"identifier": IDENTIFIER, "version": field("string")}, required=["identifier", "version"]),
+        "applied_target": object_schema({"identifier": IDENTIFIER, "version": field("string", pattern="^[a-f0-9]{64}$")}, required=["identifier", "version"]),
         "skill_versions": object_schema(additionalProperties=field("string", pattern="^[a-f0-9]{64}$")),
-    }, required=["target", "operation", "expected_version", "reason", "evidence", "patch", "status", "before", "source", "history"])
+    }, required=["target", "operation", "expected_version", "reason", "evidence", "patch", "status", "before", "source", "history", "evaluations"])
+
+    def validate_record(self, identifier, data):
+        super().validate_record(identifier, data)
+        history = data["history"]
+        if history[0]["status"] != RefinementStatus.PROPOSED or history[0]["source"] != data["source"]:
+            raise ValueError("Refinement history must preserve its proposal origin")
+        previous_status, previous_at = None, None
+        for entry in history:
+            status = entry["status"]
+            if status not in TRANSITIONS or (previous_status is not None and status not in TRANSITIONS[previous_status]):
+                raise ValueError("Invalid Refinement history transition")
+            at = datetime.fromisoformat(entry["at"])
+            if at.tzinfo is None or (previous_at is not None and at < previous_at):
+                raise ValueError("Invalid Refinement history timestamp")
+            previous_status, previous_at = status, at
+        if previous_status != data["status"]:
+            raise ValueError("Refinement status contradicts its history")
+        if ("applied_target" in data) != (data["status"] in {RefinementStatus.APPLIED, RefinementStatus.ROLLED_BACK}):
+            raise ValueError("Refinement effect receipt contradicts its status")
+        if ("skill_versions" in data) != (data["operation"] == "bind_skills"):
+            raise ValueError("Refinement binding requires its original Skill revisions")
+        if data["operation"] == "bind_skills" and set(data["skill_versions"]) != set(data["patch"].get("skills", [])):
+            raise ValueError("Refinement binding revisions contradict its requested Skills")
+        if ("parent" in data) != (data["operation"] == "fork"):
+            raise ValueError("Refinement fork requires its original parent revision")
+        creating = data["operation"] in {"create", "fork"}
+        if creating != (data["expected_version"] is None):
+            raise ValueError("Refinement target revision contradicts its operation")
 
     def describe_config(self):
         return implementation_schema(config=object_schema(additionalProperties=False),

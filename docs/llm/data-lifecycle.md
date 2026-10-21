@@ -5,6 +5,10 @@
 초기화를 재현했다. 아래 미해결 항목을 먼저 보강하고 검증한 뒤 P1과 A–F를 이어간다.
 이후 H1의 세 회귀 계약군은 보강·검증했다. 전체 영속 자료에 대한 H2–H5 완료를 뜻하지 않으며
 현재 구현 범위·실패·통과·미검증 항목은 [단계별 검증 기록](lifecycle-verification.md)을 따른다.
+2026-10-21 H2-a의 도메인 필수 필드·Completion quota·Memory identity·Conversation 끝줄·
+Refinement 이력은 집중/전체 회귀를 통과했다. 외부 작업 원장 파일/무효과 증거 소실 뒤의
+실제 추가 효과 2개 회귀는 별도로 실패했으며 H2 전체는 미완료다. 이 차단 항목을 해결하기
+전 P1/A–F로 넘어가지 않는다.
 기준 작업 트리는 `refactor/llm-clean`, HEAD `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 보존 중인 P1-c 변경이다. main이나 이전 backend 브랜치의 검증 결과를 승계하지 않는다.
 

@@ -16,12 +16,13 @@ project = await backend.projects.acreate(
     "작업 공간", config=config, components=["vision"], conversation_storage="file",
 )
 session = await project.sessions.acreate("대화", config={
-    "parameters": {"engines": {"loop": {'policy': {'request_timeout': None}}}},
+    "parameters": {"engines": {"loop": {'policy': {'request_timeout': 60}}}},
 })
 request = await session.run.submit("안녕하세요", engine="loop")
 ```
 
-숫자와 모델은 예제의 명시적 선택이다. Session의 null은 Project의 300초 제한을 해제한다.
+숫자와 모델은 예제의 명시적 선택이다. Session은 Project의 300초 제한을 60초로 좁힌다.
+부모의 유한한 제한을 child의 null로 해제하거나 더 큰 값으로 늘리면 거부한다.
 Session에서 생략한 모델은 실행 시 Project 설정을 상속한다. 생성 시 복사하지 않는다.
 Project의 최상위 completion/engines/component_configurations/session_defaults/default_engine은
 지원하지 않으며 자동 변환도 하지 않는다. 기존 파일은 오류가 나도 그대로 보존한다.

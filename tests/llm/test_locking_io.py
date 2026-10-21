@@ -111,9 +111,16 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual(self.store.get(self.message.id).content, "")
         with self.path.open("ab") as stream:
             stream.write(b'{"incomplete":')
+        damaged = self.path.read_bytes()
+        for reader in (self.store, ConversationStore(self.path)):
+            with self.assertRaisesRegex(ValueError, "Incomplete conversation event"):
+                reader.get(self.message.id)
+            with self.assertRaisesRegex(ValueError, "Incomplete conversation event"):
+                reader.delta(self.message.id, "must not repair")
+            self.assertEqual(self.path.read_bytes(), damaged)
+        # An explicit external replacement invalidates the failed projection too.
+        self.path.write_bytes(original)
         self.assertEqual(self.store.get(self.message.id).content, "")
-        self.store.delta(self.message.id, "repaired")
-        self.assertEqual(ConversationStore(self.path).get(self.message.id).content, "repaired")
         self.path.write_bytes(b"")
         self.assertEqual(self.store.list(), [])
 

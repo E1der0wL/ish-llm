@@ -144,7 +144,7 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
             while True:
                 # 실행 중인 파일 교체와 조회를 같은 workspace 잠금으로 직렬화한다.
                 runs = await storage.run(self.manager.repository.list, self.session)
-                if runs and runs[0].metadata.get("completions", [{}])[0].get("usage"):
+                if runs and any(entry["usage"] for entry in runs[0].metadata["completions"]):
                     return
                 await asyncio.sleep(0.005)
         await asyncio.wait_for(observed(), 10)

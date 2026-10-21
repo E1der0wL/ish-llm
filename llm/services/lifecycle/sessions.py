@@ -50,7 +50,7 @@ class SessionRepository:
             raise ValueError("Session ownership mismatch")
         ProjectConfig.validate_session(data["config"])
         log_event(paths.logs, "session.loaded", entity_id=session_id)
-        return Session(**{**data, "status": SessionStatus(data["status"]), "paths": paths})
+        return Session.from_record(data, paths)
 
     def read_backup(self, project):
         """Session 파일/대화만 검증한다. 실행 복구나 로그 쓰기를 하지 않는다."""
@@ -62,7 +62,7 @@ class SessionRepository:
             data = read_domain_record(folder / "session.json")
             if child(project.paths.sessions, data["id"]) != folder or data["project_id"] != project.id:
                 raise ValueError("Backup Session ownership mismatch")
-            session = Session(**{**data, "paths": SessionPaths(folder), "status": SessionStatus(data["status"])})
+            session = Session.from_record(data, SessionPaths(folder))
             ProjectConfig.validate_session(session.config)
             if session.status == SessionStatus.RUNNING or session.current_run_id is not None:
                 raise ValueError("Backup contains an active Session")
@@ -102,8 +102,12 @@ class SessionRepository:
 
     @queryable
     def list(self, project: Project, *, include_deleted: bool = False) -> list[Session]:
-        sessions = [self.load(project, path.parent.name)
-                 for path in project.paths.sessions.glob("*/session.json")]
+        from llm.services.infrastructure.storage import reject_links
+        sessions = []
+        for directory in project.paths.sessions.iterdir():
+            reject_links(directory)
+            if directory.is_dir() and not directory.name.startswith("."):
+                sessions.append(self.load(project, directory.name))
         return sorted((session for session in sessions
                        if include_deleted or session.status != SessionStatus.DELETED),
                       key=lambda session: (session.created_at, session.id))

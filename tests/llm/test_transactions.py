@@ -215,20 +215,20 @@ with owner.scope():
                 self.assertEqual(store.get(message.id).status, MessageStatus.QUEUED)
                 self.assertIsNone(store.get(message.id).run_id)
 
-    def test_partial_tail_repair_can_be_rolled_back(self):
+    def test_unproven_partial_tail_is_preserved_across_transaction_restart(self):
         store = ConversationStore(self.root / "conversation.jsonl")
         store.create(MessageRole.USER, "old", MessageStatus.QUEUED)
         with store.path.open("ab") as stream:
             stream.write(b'{"partial":')
         original = store.path.read_bytes()
-        with self.assertRaises(OSError):
+        with self.assertRaisesRegex(ValueError, "Incomplete conversation"):
             with self.owner.scope():
                 store.create(MessageRole.USER, "new", MessageStatus.QUEUED)
-                raise OSError("abort")
         self.assertEqual(store.path.read_bytes(), original)
-        with self.owner.scope():
-            store.create(MessageRole.USER, "new", MessageStatus.QUEUED)
-        self.assertEqual([m.content for m in store.list()], ["old", "new"])
+        with self.assertRaisesRegex(ValueError, "Incomplete conversation"):
+            with self.owner.scope():
+                ConversationStore(store.path).create(MessageRole.USER, "new", MessageStatus.QUEUED)
+        self.assertEqual(store.path.read_bytes(), original)
 
     def test_malicious_recovery_path_fails_closed(self):
         journal = self.root / ".transactions" / ("a" * 32)

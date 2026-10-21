@@ -224,7 +224,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
         data.pop("components")
         atomic_json(path, data)
         ToolPaths.for_project(self.project).root.mkdir()
-        with self.assertRaisesRegex(ValueError, "requires components and conversation_storage"):
+        with self.assertRaisesRegex(ValueError, "missing=\\['components'\\]"):
             self.projects.load(self.project.id)
         self.assertEqual(read_json(path), data)
         self.assertFalse((ToolPaths.for_project(self.project).root / "component.json").exists())

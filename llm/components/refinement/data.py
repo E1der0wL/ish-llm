@@ -1,6 +1,7 @@
 """제안·승인·CAS 적용·CAS 되돌리기. 대상 공개 API와 동일 workspace transaction을 사용한다."""
 
 from copy import deepcopy
+from .lifecycle import RefinementStatus
 from datetime import datetime, timezone
 
 from llm.services.lifecycle.components import ComponentData
@@ -99,7 +100,7 @@ class RefinementData(ComponentData):
             if target["component"] != "agents" or set(patch) != {"skills"}:
                 raise ValueError("Binding may change only Agent resources.skills")
             versions = self._bindings(patch["skills"])
-            if proposal.get("skill_versions", versions) != versions:
+            if proposal["skill_versions"] != versions:
                 raise ValueError("Bound Skill changed; create a new binding proposal")
             result = deepcopy(current)
             result.setdefault("resources", {})["skills"] = deepcopy(patch["skills"])
@@ -125,9 +126,11 @@ class RefinementData(ComponentData):
             self.registry.get(target["component"]).validate_record(target["identifier"], result)
         return result
 
-    def _commit(self, identifier, value, status, *, source):
+    def _commit(self, identifier, value, status, *, source, applied_target=None):
         prior = revision_token(value)
         value = deepcopy(value)
+        if applied_target is not None:
+            value["applied_target"] = deepcopy(applied_target)
         value["status"] = status
         value["history"].append({"status": status, "at": datetime.now(timezone.utc).isoformat(), "source": deepcopy(source)})
         # 내부 전이만 공통 CRUD 저장을 사용한다. 외부 save/update로 승인 상태를 꾸밀 수 없다.
@@ -145,8 +148,8 @@ class RefinementData(ComponentData):
     @workspace_locked
     def _apply_authorized(self, identifier, *, expected_version, source):
         """ToolExecutor의 승인 이후에만 Tool adapter가 사용한다. 별도 승인 엔진은 없다."""
-        value = self._proposal(identifier, expected_version, {"proposed", "approved"})
-        if value["status"] == "proposed":
+        value = self._proposal(identifier, expected_version, {RefinementStatus.PROPOSED, RefinementStatus.APPROVED})
+        if value["status"] == RefinementStatus.PROPOSED:
             expected_version = self.approve(identifier, expected_version=expected_version, source=source)["version"]
         return self.apply(identifier, expected_version=expected_version, source=source)
 
@@ -166,11 +169,11 @@ class RefinementData(ComponentData):
             raise ValueError("Create requires a resource proposal, not lifecycle fields")
         _, before, _ = self._baseline(data)
         self._validate_evidence(data.get("evidence"))
-        value = {**deepcopy(data), "before": before, "status": "proposed", "source": self._source(source), "history": []}
+        value = {**deepcopy(data), "before": before, "status": RefinementStatus.PROPOSED, "source": self._source(source), "history": [], "evaluations": []}
         if value["operation"] == "bind_skills":
             value["skill_versions"] = self._bindings(value["patch"].get("skills"))
         self._replacement(value, before)
-        value["history"].append({"status": "proposed", "at": datetime.now(timezone.utc).isoformat(), "source": value["source"]})
+        value["history"].append({"status": RefinementStatus.PROPOSED, "at": datetime.now(timezone.utc).isoformat(), "source": value["source"]})
         return super().create(value, identifier=identifier)
 
     def save(self, *args, **kwargs):
@@ -195,7 +198,7 @@ class RefinementData(ComponentData):
     @workspace_locked
     def record_evaluation(self, identifier, evaluation, *, expected_version, source=None):
         """신뢰한 평가자가 결과를 기록한다. 평가 기준/모델/합격 판정은 호출자가 소유한다."""
-        value = self._proposal(identifier, expected_version, {"proposed"})
+        value = self._proposal(identifier, expected_version, {RefinementStatus.PROPOSED})
         validation = self.validate(identifier)
         from .component import EVALUATION
         from jsonschema import Draft202012Validator
@@ -206,34 +209,34 @@ class RefinementData(ComponentData):
         if evaluation.get("evidence"):
             self._validate_evidence(evaluation["evidence"])
         updated = deepcopy(value)
-        updated.setdefault("evaluations", []).append({**deepcopy(evaluation), "source": self._source(source),
+        updated["evaluations"].append({**deepcopy(evaluation), "source": self._source(source),
                                                      "at": datetime.now(timezone.utc).isoformat()})
         ComponentData.save(self, identifier, updated, expected_version=expected_version)
         return self.snapshot(identifier)
 
     @workspace_locked
     def approve(self, identifier, *, expected_version, source=None):
-        value = self._proposal(identifier, expected_version, {"proposed"})
+        value = self._proposal(identifier, expected_version, {RefinementStatus.PROPOSED})
         self.validate(identifier)
         self._require_evaluation(value)
-        return self._commit(identifier, value, "approved", source=self._source(source))
+        return self._commit(identifier, value, RefinementStatus.APPROVED, source=self._source(source))
 
     @workspace_locked
     def reject(self, identifier, *, expected_version, source=None):
-        value = self._proposal(identifier, expected_version, {"proposed", "approved"})
-        return self._commit(identifier, value, "rejected", source=self._source(source))
+        value = self._proposal(identifier, expected_version, {RefinementStatus.PROPOSED, RefinementStatus.APPROVED})
+        return self._commit(identifier, value, RefinementStatus.REJECTED, source=self._source(source))
 
     @workspace_locked
     def fail(self, identifier, *, expected_version, reason, source=None):
         """UI/검증자가 적용 불가능한 제안을 명시적으로 종료한다. 대상 변경은 없다."""
-        value = self._proposal(identifier, expected_version, {"proposed", "approved"})
+        value = self._proposal(identifier, expected_version, {RefinementStatus.PROPOSED, RefinementStatus.APPROVED})
         if not isinstance(reason, str) or not reason.strip():
             raise ValueError("Failed proposal requires a reason")
-        return self._commit(identifier, value, "failed", source={**self._source(source), "reason": reason})
+        return self._commit(identifier, value, RefinementStatus.FAILED, source={**self._source(source), "reason": reason})
 
     @workspace_locked
     def apply(self, identifier, *, expected_version, source=None):
-        value = self._proposal(identifier, expected_version, {"approved"})
+        value = self._proposal(identifier, expected_version, {RefinementStatus.APPROVED})
         self.validate(identifier)
         self._require_evaluation(value)
         handle, current, kwargs = self._baseline(value)
@@ -261,15 +264,11 @@ class RefinementData(ComponentData):
             applied_id = target_id
         after = handle.load(applied_id, **kwargs)
         receipt = {"identifier": applied_id, "version": revision_token(after)}
-        updated = deepcopy(value)
-        updated["applied_target"] = receipt
-        # _commit의 CAS는 실제 기존 proposal을 기준으로 한다.
-        ComponentData.save(self, identifier, updated, expected_version=expected_version)
-        return self._commit(identifier, updated, "applied", source=source)
+        return self._commit(identifier, value, RefinementStatus.APPLIED, source=source, applied_target=receipt)
 
     @workspace_locked
     def rollback(self, identifier, *, expected_version, source=None):
-        value = self._proposal(identifier, expected_version, {"applied"})
+        value = self._proposal(identifier, expected_version, {RefinementStatus.APPLIED})
         target = value["target"]
         handle = self.related(target["component"])
         kwargs = {"session_id": target["session_id"]} if "session_id" in target else {}
@@ -286,7 +285,7 @@ class RefinementData(ComponentData):
             handle.revise(target["identifier"], value["before"], expected_revision=applied["version"])
         else:
             handle.save(target["identifier"], value["before"], expected_version=applied["version"])
-        return self._commit(identifier, value, "rolled_back", source=source)
+        return self._commit(identifier, value, RefinementStatus.ROLLED_BACK, source=source)
 
     atarget_snapshot = async_method(target_snapshot)
     acreate = async_method(create)

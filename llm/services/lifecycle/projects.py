@@ -35,8 +35,7 @@ class ProjectRepository:
     def read_backup(self, root):
         data = read_domain_record(root / "project.json")
         child(root.parent, data["id"])
-        return Project(**{**data, "paths": ProjectPaths(root), "components": tuple(data["components"]),
-                          "config": ProjectConfig.from_dict(data["config"])})
+        return Project.from_record(data, ProjectPaths(root))
 
     @workspace_locked
     def save(self, project: Project) -> None:
@@ -54,13 +53,7 @@ class ProjectRepository:
         if data["id"] != project_id:
             raise ValueError("Project ID mismatch")
         log_event(paths.logs, "project.loaded", entity_id=project_id)
-        if "components" not in data or "conversation_storage" not in data:
-            raise ValueError("Project metadata requires components and conversation_storage")
-        selected = data["components"]
-        if not isinstance(selected, list) or any(not isinstance(name, str) for name in selected):
-            raise ValueError("Invalid Project component selection")
-        return Project(**{**data, "components": tuple(selected),
-                          "config": ProjectConfig.from_dict(data["config"]), "paths": paths})
+        return Project.from_record(data, paths)
 
     @workspace_locked
     def delete(self, project: Project) -> None:

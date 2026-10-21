@@ -62,17 +62,18 @@ class PersistenceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.delta(assistant.id, "late")
 
-    def test_incomplete_tail_survives_read_and_is_repaired_before_append(self) -> None:
+    def test_incomplete_tail_is_preserved_and_blocks_read_and_append(self) -> None:
         first = self.store.create(MessageRole.USER, "one", MessageStatus.QUEUED)
         prefix = self.store.path.read_bytes()
         with self.store.path.open("ab") as stream:
             stream.write(b'{"type":"message.create","message":"\xe2\x82')
-        self.assertEqual(self.store.list(), [first])
-        self.store.create(MessageRole.USER, "two", MessageStatus.QUEUED)
-        self.assertEqual([message.content for message in self.store.list()], ["one", "two"])
+        damaged = self.store.path.read_bytes()
+        with self.assertRaisesRegex(ValueError, "Incomplete conversation"):
+            self.store.list()
+        with self.assertRaisesRegex(ValueError, "Incomplete conversation"):
+            self.store.create(MessageRole.USER, "two", MessageStatus.QUEUED)
+        self.assertEqual(self.store.path.read_bytes(), damaged)
         self.assertTrue(self.store.path.read_bytes().startswith(prefix))
-        for line in self.store.path.read_bytes().splitlines():
-            json.loads(line)
 
     def test_corrupt_complete_event_is_not_silently_discarded(self) -> None:
         self.store.path.write_bytes(b'not-json\n')
