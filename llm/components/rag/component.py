@@ -29,7 +29,7 @@ from llm.core.schema import object_schema, metadata_schema
 from llm.providers.requests import provider_schema, error_code
 from llm.providers.embeddings import extract_single_embedding
 from llm.providers.runtime import diagnostic, diagnostic_scope
-from .ingestion import VectorCache, prepare_vectors, vector_key
+from .ingestion import VectorCache, prepare_vectors, vector_key, validate_chunk_checkpoint
 from .job_storage import JobStorage
 
 
@@ -124,6 +124,19 @@ class RAGComponent(DefinitionComponent):
     def _build(self, path, documents):
         build_index(path / "chroma", documents, batch_size=self.index_batch_size)
         build_graph(path / "graph.kuzu", documents, options=self.graph_options)
+
+    @classmethod
+    def validate_batch_checkpoint(cls, job, key, receipt):
+        name = key.removeprefix(JobStorage.BATCHES + "/").removesuffix(".json")
+        chunk = re.fullmatch(r"(?:d(0|[1-9][0-9]*)_)?embedding_(0|[1-9][0-9]*)", name)
+        if chunk is None:
+            return
+        if "document_ids" in job:
+            if chunk[1] is None or int(chunk[1]) >= len(job["document_ids"]):
+                raise ValueError("Embedding checkpoint document position changed")
+        elif chunk[1] is not None:
+            raise ValueError("Single-document Job cannot have a batch document checkpoint")
+        validate_chunk_checkpoint(receipt["value"], receipt["signature"])
 
     @classmethod
     def validate_document(cls, document):

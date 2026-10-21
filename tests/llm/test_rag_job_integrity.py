@@ -263,7 +263,8 @@ class JobLossTests(unittest.IsolatedAsyncioTestCase):
             from llm.components.rag.job_storage import JobStorage
             from llm.services.infrastructure.storage import reject_links
             owner = SimpleNamespace(name='rag', root=lambda project: Path(sys.argv[1]), _checked=reject_links,
-                                    validate_document=RAGComponent.validate_document)
+                                    validate_document=RAGComponent.validate_document,
+                                    validate_batch_checkpoint=RAGComponent.validate_batch_checkpoint)
             try:
                 JobStorage(SimpleNamespace(id=sys.argv[2]), owner).lease(sys.argv[3])
             except ValueError:

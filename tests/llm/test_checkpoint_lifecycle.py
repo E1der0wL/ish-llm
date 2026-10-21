@@ -1,6 +1,7 @@
 """Run/RAG 공통 정리 계약: CAS, 승인 증거, 참조 보호, worker 경합과 원자적 삭제."""
 
 import asyncio
+import hashlib
 import subprocess
 import sys
 import tempfile
@@ -11,7 +12,7 @@ from unittest.mock import patch, AsyncMock
 from llm.core.plans import CheckpointPlan
 from llm.core.checkpoints import ResumeAbandonment
 from llm.core.models import RunStatus
-from llm.services.infrastructure.storage import atomic_json, read_json
+from llm.services.infrastructure.storage import atomic_json, read_json, revision_token
 from llm.components.rag.jobs import RAGJobs
 from llm.llm import LargeLanguageModel
 from llm.components.workflows import WorkflowComponent
@@ -247,13 +248,21 @@ class RAGCheckpointTests(unittest.IsolatedAsyncioTestCase):
     async def enqueue(self):
         return await self.rag.aenqueue_document(title="Manual", content="Alice owns Atlas", identifier="manual")
 
+    def save_finished_chunk(self, jobs, identifier):
+        # This lifecycle fixture represents a completed chunk; its stored receipt
+        # must include the owning payload fields even when the provider is mocked.
+        identity = {"fingerprint": revision_token({"fixture": "completed-embedding"}),
+                    "text_hash": hashlib.sha256(b"Alice owns Atlas").hexdigest()}
+        jobs._batch(identifier, "embedding_0", revision_token(identity),
+                    {**identity, "vector": [1.0, 2.0]})
+
     async def test_failed_job_abandon_delete_after_reopen(self):
         job = await self.enqueue()
         jobs = RAGJobs(self.rag)
         with patch.object(self.embed, "embed", AsyncMock(side_effect=ConnectionError("offline"))):
             with self.assertRaises(ConnectionError):
                 await self.rag.arun_job(job["id"])
-        jobs._batch(job["id"], "embedding_0", "signature", {"vector": [1.0, 2.0]})
+        self.save_finished_chunk(jobs, job["id"])
         plan = await self.rag.acheckpoint_plan(job["id"])
         self.assertEqual(CheckpointPlan.from_dict(plan.to_dict()), plan)
         self.assertTrue(plan.can_abandon)
@@ -362,7 +371,7 @@ class RAGCheckpointTests(unittest.IsolatedAsyncioTestCase):
         job = await self.enqueue()
         entered, gate = asyncio.Event(), asyncio.Event()
         async def embed(*args, **kwargs):
-            jobs._batch(job["id"], "embedding_0", "signature", {"vector": [1.0, 2.0]})
+            self.save_finished_chunk(jobs, job["id"])
             entered.set()
             await gate.wait()
         with patch.object(self.embed, "embed", embed):

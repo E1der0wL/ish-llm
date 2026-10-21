@@ -9,6 +9,87 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-r 임베딩 배치 영수증 — Level 2
+
+H2-p/q 묶음 Push `e474f38974e485f40f028570f8119a5d874c06e1`에서 이어서 임베딩 영수증 owner를
+보강했다. 이전 고정 소스의 외부 재현은 빈 embedding payload와 갱신된 manifest hash를 backup이
+수락하는 1 failure, error·Skip 0, 0.390초, exit 1이었다. 원래 Assertion을
+`test_rag_embedding_checkpoint`에 편입했다.
+
+- ingestion의 `validate_chunk_checkpoint`가 현재 fingerprint/text_hash/vector의 정확한 필드,
+  hash 형식, signature 연결과 finite/nonzero 벡터를 검증한다. 생성/재사용도 같은 owner를 사용한다.
+- RAGComponent가 단건/배치 Job의 embedding key와 문서 위치를 확인하고 JobStorage의 Reader/Writer가
+  이 owner에 위임한다. claim/재개·backup/clone도 같은 저장 Reader를 사용한다. 실제 재개 때의
+  원문 hash·configuration·차원·중복 chunk 검증은 유지한다. graph와 임의 key의 의미는 이 단계의
+  완료 범위에 포함하지 않는다. 저장 형식·트랜잭션 경계·승인/예산/효과 정책은 바꾸지 않았다.
+- 새 3개 회귀는 원래 빈 payload 재현, 필수 필드/타입/vector/signature 손상 matrix와 정상 retry를
+  확인한다. 매 거부 뒤 원본 바이트와 실제 모델 효과 파일을 비교하며 정상 retry에서도 추가 효과는
+  없다. FIFO/lease 시험의 test double에는 실제 owner callback을 추가했고 기존 Assertion은 유지한다.
+
+영향 범위는 prepare_vectors→RAGComponent→RAGJobs/JobStorage와 저장·재개·백업/복제 소비자다.
+H2-p의 호출 관계/공통 안전성 목록에 Q/R 모듈만 추가했다. LLM 44개·Hub 6개 모듈 전체를 선택하고
+승인·usage deletion·operation/checkpoint/lifecycle 무결성, 기존 실제 중단·쓰기 장애와 직접
+Repository/Component/Engine/Application/Hub 통합을 포함했다.
+
+| 현재 브랜치 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중, 4 modules | 47/47 | 47 | 0/0/0 | 27.563초 | 0 |
+| 최초 Level 2 LLM | 620/620 | 618 | 0/2/0 | 249.647초 | 1 |
+| Fixture 수정 후 집중 | 23/23 | 23 | 0/0/0 | 7.888초 | 0 |
+| 최종 Level 2 LLM | 620/620 | 620 | 0/0/0 | 241.588초 | 0 |
+| 최초 Level 2 Hub, 결과 재사용 | 33/33 | 33 | 0/0/0 | 84.313초 | 0 |
+
+expected failure/unexpected success/미실행/미발견 실행/중복은 각각 0이다. 전체 발견 목록은
+LLM 1932개·Hub 540개이며 위 결과는 **선택 모듈의 부분 검증**이다.
+최초 LLM 오류 2개는 lifecycle Fixture가 임시 signature와 vector만 저장해서 새 owner에 거부된
+경우다. 취소 시험은 그 오류 때문에 진입 이벤트 전에 끝나 timeout으로 보고됐다. 제품의 검증을
+완화하지 않고 Fixture에 필수 fingerprint/원문 hash와 공유 revision_token으로 연결한 signature를
+갖췄다. 원래 취소·포기·삭제·영수증 보존 Assertion은 유지했고 23개 집중 및 LLM Level 2 전체를
+새로 실행했다. 최초 실패는 제거하거나 최종 성공에 합산하지 않았다.
+
+Hub 33개 통과는 조건부 재사용했다. 최종 소스와 최초 소스의 차이는
+tests/llm/test_checkpoint_lifecycle.py 하나뿐이고 제품·Hub 테스트/Fixture·의존성/환경은 동일하다.
+Hub 재발견 540개/선택 33개의 전체 ID와 중복 0이 이전과 같고 해당 LLM 테스트를 import하지 않는
+것도 확인했다(final-2/change-evidence.json, hub-reuse.json). 별도 실행을 하나의 전체 실행으로
+표현하지 않는다. 정적 감사와 R3의 입력·의존 경로도 바뀌지 않았으며 각 실행 소스는 최초
+final/inputs-before.json이다.
+
+정적 감사 new/stale/S1 0, 기존 debt 531, exit 0이다. R3 Mutation은 실제 두 번째 파일 효과
+Assertion으로 호출 한도 누락을 검출했다(True, detector exit 0). 문서는 검증 후 커밋보다 먼저 갱신했다.
+문서 검사는 131 documents·178 Python fences·953 relative links·34 anchors, 오류 0, exit 0이다.
+
+별도 Git 메타데이터 없는 소스 복사본의 초안 47 pass/29.763초/exit 0 및 정적 통과는 현재 검증으로
+승계하지 않았다. 실제 브랜치에 patch를 적용한 뒤 위 검증을 새로 실행했다. 집중 후 테스트
+module 설명만 현재 계약에 맞췄고 Level 2 동안 제품·테스트·Fixture·문서를 고정했다.
+전후 Python 672개 hash는 `59ffc14e01efc84489aee82bb3add3b5e6317e1f90a0a7372354335416966b1f`,
+전체 입력 831개/환경 hash는 `33d710bd21fb81eb8e1d60095b5282d52a9c2b9af6b3e0b0706cc8e1467d658c`로 각각 동일하다. 최초 실패 실행의
+Python/input hash도 각각 `20b16383c39b3e60041d8a792252f8f02b6d0ab4cb11eed4bed9788d056e4e0c`와
+`7da4c8e100a9000732d3076774e3e228283d1763830053838e954ae59c41c284`로 전후 동일했다.
+Python 3.12.14·UID 1000·136 packages·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와
+기존 bwrap/Xvfb/xclip·5개 환경 변수를 유지했다.
+
+명령·전체 argv/요약/로그·원본 실패는 `/workspace/llm-clean-resume/h2-r/`에 있다.
+
+```bash
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-r/focused-1 tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_job_integrity tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_optimization
+python /workspace/llm-clean-resume/h2-r/run-level2.py llm /workspace/llm-clean-resume/h2-r/final
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-r/focused-2 tests.llm.test_checkpoint_lifecycle tests.llm.test_rag_embedding_checkpoint
+python /workspace/llm-clean-resume/h2-r/run-level2.py llm /workspace/llm-clean-resume/h2-r/final-2
+python /workspace/llm-clean-resume/h2-r/run-level2.py hub /workspace/llm-clean-resume/h2-r/final
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-r/static-1.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-r/docs.json
+```
+
+전체 LLM/Hub는 이 소단계에서 **실행하지 않았다**. 변경이 임베딩 영수증 owner와 직접 소비자에
+한정되고 관련 통합·핵심 안전성 검증을 통과했으므로 Level 2 로컬 완료로 보존한다. 다음 관련
+소단계와 묶은 Level 3에서 전체 회귀 후 Push한다. H2-p/q 전체 결과를 변경 후 전체 통과로
+승계하지 않는다. H2 전체·원격 CI 완료가 아니며 H3–H5·P1·A–F에는 아직 진입하지 않는다.
+다음 graph owner의 외부 재현은 빈 graph payload의 backup 수락 1 failure, error·Skip 0,
+0.349초, exit 1이다. `/workspace/llm-clean-resume/h2-s/graph-payload-probe.log`와 위 고정 입력
+manifest(final/inputs-before.json)에 증거를 남겼다. 이 suite 밖의 실패를 부분 검증 통과로 표현하지 않는다. graph/임의 key,
+관측/읽기 경계와 나머지 owner 계약을 계속 보강한다.
+
 ## H2-q RAG 목록·현재 게시 증거 — H2-p/q 묶음 Level 3
 
 H2-p 로컬 커밋 `59cc889461a8468fa18f8239a33693ee8ed04968`에서 이어서 RAG 게시 연결을 보강했다.

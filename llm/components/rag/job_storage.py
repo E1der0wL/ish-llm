@@ -112,6 +112,7 @@ class JobStorage:
     def __init__(self, project, component):
         self.project_id, self.component = project.id, component.name
         self.validate_document = component.validate_document
+        self.validate_batch_checkpoint = component.validate_batch_checkpoint
         self.checked = component._checked
         root = self.checked(component.root(project))
         self.directory = self.checked(root / self.DIRECTORY)
@@ -239,7 +240,8 @@ class JobStorage:
             raise ValueError("Invalid RAG Job batch receipt")
         document_batch = re.fullmatch(r"batches/document_(0|[1-9][0-9]*)\.json", key)
         if key != self.PREPARED and document_batch is None:
-            return  # Embedding/extraction payload semantics belong to their respective owners.
+            self.validate_batch_checkpoint(job, key, value)
+            return
         if not self.ATTEMPT_FIELDS <= job.keys():
             raise ValueError("Prepared RAG document requires its Job attempt")
         payload = self._json(self.path(identifier) / "input.json")

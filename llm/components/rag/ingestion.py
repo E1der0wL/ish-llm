@@ -5,6 +5,7 @@ import hashlib
 import threading
 import time
 import sys
+import re
 from collections import OrderedDict
 
 from llm.providers.embeddings import validate_vectors
@@ -48,6 +49,20 @@ class VectorCache:
 
 def vector_key(fingerprint, text):
     return fingerprint + ":" + hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def validate_chunk_checkpoint(value, signature):
+    """Validate a stored single-chunk receipt without reconstructing missing fields."""
+    if not isinstance(value, dict) or value.keys() != {"fingerprint", "text_hash", "vector"}:
+        raise ValueError("Incomplete embedding chunk checkpoint")
+    for key in ("fingerprint", "text_hash"):
+        if not isinstance(value[key], str) or re.fullmatch(r"[a-f0-9]{64}", value[key]) is None:
+            raise ValueError("Invalid embedding chunk checkpoint identity")
+    expected = revision_token({"fingerprint": value["fingerprint"], "text_hash": value["text_hash"]})
+    if signature != expected:
+        raise ValueError("Embedding chunk checkpoint signature mismatch")
+    validate_vectors([value["vector"]])
+    return value
 
 
 async def prepare_vectors(component, document, *, previous=None, progress=None, telemetry=None):
@@ -122,6 +137,7 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
                 saved = await progress(f"embedding_{position}", signature)
                 if saved is None:
                     continue
+                validate_chunk_checkpoint(saved, signature)
                 if (not isinstance(saved, dict) or saved.get("fingerprint") != fingerprint
                         or saved.get("text_hash") != text_hash):
                     raise ValueError("Chunk checkpoint identity mismatch")
@@ -156,8 +172,8 @@ async def prepare_vectors(component, document, *, previous=None, progress=None, 
         # provider index는 읽지 않는다. 검증된 벡터와 앱이 소유한 ordinal만 연결한다.
         for position in ordinals:
             if progress and position not in saved_positions:
-                await progress(f"embedding_{position}", signature,
-                    {"fingerprint": fingerprint, "text_hash": text_hash, "vector": vector})
+                await progress(f"embedding_{position}", signature, validate_chunk_checkpoint(
+                    {"fingerprint": fingerprint, "text_hash": text_hash, "vector": vector}, signature))
             vectors[position] = list(vector)
             stats["chunks_completed"] += 1
         component.vector_cache.put(vector_key(cache_prefix, text), vector, maximum)
