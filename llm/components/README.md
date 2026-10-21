@@ -81,6 +81,8 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 - `data_class`: 필요할 때 지정하는 ComponentData 하위 클래스.
 - `references(project)`: 저장된 Component 참조를 원본 정의에서 계산합니다. 각 항목은
   `component`(대상 Component), `identifier`(대상 ID), `source`(소비자 record ID), 선택 `path`입니다.
+  개별 ID 없이 Component 전체를 소비하는 참조는 identifier=None으로 선언합니다. 예를 들어
+  Agent의 RAG 선택은 전체 corpus를 가리키며 개별 문서·세대 삭제 대상으로 해석하지 않습니다.
   registry는 소비자 내부 구조를 읽지 않고 이 공개 계약으로 삭제·선택 해제를 보호합니다.
   공통 계층은 로컬 폴더 유무로 이 조회를 생략하지 않습니다. `model_usage(project)`와
   `history_references(project)`도 같은 규칙이며, 자료가 없으면 소유자가 빈 결과를 반환합니다.
@@ -138,6 +140,8 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 저장소는 별도 owner 계약을 따릅니다. 원본 해시 검증의 대용량 비용은 아직 측정하지 않았습니다.
 
 별도 `component.json`이나 과거 형식의 자동 변환은 제공하지 않습니다. JSON 정의는 기본 복제로 복사되지만 색인·특수 파일을 가진 Component는 자신의 clone 계약을 구현해야 합니다.
+Project 복제는 선택된 Component에 clone을 위임합니다. 전체 백업/복원은 비활성 상태로 보존된
+Component도 포함하며, 복사된 정의의 참조 보호는 복제/복원 후에도 같은 owner가 제공합니다.
 
 ## 모델 처리기를 추가할 때
 

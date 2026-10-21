@@ -67,9 +67,20 @@ class AgentComponent(DefinitionComponent):
                                          allow_nan=False).encode("utf-8")).hexdigest()
 
     def references(self, project):
-        return [{"component": "skills", "identifier": skill, "source": identifier}
-                for identifier, value in self.list(project).items()
-                for skill in value.get("resources", {}).get("skills", [])]
+        """Declare the persisted resources consumed by Agent execution, including disabled Agents."""
+        result = []
+        for identifier, value in self.list(project).items():
+            resources = value.get("resources", {})
+            result.extend({"component": "skills", "identifier": skill, "source": identifier}
+                          for skill in resources.get("skills", []))
+            if "prompt" in resources:
+                result.append({"component": "prompts", "identifier": resources["prompt"], "source": identifier})
+            result.extend({"component": "mcp", "identifier": server, "source": identifier}
+                          for server in resources.get("mcp", {}))
+            if resources.get("rag"):
+                # The Agent selects the Project corpus, not an individual document or generation.
+                result.append({"component": "rag", "identifier": None, "source": identifier})
+        return result
 
     def validate_record(self, identifier: str, data: dict) -> None:
         super().validate_record(identifier, data)

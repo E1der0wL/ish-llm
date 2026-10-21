@@ -36,6 +36,11 @@ await agents.acreate({
 `completion`은 모델 옵션, `tools`는 허용 Tool 이름, `resources`는 Skill/RAG/MCP 연결입니다. `policy`로 require_tool/max_tool_calls/timeout_seconds를 명시할 수 있습니다. JSON 결과 검증에는 output_format과 output_schema를 사용합니다.
 
 `resources.prompt="saved-prompt-id"`로 선택한 Prompt를 참조할 수 있습니다.
+저장된 Agent는 resources의 Skill·Prompt·MCP 서버와 RAG corpus 참조를 선언합니다.
+참조 중인 레코드/Component의 영구 삭제는 거부하며, 선택된 Agent가 소비하는 Component의
+선택 해제도 거부합니다. Agent를 비활성화하거나 재시작해도 저장된 참조의 삭제 보호는 유지합니다.
+원본 Agent 정의에서 참조를 명시적으로 해제한 뒤 삭제해야 합니다. 참조 증거가 손상되면
+빈 참조로 취급하지 않습니다. 정상 Project 전체 종료는 내부 참조 양쪽을 함께 제거할 수 있습니다.
 모델 실행 Agent의 조합 순서는 **참조 Prompt → 명시 inline/상속 system_prompt → resources.skills 순서**입니다.
 Prompt messages의 role은 지침 안의 라벨로 보존합니다. purpose는 업무 메타데이터이며
 자동 시스템 프롬프트 대체값이 아닙니다. 설정은 Project → Session → Agent 순서이며 Host 프롬프트 override는 없습니다.

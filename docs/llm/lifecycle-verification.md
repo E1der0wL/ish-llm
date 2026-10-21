@@ -9,6 +9,90 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H5 참조 owner·백업 의미 검증 — 로컬 Level 3
+
+기준은 H4 `26912a5cb51eaad2136a1a854a78250740a8cc16`이다. H5의 기존 감사 L07/L10과
+H2/H3 owner 검증을 이어서 확인하고 필요한 변경만 적용했다. H5 로컬 상위 게이트는 완료했다.
+H1–H5 선행 보강이 끝났으며 다음은 P1 잔여다. P1 전체/A–F와 원격 CI 완료를 뜻하지 않는다.
+
+- AgentComponent.references가 실제 AgentExecution 소비와 동일하게 Skill, Prompt, MCP 서버,
+  RAG corpus를 선언한다. RAG는 Component 전체 참조(identifier=None)이고 개별 문서나 세대
+  고정이 아니다. 기존 Registry/ComponentData/ProjectManager의 잠금·참조·선택 검사에 연결했다.
+  직접 레코드와 상위 Component 삭제는 같은 증거로 거부하며 선택된 소비자의 선택 해제도 막는다.
+  비활성 Agent와 재시작 후 보존된 정의도 삭제 보호에 포함한다. 손상 owner를 빈 참조로 해석하지 않는다.
+- 최초 6개 재현은 Prompt/MCP 직접 삭제, Component 전체 삭제, 비활성 Agent의 재시작 뒤
+  직접/상위 삭제가 모두 실제 원본을 제거함을 확인했다(rejected=False/preserved=False).
+  수정 후 원래 거부·정확한 원본 바이트 보존 Assertion을 유지했다. 정상 Project 전체 종료는
+  내부 참조 양쪽을 함께 제거할 수 있고 명시 참조 해제 후 삭제도 가능하다.
+- 신규 Agent 14개는 위 6개와 선택 해제, 여러 소비자, 손상된 비활성 owner 목록, 정상 전체 종료,
+  RAG Component 보호, 선택된 정의의 clone/비활성 자료의 backup/restore, 실제 모델 입력과
+  MCP Tool 파일 효과를 검증한다. Prompt 삭제 거부 사이 두 정상 Run은 같은 원본 지침을 사용하고
+  모델 효과 파일은 정확히 두 줄이다. MCP 삭제 거부는 연결/호출을 만들지 않으며 정상 Run의
+  실제 파일 효과는 1회, 연결 열기/닫기는 각각 1회다. 기존 권한·승인·예산·Resume binding은 유지한다.
+- L07의 승인 backup owner 연결은 H1/H2에서 이미 적용돼 있다. 공통 백업에 승인 형식 해석이나
+  새 저장 형식을 추가하지 않았다. 새 5개 시험은 승인 actor/응답/제어 기록을 손상·제거하고
+  체크섬을 다시 맞춘 archive도 owner가 거부함을 확인한다. 원래 archive·손상 archive·live 원본·
+  기존 목적지의 모든 파일 바이트를 비교하며 모델 추가 호출과 실제 Tool 효과는 0이다.
+- 정상 승인 archive 복원은 효과를 실행하지 않고 이후 명시적 Resume만 실제 파일 1줄을 남긴다.
+  source와 staging에서 실제 Component validator를 각각 호출하며, 두 번째 검증에 주입한
+  실패는 원본/기존 목적지를 보존하고 staging/목적지 공개를 남기지 않는다. 기존 전체 트랜잭션의
+  실제 child 중단·복구, 복원 공개 실패 rollback과 Graph backup/Resume 검증을 함께 실행했다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `a-baseline` llm | 6/6 | 0 | 6/0/0 | 0.465초 | 1 |
+| `a-focused-1` llm | 51/51 | 51 | 0/0/0 | 17.616초 | 0 |
+| `a-focused-2` llm | 13/13 | 12 | 0/1/0 | 2.274초 | 1 |
+| `ab-focused-1` llm | 77/77 | 74 | 3/0/0 | 19.310초 | 1 |
+| `ab-focused-2` llm | 19/19 | 18 | 1/0/0 | 4.640초 | 1 |
+| `ab-focused-3` llm | 19/19 | 19 | 0/0/0 | 4.970초 | 0 |
+| `final` llm | 2065/2065 | 2065 | 0/0/0 | 735.364초 | 0 |
+| `final` hub | 559/559 | 559 | 0/0/0 | 711.477초 | 0 |
+
+`a-focused-2`의 1 error는 누락된 owner 목록의 FileNotFoundError를 새 시험 helper가 ValueError만
+기대한 전제였다. 누락 경우에 정확한 예외 타입을 지정하고 원본 보존 검사는 유지했다.
+`ab-focused-1`의 3 failure는 상대 경로를 얻는 공개 Run 조회가 snapshot 이후 운영 로그를 추가한
+새 fixture였다. 별도 진단에서 변경이 Project/Session/Run의 logs/service.log 3개뿐임을 확인했다.
+경로 조회를 snapshot 앞으로 옮겼으며 로그를 제외하지 않고 전체 바이트 Assertion을 유지했다.
+`ab-focused-2`의 1 failure는 선택된 Component만 복제하는 기존 clone에 비활성 Agent도 복사된다고
+가정한 새 fixture였다. 현재 clone 구현과 기존 계약을 확인하고 선택된 Agent의 clone, 비활성
+Agent까지 포함하는 전체 backup/restore를 각각 검증했다. 복사된 참조의 보호 Assertion은 유지한다.
+모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+
+H5-a/b는 직접/상위 삭제, 선택·비활성화, 복제·백업·복원과 실제 Agent/Hub 소비자에 연결되므로
+집중 검증 후 별도 Level 2를 반복하지 않고 H5 통합 Level 3으로 승격했다. 현재 전체 LLM/Hub를
+각각 실행했으며 H4나 다른 소스의 성공으로 대체하지 않았다. 기존 H2의 도메인/Completion·
+Conversation·Refinement, Component 기록/패키지/사용량, Memory, RAG owner 필드·존재·상태
+검증과 H3의 격리·상위 삭제·참조 검증도 현재 전체 발견 집합에서 재실행했다. 38개 데이터군의
+원감사를 새로 만들지 않고 L07/L10 및 현재 owner 경로만 갱신했다.
+
+정적 감사는 new/stale/S1 미해결 0, 기존 debt 518, exit 0이며 새 면제나
+기준 삭제는 없다. 이는 P1-c 전체 선언 정리 완료가 아니다. R3 실제 효과 mutation 검출은 True,
+outer exit 0이며 의도한 inner 실패도 보존했다. 문서 검사는 131/182/955/34, 오류 0, exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/h5/final/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/h5/final/hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h5/final/architecture.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h5/final/docs.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/h5/final/llm-environment.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/h5/final/hub-environment.json
+```
+
+실행 전후 692개 Python 소스 hash는 `1e99073e43e474d859ac7c0a14f727c162f348f19e1ff94d2e2e56b9cb7fd1e1`,
+852개 입력/환경 hash는 `30cec206f4b813561c5b17bcbebcdf950e58a282a62b87eb45f4ffd64d964723`로 각각 동일했다.
+Python 3.12.14/136개 의존성, 실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존
+TERM/LiteLLM/Xvfb/xclip 환경을 유지했다. 비루트 UID 1000의 실제 bubblewrap/X11 검사는
+두 suite 모두 errors 0/ok true/exit 0이다. 실행 중 제품·시험·Fixture·문서는 고정했다.
+실행별 명령·exit·집계·실패·원래 fixture와 진단은 `/workspace/llm-clean-resume/h5/`에 보존했다.
+
+성공 뒤 문서를 먼저 갱신하고 refactor/llm-clean에만 커밋/Push한다. main/backend/PR #1은
+변경하지 않는다. 원격 GitHub CI는 인증 조회 403 때문에 실제 결과 미확인이며 로컬 성공과
+구분한다. H1–H5 완료 후 P1부터 이전 backend 브랜치의 필요한 구현/실패 사례만 읽기 전용으로
+참고한다. 현행 계약 우선·전체 merge/무검증 cherry-pick/구형 Schema 복원 금지 원칙은 유지한다.
+실제 인증 모델·전원 손실·커널 short-write와 다른 workspace의 분산 효과 원자성은 미검증이다.
+
 ## H4-d 로그 정책과 H4 최종 통합 — 로컬 Level 3
 
 H3 원격 기준 `a915191212eb4a79eddefffdc9e9187f8d3b5ac3` 뒤 H4-a RAG 세대 선택

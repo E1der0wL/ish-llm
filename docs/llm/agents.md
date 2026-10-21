@@ -99,6 +99,12 @@ Skill.resources의 URI는 참고 정보이며 자동 접근하지 않는다. 등
 
 ## Graph-backed Agent와 behavioral Agent
 
+현재 AgentComponent의 저장 참조 owner는 resources.skills/prompt/mcp와 rag 선택을 제공합니다.
+직접 레코드 삭제와 상위 Component 제거는 같은 참조를 확인하며 비활성 Agent의 저장된 정의도
+보호에 포함합니다. RAG는 Component 전체 참조이며 특정 문서 ID나 세대를 고정하지 않습니다.
+참조 해제는 원본 Agent 정의의 명시적 수정입니다. 이 선언은 모델 호출·MCP 연결·Tool 준비나
+권한을 만들지 않으며, 기존 실행 시 정의/리소스 revision 검증도 유지합니다.
+
 이 문서의 모델·리소스·Agent policy는 behavioral Agent에 해당한다. Graph-backed Agent는
 다른 GraphEngine/handler environment로 Workflow를 보내는 이름이며 purpose/description/engine/
 engine_options 및 비실행 metadata만 받는다. completion/system_prompt/tools/resources/
