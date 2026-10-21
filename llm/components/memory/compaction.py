@@ -9,7 +9,7 @@ import re
 
 from jsonschema import Draft202012Validator, ValidationError
 
-from llm.core.models import new_id, ProjectConfig
+from llm.core.models import new_id, ProjectConfig, RunStatus
 from llm.core.schema import object_schema, field
 from llm.providers.schema import completion_schema, validate_model_params
 from llm.providers.requests import provider_schema
@@ -83,9 +83,16 @@ class Compactions:
     SCHEMA_VERSION = 1
     MANIFEST = "compactions.manifest.json"
     CONTEXTS = "compactions"
+    REFERENCE, SUMMARY = "reference", "summary"
+    MODES = (REFERENCE, SUMMARY)
     TOOLS = "tool_summaries"
-    RUNNING, PARTIAL, APPLIED = "running", "partial", "applied"
-    STATUSES = frozenset(("pending", RUNNING, PARTIAL, "failed", "interrupted", "cancelled", "stale", APPLIED))
+    PENDING, RUNNING, PARTIAL, APPLIED = "pending", "running", "partial", "applied"
+    FAILED, INTERRUPTED, CANCELLED, STALE = "failed", "interrupted", "cancelled", "stale"
+    STATUSES = frozenset((PENDING, RUNNING, PARTIAL, FAILED, INTERRUPTED, CANCELLED, STALE, APPLIED))
+    RESUMABLE_STATES = frozenset((PARTIAL, FAILED, INTERRUPTED))
+    ACTIVE_STATES = frozenset((PENDING, RUNNING))
+    UNFINISHED_STATES = ACTIVE_STATES | RESUMABLE_STATES
+    RESUME, CANCEL = "resume", "cancel"
 
     @classmethod
     def key(cls, session_id, scope, tool_id=None):
@@ -167,7 +174,7 @@ class Compactions:
                     raise ValueError("Missing compaction source evidence")
             else:
                 reference = request.get("reference")
-                if (request["id"] != tool_id or request.get("mode") not in ("reference", "summary")
+                if (request["id"] != tool_id or request.get("mode") not in cls.MODES
                         or not isinstance(request.get("tool_call_id"), str) or not request["tool_call_id"]
                         or not isinstance(reference, dict)
                         or reference.keys() != {"component", "identifier", "path", "revision"}
@@ -177,7 +184,7 @@ class Compactions:
                     raise ValueError("Invalid Tool summary reference")
                 validate_name(reference["component"])
                 validate_name(reference["identifier"])
-                if request["mode"] == "summary":
+                if request["mode"] == cls.SUMMARY:
                     options = request["options"]
                     if not isinstance(options.get("prompt"), str) or not options["prompt"]:
                         raise ValueError("Invalid Tool summary options")
@@ -194,7 +201,7 @@ class Compactions:
                 validate_checkpoint(request["checkpoint"])
             if request["status"] == cls.PARTIAL and "checkpoint" not in request:
                 raise ValueError("Partial summary requires its completed cursor")
-            if request["status"] == cls.APPLIED and not (tool_id is not None and request["mode"] == "reference"):
+            if request["status"] == cls.APPLIED and not (tool_id is not None and request["mode"] == cls.REFERENCE):
                 checkpoint = request.get("checkpoint")
                 if (not isinstance(checkpoint, dict) or checkpoint["offset"] != checkpoint["total_chars"]
                         or not isinstance(state.get("applied"), dict)
@@ -296,13 +303,13 @@ class Compactions:
         """Read once and mark orphaned work inactive; never replay it automatically."""
         state = self.read()
         request = state.get("request", {})
-        if request.get("status") == "running":
+        if request.get("status") == self.RUNNING:
             try:
                 run = self.data._sessions.run_repository.load(self.session, request["run_id"]) if self.session else None
             except FileNotFoundError:
                 run = None
-            if run is None or run.status != "running":
-                request.update(status="interrupted", error="Owning Run ended; explicitly resume summary")
+            if run is None or run.status != RunStatus.RUNNING:
+                request.update(status=self.INTERRUPTED, error="Owning Run ended; explicitly resume summary")
                 self.write(state)
         return state
 
@@ -322,7 +329,7 @@ class Compactions:
 
     def require_running(self, state, identifier, run_id):
         request = state.get("request", {})
-        if request.get("id") != identifier or request.get("status") != "running" or request.get("run_id") != run_id:
+        if request.get("id") != identifier or request.get("status") != self.RUNNING or request.get("run_id") != run_id:
             raise CompactionStopped("Summary request is no longer running")
         return request
 
@@ -352,15 +359,15 @@ class Compactions:
             raise ValueError("Compaction changed; reload before changing it")
         request = state.get("request", {})
         status = request.get("status")
-        if action == "resume":
-            if status not in ("partial", "failed", "interrupted"):
+        if action == self.RESUME:
+            if status not in self.RESUMABLE_STATES:
                 raise ValueError("Only an unfinished inactive summary can resume")
             self.check_sources(request)
-            request.update(status="pending", error=None)
-        elif action == "cancel":
-            if status not in ("pending", "running", "partial", "failed", "interrupted"):
+            request.update(status=self.PENDING, error=None)
+        elif action == self.CANCEL:
+            if status not in self.UNFINISHED_STATES:
                 raise ValueError("Summary request cannot be cancelled")
-            request.update(status="cancelled", error=None)
+            request.update(status=self.CANCELLED, error=None)
         else:
             raise ValueError("Unknown summary action")
         self.write(state)
@@ -372,7 +379,7 @@ class Compactions:
     def delete(self, expected_revision):
         state = self.recover()
         if (self.session is not None and self.session.current_run_id is not None
-                or state.get("request", {}).get("status") in ("running", "pending", "partial", "failed", "interrupted")):
+                or state.get("request", {}).get("status") in self.UNFINISHED_STATES):
             raise ValueError("Finish or cancel summary work before deleting its derived state")
         if revision_token(state) != expected_revision:
             raise ValueError("Summary request changed")
@@ -390,13 +397,13 @@ class Compactions:
             raise ValueError("Compaction context changed; reload before requesting")
         if not state.get("view"):
             raise ValueError("No observed model context; execute a Loop request first")
-        if state.get("request", {}).get("status") in ("pending", "running"):
+        if state.get("request", {}).get("status") in self.ACTIVE_STATES:
             raise ValueError("A compaction request is already pending")
         groups = state["view"]["turns"]
         selected = groups[:-options["keep_turns"]] if options["keep_turns"] else groups
         if not selected:
             raise ValueError("No complete prior turns selected for compaction")
-        state["request"] = {"id": new_id(), "status": "pending", "options": deepcopy(options),
+        state["request"] = {"id": new_id(), "status": self.PENDING, "options": deepcopy(options),
                             "sources": [item for group in selected for item in group]}
         if self.session is None:
             raise ValueError("Summary source Session was removed; cancel and release its references")
@@ -469,18 +476,19 @@ async def prepare_compaction(session, request):
     prior = state.get("applied")
     prior_applied = apply(prior)
     pending = state.get("request", {})
-    if pending.get("status") == "pending":
+    if pending.get("status") == Compactions.PENDING:
         options = pending["options"]
         sources = pending["sources"]
         if not matches(sources):
-            await data._async_call(data._finish_compaction, context.session.id, scope, pending["id"], "stale", None,
+            await data._async_call(data._finish_compaction, context.session.id, scope, pending["id"], Compactions.STALE, None,
                                    "Selected source messages changed or are unavailable")
         else:
             claim = await data._async_call(data._claim_compaction, context.session.id, scope, pending["id"], context.run.id)
             if claim:
                 before = deepcopy(request.messages)
                 config = session.config
-                session.config = {**options, "failure_mode": "continue"}
+                from .processing import MemoryProcessor
+                session.config = {**options, "failure_mode": MemoryProcessor.CONTINUE}
                 outcome = {}
                 async def compact(result, source):
                     ids = {item["id"] for item in sources}
@@ -521,18 +529,18 @@ async def prepare_compaction(session, request):
                         async for event in events:
                             yield event
                     if "candidate" in outcome:
-                        await data._async_call(data._finish_compaction, context.session.id, scope, pending["id"], "applied", outcome["candidate"], None,
+                        await data._async_call(data._finish_compaction, context.session.id, scope, pending["id"], Compactions.APPLIED, outcome["candidate"], None,
                                                run_id=context.run.id)
                     else:
                         request.messages = before
                         await data._async_call(data._finish_compaction, context.session.id, scope, pending["id"],
-                            "partial" if outcome.get("partial") else "failed", None,
+                            Compactions.PARTIAL if outcome.get("partial") else Compactions.FAILED, None,
                             "Incomplete compaction; original context retained", run_id=context.run.id)
                 except CompactionStopped:
                     request.messages = before
                 except BaseException:
                     request.messages = before
-                    await data._async_call(data._finish_compaction, context.session.id, scope, pending["id"], "interrupted", None, "Compaction interrupted; explicitly resume", run_id=context.run.id)
+                    await data._async_call(data._finish_compaction, context.session.id, scope, pending["id"], Compactions.INTERRUPTED, None, "Compaction interrupted; explicitly resume", run_id=context.run.id)
                     raise
                 finally:
                     session.config = config

@@ -100,102 +100,6 @@
       "detail": "verify exact version type and declaration reference"
     },
     {
-      "id": "7d1803ad157c3675a5150b56818b5f21e3192edd7d55f4eba13bf09799d6991d:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.recover",
-      "line": 109,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "36b2d8a523cbc5441bf1a8412e60e5ae8c42147800e37196ceb28b772b548c03:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.recover",
-      "line": 114,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "773972c94a4edf3fdb468d4f3594a1ed9bd56745d50b42da7ad9400b0585d2fb:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.recover",
-      "line": 115,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "46b69ae050a7aae0196c744db96eeb8fe4aa75189abf8c68c704a85264be6711:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.require_running",
-      "line": 135,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "5f366681ab34f88cdaaa3495b1e0bab94e27459561ea1ac3f6ad69ecd9379247:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.change",
-      "line": 166,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "65152edd9f8fcb7fa8b636b0e235b8e4cd452997162cd15062ed89ef4a56ea3c:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.change",
-      "line": 169,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "0bcc43de2dd5eb39c7dd88d4d675e7eba7d93ca6f8cff545781f7d672205269a:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.change",
-      "line": 171,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "40e7ff95bda322bb23d14d84139e6deb65b6f1b4c9a9f65d12a481004f192dbe:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.change",
-      "line": 173,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "dbb2c84c6a1a5e55b2786ff0c133972908d8499d4aa8124052abf0c811963108:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.delete",
-      "line": 185,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "8e636123330880be0025333bd5e5fbbdaeaf5ae2b665b8d4d99b54902652fcab:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.request",
-      "line": 204,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "7b02f740304d2c54981621b8a63b426310e65eab3e37c42341b16e8c8a3e7316:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "Compactions.request",
-      "line": 210,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "2f5e31ada379ed63b5191f55ead61f421f840871939c30057449ec1c84366000:1",
-      "rule": "S3",
-      "file": "llm/components/memory/compaction.py",
-      "symbol": "prepare_compaction",
-      "line": 283,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "afe379e31e5cd0d6e4c933b4ac3d999206186219aacebf20c00c490bf50eadd3:1",
       "rule": "S3",
       "file": "llm/components/memory/component.py",
@@ -212,124 +116,12 @@
       "detail": "inline domain argument: policy"
     },
     {
-      "id": "495743543eb8ad51a65cf3db5bd73e60663e1e33158649f90c78b63f8c1465d6:1",
-      "rule": "S3",
-      "file": "llm/components/memory/component.py",
-      "symbol": "MemoryComponent.history_references",
-      "line": 278,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "bcc304347218dba37edfe99cbd09adb67ea933b48d9ad348c93ce49f4d01b066:1",
-      "rule": "S3",
-      "file": "llm/components/memory/component.py",
-      "symbol": "MemoryComponent.search",
-      "line": 417,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "3b5313c1cc17819346399b0bff8b0e22a969805a8884da162f865cfe9a76080a:1",
-      "rule": "S3",
-      "file": "llm/components/memory/data.py",
-      "symbol": "MemoryData._claim_compaction",
-      "line": 122,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "ff86e694a1b0108249cde2d6730909cc7a2c767028dee7233c9f14fa23e2a02b:1",
-      "rule": "S3",
-      "file": "llm/components/memory/data.py",
-      "symbol": "MemoryData._claim_compaction",
-      "line": 127,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "ccf84156ff2131ee8b79501ae5d22e9954c73c8124c67bd666d207ed8fafdd85:1",
-      "rule": "S3",
-      "file": "llm/components/memory/data.py",
-      "symbol": "MemoryData._claim_compaction",
-      "line": 130,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "bac4ad79cfc21ff9571ec16f9ec536422493296723cb901ed124b6a0fe46c3f4:1",
-      "rule": "S3",
-      "file": "llm/components/memory/data.py",
-      "symbol": "MemoryData._finish_compaction",
-      "line": 144,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "269d12d45196b7a18431107f3852fe241b8733043b5151549bdd2c7930789899:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "resolve_processing_config",
-      "line": 50,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "cb907dd6d8908ee82c7a2dcb0c1eda5944cc6b913ad85081b39fe9043988a25f:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "resolve_processing_config",
-      "line": 52,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "19c7da0901c9bfafde4d7eb160dd305c084ec8a6bcab33a862e6403f6de876fa:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "resolve_processing_config",
-      "line": 55,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "819888c60c41b7e9394eb4096a70c52eacc9b7fe42c79129b047a62feb9db8dc:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "resolve_processing_config",
-      "line": 57,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "3eb19a9599c63e8977e5f5a25cedda96e32bae2cb8b5adc46d91a5b2539fb9aa:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "resolve_processing_config",
-      "line": 57,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "761188dc663b1d6266ca799dfaf91146f09f0da44c34717c113655e7b7650114:1",
       "rule": "S2",
       "file": "llm/components/memory/processing.py",
       "symbol": "resolve_processing_config",
       "line": 67,
       "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "5a1a7a6c4640c679fd70459999556878cd2d0a1d861b5b34fdc6de717afebde7:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "resolve_processing_config",
-      "line": 92,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "04e042bdcde090279f7e20e07d5f1061f5a3b4c1bd33b886cae5e4f00c2893b3:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._summary_model",
-      "line": 153,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "83d1bc0ce2af955934625e9f723ac0aba682bfe785326925a34e52f005541c0c:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._summary_metadata",
-      "line": 169,
-      "detail": "inline domain comparison"
     },
     {
       "id": "ebb41ecb42dea50b70f6d05720fc25c4693d739a3fba0a460dacdd46143274cd:1",
@@ -356,76 +148,12 @@
       "detail": "SDK-shaped field lookup outside Provider package"
     },
     {
-      "id": "16f77ec40fa6676146449b2a3882029e186310ddc1e7b38e661b41381ea49239:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._step",
-      "line": 286,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "fbfd5a09ec37a22f33ab2499cecc6cb2590900a93e79f0981deb8bf1e7c16de5:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._step",
-      "line": 291,
-      "detail": "inline domain field: error_code"
-    },
-    {
-      "id": "40978e668a1264cbe94bbeba43bceb56b7d6af719f5daba04632eac65ff63f3f:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._step",
-      "line": 295,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "a1146f0f1e8a4a2838e39fe491f92414e1c7681de3ba17e4d85c572bdf294764:1",
       "rule": "S6",
       "file": "llm/components/memory/processing.py",
       "symbol": "MemorySession._model",
       "line": 311,
       "detail": "SDK-shaped field lookup outside Provider package"
-    },
-    {
-      "id": "d8105fc905c774eac156f5f47cbb7eb9e46c2509722a886b17d8636b046c9ebc:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._history",
-      "line": 330,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "a609d42b3ebab3de8f938e052c964d6cccb83e8c1858fdf62f2079bde4151ca1:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._summarize.payload",
-      "line": 380,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "aab92935a3607fa67093766da03b2eea717ed492b6cc451ed01d672cb80ea45e:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._recall",
-      "line": 446,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "4d5d6501d0ccfa83ccf3c6451155f94a225e15dc7b6db7f9a454795926a33881:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._extract",
-      "line": 535,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "c3c3a08898b2f0b5bc0030cd5352516a87ad50b76bf16d7af81560e5aee6c391:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession._extract",
-      "line": 572,
-      "detail": "inline domain field: status"
     },
     {
       "id": "cd9398587c6cdbc3812fcf79727127c35af60fae38420fdead4b9df264e560cb:1",
@@ -458,14 +186,6 @@
       "symbol": "prepare_tool_results",
       "line": 22,
       "detail": "SDK-shaped field lookup outside Provider package"
-    },
-    {
-      "id": "8f8926288f2edfc43fb2965b980e3e24f4bc695f265f06d583383d058cc73a5b:1",
-      "rule": "S3",
-      "file": "llm/components/memory/tool_results.py",
-      "symbol": "prepare_tool_results",
-      "line": 41,
-      "detail": "inline domain comparison"
     },
     {
       "id": "29fd5a46b8e05c419b29c6b6b765320f514d33a322fbe6cb330cf3ae9386b7ba:1",

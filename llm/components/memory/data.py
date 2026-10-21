@@ -119,15 +119,15 @@ class MemoryData(ComponentData):
         storage = Compactions(self, session_id, scope, tool_id=tool_id)
         state = storage.read()
         request = state.get("request", {})
-        if request.get("id") != identifier or request.get("status") != "pending":
+        if request.get("id") != identifier or request.get("status") != Compactions.PENDING:
             return False
         try:
             storage.check_sources(request)
         except ValueError:
-            request.update(status="stale", error="Summary source changed")
+            request.update(status=Compactions.STALE, error="Summary source changed")
             storage.write(state)
             return False
-        request.update(status="running", run_id=run_id)
+        request.update(status=Compactions.RUNNING, run_id=run_id)
         storage.write(state)
         return True
 
@@ -141,7 +141,7 @@ class MemoryData(ComponentData):
                 from .compaction import CompactionStopped
                 raise CompactionStopped("Summary request was replaced")
             return
-        if state["request"]["status"] == "cancelled":
+        if state["request"]["status"] == Compactions.CANCELLED:
             if applied is not None:
                 from .compaction import CompactionStopped
                 raise CompactionStopped("Summary cancelled before publication")
@@ -204,9 +204,9 @@ class MemoryData(ComponentData):
             raise ValueError("Source file already exists without a summary request")
         snapshot = files.write_file(destination["identifier"], path, text, expected_revision=snapshot["version"])
         reference = {**destination, "path": path, "revision": revision_token(snapshot["data"]["files"][path])}
-        state = {"request": {"id": identifier, "status": "applied" if mode == "reference" else "pending",
+        state = {"request": {"id": identifier, "status": Compactions.APPLIED if mode == Compactions.REFERENCE else Compactions.PENDING,
             "mode": mode, "options": deepcopy(options), "reference": reference, "tool_call_id": call_id}}
-        if mode == "reference":
+        if mode == Compactions.REFERENCE:
             state["applied"] = {}
         storage.write(state)  # Source + reference share the workspace transaction.
         return deepcopy(state)

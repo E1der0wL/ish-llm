@@ -1,7 +1,5 @@
 """기억의 현재 값·출처·수정 이력을 한 JSON 파일로 원자적으로 저장한다."""
 
-from llm.providers.schema import completion_schema
-
 from copy import deepcopy
 from datetime import datetime, timezone
 import re
@@ -16,6 +14,7 @@ from jsonschema import Draft202012Validator
 from llm.errors import CodedError
 from .data import MemoryData
 from .summary_storage import SummaryStorage
+from .processing import MemoryProcessor
 from llm.services.infrastructure.storage import atomic_json, read_json
 
 
@@ -38,6 +37,9 @@ class MemoryComponent(Component):
     CONFIRMED = "confirmed"
     STATUSES = (CANDIDATE, CONFIRMED)
     ALL = "all"
+    PROJECT_SCOPE, SESSION_SCOPE = "project", "session"
+    SCOPES = (PROJECT_SCOPE, SESSION_SCOPE)
+    KEYWORD = "keyword"
     CREATE, SAVE, UPDATE, DELETE, RESTORE = "create", "save", "update", "delete", "restore"
     OPERATIONS = (CREATE, SAVE, UPDATE, DELETE, RESTORE)
     HISTORY_FIELDS = frozenset(("revision", "operation", "at", "source", "data"))
@@ -47,17 +49,11 @@ class MemoryComponent(Component):
     parameter_layout = ParameterLayout(
         config=("cache_records", "search_status", "search_limit", "search_strategy", "min_score"),
         policy=("tool_write_status", "max_search_results"),
-        paths={**{"processing." + key: "config.processing." + key for key in
-                  ("completion", "priority", "extract_scope", "extract_prompt_id", "summary_chars", "recall_limit", "recall_query_chars", "summary_format", "goal_ids",
-                   "tool_result_mode", "tool_data", "tool_summary_prompt")},
-               **{"processing." + key: "policy.processing." + key for key in
-                  ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active",
-                   "keep_turns", "summary_after_chars", "summary_after_tokens", "context_chars", "tool_result_chars", "model_input_chars",
-                   "max_candidates", "active_keep_iterations", "max_summary_calls", "max_output_chars",
-                   "context_tokens", "recall_every", "failure_mode", "timeout_seconds", "provider")}})
+        paths={**{"processing." + key: "config.processing." + key for key in MemoryProcessor.CONFIG_FIELDS},
+               **{"processing." + key: "policy.processing." + key for key in MemoryProcessor.POLICY_FIELDS}})
     _managed = frozenset({"id", "generation", "revision", "created_at", "updated_at", "deleted", "source"})
     content_schema = object_schema({"content": field("string", minLength=1), "kind": field("string", minLength=1),
-        "scope": field("string", enum=["project", "session"]), "session_id": field(["string", "null"]),
+        "scope": field("string", enum=list(SCOPES)), "session_id": field(["string", "null"]),
         "status": field("string", enum=list(STATUSES)), "tags": field("array", items=field("string", minLength=1)),
         "expires_at": field(["string", "null"]), "metadata": metadata_schema(),
         "replaces": field("array", items=object_schema({"id": field("string", minLength=1),
@@ -129,9 +125,9 @@ class MemoryComponent(Component):
         if not isinstance(value.get("source"), dict):
             raise ValueError("Invalid Session summary provenance")
 
-    @staticmethod
-    def _visible(record, session_id):
-        return record["scope"] == "project" or record.get("session_id") == session_id
+    @classmethod
+    def _visible(cls, record, session_id):
+        return record["scope"] == cls.PROJECT_SCOPE or record.get("session_id") == session_id
 
     @staticmethod
     def _expired(record):
@@ -210,9 +206,9 @@ class MemoryComponent(Component):
             if datetime.fromisoformat(record[key]).utcoffset() is None:
                 raise ValueError(f"Memory {key} requires a timezone")
         self._status(record.get("status"))
-        if record.get("scope") not in ("project", "session") or type(record.get("deleted")) is not bool:
+        if record.get("scope") not in self.SCOPES or type(record.get("deleted")) is not bool:
             raise ValueError("Memory requires project/session scope and a deletion marker")
-        if record["scope"] == "session":
+        if record["scope"] == self.SESSION_SCOPE:
             validate_name(record.get("session_id"))
         elif record.get("session_id") is not None:
             raise ValueError("Project memories cannot have a session_id")
@@ -301,7 +297,7 @@ class MemoryComponent(Component):
             if not key.startswith(Compactions.CONTEXTS + "/"):
                 continue
             messages.update(item["id"] for item in state.get("applied", {}).get("sources", []))
-            if state.get("request", {}).get("status") in ("pending", "running", "partial", "failed", "interrupted"):
+            if state.get("request", {}).get("status") in Compactions.UNFINISHED_STATES:
                 messages.update(item["id"] for item in state["request"]["sources"])
         return {"run_ids": sorted(runs), "message_ids": sorted(messages), "session_ids": sorted(sessions)}
 
@@ -329,34 +325,14 @@ class MemoryComponent(Component):
         resolve_processing_config(original, token_counter=self.token_counter)
 
     def describe_config(self):
-        from llm.core.schema import object_schema, field
-        from llm.providers.requests import provider_schema
-        properties = {name: field("boolean") for name in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active")}
-        properties.update({name: field("integer", minimum=1) for name in (
-            "keep_turns", "summary_after_chars", "summary_after_tokens", "summary_chars", "context_chars", "recall_limit",
-            "tool_result_chars", "model_input_chars", "max_candidates", "active_keep_iterations",
-            "max_summary_calls", "recall_query_chars", "max_output_chars")})
-        properties.update(priority=field("integer"), recall_every=field("integer", minimum=0),
-            tool_result_mode=field("string", enum=["reference", "summary"]),
-            tool_data=object_schema({"component": field("string", minLength=1), "identifier": field("string", minLength=1)},
-                                    required=["component", "identifier"]),
-            tool_summary_prompt=field("string", minLength=1),
-            summary_format=field("string", enum=["text", "work_state"]),
-            goal_ids={"type": "array", "uniqueItems": True, "items": field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$")},
-            context_tokens=field(["integer", "null"], minimum=1), completion=completion_schema(),
-            provider={**provider_schema(), "type": ["object", "null"]},
-            extract_scope=field("string", enum=["session", "project"]),
-            extract_prompt_id=field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$"),
-            failure_mode=field("string", enum=["raise", "continue"]),
-            timeout_seconds=field(["number", "null"], exclusiveMinimum=0))
         return self.parameter_layout.schema(object_schema({
             "cache_records": field("integer", minimum=0),
             "tool_write_status": field("string", enum=list(self.STATUSES)),
             "search_status": field("string", enum=[*self.STATUSES, self.ALL]),
-            "search_strategy": field("string", enum=["keyword"]),
+            "search_strategy": field("string", enum=[self.KEYWORD]),
             "min_score": field("number"),
             "search_limit": field("integer", minimum=1), "max_search_results": field("integer", minimum=1),
-            "processing": object_schema(properties)}))
+            "processing": MemoryProcessor.describe_config()}))
 
     def _validate_transition(self, previous, entry):
         record, operation = entry["data"], entry["operation"]
@@ -411,7 +387,7 @@ class MemoryComponent(Component):
         if self._record_path(project, identifier).exists():
             raise FileExistsError("Memory already exists")
         now = datetime.now(timezone.utc).isoformat()
-        record = {"kind": "note", "scope": "project", "status": self.CONFIRMED, "tags": [],
+        record = {"kind": "note", "scope": self.PROJECT_SCOPE, "status": self.CONFIRMED, "tags": [],
                   **self._payload(data), "id": identifier, "generation": new_id(), "revision": 1,
                   "created_at": now, "updated_at": now, "deleted": False,
                   "source": self._source(project, source)}
@@ -468,7 +444,7 @@ class MemoryComponent(Component):
         if not isinstance(query, str) or not query.strip():
             raise ValueError("Memory query must be nonempty text")
         config = self._options(project)
-        if self.search_fn is None and config.get("search_strategy") != "keyword":
+        if self.search_fn is None and config.get("search_strategy") != self.KEYWORD:
             raise ValueError("Memory search requires config.search_strategy or a host search_fn")
         limit = config.get("search_limit") if limit is None else limit
         if limit is not None and (type(limit) is not int or limit < 1 or config.get("max_search_results") is not None and limit > config["max_search_results"]):
@@ -528,7 +504,7 @@ class MemoryComponent(Component):
 
     def resolve_runtime(self, project, capability, *, data_factory):
         if capability == "completion_processors":
-            from .processing import MemoryProcessor, resolve_processing_config
+            from .processing import resolve_processing_config
             data = data_factory(self.name)
             config = resolve_processing_config(data.get_config(), token_counter=self.token_counter)
             if "tool_result_mode" in config:

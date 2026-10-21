@@ -36,6 +36,11 @@ MemoryProcessor도 모델·계수기에 None 또는 callable만 받으며 falsey
 보존합니다. completion_fn이 None일 때만 현재 Provider 기본 함수를 선택합니다. 잘못된 타입을
 기본 함수로 바꾸지 않습니다. 처리 우선순위는 정확한 int이고 명시한 0/음수도 보존합니다.
 미설정 시 중립 정렬값은 MemoryProcessor가 선언하며, 활성 기능의 명시 priority 요구는 유지합니다.
+처리 옵션의 Schema·타입·범위·모드는 MemoryProcessor가 소유하고 Component 설정과 런타임이
+같은 선언을 사용합니다. 정수 옵션은 정확한 int만 허용하며 max_output_chars도 포함합니다.
+알 수 없는 처리 필드와 허용되지 않은 null/모드는 실행·저장 전에 거부합니다.
+압축의 상태·재개/취소 가능 집합·Tool 결과 모드는 Compactions가 소유하며, 참조 보호와
+Reader/Writer·처리 소비자가 같은 선언을 사용합니다. 값과 상태 전이·저장 형식은 동일합니다.
 둘 다 없으면 추출을 실행하지 않고 오류를 반환합니다. 처리기 시작 시 지침/버전을 고정하고
 candidate metadata에 출처를 남깁니다. JSON 형태, replaces의 id/generation/revision, 근거 없는 성공 금지는
 backend 계약입니다. 무엇을 기억할지는 애플리케이션이 결정합니다.

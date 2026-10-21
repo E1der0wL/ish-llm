@@ -13,6 +13,74 @@ P1-b와 P1-c의 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 �
 따른다. 세 번째 Provider 계약군은 별도 커밋으로 보존한다. A–F는 미착수이며 P1 전체 완료를 뜻하지 않는다.
 main·이전 backend 브랜치·Draft PR #1을 변경하거나 이전 구현을 가져오지 않는다.
 
+## P1-c5: Memory 처리 설정·압축 상태 선언 — 로컬 Level 2
+
+c4 로컬 커밋 `0af28d0` 다음 계약군이다. MemoryProcessor의 처리 옵션 Schema를 Component의
+설정/편집 경계와 런타임 검증이 공유한다. 기존 공개 Schema 전체와 비교해 동일함을 확인했다.
+정확한 int 검사를 Schema의 정수 필드에서 유도하여 누락된 max_output_chars도 보호한다.
+기존 닫힌 Schema가 금지한 모드/null/알 수 없는 처리 필드도 런타임 경계에서 거부한다.
+기능 활성화의 필수 입력·Provider 선택·추가 호출 정책은 기존 계약을 따른다.
+
+새 시험은 max_output_chars=1.0이 실제 설정 파일에 저장되는 실패와 런타임의 잘못된 한도·
+모드 수락을 재현했다. baseline의 실패 test ID는 3개, 실패 Assertion은 20건이다. 원래 제품/
+fixture와 실패 로그를 보존했다. 수정 후 잘못된 저장 입력마다 Project 아래 **모든 파일 byte**가
+동일하고 보조 모델 호출은 0이며, 명시 False/0/nullable 값과 유효한 최솟값은 유지된다.
+
+Compactions는 Tool 결과 모드와 상태·재개/활성/미완료 집합·명시 action을 단일 선언으로 소유한다.
+MemoryData·Tool 결과 처리·Component 참조 보호가 동일 선언을 사용한다. Run 상태는 RunStatus,
+Message 상태는 MessageStatus, Memory 레코드 상태/범위는 MemoryComponent를 사용한다.
+요약 형식/실패 모드는 MemoryProcessor, 처리 실패 코드·부분 참조 표시는 MemorySession이 소유한다.
+저장 값·Schema·CAS/트랜잭션·상태 전이·재개/취소/삭제 허용 의미는 변경하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c5-baseline` llm | 4/4 | 1 | 20/0/0 | 0.214초 | 1 |
+| `c5-focused-1` llm | 72/72 | 72 | 0/0/0 | 50.504초 | 0 |
+| `c5-focused-2` llm | 78/78 | 78 | 0/0/0 | 63.432초 | 0 |
+| `c5-level2` llm | 529/529 | 529 | 0/0/0 | 215.537초 | 0 |
+| `c5-level2` hub | 64/64 | 64 | 0/0/0 | 116.732초 | 0 |
+
+모든 실행에서 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+첫 집중 검증 뒤 압축 상태 선언과 소비자를 정리하여 두 번째 집중 검증을 수행했다. 이 두 결과를
+동일 소스의 전체 회귀로 합치지 않는다. Level 2는 최종 통합 소스에서 새로 수행했다.
+LLM 40개 모듈은 Memory 전체·작업 상태·대형 Tool/Data·설정/Schema/Naming·Agent 소비자와
+승인·예산·효과·Checkpoint·RAG·삭제·트랜잭션 안전성을 포함한다. Hub 15개는 Memory·문맥·
+Component·Project 및 모든 settings 이름의 설정 화면 시험이다. 원본 보존·중단·취소·재개·
+실제 효과 횟수 시험을 재사용했고 제거/축소하지 않았다. 변경은 Memory 소유 선언과 검증 경계로
+한정되므로 전체 LLM/Hub는 유예했다. P1 관련 소단계를 묶는 Level 3에서 전체 검증 후 Push한다.
+
+정적 검사 `c5-static-final`은 new/stale/S1 미해결 0, debt 483, exit 0이다. 실제 해결한 35개
+Memory 항목만 기준 목록에서 제거했으며 새 예외를 추가하거나 검사 규칙을 바꾸지 않았다.
+초기 정적 실행의 새 boolean 비교 후보 4건은 기존 boolean 조건으로 되돌렸다. 타입을 먼저 검증한
+조건 OR는 fallback이 아니라 활성 여부의 합성이다. 최종 처리 owner의 남은 후보는 다음과 같다.
+
+| 남은 후보 | 현재 판정/후속 범위 |
+|---|---|
+| processing의 S2 OR 3개 | Schema가 bool만 허용한 summarize/extract/nested_processing의 조건 합성. 값 대체 없음. 기존 후보를 보존하고 개별 의미를 기록함 |
+| processing recall_every 나머지 비교 1개 | 첫 준비 이후 주기 판정의 산술 0. 정책값을 만들지 않으며 명시 0은 Schema에서 허용한 비활성 의미 |
+| Component ParameterLayout config/policy 2개 | 해당 owner가 선언한 필드 위치. Schema와 pack/unpack이 소비하는 실제 단일 선언 |
+| processing S6 4개·tool_results S6 1개 | SDK Tool wire 해석. A에서 정규 Adapter 경계로 이관할 미완료 항목이며 예외로 승인하지 않음 |
+
+이 계약군 밖의 Memory 기록 종류·그 밖의 owner/Schema/Naming 후보까지 정리했다고 보고하지 않는다.
+R3 실제 효과 mutation 검출 True, outer exit 0이며 의도한 inner 실패는 별도 보존했다.
+문서 검사 131문서/182 Python fence/955상대 링크/34 anchor, 오류 0, exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c5-level2/llm.json --modules tests.llm.test_agent_delegation tests.llm.test_agent_workflow tests.llm.test_architecture_checks tests.llm.test_checkpoint_integrity tests.llm.test_completion_integrity tests.llm.test_completion_processing tests.llm.test_component_record_integrity tests.llm.test_component_storage_integrity tests.llm.test_configuration_validation tests.llm.test_current_contracts tests.llm.test_data_component tests.llm.test_data_quarantine tests.llm.test_goals tests.llm.test_interaction_storage tests.llm.test_large_data tests.llm.test_lifecycle_deletion_integrity tests.llm.test_lifecycle_integrity tests.llm.test_long_running tests.llm.test_memory_compaction_integrity tests.llm.test_memory_component tests.llm.test_memory_consolidation_integrity tests.llm.test_memory_conversation tests.llm.test_memory_history_integrity tests.llm.test_memory_processing tests.llm.test_memory_processing_config tests.llm.test_memory_runtime_choices tests.llm.test_memory_summary_integrity tests.llm.test_naming_contract tests.llm.test_nested_graph tests.llm.test_operation_integrity tests.llm.test_project_authority tests.llm.test_project_policies tests.llm.test_provider_runtime tests.llm.test_rag_storage tests.llm.test_schema_ownership tests.llm.test_settings_contract tests.llm.test_tool_data tests.llm.test_transactions tests.llm.test_usage_deletion tests.llm.test_work_state
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c5-level2/hub.json --modules tests.hub.test_component_managers tests.hub.test_context tests.hub.test_memory_manager tests.hub.test_popup_settings_updates tests.hub.test_project_authority tests.hub.test_settings tests.hub.test_settings_editor tests.hub.test_settings_json tests.hub.test_settings_navigation tests.hub.test_settings_project_flow tests.hub.test_settings_restart tests.hub.test_settings_tabs tests.hub.test_settings_usability tests.hub.test_settings_viewport tests.hub.test_workspace_settings
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/p1/c5-static-final.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c5-docs.json
+```
+
+Level 2 전후 694개 Python 소스 hash `04dc0607042a37a0e176312c5ea1ce09e60a44f4f6e3927ad751db8bf3b4f5ad`,
+854개 입력/환경 hash `55c436053b26eb80acc518a2bdd4e9fe6f562e1d7baae9df5336339b041e269f`가 각각 동일했다.
+Python 3.12.14/136개 의존성, 실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존
+TERM/LiteLLM/Xvfb/xclip 환경을 유지했다. 정확한 명령·exit·JSON/로그·해결한 후보별 근거는
+`/workspace/llm-clean-resume/p1/`에 보존했다. 이전 backend 알고리즘은 c4에서 비교한 동일
+Memory 흐름을 재사용하며 불필요하게 재독해/재이식하지 않았다. 과거 결과는 현재 증거가 아니다.
+이 단계는 c5 로컬 완료이며 P1 전체·A–F·원격 CI 완료가 아니다.
+
 ## H1–H5 이후 P1-c4: Memory 런타임 주입 — 로컬 Level 2
 
 H1–H5 로컬 상위 게이트와 Push `a2b78e17b7ae0814e4b1ed6fc237d173c86a73e2` 뒤 P1-c 잔여를

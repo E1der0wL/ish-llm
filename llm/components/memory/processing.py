@@ -13,6 +13,7 @@ from llm.components.base import Component, validate_name
 from llm.components.processing import CompletionSession
 from llm.components.summarization import SummaryResult, summarize, summarize_fragments
 from llm.core.results import EngineOutput
+from llm.core.models import MessageStatus
 from llm.core.steering import is_instruction
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.providers.litellm import completion
@@ -38,25 +39,22 @@ def resolve_processing_config(configuration: dict, *, token_counter=None) -> dic
     if not isinstance(value, dict):
         raise ValueError("Memory processing must be an object")
     config = deepcopy(value)
+    # JSON Schema's integer includes 1.0; runtime integer choices require exact int.
+    schema = MemoryProcessor.describe_config()
+    for key, field in schema["properties"].items():
+        types = field.get("type")
+        if (types == "integer" or isinstance(types, list) and "integer" in types):
+            if key in config and config[key] is not None and type(config[key]) is not int:
+                raise ValueError(f"Memory {key} must be an integer")
+    from jsonschema import Draft202012Validator
+    error = next(Draft202012Validator(schema).iter_errors(config), None)
+    if error is not None:
+        raise ValueError("Invalid Memory processing: " + error.message)
     from llm.providers.requests import resolve_provider_options
     provider = config.get("provider")
     resolve_provider_options({} if provider is None else provider)
-    if "priority" in config and type(config["priority"]) is not int:
-        raise ValueError("Memory processing priority must be an integer")
-    for key in ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active"):
-        if key in config and type(config[key]) is not bool:
-            raise ValueError(f"Memory {key} must be boolean")
-    for key in ("keep_turns", "summary_after_chars", "summary_after_tokens", "summary_chars", "context_chars", "recall_limit",
-                "tool_result_chars", "model_input_chars", "max_candidates", "active_keep_iterations", "max_summary_calls", "recall_query_chars"):
-        if key in config and (type(config[key]) is not int or config[key] < 1):
-            raise ValueError(f"Memory {key} must be a positive integer")
-    if "recall_every" in config and (type(config.get("recall_every")) is not int or config.get("recall_every") < 0):
-        raise ValueError("recall_every must be a nonnegative integer")
-    if config.get("context_tokens") is not None and (type(config.get("context_tokens")) is not int or
-            config.get("context_tokens") < 1 or token_counter is None):
-        raise ValueError("context_tokens requires a positive integer and an injected token_counter(text)")
-    if config.get("failure_mode") not in (None, "raise", "continue") or config.get("extract_scope") not in (None, "session", "project"):
-        raise ValueError("Invalid memory failure mode or extraction scope")
+    if config.get("context_tokens") is not None and token_counter is None:
+        raise ValueError("context_tokens requires an injected token_counter(text)")
     duration = config.get("timeout_seconds")
     if duration is not None and (isinstance(duration, bool) or not isinstance(duration, (int, float)) or not math.isfinite(duration) or duration <= 0):
         raise ValueError("Memory timeout must be positive and finite")
@@ -90,7 +88,8 @@ def resolve_processing_config(configuration: dict, *, token_counter=None) -> dic
         if config.get("compress_tools"):
             raise ValueError("Select either Tool preview or tool_result_mode")
         required = ["priority", "tool_data", "tool_result_chars"]
-        if config["tool_result_mode"] == "summary":
+        from .compaction import Compactions
+        if config["tool_result_mode"] == Compactions.SUMMARY:
             required += ["completion", "tool_summary_prompt", "model_input_chars", "summary_chars", "max_summary_calls"]
             if not params.get("model"):
                 raise ValueError("Tool summary requires completion.model")
@@ -106,6 +105,45 @@ class MemoryProcessor:
     name = "memory"
     close_timeout = None  # CompletionSession.aclose는 자원을 소유하지 않는 no-op이다.
     UNCONFIGURED_PRIORITY = 0  # Neutral ordering; enabled processing requires an explicit config priority.
+    RAISE, CONTINUE = "raise", "continue"
+    FAILURE_MODES = (RAISE, CONTINUE)
+    TEXT, WORK_STATE = "text", "work_state"
+    SUMMARY_FORMATS = (TEXT, WORK_STATE)
+    CONFIG_FIELDS = ("completion", "priority", "extract_scope", "extract_prompt_id", "summary_chars", "recall_limit",
+                     "recall_query_chars", "summary_format", "goal_ids", "tool_result_mode", "tool_data", "tool_summary_prompt")
+    POLICY_FIELDS = ("recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active",
+                     "keep_turns", "summary_after_chars", "summary_after_tokens", "context_chars", "tool_result_chars",
+                     "model_input_chars", "max_candidates", "active_keep_iterations", "max_summary_calls", "max_output_chars",
+                     "context_tokens", "recall_every", "failure_mode", "timeout_seconds", "provider")
+
+    @classmethod
+    def describe_config(cls):
+        """Current processing options, shared by configuration UI and runtime validation."""
+        from llm.core.schema import object_schema, field
+        from llm.providers.schema import completion_schema
+        from llm.providers.requests import provider_schema
+        from .component import MemoryComponent
+        from .compaction import Compactions
+        properties = {name: field("boolean") for name in (
+            "recall", "summarize", "extract", "compress_tools", "nested_processing", "compact_active")}
+        properties.update({name: field("integer", minimum=1) for name in (
+            "keep_turns", "summary_after_chars", "summary_after_tokens", "summary_chars", "context_chars", "recall_limit",
+            "tool_result_chars", "model_input_chars", "max_candidates", "active_keep_iterations",
+            "max_summary_calls", "recall_query_chars", "max_output_chars")})
+        properties.update(priority=field("integer"), recall_every=field("integer", minimum=0),
+            tool_result_mode=field("string", enum=list(Compactions.MODES)),
+            tool_data=object_schema({"component": field("string", minLength=1), "identifier": field("string", minLength=1)},
+                                    required=["component", "identifier"]),
+            tool_summary_prompt=field("string", minLength=1),
+            summary_format=field("string", enum=list(cls.SUMMARY_FORMATS)),
+            goal_ids={"type": "array", "uniqueItems": True, "items": field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$")},
+            context_tokens=field(["integer", "null"], minimum=1), completion=completion_schema(),
+            provider={**provider_schema(), "type": ["object", "null"]},
+            extract_scope=field("string", enum=[MemoryComponent.SESSION_SCOPE, MemoryComponent.PROJECT_SCOPE]),
+            extract_prompt_id=field("string", pattern=r"^[a-zA-Z0-9_-]{1,64}$"),
+            failure_mode=field("string", enum=list(cls.FAILURE_MODES)),
+            timeout_seconds=field(["number", "null"], exclusiveMinimum=0))
+        return object_schema(properties)
 
     def __init__(self, data, *, completion_fn=None, token_counter=None, priority=UNCONFIGURED_PRIORITY):
         if any(value is not None and not callable(value) for value in (completion_fn, token_counter)):
@@ -123,6 +161,9 @@ class MemoryProcessor:
 
 class MemorySession(CompletionSession):
     """한 Loop/Agent 호출에만 존재한다. Session 요약은 최상위 대화에서만 재사용한다."""
+
+    PROCESSING_FAILED = "memory_processing_failed"
+    PARTIAL_REFERENCE = "partial"  # A bounded model reference, not a stored Message state.
 
     def __init__(self, processor, context):
         self.processor, self.data, self.context = processor, processor.data, context
@@ -156,7 +197,7 @@ class MemorySession(CompletionSession):
 
     async def _summary_model(self, instruction, payload, result):
         """기존 문자열 요약 호출과 구조화 요약 호출이 같은 처리/취소 경계를 사용한다."""
-        if self.config.get("summary_format") != "work_state":
+        if self.config.get("summary_format") != MemoryProcessor.WORK_STATE:
             async with aclosing(self._model(instruction, payload, result)) as events:
                 async for event in events:
                     yield event
@@ -172,7 +213,7 @@ class MemorySession(CompletionSession):
     def _summary_metadata(self, text, *, sources):
         from .work_state import SUMMARY_FORMAT_VERSION, validate_work_state
         result = {"sources": sources}
-        if self.config.get("summary_format") == "work_state":
+        if self.config.get("summary_format") == MemoryProcessor.WORK_STATE:
             result.update(work_state=validate_work_state(json.loads(text)), summary_format_version=SUMMARY_FORMAT_VERSION)
         return result
 
@@ -289,16 +330,16 @@ class MemorySession(CompletionSession):
                 async for event in events:
                     if event.type == EngineEventType.STEP_STARTED:
                         source["step_id"] = event.step_id
-                    if event.type == EngineEventType.STEP_FAILED and self.config.get("failure_mode") == "continue":
+                    if event.type == EngineEventType.STEP_FAILED and self.config.get("failure_mode") == MemoryProcessor.CONTINUE:
                         # 선택적 부가 기능의 실패를 숨기지 않고 완료된 fallback Step으로 기록한다.
                         # FAILED Step을 남긴 Run은 성공할 수 없다는 기존 서비스 불변식을 유지한다.
                         yield BaseEngine.step_completed_event(context, event.step_id,
                             EngineOutput(data={"degraded": True, "error": event.error}, visibility="internal"),
-                            metadata={"degraded": True, "error_code": "memory_processing_failed"})
+                            metadata={"degraded": True, "error_code": self.PROCESSING_FAILED})
                     else:
                         yield event
         except Exception:
-            if self.config.get("failure_mode") != "continue":
+            if self.config.get("failure_mode") != MemoryProcessor.CONTINUE:
                 raise
             # fallback 기록은 남는다. 취소/GeneratorExit는 잡지 않고 소유 Run으로 전달한다.
 
@@ -333,7 +374,7 @@ class MemorySession(CompletionSession):
         # 모든 대화를 영원히 압축하지 못하는 일이 없도록 한다. 미래 대기는 제외한다.
         valid = []
         for group in groups[:-self.config["keep_turns"]]:
-            if any(str(m.status) in ("queued", "streaming") for m in group):
+            if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING) for m in group):
                 break
             valid.extend(group)
         return valid
@@ -383,7 +424,7 @@ class MemorySession(CompletionSession):
             offset = saved.get("offset", 0) if saved.get("digest") == signature else 0
             text = saved["summary"] if offset else previous
             def payload(value, start, total, previous):
-                return {"previous_summary": previous, "messages": [{"role": "reference", "status": "partial",
+                return {"previous_summary": previous, "messages": [{"role": "reference", "status": self.PARTIAL_REFERENCE,
                     "content": value, "offset": start, "total_chars": total}],
                     "max_summary_chars": self.config["summary_chars"]}
             summary = SummaryResult()
@@ -443,13 +484,14 @@ class MemorySession(CompletionSession):
                       summary=text, source_range=deepcopy(record["metadata"]))
 
     async def _recall(self, result, source):
+        from .component import MemoryComponent
         current = self.recall_query or next((m.content for m in self.context.messages if m.id == self.context.run.input_message_id), "")
         if current.strip():
             config = self.snapshot["configuration"].get("policy", {})
             limit = self.config["recall_limit"]
             if config.get("max_search_results") is not None:
                 limit = min(limit, config["max_search_results"])
-            hits = await self.data.asearch(current, status="confirmed", limit=limit, session_id=self.context.session.id)
+            hits = await self.data.asearch(current, status=MemoryComponent.CONFIRMED, limit=limit, session_id=self.context.session.id)
             self.recalled = [hit["memory"] for hit in hits if hit["memory"]["kind"] != "conversation_summary"]
         result["memories"] = [{"id": m["id"], "generation": m["generation"], "revision": m["revision"]} for m in self.recalled]
         if False:
@@ -530,6 +572,7 @@ class MemorySession(CompletionSession):
             yield
 
     async def _extract(self, messages, response, result, source):
+        from .component import MemoryComponent
         snapshot = await self.data._async_call(self.data._processing_snapshot, self.context.session.id)
         if snapshot["identity"] != self.snapshot["identity"] or snapshot["configuration"] != self.snapshot["configuration"]:
             raise ValueError("Memory changed before extraction")
@@ -538,7 +581,7 @@ class MemorySession(CompletionSession):
         allowance = self.config["model_input_chars"] // 3
         existing = []
         # 검색을 선택한 경우에만 관련도 순서를 쓴다. 추출 자체는 검색에 의존하지 않는다.
-        ranked = (await self.data.asearch(latest, status="all", limit=self.config.get("recall_limit"),
+        ranked = (await self.data.asearch(latest, status=MemoryComponent.ALL, limit=self.config.get("recall_limit"),
                   session_id=self.context.session.id) if latest.strip() and snapshot["has_search"] else [])
         ordered = {item["memory"]["id"]: item["memory"] for item in ranked}
         ordered.update({key: snapshot["records"][key] for key in sorted(snapshot["records"]) if key not in ordered})
@@ -575,7 +618,7 @@ class MemorySession(CompletionSession):
             if any(not isinstance(ref, dict) or type(ref.get("revision")) is not int or
                    ref.get("id") not in visible or visible[ref["id"]] != (ref.get("generation"), ref["revision"]) for ref in refs):
                 raise ValueError("Invalid memory consolidation references")
-            record = {"content": value["content"], "kind": kind, "tags": tags, "status": "candidate",
+            record = {"content": value["content"], "kind": kind, "tags": tags, "status": MemoryComponent.CANDIDATE,
                       "scope": self.config["extract_scope"], "replaces": refs, "metadata": {
                       "extract_prompt": {key: self.extraction_prompt[key] for key in ("source", "version")}}}
             if record["scope"] == "session":
