@@ -588,6 +588,9 @@ class GraphEngine:
     미완료 노드부터 실행하며, LangGraph 내부 프레임이나 Python 런타임 객체는 저장하지 않는다.
     """
 
+    TIMEOUT_PARAMETER = "timeout_seconds"
+    REQUIRED_CONFIG_SECTIONS = ("policies", "parameters")
+
     def __init__(self, *, handlers: Mapping[str, Callable],
                  revision: str = "1", config_keys: Optional[tuple[str, ...]] = None,
                  parameter_key: Optional[str] = None) -> None:
@@ -626,18 +629,18 @@ class GraphEngine:
             raise ValueError("max_nested_depth must be a nonnegative integer or None")
 
     parameter_layout = ParameterLayout(config=("buffer_size", "cleanup_timeout"),
-        policy=("max_steps", "max_parallelism", "timeout_seconds", "max_nested_depth"))
+        policy=("max_steps", "max_parallelism", TIMEOUT_PARAMETER, "max_nested_depth"))
 
-    _option_names = ("max_steps", "max_parallelism", "timeout_seconds", "buffer_size", "max_nested_depth", "cleanup_timeout")
+    _option_names = ("max_steps", "max_parallelism", TIMEOUT_PARAMETER, "buffer_size", "max_nested_depth", "cleanup_timeout")
 
     def describe_config(self):
         from llm.core.schema import object_schema, field
         properties = {key: field(["integer", "null"], minimum=1) for key in self._option_names}
         properties["buffer_size"]["type"] = "integer"
         properties["max_nested_depth"].update(minimum=0)
-        for key in ("timeout_seconds", "cleanup_timeout"):
-            properties[key] = field(["number", "null"] if key == "timeout_seconds" else "number", exclusiveMinimum=0)
-        for key in ("max_steps", "max_parallelism", "timeout_seconds", "max_nested_depth"):
+        for key in (GraphEngine.TIMEOUT_PARAMETER, "cleanup_timeout"):
+            properties[key] = field(["number", "null"] if key == GraphEngine.TIMEOUT_PARAMETER else "number", exclusiveMinimum=0)
+        for key in ("max_steps", "max_parallelism", GraphEngine.TIMEOUT_PARAMETER, "max_nested_depth"):
             properties[key]["x-narrowing"] = "maximum"
         return self.parameter_layout.schema(object_schema(properties, **{"x-runtime-configuration": ["handlers", "revision", "config_keys"],
             **({"x-parameter-key": self.parameter_key} if self.parameter_key else {})}))
@@ -661,7 +664,7 @@ class GraphEngine:
     def _execution_config(self, context):
         return {key: value for key, value in context.project.config.to_dict().items()
                 if self.config_keys is None or key in self.config_keys
-                or key in ("policies", "parameters")}
+                or key in GraphEngine.REQUIRED_CONFIG_SECTIONS}
 
     def _binding(self, context, graph, prepared):
         """코드의 버전은 개발자가 revision으로 관리한다. 저장 가능한 실행 설정은 직접 비교한다."""

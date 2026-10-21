@@ -5,6 +5,9 @@ import json
 from pathlib import Path
 
 
+READ_FAILURE_STATUS = "warning"
+
+
 def read_provider_logs(workspace, project_id, *, limit=300):
     root = Path(workspace).expanduser()
     # RunManager scopes logging to the ProjectRepository root (workspace/projects).
@@ -79,6 +82,6 @@ def associate_provider_logs(activity, provider):
 
 
 def _read_error(error):
-    return {"time": "", "event": "provider", "status": "warning", "source": {},
+    return {"time": "", "event": "provider", "status": READ_FAILURE_STATUS, "source": {},
             "code": "provider_log_read_failed", "provider": True, "scope": "workspace",
             "details": {"error": str(error)}}

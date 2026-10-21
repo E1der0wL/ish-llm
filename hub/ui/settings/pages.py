@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from dataclasses import replace
+from enum import StrEnum
 
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.widgets import Label
@@ -15,6 +16,11 @@ from ...widget.forms.settings import SchemaForm
 from ...widget.forms.settings_viewport import SettingsBody
 from ...config.theme import HubTheme
 from ...widget.controls import Button, TextArea
+
+
+class SettingsTab(StrEnum):
+    CONFIG = "config"
+    POLICY = "policy"
 
 
 class Page:
@@ -69,7 +75,7 @@ class Page:
     def section_fields(self):
         tab = self.screen.tabs.selected
         return [field for form in self.visible_forms() for field in form.fields.values()
-                if getattr(self, "field_tabs", {}).get(field, "config") == tab]
+                if getattr(self, "field_tabs", {}).get(field, SettingsTab.CONFIG.value) == tab]
 
     def _matching_fields(self):
         visible = set(self.section_fields())
@@ -149,13 +155,13 @@ class ProjectPage(Page):
         self.field_tabs = {}
         for path, field in form.fields.items():
             relative = path[len(form.prefix):]
-            if not form.prefix and relative[:2] == ("config", "policies"):
-                tab, relative = "policy", relative[2:]
-            elif form.prefix and relative[:1] == ("policy",):
-                tab, relative = "policy", relative[1:]
+            if not form.prefix and relative[:2] == SchemaForm.PROJECT_POLICY_PATH:
+                tab, relative = SettingsTab.POLICY.value, relative[2:]
+            elif form.prefix and relative[:1] == SchemaForm.POLICY_PATH:
+                tab, relative = SettingsTab.POLICY.value, relative[1:]
             else:
-                tab = "config"
-                if relative[:1] == ("config",):
+                tab = SettingsTab.CONFIG.value
+                if relative[:1] == SchemaForm.CONFIG_PATH:
                     relative = relative[1:]
             self.field_tabs[field] = tab
             if len(relative) > 1:
@@ -287,7 +293,7 @@ class GlobalPage(Page):
             self.form.original.get("language_packs", {}) != self.original.get("language_packs", {}))
 
     def body_widgets(self):
-        if self.query or self.screen.tabs.selected == "policy":
+        if self.query or self.screen.tabs.selected == SettingsTab.POLICY.value:
             return super().body_widgets()
         if self.general_form is not None:
             return self.general_form.widgets

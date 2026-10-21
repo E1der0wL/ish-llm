@@ -10,10 +10,78 @@ P0의 [고정 조합과 최신 허용 조합 검증](p0-sdk-transition.md)이 �
 P1-b와 P1-c의 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 만료 필드 누락 후
 실제 Tool 효과를 재현하여 기능 단계 진행을 중단한 뒤 H1 승인·RAG 포인터·삭제/예산을 보강했다.
 이 문서에는 원래 실패와 감사를 보존하며, 이후 결과는 [수명주기 검증](lifecycle-verification.md)을
-따른다. 세 번째 Provider 계약군은 별도 커밋으로 보존한다. A–F는 미착수이며 P1 전체 완료를 뜻하지 않는다.
+따른다. 세 번째 Provider 계약군과 이후 선언 정리는 아래 기록에 보존한다. 현재는 **P1 최종 로컬 Level 3 통과**,
+A–F는 후속 단계이며 원격 CI 결과는 별도로 확인한다.
 main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 완료 후 P1와 A–F에서는
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
+
+## P1-c42 및 P1 최종 로컬 Level 3
+
+12개 제품 파일의 남은 owner 선언을 연결했다. InteractionRepository가 retry_nodes binding
+대상을 생성·소비하고 RunManager도 참조한다. GraphEngine은 nullable timeout 필드명과
+항상 보존해야 하는 policies/parameters 섹션을 소유한다. Hub의 graph 등록 이름과 Provider
+로그 읽기 실패 warning은 각각 조립/관측 owner에 둔다. 공용 RAGAction의 7개 명령은
+실제 UI·dispatcher가 공유하되 일반 Record 동작은 기존처럼 위임한다. SettingsTab과
+SchemaForm의 경로 선언은 화면 분류만 담당하며 저장 설정/정책을 만들지 않는다.
+오류 안내는 중복된 여덟 코드 목록을 단일 _CODE_GUIDANCE mapping으로 합쳤다.
+
+선언/import/참조를 복원하면 12개 파일의 원문이 같다. 실제 Graph Schema·layout·config_keys
+필터링, Hub model의 모든 dataclass 필드/타입/기본값/slots와 88개 오류 표시, 읽기 실패
+증거가 변경 전과 같다. 제네릭 action·unknown 오류의 동작, completion_incomplete 우선순위,
+승인·예산·재개·저장 형식과 기존 시험 Assertion은 유지한다. 과거 구현·검증을 이식하지 않았다.
+
+S3 미해결14건을 실제 제거했다. UI 문자열 탐지였던 기존 S2 리뷰2건은 후보 소실을 확인해
+보존 후 제거했고, Graph layout과 UI 번역 항목2건은 실제 새 fingerprint·owner로 재검토했다.
+제품 변경 의존성47건을 대조했다. 현행 완료 상태는 이 기록으로 연결하고 CI의 필수 정적
+규칙을 S1–S5로 강화했다. 두 문서의 변경은 현황 링크와 검사 명령뿐이며 기능/안전 계약과
+과거 실행 결과는 같다. 이 문서 변경까지 영향받는 총 103개 리뷰의 기존 모든 source pin을
+검사한 뒤 한정된 변경 근거를 갱신했다. 새 포괄 예외나 검사기 완화는 없다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 85/85/85 | 0/0/0 | 16.919초 | 0 |
+| 집중 HUB | 54/54/54 | 0/0/0 | 133.985초 | 0 |
+| 전체 LLM | 2101/2101/2101 | 0/0/0 | 735.552초 | 0 |
+| 전체 HUB | 577/577/577 | 0/0/0 | 719.655초 | 0 |
+
+각 실행의 expected failure·unexpected success·missing·unexpected·duplicates도0이다.
+전체 회귀는 현재 통합 소스에서 각각 단일 실행이며 이전 집중 결과를 합산하지 않았다.
+이번 제품 변경은 Run 재개·Graph 정책 보존·Hub 조립까지 걸치므로 별도 Level2 반복 대신
+P1 전체 게이트로 승격했다. 승인/권한·예산·실제 Tool 효과·Checkpoint·RAG·삭제·트랜잭션
+중단/원본 보존과 실제 host/X11/격리 시험을 포함한다. 재검토된 정확한 시험 ID 114개와
+전체 유효 리뷰가 지정한 179개 시험 ID 모두 현재 전체 실행에서 통과했다.
+
+R3 mutation True/outer exit0, 실제 환경 LLM/Hub 각각 ok/exit0, 문서 오류0/exit0이다.
+정적 raw169·reviewed151·미해결18은 모두 A의 S6이며, S1–S5 미해결·new/stale/review 오류는
+0/exit0이다. CI는 전체 LLM/Hub 필수 Job·실제 환경·mutation을 그대로 실행하면서 S1–S5도
+필수로 검사한다. 부분 테스트 대체나 비활성화는 없다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c42-focused/llm.json --modules tests.llm.test_graph_engine tests.llm.test_graph_decisions tests.llm.test_graph_agent_contract tests.llm.test_interaction_decisions tests.llm.test_interaction_storage tests.llm.test_settings_contract tests.llm.test_configuration_validation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c42-focused/hub.json --modules tests.hub.test_settings_tabs tests.hub.test_settings_project_flow tests.hub.test_settings tests.hub.test_rag_jobs tests.hub.test_rag_retention tests.hub.test_error_contract tests.hub.test_provider_activity
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/final-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/final-level3/hub.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/final-level3/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/final-level3/aux/docs.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/final-level3/aux/env-llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/final-level3/aux/env-hub.json
+```
+
+실행 HEAD `b187d8269f6892e3fdf1fbe2c6342a18aad6f4c5`에 c42/최종 게이트 변경을 더했다. Python3.12.14·136 의존성·env5개·
+host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다. 제품/시험705개 source hash
+`09a931ee6602b65a40774733a41b445c35b82146f7c21e1784706bd4fc9cf923`, 입력/환경867개 hash
+`2235ba15b4e9b69ddf9604fe5635cbfb7275a8b1fdab75c61d5d5af04d637b6e`가 실행 전후 같다. 원시 명령·exit·ID·log·manifest,
+원문 복원·런타임 비교·감사/리뷰 시험 증거는 `/workspace/llm-clean-resume/p1/final-level3/`와 c42 증거에 보존한다.
+외부 비교 도구가 ParameterLayout을 dataclass로 가정해 두 번 exit1로 실패한 사실도
+보존했다. 시험 시작 전 도구를 수정하고 저장한 원문/현재 소스 각각으로 다시 비교했다.
+제품 시험 실패가 아니며 실패 로그를 성공으로 합산하지 않았다.
+
+결과 문서를 먼저 갱신하고 동일 소스·staged diff를 확인한 뒤 c41–c42를 작업 브랜치에
+Push한다. **H1–H5 및 P1의 로컬 상위 게이트 완료**, 다음은 A Provider → B/C → D/E/F다.
+A–F 구현 완료나 해당 SHA의 원격 CI 통과는 주장하지 않는다. 원격 CI 조회의 기존 403
+제약은 유지되며 실제 결과를 확인할 때까지 미확인이다. main/backend/PR1은 변경하지 않는다.
 
 ## P1-c41: Provider 오류 코드의 소유 선언 — 로컬 Level 2
 

@@ -102,7 +102,7 @@ jobs:
         run: python -m tests.llm.check_docs --output artifacts/docs.json
       - name: Reject new architectural audit debt
         if: ${{ !cancelled() }}
-        run: python -m tests.llm.check_architecture --require S1 --output artifacts/architecture.json
+        run: python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --output artifacts/architecture.json
       - name: Verify R3 dropped-limit mutation detection
         if: ${{ !cancelled() && matrix.suite == 'llm' }}
         run: python -m tests.llm.check_budget_mutation

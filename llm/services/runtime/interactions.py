@@ -91,6 +91,7 @@ class InteractionRepository:
     """요청은 체크포인트가 원본이다. 응답 저장만으로 작업을 실행하거나 큐에 넣지 않는다."""
 
     RETRY_CATEGORY = "execution.retry_uncertain"
+    RETRY_NODES_TARGET = "retry_nodes"
 
     def __init__(self):
         self._envelopes = None
@@ -178,7 +179,7 @@ class InteractionRepository:
                 identity = hashlib.sha256(json.dumps([run.id, checkpoint.get("name"), key, record],
                     sort_keys=True, allow_nan=False).encode()).hexdigest()[:InteractionRequest.ID_LENGTH]
                 request = replace(request, id=identity, created_at=run.created_at,
-                    binding={"checkpoint": checkpoint.get("name", ""), "key": key, "target": "retry_nodes"})
+                    binding={"checkpoint": checkpoint.get("name", ""), "key": key, "target": InteractionRepository.RETRY_NODES_TARGET})
             elif record.get("status") == CheckpointStatus.WAITING and "interaction" in record:
                 request = InteractionRequest.from_dict(record["interaction"])
             else:
@@ -291,7 +292,7 @@ class InteractionRepository:
         for request in requests:
             key = request.binding["key"]
             response = stored.get(request.id)
-            if request.binding.get("target") == "retry_nodes":
+            if request.binding.get("target") == InteractionRepository.RETRY_NODES_TARGET:
                 if response is None and key in retries:
                     response = request.respond("approve")
                     receipts.append(response)

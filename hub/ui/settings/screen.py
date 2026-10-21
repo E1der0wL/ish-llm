@@ -9,7 +9,7 @@ from prompt_toolkit.widgets import Label
 
 from ...config.profile import UserProfile
 from ...config.general import GeneralSettings
-from .pages import GlobalPage, ProjectPage
+from .pages import GlobalPage, ProjectPage, SettingsTab
 from ...config.theme import HubTheme
 from ...widget.controls import TextArea
 from ...widget.forms.settings_viewport import SettingsPane
@@ -53,8 +53,8 @@ class SettingsScreen:
                                   Window(height=1)), show_scrollbar=True,
                                   width=lambda: Dimension(min=1, preferred=max(1, self.main_width() - 1)))
         from ...widget.tab_page import TabPage
-        self.tabs = TabPage([("config", self.t("settings_tab_config"), self.main),
-                             ("policy", self.t("settings_tab_policy"), self.main)],
+        self.tabs = TabPage([(SettingsTab.CONFIG.value, self.t("settings_tab_config"), self.main),
+                             (SettingsTab.POLICY.value, self.t("settings_tab_policy"), self.main)],
                             width=self.main_width, on_change=self.tab_changed,
                             on_enter=self.enter_tab, on_leave=self.navigation.finish_edit)
         bottom = DynamicContainer(lambda: self.page.bottom if self.page else Label(""))
@@ -359,7 +359,7 @@ class SettingsScreen:
             self._engine_target = None
             section = "engine:" + page.engine_keys.get(engine, engine)
             if section in {item.key for item in self.project_items()}:
-                self.tabs.selected = "config"
+                self.tabs.selected = SettingsTab.CONFIG.value
                 page.set_section(section)
                 self.selected = self.navigation.left_key = section
                 self.filter("")
@@ -368,7 +368,7 @@ class SettingsScreen:
             self._component_target = None
             section = "component:" + name
             if section in {item.key for item in self.project_items()}:
-                self.tabs.selected = "config"
+                self.tabs.selected = SettingsTab.CONFIG.value
                 page.set_section(section)
                 self.selected = self.navigation.left_key = section
                 self.filter("")

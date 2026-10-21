@@ -78,16 +78,20 @@ def operation_notice(error, t):
     return t("operation_failed")
 
 
+_CODE_GUIDANCE = {
+    "completion_invalid_response": "failure_completion_invalid", "tool_invocation_invalid": "failure_tool_arguments",
+    "tool_contract": "failure_tool_contract", "sandbox_unavailable": "failure_sandbox",
+    "operation_uncertain": "failure_operation_uncertain", "operation_conflict": "failure_operation_conflict",
+    "tool_failed": "failure_tool_failed", "step_timeout": "failure_step_timeout",
+}
+
+
 def failure_text(error: ErrorInfo, t) -> str:
     key = _GUIDANCE.get(error.reason, "failure_unknown")
     if error.code == "completion_incomplete":
         key = {"length": "failure_completion_length", "content_filter": "failure_completion_filtered"}.get(error.finish_reason, key)
-    elif error.code in ("completion_invalid_response", "tool_invocation_invalid", "tool_contract", "sandbox_unavailable",
-                        "operation_uncertain", "operation_conflict", "tool_failed", "step_timeout"):
-        key = {"completion_invalid_response": "failure_completion_invalid", "tool_invocation_invalid": "failure_tool_arguments",
-               "tool_contract": "failure_tool_contract", "sandbox_unavailable": "failure_sandbox",
-               "operation_uncertain": "failure_operation_uncertain", "operation_conflict": "failure_operation_conflict",
-               "tool_failed": "failure_tool_failed", "step_timeout": "failure_step_timeout"}[error.code]
+    elif error.code in _CODE_GUIDANCE:
+        key = _CODE_GUIDANCE[error.code]
     text = t(key)
     evidence = [error.code] if error.code else []
     if error.http_status is not None:

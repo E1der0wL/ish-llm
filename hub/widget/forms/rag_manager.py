@@ -13,6 +13,7 @@ from ..sidebar import SidebarItem
 from .record_manager import RecordManager
 from ...ui.error_presentation import operation_notice
 from ...errors.contracts import ErrorInfo
+from ...model import RAGAction
 
 
 class RAGManager(RecordManager):
@@ -95,7 +96,7 @@ class RAGManager(RecordManager):
             if old - {item["name"] for item in jobs}:
                 self.reload()  # A finished job may have published an editable document.
             get_app().invalidate()
-        self.request("jobs", "", None, done)
+        self.request(RAGAction.JOBS.value, "", None, done)
 
     def dispose(self):
         self._epoch += 1
@@ -123,7 +124,7 @@ class RAGManager(RecordManager):
         get_app().invalidate()
 
     def call(self, action, argument="", version=None, completed=None, **kwargs):
-        if action in ("import", "retry"):
+        if action in (RAGAction.IMPORT.value, RAGAction.RETRY.value):
             self.dispose()
             kwargs["observe"] = self.observe
         super().call(action, argument, version, completed, **kwargs)
@@ -142,7 +143,7 @@ class RAGManager(RecordManager):
             self.view.notice = self.status
             get_app().invalidate()
             return
-        self.call("retry", item["job_id"])
+        self.call(RAGAction.RETRY.value, item["job_id"])
 
     def open_item(self):
         if self._selected_job() is None:
@@ -167,14 +168,14 @@ class RAGManager(RecordManager):
             def restore(confirmed=False):
                 self.view.dialogs.show(self, self.list)
                 if confirmed:
-                    self.call("delete_job", item["job_id"], plan["revision"])
+                    self.call(RAGAction.DELETE_JOB.value, item["job_id"], plan["revision"])
             buttons = [Button(self.view.t("confirm"), handler=lambda: restore(True)),
                        Button(self.view.t("cancel"), handler=restore)]
             popup = Dialog(title=self.view.t("component_delete"),
                 body=Label(self.view.t("rag_delete_confirm", name=item["label"], bytes=plan["bytes"])), buttons=buttons)
             popup.on_close = restore
             self.view.dialogs.show(popup, buttons[1])
-        self.call("job_delete_plan", item["job_id"], completed=ready)
+        self.call(RAGAction.JOB_DELETE_PLAN.value, item["job_id"], completed=ready)
 
     def cancel_job(self):
         item = self._selected_job()
@@ -202,7 +203,7 @@ class RAGManager(RecordManager):
             if entries is not None:
                 self.entries = entries
             get_app().invalidate()
-        self.request("cancel_job", item["job_id"], None, done)
+        self.request(RAGAction.CANCEL_JOB.value, item["job_id"], None, done)
 
     def import_path(self, buffer):
         state = self.path.buffer.complete_state
@@ -220,14 +221,14 @@ class RAGManager(RecordManager):
                         self.selected = self.last_job["label"]
                     if self.path.text == original:
                         self.path.text = ""
-                self.call("import", {"path": original.strip(), "mode": mode}, completed=imported)
+                self.call(RAGAction.IMPORT.value, {"path": original.strip(), "mode": mode}, completed=imported)
         def settings():
             restore()
             def ready(result):
                 if self.view._dialog is self:
                     self.view.close_dialog()
                     self.view.settings.open_component(result["component"])
-            self.call("vision_settings", completed=ready)
+            self.call(RAGAction.VISION_SETTINGS.value, completed=ready)
         buttons = [Button("OCR", handler=lambda: restore("ocr")),
                    Button(self.view.t("rag_image_analysis"), handler=lambda: restore("analysis")),
                    Button(self.view.t("rag_vision_settings"), handler=settings, width=14),

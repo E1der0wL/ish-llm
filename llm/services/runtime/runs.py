@@ -1103,7 +1103,7 @@ class RunManager:
                 self._validate_checkpoint_input(store, checkpoint, source.input_message_id, messages=messages)
                 state = ResumeState.VALID
                 views = self.repository.interaction_views(session, source, store, link=link)
-                retries = [v.request.binding["key"] for v in views if v.request.binding.get("target") == "retry_nodes"]
+                retries = [v.request.binding["key"] for v in views if v.request.binding.get("target") == InteractionRepository.RETRY_NODES_TARGET]
                 if any(v.status in (InteractionView.PENDING, InteractionView.DENIED, InteractionView.EXPIRED,
                                     InteractionView.CANCELLED, InteractionView.SUBMITTED, InteractionView.UNAVAILABLE) for v in views):
                     blockers.append(Diagnostic("interaction_required", "Resolve pending interactions before execution", source=ref))

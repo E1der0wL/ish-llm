@@ -7,6 +7,7 @@ import math
 from llm.providers.runtime import diagnostic_scope
 from llm.llm import RAGJobStatus, CheckpointError
 
+from ...model import RAGAction
 from ...errors.adapters import from_exception
 from ...errors.contracts import ErrorOrigin
 from ...errors.operations import OperationBlocked
@@ -147,28 +148,28 @@ class RAGManagement(DocumentManagement):
         return [*await super().list(), *await self.jobs()]
 
     async def execute(self, action, argument="", expected_version=None, *, progress=None):
-        if action == "vision_settings":
+        if action == RAGAction.VISION_SETTINGS.value:
             record = await self.project.adescribe_config()
             selected = record["values"]["components"]
             if "vision" not in selected:
                 await self.project.asave(components=[*selected, "vision"], expected_components=selected,
                                          expected_version=record["config_version"])
             return {"component": "vision"}
-        if action == "jobs":
+        if action == RAGAction.JOBS.value:
             return await self.jobs(inspect=False)
-        if action == "job_delete_plan":
+        if action == RAGAction.JOB_DELETE_PLAN.value:
             plan = await self.data.acheckpoint_plan(argument)
             return {"revision": plan.revision, "bytes": plan.bytes,
                     "allowed": plan.can_delete or plan.can_abandon}
-        if action == "delete_job":
+        if action == RAGAction.DELETE_JOB.value:
             await self._delete_job(argument, expected_version)
-        elif action == "cancel_job":
+        elif action == RAGAction.CANCEL_JOB.value:
             await self.data.acancel_job(argument)
             observer = self.active.get((self.project_id, argument))
             if observer and observer.task:
                 observer.task.cancel()
                 await asyncio.gather(observer.task, return_exceptions=True)
-        elif action == "import":
+        elif action == RAGAction.IMPORT.value:
             from .rag_import import read_document
             identifier, values = await read_document(self, argument, progress=progress)
             await self._require_new(identifier)
@@ -176,7 +177,7 @@ class RAGManagement(DocumentManagement):
             if progress:
                 progress(job_entry(job))
             await self._run(job["id"], progress=progress)
-        elif action == "retry":
+        elif action == RAGAction.RETRY.value:
             await self._run(argument, progress=progress)
         else:
             return await super().execute(action, argument, expected_version)

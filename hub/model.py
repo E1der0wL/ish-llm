@@ -2,9 +2,22 @@
 
 from llm.core.models import SessionStatus
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import ClassVar
 
 from .errors.contracts import ErrorInfo
+
+
+class RAGAction(StrEnum):
+    """Special RAG management commands shared by dispatch and UI."""
+
+    VISION_SETTINGS = "vision_settings"
+    JOBS = "jobs"
+    JOB_DELETE_PLAN = "job_delete_plan"
+    DELETE_JOB = "delete_job"
+    CANCEL_JOB = "cancel_job"
+    IMPORT = "import"
+    RETRY = "retry"
 
 
 @dataclass(frozen=True, slots=True)

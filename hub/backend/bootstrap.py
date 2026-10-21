@@ -7,6 +7,9 @@ if TYPE_CHECKING:
     from .runtime import HubConfig
 
 
+GRAPH_ENGINE_NAME = "graph"
+
+
 def create_backend(config: "HubConfig"):
     # Heavy imports and construction happen on the backend thread, not in .ishrc.
     from llm.llm import LargeLanguageModel, BackendServices, ProviderDiagnostics
@@ -40,10 +43,10 @@ def create_backend(config: "HubConfig"):
     diagnostics = ProviderDiagnostics(error_details=True,
         request_summary=general.provider_request_summary, max_detail_chars=general.provider_max_detail_chars)
     factories = {"loop": HubLoopEngine, **(config.engine_factories if config.engine_factories is not None else {})}
-    if config.engine not in factories and config.engine != "graph":
+    if config.engine not in factories and config.engine != GRAPH_ENGINE_NAME:
         raise ValueError("Register the selected engine in HubConfig.engine_factories")
     engines = {name: factory() for name, factory in factories.items()}
-    engines.setdefault("graph", GraphEngine(handlers={
+    engines.setdefault(GRAPH_ENGINE_NAME, GraphEngine(handlers={
         "agent": AgentNode(engines={"loop": engines["loop"]}), "tool": ToolNode()}))
     if config.auto_title:
         engines[TITLE_ENGINE] = TitleEngine()
@@ -57,7 +60,7 @@ def create_backend(config: "HubConfig"):
     components = {component.name: component for component in
                   (ToolComponent(), HubSkillComponent(), MCPComponent(), HubRAGComponent(), VisionComponent(),
                    HubAgentComponent(engines=engines),
-                   HubWorkflowComponent(handlers=getattr(engines["graph"], "handlers", {})), MemoryComponent(),
+                   HubWorkflowComponent(handlers=getattr(engines[GRAPH_ENGINE_NAME], "handlers", {})), MemoryComponent(),
                    HubGoalComponent(), RefinementComponent(), PromptComponent(),
                    HubBuiltinTools(config.file_root, test_root=Path(config.workspace).expanduser() / ".hub" / "test-workspaces"))}
     for factory in config.component_factories if config.component_factories is not None else ():

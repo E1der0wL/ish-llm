@@ -156,6 +156,10 @@ class ChoiceField(SettingField):
 
 
 class SchemaForm:
+    CONFIG_PATH = ("config",)
+    POLICY_PATH = ("policy",)
+    PROJECT_POLICY_PATH = (*CONFIG_PATH, "policies")
+
     def __init__(self, schema, values, t, *, prefix=(), effective=None):
         self.schema, self.original, self.t = schema, deepcopy(values), t
         # 적용값은 고정 경로와 확장 키 조회에만 사용하고 저장할 값과 혼합하지 않는다.
@@ -210,7 +214,7 @@ class SchemaForm:
             for key, spec in properties.items():
                 self._walk(spec, (*path, key))
         else:
-            if not schema.get("description") and (self.prefix or path[:1] == ("config",)):
+            if not schema.get("description") and (self.prefix or path[:1] == SchemaForm.CONFIG_PATH):
                 schema = {**schema, "description": self.t("settings_option_description", name=".".join(path))}
             field_type = ChoiceField if "x-hub-choices" in schema else SettingField
             field = field_type(schema.get("title", ".".join(path)), schema, at_path(self.original, path), self.t,

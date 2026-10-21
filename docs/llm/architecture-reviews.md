@@ -31,7 +31,8 @@
 분류 파일이 바뀌면 이 검사기의 성공·실패 사례도 검증한다.
 
 ```bash
-python -m tests.llm.check_architecture --require S1 --output artifacts/architecture.json
+# 현재 CI 필수 규칙: P1의 S1–S5 게이트를 이후에도 유지한다.
+python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --output artifacts/architecture.json
 # P1 종료: S1–S5의 모든 후보를 해결하거나 개별 근거로 분류해야 한다.
 python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5
 # A 종료: S6도 실제로 해결한 뒤 전체 엄격 검사
