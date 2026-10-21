@@ -13,6 +13,59 @@ P1-b와 P1-c의 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 �
 따른다. 세 번째 Provider 계약군은 별도 커밋으로 보존한다. A–F는 미착수이며 P1 전체 완료를 뜻하지 않는다.
 main·이전 backend 브랜치·Draft PR #1을 변경하거나 이전 구현을 가져오지 않는다.
 
+## P1-c6: Tool 실패 분류 선언과 c4–c6 묶음 Level 3
+
+c4 `0af28d0`·c5 `7a51b88`의 독립 로컬 검증/커밋에 이어 ToolExecutionError가 NO_EFFECT,
+UNCERTAIN_EFFECT, EFFECTS와 기존 code를 소유하도록 정리했다. ToolExecutor 재시도/중단 기록,
+Loop 복구, Worker 인코더/디코더, MCP·파일 Tool 소비자가 같은 선언을 쓴다. IPC의 오류 code와
+효과 분류 값, 엄격한 bool·무효과 증거 요구, 승인·누적 예산·재개·불확실 효과의 의미는 그대로다.
+안전한 재시도 여부의 OR는 같은 순서의 명시 조건 분기로 표현했다. 검사 예외나 새 호환 계층은 없다.
+InspectionError는 별도 검사 경계가 소유한 오류 선언으로 유지하며 실행 효과 권한으로 쓰지 않는다.
+
+이전 backend `bb0946257ab6bcabb9a3ef04d3d854e5333b07d5`의 해당 ToolExecutionError 생성자와
+retry의 unknown/uncertain·수정 예산·취소 시험 이름만 선택적으로 비교했다. 같은 알고리즘/시험이
+현재에도 있어 다시 이식하거나 복사하지 않았다. 기존 실제 Worker taxonomy·IPC 오류·파일 효과·
+중단 후 재시작·승인 전 spawn 금지·retry/repair/Resume 시험을 그대로 재사용했다. 상수 이동을
+흉내 내는 시험은 추가하지 않았고 기존 Assertion·효과 횟수·실패 주입은 모두 유지했다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c6-focused-1` llm | 107/107 | 107 | 0/0/0 | 48.378초 | 0 |
+| `c4-c6-level3` llm | 2073/2073 | 2073 | 0/0/0 | 733.084초 | 0 |
+| `c4-c6-level3` hub | 559/559 | 559 | 0/0/0 | 713.474초 | 0 |
+
+모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+c6 집중 5개 모듈 뒤 공통 Tool 경계의 모든 직접/간접 소비자를 함께 검증하기 위해 Level 3으로
+승격했다. 별도 c6 Level 2를 중복 실행하지 않고 **현재 통합 소스의 전체 LLM/Hub**가 해당 계약·
+통합·안전성 범위를 포함하도록 했다. c4/c5의 서로 다른 소스 결과를 합산한 전체 성공이 아니다.
+새 전체 게이트는 Memory와 Tool 실패 선언의 통합 상태를 검증한다. P1의 나머지 owner·현재 Schema/
+Naming 정리는 남아 있으며, 이 게이트를 P1 전체·A–F 완료로 보고하지 않는다.
+
+정적 c6-static-final은 new/stale/S1 미해결 0, debt 464, exit 0이다. 실제 해결한 19개 항목만
+기준에서 제거했다. c4–c6 전체에서 54개를 해결했으며 다른 owner/계약의 후보를 예외로 승인하지
+않았다. Runtime의 남은 승인 종류·관측 상태·checkpoint 레코드/키·범위 선언은 후속 P1 범위다.
+R3 실제 효과 mutation 검출 True, outer exit 0이며 의도한 inner failure를 보존했다.
+문서 검사 131/182/955/34, 오류 0, exit 0이며 실제 host/UID/bwrap 및 Hub X11 환경 검사도 각각
+성공했다. GitHub 필수 전체 job과 test ID 배정을 변경하지 않았다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c4-c6-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c4-c6-level3/hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/p1/c6-static-final.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c6-docs.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c4-c6-level3/environment-llm.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c4-c6-level3/environment-hub.json
+```
+
+전체 게이트 전후 694개 Python 소스 hash `1da2970bc5ed13df1da89b6e5e99ce66df914db119f2a3c848e5e6747dc452d1`,
+854개 입력/환경 hash `b36c0bcdf8bd03a73da4494d0690d828cdd5a18c43523a3541b303b780bbce61`가 각각 동일했다.
+Python 3.12.14/136개 의존성, 실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`, 기존
+TERM/LiteLLM/Xvfb/xclip 환경을 유지했다. 실행별 명령·exit·JSON/로그·해결한 후보는
+`/workspace/llm-clean-resume/p1/`에 보존했다. 검증 후 문서를 먼저 갱신하고 소스 동일성을
+다시 확인하여 작업 브랜치에 묶음 Push한다. main·이전 backend·Draft PR #1은 변경하지 않는다.
+원격 CI는 해당 Push SHA의 실제 결과를 확인하지 못했으므로 미확인이다.
+
 ## P1-c5: Memory 처리 설정·압축 상태 선언 — 로컬 Level 2
 
 c4 로컬 커밋 `0af28d0` 다음 계약군이다. MemoryProcessor의 처리 옵션 Schema를 Component의

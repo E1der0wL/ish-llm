@@ -29,11 +29,11 @@ class RemoteTool:
     async def __call__(self, arguments):
         definition, version, connector, revision = await self.data._async_call(self.data._connection, self.server)
         if (version, revision) != (self.snapshot["version"], self.snapshot["connector"]):
-            raise ToolExecutionError("MCP definition changed; prepare and submit again", effect="none")
+            raise ToolExecutionError("MCP definition changed; prepare and submit again", effect=ToolExecutionError.NO_EFFECT)
         async with connector(definition) as tools:
             tool = tools.get(self.descriptor["name"])
             if tool_snapshot(tool) != self.descriptor:
-                raise ToolExecutionError("MCP Tool contract changed; prepare and submit again", effect="none")
+                raise ToolExecutionError("MCP Tool contract changed; prepare and submit again", effect=ToolExecutionError.NO_EFFECT)
             return await tool.handler(arguments)
 
 

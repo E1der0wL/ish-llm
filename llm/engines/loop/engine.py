@@ -483,7 +483,7 @@ class LoopEngine(BaseEngine):
                         yield EngineEvent(EngineEventType.PAUSED, metadata={"checkpoint": "loop", "tool_key": key})
                         return
                     except ToolExecutionError as error:
-                        if durable and error.effect == "none":
+                        if durable and error.effect == ToolExecutionError.NO_EFFECT:
                             yield self._record(key, {"status": "not_applied", "error": str(error)})
                         raise
                 else:

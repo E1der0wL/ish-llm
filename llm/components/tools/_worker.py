@@ -57,7 +57,7 @@ async def dispatch(request):
         raise
     except Exception as error:
         if isinstance(error, ToolExecutionError):
-            record = {"kind": "tool_execution", "message": str(error), "code": "tool_failed",
+            record = {"kind": "tool_execution", "message": str(error), "code": ToolExecutionError.code,
                       "effect": error.effect, "retryable": error.retryable, "recoverable": error.recoverable}
         elif stable_error_code(error):
             record = {"kind": "coded", "code": stable_error_code(error), "message": str(error)}

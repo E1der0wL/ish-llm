@@ -61,16 +61,16 @@ def _decode(payload, operation):
     kind, message = error.get("kind"), error["message"]
     if kind == "inspection" and operation == "inspect":
         raise InspectionError(message)
-    if kind == "tool_execution" and error.get("code") == "tool_failed":
-        if (error.get("effect") not in ("none", "uncertain") or type(error.get("retryable")) is not bool
+    if kind == "tool_execution" and error.get("code") == ToolExecutionError.code:
+        if (error.get("effect") not in ToolExecutionError.EFFECTS or type(error.get("retryable")) is not bool
                 or type(error.get("recoverable")) is not bool
-                or error.get("recoverable") and error.get("effect") != "none"):
+                or error.get("recoverable") and error.get("effect") != ToolExecutionError.NO_EFFECT):
             raise WorkerError("tool_worker_protocol", "Invalid Tool failure classification")
         raise ToolExecutionError(message, effect=error["effect"], retryable=error["retryable"], recoverable=error["recoverable"])
     if kind == "coded" and isinstance(error.get("code"), str) and error["code"].strip():
         raise RemoteToolError(error["code"], message)
     if kind == "unknown":
-        raise ToolExecutionError(message, effect="uncertain", retryable=False)
+        raise ToolExecutionError(message, effect=ToolExecutionError.UNCERTAIN_EFFECT, retryable=False)
     raise WorkerError("tool_worker_protocol", "Unknown Tool worker error envelope")
 
 

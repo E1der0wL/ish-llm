@@ -156,6 +156,9 @@ stdout/stderr print는 protocol FD와 분리된다. capture 1 MiB, protocol 8 Mi
 
 오류 경계는 ToolExecutionError(effect/retryable/recoverable 보존), trusted CodedError(code 보존),
 unknown(tool_failed/uncertain/nonretryable), infrastructure의 네 종류다.
+ToolExecutionError가 오류 code와 NO_EFFECT/UNCERTAIN_EFFECT·허용 집합을 소유한다.
+Worker 인코더/디코더, 재시도·Loop 복구, 파일/MCP 실패 소비자가 같은 선언을 사용한다.
+none은 효과 부재의 명시 증거일 때만 허용하며, code 자체는 재실행 권한을 만들지 않는다.
 infrastructure code는 tool_worker_failed / tool_worker_protocol / tool_worker_output_limit이다.
 CancelledError는 일반 Tool 실패로 변환하지 않는다. full traceback이나 원시 출력은 telemetry에 넣지 않는다.
 

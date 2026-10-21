@@ -52,11 +52,13 @@ class ToolExecutionError(CodedError, RuntimeError):
     """핸들러가 보장하는 실패 분류. 효과가 없다는 증거가 있을 때만 effect='none'을 사용한다."""
 
     code = "tool_failed"
+    NO_EFFECT, UNCERTAIN_EFFECT = "none", "uncertain"
+    EFFECTS = (NO_EFFECT, UNCERTAIN_EFFECT)
 
-    def __init__(self, message: str, *, effect="uncertain", retryable=False, recoverable=False):
-        if effect not in ("none", "uncertain") or type(retryable) is not bool:
+    def __init__(self, message: str, *, effect=UNCERTAIN_EFFECT, retryable=False, recoverable=False):
+        if effect not in ToolExecutionError.EFFECTS or type(retryable) is not bool:
             raise ValueError("Invalid Tool failure classification")
-        if type(recoverable) is not bool or recoverable and effect != "none":
+        if type(recoverable) is not bool or recoverable and effect != ToolExecutionError.NO_EFFECT:
             raise ValueError("Recoverable Tool errors require confirmed absence of effects")
         super().__init__(message)
         self.effect, self.retryable = effect, retryable
@@ -64,7 +66,7 @@ class ToolExecutionError(CodedError, RuntimeError):
 
     @property
     def diagnostic(self):
-        return Diagnostic("tool_failed", str(self), details={"effect": self.effect, "retryable": self.retryable,
+        return Diagnostic(ToolExecutionError.code, str(self), details={"effect": self.effect, "retryable": self.retryable,
             **({"recoverable": True} if self.recoverable else {})})
 
 
@@ -389,9 +391,9 @@ class ToolExecutor:
             # 명시적 재개도 이미 실행한 시도의 번호를 재사용하여 한도를 초기화하지 않는다.
             state["attempt"] += 1
             previous = state["last_error"] or {"code": "tool_interrupted", "message": "Previous attempt was interrupted",
-                "effect": "uncertain", "arguments": deepcopy(state["arguments"])}
+                "effect": ToolExecutionError.UNCERTAIN_EFFECT, "arguments": deepcopy(state["arguments"])}
             state["failures"].append({**previous, "attempt": state["attempt"]})
-            state["uncertain"] = state["uncertain"] or previous["effect"] != "none"
+            state["uncertain"] = state["uncertain"] or previous["effect"] != ToolExecutionError.NO_EFFECT
             state["pending"] = True
         return state
 
@@ -584,27 +586,29 @@ class ToolExecutor:
                                     _tool_call.reset(token)
                         break
                     except Exception as error:
-                        uncertain_attempt = uncertain_attempt or not (isinstance(error, ToolExecutionError) and error.effect == "none")
-                        safe = (isinstance(error, ToolExecutionError) and error.effect == "none"
-                                or tool.name in scope.runtime.retry_safe_tools)
+                        uncertain_attempt = uncertain_attempt or not (isinstance(error, ToolExecutionError) and error.effect == ToolExecutionError.NO_EFFECT)
+                        if isinstance(error, ToolExecutionError) and error.effect == ToolExecutionError.NO_EFFECT:
+                            safe = True
+                        else:
+                            safe = tool.name in scope.runtime.retry_safe_tools
                         retryable = isinstance(error, ToolExecutionError) and error.retryable
                         repairable = (isinstance(error, ToolExecutionError) and error.recoverable
                                       and not uncertain_attempt and bool(tool.contract.retry_fields))
-                        if isinstance(error, ToolExecutionError) and error.effect == "none" and not uncertain_attempt and call.operation_key is not None:
+                        if isinstance(error, ToolExecutionError) and error.effect == ToolExecutionError.NO_EFFECT and not uncertain_attempt and call.operation_key is not None:
                             try:
                                 await scope.operations.not_applied(call, str(error))
                             except Exception as persistence_error:
                                 raise RuntimeError("Could not persist the no-effect Tool receipt") from persistence_error
                         retry_state.update(uncertain=uncertain_attempt, last_error={
-                            "code": stable_error_code(error) or "tool_failed", "message": str(error),
-                            "effect": "uncertain" if uncertain_attempt else "none", "arguments": deepcopy(arguments)})
+                            "code": stable_error_code(error) or ToolExecutionError.code, "message": str(error),
+                            "effect": ToolExecutionError.UNCERTAIN_EFFECT if uncertain_attempt else ToolExecutionError.NO_EFFECT, "arguments": deepcopy(arguments)})
                         if scope.max_retries is not None:
                             event = self._retry_event(retry_state, metadata, request_key)
                             if event is not None:
                                 yield event
                         if not safe or not (retryable or repairable) or not retry.allows(attempt + 1):
-                            if isinstance(error, ToolExecutionError) and error.effect == "none" and uncertain_attempt:
-                                raise ToolExecutionError(str(error), effect="uncertain") from error
+                            if isinstance(error, ToolExecutionError) and error.effect == ToolExecutionError.NO_EFFECT and uncertain_attempt:
+                                raise ToolExecutionError(str(error), effect=ToolExecutionError.UNCERTAIN_EFFECT) from error
                             raise
                         fields = tool.contract.retry_fields if repairable else ()
                         async with timeout(retry.remaining()):
@@ -669,9 +673,9 @@ class ToolExecutor:
             raise
         except ToolApprovalRequired as request:
             if authorized:
-                error = ToolExecutionError("Approval requests must originate before Tool execution", effect="uncertain")
-                yield BaseEngine.step_failed_event(step_id, error, code="tool_failed",
-                    metadata={"phase": "failed", "error_code": "tool_failed"})
+                error = ToolExecutionError("Approval requests must originate before Tool execution", effect=ToolExecutionError.UNCERTAIN_EFFECT)
+                yield BaseEngine.step_failed_event(step_id, error, code=ToolExecutionError.code,
+                    metadata={"phase": "failed", "error_code": ToolExecutionError.code})
                 raise error from request
             # 표시용 문구와 실제 실행 대상은 분리한다. 호출자 제공 source/action은 신뢰하지 않는다.
             request.request = replace(request.request, **call.classification,
@@ -686,9 +690,9 @@ class ToolExecutor:
         except Exception as error:
             if isinstance(error, asyncio.TimeoutError):
                 error = ExecutionLimitError("tool_timeout", "Tool execution or authorization timed out")
-            yield BaseEngine.step_failed_event(step_id, error, code="tool_failed",
+            yield BaseEngine.step_failed_event(step_id, error, code=ToolExecutionError.code,
                 message=f"Tool execution failed: {error}",
-                metadata={"phase": "failed", "error_code": getattr(error, "code", "tool_failed")})
+                metadata={"phase": "failed", "error_code": getattr(error, "code", ToolExecutionError.code)})
             raise error
         yield EngineEvent(EngineEventType.STEP_COMPLETED, step_id=step_id,
                           output=EngineOutput(step_id, data=value, step_id=step_id, visibility="internal"),
@@ -751,7 +755,7 @@ class ToolExecutor:
                 status = "cancelled"
             raise
         except Exception as error:
-            status, code = "failed", stable_error_code(error) or "tool_failed"
+            status, code = "failed", stable_error_code(error) or ToolExecutionError.code
             raise
         finally:
             record("tools", status, code=code, name=tool.name, duration_seconds=time.monotonic() - started)

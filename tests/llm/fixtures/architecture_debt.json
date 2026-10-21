@@ -68,22 +68,6 @@
       "detail": "verify exact version type and declaration reference"
     },
     {
-      "id": "027a3395c1fca38393d3b9c7dd29058f42e6e6a2342a91322f4a9df1a31862bf:1",
-      "rule": "S3",
-      "file": "llm/components/mcp/data.py",
-      "symbol": "RemoteTool.__call__",
-      "line": 32,
-      "detail": "inline domain argument: effect"
-    },
-    {
-      "id": "027a3395c1fca38393d3b9c7dd29058f42e6e6a2342a91322f4a9df1a31862bf:2",
-      "rule": "S3",
-      "file": "llm/components/mcp/data.py",
-      "symbol": "RemoteTool.__call__",
-      "line": 36,
-      "detail": "inline domain argument: effect"
-    },
-    {
       "id": "1e3f428c7d6e189f3cc9ff4338431e93d3260caf67ebf30d1ddd0301f7632680:1",
       "rule": "S4",
       "file": "llm/components/mcp/data.py",
@@ -500,14 +484,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "4a960aab660b470eb2051aa7b322e9b5f4a5d73215330c2680284c5c7a94faef:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/files.py",
-      "symbol": "FileTools.file_read",
-      "line": 97,
-      "detail": "inline domain argument: effect"
-    },
-    {
       "id": "892162182533d6d2b4cf77c3141d9ae83c787182c871c5ce2f0f1fc9c96582b7:1",
       "rule": "S3",
       "file": "llm/components/tools/builtin/processes.py",
@@ -546,30 +522,6 @@
       "symbol": "ToolComponent",
       "line": 18,
       "detail": "inline domain argument: config"
-    },
-    {
-      "id": "96435218abb088092a89361f2d879ff0572c79065f0cb76327be75a6692206fe:1",
-      "rule": "S3",
-      "file": "llm/components/tools/process.py",
-      "symbol": "_decode",
-      "line": 65,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "9cada31055b9ee9873e8f1026f7427cb6df75fc31d0e6eeb66f878e150ab6a7a:1",
-      "rule": "S3",
-      "file": "llm/components/tools/process.py",
-      "symbol": "_decode",
-      "line": 67,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "a51de2b9d8d8a4af1a83819d71786ed85750a9367ff07dac52005ef4b14fa4af:1",
-      "rule": "S3",
-      "file": "llm/components/tools/process.py",
-      "symbol": "_decode",
-      "line": 73,
-      "detail": "inline domain argument: effect"
     },
     {
       "id": "886212a99b99e927e1a7fa535a3cad55379d94664dda115704c64b4d4c6937f3:1",
@@ -1186,14 +1138,6 @@
       "symbol": "LoopEngine._iterate",
       "line": 471,
       "detail": "inline domain field: status"
-    },
-    {
-      "id": "7f2d55841f7176c829d060201cf537f8143f5c5b4c5dd3d9fd726196b8215eb6:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._iterate",
-      "line": 477,
-      "detail": "inline domain comparison"
     },
     {
       "id": "ea81ae1017bbd588daf4142c69c8963b2760ca6d8c2ef37a90bb24a76f1a902a:1",
@@ -1924,22 +1868,6 @@
       "detail": "inline domain field: status"
     },
     {
-      "id": "9cf428e3c07d4c3285341ec977ab0de2066d6253a54e75f0966a651520010bf6:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutionError.__init__",
-      "line": 53,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "449f821c9c521f71db21c5a11e58b253bf13b6322c146ffbc283e1b1b251ad76:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutionError.__init__",
-      "line": 55,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "566e0e482f03f1d9dfaa1db77f59dab17a5c352f1063079fcf8ccc679145f63a:1",
       "rule": "S3",
       "file": "llm/services/runtime/tools.py",
@@ -2004,22 +1932,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "54d744c30a27a98234ab0a7f6c2d70057d44c18ca14f91ce301390ffe1f4369f:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._retry_state",
-      "line": 333,
-      "detail": "inline domain field: effect"
-    },
-    {
-      "id": "740575ac77b7b6cb8c7f1eab970bce6431b1732464ec2303e9919713868624d0:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._retry_state",
-      "line": 335,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "7b3e84de404848949293bf89a32c158c9da2be4ed7466f4619e844a6f6f0fad8:1",
       "rule": "S3",
       "file": "llm/services/runtime/tools.py",
@@ -2058,70 +1970,6 @@
       "symbol": "ToolExecutor._request_state",
       "line": 385,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "16fe96b6d5e143e07c70e67c76410c747f9896199d65cc50a4dd1cd5c5025668:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._execute",
-      "line": 528,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "1dac03efa7d3084f9a43e56a22bc40640e7072c1e6c14aaf74fb41b68ccbfb70:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._execute",
-      "line": 529,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "16fe96b6d5e143e07c70e67c76410c747f9896199d65cc50a4dd1cd5c5025668:2",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._execute",
-      "line": 529,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "16fe96b6d5e143e07c70e67c76410c747f9896199d65cc50a4dd1cd5c5025668:3",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._execute",
-      "line": 534,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "16fe96b6d5e143e07c70e67c76410c747f9896199d65cc50a4dd1cd5c5025668:4",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._execute",
-      "line": 547,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "355fa953f8bf9c40aad9f977eb72a36bd84d28808258002f04fd055136c578ea:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._execute",
-      "line": 548,
-      "detail": "inline domain argument: effect"
-    },
-    {
-      "id": "355fa953f8bf9c40aad9f977eb72a36bd84d28808258002f04fd055136c578ea:2",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._execute",
-      "line": 613,
-      "detail": "inline domain argument: effect"
-    },
-    {
-      "id": "eabfc14660ab16dfa89a4936fed8fd60d5f0bd0c7a50ec454f51f289d0d625ff:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._execute",
-      "line": 615,
-      "detail": "inline domain field: error_code"
     },
     {
       "id": "c6d9ebf72e0d179bf79beed05fa8f7bfc995a4c62d226b04a3b5c48ca6de1d7a:1",
