@@ -8,7 +8,7 @@ from llm.services.runtime.tools import current_tool_call
 
 
 def waiting_status(questions):
-    return "waiting_approval" if any(item["request"].get("kind") == "approval" for item in questions) else "waiting_input"
+    return "waiting_approval" if any(item["request"].get("kind") == InteractionRequest.KIND_APPROVAL for item in questions) else "waiting_input"
 
 
 @dataclass(slots=True)
@@ -30,7 +30,7 @@ class QuestionBroker:
         if call is None or not call.session_id:
             raise RuntimeError("ask_user requires an active Run")
         request = InteractionRequest(arguments["question"],
-            (InteractionOption("reply", "Reply"),), kind="input", category="hub.question",
+            (InteractionOption("reply", "Reply"),), kind=InteractionRequest.KIND_INPUT, category="hub.question",
             description=arguments.get("description", ""), input_schema={"type": "string", "minLength": 1},
             source={"choices": arguments.get("choices", [])})
         future = asyncio.get_running_loop().create_future()

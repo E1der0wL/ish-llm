@@ -52,10 +52,15 @@ def same_interaction_value(left: Any, right: Any) -> bool:
 class InteractionOption:
     """표시용 선택지와 엔진에 전달할 JSON 값. effect는 승인/거절 등의 의미를 나타낸다."""
 
+    # Common effects have one declaration; application-defined effects remain open text.
+    EFFECT_SELECT: ClassVar[str] = "select"
+    EFFECT_APPROVE: ClassVar[str] = "approve"
+    EFFECT_DENY: ClassVar[str] = "deny"
+
     id: str
     label: str
     description: str = ""
-    effect: str = "select"
+    effect: str = EFFECT_SELECT
     value: Any = None
 
     def __post_init__(self) -> None:
@@ -81,14 +86,25 @@ class InteractionRequest:
 
     ID_LENGTH: ClassVar[int] = 32
     FINGERPRINT_LENGTH: ClassVar[int] = hashlib.sha256().digest_size * 2
+    KIND_APPROVAL: ClassVar[str] = "approval"
+    KIND_CONFIRMATION: ClassVar[str] = "confirmation"
+    KIND_CHOICE: ClassVar[str] = "choice"
+    KIND_INPUT: ClassVar[str] = "input"
+    KINDS: ClassVar[tuple[str, ...]] = (KIND_APPROVAL, KIND_CONFIRMATION, KIND_CHOICE, KIND_INPUT)
+    PRIORITY_LOW: ClassVar[str] = "low"
+    PRIORITY_NORMAL: ClassVar[str] = "normal"
+    PRIORITY_HIGH: ClassVar[str] = "high"
+    PRIORITY_URGENT: ClassVar[str] = "urgent"
+    PRIORITIES: ClassVar[tuple[str, ...]] = (PRIORITY_LOW, PRIORITY_NORMAL, PRIORITY_HIGH, PRIORITY_URGENT)
+    DEFAULT_CATEGORY: ClassVar[str] = "tool.execute"
 
     title: str
     options: tuple[InteractionOption, ...]
     id: str = field(default_factory=new_id)
     revision: int = 1
-    kind: str = "approval"
-    category: str = "tool.execute"
-    priority: str = "normal"
+    kind: str = KIND_APPROVAL
+    category: str = DEFAULT_CATEGORY
+    priority: str = PRIORITY_NORMAL
     risk: Optional[int] = None
     risk_scheme: Optional[str] = None
     description: str = ""
@@ -107,9 +123,9 @@ class InteractionRequest:
             raise ValueError("Interaction revision must be positive")
         if not isinstance(self.title, str) or not self.title or not isinstance(self.description, str):
             raise ValueError("Interaction title/description must be text")
-        if self.kind not in ("approval", "confirmation", "choice", "input") or self.status not in InteractionStatus:
+        if self.kind not in InteractionRequest.KINDS or self.status not in InteractionStatus:
             raise ValueError("Invalid interaction kind/status")
-        if self.priority not in ("low", "normal", "high", "urgent"):
+        if self.priority not in InteractionRequest.PRIORITIES:
             raise ValueError("Invalid interaction priority")
         validate_risk(self.risk_scheme, self.risk)
         if not isinstance(self.category, str) or not self.category:
@@ -180,9 +196,9 @@ class InteractionRequest:
         if option is None:
             raise ValueError("Unknown interaction option")
         decision = deepcopy(option.value)
-        if option.effect == "deny" and value is not None:
+        if option.effect == InteractionOption.EFFECT_DENY and value is not None:
             raise ValueError("Denial cannot include input")
-        if option.effect != "deny" and self.input_schema is not None:
+        if option.effect != InteractionOption.EFFECT_DENY and self.input_schema is not None:
             try:
                 Draft202012Validator(self.input_schema).validate({} if value is None else value)
             except ValidationError as error:
@@ -216,8 +232,8 @@ class InteractionRequest:
         value = deepcopy(decision)
         input_key = self.binding.get("input_key")
         supplied = value.pop(input_key, None) if input_key and isinstance(value, dict) else None
-        if confirm_empty and self.kind == "confirmation" and value == {}:
-            options = [o for o in self.options if o.effect == "approve"]
+        if confirm_empty and self.kind == InteractionRequest.KIND_CONFIRMATION and value == {}:
+            options = [o for o in self.options if o.effect == InteractionOption.EFFECT_APPROVE]
         else:
             options = [o for o in self.options if same_interaction_value(o.value, value)]
         if not options:
@@ -234,7 +250,7 @@ class InteractionRequest:
         Option IDs are presentation identities, not execution semantics. Required
         input belongs to the caller; no input or choice may be invented here.
         """
-        options = [option for option in self.options if option.effect == "approve"]
+        options = [option for option in self.options if option.effect == InteractionOption.EFFECT_APPROVE]
         if len(options) != 1:
             return None
         try:
@@ -310,12 +326,13 @@ def validate_risk(scheme, risk):
 
 
 def approval_request(title: str, *, description: str = "", source: Optional[dict] = None,
-                     action: Optional[dict] = None, category: str = "tool.execute",
+                     action: Optional[dict] = None, category: str = InteractionRequest.DEFAULT_CATEGORY,
                      risk: Optional[int] = None, risk_scheme: Optional[str] = None) -> InteractionRequest:
     return InteractionRequest(title, (
-        InteractionOption("approve", "승인", effect="approve", value=True),
-        InteractionOption("deny", "거절", effect="deny", value=False)),
-        description=description, source=source or {}, action=action or {}, category=category,
+        InteractionOption("approve", "승인", effect=InteractionOption.EFFECT_APPROVE, value=True),
+        InteractionOption("deny", "거절", effect=InteractionOption.EFFECT_DENY, value=False)),
+        description=description, source={} if source is None else source,
+        action={} if action is None else action, category=category,
         risk=risk, risk_scheme=risk_scheme)
 
 

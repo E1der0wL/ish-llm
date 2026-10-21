@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from datetime import datetime
 
 from llm.core.interactions import (
-    InteractionRequest, InteractionResponse, InteractionStatus, InteractionView,
+    InteractionOption, InteractionRequest, InteractionResponse, InteractionStatus, InteractionView,
     approval_request, same_interaction_value,
 )
 from llm.core.checkpoints import CheckpointStatus
@@ -301,7 +301,7 @@ class InteractionRepository:
                     if key not in retries:
                         retries.append(key)
                 continue
-            if response is None and key not in decisions and confirm and request.kind == "confirmation":
+            if response is None and key not in decisions and confirm and request.kind == InteractionRequest.KIND_CONFIRMATION:
                 option = request.find_approval()
                 if option is None:
                     raise ValueError("Confirmation requires an explicit option and any required input")
@@ -348,7 +348,7 @@ class InteractionRepository:
                 status, reason = "expired", "request_expired"
             elif response is not None:
                 option = next(o for o in request.options if o.id == response.option_id)
-                status = "denied" if option.effect == "deny" else "answered"
+                status = "denied" if option.effect == InteractionOption.EFFECT_DENY else "answered"
             else:
                 status = "pending"
             views.append(InteractionView(request, response, status, status == "pending",

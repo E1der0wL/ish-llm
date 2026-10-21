@@ -17,7 +17,7 @@ from llm.services.infrastructure.observability import record
 from llm.core.configuration import UNSET
 from llm.core.models import ProjectConfig, new_id
 from llm.core.results import EngineOutput
-from llm.core.interactions import InteractionRequest, approval_request, same_interaction_value
+from llm.core.interactions import InteractionOption, InteractionRequest, approval_request, same_interaction_value
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.policies import ExecutionLimitError
 from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
@@ -76,9 +76,9 @@ class ToolApprovalRequired(RuntimeError):
     def __init__(self, message="Tool 실행 승인", *, request: Optional[InteractionRequest] = None):
         if request is not None and not isinstance(request, InteractionRequest):
             raise TypeError("request must be an InteractionRequest")
-        self.request = InteractionRequest.from_dict(request.to_dict()) if request else approval_request(str(message))
-        if self.request.kind != "approval" or self.request.input_schema is not None or any(
-                type(o.value) is not bool or o.effect != ("approve" if o.value else "deny")
+        self.request = InteractionRequest.from_dict(request.to_dict()) if request is not None else approval_request(str(message))
+        if self.request.kind != InteractionRequest.KIND_APPROVAL or self.request.input_schema is not None or any(
+                type(o.value) is not bool or o.effect != (InteractionOption.EFFECT_APPROVE if o.value else InteractionOption.EFFECT_DENY)
                 for o in self.request.options):
             raise ValueError("Tool approval options must be boolean and cannot modify arguments")
         super().__init__(self.request.title)
@@ -428,7 +428,7 @@ class ToolExecutor:
 
         def tool_approval(record):
             interaction = record.get("interaction", {})
-            return (record.get("status") == "waiting" and interaction.get("kind") == "approval"
+            return (record.get("status") == "waiting" and interaction.get("kind") == InteractionRequest.KIND_APPROVAL
                     and "tool" in interaction.get("action", {})
                     and "arguments" in interaction.get("action", {}))
 
@@ -443,7 +443,8 @@ class ToolExecutor:
             # 승인 유효성 검사는 InteractionResponse/Engine resume가 계속 소유한다.
             try:
                 selected, _ = InteractionRequest.from_dict(interaction).select_decision(stored_decision)
-                stored_decision = selected.effect == "approve" if selected.effect in ("approve", "deny") else None
+                stored_decision = (selected.effect == InteractionOption.EFFECT_APPROVE
+                    if selected.effect in (InteractionOption.EFFECT_APPROVE, InteractionOption.EFFECT_DENY) else None)
             except (ValueError, TypeError, KeyError) as error:
                 raise ToolInvocationError("Durable Tool approval has an invalid interaction decision") from error
         if decision is UNSET:

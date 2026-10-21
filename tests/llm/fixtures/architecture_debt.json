@@ -516,70 +516,6 @@
       "detail": "SDK-shaped field lookup outside Provider package"
     },
     {
-      "id": "445b48177a9f19b6ca77261e63bcc355429f63ce9aeca6c5fa53ea371a70b07b:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionOption",
-      "line": 27,
-      "detail": "inline domain assignment: effect"
-    },
-    {
-      "id": "cc40b04491b7bbf850a67036d67f5c49d0cce5f08d9521f6ec62b5b2d469df20:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionRequest.__post_init__",
-      "line": 77,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "fa87ae6bc71f8ba368a60f99e3c3962780316da7a50f9f07b2c0d6c98595f475:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionRequest.decision_for",
-      "line": 132,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "bee08a5b4ee82daea3b9e25aa01afe5531b01c88d54afb4cdfa4c30a54d9e6af:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionRequest.decision_for",
-      "line": 134,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "6451f88e1606efc756aa6eb426f38fc3333461b77a79afe7310188e6e2792481:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionRequest.select_decision",
-      "line": 169,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "714f1b4c13915ee4587cd3d3eb2860ddc16738763806fff3ed8d5faf66a13c38:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "InteractionRequest.find_approval",
-      "line": 186,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "bde78c3df75c802bf965251871ed0f888456eebe019f2c55dc1606fb75cca4df:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "approval_request",
-      "line": 262,
-      "detail": "inline domain argument: effect"
-    },
-    {
-      "id": "f218a91b13637062dc0544950ac8852ca186d11f0006aec0f4e71f8ad6a87085:1",
-      "rule": "S3",
-      "file": "llm/core/interactions.py",
-      "symbol": "approval_request",
-      "line": 263,
-      "detail": "inline domain argument: effect"
-    },
-    {
       "id": "216ad4938d1b5961e079721d8b326ee1735170714e2a27ee1d96355826d19ddd:1",
       "rule": "S3",
       "file": "llm/core/results.py",
@@ -682,22 +618,6 @@
       "symbol": "EngineCheckpointScope.accepted_instruction",
       "line": 115,
       "detail": "inline domain field: status"
-    },
-    {
-      "id": "832679de3643dd657805a47f734b5107f0971c6fbe8fd4dd27ade54d8b788627:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "_WorkflowRuntime._execute_node.pause",
-      "line": 450,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "ba943a1bc2e710f1080ed3505293e1e094eb88fd18ef54095edb30a568f29892:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "_WorkflowRuntime._execute_node.pause",
-      "line": 451,
-      "detail": "inline domain comparison"
     },
     {
       "id": "b94ee2186f4af0487b2540e183e4246fba7d79070474c3c864fb78b63d74a6cc:1",
@@ -1188,14 +1108,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "b37f9732c877b6ca940d62e898eed47f55b2e3b8b100c790235d3a9f6947fd82:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/interactions.py",
-      "symbol": "InteractionRepository.views",
-      "line": 218,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "914decebc34338e0d03d3b241a736044855cedc96fa5194125e2e48142c0f399:1",
       "rule": "S3",
       "file": "llm/services/runtime/interactions.py",
@@ -1412,14 +1324,6 @@
       "detail": "inline domain field: status"
     },
     {
-      "id": "566e0e482f03f1d9dfaa1db77f59dab17a5c352f1063079fcf8ccc679145f63a:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolApprovalRequired.__init__",
-      "line": 74,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "c3a2ae57c39fec98aa4534230ac9dc705cbc6e8f5f07b611560093b218802ecc:1",
       "rule": "S3",
       "file": "llm/services/runtime/tools.py",
@@ -1473,30 +1377,6 @@
       "file": "llm/services/runtime/tools.py",
       "symbol": "ToolExecutor._request_state.tool_approval",
       "line": 370,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "6fa422234d288366519b99902995b3eb25395e8021cf3c34ae791372c38d4e0c:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._request_state.tool_approval",
-      "line": 370,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "59bd851643b2019847197b02d55411448594e82d0db23b9c3996c20e7c1fbe74:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._request_state",
-      "line": 385,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "ff3e806d7cfe301b59b6a47369a3d4005e797a9d0a1f581a7b87194f53158328:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._request_state",
-      "line": 385,
       "detail": "inline domain comparison"
     },
     {
@@ -1801,14 +1681,6 @@
       "file": "hub/backend/interactions/approval.py",
       "symbol": "approval_preset",
       "line": 65,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "8396867d8edb5fcacb0680ef20e82f3bc76b280bc02d3c13ec0d7e05588ff69a:1",
-      "rule": "S3",
-      "file": "hub/backend/interactions/questions.py",
-      "symbol": "waiting_status",
-      "line": 11,
       "detail": "inline domain comparison"
     },
     {
@@ -2145,14 +2017,6 @@
       "file": "hub/backend/runtime.py",
       "symbol": "HubRuntime.resume_latest",
       "line": 435,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "fd9d56d57ce75312dc2c5e5968b64ffea9b80dbdf8f1053566cc0cf5a2a48eb0:1",
-      "rule": "S3",
-      "file": "hub/backend/runtime.py",
-      "symbol": "HubRuntime.answer_question",
-      "line": 462,
       "detail": "inline domain comparison"
     },
     {
@@ -2612,14 +2476,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "09e4712592758e0094d022a09f6fc507e0770a6c8e7c87062f78bf31bb629455:1",
-      "rule": "S3",
-      "file": "hub/widget/feedback/answer_feedback.py",
-      "symbol": "AnswerFeedback.capture",
-      "line": 26,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "dea7476b6c4ed33ee8b07b001a43ce3dbb62c6a04b9cf8ab407ea75669fc7ff4:1",
       "rule": "S3",
       "file": "hub/widget/feedback/answer_feedback.py",
@@ -2842,14 +2698,6 @@
       "symbol": "QuestionComposer.answer",
       "line": 135,
       "detail": "SDK-shaped field lookup outside Provider package"
-    },
-    {
-      "id": "87e3a8661948d3b46cdc833c87c832fe1e00148af6b23fd3af2f4a3c1dbe2bab:1",
-      "rule": "S3",
-      "file": "hub/widget/forms/question.py",
-      "symbol": "QuestionComposer.answer",
-      "line": 145,
-      "detail": "inline domain comparison"
     },
     {
       "id": "cf0a2a073e4f2c53f16849c3575c20cddbeece585f030dff4a935a0f5b9b3623:1",

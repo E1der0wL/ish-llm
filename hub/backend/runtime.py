@@ -459,7 +459,7 @@ class HubRuntime:
         return await asyncio.to_thread(review_text, request_data)
 
     async def answer_question(self, project_id, session_id, run_id, request_data, option_id, value, *, acknowledged=None):
-        from llm.core.interactions import InteractionRequest
+        from llm.core.interactions import InteractionOption, InteractionRequest
         if project_id != self.project.id:
             raise ValueError("Project changed; reload the question")
         request = InteractionRequest.from_dict(request_data)
@@ -477,7 +477,7 @@ class HubRuntime:
             self.dirty.set()
             if acknowledged:
                 acknowledged()
-            denied = next(option for option in request.options if option.id == option_id).effect == "deny"
+            denied = next(option for option in request.options if option.id == option_id).effect == InteractionOption.EFFECT_DENY
             if not await run.ainteractions(pending_only=True):
                 if not denied:
                     engine = (await run.aget_data()).engine

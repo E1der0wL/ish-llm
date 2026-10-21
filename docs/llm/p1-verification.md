@@ -15,6 +15,73 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c16: Interaction 선언과 명시 요청 보존 — 로컬 Level 2
+
+InteractionOption이 공통 effect, InteractionRequest가 kind·priority·생성 category 초기값을
+ClassVar로 한 번 선언하고 검증기·ToolExecutor·Graph·InteractionRepository·Hub 질문/거절
+소비자가 참조한다. 저장 필드는 늘지 않으며 effect/category의 Application 확장, 선택지 ID와
+effect의 구분, closed Reader·지문·만료·필수 영수증·승인/권한/예산 판단을 유지한다.
+현재 계약 문서에도 owner와 생성/저장 경계의 구분을 보강했다.
+
+입력 보존 결함을 새 시험 4개로 먼저 재현했다. 유효한 falsey InteractionRequest가 새 기본
+승인 요청으로 바뀌었고, falsey source 객체는 버려졌다. source/action의 잘못된 falsey 입력
+10종도 빈 객체로 교체되어 타입 거부를 우회했다. 결과는 1 pass·3 failed ID·12 failure·error/Skip 0이다.
+approval_request의 source/action과 ToolApprovalRequired의 명시 요청 선택 세 곳을 None 기준으로
+수정하여 기존 owner 검증에 원래 값을 전달한다. ID·source·action·지문·사용자 deny 선택과
+재열기 roundtrip을 보호하며, 임의 effect나 표시 ID로 승인을 만들지 않는 시험도 포함한다.
+수정 전후 새 시험 파일의 byte가 동일하며 원본 실패/제품 소스는 보존했다.
+
+8개 제품 파일의 AST를 대조했다. 세 Presence 수정 외에는 owner 선언·import·같은 값의 참조만
+변경됐다. 이는 영향 범위의 구조 근거이며 실제 안전성 시험을 대체하지 않는다. S3 19건이 실제
+제거됐고 새 raw 후보는 없다. 무효화된 9개 review는 각 변경 파일의 diff·기존 CAS/조건 계약과
+소비자를 재확인하고 새 owner 선언 hash를 추가했다. 전역 hash 갱신/AST 완화/새 분류는 없다.
+사전 정적 exit 1로 변경 근거를 거부한 기록도 보존한다.
+
+| 실행 | discovered/started | pass | failed ID/failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| c16-before llm | 4/4 | 1 | 3/12/0/0 | 0.006초 | 1 |
+| c16-focused llm | 82/82 | 82 | 0/0/0/0 | 14.967초 | 0 |
+| c16-level2 llm | 344/344 | 344 | 0/0/0/0 | 104.342초 | 0 |
+| c16-level2 hub | 73/73 | 73 | 0/0/0/0 | 83.893초 | 0 |
+| c16-observation llm | 22/22 | 22 | 0/0/0/0 | 5.520초 | 0 |
+
+모든 실행의 expected failure·unexpected success·missing·unexpected·duplicates는 0이며,
+재현 이후 완료 실행의 failure/error/Skip도 모두 0이다. Level 2는 owner의 Writer/Reader,
+Naming, 실제 승인/거절·Tool 선언·MCP·재시도·Graph/중첩 재개·공통 안전성 9개 모듈과 감사
+검사기, Hub 질문/응답·거절·재개·Tool 관리·이력의 직접 소비 경로를 포함한다. 추가 조사에서
+직접 Tool helper의 승인/binding 소비 경로도 확인해 test_observability 22개를 같은 고정 소스로
+실행했다. Level 2 LLM 본 실행과 test ID가 겹치지 않고 전체 발견 목록도 정확히 같다.
+실행들은 각각 selected이며 합쳐서 전체 회귀라고 하지 않는다.
+
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 413·reviewed 67·미해결 346(S2 22·S3 306·S6 18),
+new/stale/review 오류·S1/S4/S5 미해결 0/exit 0, 문서 132/182/959/34·오류 0/exit 0이다.
+원본·효과 횟수·프로세스 중단/재개·손상 거부 Assertion은 유지했다. 변경 제품 범위는 과거 통과
+결과를 재사용하지 않고 실행했다. 생성 입력의 제한된 수정과 상수 참조임을 입증하여 이번 전체
+회귀는 유예하며, 다음 관련 소단계 묶음 Level 3에서 현재 통합 소스 전체 LLM/Hub 후 Push한다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c16-before/llm.json --modules tests.llm.test_interaction_presence
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c16-focused/llm.json --modules tests.llm.test_interaction_presence tests.llm.test_interactions tests.llm.test_interaction_decisions tests.llm.test_interaction_storage tests.llm.test_naming_contract tests.llm.test_current_contracts
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c16-level2/llm.json --modules tests.llm.test_interaction_presence tests.llm.test_interactions tests.llm.test_interaction_decisions tests.llm.test_interaction_storage tests.llm.test_naming_contract tests.llm.test_current_contracts tests.llm.test_tool_declarations tests.llm.test_mcp_runtime tests.llm.test_retry tests.llm.test_long_running tests.llm.test_graph_checkpoints tests.llm.test_checkpoint_lifecycle tests.llm.test_explicit_configuration tests.llm.test_error_boundaries tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions tests.llm.test_architecture_checks tests.llm.test_architecture_reviews
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c16-level2/hub.json --modules tests.hub.test_question_tools tests.hub.test_question_card tests.hub.test_interaction_updates tests.hub.test_output_interaction tests.hub.test_approval_continuation tests.hub.test_tool_advice tests.hub.test_paused_stop tests.hub.test_retry_ui tests.hub.test_tool_history tests.hub.test_request_history
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c16-observation/llm.json --modules tests.llm.test_observability
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c16-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c16-docs-before.json
+.venv-linux312/bin/python /workspace/llm-clean-resume/p1/verify-c16-structure.py
+```
+
+기준 HEAD 5f30933add12ee2f38efd7fe64ef0a474455b169와 미커밋 변경이다. Level 2 및 추가 helper
+실행 전후 699 Python 소스 hash `dc7fe434e2847287659499ac31781e416b6050cb13a3279a949ef3b95d2f691f`,
+861 입력/환경 hash `fedb0b385acf30707c054992c9447482a40568bddff7f70a0b8bb748cd54297a`가 각각
+동일하다. Python 3.12.14·136 의존성·깨끗한 host d833790959a76ac457fdeea3f21a6bea1eecfe12·
+env 5개는 c15 전체 게이트와 같다. 명령·exit·발견 목록·원본 로그·구조 증거·전후 manifest는
+`/workspace/llm-clean-resume/p1/`의 c16-before, c16-focused, c16-level2, c16-observation에 있다.
+이전 backend의 core/interactions 35–64행만 읽기 전용 참고했다. 선언 값은 이미 현재에 있고
+그 Reader에는 현재 closed 필드 검증이 없어 이식하지 않았다. 이전 시험 결과도 승계하지 않는다.
+문서를 먼저 최신화하고 로컬 커밋으로 보존한다. P1 최종 및 A–F는 남아 있고, 원격 마지막 확인은
+5f30933이며 CI 실제 결과는 미확인이다. 인증 모델·커널 short-write 등 기존 미검증 한계도 유지한다.
+
 ## P1-c15: Checkpoint 상태의 단일 선언과 c13–c15 묶음 Level 3
 
 Loop·Graph·EngineCheckpointScope·Agent 위임·InteractionRepository의 체크포인트 상태 문자열

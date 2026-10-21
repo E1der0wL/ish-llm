@@ -14,7 +14,7 @@ from copy import copy, deepcopy
 from llm.core.configuration import resolve_engine_config
 from llm.core.parameters import ParameterLayout
 from contextlib import AsyncExitStack, aclosing
-from llm.core.interactions import InteractionRequest, approval_request
+from llm.core.interactions import InteractionOption, InteractionRequest, approval_request
 from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
 from typing import Annotated, Awaitable, Callable, Literal, Mapping, Optional, TYPE_CHECKING, TypedDict
@@ -448,8 +448,9 @@ class _WorkflowRuntime:
             async def pause(request):
                 if not isinstance(request, InteractionRequest):
                     raise TypeError("Node pause requires an InteractionRequest")
-                if (request.kind != "approval" or request.input_schema is not None
-                        or any(type(option.value) is not bool or option.effect not in ("approve", "deny") for option in request.options)):
+                if (request.kind != InteractionRequest.KIND_APPROVAL or request.input_schema is not None
+                        or any(type(option.value) is not bool or option.effect not in
+                            (InteractionOption.EFFECT_APPROVE, InteractionOption.EFFECT_DENY) for option in request.options)):
                     raise ValueError("Node pause supports pre-effect approval decisions without additional input")
                 await self._record(key, {**info, "status": CheckpointStatus.WAITING, "approval_required": True,
                     "prompt": request.title, "interaction": request.bind("graph", key, decision_key="approved").to_dict()})
@@ -526,7 +527,7 @@ class _WorkflowRuntime:
                     source={"project_id": context.project.id, "session_id": context.session.id,
                             "run_id": context.run.id, "node_id": name, "path": path},
                     action={"definition": deepcopy(definition)}, category="workflow.continue")
-                request = replace(request, kind="confirmation", input_schema=definition.get("resume_schema"))
+                request = replace(request, kind=InteractionRequest.KIND_CONFIRMATION, input_schema=definition.get("resume_schema"))
                 request = request.bind("graph", key, decision_key="approved", input_key="state")
                 await self._record(key, {**info, "status": CheckpointStatus.WAITING, "resume_schema": definition.get("resume_schema"),
                                         "interaction": request.to_dict()})

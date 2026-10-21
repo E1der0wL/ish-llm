@@ -1,6 +1,7 @@
 """Questions and approvals reuse the chat composer without another focus target."""
 
 import json
+from llm.core.interactions import InteractionOption
 
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import ConditionalContainer, Window, HSplit
@@ -142,7 +143,7 @@ class QuestionComposer:
                 return
             option = request["options"][int(number) - 1]
             option_id, value = option["id"], None
-            if value_text and option.get("effect") != "deny":
+            if value_text and option.get("effect") != InteractionOption.EFFECT_DENY:
                 try:
                     schema = request.get("input_schema") or {}
                     value = value_text if schema.get("type") == "string" else json.loads(value_text)

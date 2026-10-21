@@ -1,6 +1,7 @@
 """Local answer acknowledgement, without changing durable execution states."""
 
 from dataclasses import dataclass, replace
+from llm.core.interactions import InteractionOption
 
 
 @dataclass(slots=True)
@@ -23,7 +24,7 @@ class AnswerFeedback:
         tool_id = next((step.id for step in run.steps if source and step.source_id == source), "") if run and run.id == item["run_id"] else ""
         messages = view.sessions[view.selected].messages
         assistant_id = next((m.id for m in reversed(messages) if m.role == "assistant"), "")
-        denied = any(o["id"] == option_id and o.get("effect") == "deny"
+        denied = any(o["id"] == option_id and o.get("effect") == InteractionOption.EFFECT_DENY
                      for o in item["request"].get("options", ()))
         return cls(question.identity, item, tool_id, assistant_id, denied, bool(item["request"].get("action")))
 

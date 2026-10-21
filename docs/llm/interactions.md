@@ -33,6 +33,11 @@ owner별 격리·안전한 명시적 삭제와 전체 영속 자료 보강은 �
 `kind`는 approval/confirmation/choice/input, `priority`는 low/normal/high/urgent,
 `risk`는 0 이상의 정확한 integer 또는 unknown을 뜻하는 null이다. 숫자는 `risk_scheme`과 함께 해석한다. category는 확장 가능한 문자열이다. label과 구간은 Application이 소유한다.
 priority는 UI 표시 우선순위이며 실행 권한이 아니다. 추천 선택지도 승인으로 처리하지 않는다.
+종류·우선순위와 생성 category 초기값은 `InteractionRequest`, 공통 effect 값은
+`InteractionOption`의 ClassVar 선언을 검증기와 소비자가 공유한다. ClassVar는 저장 필드가 아니다.
+effect와 category의 Application 확장은 유지하며 선택지 ID는 approve/deny effect와 별개다.
+생성 시 source/action과 명시한 요청은 None일 때만 초기값을 선택한다. 유효한 falsey 객체를
+버리지 않고 잘못된 타입은 owner가 거부한다. 저장 Reader의 필수 필드·지문 검사는 그대로다.
 `source`는 호출 출처, `action`은 검토할 실행 대상, `binding`은 엔진 재개 위치다.
 각 클래스의 JSON 직렬화와 역직렬화에는 `to_dict()`/`from_dict()`를 사용한다
 (선택지는 요청 안에 포함되어 함께 직렬화된다).
