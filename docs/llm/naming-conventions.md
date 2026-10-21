@@ -128,6 +128,8 @@ Contract는 trusted invariant/declaration, Policy는 행동 규칙을 뜻한다.
 
 외부 SDK의 `config`, `retry_policy` 등 upstream keyword는 바꾸지 않는다.
 Graph의 자체 LangGraph 호출용 dict는 `invoke_options`다.
+Python `logging.Handler.handleError`도 표준 콜백 이름을 유지한다. 실제 파일 쓰기 장애와
+표준 handler 호출로 검증하고, [개별 정적 근거](architecture-reviews.md)로 해당 발생만 분류한다.
 
 기존 승인/checkpoint 지문의 `tool_policy`, Loop/Memory 지문 입력의 `settings`,
 snapshot의 `configuration`, `configuration_key`, `policy_schema`는 저장/관찰 payload의

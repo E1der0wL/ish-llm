@@ -284,30 +284,113 @@ def compare(report, baseline):
             "outstanding": len(current & recorded)}
 
 
+def validate_reviews(report, document, root):
+    """Validate individual review evidence, never infer approval from a baseline.
+
+    Test references describe coverage; they do not claim that tests were run.
+    Source/contract/test changes require a fresh review before any gate can pass.
+    """
+    if not isinstance(document, dict) or document.keys() != {"reviews"} or not isinstance(document["reviews"], list):
+        raise ValueError("Architecture reviews require only a reviews array")
+    current = {item["id"]: item for item in report["findings"]}
+    root = root.resolve()
+    accepted = []
+    seen = set()
+
+    def source_file(name):
+        if not isinstance(name, str) or not name or Path(name).is_absolute() or ".." in Path(name).parts:
+            raise ValueError("Review evidence must use repository-relative paths")
+        path = root / name
+        if not path.resolve().is_relative_to(root) or not path.is_file() or path.is_symlink():
+            raise ValueError(f"Missing or external review evidence: {name}")
+        return path
+
+    for entry in document["reviews"]:
+        if not isinstance(entry, dict) or entry.keys() != {"id", "rule", "owner", "reason", "contracts", "sources", "tests"}:
+            raise ValueError("Review requires exact occurrence, owner, reason, contracts, source hashes and tests")
+        if any(not isinstance(entry[key], str) or not entry[key].strip() for key in ("id", "rule", "owner", "reason")):
+            raise ValueError("Review identity and reasoning must be nonempty text")
+        identifier = entry["id"]
+        if identifier in seen:
+            raise ValueError(f"Duplicate architecture review: {identifier}")
+        seen.add(identifier)
+        finding = current.get(identifier)
+        if finding is None or entry["rule"] != finding["rule"] or entry["owner"] != finding["symbol"]:
+            raise ValueError(f"Stale or mismatched architecture review: {identifier}")
+        if entry["rule"] not in {"S2", "S3", "S4", "S5"}:
+            raise ValueError("Retired API and pending Provider boundaries cannot be approved by review")
+        sources = entry["sources"]
+        if not isinstance(sources, dict) or finding["file"] not in sources:
+            raise ValueError("Review must pin the complete candidate source file")
+        for name, expected in sources.items():
+            if not isinstance(expected, str) or not re.fullmatch(r"[a-f0-9]{64}", expected):
+                raise ValueError(f"Invalid review source hash: {name}")
+            if hashlib.sha256(source_file(name).read_bytes()).hexdigest() != expected:
+                raise ValueError(f"Changed review evidence requires re-review: {name}")
+        for kind in ("contracts", "tests"):
+            values = entry[kind]
+            if (not isinstance(values, list) or not values
+                    or any(not isinstance(value, str) or not value.strip() for value in values)
+                    or len(set(values)) != len(values)):
+                raise ValueError(f"Review requires unique {kind} evidence")
+        for contract in entry["contracts"]:
+            if contract not in sources or not contract.endswith(".md"):
+                raise ValueError("Review contracts must be pinned Markdown files")
+        for test in entry["tests"]:
+            parts = test.split(".")
+            if len(parts) < 4 or parts[0] != "tests" or not parts[-1].startswith("test_"):
+                raise ValueError(f"Review requires a concrete test ID: {test}")
+            name = "/".join(parts[:-2]) + ".py"
+            if name not in sources:
+                raise ValueError(f"Review must pin its coverage test: {test}")
+            tree = ast.parse(source_file(name).read_text(encoding="utf-8-sig"))
+            if not any(isinstance(cls, ast.ClassDef) and cls.name == parts[-2]
+                       and any(isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)) and method.name == parts[-1]
+                               for method in cls.body) for cls in tree.body):
+                raise ValueError(f"Missing review coverage test: {test}")
+        accepted.append(entry)
+    return accepted
+
+
+def unresolved_findings(report, reviews):
+    reviewed = {entry["id"] for entry in reviews}
+    return [entry for entry in report["findings"] if entry["id"] not in reviewed]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--baseline", type=Path, default=Path(__file__).parent / "fixtures/architecture_debt.json")
+    parser.add_argument("--reviews", type=Path, help="Individual current-source review evidence; no blanket exemptions")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--strict", action="store_true")
     parser.add_argument("--require", choices=tuple(RULES), action="append", default=[])
     args = parser.parse_args()
     report = collect(args.root)
-    report.update(compare(report, json.loads(args.baseline.read_text(encoding="utf-8"))))
+    path = args.reviews if args.reviews is not None else args.root / "tests/llm/fixtures/architecture_reviews.json"
+    report["reviewed"], report["review_errors"] = [], []
+    try:
+        document = json.loads(path.read_text(encoding="utf-8")) if path.exists() or args.reviews is not None else {"reviews": []}
+        report["reviewed"] = validate_reviews(report, document, args.root)
+    except (OSError, ValueError, SyntaxError) as error:
+        report["review_errors"].append(str(error))
+    unresolved = unresolved_findings(report, report["reviewed"])
+    report.update(compare({"findings": unresolved}, json.loads(args.baseline.read_text(encoding="utf-8"))))
     report["mode"] = "strict" if args.strict else "ratchet"
     report["required_rules"] = list(RULES) if args.strict else args.require
     report["required_outstanding"] = sum(item["rule"] in report["required_rules"]
-                                         for item in report["findings"])
+                                         for item in unresolved)
     report["rules"] = RULES
     report["limits"] = "AST candidates require owner/schema/call/reader/writer review; dynamic dispatch is not proven."
     text = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(text, encoding="utf-8")
-    print(json.dumps({key: value for key, value in report.items() if key not in ("files", "findings")},
+    print(json.dumps({**{key: value for key, value in report.items() if key not in ("files", "findings", "reviewed")},
+                      "reviewed": len(report["reviewed"])},
                      ensure_ascii=False, indent=2))
     return int(not report["files"] or bool(report["new"] or report["stale"])
-               or bool(report["required_outstanding"]))
+               or bool(report["required_outstanding"]) or bool(report["review_errors"]))
 
 
 if __name__ == "__main__":

@@ -104,6 +104,8 @@ Agent의 의미 차이는 유지하며, Graph 조율에 불필요한 모델·Too
 정적 감사는 literal/default/branch/Schema/call/storage 목록과 실제 호출 관계를 결합한다.
 일치하는 문자열 개수만으로 위반/완료를 판정하지 않는다. 변경 owner의 미분류 후보는 남기지 않으며,
 기술 sizing·외부 프로토콜·앱 선택·표현 값의 예외는 개별 근거를 갖춘다.
+검토한 발생의 owner·계약·시험과 소스 동일성은 [개별 정적 분류](architecture-reviews.md)로 추적하고,
+근거 변경 시 다시 실패한다. 미해결 목록이나 원본 finding을 숨기지 않는다.
 
 ## 구현할 정적 감사 규칙
 

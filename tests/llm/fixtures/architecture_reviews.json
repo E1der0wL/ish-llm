@@ -1,0 +1,265 @@
+{
+  "reviews": [
+    {
+      "id": "761188dc663b1d6266ca799dfaf91146f09f0da44c34717c113655e7b7650114:1",
+      "rule": "S2",
+      "owner": "resolve_processing_config",
+      "reason": "The if condition combines two explicitly validated boolean feature flags. It selects whether a model is required; it does not replace any supplied configuration value or create a default.",
+      "contracts": [
+        "llm/components/memory/README.md"
+      ],
+      "sources": {
+        "llm/components/memory/README.md": "dcf185b2108301ca2e3b658064954358dcec6c70ef777f858028d40df3c8a7cb",
+        "llm/components/memory/compaction.py": "b90b00343089a8d79abbfd3724aa53e7599f021681f382d52632f37f19ed3755",
+        "llm/components/memory/component.py": "19f1dd0dea1c5da0aebc11c32b213207b5b6b4596d772068c5d0e2bb5534ff49",
+        "llm/components/memory/processing.py": "239c2a66feff2a7e97d620778521d6293ea753adfbea3df223e8f076d99e2004",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_memory_processing.py": "1df17d5afa87e75cce4de6aa9d8dd69f49af2132bc44b90902c4b0587b9a5674",
+        "tests/llm/test_memory_processing_config.py": "52760f0095a3444ec8a909e5d0731c7147250ae6caa6defb6c42a126415e9e15"
+      },
+      "tests": [
+        "tests.llm.test_memory_processing_config.MemoryProcessingConfigTests.test_explicit_disabled_nullable_and_minimum_values_survive",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_invalid_processing_configuration_fails_before_write",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_automatic_recall_budget_and_session_scope"
+      ]
+    },
+    {
+      "id": "cd9398587c6cdbc3812fcf79727127c35af60fae38420fdead4b9df264e560cb:1",
+      "rule": "S2",
+      "owner": "MemorySession.prepare",
+      "reason": "MemorySession.prepare combines the root-call predicate and the validated nested_processing flag to choose whether summary processing runs. This is a boolean condition, not a configuration fallback.",
+      "contracts": [
+        "llm/components/memory/README.md"
+      ],
+      "sources": {
+        "llm/components/memory/README.md": "dcf185b2108301ca2e3b658064954358dcec6c70ef777f858028d40df3c8a7cb",
+        "llm/components/memory/compaction.py": "b90b00343089a8d79abbfd3724aa53e7599f021681f382d52632f37f19ed3755",
+        "llm/components/memory/component.py": "19f1dd0dea1c5da0aebc11c32b213207b5b6b4596d772068c5d0e2bb5534ff49",
+        "llm/components/memory/processing.py": "239c2a66feff2a7e97d620778521d6293ea753adfbea3df223e8f076d99e2004",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_memory_processing.py": "1df17d5afa87e75cce4de6aa9d8dd69f49af2132bc44b90902c4b0587b9a5674",
+        "tests/llm/test_memory_processing_config.py": "52760f0095a3444ec8a909e5d0731c7147250ae6caa6defb6c42a126415e9e15"
+      },
+      "tests": [
+        "tests.llm.test_memory_processing_config.MemoryProcessingConfigTests.test_explicit_disabled_nullable_and_minimum_values_survive",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_invalid_processing_configuration_fails_before_write",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_automatic_recall_budget_and_session_scope"
+      ]
+    },
+    {
+      "id": "424c50c86d97dc7fe8621f4fe05c6d907eb2f404bad228ff8ee95ca9b89dedb6:1",
+      "rule": "S2",
+      "owner": "MemorySession.finish",
+      "reason": "MemorySession.finish combines the root-call predicate and the validated nested_processing flag before extraction. No supplied value is replaced; the explicit feature and required-input checks still apply.",
+      "contracts": [
+        "llm/components/memory/README.md"
+      ],
+      "sources": {
+        "llm/components/memory/README.md": "dcf185b2108301ca2e3b658064954358dcec6c70ef777f858028d40df3c8a7cb",
+        "llm/components/memory/compaction.py": "b90b00343089a8d79abbfd3724aa53e7599f021681f382d52632f37f19ed3755",
+        "llm/components/memory/component.py": "19f1dd0dea1c5da0aebc11c32b213207b5b6b4596d772068c5d0e2bb5534ff49",
+        "llm/components/memory/processing.py": "239c2a66feff2a7e97d620778521d6293ea753adfbea3df223e8f076d99e2004",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_memory_processing.py": "1df17d5afa87e75cce4de6aa9d8dd69f49af2132bc44b90902c4b0587b9a5674",
+        "tests/llm/test_memory_processing_config.py": "52760f0095a3444ec8a909e5d0731c7147250ae6caa6defb6c42a126415e9e15"
+      },
+      "tests": [
+        "tests.llm.test_memory_processing_config.MemoryProcessingConfigTests.test_explicit_disabled_nullable_and_minimum_values_survive",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_invalid_processing_configuration_fails_before_write",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_automatic_recall_budget_and_session_scope"
+      ]
+    },
+    {
+      "id": "42f2b4730dad37f1d1cd4d757b0c3d0a044b6412a2e840cc6f1935c480b33516:1",
+      "rule": "S3",
+      "owner": "MemorySession.prepare",
+      "reason": "Zero is the mathematical remainder used to schedule recall after the first preparation, not a synthesized policy limit. The schema owns nonnegative recall_every; explicit zero disables periodic refresh before the modulo operation.",
+      "contracts": [
+        "llm/components/memory/README.md"
+      ],
+      "sources": {
+        "llm/components/memory/README.md": "dcf185b2108301ca2e3b658064954358dcec6c70ef777f858028d40df3c8a7cb",
+        "llm/components/memory/compaction.py": "b90b00343089a8d79abbfd3724aa53e7599f021681f382d52632f37f19ed3755",
+        "llm/components/memory/component.py": "19f1dd0dea1c5da0aebc11c32b213207b5b6b4596d772068c5d0e2bb5534ff49",
+        "llm/components/memory/processing.py": "239c2a66feff2a7e97d620778521d6293ea753adfbea3df223e8f076d99e2004",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_memory_processing.py": "1df17d5afa87e75cce4de6aa9d8dd69f49af2132bc44b90902c4b0587b9a5674",
+        "tests/llm/test_memory_processing_config.py": "52760f0095a3444ec8a909e5d0731c7147250ae6caa6defb6c42a126415e9e15"
+      },
+      "tests": [
+        "tests.llm.test_memory_processing_config.MemoryProcessingConfigTests.test_explicit_disabled_nullable_and_minimum_values_survive",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_invalid_processing_configuration_fails_before_write",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_automatic_recall_budget_and_session_scope"
+      ]
+    },
+    {
+      "id": "afe379e31e5cd0d6e4c933b4ac3d999206186219aacebf20c00c490bf50eadd3:1",
+      "rule": "S3",
+      "owner": "MemoryComponent",
+      "reason": "MemoryComponent.parameter_layout is the actual single owner declaration of config field placement. ParameterLayout.schema/pack/unpack consume this declaration; the tuple is not a duplicate list of allowed policy values.",
+      "contracts": [
+        "llm/components/memory/README.md"
+      ],
+      "sources": {
+        "llm/components/memory/README.md": "dcf185b2108301ca2e3b658064954358dcec6c70ef777f858028d40df3c8a7cb",
+        "llm/components/memory/compaction.py": "b90b00343089a8d79abbfd3724aa53e7599f021681f382d52632f37f19ed3755",
+        "llm/components/memory/component.py": "19f1dd0dea1c5da0aebc11c32b213207b5b6b4596d772068c5d0e2bb5534ff49",
+        "llm/components/memory/processing.py": "239c2a66feff2a7e97d620778521d6293ea753adfbea3df223e8f076d99e2004",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_memory_processing.py": "1df17d5afa87e75cce4de6aa9d8dd69f49af2132bc44b90902c4b0587b9a5674",
+        "tests/llm/test_memory_processing_config.py": "52760f0095a3444ec8a909e5d0731c7147250ae6caa6defb6c42a126415e9e15"
+      },
+      "tests": [
+        "tests.llm.test_memory_processing_config.MemoryProcessingConfigTests.test_explicit_disabled_nullable_and_minimum_values_survive",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_invalid_processing_configuration_fails_before_write",
+        "tests.llm.test_memory_processing_config.MemoryProcessingConfigConsumerTests.test_invalid_output_limit_preserves_all_stored_bytes_and_does_not_call_model"
+      ]
+    },
+    {
+      "id": "d6362f32a6f55e2dc706d70814b09f9bf80f47bda50fc46f8104a04a52fd00a9:1",
+      "rule": "S3",
+      "owner": "MemoryComponent",
+      "reason": "MemoryComponent.parameter_layout is the actual single owner declaration of policy field placement. ParameterLayout.schema/pack/unpack consume this declaration; the tuple is not a duplicate list of allowed policy values.",
+      "contracts": [
+        "llm/components/memory/README.md"
+      ],
+      "sources": {
+        "llm/components/memory/README.md": "dcf185b2108301ca2e3b658064954358dcec6c70ef777f858028d40df3c8a7cb",
+        "llm/components/memory/compaction.py": "b90b00343089a8d79abbfd3724aa53e7599f021681f382d52632f37f19ed3755",
+        "llm/components/memory/component.py": "19f1dd0dea1c5da0aebc11c32b213207b5b6b4596d772068c5d0e2bb5534ff49",
+        "llm/components/memory/processing.py": "239c2a66feff2a7e97d620778521d6293ea753adfbea3df223e8f076d99e2004",
+        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_memory_processing.py": "1df17d5afa87e75cce4de6aa9d8dd69f49af2132bc44b90902c4b0587b9a5674",
+        "tests/llm/test_memory_processing_config.py": "52760f0095a3444ec8a909e5d0731c7147250ae6caa6defb6c42a126415e9e15"
+      },
+      "tests": [
+        "tests.llm.test_memory_processing_config.MemoryProcessingConfigTests.test_explicit_disabled_nullable_and_minimum_values_survive",
+        "tests.llm.test_memory_processing.MemoryProcessingTests.test_invalid_processing_configuration_fails_before_write",
+        "tests.llm.test_memory_processing_config.MemoryProcessingConfigConsumerTests.test_invalid_output_limit_preserves_all_stored_bytes_and_does_not_call_model"
+      ]
+    },
+    {
+      "id": "c2b2568e211e6d25c5f4e0c687d2a3f8a9afe45af3c676c466572b1b4f62389b:1",
+      "rule": "S4",
+      "owner": "read_domain_record",
+      "reason": "read_domain_record rejects unless storage_version has exact int type and equals the imported canonical DOMAIN_STORAGE_VERSION from core.models. The guard is already strict; the syntactic scanner only auto-recognizes local class constants. Reader, new Writer and stale Writer preserve original bytes for unsupported versions.",
+      "contracts": [
+        "docs/llm/operational-storage.md",
+        "docs/llm/naming-conventions.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/operational-storage.md": "9759b1a6e0fa1af019e31899684eadc9e03fd00b23bb0236f18978ef10510272",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
+        "tests/llm/test_current_contracts.py": "3c848a8f02ed54448909bbd456d5bae4a18fdcf3eca537e2a3f5087669c778cc",
+        "tests/llm/test_session_domain.py": "9cbd3069c94b16d2505e1569d9e0851b13232e0bdded39b17b0c9177f4049474"
+      },
+      "tests": [
+        "tests.llm.test_current_contracts.VersionContracts.test_shared_domain_version_guards_preserve_originals_and_reject_invalid_new_writes",
+        "tests.llm.test_session_domain.SessionDomainTests.test_all_record_boundaries_reject_version_two_and_stale_writes"
+      ]
+    },
+    {
+      "id": "4c9a3866dd55d66dc8fb3b0a9e87460462f3fd4a80cb5d2e53bf7fcd32ab65bb:1",
+      "rule": "S4",
+      "owner": "read_domain_record",
+      "reason": "read_domain_record rejects unless storage_version has exact int type and equals the imported canonical DOMAIN_STORAGE_VERSION from core.models. The guard is already strict; the syntactic scanner only auto-recognizes local class constants. Reader, new Writer and stale Writer preserve original bytes for unsupported versions.",
+      "contracts": [
+        "docs/llm/operational-storage.md",
+        "docs/llm/naming-conventions.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/operational-storage.md": "9759b1a6e0fa1af019e31899684eadc9e03fd00b23bb0236f18978ef10510272",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
+        "tests/llm/test_current_contracts.py": "3c848a8f02ed54448909bbd456d5bae4a18fdcf3eca537e2a3f5087669c778cc",
+        "tests/llm/test_session_domain.py": "9cbd3069c94b16d2505e1569d9e0851b13232e0bdded39b17b0c9177f4049474"
+      },
+      "tests": [
+        "tests.llm.test_current_contracts.VersionContracts.test_shared_domain_version_guards_preserve_originals_and_reject_invalid_new_writes",
+        "tests.llm.test_session_domain.SessionDomainTests.test_all_record_boundaries_reject_version_two_and_stale_writes"
+      ]
+    },
+    {
+      "id": "650baa6c62f31606688270dcb129b2ceaabc0bbe630c54eab7af9cb189581473:1",
+      "rule": "S4",
+      "owner": "atomic_domain_json",
+      "reason": "atomic_domain_json rejects unless storage_version has exact int type and equals the imported canonical DOMAIN_STORAGE_VERSION from core.models. The guard is already strict; the syntactic scanner only auto-recognizes local class constants. Reader, new Writer and stale Writer preserve original bytes for unsupported versions.",
+      "contracts": [
+        "docs/llm/operational-storage.md",
+        "docs/llm/naming-conventions.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/operational-storage.md": "9759b1a6e0fa1af019e31899684eadc9e03fd00b23bb0236f18978ef10510272",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
+        "tests/llm/test_current_contracts.py": "3c848a8f02ed54448909bbd456d5bae4a18fdcf3eca537e2a3f5087669c778cc",
+        "tests/llm/test_session_domain.py": "9cbd3069c94b16d2505e1569d9e0851b13232e0bdded39b17b0c9177f4049474"
+      },
+      "tests": [
+        "tests.llm.test_current_contracts.VersionContracts.test_shared_domain_version_guards_preserve_originals_and_reject_invalid_new_writes",
+        "tests.llm.test_session_domain.SessionDomainTests.test_all_record_boundaries_reject_version_two_and_stale_writes"
+      ]
+    },
+    {
+      "id": "5cf66173822d2cf8fe779adb098f9b001f4f26aa99dfbb776cfcac0a419a2025:1",
+      "rule": "S4",
+      "owner": "atomic_domain_json",
+      "reason": "atomic_domain_json rejects unless storage_version has exact int type and equals the imported canonical DOMAIN_STORAGE_VERSION from core.models. The guard is already strict; the syntactic scanner only auto-recognizes local class constants. Reader, new Writer and stale Writer preserve original bytes for unsupported versions.",
+      "contracts": [
+        "docs/llm/operational-storage.md",
+        "docs/llm/naming-conventions.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "docs/llm/operational-storage.md": "9759b1a6e0fa1af019e31899684eadc9e03fd00b23bb0236f18978ef10510272",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
+        "tests/llm/test_current_contracts.py": "3c848a8f02ed54448909bbd456d5bae4a18fdcf3eca537e2a3f5087669c778cc",
+        "tests/llm/test_session_domain.py": "9cbd3069c94b16d2505e1569d9e0851b13232e0bdded39b17b0c9177f4049474"
+      },
+      "tests": [
+        "tests.llm.test_current_contracts.VersionContracts.test_shared_domain_version_guards_preserve_originals_and_reject_invalid_new_writes",
+        "tests.llm.test_session_domain.SessionDomainTests.test_all_record_boundaries_reject_version_two_and_stale_writes"
+      ]
+    },
+    {
+      "id": "078e16a2c6d76e4551b030a930715e41cc7f030cc940628cb4acb9fbe57990a3:1",
+      "rule": "S5",
+      "owner": "_FileHandler.handleError",
+      "reason": "The class directly subclasses logging.FileHandler. handleError is the required standard-library callback invoked by emit after a write failure; renaming it would restore stderr tracebacks and lose failed_writes accounting. A real handler write failure preserves the existing file, increments once, emits no stderr, and a subsequent write succeeds.",
+      "contracts": [
+        "docs/llm/naming-conventions.md"
+      ],
+      "sources": {
+        "docs/llm/naming-conventions.md": "3a75c908f117ce1dc74c90ba1a0054c3a7494d0c3e73c571b2b7d1d21f9b2a90",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/test_provider_runtime.py": "914262a249f32281ede42d19ccffd041ac3c8fa3a0008e4dccb9ef19f637989b"
+      },
+      "tests": [
+        "tests.llm.test_provider_runtime.RuntimeTests.test_file_handler_uses_standard_error_callback_without_stderr_or_partial_write"
+      ]
+    }
+  ]
+}

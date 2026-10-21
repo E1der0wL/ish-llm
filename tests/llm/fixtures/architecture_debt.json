@@ -84,30 +84,6 @@
       "detail": "verify exact version type and declaration reference"
     },
     {
-      "id": "afe379e31e5cd0d6e4c933b4ac3d999206186219aacebf20c00c490bf50eadd3:1",
-      "rule": "S3",
-      "file": "llm/components/memory/component.py",
-      "symbol": "MemoryComponent",
-      "line": 39,
-      "detail": "inline domain argument: config"
-    },
-    {
-      "id": "d6362f32a6f55e2dc706d70814b09f9bf80f47bda50fc46f8104a04a52fd00a9:1",
-      "rule": "S3",
-      "file": "llm/components/memory/component.py",
-      "symbol": "MemoryComponent",
-      "line": 40,
-      "detail": "inline domain argument: policy"
-    },
-    {
-      "id": "761188dc663b1d6266ca799dfaf91146f09f0da44c34717c113655e7b7650114:1",
-      "rule": "S2",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "resolve_processing_config",
-      "line": 67,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "ebb41ecb42dea50b70f6d05720fc25c4693d739a3fba0a460dacdd46143274cd:1",
       "rule": "S6",
       "file": "llm/components/memory/processing.py",
@@ -138,30 +114,6 @@
       "symbol": "MemorySession._model",
       "line": 311,
       "detail": "SDK-shaped field lookup outside Provider package"
-    },
-    {
-      "id": "cd9398587c6cdbc3812fcf79727127c35af60fae38420fdead4b9df264e560cb:1",
-      "rule": "S2",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession.prepare",
-      "line": 590,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "42f2b4730dad37f1d1cd4d757b0c3d0a044b6412a2e840cc6f1935c480b33516:1",
-      "rule": "S3",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession.prepare",
-      "line": 607,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "424c50c86d97dc7fe8621f4fe05c6d907eb2f404bad228ff8ee95ca9b89dedb6:1",
-      "rule": "S2",
-      "file": "llm/components/memory/processing.py",
-      "symbol": "MemorySession.finish",
-      "line": 641,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "9a8099ea8c1b75ad3c981b406963420c4b133a381126f955226c747a822f209b:1",
@@ -1260,14 +1212,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "078e16a2c6d76e4551b030a930715e41cc7f030cc940628cb4acb9fbe57990a3:1",
-      "rule": "S5",
-      "file": "llm/providers/runtime.py",
-      "symbol": "_FileHandler.handleError",
-      "line": 178,
-      "detail": "callable is not snake_case"
-    },
-    {
       "id": "b6c9da2bf016c2dc6483af51683b8eca68d7c630cdc147040a0c4e3e0c868b8a:1",
       "rule": "S3",
       "file": "llm/providers/runtime.py",
@@ -1514,38 +1458,6 @@
       "symbol": "Observability.record",
       "line": 73,
       "detail": "inline domain field: max_seconds"
-    },
-    {
-      "id": "c2b2568e211e6d25c5f4e0c687d2a3f8a9afe45af3c676c466572b1b4f62389b:1",
-      "rule": "S4",
-      "file": "llm/services/infrastructure/storage.py",
-      "symbol": "read_domain_record",
-      "line": 156,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "4c9a3866dd55d66dc8fb3b0a9e87460462f3fd4a80cb5d2e53bf7fcd32ab65bb:1",
-      "rule": "S4",
-      "file": "llm/services/infrastructure/storage.py",
-      "symbol": "read_domain_record",
-      "line": 156,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "650baa6c62f31606688270dcb129b2ceaabc0bbe630c54eab7af9cb189581473:1",
-      "rule": "S4",
-      "file": "llm/services/infrastructure/storage.py",
-      "symbol": "atomic_domain_json",
-      "line": 164,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "5cf66173822d2cf8fe779adb098f9b001f4f26aa99dfbb776cfcac0a419a2025:1",
-      "rule": "S4",
-      "file": "llm/services/infrastructure/storage.py",
-      "symbol": "atomic_domain_json",
-      "line": 164,
-      "detail": "verify exact version type and declaration reference"
     },
     {
       "id": "40c315cdfd928805a19c38e66ea8b0718103fefea548ef8897c3c5305677b31f:1",

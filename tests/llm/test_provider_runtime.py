@@ -439,6 +439,25 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(logging_status()["failed_writes"], before + 1)
         self.assertEqual(out.getvalue() + err.getvalue(), "")
 
+    def test_file_handler_uses_standard_error_callback_without_stderr_or_partial_write(self):
+        from llm.providers.runtime import _FileHandler
+        path = Path(self.temp.name) / 'callback.log'
+        path.write_text('original\n')
+        owner = SimpleNamespace(failed_writes=0)
+        handler = _FileHandler(path, owner)
+        self.addCleanup(handler.close)
+        event = logging.LogRecord('test.callback', logging.ERROR, __file__, 1, 'entry', (), None)
+        out, err = io.StringIO(), io.StringIO()
+        before = path.read_bytes()
+        with patch.object(handler.stream, 'write', side_effect=OSError('disk full')), redirect_stdout(out), redirect_stderr(err):
+            handler.handle(event)
+        self.assertEqual(owner.failed_writes, 1)
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(out.getvalue() + err.getvalue(), '')
+        handler.handle(event)
+        self.assertEqual(path.read_text(), 'original\nentry\n')
+        self.assertEqual(owner.failed_writes, 1)
+
     async def test_sdk_client_retry_delegation_and_invalid_response_envelope(self):
         client = SimpleNamespace(max_retries=3)
         call = AsyncMock(side_effect=TimeoutError())

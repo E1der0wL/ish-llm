@@ -4,7 +4,7 @@ import ast
 from pathlib import Path
 import unittest
 
-from tests.llm.check_architecture import collect, compare, exact_version_guards, scan_source
+from tests.llm.check_architecture import collect, compare, exact_version_guards, scan_source, validate_reviews, unresolved_findings
 
 
 class ArchitectureCheckTests(unittest.TestCase):
@@ -165,7 +165,11 @@ class ArchitectureCheckTests(unittest.TestCase):
         self.assertTrue(any(path.startswith("llm/") for path in result["files"]))
         self.assertTrue(any(path.startswith("hub/") for path in result["files"]))
         baseline = json.loads((Path(__file__).parent / "fixtures/architecture_debt.json").read_text())
-        compared = compare(result, baseline)
+        path = Path(__file__).parent / "fixtures/architecture_reviews.json"
+        document = json.loads(path.read_text()) if path.exists() else {"reviews": []}
+        reviews = validate_reviews(result, document, root)
+        self.assertEqual(len(reviews), len(document['reviews']))
+        compared = compare({"findings": unresolved_findings(result, reviews)}, baseline)
         self.assertEqual(compared["new"], [])
         self.assertEqual(compared["stale"], [])
 

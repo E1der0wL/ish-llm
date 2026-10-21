@@ -13,6 +13,69 @@ P1-b와 P1-c의 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 �
 따른다. 세 번째 Provider 계약군은 별도 커밋으로 보존한다. A–F는 미착수이며 P1 전체 완료를 뜻하지 않는다.
 main·이전 backend 브랜치·Draft PR #1을 변경하거나 이전 구현을 가져오지 않는다.
 
+## P1-c7: 근거가 있는 개별 정적 분류 — 로컬 Level 2
+
+P1-c4–c6 전체 게이트/Push `8058c71bfc5dd11bc701b69033e42408ffa454fe` 뒤 검토된 기술적
+후보를 엄격 게이트에서 구분하도록 검사 절차를 보강했다. 제품 코드·저장·실행 정책은 변경하지
+않았다(`git diff --quiet HEAD -- llm hub examples`, exit 0). 기존 AST 검출 규칙도 그대로다.
+[개별 분류 계약](architecture-reviews.md)에 따라 정확한 발생 ID·owner·개별 사유·현재 계약·
+후보/의존 소스/시험/Fixture hash·구체적 시험 ID를 별도 파일에 기록한다. 신규·이동·중복·삭제·
+근거 변경은 기본 검사에서도 실패한다. 구 API S1과 미완료 Provider 경계 S6은 승인할 수 없다.
+분류의 시험 ID는 검증 범위이며 과거 시험 성공 증거가 아니다. 실제 회귀·R3·CI gate는 유지한다.
+
+이미 c5에서 확인한 Memory 6건(엄격 bool 조건 3, 주기 산술 1, 실제 ParameterLayout 선언 2),
+공유 domain Reader/Writer의 정확한 int+canonical version guard 4건, 표준 logging.FileHandler의
+필수 handleError 콜백 1건만 개별 분류했다. CAS·Workflow 등 다른 미해결 후보는 승인하지 않았다.
+후보 파일 전체와 실제 선언/검증/계약/시험/Fixture를 pin하며, blanket owner/file/rule 예외나
+자동 hash/baseline 갱신 기능은 없다. 원본 464개 finding은 모두 보고서에 남고 reviewed 11개와
+미해결 453개를 구분한다. 미해결 목록에서는 이 11개만 제거했다.
+
+새 검사기 시험 8개는 유효한 정확한 발생만 인정하고, 원본 finding 가시성·새 발생·변경/이동·
+복제·의존 파일/계약/시험 변경·빈 근거·없는 시험·중복 review·중복 debt·없는 명시 파일·S1/S6
+승인 시도를 거부함을 검사한다. 기존 모든 AST 양성/음성·미해결 strict 실패 Assertion을 보존했다.
+새 저장 시험은 bool/float/text/null/미지원/누락 version의 Reader·기존/신규 Writer를 검사하며
+원본 전체 byte 보존과 신규 파일 미생성을 확인한다. 새 표준 handler 시험은 실제 파일의 write에
+OSError를 주입하여 failed_writes 1회·원본 byte 동일·stderr 없음과 후속 정상 append를 확인한다.
+기존 파일/프로세스/효과 Assertion을 제거하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c7-checker-1` llm | 23/23 | 23 | 0/0/0 | 3.117초 | 0 |
+| `c7-evidence-1` llm | 79/79 | 79 | 0/0/0 | 10.878초 | 0 |
+| `c7-focused-final` llm | 114/114 | 114 | 0/0/0 | 57.147초 | 0 |
+| `c7-level2` llm | 276/276 | 276 | 0/0/0 | 91.586초 | 0 |
+| `c7-level2` hub | 17/17 | 17 | 0/0/0 | 83.309초 | 0 |
+
+모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+새 근거 시험과 분류 파일을 추가한 시점을 구분하여 각 집중 실행을 기록했다. 최종 Level 2는
+21개 LLM 모듈의 분류 근거 owner·설정/Schema/Naming·회귀 runner·저장 소비자와 승인·예산·
+효과·Checkpoint·RAG·삭제·트랜잭션 공통 안전성을 포함한다. Hub 3개는 Provider 로깅/활동/진단
+소비자다. 제품과 CI Job은 그대로이고 검사기와 정확한 근거 파일의 영향 범위가 한정되므로 이번
+소단계에서 전체 LLM/Hub는 실행하지 않았다. c6 전체 결과를 새 실행으로 재표현하지 않는다.
+후속 P1 묶음 Level 3에서 전체 통합 검증 후 Push한다. 현재는 c7 로컬 완료만 뜻한다.
+
+정적 `--require S1 --require S5`는 new/stale/review 오류/필수 미해결 0, reviewed 11,
+미해결 debt 453, exit 0이다. P1 종료용 S1–S5 검사는 필수 미해결 435로 **exit 1**을 확인했다.
+이는 알려진 잔여 작업 확인이며 P1 완료가 아니다. 원본 후보를 숨겨 엄격 gate를 통과시키지 않았다.
+R3 mutation 검출 True/outer exit 0, 문서 검사 132/182/958/34·오류 0/exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c7-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_checkpoint_integrity tests.llm.test_configuration_validation tests.llm.test_current_contracts tests.llm.test_interaction_storage tests.llm.test_lifecycle_deletion_integrity tests.llm.test_lifecycle_integrity tests.llm.test_memory_processing tests.llm.test_memory_processing_config tests.llm.test_naming_contract tests.llm.test_operation_integrity tests.llm.test_operational_storage tests.llm.test_provider_runtime tests.llm.test_rag_storage tests.llm.test_regression_runner tests.llm.test_schema_ownership tests.llm.test_session_domain tests.llm.test_settings_contract tests.llm.test_transactions tests.llm.test_usage_deletion
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c7-level2/hub.json --modules tests.hub.test_backend_diagnostics tests.hub.test_provider_activity tests.hub.test_provider_stabilization
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S5 --output /workspace/llm-clean-resume/p1/c7-static.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S3 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c7-p1-pending.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c7-docs.json
+```
+
+Level 2 전후 695개 Python 소스 hash `09f4580c4e368bf511c3e60f91368d5f1f616e1e3422a9a3ebff368248ae17c1`,
+857개 입력/환경 hash `e459a32de914926f6c3efafe0ebc160804084f4a2e5242924453480fd48bc8ad`가 각각 동일했다.
+Python 3.12.14/136개 의존성·실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존
+TERM/LiteLLM/Xvfb/xclip 환경을 유지했다. 실행별 명령·exit·JSON/로그는
+`/workspace/llm-clean-resume/p1/`에 보존했다. 과거 브랜치/38개 자료군 감사를 다시 수행하지 않고
+현재의 검증된 계약과 c5의 개별 판정을 재사용했다. P1 나머지 owner·현재 Schema/Naming 및
+A–F·원격 CI는 아직 완료되지 않았다.
+
 ## P1-c6: Tool 실패 분류 선언과 c4–c6 묶음 Level 3
 
 c4 `0af28d0`·c5 `7a51b88`의 독립 로컬 검증/커밋에 이어 ToolExecutionError가 NO_EFFECT,

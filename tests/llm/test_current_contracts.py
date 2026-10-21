@@ -90,6 +90,24 @@ class VersionContracts(unittest.TestCase):
         path.write_bytes(original)
         load()
 
+    def test_shared_domain_version_guards_preserve_originals_and_reject_invalid_new_writes(self):
+        from llm.core.models import DOMAIN_STORAGE_VERSION
+        from llm.services.infrastructure.storage import atomic_domain_json, read_domain_record
+        path = self.root / 'current.json'
+        value = {'storage_version': DOMAIN_STORAGE_VERSION, 'payload': 'preserve'}
+        atomic_domain_json(path, value)
+        self.rejects_invalid_versions_without_writing(path, 'storage_version', lambda: read_domain_record(path))
+        candidates = [{**value, 'storage_version': item} for item in (
+            True, False, float(DOMAIN_STORAGE_VERSION), str(DOMAIN_STORAGE_VERSION), None,
+            DOMAIN_STORAGE_VERSION - 1, DOMAIN_STORAGE_VERSION + 1)]
+        candidates.append({'payload': 'missing version'})
+        before = {p.name: p.read_bytes() for p in self.root.iterdir()}
+        for target in (path, self.root / 'new.json'):
+            for candidate in candidates:
+                with self.subTest(target=target.name, candidate=candidate), self.assertRaises(ValueError):
+                    atomic_domain_json(target, candidate)
+                self.assertEqual({p.name: p.read_bytes() for p in self.root.iterdir()}, before)
+
     def test_checkpoint_current_writer_and_reader(self):
         run = SimpleNamespace(id="run", engine="loop", metadata={},
                               paths=SimpleNamespace(state=self.root / "state"))
