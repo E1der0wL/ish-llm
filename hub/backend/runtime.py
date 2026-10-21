@@ -35,9 +35,12 @@ class HubConfig:
     _workspace_anchor: str | Path | None = field(default=None, repr=False)
     tool_retry_chooser: Callable | None = None
     tool_retry_evidence: dict[str, Callable] = field(default_factory=dict)
+    log_sink: Callable | None = None
 
     def __post_init__(self) -> None:
         Language(self.language, self.language_packs)
+        if self.log_sink is not None and not callable(self.log_sink):
+            raise TypeError("log_sink must be callable")
         if self.tool_retry_chooser is not None and not callable(self.tool_retry_chooser):
             raise TypeError("tool_retry_chooser must be callable")
         if not isinstance(self.tool_retry_evidence, dict) or any(not isinstance(name, str) or not name or not callable(provider)

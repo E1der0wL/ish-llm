@@ -99,7 +99,7 @@ WorkspaceOwnership 아래의 TransactionManager가 쓰기 전 undo, fsync, commi
 - 삭제·retention·abandonment는 계획/CAS·참조 보호·트랜잭션을 사용한다. 삭제된 재개 원본을 복원하지 않는다.
 - 현재 형식의 backup/restore는 checksum·Component 검증·staging publish를 유지한다.
   main에 남은 upgrade API는 [제거 대상](clean-refactor.md)이며 새 migration을 추가하지 않는다.
-- LogConfig의 회전 크기/보관 개수는 명시 설정이다. 오래된 1 MiB/3개 설명은 기본 정책이 아니다.
+- LogConfig는 기록/조회 활성화만 설정한다. 기본 파일은 추가 기록만 하며 회전 크기/개수는 Application sink가 소유한다. 자동 보존값은 없다.
 - 출력/관찰 이벤트 유실 시 저장된 Run/Step/journal을 조회한다. UI snapshot과 알림은 원본이 아니다.
 
 정확한 범위와 한계는 [트랜잭션](storage-transactions.md), [저장 운영](operational-storage.md),

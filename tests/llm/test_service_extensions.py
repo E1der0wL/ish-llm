@@ -432,5 +432,10 @@ class ContextPolicyTests(unittest.TestCase):
             ContextPolicy("budget")
         with self.assertRaises(ValueError):
             ContextPolicy("unknown")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             LogConfig(backup_count=0)
+        for value in (0, 1, "false"):
+            with self.assertRaises(ValueError):
+                LogConfig(log_reads=value)
+            with self.assertRaises(ValueError):
+                LogConfig(enabled=value)

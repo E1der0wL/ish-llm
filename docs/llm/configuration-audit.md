@@ -134,7 +134,7 @@ SDK 인자, 시간 제한과 이벤트 저장 ACK, 설정 변경 후 재개 거�
 | Graph/Memory/Goal/process cleanup5 | 자동 기한 제거. Graph 명시 대기 후 또는 미설정 시 PendingWork로 이전; SIGKILL·OS 회수·cancel 전파·scope revoke 유지 |
 | OutputBuffer batch1/delay.025/chars65536 | flush 시점만 조정, 출력 자르지 않음 |
 | index_stride128 / catalog4096 / conversation cache32 / log handle16 | 파생 인덱스·projection·핸들 eviction. 영속 원본은 유지 |
-| log maxBytes0/backupCount0 | 회전 설정 없을 때 Python logging의 비회전 모드. 자동 삭제 없음 |
+| domain/provider FileHandler | 추가 기록만 수행. 크기/보관 개수는 Application RotatingLogSink가 명시적으로 소유 |
 | stream/n fallbackTrue/1 | 다른 값을 거부하는 프로토콜 검증. request timeout 등과 무관 |
 | setdefault: grouping, provenance, completions, checkpoints, transaction callbacks | 누적 자료구조 생성. 실행 정책 생성 없음 |
 | graph/agent_usage, RAG positions[text] / evidence support | 원장·chunk ordinal·관계 근거 집계. 설정 아님 |

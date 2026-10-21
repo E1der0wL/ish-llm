@@ -6,7 +6,9 @@ ProjectConfig에 Python 객체를 직렬화하지 않는다.
 
 영속 자료의 무결성·보존·격리·삭제 책임은 [수명주기 계약](data-lifecycle.md)을 따른다.
 Application이 보존·대상 선정·실행 시점을 정하고 Backend의 해당 owner가 안전한 삭제를
-판단·실행한다. 현재 retention·RAG 정리·로그 회전의 정책 경계 이관은 미완료다.
+판단·실행한다. History/RAG 세대·Job 선정은 Application에서 명시하고 Backend는 계획/CAS와
+보호 증거를 검증한다. 로그 회전은 Application sink가 소유한다. H4 상위 게이트의 실제 완료
+상태는 [검증 기록](lifecycle-verification.md)을 따른다.
 
 ```python
 from llm.llm import LargeLanguageModel, LoopEngine, BackendServices, ProviderLimits, OutputBuffer

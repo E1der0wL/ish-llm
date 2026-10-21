@@ -1,4 +1,4 @@
-"""도메인별 운영 로그를 기록한다. 파일 로그는 명시적 회전 설정이 있을 때만 회전하며 LogConfig와 DomainLogger sink로 호스트 출력에 연결할 수 있다.
+"""도메인별 운영 로그를 추가 기록한다. 보관·회전 정책은 Application sink가 소유한다.
 
 Domain-scoped operational logs using Python's logging library."""
 from typing import Optional
@@ -8,7 +8,6 @@ import logging
 import re
 import warnings
 from datetime import datetime, timezone
-from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -18,19 +17,11 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class LogConfig:
-    """기본 파일 로그의 크기/보관 개수와 조회 로그 여부를 설정한다."""
-    max_bytes: Optional[int] = None
-    backup_count: Optional[int] = None
+    """기록 활성화와 조회 이벤트 기록 여부를 설정한다. 보존 정책은 포함하지 않는다."""
     log_reads: Optional[bool] = None
     enabled: Optional[bool] = None
 
     def __post_init__(self):
-        if self.max_bytes is not None and (type(self.max_bytes) is not int or self.max_bytes < 1):
-            raise ValueError("Log max_bytes must be positive")
-        if self.backup_count is not None and (type(self.backup_count) is not int or self.backup_count < 1):
-            raise ValueError("Log backup_count must be positive")
-        if (self.max_bytes is None) != (self.backup_count is None):
-            raise ValueError("Log rotation requires explicit max_bytes and backup_count")
         if any(value is not None and type(value) is not bool for value in (self.log_reads, self.enabled)):
             raise ValueError("Log switches must be boolean")
 
@@ -47,7 +38,7 @@ class DomainLogger:
         if self.config.enabled is False or (event.endswith(".loaded") and self.config.log_reads is False):
             return
         if self.sink is None:
-            _file_log_event(logs, event, config=self.config, **fields)
+            FileLogSink()(logs, event, fields)
         else:
             try:
                 self.sink(logs, event, fields)
@@ -74,13 +65,26 @@ def log_event(logs: Path, event: str, **fields) -> None:
     after_commit(lambda: (logger if logger is not None else DomainLogger()).write(logs, event, **fields))
 
 
-class _RaisingFileHandler(RotatingFileHandler):
-    def handleError(self, record: logging.LogRecord) -> None:
+class FileLogSink:
+    """Allowlisted file writer; an Application may override open_handler to own retention."""
+
+    def open_handler(self, path: Path):
+        return _RaisingFileHandler(path, encoding="utf-8")
+
+    def __call__(self, logs: Path, event: str, fields: dict):
+        _file_log_event(logs, event, handler_factory=self.open_handler, **fields)
+
+    @staticmethod
+    def handle_error(record: logging.LogRecord) -> None:
         # The caller emits a safe warning without the record or exception text.
         raise OSError("Operational log write failed")
 
 
-def _file_log_event(logs: Path, event: str, *, config: LogConfig, entity_id: Optional[str] = None,
+class _RaisingFileHandler(logging.FileHandler):
+    handleError = staticmethod(FileLogSink.handle_error)
+
+
+def _file_log_event(logs: Path, event: str, *, handler_factory: Callable, entity_id: Optional[str] = None,
               related_id: Optional[str] = None, status: Optional[str] = None,
               count: Optional[int] = None, permanent: Optional[bool] = None) -> None:
     """Write only allowlisted operational fields; never accept arbitrary metadata.
@@ -113,10 +117,9 @@ def _file_log_event(logs: Path, event: str, *, config: LogConfig, entity_id: Opt
                 raise OSError("Linked log directory")
         logs.mkdir(mode=0o700, exist_ok=True)
         path = logs / "service.log"
-        for candidate in (path, *(logs / f"service.log.{i}" for i in range(1, (config.backup_count or 0) + 1))):
-            if candidate.is_symlink():
-                raise OSError("Linked log file")
-        handler = _RaisingFileHandler(path, maxBytes=config.max_bytes or 0, backupCount=config.backup_count or 0, encoding="utf-8")
+        if path.is_symlink():
+            raise OSError("Linked log file")
+        handler = handler_factory(path)
         handler.setFormatter(logging.Formatter("%(message)s"))
         logger.addHandler(handler)
         level = logging.ERROR if event.endswith(".failed") else logging.INFO

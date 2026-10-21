@@ -64,7 +64,8 @@ Host 기술적 승인/거절 함수, runner, classifier, operation adapter 묶�
 현재 Project `policies.output` 값은 `for_project()`에서 적용한다. 새 형식에서 이름을 바꿀 때도
 출력 batching과 실행 한도의 의미·소유자를 혼동하지 않는다.
 `BackendServices` (`services/composition.py`)는 저장소/함수/공유 자원 조립 객체다.
-`LogConfig`는 Host가 명시하는 로깅 설정이며 `DomainLogger(config=...)`가 사용한다.
+`LogConfig`는 기록/조회 활성화 설정이며 `DomainLogger(config=...)`가 사용한다.
+보존·회전 정책은 Application sink가 소유하고 Backend LogConfig에 포함하지 않는다.
 
 LLM domain에서 `settings`를 config/policy/인자의 모호한 총칭으로 사용하지 않는다.
 Hub의 `SettingsService`, Settings 화면, GeneralSettings는 Project config/policy,

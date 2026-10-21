@@ -15,11 +15,7 @@ from llm.services.composition import BackendServices
 from llm.services.infrastructure.logging import DomainLogger, LogConfig
 
 services = BackendServices(
-    logger=DomainLogger(LogConfig(
-        max_bytes=2 * 1024 * 1024,
-        backup_count=5,
-        log_reads=False,
-    )),
+    logger=DomainLogger(LogConfig(log_reads=False)),
 )
 
 backend = LargeLanguageModel("./workspace", services=services)
@@ -214,6 +210,29 @@ ValueError다. 커서는 고정 스냅샷이 아니므로 조회 사이에 상�
 I/O를 피하지만, 전체 스캔 비용까지 제거하지는 않는다.
 
 ## 로그 출력과 실행 중 Session 수정
+
+기본 DomainLogger/FileLogSink는 허용된 운영 필드만 추가 기록한다. LogConfig에는 enabled와
+log_reads만 있고 보존 크기·개수·선정 정책은 없다. 회전이 필요하면 Application sink를 명시한다.
+Hub의 RotatingLogSink는 양의 정수 크기/개수를 모두 요구하며 자동 기본 보존값은 없다.
+같은 sink의 여러 스레드 호출을 직렬화하고 링크된 로그/백업은 쓰기 전에 거부한다.
+
+```python
+from hub.backend.observability.logging import RotatingLogSink
+from hub.backend.runtime import HubConfig
+
+config = HubConfig(workspace="./workspace", log_sink=RotatingLogSink(
+    max_bytes=2 * 1024 * 1024, backup_count=5,
+))
+# 직접 조립하는 Application도 같은 sink를 주입할 수 있다.
+services = BackendServices(logger=DomainLogger(sink=config.log_sink))
+```
+
+FileLogSink의 open_handler 확장은 파일 출력 장치만 제공한다. 허용 필드·도메인 존재·링크 경로
+검사·핸들 종료·안전한 오류 경고는 기존 writer가 맡는다. 일반 callable sink는 이전의
+sink(path, event, fields) 계약을 유지한다. 로그는 best effort 운영 진단이며 도메인 원본·효과
+영수증이 아니다. 회전 실패로 확정된 도메인 저장을 되돌리거나 삭제된 도메인을 재생성하지 않는다.
+Provider 진단은 계속 추가 기록만 하며 자동 회전/삭제하지 않는다.
+
 
 ```python
 def host_log(path, event, fields):

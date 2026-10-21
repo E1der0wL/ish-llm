@@ -166,7 +166,7 @@ Step의 명시 기한은 provider 진행을 중단하지만 yield된 이벤트�
 | services/runtime/_worker.py | 미설정 core dump 제한을 0으로 강제하지 않고 부모 OS 자원 설정 상속 |
 | components/tools/builtin | 파일/출력/프로세스/검색 개수 cap 제거. Shell, 검색 재귀·대소문자 선택은 명시 |
 | services/api.py, results.py | 상태/출력/Tool 결과 조회 기본 개수/문자 제한 제거 |
-| services/infrastructure/logging.py | 명시적 회전 설정 없이 로그 삭제하지 않음 |
+| services/infrastructure/logging.py | 기본 파일은 추가 기록만 수행. 보존/회전은 Application sink로 직접 이관 |
 | components/rag | 분할/동시성/검색/추출/cache/library 기본 설정 생성 제거 |
 | components/memory | 자동 처리 및 검색/쓰기 정책 기본값 생성 제거 |
 

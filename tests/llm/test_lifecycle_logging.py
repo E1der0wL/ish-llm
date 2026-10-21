@@ -14,7 +14,7 @@ from llm.core.paths import ProjectPaths, SessionPaths
 from llm.engines.registry import EngineRegistry
 from llm.services.history.conversation import ConversationStore
 from llm.services.infrastructure.storage import remove_owned_tree
-from llm.services.infrastructure.logging import _RaisingFileHandler, log_event
+from llm.services.infrastructure.logging import DomainLogger, LogConfig, log_event
 from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
 from llm.services.runtime.runs import RunManager
 from llm.services.lifecycle.sessions import SessionManager, SessionRuntime
@@ -161,18 +161,34 @@ class LifecycleTests(unittest.TestCase):
                 self.sessions.save(self.session)
         self.assertEqual(self.sessions.load(self.project, self.session.id).title, "Changed")
 
-    def test_log_rotation_and_no_duplicate_global_handlers(self) -> None:
+    def test_default_logs_append_without_retention_or_duplicate_global_handlers(self) -> None:
         root_handlers = list(logging.getLogger().handlers)
-        def small_handler(filename, **kwargs):
-            return _RaisingFileHandler(filename, **{**kwargs, "maxBytes": 220, "backupCount": 3})
-        with patch("llm.services.infrastructure.logging._RaisingFileHandler", side_effect=small_handler):
-            for _ in range(12):
-                log_event(self.session.paths.logs, "session.loaded", entity_id=self.session.id)
+        original = records(self.session.paths.logs)
+        for _ in range(12):
+            log_event(self.session.paths.logs, "session.loaded", entity_id=self.session.id)
         files = list(self.session.paths.logs.glob("service.log*"))
-        self.assertEqual(len(files), 4)
+        self.assertEqual(len(files), 1)
+        current = records(self.session.paths.logs)
+        self.assertEqual(current[:len(original)], original)
+        self.assertEqual(len(current), len(original) + 12)
         self.assertEqual(logging.getLogger().handlers, root_handlers)
-        self.assertTrue(all(json.loads(line)["event"] == "session.loaded"
-                            for path in files for line in path.read_text(encoding="utf-8").splitlines()))
+        self.assertTrue(all(row["event"] == "session.loaded" for row in current[len(original):]))
+
+    def test_backend_rejects_retired_retention_options_and_keeps_existing_backups(self):
+        logs = self.session.paths.logs
+        logs.mkdir(exist_ok=True)
+        backup = logs / "service.log.1"
+        backup.write_text("original diagnostic\n")
+        original = records(logs)
+        for settings in ({"max_bytes": 220}, {"backup_count": 3}, {"max_bytes": 220, "backup_count": 3}):
+            with self.assertRaises(TypeError):
+                LogConfig(**settings)
+        for _ in range(20):
+            DomainLogger().write(logs, "session.loaded")
+        current = records(logs)
+        self.assertEqual(current[:len(original)], original)
+        self.assertEqual(len(current), len(original) + 20)
+        self.assertEqual(backup.read_text(), "original diagnostic\n")
 
     def test_logging_never_recreates_deleted_domain(self) -> None:
         self.sessions.delete(self.session, permanent=True)

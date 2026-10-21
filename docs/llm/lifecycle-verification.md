@@ -9,6 +9,80 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H4-d 로그 정책과 H4 최종 통합 — 로컬 Level 3
+
+H3 원격 기준 `a915191212eb4a79eddefffdc9e9187f8d3b5ac3` 뒤 H4-a RAG 세대 선택
+`6a0090836e60f17a3ef586d1a588c45238a7b62e`, H4-b History 선택
+`06023526f34b84e7c2a92445c5f8dc908ac8074f`, H4-c Job 선택
+`5fd0ad9`의 로컬 Level 2와 이번 로그 정책을 현재 통합 소스로 검증했다.
+H4 로컬 상위 게이트는 완료했으며 원격 CI 통과는 미확인이다. H5/P1/A–F 완료를 뜻하지 않는다.
+
+- DomainLogger의 LogConfig에는 enabled/log_reads만 남겼다. 기본 FileLogSink와 Provider
+  진단 파일은 logging.FileHandler로 추가 기록만 한다. Provider는 변경 전에도 자동 회전하지
+  않았으며 이번 변경은 그 동작을 명시하는 정리다. 옛 Backend 보관 인자는 TypeError로 거부한다.
+- Hub RotatingLogSink가 명시 크기/개수·회전 시점·대상 파일을 소유한다. HubConfig.log_sink →
+  bootstrap → BackendServices.logger로 주입하며 기본 None은 기존 추가 기록이다. 자동 보존값,
+  새 영속 설정·UI·scheduler는 추가하지 않았다. 같은 sink의 여러 스레드는 직렬화한다.
+- FileLogSink는 허용 필드·도메인 존재·링크 거부·핸들 종료·민감정보 없는 오류 경고를 공유한다.
+  Application은 open_handler로 출력 장치를 제공하고 백업 파일의 링크도 회전 전에 검사한다.
+  일반 callable sink의 기존 호출 계약과 after_commit 순서는 유지했다. 로그는 best effort 진단이며
+  영수증/원본이 아니다. 회전 자체의 crash 원자성을 새로 보장하지 않는다. 기록 실패로 도메인
+  저장을 취소하거나 삭제된 도메인을 재생성하지 않는다.
+- 원래 회전 4파일·event·전역 handler Assertion을 Hub 시험으로 옮겨 보존했다. Backend 시험은
+  기존 전체 기록/백업 보존·추가 기록·폐기 설정 거부를 확인한다. Hub 8개 신규는 실제 bootstrap,
+  무정책 기본/명시 회전, 민감정보 제외, 조회/활성화 스위치, 링크 거부, 삭제 도메인, 병렬 기록,
+  잘못된 정책, 실제 rename 직후 장애에도 확정된 Project 저장과 원래 진단 보존을 검증한다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `d-focused-1` llm | 110/110 | 108 | 2/0/0 | 17.177초 | 1 |
+| `d-focused-1` hub | 13/13 | 12 | 1/0/0 | 11.118초 | 1 |
+| `d-focused-2` llm | 110/110 | 110 | 0/0/0 | 17.238초 | 0 |
+| `d-focused-2` hub | 13/13 | 13 | 0/0/0 | 10.825초 | 0 |
+| `final` llm | 2046/2046 | 2046 | 0/0/0 | 730.780초 | 0 |
+| `final` hub | 559/559 | 559 | 0/0/0 | 713.436초 | 0 |
+
+첫 LLM 집중의 2 failure는 새 append 시험이 fixture 생성 로그 3건을 누락한 전제였다.
+기존 prefix 전체의 동일성을 추가하고 새 event 12/20건을 정확히 검사했다. 첫 Hub 집중의
+1 failure는 작은 회전 한도에서 읽기/저장 두 event가 모두 실제 rename에 도달한 새 fixture였다.
+명시 한도와 기존 진단 크기를 조정해 첫 rename 1회를 주입하고 저장·원래 진단 보존 Assertion을
+유지했다. 원래 실패 로그/fixture는 보존한다. 전체 실행에는 현재 모든 시험이 포함되며 모든
+실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+
+H4-d의 공통 로그 Writer와 Hub bootstrap/Provider 소비자 영향, H4-a/b/c의 삭제·공개 API·
+Schema 통합을 함께 검증하므로 집중 후 별도 Level 2를 반복하지 않고 Level 3으로 승격했다.
+전체 LLM/Hub는 현재 690개 Python 소스에서 각각 실제 실행했으며 과거 소단계 결과를 합산하거나
+다른 소스의 성공으로 대체하지 않았다. 승인·권한·예산·효과·Checkpoint·RAG·삭제·원본 보존·
+실제 중단/재개/트랜잭션 검사와 R3 mutation을 유지했다. 기존 확정 삭제의 기술적 GC는 변경 없다.
+
+정적 감사는 new/stale/S1 미해결 0, debt 518, exit 0이다. 로그 정책 제거로
+사라진 4개 분기와 logging의 외부 handleError 이름을 단일 handle_error 구현에 연결한 1개만
+기준에서 제거했다. 새 면제나 검사 비활성화는 없다. R3 검출 True, outer exit 0이며 의도한
+inner 실패도 보존한다. 계약 문서 검사는 131/182/955/34, 오류 0, exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/h4/final/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/h4/final/hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h4/final/architecture.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h4/final/docs.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/h4/final/llm-environment.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/h4/final/hub-environment.json
+```
+
+실행 전후 690개 Python 소스 hash `f768422a4b8b37fbd12eff4ff73f597ba90a3926677b8448cda12e298fa01c7a`,
+850개 전체 입력/환경 hash `4ed58a4c09967caebc56d62c392264be6941fcbd68fc3370e427afbebd61e88e`가 각각 동일하다.
+Python 3.12.14/136개 의존성, 실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`, 기존
+TERM/LiteLLM/Xvfb/xclip 설정과 UID 1000의 실제 bubblewrap/X11 검사를 유지했다. 두 환경
+검사는 errors 0/ok true/exit 0이다. 소스·시험·Fixture·문서는 전체 실행 동안 고정했다.
+
+변경된 감사 항목 L09의 선정·기간·시점은 Application으로 직접 이전했고 Backend의 현재
+안전성 증거/CAS/명시 요청 거부는 유지한다. L02·L08 관련 H4 추가 결함과 검증은 아래 각
+소단계 기록에 남겼으며 과거 38개 데이터군 감사는 다시 작성하지 않았다. 성공 뒤 문서를 먼저
+갱신하고 관련 로컬 커밋을 작업 브랜치에 묶어 Push한다. main/backend/PR #1은 변경하지 않는다.
+원격 GitHub CI 결과는 인증 조회 403 때문에 미확인이며 로컬 결과나 Push로 대체하지 않는다.
+다음은 H5 백업/참조·나머지 Component 계약이다. H1–H5 완료 전에는 backend 브랜치를 읽지 않는다.
+
 ## H4-c RAG Job 보존 선택과 게시 증거 — 로컬 Level 2
 
 기준 `06023526f34b84e7c2a92445c5f8dc908ac8074f` 뒤 Job의 기간·대상 선택을 Application으로

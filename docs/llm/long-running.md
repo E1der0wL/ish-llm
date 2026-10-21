@@ -258,7 +258,7 @@ Backend는 `aretention_plan(unit)`의 적격 대상과 원본 version을 다시 
 기간/용량/대화 본문 토큰 조건을 평가한다. 토큰은 API 사용량과 다르다. Tool 작업 원장,
 대기/실행/실패/중단/일시정지 Run, retain 메타데이터, 비파일 대화, 현재 Project 사용량
 집계에 필요한 Session은 보호한다. 따라서 지정 용량까지 줄일 수 없을 수 있으며 사유를 반환한다.
-용량은 Session 도메인 기록/산출물 대상이며 운영 로그는 logger의 회전 설정으로 관리한다.
+용량은 Session 도메인 기록/산출물 대상이며 운영 로그는 명시한 Application sink의 회전 정책으로 관리한다. 기본 Backend 로그는 추가 기록만 한다.
 Memory/RAG 등 프로젝트 컴포넌트 데이터는 이 API로 지우지 않는다. 적용은 workspace 잠금 아래
 트랜잭션에 참여한다. 실패하면 rollback/recovery 후 계획과 저장 상태를 다시 확인한다.
 외부 효과까지 원자화하는 보장은 아니다. [저장 경계](storage-transactions.md)를 따른다.

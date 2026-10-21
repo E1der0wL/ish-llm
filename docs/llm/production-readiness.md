@@ -40,7 +40,7 @@ Skip/환경 차단을 pass로 바꾸지 않는다. 실제 인증 모델 호출�
 | 부하 | 5 Session/3시간/2GB 같은 과거 목표는 실환경 측정 필요. 짧은 합성 시험으로 운영 보장하지 않음. |
 | sandbox | 실제 bwrap·network deny·mount·process 종료 검증 필수. 실패 시 비격리 실행으로 강등하거나 Skip하지 않음. |
 | 확장 | trusted host callback/custom Engine이 직접 호출하는 SDK·외부 저장을 자동 감시/원자화하지 않음. |
-| 보관 | 자동 무음 삭제 없음. 명시 계획/CAS와 checkpoint·receipt·usage·자료 참조 보호. 로그 회전은 별도 명시 설정. |
+| 보관 | 자동 무음 삭제 없음. 명시 계획/CAS와 checkpoint·receipt·usage·자료 참조 보호. 로그 회전은 Application sink의 명시 설정. |
 
 추가 제한의 부재와 알고리즘 필수값 누락은 다르다. 필요한 기능 설정은 실행 전에 거부하고,
 Host 공유 자원과 Project 제품 정책을 분리한다. 구체적인 완료 gate는 [클린 계획](clean-refactor.md)에 있다.

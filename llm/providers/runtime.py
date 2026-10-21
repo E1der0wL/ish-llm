@@ -14,7 +14,6 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from collections import OrderedDict
 from pathlib import Path
-from logging.handlers import RotatingFileHandler
 
 _observer = ContextVar("provider_diagnostics", default=None)
 _directory = ContextVar("provider_log_directory", default=None)
@@ -169,10 +168,10 @@ def _error_details(error):
     return result
 
 
-class _FileHandler(RotatingFileHandler):
+class _FileHandler(logging.FileHandler):
     def __init__(self, path, owner):
         self.owner = owner
-        # No retention policy was supplied: never rotate/delete provider diagnostics.
+        # Provider diagnostics are append-only; retention belongs to the Application.
         super().__init__(path, encoding="utf-8")
 
     def handleError(self, record):

@@ -1780,14 +1780,6 @@
       "detail": "verify exact version type and declaration reference"
     },
     {
-      "id": "0735734bfec9247e99e0f7cd6417cad192c73f1937ebfcec2d792b80b2ef2e7f:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/logging.py",
-      "symbol": "LogConfig.__post_init__",
-      "line": 28,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "cd414d4a516e92be06bd4a7d1eae160290094ba17c7caa059a1c067911faee50:1",
       "rule": "S2",
       "file": "llm/services/infrastructure/logging.py",
@@ -1812,44 +1804,12 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "9c523ab9cba9190ce6d83edec74899f63ea6bc447e875888f80dfd94f43b7355:1",
-      "rule": "S5",
-      "file": "llm/services/infrastructure/logging.py",
-      "symbol": "_RaisingFileHandler.handleError",
-      "line": 78,
-      "detail": "callable is not snake_case"
-    },
-    {
       "id": "df81b9cff2b00d1726aae9c5a427729bffd81fc6fa740ed3f7969f6b1ad5f1c5:1",
       "rule": "S3",
       "file": "llm/services/infrastructure/logging.py",
       "symbol": "_file_log_event",
       "line": 100,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "6e3f53c3cb6356b4635602791a8bf03124a0b79aa6876c2546506c8ffdaa7b60:1",
-      "rule": "S2",
-      "file": "llm/services/infrastructure/logging.py",
-      "symbol": "_file_log_event",
-      "line": 116,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "7b622b5c3e8e39de46c2af1467ad057db270d9ab5689f74179e2298c2ee4e6de:1",
-      "rule": "S2",
-      "file": "llm/services/infrastructure/logging.py",
-      "symbol": "_file_log_event",
-      "line": 119,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "6e3f53c3cb6356b4635602791a8bf03124a0b79aa6876c2546506c8ffdaa7b60:2",
-      "rule": "S2",
-      "file": "llm/services/infrastructure/logging.py",
-      "symbol": "_file_log_event",
-      "line": 119,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "d8044e20f74e074df9b793c0a769a164762d18aff48668e94b258def8be2476b:1",

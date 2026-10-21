@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 def create_backend(config: "HubConfig"):
     # Heavy imports and construction happen on the backend thread, not in .ishrc.
     from llm.llm import LargeLanguageModel, BackendServices, ProviderDiagnostics
+    from llm.services.infrastructure.logging import DomainLogger
     from ..config.preferences import PreferencesStore
     from ..config.general import GeneralSettings
     from llm.services.runtime.tools import ToolRuntime
@@ -74,6 +75,7 @@ def create_backend(config: "HubConfig"):
                for name, engine in engines.items()}
     return LargeLanguageModel(config.workspace, components=list(components.values()), engines=engines,
                               services=BackendServices(context_builder=HubContextBuilder(), observability_sink=monitor,
+                                  logger=DomainLogger(sink=config.log_sink),
                                   provider_diagnostics=diagnostics,
                                   tool_runtime=ToolRuntime(
                                       classify=config.tool_classifier if config.tool_classifier is not None else classify_model_risk,
