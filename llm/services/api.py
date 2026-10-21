@@ -434,13 +434,14 @@ class Runs(AsyncFacade):
     async def verify_operation(self, key: str, *, apply=False):
         """호스트 operation_probe로 외부 결과를 조회한다. apply=True만 원장에 반영한다."""
         from llm.services.infrastructure.storage import revision_token
+        from llm.services.runtime.operations import OperationStatus
         probe = self.app.services.tool_runtime.operation_probe
         if probe is None:
             raise ValueError("Configure ToolRuntime.operation_probe first")
         def snapshot():
             session = self.app.project_manager.sessions.require_inactive(self.session.data)
             value = self.app.run_repository.tool_operation(session, key)
-            if value["status"] != "started":
+            if value["status"] != OperationStatus.STARTED.value:
                 raise ValueError("Only uncertain operations need verification")
             return value
         value = await self._async_call(snapshot)

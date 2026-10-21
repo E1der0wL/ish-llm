@@ -12,6 +12,7 @@ from llm.core.contracts import Diagnostic
 from llm.policies.retry import RetryPolicy
 from llm.providers.requests import resolve_provider_options
 from llm.providers.runtime import diagnostic_scope
+from llm.services.infrastructure.observability import ObservationKind, ObservationStatus
 from ...model import RetrySummary
 from .provider_recovery import CompletionRecoveryMixin
 
@@ -80,7 +81,7 @@ class RetryMonitor:
     def __call__(self, event: dict) -> None:
         # Executions is emitted immediately before the actual Tool call, including
         # unchanged-argument retries that have no new STEP_UPDATED event.
-        if event.get("kind") == "tools" and event.get("status") == "executions":
+        if event.get("kind") == ObservationKind.TOOLS.value and event.get("status") == ObservationStatus.EXECUTIONS.value:
             key = (event.get("run_id"), event.get("step_id"))
             previous = self.states.get(key)
             if previous is not None and previous.summary.phase != "active":

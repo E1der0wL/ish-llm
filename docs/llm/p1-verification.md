@@ -15,6 +15,64 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c33: 기존 상태·버전 선언의 남은 소비 참조 — 로컬 Level 2
+
+7개 파일에서 기존 MemoryComponent·GoalStatus·WorkflowGraph·OperationStatus·
+ObservationKind/Status·RunErrorCode 선언을 참조했다. Refine의 Memory candidate 생성,
+Hub Memory 전체 목록·정의 생성/Goal 도구, uncertain 작업 조회, 실제 Tool 실행 관찰,
+재시작 복구가 대상이다. 모든 실제 선언 값/str·int 타입을 대조하고 import/참조를 복원하면
+7개 파일의 원문이 같다. 새 허용 값·상태·기본 정책은 만들지 않았고 시험은 바꾸지 않았다.
+
+기존 generation/revision·Session/Run binding·승인·예산·효과·복구 계약을 유지한다.
+Workflow/Memory 생성 선택은 기존대로이며 재열기에 주입하지 않는다. Refine은 confirmed
+원본을 덮어쓰지 않고 candidate를 생성한다. uncertain 원장 조회는 started만 허용하고
+복구는 실행을 재생하지 않는다. 순환 import를 피하도록 recovery와 Refine의 소유 선언은
+기존 관련 실행 경계에서 가져온다. 이전 backend의 Memory 목록 부분만 읽어 같은 범위를
+확인했으며 과거 코드/시험 결과를 이식하지 않았다.
+
+미해결 S3 9건을 실제 제거했다. 기존 review 26건은 바뀐 소비 의존성이 정확한 참조 치환임을
+원문 복원으로 확인하고 다른 모든 source pin·owner·근거·계약·시험을 유지했다. 새 선언
+의존성을 연결했으며 새 예외 분류는 없다. 관련 구체적 시험 ID 12개가
+현재 실행 집합에서 모두 통과했다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 81/81/81 | 0/0/0 | 34.855초 | 0 |
+| 집중 HUB | 33/33/33 | 0/0/0 | 65.520초 | 0 |
+| 추가 Level 2 LLM | 139/139/139 | 0/0/0 | 49.786초 | 0 |
+| 추가 Level 2 HUB | 42/42/42 | 0/0/0 | 26.179초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각 실행에서 0이다.
+집중 검증은 위 owner/직접 소비자와 실제 효과·승인/재개·복구·정의/Memory UI를 포함한다.
+추가 검증은 공통 안전성 9개 모듈·감사 검사기 및 관련 설정/오류/언어·X11 소비자를 포함한다.
+두 실행의 현재 전체 discovery 2101/577개는 같고 선택 ID가 겹치지 않는다. 제품/시험704개와
+입력864개·환경·의존성은 같고 감사 Fixture 두 개만 바뀌어 감사 시험은 새로 실행했다.
+각 실행의 전후 manifest·명령·exit·개별 ID·report hash는 `/workspace/llm-clean-resume/p1/c33-level2/reuse-proof.json`으로
+연결했다. 선택 실행을 하나의 전체 실행으로 합산하지 않았다.
+
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 211·reviewed 105·미해결 106
+(S3 88·S6 18), new/stale/review 오류·필수 S1/S2/S4/S5 미해결 0/exit 0,
+문서 검사 오류 0/exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c33-focused/llm.json --modules tests.llm.test_refinement tests.llm.test_recovery_probe tests.llm.test_operations_schema tests.llm.test_operational_storage tests.llm.test_memory_component
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c33-focused/hub.json --modules tests.hub.test_resource_tools tests.hub.test_memory_manager tests.hub.test_component_managers tests.hub.test_usage_definitions_system tests.hub.test_retry_observations tests.hub.test_retry_ui
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c33-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c33-level2/hub.json --modules tests.hub.test_error_contract tests.hub.test_general_options tests.hub.test_language_presence tests.hub.test_settings tests.hub.test_x11_clipboard
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c33-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c33-level2/aux/docs.json
+```
+
+실행 HEAD `a717ba2140203d4a86c49774eaa5846d89151875`에 c33 변경을 더했다. 소스 hash
+`7bfbec137be837e1dbe09c7fe8be4db3df1feb68005c90da0d5b5d8eae637489`, 입력/환경 hash `c73126d36213357ae2180ab8aadc16c163355bc4ca7d7ba429a88bf325403e15`가 추가 실행 전후 같다.
+Python 3.12.14·136 의존성·env5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다.
+원시 기록은 위 경로와 `c33-focused/`에 보존했다. 문서를 먼저 갱신하고 소스-커밋 동일성과
+staged diff를 확인해 로컬 커밋한다. **이번 소단계에서는 전체 회귀를 실행하지 않았다.**
+같은 값을 제공하는 기존 owner 참조로 범위를 한정하고 관련 계약/안전성을 검증했다.
+후속 관련 변경과 묶은 Level 3에서 전체 회귀 후 Push한다. P1 최종 S1–S5·A–F는 미완료,
+원격 CI는 미확인이다. main·backend·Draft PR #1은 변경하지 않는다.
+
 ## P1-c32: Goal·기본 프로세스 Tool 상태 소유 선언 — c30–c32 묶음 Level 3
 
 GoalData의 모듈이 GoalStatus 3개를 소유하고 레코드 Schema·상태 변경·문맥 선택·목록

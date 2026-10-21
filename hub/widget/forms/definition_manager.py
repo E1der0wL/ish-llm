@@ -3,6 +3,9 @@
 import json
 import re
 
+from llm.components.memory.component import MemoryComponent
+from llm.components.workflows.graph import WorkflowGraph
+
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import HSplit, VSplit
@@ -19,8 +22,8 @@ def initial_definition(name):
     return {
         "prompts": {"messages": [{"role": "system", "content": "You are a helpful assistant."}]},
         "agents": {"purpose": "", "engine": "loop", "system_prompt": ""},
-        "workflows": {"schema_version": 1, "entry": "done", "nodes": {"done": {"type": "end"}}, "edges": []},
-        "memory": {"content": "", "kind": "note", "scope": "project", "status": "confirmed", "tags": []},
+        "workflows": {"schema_version": WorkflowGraph.SCHEMA_VERSION, "entry": "done", "nodes": {"done": {"type": "end"}}, "edges": []},
+        "memory": {"content": "", "kind": "note", "scope": MemoryComponent.PROJECT_SCOPE, "status": MemoryComponent.CONFIRMED, "tags": []},
     }[name]
 
 

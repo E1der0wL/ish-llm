@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from llm.components.agents import AgentComponent
 from llm.components.goals import GoalComponent
+from llm.components.goals.data import GoalStatus
 from llm.components.rag import RAGComponent
 from llm.components.workflows import WorkflowComponent
 from llm.components.tools import Tool, ToolContract, ToolRegistry
@@ -135,7 +136,7 @@ class HubGoalComponent(GoalComponent):
             call = owner(data)
             identifier = await data.acreate({"title": args["title"], "objective": args["objective"],
                 "success_criteria": args["success_criteria"], "scope": {"type": "session", "id": call.session_id},
-                "status": "active", "run_refs": [{"session_id": call.session_id, "run_id": call.run_id,
+                "status": GoalStatus.ACTIVE.value, "run_refs": [{"session_id": call.session_id, "run_id": call.run_id,
                                                      "relation": "contributes_to"}]}, identifier=args["identifier"])
             return {"id": identifier, **await data.asnapshot(identifier)}
 

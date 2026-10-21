@@ -2,6 +2,8 @@
 
 import json
 
+from llm.components.memory.component import MemoryComponent
+
 from .record_management import RecordManagement
 
 
@@ -14,9 +16,9 @@ class MemoryManagement(RecordManagement):
         self.project = project
 
     async def _records(self):
-        records = await self.data.alist(status="all")
+        records = await self.data.alist(status=MemoryComponent.ALL)
         for session in await self.project.sessions.alist(include_deleted=True):
-            records.update(await self.data.alist(status="all", session_id=session.id))
+            records.update(await self.data.alist(status=MemoryComponent.ALL, session_id=session.id))
         return records
 
     async def list(self):

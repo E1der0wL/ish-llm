@@ -13,6 +13,7 @@ from llm.core.steering import is_instruction, RunInstruction, InstructionDataErr
 def recover_session(sessions, repository, steps, session, store):
     """Session 소유권을 확보한 호출자만 사용한다. Runtime 시작과 수동 복구가 같은 규칙을 쓴다."""
     from llm.services.infrastructure.transactions import watch
+    from llm.services.runtime.runs import RunErrorCode
     watch(session)
     recovered = []
     messages = {message.id: message for message in store.list()}
@@ -38,11 +39,11 @@ def recover_session(sessions, repository, steps, session, store):
         if stale:
             if "steering" in run.metadata:
                 from llm.services.runtime.steering import finish_instructions, close_targets
-                finish_instructions(store, run.id, "process_restart")
-                close_targets(run, "process_restart")
+                finish_instructions(store, run.id, RunErrorCode.PROCESS_RESTART.value)
+                close_targets(run, RunErrorCode.PROCESS_RESTART.value)
             if sessions._owner(session).conversation_storage == "file" and run.assistant_message_id in messages:
                 repository.reconcile_output(run, store)
-            run.status, run.error_code, run.ended_at = RunStatus.INTERRUPTED, "process_restart", now()
+            run.status, run.error_code, run.ended_at = RunStatus.INTERRUPTED, RunErrorCode.PROCESS_RESTART.value, now()
             repository.save(run)
             log_event(run.paths.logs, "run.recovered", entity_id=run.id, status=run.status)
             recovered.append(deepcopy(run))
@@ -68,6 +69,7 @@ class ProjectRecovery:
         self.steps = StepManager(manager.backup_steps)
 
     def plan(self, project) -> RecoveryPlan:
+        from llm.services.runtime.runs import RunErrorCode
         issues, actions, signatures = [], [], []
         def issue(code, *, session=None, run=None, detail=None, repairable=False):
             source = ResourceRef("run" if run else "session" if session else "project", run or session or project.id,
@@ -114,7 +116,7 @@ class ProjectRecovery:
                         issue("claimed_queue_gap", session=session.id, run=run.id, repairable=True)
                     if assistant is not None and (assistant.role != MessageRole.ASSISTANT or assistant.run_id != run.id):
                         issue("invalid_assistant_reference", session=session.id, run=run.id)
-                    elif assistant is None and not (stale or run.error_code == "process_restart"):
+                    elif assistant is None and not (stale or run.error_code == RunErrorCode.PROCESS_RESTART.value):
                         issue("missing_assistant", session=session.id, run=run.id)
                     if assistant is not None and assistant.status == MessageStatus.STREAMING:
                         issue("stale_assistant", session=session.id, run=run.id, repairable=True)

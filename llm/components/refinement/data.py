@@ -249,11 +249,12 @@ class RefinementData(ComponentData):
         elif value["operation"] == "create":
             applied_id = handle.create(replacement, identifier=target_id)
         elif component == "memory":
+            from llm.components.memory.component import MemoryComponent
             # 보존된 원본 revision은 기존 review/consolidation에서 다시 검사한다.
             candidate = {key: deepcopy(replacement[key]) for key in ("content", "kind", "tags", "scope")}
             if "session_id" in replacement:
                 candidate["session_id"] = replacement["session_id"]
-            candidate.update(status="candidate", replaces=[{"id": target_id, "generation": current["generation"], "revision": current["revision"]}],
+            candidate.update(status=MemoryComponent.CANDIDATE, replaces=[{"id": target_id, "generation": current["generation"], "revision": current["revision"]}],
                              metadata={"refinement_proposal": identifier})
             applied_id = handle.create(candidate, source=source)
         elif component == "agents":

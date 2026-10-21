@@ -156,14 +156,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "2ff3001121dc6185164801b1ccc430b4617841cbaa522eb4728f094fc8f3199a:1",
-      "rule": "S3",
-      "file": "llm/components/refinement/data.py",
-      "symbol": "RefinementData.apply",
-      "line": 253,
-      "detail": "inline domain argument: status"
-    },
-    {
       "id": "70a4f903e683a30b8412262c8d7c93f8120dffa2f0180ba81da175cf8216e0b1:1",
       "rule": "S3",
       "file": "llm/components/refinement/tools.py",
@@ -348,14 +340,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "d9afc6a875b8ada4e7b778ee09f9be2a095ba25a944e7c4660e8b8408386a3e2:1",
-      "rule": "S3",
-      "file": "llm/services/api.py",
-      "symbol": "Runs.verify_operation.snapshot",
-      "line": 449,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "0fcf21e5357d232cc17ba435c76ecc9d033b5bd3d36b38059f0cbd0f6dcacd33:1",
       "rule": "S3",
       "file": "llm/services/history/context.py",
@@ -369,14 +353,6 @@
       "file": "llm/services/history/context.py",
       "symbol": "ConversationContextBuilder._select",
       "line": 52,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "e9b389a39505e0f367f9424c8864336c0d856215d8e74100f36d01eee0f5b594:1",
-      "rule": "S3",
-      "file": "llm/services/history/recovery.py",
-      "symbol": "ProjectRecovery.plan",
-      "line": 117,
       "detail": "inline domain comparison"
     },
     {
@@ -508,14 +484,6 @@
       "detail": "inline domain argument: max_retries"
     },
     {
-      "id": "b9725ecc47f9b18b47b825606aca231511c72b7b375a404e094d41f65810e6d7:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/retries.py",
-      "symbol": "RetryMonitor.__call__",
-      "line": 80,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "a5447c8eed67e5ae533d90c5e34fe385312bd72052a5eb1cc7bc4be6453d7747:1",
       "rule": "S3",
       "file": "hub/backend/execution/retries.py",
@@ -540,22 +508,6 @@
       "detail": "inline domain field: status"
     },
     {
-      "id": "04aadafd2f6c1ac69165782fc32a99a05fc93a3bf8653f30d0feb8de755fb35f:1",
-      "rule": "S3",
-      "file": "hub/backend/project/memory_management.py",
-      "symbol": "MemoryManagement._records",
-      "line": 17,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "04aadafd2f6c1ac69165782fc32a99a05fc93a3bf8653f30d0feb8de755fb35f:2",
-      "rule": "S3",
-      "file": "hub/backend/project/memory_management.py",
-      "symbol": "MemoryManagement._records",
-      "line": 19,
-      "detail": "inline domain argument: status"
-    },
-    {
       "id": "489264a1ed4bb9cb7d1048a13f94bd431f63ce71fcaf0bcc19823e2bd869e608:1",
       "rule": "S3",
       "file": "hub/backend/project/naming.py",
@@ -570,14 +522,6 @@
       "symbol": "RAGManagement.execute",
       "line": 149,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "55640383cac7752bd844dd22e4493eb745bfc257e8e3b012283f1b8247b35d00:1",
-      "rule": "S3",
-      "file": "hub/backend/tools/resources.py",
-      "symbol": "HubGoalComponent.resolve_runtime.create",
-      "line": 134,
-      "detail": "inline domain field: status"
     },
     {
       "id": "9c6a6112adb3a11d49435409e73bd45360b02e83c0442bbb6be0b9d467d9b668:1",
@@ -882,22 +826,6 @@
       "symbol": "AnswerChoices.labels",
       "line": 28,
       "detail": "SDK-shaped field lookup outside Provider package"
-    },
-    {
-      "id": "3dc02e61cbc623ea99d0fae52d7469e92f08b9cc7b9acc776d5c82067aca5ca7:1",
-      "rule": "S3",
-      "file": "hub/widget/forms/definition_manager.py",
-      "symbol": "initial_definition",
-      "line": 22,
-      "detail": "inline domain field: schema_version"
-    },
-    {
-      "id": "409fc5de928cab47de7ca0e2fe45c4f8ee54c36b90d032ddf7228a9218dcbddb:1",
-      "rule": "S3",
-      "file": "hub/widget/forms/definition_manager.py",
-      "symbol": "initial_definition",
-      "line": 23,
-      "detail": "inline domain field: status"
     },
     {
       "id": "f06100f0b70971993cff68cba1e05b6f7f6a954ce36d241a44d9f3539f80623f:1",
