@@ -15,6 +15,53 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c37: boolean·표시 텍스트·관찰 선언의 개별 분류 — 로컬 Level 2
+
+제품·시험·원본 정적 findings는 변경하지 않고 23개 발생을 개별 근거로 분류했다.
+명시 opt-in/평가 요구/승인 대상 등록·로그 switch·retry selector binding·보수적 retry-safe
+사실·입력 완성 flag는 각 boolean의 현재 의미를 유지한다. 표시용 빈 문자열 9건은 reasoning/
+연결 화면·설정 notice·Alert 본문 선택이며 누락된 영속 상태 복원이 아니다. 진단 tuple 3건은
+순수 관찰 분류의 소유 선언이다. Provider 입력 코드 중복과 실행 권한을 예외 처리하지 않는다.
+
+각 발생에 owner·현행 계약·전체 후보/의존성/시험 파일 hash와 실제 시험 ID를 연결했다.
+write_tools의 정확한 True 선택은 소스 근거이며 관련 효과 시험이 모든 boolean 조합을
+직접 검사한다고 주장하지 않는다. 기존 승인·평가·효과·예산 Assertion은 유지한다.
+외부 준비 도구가 잘못 참조한 별도 Goal schema 경로는 실제 component 소유 파일로 확인한
+뒤 수정했고 실패 기록을 보존했다. 제품 변경이나 제품 시험 실패는 아니다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 새 LLM 선택 실행 | 84/84/84 | 0/0/0 | 31.321초 | 0 |
+| 새 HUB 선택 실행 | 27/27/27 | 0/0/0 | 41.866초 | 0 |
+
+각 새 실행의 expected failure·unexpected success·missing·unexpected·duplicates도 0이다.
+새 검증은 감사 검사기와 Goal/Refinement/진단 계약 및 실제 리소스·로그·설정·알림·경로 UI다.
+동일 소스 c36에서 LLM 137개(공통 안전성9모듈과 retry), Hub
+27개(오류/재시도/투영)를 제한 재사용했다. 관련 제품/시험704개·입력863개와
+의존성·환경·host·바이너리가 같고 결과 문서와 감사 Fixture2개만 다르다. 현재 전체 발견 목록
+2101/577 및 선택 모듈의 전체 ID가 일치하고 새/재사용 집합은 겹치지 않는다. 정확한 근거 ID
+21개가 모두 통과했다. 각 실행 SHA·명령·exit·report hash·선택 ID는 reuse-proof.json에
+구분했으며 서로 다른 실행을 하나의 전체 실행으로 표현하지 않는다.
+
+R3 mutation True/outer exit0, 정적 raw205·reviewed141·미해결64(S3 46·S6 18),
+new/stale/review 오류·필수 S1/S2/S4/S5 미해결0/exit0, 문서 오류0/exit0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c37-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_goals tests.llm.test_refinement tests.llm.test_architecture_boundaries tests.llm.test_backend_contracts
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c37-level2/hub.json --modules tests.hub.test_resource_tools tests.hub.test_log_retention tests.hub.test_settings_editor tests.hub.test_settings_navigation tests.hub.test_notifications tests.hub.test_popup_completion
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c37-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c37-level2/aux/docs.json
+```
+
+실행 HEAD `dd00e27f6da2727ee74dd03ce8fdba419cfc2ef3`에 감사 Fixture 변경을 더했다. 소스 hash `865e90ade1ef622526983085ea191cb8c1b7613d2cf4349ed3fd8bff106e8078`,
+입력/환경 hash `104b6fd56f94a7127b1d2e84ca291ac06cc1ca2c29d9887cfb04c058c3cd4033`가 실행 전후 같다. Python3.12.14·136 의존성·env5개와
+host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다. 기록은 `/workspace/llm-clean-resume/p1/c37-level2/`에 보존한다.
+결과 문서를 먼저 갱신하고 소스 동일성·staged diff를 확인해 로컬 커밋한다.
+**이번 소단계에서 전체 회귀를 실행하지 않았다.** 제품·시험 변경 없는 개별 감사 보강으로
+한정하며 후속 관련 소단계와 묶은 Level3에서 전체 회귀 후 Push한다. P1·A–F는 미완료,
+원격 CI 실제 결과는 미확인이고 보호 브랜치/PR은 유지한다.
+
 ## P1-c36: Hub 재시도 표시 선언 — 로컬 Level 2
 
 RetrySummary가 표시 kind 3개·phase 7개를 ClassVar 문자열로 소유하고 RetryMonitor,

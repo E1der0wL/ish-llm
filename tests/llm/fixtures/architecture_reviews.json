@@ -3991,6 +3991,646 @@
         "tests.hub.test_x11_clipboard.NativeClipboardTests.test_large_incremental_transfers_both_directions",
         "tests.hub.test_x11_clipboard.NativeClipboardTests.test_targets_legacy_encoding_and_owner_cleanup"
       ]
+    },
+    {
+      "id": "2da12e28cb23997794e418b1db804258a21f0b67275aea3d900f3e52c95f8760:1",
+      "rule": "S3",
+      "owner": "GoalComponent.resolve_runtime",
+      "reason": "The exact True predicate consumes the boolean write_tools policy; it is not another enum or default declaration. Only explicit opt-in exposes write Tools, which still require existing execution/approval boundaries. Source review establishes true-only selection; the cited effect and unselected-component tests are not an exhaustive boolean matrix.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/components/goals/README.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/tools/resources.py": "41ebdb9f21dcf418906d01a040c959a08e231a047be0d1ed7ae5f6498fb84262",
+        "llm/components/goals/README.md": "b16f4b786043bb0e3c687e2752609dee905de9b8f328f5f28bb3b2d3bd5ce58a",
+        "llm/components/goals/component.py": "8a5ccb0724d4c2539c24dbc75d36ed34586db1648d10a3dbf1f5a0bd90b28b24",
+        "llm/components/goals/tools.py": "4698f65aed6a65a2f47c146729ce961dff4cfc9e82d2d82c800fea1beaef9dc1",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/hub/test_resource_tools.py": "c1167e94a9bba5c235a489f3582bb5ab455b1c88d3d76667e3001bbc6c10615f",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_goals.py": "5122eea16fa9ec0597ea5a279682529d935753af8567064d49a3464a7ab895a6"
+      },
+      "tests": [
+        "tests.llm.test_goals.GoalTests.test_unselected_component_keeps_plain_execution",
+        "tests.hub.test_resource_tools.ResourceToolTests.test_memory_recall_and_goal_progress_reach_completion"
+      ]
+    },
+    {
+      "id": "a5d60fcb03fdc04dd03baaa7a8a450bcef46e65cb96d1c708ece877d58005834:1",
+      "rule": "S3",
+      "owner": "RefinementComponent.resolve_runtime",
+      "reason": "This exact True predicate consumes apply_tools as an explicit boolean opt-in. It exposes approval-required apply/rollback Tools without executing or granting approval; it does not duplicate a domain vocabulary.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/components/refinement/README.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/components/refinement/README.md": "ef528706f1508ad30203afe88452bb2fba9db127420176e91e59af16f069b001",
+        "llm/components/refinement/component.py": "47ab67b9c759a096f60c4a6e747eeb83520ebaef3b795233870ef4d7c8befff6",
+        "llm/components/refinement/data.py": "f7b5f3208c7cf5b00676a225dfdeb03b4e73f9666419d2717f0f74caa7fd6c7b",
+        "llm/components/refinement/tools.py": "34ba58b245493aba01cf738705cbe4d9a8bc7079de0e94ea540fa3f4c9010f2d",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_refinement.py": "de1435e0cc9c1571b948e98a52ce2105821e6eac94df0bf44363f3ede12f4f4d"
+      },
+      "tests": [
+        "tests.llm.test_refinement.RefinementTests.test_explicit_failure_and_config_opt_in",
+        "tests.llm.test_refinement.RefinementTests.test_approval_pauses_before_apply_and_resume_applies_exactly_once"
+      ]
+    },
+    {
+      "id": "c86e667043066772af094471ebdb63bff38014f5e37a08c66a59fa5af2dda484:1",
+      "rule": "S3",
+      "owner": "RefinementData._require_evaluation",
+      "reason": "The exact True predicate consumes the owner-validated require_evaluation boolean. It activates the existing evidence requirement; no score threshold, automatic approval or replacement default is introduced.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/components/refinement/README.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/components/refinement/README.md": "ef528706f1508ad30203afe88452bb2fba9db127420176e91e59af16f069b001",
+        "llm/components/refinement/component.py": "47ab67b9c759a096f60c4a6e747eeb83520ebaef3b795233870ef4d7c8befff6",
+        "llm/components/refinement/data.py": "f7b5f3208c7cf5b00676a225dfdeb03b4e73f9666419d2717f0f74caa7fd6c7b",
+        "llm/components/refinement/tools.py": "34ba58b245493aba01cf738705cbe4d9a8bc7079de0e94ea540fa3f4c9010f2d",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_architecture_boundaries.py": "ab3ad398aca64902b7634c65ba9fb7e9e4756f5f56e29dcc18980365327be3ee"
+      },
+      "tests": [
+        "tests.llm.test_architecture_boundaries.EvolutionTests.test_evaluation_versions_and_authority"
+      ]
+    },
+    {
+      "id": "70a4f903e683a30b8412262c8d7c93f8120dffa2f0180ba81da175cf8216e0b1:1",
+      "rule": "S3",
+      "owner": "refinement_tools",
+      "reason": "The apply Tool registration is the actual owning declaration that approval is required. True is a boolean contract fact, not a second approval vocabulary or an approval decision. Existing ToolRuntime, Interaction and receipt boundaries enforce it.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/components/refinement/README.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/components/refinement/README.md": "ef528706f1508ad30203afe88452bb2fba9db127420176e91e59af16f069b001",
+        "llm/components/refinement/component.py": "47ab67b9c759a096f60c4a6e747eeb83520ebaef3b795233870ef4d7c8befff6",
+        "llm/components/refinement/data.py": "f7b5f3208c7cf5b00676a225dfdeb03b4e73f9666419d2717f0f74caa7fd6c7b",
+        "llm/components/refinement/tools.py": "34ba58b245493aba01cf738705cbe4d9a8bc7079de0e94ea540fa3f4c9010f2d",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/hub/test_resource_tools.py": "c1167e94a9bba5c235a489f3582bb5ab455b1c88d3d76667e3001bbc6c10615f",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_refinement.py": "de1435e0cc9c1571b948e98a52ce2105821e6eac94df0bf44363f3ede12f4f4d"
+      },
+      "tests": [
+        "tests.llm.test_refinement.RefinementTests.test_approval_pauses_before_apply_and_resume_applies_exactly_once",
+        "tests.hub.test_resource_tools.ResourceToolTests.test_refinement_proposal_changes_target_only_after_approval"
+      ]
+    },
+    {
+      "id": "70a4f903e683a30b8412262c8d7c93f8120dffa2f0180ba81da175cf8216e0b1:2",
+      "rule": "S3",
+      "owner": "refinement_tools",
+      "reason": "The rollback Tool registration is the actual owning declaration that approval is required. True is a boolean contract fact, not a second approval vocabulary or an approval decision. Existing ToolRuntime, Interaction and receipt boundaries enforce it.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/components/refinement/README.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/components/refinement/README.md": "ef528706f1508ad30203afe88452bb2fba9db127420176e91e59af16f069b001",
+        "llm/components/refinement/component.py": "47ab67b9c759a096f60c4a6e747eeb83520ebaef3b795233870ef4d7c8befff6",
+        "llm/components/refinement/data.py": "f7b5f3208c7cf5b00676a225dfdeb03b4e73f9666419d2717f0f74caa7fd6c7b",
+        "llm/components/refinement/tools.py": "34ba58b245493aba01cf738705cbe4d9a8bc7079de0e94ea540fa3f4c9010f2d",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/hub/test_resource_tools.py": "c1167e94a9bba5c235a489f3582bb5ab455b1c88d3d76667e3001bbc6c10615f",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_refinement.py": "de1435e0cc9c1571b948e98a52ce2105821e6eac94df0bf44363f3ede12f4f4d"
+      },
+      "tests": [
+        "tests.llm.test_refinement.RefinementTests.test_approval_pauses_before_apply_and_resume_applies_exactly_once",
+        "tests.hub.test_resource_tools.ResourceToolTests.test_refinement_proposal_changes_target_only_after_approval"
+      ]
+    },
+    {
+      "id": "1fb20f5f35dc00aec4baf73c0c10d68236ddc46976aa2f368a44b02844e9a828:1",
+      "rule": "S3",
+      "owner": "classify_diagnostic",
+      "reason": "This tuple is the actual closed observation mapping owned by classify_diagnostic for provider_timeout. The timeout text describes a cause; it supplies no duration, execution authority or retry policy. Unknown codes remain unknown. This classification does not approve duplicated Provider input-code declarations elsewhere.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/shared-contracts.md",
+        "docs/hub/error-handling.md"
+      ],
+      "sources": {
+        "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/shared-contracts.md": "3936c5ad645623c175dd7e8cd6703e60c418b9c227e7d8922c86227ec60f6089",
+        "hub/errors/contracts.py": "1e264c9d7520b770cc33d46016a62a08e99f330acad3dceb6fc1468d684345e1",
+        "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
+        "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
+        "llm/core/diagnostics.py": "f138640ed2f8288a3295dfd413febaa69220a0cdb870f4e86507cb73266c12f0",
+        "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_backend_contracts.py": "356330065783182d9fbcdf9a8dff7b34d74a92216406b691bab70318ea2d0c6c"
+      },
+      "tests": [
+        "tests.llm.test_backend_contracts.DiagnosticContracts.test_projection_roundtrip_and_unknown_code",
+        "tests.hub.test_error_contract.ContractTests.test_classification_is_exactly_the_backend_projection",
+        "tests.hub.test_error_contract.ContractTests.test_unknown_backend_code_is_not_reclassified_from_inner_http_or_text"
+      ]
+    },
+    {
+      "id": "8ef1736eaa5118583034346292777216e75ea4151b3bcb76aa7c12eac1d7757c:1",
+      "rule": "S3",
+      "owner": "classify_diagnostic",
+      "reason": "This tuple is the actual closed observation mapping owned by classify_diagnostic for run_timeout. The timeout text describes a cause; it supplies no duration, execution authority or retry policy. Unknown codes remain unknown. This classification does not approve duplicated Provider input-code declarations elsewhere.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/shared-contracts.md",
+        "docs/hub/error-handling.md"
+      ],
+      "sources": {
+        "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/shared-contracts.md": "3936c5ad645623c175dd7e8cd6703e60c418b9c227e7d8922c86227ec60f6089",
+        "hub/errors/contracts.py": "1e264c9d7520b770cc33d46016a62a08e99f330acad3dceb6fc1468d684345e1",
+        "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
+        "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
+        "llm/core/diagnostics.py": "f138640ed2f8288a3295dfd413febaa69220a0cdb870f4e86507cb73266c12f0",
+        "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_backend_contracts.py": "356330065783182d9fbcdf9a8dff7b34d74a92216406b691bab70318ea2d0c6c"
+      },
+      "tests": [
+        "tests.llm.test_backend_contracts.DiagnosticContracts.test_projection_roundtrip_and_unknown_code",
+        "tests.hub.test_error_contract.ContractTests.test_classification_is_exactly_the_backend_projection",
+        "tests.hub.test_error_contract.ContractTests.test_unknown_backend_code_is_not_reclassified_from_inner_http_or_text"
+      ]
+    },
+    {
+      "id": "ee2294c7c800079e85a43b6ff6f77ad539442322cfb7cd011275a53128f03060:1",
+      "rule": "S3",
+      "owner": "classify_diagnostic",
+      "reason": "This tuple is the actual closed observation mapping owned by classify_diagnostic for step_timeout. The timeout text describes a cause; it supplies no duration, execution authority or retry policy. Unknown codes remain unknown. This classification does not approve duplicated Provider input-code declarations elsewhere.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/shared-contracts.md",
+        "docs/hub/error-handling.md"
+      ],
+      "sources": {
+        "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/shared-contracts.md": "3936c5ad645623c175dd7e8cd6703e60c418b9c227e7d8922c86227ec60f6089",
+        "hub/errors/contracts.py": "1e264c9d7520b770cc33d46016a62a08e99f330acad3dceb6fc1468d684345e1",
+        "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
+        "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
+        "llm/core/diagnostics.py": "f138640ed2f8288a3295dfd413febaa69220a0cdb870f4e86507cb73266c12f0",
+        "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_backend_contracts.py": "356330065783182d9fbcdf9a8dff7b34d74a92216406b691bab70318ea2d0c6c"
+      },
+      "tests": [
+        "tests.llm.test_backend_contracts.DiagnosticContracts.test_projection_roundtrip_and_unknown_code",
+        "tests.hub.test_error_contract.ContractTests.test_classification_is_exactly_the_backend_projection",
+        "tests.hub.test_error_contract.ContractTests.test_unknown_backend_code_is_not_reclassified_from_inner_http_or_text"
+      ]
+    },
+    {
+      "id": "17f9a81bc28fb6c36b02910d685f39ea1ccd05f2c2c87278e231d782eb69ce14:1",
+      "rule": "S3",
+      "owner": "DomainLogger.write",
+      "reason": "This False predicate consumes the typed enabled logging switch. It is a boolean filter, not another lifecycle status or policy default; explicit disabling and read suppression keep their existing meanings.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/services/infrastructure/OBSERVABILITY.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/observability/logging.py": "e8e594a1d6c3cbb06c1b38dc39fb2f63ad773dd98461c9426781153ba05a59ac",
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "llm/services/infrastructure/logging.py": "44f3f68b9eeb3746f8e6035287e27024a867a7a4d85cef8e268df957f0e49d28",
+        "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
+        "tests/hub/test_log_retention.py": "e63ae7bf5769652c0e5df26d02ae016ac522776c34565e1f80b9623aa23a4ed7",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_log_retention.LogRetentionTests.test_rotation_reuses_allowlist_and_preserves_read_switches"
+      ]
+    },
+    {
+      "id": "18523c56c3162075e95769261ad16e36d9b2f90c18539082c7d1a3fe3d3c6281:1",
+      "rule": "S3",
+      "owner": "DomainLogger.write",
+      "reason": "This False predicate consumes the typed log_reads logging switch. It is a boolean filter, not another lifecycle status or policy default; explicit disabling and read suppression keep their existing meanings.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/services/infrastructure/OBSERVABILITY.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/observability/logging.py": "e8e594a1d6c3cbb06c1b38dc39fb2f63ad773dd98461c9426781153ba05a59ac",
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "llm/services/infrastructure/logging.py": "44f3f68b9eeb3746f8e6035287e27024a867a7a4d85cef8e268df957f0e49d28",
+        "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
+        "tests/hub/test_log_retention.py": "e63ae7bf5769652c0e5df26d02ae016ac522776c34565e1f80b9623aa23a4ed7",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_log_retention.LogRetentionTests.test_rotation_reuses_allowlist_and_preserves_read_switches"
+      ]
+    },
+    {
+      "id": "c3a2ae57c39fec98aa4534230ac9dc705cbc6e8f5f07b611560093b218802ecc:1",
+      "rule": "S3",
+      "owner": "ToolExecutionScope.binding",
+      "reason": "The conditional True binding field records that a retry selector was actually injected. Absence remains absence. This identity fact does not authorize a Tool, replace approval binding, reset the call budget or select an attempt count.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/retry.md",
+        "docs/hub/tool-retry.md"
+      ],
+      "sources": {
+        "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "hub/backend/tools/retry.py": "5c901d8f1dc48e067cb94720391a959876ae6ebfd0fe7b0e910078ca013fdde9",
+        "llm/policies/retry.py": "e2a2e7f4a3bebc97bf50e0a2ccebeca4138efd67df919dc3d3df6e099cfc9839",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/hub/test_tool_retry.py": "d0f708205afb23214f9f96fa4aa8ba9816f05fea513a26d2860c19d5f9d27e5d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_retry.py": "6d0973f02c8aa74ab33c930d6f10e1b4773259ee9495ac060ff8c38b35f20b97"
+      },
+      "tests": [
+        "tests.llm.test_retry.ToolRetryTests.test_only_injected_selector_adds_binding_authority",
+        "tests.hub.test_tool_retry.ToolRetryTests.test_changed_arguments_require_fresh_approval_and_resume_only_once"
+      ]
+    },
+    {
+      "id": "9c6a6112adb3a11d49435409e73bd45360b02e83c0442bbb6be0b9d467d9b668:1",
+      "rule": "S3",
+      "owner": "ToolRetrySelector.__call__",
+      "reason": "True describes retry-safe argument selection only after backend admission, using the supplied failure evidence. The selector creates a proposed correction; the backend still revalidates arguments, fresh approval, budget and effects before execution.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/tool-retry.md",
+        "docs/hub/error-handling.md"
+      ],
+      "sources": {
+        "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
+        "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/tools/retry.py": "5c901d8f1dc48e067cb94720391a959876ae6ebfd0fe7b0e910078ca013fdde9",
+        "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
+        "llm/policies/retry.py": "e2a2e7f4a3bebc97bf50e0a2ccebeca4138efd67df919dc3d3df6e099cfc9839",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
+        "tests/hub/test_tool_retry.py": "d0f708205afb23214f9f96fa4aa8ba9816f05fea513a26d2860c19d5f9d27e5d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_error_contract.PolicyTests.test_only_backend_admitted_tools_can_be_selected_for_retry",
+        "tests.hub.test_tool_retry.ToolRetryTests.test_changed_arguments_require_fresh_approval_and_resume_only_once"
+      ]
+    },
+    {
+      "id": "5c71368d73e4315a9aa6bc430d0c5590a22011e57a3bd97c3427449786f780ba:1",
+      "rule": "S3",
+      "owner": "RecoveryFacts",
+      "reason": "RecoveryFacts owns the conservative false default for an absent retry-safety fact. Classification and model output cannot set backend admission or invent no-effect evidence. This is a boolean default in the actual owner, not duplicated state choices.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/tool-retry.md",
+        "docs/hub/error-handling.md"
+      ],
+      "sources": {
+        "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
+        "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/tools/retry.py": "5c901d8f1dc48e067cb94720391a959876ae6ebfd0fe7b0e910078ca013fdde9",
+        "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
+        "llm/policies/retry.py": "e2a2e7f4a3bebc97bf50e0a2ccebeca4138efd67df919dc3d3df6e099cfc9839",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
+        "tests/hub/test_tool_retry.py": "d0f708205afb23214f9f96fa4aa8ba9816f05fea513a26d2860c19d5f9d27e5d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_error_contract.PolicyTests.test_only_backend_admitted_tools_can_be_selected_for_retry",
+        "tests.hub.test_tool_retry.ToolRetryTests.test_changed_arguments_require_fresh_approval_and_resume_only_once"
+      ]
+    },
+    {
+      "id": "3c7557e5309758132f5e9d5e98654fcf48d1c0f7466450fc4bc4f9d7a17a22a9:1",
+      "rule": "S3",
+      "owner": "ChatMessage",
+      "reason": "The empty label is the presentation default for reasoning-only chat rows; ordinary persisted messages receive their explicit backend status. It does not repair a missing durable record or create an executable lifecycle state.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/completion-display.md",
+        "docs/hub/backend-contract-handoff.md"
+      ],
+      "sources": {
+        "docs/hub/backend-contract-handoff.md": "fb6f350342d8887d9006fc370e911b6c61ef078cc8984677b283cbc0fb20c605",
+        "docs/hub/completion-display.md": "440c6a66d0625124e602e950df3ae7bd13e1d04fd0626a4d04819759c6e03864",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/execution/continuations.py": "549ebb4ff5600a3c13f5e8e167224e1e7c93637a610277d0d97c442e2334e65c",
+        "hub/backend/execution/thinking.py": "a3cd3504de6db9dc24a9de6decb44deb621aae2944692c388e35605289d28142",
+        "hub/backend/observability/snapshot.py": "6f70a3d2e241329e85992509fa78e9afb8bbc13b696202c8181083e3fb0a5981",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612",
+        "hub/ui/live.py": "8b856713023641040fa04478f83b325437fc9ca4d094835290d77f9f39690652",
+        "hub/ui/view.py": "619e653597969e3f133778082db24391ac6d26c3db3984e312c5d1cd98af8d7a",
+        "tests/hub/test_snapshot_projection.py": "6480cc79faaa55ab19cde6a2e183152c58202c2f4c491dc73bbe9a99658a757d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_snapshot_projection.SnapshotProjectionTests.test_thoughts_and_all_tools_are_interleaved_from_durable_timestamps",
+        "tests.hub.test_snapshot_projection.SnapshotProjectionTests.test_reconciliation_restores_all_rounds_above_partial_answer",
+        "tests.hub.test_snapshot_projection.SnapshotProjectionTests.test_read_only_snapshot_has_no_localized_display_and_reuses_observations"
+      ]
+    },
+    {
+      "id": "12e122b8158e7724f60ea0ce76d168efc59e9402e5152a74c9d451da49856fa2:1",
+      "rule": "S3",
+      "owner": "TraceItem",
+      "reason": "The empty label is the presentation default for reasoning trace rows; actual Tool trace rows receive the observed step status. It does not repair a missing durable record or create an executable lifecycle state.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/completion-display.md",
+        "docs/hub/backend-contract-handoff.md"
+      ],
+      "sources": {
+        "docs/hub/backend-contract-handoff.md": "fb6f350342d8887d9006fc370e911b6c61ef078cc8984677b283cbc0fb20c605",
+        "docs/hub/completion-display.md": "440c6a66d0625124e602e950df3ae7bd13e1d04fd0626a4d04819759c6e03864",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/execution/continuations.py": "549ebb4ff5600a3c13f5e8e167224e1e7c93637a610277d0d97c442e2334e65c",
+        "hub/backend/execution/thinking.py": "a3cd3504de6db9dc24a9de6decb44deb621aae2944692c388e35605289d28142",
+        "hub/backend/observability/snapshot.py": "6f70a3d2e241329e85992509fa78e9afb8bbc13b696202c8181083e3fb0a5981",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612",
+        "hub/ui/live.py": "8b856713023641040fa04478f83b325437fc9ca4d094835290d77f9f39690652",
+        "hub/ui/view.py": "619e653597969e3f133778082db24391ac6d26c3db3984e312c5d1cd98af8d7a",
+        "tests/hub/test_snapshot_projection.py": "6480cc79faaa55ab19cde6a2e183152c58202c2f4c491dc73bbe9a99658a757d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_snapshot_projection.SnapshotProjectionTests.test_thoughts_and_all_tools_are_interleaved_from_durable_timestamps",
+        "tests.hub.test_snapshot_projection.SnapshotProjectionTests.test_reconciliation_restores_all_rounds_above_partial_answer",
+        "tests.hub.test_snapshot_projection.SnapshotProjectionTests.test_read_only_snapshot_has_no_localized_display_and_reuses_observations"
+      ]
+    },
+    {
+      "id": "a757b173193e352d868b2edfca1364698afb7c47bc3ae78726afcf6c3bbcf22d:1",
+      "rule": "S3",
+      "owner": "SessionView",
+      "reason": "The empty label represents connecting/welcome UI entries; real session snapshots supply their actual backend status. It does not repair a missing durable record or create an executable lifecycle state.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/completion-display.md",
+        "docs/hub/backend-contract-handoff.md"
+      ],
+      "sources": {
+        "docs/hub/backend-contract-handoff.md": "fb6f350342d8887d9006fc370e911b6c61ef078cc8984677b283cbc0fb20c605",
+        "docs/hub/completion-display.md": "440c6a66d0625124e602e950df3ae7bd13e1d04fd0626a4d04819759c6e03864",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/execution/continuations.py": "549ebb4ff5600a3c13f5e8e167224e1e7c93637a610277d0d97c442e2334e65c",
+        "hub/backend/execution/thinking.py": "a3cd3504de6db9dc24a9de6decb44deb621aae2944692c388e35605289d28142",
+        "hub/backend/observability/snapshot.py": "6f70a3d2e241329e85992509fa78e9afb8bbc13b696202c8181083e3fb0a5981",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612",
+        "hub/ui/live.py": "8b856713023641040fa04478f83b325437fc9ca4d094835290d77f9f39690652",
+        "hub/ui/view.py": "619e653597969e3f133778082db24391ac6d26c3db3984e312c5d1cd98af8d7a",
+        "tests/hub/test_snapshot_projection.py": "6480cc79faaa55ab19cde6a2e183152c58202c2f4c491dc73bbe9a99658a757d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_snapshot_projection.SnapshotProjectionTests.test_thoughts_and_all_tools_are_interleaved_from_durable_timestamps",
+        "tests.hub.test_snapshot_projection.SnapshotProjectionTests.test_reconciliation_restores_all_rounds_above_partial_answer",
+        "tests.hub.test_snapshot_projection.SnapshotProjectionTests.test_read_only_snapshot_has_no_localized_display_and_reuses_observations"
+      ]
+    },
+    {
+      "id": "d935e4c60ad4278bb4091d859752d35d7b6f9884f1d81cf767fba6ee425faef9:1",
+      "rule": "S3",
+      "owner": "SettingsNavigation._edit_field",
+      "reason": "Starting a field edit clears the previous human-readable notice. This is presentation text, not a persisted domain status, hidden configuration value or recovery from missing data.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/operations-and-ui-settings.md",
+        "docs/llm/settings-consistency.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
+        "hub/ui/settings/navigation.py": "dfea7f751905d439560dc3ab324df9db49abef2dee31dc3cd58efa4be50675ef",
+        "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
+        "tests/hub/test_settings_editor.py": "7679b0dacd0689bfb1d04ae69875bd124e09f8ff9d91f99ceddc7ca3d86b0aac",
+        "tests/hub/test_settings_navigation.py": "17228d7045d8725a7299cf9215c5e6d484f7dfa85d3b3468e9c178dedcc7f0a6",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_settings_editor.SettingsEditorTests.test_e_uses_applied_editor_and_preserves_draft_on_failure",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_selection_and_configuration_publish_together",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_keyboard_regions_editing_dirty_cancel_and_width"
+      ]
+    },
+    {
+      "id": "07a1bfd041c0dc47b1d8ba870aabfc32aa708889eab5fa4e25b570427d1f1cf6:1",
+      "rule": "S3",
+      "owner": "SettingsScreen.__init__",
+      "reason": "A new settings screen starts with no human-readable notice. This is presentation text, not a persisted domain status, hidden configuration value or recovery from missing data.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/operations-and-ui-settings.md",
+        "docs/llm/settings-consistency.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
+        "hub/ui/settings/navigation.py": "dfea7f751905d439560dc3ab324df9db49abef2dee31dc3cd58efa4be50675ef",
+        "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
+        "tests/hub/test_settings_editor.py": "7679b0dacd0689bfb1d04ae69875bd124e09f8ff9d91f99ceddc7ca3d86b0aac",
+        "tests/hub/test_settings_navigation.py": "17228d7045d8725a7299cf9215c5e6d484f7dfa85d3b3468e9c178dedcc7f0a6",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_settings_editor.SettingsEditorTests.test_e_uses_applied_editor_and_preserves_draft_on_failure",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_selection_and_configuration_publish_together",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_keyboard_regions_editing_dirty_cancel_and_width"
+      ]
+    },
+    {
+      "id": "73ce5d6d85b5668932eb464efbd79fdf5258a52a2f47659b50fcb8075bc47a82:1",
+      "rule": "S3",
+      "owner": "SettingsScreen.filter",
+      "reason": "Changing the settings filter clears the previous human-readable notice. This is presentation text, not a persisted domain status, hidden configuration value or recovery from missing data.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/operations-and-ui-settings.md",
+        "docs/llm/settings-consistency.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
+        "hub/ui/settings/navigation.py": "dfea7f751905d439560dc3ab324df9db49abef2dee31dc3cd58efa4be50675ef",
+        "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
+        "tests/hub/test_settings_editor.py": "7679b0dacd0689bfb1d04ae69875bd124e09f8ff9d91f99ceddc7ca3d86b0aac",
+        "tests/hub/test_settings_navigation.py": "17228d7045d8725a7299cf9215c5e6d484f7dfa85d3b3468e9c178dedcc7f0a6",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_settings_editor.SettingsEditorTests.test_e_uses_applied_editor_and_preserves_draft_on_failure",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_selection_and_configuration_publish_together",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_keyboard_regions_editing_dirty_cancel_and_width"
+      ]
+    },
+    {
+      "id": "7a90f38043b719deb3ac485fed1a03e2cf2228f18a8c16673738f68129c2945a:1",
+      "rule": "S3",
+      "owner": "SettingsScreen.call",
+      "reason": "Starting a settings action clears the prior notice. This is presentation text, not a persisted domain status, hidden configuration value or recovery from missing data.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/operations-and-ui-settings.md",
+        "docs/llm/settings-consistency.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
+        "hub/ui/settings/navigation.py": "dfea7f751905d439560dc3ab324df9db49abef2dee31dc3cd58efa4be50675ef",
+        "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
+        "tests/hub/test_settings_editor.py": "7679b0dacd0689bfb1d04ae69875bd124e09f8ff9d91f99ceddc7ca3d86b0aac",
+        "tests/hub/test_settings_navigation.py": "17228d7045d8725a7299cf9215c5e6d484f7dfa85d3b3468e9c178dedcc7f0a6",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_settings_editor.SettingsEditorTests.test_e_uses_applied_editor_and_preserves_draft_on_failure",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_selection_and_configuration_publish_together",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_keyboard_regions_editing_dirty_cancel_and_width"
+      ]
+    },
+    {
+      "id": "8e98f86fe1638fcb28e91dc6b4328ecd91430aa9decef89879c846e4a11db279:1",
+      "rule": "S3",
+      "owner": "SettingsScreen.call.done",
+      "reason": "Successful action completion clears the notice; the failure branch reports the error. This is presentation text, not a persisted domain status, hidden configuration value or recovery from missing data.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/operations-and-ui-settings.md",
+        "docs/llm/settings-consistency.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
+        "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
+        "hub/ui/settings/drafts.py": "f89a890e6e00395250227432aaf6610380e0538f5f0dcd0e792e0c4fa5f47d96",
+        "hub/ui/settings/navigation.py": "dfea7f751905d439560dc3ab324df9db49abef2dee31dc3cd58efa4be50675ef",
+        "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
+        "tests/hub/test_settings_editor.py": "7679b0dacd0689bfb1d04ae69875bd124e09f8ff9d91f99ceddc7ca3d86b0aac",
+        "tests/hub/test_settings_navigation.py": "17228d7045d8725a7299cf9215c5e6d484f7dfa85d3b3468e9c178dedcc7f0a6",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_settings_editor.SettingsEditorTests.test_e_uses_applied_editor_and_preserves_draft_on_failure",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_selection_and_configuration_publish_together",
+        "tests.hub.test_settings_navigation.SettingsDraftTests.test_keyboard_regions_editing_dirty_cancel_and_width"
+      ]
+    },
+    {
+      "id": "7de6ec8299d075126a4488b812c9f306a0a26aa397c9fb12fef48ce392929294:1",
+      "rule": "S3",
+      "owner": "Alert",
+      "reason": "Alert owns an optional presentation label: an empty status selects the supplied body text. This is no backend lifecycle default and does not infer success or restore a missing stored status.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/backend-contract-handoff.md"
+      ],
+      "sources": {
+        "docs/hub/backend-contract-handoff.md": "fb6f350342d8887d9006fc370e911b6c61ef078cc8984677b283cbc0fb20c605",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/observability/notifications.py": "f3cb9baed5e36bea7597c3a1841a33cc01910932e1e9185351a429cf91fdcc74",
+        "hub/widget/feedback/notifications.py": "2831d1c961a93a60f448c6c96b5772f8140d0197ea7819cbcce440a1d3cc93c1",
+        "tests/hub/test_notifications.py": "8a03661c0136913242d5f5693c6eee181393c4bac13a9d792ffb9e07a105de56",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_notifications.NotificationTests.test_full_long_body_separate_icon_and_text_padding"
+      ]
+    },
+    {
+      "id": "f06100f0b70971993cff68cba1e05b6f7f6a954ce36d241a44d9f3539f80623f:1",
+      "rule": "S3",
+      "owner": "PathInput.__init__",
+      "reason": "True marks this input control as supporting the existing Tab path-completion UI. The keyboard binding consumes that capability fact; it grants no file Tool permission or backend execution authority.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/operations-and-ui-settings.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
+        "hub/ui/input/bindings.py": "29c947df2175fdc470b2027ebb77dbc627424d61320a8b483a74680fae1d2d5a",
+        "hub/widget/forms/path_input.py": "b6de879dce02c3c332d82a8487336695c4be8279218fcbe18174a761a38426a1",
+        "tests/hub/test_popup_completion.py": "a62db6aee465a0a8ea3887d90a8405972c703c811c7ce987f98982766728c30c",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_popup_completion.PopupCompletionTests.test_popup_paths_complete_at_cursor_inside_host_float_and_after_resize"
+      ]
     }
   ]
 }
