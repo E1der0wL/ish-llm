@@ -52,6 +52,8 @@ stderr_offset, max_chars를 받고 next_stdout_offset/next_stderr_offset을 반�
 offset은 Unicode 문자 단위이며 분할 도착한 UTF-8 문자는 완성 후 공개합니다.
 max_output_bytes에 의해 버린 출력은 truncated로 표시하고 복원된 것처럼 반환하지 않습니다.
 프로세스 ID와 출력은 Toolkit 수명에 한정됩니다. 재시작 후 자동 재실행하지 않습니다.
+상태는 `processes.py`의 `ProcessStatus`가 소유하며 생성·감시·취소·출력·입력 경계가
+같은 선언을 사용합니다. snapshot은 기존 문자열 상태를 반환합니다.
 
 shell_execute/process_start/test_workspace_execute는 선택적 문자열 딕셔너리 `env`를 받습니다.
 생략하면 기존 실행 환경을 유지하고, 지정하면 전체 대체하며 `{}`는 빈 환경입니다.

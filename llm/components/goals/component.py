@@ -3,7 +3,7 @@
 from copy import deepcopy
 from llm.components.definitions import DefinitionComponent
 from llm.core.schema import implementation_schema, object_schema, field, metadata_schema
-from .data import GoalData
+from .data import GoalData, GoalStatus
 
 
 class GoalComponent(DefinitionComponent):
@@ -15,7 +15,7 @@ class GoalComponent(DefinitionComponent):
         "scope": {"oneOf": [object_schema({"type": {"const": "project"}}, required=["type"], additionalProperties=False),
             object_schema({"type": {"const": "session"}, "id": field("string", pattern="^[A-Za-z0-9_-]{1,64}$")},
                           required=["type", "id"], additionalProperties=False)]},
-        "status": field("string", enum=["active", "paused", "completed"]),
+        "status": field("string", enum=[status.value for status in GoalStatus]),
         **{key: {"type": "array", "items": field("string", minLength=1)} for key in
            ("success_criteria", "progress", "next_actions")},
         "run_refs": {"type": "array", "uniqueItems": True, "items": object_schema({

@@ -4,6 +4,9 @@ Goal은 Project가 선택하는 목표 리소스다. 실행 소유 계층은 Pro
 `goals/records/<id>.json`이 목표 상태의 원본이며 `run_refs`는 같은 Project의 Run 참조다.
 Run을 생성하거나 재개·완료시키지 않는다. 목표 상태 변경은 과거 Run을 수정하지 않는다.
 
+목표 상태는 `data.py`의 `GoalStatus`가 소유한다. 레코드 Schema, 상태 변경과 문맥 선택,
+목록 Tool의 허용 값은 같은 선언을 사용하며 저장·반환 값은 기존 문자열이다.
+
 ```python
 goals = project.components.goals
 identifier = await goals.acreate({

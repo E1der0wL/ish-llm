@@ -3154,7 +3154,7 @@
       ],
       "sources": {
         "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
-        "llm/components/tools/builtin/README.md": "e0596490c848850d40248d9cfe0f5311842fdc274b5f1aeea4c8547cf1c93d68",
+        "llm/components/tools/builtin/README.md": "a7670e8e25f506efc23ca40865714ebbd7faaac775f894be9898a85a03af44be",
         "llm/components/tools/builtin/files.py": "485ff95cffcd6dbbf65d6a93ed8a47575549fb8b4e6ae684b3f67f674d39bf94",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",

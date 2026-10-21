@@ -28,38 +28,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "92bcd11c2152f463a6ca32ce9443bad9fce461302b3d40767648f956564c7eea:1",
-      "rule": "S3",
-      "file": "llm/components/goals/data.py",
-      "symbol": "GoalData.complete",
-      "line": 68,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "a583b43d31bbbf1a17a940dda3907b87cd7937f19aae2992ab840ab87b99901b:1",
-      "rule": "S3",
-      "file": "llm/components/goals/data.py",
-      "symbol": "GoalData.pause",
-      "line": 71,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "8304b7cc0d85a89298175556dabbd319cda898040c0af49c39e02b25b4adcc7a:1",
-      "rule": "S3",
-      "file": "llm/components/goals/data.py",
-      "symbol": "GoalData.resume",
-      "line": 74,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "a086918dc8b56a5fe65a91a9157ce1b7c34722141060b12f4d676e6f2b8c79db:1",
-      "rule": "S3",
-      "file": "llm/components/goals/data.py",
-      "symbol": "GoalData.context_references",
-      "line": 78,
-      "detail": "inline domain argument: status"
-    },
-    {
       "id": "ebb41ecb42dea50b70f6d05720fc25c4693d739a3fba0a460dacdd46143274cd:1",
       "rule": "S6",
       "file": "llm/components/memory/processing.py",
@@ -226,38 +194,6 @@
       "symbol": "BuiltinTools.__init__",
       "line": 89,
       "detail": "inline domain argument: retry_fields"
-    },
-    {
-      "id": "892162182533d6d2b4cf77c3141d9ae83c787182c871c5ce2f0f1fc9c96582b7:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/processes.py",
-      "symbol": "ProcessTools._stop",
-      "line": 35,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "e9404a6f558cec90fe380f6e4e1d357bde38029f58da52fb6f6a2af812b94947:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/processes.py",
-      "symbol": "ProcessTools.start",
-      "line": 89,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "2de3edbc5c554db1fe9fa0e54adecf357bb5ba90ccba0850f7aebf2af32c000a:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/processes.py",
-      "symbol": "ProcessTools.output",
-      "line": 156,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "84918e95f5141905bf02e03788ad2dd5fcebe07a514d1d22e74d4d592da92420:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/processes.py",
-      "symbol": "ProcessTools.write",
-      "line": 174,
-      "detail": "inline domain comparison"
     },
     {
       "id": "0db670a771a2b84e47aa4fc36a7c1823d0c57c6b3a0e7764a620995ec1326972:1",

@@ -1,9 +1,16 @@
 """Goal CRUD·진행·Run 참조를 같은 Project 트랜잭션과 내용 해시 CAS로 보호한다."""
 
 from copy import deepcopy
+from enum import StrEnum
 from llm.services.lifecycle.components import ComponentData
 from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import async_method, check_revision, revision_token
+
+
+class GoalStatus(StrEnum):
+    ACTIVE = "active"
+    PAUSED = "paused"
+    COMPLETED = "completed"
 
 
 class GoalData(ComponentData):
@@ -65,17 +72,17 @@ class GoalData(ComponentData):
             if (ref["session_id"], ref["run_id"]) != (session_id, run_id)]}, expected_version=expected_version)
 
     def complete(self, identifier, *, expected_version):
-        return self.update(identifier, {"status": "completed"}, expected_version=expected_version)
+        return self.update(identifier, {"status": GoalStatus.COMPLETED.value}, expected_version=expected_version)
 
     def pause(self, identifier, *, expected_version):
-        return self.update(identifier, {"status": "paused"}, expected_version=expected_version)
+        return self.update(identifier, {"status": GoalStatus.PAUSED.value}, expected_version=expected_version)
 
     def resume(self, identifier, *, expected_version):
-        return self.update(identifier, {"status": "active"}, expected_version=expected_version)
+        return self.update(identifier, {"status": GoalStatus.ACTIVE.value}, expected_version=expected_version)
 
     @workspace_locked
     def context_references(self, session_id, *, identifiers=None):
-        records = self.list(session_id=session_id, status="active")
+        records = self.list(session_id=session_id, status=GoalStatus.ACTIVE.value)
         return [{"goal_id": key, "version": revision_token(value), **{name: deepcopy(value[name])
                     for name in ("objective", "success_criteria", "progress", "next_actions") if name in value}}
                 for key, value in records.items() if identifiers is None or key in identifiers]

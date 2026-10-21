@@ -15,6 +15,60 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c32: Goal·기본 프로세스 Tool 상태 소유 선언 — c30–c32 묶음 Level 3
+
+GoalData의 모듈이 GoalStatus 3개를 소유하고 레코드 Schema·상태 변경·문맥 선택·목록
+Tool Schema가 같은 선언을 사용한다. 기본 ProcessTools의 모듈은 ProcessStatus 5개를
+소유하고 생성·감시·취소·출력·입력 경계가 같은 값을 사용한다. 서로 다른 도메인의 상태를
+합치지 않았다. 4개 제품 파일에서 새 선언/참조를 되돌리면 기존 원문과 같고, 실제 Goal
+레코드/Tool Schema·허용 값·원시 문자열 타입도 같다. 시험은 바꾸지 않았다.
+
+Goal의 참조/CAS/상태 변경과 Run의 독립성, 프로세스 실제 효과·취소/종료·UTF-8 출력·
+stdin·환경 전달·재시도/승인 계약을 유지했다. 이전 backend의 Goal 상태 갱신과 프로세스
+monitor 부분만 참고해 같은 흐름을 확인했으며 코드·과거 검증은 가져오지 않았다.
+미해결 S3 8건을 실제 제거했다. 기존 FileTools 명시 한도 review는 구현·시험·다른 의존성이
+같다. 참조 README에 별도 ProcessStatus 설명만 추가됐음을 원문 대조하고 다시 판정했다.
+해당 구체적 시험 ID 2개도 현재 전체 실행에서 통과했다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 119/119/119 | 0/0/0 | 55.021초 | 0 |
+| 집중 HUB | 22/22/22 | 0/0/0 | 29.958초 | 0 |
+| 전체 LLM | 2101/2101/2101 | 0/0/0 | 728.707초 | 0 |
+| 전체 HUB | 577/577/577 | 0/0/0 | 711.415초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각 실행에서 0이다.
+집중 검증은 Goal CRUD/참조·Memory 문맥, 상태/Component 저장 무결성, 실제 Builtin
+프로세스·Tool 계약과 Hub 셸 환경/승인/실행 이력을 포함한다. c30의 개별 감사 판정과 c31의
+RAG 추출 참조, c32의 상태 소비자를 현재 통합 소스에서 묶어 검증했다. 별도 c32 Level 2를
+중복 실행하지 않았다. 각 full은 현재 소스의 단일 전체 실행이며 과거 선택 결과를 합산하지
+않았다. 승인·예산·중복 효과·Resume·RAG·삭제·원본 보존·중단/트랜잭션 장애 주입을 포함한다.
+
+R3 실제 효과 mutation True/outer exit 0, 실제 LLM/Hub 환경 검사 각각 ok/exit 0,
+정적 raw 220·reviewed 105·미해결 115(S3 97·S6 18), new/stale/review 오류와 필수
+S1/S2/S4/S5 미해결 0/exit 0이다. 문서 검사 오류 0/exit 0이다.
+P1 최종 S1–S5와 A–F는 아직 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c32-focused/llm.json --modules tests.llm.test_goals tests.llm.test_builtin_tools tests.llm.test_domain_state_integrity tests.llm.test_memory_processing tests.llm.test_schema_ownership tests.llm.test_component_storage_integrity tests.llm.test_tool_data
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c32-focused/hub.json --modules tests.hub.test_shell_environment tests.hub.test_approval_continuation tests.hub.test_tool_history
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c30-c32-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c30-c32-level3/hub.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c30-c32-level3/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c30-c32-level3/aux/docs.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c30-c32-level3/aux/env-llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c30-c32-level3/aux/env-hub.json
+```
+
+실행 HEAD `4acdd7d97a67ea1c0b8a3e7b2acd9cdec36ab82e`에 c32 변경을 더했다. 소스 704개 hash
+`2fd01d83fca147589324ba13f72cb53b34cd8759d4e95b03f98f7faf8bcb7aed`, 입력/환경 866개 hash `5856b1b09e9b60f4f3a206ebb61c5d57ab88899bf5096793429babf15138359d`가 전체 실행 전후 같다.
+Python 3.12.14·136 의존성·env 5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 바이너리를 기록했다.
+집중 실행도 자체 전후 동일성을 확인했다. 소스·시험·Fixture·문서를 고정해 검증하고 결과
+문서를 먼저 갱신한다. 원시 명령·exit·개별 ID·로그·manifest는 `/workspace/llm-clean-resume/p1/c30-c32-level3/`와
+`c32-focused/`에 보존한다. 소스-커밋 동일성·staged diff 확인 후 작업 브랜치에 묶음 Push한다.
+원격 CI 실제 결과는 미확인이며 main·backend·Draft PR #1과 기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c31: RAG 추출 실패 정책·JSON 모드의 소유 선언 — 로컬 Level 2
 
 기존 추출 Schema 소유 모듈 `prompts.py`에 ExtractionFailurePolicy·ExtractionJSONMode를

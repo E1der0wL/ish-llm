@@ -3,6 +3,7 @@
 import asyncio
 import codecs
 import math
+from enum import StrEnum
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -11,6 +12,14 @@ from llm.services.infrastructure.processes import kill_process_tree
 from asyncio import timeout
 from llm.services.infrastructure.storage import drain_on_cancel
 from llm.services.runtime.processes import copy_env
+
+
+class ProcessStatus(StrEnum):
+    RUNNING = "running"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    TIMED_OUT = "timed_out"
+    FAILED = "failed"
 
 
 class ProcessTools:
@@ -32,9 +41,9 @@ class ProcessTools:
         if not item["task"].done():
             item["task"].cancel()
         await asyncio.gather(item["task"], return_exceptions=True)
-        if item["status"] == "running":
+        if item["status"] == ProcessStatus.RUNNING.value:
             # monitor가 첫 실행 기회를 얻기 전에 취소된 경우에도 프로세스를 회수한다.
-            item["status"] = "cancelled"
+            item["status"] = ProcessStatus.CANCELLED.value
             await self._terminate_unobserved(item["process"])
 
     def check(self):
@@ -86,7 +95,7 @@ class ProcessTools:
                 raise
             identifier = uuid4().hex
             item = {"process": process, "stdout": bytearray(), "stderr": bytearray(),
-                    "status": "running", "truncated": False, "argv": list(args["argv"]), "cwd": str(cwd),
+                    "status": ProcessStatus.RUNNING.value, "truncated": False, "argv": list(args["argv"]), "cwd": str(cwd),
                     "started_at": datetime.now(timezone.utc).isoformat(), "input_lock": asyncio.Lock()}
             self.sessions[identifier] = item
 
@@ -106,16 +115,16 @@ class ProcessTools:
                     async with timeout(seconds):
                         await process.wait()
                         await asyncio.gather(*readers)
-                    item["status"] = "completed"
+                    item["status"] = ProcessStatus.COMPLETED.value
                 except asyncio.CancelledError:
-                    item["status"] = "cancelled"
+                    item["status"] = ProcessStatus.CANCELLED.value
                     await kill_process_tree(process)
                     raise
                 except (TimeoutError, asyncio.TimeoutError):
-                    item["status"] = "timed_out"
+                    item["status"] = ProcessStatus.TIMED_OUT.value
                     await kill_process_tree(process)
                 except Exception:
-                    item["status"] = "failed"
+                    item["status"] = ProcessStatus.FAILED.value
                     await kill_process_tree(process)
                     raise
                 finally:
@@ -153,7 +162,7 @@ class ProcessTools:
             # 진행 중 나뉘어 도착한 UTF-8 문자는 완성된 뒤 공개하여 cursor가
             # 임시 replacement character를 지나가거나 같은 문자를 재소비하지 않게 한다.
             decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
-            text = decoder.decode(bytes(item[name]), final=item["status"] != "running" or item["truncated"])
+            text = decoder.decode(bytes(item[name]), final=item["status"] != ProcessStatus.RUNNING.value or item["truncated"])
             offset = args.get(name + "_offset", 0)
             if type(offset) is not int or not 0 <= offset <= len(text):
                 raise ValueError("Output offset is outside the retained stream")
@@ -171,7 +180,7 @@ class ProcessTools:
         item = self.sessions[args["process_id"]]
         async with item["input_lock"]:
             stream = item["process"].stdin
-            if item["status"] != "running" or stream is None or stream.is_closing():
+            if item["status"] != ProcessStatus.RUNNING.value or stream is None or stream.is_closing():
                 raise ValueError("Process has no open input pipe")
             content = args.get("text", "")
             close = args.get("close", False)
