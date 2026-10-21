@@ -220,43 +220,11 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "d18d01284ce798dc5696f3c7ff9425d02b9e40206663f949fdb5ac7b37a0a806:1",
-      "rule": "S3",
-      "file": "llm/components/memory/component.py",
-      "symbol": "MemoryComponent.create",
-      "line": 360,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "954a2d4b5a6925f3bb399c836f96b86c3ca4cc07cef2b1b244fa1fd7d3b1c09f:1",
-      "rule": "S3",
-      "file": "llm/components/memory/component.py",
-      "symbol": "MemoryComponent.list",
-      "line": 380,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "bcc304347218dba37edfe99cbd09adb67ea933b48d9ad348c93ce49f4d01b066:1",
       "rule": "S3",
       "file": "llm/components/memory/component.py",
       "symbol": "MemoryComponent.search",
       "line": 417,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "f8bd5b060639f2428489b9884784024c83ef3dd64370e6ef42083115cdb2bc3a:1",
-      "rule": "S3",
-      "file": "llm/components/memory/consolidation.py",
-      "symbol": "MemoryConsolidation._recover",
-      "line": 36,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "f29165957be050a59e09eafb8f9fb43ac6634427f041a5ddc3765e3fc81c61af:1",
-      "rule": "S3",
-      "file": "llm/components/memory/consolidation.py",
-      "symbol": "MemoryConsolidation.apply",
-      "line": 53,
       "detail": "inline domain comparison"
     },
     {

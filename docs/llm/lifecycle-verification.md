@@ -9,6 +9,89 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-l Memory 병합 저널·영수증 — Level 2
+
+H2-j/k 묶음 Push `967676ad783162951a2315a546c7b803823c1df6`에서 이어서 병합 owner를
+보강했다. 완료 영수증 소실의 backup 수락, pending 저널 소실의 읽기 차단 해제,
+entries=[]인 손상 저널의 허위 완료 영수증 생성 세 재현을 회귀에 편입했다.
+구현 전 3 failure, error·Skip 0, 0.277초, exit 1이다.
+
+MemoryConsolidation이 consolidations/manifest.json의 현재 버전·Project/Component 소유권,
+정확한 pending/receipt 집합과 내용 revision을 소유한다. 새 저장소에서만 초기화하며
+원본/목록/필수 디렉터리 소실·미선언 추가·비정규 파일을 보존하고 거부한다. 읽기·쓰기 차단,
+명시 복구·backup/clone·재선택·비활성 owner의 보존 검증이 같은 목록을 사용한다.
+
+저널은 이전 전체 이력과 정확히 한 revision 뒤의 검토된 변경을 증명해야 한다. proposal과
+서로 다른 superseded 집합, proposal.replaces의 generation/revision, scope, Memory identity,
+source·변경 전 digest·변경 후 기록/이력을 검증한다. 복구는 모든 현재 기록이 before 또는
+after임을 확인한 뒤에만 적용한다. 기록·완료 영수증·pending 제거·목록은 한 transaction으로
+확정하며 조회가 자동 복구하거나 소실을 완료로 바꾸지 않는다. clone은 기록/이력에 대응하는
+완료 영수증과 원래 출처를 보존하고 pending 상태는 거부한다. 기존 purge 의미를 새로 제한하지
+않으며 과거 영수증의 대상이 현재도 반드시 존재해야 한다는 조건은 추가하지 않았다.
+
+Memory의 candidate/confirmed 및 검색 all 선언은 MemoryComponent가 소유하고 Schema·Writer·
+Reader·병합이 함께 사용한다. 실제로 해소한 S3 네 항목만 부채 목록에서 제거했으며 검사기와
+새 허용 항목은 변경하지 않았다. 나머지 부채는 548개다.
+
+### 검증과 범위
+
+H2-j에서 확인한 Memory 소비자·공통 안전성 영향도 목록을 재사용하고 H2-k/l의 새 owner
+시험을 더했다. Memory 이력·generation·Refinement·Schema·Project/Component·삭제·백업·복제,
+승인·예산·효과·재개·원자성 소비자를 포함한다. 74개 모듈 선정 근거는
+`/workspace/llm-clean-resume/h2-l/modules.json`, 정확한 argv는 level2-llm-command.json과
+level2-hub-command.json이다. 동일한 고정 소스에서 LLM 51개 모듈과 Hub 23개 모듈을
+독립 프로세스로 병렬 실행했다. 두 선택 실행이며 하나의 전체 실행으로 합산하지 않는다.
+
+명령은 `.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --modules
+<기록한 51개 모듈> --output /workspace/llm-clean-resume/h2-l/level2-llm.json`과 같은 형식의
+`--suite hub --modules <기록한 23개 모듈> --output /workspace/llm-clean-resume/h2-l/level2-hub.json`이다.
+Python/host/TERM·LiteLLM·Xvfb/xclip 환경 변수는 H2-k와 동일하다.
+
+| 실행 | 실제 결과 |
+|---|---|
+| 최초 기존 소비자 집중 | 75 pass, failure/error/Skip 0, 28.727초, exit 0 |
+| 추가 owner 최초 실행 | 마지막 fixture 교착으로 SIGTERM 종료, exit 143, 정식 집계 JSON 없음; 성공 아님 |
+| fixture 수정 후 전체 owner 모듈 | 11 pass, failure/error/Skip 0, 7.832초, exit 0 |
+| Level 2 LLM 선택 | 전체 discovery 1,875 중 749 discovered/started/pass, 285.717초, exit 0 |
+| Level 2 Hub 선택 | 전체 discovery 540 중 134 discovered/started/pass, 255.458초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 후보 548개, exit 0 |
+| R3 mutation | 실제 두 번째 Tool 파일 효과로 한도 누락 탐지, detector exit 0 |
+| 문서 검사 | 문서 131개, Python fence 178개, 상대 링크 953개, anchor 34개, 오류 0, exit 0 |
+
+최초 정적 감사는 신규 3/stale 1로 exit 1이었다. 상태·manifest 필드를 owner 선언으로
+정리한 뒤 신규 0/stale 4였고, 실제로 해소된 네 기존 S3 항목만 제거해 최종 검사를 통과했다.
+각 감사 JSON과 resolved-debt.json을 보존한다. 문서 명령은
+`.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-l/docs.json`이다.
+
+교착은 시험에서 ownership의 동기 RLock을 잡은 event-loop thread가 같은 잠금을 필요로 하는
+StorageIO 조회를 await한 원인이었다. 정확한 실행 PID만 종료하고 대기 상태·원인·로그를
+focused-2-interruption.json과 focused-2.log에 보존했다. 조회를 잠금 전에 수행하도록 fixture를
+고쳤으며 기존 assertion은 유지했다. 불완전 실행을 pass/skip 0으로 간주하지 않았다.
+
+새 시험은 apply와 명시 recover의 저널·목록·두 기록·영수증·unlink·commit의 실제 exit 77
+14개 경계를 도달 witness와 함께 검사한다. 재열기 후 전체 원본 또는 완전한 새 상태,
+pending의 읽기 차단 유지, 명시 복구 후 중복 revision 없음, 복제된 영수증 출처를 검증한다.
+pending fixture는 정상 Writer의 복구 인계 지점을 주입해 먼저 확정한 것으로, 원래 apply의
+실제 process-death가 중간 상태를 확정했다는 주장은 하지 않는다. 실제 전원 단절은 미검증이다.
+
+두 Level 2 각각 failure/error/Skip/expected failure/unexpected success/missing/unexpected/
+duplicate는 모두 0이다. 전후 Python 666개 manifest는
+dc37a218071fe1eb7585e35d51d55ef045821bfaa4e60a2759eaad58762aa3fc,
+제품·시험·Fixture/자산 825개·의존성 136개·host/환경 manifest는
+76f33199a872022ba98908efa73225b3bd4f0aa061f661443c97ae02b7666e02로 각각 일치한다.
+정적 명령은 check_architecture --require S1, 안전성 명령은 check_budget_mutation이다.
+전체 실행/중단/실패 증거는 `/workspace/llm-clean-resume/h2-l/`에 보존한다.
+
+이번 소단계는 **전체 LLM/Hub 회귀를 수행하지 않았다**. 영향은 확인된 Memory owner와
+소비자이며 문서를 우선 갱신하고 로컬 커밋한다. 다음 Memory 기록/이력 보강과 묶은 Level 3
+전체 게이트에서 Push한다. 상위 H2 완료나 원격 CI 완료를 뜻하지 않는다.
+
+별도 history-contract probe는 저장 내용 hash를 맞춘 뒤에도 history revision=True,
+revision 간 created_at 변경, 이전 deleted=False인 restore 이력, Session A→B 범위 변경을
+수락하는 네 실패를 재현했다(4 failure, error·Skip 0, 0.406초, exit 1). 이 시험은 위 선택
+실행에 아직 포함되지 않았으며 다음 H2에서 우선 수정한다. 나머지 owner 계약·H2 전체·
+H3–H5·P1 잔여·A–F는 미완료다. 기존 38개 데이터군 감사와 과거 결과를 다시 작성하지 않는다.
+
 ## H2-k Memory 압축 요청·cursor·원본 참조 — H2-j/k Level 3 묶음 게이트
 
 H2-j 로컬 커밋 `73dbe9df1ff1f077ce97ddf3eee255339eeace66`에서 이어서 압축 상태를 보강했다.

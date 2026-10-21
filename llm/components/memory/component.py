@@ -34,6 +34,10 @@ class MemoryComponent(Component):
 
     name = "memory"
     directory = "memory"
+    CANDIDATE = "candidate"
+    CONFIRMED = "confirmed"
+    STATUSES = (CANDIDATE, CONFIRMED)
+    ALL = "all"
     capabilities = ("memory", "tools", "completion_processors")
     data_class = MemoryData
     parameter_layout = ParameterLayout(
@@ -50,7 +54,7 @@ class MemoryComponent(Component):
     _managed = frozenset({"id", "generation", "revision", "created_at", "updated_at", "deleted", "source"})
     content_schema = object_schema({"content": field("string", minLength=1), "kind": field("string", minLength=1),
         "scope": field("string", enum=["project", "session"]), "session_id": field(["string", "null"]),
-        "status": field("string", enum=["candidate", "confirmed"]), "tags": field("array", items=field("string", minLength=1)),
+        "status": field("string", enum=list(STATUSES)), "tags": field("array", items=field("string", minLength=1)),
         "expires_at": field(["string", "null"]), "metadata": metadata_schema(),
         "replaces": field("array", items=object_schema({"id": field("string", minLength=1),
             "generation": field("string", pattern=r"^[a-f0-9]{32}$"), "revision": field("integer", minimum=1)},
@@ -184,9 +188,9 @@ class MemoryComponent(Component):
         if (record["generation"], record["revision"]) != (expected_generation, expected_revision):
             raise MemoryConflictError("Memory changed; reload before editing")
 
-    @staticmethod
-    def _status(status, *, allow_all=False):
-        if status not in (("candidate", "confirmed", "all") if allow_all else ("candidate", "confirmed")):
+    @classmethod
+    def _status(cls, status, *, allow_all=False):
+        if status not in ((*cls.STATUSES, cls.ALL) if allow_all else cls.STATUSES):
             raise ValueError("Invalid memory status")
 
     def _validate_memory(self, identifier, record):
@@ -242,17 +246,20 @@ class MemoryComponent(Component):
 
     def initialize(self, project):
         from .compaction import Compactions
+        from .consolidation import MemoryConsolidation
         root = self._checked(self.root(project))
         if self.name in project.initialized_components:
             self.identity(project)
             super().initialize(project)
             SummaryStorage(project, self).inventory()
             Compactions.inventory(project, self)
+            MemoryConsolidation(self, project).inventory()
             return
         super().initialize(project)
         atomic_json(root / "identity.json", {"id": new_id()})
         SummaryStorage(project, self).initialize()
         Compactions.initialize(project, self)
+        MemoryConsolidation(self, project).initialize()
 
     def identity(self, project):
         path = self._checked(self.root(project) / "identity.json")
@@ -337,8 +344,8 @@ class MemoryComponent(Component):
             timeout_seconds=field(["number", "null"], exclusiveMinimum=0))
         return self.parameter_layout.schema(object_schema({
             "cache_records": field("integer", minimum=0),
-            "tool_write_status": field("string", enum=["candidate", "confirmed"]),
-            "search_status": field("string", enum=["candidate", "confirmed", "all"]),
+            "tool_write_status": field("string", enum=list(self.STATUSES)),
+            "search_status": field("string", enum=[*self.STATUSES, self.ALL]),
             "search_strategy": field("string", enum=["keyword"]),
             "min_score": field("number"),
             "search_limit": field("integer", minimum=1), "max_search_results": field("integer", minimum=1),
@@ -373,7 +380,7 @@ class MemoryComponent(Component):
         if self._record_path(project, identifier).exists():
             raise FileExistsError("Memory already exists")
         now = datetime.now(timezone.utc).isoformat()
-        record = {"kind": "note", "scope": "project", "status": "confirmed", "tags": [],
+        record = {"kind": "note", "scope": "project", "status": self.CONFIRMED, "tags": [],
                   **self._payload(data), "id": identifier, "generation": new_id(), "revision": 1,
                   "created_at": now, "updated_at": now, "deleted": False,
                   "source": self._source(project, source)}
@@ -393,7 +400,7 @@ class MemoryComponent(Component):
             self._status(status, allow_all=True)
         records = {}
         for identifier, record in self._all_records(project):
-            if self._visible(record, session_id) and (include_deleted or not record["deleted"]) and (status in (None, "all") or record["status"] == status):
+            if self._visible(record, session_id) and (include_deleted or not record["deleted"]) and (status in (None, self.ALL) or record["status"] == status):
                 records[identifier] = record
         return records
 
@@ -482,6 +489,8 @@ class MemoryComponent(Component):
             if self._record_path(destination, identifier).exists():
                 raise FileExistsError("Destination memory already exists")
             self._write(destination, identifier, self._read(source, identifier))
+        from .consolidation import MemoryConsolidation
+        MemoryConsolidation(self, source).clone_receipts(destination)
 
     def resolve(self, project, capability):
         raise ValueError("Memory capabilities require a lifecycle-bound component data factory")

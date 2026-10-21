@@ -15,7 +15,7 @@
 | [tool_results.py](tool_results.py) | 완료 Tool/MCP 결과의 원문 참조·분할 요약과 모델 입력 사본 적용입니다. |
 | [work_state.py](work_state.py) | 선택적 구조화 요약의 형식·검증·출처 데이터를 정의합니다. |
 | [tools.py](tools.py) | 모델이 호출할 Memory Tool 정의와 실행 출처 연결입니다. |
-| [consolidation.py](consolidation.py) | 기억 통합 계획·승인·journal·중단 후 복구를 담당합니다. |
+| [consolidation.py](consolidation.py) | 검토된 병합 journal·완료 영수증의 존재 목록, 명시 복구와 원자 저장·복제를 소유합니다. |
 
 ## 읽고 쓸 때
 

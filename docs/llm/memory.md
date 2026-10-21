@@ -150,8 +150,12 @@ Compactions는 compactions.manifest.json에 문맥/Tool 요약의 정확한 파�
 보존한다. 조회·저장·재개·이력/원본 참조 수집·backup/clone·재선택에서 필수 존재와 상태별
 필드·cursor를 함께 검증한다. Tool의 reference/summary mode는 저장된 필수 값이다.
 정상 압축 옵션 Reader/Writer는 같은 검증 함수를 사용한다. 기록과 목록, Tool 원본과 참조의
-생성·명시 삭제는 한 transaction이다. 병합 등 나머지 자료와 상위 삭제·참조 보호의 완전한
-검증은 H2–H5 잔여 항목이다.
+생성·명시 삭제는 한 transaction이다. MemoryConsolidation은 consolidations/manifest.json에
+필수 pending/receipt 집합과 revision을 보존한다. 저널은 제안의 replaces와 generation/revision,
+전체 이전 이력·검토된 한 revision 변경을 증명해야 하며 복구는 모든 대상의 before/after를
+먼저 확인한다. 기록·완료 영수증·pending 제거·목록을 함께 확정한다. 읽기는 복구를 실행하지
+않는다. clone은 완료 영수증의 원래 출처를 보존하며 pending이면 거부한다. 기록 이력의 나머지
+불변식과 상위 삭제·참조 보호의 완전한 검증은 H2–H5 잔여 항목이다.
 
 Memory 데이터 저장과 Run/Step 기록은 별개 트랜잭션이다. Tool 효과 후 Run 기록 실패 시
 기억은 이미 반영됐을 수 있으므로 출처와 이력을 확인한다. 실패한 Tool 효과를 자동 재시도하지

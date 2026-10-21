@@ -15,8 +15,9 @@ H2-e도 Component 저장소 이력·사용량 manifest·필수 영수증 필드�
 소실 경로를 보강하고 집중/전체 회귀를 통과했다. H2-g의 Python Tool 패키지 목록·worker·
 Hub 가져오기 경계도 전체 회귀를 통과했다. H2-h/i는 RAG Job 목록·lease 및 준비/배치
 영수증 소실을 보강하고 묶음 Level 3 전체 회귀를 통과했다. H2-j/k도 Memory Session 요약과
-압축 요청/cursor·Tool 원본 참조를 보강하고 묶음 전체 회귀를 통과했다. Memory 병합
-영수증·복구 저널의 별도 3개 실패와 나머지 owner 계약은 남아 있다. H2 전체는 미완료이며
+압축 요청/cursor·Tool 원본 참조를 보강하고 묶음 전체 회귀를 통과했다. H2-l의 Memory
+병합 저널·영수증은 Level 2 로컬 검증을 통과했다. 기록 이력의 별도 4개 실패와 나머지
+owner 계약은 남아 있다. H2 전체는 미완료이며
 이 차단 항목들을 해결하기 전 P1/A–F로 넘어가지 않는다.
 기준 작업 트리는 `refactor/llm-clean`, HEAD `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 보존 중인 P1-c 변경이다. main이나 이전 backend 브랜치의 검증 결과를 승계하지 않는다.
