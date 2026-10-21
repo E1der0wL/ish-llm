@@ -50,6 +50,13 @@ generation은 생성 시 고정되고 같은 ID로 영구 삭제 후 재생성�
 않는다. `update`는 최상위 키를 병합한다. `save`는 관리 필드를 제외한 사용자 필드 전체를
 교체한다(`content/kind/scope/status/tags`를 포함). 삭제·복원도 revision을 증가시킨다.
 
+저장 이력도 같은 Writer 계약을 검증한다. 정확한 정수 revision과 처음의 create부터
+연속된 상태 전이를 요구하며 id/generation/생성 시각/최초 출처/Project·Session 범위는
+불변이다. 생성·갱신 시각은 timezone을 가진 ISO 값이다. 삭제·복원은 내용을 바꾸지 않으며
+병합 삭제의 superseded_by 변경은 병합 소유자가 검증한다. 필드 소실·타입 손상·잘못된
+전이·다른 Session으로의 범위 변경은 내용 hash가 일치해도 조회·backup/clone에서 거부하고
+원본을 보존한다. Reader는 이력을 생성하거나 손상된 값을 기본값으로 복원하지 않는다.
+
 삭제한 기억은 기본 `load/list/search`에서 제외한다. 휴지통 UI는
 `alist(include_deleted=True)` / `aload(id, include_deleted=True)`를 사용한다.
 영구 제거는 삭제한 항목에만 `apurge(id, expected_generation=..., expected_revision=...)`로 수행하며 이력도 지워진다.

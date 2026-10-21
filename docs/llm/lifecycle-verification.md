@@ -9,6 +9,100 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-m Memory 기록 이력 — H2-l/m Level 3 묶음 게이트
+
+H2-l 로컬 커밋 `733e953bf163a2c69de03ff6291f217eb0284042`에서 이어서 Memory 기록 이력을
+보강했다. 내용 hash를 맞춘 뒤에도 수락하던 revision=True, 생성 시각 변경, Session A→B
+범위 변경, 삭제되지 않은 기록의 restore 이력 네 실패를 원래 assertion 그대로 편입했다.
+외부 재현은 4 failure, error·Skip 0, 0.406초, exit 1이었다. 저장소 편입 직후도 4 discovered/
+started/failure, error·Skip 0, 0.352초였다. 이 실행의 종료 코드는 세션 복원에서 회수하지 못했고
+성공으로 처리하지 않는다. 원본 before.json/log와 외부 재현 로그를 모두 보존한다.
+
+MemoryComponent가 이력 필드·연산·불변 identity를 단일 선언으로 소유한다. 이력 revision은
+정확한 정수이며 모든 revision은 같은 id/generation/생성 시각/최초 출처/범위를 유지한다.
+생성은 미삭제 상태와 동일한 생성·갱신 시각/출처를 요구한다. 이후 create는 거부하며,
+update/save/delete는 미삭제 기록, restore는 삭제 기록에서만 가능하다. 삭제·복원은 관리
+필드 외 내용을 보존하고, 병합 삭제의 superseded_by 변경만 MemoryConsolidation이 검증한다.
+시각은 timezone을 가진 ISO 값이어야 하지만 시스템 시계가 뒤로 조정되는 경우를 revision
+역행으로 간주하지 않는다. 공개 CRUD와 병합 Writer가 같은 연산 선언·검증기를 사용한다.
+
+### 검증과 영향 범위
+
+새 시험은 위 네 재현, 필드 소실·bool/float revision·잘못된 시각/연산·불변값 변경·삭제/복원
+내용 변경을 matching-hash 자료로 검사한다. 공개 조회·다른 Session 목록·backup/clone은
+손상을 거부하고 모든 Memory 소유 파일을 보존한다. 정상 save/delete/restore/clone의 이력과
+Session 격리, 기록/목록 쓰기 직후 장애의 원본 보존도 검사한다. H2-l 병합의 실제 exit 77
+14개 경계와 기존 승인·예산·효과·재개·삭제·트랜잭션 안전성 시험은 전체 게이트에 포함했다.
+
+집중 명령은 `.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --modules
+ tests.llm.test_memory_history_integrity tests.llm.test_memory_component
+ tests.llm.test_memory_consolidation_integrity tests.llm.test_record_generations
+ tests.llm.test_refinement tests.llm.test_schema_ownership --output
+ /workspace/llm-clean-resume/h2-m/focused-1.json`이다. 이후 새 owner 모듈만 focused-2.json으로
+재실행했다. 첫 실행의 1 failure는 Memory 원본과 함께 Project 로그까지 바이트 동일성을
+요구한 새 fixture에서 발생했다. 모든 Memory 소유 파일을 비교하도록 범위를 바로잡았으며
+원래 네 결함 assertion과 파일/목록 rollback 검사는 유지했다.
+
+| 실행 | 실제 결과 |
+|---|---|
+| 최초 집중 6개 모듈 | 77 discovered/started, 76 pass, 1 failure, error·Skip 0, 28.512초, exit 1 |
+| 수정 후 전체 이력 모듈 | 11 discovered/started/pass, failure/error/Skip 0, 2.753초, exit 0 |
+| 전체 LLM | 1,886 discovered/started/pass, 610.174초, exit 0 |
+| 최초 전체 Hub | 540 discovered/started, 539 pass, 1 error, failure·Skip 0, 717.034초, exit 1 |
+| 수정 후 전체 Hub | 540 discovered/started/pass, 685.301초, exit 0 |
+| 정적 감사 | 후보 548개, new/stale/S1 0, exit 0 |
+| R3 Mutation | 실제 두 번째 Tool 파일 효과로 한도 누락 탐지, detector exit 0 |
+| 문서 검사 | 문서 131개, Python fence 178개, 상대 링크 953개, anchor 34개, 오류 0, exit 0 |
+
+최초 전체 Hub는 FeatureUITests의 방향키 선택 대기에서 15초 timeout으로 끝났다. 원래
+시험의 threaded completer에 0.1초 지연을 주입해 같은 위치를 재현했다(1 error, 16.340초,
+exit 1). 후보 준비 조건을 보강한 다음 실행에서는 줄바꿈 직후의 임시 빈 completion state
+Assertion이 드러났다(1 failure, 2.174초, exit 1). 텍스트/후보/취소 완료를 함께 기다리도록
+fixture를 수정했고 최종 동일 지연 주입은 1 pass, 2.162초, exit 0이다. 원래 선택·내용·
+미전송·취소 Assertion과 15초 timeout은 유지했다. 모듈 단독 실행은 수정 전 7 pass
+15.494초, 후보 조건 수정 후 7 pass 15.381초, 각각 exit 0이었다. 마지막 취소 대기 수정은
+지연 주입과 아래 전체 Hub에서 검증했다. 실패 로그를 지우거나 성공 집계에서 숨기지 않는다.
+
+전체 실행 명령은 `.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output
+/workspace/llm-clean-resume/h2-m/final/llm.json` 및 `--suite hub --output
+/workspace/llm-clean-resume/h2-m/final-2/hub.json`이다. 최종 각 suite의 failure/error/Skip/expected
+failure/unexpected success/missing/unexpected/duplicate는 모두 0이다. argv·exit code·집계는
+final/llm-execution.json과 final-2/hub-execution.json에 기록한다. focused 실행들을 전체 결과로
+합산하지 않는다. 정적 명령은 check_architecture --require S1, 안전성 명령은
+check_budget_mutation이다. 문서 명령은 check_docs --output
+/workspace/llm-clean-resume/h2-m/docs.json이며 문서 우선 갱신 뒤 결과를 검사한다.
+
+LLM 통과 후 바뀐 파일은 tests/hub/test_features.py 하나뿐이다. 제품·LLM 시험/Fixture·
+의존성·실행 환경·발견 목록 1,886개가 같음을 final-2/llm-reuse-evidence.json으로 확인했고
+LLM 전체 성공·정적 감사·R3를 제한적으로 재사용했다. Hub는 수정 후 전체 실행을 다시
+수행했다. 서로 다른 소스 manifest의 독립 실행이며 하나의 전체 실행으로 표현하지 않는다.
+
+최초 전체 검증 전후 Python 667개 manifest는
+6bd0c92891dca8763e2260c329c2a3b02215369ae3cf9d9d6d4beaccdeae44aa,
+제품·시험·Fixture/자산·문서 826개와 의존성 136개/host/환경 manifest는
+a56011c51dadc510dd0579808b473bd82c58bb066c21c32dbdd1e84a0cfd6276으로 각각 일치한다.
+Hub 수정 후 전후 Python 667개 manifest는
+59fd5733771fb976b831b95e7afa97ed7b7e7d1527a857f14eb583b8fe034100,
+826개 파일과 실행 환경 manifest는
+98112c92fa626bf4b853c5f65f6d9dddd194a56d05c8ba61ee4f6dff1b9b3cd4로 일치한다.
+실행 환경은 H2-l과 같은 Python 3.12.14, host d833790959a76ac457fdeea3f21a6bea1eecfe12,
+TERM=xterm-256color, LITELLM_LOCAL_MODEL_COST_MAP=True, LITELLM_MODE=PRODUCTION,
+HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb, HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip이다.
+검증 중 소스를 고정했고 결과 확인 뒤 문서만 우선 갱신했다. 전체 증거는
+`/workspace/llm-clean-resume/h2-m/`에 있다. H2-l/m을 작업 브랜치에 함께 Push하며 GitHub CI
+조회의 기존 Forbidden 제한 때문에 원격 CI 통과를 선언하지 않는다.
+
+### 남은 차단 항목
+
+고정된 전체 게이트 밖의 rag-job-state-probe.py는 별도 임시 작업공간에서 RAG 네 실패를
+재현했다(4 failure, error·Skip 0, 1.768초, exit 1). 취소 표식 소실의 실제 모델 파일 효과,
+실행 시작 증거/실패 진단 소실의 조회 수락, 빈 prepared 영수증의 backup 수락이다. 이는
+위 전체 실행에 포함되지 않았고 다음 H2에서 원래 assertion을 편입해 우선 수정한다.
+별도 rag-job-abandonment-probe.py도 포기 영수증 소실 뒤 실제 모델 파일 효과를 재현했다
+(1 failure, error·Skip 0, 1.000초, exit 1). 이 다섯 미해결 재현을 다음 owner 보강에 포함한다.
+H2 전체·H3–H5·P1 잔여·A–F는 미완료이며 위 전체 성공을 이 차단 항목의 해결로 간주하지 않는다.
+기존 38개 데이터군 감사는 재작성하지 않고 이번 Memory 범위와 다음 RAG 차단만 갱신했다.
+
 ## H2-l Memory 병합 저널·영수증 — Level 2
 
 H2-j/k 묶음 Push `967676ad783162951a2315a546c7b803823c1df6`에서 이어서 병합 owner를

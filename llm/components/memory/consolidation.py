@@ -16,6 +16,7 @@ class MemoryConsolidation:
     PENDING = "pending"
     RECEIPTS = "receipts"
     COMPLETED = "completed"
+    KIND = "consolidation"
     MANIFEST_FIELDS = frozenset(("schema_version", "project_id", "component", PENDING, RECEIPTS))
 
     def __init__(self, component, project):
@@ -39,8 +40,8 @@ class MemoryConsolidation:
         except TypeError as error:
             raise ValueError("Invalid consolidation JSON") from error
 
-    @staticmethod
-    def _operation(value):
+    @classmethod
+    def _operation(cls, value):
         if (not isinstance(value.get("id"), str) or re.fullmatch(r"[a-f0-9]{32}", value["id"]) is None
                 or not isinstance(value.get("superseded"), list) or not isinstance(value.get("source"), dict)):
             raise ValueError("Invalid consolidation operation")
@@ -48,10 +49,21 @@ class MemoryConsolidation:
         names = [validate_name(name) for name in value["superseded"]]
         if proposal in names or len(set(names)) != len(names):
             raise ValueError("Invalid consolidation targets")
-        if (value["source"].get("kind") != "consolidation"
+        if (value["source"].get("kind") != cls.KIND
                 or value["source"].get("operation_id") != value["id"]):
             raise ValueError("Invalid consolidation provenance")
         validate_name(value["source"].get("project_id"))
+
+    @classmethod
+    def deletion_metadata(cls, previous, record, source):
+        """Validate the metadata change owned by a consolidation deletion."""
+        proposal = record["metadata"].get("superseded_by")
+        cls._operation({"id": source.get("operation_id"), "source": source,
+                        "proposal": proposal, "superseded": [previous["id"]]})
+        expected = {**previous.get("metadata", {}), "superseded_by": proposal}
+        if record["metadata"] != expected:
+            raise ValueError("Consolidation deletion changed unrelated metadata")
+        return expected
 
     def _after(self, identifier, before, proposal, source, at, operation_id):
         after = deepcopy(before)
@@ -64,7 +76,7 @@ class MemoryConsolidation:
             record.setdefault("metadata", {})["consolidation_id"] = operation_id
         else:
             record.setdefault("metadata", {})["superseded_by"] = proposal
-        after["history"].append({"revision": record["revision"], "operation": "update" if identifier == proposal else "delete",
+        after["history"].append({"revision": record["revision"], "operation": self.component.UPDATE if identifier == proposal else self.component.DELETE,
             "at": record["updated_at"], "source": source, "data": deepcopy(record)})
         self.component.validate_record(identifier, after)
         return after
@@ -214,7 +226,7 @@ class MemoryConsolidation:
             if (record["scope"], record.get("session_id")) != (candidate["scope"], candidate.get("session_id")):
                 raise ValueError("Consolidation cannot cross memory scopes")
         operation_id = new_id()
-        source = component._source(project, {**(source or {}), "kind": "consolidation", "operation_id": operation_id})
+        source = component._source(project, {**(source or {}), "kind": self.KIND, "operation_id": operation_id})
         entries = []
         for identifier in [proposal, *names]:
             before = self._envelope(identifier)

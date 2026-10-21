@@ -10,8 +10,8 @@ Component 저장소 이력/사용량 영수증/개별 JSON 기록 보강의 집�
 H2-g도 Python Tool 패키지 목록·worker·Hub 가져오기 경계를 보강하고 전체 회귀를 통과했다.
 H2-h/i는 RAG Job 목록·lease와 준비/배치 영수증 소실을 보강하고 묶음 Level 3 전체 회귀를 통과했다.
 H2-j/k도 Memory Session 요약과 압축 요청/cursor·Tool 원본 참조를 보강하고 묶음 Level 3 전체 회귀를 통과했다.
-H2-l의 Memory 병합 저널·영수증은 Level 2 로컬 검증을 통과했다. 다음 기록 이력 보강과 묶어 전체 검증 후 Push한다.
-H2 전체는 미완료이며 Memory 기록 이력의 별도 4개 실패와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
+H2-l/m의 Memory 병합 저널·영수증과 기록 이력도 묶음 Level 3 전체 회귀를 통과했다.
+H2 전체는 미완료이며 RAG Job 상태/준비 영수증의 별도 5개 실패와 나머지 owner 계약이 남아 있다. [현재 검증과 차단 항목](lifecycle-verification.md)을
 먼저 확인하며 이 실패를 해결하기 전 다음 기능 단계로 진행하지 않는다.
 
 ## 필수 원칙

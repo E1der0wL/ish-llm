@@ -38,6 +38,10 @@ class MemoryComponent(Component):
     CONFIRMED = "confirmed"
     STATUSES = (CANDIDATE, CONFIRMED)
     ALL = "all"
+    CREATE, SAVE, UPDATE, DELETE, RESTORE = "create", "save", "update", "delete", "restore"
+    OPERATIONS = (CREATE, SAVE, UPDATE, DELETE, RESTORE)
+    HISTORY_FIELDS = frozenset(("revision", "operation", "at", "source", "data"))
+    HISTORY_IDENTITY = ("id", "generation", "created_at", "source", "scope", "session_id")
     capabilities = ("memory", "tools", "completion_processors")
     data_class = MemoryData
     parameter_layout = ParameterLayout(
@@ -168,13 +172,13 @@ class MemoryComponent(Component):
         self._check_revision(record, expected_revision, expected_generation)
         if changes is not None and any(key in changes and changes[key] != record.get(key) for key in ("scope", "session_id")):
             raise ValueError("Memory scope cannot be changed")
-        if record["deleted"] != (operation == "restore"):
+        if record["deleted"] != (operation == self.RESTORE):
             raise ValueError("Memory is deleted" if record["deleted"] else "Memory is not deleted")
-        if operation == "save":
+        if operation == self.SAVE:
             record = {**{key: record[key] for key in self._managed}, **self._payload(changes)}
         elif changes is not None:
             record.update(self._payload(changes))
-        record["deleted"] = operation == "delete"
+        record["deleted"] = operation == self.DELETE
         record["revision"] += 1
         record["updated_at"] = datetime.now(timezone.utc).isoformat()
         return self._commit(project, identifier, record, envelope["history"], operation, source)
@@ -202,6 +206,9 @@ class MemoryComponent(Component):
         for key in ("content", "kind", "created_at", "updated_at"):
             if not isinstance(record.get(key), str) or not record[key].strip():
                 raise ValueError(f"Memory {key} must be nonempty text")
+        for key in ("created_at", "updated_at"):
+            if datetime.fromisoformat(record[key]).utcoffset() is None:
+                raise ValueError(f"Memory {key} requires a timezone")
         self._status(record.get("status"))
         if record.get("scope") not in ("project", "session") or type(record.get("deleted")) is not bool:
             raise ValueError("Memory requires project/session scope and a deletion marker")
@@ -351,6 +358,27 @@ class MemoryComponent(Component):
             "search_limit": field("integer", minimum=1), "max_search_results": field("integer", minimum=1),
             "processing": object_schema(properties)}))
 
+    def _validate_transition(self, previous, entry):
+        record, operation = entry["data"], entry["operation"]
+        if previous is None:
+            if (operation != self.CREATE or record["deleted"]
+                    or record["created_at"] != record["updated_at"] or entry["source"] != record["source"]):
+                raise ValueError("Memory history requires its original creation")
+            return
+        if any(record.get(key) != previous.get(key) for key in self.HISTORY_IDENTITY):
+            raise ValueError("Memory history changes immutable identity or scope")
+        if (operation == self.CREATE or previous["deleted"] != (operation == self.RESTORE)
+                or record["deleted"] != (operation == self.DELETE)):
+            raise ValueError("Invalid memory history state transition")
+        if operation in (self.DELETE, self.RESTORE):
+            expected = {**previous, "revision": record["revision"], "updated_at": record["updated_at"],
+                        "deleted": record["deleted"]}
+            if operation == self.DELETE and record.get("metadata") != previous.get("metadata"):
+                from .consolidation import MemoryConsolidation
+                expected["metadata"] = MemoryConsolidation.deletion_metadata(previous, record, entry["source"])
+            if record != expected:
+                raise ValueError("Memory deletion or restoration changed stored content")
+
     def validate_record(self, identifier, data):
         if data.keys() - {"record", "history"}:
             raise ValueError("Memory envelope requires only record/history")
@@ -360,18 +388,21 @@ class MemoryComponent(Component):
         self._validate_memory(identifier, record)
         if len(history) != record["revision"]:
             raise ValueError("Incomplete memory revision history")
+        previous = None
         for revision, entry in enumerate(history, 1):
             if not isinstance(entry, dict) or not isinstance(entry.get("data"), dict):
                 raise ValueError("Invalid memory history entry")
-            if entry.keys() - {"revision", "operation", "at", "source", "data"}:
-                raise ValueError("Unsupported Memory history fields")
+            if entry.keys() != self.HISTORY_FIELDS:
+                raise ValueError("Invalid Memory history fields")
             self._validate_memory(identifier, entry["data"])
             if entry["data"]["generation"] != record["generation"]:
                 raise ValueError("Memory history crosses record generations")
-            if entry.get("revision") != revision or entry["data"]["revision"] != revision or (
-                    entry.get("operation") not in {"create", "save", "update", "delete", "restore"}
-                    or not isinstance(entry.get("source"), dict) or entry.get("at") != entry["data"]["updated_at"]):
+            if type(entry["revision"]) is not int or entry["revision"] != revision or entry["data"]["revision"] != revision or (
+                    entry["operation"] not in self.OPERATIONS
+                    or not isinstance(entry["source"], dict) or entry["at"] != entry["data"]["updated_at"]):
                 raise ValueError("Invalid memory revision history")
+            self._validate_transition(previous, entry)
+            previous = entry["data"]
         if history[-1]["data"] != record:
             raise ValueError("Memory and history disagree")
 
@@ -384,7 +415,7 @@ class MemoryComponent(Component):
                   **self._payload(data), "id": identifier, "generation": new_id(), "revision": 1,
                   "created_at": now, "updated_at": now, "deleted": False,
                   "source": self._source(project, source)}
-        self._commit(project, identifier, record, [], "create", source)
+        self._commit(project, identifier, record, [], self.CREATE, source)
         return identifier
 
     def load(self, project, identifier, *, include_deleted=False, session_id=None):
@@ -405,16 +436,16 @@ class MemoryComponent(Component):
         return records
 
     def save(self, project, identifier, data, *, expected_revision, expected_generation, source=None, session_id=None):
-        return self._change(project, identifier, expected_revision, expected_generation, "save", changes=data, source=source, session_id=session_id)
+        return self._change(project, identifier, expected_revision, expected_generation, self.SAVE, changes=data, source=source, session_id=session_id)
 
     def update(self, project, identifier, changes, *, expected_revision, expected_generation, source=None, session_id=None):
-        return self._change(project, identifier, expected_revision, expected_generation, "update", changes=changes, source=source, session_id=session_id)
+        return self._change(project, identifier, expected_revision, expected_generation, self.UPDATE, changes=changes, source=source, session_id=session_id)
 
     def delete(self, project, identifier, *, expected_revision, expected_generation, source=None, session_id=None):
-        return self._change(project, identifier, expected_revision, expected_generation, "delete", source=source, session_id=session_id)
+        return self._change(project, identifier, expected_revision, expected_generation, self.DELETE, source=source, session_id=session_id)
 
     def restore(self, project, identifier, *, expected_revision, expected_generation, source=None, session_id=None):
-        return self._change(project, identifier, expected_revision, expected_generation, "restore", source=source, session_id=session_id)
+        return self._change(project, identifier, expected_revision, expected_generation, self.RESTORE, source=source, session_id=session_id)
 
     def purge(self, project, identifier, *, expected_revision, expected_generation, session_id=None):
         record = self.load(project, identifier, include_deleted=True, session_id=session_id)
