@@ -15,6 +15,7 @@ Backend가 소유하는 설정·정의는 해당 소유자의 닫힌 계약으�
 | Diagnostic | 실행 한도/요청/Tool 예외의 diagnostic, ExecutionResult.diagnostic, Step.diagnostic, 계획의 진단 | code, message, severity, source, details |
 | ErrorClassification | Diagnostic.classification 또는 classify_diagnostic | category, reason, confidence, evidence; 저장 상태나 재실행 권한이 아닌 순수 투영 |
 | ResourceRef | 진단·계획·진행 정보의 source | kind, id, project_id, session_id, run_id, step_id, component, version |
+| ProjectActivityEvent | project.activity/aactivity의 확정된 실행 활동 | time, event, source, status, code |
 | SessionRuntimeView | session.run.status/astatus | session_id, status, active_run_id, engine, started_at, queued_count, queued_request_ids, unfinished_work |
 | RunView | run.view/aview | run, outputs, cursor, events |
 | ResumePlan | session.run.resume_plan | source, engine, can_resume, interactions, reused, retry_nodes, blockers, state, revision, can_restart, restart_blockers, active, abandoned |
@@ -61,6 +62,11 @@ except Exception as error:
 문자열이다. ToolExecutionError의 effect/retryable 정보는 details에 표시하지만 이 값만으로
 Tool을 재실행하지 않는다. 기존 ToolRuntime·효과 원장·명시적 승인 검사가 계속 실행을 결정한다.
 ResourceRef를 역직렬화한 것만으로 대상 조회·수정 권한을 얻지 않는다. 대상 API가 소유권을 검사한다.
+
+ProjectActivityEvent의 source는 해당 Run/Step의 소유권 참조다. project/session/run identity와
+event 종류에 맞는 id/step_id를 요구하며 component·version은 허용하지 않는다. 이 version 검사는
+저장 형식 버전의 지원 여부 비교가 아니다. 활동 기록은 확정된 lifecycle의 파생 관찰이며
+실행·복구의 권한 원본이 아니다. Reader는 손상된 참조를 거부하고 파일을 자동 수정하지 않는다.
 
 `Diagnostic.from_exception()`은 예외의 저장된 `diagnostic`과 계산형 property를 동일하게
 읽고 사본으로 보존한다. 구현체 이름에 따른 분기는 없다. property의 재진입은 해당 속성만

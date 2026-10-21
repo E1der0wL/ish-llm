@@ -128,7 +128,10 @@ class ActivityStorageTests(unittest.TestCase):
 
     def test_corruption_is_reported_without_repair(self):
         self.append()
-        for tail in (b'{"PRIVATE":', b'{"PRIVATE":}\n'):
+        original = json.loads(self.path.read_text())
+        invalid_references = tuple(json.dumps({**original, "source": {**original["source"], field: "PRIVATE"}}).encode() + b'\n'
+                                   for field in ("component", "version"))
+        for tail in (b'{"PRIVATE":', b'{"PRIVATE":}\n', *invalid_references):
             self.path.write_bytes(tail)
             with self.assertRaises(ValueError) as error:
                 read_activity(self.project.paths)

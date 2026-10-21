@@ -15,6 +15,70 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c11: CAS·참조와 형식 버전의 구분 — 로컬 Level 2
+
+제품 코드·저장 형식·CAS 이름/비교·승인/실행 정책은 변경하지 않았다. S4 후보 9건을
+현행 Revision/Schema/참조 계약과 실제 소비자에 따라 개별 분류했다. MCP의 호출 전 snapshot,
+발견 결과 publication, catalog 조회 3건은 정의 hash와 connector revision을 비교한다.
+Skill 대상 참조 1건, 복구·이력 정리 plan 2건, Hub Tool 삭제·builtin 선택 2건도 현재 content/
+설정 CAS다. 이 이름들은 naming 계약에서 보존하도록 정한 것이며 형식 호환 Reader가 아니다.
+ProjectActivityEvent 1건은 Run/Step source에 component/version을 허용하지 않는 참조 variant
+검사다. 해당 기존 공개 계약을 data-contracts에 명시했다.
+
+개별 ID·owner·사유·계약·소스/소비자/시험/Fixture/의존성 hash를 기록했다. raw 후보 458건을
+그대로 남기며 reviewed 55·미해결 403, new/stale/review 오류/S1·S4·S5 미해결 0, exit 0이다.
+AST 규칙 완화나 파일 면제는 없다. 남은 S2 34·S3 351·S6 18과 현재 Naming/Schema 잔여 작업을
+유지하며 P1 최종 완료로 보고하지 않는다.
+
+기존 CAS/실제 효과/장애 시험을 재사용하고 부족한 증거만 보강했다. 새 MCP 시험은 발견 연결이
+열린 동안 정의 또는 connector revision을 바꿔 publication 거부, 이전 catalog와 **Project 전체
+파일 byte** 보존, stale 조회 거부, Tool·모델 호출 0, 연결 정리를 확인한다. 기존 Activity 손상
+시험에는 otherwise-valid JSON의 component/version 참조를 추가해 거부·원문 비노출·원본 파일
+보존을 확인했다. 기존 손상 사례와 모든 Assertion은 유지했다.
+
+첫 집중 실행의 실패 2건(test ID 1개)은 새 전체 파일 비교가 정상적인 project.loaded 조회 로그도
+변경 금지로 잡았기 때문이다. catalog 비교는 통과했다. 실제 로그를 별도 Application FileLogSink에
+보존하여 전체 Project byte Assertion을 유지했다. 두 번째 실패 2건은 새 로그 확인에 `.failed`
+이벤트를 잘못 기대한 시험 오류였다. 실제 기록은 정상 조회 로그였다. 이를 조회 기록의 증가와
+실제 event 확인으로 고쳤으며 로그를 끄거나 원본/효과 검사를 줄이지 않았다. 두 원래 fixture와
+실패 로그를 보존했다. 이 실패들을 제품 안전성 결함이나 성공으로 재분류하지 않는다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c11-evidence` llm | 67/67 | 66 | 2/0/0 | 30.114초 | 1 |
+| `c11-evidence-corrected` llm | 67/67 | 66 | 2/0/0 | 29.938초 | 1 |
+| `c11-focused-final` llm | 24/24 | 24 | 0/0/0 | 12.668초 | 0 |
+| `c11-level2` llm | 218/218 | 218 | 0/0/0 | 70.632초 | 0 |
+| `c11-level2` hub | 53/53 | 53 | 0/0/0 | 89.337초 | 0 |
+
+모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+Level 2 LLM 18개 모듈은 해당 owner·검사기·Component/Agent 참조·이력/복구 소비자와 공통 승인·
+예산·효과·Checkpoint·RAG·삭제·트랜잭션 안전성을 포함한다. Hub 7개는 stale 삭제/선택·승인 후
+실제 파일 효과·이력 보존·활동 조회·Component 관리·오류 계약·자원 실행 소비자다. 실제 프로세스
+중단·장애 주입과 원본 보존을 유지했다. R3 실제 효과 Mutation 검출 True/outer exit 0,
+문서 검사 132/182/959/34·오류 0/exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c11-evidence/llm.json --modules tests.llm.test_mcp_runtime tests.llm.test_project_activity tests.llm.test_skill_references tests.llm.test_history_retention_integrity tests.llm.test_operations_schema
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c11-evidence-corrected/llm.json --modules tests.llm.test_mcp_runtime tests.llm.test_project_activity tests.llm.test_skill_references tests.llm.test_history_retention_integrity tests.llm.test_operations_schema
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c11-focused-final/llm.json --modules tests.llm.test_mcp_runtime tests.llm.test_project_activity
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c11-level2/llm.json --modules tests.llm.test_mcp_runtime tests.llm.test_skill_references tests.llm.test_project_activity tests.llm.test_history_retention_integrity tests.llm.test_operations_schema tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_component_record_integrity tests.llm.test_component_storage_integrity tests.llm.test_agent_resource_integrity tests.llm.test_transactions tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c11-level2/hub.json --modules tests.hub.test_interaction_updates tests.hub.test_question_tools tests.hub.test_history_retention tests.hub.test_activity tests.hub.test_component_managers tests.hub.test_error_contract tests.hub.test_resource_tools
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c11-static-final.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c11-docs-before.json
+```
+
+Level 2 전후 697개 Python 소스 hash `344cf9c631024ed6671f42af2f20c068aa72f8bf7da81dcd065d420ce89e1de7`,
+859개 입력/환경 hash `a189555de7cba00dc06edd197f5e3aa49a97344b0f7ee782bc5b5238c071d99a`가 각각 동일했다.
+Python 3.12.14·136개 의존성·깨끗한 실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와
+c7–c9 게이트의 TERM/LiteLLM/Xvfb/xclip 환경을 유지했다. 명령·exit·JSON/원본 로그·오류 fixture는
+`/workspace/llm-clean-resume/p1/c11-evidence/`, `c11-evidence-corrected/`, `c11-focused-final/`,
+`c11-level2/`에 보존한다. 현재 검증된 CAS 알고리즘을 그대로 사용해 과거 구현을 다시 이식하지 않았다.
+제품 동작이 바뀌지 않은 개별 정적 분류와 증거 보강 범위이므로 전체 LLM/Hub는 이번 소단계에서
+유예하며, c10 이후 P1 묶음 Level 3에서 현재 통합 소스로 실행한 뒤 Push한다. 로컬 소단계 완료를
+P1 전체나 원격 CI 완료로 간주하지 않는다.
+
 ## P1-c10: Hub 팩토리 Presence — 로컬 Level 2
 
 HubConfig와 create_backend의 Engine/Component 팩토리 입력 두 경로를 정리했다. 내용이 있지만

@@ -60,30 +60,6 @@
       "detail": "inline domain argument: status"
     },
     {
-      "id": "1ca645608eaa0480a2bb7a37effb72078389d0898f2154bff69a602f1356533d:1",
-      "rule": "S4",
-      "file": "llm/components/mcp/data.py",
-      "symbol": "RemoteTool.__call__",
-      "line": 31,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "1e3f428c7d6e189f3cc9ff4338431e93d3260caf67ebf30d1ddd0301f7632680:1",
-      "rule": "S4",
-      "file": "llm/components/mcp/data.py",
-      "symbol": "MCPData._publish_catalog",
-      "line": 55,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "4726d5585a3aec2864de433a1957af25e31f5e042784ef6062711716c6265f1c:1",
-      "rule": "S4",
-      "file": "llm/components/mcp/data.py",
-      "symbol": "MCPData._catalog",
-      "line": 69,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
       "id": "ebb41ecb42dea50b70f6d05720fc25c4693d739a3fba0a460dacdd46143274cd:1",
       "rule": "S6",
       "file": "llm/components/memory/processing.py",
@@ -404,14 +380,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "3ab959fb11f77af01ca33beac1aee3e9a67095bdabc043b97d180b604c5f5b87:1",
-      "rule": "S4",
-      "file": "llm/components/skills/data.py",
-      "symbol": "SkillData._target",
-      "line": 20,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
       "id": "22f6ba69525c8a12645a763c25698238acbf6d51eb5371c682c9fd2712dd3808:1",
       "rule": "S3",
       "file": "llm/components/tools/builtin/catalog.py",
@@ -530,14 +498,6 @@
       "symbol": "ProjectActivityEvent.__post_init__",
       "line": 193,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "50183668c0843c7b5e0f5fd70bf637c197b138e894550ae7157242b6c34c260a:1",
-      "rule": "S4",
-      "file": "llm/core/contracts.py",
-      "symbol": "ProjectActivityEvent.__post_init__",
-      "line": 202,
-      "detail": "verify exact version type and declaration reference"
     },
     {
       "id": "1fb20f5f35dc00aec4baf73c0c10d68236ddc46976aa2f368a44b02844e9a828:1",
@@ -1244,14 +1204,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "3d74d18a827fbe73e9beed7b289858bba6ff862efd80341e9a968c8d3573af3a:1",
-      "rule": "S4",
-      "file": "llm/services/history/recovery.py",
-      "symbol": "ProjectRecovery.apply",
-      "line": 159,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
       "id": "b55ce89acc69519271bd331499ab9b7d1e5b99b611738a593aad6a1a1d8d27d3:1",
       "rule": "S3",
       "file": "llm/services/history/recovery.py",
@@ -1330,14 +1282,6 @@
       "symbol": "HistoryRetention.plan",
       "line": 193,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "1ea005c8a156e7c572955e7c11878226704f9d6cac04a35494db060262f6d0ff:1",
-      "rule": "S4",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention.apply",
-      "line": 231,
-      "detail": "verify exact version type and declaration reference"
     },
     {
       "id": "cd414d4a516e92be06bd4a7d1eae160290094ba17c7caa059a1c067911faee50:1",
@@ -2506,22 +2450,6 @@
       "symbol": "HubRuntime.snapshot",
       "line": 506,
       "detail": "inline domain argument: status"
-    },
-    {
-      "id": "520c8bf5d61eeb280b1107193263cb250c4aa02d939eafcfbff7837f770ad38b:1",
-      "rule": "S4",
-      "file": "hub/backend/tools/management.py",
-      "symbol": "ToolManagement.delete",
-      "line": 86,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "ea0abd80f30191a1ba4a1955d575c94a43d951abe0e98b64283dce4ed823be94:1",
-      "rule": "S4",
-      "file": "hub/backend/tools/management.py",
-      "symbol": "ToolManagement.toggle_builtin",
-      "line": 101,
-      "detail": "verify exact version type and declaration reference"
     },
     {
       "id": "55640383cac7752bd844dd22e4493eb745bfc257e8e3b012283f1b8247b35d00:1",

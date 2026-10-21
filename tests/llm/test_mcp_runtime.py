@@ -15,6 +15,7 @@ from llm.components.tools import Tool, ToolRegistry, ToolContract, ToolClassific
 from llm.llm import LargeLanguageModel, LoopEngine, BackendServices
 from llm.providers.mcp import MCPConnector, MCPToolError
 from llm.services.runtime.tools import ToolRuntime
+from llm.services.infrastructure.logging import DomainLogger, FileLogSink
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 from llm.components.tools import ToolEffect, ToolIsolation
 
@@ -39,13 +40,14 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
         finally:
             self.connections.append("close")
 
-    async def setup_app(self, connector=None, *, revision=MCPComponent.REVISION):
+    async def setup_app(self, connector=None, *, revision=MCPComponent.REVISION, logger=None):
         self.model = ScriptedCompletion(
             [chunk(calls=[call('{"value":"hello"}', name="remote_echo")], finish="tool_calls")],
             [chunk("done", finish="stop")])
         app = LargeLanguageModel(self.root / "workspace", components=[MCPComponent(
             connector=self.connector if connector is None else connector, revision=revision)],
-            engines={"loop": LoopEngine(completion_fn=self.model)}, services=BackendServices(tool_runtime=ToolRuntime(
+            engines={"loop": LoopEngine(completion_fn=self.model)}, services=BackendServices(
+                logger=logger if logger is not None else DomainLogger(), tool_runtime=ToolRuntime(
                 classify=lambda call: ToolClassification("remote.call", "test", 1))))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=["mcp"], config={"policies": {"approval": {
@@ -84,6 +86,57 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
         await data.aupdate("server", {"args": ["changed"]})
         with self.assertRaisesRegex(ValueError, "stale"):
             await data.alist_tools("server")
+
+    async def test_discovery_rechecks_definition_and_connector_before_publication(self):
+        for change in ("definition", "connector"):
+            with self.subTest(change=change):
+                entered, release = asyncio.Event(), asyncio.Event()
+                hold = False
+
+                @asynccontextmanager
+                async def connector(definition):
+                    async with self.connector(definition) as tools:
+                        if hold:
+                            entered.set()
+                            await release.wait()
+                        yield tools
+
+                diagnostics = self.root / (change + "-diagnostics")
+                sink = FileLogSink()
+                logger = DomainLogger(sink=lambda logs, event, fields: sink(diagnostics, event, fields))
+                app, project, session, data = await self.setup_app(connector, logger=logger)
+                component = app.project_manager.components.get("mcp")
+                catalog = component.root(project.data) / "catalogs/server.json"
+                original_catalog = catalog.read_bytes()
+                hold = True
+                task = asyncio.create_task(data.aprepare("server"))
+                try:
+                    await asyncio.wait_for(entered.wait(), 5)
+                    if change == "definition":
+                        await data.aupdate("server", {"args": ["changed-during-discovery"]})
+                    else:
+                        component.revision = "changed-during-discovery"
+                    before = {str(path.relative_to(project.data.paths.root)): path.read_bytes()
+                              for path in project.data.paths.root.rglob('*') if path.is_file()}
+                    before_log_count = len((diagnostics / "service.log").read_text().splitlines())
+                    release.set()
+                    with self.assertRaisesRegex(ValueError, "changed during discovery"):
+                        await task
+                    self.assertEqual(catalog.read_bytes(), original_catalog)
+                    self.assertEqual({str(path.relative_to(project.data.paths.root)): path.read_bytes()
+                                      for path in project.data.paths.root.rglob('*') if path.is_file()}, before)
+                    with self.assertRaisesRegex(ValueError, "stale"):
+                        await data.alist_tools("server")
+                    self.assertEqual(self.calls, [])
+                    self.assertEqual(self.model.requests, [])
+                    self.assertEqual(self.connections.count("open"), self.connections.count("close"))
+                    events = [json.loads(line) for line in (diagnostics / "service.log").read_text().splitlines()]
+                    self.assertGreater(len(events), before_log_count)
+                    self.assertTrue(any(event["event"] == "project.loaded" for event in events[before_log_count:]))
+                finally:
+                    release.set()
+                    await asyncio.gather(task, return_exceptions=True)
+                    await app.shutdown()
 
     async def test_cancel_closes_remote_invocation_and_connection(self):
         entered, closed = asyncio.Event(), []
