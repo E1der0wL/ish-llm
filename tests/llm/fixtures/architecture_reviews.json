@@ -2053,6 +2053,248 @@
       "tests": [
         "tests.hub.test_question_tools.QuestionToolTests.test_builtin_selection_persists_and_approval_resumes"
       ]
+    },
+    {
+      "id": "29fd5a46b8e05c419b29c6b6b765320f514d33a322fbe6cb330cf3ae9386b7ba:1",
+      "rule": "S2",
+      "owner": "ordered_processors",
+      "reason": "The condition rejects a missing close_timeout attribute or a supplied non-finite/non-positive/non-numeric deadline. It never supplies a default; explicit None is retained. Registration validation precedes session creation and closing one timed-out processor does not skip others.",
+      "contracts": [
+        "docs/llm/completion-processing.md"
+      ],
+      "sources": {
+        "docs/llm/completion-processing.md": "87f8e2bc2ec60a4cbd7acf17c6c030f3770707ccb8ccf68f750263bc4b1d7bf5",
+        "llm/components/processing.py": "366b28c8d7c5c64d5bafa1b23c5436d2d2bb589d13e1815d5946ad8428bd8709",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_completion_processing.py": "59ef6a3698b29b3c2a1eaf12439b1a7b0aacdaf0a7183c85a459f439bb94ea07"
+      },
+      "tests": [
+        "tests.llm.test_completion_processing.ProcessingContractTests.test_registration_errors_are_rejected_without_creating_sessions",
+        "tests.llm.test_completion_processing.ProcessingContractTests.test_close_timeout_does_not_skip_other_sessions"
+      ]
+    },
+    {
+      "id": "9a778bb84c5950137b76f3da95a35b47abbd24d03f52884a0c113837e93d819b:1",
+      "rule": "S2",
+      "owner": "ToolContract.__post_init__",
+      "reason": "This rejection predicate checks the declared retry_fields tuple, nonempty string entries and uniqueness. An explicitly empty tuple is valid and remains empty. It does not synthesize retry policy or replace stored missing fields; the closed Reader and registry revalidation remain mandatory.",
+      "contracts": [
+        "docs/llm/tool-validation.md",
+        "docs/llm/tool-constraints.md"
+      ],
+      "sources": {
+        "docs/llm/tool-constraints.md": "204943fa586671ba4cfd964f340b187e641b9fdc3fdb625f73386bf0c08b85d0",
+        "docs/llm/tool-validation.md": "c10910bdc8d5d67ce357515c88bdd40c1bd6ea108cdb2eaece55124d37d71e44",
+        "llm/components/tools/registry.py": "b58b9f9f6aebf111c183dcc5cc4c7591148c425f2698ca97214f36888b79e320",
+        "llm/services/runtime/tools.py": "ea5326075a0768e14e9cb0e2de08880bd3e19f1f564088ef20dd15fdd8cbc93f",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_tool_declarations.py": "8438b3dbb3fb4c403d3ab6fa488944b1959ebac4832d8c15de6e31b553ec71e0"
+      },
+      "tests": [
+        "tests.llm.test_tool_declarations.ToolDeclarationTests.test_current_reader_is_closed_and_preserves_false_and_empty_values",
+        "tests.llm.test_tool_declarations.ToolDeclarationTests.test_tool_and_call_require_a_complete_contract",
+        "tests.llm.test_tool_declarations.ToolDeclarationTests.test_registry_revalidates_a_corrupted_trusted_object"
+      ]
+    },
+    {
+      "id": "eb877fcfded501076e3854ab23c8bc94acec15b5a2df71f12b410f7c71f8df58:1",
+      "rule": "S2",
+      "owner": "BaseEngine.step",
+      "reason": "After the explicit None/type checks, this condition rejects boolean, non-finite and non-positive supplied deadlines. It is validation, not a value fallback; the actual timed-out step is finalized as failed and its coroutine is closed.",
+      "contracts": [
+        "docs/llm/runtime-reliability.md",
+        "docs/llm/engine-output.md"
+      ],
+      "sources": {
+        "docs/llm/engine-output.md": "5251e7b587113d30e03f246b016ee69ec696881e6c7889f8d016269cd4666fdb",
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/services/runtime/output.py": "49b3f1f55ac572f4ffbacc8abae54e647a23797fef15f2fb01ece87b241589b6",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_base_engine.py": "9b8a11d31cba602aa7b4bb88bd76a9adab1a8a1d67adbd6b04162eaed299e197"
+      },
+      "tests": [
+        "tests.llm.test_base_engine.BaseEngineTests.test_timeout_finalizes_failed_step_and_closes_coroutine"
+      ]
+    },
+    {
+      "id": "77efa5af04a8ab0167158737cb85ede07d8914553d4b2c3ae710e40669ac4358:1",
+      "rule": "S2",
+      "owner": "GraphEngine.validate_resume",
+      "reason": "This guard requires unique string retry node identifiers and exact equality with the uncertain node set before resume. It rejects an inconsistent explicit selection; it does not fill a missing selection or clear effect/checkpoint evidence. Explicit retry and duplicate-resume rejection remain tested.",
+      "contracts": [
+        "docs/llm/graph-engine.md",
+        "docs/llm/runtime-reliability.md"
+      ],
+      "sources": {
+        "docs/llm/graph-engine.md": "d0b59e39fb3423ea2cd730817e6c1116a1150dc14314e61452de2a8b75d718ea",
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "llm/engines/graph/engine.py": "01497417e1556270d9cddb8eb70732575e1dd469514509c52a288812dfb3532d",
+        "llm/services/runtime/runs.py": "b308a5acbc85fcd018d5daa951bb04a36bc6c7229ed3169555dfcac8c2ab0f40",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_graph_checkpoints.py": "802697da33c39b9f22f89bb28fc28e53b90e19ed8c68526a2cab5724aab19702"
+      },
+      "tests": [
+        "tests.llm.test_graph_checkpoints.GraphCheckpointTests.test_interrupted_node_requires_explicit_retry_and_duplicate_resume_is_rejected"
+      ]
+    },
+    {
+      "id": "cd414d4a516e92be06bd4a7d1eae160290094ba17c7caa059a1c067911faee50:1",
+      "rule": "S2",
+      "owner": "DomainLogger.write",
+      "reason": "The condition returns early only for the validated boolean enabled/log_reads switches. It never replaces False with True or creates a missing configuration value. LogConfig rejects non-booleans; normal logging appends without implicit retention or duplicate handlers.",
+      "contracts": [
+        "docs/llm/configuration-audit.md",
+        "docs/llm/data-lifecycle.md"
+      ],
+      "sources": {
+        "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
+        "docs/llm/data-lifecycle.md": "bfec842d1c74f2dc406052605304c251f8cce76771f112a1bc945a643cd4cf8a",
+        "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
+        "llm/services/infrastructure/logging.py": "44f3f68b9eeb3746f8e6035287e27024a867a7a4d85cef8e268df957f0e49d28",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_lifecycle_logging.py": "ad394b1384449b318b1fd03521d23d1e7177cb9da6ca8ab7c7cb18be1ab65397",
+        "tests/llm/test_service_extensions.py": "b4e2cc37421448adc2983f515ffaf05fd4d3c9478f7a01967296a5024602de81"
+      },
+      "tests": [
+        "tests.llm.test_service_extensions.ContextPolicyTests.test_invalid_query_and_policy_settings",
+        "tests.llm.test_lifecycle_logging.LifecycleTests.test_default_logs_append_without_retention_or_duplicate_global_handlers"
+      ]
+    },
+    {
+      "id": "659cb5a132ac60be16587b5e87a4b192757e87d2f2a43df8d0fa6bbafdef9dfd:1",
+      "rule": "S2",
+      "owner": "OutputBuffer.__post_init__",
+      "reason": "This is the supplied max_delay numeric/finite/positive validation predicate. Invalid values are rejected, not changed to a default. Actual timer and cancellation flushes protect accepted output independently of the predicate classification.",
+      "contracts": [
+        "docs/llm/engine-output.md",
+        "docs/llm/runtime-reliability.md"
+      ],
+      "sources": {
+        "docs/llm/engine-output.md": "5251e7b587113d30e03f246b016ee69ec696881e6c7889f8d016269cd4666fdb",
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/services/runtime/output.py": "49b3f1f55ac572f4ffbacc8abae54e647a23797fef15f2fb01ece87b241589b6",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_operational_storage.py": "37bd54dc01509c02cd677cafd666ce16c55d135a12ea73aaac3b3855c6921707"
+      },
+      "tests": [
+        "tests.llm.test_operational_storage.PolicyValidationTests.test_policy_and_index_limits",
+        "tests.llm.test_operational_storage.BatchTests.test_timer_and_cancel_flush_accepted_output"
+      ]
+    },
+    {
+      "id": "9d395b25b59cd824f29c63f3fc21d1034acfd8aaed83b8579f494c92f9b57c6c:1",
+      "rule": "S2",
+      "owner": "ToolRuntime.__post_init__",
+      "reason": "This predicate rejects a retry_safe_tools value that is not a tuple of nonempty strings; explicit empty tuples stay empty. It does not grant retry admission or erase uncertain effects. The referenced real-effect test proves that an admitted retry cannot convert a prior uncertain receipt into no-effect evidence; it is not claimed as exhaustive invalid-input coverage.",
+      "contracts": [
+        "docs/llm/tool-constraints.md",
+        "docs/llm/runtime-reliability.md"
+      ],
+      "sources": {
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "docs/llm/tool-constraints.md": "204943fa586671ba4cfd964f340b187e641b9fdc3fdb625f73386bf0c08b85d0",
+        "llm/engines/loop/engine.py": "f286a714ee07c92a68dc8d1f3afed29de19d63bec21f03aa83750dfe7971bfac",
+        "llm/services/runtime/runs.py": "b308a5acbc85fcd018d5daa951bb04a36bc6c7229ed3169555dfcac8c2ab0f40",
+        "llm/services/runtime/tools.py": "ea5326075a0768e14e9cb0e2de08880bd3e19f1f564088ef20dd15fdd8cbc93f",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_long_running.py": "f34dca56b2970845d7b64e63be2f483ed9a1b73f5a5fea9c5f515d8c1a5bb3ca"
+      },
+      "tests": [
+        "tests.llm.test_long_running.LongRunningTests.test_prior_uncertain_retry_never_becomes_no_effect_receipt"
+      ]
+    },
+    {
+      "id": "01f0d7dfa32988e3a4432959cda86a7ddbb59eed6b870e31a52ae9956268e830:1",
+      "rule": "S2",
+      "owner": "ToolExecutor.__init__",
+      "reason": "Under an explicit non-None branch this guard rejects boolean, non-numeric, non-finite and non-positive deadlines. No truthy replacement or hidden deadline is introduced. Optional deadline/cancellation and preserved failure/effect evidence are verified at the actual executor boundary.",
+      "contracts": [
+        "docs/llm/tool-constraints.md",
+        "docs/llm/runtime-reliability.md"
+      ],
+      "sources": {
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "docs/llm/tool-constraints.md": "204943fa586671ba4cfd964f340b187e641b9fdc3fdb625f73386bf0c08b85d0",
+        "llm/components/tools/registry.py": "b58b9f9f6aebf111c183dcc5cc4c7591148c425f2698ca97214f36888b79e320",
+        "llm/services/runtime/tools.py": "ea5326075a0768e14e9cb0e2de08880bd3e19f1f564088ef20dd15fdd8cbc93f",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_error_boundaries.py": "3391d763cce10ba29c476c4a4395ccf5071be4c21f68a3b6291a6ed638416f08",
+        "tests/llm/test_explicit_configuration.py": "1f6bb637de9c80b998b33cd3e72c48d41861fb977a4822e82189a5eb5c8ea834"
+      },
+      "tests": [
+        "tests.llm.test_explicit_configuration.RuntimeTests.test_tool_optional_deadline_and_cancellation",
+        "tests.llm.test_error_boundaries.FailureRuntimeTests.test_tool_diagnostic_effect_and_timeout_are_unchanged"
+      ]
+    },
+    {
+      "id": "1c0a082d7cb096e649eaecd5cf3add46f915e58e79da42c35580c8b0588f71a2:1",
+      "rule": "S2",
+      "owner": "RecoveryPolicy.tool",
+      "reason": "After blocked/backend-admitted/access checks, this condition combines no-effect evidence and the supplied retry-safe fact to choose a UI recovery action. It does not substitute a retry policy or authorize the backend. Only already backend-admitted Tools are eligible for retry selection.",
+      "contracts": [
+        "docs/hub/error-handling.md",
+        "docs/hub/presets-and-resume.md"
+      ],
+      "sources": {
+        "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
+        "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
+        "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
+        "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
+        "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_error_contract.PolicyTests.test_only_backend_admitted_tools_can_be_selected_for_retry"
+      ]
+    },
+    {
+      "id": "86e5a3ea760af53b7775e7c567567091ee376f1b6f82400a0b35c0104a807811:1",
+      "rule": "S2",
+      "owner": "GlobalPage.body_widgets",
+      "reason": "This condition chooses which settings widgets are visible when a search query is present or the policy tab is selected. Its result is consumed only as a condition; no query, policy or stored setting is replaced. Categorized editing and project-scoped save/reload behavior remain exercised.",
+      "contracts": [
+        "docs/hub/structure.md",
+        "docs/hub/panel-ux.md"
+      ],
+      "sources": {
+        "docs/hub/panel-ux.md": "cd1e336f281f8d816fcc1d3977f9fb58718e26bb2bd6b0031caa6a2f2ab143bc",
+        "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
+        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/ui/settings/pages.py": "bf844784825ff5364a5cef6da739ed13147e220c25a8a9d9c968f1d0ec78fe8c",
+        "hub/widget/forms/settings.py": "25dd5414251c0c6fd11236c08d338a822690fa2a713110c6f217b347b3e464a6",
+        "tests/hub/test_general_options.py": "03f7d84714ee08293175abc578f131435b0945b4129db354d3cf30651eeb79ab",
+        "tests/hub/test_settings_project_flow.py": "d1590b2987cbd65d94f3e96064a415aa6f9f39b384ec388a0439223c72791047",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_general_options.GeneralOptionAsyncTests.test_categorized_form_pack_add_delete_save_and_reload",
+        "tests.hub.test_settings_project_flow.ProjectSettingsFlowTests.test_profile_project_selection_scoped_settings_and_stay_on_save_cancel"
+      ]
+    },
+    {
+      "id": "519ab2df01789ec07b66773c82cd17a77e8e8076ee2a0def9c9503190ccabbbe:1",
+      "rule": "S2",
+      "owner": "SchemaForm._walk",
+      "reason": "This prefix/config-path condition only determines whether a form help description is added. It does not determine a configuration value or collapse Missing/Null/Value. Missing/null/nested/unknown settings preservation and shared-key engine-lock consumers remain tested.",
+      "contracts": [
+        "docs/hub/structure.md",
+        "docs/llm/configuration-audit.md"
+      ],
+      "sources": {
+        "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
+        "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
+        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/widget/forms/settings.py": "25dd5414251c0c6fd11236c08d338a822690fa2a713110c6f217b347b3e464a6",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_settings.SettingsFormTests.test_missing_null_nested_and_unknown_values_survive",
+        "tests.hub.test_settings.SettingsFormTests.test_shared_settings_key_uses_all_engine_locks_and_views"
+      ]
     }
   ]
 }

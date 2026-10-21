@@ -100,14 +100,6 @@
       "detail": "SDK-shaped field lookup outside Provider package"
     },
     {
-      "id": "29fd5a46b8e05c419b29c6b6b765320f514d33a322fbe6cb330cf3ae9386b7ba:1",
-      "rule": "S2",
-      "file": "llm/components/processing.py",
-      "symbol": "ordered_processors",
-      "line": 128,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "1394d34ed0f94ab4ac538ed8b7ce87a934b0ac0ea0bb7b3a9aeaa5dd2ad25be6:1",
       "rule": "S6",
       "file": "llm/components/processing.py",
@@ -460,14 +452,6 @@
       "detail": "inline domain argument: max_workers"
     },
     {
-      "id": "9a778bb84c5950137b76f3da95a35b47abbd24d03f52884a0c113837e93d819b:1",
-      "rule": "S2",
-      "file": "llm/components/tools/registry.py",
-      "symbol": "ToolContract.__post_init__",
-      "line": 48,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "755d517eebc69152fa9d1db38316e3cb6f5156018342a9ad9c7580ad4dac4e22:1",
       "rule": "S3",
       "file": "llm/components/vision/component.py",
@@ -684,14 +668,6 @@
       "detail": "inline domain field: status"
     },
     {
-      "id": "eb877fcfded501076e3854ab23c8bc94acec15b5a2df71f12b410f7c71f8df58:1",
-      "rule": "S2",
-      "file": "llm/engines/base.py",
-      "symbol": "BaseEngine.step",
-      "line": 359,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "5e5f5d1f3b92ae7699682aab6028938e66197b005409332d1b74f4f03d1b2874:1",
       "rule": "S3",
       "file": "llm/engines/base.py",
@@ -866,14 +842,6 @@
       "symbol": "GraphEngine.validate_resume",
       "line": 981,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "77efa5af04a8ab0167158737cb85ede07d8914553d4b2c3ae710e40669ac4358:1",
-      "rule": "S2",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "GraphEngine.validate_resume",
-      "line": 983,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "0b90ec89a4d6d88e5587a04fdd713680bf1539d03636e2dff8fef0f00ded617b:1",
@@ -1284,14 +1252,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "cd414d4a516e92be06bd4a7d1eae160290094ba17c7caa059a1c067911faee50:1",
-      "rule": "S2",
-      "file": "llm/services/infrastructure/logging.py",
-      "symbol": "DomainLogger.write",
-      "line": 47,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "17f9a81bc28fb6c36b02910d685f39ea1ccd05f2c2c87278e231d782eb69ce14:1",
       "rule": "S3",
       "file": "llm/services/infrastructure/logging.py",
@@ -1492,14 +1452,6 @@
       "detail": "inline domain assignment: max_chars"
     },
     {
-      "id": "659cb5a132ac60be16587b5e87a4b192757e87d2f2a43df8d0fa6bbafdef9dfd:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/output.py",
-      "symbol": "OutputBuffer.__post_init__",
-      "line": 122,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "5a22488d448c3ced3b3e1e4420ba5add02ef2c0a6756afffc2f70d497afdc3be:1",
       "rule": "S3",
       "file": "llm/services/runtime/output.py",
@@ -1684,28 +1636,12 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "9d395b25b59cd824f29c63f3fc21d1034acfd8aaed83b8579f494c92f9b57c6c:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolRuntime.__post_init__",
-      "line": 116,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "c3a2ae57c39fec98aa4534230ac9dc705cbc6e8f5f07b611560093b218802ecc:1",
       "rule": "S3",
       "file": "llm/services/runtime/tools.py",
       "symbol": "ToolExecutionScope.binding",
       "line": 192,
       "detail": "inline domain field: retry_selector"
-    },
-    {
-      "id": "01f0d7dfa32988e3a4432959cda86a7ddbb59eed6b870e31a52ae9956268e830:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor.__init__",
-      "line": 287,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "4d249323c10c2433d23ec223226c6a6e0e19af229150924b26ffa2f4a3d5e511:1",
@@ -2532,14 +2468,6 @@
       "detail": "inline domain assignment: retry_safe"
     },
     {
-      "id": "1c0a082d7cb096e649eaecd5cf3add46f915e58e79da42c35580c8b0588f71a2:1",
-      "rule": "S2",
-      "file": "hub/errors/policy.py",
-      "symbol": "RecoveryPolicy.tool",
-      "line": 56,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "54416a4791bbbf13c999618fc9f3c82385449327524037de692c918050096a8d:1",
       "rule": "S3",
       "file": "hub/hub.py",
@@ -2802,14 +2730,6 @@
       "symbol": "ProjectPage.set_section",
       "line": 158,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "86e5a3ea760af53b7775e7c567567091ee376f1b6f82400a0b35c0104a807811:1",
-      "rule": "S2",
-      "file": "hub/ui/settings/pages.py",
-      "symbol": "GlobalPage.body_widgets",
-      "line": 290,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "ff6e4d2f1168d08a53303e924e91ebb421baa453ad79ff475729c309a5ca4aaa:1",
@@ -3194,14 +3114,6 @@
       "symbol": "RAGManager.cancel_job",
       "line": 180,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "519ab2df01789ec07b66773c82cd17a77e8e8076ee2a0def9c9503190ccabbbe:1",
-      "rule": "S2",
-      "file": "hub/widget/forms/settings.py",
-      "symbol": "SchemaForm._walk",
-      "line": 213,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "117437ff40eb250424dd0dcf197e5065391472a5e0b833f713619650f7e33463:1",

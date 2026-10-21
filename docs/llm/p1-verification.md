@@ -15,6 +15,88 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c13: 검증·조건식 11건의 개별 판정 — 로컬 Level 2
+
+제품·시험 Python·실행 정책·저장 형식·AST 규칙은 그대로다. S2 후보 11건을 현행 계약에 따라
+개별 판정하고 정확한 발생 ID·owner·근거·소스/의존성/계약/시험 hash를 기록했다.
+ordered_processors, ToolContract, BaseEngine.step, GraphEngine.validate_resume, OutputBuffer,
+ToolRuntime, ToolExecutor의 조건은 필수 속성·타입·범위·중복·명시적 재시도 노드 집합 검증이다.
+DomainLogger는 검증된 boolean 스위치, RecoveryPolicy는 Backend가 이미 허용한 Tool의
+복구 선택, GlobalPage/SchemaForm은 widget·도움말 표시 조건이다. 입력값을 대신하는 기본값이
+아니며 누락·None·False·빈 값이나 승인·효과 증거를 복구하지 않는다. 파일/rule 단위 허용은 없다.
+ToolRuntime의 실제 불확실 효과 시험을 모든 잘못된 입력의 완전한 coverage로 주장하지 않는다.
+현재 알고리즘의 판정이므로 이전 backend 구현/형식/통과 결과를 가져오지 않았다.
+
+변경된 audit fixture의 실제 소비 경로를 검색했다. check_architecture와 그 성공/실패 시험
+test_architecture_checks·test_architecture_reviews만 직접 소비한다. 두 모듈을 새로 실행했고,
+공통 승인·누적 예산·효과·Checkpoint·RAG·수명주기/삭제·중첩 Graph·트랜잭션의 실제 파일/장애
+시험과 Hub 오류/재시도 소비자를 추가했다. 아래 새 실행은 모두 selected 범위다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 새 llm | 139/139 | 139 | 0/0/0 | 49.150초 | 0 |
+| 새 hub | 14/14 | 14 | 0/0/0 | 0.139초 | 0 |
+
+새 실행의 expected failure·unexpected success·missing·unexpected·duplicates도 모두 0이다.
+R3 실제 효과 mutation은 의도된 내부 Assertion 실패를 검출(True), outer exit 0이다.
+정적 검사는 raw 458·reviewed 66·미해결 392(S2 23·S3 351·S6 18), new/stale/review 오류 및
+필수 S1·S4·S5 미해결 0/exit 0이다. 문서 검사는 132문서·182 Python fence·959링크·34 anchor,
+오류 0/exit 0이다. 남은 S2/S3를 판정 없이 통과시킨 것이 아니며 P1 최종 게이트는 아직 미완료다.
+
+### 재사용한 결과와 동일성
+
+검증 정책의 재사용 조건을 적용했다. 직전 c10–c12 Level 3은 기준 HEAD
+`aa24c041aa026d7ffa737b6cccb6ec5ce247da72`에 당시 미커밋 c12 시험을 포함한 현재 소스였고, c13 기준 HEAD는
+`568af3fdada3aba620e6e9a43c7cbd0ffe11ed2b`다. 서로 다른 HEAD를 같다고 하지 않는다.
+697개 Python 소스 hash는 두 실행 모두
+`4e33a87d7d74e73672706eed9cb10672f0cb011cea7aadae38ce1199404e7a83`이다.
+859개 입력 중 달라진 것은 architecture_reviews.json·architecture_debt.json·이 결과 문서
+세 파일뿐이다. 나머지 856개 제품/시험/Fixture/자산, Python 3.12.14·136개 의존성,
+실행 바이너리·커널·환경 5개·깨끗한 실제 host d833790959a76ac457fdeea3f21a6bea1eecfe12가
+모두 같다. 새 입력 hash `32c427c20a0d321358fb43dedc451e6c8ba71c5ef0c1c50632c80223cef91e78`와
+소스는 새 실행 전후에도 각각 byte 단위로 동일했다. 전체 discovery ID 목록도 LLM 2090/Hub 563으로
+같고 모든 새 review 참조 ID가 실제 이전 통과 목록에 유일하게 존재한다.
+
+다음 owner/직접 소비자 모듈의 **이전 전체 실행 결과**만 재사용했다(LLM 192개·Hub 17개).
+새 실행과 중복한 test_error_contract는 재사용 수에서 제외했다. 제품·시험·계약은 변경되지 않았고
+audit fixture를 읽는 경로는 새로 검증했으므로 이 범위의 근거는 유효하다.
+
+| 원래 c10–c12 Level 3에서 통과한 모듈 | 재사용 pass |
+|---|---:|
+| tests.llm.test_base_engine | 24 |
+| tests.llm.test_completion_processing | 19 |
+| tests.llm.test_error_boundaries | 10 |
+| tests.llm.test_explicit_configuration | 24 |
+| tests.llm.test_graph_checkpoints | 22 |
+| tests.llm.test_lifecycle_logging | 17 |
+| tests.llm.test_long_running | 23 |
+| tests.llm.test_operational_storage | 25 |
+| tests.llm.test_service_extensions | 22 |
+| tests.llm.test_tool_declarations | 6 |
+| tests.hub.test_general_options | 5 |
+| tests.hub.test_settings | 11 |
+| tests.hub.test_settings_project_flow | 1 |
+
+각 test ID·원래 report hash·현재 report hash·환경 비교와 변경 파일 목록은
+`/workspace/llm-clean-resume/p1/c13-level2/reuse-proof.json`에 있다. 원래 명령/exit 0과 전체
+원본 로그는 c10-c12-level3에 보존했다. **이전 결과와 새 부분 실행을 하나의 전체 실행으로
+합산하지 않는다.** 이번 소단계 전체 회귀는 제한된 audit 자료 변경과 위 동일성 근거로 유예하며,
+다음 관련 소단계 묶음 또는 P1 최종 Level 3에서 현재 통합 상태 전체를 다시 검증한다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c13-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c13-level2/hub.json --modules tests.hub.test_error_contract
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c13-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c13-docs-before.json
+.venv-linux312/bin/python /workspace/llm-clean-resume/p1/verify-c13-reuse.py
+```
+
+명령 작업 경로·env 5개는 c12 전체 게이트와 동일하다. 요약·로그·선택 목록·전후 manifest는
+c13-level2에 보존했다. 소단계 문서를 먼저 갱신하고 로컬 독립 커밋으로 보존하며, Push는 후속
+Level 3 뒤 묶어서 한다. 원격 마지막 확인은 568af3f이고 CI는 실제 결과 미확인이다.
+실제 인증 모델·커널 short-write 등 기존 미검증 한계는 그대로이며 안전성 시험을 줄이지 않았다.
+
 ## P1-c12: 현재 Naming·Schema 계약과 c10–c12 묶음 Level 3
 
 제품 코드는 바꾸지 않고 test_naming_contract의 과거 Schema/binding digest 동결을 현재 계약
