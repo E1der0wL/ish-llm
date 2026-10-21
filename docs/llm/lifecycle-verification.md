@@ -9,6 +9,76 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H3-a Data 첨부 격리와 Component 상위 삭제 — 로컬 Level 2
+
+기준 `d7d9347c9075cffef7144be2d514a670e601b819`에서 Data owner에 제한된 명시적 격리를
+추가했다. 기존 38개 데이터군 보고서와 H2 증거는 재사용하며 변경 범위만 기록한다.
+
+- DataData는 현재 revision·저장 참조·비활성 Session·미완료 Resume 부재를 다시 검증한다.
+  DataComponent는 원래 정의와 패키지 목록을 보존하고 첨부 바이트의 복사·검증, 필수 영수증,
+  원래 첨부 경로 제거를 기존 workspace transaction으로 묶는다. 영수증 owner의 version은
+  일반 Component 목록 version과 독립적이다. 일반 읽기·재생성·복원 허가를 만들지 않는다.
+- 원래 정의에 첨부 선언이 없으면 격리 트리 소실 뒤 차단을 뒷받침할 증거가 부족하므로
+  원위치 보존·거부한다. 알 수 없는 패키지 항목·링크·비정규 파일·현재 손상·stale 요청도
+  거부한다. 명시 삭제는 영수증·바이트·참조·실행 상태를 재검증한 뒤 기존 목록 삭제에 위임한다.
+- FileComponent의 첨부 경로 선언을 재사용했다. 영향 소비자는 Skill 파일/참조, Memory 원문
+  보관/참조, Project/Component 삭제·복제·백업, Hub Component 관리다. 승인·예산·효과·
+  Checkpoint 저장 형식이나 처리 정책은 변경하지 않았다.
+- 추가 재현에서 Project 영구 삭제가 격리된 원본을 실제 제거했다. ProjectManager는 이제
+  백업과 상위 삭제에 같은 저장 Component owner 검증을 사용한다. 일반 Data 삭제·Component
+  제거·Project 제거·백업·복제의 거부와 원본 보존을 함께 검증한다.
+
+신규 17개 테스트는 실제 9개 하위 프로세스 exit 77 지점(복사, 영수증, 원본 이동, 삭제 트리,
+목록, commit marker 전후), 취소 후 저장 완료, 동시 격리, ABA/stale 삭제, 비활성 Skill 참조,
+미완료 Resume, 손상 실행 증거, 필수 영수증 필드/타입/바이트 소실을 검사한다. 실제 모델 호출
+한도 1은 격리·삭제·재시작 뒤에도 1회로 유지하며 원래 Run 영수증 바이트를 보존한다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `a-baseline` API 부재 | 6/6 | 0 | 0/6/0 | 0.372초 | 1 |
+| `a-focused-1` | 25/25 | 24 | 0/1/0 | 3.755초 | 1 |
+| `a-focused-2` | 31/31 | 31 | 0/0/0 | 7.159초 | 0 |
+| `a-evidence-baseline` | 14/14 | 13 | 1/0/0 | 4.183초 | 1 |
+| `a-focused-3` 상위 삭제 재현 | 36/36 | 35 | 1/1/0 | 7.729초 | 1 |
+| `a-focused-4` | 110/110 | 110 | 0/0/0 | 21.875초 | 0 |
+| `a-level2` LLM 23개 모듈 | 311/311 | 311 | 0/0/0 | 115.319초 | 0 |
+| `a-level2` Hub 3개 모듈 | 10/10 | 10 | 0/0/0 | 29.961초 | 0 |
+
+실패 원인은 순서대로 API 부재, 격리 자료를 올바르게 거부한 Skill 생성 fixture,
+첨부 선언 없는 격리 허용, Project 상위 삭제 우회다. Skill의 정상 참조 생성 거부 Assertion과
+owner Writer로 주입한 저장 참조의 삭제 차단을 모두 유지했다. `a-focused-3`의 error는 같은
+시험에서 상위 삭제가 제거한 원본을 확인하다 발생한 FileNotFoundError다. 각 실패 로그와
+추가 재현 `a-evidence-baseline`/`a-focused-3`의 소스는 `/workspace/llm-clean-resume/h3/`에
+보존한다. 모든 실행에서 발견/실행
+누락·중복·unexpected·expected failure·unexpected success는 0이다.
+
+실행 명령은 다음 두 wrapper의 실제 `*-command.json`/`*-execution.json`에 보존한다.
+LLM 모듈은 Data/Skill/Memory 직접 소비자와 Component 저장/설정/의존성, 승인·사용량 삭제·
+효과 원장·Checkpoint·RAG 원본·수명주기·트랜잭션·Backend 계약·영속성을 포함한다.
+
+```bash
+.venv-linux312/bin/python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h3/a-level2 tests.llm.test_data_quarantine tests.llm.test_data_component tests.llm.test_skill_references tests.llm.test_skill_packages tests.llm.test_skill_tools tests.llm.test_definition_components tests.llm.test_components tests.llm.test_component_storage_integrity tests.llm.test_component_record_integrity tests.llm.test_project_component_settings tests.llm.test_component_dependencies tests.llm.test_memory_processing tests.llm.test_memory_compaction_integrity tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_transactions tests.llm.test_backend_contracts tests.llm.test_persistence
+.venv-linux312/bin/python /workspace/llm-clean-resume/h2-q/run-focused.py hub /workspace/llm-clean-resume/h3/a-level2 tests.hub.test_components tests.hub.test_component_managers tests.hub.test_component_catalog
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h3/a-static-3.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h3/a-docs.json
+```
+
+정적 감사는 처음 새 S4 2건을 영수증 owner의 독립 선언으로 해결했고 최종 new/stale/S1
+미해결 0, 기존 debt 531이다. R3 Mutation의 실제 효과 Assertion 검출은 True, exit 0이다.
+Level 2 전후 제품/시험 681개 source hash는
+`d057de815e163760a74d2394d7001010d550c00a8e2dacfb3bc5a680f28fa017`,
+문서/fixture 포함 840개 입력 hash는
+`69bcdd2a6930ee4f99f2ccf890e537ddb3d299f15c5f1acb8eaae77557ee7a55`로 동일했다.
+Python 3.12.14·136개 의존성·호스트 `d833790959a76ac457fdeea3f21a6bea1eecfe12`·UID 1000·
+실제 bwrap/X11 환경과 기존 5개 환경변수도 동일하다. 위 문서는 검증 종료 후 갱신했다.
+문서 검사는 131개 문서·179개 Python fence·953개 상대 링크·34개 anchor, 오류 0, exit 0이다.
+
+이 결과는 H3-a의 제한된 로컬 Level 2다. 전체 회귀는 실행하지 않았다. 남은 Session/Run
+상위 삭제 증거 검증을 H3-b로 이어가며, H3 최종 Level 3에서 전체 LLM/Hub·정적·R3·문서
+게이트를 통과한 뒤 관련 소단계를 묶어 Push한다. H3 전체·원격 CI·H4–H5·P1·A–F 완료를
+뜻하지 않는다. 핵심 실패를 제외하거나 과거 브랜치 검증을 승계하지 않는다.
+
 ## H2-x 도메인 상태·갱신·Run 참조 — H2 최종 Level 3
 
 기준 `eef949c401c8cc093da1eb9480e2ffeaa90e0546`의 H2-w 이후, 기존 도메인 감사의

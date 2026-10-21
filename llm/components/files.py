@@ -51,8 +51,11 @@ class FileComponent(DefinitionComponent):
     def _record_path(self, project, identifier):
         return self._checked(self._package(project, identifier) / self.record_name)
 
+    def _files(self, project, identifier):
+        return self._checked(self._package(project, identifier) / "files")
+
     def _file(self, project, identifier, path):
-        return self._checked(self._package(project, identifier) / "files" / file_path(path))
+        return self._checked(self._files(project, identifier) / file_path(path))
 
     def _definition(self, project, identifier):
         return super().load(project, identifier)
@@ -96,11 +99,11 @@ class FileComponent(DefinitionComponent):
 
     def _verify(self, project, identifier, value):
         package = self._package(project, identifier)
+        root = self._files(project, identifier)
         for entry in package.iterdir():
             self._checked(entry)
-            if entry.name not in (self.record_name, "files"):
+            if entry.name not in (self.record_name, root.name):
                 raise ValueError("Unregistered package entry; use file APIs")
-        root = self._checked(package / "files")
         actual = set()
         if root.exists():
             if not root.is_dir():

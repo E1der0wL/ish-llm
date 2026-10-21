@@ -17,7 +17,8 @@ H2-r/s/t/u는 임베딩·그래프 배치 필드, 모델 호출 전후 읽기 �
 영수증 이름 변경 후 실제 중복 효과를 수정하고 새 전체 LLM/Hub 검증으로 묶음 Level 3을 통과했다.
 H2-v/w 원본 입력·생성 기본값 구분·Job 연결과 배치 원문 증거도 묶음 Level 3 전체 회귀를 통과했다.
 H2-x 도메인 상태·명시 생성/갱신·Completion 예약·Run 참조 소실도 전체 회귀를 통과해 H2 로컬 상위 게이트를 완료했다.
-H3의 owner별 안전한 격리/명시 삭제부터 이어간다. [현재 검증과 남은 단계](lifecycle-verification.md)를
+H3-a Data 첨부 격리·명시 삭제와 Component 상위 삭제 보호는 로컬 Level 2를 통과했다.
+H3-b Session/Run 상위 삭제 증거와 H3 최종 전체 게이트를 이어간다. [현재 검증과 남은 단계](lifecycle-verification.md)를
 기준으로 H3–H5 → P1 잔여 → A–F 순서를 유지한다. 원격 CI는 실제 해당 SHA의 결과 확인 전까지 미확인이다.
 
 H1–H5 완료 후 P1부터 A–F 각 단계에 필요한 `refactor/llm-backend` 소스·테스트만 읽기 전용으로

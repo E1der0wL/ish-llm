@@ -143,17 +143,21 @@ class ProjectManager:
             raise ValueError("Portable backup requires file conversation storage")
         self.components.validate(project.components)
         self._validate_config(project)
-        for name in self.components.stored(project):
-            validator = getattr(self.components.get(name), "validate_backup", None)
-            if validator is None:
-                raise ValueError("Component must implement validate_backup for portable backup")
-            validator(project)
+        self._validate_components(project)
         for session in self.sessions.repository.read_backup(project):
             if self.config_validator is not None:
                 self.config_validator(project.config, session_config=session.config)
             for run in self.sessions.run_repository.read_backup(session):
                 self.backup_steps.read_backup(run)
         return project
+
+    def _validate_components(self, project):
+        """Backup and parent deletion share each stored owner's integrity proof."""
+        for name in self.components.stored(project):
+            validator = getattr(self.components.get(name), "validate_backup", None)
+            if validator is None:
+                raise ValueError("Component must implement validate_backup to verify stored evidence")
+            validator(project)
 
     def _backup_destination(self, destination):
         target = Path(destination).absolute()
@@ -404,6 +408,7 @@ class ProjectManager:
         for session in sessions:
             self.sessions.require_inactive(session)
         if permanent:
+            self._validate_components(current)
             self.repository.delete(current)
             for session in sessions:
                 self.sessions._discard_conversation(session)
