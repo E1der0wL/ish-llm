@@ -98,7 +98,7 @@ class LoopEngine(BaseEngine):
         decisions = {} if decisions is None else decisions
         if not isinstance(decisions, dict):
             raise TypeError("Loop decisions must be an object")
-        waiting = {key for key, value in checkpoint["records"].items() if value["status"] == "waiting"}
+        waiting = {key for key, value in checkpoint["records"].items() if value["status"] == CheckpointStatus.WAITING}
         if set(decisions) - waiting:
             raise ValueError("Loop decisions require waiting checkpoint keys")
         if waiting - decisions.keys():
@@ -417,7 +417,7 @@ class LoopEngine(BaseEngine):
                     async for event in events:
                         yield event
                 if durable:
-                    yield self._record(f"iteration:{iteration}", {"status": "responded", "response": response})
+                    yield self._record(f"iteration:{iteration}", {"status": CheckpointStatus.RESPONDED, "response": response})
             if not calls:
                 if inbox is not None:
                     next_key = f"steering:{iteration + 1}"
@@ -448,12 +448,12 @@ class LoopEngine(BaseEngine):
                 stored = records.get(key, {})
                 result = deepcopy(stored.get("result", {}))
                 result_ref = (ResourceRef("step", stored["step_id"], run_id=stored["run_id"], step_id=stored["step_id"])
-                              if stored.get("status") == "completed" else None)
+                              if stored.get("status") == CheckpointStatus.COMPLETED else None)
                 executor = ToolExecutor(timeout_seconds=self.tool_timeout, max_output_chars=self.max_output_chars)
-                if stored.get("status") != "completed":
+                if stored.get("status") != CheckpointStatus.COMPLETED:
                     container = getattr(tool.handler, "resumable_container", False) is True
                     if durable:
-                        yield self._record(key, {"status": "started", "requires_retry": not container,
+                        yield self._record(key, {"status": CheckpointStatus.STARTED, "requires_retry": not container,
                                                 "container": container, "name": tool.name, "arguments": arguments})
                     try:
                         outer_step = None
@@ -469,7 +469,7 @@ class LoopEngine(BaseEngine):
                                     result_ref = ResourceRef("step", event.step_id, run_id=context.run.id, step_id=event.step_id)
                                 if durable and event.type == EngineEventType.STEP_COMPLETED and event.step_id == outer_step:
                                     event = replace(event, checkpoint=self._record(key, {
-                                        "status": "completed", "result": result,
+                                        "status": CheckpointStatus.COMPLETED, "result": result,
                                         "step_id": event.step_id, "run_id": context.run.id}))
                                 yield event
                                 if event.type == EngineEventType.PAUSED:
@@ -477,14 +477,14 @@ class LoopEngine(BaseEngine):
                     except ToolApprovalRequired as error:
                         if not durable:
                             raise
-                        yield self._record(key, {"status": "waiting", "name": tool.name,
+                        yield self._record(key, {"status": CheckpointStatus.WAITING, "name": tool.name,
                                                 "arguments": arguments, "prompt": str(error),
                                                 "interaction": error.request.bind("loop", key).to_dict()})
                         yield EngineEvent(EngineEventType.PAUSED, metadata={"checkpoint": "loop", "tool_key": key})
                         return
                     except ToolExecutionError as error:
                         if durable and error.effect == ToolExecutionError.NO_EFFECT:
-                            yield self._record(key, {"status": "not_applied", "error": str(error)})
+                            yield self._record(key, {"status": CheckpointStatus.NOT_APPLIED, "error": str(error)})
                         raise
                 else:
                     # 재사용도 새 Run에서 관찰·원본 조회할 수 있게 기록한다. 핸들러는 호출하지 않는다.
@@ -498,4 +498,4 @@ class LoopEngine(BaseEngine):
                 messages.append(CompletionMessage({"role": "tool", "tool_call_id": call["id"],
                                  "name": tool.name, "content": result["content"]}, result_ref=result_ref))
             if durable:
-                yield self._record(f"iteration:{iteration}", {"status": "completed", "response": response})
+                yield self._record(f"iteration:{iteration}", {"status": CheckpointStatus.COMPLETED, "response": response})

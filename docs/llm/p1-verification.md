@@ -15,6 +15,59 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c15: Checkpoint 상태의 단일 선언과 c13–c15 묶음 Level 3
+
+Loop·Graph·EngineCheckpointScope·Agent 위임·InteractionRepository의 체크포인트 상태 문자열
+28곳을 기존 core.checkpoints.CheckpointStatus 참조로 바꿨다. owner의 다섯 값은 그대로이며
+공통 수명과 다른 Run/Step·Tool 효과·추가 지시 input 상태를 합치지 않았다. Writer와 비교/재개
+소비자가 같은 선언을 사용한다. literal로 되돌린 AST는 변경 전과 동일함을 5개 파일별로 확인했다.
+이는 구조 비교 근거이며 실제 실행 시험을 대체하지 않는다. 저장 형식·필수 증거·Revision/CAS·
+트랜잭션·승인·예산·재시도/Resume 규칙과 시험/Fixture는 바꾸지 않았다.
+
+25개 S3 발생이 실제 제거됐고 새 raw 후보는 없다. 달라진 Graph/Loop 파일을 참조하는 review
+2건은 상수 참조만 바뀐 diff와 기존 후보/소비자 계약을 재확인하고 owner 선언 hash도 추가했다.
+변경된 근거를 사전 정적 검사가 exit 1로 거부한 기록도 보존했다. 최종 정적 raw 432·reviewed 67·
+미해결 365(S2 22·S3 325·S6 18), new/stale/review 오류·S1/S4/S5 미해결 0/exit 0이다.
+기본 gate의 성공은 P1 최종 S1–S5 완료를 뜻하지 않는다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| c15-focused llm | 111/111 | 111 | 0/0/0 | 47.304초 | 0 |
+| c13-c15-level3 llm | 2094/2094 | 2094 | 0/0/0 | 731.807초 | 0 |
+| c13-c15-level3 hub | 563/563 | 563 | 0/0/0 | 723.022초 | 0 |
+
+모든 완료 실행의 expected failure·unexpected success·missing·unexpected·duplicates도 0이다.
+집중 범위는 현재 Writer/Reader·완료 기록 유실·manifest 저장 실패·실제 프로세스 종료·중첩
+예산·승인 영수증·명시적 재개·삭제다. 여러 Engine/승인 소비자의 공통 경계이므로 집중 통과 후
+별도 Level 2 중복 없이 Level 3으로 승격했다. 이번 **동일한 현재 통합 소스**의 전체 실행에
+c13 audit 자료, c14 FileCatalog 수정/새 시험, c15 상태 참조를 모두 포함했다. 이전 결과나
+부분 실행을 전체 결과에 합산하지 않았다. 실제 파일 효과·원본 보존·장애 주입 Assertion을 유지한다.
+R3 실제 효과 mutation True/outer exit 0, 실제 LLM·Hub 환경 검사 각각 exit 0, 문서
+132/182/959/34·오류 0/exit 0을 확인했다. 인증 모델·커널 short-write 등 기존 미검증 한계는 남는다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c15-focused/llm.json --modules tests.llm.test_current_contracts tests.llm.test_checkpoint_integrity tests.llm.test_graph_checkpoints tests.llm.test_nested_graph tests.llm.test_interaction_storage tests.llm.test_checkpoint_lifecycle
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c13-c15-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c13-c15-level3/hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c15-static.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c13-c15-level3/env-llm.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c13-c15-level3/env-hub.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c15-docs-before.json
+```
+
+기준 HEAD `8ac9fce43aed40e3a1a25854981e03a164453153`와 미커밋 c15 변경에서 실행했다. 실행 전후 698 Python 소스 hash
+`3eb841be0fc8b5ea7533cba30e2f0a6664f5a94da6a746c2f4d77babd7b3f9e5`, 860 입력/환경 hash
+`2f3a479e35c923a6d9ffd7814601c3e00fc172e8d4ac114c8180310c9c847d03`가 각각 동일하다. Python 3.12.14·136 의존성·깨끗한 실제 host
+d833790959a76ac457fdeea3f21a6bea1eecfe12와 env 5개는 c12와 같다. 실제 명령·exit·test ID·
+원본 로그·전후 manifest는 `/workspace/llm-clean-resume/p1/c13-c15-level3/`, 집중 결과는
+c15-focused, 이전 파일/구조 비교는 c15-before에 보존했다. 이전 backend의 graph/checkpoints
+63–87행만 읽기 전용 비교했고 이미 현재에 있는 동작이므로 가져오지 않았다. 과거 통과를 승계하지 않는다.
+
+전체 성공 뒤 문서를 먼저 최신화하고 c13–c15를 작업 브랜치에 묶어 Push한다.
+main·refactor/llm-backend·Draft PR #1은 유지한다. 원격 CI는 기존 조회 403으로 실제 결과
+미확인이다. 이후 남은 P1 owner/Presence와 P1 최종 gate를 마친 뒤 A–F로 진행한다.
+
 ## P1-c14: FileCatalog 주입값과 캐시 선언 — 로컬 Level 2
 
 FileCatalog가 `projection or default`로 명시적인 falsey callable을 버렸다. 실제 record 파일로

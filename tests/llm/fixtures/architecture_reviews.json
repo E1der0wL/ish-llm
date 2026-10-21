@@ -2130,7 +2130,8 @@
       "sources": {
         "docs/llm/graph-engine.md": "d0b59e39fb3423ea2cd730817e6c1116a1150dc14314e61452de2a8b75d718ea",
         "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
-        "llm/engines/graph/engine.py": "01497417e1556270d9cddb8eb70732575e1dd469514509c52a288812dfb3532d",
+        "llm/core/checkpoints.py": "56b4514020bc8c2e480198a4f9c8aa2815ff6956885cead333d89927b4307161",
+        "llm/engines/graph/engine.py": "4ebaf86cd09a59fe9a6eaa24dd46adbb85dd758d47a53ced260f6a2916dc4dd6",
         "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_graph_checkpoints.py": "802697da33c39b9f22f89bb28fc28e53b90e19ed8c68526a2cab5724aab19702"
@@ -2196,7 +2197,8 @@
       "sources": {
         "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
         "docs/llm/tool-constraints.md": "204943fa586671ba4cfd964f340b187e641b9fdc3fdb625f73386bf0c08b85d0",
-        "llm/engines/loop/engine.py": "f286a714ee07c92a68dc8d1f3afed29de19d63bec21f03aa83750dfe7971bfac",
+        "llm/core/checkpoints.py": "56b4514020bc8c2e480198a4f9c8aa2815ff6956885cead333d89927b4307161",
+        "llm/engines/loop/engine.py": "8fb80d77ce082c1703eebbf835b0def387e4a5e9fd429fc29337d5aadd5d5626",
         "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
         "llm/services/runtime/tools.py": "ea5326075a0768e14e9cb0e2de08880bd3e19f1f564088ef20dd15fdd8cbc93f",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",

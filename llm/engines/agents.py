@@ -13,6 +13,7 @@ from asyncio import timeout
 from llm.components.agents import AgentComponent
 from llm.components.base import Component
 from llm.components.tools import Tool, ToolRegistry
+from llm.core.checkpoints import CheckpointStatus
 from llm.core.models import new_id
 from llm.services.infrastructure.storage import revision_token
 from llm.core.results import EngineOutput
@@ -223,7 +224,7 @@ class AgentExecution:
     @classmethod
     def _checkpoint_usage(cls, records, owner, name):
         """선택한 Agent의 실행 기록만 해석하고 필수 사용량을 검증한다."""
-        from llm.core.checkpoints import unwrap_record, CheckpointStatus
+        from llm.core.checkpoints import unwrap_record
         from llm.core.steering import validate_instruction_record
 
         values = []
@@ -515,7 +516,7 @@ class AgentDelegation:
             await ack
 
         async def record_usage(usage):
-            value = {"node_type": "agent_container", "status": "started", "container": True,
+            value = {"node_type": "agent_container", "status": CheckpointStatus.STARTED, "container": True,
                 "requires_retry": False, "agent_binding": binding, AgentExecution.USAGE_FIELD: {owner: usage}}
             await emit(EngineEvent(EngineEventType.CHECKPOINT, metadata={"name": checkpoint_name,
                 "operation": "record", "key": owner, "value": value}))

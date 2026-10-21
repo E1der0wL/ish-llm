@@ -11,6 +11,7 @@ from llm.core.interactions import (
     InteractionRequest, InteractionResponse, InteractionStatus, InteractionView,
     approval_request, same_interaction_value,
 )
+from llm.core.checkpoints import CheckpointStatus
 from llm.core.models import ProjectConfig, Run
 from llm.services.infrastructure.storage import atomic_json, child, read_json
 
@@ -169,7 +170,7 @@ class InteractionRepository:
         values = []
         ids = set()
         for key, record in checkpoint["records"].items():
-            if record.get("status") == "started" and record.get("requires_retry"):
+            if record.get("status") == CheckpointStatus.STARTED and record.get("requires_retry"):
                 request = approval_request("결과가 불확실한 작업 재실행", category=self.RETRY_CATEGORY,
                     source={"run_id": run.id, "session_id": run.session_id}, action={"checkpoint_record": deepcopy(record)})
                 # The same node can start a distinct attempt after resume. Its
@@ -178,7 +179,7 @@ class InteractionRepository:
                     sort_keys=True, allow_nan=False).encode()).hexdigest()[:InteractionRequest.ID_LENGTH]
                 request = replace(request, id=identity, created_at=run.created_at,
                     binding={"checkpoint": checkpoint.get("name", ""), "key": key, "target": "retry_nodes"})
-            elif record.get("status") == "waiting" and "interaction" in record:
+            elif record.get("status") == CheckpointStatus.WAITING and "interaction" in record:
                 request = InteractionRequest.from_dict(record["interaction"])
             else:
                 continue

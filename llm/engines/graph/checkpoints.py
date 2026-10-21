@@ -3,7 +3,7 @@
 import json
 from copy import deepcopy
 from llm.core.interactions import InteractionRequest
-from llm.core.checkpoints import build_envelope
+from llm.core.checkpoints import CheckpointStatus, build_envelope
 from dataclasses import replace
 
 from llm.engines.base import EngineEvent, EngineEventType
@@ -69,7 +69,7 @@ class EngineCheckpointScope:
             if self.snapshot() is not None or data.get("records"):
                 raise ValueError("Child checkpoint initialization must be empty and unique")
             local, payload = "@header", data["header"]
-            status, container = "completed", True
+            status, container = CheckpointStatus.COMPLETED, True
         elif data["operation"] == "record":
             if self.snapshot() is None or data["key"] == "@header":
                 raise ValueError("Initialize child checkpoint before records")
@@ -79,9 +79,9 @@ class EngineCheckpointScope:
         else:
             raise ValueError("Unsupported child checkpoint operation")
         value = {**build_envelope(engine_scope=self.owner, checkpoint_name=self.name, local_key=local,
-                    status=status, container=container, requires_retry=status == "started" and not container),
+                    status=status, container=container, requires_retry=status == CheckpointStatus.STARTED and not container),
                  "payload": deepcopy(payload)}
-        if status == "waiting":
+        if status == CheckpointStatus.WAITING:
             if "interaction" not in payload:
                 raise ValueError("Nested waiting checkpoints require an InteractionRequest")
             value.update(approval_required=True, name=payload.get("name"), arguments=payload.get("arguments"), prompt=payload.get("prompt"))
@@ -105,7 +105,7 @@ class EngineCheckpointScope:
             raise ValueError("Child instruction checkpoint name mismatch")
         local = data["boundary"]
         envelope = build_envelope(engine_scope=self.owner, checkpoint_name=self.name, local_key=local,
-                                  status="completed", container=True, requires_retry=False)
+                                  status=CheckpointStatus.COMPLETED, container=True, requires_retry=False)
         return replace(event, metadata={**data, "checkpoint": self.parent_name, "boundary": self.key(local), "envelope": envelope})
 
     def accepted_instruction(self, event, inbox):

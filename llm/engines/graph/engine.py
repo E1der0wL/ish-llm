@@ -23,6 +23,7 @@ from asyncio import timeout
 from llm.components.base import Component
 from llm.components.workflows.graph import validate_graph, validate_handler_options
 from llm.components.workflows.bindings import bind, read_pointer, validate_value
+from llm.core.checkpoints import CheckpointStatus
 from llm.core.models import new_id
 from llm.core.results import EngineOutput
 from llm.core.steering import SteeringMode, SteeringRoute
@@ -106,7 +107,7 @@ def _plan_node(definition: dict, state: dict, *, saved: Optional[dict],
     """
     if saved and saved.get("container") and saved["input_state"] != state:
         raise GraphExecutionError("Checkpoint container input changed; start a new request")
-    if saved and saved["status"] == "completed":
+    if saved and saved["status"] == CheckpointStatus.COMPLETED:
         if saved["input_state"] != state:
             raise GraphExecutionError("Checkpoint node input does not match restored state")
         return _NodePlan("reuse")
@@ -450,7 +451,7 @@ class _WorkflowRuntime:
                 if (request.kind != "approval" or request.input_schema is not None
                         or any(type(option.value) is not bool or option.effect not in ("approve", "deny") for option in request.options)):
                     raise ValueError("Node pause supports pre-effect approval decisions without additional input")
-                await self._record(key, {**info, "status": "waiting", "approval_required": True,
+                await self._record(key, {**info, "status": CheckpointStatus.WAITING, "approval_required": True,
                     "prompt": request.title, "interaction": request.bind("graph", key, decision_key="approved").to_dict()})
                 raise _GraphPause(key)
 
@@ -527,7 +528,7 @@ class _WorkflowRuntime:
                     action={"definition": deepcopy(definition)}, category="workflow.continue")
                 request = replace(request, kind="confirmation", input_schema=definition.get("resume_schema"))
                 request = request.bind("graph", key, decision_key="approved", input_key="state")
-                await self._record(key, {**info, "status": "waiting", "resume_schema": definition.get("resume_schema"),
+                await self._record(key, {**info, "status": CheckpointStatus.WAITING, "resume_schema": definition.get("resume_schema"),
                                         "interaction": request.to_dict()})
                 raise _GraphPause(key)
             decision = plan.decision
@@ -542,7 +543,7 @@ class _WorkflowRuntime:
                 async with aclosing(BaseEngine.bind_instruction_route(context, self.routes[route_key], key)) as events:
                     async for event in events:
                         await self.emit(event)
-            await self._record(key, {**info, "status": "started",
+            await self._record(key, {**info, "status": CheckpointStatus.STARTED,
                 "requires_retry": kind not in {"branch", "parallel", "join", "loop", "end"} and not info["container"]})
             await self.emit(EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id, kind="graph_node",
                 name=name, metadata={"node_id": name, "path": path, "node_type": kind,
@@ -558,7 +559,7 @@ class _WorkflowRuntime:
                 _propagate_cancellation(error)
                 await self.emit(BaseEngine.step_failed_event(step_id, error))
                 raise
-            await self._record(key, {**info, "status": "completed", "output": deepcopy(state), "port": port},
+            await self._record(key, {**info, "status": CheckpointStatus.COMPLETED, "output": deepcopy(state), "port": port},
                 completed=BaseEngine.step_completed_event(context, step_id,
                     EngineOutput(data=state, visibility="internal"), metadata=detail))
             return {"data": state, "path": frame["path"], "port": port, "scope": frame["scope"]}
@@ -943,11 +944,11 @@ class GraphEngine:
             if saved.get("node_type") == "engine_record":
                 from llm.core.checkpoints import unwrap_record
                 unwrap_record(saved)
-                if saved.get("status") != "waiting" or "interaction" not in saved:
+                if saved.get("status") != CheckpointStatus.WAITING or "interaction" not in saved:
                     raise ValueError("Child decisions require a waiting interaction")
                 InteractionRequest.from_dict(saved["interaction"]).select_decision(decision)
                 continue
-            if saved.get("status") != "waiting" or not isinstance(decision, dict) or decision.keys() - {"approved", "state"}:
+            if saved.get("status") != CheckpointStatus.WAITING or not isinstance(decision, dict) or decision.keys() - {"approved", "state"}:
                 raise ValueError("Decisions require a waiting node and approved/state fields")
             if "approved" in decision and type(decision["approved"]) is not bool:
                 raise ValueError("approved must be boolean")
@@ -962,7 +963,7 @@ class GraphEngine:
                 InteractionRequest.from_dict(saved["interaction"]).select_decision(decision, confirm_empty=True)
         for key, saved in records.items():
             if saved.get("node_type") == "engine_record":
-                if saved.get("status") == "waiting" and key not in decisions:
+                if saved.get("status") == CheckpointStatus.WAITING and key not in decisions:
                     raise ValueError(f"Child interaction decision required: {key}")
                 continue
             if saved.get("approval_required") and "approved" not in decisions.get(key, {}):
@@ -978,12 +979,12 @@ class GraphEngine:
                 raise ValueError("Workflow, Agent, Tool or execution configuration changed; start a new request")
         controls = {"branch", "parallel", "join", "loop", "end"}
         uncertain = {key for key, value in records.items()
-                     if value["status"] == "started" and value["node_type"] not in controls
+                     if value["status"] == CheckpointStatus.STARTED and value["node_type"] not in controls
                      and not value.get("container", False)}
         if (any(not isinstance(key, str) for key in retry_nodes) or len(set(retry_nodes)) != len(retry_nodes)
                 or set(retry_nodes) != uncertain):
             raise ValueError(f"Explicit retry_nodes must match uncertain node keys: {sorted(uncertain)}")
-        if any(value["status"] not in ("started", "completed", "waiting") for value in records.values()):
+        if any(value["status"] not in (CheckpointStatus.STARTED, CheckpointStatus.COMPLETED, CheckpointStatus.WAITING) for value in records.values()):
             raise ValueError("Invalid checkpoint node status")
 
     async def execute(self, context: EngineContext):

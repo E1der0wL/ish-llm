@@ -660,14 +660,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "bbbcfaa37cd1eea8834937aa7eb65b78af898a3ab55b85aba5f1ffcae7f97985:1",
-      "rule": "S3",
-      "file": "llm/engines/agents.py",
-      "symbol": "AgentDelegation.execute_events.record_usage",
-      "line": 485,
-      "detail": "inline domain field: status"
-    },
-    {
       "id": "5e5f5d1f3b92ae7699682aab6028938e66197b005409332d1b74f4f03d1b2874:1",
       "rule": "S3",
       "file": "llm/engines/base.py",
@@ -684,44 +676,12 @@
       "detail": "truthiness fallback involving configuration"
     },
     {
-      "id": "2785e2190fb714d214abb78f3a8c276f8624a8b89f15f378b433188ad38a49f7:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/checkpoints.py",
-      "symbol": "EngineCheckpointScope.wrap",
-      "line": 82,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "8c3d070bf4e864579a7af0b8ccf868e9499c6c87e3d3902cbebc63d37e3ed649:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/checkpoints.py",
-      "symbol": "EngineCheckpointScope.wrap",
-      "line": 84,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "c063c1bb6d459ada3672a8415da8f25ee22203aed668f4a6c6b36dbe4a13b1f8:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/checkpoints.py",
-      "symbol": "EngineCheckpointScope.wrap_instruction",
-      "line": 108,
-      "detail": "inline domain argument: status"
-    },
-    {
       "id": "95c71f4b8a1bd95a16703ad4537d7a61290239498863e8375e92d3b68ab39dff:1",
       "rule": "S3",
       "file": "llm/engines/graph/checkpoints.py",
       "symbol": "EngineCheckpointScope.accepted_instruction",
       "line": 115,
       "detail": "inline domain field: status"
-    },
-    {
-      "id": "f7aed6a383407bdd05c31d8aed15b903473e8fb33c65d42d07933655e4de92b2:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "_plan_node",
-      "line": 109,
-      "detail": "inline domain comparison"
     },
     {
       "id": "832679de3643dd657805a47f734b5107f0971c6fbe8fd4dd27ade54d8b788627:1",
@@ -738,38 +698,6 @@
       "symbol": "_WorkflowRuntime._execute_node.pause",
       "line": 451,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "7a24932cdd2c8fccc3e89eb2a8fdefc5def6fd1e5be28645e1cc57ea237893ed:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "_WorkflowRuntime._execute_node.pause",
-      "line": 453,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "13de8efff86d7aadae097f9ade63dcc7ef0fee52b4fce52ec47a4dc1c0975396:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "_WorkflowRuntime._node.execute",
-      "line": 530,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "f8a329ba2f5cdcc2b6e8a0c747cec31887a5d217d1b10446104d7523cd37f217:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "_WorkflowRuntime._node.execute",
-      "line": 545,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "c1770763795287a795f5ad15542cebb3c1d88edc38025e9f2088dab21e39b96f:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "_WorkflowRuntime._node.execute",
-      "line": 561,
-      "detail": "inline domain field: status"
     },
     {
       "id": "b94ee2186f4af0487b2540e183e4246fba7d79070474c3c864fb78b63d74a6cc:1",
@@ -809,54 +737,6 @@
       "file": "llm/engines/graph/engine.py",
       "symbol": "GraphEngine._execution_config",
       "line": 662,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "4b59625e802a38bb2d096ac9f9649dffd2363d514cde5fbc9e847bee120dd697:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "GraphEngine.validate_resume",
-      "line": 946,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "4b59625e802a38bb2d096ac9f9649dffd2363d514cde5fbc9e847bee120dd697:2",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "GraphEngine.validate_resume",
-      "line": 950,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "ef444aa642c9751ee79ea839fa44dd9b22e7f52b951561b9b364d2924401f861:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "GraphEngine.validate_resume",
-      "line": 965,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "18f1f72d40b4b06d9f739186663311a0205ea3234b1b0e071305bb692a8d95d5:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "GraphEngine.validate_resume",
-      "line": 981,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "0b90ec89a4d6d88e5587a04fdd713680bf1539d03636e2dff8fef0f00ded617b:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "GraphEngine.validate_resume",
-      "line": 986,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "73990c5ed7e8af8706f410b83213549271b45a3bbd2ada647c30cca97e38642a:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine.validate_resume",
-      "line": 93,
       "detail": "inline domain comparison"
     },
     {
@@ -916,75 +796,11 @@
       "detail": "SDK-shaped field lookup outside Provider package"
     },
     {
-      "id": "16798196db25cda78a11dcfc49c74979cb54440e40c3af8e9b71cb6c1555843b:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._iterate",
-      "line": 411,
-      "detail": "inline domain field: status"
-    },
-    {
       "id": "d29b74b4e1fd5a660c620da0a6825cd8cfaead43e29193de13a1b73fda6430ae:2",
       "rule": "S3",
       "file": "llm/engines/loop/engine.py",
       "symbol": "LoopEngine._iterate",
       "line": 424,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "74554d7d6357732fc2a299c9c988cb67339d0c514f1eab252b7518b1f98b944e:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._iterate",
-      "line": 442,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "e4bd9d4ce5eb7d9971790a413c3d8a94c9fb91cdeecf1d072e3445c0491a06a6:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._iterate",
-      "line": 444,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "ed8ab1c3dd5491ff8aa3dade0355f88a67b116dde63dbb5280f0484c010a2b6b:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._iterate",
-      "line": 447,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "606ba653e71adc72e241d7331eee09f0a64335d2618b44445e85edcb90218720:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._iterate",
-      "line": 463,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "1f4bdb04cb66d44baf4cdb95a7c94e45a92f25cad015fac7b54529403004252e:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._iterate",
-      "line": 471,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "ea81ae1017bbd588daf4142c69c8963b2760ca6d8c2ef37a90bb24a76f1a902a:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._iterate",
-      "line": 478,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "606ba653e71adc72e241d7331eee09f0a64335d2618b44445e85edcb90218720:2",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._iterate",
-      "line": 492,
       "detail": "inline domain field: status"
     },
     {
@@ -1354,22 +1170,6 @@
       "symbol": "EventSubscriptions._call",
       "line": 211,
       "detail": "inline domain assignment: status"
-    },
-    {
-      "id": "3d639ac0ee00bbeee62331d92fbb04ec4d207f04a4e1f8c637f7322801d5dff2:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/interactions.py",
-      "symbol": "InteractionRepository.requests",
-      "line": 56,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "c1952cb7e4608a9291e5f2642008f01d11bb221c95bdb508e3e38f340fc5b7c5:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/interactions.py",
-      "symbol": "InteractionRepository.requests",
-      "line": 62,
-      "detail": "inline domain comparison"
     },
     {
       "id": "701f562628ac9b2b4921f907a7b5b12adf0fdb1434eb667629d44d6ed6789c6d:1",
