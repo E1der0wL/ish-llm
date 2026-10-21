@@ -45,6 +45,9 @@ class TitleEngine(BaseEngine):
 
 
 class SessionNamer:
+
+    ATTEMPT_VERSION = 2
+
     def __init__(self, runtime):
         self.runtime = runtime
         self.tasks = {}
@@ -99,7 +102,7 @@ class SessionNamer:
             source = await runs[0].aget_data() if runs else None
             params = await self._completion(session, record,
                 source.engine if source else record.metadata.get("hub_title_engine", self.runtime.config.engine))
-            attempt = hashlib.sha256(json.dumps({"version": 2, "run": source.id if source else key, "completion": params},
+            attempt = hashlib.sha256(json.dumps({"version": SessionNamer.ATTEMPT_VERSION, "run": source.id if source else key, "completion": params},
                 sort_keys=True, ensure_ascii=False).encode()).hexdigest()
             if record.metadata.get("hub_title_attempt") == attempt:
                 return

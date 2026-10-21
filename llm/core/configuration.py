@@ -6,6 +6,9 @@ from jsonschema import Draft202012Validator
 from .models import ProjectConfig
 
 
+HOST_SOURCE = "host"
+
+
 def resolve_config(layers, *, schema=None, host=None):
     """뒤의 계층이 우선한다. 호스트 지정 필드는 JSON 경로별로 편집 불가를 표시한다."""
     values, sources, overridden = {}, {}, {}
@@ -28,7 +31,7 @@ def resolve_config(layers, *, schema=None, host=None):
                     if child.startswith(pointer + "/"):
                         del sources[child]
 
-    for source, data in [*layers, ("host", {} if host is None else host)]:
+    for source, data in [*layers, (HOST_SOURCE, {} if host is None else host)]:
         ProjectConfig.validate_json(data)
         merge(values, data, source)
     if schema is not None:
@@ -36,7 +39,7 @@ def resolve_config(layers, *, schema=None, host=None):
         if error is not None:
             raise ValueError("Invalid configuration: " + error.message)
     return {"values": values, "sources": sources, "overridden": overridden,
-            "editable": {path: source != "host" for path, source in sources.items()}}
+            "editable": {path: source != HOST_SOURCE for path, source in sources.items()}}
 
 
 def resolve_engine_config(config, name, *, session_config=None, agent=None, schema=None):

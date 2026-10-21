@@ -68,6 +68,10 @@ def log_event(logs: Path, event: str, **fields) -> None:
 class FileLogSink:
     """Allowlisted file writer; an Application may override open_handler to own retention."""
 
+    STATUSES = frozenset(("idle", "running", "deleted", "queued", "committed", "streaming",
+                          "pending", "completed", "interrupted", "cancelled", "failed", "paused"))
+
+
     def open_handler(self, path: Path):
         return _RaisingFileHandler(path, encoding="utf-8")
 
@@ -101,8 +105,7 @@ def _file_log_event(logs: Path, event: str, *, handler_factory: Callable, entity
     for key, identifier in (("entity_id", entity_id), ("related_id", related_id)):
         if identifier is not None and re.fullmatch(r"[a-f0-9]{32}", identifier):
             payload[key] = identifier
-    if status in {"idle", "running", "deleted", "queued", "committed", "streaming",
-                  "pending", "completed", "interrupted", "cancelled", "failed", "paused"}:
+    if status in FileLogSink.STATUSES:
         payload["status"] = status
     if type(count) is int and count >= 0:
         payload["count"] = count

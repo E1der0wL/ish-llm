@@ -63,6 +63,10 @@ def recover_session(sessions, repository, steps, session, store):
 class ProjectRecovery:
     """검사 결과는 원본 fingerprint를 포함한다. 손상/누락을 추측하여 메우지 않는다."""
 
+    JOURNAL_RUNNING = "running"
+    JOURNAL_COMPLETED = "completed"
+
+
     def __init__(self, manager):
         self.manager = manager
         self.runs = manager.sessions.run_repository
@@ -161,7 +165,7 @@ class ProjectRecovery:
         if not expected_version or expected_version != plan.version:
             raise ValueError("recovery_conflict: inspect a fresh recovery plan")
         journal = reject_links(project.paths.state / "recovery" / (new_id() + ".json"))
-        state = {"status": "running", "plan": plan.to_dict(), "completed_sessions": [], "started_at": now()}
+        state = {"status": ProjectRecovery.JOURNAL_RUNNING, "plan": plan.to_dict(), "completed_sessions": [], "started_at": now()}
         atomic_json(journal, state)
         for identifier in plan.repair_sessions:
             session = self.manager.sessions.load(project, identifier)
@@ -176,6 +180,6 @@ class ProjectRecovery:
                 self.manager.sessions.detach_runtime(session)
             state["completed_sessions"].append(identifier)
             atomic_json(journal, state)
-        state.update(status="completed", ended_at=now())
+        state.update(status=ProjectRecovery.JOURNAL_COMPLETED, ended_at=now())
         atomic_json(journal, state)
         return RecoveryResult(state["completed_sessions"], str(journal), self.plan(project))

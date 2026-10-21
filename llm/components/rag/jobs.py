@@ -19,6 +19,13 @@ from .job_storage import JobStorage
 class RAGJobs:
     """실행은 호출자가 await한다. 큐는 영속적이며 백엔드 시작만으로 유료 모델을 호출하지 않는다."""
 
+    RESUME_NOT_CREATED = "not_created"
+    RESUME_AVAILABLE = "available"
+    RESUME_INCOMPATIBLE = "incompatible"
+    RESUME_MISSING = "missing"
+    RESUME_CORRUPT = "corrupt"
+
+
     def __init__(self, data):
         self.data, self.ownership = data, data.ownership
 
@@ -54,7 +61,7 @@ class RAGJobs:
         source = ResourceRef(JobStorage.KIND, identifier, project_id=project.id, component=self.data.name)
         root = self._path(identifier)
         blockers, reused = [], []
-        state = "not_created" if job["status"] == RAGJobStatus.QUEUED.value else "available"
+        state = RAGJobs.RESUME_NOT_CREATED if job["status"] == RAGJobStatus.QUEUED.value else RAGJobs.RESUME_AVAILABLE
         files = tree_snapshot(root, exclude=(JobStorage.LEASE,))
         def block(code, message):
             blockers.append(Diagnostic(code, message, source=source))
@@ -66,13 +73,13 @@ class RAGJobs:
             self._storage().read_input(identifier, job)
             reused.extend(sorted(self._storage().checkpoints(identifier)[1]))
             if job["status"] != RAGJobStatus.QUEUED.value and job.get("configuration") != component._configuration_version:
-                state = "incompatible"
+                state = RAGJobs.RESUME_INCOMPATIBLE
                 block("checkpoint_configuration", "RAG configuration differs from the Job's preparation")
         except FileNotFoundError as error:
-            state = "missing"
+            state = RAGJobs.RESUME_MISSING
             block("checkpoint_missing", str(error))
         except (ValueError, TypeError, KeyError) as error:
-            state = "corrupt"
+            state = RAGJobs.RESUME_CORRUPT
             block("checkpoint_corrupt", str(error))
         return JobResumePlan(source, state, not blockers, sorted(reused), blockers,
             revision_token({"job": job, "files": files, "live": live, "configuration": component._configuration_version}),

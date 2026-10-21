@@ -66,6 +66,9 @@ def format_activity(rows, t):
 
 
 class HistoryUI:
+
+    RETRY_TURN = "retry_turn"
+
     def __init__(self, controller):
         self.controller = controller
         self.view = controller.view
@@ -107,7 +110,7 @@ class HistoryUI:
                 return
             identifier = identifiers[0]
             row = popup.rows[identifier]
-            if operation == "retry_turn" and row["status"] not in (RunStatus.INTERRUPTED, RunStatus.FAILED):
+            if operation == HistoryUI.RETRY_TURN and row["status"] not in (RunStatus.INTERRUPTED, RunStatus.FAILED):
                 view.close_dialog()
                 view.notice = t("history_retry_unavailable")
                 return
@@ -116,7 +119,7 @@ class HistoryUI:
                 view.notice = t("empty_message")
                 return
             view.close_dialog()
-            if operation == "retry_turn":
+            if operation == HistoryUI.RETRY_TURN:
                 from .resume import resume_turn
                 resume_turn(self.controller, session_id, row.get("run_id", ""), identifier)
                 return
@@ -202,7 +205,7 @@ class HistoryUI:
             self.controller._call("delete_turns_plan", session_id, identifiers, completed=ready)
 
         popup = RequestHistoryDialog(view, rows, delete=delete, edit=lambda: execute("edit_turn"),
-                                     retry=lambda: execute("retry_turn"), close=view.close_dialog)
+                                     retry=lambda: execute(HistoryUI.RETRY_TURN), close=view.close_dialog)
         view.dialogs.show(popup, popup.choices)
 
     def activity(self):

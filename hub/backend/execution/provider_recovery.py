@@ -4,6 +4,7 @@ import asyncio
 from contextlib import aclosing, contextmanager, suppress
 from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
+from typing import ClassVar
 from time import monotonic
 
 from llm.components.summarization import SummaryResult, summarize_fragments
@@ -36,6 +37,11 @@ invent successful work. Merge the previous summary with this fragment. Return on
 
 @dataclass(slots=True)
 class RecoveryState:
+
+    RETRYING: ClassVar[str] = "retrying"
+    ANALYSIS_FAILED: ClassVar[str] = "analysis_failed"
+    NO_CORRECTION: ClassVar[str] = "no_correction"
+
     frame: object
     attempts: int = 0
     deadline: float | None = None
@@ -153,13 +159,13 @@ class ProviderRecovery:
             proposal = await self._compact(state.frame.engine, state, failure.request, items)
             if sum(len(value) for value in proposal.replacements.values()) >= sum(len(item.source) for item in items):
                 raise RecoveryUnavailable("not_reduced")
-            state.outcome = "retrying"
+            state.outcome = RecoveryState.RETRYING
             self._show(state, RetrySummary.RETRYING)
             return proposal
         except (ExecutionLimitError, asyncio.CancelledError):
             raise
         except Exception as error:
-            state.outcome = str(error) if isinstance(error, RecoveryUnavailable) else "analysis_failed"
+            state.outcome = str(error) if isinstance(error, RecoveryUnavailable) else RecoveryState.ANALYSIS_FAILED
             return None
 
     async def stream(self, engine, request, kwargs, stream):
@@ -198,15 +204,15 @@ class ProviderRecovery:
                     self._show(state, RetrySummary.ANALYZING)
                     choice = await self._choice(engine, state, request,
                         from_diagnostic(issue, origin=ErrorOrigin.PROVIDER), [])
-                    state.explanation, state.outcome = choice["explanation"], "no_correction"
+                    state.explanation, state.outcome = choice["explanation"], RecoveryState.NO_CORRECTION
                 except (ExecutionLimitError, asyncio.CancelledError):
                     raise
                 except Exception:
-                    state.outcome = "analysis_failed"
+                    state.outcome = RecoveryState.ANALYSIS_FAILED
             if state.outcome:
                 observed = self.monitor.states.get((state.frame.context.run.id, RetrySummary.RECOVERY))
                 rejected = observed is not None and observed.summary.phase == RetrySummary.REJECTED
-                outcome = "rejected" if rejected else "exhausted" if state.outcome == "retrying" else state.outcome
+                outcome = "rejected" if rejected else "exhausted" if state.outcome == RecoveryState.RETRYING else state.outcome
                 annotation = {"explanation": state.explanation, "outcome": outcome, "attempt": state.attempts}
                 # Retain the original exception/code/cause. The annotation is
                 # presentation data, never a replacement diagnostic classification.

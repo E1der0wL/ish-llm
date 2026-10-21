@@ -15,6 +15,62 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c40: 상태·출처·관찰·제목 해시의 소유 선언 — c39–c40 묶음 Level 3
+
+9개 파일에서 기존 값의 소유 선언을 연결했다. RAGJobs의 다섯 Job 재개 상태는 열린 문자열
+계약을 유지하고 Run ResumeState와 합치지 않는다. ProjectRecovery journal의 두 상태와
+RunManager의 응답 저장 실패 로그 표시는 각각의 owner에 남긴다. Step 활동은 기존
+StepStatus.FAILED를 참조한다. FileLogSink의 정확한 12개 상태 allowlist는 넓히지 않으며
+response_write_failed도 새로 허용하지 않는다. configuration의 host 출처, SessionNamer의
+기존 attempt hash version2, HubTestWorkspaces의 실행 전 거부 결과와 HistoryUI의 로컬
+retry_turn 동작을 각 owner에 선언했다.
+
+RecoveryState의 세 명시 outcome은 RetrySummary 표시 phase와 구분하고 열린 실패 사유를
+계속 허용한다. 실제 7개 필드·타입·기본값·slots·직렬화, 모든 문자열/int 값과 로그 허용
+집합이 같다. 새 선언/import/참조를 되돌리면 9개 파일의 원문이 같다. 실행 정책·저장 형식·
+상태 전이·시험은 변경하지 않았고 과거 구현/검증을 이식하지 않았다.
+
+S3 발생 14건을 실제 제거했다. 기존 감사 27건의 이전 전체 소스 pin과 원문 복원을 대조하고
+사유·계약·시험을 유지했다. 미리 준비한 근거가 실제 c39 catalog와 정확히 같은지도 확인했다.
+관련 정확한 시험 ID 52개가 현재 전체 실행에서 통과했다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 93/93/93 | 0/0/0 | 23.491초 | 0 |
+| 집중 HUB | 48/48/48 | 0/0/0 | 87.485초 | 0 |
+| 전체 LLM | 2101/2101/2101 | 0/0/0 | 732.000초 | 0 |
+| 전체 HUB | 577/577/577 | 0/0/0 | 719.213초 | 0 |
+
+각 실행의 expected failure·unexpected success·missing·unexpected·duplicates도 0이다.
+집중 검증은 RAG Job 무결성·장기 실행/복구·수명 로그·설정 출처·활동 기록과 Hub 제목/
+Provider 복구·실제 Tool 거부/재개·요청 이력·로그 소비자다. 공통 Run·설정·복구 경로와
+c39 감사의 현재 통합 상태를 묶어 전체 검증했다. 승인·예산·효과·Resume·RAG·삭제·필수
+기록·원본 보존과 장애 주입을 포함하며 별도 c40 Level2를 중복 실행하지 않았다.
+각 full은 현재 소스의 단일 전체 실행이며 이전 선택 결과를 합산하지 않는다.
+
+R3 mutation True/outer exit0, 실제 LLM/Hub 환경 각각 ok/exit0, 정적 raw189·reviewed155·
+미해결34(S3 16·S6 18), new/stale/review 오류·필수 S1/S2/S4/S5 미해결0/exit0,
+문서 오류0/exit0이다. P1 최종 S1–S5 및 A–F는 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c40-focused/llm.json --modules tests.llm.test_rag_job_integrity tests.llm.test_rag_job_state_integrity tests.llm.test_long_running tests.llm.test_lifecycle_logging tests.llm.test_configuration_results tests.llm.test_project_activity
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c40-focused/hub.json --modules tests.hub.test_naming tests.hub.test_provider_recovery tests.hub.test_response_reliability tests.hub.test_request_history tests.hub.test_log_retention
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c39-c40-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c39-c40-level3/hub.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c39-c40-level3/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c39-c40-level3/aux/docs.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c39-c40-level3/aux/env-llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c39-c40-level3/aux/env-hub.json
+```
+
+실행 HEAD `9941ceb627ac8b96a34e698fc2cdc3aa45775238`에 c40 변경을 더했다. 소스704개 hash `c4f1a1ea7eee3aae7c27618451de605be9988ecc62f68d6cab870c6dda38c093`,
+입력/환경866개 hash `9c31ae7f0e0e8452662945aed263b38e30c4848abf8d5724dbece50eb9a69048`가 전체 실행 전후 같다. Python3.12.14·136 의존성·
+env5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 바이너리를 기록했다. 집중 실행도 자체 전후 동일성을 확인했다.
+원시 명령·exit·ID·log·manifest는 `/workspace/llm-clean-resume/p1/c39-c40-level3/`와 `c40-focused/`에 보존한다.
+결과 문서를 먼저 갱신하고 소스-커밋 동일성·staged diff 확인 후 작업 브랜치에 묶음 Push한다.
+원격 CI 실제 결과는 미확인이며 main·backend·Draft PR #1과 기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c39: 명시 Tool 계약·플러그인·기술/UI 선언 — 로컬 Level 2
 
 14개 발생을 개별 분류했다. file_read의 실제 repairable path 계약, 격리 검사/화면 저장/

@@ -752,6 +752,9 @@ class _RunOutcome:
 class RunManager:
     """One Session-bound scheduler; separate instances execute separate Sessions."""
 
+    RESPONSE_WRITE_FAILED = "response_write_failed"
+
+
     def __init__(self, sessions: SessionManager, engines: EngineRegistry, *, session: Session,
                  steps: Optional[StepManager] = None,
                  repository: Optional[RunRepository] = None,
@@ -1572,7 +1575,7 @@ class RunManager:
                 if event.checkpoint is not None:
                     self.repository.record_checkpoint(run, event.checkpoint)
                 if event.type == EngineEventType.STEP_FAILED:
-                    activity_event(project, run, "step.failed", time=now(), status="failed",
+                    activity_event(project, run, "step.failed", time=now(), status=StepStatus.FAILED.value,
                                    step_id=event.step_id, code=event.failure_code or "step_failed")
 
     def _record_deltas(self, run: Run, store: Conversation, outputs, deltas) -> None:
@@ -1734,7 +1737,7 @@ class RunManager:
                                                    run.metadata["policies"].get("approval", {}))
                             except Exception:
                                 log_event(run.paths.logs, "interaction.policy_failed", entity_id=run.id,
-                                          status="response_write_failed")
+                                          status=RunManager.RESPONSE_WRITE_FAILED)
                         await self._publish_run(run)
                         if "steering" in run.metadata:
                             await self._publish_instructions(run, changed)

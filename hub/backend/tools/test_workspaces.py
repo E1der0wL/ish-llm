@@ -5,6 +5,9 @@ from llm.components.tools.builtin import TestWorkspaces
 
 
 class HubTestWorkspaces(TestWorkspaces):
+
+    INVALID_ARGUMENTS = "invalid_arguments"
+
     async def __call__(self, args):
         from .advice import execution_arguments
         args = execution_arguments(args)
@@ -12,7 +15,7 @@ class HubTestWorkspaces(TestWorkspaces):
         if (not isinstance(argv, (list, tuple)) or not argv or not argv[0]
                 or any(not isinstance(part, str) or "\0" in part for part in argv)
                 or not PurePosixPath(argv[0]).is_absolute()):
-            return {"status": "invalid_arguments", "executed": False,
+            return {"status": HubTestWorkspaces.INVALID_ARGUMENTS, "executed": False,
                     "error": "argv must be a nonempty list of strings with an absolute executable at argv[0].",
                     "guidance": "Correct the arguments and call test_workspace_execute again. "
                                 "For a shell command use ['/bin/sh', '-c', 'your command']. "

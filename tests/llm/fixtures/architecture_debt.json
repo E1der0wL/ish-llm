@@ -100,38 +100,6 @@
       "detail": "SDK-shaped field indexing outside Provider package"
     },
     {
-      "id": "c4d07473abd4edfe659c0413e9572a80b556f49ae1c24c0d7f483bd243d83b0c:1",
-      "rule": "S3",
-      "file": "llm/components/rag/jobs.py",
-      "symbol": "RAGJobs._resume_plan",
-      "line": 70,
-      "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "8443b4ba5699be4c297a0969d6514a60578ee03117b7dfe2d23963531d6c2d14:1",
-      "rule": "S3",
-      "file": "llm/components/rag/jobs.py",
-      "symbol": "RAGJobs._resume_plan",
-      "line": 73,
-      "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "affa046657b345459438bdb73b27679e8807ac1d559f2353f38bd7235879647f:1",
-      "rule": "S3",
-      "file": "llm/components/rag/jobs.py",
-      "symbol": "RAGJobs._resume_plan",
-      "line": 76,
-      "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "721e395c95bc665fba6ea6ae7e085f83906e42b602bd65bbbfc242c1052ce429:1",
-      "rule": "S3",
-      "file": "llm/core/configuration.py",
-      "symbol": "resolve_config",
-      "line": 39,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "6af8648733f4ea41ddadf4f3a2132763aca4aff997fc4ca2e9813d6b659d7915:1",
       "rule": "S6",
       "file": "llm/core/diagnostics.py",
@@ -172,30 +140,6 @@
       "detail": "SDK-shaped field lookup outside Provider package"
     },
     {
-      "id": "b55ce89acc69519271bd331499ab9b7d1e5b99b611738a593aad6a1a1d8d27d3:1",
-      "rule": "S3",
-      "file": "llm/services/history/recovery.py",
-      "symbol": "ProjectRecovery.apply",
-      "line": 162,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "14b710256169882139baac195e9ff2a58f5beb1368e6b36a4c7de5f04b71fb4c:1",
-      "rule": "S3",
-      "file": "llm/services/history/recovery.py",
-      "symbol": "ProjectRecovery.apply",
-      "line": 177,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "df81b9cff2b00d1726aae9c5a427729bffd81fc6fa740ed3f7969f6b1ad5f1c5:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/logging.py",
-      "symbol": "_file_log_event",
-      "line": 100,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "701f562628ac9b2b4921f907a7b5b12adf0fdb1434eb667629d44d6ed6789c6d:1",
       "rule": "S3",
       "file": "llm/services/runtime/interactions.py",
@@ -212,35 +156,11 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "5bc5430cd2c69766014626ea9ca323822a8aa76b447a999d7e432a13dc7253d4:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._record_engine_event",
-      "line": 1498,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "02c1c4b6a9e87890e36cf474339ac497e558238dc0604cbafd207fa95547a145:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._worker",
-      "line": 1660,
-      "detail": "inline domain argument: status"
-    },
-    {
       "id": "3f5ace377ed99c816fac8a5362415c4610e04ff23c46106cdad270ec97f3f0be:1",
       "rule": "S3",
       "file": "hub/backend/bootstrap.py",
       "symbol": "create_backend",
       "line": 40,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "59a2789e7a0227edd9808bf959c0c09bf3f13ade3438bc583f88ec8c6564a1c1:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/provider_recovery.py",
-      "symbol": "ProviderRecovery.stream",
-      "line": 205,
       "detail": "inline domain comparison"
     },
     {
@@ -260,28 +180,12 @@
       "detail": "inline domain field: status"
     },
     {
-      "id": "489264a1ed4bb9cb7d1048a13f94bd431f63ce71fcaf0bcc19823e2bd869e608:1",
-      "rule": "S3",
-      "file": "hub/backend/project/naming.py",
-      "symbol": "SessionNamer._name",
-      "line": 101,
-      "detail": "inline domain field: version"
-    },
-    {
       "id": "53f75f071b28a7c420bf7f27b2adcbc2a9a47d5497425501f5a335d4c4ab8fa9:1",
       "rule": "S3",
       "file": "hub/backend/project/rag_management.py",
       "symbol": "RAGManagement.execute",
       "line": 149,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "cf5a43a7ee8634c9ad440cade643b15af4cb45c945c90f6fd6221e76d5ac1cc6:1",
-      "rule": "S3",
-      "file": "hub/backend/tools/test_workspaces.py",
-      "symbol": "HubTestWorkspaces.__call__",
-      "line": 15,
-      "detail": "inline domain field: status"
     },
     {
       "id": "244de782601f3e090d325a32a23e3f29e4d47d9c7039742b0bd8e396cce1f220:1",
@@ -298,22 +202,6 @@
       "symbol": "from_diagnostic",
       "line": 39,
       "detail": "SDK-shaped field lookup outside Provider package"
-    },
-    {
-      "id": "1aa33053288e143cda80d250fe04f30b4c87605ca4c26b95c9da352b77f7ec02:1",
-      "rule": "S3",
-      "file": "hub/ui/chat/history_ui.py",
-      "symbol": "HistoryUI.show.execute",
-      "line": 109,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "1aa33053288e143cda80d250fe04f30b4c87605ca4c26b95c9da352b77f7ec02:2",
-      "rule": "S3",
-      "file": "hub/ui/chat/history_ui.py",
-      "symbol": "HistoryUI.show.execute",
-      "line": 118,
-      "detail": "inline domain comparison"
     },
     {
       "id": "c2439d3b66452c8cf00c700b12bf2882dad08b3f55528fd7ce5da1359d29f4d7:1",
