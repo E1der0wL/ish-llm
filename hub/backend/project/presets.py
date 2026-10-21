@@ -11,7 +11,8 @@ class PresetService:
     def __init__(self, settings):
         self.settings = settings
         config = settings.runtime.config
-        self.store = PresetStore(config._workspace_anchor or config.workspace)
+        anchor = config.workspace if config._workspace_anchor is None else config._workspace_anchor
+        self.store = PresetStore(anchor)
 
     async def list(self):
         record = await asyncio.to_thread(self.store.read)

@@ -327,9 +327,9 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "a7e1ced3b7588ee3f62621fa5f228e6851fdfc7d8565b7a2c4e26a10d944845b",
+        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
         "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
@@ -337,7 +337,9 @@
         "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
         "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -346,7 +348,8 @@
         "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
         "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
         "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded"
+        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -363,9 +366,9 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "a7e1ced3b7588ee3f62621fa5f228e6851fdfc7d8565b7a2c4e26a10d944845b",
+        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
         "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
@@ -373,7 +376,9 @@
         "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
         "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -382,7 +387,8 @@
         "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
         "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
         "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded"
+        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -399,9 +405,9 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "a7e1ced3b7588ee3f62621fa5f228e6851fdfc7d8565b7a2c4e26a10d944845b",
+        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
         "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
@@ -409,7 +415,9 @@
         "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
         "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -418,7 +426,8 @@
         "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
         "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
         "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded"
+        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -435,9 +444,9 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "a7e1ced3b7588ee3f62621fa5f228e6851fdfc7d8565b7a2c4e26a10d944845b",
+        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
         "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
@@ -445,7 +454,9 @@
         "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
         "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -454,7 +465,8 @@
         "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
         "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
         "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded"
+        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -471,9 +483,9 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "a7e1ced3b7588ee3f62621fa5f228e6851fdfc7d8565b7a2c4e26a10d944845b",
+        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
         "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
@@ -481,7 +493,9 @@
         "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
         "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -490,7 +504,8 @@
         "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
         "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
         "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded"
+        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -507,9 +522,9 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "a7e1ced3b7588ee3f62621fa5f228e6851fdfc7d8565b7a2c4e26a10d944845b",
+        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
         "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
@@ -517,7 +532,9 @@
         "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
         "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -526,7 +543,8 @@
         "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
         "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
         "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded"
+        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -543,9 +561,9 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "a7e1ced3b7588ee3f62621fa5f228e6851fdfc7d8565b7a2c4e26a10d944845b",
+        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
         "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
@@ -553,7 +571,9 @@
         "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
         "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -562,7 +582,8 @@
         "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
         "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
         "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded"
+        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -579,9 +600,9 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "a7e1ced3b7588ee3f62621fa5f228e6851fdfc7d8565b7a2c4e26a10d944845b",
+        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
         "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
@@ -589,7 +610,9 @@
         "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
         "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -598,7 +621,8 @@
         "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
         "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
         "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded"
+        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -615,9 +639,9 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "a7e1ced3b7588ee3f62621fa5f228e6851fdfc7d8565b7a2c4e26a10d944845b",
+        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
         "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
         "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
@@ -625,7 +649,9 @@
         "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
         "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -634,7 +660,8 @@
         "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
         "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
         "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded"
+        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -2273,16 +2300,19 @@
       "sources": {
         "docs/hub/panel-ux.md": "cd1e336f281f8d816fcc1d3977f9fb58718e26bb2bd6b0031caa6a2f2ab143bc",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "hub/ui/settings/pages.py": "bf844784825ff5364a5cef6da739ed13147e220c25a8a9d9c968f1d0ec78fe8c",
         "hub/widget/forms/settings.py": "25dd5414251c0c6fd11236c08d338a822690fa2a713110c6f217b347b3e464a6",
         "tests/hub/test_general_options.py": "03f7d84714ee08293175abc578f131435b0945b4129db354d3cf30651eeb79ab",
         "tests/hub/test_settings_project_flow.py": "d1590b2987cbd65d94f3e96064a415aa6f9f39b384ec388a0439223c72791047",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionAsyncTests.test_categorized_form_pack_add_delete_save_and_reload",
-        "tests.hub.test_settings_project_flow.ProjectSettingsFlowTests.test_profile_project_selection_scoped_settings_and_stay_on_save_cancel"
+        "tests.hub.test_settings_project_flow.ProjectSettingsFlowTests.test_profile_project_selection_scoped_settings_and_stay_on_save_cancel",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {
@@ -2297,14 +2327,16 @@
       "sources": {
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
-        "hub/backend/project/settings.py": "b0f8f492dcf6a965e4a73d3acb9d61511ae0ca85ff12ff899c3430ecbcc6fd8b",
+        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "hub/widget/forms/settings.py": "25dd5414251c0c6fd11236c08d338a822690fa2a713110c6f217b347b3e464a6",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04"
       },
       "tests": [
         "tests.hub.test_settings.SettingsFormTests.test_missing_null_nested_and_unknown_values_survive",
-        "tests.hub.test_settings.SettingsFormTests.test_shared_settings_key_uses_all_engine_locks_and_views"
+        "tests.hub.test_settings.SettingsFormTests.test_shared_settings_key_uses_all_engine_locks_and_views",
+        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
       ]
     },
     {

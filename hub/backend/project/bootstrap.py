@@ -31,7 +31,8 @@ async def select_or_create(backend, config):
             records = [(await project.aget_data(), project) for project in projects]
             return min(records, key=lambda item: (item[0].created_at, item[0].id))[1]
         from ...config.presets import PresetStore
-        preset = await asyncio.to_thread(PresetStore(config._workspace_anchor or config.workspace).selected_project)
+        anchor = config.workspace if config._workspace_anchor is None else config._workspace_anchor
+        preset = await asyncio.to_thread(PresetStore(anchor).selected_project)
         project_config = ProjectConfig.from_dict(ProjectConfig.merge(preset["config"], config.project_config) if preset else config.project_config)
         supplied = {key: value for key, value in (("model", config.model), ("api_base", config.api_base)) if value is not None}
         if supplied:

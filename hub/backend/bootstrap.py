@@ -31,7 +31,8 @@ def create_backend(config: "HubConfig"):
     from .execution.context import HubContextBuilder
     from .tools.advice import classify_model_risk
     monitor = RetryMonitor()
-    general = GeneralSettings(**PreferencesStore(config._workspace_anchor or config.workspace).load().get("general", {}))
+    anchor = config.workspace if config._workspace_anchor is None else config._workspace_anchor
+    general = GeneralSettings(**PreferencesStore(anchor).load().get("general", {}))
     from .execution.provider_recovery import ProviderRecovery, CompletionRecoveryMixin
     from llm.engines.loop import LoopEngine
     recovery = ProviderRecovery(general, monitor, general.language or config.language)

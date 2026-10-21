@@ -1356,14 +1356,6 @@
       "detail": "inline domain assignment: status"
     },
     {
-      "id": "f8a7235b69579868aed7c052ee4101dca68c364678e9542e974116da899de58b:1",
-      "rule": "S2",
-      "file": "hub/backend/bootstrap.py",
-      "symbol": "create_backend",
-      "line": 33,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "920511f84f5c04d0ad37d2f15c5e99cae2815365c50a7de6dbc729634b372fbf:1",
       "rule": "S2",
       "file": "hub/backend/bootstrap.py",
@@ -1740,14 +1732,6 @@
       "detail": "truthiness fallback involving configuration"
     },
     {
-      "id": "db2ee998d2557423c46f32ece54fee274cbe2243d14659acf41d4c33db77c28d:1",
-      "rule": "S2",
-      "file": "hub/backend/project/bootstrap.py",
-      "symbol": "select_or_create",
-      "line": 34,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "04aadafd2f6c1ac69165782fc32a99a05fc93a3bf8653f30d0feb8de755fb35f:1",
       "rule": "S3",
       "file": "hub/backend/project/memory_management.py",
@@ -1778,14 +1762,6 @@
       "symbol": "SessionNamer._name",
       "line": 116,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "07140f9ebc98e511c1856196cdf7962f3affa9611232da807f35f47089094f93:1",
-      "rule": "S2",
-      "file": "hub/backend/project/presets.py",
-      "symbol": "PresetService.__init__",
-      "line": 14,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "dfce2d23dd48d4e70601ae6f13fbe39641d438714e7ef1f3c8ed00b4204aa80e:1",
@@ -1900,30 +1876,6 @@
       "detail": "inline domain field: status"
     },
     {
-      "id": "08e07279735f6d0f5a136fe7d79dd75352c72b12582acbfa66cd421049744e1e:1",
-      "rule": "S2",
-      "file": "hub/backend/project/settings.py",
-      "symbol": "SettingsService.__init__",
-      "line": 16,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "cd29096d46554a48613dfa8204f92d412bcbbe4ada543670cf652f3da13bf389:1",
-      "rule": "S2",
-      "file": "hub/backend/project/settings.py",
-      "symbol": "SettingsService.catalog",
-      "line": 77,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "f7629f6ebf91b47df5f9c149a7f83d264a3f864c891c6b74080124fa7cd88334:1",
-      "rule": "S2",
-      "file": "hub/backend/project/settings.py",
-      "symbol": "SettingsService.catalog",
-      "line": 78,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "2738ab49e7ef48cd04d1ee1dad06a56e1fc68be58c25f8192e48593b4033c59c:1",
       "rule": "S3",
       "file": "hub/backend/runtime.py",
@@ -1993,14 +1945,6 @@
       "file": "hub/config/preferences.py",
       "symbol": "configured_profile",
       "line": 34,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "6463c9165bcf4a8636b86cf93643811e12e4b79c875f0b89b68b9090abde7b8f:1",
-      "rule": "S2",
-      "file": "hub/config/restart.py",
-      "symbol": "restart_config",
-      "line": 41,
       "detail": "truthiness fallback involving configuration"
     },
     {

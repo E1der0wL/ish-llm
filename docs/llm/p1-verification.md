@@ -15,6 +15,57 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c19: Hub의 명시된 시작 설정 경로 보존 — 로컬 Level 2
+
+Hub의 시작 설정 경로 선택 6곳을 None 기준으로 바꿨다. bootstrap·새 Project 프리셋 선택·
+PresetService·SettingsService·재시작이 명시된 Path를 그대로 사용한다. 설정 catalog는 완전한
+현재 general section의 workspace_root가 정확히 빈 문자열일 때만 시작 경로를 표시한다.
+빈 경로의 기존 상속·실행 중 데이터 위치 유지·A→B→C 재시작·프리셋 초기값·저장 형식은 같다.
+
+실제 파일 시험 4개에서 기존 구현은 1 pass·3 failure·error/Skip 0, 0.200초/exit 1이었다.
+FalseyPath 입력을 버려 설정/프리셋을 활성 데이터 위치에 쓰고, 선택한 빈 Component 프리셋을
+무시해 tools/demo를 다시 선택했으며 재시작 때 다른 시작 경로를 읽었다. 수정 전후 시험 byte가
+동일하고 원본·로그는 c19-before에 있다. 정확한 파일 위치/내용, 원래 설정 파일 보존,
+명시 빈 components, 재시작 후 Project/Session 선택 해제와 None 경로의 정상 동작을 보호한다.
+
+현재 호출 관계와 각 변경 함수의 diff를 확인했다. S2 7건이 실제 제거됐고 새로운 후보는 없다.
+변경 파일을 참조하던 생성 프리셋 9건과 표시 조건 2건의 근거를 다시 확인했다. 생성·schema
+의미는 그대로이고 소비 경로만 수정됐으며 기존 owner 시험과 새 실제 파일/catalog 시험을
+실행했다. 이 11개 review의 해당 hash와 시험 근거만 갱신했다. 새로운 허용 판정이나 AST
+완화는 없다. 과거 backend도 같은 truthiness 선택을 써서 구현을 차용하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 Hub | 29/29 | 29 | 0/0/0 | 36.777초 | 0 |
+| Level 2 LLM | 139/139 | 139 | 0/0/0 | 52.878초 | 0 |
+| Level 2 Hub | 72/72 | 72 | 0/0/0 | 125.930초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 모두 0이다. LLM은 공통
+안전성 9개 모듈과 audit 소비자를, Hub는 경로/프리셋/생성/재시작·설정 폼·실제 factory와 RAG
+설정 소비자를 검증했다. R3 실제 효과 mutation True/outer exit 0이다. 정적 raw 405·reviewed 76·
+미해결 329(S2 5·S3 306·S6 18), new/stale/review 오류·S1/S4/S5 미해결 0/exit 0이며
+문서 132/182/959/34·오류 0이다. **이번은 selected 실행이며 전체 회귀는 수행하지 않았다.**
+변경이 Hub의 명시 경로 선택에 한정되고 위 owner·직접 소비자·핵심 안전성이 통과하여
+다음 관련 소단계 묶음 Level 3까지 전체 회귀/Push를 유예한다. P1 전체와 A–F는 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c19-focused/hub.json --modules tests.hub.test_workspace_presence tests.hub.test_workspace_settings tests.hub.test_global_preferences tests.hub.test_creation_contracts tests.hub.test_presets_widgets
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c19-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c19-level2/hub.json --modules tests.hub.test_workspace_presence tests.hub.test_workspace_settings tests.hub.test_global_preferences tests.hub.test_creation_contracts tests.hub.test_presets_widgets tests.hub.test_defaults tests.hub.test_general_options tests.hub.test_rag_defaults tests.hub.test_response_reliability tests.hub.test_settings tests.hub.test_settings_project_flow tests.hub.test_settings_restart tests.hub.test_settings_navigation tests.hub.test_factory_presence
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c19-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c19-docs-final.json
+```
+
+기준 HEAD `e160b0e5fc291f16825fe36d0c90dc18086f0f53`에 c19 변경을 더한 소스에서 실행했다.
+701 Python 소스 hash `4e871a9488137a6d423f3e28359e3426ca23e9e2ab3310defd0f5a95a81d1867`와
+863 입력/환경 hash `36fbecf3c0f05a6d5de33f2adde5b43fc6a949551a00191adbd816f7cdf916e3`는 각각 전후 동일하다.
+Python 3.12.14·136 의존성·env 5개·host d833790959a76ac457fdeea3f21a6bea1eecfe12·커널·
+바이너리의 c16–c18 전체 게이트와 동일성을 확인했다. 이전 pass를 이번 실행 수에 합산하지 않는다.
+전체 발견 목록은 LLM 2101/Hub 567이며 새 Hub 시험 4개가 추가됐다. 명령·exit·ID·원시 로그와
+manifest는 `/workspace/llm-clean-resume/p1/c19-level2/`에 있다. 결과 문서를 먼저 갱신한 뒤 로컬 커밋한다.
+원격 마지막 확인은 e160b0e이며 해당 CI 실제 결과는 미확인이다. 기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c18: 명시 RAG 재시도 허가 — c16–c18 묶음 Level 3
 
 RAGData.arun_job의 retry는 호출자가 주는 재실행 허가이며 자동 Provider 정책이 아니다.

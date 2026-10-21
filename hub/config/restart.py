@@ -37,8 +37,9 @@ def startup_settings(config, general):
 
 def restart_config(launch_config, current_config):
     from .preferences import configured_profile
+    anchor = launch_config.workspace if current_config._workspace_anchor is None else current_config._workspace_anchor
     config = configured_profile(replace(launch_config,
-        workspace=current_config._workspace_anchor or launch_config.workspace, _workspace_anchor=None))
+        workspace=anchor, _workspace_anchor=None))
     if config.workspace != current_config.workspace:
         config = replace(config, project_id=None, session_id=None)
     return config

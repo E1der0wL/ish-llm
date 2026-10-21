@@ -13,7 +13,8 @@ from ...errors.contracts import ErrorOrigin
 class SettingsService:
     def __init__(self, runtime):
         self.runtime = runtime
-        self.preferences = PreferencesStore(runtime.config._workspace_anchor or runtime.config.workspace)
+        anchor = runtime.config.workspace if runtime.config._workspace_anchor is None else runtime.config._workspace_anchor
+        self.preferences = PreferencesStore(anchor)
 
     def _schema(self):
         schema = self.runtime.backend.describe_project_config()
@@ -74,8 +75,10 @@ class SettingsService:
                     origin=ErrorOrigin.BACKEND, operation="model_usage")})
         preferences = {"profile": asdict(self.runtime.config.user_profile),
                        "general": asdict(GeneralSettings()), **self.preferences.load()}
-        preferences["general"]["workspace_root"] = (preferences["general"].get("workspace_root")
-            or str(self.runtime.config._workspace_anchor or self.runtime.config.workspace))
+        if preferences["general"]["workspace_root"] == "":
+            anchor = (self.runtime.config.workspace if self.runtime.config._workspace_anchor is None
+                      else self.runtime.config._workspace_anchor)
+            preferences["general"]["workspace_root"] = str(anchor)
         return {"projects": projects, "schema": self._schema(),
                 "host": self.runtime.backend.describe_host(),
                 "usage": usage,
