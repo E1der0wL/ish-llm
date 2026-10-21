@@ -17,7 +17,7 @@ from .indexing import build_index, update_index
 from .search import search, search_schema
 from .splitting import split_markdown, CHUNK_FIELDS
 from .extraction import validate_graph, validate_extraction_checkpoint, validate_stored_graph, enrich_graph, group_evidence, select_graph, GraphValidationError
-from .prompts import extraction_schema
+from .prompts import ExtractionFailurePolicy, extraction_schema
 from .graph_indexing import build_graph, update_graph
 from .graph_search import graph_search, related_graph
 from .files import copy_file
@@ -669,11 +669,11 @@ class RAGComponent(DefinitionComponent):
         policy = require_config(self.extraction_options, "failure_policy", scope="rag.extraction")
         if self.chunk_size is None:
             raise ValueError("Missing required setting: rag.chunk_size")
-        if policy != "disabled" and self.extraction_batch_size is None:
+        if policy != ExtractionFailurePolicy.DISABLED.value and self.extraction_batch_size is None:
             raise ValueError("Missing required setting: rag.extraction_batch_size")
-        if policy != "disabled" and getattr(self, "_extraction_error", None) is not None:
+        if policy != ExtractionFailurePolicy.DISABLED.value and getattr(self, "_extraction_error", None) is not None:
             raise self._extraction_error
-        if policy != "disabled" and self.extractor is None:
+        if policy != ExtractionFailurePolicy.DISABLED.value and self.extractor is None:
             raise ValueError("Configure RAGComponent(extractor=TripleExtractor(...)) before writing documents")
         validate_name(identifier)
         if not isinstance(title, str) or not title.strip():
@@ -682,7 +682,7 @@ class RAGComponent(DefinitionComponent):
         fingerprint = self._preparation_fingerprint()
         if (previous is not None and previous["content"] == content
                 and previous.get("preparation_fingerprint") == fingerprint
-                and (previous["graph_complete"] or policy == "disabled")):
+                and (previous["graph_complete"] or policy == ExtractionFailurePolicy.DISABLED.value)):
             from llm.providers.embeddings import validate_vectors
             vectors = previous["vectors"]
             validate = getattr(self.embedding, "validate_vectors", None)
@@ -709,27 +709,27 @@ class RAGComponent(DefinitionComponent):
                         generation=previous["generation"] if previous is not None else uuid4().hex)
         await prepare_vectors(self, document, previous=previous, progress=progress, telemetry=telemetry)
         document["profile"] = {"model": self._identity(), "dimensions": len(document["vectors"][0])}
-        document.update(graph_complete=policy != "disabled", graph_diagnostics=[])
+        document.update(graph_complete=policy != ExtractionFailurePolicy.DISABLED.value, graph_diagnostics=[])
         document["ingestion"].update(extraction_batches=0, extraction_seconds=0.0, extraction_batches_reused=0)
-        if policy == "disabled":
+        if policy == ExtractionFailurePolicy.DISABLED.value:
             document["graph_diagnostics"].append(diagnostic("graph_extraction_disabled").to_dict())
         entities, relations = {}, []
         manifest, reused_sources = [], set()
         previous_batches = {entry["signature"]: entry for entry in previous.get("extraction_manifest", [])} if previous else {}
         previous_graph = group_evidence(previous["graph"]) if previous_batches else None
         extraction_total = ((len(document["chunks"]) + self.extraction_batch_size - 1) // self.extraction_batch_size
-                            if policy != "disabled" else 0)
+                            if policy != ExtractionFailurePolicy.DISABLED.value else 0)
         extraction_done = 0
         async def extraction_progress():
             if telemetry:
                 await telemetry({**document["ingestion"], "phase": "extracting", "completed": extraction_done,
                                  "total": extraction_total, "unit": "batch"})
-        if policy != "disabled":
+        if policy != ExtractionFailurePolicy.DISABLED.value:
             await extraction_progress()
         def observe_extraction(event):
             if event.code == "provider_retry":
                 document["ingestion"]["provider_retries"] += 1
-        for offset in (range(0, len(document["chunks"]), self.extraction_batch_size) if policy != "disabled" else ()):
+        for offset in (range(0, len(document["chunks"]), self.extraction_batch_size) if policy != ExtractionFailurePolicy.DISABLED.value else ()):
             batch = document["chunks"][offset:offset + self.extraction_batch_size]
             # Keep the existing Job checkpoint binding unchanged. Cross-update reuse has
             # its own implementation identity; it is not a replacement checkpoint format.
@@ -760,7 +760,7 @@ class RAGComponent(DefinitionComponent):
                 except Exception as error:
                     code = error_code(error)
                     # 저장/한도/프로그래밍 오류는 best_effort로 숨기지 않는다.
-                    if policy != "best_effort" or not (isinstance(error, GraphValidationError) or code in (
+                    if policy != ExtractionFailurePolicy.BEST_EFFORT.value or not (isinstance(error, GraphValidationError) or code in (
                             "provider_timeout", "provider_connection", "provider_unavailable",
                             "provider_rate_limit", "provider_empty_response", "provider_invalid_response")):
                         raise

@@ -7,7 +7,7 @@ from copy import copy, deepcopy
 from datetime import datetime, timezone
 
 from llm.components.rag._client import ModelClient
-from .prompts import EXTRACTION_CONTRACT
+from .prompts import EXTRACTION_CONTRACT, ExtractionJSONMode
 from llm.errors import CodedError
 from .splitting import validate_chunk
 
@@ -205,12 +205,12 @@ class TripleExtractor(ModelClient):
         for attempt in range(repair.max_attempts):
             try:
                 response = await self._invoke(stream=False, _provider_deadline=deadline,
-                    **({"response_format": {"type": "json_object"}} if mode in ("strict", "auto") else {"_without_response_format": True} if mode == "off" else {}),
+                    **({"response_format": {"type": "json_object"}} if mode in (ExtractionJSONMode.STRICT.value, ExtractionJSONMode.AUTO.value) else {"_without_response_format": True} if mode == ExtractionJSONMode.OFF.value else {}),
                     messages=messages)
             except Exception as error:
-                if mode != "auto" or error_code(error) not in ("provider_empty_response", "provider_invalid_response"):
+                if mode != ExtractionJSONMode.AUTO.value or error_code(error) not in ("provider_empty_response", "provider_invalid_response"):
                     raise
-                mode = "off"
+                mode = ExtractionJSONMode.OFF.value
                 diagnostic("provider_json_mode_fallback", operation="acompletion")
                 response = await self._invoke(stream=False, _provider_deadline=deadline,
                     _without_response_format=True, messages=messages)

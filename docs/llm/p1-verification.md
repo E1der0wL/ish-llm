@@ -15,6 +15,66 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c31: RAG 추출 실패 정책·JSON 모드의 소유 선언 — 로컬 Level 2
+
+기존 추출 Schema 소유 모듈 `prompts.py`에 ExtractionFailurePolicy·ExtractionJSONMode를
+선언했다. Schema, RAG 준비/추출, Hub 생성 프리셋 4개 파일이 같은 문자열 값을 사용한다.
+실제 이전/현재 Schema·문자열 타입이 같고 새 선언/참조를 되돌리면 4개 파일의 원문이 같다.
+누락/None·필수 설정·repair·JSON fallback·best_effort 허용 오류·Checkpoint/원본·예산은
+유지한다. Provider 오류 목록과 S6 wire 해석은 이번 변경에 포함하지 않았다. 시험은 바꾸지 않았다.
+이전 backend의 추출 Schema만 참고해 같은 값을 확인했으며 코드·과거 검증은 이식하지 않았다.
+
+원시 S3 11건을 제거했다. 이 중 10건이 미해결 참조이고 1건은 이미 개별 판정한 Hub
+생성값 참조다. 기존 RAG S2 Boolean 조건은 enum 참조로 fingerprint만 바뀌어 같은
+의미를 새 정확한 ID로 다시 판정했다. 기존 review 16건의 함수 AST를 참조 복원 후
+대조했고, 근거·시험·나머지 pinned 소스가 같다. 사라진 Hub occurrence의 review 1개는
+제거하고 나머지는 현재 선언/계약에 연결했다. 해당 구체적 시험 ID 27개가 모두 통과했다.
+
+최초 보조 delta 검사는 미해결 S3 10건만 예상해 exit 1이었다. 실제로는 위의 기존 판정
+2건도 raw 목록에서 바뀌었다. 원시 delta와 실패 원인을 `c31-static-first-expectation.json`에
+보존하고 전체 raw 차이를 개별 대조했다. 제품 시험의 실패나 안전성 기준 완화는 없었다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|
+| 집중 LLM | 99/99/99 | 0/0/0 | 35.553초 | 0 |
+| 집중 HUB | 5/5/5 | 0/0/0 | 19.119초 | 0 |
+| 추가 Level 2 LLM | 279/279/279 | 0/0/0 | 124.992초 | 0 |
+| 추가 Level 2 HUB | 42/42/42 | 0/0/0 | 76.344초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각 실행에서 0이다.
+집중 실행은 추출 정책/repair/부분 실패/준비 데이터 재사용·Schema·Hub 생성값을 검증한다.
+추가 검증은 관련 RAG 입력·배치·임베딩·그래프·코퍼스·작업 무결성, 직접 설정/Hub 소비자,
+공통 안전성 9개 모듈과 감사 검사기를 포함한다. 실제 효과·중단·원본 보존·장애 주입을 유지했다.
+
+집중 실행과 추가 실행은 suite별 현재 전체 discovery 2101/577개가 같고 선택 ID는
+겹치지 않는다. 제품/시험 704개와 입력 864개·host·136 의존성·env·바이너리가 동일하다.
+두 감사 Fixture만 달라 감사 시험은 추가 실행에서 새로 수행했다. 각 실행의 전후 manifest와
+명령·exit·개별 ID·report hash를 `/workspace/llm-clean-resume/p1/c31-level2/reuse-proof.json`으로 연결한다.
+서로 다른 선택 실행을 하나의 전체 실행으로 합산하지 않았다.
+
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 228·reviewed 105·미해결 123
+(S3 105·S6 18), new/stale/review 오류·필수 S1/S2/S4/S5 미해결 0/exit 0,
+문서 검사 오류 0/exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c31-focused/llm.json --modules tests.llm.test_rag_resilience tests.llm.test_rag_extraction_repair tests.llm.test_rag_prepared_integrity tests.llm.test_rag_retry_presence tests.llm.test_rag_optimization tests.llm.test_configuration_validation tests.llm.test_schema_ownership tests.llm.test_naming_contract
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c31-focused/hub.json --modules tests.hub.test_rag_defaults tests.hub.test_defaults
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c31-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions tests.llm.test_rag_components tests.llm.test_unified_rag tests.llm.test_rag_graph_checkpoint tests.llm.test_settings_contract tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_input_integrity tests.llm.test_rag_batch_source tests.llm.test_rag_batch_identity tests.llm.test_rag_job_integrity tests.llm.test_rag_query_evidence tests.llm.test_rag_catalog_integrity tests.llm.test_rag_corpus_integrity tests.llm.test_rag_job_state_integrity tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_models tests.llm.test_markdown_rag
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c31-level2/hub.json --modules tests.hub.test_creation_contracts tests.hub.test_response_reliability tests.hub.test_workspace_presence tests.hub.test_rag_extensions tests.hub.test_rag_jobs tests.hub.test_rag_retention
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c31-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c31-level2/aux/docs.json
+```
+
+실행 HEAD `6b4c8e5231905efa190f1eca2f9289f5eafd9278`에 c31 변경을 더했다. 소스 hash
+`7122a37e28f15e910da94e3ce39328257a6defe24f13505257a21e558a4c35b5`, 입력/환경 hash `06d5fb0e8c5b946b6c420179053349f787c7b66d779e053b0849a41336aaf9f4`가 추가 실행 전후 같다.
+Python 3.12.14·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다. 원시 기록은 위 경로와
+`c31-focused/`에 보존한다. 문서를 먼저 갱신하고 소스-커밋 동일성·staged diff를 확인해
+로컬 커밋한다. **이번 소단계에서는 전체 회귀를 실행하지 않았다.** 동일 값의 소유 참조로
+변경을 한정하고 실제 관련 소비자와 안전성을 검증했다. 후속 관련 변경과 묶은 Level 3에서
+전체 회귀 후 Push한다. P1 최종 S1–S5와 A–F는 미완료, 원격 CI는 미확인이다.
+main·backend·Draft PR #1은 변경하지 않는다.
+
 ## P1-c30: 명시 입력의 수학적·프로토콜 경계 판정 — 로컬 Level 2
 
 현재 owner 17개의 경계 비교 20건을 개별 분류했다. 양수/음이 아닌 명시 한도 검증,

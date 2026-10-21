@@ -1,6 +1,19 @@
 """추출 프로토콜과 명시적으로 선택할 수 있는 예제 프롬프트. 예제는 자동 적용하지 않는다."""
 
+from enum import StrEnum
 import json
+
+
+class ExtractionFailurePolicy(StrEnum):
+    REQUIRED = "required"
+    BEST_EFFORT = "best_effort"
+    DISABLED = "disabled"
+
+
+class ExtractionJSONMode(StrEnum):
+    STRICT = "strict"
+    AUTO = "auto"
+    OFF = "off"
 
 
 RELATION_TYPES = (
@@ -47,8 +60,8 @@ def default_prompt() -> dict:
 def extraction_schema() -> dict:
     from llm.core.schema import field, object_schema
     return object_schema({
-        "json_mode": field("string", enum=["strict", "auto", "off"]),
-        "failure_policy": field("string", enum=["required", "best_effort", "disabled"]),
+        "json_mode": field("string", enum=[mode.value for mode in ExtractionJSONMode]),
+        "failure_policy": field("string", enum=[policy.value for policy in ExtractionFailurePolicy]),
         "repair_attempts": field("integer", "검증 오류 수정 요청 횟수. 0이면 비활성화", minimum=0),
         "prompt_id": field(["string", "null"], "선택된 prompts 컴포넌트의 레코드 ID",
                            pattern="^[A-Za-z0-9_-]{1,64}$"),

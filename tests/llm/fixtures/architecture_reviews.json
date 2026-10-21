@@ -328,7 +328,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
         "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
-        "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
+        "hub/backend/project/defaults.py": "b80ad2f10265d52a97eccfe51fe6df972bc9f025254d1f3e367671428f305a05",
         "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
@@ -339,7 +339,9 @@
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
-        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -367,7 +369,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
         "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
-        "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
+        "hub/backend/project/defaults.py": "b80ad2f10265d52a97eccfe51fe6df972bc9f025254d1f3e367671428f305a05",
         "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
@@ -378,7 +380,9 @@
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
-        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -406,7 +410,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
         "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
-        "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
+        "hub/backend/project/defaults.py": "b80ad2f10265d52a97eccfe51fe6df972bc9f025254d1f3e367671428f305a05",
         "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
@@ -417,7 +421,9 @@
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
-        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -445,7 +451,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
         "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
-        "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
+        "hub/backend/project/defaults.py": "b80ad2f10265d52a97eccfe51fe6df972bc9f025254d1f3e367671428f305a05",
         "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
@@ -456,7 +462,9 @@
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
-        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -484,7 +492,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
         "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
-        "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
+        "hub/backend/project/defaults.py": "b80ad2f10265d52a97eccfe51fe6df972bc9f025254d1f3e367671428f305a05",
         "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
@@ -495,46 +503,9 @@
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
-        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
-      },
-      "tests": [
-        "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
-        "tests.hub.test_creation_contracts.CreationContractTests.test_explicit_empty_components_and_falsey_policies_survive_reopen",
-        "tests.hub.test_creation_contracts.CreationContractTests.test_creation_preset_cannot_override_backend_limit_validation",
-        "tests.hub.test_response_reliability.ReliabilityTests.test_creation_policy_is_editable_and_existing_projects_are_not_reseeded",
-        "tests.hub.test_response_reliability.ReliabilityTests.test_retry_is_bounded_and_does_not_replay_partial_or_auth_failures",
-        "tests.hub.test_rag_defaults.RagDefaultsTests.test_models_only_ingest_search_and_preserve_explicit_settings",
-        "tests.hub.test_defaults.DefaultTests.test_starter_guides_are_editable_and_not_reseeded",
-        "tests.hub.test_workspace_presence.WorkspacePresenceTests.test_startup_and_catalog_use_anchor_without_overwriting_preferences"
-      ]
-    },
-    {
-      "id": "884cee6a1f582bde62069c36a46e8450f5b4093511c4b6287242761ac5f8e331:1",
-      "rule": "S3",
-      "owner": "rag_defaults",
-      "reason": "The model-independent Hub creation template explicitly disables optional graph extraction; the backend receives that stored value. Existing Projects return before creation, explicit values take precedence, and normal backend Schema/approval/budget/effect validation still applies. No duplicated backend default is authorized.",
-      "contracts": [
-        "docs/hub/presets-and-resume.md",
-        "docs/hub/tool-retry.md",
-        "docs/llm/schema-ownership.md"
-      ],
-      "sources": {
-        "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
-        "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
-        "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
-        "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
-        "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
-        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
-        "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
-        "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
-        "tests/hub/test_creation_contracts.py": "4fc4f47535fce13b892f445d557566fa3ec37a85de7821be42c747da0e340a56",
-        "tests/hub/test_defaults.py": "8bbf259fe451b247b983f897fdd391ef1a98a9ed242b4d1b17f810cfa653614f",
-        "tests/hub/test_rag_defaults.py": "a09d8aafbc24757d88b337d3840ebed104e352f52f90a403ceba7e12e3c8e4de",
-        "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
-        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -562,7 +533,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
         "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
-        "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
+        "hub/backend/project/defaults.py": "b80ad2f10265d52a97eccfe51fe6df972bc9f025254d1f3e367671428f305a05",
         "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
@@ -573,7 +544,9 @@
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
-        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -601,7 +574,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
         "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
-        "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
+        "hub/backend/project/defaults.py": "b80ad2f10265d52a97eccfe51fe6df972bc9f025254d1f3e367671428f305a05",
         "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
@@ -612,7 +585,9 @@
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
-        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -640,7 +615,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
         "hub/backend/project/bootstrap.py": "9d694498449b2da2d88bc7d9f525b05826c0e792aa3207885cd1c6c526ce15e9",
-        "hub/backend/project/defaults.py": "d85e71a0105e2bd464f9d875831dcd13ac2531b092fb7f981e4983be863da4f8",
+        "hub/backend/project/defaults.py": "b80ad2f10265d52a97eccfe51fe6df972bc9f025254d1f3e367671428f305a05",
         "hub/backend/project/settings.py": "ced586178abd83d2e8ff71baf6dbd1273cd5ed4e7c47e868c092eb90e281f2b6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
@@ -651,7 +626,9 @@
         "tests/hub/test_response_reliability.py": "d70833f051b77b0b98c23ac4da5f0b20a37a4dfb957ba6b14588671a4c5d25c4",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_workspace_presence.py": "a6e6e64b9d6879186439b3dd3a303dc37a818269f1f616e1427c8fa1ce8c1e04",
-        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56"
+        "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564"
       },
       "tests": [
         "tests.hub.test_creation_contracts.CreationContractTests.test_opening_never_reenables_tools_or_executes_an_excluded_effect",
@@ -2471,7 +2448,7 @@
       ]
     },
     {
-      "id": "0fc9c79fc4802f49d9f9aea92784174bb9168a71ca26fa824f10f16f6675ef82:1",
+      "id": "719c88ec90bb4eaaa8264a586063a5b307ae0b0855eff85356a91ec8500533b6:1",
       "rule": "S2",
       "owner": "RAGComponent.prepare",
       "reason": "This condition permits reuse only inside matching content and preparation-fingerprint checks, when the prior graph is complete or extraction was explicitly disabled. It chooses an execution branch; it does not replace the graph flag, extraction policy or missing configuration. The owner separately validates stored document graph_complete as boolean. Reuse, changed preparation and real model receipt assertions remain mandatory.",
@@ -2481,8 +2458,8 @@
       ],
       "sources": {
         "docs/llm/checkpoints.md": "7cc6883d128d5d64d7a056b55f7422ca561f06e1fda9debad9e04acb03da1854",
-        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
-        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564",
+        "llm/components/rag/component.py": "a970e6c95ea1552c462923d587e39785c912a0fb0c61f6e208aef4ad69fbe2f6",
         "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
         "llm/components/rag/ingestion.py": "561a44e553ce32c556ecc32b1a7508e6ec1c160eb3bbca7341027391d06d0f18",
         "llm/components/rag/jobs.py": "9fb9b7da98e72441a4dc4832c67dd27456c290ec59ed8e9e39e453edf011a8c9",
@@ -2493,7 +2470,8 @@
         "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/test_rag_checkpoint_integrity.py": "0bc4dc24ab9e85cc9e0a95dd26fe9b92e71ef951abaf2d4d218a5e5910e61dd5",
-        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8"
+        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb"
       },
       "tests": [
         "tests.llm.test_rag_resilience.PersistentRAGTests.test_graph_policies_and_capability_schema",
@@ -2515,10 +2493,10 @@
       ],
       "sources": {
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
-        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
-        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564",
+        "llm/components/rag/component.py": "a970e6c95ea1552c462923d587e39785c912a0fb0c61f6e208aef4ad69fbe2f6",
         "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
-        "llm/components/rag/extraction.py": "e2e279618abcdf987826f22cab601d89c6bb82d8764b30add3ab66e762fb8b5a",
+        "llm/components/rag/extraction.py": "db346b99e8fc454a145c9da4dd22c5c4ec40f03ed072042d52ce7cd644e08aa9",
         "llm/components/rag/jobs.py": "9fb9b7da98e72441a4dc4832c67dd27456c290ec59ed8e9e39e453edf011a8c9",
         "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
@@ -2526,7 +2504,8 @@
         "tests/llm/test_rag_resilience.py": "2b5d865794ffd30428e96a2697e0d56e2d522a1dbfb0ac535893f730c3adb27b",
         "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
-        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8"
+        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb"
       },
       "tests": [
         "tests.llm.test_rag_resilience.PersistentRAGTests.test_graph_policies_and_capability_schema",
@@ -2716,7 +2695,7 @@
       "sources": {
         "docs/llm/checkpoints.md": "7cc6883d128d5d64d7a056b55f7422ca561f06e1fda9debad9e04acb03da1854",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
-        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564",
         "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
         "llm/components/rag/job_storage.py": "49232e64f71fed8b610aac4e3b5998c843bd989380697f7d1eece4d5edc40477",
         "llm/components/rag/jobs.py": "9fb9b7da98e72441a4dc4832c67dd27456c290ec59ed8e9e39e453edf011a8c9",
@@ -2727,7 +2706,8 @@
         "tests/llm/test_rag_retry_presence.py": "9559286391124f0565bd1e9acc9c0bb8fc44e7f8fd534ac90e7f114e29361cda",
         "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb"
       },
       "tests": [
         "tests.llm.test_rag_retry_presence.RAGRetryPresenceTests.test_invalid_flags_preserve_queued_job_and_all_project_files",
@@ -2750,7 +2730,7 @@
         "docs/llm/settings-consistency.md": "f75737c95f16ce97cde98f1572826da8cff5b39acf890c50deb0a6ba6aedc5e6",
         "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
         "llm/components/base.py": "d26858daf89bd1d056ea9207c8993ca1ef6fe065c41a9f5469aa98b52e43f247",
-        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/component.py": "a970e6c95ea1552c462923d587e39785c912a0fb0c61f6e208aef4ad69fbe2f6",
         "llm/core/configuration.py": "197da43bb81db097896cbcf6b2505cc27a507a5e8502ae70977d6a9fbe9e8ad6",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/core/parameters.py": "0ebaacace6e9acbc7026b6d295a04096ba2f40e82a36c55ac6883a65c054b41f",
@@ -2759,7 +2739,9 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_naming_contract.py": "51298ff4290aa101d77af6ebeff8245e3038f0027d4a2772c6a51b701d02b12b",
         "tests/llm/test_schema_ownership.py": "33f4cdd7a7b066e4acbfe7962f3734688a5ca5f751df9b2d4153d335badfe989",
-        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640"
+        "tests/llm/test_settings_contract.py": "870149e6fff5f89ccb68b8a57f76702b2eb2e26c3987d2a362239c917375a640",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564"
       },
       "tests": [
         "tests.llm.test_settings_contract.SettingsContractTests.test_common_envelope_and_no_materialized_values",
@@ -3093,15 +3075,16 @@
       ],
       "sources": {
         "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
-        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
-        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564",
+        "llm/components/rag/component.py": "a970e6c95ea1552c462923d587e39785c912a0fb0c61f6e208aef4ad69fbe2f6",
         "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
         "llm/components/rag/search.py": "2b8ad037e0a940670eb864d98ea4c1b67aefa2ce86d744c156c994135991d342",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03",
-        "tests/llm/test_unified_rag.py": "c913c36d8d91804ecb0dae365fc86cfbfca263591bb2c732e82e0700e34881bb"
+        "tests/llm/test_unified_rag.py": "c913c36d8d91804ecb0dae365fc86cfbfca263591bb2c732e82e0700e34881bb",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb"
       },
       "tests": [
         "tests.llm.test_rag_components.RAGTests.test_rerank_and_query_validation",
@@ -3119,14 +3102,15 @@
       ],
       "sources": {
         "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
-        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
-        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564",
+        "llm/components/rag/component.py": "a970e6c95ea1552c462923d587e39785c912a0fb0c61f6e208aef4ad69fbe2f6",
         "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
         "llm/components/rag/search.py": "2b8ad037e0a940670eb864d98ea4c1b67aefa2ce86d744c156c994135991d342",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03"
+        "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb"
       },
       "tests": [
         "tests.llm.test_rag_components.RAGTests.test_rerank_and_query_validation",
@@ -3146,13 +3130,14 @@
       "sources": {
         "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
         "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
-        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
-        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/README.md": "d1f82e96a8e0d325a2aa497a3fcb31a7570191feec57da6bd3c98cc73c153564",
+        "llm/components/rag/component.py": "a970e6c95ea1552c462923d587e39785c912a0fb0c61f6e208aef4ad69fbe2f6",
         "llm/components/rag/search.py": "2b8ad037e0a940670eb864d98ea4c1b67aefa2ce86d744c156c994135991d342",
         "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03"
+        "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03",
+        "llm/components/rag/prompts.py": "55d6527ba33abb8668720a184a3f222da479e185fabbfb81aa50f703750664bb"
       },
       "tests": [
         "tests.llm.test_rag_components.RAGTests.test_bm25_cache_reuses_generation_and_invalidates_on_document_update"

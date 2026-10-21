@@ -4,6 +4,7 @@ from copy import deepcopy
 import asyncio
 
 from llm.core.models import ProjectConfig
+from llm.components.rag.prompts import ExtractionFailurePolicy
 
 from ...asset.guides import SKILLS, SYSTEM_PROMPT, TEMPLATE_VERSION
 
@@ -34,7 +35,7 @@ def rag_defaults():
                    "relation_limit": 20, "relation_ranking": "source"},
         "graph": {"buffer_pool_size": 64 * 1024 * 1024, "max_num_threads": 2}},
         "policy": {"embedding_concurrency": 2, "ingestion": {"max_active": 1},
-                   "extraction": {"failure_policy": "disabled"}}}
+                   "extraction": {"failure_policy": ExtractionFailurePolicy.DISABLED.value}}}
 
 
 async def create_project(backend, title, *, config, components, conversation_storage):

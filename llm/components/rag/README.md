@@ -87,6 +87,10 @@ await rag.adelete_document("manual", expected_generation=updated["generation"],
 설정은 `ProjectConfig.parameters.components.rag`에 저장한다.
 `describe_config()`는 허용 형식만 제공한다. [전역 설정 계약](../../CONFIGURATION.md)을 따른다.
 
+추출 실패 정책과 JSON 모드의 허용 값은 `prompts.py`의 `ExtractionFailurePolicy`와
+`ExtractionJSONMode`가 소유한다. Schema, 추출 실행과 Hub 생성 프리셋은 같은 선언의
+문자열 값을 사용한다. 설정 누락의 의미와 `best_effort`가 허용하는 실패 범위는 유지한다.
+
 | 키 | 미설정 동작 |
 |---|---|
 | config.chunk_size / policy.embedding_concurrency | 문서 등록 시 configuration error (concurrency 범위 양의 정수) |
