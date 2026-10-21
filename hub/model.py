@@ -86,12 +86,23 @@ class StepSummary:
 
 @dataclass(frozen=True, slots=True)
 class RetrySummary:
+    PROVIDER: ClassVar[str] = "provider"
+    TOOL: ClassVar[str] = "tool"
+    RECOVERY: ClassVar[str] = "recovery"
+    ACTIVE: ClassVar[str] = "active"
+    WAITING: ClassVar[str] = "waiting"
+    REPAIRING: ClassVar[str] = "repairing"
+    RETRYING: ClassVar[str] = "retrying"
+    REJECTED: ClassVar[str] = "rejected"
+    ANALYZING: ClassVar[str] = "analyzing"
+    COMPACTING: ClassVar[str] = "compacting"
+
     attempt: int
     maximum: int
     retry_at: float | None = None
-    kind: str = "provider"
+    kind: str = PROVIDER
     name: str = ""
-    phase: str = "active"
+    phase: str = ACTIVE
 
 
 @dataclass(frozen=True, slots=True)

@@ -388,14 +388,6 @@
       "detail": "inline domain argument: max_retries"
     },
     {
-      "id": "a5447c8eed67e5ae533d90c5e34fe385312bd72052a5eb1cc7bc4be6453d7747:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/retries.py",
-      "symbol": "RetryMonitor.view",
-      "line": 116,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "1b7cba6aaa3d227021eb529a6fbf95622712e31ed2648a39ecbc10ef2524e8b0:1",
       "rule": "S6",
       "file": "hub/backend/interactions/questions.py",
@@ -674,30 +666,6 @@
       "symbol": "Alert",
       "line": 24,
       "detail": "inline domain assignment: status"
-    },
-    {
-      "id": "38ba70f5521cbf2052a3bf229f2626bd20bdffceb0bf1fd83ccdbf9e9951c53b:1",
-      "rule": "S3",
-      "file": "hub/widget/feedback/retry_status.py",
-      "symbol": "retry_text",
-      "line": 10,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "93d5c96d174b56ba9bf5eb9c05fa983236f0fb1fcaddaa13042c9ce56cfdedae:1",
-      "rule": "S3",
-      "file": "hub/widget/feedback/retry_status.py",
-      "symbol": "retry_text",
-      "line": 13,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "27591e83967bffcc4df7ea376027db72b5db3d09f0c8e5e797b330d453662018:1",
-      "rule": "S3",
-      "file": "hub/widget/feedback/retry_status.py",
-      "symbol": "retry_text",
-      "line": 15,
-      "detail": "inline domain comparison"
     },
     {
       "id": "aca315f18c544571de2a323b3a29a59c465bfbae947606d4406ff9983bcd7d6c:1",

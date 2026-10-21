@@ -63,11 +63,11 @@ class ProviderRecovery:
         finally:
             self.current.reset(token)
             if state is not None:
-                self.monitor.states.pop((frame.context.run.id, "recovery"), None)
+                self.monitor.states.pop((frame.context.run.id, RetrySummary.RECOVERY), None)
 
     def _show(self, state, phase, name=""):
-        self.monitor.set((state.frame.context.run.id, "recovery"), state.frame.context.run.id,
-            RetrySummary(state.attempts, state.maximum, kind="recovery", name=name, phase=phase))
+        self.monitor.set((state.frame.context.run.id, RetrySummary.RECOVERY), state.frame.context.run.id,
+            RetrySummary(state.attempts, state.maximum, kind=RetrySummary.RECOVERY, name=name, phase=phase))
 
     async def _relay(self, events, frame):
         # Bound each producer advance, not persistence in the consuming RunManager.
@@ -119,7 +119,7 @@ class ProviderRecovery:
                         yield event
 
             async def progress(result):
-                self._show(state, "compacting", f"{result.offset}/{len(item.source)}")
+                self._show(state, RetrySummary.COMPACTING, f"{result.offset}/{len(item.source)}")
 
             await self._relay(summarize_fragments(item.source, offset=0, previous_summary="", prompt=SUMMARIZE,
                 max_input_size=self.settings.recovery_input_chars, max_summary_chars=self.settings.recovery_summary_chars,
@@ -144,17 +144,17 @@ class ProviderRecovery:
         items = await asyncio.to_thread(reductions, failure, self.settings.recovery_summary_chars * 2)
         diagnosis = from_diagnostic(failure.diagnostic, origin=ErrorOrigin.PROVIDER)
         try:
-            self._show(state, "analyzing")
+            self._show(state, RetrySummary.ANALYZING)
             choice = await self._choice(state.frame.engine, state, failure.request, diagnosis, items)
             state.explanation = choice["explanation"]
             if choice["action"] != "compact" or not items:
                 raise RecoveryUnavailable("no_correction")
-            self._show(state, "compacting")
+            self._show(state, RetrySummary.COMPACTING)
             proposal = await self._compact(state.frame.engine, state, failure.request, items)
             if sum(len(value) for value in proposal.replacements.values()) >= sum(len(item.source) for item in items):
                 raise RecoveryUnavailable("not_reduced")
             state.outcome = "retrying"
-            self._show(state, "retrying")
+            self._show(state, RetrySummary.RETRYING)
             return proposal
         except (ExecutionLimitError, asyncio.CancelledError):
             raise
@@ -195,7 +195,7 @@ class ProviderRecovery:
                     and issue.classification.reason != "context"):
                 state.deadline = monotonic() + self.settings.recovery_timeout_seconds
                 try:
-                    self._show(state, "analyzing")
+                    self._show(state, RetrySummary.ANALYZING)
                     choice = await self._choice(engine, state, request,
                         from_diagnostic(issue, origin=ErrorOrigin.PROVIDER), [])
                     state.explanation, state.outcome = choice["explanation"], "no_correction"
@@ -204,8 +204,8 @@ class ProviderRecovery:
                 except Exception:
                     state.outcome = "analysis_failed"
             if state.outcome:
-                observed = self.monitor.states.get((state.frame.context.run.id, "recovery"))
-                rejected = observed is not None and observed.summary.phase == "rejected"
+                observed = self.monitor.states.get((state.frame.context.run.id, RetrySummary.RECOVERY))
+                rejected = observed is not None and observed.summary.phase == RetrySummary.REJECTED
                 outcome = "rejected" if rejected else "exhausted" if state.outcome == "retrying" else state.outcome
                 annotation = {"explanation": state.explanation, "outcome": outcome, "attempt": state.attempts}
                 # Retain the original exception/code/cause. The annotation is
@@ -215,7 +215,7 @@ class ProviderRecovery:
                 diagnostic("hub_recovery", **annotation)
             raise
         finally:
-            self.monitor.states.pop((state.frame.context.run.id, "recovery"), None)
+            self.monitor.states.pop((state.frame.context.run.id, RetrySummary.RECOVERY), None)
 
 
 class CompletionRecoveryMixin:

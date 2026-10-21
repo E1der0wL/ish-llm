@@ -657,7 +657,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -667,7 +667,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -678,7 +678,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -709,7 +710,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -719,7 +720,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -730,7 +731,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -761,7 +763,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -771,7 +773,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -782,7 +784,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -813,7 +816,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -823,7 +826,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -834,7 +837,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -865,7 +869,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -875,7 +879,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -886,7 +890,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -917,7 +922,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -927,7 +932,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -938,7 +943,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -969,7 +975,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -979,7 +985,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -990,7 +996,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1021,7 +1028,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1031,7 +1038,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1042,7 +1049,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1073,7 +1081,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1083,7 +1091,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1094,7 +1102,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1125,7 +1134,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1135,7 +1144,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1146,7 +1155,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1177,7 +1187,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1187,7 +1197,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1198,7 +1208,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1229,7 +1240,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1239,7 +1250,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1250,7 +1261,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1281,7 +1293,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1291,7 +1303,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1302,7 +1314,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1333,7 +1346,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1343,7 +1356,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1354,7 +1367,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1385,7 +1399,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1395,7 +1409,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1406,7 +1420,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1437,7 +1452,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1447,7 +1462,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1458,7 +1473,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1489,7 +1505,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1499,7 +1515,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1510,7 +1526,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1541,7 +1558,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1551,7 +1568,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1562,7 +1579,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1593,7 +1611,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1603,7 +1621,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1614,7 +1632,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1645,7 +1664,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1655,7 +1674,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1666,7 +1685,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1697,7 +1717,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1707,7 +1727,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1718,7 +1738,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1749,7 +1770,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1759,7 +1780,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1770,7 +1791,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1801,7 +1823,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1811,7 +1833,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1822,7 +1844,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1853,7 +1876,7 @@
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
         "docs/hub/structure.md": "66fd00e1bfaade5b3891a926ea6140740fbf38157e67e572dacb9bf1087fa5b4",
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
         "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
@@ -1863,7 +1886,7 @@
         "hub/ui/chat/completion.py": "062b0a8249b922d96060fb5352017515b1ce9ab83472c632cbf24df4f0b2d74c",
         "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
         "hub/ui/settings/screen.py": "d618cf1666bd678bc31f41031ffedc37c396a393f2d88149d6a58bb78965457e",
-        "hub/widget/feedback/retry_status.py": "02719da0bf44d153d3604e94d149c5707817dfcfc8cea1c268e9b2974fce370b",
+        "hub/widget/feedback/retry_status.py": "95cca77175af2a07bd92b7c1954db8ebc4876342bf7b58aeaa2bec005de1e7a7",
         "hub/widget/x11_clipboard.py": "a65ea41f4d7fc15892bba5b9bd16e93e70200156b3614aafcd7a587c42f07e7f",
         "tests/hub/test_component_managers.py": "0127a232418de0cc9181bb066acacf7a34e2d6c15913daecf793096ee8bbdadf",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
@@ -1874,7 +1897,8 @@
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -2404,12 +2428,13 @@
       "sources": {
         "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
         "docs/hub/presets-and-resume.md": "78eabdc64f5d70874f647fc521b213ace28e5d752462e584a55ce6d9db4230dd",
-        "hub/backend/execution/retries.py": "b208d1a9f683809213d85f3fac8efb697c0873746a2718e85c3ec96a36037594",
+        "hub/backend/execution/retries.py": "911a0712a5a2c463f7359e496559ad71e86c13e0c0fc3834338a56794bfeb3c4",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "llm/services/infrastructure/observability.py": "5310367996888c7ec2ee81aef6c8174eca40c93cfe48207f6a0872b4e5d49589",
-        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db"
+        "llm/services/infrastructure/OBSERVABILITY.md": "a65abc295a49e4db4add89d46390f19d6a884dc07193d03b1b8bc09841f678db",
+        "hub/model.py": "d171210a4fb57a28c6a611cfe658f79d8d586215edf4938c8feae06340671612"
       },
       "tests": [
         "tests.hub.test_error_contract.PolicyTests.test_only_backend_admitted_tools_can_be_selected_for_retry"

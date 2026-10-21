@@ -71,7 +71,7 @@ class RetryMonitor:
             if phase in ("repairing", "retrying") and type(attempt) is int and attempt > 0:
                 self.set(key, context.run.id, RetrySummary(attempt, watch.maximum,
                     monotonic() + watch.delay if phase == "retrying" else None,
-                    "tool", watch.name, "repairing" if phase == "repairing" else "waiting"))
+                    RetrySummary.TOOL, watch.name, RetrySummary.REPAIRING if phase == "repairing" else RetrySummary.WAITING))
 
     def clear_tools(self, run_id):
         for key in [key for key in self.tools if key[0] == run_id]:
@@ -84,9 +84,9 @@ class RetryMonitor:
         if event.get("kind") == ObservationKind.TOOLS.value and event.get("status") == ObservationStatus.EXECUTIONS.value:
             key = (event.get("run_id"), event.get("step_id"))
             previous = self.states.get(key)
-            if previous is not None and previous.summary.phase != "active":
+            if previous is not None and previous.summary.phase != RetrySummary.ACTIVE:
                 self.set(key, previous.run_id, replace(previous.summary,
-                    attempt=previous.summary.attempt + 1, retry_at=None, phase="active"))
+                    attempt=previous.summary.attempt + 1, retry_at=None, phase=RetrySummary.ACTIVE))
             return
 
     def observe_provider(self, event: Diagnostic) -> None:
@@ -95,10 +95,10 @@ class RetryMonitor:
         if watch is None:
             return
         if event.code in ("completion_recovery", "completion_recovery_rejected"):
-            state = self.states.get((watch.run_id, "recovery"))
+            state = self.states.get((watch.run_id, RetrySummary.RECOVERY))
             if state is not None:
-                self.set((watch.run_id, "recovery"), watch.run_id,
-                    replace(state.summary, phase="retrying" if event.code == "completion_recovery" else "rejected", retry_at=None))
+                self.set((watch.run_id, RetrySummary.RECOVERY), watch.run_id,
+                    replace(state.summary, phase=RetrySummary.RETRYING if event.code == "completion_recovery" else RetrySummary.REJECTED, retry_at=None))
             return
         if event.code != "provider_retry":
             return
@@ -111,13 +111,13 @@ class RetryMonitor:
                 or not isinstance(call_id, str) or not call_id or watch.call_id not in ("", call_id)):
             return
         watch.call_id = call_id
-        self.states.pop((watch.run_id, "recovery"), None)
+        self.states.pop((watch.run_id, RetrySummary.RECOVERY), None)
         self.set(id(watch), watch.run_id, RetrySummary(attempt - 1,
             RetryPolicy(watch.policy.get("max_attempts")).attempts, monotonic() + delay))
 
     def view(self, run_id: str) -> RetrySummary | None:
         states = [item.summary for item in self.states.values() if item.run_id == run_id]
-        recovery = next((state for state in states if state.kind == "recovery"), None)
+        recovery = next((state for state in states if state.kind == RetrySummary.RECOVERY), None)
         if recovery is not None:
             return recovery
         # Parallel Graph agents keep separate calls. Finishing one must not
@@ -176,7 +176,7 @@ class RetryObservationMixin:
                         watch.completion_id = completion.id
                         watch.attempt += 1
                         if watch.attempt > 1:
-                            monitor.states.pop((watch.run_id, "recovery"), None)
+                            monitor.states.pop((watch.run_id, RetrySummary.RECOVERY), None)
                             monitor.set(id(watch), watch.run_id, RetrySummary(
                                 watch.attempt, RetryPolicy(watch.policy.get("max_attempts")).attempts))
                     yield event

@@ -15,6 +15,55 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c36: Hub 재시도 표시 선언 — 로컬 Level 2
+
+RetrySummary가 표시 kind 3개·phase 7개를 ClassVar 문자열로 소유하고 RetryMonitor,
+ProviderRecovery 및 retry_text가 같은 값을 참조한다. 네 파일은 선언/import/참조를
+복원하면 원문이 같고 실제 dataclass 6개 필드·타입·기본값·slots·직렬화가 같다. 외부 표시
+값도 계속 허용한다. Backend 이벤트 phase와 RecoveryState outcome은 각 소유 계약을
+유지한다. 실행·시도 수·기한·승인·예산·효과 판정 및 시험은 변경하지 않았다. 이전 backend의
+retry_text 표시 부분만 참고했고 코드나 과거 검증을 이식하지 않았다.
+
+S3 4건을 실제 제거했다. 기존 감사 25건의 변경 의존성은 원문 복원으로 재검토하고 나머지
+source pin·사유·계약·시험을 유지했다. RetrySummary 선언을 근거에 연결했으며 관련 정확한
+시험 ID 10개가 현재 선택 실행에서 통과했다. 새 예외 분류는 없다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 60/60/60 | 0/0/0 | 10.469초 | 0 |
+| 집중 HUB | 61/61/61 | 0/0/0 | 86.210초 | 0 |
+| 추가 Level 2 LLM | 139/139/139 | 0/0/0 | 50.396초 | 0 |
+| 추가 Level 2 HUB | 34/34/34 | 0/0/0 | 50.248초 | 0 |
+
+각 실행의 expected failure·unexpected success·missing·unexpected·duplicates도 0이다.
+집중 검증은 실제 재시도·재승인/취소·Provider 복구·관측/화면 소비자를 포함한다. 추가 검증은
+공통 안전성 9개 모듈·감사 검사기와 설정/오류/언어·X11 소비자를 포함한다. 선택 집합은
+중복되지 않고 현재 전체 발견 목록 2101/577개가 같다. 제품/시험704개와 환경·의존성·입력
+864개가 같고 감사 Fixture 2개만 바뀌어 감사 시험은 새로 실행했다. 선택 실행을 전체 실행으로
+합산하지 않았다. R3 mutation True/outer exit 0, 정적 raw205·reviewed118·미해결87
+(S3 69·S6 18), new/stale/review 오류·필수 S1/S2/S4/S5 미해결 0/exit 0, 문서 오류0/exit0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c36-focused/llm.json --modules tests.llm.test_retry tests.llm.test_provider_diagnostics tests.llm.test_observability
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c36-focused/hub.json --modules tests.hub.test_retry_ui tests.hub.test_retry_observations tests.hub.test_tool_retry tests.hub.test_provider_recovery tests.hub.test_error_contract tests.hub.test_snapshot_projection
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c36-level2/llm.json --modules tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions tests.llm.test_architecture_checks tests.llm.test_architecture_reviews
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c36-level2/hub.json --modules tests.hub.test_general_options tests.hub.test_settings tests.hub.test_component_managers tests.hub.test_x11_clipboard tests.hub.test_language_presence
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c36-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c36-level2/aux/docs.json
+```
+
+실행 HEAD `eb9ce16e720b7b0be7fadf0939094199d552d895`에 c36 변경을 더했다. 소스 hash `865e90ade1ef622526983085ea191cb8c1b7613d2cf4349ed3fd8bff106e8078`,
+입력/환경 hash `eed7e7f9714982a2295dd2dab829f7e04bf56cb6d2f3534779257c57433c1f63`가 실행 전후 같다. Python3.12.14·136 의존성·env5개와
+host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다. 원시 명령·exit·ID·log·manifest와 재사용 증거는
+`/workspace/llm-clean-resume/p1/c36-level2/` 및 `c36-focused/`에 보존했다. 외부 준비 도구의 잘못된 recovery 발생 수
+예상은 제품 변경 전에 수정·보존했으며 제품 시험 실패가 아니다.
+
+결과 문서를 먼저 갱신한 뒤 소스 동일성·staged diff를 확인해 로컬 커밋한다.
+**이번 소단계는 전체 회귀를 실행하지 않았다.** 같은 표시 값을 제공하는 참조 변경으로
+영향을 한정했으며, 후속 관련 소단계와 묶은 Level3에서 전체 회귀 후 Push한다.
+P1 최종 S1–S5·A–F는 미완료이며 원격 CI 실제 결과도 미확인이다. 보호 브랜치와 PR은 유지한다.
+
 ## P1-c35: 대화 선택 모드의 Project 정책 선언 — c33–c35 묶음 Level 3
 
 순수 Project 정책 계약 `core/policies.py`에 ContextMode 5개를 단일 선언했다. Project
