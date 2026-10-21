@@ -15,6 +15,55 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c39: 명시 Tool 계약·플러그인·기술/UI 선언 — 로컬 Level 2
+
+14개 발생을 개별 분류했다. file_read의 실제 repairable path 계약, 격리 검사/화면 저장/
+이미지 변환의 기술 worker 수, 호스트 로더가 literal mapping으로 요구하는 두 플러그인
+메타데이터 버전, 큐 bridge polling, 보조 복구 호출의 명시 SDK retry 비활성화, 편집기 cleanup
+유예·재시작 대기 안내·완성 메뉴 높이·키 입력 지연과 번역 키가 대상이다. 실행 권한·예산·
+저장 형식·상태 전이를 바꾸지 않았고 원시 finding과 제품·시험·검사 규칙은 유지했다.
+
+각 실제 owner의 현행 계약·소스 hash·구체적 시험을 연결했다. 편집기 강제 kill과 재시작
+대기 안내의 정확한 타이머 분기를 기존 시험이 전수 검증한다고 주장하지 않는다. SDK wire
+해석의 S6와 별도 오류 코드 비교는 여전히 미해결이다. 외부 준비 단계의 잘못된 ToolContract
+파일 경로는 실제 registry owner를 찾아 수정하고 실패 기록을 보존했다. 제품 시험 실패나
+코드 변경은 없었다. 과거 backend 코드·시험 결과를 이식하지 않았다.
+
+새 감사 검사기 시험 23개를 발견/시작/통과했다(exit 0, 5.055초).
+현재 전체 discovery LLM 2101·Hub 577개를 새로 확인했다. c38의 단일 전체 실행에서
+관련 owner/소비자 모듈 전체 및 공통 안전성 9개 모듈을 선택해 LLM
+213개·Hub 71개의 통과 결과를 재사용했다.
+새 분류의 구체적 시험 ID 23개 모두 이 집합에 포함된다. 실제 효과·장애 주입·승인·예산·
+Resume·원본 보존 검증을 유지했다. 원실행 exit 0이며 failure/error/Skip·expected failure·
+unexpected success·missing·unexpected·duplicates는 각 실행에서 모두 0이다.
+새 감사 시험과 재사용 ID는 겹치지 않는다. 이전 감사 시험은 Fixture 변경으로 재사용하지 않았다.
+
+704 Python 소스·시험은 c38와 동일하고 입력 866개 중 863개가 같다. 차이는 이전 결과
+문서와 감사 Fixture 두 개뿐이다. 선택 시험이 읽는 제품·Fixture, 136 의존성·host·바이너리·
+env 5개가 동일함을 대조했다. 다른 HEAD는 소스 hash로 연결했다. 선택 모듈의 현재 ID
+전체가 원실행 pass 집합과 정확히 일치하며 명령·report hash·원실행 HEAD·개별 ID를
+`/workspace/llm-clean-resume/p1/c39-level2/reuse-proof.json`에 기록했다. 재사용 결과를 새 전체 실행으로 합산하지 않았다.
+
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 203·reviewed 155·미해결 48
+(S3 30·S6 18), new/stale/review 오류·필수 S1/S2/S4/S5 미해결 0/exit 0이다.
+문서 검사 오류 0/exit 0이다. 실행 명령은 다음과 같다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c39-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c39-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c39-level2/aux/docs.json
+```
+
+실행 HEAD `5c0dc0d06de0a077c0c935f9b118f1584fd6d961`에 감사 Fixture 변경을 더했다. 소스 hash
+`96c0d6d1e0375aa4ec66f56f54679f0865b5616b7d35e5b0adab42e9bf6a9fd8`, 입력/환경 hash `ab6ac368aa1a290e8258edd9ca5e3ba948247be6b068f2e514379c3b0b594311`는 실행 전후 같다.
+Python 3.12.14·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다. 위 경로에 원시 로그·명령·exit·
+manifest를 보존하고 문서를 먼저 갱신한 뒤 소스-커밋 동일성과 staged diff를 확인해 로컬 커밋한다.
+**이번 소단계에서는 전체 회귀를 새로 실행하지 않았다.** 제품 변경이 없는 개별 감사 판정이며
+감사 검증은 새로 수행하고 관련 안전성은 동일성이 증명된 결과를 사용했다. 후속 관련 변경과
+묶은 Level 3에서 전체 회귀 후 Push한다. P1 최종 S1–S5와 A–F는 미완료이며 원격 CI는
+미확인이다. main·backend·Draft PR #1은 변경하지 않는다.
+
 ## P1-c38: Project 핵심 경로 소유 선언 — c36–c38 묶음 Level 3
 
 ProjectPaths가 기존 sessions/state/logs/cache 자식 이름과 그 예약 집합을 소유한다.

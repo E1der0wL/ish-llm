@@ -124,22 +124,6 @@
       "detail": "inline domain assignment: state"
     },
     {
-      "id": "22f6ba69525c8a12645a763c25698238acbf6d51eb5371c682c9fd2712dd3808:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/catalog.py",
-      "symbol": "BuiltinTools.__init__",
-      "line": 89,
-      "detail": "inline domain argument: retry_fields"
-    },
-    {
-      "id": "0db670a771a2b84e47aa4fc36a7c1823d0c57c6b3a0e7764a620995ec1326972:1",
-      "rule": "S3",
-      "file": "llm/components/tools/process.py",
-      "symbol": "inspect_tool",
-      "line": 226,
-      "detail": "inline domain argument: max_workers"
-    },
-    {
       "id": "721e395c95bc665fba6ea6ae7e085f83906e42b602bd65bbbfc242c1052ce429:1",
       "rule": "S3",
       "file": "llm/core/configuration.py",
@@ -186,22 +170,6 @@
       "symbol": "LoopEngine._iterate",
       "line": 401,
       "detail": "SDK-shaped field lookup outside Provider package"
-    },
-    {
-      "id": "1911644bd2b0865cdb951b5024e8dd78001cb62c17c7de36828d5870f455a6aa:1",
-      "rule": "S3",
-      "file": "llm/llm.py",
-      "symbol": "<module>",
-      "line": 9,
-      "detail": "inline domain field: version"
-    },
-    {
-      "id": "ee7254b73e289bb5acc59393973f599b1b427a59e2356dbc630bf993e6cb3a04:1",
-      "rule": "S3",
-      "file": "llm/providers/litellm.py",
-      "symbol": "stream_completion.send",
-      "line": 180,
-      "detail": "inline domain argument: timeout"
     },
     {
       "id": "b55ce89acc69519271bd331499ab9b7d1e5b99b611738a593aad6a1a1d8d27d3:1",
@@ -276,14 +244,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "abad772c0b32e80c81b80853950ab6c4791889d7f036cc3c6eba3ae3dfe50b6e:1",
-      "rule": "S3",
-      "file": "hub/backend/execution/recovery_model.py",
-      "symbol": "model_events",
-      "line": 35,
-      "detail": "inline domain argument: max_retries"
-    },
-    {
       "id": "1b7cba6aaa3d227021eb529a6fbf95622712e31ed2648a39ecbc10ef2524e8b0:1",
       "rule": "S6",
       "file": "hub/backend/interactions/questions.py",
@@ -324,14 +284,6 @@
       "detail": "inline domain field: status"
     },
     {
-      "id": "aaa14ad7fe9a9f392d9d5e1c965dcc83457c67620ddd8b1259942f248aaa9db8:1",
-      "rule": "S3",
-      "file": "hub/config/view_state.py",
-      "symbol": "ViewStateWriter.__init__",
-      "line": 58,
-      "detail": "inline domain argument: max_workers"
-    },
-    {
       "id": "244de782601f3e090d325a32a23e3f29e4d47d9c7039742b0bd8e396cce1f220:1",
       "rule": "S6",
       "file": "hub/errors/adapters.py",
@@ -346,14 +298,6 @@
       "symbol": "from_diagnostic",
       "line": 39,
       "detail": "SDK-shaped field lookup outside Provider package"
-    },
-    {
-      "id": "54416a4791bbbf13c999618fc9f3c82385449327524037de692c918050096a8d:1",
-      "rule": "S3",
-      "file": "hub/hub.py",
-      "symbol": "<module>",
-      "line": 5,
-      "detail": "inline domain field: version"
     },
     {
       "id": "1aa33053288e143cda80d250fe04f30b4c87605ca4c26b95c9da352b77f7ec02:1",
@@ -372,14 +316,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "e79bf47849704a645de96a96b9df86df975fa84630b586fa9fd9b03f5bddd3e9:1",
-      "rule": "S3",
-      "file": "hub/ui/error_presentation.py",
-      "symbol": "<module>",
-      "line": 16,
-      "detail": "inline domain field: approval"
-    },
-    {
       "id": "c2439d3b66452c8cf00c700b12bf2882dad08b3f55528fd7ce5da1359d29f4d7:1",
       "rule": "S6",
       "file": "hub/ui/error_presentation.py",
@@ -394,38 +330,6 @@
       "symbol": "failure_text",
       "line": 85,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "dde496f25b1019b8b2094f49965b05e0160ee06f52a21b80df10bef8fdb2a7dc:1",
-      "rule": "S3",
-      "file": "hub/ui/error_presentation.py",
-      "symbol": "failure_text",
-      "line": 90,
-      "detail": "inline domain field: step_timeout"
-    },
-    {
-      "id": "b0b3332174a4f42178c31e5aba0544bee3f057f6c0ed24820d8f3003c5b2a303:1",
-      "rule": "S3",
-      "file": "hub/ui/host.py",
-      "symbol": "edit_text",
-      "line": 31,
-      "detail": "inline domain argument: timeout"
-    },
-    {
-      "id": "5258a7d297744b905160fc82f70c2021897bba6056009a54f790c584fdc37cde:1",
-      "rule": "S3",
-      "file": "hub/ui/output/images.py",
-      "symbol": "ImageRenderer.render",
-      "line": 96,
-      "detail": "inline domain argument: max_workers"
-    },
-    {
-      "id": "3ead4c2dfc185446ccc66901883e789734119b493125405b30a2dc3e072e806d:1",
-      "rule": "S3",
-      "file": "hub/ui/restart.py",
-      "symbol": "bind_restart.restart",
-      "line": 23,
-      "detail": "inline domain argument: timeout"
     },
     {
       "id": "4011ac8d7bed505e70db5443e58a6a4e62a3d501c60422ad34127ad2f99a12f2:1",
@@ -458,22 +362,6 @@
       "symbol": "GlobalPage.body_widgets",
       "line": 290,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "d630ef0c420734e6ddd975e2886a40239fa9677f9ef4ebf4d790864819dfb14e:1",
-      "rule": "S3",
-      "file": "hub/ui/view.py",
-      "symbol": "HubView.__init__",
-      "line": 173,
-      "detail": "inline domain argument: max_height"
-    },
-    {
-      "id": "f5defc5c69312895f47bbaf46ba524ccab7addf49271e9e8d2dab73c00fe6783:1",
-      "rule": "S3",
-      "file": "hub/ui/view.py",
-      "symbol": "HubView.show",
-      "line": 383,
-      "detail": "inline domain assignment: timeoutlen"
     },
     {
       "id": "aca315f18c544571de2a323b3a29a59c465bfbae947606d4406ff9983bcd7d6c:1",

@@ -4642,6 +4642,351 @@
       "tests": [
         "tests.hub.test_popup_completion.PopupCompletionTests.test_popup_paths_complete_at_cursor_inside_host_float_and_after_resize"
       ]
+    },
+    {
+      "id": "22f6ba69525c8a12645a763c25698238acbf6d51eb5371c682c9fd2712dd3808:1",
+      "rule": "S3",
+      "owner": "BuiltinTools.__init__",
+      "reason": "This is the actual file_read ToolContract registration declaring path as its only repairable argument. It is not a second retry policy or permission grant. ToolExecutor validates the proposed path, configured attempts and fresh authorization; other file Tools keep the original read/mutation contracts.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/builtin-tools.md",
+        "docs/hub/tool-retry.md"
+      ],
+      "sources": {
+        "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/builtin-tools.md": "26feabbb4d8fac63e5613922e77434301cdf7f88e491b1aef00393f92f7afa87",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/components/tools/builtin/catalog.py": "615c1d2cc1772c2243491d4aeb1f9f50214a5a148145945c4195d50c5f697e23",
+        "llm/components/tools/builtin/files.py": "485ff95cffcd6dbbf65d6a93ed8a47575549fb8b4e6ae684b3f67f674d39bf94",
+        "llm/components/tools/registry.py": "b58b9f9f6aebf111c183dcc5cc4c7591148c425f2698ca97214f36888b79e320",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/hub/test_tool_retry.py": "d0f708205afb23214f9f96fa4aa8ba9816f05fea513a26d2860c19d5f9d27e5d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_retry.py": "6d0973f02c8aa74ab33c930d6f10e1b4773259ee9495ac060ff8c38b35f20b97"
+      },
+      "tests": [
+        "tests.llm.test_retry.ToolRetryTests.test_builtin_missing_file_can_be_corrected_without_weakening_path_protection",
+        "tests.hub.test_tool_retry.ToolRetryTests.test_changed_arguments_require_fresh_approval_and_resume_only_once"
+      ]
+    },
+    {
+      "id": "0db670a771a2b84e47aa4fc36a7c1823d0c57c6b3a0e7764a620995ec1326972:1",
+      "rule": "S3",
+      "owner": "inspect_tool",
+      "reason": "A single temporary executor worker bridges this synchronous inspection API when an event loop already runs. It transports one inspection request to the existing isolated worker, not a model/Tool call quota or permission setting. Worker fingerprint, approval-before-spawn and process cleanup contracts remain unchanged.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/components/tools/README.md",
+        "docs/llm/runtime-reliability.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "llm/components/tools/README.md": "43e90380e8a99b6a2656fce5a441e42c03c4b3fdba900186246f9cbf7c784d94",
+        "llm/components/tools/_worker.py": "c8deb2e1943782875045c87c06b05d96196c6bcfb715955502fcb517b16c4565",
+        "llm/components/tools/process.py": "fe9acf0b2cdcadcc741a04b2767d5841b19bd31aa02014a58fbca004f4c43f8f",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_tool_workers.py": "c506416ee1fd65b534d825cc0761131425bc7a597b228cbbc4d9c82812a8359c"
+      },
+      "tests": [
+        "tests.llm.test_tool_workers.WorkerTests.test_dynamic_signature_cannot_change_between_inspection_and_execution",
+        "tests.llm.test_tool_workers.WorkerTests.test_approval_before_spawn_and_deny",
+        "tests.llm.test_tool_workers.WorkerTests.test_cancel_prepare_terminates_inspector"
+      ]
+    },
+    {
+      "id": "1911644bd2b0865cdb951b5024e8dd78001cb62c17c7de36828d5870f455a6aa:1",
+      "rule": "S3",
+      "owner": "<module>",
+      "reason": "PLUGIN_META at this plugin entry point is the actual owning release metadata declaration. The host loader requires a literal mapping before loading dependencies. This version is neither a storage schema version nor a legacy Reader branch; the independent llm and hub plugins each own their metadata.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/llm.py": "52006ff8ff4d4a7eb7e08e15a5eb7d7b01df77cc58e8b242295ebaed2032f83a",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_plugin.py": "c55a40ad30911cec04857264acad69c1a5d8bf9359658ed76c0f8e72076a4722"
+      },
+      "tests": [
+        "tests.llm.test_plugin.PluginEntryTests.test_metadata_is_a_literal_at_entry_point",
+        "tests.llm.test_plugin.PluginEntryTests.test_real_platform_loader_and_fresh_worker_import"
+      ]
+    },
+    {
+      "id": "ee7254b73e289bb5acc59393973f599b1b427a59e2356dbc630bf993e6cb3a04:1",
+      "rule": "S3",
+      "owner": "stream_completion.send",
+      "reason": "The 0.05-second future wait is the local queue bridge polling cadence so a stopped consumer releases a pending put. It does not set an SDK request timeout, execution deadline or retry attempt. Backpressure and eventual close preserve accepted output and capacity ownership.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "llm/providers/README.md",
+        "docs/llm/runtime-reliability.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "llm/providers/README.md": "53fa384b33bec48d4c402a812e9e5747000ec036cb8df11ab250e8bac83c7aac",
+        "llm/providers/litellm.py": "cc766af4ddb5c0efa1de28039dc960f62c20f3f53c4eea491fed8ff1536aca52",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_loop.py": "44a4539d8a15ee90d77909888c5d146dc6c7324bee8ba5c692ceb4eaae18e57c",
+        "tests/llm/test_operational_storage.py": "37bd54dc01509c02cd677cafd666ce16c55d135a12ea73aaac3b3855c6921707"
+      },
+      "tests": [
+        "tests.llm.test_loop.StreamBridgeTests.test_bounded_buffer_and_consumer_close",
+        "tests.llm.test_operational_storage.ProviderCapacityTests.test_cancel_retains_slot_until_blocked_call_and_close_finish"
+      ]
+    },
+    {
+      "id": "abad772c0b32e80c81b80853950ab6c4791889d7f036cc3c6eba3ae3dfe50b6e:1",
+      "rule": "S3",
+      "owner": "model_events",
+      "reason": "Zero is the explicit owning Application choice disabling nested SDK retries on an auxiliary recovery request. It consumes the existing normal Run/Step usage boundary and cannot reset the parent attempt budget. This S3 review does not approve SDK wire interpretation under S6, which remains pending for stage A.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/provider-recovery.md",
+        "docs/hub/tool-retry.md"
+      ],
+      "sources": {
+        "docs/hub/provider-recovery.md": "9227eab9ea65cc90a0331736fedbbbc981e62b0441746ec2c83b25b4c855099d",
+        "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/backend/execution/provider_recovery.py": "812c029e24679c5374df3ece1030b74725c7b743a755b5cb7b92bb89b45d5be4",
+        "hub/backend/execution/recovery_model.py": "b7d7683a2016eb2efff562f2ca11678c42faaae0a1bc9a344b72e967e4914037",
+        "hub/backend/tools/retry.py": "5c901d8f1dc48e067cb94720391a959876ae6ebfd0fe7b0e910078ca013fdde9",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/hub/test_provider_recovery.py": "502780de5db3801ac48d4064e6c1a59b847300f9b83b169bfad6a5458f35b2ad",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_provider_recovery.ProviderRecoveryTests.test_context_recovery_preserves_run_tool_receipt_and_original_output",
+        "tests.hub.test_provider_recovery.ProviderRecoveryTests.test_exhausted_provider_budget_does_not_start_compaction",
+        "tests.hub.test_provider_recovery.ProviderRecoveryTests.test_cancel_during_analysis_never_sends_corrected_request"
+      ]
+    },
+    {
+      "id": "aaa14ad7fe9a9f392d9d5e1c965dcc83457c67620ddd8b1259942f248aaa9db8:1",
+      "rule": "S3",
+      "owner": "ViewStateWriter.__init__",
+      "reason": "The single executor lane is owned by ViewStateWriter to serialize/coalesce UI position reads and writes. It is not a backend execution quota. A blocked write does not block the caller; close drains and persists the latest captured position.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/config/store.py": "a2edcbc9469a8f951ad3fecb25f57c6349b0e1973a8d99251e33eef83d939bbc",
+        "hub/config/view_state.py": "00fcdf0f3631eb76f01feb1c4d26655d6d49750d960c96c40100c0c309a541dd",
+        "tests/hub/test_question_tools.py": "322a417b3b21b613dbfac168e05254ccd764e57c11c83012231a9529c18aad39",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_question_tools.QuestionToolTests.test_slow_view_save_does_not_block_caller_and_flushes_latest"
+      ]
+    },
+    {
+      "id": "54416a4791bbbf13c999618fc9f3c82385449327524037de692c918050096a8d:1",
+      "rule": "S3",
+      "owner": "<module>",
+      "reason": "PLUGIN_META at this plugin entry point is the actual owning release metadata declaration. The host loader requires a literal mapping before loading dependencies. This version is neither a storage schema version nor a legacy Reader branch; the independent llm and hub plugins each own their metadata.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/hub.py": "14147cb25c588c2b1cd3d73f26a7db0675c3184cc92bcae4c146a03128c1f3c5",
+        "tests/hub/test_plugin.py": "42db7e3e8ee6682b16c9171d846c8c1f50fa6afc0fa98accc69c1827389fc8cc",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_plugin.PluginTests.test_real_loader_resolves_llm_dependency_from_deployment_tree"
+      ]
+    },
+    {
+      "id": "e79bf47849704a645de96a96b9df86df975fa84630b586fa9fd9b03f5bddd3e9:1",
+      "rule": "S3",
+      "owner": "<module>",
+      "reason": "This is a localized permission/approval guidance key chosen from an existing classified reason. It is presentation vocabulary, not an error classifier, timeout duration or recovery authorization. Raw diagnostic evidence is retained; the separate input-code comparison remains outstanding.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/error-handling.md",
+        "docs/llm/shared-contracts.md"
+      ],
+      "sources": {
+        "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/shared-contracts.md": "3936c5ad645623c175dd7e8cd6703e60c418b9c227e7d8922c86227ec60f6089",
+        "hub/errors/adapters.py": "c3a445cbd40b6d7208f820ad3098e9654c6cf8c9995cfa79943f134728113a70",
+        "hub/errors/contracts.py": "1e264c9d7520b770cc33d46016a62a08e99f330acad3dceb6fc1468d684345e1",
+        "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
+        "hub/locales/ko.py": "291abc692fa95e1359aef905c093813106a472e558b5ebe8618cd4c228b1aad7",
+        "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
+        "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_error_contract.ContractTests.test_model_annotation_is_not_classification_or_executable_xml",
+        "tests.hub.test_error_contract.ContractTests.test_rendering_does_not_truncate_stored_evidence"
+      ]
+    },
+    {
+      "id": "dde496f25b1019b8b2094f49965b05e0160ee06f52a21b80df10bef8fdb2a7dc:1",
+      "rule": "S3",
+      "owner": "failure_text",
+      "reason": "This is a localized Step timeout guidance key chosen after the backend supplied step_timeout. It is presentation vocabulary, not an error classifier, timeout duration or recovery authorization. Raw diagnostic evidence is retained; the separate input-code comparison remains outstanding.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/error-handling.md",
+        "docs/llm/shared-contracts.md"
+      ],
+      "sources": {
+        "docs/hub/error-handling.md": "353ca3ab294e76204afdc92066374396c79b32ab37763391e36771e78139c555",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/shared-contracts.md": "3936c5ad645623c175dd7e8cd6703e60c418b9c227e7d8922c86227ec60f6089",
+        "hub/errors/adapters.py": "c3a445cbd40b6d7208f820ad3098e9654c6cf8c9995cfa79943f134728113a70",
+        "hub/errors/contracts.py": "1e264c9d7520b770cc33d46016a62a08e99f330acad3dceb6fc1468d684345e1",
+        "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
+        "hub/locales/ko.py": "291abc692fa95e1359aef905c093813106a472e558b5ebe8618cd4c228b1aad7",
+        "hub/ui/error_presentation.py": "5155a2979fa916832a416d562fe09361dbc22b417405a1689d1f907f48c73d92",
+        "tests/hub/test_error_contract.py": "4f6298312695a152ec0402500af265c3681564b4eb8c5a3872bb70701b0d3d8d",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_error_contract.ContractTests.test_model_annotation_is_not_classification_or_executable_xml",
+        "tests.hub.test_error_contract.ContractTests.test_rendering_does_not_truncate_stored_evidence"
+      ]
+    },
+    {
+      "id": "b0b3332174a4f42178c31e5aba0544bee3f057f6c0ed24820d8f3003c5b2a303:1",
+      "rule": "S3",
+      "owner": "edit_text",
+      "reason": "Two seconds is the editor process cleanup grace period between terminate and kill, followed by awaiting process exit. It neither limits a model/Tool run nor abandons cleanup. Existing editor argv/error/file-cleanup tests are referenced; no direct exhaustive forced-kill timing test is claimed.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/operations-and-ui-settings.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/operations-and-ui-settings.md": "88661b1c7c9007c52a4b0f0166639b427bd1f3d652385f74b1c9856db3e7fc2d",
+        "hub/ui/host.py": "b129e849b3246c7317d5fd6be1036ab176134cc45c026e3e3be2b4de4f141a1e",
+        "hub/ui/settings/navigation.py": "dfea7f751905d439560dc3ab324df9db49abef2dee31dc3cd58efa4be50675ef",
+        "tests/hub/test_settings_editor.py": "7679b0dacd0689bfb1d04ae69875bd124e09f8ff9d91f99ceddc7ca3d86b0aac",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_settings_editor.SettingsEditorTests.test_editor_process_argv_result_failure_and_cleanup",
+        "tests.hub.test_settings_editor.SettingsEditorTests.test_e_uses_applied_editor_and_preserves_draft_on_failure"
+      ]
+    },
+    {
+      "id": "5258a7d297744b905160fc82f70c2021897bba6056009a54f790c584fdc37cde:1",
+      "rule": "S3",
+      "owner": "ImageRenderer.render",
+      "reason": "Two workers is the local bounded background image-rendering pool owned by ImageRenderer. It does not authorize network/file Tool effects or configure model concurrency. Existing path/artifact validation, pixel bounds, generation invalidation and close behavior remain intact.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/hub/completion-display.md"
+      ],
+      "sources": {
+        "docs/hub/completion-display.md": "440c6a66d0625124e602e950df3ae7bd13e1d04fd0626a4d04819759c6e03864",
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/ui/output/images.py": "d61b04b8069bd7fd005c0d2337ce1e4f77bb6b8e7fe8cc7f4039c3bc7939deb5",
+        "hub/ui/output/registry.py": "862ee3e25accbfc060725c8998eaf6a5f439e1dbd273b0c92176305e61c1edcc",
+        "tests/hub/test_output.py": "329b711cd68df2df272ced461a6163b4178235a9a1e19fc2a294256207a06535",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_output.OutputTests.test_real_image_background_conversion_cached_width_and_error_fallback"
+      ]
+    },
+    {
+      "id": "3ead4c2dfc185446ccc66901883e789734119b493125405b30a2dc3e072e806d:1",
+      "rule": "S3",
+      "owner": "bind_restart.restart",
+      "reason": "Ten seconds controls when the restart UI displays a waiting notice. Shielded cleanup is still awaited after the notice, so it is not an execution deadline or permission to restart before cleanup. Existing actual restart/command cleanup tests do not claim exhaustive notice-timer coverage.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md",
+        "docs/llm/runtime-reliability.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/runtime-reliability.md": "f6b96a05a7e97890e2d47f135d452dc3474534cd25259c0dcec2eb24784da1fd",
+        "hub/backend/worker.py": "80ab4b67b90f8cd26fa4fedca14030920f95c51523f9ed37256c9dc3a53b4ece",
+        "hub/ui/restart.py": "e396484e65a1cc796afba93967e163a4a77dfd6fee25e7927f319d415ab7ad48",
+        "tests/hub/test_settings_restart.py": "cd9b7b208a85c9097335a592dd51c7b1f17f71351c1528010b8c58115e776bdb",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_settings_restart.RestartUITests.test_restart_cancels_component_command_and_waits_for_cleanup",
+        "tests.hub.test_settings_restart.RestartUITests.test_restart_interrupts_active_run_and_cancels_queue_without_execution"
+      ]
+    },
+    {
+      "id": "d630ef0c420734e6ddd975e2886a40239fa9677f9ef4ebf4d790864819dfb14e:1",
+      "rule": "S3",
+      "owner": "HubView.__init__",
+      "reason": "Eight is the local completion popup maximum visible height, not a data retention bound or execution policy. PTK keeps the completion collection and scroll state; this occurrence only sizes its viewport.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/ui/input/bindings.py": "29c947df2175fdc470b2027ebb77dbc627424d61320a8b483a74680fae1d2d5a",
+        "hub/ui/view.py": "619e653597969e3f133778082db24391ac6d26c3db3984e312c5d1cd98af8d7a",
+        "tests/hub/test_popup_completion.py": "a62db6aee465a0a8ea3887d90a8405972c703c811c7ce987f98982766728c30c",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_popup_completion.PopupCompletionTests.test_popup_paths_complete_at_cursor_inside_host_float_and_after_resize"
+      ]
+    },
+    {
+      "id": "f5defc5c69312895f47bbaf46ba524ccab7addf49271e9e8d2dab73c00fe6783:1",
+      "rule": "S3",
+      "owner": "HubView.show",
+      "reason": "The 0.02-second values are Hub-owned PTK key-sequence decoding latency while the view is active. The original host values are restored on minimize/close. Escape/Alt navigation neither grants execution nor interrupts a Run implicitly.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/architecture-reviews.md"
+      ],
+      "sources": {
+        "docs/llm/architecture-reviews.md": "0e6c254f02ce1ebef94ce9f308ba5aa85ee97a6e8023a4b25f972a8193c1b3bd",
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/ui/input/bindings.py": "29c947df2175fdc470b2027ebb77dbc627424d61320a8b483a74680fae1d2d5a",
+        "hub/ui/view.py": "619e653597969e3f133778082db24391ac6d26c3db3984e312c5d1cd98af8d7a",
+        "tests/hub/test_escape_navigation.py": "5475e1965d78146fffa6b18d5d092500511974489b6eb2aa04f9367a43e5949b",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_escape_navigation.EscapeNavigationTests.test_panel_stop_alt_scope_and_host_timeouts"
+      ]
     }
   ]
 }
