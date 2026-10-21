@@ -35,7 +35,8 @@ def create_backend(config: "HubConfig"):
     general = GeneralSettings(**PreferencesStore(anchor).load().get("general", {}))
     from .execution.provider_recovery import ProviderRecovery, CompletionRecoveryMixin
     from llm.engines.loop import LoopEngine
-    recovery = ProviderRecovery(general, monitor, general.language or config.language)
+    language = config.language if general.language == "" else general.language
+    recovery = ProviderRecovery(general, monitor, language)
     diagnostics = ProviderDiagnostics(error_details=True,
         request_summary=general.provider_request_summary, max_detail_chars=general.provider_max_detail_chars)
     factories = {"loop": HubLoopEngine, **(config.engine_factories if config.engine_factories is not None else {})}

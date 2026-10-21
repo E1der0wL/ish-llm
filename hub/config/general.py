@@ -32,10 +32,10 @@ class GeneralSettings:
         workspace_path(self.workspace_root)
         from ..locales import Language, validate_packs
         validate_packs(self.language_packs)
-        if self.language:
-            Language(self.language, self.language_packs)
-        elif not isinstance(self.language, str):
+        if not isinstance(self.language, str):
             raise ValueError("language must be a string")
+        if self.language != "":
+            Language(self.language, self.language_packs)
         if (not isinstance(self.notification_kinds, list) or
                 any(kind not in ("error", "info", "warning", "success") for kind in self.notification_kinds) or
                 len(set(self.notification_kinds)) != len(self.notification_kinds)):

@@ -682,7 +682,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -698,7 +698,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -708,7 +709,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -729,7 +732,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -745,7 +748,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -755,7 +759,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -776,7 +782,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -792,7 +798,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -802,7 +809,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -823,7 +832,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -839,7 +848,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -849,7 +859,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -870,7 +882,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -886,7 +898,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -896,7 +909,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -917,7 +932,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -933,7 +948,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -943,7 +959,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -964,7 +982,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -980,7 +998,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -990,7 +1009,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1011,7 +1032,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1027,7 +1048,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1037,7 +1059,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1058,7 +1082,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1074,7 +1098,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1084,7 +1109,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1105,7 +1132,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1121,7 +1148,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1131,7 +1159,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1152,7 +1182,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1168,7 +1198,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1178,7 +1209,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1199,7 +1232,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1215,7 +1248,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1225,7 +1259,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1246,7 +1282,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1262,7 +1298,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1272,7 +1309,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1293,7 +1332,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1309,7 +1348,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1319,7 +1359,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1340,7 +1382,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1356,7 +1398,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1366,7 +1409,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1387,7 +1432,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1403,7 +1448,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1413,7 +1459,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1434,7 +1482,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1450,7 +1498,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1460,7 +1509,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1481,7 +1532,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1497,7 +1548,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1507,7 +1559,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1528,7 +1582,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1544,7 +1598,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1554,7 +1609,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1575,7 +1632,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1591,7 +1648,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1601,7 +1659,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1622,7 +1682,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1638,7 +1698,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1648,7 +1709,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1669,7 +1732,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1685,7 +1748,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1695,7 +1759,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1716,7 +1782,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1732,7 +1798,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1742,7 +1809,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {
@@ -1763,7 +1832,7 @@
         "docs/hub/tool-retry.md": "b4f1bd235e78488dcbbba5e22115d810898aa9746d5e6e7d55149e481303d649",
         "hub/backend/execution/retries.py": "513378b3e6187ac94580cc8bf357767e15f55ec94ee26acbd3b3277d366c0fc8",
         "hub/backend/project/settings_descriptions.py": "dac239dc945702ddf2a60eb452e8a64d8d1ad9bad684a5ab0581804e7dc37b75",
-        "hub/config/general.py": "9fbc927cf6ec7e65454eb0de5b999f943d168f1a34da61299113fc715f7d4c36",
+        "hub/config/general.py": "19306fd4b3ca091eaca35e92d93ed50ab9672da2c01a89bb4ad44e36cd549e35",
         "hub/errors/policy.py": "79959181fa7ef15a3771338b007d4a6f0b036540b6efa0208d9be2aab45c1e7b",
         "hub/locales/__init__.py": "ae6da6a25cc9659473246a8aa632a2c4166819048ddd90703d4a2d00ee0321e1",
         "hub/locales/en.py": "c8d57f87c4532f9d7cbf1977f48089099c51f30de85a7e3a63fe809fa3fe0a19",
@@ -1779,7 +1848,8 @@
         "tests/hub/test_retry_ui.py": "4dc5b3a9c924f0edf1eba0dea18f791228be711e34c90a52ce8458c9fd0c032b",
         "tests/hub/test_settings.py": "7813130de0cd035b1c18f56f05b1f096f9789c366eb35727657c32fcac241d56",
         "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
-        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/hub/test_language_presence.py": "df6f3a2764955809f792795b2b5e94e70422e79c7b34c5444b1fec8d8fc00572"
       },
       "tests": [
         "tests.hub.test_general_options.GeneralOptionTests.test_language_packs_validate_and_fall_back",
@@ -1789,7 +1859,9 @@
         "tests.hub.test_retry_ui.RetryUITests.test_countdown_is_local",
         "tests.hub.test_retry_ui.RetryUITests.test_terminal_partial_auth_and_deadline_failures_never_show_retry",
         "tests.hub.test_component_managers.RecordManagerTests.test_all_manager_settings_buttons_select_component_and_focus_its_fields",
-        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop"
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_failed_display_does_not_destroy_previous_copy_or_block_loop",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_invalid_falsey_language_cannot_replace_valid_preference_file",
+        "tests.hub.test_language_presence.LanguagePresenceTests.test_current_general_profile_and_host_choice_order_survives_roundtrip"
       ]
     },
     {

@@ -15,6 +15,64 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c21: 언어의 명시값·저장 전 검증 — c19–c21 묶음 Level 3
+
+기존 언어 처리의 truthiness 결함을 실제 설정 파일로 재현했다. 명시된 falsey 문자열 en이
+다른 언어로 바뀌었고, 지원하지 않는 falsey 문자열은 GeneralSettings 검증을 우회하여 정상
+preferences 파일을 덮어썼다. 새 시험 3개 중 1 pass·2 failure·error/Skip 0, 0.009초/exit 1이었다.
+원본 제품/시험·실패 로그는 c21-before에 보존하며 수정 전후 새 시험 byte는 동일하다.
+
+GeneralSettings는 문자열 타입을 먼저 검사하고 빈 문자열 이외의 모든 코드를 Language로
+검증한다. configured_profile과 backend bootstrap은 정확한 빈 문자열만 상속으로 처리한다.
+현재 일반 설정→완전한 현재 프로필→명시 HubConfig의 시작 선택 순서, 언어 팩과 저장 필드는
+유지했다. 기존 D08/P1-b의 현재 Reader와 명시 앱 선택 계약에 맞춰 Hub README의 main 기준
+설명을 최신화했으며, 구형 프로필 자동 보충·migration이나 새 필드는 추가하지 않았다.
+실제 파일 byte 보존, invalid None/False/0/컬렉션 거부, 명시 언어와 정상 선택/재열기를 검증했다.
+
+S2 두 건이 실제 제거됐다. GeneralSettings에 의존하던 정확한 언어 문자열 review 24건은
+변경된 언어 guard와 각 기존 표시 목적을 재검토했다. ko/en MESSAGES·Language 해석·표시
+소비자는 그대로이며 이 문자열에서 backend 정책을 만들지 않는다. 해당 validator hash와 새
+시험 근거만 갱신했고 AST 규칙·기존 Assertion·판정 범위를 완화하지 않았다. 과거 backend에도
+같은 선택식이 있어 이식하지 않았으며 과거 시험 결과는 승계하지 않았다.
+
+집중 검증 뒤 c19 경로 선택·c20 지시 상태 참조와 함께 현재 소스를 묶음 Level 3으로 검증했다.
+중복되는 별도 c21 Level 2 전체 실행은 추가하지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 Hub | 20/20 | 20 | 0/0/0 | 5.940초 | 0 |
+| 전체 LLM | 2101/2101 | 2101 | 0/0/0 | 742.678초 | 0 |
+| 전체 Hub | 570/570 | 570 | 0/0/0 | 721.088초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 모두 0이다. 각 full은
+현재 통합 상태의 단일 전체 실행이며 이전 선택 실행의 pass를 합산하지 않았다. 모든 공통
+승인·예산·실제 효과·Checkpoint/Resume·RAG·삭제/수명주기·트랜잭션 장애 주입과 Hub 소비자가
+포함된다. R3 실제 효과 mutation True/outer exit 0, 실제 LLM/Hub 환경 검사 각각 ok/exit 0이다.
+정적 raw 380·reviewed 76·미해결 304(S2 3·S3 283·S6 18), new/stale/review 오류와
+S1/S4/S5 미해결 0/exit 0이다. P1 최종 S1–S5와 A–F는 아직 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c21-focused/hub.json --modules tests.hub.test_language_presence tests.hub.test_general_options tests.hub.test_global_preferences tests.hub.test_settings_restart
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c19-c21-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c19-c21-level3/hub.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c19-c21-level3/env-llm.json
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c19-c21-level3/env-hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c21-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c21-docs-final.json
+```
+
+실행 HEAD `9d0b542078ba6d45660c89474ff7b43bbdfc370a`에 당시 c21 변경을 더한 소스다.
+702 Python 소스 hash `f999c78c7c631bbdcae60e1ce3bcbee84c6b14c5bca32600931d17c329409547`, 864 입력/환경 hash
+`2a494659b8af6739c09687aa5622778efa78860c7f1f0affad9e15a08ffed907`가 실행 전후 각각 동일했다.
+Python 3.12.14·136 의존성·env 5개·고정 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`·바이너리를 기록했다.
+전체 검증 중 소스·시험·Fixture·문서를 고정했고 전후 대조 후 결과 문서를 먼저 갱신한다.
+문서 검사는 132문서·182 Python fence·958링크·34 anchor, 오류 0이다. README의 이전 설명에
+있던 링크 한 개가 빠졌으며 과거 문서 검사 수치는 바꾸지 않았다. 명령·exit·test ID·원시 로그와
+manifest는 `/workspace/llm-clean-resume/p1/c19-c21-level3/`에 있다. 소스-커밋 동일성과 staged diff를
+검사한 뒤 c19–c21을 작업 브랜치에 묶어 Push한다. 원격 CI 실제 결과는 미확인이며 로컬 전체
+성공과 구분한다. main·backend·Draft PR #1과 기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c20: 지시 상태의 기존 owner 참조 — 로컬 Level 2
 
 기존 InstructionStatus의 네 값은 그대로 두고 RunInstruction Reader, 접수/예약/반영/종료

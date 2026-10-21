@@ -31,8 +31,10 @@ def configured_profile(config):
     profile = UserProfile(**stored["profile"]) if "profile" in stored else config.user_profile
     general = GeneralSettings(**stored.get("general", {}))
     packs = {**config.language_packs, **general.language_packs}
-    return replace(config, user_profile=profile, language=general.language or profile.language or config.language,
-                   language_packs=packs)
+    language = general.language
+    if language == "":
+        language = config.language if profile.language == "" else profile.language
+    return replace(config, user_profile=profile, language=language, language_packs=packs)
 
 
 class PreferencesStore(WorkspaceJSONStore):

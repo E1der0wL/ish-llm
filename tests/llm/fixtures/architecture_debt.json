@@ -1172,14 +1172,6 @@
       "detail": "inline domain assignment: status"
     },
     {
-      "id": "920511f84f5c04d0ad37d2f15c5e99cae2815365c50a7de6dbc729634b372fbf:1",
-      "rule": "S2",
-      "file": "hub/backend/bootstrap.py",
-      "symbol": "create_backend",
-      "line": 36,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "3f5ace377ed99c816fac8a5362415c4610e04ff23c46106cdad270ec97f3f0be:1",
       "rule": "S3",
       "file": "hub/backend/bootstrap.py",
@@ -1754,14 +1746,6 @@
       "symbol": "BackendWorker._refresh",
       "line": 92,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "5d74cfcbf342a7fe1186857f27c709e23f6e5bf29e460312b4d4281c0645fe91:1",
-      "rule": "S2",
-      "file": "hub/config/preferences.py",
-      "symbol": "configured_profile",
-      "line": 34,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "aaa14ad7fe9a9f392d9d5e1c965dcc83457c67620ddd8b1259942f248aaa9db8:1",
