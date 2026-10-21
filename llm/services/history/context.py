@@ -5,7 +5,7 @@ Build conversation context for Runs and clones, independent of storage."""
 from copy import deepcopy
 
 from llm.core.models import Message, MessageRole, MessageStatus
-from llm.core.steering import is_instruction, RunInstruction
+from llm.core.steering import InstructionStatus, is_instruction, RunInstruction
 from dataclasses import dataclass
 from typing import Optional
 @dataclass(frozen=True, slots=True)
@@ -119,10 +119,10 @@ class ConversationContextBuilder:
             if message.status == MessageStatus.QUEUED:
                 message.status = MessageStatus.CANCELLED
                 if is_instruction(message):
-                    message.metadata["steering"].update(status="unapplied", reason="cloned")
+                    message.metadata["steering"].update(status=InstructionStatus.UNAPPLIED, reason="cloned")
                     for target in message.metadata["steering"].get("targets", []):
-                        if target["status"] == "pending":
-                            target.update(status="unapplied", reason="cloned")
+                        if target["status"] == InstructionStatus.PENDING:
+                            target.update(status=InstructionStatus.UNAPPLIED, reason="cloned")
             elif message.status == MessageStatus.STREAMING:
                 message.status = MessageStatus.INTERRUPTED
         return snapshot

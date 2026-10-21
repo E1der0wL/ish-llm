@@ -2166,9 +2166,10 @@
         "llm/core/checkpoints.py": "56b4514020bc8c2e480198a4f9c8aa2815ff6956885cead333d89927b4307161",
         "llm/core/interactions.py": "2434c924383345128e9c55c054bef40a27c748756401cc8547626cec4b7daab2",
         "llm/engines/graph/engine.py": "f6ec002353d3fff98e4252ed20fef37ac31563cfc55d3abd0c0cb7a24222afa2",
-        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "llm/services/runtime/runs.py": "4b5ab83f41bf4e2d969619847f914ff8fc0f6105805380dc6f145e2774a24c99",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_graph_checkpoints.py": "802697da33c39b9f22f89bb28fc28e53b90e19ed8c68526a2cab5724aab19702"
+        "tests/llm/test_graph_checkpoints.py": "802697da33c39b9f22f89bb28fc28e53b90e19ed8c68526a2cab5724aab19702",
+        "llm/core/steering.py": "89cecf446256addde57dd021238ed9815e7ca5fe964c70443bc1781176cb07b4"
       },
       "tests": [
         "tests.llm.test_graph_checkpoints.GraphCheckpointTests.test_interrupted_node_requires_explicit_retry_and_duplicate_resume_is_rejected"
@@ -2234,10 +2235,11 @@
         "llm/core/checkpoints.py": "56b4514020bc8c2e480198a4f9c8aa2815ff6956885cead333d89927b4307161",
         "llm/core/interactions.py": "2434c924383345128e9c55c054bef40a27c748756401cc8547626cec4b7daab2",
         "llm/engines/loop/engine.py": "8fb80d77ce082c1703eebbf835b0def387e4a5e9fd429fc29337d5aadd5d5626",
-        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "llm/services/runtime/runs.py": "4b5ab83f41bf4e2d969619847f914ff8fc0f6105805380dc6f145e2774a24c99",
         "llm/services/runtime/tools.py": "8db89a2860bcadb5ba09bcfdcd1fbcdf598f0325b210c670a16e58331fc099d7",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_long_running.py": "f34dca56b2970845d7b64e63be2f483ed9a1b73f5a5fea9c5f515d8c1a5bb3ca"
+        "tests/llm/test_long_running.py": "f34dca56b2970845d7b64e63be2f483ed9a1b73f5a5fea9c5f515d8c1a5bb3ca",
+        "llm/core/steering.py": "89cecf446256addde57dd021238ed9815e7ca5fe964c70443bc1781176cb07b4"
       },
       "tests": [
         "tests.llm.test_long_running.LongRunningTests.test_prior_uncertain_retry_never_becomes_no_effect_receipt"
@@ -2354,10 +2356,11 @@
         "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
         "llm/services/lifecycle/steps.py": "d74810e098ef4da2397903e0316fa04d1e230302783909d6932d661144d8b0dc",
         "llm/services/query.py": "950526d7dce7cc5dd5f60550b4d07351fe33f6bf9720f7e324f9326598c4ffd8",
-        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "llm/services/runtime/runs.py": "4b5ab83f41bf4e2d969619847f914ff8fc0f6105805380dc6f145e2774a24c99",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_catalog_presence.py": "91e8d647230699ff65be8193cbbf1c7ea225b1da82464c1de7893088804c4866",
-        "tests/llm/test_stability_refinement.py": "9a6f964146bb22fd91b3cf6e960d9ec4679e8a96d18a1128640207e1b1e3303b"
+        "tests/llm/test_stability_refinement.py": "9a6f964146bb22fd91b3cf6e960d9ec4679e8a96d18a1128640207e1b1e3303b",
+        "llm/core/steering.py": "89cecf446256addde57dd021238ed9815e7ca5fe964c70443bc1781176cb07b4"
       },
       "tests": [
         "tests.llm.test_catalog_presence.CatalogPresenceTests.test_falsey_projection_is_called_once_for_cached_actual_file",
@@ -2517,11 +2520,12 @@
         "docs/llm/project-policies.md": "e84798034bc406df3403cddf78feb2d2b768bf2f2613171c944d13745bd36132",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
-        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "llm/services/runtime/runs.py": "4b5ab83f41bf4e2d969619847f914ff8fc0f6105805380dc6f145e2774a24c99",
         "llm/services/runtime/usage.py": "645c226078963d0fe2c4407ec501aefeccc2b96987a4c59259cd73b0278dae44",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_long_running.py": "f34dca56b2970845d7b64e63be2f483ed9a1b73f5a5fea9c5f515d8c1a5bb3ca",
-        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611"
+        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611",
+        "llm/core/steering.py": "89cecf446256addde57dd021238ed9815e7ca5fe964c70443bc1781176cb07b4"
       },
       "tests": [
         "tests.llm.test_operations_schema.OperationsSchemaTests.test_unlimited_calls_keep_receipts_without_reading_usage_history",
@@ -2545,10 +2549,11 @@
         "llm/components/usage.py": "f4e76f1d7f4c108b04a270d966c3b407994d8530d7bb6f7b8ec7e6535354812b",
         "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
         "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
-        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "llm/services/runtime/runs.py": "4b5ab83f41bf4e2d969619847f914ff8fc0f6105805380dc6f145e2774a24c99",
         "llm/services/runtime/usage.py": "645c226078963d0fe2c4407ec501aefeccc2b96987a4c59259cd73b0278dae44",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
-        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611"
+        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611",
+        "llm/core/steering.py": "89cecf446256addde57dd021238ed9815e7ca5fe964c70443bc1781176cb07b4"
       },
       "tests": [
         "tests.llm.test_operations_schema.OperationsSchemaTests.test_unlimited_calls_keep_receipts_without_reading_usage_history",
@@ -2571,11 +2576,12 @@
         "llm/components/usage.py": "f4e76f1d7f4c108b04a270d966c3b407994d8530d7bb6f7b8ec7e6535354812b",
         "llm/providers/observations.py": "3c277cba31d5c2bec0981496e9e4bfd1787f095f0be8251dfa64cd3925e4107c",
         "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
-        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "llm/services/runtime/runs.py": "4b5ab83f41bf4e2d969619847f914ff8fc0f6105805380dc6f145e2774a24c99",
         "llm/services/runtime/usage.py": "645c226078963d0fe2c4407ec501aefeccc2b96987a4c59259cd73b0278dae44",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_common_boundaries.py": "fa43957611e555f4b943bbde5dc0d64492852cff2b12e4e2ad3873f186fd9092",
-        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611"
+        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611",
+        "llm/core/steering.py": "89cecf446256addde57dd021238ed9815e7ca5fe964c70443bc1781176cb07b4"
       },
       "tests": [
         "tests.llm.test_operations_schema.OperationsSchemaTests.test_unlimited_calls_keep_receipts_without_reading_usage_history",

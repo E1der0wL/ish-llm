@@ -26,7 +26,7 @@ from llm.core.paths import RunPaths
 from llm.core.configuration import UNSET
 from llm.core.interactions import InteractionActor, InteractionRequest, InteractionResponse
 from llm.engines.base import EngineContext, EngineEvent, EngineEventType, SteeringInbox, required_capabilities, steering_mode
-from llm.core.steering import RunInstruction, SteeringMode, SteeringRoute, is_instruction, is_queued_request
+from llm.core.steering import InstructionStatus, RunInstruction, SteeringMode, SteeringRoute, is_instruction, is_queued_request
 from llm.services.runtime.steering import (finish_instructions, checkpoint_messages, steering_boundary,
     close_targets, initial_channel, reservation_receipts, resume_instructions)
 from llm.engines.registry import EngineRegistry
@@ -859,10 +859,10 @@ class RunManager:
             target = available.get(identifier)
             if target is None or not target["accepting"] or target["mode"] != SteeringMode.CONSUME:
                 raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, f"Instruction target unavailable: {identifier}")
-            selected.append({"id": identifier, "scope": target["scope"], "status": "pending", "applications": []})
+            selected.append({"id": identifier, "scope": target["scope"], "status": InstructionStatus.PENDING, "applications": []})
         store = self._store(session)
         message = store.create(MessageRole.USER, content, MessageStatus.QUEUED, run_id=run.id,
-            metadata={"steering": {"run_id": run.id, "status": "pending",
+            metadata={"steering": {"run_id": run.id, "status": InstructionStatus.PENDING,
                        "input_message_id": run.metadata["steering"]["input_message_id"], "targets": selected}})
         return run, RunInstruction.from_message(message)
 

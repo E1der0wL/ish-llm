@@ -500,70 +500,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "c6747cb9a75a637f850e3fe6937e23ae39ce481c558837e7c1de8a7f9ed84088:1",
-      "rule": "S3",
-      "file": "llm/core/steering.py",
-      "symbol": "RunInstruction.validate_message",
-      "line": 141,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "8736e52a5548d38897f1bc0990d3965bd408174719d0ad391a3661d8a2682e16:1",
-      "rule": "S3",
-      "file": "llm/core/steering.py",
-      "symbol": "RunInstruction.validate_message",
-      "line": 153,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "8736e52a5548d38897f1bc0990d3965bd408174719d0ad391a3661d8a2682e16:2",
-      "rule": "S3",
-      "file": "llm/core/steering.py",
-      "symbol": "RunInstruction.validate_message",
-      "line": 154,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "e18871ba24f5efdcb8f5136901ec0518342745240ca54854f86df21a3735f69d:1",
-      "rule": "S3",
-      "file": "llm/core/steering.py",
-      "symbol": "RunInstruction.validate_message",
-      "line": 166,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "8736e52a5548d38897f1bc0990d3965bd408174719d0ad391a3661d8a2682e16:3",
-      "rule": "S3",
-      "file": "llm/core/steering.py",
-      "symbol": "RunInstruction.validate_message",
-      "line": 177,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "e29ec0a231d0b3d4209dddd896622bd772c3efa70a5886b5c0fc955c8697592b:1",
-      "rule": "S3",
-      "file": "llm/core/steering.py",
-      "symbol": "RunInstruction.validate_message",
-      "line": 182,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "20a016b88aa4a9df8637328f98091ccd99782df41554c0e5856e80306c009ba0:1",
-      "rule": "S3",
-      "file": "llm/core/steering.py",
-      "symbol": "RunInstruction.validate_message",
-      "line": 183,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "20a016b88aa4a9df8637328f98091ccd99782df41554c0e5856e80306c009ba0:2",
-      "rule": "S3",
-      "file": "llm/core/steering.py",
-      "symbol": "RunInstruction.validate_message",
-      "line": 188,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "5e5f5d1f3b92ae7699682aab6028938e66197b005409332d1b74f4f03d1b2874:1",
       "rule": "S3",
       "file": "llm/engines/base.py",
@@ -826,30 +762,6 @@
       "symbol": "ConversationContextBuilder._select",
       "line": 52,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "67406b675b8296ed3d3eaf7f6ffe4edb5f8ab8778f2b093f6561ec37c0c8a1ec:1",
-      "rule": "S3",
-      "file": "llm/services/history/context.py",
-      "symbol": "ConversationContextBuilder.for_clone",
-      "line": 122,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "88e5afc4ee0fe8eded6bdc05c3b066ec3fc8929a0b75890d3da73a219beed23e:1",
-      "rule": "S3",
-      "file": "llm/services/history/context.py",
-      "symbol": "ConversationContextBuilder.for_clone",
-      "line": 124,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "67406b675b8296ed3d3eaf7f6ffe4edb5f8ab8778f2b093f6561ec37c0c8a1ec:2",
-      "rule": "S3",
-      "file": "llm/services/history/context.py",
-      "symbol": "ConversationContextBuilder.for_clone",
-      "line": 125,
-      "detail": "inline domain argument: status"
     },
     {
       "id": "e9b389a39505e0f367f9424c8864336c0d856215d8e74100f36d01eee0f5b594:1",
@@ -1116,22 +1028,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "1dad84e372fe73383cfe4910926107d2524bf5a4cd7aafadd32260e47cdff5f2:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._accept_instruction",
-      "line": 785,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "1dad84e372fe73383cfe4910926107d2524bf5a4cd7aafadd32260e47cdff5f2:2",
-      "rule": "S3",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._accept_instruction",
-      "line": 788,
-      "detail": "inline domain field: status"
-    },
-    {
       "id": "0889a6bebc90d7a296c1d2b3eefac684b510b419117fbbc2943be4d965bc1095:1",
       "rule": "S3",
       "file": "llm/services/runtime/runs.py",
@@ -1170,86 +1066,6 @@
       "symbol": "RunManager._worker",
       "line": 1660,
       "detail": "inline domain argument: status"
-    },
-    {
-      "id": "e07dd7c59e88f00d5a8eb986c1fc9403c3a058611f27a26f6c91198808ca2018:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "reservation_receipts",
-      "line": 52,
-      "detail": "inline domain field: status"
-    },
-    {
-      "id": "3ff8625b7da448011eac227c340caf3dab56c259dde4f3ae6c96788d30f46e38:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "instructions",
-      "line": 64,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "d9be8656b446d9924a6ef290088df80ff58e92de8a8906944320f62d07cae189:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "_save_instruction",
-      "line": 95,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "b78d1f0621b05bf6f333cef9340ac81cf81682dff07b764ff3ce9dd192f0318e:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "finish_instructions",
-      "line": 110,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "7ea5c3d9989a06e48eaa6c4f1f75a2ebc578b588038fa965972912d9de23816b:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "finish_instructions",
-      "line": 114,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "b618dd9d080ffd1b2e93545cdaf6fd9751f895cc0325181fedaabd1535c58eba:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "resume_instructions",
-      "line": 169,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "7e5908b1faa728ec621a0b947e84059f10b6c2cba47b18d80b2985e3d341fc8c:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "apply_instructions",
-      "line": 190,
-      "detail": "inline domain argument: status"
-    },
-    {
-      "id": "9f930757dfec50000ce1d3d9ccd06e46488e8278ebbb7a6c319168fe6feae0f5:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "steering_boundary",
-      "line": 230,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "9f930757dfec50000ce1d3d9ccd06e46488e8278ebbb7a6c319168fe6feae0f5:2",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "steering_boundary",
-      "line": 253,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "9f930757dfec50000ce1d3d9ccd06e46488e8278ebbb7a6c319168fe6feae0f5:3",
-      "rule": "S3",
-      "file": "llm/services/runtime/steering.py",
-      "symbol": "steering_boundary",
-      "line": 291,
-      "detail": "inline domain comparison"
     },
     {
       "id": "2a195ce1cc7e324485a1d7cf43a4b35394d89e1e9e2033985bfb14f35ba240f1:1",

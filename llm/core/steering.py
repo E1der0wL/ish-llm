@@ -138,7 +138,7 @@ class RunInstruction(JsonValue):
         for target in targets:
             if (not isinstance(target, dict) or not _text(target.get("id")) or "scope" not in target
                     or target["scope"] is not None and not _text(target["scope"])
-                    or target.get("status") not in ("pending", "applied", "unapplied")
+                    or target.get("status") not in (InstructionStatus.PENDING, InstructionStatus.APPLIED, InstructionStatus.UNAPPLIED)
                     or not isinstance(target.get("applications"), list)):
                 raise InstructionDataError("message target fields")
             reserved = "reservation" in target
@@ -150,8 +150,8 @@ class RunInstruction(JsonValue):
                 if ("execution_id" not in target
                         or target["execution_id"] is not None and not _text(target["execution_id"])
                         or target["execution_id"] is not None and target["scope"] is None
-                        or target["status"] == "applied" and target["execution_id"] is None
-                        or len(target["applications"]) != (1 if target["status"] == "applied" else 0)):
+                        or target["status"] == InstructionStatus.APPLIED and target["execution_id"] is None
+                        or len(target["applications"]) != (1 if target["status"] == InstructionStatus.APPLIED else 0)):
                     raise InstructionDataError("reservation binding")
             identity = ("reservation", route.key) if reserved else ("execution", target["scope"])
             if target["id"] in ids or identity in scopes:
@@ -163,7 +163,7 @@ class RunInstruction(JsonValue):
             ids.add(target["id"])
             scopes.add(identity)
             states.add(target["status"])
-            if target["status"] == "unapplied" and not _text(target.get("reason")):
+            if target["status"] == InstructionStatus.UNAPPLIED and not _text(target.get("reason")):
                 raise InstructionDataError("unapplied target reason")
             for application in target["applications"]:
                 if (not isinstance(application, dict)
@@ -174,18 +174,18 @@ class RunInstruction(JsonValue):
                 if reserved and (application["target_id"] != target["execution_id"]
                                  or application["run_id"] != value["run_id"]):
                     raise InstructionDataError("reservation application ownership")
-            if target["status"] == "applied" and not target["applications"]:
+            if target["status"] == InstructionStatus.APPLIED and not target["applications"]:
                 raise InstructionDataError("applied target requires application")
             applications.extend(target["applications"])
-        status = ("pending" if "pending" in states else "applied" if states == {"applied"}
-                  else "unapplied" if states == {"unapplied"} else "partially_applied")
-        expected = (MessageStatus.QUEUED if status == "pending" else MessageStatus.CANCELLED
-                    if status == "unapplied" else MessageStatus.COMMITTED)
+        status = (InstructionStatus.PENDING if InstructionStatus.PENDING in states else InstructionStatus.APPLIED if states == {InstructionStatus.APPLIED}
+                  else InstructionStatus.UNAPPLIED if states == {InstructionStatus.UNAPPLIED} else InstructionStatus.PARTIALLY_APPLIED)
+        expected = (MessageStatus.QUEUED if status == InstructionStatus.PENDING else MessageStatus.CANCELLED
+                    if status == InstructionStatus.UNAPPLIED else MessageStatus.COMMITTED)
         if value.get("status") != status or message.status != expected:
             raise InstructionDataError("message aggregate status")
         if value.get("applications", []) != applications:
             raise InstructionDataError("message aggregate applications")
-        if status == "unapplied" and not _text(value.get("reason")):
+        if status == InstructionStatus.UNAPPLIED and not _text(value.get("reason")):
             raise InstructionDataError("unapplied message reason")
 
     @classmethod

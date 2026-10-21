@@ -103,6 +103,10 @@ instruction = await session.run.reserve_instruction(
 | unapplied | 모든 대상에서 사용되지 않고 종료됨 |
 | partially_applied | 모든 대상의 처리가 끝났고 반영·미반영이 섞여 있음 |
 
+상태 값은 `llm.core.steering.InstructionStatus`가 단일 선언한다. 현재 Reader 검증,
+접수·예약·반영·종료 Writer와 Session clone 소비자는 이 선언을 참조한다.
+대상별 상태는 pending/applied/unapplied이며 partially_applied는 지시 전체 집계에만 사용한다.
+
 반영 시각은 대상마다 다르다. 여러 대상에 대한 동시 반영/모델 호출 트랜잭션은 제공하지
 않는다. `applied`는 검증된 입력 준비의 저장 확인이며 provider 수신이나 모델 이행 증명이
 아니다. 저장과 외부 모델 요청 사이에서 연결 실패나 취소가 발생할 수 있다.

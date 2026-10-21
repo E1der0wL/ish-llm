@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 from llm.core.models import Message, MessageRole, MessageStatus, now, new_id
-from llm.core.steering import (is_instruction, RunInstruction, SteeringTarget, SteeringMode,
+from llm.core.steering import (InstructionStatus, is_instruction, RunInstruction, SteeringTarget, SteeringMode,
                                InstructionDataError, validate_instruction_record, SteeringRoute)
 from llm.services.history.conversation import Conversation
 from llm.services.query import Query
@@ -50,7 +50,7 @@ def reservation_receipts(run, routes):
         raise ValueError("Choose distinct reservation routes")
     if any(available.get(route.key) != route for route in routes):
         raise ValueError("Reservation route is not a consuming Agent in this Run snapshot")
-    return [{"id": new_id(), "scope": None, "status": "pending", "applications": [],
+    return [{"id": new_id(), "scope": None, "status": InstructionStatus.PENDING, "applications": [],
              "reservation": route.to_dict(), "execution_id": None} for route in routes]
 
 
@@ -62,7 +62,7 @@ def instructions(store: Conversation, run_id: str, *, pending: bool = False) -> 
         if is_instruction(message):
             RunInstruction.validate_message(message)
             if (message.metadata["steering"]["run_id"] == run_id
-                    and (not pending or message.metadata["steering"]["status"] == "pending")):
+                    and (not pending or message.metadata["steering"]["status"] == InstructionStatus.PENDING)):
                 result.append(message)
     return result
 
@@ -90,16 +90,16 @@ def instruction_targets(run) -> list[SteeringTarget]:
 
 def _save_instruction(store, message, value):
     states = {v["status"] for v in value["targets"]}
-    value["status"] = ("pending" if "pending" in states else "applied" if states == {"applied"}
-                       else "unapplied" if states == {"unapplied"} else "partially_applied")
+    value["status"] = (InstructionStatus.PENDING if InstructionStatus.PENDING in states else InstructionStatus.APPLIED if states == {InstructionStatus.APPLIED}
+                       else InstructionStatus.UNAPPLIED if states == {InstructionStatus.UNAPPLIED} else InstructionStatus.PARTIALLY_APPLIED)
     value["applications"] = [deepcopy(a) for target in value["targets"] for a in target.get("applications", [])]
-    if value["status"] == "unapplied":
+    if value["status"] == InstructionStatus.UNAPPLIED:
         value["reason"] = value["targets"][0]["reason"]
     else:
         value.pop("reason", None)
     store.update_metadata(message.id, {"steering": value})
-    store.set_status(message.id, MessageStatus.QUEUED if "pending" in states else
-                     MessageStatus.COMMITTED if "applied" in states else MessageStatus.CANCELLED)
+    store.set_status(message.id, MessageStatus.QUEUED if InstructionStatus.PENDING in states else
+                     MessageStatus.COMMITTED if InstructionStatus.APPLIED in states else MessageStatus.CANCELLED)
     return RunInstruction.from_message(store.get(message.id))
 
 
@@ -108,11 +108,11 @@ def finish_instructions(store: Conversation, run_id: str, reason: str, *, target
     changed = []
     for message in instructions(store, run_id, pending=True):
         value = deepcopy(message.metadata["steering"])
-        affected = [v for v in value["targets"] if v["status"] == "pending"
+        affected = [v for v in value["targets"] if v["status"] == InstructionStatus.PENDING
                     and (target_id is None or v.get("execution_id", v["id"]) == target_id)]
         if affected:
             for target in affected:
-                target.update(status="unapplied", reason=("node_not_reached" if "reservation" in target
+                target.update(status=InstructionStatus.UNAPPLIED, reason=("node_not_reached" if "reservation" in target
                     and target["scope"] is None and reason == "completed" else reason))
             changed.append(_save_instruction(store, message, value))
     return changed
@@ -167,7 +167,7 @@ def resume_instructions(store: Conversation, checkpoint: dict) -> dict:
         for identifier in record["message_ids"]:
             receipt = next(t for t in history[identifier].metadata["steering"]["targets"]
                            if t["scope"] == record["target_scope"])
-            if "reservation" not in receipt or receipt["status"] == "applied":
+            if "reservation" not in receipt or receipt["status"] == InstructionStatus.APPLIED:
                 kept.append(identifier)
         record["message_ids"] = kept
     return result
@@ -188,7 +188,7 @@ def apply_instructions(store: Conversation, messages: tuple[Message, ...], run_i
         if not any(v["run_id"] == run_id and v["boundary"] == boundary for v in applications):
             applications.append({**(details or {}), "run_id": run_id, "boundary": boundary,
                                  "target_id": target["id"], "step_id": step_id, "time": now()})
-        receipt.update(status="applied")
+        receipt.update(status=InstructionStatus.APPLIED)
         receipt.pop("reason", None)
         changed.append(_save_instruction(store, message, value))
     return changed
@@ -228,7 +228,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         for message in instructions(store, run.id, pending=True):
             value = deepcopy(message.metadata["steering"])
             affected = [t for t in value["targets"] if t.get("reservation") == route.to_dict()
-                        and t["scope"] is None and t["status"] == "pending"]
+                        and t["scope"] is None and t["status"] == InstructionStatus.PENDING]
             if affected:
                 for receipt in affected:
                     receipt["scope"] = scope
@@ -251,7 +251,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         for message in instructions(store, run.id, pending=True):
             value = deepcopy(message.metadata["steering"])
             affected = [t for t in value["targets"] if "reservation" in t and t["scope"] == target.scope
-                        and t["status"] == "pending" and t["execution_id"] is None]
+                        and t["status"] == InstructionStatus.PENDING and t["execution_id"] is None]
             if affected:
                 if target.mode != SteeringMode.CONSUME:
                     raise ValueError("Reserved execution must consume instructions")
@@ -289,7 +289,7 @@ def steering_boundary(repository, run, store, event, *, tool_usage):
         if key in checkpoint["records"]:
             raise ValueError("Instruction boundary already selected")
         pending = [m for m in instructions(store, run.id, pending=True)
-                   if any(t.get("execution_id", t["id"]) == identifier and t["status"] == "pending"
+                   if any(t.get("execution_id", t["id"]) == identifier and t["status"] == InstructionStatus.PENDING
                           for t in m.metadata["steering"]["targets"])]
         messages = pending if data["allow_continue"] else []
         if data["final"] and not messages:

@@ -15,6 +15,61 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c20: 지시 상태의 기존 owner 참조 — 로컬 Level 2
+
+기존 InstructionStatus의 네 값은 그대로 두고 RunInstruction Reader, 접수/예약/반영/종료
+Writer, RunManager의 초기 영수증, Session clone 소비자 4개 파일의 문자열 41곳을 enum 참조로
+전환했다. AST에서 이 참조를 원래 값으로 되돌리고 추가 import를 제거하면 기존 AST와 같다.
+대상 상태와 전체 집계의 차이, 별도 checkpoint input 상태, 영수증·재개·예산·트랜잭션 계약은
+유지했다. 기존 실제 모델 효과·저장 실패·예약/부분 반영·clone 시험을 재사용하며 시험 소스와
+Assertion은 바꾸지 않았다. 현재 지시 계약 문서에도 선언 소유권을 반영했다.
+
+S3 23건이 실제 제거됐고 새 후보는 없다. Run 소스 의존성이 바뀐 정확한 review 6건은
+초기 지시 영수증 두 필드의 diff와 기존 owner 판정을 재확인하고 enum 선언 hash를 추가했다.
+해당 review의 모든 기존 참조 시험을 이번 추가 실행에서 검증했다. 과거 backend의 enum 선언만
+읽기 전용으로 확인했으며 같은 구현이 이미 현재에 있어 알고리즘 이식·과거 성공 승계는 없다.
+치환 보조 검사는 첫 실행에서 AST를 검사 중 수정하는 순서 오류로 exit 1이었으나 제품 쓰기 전
+차단됐다. 원본 helper/오류를 c20-before에 보존하고 검사 사본을 분리한 뒤 구조 검사를 통과했다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM(재사용) | 79/79 | 79 | 0/0/0 | 28.353초 | 0 |
+| 추가 LLM | 225/225 | 225 | 0/0/0 | 76.986초 | 0 |
+| 추가 Hub | 33/33 | 33 | 0/0/0 | 67.783초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 모두 0이다. 추가 LLM은
+공통 안전성 9개 모듈, audit 소비자 및 Graph/Run/usage/catalog 직접 소비자를 포함한다.
+Hub는 지시·실행 중 복구·승인 연속 실행을 검증했다. R3 실제 효과 mutation True/outer exit 0,
+정적 raw 382·reviewed 76·미해결 306(S2 5·S3 283·S6 18), new/stale/review 오류와
+S1/S4/S5 미해결 0/exit 0, 문서 132/182/959/34·오류 0이다.
+
+집중 실행과 추가 실행의 HEAD는 `2bf3c5edc4cfa0f37eb7b0c313597b7f85bd014e` 및 c20 변경이다.
+701 Python 소스 hash `c48e6d4f012797ea45d9f12f65033dbd40e28393e31bbabd518f36da89104a29`가 같고,
+863개 입력 중 바뀐 것은 audit reviews/debt 두 개뿐이다. 나머지 861개 제품·시험·Fixture·문서와
+Python 3.12.14·136 의존성·env 5개·host d833790959a76ac457fdeea3f21a6bea1eecfe12·커널·
+바이너리가 같다. 두 실행 구간의 전후 manifest도 각각 동일했다. 전체 발견 목록 LLM 2101이
+같고 집중 79개의 실제 pass ID는 추가 실행과 겹치지 않는다. 참조 시험의 실제 실행 여부,
+report hash와 test ID 목록은 c20-level2/reuse-proof.json에 있다.
+**각 실행은 selected이며 결과를 하나의 전체 회귀로 합산하지 않는다.** 동일 값의 참조만 바뀌고
+관련 소비자/핵심 안전성이 통과하여 전체 회귀·Push는 다음 묶음 Level 3까지 유예한다.
+P1 최종 S1–S5 및 A–F는 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c20-focused/llm.json --modules tests.llm.test_loop_steering tests.llm.test_engine_steering tests.llm.test_instruction_reservations
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c20-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions tests.llm.test_catalog_presence tests.llm.test_common_boundaries tests.llm.test_graph_checkpoints tests.llm.test_long_running tests.llm.test_operations_schema tests.llm.test_stability_refinement
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c20-level2/hub.json --modules tests.hub.test_features tests.hub.test_provider_recovery tests.hub.test_approval_continuation
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c20-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c20-docs-final.json
+.venv-linux312/bin/python /workspace/llm-clean-resume/p1/verify-c20-focused-reuse.py
+```
+
+집중 입력 hash `59d73a1e36614b3a9f0a1aec6939d3ee7423edea74613b29de1b225c08a658e7`, 추가 입력 hash
+`d1db6a5ef5f061989cfbecfbf7e404f7a921920cf427d171b6e9b430082c289d`를 기록했다. 명령·exit·원시 로그·
+manifest는 c20-focused와 c20-level2에 있다. 문서 갱신 후 소스-커밋 동일성과 staged diff를
+검사하고 로컬 커밋한다. 원격 마지막 확인 e160b0e의 CI 실제 결과는 미확인이다.
+기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c19: Hub의 명시된 시작 설정 경로 보존 — 로컬 Level 2
 
 Hub의 시작 설정 경로 선택 6곳을 None 기준으로 바꿨다. bootstrap·새 Project 프리셋 선택·
