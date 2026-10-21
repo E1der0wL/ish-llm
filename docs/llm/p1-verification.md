@@ -15,6 +15,51 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c30: 명시 입력의 수학적·프로토콜 경계 판정 — 로컬 Level 2
+
+현재 owner 17개의 경계 비교 20건을 개별 분류했다. 양수/음이 아닌 명시 한도 검증,
+영수증의 음수 attempt 거부, X11 변환 오류 판정이며 새로운 실행 한도·기본값 선언이 아니다.
+RAG hop/cache, FileTool, Engine/Loop/Graph, Completion/Context/Run 정책, MCP,
+진단·출력 버퍼, Tool retry, Hub 승인 프리셋·X11의 실제 호출과 기존 계약/시험을 연결했다.
+정확한 finding·owner·근거·소스 hash·시험 ID를 기록했고 원시 finding은 유지한다.
+제품·시험·검사 규칙은 바꾸지 않았다. 이전 backend의 ToolExecutor 입력 검증만 참고했으며
+같은 양수/None 경계를 확인했다. 과거 코드·Schema·검증 결과는 이식하지 않았다.
+
+새 감사 검사기 시험 23개를 발견/시작/통과했다(exit 0, 4.631초).
+현재 전체 discovery LLM 2101·Hub 577개를 새로 확인했다. c29의 단일 전체 실행에서
+관련 owner/소비자 모듈 전체 및 공통 안전성 9개 모듈을 선택해 LLM
+411개·Hub 13개의 통과 결과를 재사용했다.
+새 분류의 구체적 시험 ID 30개 모두 이 집합에 포함된다. 실제 효과·장애 주입·승인·예산·
+Resume·원본 보존 검증을 유지했다. 원실행 exit 0이며 failure/error/Skip·expected failure·
+unexpected success·missing·unexpected·duplicates는 각 실행에서 모두 0이다.
+새 감사 시험과 재사용 ID는 겹치지 않는다. 이전 감사 시험은 Fixture 변경으로 재사용하지 않았다.
+
+704 Python 소스·시험은 c29와 동일하고 입력 866개 중 863개가 같다. 차이는 이전 결과
+문서와 감사 Fixture 두 개뿐이다. 선택 시험이 읽는 제품·Fixture, 136 의존성·host·바이너리·
+env 5개가 동일함을 대조했다. 다른 HEAD는 소스 hash로 연결했다. 선택 모듈의 현재 ID
+전체가 원실행 pass 집합과 정확히 일치하며 명령·report hash·원실행 HEAD·개별 ID를
+`/workspace/llm-clean-resume/p1/c30-level2/reuse-proof.json`에 기록했다. 재사용 결과를 새 전체 실행으로 합산하지 않았다.
+
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 239·reviewed 106·미해결 133
+(S3 115·S6 18), new/stale/review 오류·필수 S1/S2/S4/S5 미해결 0/exit 0이다.
+문서 검사 오류 0/exit 0이다. 실행 명령은 다음과 같다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c30-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c30-level2/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c30-level2/aux/docs.json
+```
+
+실행 HEAD `0ef9b8af8568461967672507e026ce60db46ed80`에 감사 Fixture 변경을 더했다. 소스 hash
+`55ff1dff966131cd9962418330f8d491ee3486eff6ab135ed28c81c4fdd6a7b3`, 입력/환경 hash `2ca94289c8ecf8c4429637b0324b58e908da15adf2c045290c5590cf310bd47d`는 실행 전후 같다.
+Python 3.12.14·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`를 유지했다. 위 경로에 원시 로그·명령·exit·
+manifest를 보존하고 문서를 먼저 갱신한 뒤 소스-커밋 동일성과 staged diff를 확인해 로컬 커밋한다.
+**이번 소단계에서는 전체 회귀를 새로 실행하지 않았다.** 제품 변경이 없는 개별 감사 판정이며
+감사 검증은 새로 수행하고 관련 안전성은 동일성이 증명된 결과를 사용했다. 후속 관련 변경과
+묶은 Level 3에서 전체 회귀 후 Push한다. P1 최종 S1–S5와 A–F는 미완료이며 원격 CI는
+미확인이다. main·backend·Draft PR #1은 변경하지 않는다.
+
 ## P1-c29: 관찰 경계·사실 이름의 소유 선언 — c27–c29 묶음 Level 3
 
 Observability가 ObservationKind 5개·ObservationStatus 16개를 단일 선언한다. 기존 허용

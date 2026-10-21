@@ -3081,6 +3081,498 @@
         "tests.llm.test_settings_contract.SettingsContractTests.test_internal_policy_names_cannot_enter_through_open_config",
         "tests.llm.test_builtin_tools.BuiltinTests.test_loop_executes_file_tool_and_persists_arguments_result"
       ]
+    },
+    {
+      "id": "827f0b31348ff6bb9f030b8613a11557d6e964a63146f3338eb950ef4c48a3ad:1",
+      "rule": "S3",
+      "owner": "RAGData.asearch",
+      "reason": "One is the mathematical lower boundary of an explicitly configured positive hop count. The caller override or required snapshot configuration supplies the cap; the guard rejects malformed values and never creates a fallback search limit.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/components/rag/README.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
+        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
+        "llm/components/rag/search.py": "2b8ad037e0a940670eb864d98ea4c1b67aefa2ce86d744c156c994135991d342",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03",
+        "tests/llm/test_unified_rag.py": "c913c36d8d91804ecb0dae365fc86cfbfca263591bb2c732e82e0700e34881bb"
+      },
+      "tests": [
+        "tests.llm.test_rag_components.RAGTests.test_rerank_and_query_validation",
+        "tests.llm.test_unified_rag.UnifiedRAGTests.test_related_graph_depth_limits_cycles_and_sources"
+      ]
+    },
+    {
+      "id": "765803ab28512dda5e73d054619abde4479d04af3685f89cb7464f28f0a778f6:1",
+      "rule": "S3",
+      "owner": "RAGData.graph_search",
+      "reason": "One expresses positivity of the supplied hop count, not a hidden traversal cap. Required search configuration, exact integer validation and caller-selected depth stay unchanged.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/components/rag/README.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
+        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
+        "llm/components/rag/search.py": "2b8ad037e0a940670eb864d98ea4c1b67aefa2ce86d744c156c994135991d342",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03"
+      },
+      "tests": [
+        "tests.llm.test_rag_components.RAGTests.test_rerank_and_query_validation",
+        "tests.llm.test_rag_components.RAGTests.test_graph_two_hops_cycles_limits_and_bound_parameters"
+      ]
+    },
+    {
+      "id": "56807c4a976b350bd3874e5fb306f6a0d561be973246f2ee2162473bcd0aa5c4:1",
+      "rule": "S3",
+      "owner": "LexicalCache.__init__",
+      "reason": "Zero is the mathematical lower boundary of the explicitly supplied technical cache capacity. This check does not choose a search-result or persistence limit. The lexical cache stores derived generation data and its reuse/invalidation remains tested; no exhaustive invalid-capacity test is claimed.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/configuration-audit.md",
+        "llm/components/rag/README.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
+        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
+        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/search.py": "2b8ad037e0a940670eb864d98ea4c1b67aefa2ce86d744c156c994135991d342",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03"
+      },
+      "tests": [
+        "tests.llm.test_rag_components.RAGTests.test_bm25_cache_reuses_generation_and_invalidates_on_document_update"
+      ]
+    },
+    {
+      "id": "d58a444086316c9440dca9ef57b22ef7ec5225b12793a027c3e4e0c3428a00b1:1",
+      "rule": "S3",
+      "owner": "FileTools.for_arguments",
+      "reason": "One denotes a positive byte count for the explicit max_file_bytes command argument. None remains unrestricted by this argument, and invalid bounds fail before the file operation. The guard does not inject a file-size policy.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/components/tools/builtin/README.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/components/tools/builtin/README.md": "e0596490c848850d40248d9cfe0f5311842fdc274b5f1aeea4c8547cf1c93d68",
+        "llm/components/tools/builtin/files.py": "485ff95cffcd6dbbf65d6a93ed8a47575549fb8b4e6ae684b3f67f674d39bf94",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_builtin_tools.py": "42f6d8e730631b3103434f23bf2ece92bbe7f407c087b9b11f9d2bebfa8aa155"
+      },
+      "tests": [
+        "tests.llm.test_builtin_tools.BuiltinTests.test_bounded_file_reads_and_paging",
+        "tests.llm.test_builtin_tools.BuiltinTests.test_file_crud_versions_search_and_restore"
+      ]
+    },
+    {
+      "id": "5e5f5d1f3b92ae7699682aab6028938e66197b005409332d1b74f4f03d1b2874:1",
+      "rule": "S3",
+      "owner": "BaseEngine.step",
+      "reason": "Zero is the lower boundary of a positive finite explicit duration. None preserves the absence of a deadline. The predicate rejects invalid values without creating a timeout and preserves accepted event persistence under cancellation.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/engines/README.md",
+        "docs/llm/engine-output.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/engine-output.md": "5251e7b587113d30e03f246b016ee69ec696881e6c7889f8d016269cd4666fdb",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/engines/README.md": "5b09d87788e0a1e67e1032d26416d489e74044c5e3f5d24b4dafec96e18b73c8",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_explicit_configuration.py": "1f6bb637de9c80b998b33cd3e72c48d41861fb977a4822e82189a5eb5c8ea834"
+      },
+      "tests": [
+        "tests.llm.test_explicit_configuration.RuntimeTests.test_step_deadline_does_not_cancel_event_persistence",
+        "tests.llm.test_explicit_configuration.RuntimeTests.test_graph_and_node_deadlines_are_independent_and_opt_in"
+      ]
+    },
+    {
+      "id": "b94ee2186f4af0487b2540e183e4246fba7d79070474c3c864fb78b63d74a6cc:1",
+      "rule": "S3",
+      "owner": "GraphEngine._configure",
+      "reason": "Zero is the mathematical boundary of a nonnegative nesting count, not an imposed depth ceiling. Explicit zero and absent None retain their distinct existing meanings; configured depth violations fail before child effects.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/engines/graph/README.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/engines/graph/README.md": "ecb3d52486f9cff908db059fea62610b9532f4b39e11aa9b2b5859f28b4f2a6c",
+        "llm/engines/graph/engine.py": "f6ec002353d3fff98e4252ed20fef37ac31563cfc55d3abd0c0cb7a24222afa2",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_nested_graph.py": "a43dc927c82c528c975fcc1b963eddca219b07d26c8aaaebf82638d35e975808"
+      },
+      "tests": [
+        "tests.llm.test_nested_graph.NestedGraphTests.test_reference_cycles_and_depth_fail_before_side_effects"
+      ]
+    },
+    {
+      "id": "2d16cc5a9abfbc71038babda18fd31364db4d01d15ed9695373d20929c9096a3:1",
+      "rule": "S3",
+      "owner": "LoopEngine._configure",
+      "reason": "One expresses the positive-integer validity of an explicitly supplied iteration count. None remains uncapped. The validator does not generate or narrow a configured cap; iteration exhaustion still prevents unconsumable Tool effects.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/engines/loop/README.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/engines/loop/README.md": "0ce82dc83ce861007ee54ed1ddb1401db62835ca853c02bfe0cc56bcb6049e6a",
+        "llm/engines/loop/engine.py": "3cead040fbf54e0868c2461eba752ac1eb50aa3e9d9272a842f66d86baf0dc4c",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_loop.py": "44a4539d8a15ee90d77909888c5d146dc6c7324bee8ba5c692ceb4eaae18e57c",
+        "tests/llm/test_loop_steering.py": "dfc700a76bc5c858153e8d55a4bb8646299d4ca03d0033689b40a83e2b77004a"
+      },
+      "tests": [
+        "tests.llm.test_loop.ConfigurationTests.test_invalid_limits",
+        "tests.llm.test_loop.LoopTests.test_loop_limit_prevents_unconsumable_tool_side_effects",
+        "tests.llm.test_loop_steering.LoopSteeringTests.test_iteration_limit_does_not_disappear_when_steered"
+      ]
+    },
+    {
+      "id": "05f13d937ffd81734ff017cbed513e3458390307cb1df0f434d17f15fa5d141b:1",
+      "rule": "S3",
+      "owner": "CompletionPolicy.__init__",
+      "reason": "One is the mathematical boundary of a positive token count supplied to this policy. It is not a replacement max_tokens value. The configured budget, reserve/counter validation and intact current-input/tool-pair behavior remain unchanged.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/policies/README.md",
+        "docs/llm/project-policies.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/project-policies.md": "e84798034bc406df3403cddf78feb2d2b768bf2f2613171c944d13745bd36132",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/policies/README.md": "b6fcacca351bf2ce89c8df9de4a731a5e784d23d80bfb221cc6b75fc61e1b581",
+        "llm/policies/completion.py": "474894ef52a26ddea8c0c8c4d0cd9cc17e913aa1977b2611db563fdab93da33b",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_runtime_reliability.py": "9a10ea0db4e01d466edc67638e3028d9a011b9a5cc9d3eda59aa7430945b9607"
+      },
+      "tests": [
+        "tests.llm.test_runtime_reliability.BudgetAndProjectionTests.test_budget_preserves_system_current_tool_pairs_and_original_request",
+        "tests.llm.test_runtime_reliability.BudgetAndProjectionTests.test_invalid_limits_fail_early"
+      ]
+    },
+    {
+      "id": "1f68d584e37928092f1b4cea8cfaa7baf313f7342d5502fb891f891c729aad88:1",
+      "rule": "S3",
+      "owner": "MCPConnector.__init__",
+      "reason": "Zero is the mathematical boundary of a positive finite optional connector timeout. The explicit value or None passes through unchanged; this rejection predicate neither supplies credentials nor permits a connection. Existing actual approval/connection/cancellation tests cover the consumer, not exhaustive invalid-duration cases.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/components/mcp/README.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/components/mcp/README.md": "e1abeac83f95d4c5cb25dfcac9eb6e33fb87a9418c5fbe0597fd70ce2dacd58c",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/providers/mcp.py": "0c7844a0165ffb13504ce17236a5b5adb29b59c9ca8f298b1fff0ade3c66d09d",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_mcp_runtime.py": "b1e37a0d31ccb0eb79272d688ca9db5b007863d001e1a557e9c1dbafc786339b"
+      },
+      "tests": [
+        "tests.llm.test_mcp_runtime.MCPRuntimeTests.test_approval_before_connection_and_explicit_resume_exactly_once",
+        "tests.llm.test_mcp_runtime.MCPRuntimeTests.test_cancel_closes_remote_invocation_and_connection"
+      ]
+    },
+    {
+      "id": "2ee75fe49bb1ab850fc27af48075fc5e2cbf30bc7ac97c278e0ec06cc207eee3:1",
+      "rule": "S3",
+      "owner": "ProviderDiagnostics.__post_init__",
+      "reason": "One denotes a positive character count for an explicit diagnostic-detail bound. None remains unbounded by this option; booleans and invalid counts are rejected. This is diagnostic rendering, not an execution or token budget.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/configuration-audit.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_provider_diagnostics.py": "a9fb309fff00c6d9e1480b26318e7bff76cfc079b15deff9820f06737cd33716"
+      },
+      "tests": [
+        "tests.llm.test_provider_diagnostics.DiagnosticTests.test_detail_limit_and_empty_infrastructure_projection"
+      ]
+    },
+    {
+      "id": "6adef2dcd955bdb3d0ada665c35878b6e8c8dae1c7f90a7360ab2ae561f8c947:1",
+      "rule": "S3",
+      "owner": "ContextPolicy.__post_init__",
+      "reason": "One is the mathematical lower boundary of the supplied positive turn or character count. The guard neither selects a context mode nor materializes a missing cap; each mode still requires its own explicit inputs and preserves the current request.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/services/history/context.py": "e76230196da7757eac9a4b898672f65456bbde437591504474b35ae8cb164330",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_service_extensions.py": "b4e2cc37421448adc2983f515ffaf05fd4d3c9478f7a01967296a5024602de81"
+      },
+      "tests": [
+        "tests.llm.test_service_extensions.ContextPolicyTests.test_full_completed_recent_and_budget_preserve_current_input",
+        "tests.llm.test_service_extensions.ContextPolicyTests.test_invalid_query_and_policy_settings"
+      ]
+    },
+    {
+      "id": "0f0d77916f6436c2a588d88790a854b4c46f6a7a3cdcdad328982bb4cce5ae8f:1",
+      "rule": "S3",
+      "owner": "ContextPolicy.__post_init__",
+      "reason": "One is the mathematical lower boundary of the supplied positive turn or character count. The guard neither selects a context mode nor materializes a missing cap; each mode still requires its own explicit inputs and preserves the current request.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "llm/CONFIGURATION.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "llm/CONFIGURATION.md": "06c36e5d0baf27e56a8bb6ff377b0a8ef671457087e555f5dc3c7f24c9437fd4",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/services/history/context.py": "e76230196da7757eac9a4b898672f65456bbde437591504474b35ae8cb164330",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_service_extensions.py": "b4e2cc37421448adc2983f515ffaf05fd4d3c9478f7a01967296a5024602de81"
+      },
+      "tests": [
+        "tests.llm.test_service_extensions.ContextPolicyTests.test_full_completed_recent_and_budget_preserve_current_input",
+        "tests.llm.test_service_extensions.ContextPolicyTests.test_invalid_query_and_policy_settings"
+      ]
+    },
+    {
+      "id": "5a22488d448c3ced3b3e1e4420ba5add02ef2c0a6756afffc2f70d497afdc3be:1",
+      "rule": "S3",
+      "owner": "OutputBuffer.__post_init__",
+      "reason": "Zero is the mathematical boundary of a positive finite flush delay. The owner validates the supplied batching timer; it does not delete or truncate output or set a hidden retention period. Timer and cancellation still flush accepted output.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/project-authority.md",
+        "docs/llm/engine-output.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/engine-output.md": "5251e7b587113d30e03f246b016ee69ec696881e6c7889f8d016269cd4666fdb",
+        "docs/llm/project-authority.md": "e1b62858c824112048faf8389f3d7a77ad8a10dbae9cbb41db796c387629137d",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/services/runtime/output.py": "49b3f1f55ac572f4ffbacc8abae54e647a23797fef15f2fb01ece87b241589b6",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_operational_storage.py": "37bd54dc01509c02cd677cafd666ce16c55d135a12ea73aaac3b3855c6921707"
+      },
+      "tests": [
+        "tests.llm.test_operational_storage.PolicyValidationTests.test_policy_and_index_limits",
+        "tests.llm.test_operational_storage.BatchTests.test_timer_and_cancel_flush_accepted_output"
+      ]
+    },
+    {
+      "id": "c3c6ce80fa933ef0401571b2b619486ff8b7bfb26f5639266c5ae7abab0f3eb1:1",
+      "rule": "S3",
+      "owner": "RunPolicy.__post_init__",
+      "reason": "One expresses positivity of the explicitly supplied queue or capability-round count. None remains the absence of that cap. This predicate validates the count rather than choosing policy; queue admission, Project ownership and original budget assertions remain unchanged.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/project-policies.md",
+        "docs/llm/project-authority.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/project-authority.md": "e1b62858c824112048faf8389f3d7a77ad8a10dbae9cbb41db796c387629137d",
+        "docs/llm/project-policies.md": "e84798034bc406df3403cddf78feb2d2b768bf2f2613171c944d13745bd36132",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_naming_contract.py": "51298ff4290aa101d77af6ebeff8245e3038f0027d4a2772c6a51b701d02b12b",
+        "tests/llm/test_runtime_reliability.py": "9a10ea0db4e01d466edc67638e3028d9a011b9a5cc9d3eda59aa7430945b9607"
+      },
+      "tests": [
+        "tests.llm.test_runtime_reliability.BudgetAndProjectionTests.test_invalid_limits_fail_early",
+        "tests.llm.test_runtime_reliability.ReliabilityTests.test_queue_limit_cancel_and_status_do_not_interrupt_active_run",
+        "tests.llm.test_naming_contract.NamingContractTests.test_current_project_policy_presence_and_limits_are_explicit"
+      ]
+    },
+    {
+      "id": "707cafb7a88db0e914c239090a3d142bc39a20bf0c3a807df0254f9e8f2fb6e7:1",
+      "rule": "S3",
+      "owner": "RunPolicy.__post_init__",
+      "reason": "One expresses positivity of the explicitly supplied queue or capability-round count. None remains the absence of that cap. This predicate validates the count rather than choosing policy; queue admission, Project ownership and original budget assertions remain unchanged.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/project-policies.md",
+        "docs/llm/project-authority.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/project-authority.md": "e1b62858c824112048faf8389f3d7a77ad8a10dbae9cbb41db796c387629137d",
+        "docs/llm/project-policies.md": "e84798034bc406df3403cddf78feb2d2b768bf2f2613171c944d13745bd36132",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/core/policies.py": "005eaf71ca0fe208bd7b3126f42188c7927fb74d9e8e6516510a448e08f59720",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_naming_contract.py": "51298ff4290aa101d77af6ebeff8245e3038f0027d4a2772c6a51b701d02b12b",
+        "tests/llm/test_runtime_reliability.py": "9a10ea0db4e01d466edc67638e3028d9a011b9a5cc9d3eda59aa7430945b9607"
+      },
+      "tests": [
+        "tests.llm.test_runtime_reliability.BudgetAndProjectionTests.test_invalid_limits_fail_early",
+        "tests.llm.test_runtime_reliability.ReliabilityTests.test_queue_limit_cancel_and_status_do_not_interrupt_active_run",
+        "tests.llm.test_naming_contract.NamingContractTests.test_current_project_policy_presence_and_limits_are_explicit"
+      ]
+    },
+    {
+      "id": "4d249323c10c2433d23ec223226c6a6e0e19af229150924b26ffa2f4a3d5e511:1",
+      "rule": "S3",
+      "owner": "ToolExecutor.__init__",
+      "reason": "Zero/one is the mathematical validity boundary of a supplied positive duration/output count, not an injected Tool limit. None keeps the optional cap absent; exact type/finiteness checks and actual deadline/cancellation/effect behavior remain unchanged.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/configuration-audit.md",
+        "docs/llm/project-authority.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
+        "docs/llm/project-authority.md": "e1b62858c824112048faf8389f3d7a77ad8a10dbae9cbb41db796c387629137d",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_error_boundaries.py": "3391d763cce10ba29c476c4a4395ccf5071be4c21f68a3b6291a6ed638416f08",
+        "tests/llm/test_explicit_configuration.py": "1f6bb637de9c80b998b33cd3e72c48d41861fb977a4822e82189a5eb5c8ea834"
+      },
+      "tests": [
+        "tests.llm.test_explicit_configuration.RuntimeTests.test_tool_optional_deadline_and_cancellation",
+        "tests.llm.test_error_boundaries.FailureRuntimeTests.test_tool_diagnostic_effect_and_timeout_are_unchanged"
+      ]
+    },
+    {
+      "id": "168e9b738f9e4c1559ed667b80ba08f0579703e69ccb553b165471fe04535644:1",
+      "rule": "S3",
+      "owner": "ToolExecutor.__init__",
+      "reason": "Zero/one is the mathematical validity boundary of a supplied positive duration/output count, not an injected Tool limit. None keeps the optional cap absent; exact type/finiteness checks and actual deadline/cancellation/effect behavior remain unchanged.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/configuration-audit.md",
+        "docs/llm/project-authority.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/configuration-audit.md": "11a414c0ac201ee8d5396df50b37d9bce5d36ae5a6faecc80dcc98e1bf6cd3fc",
+        "docs/llm/project-authority.md": "e1b62858c824112048faf8389f3d7a77ad8a10dbae9cbb41db796c387629137d",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_error_boundaries.py": "3391d763cce10ba29c476c4a4395ccf5071be4c21f68a3b6291a6ed638416f08",
+        "tests/llm/test_explicit_configuration.py": "1f6bb637de9c80b998b33cd3e72c48d41861fb977a4822e82189a5eb5c8ea834"
+      },
+      "tests": [
+        "tests.llm.test_explicit_configuration.RuntimeTests.test_tool_optional_deadline_and_cancellation",
+        "tests.llm.test_error_boundaries.FailureRuntimeTests.test_tool_diagnostic_effect_and_timeout_are_unchanged"
+      ]
+    },
+    {
+      "id": "ad8d3ef1f7cff80f3aeed95d679050285c10bb198591d7793760cd9746d5041e:1",
+      "rule": "S3",
+      "owner": "ToolExecutor._retry_state",
+      "reason": "Zero is the lower boundary of an already persisted nonnegative attempt counter, not a retry policy default. The complete receipt is validated against original invocation, failures and repairs before reuse; this guard never resets consumed attempts or quota.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/retry.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/core/checkpoints.py": "56b4514020bc8c2e480198a4f9c8aa2815ff6956885cead333d89927b4307161",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "llm/policies/retry.py": "e2a2e7f4a3bebc97bf50e0a2ccebeca4138efd67df919dc3d3df6e099cfc9839",
+        "llm/services/runtime/tools.py": "f206454d5aefce4ed35a26298af08f70665ceb9fbe822550c304f9a4e494d333",
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_retry.py": "6d0973f02c8aa74ab33c930d6f10e1b4773259ee9495ac060ff8c38b35f20b97"
+      },
+      "tests": [
+        "tests.llm.test_retry.ToolRetryTests.test_loop_approval_resume_preserves_patch_budget_and_exactly_one_effect",
+        "tests.llm.test_retry.ToolRetryTests.test_reserved_checkpoint_namespace_cannot_collide_with_custom_engine"
+      ]
+    },
+    {
+      "id": "083b9a179ddbc001d8fdd68601bdf71a65f513bf4c98cb40e859430b9f236011:1",
+      "rule": "S3",
+      "owner": "approval_preset",
+      "reason": "Zero is the mathematical lower boundary of the user-supplied nonnegative risk threshold. The application builds an explicit Project command and does not auto-apply it or grant approval. The actual advice/approval consumer preserves the required execution decision; no exhaustive invalid-preset test is claimed.",
+      "contracts": [
+        "docs/llm/clean-refactor.md",
+        "docs/llm/project-authority.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "docs/llm/project-authority.md": "e1b62858c824112048faf8389f3d7a77ad8a10dbae9cbb41db796c387629137d",
+        "hub/backend/interactions/approval.py": "323e06f90717c9cce8a7fc77585b3a8ba9589edabb1e170bbfd9924d52656f83",
+        "tests/hub/test_tool_advice.py": "abccf4139d12baa916205bbba74e0c80460b819bf4af7cf2e37d7f6c59e2b6df",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_tool_advice.ToolAdviceTests.test_low_model_advice_still_requires_approval_and_uses_no_extra_completion"
+      ]
+    },
+    {
+      "id": "67afd094afb12029bd8c042b0cfa63261eb2f11c341b0734a787ce9f14e3b143:1",
+      "rule": "S3",
+      "owner": "Selection.read",
+      "reason": "A negative native text-conversion return denotes X11 conversion failure. This is an external protocol result code, not an ish lifecycle state or execution policy. Conversion errors propagate without treating them as successful clipboard text.",
+      "contracts": [
+        "docs/llm/clean-refactor.md"
+      ],
+      "sources": {
+        "docs/llm/clean-refactor.md": "acc9d2188377bdb6b30a80bf5139ffb72f28b982e60afa41ad0240e97704ccbe",
+        "hub/widget/_x11_selection.py": "03eb346f639c05c9dd27a4377b9090cbc872b247fa3269cb04a6228c3057264a",
+        "tests/hub/test_x11_clipboard.py": "90f516b595153c76cb96750960c9a7958c7e86cde9eaa7d04a009488f5d04d73",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20"
+      },
+      "tests": [
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_targets_legacy_encoding_and_owner_cleanup",
+        "tests.hub.test_x11_clipboard.NativeClipboardTests.test_helperless_unicode_roundtrip_and_ownership_replacement"
+      ]
     }
   ]
 }

@@ -212,22 +212,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "827f0b31348ff6bb9f030b8613a11557d6e964a63146f3338eb950ef4c48a3ad:1",
-      "rule": "S3",
-      "file": "llm/components/rag/data.py",
-      "symbol": "RAGData.asearch",
-      "line": 350,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "765803ab28512dda5e73d054619abde4479d04af3685f89cb7464f28f0a778f6:1",
-      "rule": "S3",
-      "file": "llm/components/rag/data.py",
-      "symbol": "RAGData.graph_search",
-      "line": 365,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "68958c7f94bdfd1b506a7384609bfd3671e7648864597076f0e252b0e74e5e31:1",
       "rule": "S3",
       "file": "llm/components/rag/extraction.py",
@@ -266,14 +250,6 @@
       "symbol": "RAGJobs._resume_plan",
       "line": 76,
       "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "56807c4a976b350bd3874e5fb306f6a0d561be973246f2ee2162473bcd0aa5c4:1",
-      "rule": "S3",
-      "file": "llm/components/rag/search.py",
-      "symbol": "LexicalCache.__init__",
-      "line": 34,
-      "detail": "inline domain comparison"
     },
     {
       "id": "a5d60fcb03fdc04dd03baaa7a8a450bcef46e65cb96d1c708ece877d58005834:1",
@@ -330,14 +306,6 @@
       "symbol": "BuiltinTools.__init__",
       "line": 89,
       "detail": "inline domain argument: retry_fields"
-    },
-    {
-      "id": "d58a444086316c9440dca9ef57b22ef7ec5225b12793a027c3e4e0c3428a00b1:1",
-      "rule": "S3",
-      "file": "llm/components/tools/builtin/files.py",
-      "symbol": "FileTools.for_arguments",
-      "line": 29,
-      "detail": "inline domain comparison"
     },
     {
       "id": "892162182533d6d2b4cf77c3141d9ae83c787182c871c5ce2f0f1fc9c96582b7:1",
@@ -420,22 +388,6 @@
       "detail": "SDK-shaped field lookup outside Provider package"
     },
     {
-      "id": "5e5f5d1f3b92ae7699682aab6028938e66197b005409332d1b74f4f03d1b2874:1",
-      "rule": "S3",
-      "file": "llm/engines/base.py",
-      "symbol": "BaseEngine.step",
-      "line": 359,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "b94ee2186f4af0487b2540e183e4246fba7d79070474c3c864fb78b63d74a6cc:1",
-      "rule": "S3",
-      "file": "llm/engines/graph/engine.py",
-      "symbol": "GraphEngine._configure",
-      "line": 623,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "69932e90e5f8eb607cd399bfcfbfeecc5a11bbe1795ed533d00fe7f08cd4633b:1",
       "rule": "S3",
       "file": "llm/engines/graph/engine.py",
@@ -449,14 +401,6 @@
       "file": "llm/engines/graph/engine.py",
       "symbol": "GraphEngine._execution_config",
       "line": 662,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "2d16cc5a9abfbc71038babda18fd31364db4d01d15ed9695373d20929c9096a3:1",
-      "rule": "S3",
-      "file": "llm/engines/loop/engine.py",
-      "symbol": "LoopEngine._configure",
-      "line": 145,
       "detail": "inline domain comparison"
     },
     {
@@ -484,28 +428,12 @@
       "detail": "inline domain field: version"
     },
     {
-      "id": "05f13d937ffd81734ff017cbed513e3458390307cb1df0f434d17f15fa5d141b:1",
-      "rule": "S3",
-      "file": "llm/policies/completion.py",
-      "symbol": "CompletionPolicy.__init__",
-      "line": 16,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "ee7254b73e289bb5acc59393973f599b1b427a59e2356dbc630bf993e6cb3a04:1",
       "rule": "S3",
       "file": "llm/providers/litellm.py",
       "symbol": "stream_completion.send",
       "line": 180,
       "detail": "inline domain argument: timeout"
-    },
-    {
-      "id": "1f68d584e37928092f1b4cea8cfaa7baf313f7342d5502fb891f891c729aad88:1",
-      "rule": "S3",
-      "file": "llm/providers/mcp.py",
-      "symbol": "MCPConnector.__init__",
-      "line": 47,
-      "detail": "inline domain comparison"
     },
     {
       "id": "a8c0182870203f42e2fea475a43e2d595da13f0237208705e5be7cfe9c26c8ff:1",
@@ -556,14 +484,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "2ee75fe49bb1ab850fc27af48075fc5e2cbf30bc7ac97c278e0ec06cc207eee3:1",
-      "rule": "S3",
-      "file": "llm/providers/runtime.py",
-      "symbol": "ProviderDiagnostics.__post_init__",
-      "line": 46,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "b6c9da2bf016c2dc6483af51683b8eca68d7c630cdc147040a0c4e3e0c868b8a:1",
       "rule": "S3",
       "file": "llm/providers/runtime.py",
@@ -577,22 +497,6 @@
       "file": "llm/services/api.py",
       "symbol": "Runs.verify_operation.snapshot",
       "line": 449,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "6adef2dcd955bdb3d0ada665c35878b6e8c8dae1c7f90a7360ab2ae561f8c947:1",
-      "rule": "S3",
-      "file": "llm/services/history/context.py",
-      "symbol": "ContextPolicy.__post_init__",
-      "line": 22,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "0f0d77916f6436c2a588d88790a854b4c46f6a7a3cdcdad328982bb4cce5ae8f:1",
-      "rule": "S3",
-      "file": "llm/services/history/context.py",
-      "symbol": "ContextPolicy.__post_init__",
-      "line": 24,
       "detail": "inline domain comparison"
     },
     {
@@ -692,30 +596,6 @@
       "detail": "inline domain assignment: max_chars"
     },
     {
-      "id": "5a22488d448c3ced3b3e1e4420ba5add02ef2c0a6756afffc2f70d497afdc3be:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/output.py",
-      "symbol": "OutputBuffer.__post_init__",
-      "line": 123,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "c3c6ce80fa933ef0401571b2b619486ff8b7bfb26f5639266c5ae7abab0f3eb1:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/policies.py",
-      "symbol": "RunPolicy.__post_init__",
-      "line": 29,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "707cafb7a88db0e914c239090a3d142bc39a20bf0c3a807df0254f9e8f2fb6e7:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/policies.py",
-      "symbol": "RunPolicy.__post_init__",
-      "line": 32,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "2f0e8c682952490af8d144163f15cb323362e0c915a0af7389efe5cf69adb110:1",
       "rule": "S3",
       "file": "llm/services/runtime/runs.py",
@@ -746,30 +626,6 @@
       "symbol": "ToolExecutionScope.binding",
       "line": 192,
       "detail": "inline domain field: retry_selector"
-    },
-    {
-      "id": "4d249323c10c2433d23ec223226c6a6e0e19af229150924b26ffa2f4a3d5e511:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor.__init__",
-      "line": 287,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "168e9b738f9e4c1559ed667b80ba08f0579703e69ccb553b165471fe04535644:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor.__init__",
-      "line": 289,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "ad8d3ef1f7cff80f3aeed95d679050285c10bb198591d7793760cd9746d5041e:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/tools.py",
-      "symbol": "ToolExecutor._retry_state",
-      "line": 322,
-      "detail": "inline domain comparison"
     },
     {
       "id": "3f5ace377ed99c816fac8a5362415c4610e04ff23c46106cdad270ec97f3f0be:1",
@@ -809,14 +665,6 @@
       "file": "hub/backend/execution/retries.py",
       "symbol": "RetryMonitor.view",
       "line": 116,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "083b9a179ddbc001d8fdd68601bdf71a65f513bf4c98cb40e859430b9f236011:1",
-      "rule": "S3",
-      "file": "hub/backend/interactions/approval.py",
-      "symbol": "approval_preset",
-      "line": 65,
       "detail": "inline domain comparison"
     },
     {
@@ -1121,14 +969,6 @@
       "file": "hub/widget/_x11_selection.py",
       "symbol": "Selection.read",
       "line": 156,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "67afd094afb12029bd8c042b0cfa63261eb2f11c341b0734a787ce9f14e3b143:1",
-      "rule": "S3",
-      "file": "hub/widget/_x11_selection.py",
-      "symbol": "Selection.read",
-      "line": 181,
       "detail": "inline domain comparison"
     },
     {
