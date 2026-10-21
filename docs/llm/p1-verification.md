@@ -15,6 +15,68 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c17: 조건식·관찰용 입력 8건의 판정 — 로컬 Level 2
+
+제품·시험·AST 규칙을 바꾸지 않고 S2 발생 8건을 개별 판정했다. RAG의 동일 내용/지문과 graph
+완성 여부에 따른 재사용, 명시 best_effort 실패 분류, BaseEngine의 수신 후/예산 소진 시 재시도
+거부, Provider timeout 분류, Run/Component 사용량의 명시 한도별 영수증 조회·토큰 예약 조건이다.
+이 식들은 조건으로만 소비되며 설정값을 대체하지 않는다. Observability.record의 retry=False는
+이미 일어난 실행의 관찰 태그이며 재시도 정책·권한·영수증을 생성하지 않는다. 물리 시도 집계와
+sink 실패 격리는 기존 owner 계약이다. 각 발생의 정확한 ID·현재 계약·소스/의존성 hash·존재하는
+구체적 시험 ID를 기록했다. RAG 오류 코드의 S3 선언과 Provider S6 경계는 별도로 계속 남는다.
+
+바뀐 audit fixture 소비자인 검사기의 성공/실패 사례를 새로 실행했다. RAG의 실제 model receipt·
+원본 보존/재시도·extraction 실패, Provider transport/stream/cancellation, Component의 예약·
+불확실 사용량·opaque 요청, 공통 안전성 9개 모듈 및 Hub RAG/재시도 관찰을 추가 검증했다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 새 llm | 255/255 | 255 | 0/0/0 | 78.932초 | 0 |
+| 새 hub | 26/26 | 26 | 0/0/0 | 40.146초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 모두 0이다.
+R3 실제 효과 mutation True/outer exit 0, 정적 raw 413·reviewed 75·미해결 338(S2 14·S3 306·S6 18),
+new/stale/review 오류·S1/S4/S5 미해결 0/exit 0, 문서 132/182/959/34·오류 0/exit 0이다.
+
+### 검증 결과 재사용
+
+기준 c16 실행 HEAD `5f30933add12ee2f38efd7fe64ef0a474455b169`와 당시 미커밋 제품/시험은 현재
+HEAD `48012d79f6880d5f7f6558836e5da227352464cb`의 해당 소스와 동일하다. 699 Python 소스 hash는 모두
+`dc7fe434e2847287659499ac31781e416b6050cb13a3279a949ef3b95d2f691f`다. 861개 입력 중
+달라진 파일은 audit reviews/debt와 이 결과 문서 세 개뿐이며, 나머지 858개 제품·시험·Fixture·자산,
+Python 3.12.14·136 의존성·바이너리·커널·env 5개·깨끗한 host d833790959a76ac457fdeea3f21a6bea1eecfe12가
+같다. c16의 기본/추가 helper 시험 모두 그 전후 manifest 구간에서 실행됐고, 그 byte 동일성을
+다시 대조했다. c17의 전체 발견 ID도 LLM 2098/Hub 563으로 정확히 같다.
+
+| 재사용한 모듈 | 이전 pass | 원래 실행 |
+|---|---:|---|
+| tests.llm.test_long_running | 23 | c16-level2 |
+| tests.llm.test_retry | 21 | c16-level2 |
+| tests.llm.test_observability | 22 | c16-observation |
+| tests.hub.test_retry_ui | 10 | c16-level2 |
+
+LLM 66개·Hub 10개는 새 실행과 test ID가 겹치지 않는다. 참조한 모든 owner 시험이 새 실행
+또는 위 재사용 범위의 실제 통과 목록에 있음을 검증했다. 각 test ID·원래/새 report hash·기준
+manifest·변경 파일 목록은 c17-level2/reuse-proof.json에 있다. **원래 실행과 새 실행 모두
+selected이며 이 성공들을 하나의 전체 회귀로 합산하지 않는다.** 이번 전체 회귀는 audit 자료만
+변경되고 위 동일성이 성립하여 유예하며, 다음 묶음 Level 3에서 현재 통합 소스를 전체 검증한다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c17-level2/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_rag_storage tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_nested_graph tests.llm.test_transactions tests.llm.test_rag_resilience tests.llm.test_rag_optimization tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_extraction_repair tests.llm.test_provider_runtime tests.llm.test_operations_schema tests.llm.test_common_boundaries
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c17-level2/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_extensions tests.hub.test_retry_observations
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c17-static.json
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c17-docs-before.json
+.venv-linux312/bin/python /workspace/llm-clean-resume/p1/verify-c17-reuse.py
+```
+
+새 실행 전후 입력/환경 hash `0299def3fe01125a227a5c7af3df6727e7fe3172e0bdd7a8948ff09f7ad317b1`과
+위 소스 hash가 각각 동일했다. 명령·exit·discovery·원본 로그·전후 manifest는
+`/workspace/llm-clean-resume/p1/c17-level2/`에 있다. 현재 계약의 조건 판정이므로 과거 backend
+알고리즘을 가져오거나 이전 브랜치의 통과 결과를 승계하지 않았다. 문서를 먼저 갱신하고 로컬
+커밋하며, Push는 다음 전체 게이트 뒤 묶어서 한다. P1 최종 S1–S5와 A–F는 미완료다.
+원격 마지막 확인은 5f30933이고 CI 실제 결과는 미확인이다. 기존 실제 환경 미검증 한계는 유지한다.
+
 ## P1-c16: Interaction 선언과 명시 요청 보존 — 로컬 Level 2
 
 InteractionOption이 공통 effect, InteractionRequest가 kind·priority·생성 category 초기값을

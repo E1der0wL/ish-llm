@@ -2334,6 +2334,218 @@
         "tests.llm.test_stability_refinement.CatalogTests.test_bounded_selection_matches_full_sort_for_all_query_modes",
         "tests.llm.test_stability_refinement.CatalogTests.test_small_page_still_detects_corruption_after_selected_rows"
       ]
+    },
+    {
+      "id": "0fc9c79fc4802f49d9f9aea92784174bb9168a71ca26fa824f10f16f6675ef82:1",
+      "rule": "S2",
+      "owner": "RAGComponent.prepare",
+      "reason": "This condition permits reuse only inside matching content and preparation-fingerprint checks, when the prior graph is complete or extraction was explicitly disabled. It chooses an execution branch; it does not replace the graph flag, extraction policy or missing configuration. The owner separately validates stored document graph_complete as boolean. Reuse, changed preparation and real model receipt assertions remain mandatory.",
+      "contracts": [
+        "llm/components/rag/README.md",
+        "docs/llm/checkpoints.md"
+      ],
+      "sources": {
+        "docs/llm/checkpoints.md": "7cc6883d128d5d64d7a056b55f7422ca561f06e1fda9debad9e04acb03da1854",
+        "llm/components/rag/README.md": "608d4611804863d090f94d496cdbf2bfb40a5d833c899530cdc1696769eb59f6",
+        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/data.py": "1d263a5c1187aa18e43f2031e2234858dea5f07a99cf2d232f2e3b0cf72e4e7c",
+        "llm/components/rag/ingestion.py": "561a44e553ce32c556ecc32b1a7508e6ec1c160eb3bbca7341027391d06d0f18",
+        "llm/components/rag/jobs.py": "37551e8a3a394072098a60cb8a17d4dda8ae812a0bc5c3c0017a3c0538eb52d5",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_rag_graph_checkpoint.py": "a5078fdc4801df11bd2d6ea9115152324ac039ca93dd4047c4423db8a075cf9a",
+        "tests/llm/test_rag_optimization.py": "80079dfd0fe6fef2501aafacd7ca67990cf783227725b6f6ddbd8d270da2ea15",
+        "tests/llm/test_rag_resilience.py": "2b5d865794ffd30428e96a2697e0d56e2d522a1dbfb0ac535893f730c3adb27b"
+      },
+      "tests": [
+        "tests.llm.test_rag_resilience.PersistentRAGTests.test_graph_policies_and_capability_schema",
+        "tests.llm.test_rag_resilience.PersistentRAGTests.test_partial_graph_and_disabled_without_extractor",
+        "tests.llm.test_rag_resilience.PersistentRAGTests.test_retry_reservation_cannot_exceed_project_quota",
+        "tests.llm.test_rag_optimization.OptimizationTests.test_extraction_reuses_only_identical_batches_and_preserves_provenance",
+        "tests.llm.test_rag_optimization.OptimizationTests.test_extraction_prompt_change_invalidates_reuse",
+        "tests.llm.test_rag_graph_checkpoint.GraphReceiptTests.test_normal_retry_reuses_both_real_model_effects"
+      ]
+    },
+    {
+      "id": "b363ef6414d0c844f871c28864fa6ec6bfad3de4314634cbf210dad618dc825a:1",
+      "rule": "S2",
+      "owner": "RAGComponent.prepare",
+      "reason": "This predicate classifies allowed graph-validation/provider failures only under the explicit best_effort extraction policy. Other exceptions propagate. No retry/extraction default is constructed, and quota, storage and cancellation protections are not approved away. The S3 error-code declarations and S6 Provider audit remain separate candidates.",
+      "contracts": [
+        "llm/components/rag/README.md",
+        "docs/llm/retry.md"
+      ],
+      "sources": {
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/components/rag/README.md": "608d4611804863d090f94d496cdbf2bfb40a5d833c899530cdc1696769eb59f6",
+        "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
+        "llm/components/rag/data.py": "1d263a5c1187aa18e43f2031e2234858dea5f07a99cf2d232f2e3b0cf72e4e7c",
+        "llm/components/rag/extraction.py": "e2e279618abcdf987826f22cab601d89c6bb82d8764b30add3ab66e762fb8b5a",
+        "llm/components/rag/jobs.py": "37551e8a3a394072098a60cb8a17d4dda8ae812a0bc5c3c0017a3c0538eb52d5",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_rag_extraction_repair.py": "1d0b627937592c0387877b268029bf993aa47ede4125cb0b6e7cb2a3c8aaa205",
+        "tests/llm/test_rag_resilience.py": "2b5d865794ffd30428e96a2697e0d56e2d522a1dbfb0ac535893f730c3adb27b"
+      },
+      "tests": [
+        "tests.llm.test_rag_resilience.PersistentRAGTests.test_graph_policies_and_capability_schema",
+        "tests.llm.test_rag_resilience.PersistentRAGTests.test_partial_graph_and_disabled_without_extractor",
+        "tests.llm.test_rag_resilience.PersistentRAGTests.test_retry_reservation_cannot_exceed_project_quota",
+        "tests.llm.test_rag_extraction_repair.ComponentExtractionTests.test_failed_repairs_preserve_published_document_and_record_usage"
+      ]
+    },
+    {
+      "id": "8d3aca5a593cb5df9fba7bc2f9c2ba22ce8ba112a260ec47a7ca859702b29922:1",
+      "rule": "S2",
+      "owner": "BaseEngine.stream_completion",
+      "reason": "The conditional re-raises after any received stream item or when the owning retry policy disallows another attempt. It combines an observation and a boolean policy decision; no value is defaulted and no retry budget is reset. SDK retry ownership and no retry after a partial delta remain tested.",
+      "contracts": [
+        "docs/llm/retry.md",
+        "docs/llm/provider-validation.md"
+      ],
+      "sources": {
+        "docs/llm/provider-validation.md": "84875bd2805c189146d922a758d274c698e66ea137d05a43cdcdd5eb8a056606",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/policies/retry.py": "e2a2e7f4a3bebc97bf50e0a2ccebeca4138efd67df919dc3d3df6e099cfc9839",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_provider_runtime.py": "914262a249f32281ede42d19ccffd041ac3c8fa3a0008e4dccb9ef19f637989b",
+        "tests/llm/test_retry.py": "6d0973f02c8aa74ab33c930d6f10e1b4773259ee9495ac060ff8c38b35f20b97"
+      },
+      "tests": [
+        "tests.llm.test_provider_runtime.RuntimeTests.test_stream_retry_delegation_and_no_retry_after_delta",
+        "tests.llm.test_retry.RetryTests.test_stream_transport_correction_and_no_retry_after_delta"
+      ]
+    },
+    {
+      "id": "df9ffab0350bbe7ad023155a3a2ffc374580804fec4340faa4f8b5bad7a886c1:1",
+      "rule": "S2",
+      "owner": "error_code",
+      "reason": "The condition identifies a timeout exception by type or class name. It selects a diagnostic classification and never supplies a configuration value or execution deadline. This S2 judgment does not waive separate SDK/wire ownership or error-code declaration work.",
+      "contracts": [
+        "docs/llm/provider-validation.md",
+        "docs/llm/retry.md"
+      ],
+      "sources": {
+        "docs/llm/provider-validation.md": "84875bd2805c189146d922a758d274c698e66ea137d05a43cdcdd5eb8a056606",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
+        "llm/providers/runtime.py": "c38c15acb0ec7c0149bdd7c672d26f010fe54d086a9c0a7621821658ba1ada49",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_provider_runtime.py": "914262a249f32281ede42d19ccffd041ac3c8fa3a0008e4dccb9ef19f637989b"
+      },
+      "tests": [
+        "tests.llm.test_provider_runtime.RuntimeTests.test_stream_retry_delegation_and_no_retry_after_delta",
+        "tests.llm.test_provider_runtime.RuntimeTests.test_deadline_and_cancellation_during_call_and_backoff",
+        "tests.llm.test_provider_runtime.RuntimeTests.test_permanent_errors_never_retry"
+      ]
+    },
+    {
+      "id": "d8044e20f74e074df9b793c0a769a164762d18aff48668e94b258def8be2476b:1",
+      "rule": "S2",
+      "owner": "Observability.record",
+      "reason": "retry is a fact attached to an already observed Tool execution, not a retry policy. Its False default means the caller did not label that observation a retry. This owner only updates transient counters/recent facts and isolates sink errors; it does not authorize, retry, persist receipts or impose execution limits.",
+      "contracts": [
+        "docs/llm/retry.md",
+        "docs/llm/project-authority.md"
+      ],
+      "sources": {
+        "docs/llm/project-authority.md": "e1b62858c824112048faf8389f3d7a77ad8a10dbae9cbb41db796c387629137d",
+        "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
+        "llm/engines/base.py": "7cec7a93b80ca1d961da046317475f9d4aa908fee3ea9f0d1c9841f03a17fcbc",
+        "llm/services/composition.py": "a9280bc49834ade4e6fc694fcf11a4cae9214964965bdd914f4de16b00aa9623",
+        "llm/services/infrastructure/observability.py": "99b8d8c3f82ef54408c938ecd93e1e6d8ed1d54ff8eec42547ccb5560cf5170a",
+        "llm/services/runtime/tools.py": "8db89a2860bcadb5ba09bcfdcd1fbcdf598f0325b210c670a16e58331fc099d7",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_observability.py": "1f183cdcf5510502152d3027a738329249e4fbc94b70b02a484842be14b8792c"
+      },
+      "tests": [
+        "tests.llm.test_observability.ObservabilityTests.test_retry_counts_physical_attempts_once",
+        "tests.llm.test_observability.ObservabilityTests.test_sink_failure_never_changes_tool_or_run",
+        "tests.llm.test_observability.ObservabilityTests.test_bounded_thread_safe_aggregate_and_allowlisted_facts"
+      ]
+    },
+    {
+      "id": "ae38a24498b9f2d1834d46ad324867bffc3c31828b9aea651f3f27e7c0dd63dc:1",
+      "rule": "S2",
+      "owner": "RunManager._record_completion",
+      "reason": "The condition determines whether configured Project or Run limits require reading prior/auxiliary usage. has_limit returns a boolean from explicit non-None limits. No policy, usage record or reservation is replaced. Unlimited calls still retain receipts and bounded calls keep their independent cumulative evidence.",
+      "contracts": [
+        "docs/llm/project-policies.md",
+        "docs/llm/data-lifecycle.md"
+      ],
+      "sources": {
+        "docs/llm/data-lifecycle.md": "bfec842d1c74f2dc406052605304c251f8cce76771f112a1bc945a643cd4cf8a",
+        "docs/llm/project-policies.md": "e84798034bc406df3403cddf78feb2d2b768bf2f2613171c944d13745bd36132",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
+        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "llm/services/runtime/usage.py": "645c226078963d0fe2c4407ec501aefeccc2b96987a4c59259cd73b0278dae44",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_long_running.py": "f34dca56b2970845d7b64e63be2f483ed9a1b73f5a5fea9c5f515d8c1a5bb3ca",
+        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611"
+      },
+      "tests": [
+        "tests.llm.test_operations_schema.OperationsSchemaTests.test_unlimited_calls_keep_receipts_without_reading_usage_history",
+        "tests.llm.test_operations_schema.OperationsSchemaTests.test_parallel_component_calls_reserve_before_effect_and_cancel_is_accounted",
+        "tests.llm.test_operations_schema.OperationsSchemaTests.test_component_token_reservation_is_retained_when_usage_is_missing",
+        "tests.llm.test_long_running.LongRunningTests.test_token_quota_reserves_unknown_usage_and_project_call_limit"
+      ]
+    },
+    {
+      "id": "d150c4dbfbb3c418df5c654cb8d627721374c6e51831a50092158589f4d532c5:1",
+      "rule": "S2",
+      "owner": "ComponentUsage._reserve",
+      "reason": "This condition selects auxiliary usage reads when an explicit Project limit exists or an owning Run has a limit. Source ownership and active-Run validation occur before the branch; the boolean expression does not create a fallback policy or erase a receipt. Reservation occurs before the model effect and cancelled/unknown usage remains accounted.",
+      "contracts": [
+        "docs/llm/project-policies.md",
+        "docs/llm/data-lifecycle.md"
+      ],
+      "sources": {
+        "docs/llm/data-lifecycle.md": "bfec842d1c74f2dc406052605304c251f8cce76771f112a1bc945a643cd4cf8a",
+        "docs/llm/project-policies.md": "e84798034bc406df3403cddf78feb2d2b768bf2f2613171c944d13745bd36132",
+        "llm/components/usage.py": "f4e76f1d7f4c108b04a270d966c3b407994d8530d7bb6f7b8ec7e6535354812b",
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
+        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "llm/services/runtime/usage.py": "645c226078963d0fe2c4407ec501aefeccc2b96987a4c59259cd73b0278dae44",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611"
+      },
+      "tests": [
+        "tests.llm.test_operations_schema.OperationsSchemaTests.test_unlimited_calls_keep_receipts_without_reading_usage_history",
+        "tests.llm.test_operations_schema.OperationsSchemaTests.test_parallel_component_calls_reserve_before_effect_and_cancel_is_accounted",
+        "tests.llm.test_operations_schema.OperationsSchemaTests.test_component_token_reservation_is_retained_when_usage_is_missing"
+      ]
+    },
+    {
+      "id": "8eb6e33888bbd57cb65772b60a287f722977727083babae5e9e92ce0f5c22277:1",
+      "rule": "S2",
+      "owner": "ComponentUsage.__call__",
+      "reason": "The expression is consumed only as the condition for token counting: an explicit Project token limit, or a Run source with an explicit Run token limit. It does not select a replacement limit or coerce a missing receipt to zero. Required counters, nonnegative counts, reserved unknown usage and actual call limits remain enforced by their owners.",
+      "contracts": [
+        "docs/llm/project-policies.md",
+        "docs/llm/shared-contracts.md"
+      ],
+      "sources": {
+        "docs/llm/project-policies.md": "e84798034bc406df3403cddf78feb2d2b768bf2f2613171c944d13745bd36132",
+        "docs/llm/shared-contracts.md": "3936c5ad645623c175dd7e8cd6703e60c418b9c227e7d8922c86227ec60f6089",
+        "llm/components/usage.py": "f4e76f1d7f4c108b04a270d966c3b407994d8530d7bb6f7b8ec7e6535354812b",
+        "llm/providers/observations.py": "3c277cba31d5c2bec0981496e9e4bfd1787f095f0be8251dfa64cd3925e4107c",
+        "llm/services/runtime/policies.py": "81940ea6de5059b3f6c583c349b54c3b25b806ebc9cfac71a450a7dc85857828",
+        "llm/services/runtime/runs.py": "c0fda3dd171c8808d64c250430cd9cf92037cd2ca3d8e09569b3a2c080c65ab7",
+        "llm/services/runtime/usage.py": "645c226078963d0fe2c4407ec501aefeccc2b96987a4c59259cd73b0278dae44",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_common_boundaries.py": "fa43957611e555f4b943bbde5dc0d64492852cff2b12e4e2ad3873f186fd9092",
+        "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611"
+      },
+      "tests": [
+        "tests.llm.test_operations_schema.OperationsSchemaTests.test_unlimited_calls_keep_receipts_without_reading_usage_history",
+        "tests.llm.test_operations_schema.OperationsSchemaTests.test_parallel_component_calls_reserve_before_effect_and_cancel_is_accounted",
+        "tests.llm.test_operations_schema.OperationsSchemaTests.test_component_token_reservation_is_retained_when_usage_is_missing",
+        "tests.llm.test_common_boundaries.ModelObservationTests.test_custom_adapter_accounts_opaque_requests_and_responses"
+      ]
     }
   ]
 }

@@ -156,14 +156,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "0fc9c79fc4802f49d9f9aea92784174bb9168a71ca26fa824f10f16f6675ef82:1",
-      "rule": "S2",
-      "file": "llm/components/rag/component.py",
-      "symbol": "RAGComponent.prepare",
-      "line": 460,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "5b8f7098880689ab3d8c5c8668f2fc8dc3a8a62f4d7acf2f8be09f878e3844ad:1",
       "rule": "S3",
       "file": "llm/components/rag/component.py",
@@ -218,14 +210,6 @@
       "symbol": "RAGComponent.prepare",
       "line": 537,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "b363ef6414d0c844f871c28864fa6ec6bfad3de4314634cbf210dad618dc825a:1",
-      "rule": "S2",
-      "file": "llm/components/rag/component.py",
-      "symbol": "RAGComponent.prepare",
-      "line": 537,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "37eaa1af6847b19787713a433fdb62857e0f434fbbe782ebd676774b68bda1fd:1",
@@ -604,14 +588,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "8d3aca5a593cb5df9fba7bc2f9c2ba22ce8ba112a260ec47a7ca859702b29922:1",
-      "rule": "S2",
-      "file": "llm/engines/base.py",
-      "symbol": "BaseEngine.stream_completion",
-      "line": 513,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "95c71f4b8a1bd95a16703ad4537d7a61290239498863e8375e92d3b68ab39dff:1",
       "rule": "S3",
       "file": "llm/engines/graph/checkpoints.py",
@@ -812,14 +788,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "df9ffab0350bbe7ad023155a3a2ffc374580804fec4340faa4f8b5bad7a886c1:1",
-      "rule": "S2",
-      "file": "llm/providers/requests.py",
-      "symbol": "error_code",
-      "line": 76,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "2ee75fe49bb1ab850fc27af48075fc5e2cbf30bc7ac97c278e0ec06cc207eee3:1",
       "rule": "S3",
       "file": "llm/providers/runtime.py",
@@ -1010,14 +978,6 @@
       "symbol": "_file_log_event",
       "line": 100,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "d8044e20f74e074df9b793c0a769a164762d18aff48668e94b258def8be2476b:1",
-      "rule": "S2",
-      "file": "llm/services/infrastructure/observability.py",
-      "symbol": "Observability.record",
-      "line": 48,
-      "detail": "policy argument default: retry"
     },
     {
       "id": "a0237d29a6ee7090a8f704c3d5735a5ffeb75a0840f4fce7581c75ea4169657a:1",
@@ -1220,14 +1180,6 @@
       "detail": "inline domain argument: status"
     },
     {
-      "id": "ae38a24498b9f2d1834d46ad324867bffc3c31828b9aea651f3f27e7c0dd63dc:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/runs.py",
-      "symbol": "RunManager._record_completion",
-      "line": 1542,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "02c1c4b6a9e87890e36cf474339ac497e558238dc0604cbafd207fa95547a145:1",
       "rule": "S3",
       "file": "llm/services/runtime/runs.py",
@@ -1418,22 +1370,6 @@
       "symbol": "ToolExecutor.execute",
       "line": 692,
       "detail": "inline domain assignment: status"
-    },
-    {
-      "id": "d150c4dbfbb3c418df5c654cb8d627721374c6e51831a50092158589f4d532c5:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/usage.py",
-      "symbol": "ComponentUsage._reserve",
-      "line": 116,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "8eb6e33888bbd57cb65772b60a287f722977727083babae5e9e92ce0f5c22277:1",
-      "rule": "S2",
-      "file": "llm/services/runtime/usage.py",
-      "symbol": "ComponentUsage.__call__",
-      "line": 159,
-      "detail": "truthiness fallback involving configuration"
     },
     {
       "id": "f8a7235b69579868aed7c052ee4101dca68c364678e9542e974116da899de58b:1",
