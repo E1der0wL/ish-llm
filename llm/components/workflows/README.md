@@ -28,6 +28,9 @@ graph = WorkflowGraph(entry="finish").node("finish", "end").to_dict()
 ## 저장·실행 계약
 
 최상위 및 제어 노드는 알려진 필드만 허용합니다. UI 라벨 등은 `metadata` 안에 저장합니다.
+WorkflowGraph가 현재 SCHEMA_VERSION과 빌더가 관리하는 필드를 선언하며, Schema·Reader·Writer가
+같은 선언을 사용합니다. 현재 값은 1이며 최상위와 중첩 body 모두 정확한 int만 받습니다.
+잘못된 버전과 필수 버전 누락은 저장·실행 전에 거부하며 기존 원본을 변환하거나 덮지 않습니다.
 action 노드의 `type`은 선택 handler를 식별합니다. 공통 binding/timeout 필드 이외의 설정은
 handler의 `describe_config()` 또는 기존 `validate(node, context)`가 검증합니다.
 GraphEngine은 handler 내부 옵션을 복제하거나 해석하지 않습니다. schema/validator가 없는

@@ -516,54 +516,6 @@
       "detail": "inline domain argument: policy"
     },
     {
-      "id": "c045028c8438f6cea7556d38033a68f37b6ff164a3f51d78ffb0c14fb1efa382:1",
-      "rule": "S4",
-      "file": "llm/components/workflows/graph.py",
-      "symbol": "validate_graph",
-      "line": 84,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "28ff9bde0b706b5650ca81ff3f52882640ecf096d5737e438d64ab8a95528908:1",
-      "rule": "S4",
-      "file": "llm/components/workflows/graph.py",
-      "symbol": "validate_graph",
-      "line": 84,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "54865f6555cd84be40b0de3c4e13802b6dd8eb4aed51facdae003221644fce08:1",
-      "rule": "S3",
-      "file": "llm/components/workflows/graph.py",
-      "symbol": "validate_graph",
-      "line": 84,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "d810834959849f33582aaaed39480a83e4edc42d87b8dfeb70c47d5b60516d71:1",
-      "rule": "S4",
-      "file": "llm/components/workflows/graph.py",
-      "symbol": "WorkflowGraph.__init__",
-      "line": 238,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "b81fca07a6a921ad2a85b0216770d8bad7a613dd12216db700d5a323d0e9ca5a:1",
-      "rule": "S3",
-      "file": "llm/components/workflows/graph.py",
-      "symbol": "WorkflowGraph.__init__",
-      "line": 238,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "d01f12d50b34ce4e55b865bb3ecd33633d0c833b92d55e87f21c89325d400e8c:1",
-      "rule": "S3",
-      "file": "llm/components/workflows/graph.py",
-      "symbol": "WorkflowGraph.__init__",
-      "line": 244,
-      "detail": "inline domain field: schema_version"
-    },
-    {
       "id": "721e395c95bc665fba6ea6ae7e085f83906e42b602bd65bbbfc242c1052ce429:1",
       "rule": "S3",
       "file": "llm/core/configuration.py",

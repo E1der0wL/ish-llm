@@ -13,6 +13,61 @@ P1-b와 P1-c의 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 �
 따른다. 세 번째 Provider 계약군은 별도 커밋으로 보존한다. A–F는 미착수이며 P1 전체 완료를 뜻하지 않는다.
 main·이전 backend 브랜치·Draft PR #1을 변경하거나 이전 구현을 가져오지 않는다.
 
+## P1-c8: Workflow 현재 형식 선언 — 로컬 Level 2
+
+WorkflowGraph.SCHEMA_VERSION과 MANAGED_FIELDS를 Schema·순수 Reader·빌더 Writer가 공유한다.
+현재 version=1, 최상위/중첩 body의 정확한 int 검사, 관리 필드의 생성자 거부, 닫힌 Schema와
+실행 알고리즘은 그대로다. 공개 Schema 전체가 변경 전 JSON과 동일함을 확인했다. 호환 Reader,
+자동 변환, 별도 helper 계층을 추가하지 않았다. 버전/관리 필드 계약군만 정리했으며 Workflow의
+다른 제어 값이나 Graph Engine 전체의 선언까지 완료했다고 보고하지 않는다.
+
+새 시험 3개는 명시 current roundtrip·관리 필드 거부·사본 독립성, 최상위/중첩의 bool/float/text/
+null/미지원/누락 버전 거부와 입력 불변, 실제 create/save 실패 후 **Project 모든 파일 byte** 보존을
+확인한다. 첫 실행의 error 2건은 새 중첩 fixture에 필수 on_limit을 빠뜨린 시험 오류였다.
+수정 뒤 실패 2건(실패 test ID 1개)은 누락된 중첩 버전이 이미 상위 닫힌 Schema에서 거부됐으나
+새 시험이 schema_version 문구만 기대했기 때문이다. 실제 nodes/loop 경로를 반영했다.
+원래 거부·입력 불변·전체 byte Assertion은 유지했고, 초기 제품/fixture/로그를 보존했다.
+이 실패들을 제품의 새 안전성 결함 또는 성공으로 재분류하지 않는다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c8-contract-before` llm | 3/3 | 1 | 0/2/0 | 0.088초 | 1 |
+| `c8-contract-corrected` llm | 3/3 | 2 | 2/0/0 | 0.196초 | 1 |
+| `c8-focused-1` llm | 38/38 | 38 | 0/0/0 | 9.955초 | 0 |
+| `c8-level2` llm | 332/332 | 332 | 0/0/0 | 140.145초 | 0 |
+| `c8-level2` hub | 15/15 | 15 | 0/0/0 | 65.737초 | 0 |
+
+모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+최종 Level 2의 LLM 26개 모듈은 모든 test_graph 모듈·LangGraph·nested/Agent Workflow·실제
+예제·설정/Schema/Naming·Component 저장 소비자·감사 검사기와 승인·예산·효과·Checkpoint·RAG·
+삭제·트랜잭션 안전성을 포함한다. Hub 4개는 실제 작성/실행·Component 관리·설정·Project 권한
+소비자다. 원본·실제 효과·중단/재개 검증을 유지했다. 공개 형식/알고리즘이 같은 좁은 owner 선언
+변경이며 위 필수 범위를 통과했으므로 이번 소단계의 전체 LLM/Hub는 유예한다. 후속 P1 묶음
+Level 3에서 전체 통합 검증 후 Push한다. 소단계 결과를 P1 전체/원격 CI 완료로 보고하지 않는다.
+
+정적 검사 new/stale/review 오류/S1·S5 미해결 0, reviewed 13, 미해결 447, exit 0이다.
+기존 Workflow 후보 6건을 정리했다. 실제 중복 version·관리 필드 목록은 owner 참조로 바꿨고,
+남은 정확한 type/version guard 두 발생은 실제 Reader/Writer 시험과 선언/Schema/소비자/계약/
+시험 hash로 개별 분류했다. 기존 11개 분류도 유효하다. 외부 함수에서 클래스 선언을 참조하는
+이 두 guard를 위해 AST 규칙을 완화하지 않았다. R3 실제 효과 mutation 검출 True/outer exit 0,
+문서 검사 132/182/959/34·오류 0/exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c8-level2/llm.json --modules tests.llm.test_agent_workflow tests.llm.test_architecture_checks tests.llm.test_architecture_reviews tests.llm.test_checkpoint_integrity tests.llm.test_component_record_integrity tests.llm.test_component_storage_integrity tests.llm.test_configuration_validation tests.llm.test_configuration_workflow_example tests.llm.test_graph_agent_contract tests.llm.test_graph_checkpoints tests.llm.test_graph_decisions tests.llm.test_graph_engine tests.llm.test_graph_rag_example tests.llm.test_interaction_storage tests.llm.test_langgraph_engine tests.llm.test_lifecycle_deletion_integrity tests.llm.test_lifecycle_integrity tests.llm.test_naming_contract tests.llm.test_nested_graph tests.llm.test_operation_integrity tests.llm.test_rag_storage tests.llm.test_schema_ownership tests.llm.test_settings_contract tests.llm.test_transactions tests.llm.test_usage_deletion tests.llm.test_workflow_format
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c8-level2/hub.json --modules tests.hub.test_component_managers tests.hub.test_project_authority tests.hub.test_resource_tools tests.hub.test_settings_project_flow
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S5 --output /workspace/llm-clean-resume/p1/c8-static-final.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c8-docs.json
+```
+
+Level 2 전후 696개 Python 소스 hash `15d3340325b0c57b61aa372de7133c9ea352689769b51cf64d7b8e336b5df1f0`,
+858개 입력/환경 hash `0e5e044a99fa6a12ab24bcec9ec1099770747fa02e1f7efc0b3164c5e79fe98a`가 각각 동일했다.
+Python 3.12.14/136개 의존성·실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존
+TERM/LiteLLM/Xvfb/xclip 환경을 유지했다. 실행별 정확한 명령·exit·JSON/로그·원래 fixture는
+`/workspace/llm-clean-resume/p1/`에 보존했다. 현재의 검증된 Workflow/Graph 계약을 사용했고
+동일한 과거 알고리즘을 다시 조사하거나 이식하지 않았다. P1 나머지 owner·현재 Schema/Naming과
+A–F는 여전히 미완료다.
+
 ## P1-c7: 근거가 있는 개별 정적 분류 — 로컬 Level 2
 
 P1-c4–c6 전체 게이트/Push `8058c71bfc5dd11bc701b69033e42408ffa454fe` 뒤 검토된 기술적

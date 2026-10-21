@@ -35,12 +35,12 @@ def workflow_schema():
                 for kind, options in fields.items()]
     variants.append(open_schema("selected Workflow action handler", category="implementation", properties={
         **common, "type": field("string", minLength=1, **{"not": {"enum": list(fields)}})}, required=["type"]))
-    return object_schema({"schema_version": {"const": 1}, "entry": field("string", minLength=1),
+    return object_schema({"schema_version": {"const": WorkflowGraph.SCHEMA_VERSION}, "entry": field("string", minLength=1),
         "nodes": object_schema(additionalProperties={"oneOf": variants}, minProperties=1),
         "edges": field("array", items=object_schema({"source": field("string"), "target": field("string"), "port": field("string")}, required=["source", "target"])),
         "initial_state": open_schema("Workflow state/input author", category="data"),
         **{key: value for key, value in contract.items() if key != "resume_schema"},
-        "metadata": metadata_schema()}, required=["schema_version", "entry", "nodes", "edges"])
+        "metadata": metadata_schema()}, required=list(WorkflowGraph.MANAGED_FIELDS))
 
 
 def validate_handler_options(node, handler):
@@ -81,8 +81,9 @@ def _condition(value) -> None:
 
 def validate_graph(data: dict, *, _depth: int = 0) -> None:
     """닫힌 그래프 구조와 도달성·연결·합류·반복 상한을 검사한다."""
-    if not isinstance(data, dict) or type(data.get("schema_version")) is not int or data["schema_version"] != 1:
-        raise ValueError("Workflow requires schema_version 1")
+    if (not isinstance(data, dict) or type(data.get("schema_version")) is not int
+            or data["schema_version"] != WorkflowGraph.SCHEMA_VERSION):
+        raise ValueError(f"Workflow requires schema_version {WorkflowGraph.SCHEMA_VERSION}")
     if _depth == 0:
         Component.serialize(data)  # 런타임 객체와 비유한 수는 그래프에도 저장할 수 없다.
         errors = list(Draft202012Validator(workflow_schema()).iter_errors(data))
@@ -231,17 +232,20 @@ def validate_graph(data: dict, *, _depth: int = 0) -> None:
 class WorkflowGraph:
     """검증된 JSON 노드와 연결을 단계적으로 조립하는 빌더."""
 
+    SCHEMA_VERSION = 1
+    MANAGED_FIELDS = ("schema_version", "entry", "nodes", "edges")
+
     def __init__(self, *, entry: str, **fields) -> None:
         # 미완성 nodes/edges는 to_dict에서 검증하되, 최상위 키는 생성 즉시 검증한다.
         # 사용자 확장은 metadata 객체에만 속한다. 저장 스키마를 그대로 재사용한다.
         properties = {key: value for key, value in workflow_schema()["properties"].items()
-                      if key not in {"schema_version", "entry", "nodes", "edges"}}
+                      if key not in WorkflowGraph.MANAGED_FIELDS}
         Component.serialize(fields)
         try:
             Draft202012Validator(object_schema(properties)).validate(fields)
         except ValidationError as error:
             raise ValueError(f"Workflow constructor: {error.message}") from error
-        self._data = {**deepcopy(fields), "schema_version": 1,
+        self._data = {**deepcopy(fields), "schema_version": WorkflowGraph.SCHEMA_VERSION,
                       "entry": _text(entry, "entry"), "nodes": {}, "edges": []}
 
     def node(self, identifier: str, kind: str, **options) -> "WorkflowGraph":

@@ -260,6 +260,58 @@
       "tests": [
         "tests.llm.test_provider_runtime.RuntimeTests.test_file_handler_uses_standard_error_callback_without_stderr_or_partial_write"
       ]
+    },
+    {
+      "id": "c045028c8438f6cea7556d38033a68f37b6ff164a3f51d78ffb0c14fb1efa382:1",
+      "rule": "S4",
+      "owner": "validate_graph",
+      "reason": "Exact int guard rejects missing, null, bool and float versions before the supported-version comparison. validate_graph is a module-level validator, so the scanner does not auto-recognize this class-owned guard. Root and nested body readers reject invalid versions without mutating input; real create/save preserve all existing Project bytes. This is a checked current Reader, not a compatibility branch.",
+      "contracts": [
+        "llm/components/workflows/README.md",
+        "docs/llm/schema-ownership.md"
+      ],
+      "sources": {
+        "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
+        "llm/components/workflows/README.md": "32e8acdf0349ec4aca13c86665d42febbaeaa3cbaf51407344e574b6ee6c3de5",
+        "llm/components/workflows/bindings.py": "70af53d5c0ec770a11a7b49739b33b9b3cca5e51467a7c8946e9c694a243bb1b",
+        "llm/components/workflows/component.py": "10164af859ab6b2d8118e23e73543ae0458115d459505eae85f7e1476f36bab5",
+        "llm/components/workflows/data.py": "7254a9fa801565ed05d44be52dcf1e8d9802e373f5144bf2d2d0c7e434327c73",
+        "llm/components/workflows/graph.py": "223c89f9d67401f7cb96a6fc0ba693ae9b6f3fdeb1c12c497f36dc13fbdeb4a4",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_workflow_format.py": "f490f344f0febc0e37d604ea65c0b92568e587a115be89b097a6257e81a9c4dc"
+      },
+      "tests": [
+        "tests.llm.test_workflow_format.WorkflowFormatTests.test_current_roundtrip_and_managed_constructor_fields",
+        "tests.llm.test_workflow_format.WorkflowFormatTests.test_top_level_and_nested_readers_reject_versions_without_mutating_input",
+        "tests.llm.test_workflow_format.WorkflowFormatStorageTests.test_invalid_create_and_save_preserve_all_existing_project_bytes"
+      ]
+    },
+    {
+      "id": "5f00b4add9a55e7891f22562fa490051f6cf3e4071c2a32a2346e1f544879316:1",
+      "rule": "S4",
+      "owner": "validate_graph",
+      "reason": "Supported version is compared to WorkflowGraph.SCHEMA_VERSION, the same owner declaration used by Schema and builder Writer. validate_graph is a module-level validator, so the scanner does not auto-recognize this class-owned guard. Root and nested body readers reject invalid versions without mutating input; real create/save preserve all existing Project bytes. This is a checked current Reader, not a compatibility branch.",
+      "contracts": [
+        "llm/components/workflows/README.md",
+        "docs/llm/schema-ownership.md"
+      ],
+      "sources": {
+        "docs/llm/schema-ownership.md": "bf0694ac09962427bb80fbc30c5eb8b46ba35130bf98bfa8e8f1a34356fb3cc7",
+        "llm/components/workflows/README.md": "32e8acdf0349ec4aca13c86665d42febbaeaa3cbaf51407344e574b6ee6c3de5",
+        "llm/components/workflows/bindings.py": "70af53d5c0ec770a11a7b49739b33b9b3cca5e51467a7c8946e9c694a243bb1b",
+        "llm/components/workflows/component.py": "10164af859ab6b2d8118e23e73543ae0458115d459505eae85f7e1476f36bab5",
+        "llm/components/workflows/data.py": "7254a9fa801565ed05d44be52dcf1e8d9802e373f5144bf2d2d0c7e434327c73",
+        "llm/components/workflows/graph.py": "223c89f9d67401f7cb96a6fc0ba693ae9b6f3fdeb1c12c497f36dc13fbdeb4a4",
+        "llm/core/schema.py": "9fa3f851b7a2b39c19f477c0bb8ab4cac1b2e1dea1324b0eefd3f79abc9e6aab",
+        "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
+        "tests/llm/test_workflow_format.py": "f490f344f0febc0e37d604ea65c0b92568e587a115be89b097a6257e81a9c4dc"
+      },
+      "tests": [
+        "tests.llm.test_workflow_format.WorkflowFormatTests.test_current_roundtrip_and_managed_constructor_fields",
+        "tests.llm.test_workflow_format.WorkflowFormatTests.test_top_level_and_nested_readers_reject_versions_without_mutating_input",
+        "tests.llm.test_workflow_format.WorkflowFormatStorageTests.test_invalid_create_and_save_preserve_all_existing_project_bytes"
+      ]
     }
   ]
 }
