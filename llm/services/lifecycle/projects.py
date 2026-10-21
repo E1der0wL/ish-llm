@@ -208,24 +208,6 @@ class ProjectManager:
                 "reserved_tokens": reserved, "unknown_calls": unknown, "period_seconds": policy.get("period_seconds")}
 
     @workspace_locked
-    def maintenance(self, project, *, apply=False, expected_version=None):
-        """컴포넌트가 소유한 자료의 정리 계획. 각 컴포넌트가 자신의 경로와 활성 작업을 보호한다."""
-        current = self.access.require(project)
-        plans = {}
-        for name in current.components:
-            hook = getattr(self.components.get(name), "maintenance", None)
-            if hook:
-                plans[name] = hook(current)
-        version = revision_token({"project": record(current), "plans": plans})
-        if apply:
-            if not expected_version or expected_version != version:
-                raise ValueError("maintenance_conflict: review a fresh maintenance plan")
-            for name, plan in plans.items():
-                if plan["candidates"] or plan.get("pending"):
-                    self.components.get(name).maintenance(current, apply=True, expected_version=plan["version"])
-        return {"components": plans, "version": version}
-
-    @workspace_locked
     def recovery(self, project, *, apply=False, expected_version=None):
         from llm.services.history.recovery import ProjectRecovery
         current = self.access.require(project)

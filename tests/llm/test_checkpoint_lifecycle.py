@@ -408,17 +408,16 @@ class RAGCheckpointTests(unittest.IsolatedAsyncioTestCase):
             job = await self.enqueue()
             await self.rag.aabandon_job(job["id"], expected_revision=(await self.rag.acheckpoint_plan(job["id"])).revision)
         jobs = RAGJobs(self.rag)
-        project, component = self.rag._current()
-        self.assertFalse(component.maintenance(project)["candidates"])
-        await self.rag.aconfigure({"policy": {"retention": {"job_max_age_seconds": 60}}})
-        project, component = self.rag._current()
+        from hub.backend.project.rag_management import RAGManagement
+        manager = RAGManagement(self.rag, 'rag', self.project.paths.root, self.project.id, project=self.project)
+        self.assertFalse((await manager.plan_job_retention(None))["selected"])
         lease = jobs._lease(job["id"])
         try:
-            self.assertFalse(component.maintenance(project)["candidates"])
+            self.assertFalse((await self.rag.ajob_cleanup_plan())["candidates"])
         finally:
             lease.close()
-        plan = await self.project.amaintenance()
-        await self.project.amaintenance(apply=True, expected_version=plan["version"])
+        plan = await manager.plan_job_retention(60)
+        await manager.apply_job_retention(60, plan)
         self.assertFalse(jobs._path(job["id"]).exists())
 
 

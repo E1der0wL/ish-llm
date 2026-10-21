@@ -68,7 +68,7 @@ ProjectConfig
 |---|---|---|
 | Loop | completion(SDK dict), system_prompt, buffer_size | completion(입력 예산), provider(외부 재시도), max_iterations, request_timeout, tool_timeout, max_tool_calls, max_argument_chars, max_output_chars |
 | Graph | buffer_size, cleanup_timeout | max_steps, max_parallelism, timeout_seconds, max_nested_depth |
-| RAG | chunk_size, embedding_params, extraction_params, rerank_params, document_kwargs, query_kwargs, search, graph, extraction_batch_size, index_batch_size, embedding_cache_max_bytes, search_cache_chars, extraction.json_mode/prompt_id/relation_types | embedding_concurrency, provider, ingestion.max_active, retention.job_max_age_seconds, extraction.repair_attempts/failure_policy |
+| RAG | chunk_size, embedding_params, extraction_params, rerank_params, document_kwargs, query_kwargs, search, graph, extraction_batch_size, index_batch_size, embedding_cache_max_bytes, search_cache_chars, extraction.json_mode/prompt_id/relation_types | embedding_concurrency, provider, ingestion.max_active, extraction.repair_attempts/failure_policy |
 | Memory | cache_records, search_status/search_limit, processing.completion/priority/extract_scope/summary_chars/recall_limit/recall_query_chars | tool_write_status, max_search_results, processing의 자동 실행 여부·입력/출력/시간 한도·실패 방식·provider |
 | Vision | completion, ocr.backend/backends | limits.max_bytes/max_pixels, ocr.timeout, provider |
 | Tool/BuiltinTool | enabled | 현재 없음 |
@@ -114,7 +114,7 @@ Hub는 저장값과 현재 적용값/출처를 구분한다. 외부 adapter가 �
 generic form 지원은 유지한다. 적용값·client 값·runtime 추정값을 저장값에
 자동으로 복사하지 않는다. 여러 Engine이 설정 키를 공유하면 각 Engine의 적용값을 표시한다.
 
-공통 `policies`는 서비스가 집행하는 context/run/tools/approval/tool_retry/usage/retention/output만
+공통 `policies`는 서비스가 집행하는 context/run/tools/approval/tool_retry/usage/output만
 해석한다. Loop 모델 입력은 `parameters.engines[이름].policy.completion`의 CompletionPolicy,
 스트리밍 재시도는 같은 Engine의 `policy.provider`가 담당한다. Memory 보조 모델에는
 `parameters.components.memory.policy.processing.provider`를 사용하며 RAG/Vision도 각자의 policy.provider를
@@ -208,7 +208,7 @@ llm은 기본 Project/Session·마지막 선택·UI 엔진 선택 정책을 소�
 
 기존 최상위 completion/engines/component_configurations/session_defaults/default_engine은 거부한다. 자동 변환·옛 기본값 복원·기존 파일 수정은 하지 않는다. 새 ProjectConfig를 명시적으로 작성해야 한다. 선택한 컴포넌트의 `configure/aconfigure`는 `parameters.components[name]`을 교체하며 Project의 저장 잠금과 버전 검사를 공유한다.
 
-보관 토큰 계산에는 `policies.retention.counter`와 계산기에 필요한 `counter_params`를 명시한다. 예: `{"counter": "model_default", "counter_params": {"model": "openai/my-model"}}`. 여러 엔진이 사용하는 모델 중 하나를 임의로 선택하지 않는다. 보관할 messages는 서비스가 전달하므로 counter_params에서 덮어쓸 수 없다.
+보존 기간·대상·시점은 Application이 소유한다. HistoryRetentionPolicy와 명시적으로 선택한 `counter`/`counter_params`를 사용하며 Backend 정책이나 Engine 모델을 추론하지 않는다. 보관할 messages는 측정 서비스가 전달하므로 counter_params에서 덮어쓸 수 없다. Backend의 `retention_plan`/`prune_history`, RAG의 `job_cleanup_plan`/`prune_jobs`는 적격 증거와 명시 대상을 처리한다. 옛 `policies.retention`, RAG `policy.retention`, Project/Component `maintenance`는 제거했으며 자동 변환하지 않는다.
 
 미설정 재시도에서 최초 호출 한 번, 지연 없음, 예약 토큰 없음, 보존 개수 추가 보호 없음 등의 중립 동작은 config에 `1/0`을 생성하는 것이 아니다. 코드의 `get(..., 0/1)`이 이런 수학적 중립값인지 별도 감사한다.
 

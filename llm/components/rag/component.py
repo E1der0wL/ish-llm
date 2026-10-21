@@ -64,11 +64,12 @@ class RAGComponent(DefinitionComponent):
     data_class = RAGData
     # 일반 record CRUD는 Application 메모만 보관한다. 문서 색인은 document API가 소유한다.
     schema = object_schema({"metadata": metadata_schema()})
+    POLICY_FIELDS = ("embedding_concurrency", "provider", "ingestion")
     parameter_layout = ParameterLayout(
         config=("chunk_size", "embedding_cache_max_bytes", "query_cache_max_bytes", "snapshot_cache_max_bytes", "extraction_batch_size", "search_cache_chars",
                 "index_batch_size", "search", "graph", "document_kwargs", "query_kwargs",
                 "embedding_params", "extraction_params", "rerank_params"),
-        policy=("embedding_concurrency", "provider", "ingestion", "retention"),
+        policy=POLICY_FIELDS,
         paths={**{"extraction." + key: "config.extraction." + key
                   for key in ("json_mode", "prompt_id", "relation_types")},
                **{"extraction." + key: "policy.extraction." + key
@@ -418,9 +419,7 @@ class RAGComponent(DefinitionComponent):
             "extraction": extraction_schema(),
             "provider": provider_schema(),
             "rerank_params": child_schema(self.reranker, RerankModel),
-            "ingestion": object_schema({"max_active": field("integer", "동시 색인 작업 수", minimum=1)}),
-            "retention": object_schema({"job_max_age_seconds": field(["number", "null"],
-                "완료·취소·명시적으로 재개를 포기한 색인 작업의 입력/영수증 보관 기간. null은 무제한", exclusiveMinimum=0)})},
+            "ingestion": object_schema({"max_active": field("integer", "동시 색인 작업 수", minimum=1)})},
             **{"x-runtime-configuration": ["embedding", "extractor", "reranker", "embedding_id"]}))
 
     def validate_config(self, data):
@@ -447,54 +446,6 @@ class RAGComponent(DefinitionComponent):
             validate = getattr(selected, "validate_config", None)
             if validate is not None and key in data:
                 validate(deepcopy(data[key]))
-
-    def maintenance(self, project, *, apply=False, expected_version=None):
-        """활성 코퍼스와 재개 자료를 보존하고, 만료된 종료/명시적 포기 작업만 정리한다."""
-        from datetime import datetime, timezone
-        maximum = self._options(project).get("retention", {}).get("job_max_age_seconds")
-        storage = JobStorage(project, self)
-        _, jobs = storage.inventory()
-        root = storage.directory
-        candidates, protected, leases, sources = [], [], [], []
-        try:
-            for identifier, job in sorted(jobs.items()):
-                path = storage.path(identifier) / "job.json"
-                stamps = {}
-                for entry in self._checked_tree(path.parent).rglob("*"):
-                    if entry.is_file() and entry.name != JobStorage.LEASE:
-                        stat = entry.stat()
-                        stamps[str(entry.relative_to(path.parent))] = [stat.st_size, stat.st_mtime_ns]
-                sources.append([job, stamps])
-                abandoned = None
-                if job["resume_abandonment"] is not None:
-                    from llm.core.checkpoints import ResumeAbandonment
-                    abandoned = ResumeAbandonment.from_dict(job["resume_abandonment"])
-                ended = abandoned.abandoned_at if abandoned else job.get("ended_at", job["created_at"])
-                expired = maximum is not None and (datetime.now(timezone.utc) - datetime.fromisoformat(ended)).total_seconds() > maximum
-                row = {"job_id": job["id"], "status": job["status"], "bytes": sum(s[0] for s in stamps.values())}
-                if (job["status"] not in ("completed", "cancelled") and abandoned is None) or not expired:
-                    protected.append({**row, "reason": "unfinished_or_retained"})
-                    continue
-                stream = storage.lease(identifier, probe=True)
-                if stream is None:
-                    protected.append({**row, "reason": "active_worker"})
-                    continue
-                leases.append(stream)
-                candidates.append(row)
-            pending = [read_json(self._checked(p)) for p in sorted(self._checked(root / ".deletions").glob("*.json"))]
-            result = {"candidates": candidates, "protected": protected, "pending": pending}
-            version = revision_token({**result, "sources": sources, "max_age_seconds": maximum})
-            if apply:
-                if not expected_version or expected_version != version:
-                    raise ValueError("maintenance_conflict: review a fresh component plan")
-                recover_deletions(root)
-                for row in candidates:
-                    identifier = validate_name(row["job_id"])
-                    storage.delete(identifier)
-            return {**result, "version": version}
-        finally:
-            for stream in leases:
-                stream.close()
 
     def validate_backup(self, project):
         super().validate_backup(project)

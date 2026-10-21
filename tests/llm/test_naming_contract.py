@@ -1,6 +1,7 @@
 """Renamed APIs preserve the pre-cleanup configuration and durable contracts."""
 
 import ast
+from copy import deepcopy
 from dataclasses import fields
 import hashlib
 import json
@@ -39,6 +40,7 @@ class NamingContractTests(unittest.TestCase):
     def setUp(self):
         # Captured from 607310f, not regenerated from the implementation under test.
         self.before = json.loads((Path(__file__).parent / 'fixtures/naming_contract.json').read_text())
+        self.retired = json.loads((Path(__file__).parent / 'fixtures/retired_retention_schemas.json').read_text())
 
     def test_config_policy_and_definition_schemas_unchanged(self):
         def baseline(schema):
@@ -70,6 +72,14 @@ class NamingContractTests(unittest.TestCase):
             with self.subTest(implementation=type(implementation).__name__):
                 schema = implementation.describe_config()
                 if isinstance(implementation, RAGComponent):
+                    # H4 moves retention to Application. Verify removal, then restore only
+                    # the archived schema node for this historical naming comparison.
+                    policy = schema['properties']['policy']['properties']
+                    self.assertNotIn('retention', policy)
+                    policy['retention'] = deepcopy(self.retired['RAGComponent'])
+                    misplaced = schema['properties']['config']['not']['anyOf']
+                    self.assertNotIn(self.retired['RAGConfigGuard'], misplaced)
+                    misplaced.append(deepcopy(self.retired['RAGConfigGuard']))
                     # Explicit cache capacities were added after the naming baseline.
                     # Validate only these additions, then compare the unchanged contract.
                     for key in ('query_cache_max_bytes', 'snapshot_cache_max_bytes'):
@@ -99,7 +109,10 @@ class NamingContractTests(unittest.TestCase):
                         'component': {'type': 'string', 'description': '', 'minLength': 1},
                         'identifier': {'type': 'string', 'description': '', 'minLength': 1}})
                 self.assertEqual(digest(baseline(schema)), self.before['schemas'][type(implementation).__name__])
-        self.assertEqual(digest(ProjectConfig.describe_policies()), self.before['schemas']['ProjectPolicy'])
+        policies = ProjectConfig.describe_policies()
+        self.assertNotIn('retention', policies['properties'])
+        policies['properties']['retention'] = deepcopy(self.retired['ProjectPolicy'])
+        self.assertEqual(digest(policies), self.before['schemas']['ProjectPolicy'])
 
     def test_persisted_config_domain_fields_and_workflow_unchanged(self):
         config = ProjectConfig.deserialize(json.dumps(self.before['project_config']))

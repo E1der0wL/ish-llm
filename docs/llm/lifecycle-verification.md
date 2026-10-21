@@ -9,6 +9,73 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H4-c RAG Job 보존 선택과 게시 증거 — 로컬 Level 2
+
+기준 `06023526f34b84e7c2a92445c5f8dc908ac8074f` 뒤 Job의 기간·대상 선택을 Application으로
+옮겼다. H4 전체와 원격 CI 완료는 아니며 로그 정책과 H4 상위 전체 게이트가 남아 있다.
+
+- RAGJobs의 job_cleanup_plan은 게시 원본·Job 목록·Checkpoint·종료/포기 상태·worker lease와
+  실제 파일 증거를 검증하고 후보/보호 이유/version만 제공한다. prune_jobs는 고유한 명시 ID와
+  현재 version을 요구하며 잠금과 확보한 lease를 유지한 채 요청한 Job/manifest만 원자적으로
+  삭제한다. 빈 목록은 무선택이며 손상·stale·보호·중복·미확인 대상은 거부한다. 공개 RAGData의
+  동기/비동기 API를 함께 제공한다. 완료/포기 기록의 시각은 owner 필수 필드에서 읽는다.
+- Hub RAGManagement의 plan_job_retention/apply_job_retention이 기간을 검증하고 후보를
+  선택한다. None은 아무것도 선택하지 않는다. 적용은 현재 정책·원본·검토 결과의 정확한 일치를
+  요구한다. 옛 Component/Project maintenance hook과 RAG policy.retention을 제거했고 호환
+  해석이나 자동 실행은 추가하지 않았다. 기존 확정 트랜잭션의 기술적 GC는 유지했다.
+- 최초 3개 재현은 active.json/identity.json/게시 corpus 소실에도 완료 Job의 원본 입력이 실제
+  삭제됨을 확인했다(rejected=False/preserved=False, 파일 효과 1회). 단일 삭제와 새 배치 삭제가
+  같은 component.snapshot 증거를 요구하도록 수정했다. 기존 Job/Checkpoint Assertion은 유지했다.
+- 새 LLM 11개는 위 3개 손상, 읽기 전용 JSON plan/일부 삭제, stale/live lease, 잘못된 대상,
+  실제 첫 삭제 후 실패 rollback, 동시 요청, 취소 drain, 삭제·재시작 후 실제 quota 차단을 검증한다.
+  실제 child exit 77의 첫/둘째 삭제·COMMITTED marker·commit 이후 네 경계에서 원본 또는
+  완전한 새 상태, 나머지 Job/게시 corpus/문서/누적 사용량/파일 효과를 확인한다. Hub 3개는
+  무선택/기간 선택·보호 대상·정책/검토/원본 변경·옛 설정 거부를 추가한다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c-baseline` llm | 3/3 | 0 | 3/0/0 | 2.020초 | 1 |
+| `c-integrity-focused` llm | 60/60 | 60 | 0/0/0 | 31.578초 | 0 |
+| `c-focused-1` llm | 67/67 | 66 | 1/0/0 | 24.628초 | 1 |
+| `c-focused-2` llm | 14/14 | 14 | 0/0/0 | 6.373초 | 0 |
+| `c-focused-2` hub | 18/18 | 18 | 0/0/0 | 26.511초 | 0 |
+| `c-focused-3` llm | 11/11 | 10 | 1/0/0 | 16.261초 | 1 |
+| `c-focused-4` llm | 11/11 | 11 | 0/0/0 | 16.551초 | 0 |
+| `c-level2` llm | 486/486 | 486 | 0/0/0 | 225.899초 | 0 |
+| `c-level2` hub | 55/55 | 55 | 0/0/0 | 96.901초 | 0 |
+
+`c-focused-1`의 1 failure는 과거 Naming Schema 비교 fixture의 제거된 retention guard 누락이다.
+원래 역사 fixture는 보존하고 현재 clean 브랜치 이력의 폐기 Schema만 별도 fixture로 기록했다.
+현재 Schema에 옛 필드가 없음을 먼저 검증한 뒤 과거 digest 비교에만 사용한다. backend 브랜치를
+읽거나 제품에 옛 Schema를 복원하지 않았다. `c-focused-3`의 1 failure는 새 quota 시험의 모델이
+관측 불가능하여 호출 한도보다 앞서 거부된 fixture였다. 관측 가능한 모델로 재구성하고 호출되면
+실제 파일에 추가 효과를 기록하는 Assertion을 유지해 ExecutionLimitError와 효과 1회를 확인했다.
+모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+
+Level 2는 43개 LLM 모듈의 전체 RAG/Job·공개 Schema·설정·Checkpoint/재개·삭제 소비자와
+승인·권한·예산·효과·트랜잭션, 10개 Hub 모듈의 실제 RAG/설정/Project/History 소비자를 포함한다.
+공통 저장/실행 승인/예산 알고리즘은 바꾸지 않았고 영향은 Job 정리 및 제거된 API의 직접 소비자로
+검증했다. 이번 소단계에서 전체 LLM/Hub는 실행하지 않았다. H4 최종 통합 Level 3 후 묶어 Push한다.
+정적 `c-static-3`은 new/stale/S1 미해결 0, debt 523, exit 0이다. 실제 제거된 옛 분기 4개만
+기준에서 제거했고 새 면제는 없다. R3 실제 효과 mutation 검출 True, outer exit 0이며 의도한
+inner 실패도 보존한다. 현재 계약 문서 검사는 131/181/954/34, 오류 0, exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/h4/c-level2/llm.json --modules tests.llm.test_rag_batch_identity tests.llm.test_rag_batch_source tests.llm.test_rag_catalog_integrity tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_components tests.llm.test_rag_corpus_integrity tests.llm.test_rag_embedding_checkpoint tests.llm.test_rag_extraction_repair tests.llm.test_rag_graph_checkpoint tests.llm.test_rag_input_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_job_state_integrity tests.llm.test_rag_models tests.llm.test_rag_optimization tests.llm.test_rag_prepared_integrity tests.llm.test_rag_query_evidence tests.llm.test_rag_resilience tests.llm.test_rag_retention_policy tests.llm.test_rag_storage tests.llm.test_unified_rag tests.llm.test_search_tools tests.llm.test_markdown_rag tests.llm.test_graph_rag_example tests.llm.test_optimized_queries tests.llm.test_interaction_storage tests.llm.test_usage_deletion tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_lifecycle_integrity tests.llm.test_lifecycle_deletion_integrity tests.llm.test_transactions tests.llm.test_operations_schema tests.llm.test_service_extensions tests.llm.test_rag_job_retention tests.llm.test_naming_contract tests.llm.test_schema_ownership tests.llm.test_settings_contract tests.llm.test_configuration_validation tests.llm.test_extension_contracts tests.llm.test_history_retention_integrity tests.llm.test_project_authority tests.llm.test_project_policies
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/h4/c-level2/hub.json --modules tests.hub.test_rag_retention tests.hub.test_rag_jobs tests.hub.test_rag_defaults tests.hub.test_rag_extensions tests.hub.test_component_managers tests.hub.test_component_catalog tests.hub.test_settings tests.hub.test_settings_project_flow tests.hub.test_project_authority tests.hub.test_history_retention
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h4/c-static-3.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h4/c-contract-docs.json
+```
+
+Level 2 전후 688개 Python 소스 hash는 `65f279f5aac89c79c923369bc298c77699be70dd0299e82204c6ef4bcb707644`,
+848개 입력/환경 hash는 `dbd29856f62706fa3b81a0c2008026d9f79ca490df10524e8752303383d9fd1a`로 각각 동일했다.
+Python 3.12.14/136개 의존성, 실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존
+TERM/LiteLLM/Xvfb/xclip 환경을 유지했다. 최초 after 환경 기록은 시험 환경 변수를 빠뜨린 셸에서
+수집되어 별도 보존했고 실제 시험 환경으로 다시 수집해 입력 전체의 동일성을 확인했다.
+실행별 명령·exit·집계·실패·원래 fixture는 `/workspace/llm-clean-resume/h4/`에 보존했다.
+다른 실행의 성공을 하나의 전체 실행으로 표현하지 않는다. H4-d 로그, H4 전체 게이트와 H5/P1/A–F는 남았다.
+
 ## H4-b History 보존 선택과 삭제 증거 — 로컬 Level 2
 
 기준 `6a0090836e60f17a3ef586d1a588c45238a7b62e` 뒤 History의 기간·용량·토큰·최근 Run 보존

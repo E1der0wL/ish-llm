@@ -122,10 +122,6 @@ class Component:
         """검증을 컴포넌트에 위임하되 Project 저장은 서비스가 담당한다."""
         self.get_config(project)
 
-    def maintenance(self, project, *, apply=False, expected_version=None) -> dict:
-        """컴포넌트 소유 정리 후보. 기본은 무삭제이며 내부 경로를 서비스에 노출하지 않는다."""
-        return {"candidates": [], "protected": [], "version": None}
-
     def history_references(self, project) -> dict:
         """보관 정리에서 보호해야 할 외부 도메인 ID. 컴포넌트가 자신의 자료 형식을 해석한다."""
         return {"run_ids": [], "message_ids": []}

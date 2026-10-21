@@ -1,7 +1,7 @@
 # 장시간 실행·복구·보관 API
 
 최신 보강: 독립 RAG 호출의 공통 사용량 예약, Run 단위 보관 정리/중단 복구,
-Component maintenance 및 UI 동적 설정 스키마는 [운영 및 UI 설정](operations-and-ui-settings.md)에 설명한다.
+RAG Job의 Application 보존 선택 및 UI 동적 설정 스키마는 [운영 및 UI 설정](operations-and-ui-settings.md)에 설명한다.
 
 정책값은 ProjectConfig, 컴포넌트 처리 설정은 해당 Component, 실행과 저장은 기존
 RunManager/Repository가 담당한다. 새 실행 도메인이나 별도 Policy 클래스는 만들지 않는다.
@@ -265,7 +265,8 @@ Memory/RAG 등 프로젝트 컴포넌트 데이터는 이 API로 지우지 않�
 
 Application 정책의 `unit="run"`은 Session을 유지하고 완료 Run/대화만 정리한다. 이때 보관 삭제 저널이
 남으면 새 실행을 막고 `project.arecover_retention()`으로 이미 승인된 정리를 완료한다.
-컴포넌트별 자료 정리는 `project.amaintenance()`의 별도 계획을 사용한다.
+RAG Job은 `rag.ajob_cleanup_plan()`의 적격 증거를 바탕으로 Application이 기간/대상을 선택하고
+`rag.aprune_jobs(ids, expected_version=...)`로 명시 적용한다. 공개 문서와 사용량 영수증은 보존한다.
 
 출력 복구는 저장된 출력 저널을 기준으로 Conversation 본문을 replace 이벤트로 맞춘다.
 Run 성공 상태나 Tool 효과를 재현하지 않는다. stale file Run 복구에도 적용되며 사라진

@@ -126,7 +126,7 @@ class JobLossTests(unittest.IsolatedAsyncioTestCase):
                 with self.assertRaises((ValueError, OSError)):
                     self.component.validate_backup(record)
                 with self.assertRaises((ValueError, OSError)):
-                    self.component.maintenance(record)
+                    self.rag.job_cleanup_plan()
                 with self.assertRaises((ValueError, OSError)):
                     self.component.initialize(record)
                 self.assertFalse(path.exists())

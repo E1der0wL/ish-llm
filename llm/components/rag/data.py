@@ -239,9 +239,19 @@ class RAGData(ComponentData):
         from .jobs import RAGJobs
         return RAGJobs(self).delete(identifier, expected_revision=expected_revision)
 
+    def job_cleanup_plan(self):
+        from .jobs import RAGJobs
+        return RAGJobs(self).cleanup_plan()
+
+    def prune_jobs(self, identifiers, *, expected_version):
+        from .jobs import RAGJobs
+        return RAGJobs(self).prune(identifiers, expected_version=expected_version)
+
     acheckpoint_plan = async_method(checkpoint_plan)
     aabandon_job = async_method(abandon_job)
     adelete_job = async_method(delete_job)
+    ajob_cleanup_plan = async_method(job_cleanup_plan)
+    aprune_jobs = async_method(prune_jobs)
 
     @observe_component_models
     async def arun_job(self, identifier, *, retry=False, expected_revision=None):

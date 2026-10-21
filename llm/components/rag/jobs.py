@@ -1,6 +1,7 @@
 """재시작 가능한 문서 색인 작업. 입력·준비 결과·공개 영수증을 별도로 저장한다."""
 
 import asyncio
+from contextlib import contextmanager
 import os
 from uuid import uuid4
 
@@ -10,7 +11,7 @@ from llm.core.checkpoints import ResumeAbandonment, require_checkpoint_plan, Che
 from llm.core.contracts import ResourceRef, Diagnostic
 from llm.core.plans import CheckpointPlan, JobResumePlan
 from llm.services.infrastructure.locking import workspace_locked
-from llm.services.infrastructure.storage import revision_token, tree_snapshot
+from llm.services.infrastructure.storage import revision_token, tree_snapshot, check_revision
 from .job_storage import JobStorage
 
 
@@ -28,7 +29,8 @@ class RAGJobs:
         return self._storage().path(identifier)
 
     def _plan(self, identifier, *, live, job=None):
-        project, _ = self.data._current()
+        project, component = self.data._current()
+        component.snapshot(project)
         job = self.get(identifier) if job is None else job
         source = ResourceRef(JobStorage.KIND, identifier, project_id=project.id, component=self.data.name)
         files = tree_snapshot(self._path(identifier), exclude=(JobStorage.LEASE,))
@@ -181,6 +183,62 @@ class RAGJobs:
         finally:
             if lease is not None:
                 lease.close()
+
+    @contextmanager
+    def _cleanup_plan(self):
+        """Hold all obtainable worker leases until inspection or the explicit mutation finishes."""
+        project, component = self.data._current()
+        component.snapshot(project)
+        storage = self._storage()
+        manifest, jobs = storage.inventory()
+        candidates, protected, leases = [], [], []
+        try:
+            for identifier, job in sorted(jobs.items()):
+                lease = self._lease(identifier, probe=True)
+                if lease is not None:
+                    leases.append(lease)
+                checkpoint = self._plan(identifier, live=lease is None, job=job)
+                abandonment = job['resume_abandonment']
+                ended = (ResumeAbandonment.from_dict(abandonment).abandoned_at if abandonment is not None
+                         else job['ended_at'] if 'ended_at' in job else job['created_at'])
+                row = {'job_id': identifier, 'status': job['status'], 'last_activity': ended,
+                       'bytes': checkpoint.bytes, 'revision': checkpoint.revision}
+                if checkpoint.can_delete:
+                    candidates.append(row)
+                else:
+                    protected.append({**row, 'reasons': [item.to_dict() for item in checkpoint.delete_blockers]})
+            result = {'project_id': project.id, 'component': self.data.name,
+                      'publication': revision_token({'source': component.source_version(project)}), 'inventory': revision_token(manifest),
+                      'candidates': candidates, 'protected': protected}
+            yield {**result, 'version': revision_token(result)}
+        finally:
+            for lease in leases:
+                lease.close()
+
+    @workspace_locked
+    def cleanup_plan(self):
+        with self._cleanup_plan() as plan:
+            return plan
+
+    @workspace_locked
+    def prune(self, identifiers, *, expected_version):
+        if not isinstance(identifiers, (list, tuple)):
+            raise ValueError('Job pruning requires explicit identifiers')
+        for identifier in identifiers:
+            validate_name(identifier)
+        if len(identifiers) != len(set(identifiers)):
+            raise ValueError('Job pruning targets must be unique')
+        if not isinstance(expected_version, str) or not expected_version:
+            raise ValueError('Job pruning requires a reviewed plan version')
+        with self._cleanup_plan() as plan:
+            evidence = dict(plan)
+            evidence.pop('version')
+            check_revision(evidence, expected_version)
+            eligible = {row['job_id'] for row in plan['candidates']}
+            if any(identifier not in eligible for identifier in identifiers):
+                raise ValueError('Job pruning cannot delete protected or unknown records')
+            for identifier in identifiers:
+                self._storage().delete(identifier)
 
     @workspace_locked
     def _claim(self, identifier, retry, expected_revision=None):

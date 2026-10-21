@@ -158,9 +158,23 @@ queued/failed 작업도 먼저 포기해야 삭제할 수 있다. completed/canc
 공개된 문서·활성 generation·VectorCache·모델 사용량 영수증은 삭제하지 않는다.
 
 성공한 등록은 기존처럼 `prepared.json`과 `batches/`를 정리한다. 실패·취소에서는 조각을 보존한다.
-`policy.retention.job_max_age_seconds`와 명시적 Project maintenance는 완료·취소·명시적으로 포기한
-Job을 정리할 수 있다. 포기한 Job의 보관 기간은 포기 시각부터 계산한다.
-이 설정이 없거나 null이면 기간 기준 정리는 하지 않는다. 수동 `delete_job`에는 보관 기간 설정이 필요 없다.
+Job의 보존 기간과 대상·시점은 Application의 RAGManagement가 선택한다. Backend의
+`job_cleanup_plan`은 현재 삭제 가능한 목록만 제공하며 기간을 적용하지 않는다. 포기한 Job의
+Application 기간은 포기 시각부터 계산하고 max_age_seconds=None이면 아무 대상을 선정하지 않는다.
+개별 `delete_job`에는 보관 기간 설정이 필요 없다. 기존 RAG policy.retention과 Project/Component
+maintenance 경로는 제거했으며 호환 해석은 없다.
+
+```python
+plan = await rag.ajob_cleanup_plan()
+selected = [row["job_id"] for row in plan["candidates"]]  # Application의 명시적 선택
+await rag.aprune_jobs(selected, expected_version=plan["version"])
+```
+
+단일 Job 삭제와 묶음 삭제 모두 현재 identity/active/corpus 공개 증거를 검증한다. 공개 증거가
+사라졌을 때 Job에 남은 원본 입력을 지우지 않는다. 묶음 요청은 고유 ID와 최신 version을
+재검증하고 worker lease를 획득한 대상만 한 저장 단위로 처리한다. 실패·중단은 원본 또는
+완전한 새 목록/트리를 유지하며 이미 확정한 삭제의 기술적 GC는 TransactionManager가 마무리한다.
+Job 삭제로 공개 세대나 논리 사용량을 초기화하지 않는다.
 
 ## 실행 계획과 CAS
 

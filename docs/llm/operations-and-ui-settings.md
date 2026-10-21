@@ -162,16 +162,20 @@ Application의 선택이며 Backend는 재개 원본·미완료 체크포인트�
 `arecover_retention()`으로 해당 기술적 복구만 완료한다. 진행 중 스트리밍 JSONL은
 재작성하지 않는다. 이 정리는 비활성 파일 저장 Session에만 적용한다.
 
-컴포넌트 자료는 소유 컴포넌트가 `maintenance()`로 정리 계획을 제공한다.
-RAG는 아래 설정을 통해 완료·취소·명시적으로 재개를 포기한 색인 작업 입력/영수증을 정리한다.
+RAG는 `ajob_cleanup_plan()`으로 완료·취소·명시적으로 포기한 Job의 적격 목록과 보호 이유를
+제공한다. `aprune_jobs(ids, expected_version=...)`는 최신 공개 증거·Job 원본·Checkpoint와
+lease를 확인하고 명시한 Job/목록만 한 트랜잭션으로 삭제한다. Application의 RAGManagement가
+기간과 시점을 선택한다. 옛 RAG policy.retention과 Project/Component maintenance는 제거했다.
 포기하지 않은 실패/대기/진행 작업, OS lease를 가진 worker와 활성 문서 색인은 유지한다.
 기간과 무관한 개별 Job 정리는 `checkpoint_plan → abandon_job → checkpoint_plan → delete_job`을
 사용한다. 완료·취소 Job은 포기를 생략한다. [체크포인트 계약](checkpoints.md)을 참고한다.
 
 ```python
-await project.components.rag.aconfigure({'policy': {'ingestion': {'max_active': 1}, 'retention': {'job_max_age_seconds': 30 * 86400}}})
-plan = await project.amaintenance()
-await project.amaintenance(apply=True, expected_version=plan["version"])
+from hub.backend.project.rag_management import RAGManagement
+
+management = await RAGManagement.for_project(project, "rag")
+review = await management.plan_job_retention(30 * 86400)
+await management.apply_job_retention(30 * 86400, review)
 ```
 
 ## 모델 사용량

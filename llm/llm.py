@@ -720,9 +720,9 @@ class LargeLanguageModel:
         usage = await project.amodel_usage()  # Run + 독립 Component 모델 호출
         plan = await project.arecovery()     # 무결성/복구 미리보기; 자동 재실행 없음
         retention = await project.aretention_plan("run")  # Session 또는 Run 단위 후보/보호 이유
-        maintenance = await project.amaintenance()  # Component 소유 자료의 정리 후보
+        job_cleanup = await project.components.rag.ajob_cleanup_plan()  # Job owner의 적격 목록
         # 복구/보관: expected_version=plan.version / retention.version
-        # Component maintenance는 열린 사전 계약: expected_version=maintenance["version"]
+        # RAG Job: aprune_jobs(selected_ids, expected_version=job_cleanup["version"])
         # 중단된 보관 삭제는 await project.arecover_retention()으로 마무리한다.
 
     선언된 설정과 등록 Component별 설정이 스키마에 포함된다. 열린 JSON 영역과

@@ -253,7 +253,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         await project.aconfigure_policies({"usage": {"project_max_calls": 10}})
         self.assertEqual((await retention.preview()).candidates, [])
 
-    async def test_component_maintenance_is_opt_in_and_preserves_failed_jobs(self):
+    async def test_application_job_retention_is_opt_in_and_preserves_failed_jobs(self):
         component = self.rag()
         app, _ = await self.app(components=[component])
         project = await app.projects.acreate(components=["rag"], config=rag_project())
@@ -266,11 +266,12 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
                 with self.assertRaises(ConnectionError):
                     await data.arun_job(second["id"])
         root = project.paths.root / "rag" / "jobs"
-        self.assertEqual((await project.amaintenance())["components"]["rag"]["candidates"], [])
-        await data.aconfigure({'policy': {'retention': {'job_max_age_seconds': 60}}})
-        plan = await project.amaintenance()
-        self.assertEqual([r["job_id"] for r in plan["components"]["rag"]["candidates"]], [first["id"]])
-        await project.amaintenance(apply=True, expected_version=plan["version"])
+        from hub.backend.project.rag_management import RAGManagement
+        manager = RAGManagement(data, 'rag', root, project.id, project=project)
+        self.assertEqual((await manager.plan_job_retention(None))["selected"], [])
+        plan = await manager.plan_job_retention(60)
+        self.assertEqual(plan["selected"], [first["id"]])
+        await manager.apply_job_retention(60, plan)
         self.assertFalse((root / first["id"]).exists())
         self.assertTrue((root / second["id"]).exists())
 

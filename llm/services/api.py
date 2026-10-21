@@ -140,12 +140,6 @@ class ProjectHandle(AsyncFacade):
 
     arecovery = async_method(recovery)
 
-    def maintenance(self, *, apply=False, expected_version=None):
-        self.app._check_open()
-        return self.app.project_manager.maintenance(self._snapshot, apply=apply, expected_version=expected_version)
-
-    amaintenance = async_method(maintenance)
-
     def activity(self, *, limit=None, newest_first=True):
         """최근 lifecycle 참조 조회. limit 생략 시 전체이며 상세 결과는 Run/Step에서 조회한다."""
         self.app._check_open()

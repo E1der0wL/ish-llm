@@ -508,30 +508,6 @@
       "detail": "inline domain argument: config"
     },
     {
-      "id": "ba89228e1f6e6ad8069f1e526277cebc5d98b84e50f6e33261e0669b05aca817:1",
-      "rule": "S3",
-      "file": "llm/components/rag/component.py",
-      "symbol": "RAGComponent",
-      "line": 49,
-      "detail": "inline domain argument: policy"
-    },
-    {
-      "id": "cfb459988005d59135c77563104e558cf6c0ea346ceeb119205cf0eef3c04c6a:1",
-      "rule": "S3",
-      "file": "llm/components/rag/component.py",
-      "symbol": "RAGComponent.maintenance",
-      "line": 281,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "fb46425dae619a46cf9b0b0610cc717424593fe918f8e07775d18e04c91028ca:1",
-      "rule": "S4",
-      "file": "llm/components/rag/component.py",
-      "symbol": "RAGComponent.maintenance",
-      "line": 300,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
       "id": "27b460003d9e4f9cb4e83c1590fb36a2061a5243c17e5795b0d77637466e3cbb:1",
       "rule": "S3",
       "file": "llm/components/rag/component.py",
@@ -1945,14 +1921,6 @@
       "file": "llm/services/infrastructure/storage.py",
       "symbol": "atomic_domain_json",
       "line": 164,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "179ed1f55150edd9ff30d3ff47a15c0091b1c3bede6b39bece271d0bab4814e5:1",
-      "rule": "S4",
-      "file": "llm/services/lifecycle/projects.py",
-      "symbol": "ProjectManager.maintenance",
-      "line": 204,
       "detail": "verify exact version type and declaration reference"
     },
     {

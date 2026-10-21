@@ -1,6 +1,8 @@
 """RAG jobs, resumptions and cleanup through public component APIs only."""
 
 import asyncio
+from datetime import datetime, timezone
+import math
 
 from llm.providers.runtime import diagnostic_scope
 from llm.llm import CheckpointError
@@ -13,6 +15,8 @@ from .rag_progress import RegistrationProgress, job_entry, document_ids
 
 
 class RAGManagement(DocumentManagement):
+    MIN_JOB_RETENTION_SECONDS = 0
+
     def __init__(self, data, name, root, project_id, active=None, *, project=None):
         super().__init__(data, name, root)
         self.project_id, self.project = project_id, project
@@ -95,6 +99,24 @@ class RAGManagement(DocumentManagement):
         selected = [row["generation"] for row in plan["candidates"]]
         await self.data.acompact(selected, expected_version=plan["version"])
         return selected
+
+    async def plan_job_retention(self, max_age_seconds):
+        """Application owns age selection; the Component supplies current deletion eligibility."""
+        if max_age_seconds is not None and (type(max_age_seconds) not in (int, float)
+                or not math.isfinite(max_age_seconds) or max_age_seconds <= self.MIN_JOB_RETENTION_SECONDS):
+            raise ValueError('Job retention age must be positive and finite')
+        plan = await self.data.ajob_cleanup_plan()
+        clock = datetime.now(timezone.utc)
+        selected = [row['job_id'] for row in plan['candidates'] if max_age_seconds is not None
+                    and (clock - datetime.fromisoformat(row['last_activity'])).total_seconds() > max_age_seconds]
+        return {'max_age_seconds': max_age_seconds, 'plan': plan, 'selected': selected}
+
+    async def apply_job_retention(self, max_age_seconds, review):
+        current = await self.plan_job_retention(max_age_seconds)
+        if review != current:
+            raise ValueError('retention_conflict: review the current Job policy and sources')
+        await self.data.aprune_jobs(current['selected'], expected_version=current['plan']['version'])
+        return current['selected']
 
     async def _require_new(self, identifier):
         try:
