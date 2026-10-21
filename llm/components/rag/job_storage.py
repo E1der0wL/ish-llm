@@ -26,6 +26,7 @@ class JobStorage:
     KIND = "rag_job"
     PREPARED = "prepared.json"
     BATCHES = "batches"
+    BATCH_FIELDS = frozenset(("key", "signature", "value"))
     CREATION_FIELDS = frozenset(("id", "created_at", "input_digest"))
     REQUIRED = CREATION_FIELDS | {"status", "phase", "cancel_requested", "resume_abandonment", "failures", "progress", "ingestion"}
     ATTEMPT_FIELDS = frozenset(("started_at", "pid", "configuration"))
@@ -234,7 +235,7 @@ class JobStorage:
     def validate_checkpoint(self, identifier, job, key, value):
         if not isinstance(value, dict):
             raise ValueError("RAG Job checkpoint must be an object")
-        if key != self.PREPARED and (value.keys() != {"signature", "value"}
+        if key != self.PREPARED and (value.keys() != self.BATCH_FIELDS or value["key"] != key
                 or not isinstance(value["signature"], str) or not value["signature"]
                 or value["value"] is None):
             raise ValueError("Invalid RAG Job batch receipt")
@@ -348,6 +349,9 @@ class JobStorage:
             remove_named_tree(batches.parent, batches, self.BATCHES)
         manifest["jobs"][identifier]["checkpoints"] = {}
         atomic_json(self.manifest, manifest)
+
+    def write_batch(self, identifier, key, signature, value):
+        self.write_checkpoint(identifier, key, {"key": key, "signature": signature, "value": value})
 
     def create(self, job, payload):
         manifest, records = self.inventory()

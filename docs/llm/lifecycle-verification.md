@@ -9,6 +9,68 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-u 배치 영수증 key 연결 — H2-r/s/t/u 묶음 Level 3
+
+H2-t 로컬 커밋 `76110ec0c96664f99a1f3e2f7b916f282aa10b48`에서 이어서 실제 중복 효과 결함을
+수정했다. 미완료 Job의 완료 embedding_0 영수증을 embedding_99로 바꾸고 목록 key를 맞추면
+retry에서 첫 모델 호출이 반복됐다. 원래 실제 효과 Assertion은 `first` 한 줄을 요구했지만
+`first/first/second` 세 줄을 관측했다(1 failure, error·Skip 0, 1.395초, exit 1).
+T 전체 runner 실행은 끝까지 보존했고 이 실패 때문에 묶음 완료·Push를 차단했다.
+
+- JobStorage.BATCH_FIELDS가 현재 배치 envelope의 필수 key/signature/value를 선언한다.
+  Reader는 저장 key와 실제 checkpoint 경로가 같아야 영수증으로 인정한다. key 소실·변조·파일명
+  불일치는 일치하는 manifest hash만으로 정상 완료 기록이 되지 않는다.
+- JobStorage.write_batch가 같은 형식을 만들고 기존 write_checkpoint 원자 저장을 사용한다.
+  RAGJobs의 정규 Writer를 이 owner로 이관했다. 준비 문서와 embedding/graph/document_N payload의
+  기존 소유 검증, signature·configuration·상태·취소·포기·CAS·사용량 보호는 그대로 유지한다.
+  필수 key가 없는 이전 영수증을 자동 변환·재생성하지 않는다. 원본을 보존하고 사용을 거부한다.
+- 새 4개 회귀는 원래 실제 중복 효과 재현, 모든 생성된 배치 key의 소실/타입/불일치 matrix,
+  Writer의 사전 거부 및 정상 retry를 확인한다. 거부 후 원본·모델 효과를 비교하며 재현 시험은
+  RAG 트리 전체 hash와 backup 미생성도 검사한다. 정상 retry에서도 이미 완료된 모델 효과는 한 번이다.
+
+변경 영향은 모든 RAG 배치 envelope와 Writer/Reader·claim/재개·backup/clone이다. 실제 중복 효과가
+발견됐고 필수 저장 증거가 변경됐으므로 집중 검증 후 현재 제품 소스로 전체 LLM/Hub와 R3를 새로
+실행했다. T의 전체 통과는 변경 전 증거로 보존했으며 U 통과로 재사용하지 않았다. 불필요한 반복이
+아니라 안전성 결함 수정으로 기존 통합 검증 근거가 무효화된 경우다. 기존 승인·예산·Tool 효과·
+Checkpoint·삭제·실제 중단/재개와 직접 Repository/Component/Engine/Application/Hub 소비자를 포함한다.
+
+| 현재 브랜치 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중, 5 modules | 68/68 | 68 | 0/0/0 | 42.052초 | 0 |
+| 전체 LLM | 1945/1945 | 1945 | 0/0/0 | 669.665초 | 0 |
+| 전체 Hub | 540/540 | 540 | 0/0/0 | 706.452초 | 0 |
+
+expected failure/unexpected success/미실행/미발견 실행/중복은 각각 0이다. 원래 실패 Assertion은
+새 모듈에 포함해 실행했으며 제외·Skip·완화하지 않았다. Job/Checkpoint의 기존 실제 프로세스
+중단·쓰기 실패·복구 시험도 새 envelope로 통과했다. 이 결과로 U의 중복 효과 차단을 해소하고
+H2-r/s/t/u 묶음 Level 3을 완료한다. H2 전체의 완료를 뜻하지 않는다.
+정적 감사 new/stale/S1 0, 기존 debt 531, exit 0이다. R3 Mutation은 실제 두 번째 파일 효과
+Assertion으로 호출 한도 누락을 검출했다(True, detector exit 0). 문서는 이 검증 후 커밋보다 먼저 갱신했다.
+문서 검사는 131개 문서·178개 Python fence·953개 상대 링크·34개 anchor에서 오류 0, exit 0이다.
+
+별도 Git 메타데이터 없는 복사본의 초안 68 pass/43.630초/exit 0 및 정적 통과는 현재 결과로
+승계하지 않았다. 실제 작업 브랜치에 적용한 뒤 위 집중/전체를 새로 수행했다.
+전후 Python 675개 hash는 `2bb25acfb6fe87b0927a35c0ce6ac413b317f5c4bd8f4509ddec0e410cd4f1e2`,
+전체 입력 834개/환경 hash는 `cdc91f45555030c336fe382a176368c1c196cd6255070eb7a8fdba3158faf8af`로 각각 동일하다. Python 3.12.14·UID 1000·
+136 packages·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존 bwrap/Xvfb/xclip·
+5개 환경 변수를 유지했다. 초기 외부 probe의 구문 오류도 별도 로그로 보존하고 실제 실패와 구분했다.
+
+전체 argv/요약/로그·원래 실패는 `/workspace/llm-clean-resume/h2-u/`에 있다.
+
+```bash
+python /workspace/llm-clean-resume/h2-u/renamed-batch-probe.py
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-u/focused-1 tests.llm.test_rag_batch_identity tests.llm.test_rag_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_rag_optimization tests.llm.test_rag_prepared_integrity
+python /workspace/llm-clean-resume/h2-m/run-full.py llm /workspace/llm-clean-resume/h2-u/final
+python /workspace/llm-clean-resume/h2-m/run-full.py hub /workspace/llm-clean-resume/h2-u/final
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-u/static-1.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-u/docs.json
+```
+
+원격 CI 통과는 실제 결과를 확인하기 전까지 선언하지 않는다. 원격 main·refactor/llm-backend·
+Draft PR #1은 변경하지 않으며 clean 브랜치에만 이 묶음을 Push한다. H2의 나머지 원문/입력 연결,
+관측 의미와 owner 계약을 이어서 확인하며 H2 완료 전 H3–H5·P1·A–F에는 진입하지 않는다.
+
 ## H2-t 모델 호출 전후 원본 증거 — 전체 실행과 후속 안전성 차단
 
 H2-s 로컬 커밋 `70dc3b8adadb2f1f9551d4a2b0dd4faca6df2698`에서 이어서 검색의 읽기 경계를 보강했다.

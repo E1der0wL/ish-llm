@@ -243,6 +243,9 @@ worker는 progress callback만 호출하며 RAGJobs가 workspace 잠금 아래 J
 Job 목록은 각 Job의 revision과 checkpoint별 hash를 소유한다. 준비/배치 원본과 목록을 같은
 transaction으로 확정하며 아직 생성하지 않은 경우만 None이다. 선언된 원본의 소실·Null·변조나
 미선언 추가는 재실행 허가가 되지 않는다. Reader·Writer·claim·재개 계획·backup/clone에서 검증한다.
+배치 envelope는 필수 key/signature/value를 저장하고 key가 실제 파일 경로와 같아야 한다.
+완료 영수증의 파일명만 바꿔 이미 수행한 chunk를 새 작업으로 오인하지 않으며, key가 없는
+기존 기록도 자동 복원하지 않는다. Writer는 JobStorage.write_batch의 같은 선언을 사용한다.
 준비·게시 문서의 필수 원문·절/청크·벡터/profile·추출 manifest·저장 그래프 증거는 동일한 RAG
 문서 owner가 검증한다. 게시 코퍼스는 정확한 root 필드·문서 ID·모든 문서/profile 일치를 요구한다.
 빈 코퍼스만 명시 None profile을 허용한다. 새 세대 생성 전과 snapshot cache 저장 전에 원본을

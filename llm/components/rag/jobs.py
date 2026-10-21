@@ -326,7 +326,7 @@ class RAGJobs:
             raise asyncio.CancelledError()
         storage = self._storage()
         if value is not None:
-            storage.write_checkpoint(identifier, key, {"signature": signature, "value": value})
+            storage.write_batch(identifier, key, signature, value)
         saved = storage.read_checkpoint(identifier, key)
         if saved is None:
             return None
