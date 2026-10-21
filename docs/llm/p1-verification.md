@@ -15,6 +15,70 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c12: 현재 Naming·Schema 계약과 c10–c12 묶음 Level 3
+
+제품 코드는 바꾸지 않고 test_naming_contract의 과거 Schema/binding digest 동결을 현재 계약
+시험으로 대체했다. 삭제된 retention Schema를 다시 넣고 현재 Provider flag·MCP alias·Memory
+필드를 빼던 정규화는 제거했다. 현재 12개 구현체의 config/policy 필드와 닫힌 외형, Provider의
+두 boolean flag와 정책 필드, RAG cache의 비음수 정수와 폐기 retention 거부, MCP alias의 필수
+server/tool·unknown 거부, Memory mode/prompt/대상 참조, Project 정책의 None/False/0/빈 목록과
+유효 한도를 명시적으로 확인한다. 기존의 해당 필수 필드·nullable·closed·허용 enum/최솟값
+Assertion을 현재 형식에 직접 적용하며 이전 값으로 변환한 성공과 섞지 않는다.
+
+Loop binding도 adapter를 빼고 과거 digest와 비교하는 대신, 현재 **전체 payload**의 필드와
+값 및 공개 bind_execution의 canonical token을 비교한다. Graph는 폐기 agents catalog를
+제외한 현재 전체 payload를 명시했다. 저장된 settings/tool_policy 어휘와 실행 identity는
+그대로 보호한다. 다른 저장 도메인/Workflow 필드·parameter_key·폐기 API·get/resolve/describe
+시험은 유지했다. naming_contract.json·retired_retention_schemas.json과 역사적 결과는
+byte/hash가 같은 원본으로 보존했으며 새 snapshot digest를 생성해 통과시키지 않았다.
+
+현재 owner/Provider/Schema/Naming 및 실제 forwarding 시험을 재사용했다. Schema 집중 후
+확대 명령에서 존재하지 않는 test_provider_adapters를 잘못 지정하여 discovery 단계에서 시험 시작 전에
+거부했다(`c12-focused-final`, exit 2, summary incomplete). 실행 집계가 없으며 성공·Skip 또는
+누락 0으로 재분류하지 않는다. 원본 명령/로그는 보존했고 실제 발견된 test_adapter_boundaries로
+바로잡아 다시 실행했다. 이 거부를 제외한 아래 완료 실행들의 failure/error/Skip·expected failure·
+unexpected success·누락·중복·unexpected는 모두 0이다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c12-schema-focused` llm | 42/42 | 42 | 0/0/0 | 4.783초 | 0 |
+| `c12-focused-corrected` llm | 121/121 | 121 | 0/0/0 | 22.123초 | 0 |
+| `c10-c12-level3` llm | 2090/2090 | 2090 | 0/0/0 | 735.642초 | 0 |
+| `c10-c12-level3` hub | 563/563 | 563 | 0/0/0 | 715.229초 | 0 |
+
+c10 Hub 팩토리 수정, c11 CAS/참조 증거, c12 현재 계약 시험이 포함된 **하나의 현재 통합 소스**로
+전체 LLM/Hub를 각각 실행했다. 별도 c12 Level 2를 중복 실행하지 않았고 다른 실행의 성공을
+하나의 전체 결과로 합치지 않았다. 승인·누적 예산·Tool 실제 효과·중단/재개·Checkpoint·RAG
+원본/identity·삭제·트랜잭션 장애·실제 host/X11/bwrap 필수 범위를 포함했다.
+R3 실제 효과 Mutation 검출 True/outer exit 0, 실제 환경 검사 LLM·Hub 각각 exit 0,
+문서 검사 132/182/959/34·오류 0/exit 0이다. 정적 검사 new/stale/review 오류/S1·S4·S5 미해결 0,
+reviewed 55·미해결 403, exit 0이다. S2 34·S3 351·S6 18은 남아 있으며 P1 최종 완료가 아니다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c12-schema-focused/llm.json --modules tests.llm.test_naming_contract tests.llm.test_schema_ownership tests.llm.test_current_contracts
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c12-focused-corrected/llm.json --modules tests.llm.test_naming_contract tests.llm.test_schema_ownership tests.llm.test_current_contracts tests.llm.test_settings_contract tests.llm.test_configuration_validation tests.llm.test_loop tests.llm.test_graph_engine tests.llm.test_adapter_boundaries
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c10-c12-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c10-c12-level3/hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c12-static.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c12-docs-before.json
+```
+
+전체 실행 전후 697개 Python 소스 hash `4e33a87d7d74e73672706eed9cb10672f0cb011cea7aadae38ce1199404e7a83`,
+859개 입력/환경 hash `359fc9ab95427541732587c731dca25363982036c48dc3e8657fadd5973ff294`가 각각 동일했다.
+Python 3.12.14·136개 의존성·깨끗한 실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와
+`TERM=xterm-256color`, `LITELLM_LOCAL_MODEL_COST_MAP=True`, `LITELLM_MODE=PRODUCTION`,
+`HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb`, `HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip`
+환경을 사용했다. 정확한 명령·exit·discovery·원본 로그·이전 시험·fixture hash는
+`/workspace/llm-clean-resume/p1/c12-before/`, `c12-schema-focused/`, `c12-focused-final/`,
+`c12-focused-corrected/`, `c10-c12-level3/`에 보존했다.
+이 전체 통과 뒤 문서를 먼저 갱신하고 c10–c12를 refactor/llm-clean에 Push한다.
+main·이전 backend 브랜치·Draft PR #1은 변경하지 않으며 원격 CI는 기존 조회 403으로 미확인이다.
+현재 계약 시험이 목적이므로 이전 알고리즘/형식을 재도입하거나 과거 통과 결과를 승계하지 않았다.
+P1 나머지 owner 선언·Presence를 정리한 후 P1 최종 S1–S5와 전체 게이트를 통과해야 A–F로 진행한다.
+
 ## P1-c11: CAS·참조와 형식 버전의 구분 — 로컬 Level 2
 
 제품 코드·저장 형식·CAS 이름/비교·승인/실행 정책은 변경하지 않았다. S4 후보 9건을

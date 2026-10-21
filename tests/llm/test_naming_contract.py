@@ -1,4 +1,4 @@
-"""Renamed APIs preserve the pre-cleanup configuration and durable contracts."""
+"""Current owner schemas and durable naming contracts are explicit."""
 
 import ast
 from copy import deepcopy
@@ -10,6 +10,9 @@ import tempfile
 from types import SimpleNamespace as NS
 from unittest.mock import patch
 import unittest
+
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import ValidationError
 
 from llm.llm import LargeLanguageModel, BackendServices
 from llm.core.models import ProjectConfig, Project, Session, Run, Step
@@ -40,79 +43,140 @@ class NamingContractTests(unittest.TestCase):
     def setUp(self):
         # Captured from 607310f, not regenerated from the implementation under test.
         self.before = json.loads((Path(__file__).parent / 'fixtures/naming_contract.json').read_text())
-        self.retired = json.loads((Path(__file__).parent / 'fixtures/retired_retention_schemas.json').read_text())
 
-    def test_config_policy_and_definition_schemas_unchanged(self):
-        def baseline(schema):
-            # 이름 정리 당시 fixture는 보존한다. 이후 명시적으로 추가한 Provider flag와
-            # 재개 포기 보관 설명만 검증 후 정규화하고 나머지 schema를 비교한다.
-            if isinstance(schema, dict):
-                properties = schema.get('properties', {})
-                if 'job_max_age_seconds' in properties:
-                    field = properties['job_max_age_seconds']
-                    self.assertEqual(field['description'],
-                        '완료·취소·명시적으로 재개를 포기한 색인 작업의 입력/영수증 보관 기간. null은 무제한')
-                    field['description'] = '완료·취소한 색인 작업의 입력/영수증 보관 기간. null은 무제한'
-                if {'max_attempts', 'wall_timeout', 'delay_seconds', 'max_delay_seconds'} <= properties.keys():
-                    for key in ('respect_retry_after', 'jitter'):
-                        field = properties.pop(key)
-                        self.assertEqual(set(field), {'type', 'description'})
-                        self.assertEqual(field['type'], 'boolean')
-                    self.assertIs(schema['additionalProperties'], False)
-                for value in schema.values():
-                    baseline(value)
-            elif isinstance(schema, list):
-                for value in schema:
-                    baseline(value)
-            return schema
-        implementations = [RAGComponent(), MemoryComponent(), VisionComponent(), SkillComponent(),
-            AgentComponent(), PromptComponent(), MCPComponent(), GoalComponent(), RefinementComponent(),
-            WorkflowComponent(), LoopEngine(), GraphEngine(handlers={})]
-        for implementation in implementations:
+    def test_current_implementation_fields_are_closed_and_owned(self):
+        # Explicit current vocabulary, reviewed against each owner. The archived
+        # naming digests are historical evidence, not a schema conversion target.
+        cases = (
+            (RAGComponent(),
+             'chunk_size document_kwargs embedding_cache_max_bytes embedding_params extraction extraction_batch_size extraction_params graph index_batch_size query_cache_max_bytes query_kwargs rerank_params search search_cache_chars snapshot_cache_max_bytes',
+             'embedding_concurrency extraction ingestion provider'),
+            (MemoryComponent(), 'cache_records min_score processing search_limit search_status search_strategy',
+             'max_search_results processing tool_write_status'),
+            (VisionComponent(), 'completion ocr', 'limits ocr provider'),
+            (SkillComponent(), '', ''), (AgentComponent(), '', ''), (PromptComponent(), '', ''),
+            (MCPComponent(), 'tools', ''),
+            (GoalComponent(), 'identifiers nested_agent_ids priority', 'inject write_tools'),
+            (RefinementComponent(), '', 'apply_tools proposal_operations require_evaluation'),
+            (WorkflowComponent(), '', ''),
+            (LoopEngine(), 'buffer_size completion system_prompt',
+             'completion max_argument_chars max_iterations max_output_chars max_tool_calls provider request_timeout tool_timeout'),
+            (GraphEngine(handlers={}), 'buffer_size cleanup_timeout',
+             'max_nested_depth max_parallelism max_steps timeout_seconds'),
+        )
+        for implementation, config_fields, policy_fields in cases:
             with self.subTest(implementation=type(implementation).__name__):
                 schema = implementation.describe_config()
-                if isinstance(implementation, RAGComponent):
-                    # H4 moves retention to Application. Verify removal, then restore only
-                    # the archived schema node for this historical naming comparison.
-                    policy = schema['properties']['policy']['properties']
-                    self.assertNotIn('retention', policy)
-                    policy['retention'] = deepcopy(self.retired['RAGComponent'])
-                    misplaced = schema['properties']['config']['not']['anyOf']
-                    self.assertNotIn(self.retired['RAGConfigGuard'], misplaced)
-                    misplaced.append(deepcopy(self.retired['RAGConfigGuard']))
-                    # Explicit cache capacities were added after the naming baseline.
-                    # Validate only these additions, then compare the unchanged contract.
-                    for key in ('query_cache_max_bytes', 'snapshot_cache_max_bytes'):
-                        capacity = schema['properties']['config']['properties'].pop(key)
-                        self.assertEqual(set(capacity), {'type', 'description', 'minimum'})
-                        self.assertEqual(capacity['type'], 'integer')
-                        self.assertEqual(capacity['minimum'], 0)
-                if isinstance(implementation, MCPComponent):
-                    # 명시적 MCP alias 선택 기능은 naming 정리 이후의 추가 계약이다.
-                    tools = schema['properties']['config']['properties'].pop('tools')
-                    self.assertIs(tools['additionalProperties'], False)
-                    selection, = tools['patternProperties'].values()
-                    self.assertEqual(set(selection['required']), {'server', 'tool'})
-                    self.assertIs(selection['additionalProperties'], False)
-                if isinstance(implementation, MemoryComponent):
-                    # Explicit large-result processing was added after the naming
-                    # baseline; validate these additions without rewriting history.
-                    processing = schema['properties']['config']['properties']['processing']['properties']
-                    mode = processing.pop('tool_result_mode')
-                    self.assertEqual(mode, {'type': 'string', 'description': '', 'enum': ['reference', 'summary']})
-                    prompt = processing.pop('tool_summary_prompt')
-                    self.assertEqual(prompt, {'type': 'string', 'description': '', 'minLength': 1})
-                    destination = processing.pop('tool_data')
-                    self.assertIs(destination['additionalProperties'], False)
-                    self.assertEqual(set(destination['required']), {'component', 'identifier'})
-                    self.assertEqual(destination['properties'], {
-                        'component': {'type': 'string', 'description': '', 'minLength': 1},
-                        'identifier': {'type': 'string', 'description': '', 'minLength': 1}})
-                self.assertEqual(digest(baseline(schema)), self.before['schemas'][type(implementation).__name__])
-        policies = ProjectConfig.describe_policies()
-        self.assertNotIn('retention', policies['properties'])
-        policies['properties']['retention'] = deepcopy(self.retired['ProjectPolicy'])
-        self.assertEqual(digest(policies), self.before['schemas']['ProjectPolicy'])
+                Draft202012Validator.check_schema(schema)
+                self.assertEqual(set(schema['properties']), {'config', 'policy'})
+                self.assertIs(schema['additionalProperties'], False)
+                for section, fields in (('config', config_fields), ('policy', policy_fields)):
+                    declaration = schema['properties'][section]
+                    self.assertEqual(declaration['type'], 'object')
+                    self.assertEqual(set(declaration['properties']), set(fields.split()))
+                    self.assertIs(declaration['additionalProperties'], False)
+                validator = Draft202012Validator(schema)
+                for valid in ({}, {'config': {}, 'policy': {}}):
+                    before = deepcopy(valid)
+                    validator.validate(valid)
+                    self.assertEqual(valid, before)
+                for invalid in ({'future': {}}, {'config': None}, {'policy': None},
+                                {'config': {'future': False}}, {'policy': {'future': None}}):
+                    with self.subTest(invalid=invalid), self.assertRaises(ValidationError):
+                        validator.validate(invalid)
+
+    def test_current_provider_flags_remain_boolean_and_policy_is_closed(self):
+        expected = {'max_attempts', 'wall_timeout', 'delay_seconds', 'max_delay_seconds',
+                    'respect_retry_after', 'jitter'}
+        for implementation in (LoopEngine(), RAGComponent(), VisionComponent()):
+            with self.subTest(implementation=type(implementation).__name__):
+                schema = implementation.describe_config()['properties']['policy']['properties']['provider']
+                self.assertEqual(set(schema['properties']), expected)
+                self.assertIs(schema['additionalProperties'], False)
+                validator = Draft202012Validator(schema)
+                for name in ('respect_retry_after', 'jitter'):
+                    field = schema['properties'][name]
+                    self.assertEqual(set(field), {'type', 'description'})
+                    self.assertEqual(field['type'], 'boolean')
+                    for value in (True, False):
+                        validator.validate({name: value})
+                    for value in (None, 0, 1, 'true', {}):
+                        with self.subTest(name=name, value=value), self.assertRaises(ValidationError):
+                            validator.validate({name: value})
+                with self.assertRaises(ValidationError):
+                    validator.validate({'future': True})
+
+    def test_current_resource_constraints_do_not_restore_retired_policy(self):
+        rag = RAGComponent().describe_config()
+        self.assertNotIn('retention', rag['properties']['policy']['properties'])
+        for section in ('config', 'policy'):
+            with self.subTest(section=section), self.assertRaises(ValidationError):
+                Draft202012Validator(rag).validate({section: {'retention': {}}})
+        for name in ('query_cache_max_bytes', 'snapshot_cache_max_bytes'):
+            capacity = rag['properties']['config']['properties'][name]
+            self.assertEqual(set(capacity), {'type', 'description', 'minimum'})
+            self.assertEqual(capacity['type'], 'integer')
+            self.assertEqual(capacity['minimum'], 0)
+            validator = Draft202012Validator(capacity)
+            for value in (0, 64):
+                validator.validate(value)
+            for value in (None, False, -1, '64'):
+                with self.subTest(name=name, value=value), self.assertRaises(ValidationError):
+                    validator.validate(value)
+
+        tools = MCPComponent().describe_config()['properties']['config']['properties']['tools']
+        self.assertIs(tools['additionalProperties'], False)
+        selection, = tools['patternProperties'].values()
+        self.assertEqual(set(selection['required']), {'server', 'tool'})
+        self.assertEqual(set(selection['properties']), {'server', 'tool'})
+        self.assertIs(selection['additionalProperties'], False)
+        validator = Draft202012Validator(tools)
+        validator.validate({})
+        validator.validate({'selected': {'server': 'server', 'tool': 'search'}})
+        for value in ({'selected': {'server': 'server'}}, {'selected': {'tool': 'search'}},
+                      {'selected': {'server': 'server', 'tool': 'search', 'future': True}},
+                      {'selected': {'server': '', 'tool': 'search'}}, {'bad/name': {'server': 's', 'tool': 't'}}):
+            with self.subTest(value=value), self.assertRaises(ValidationError):
+                validator.validate(value)
+
+        processing = MemoryComponent().describe_config()['properties']['config']['properties']['processing']['properties']
+        mode, prompt, destination = (processing[name] for name in ('tool_result_mode', 'tool_summary_prompt', 'tool_data'))
+        self.assertEqual(mode, {'type': 'string', 'description': '', 'enum': ['reference', 'summary']})
+        self.assertEqual(prompt, {'type': 'string', 'description': '', 'minLength': 1})
+        self.assertIs(destination['additionalProperties'], False)
+        self.assertEqual(set(destination['required']), {'component', 'identifier'})
+        self.assertEqual(destination['properties'], {
+            'component': {'type': 'string', 'description': '', 'minLength': 1},
+            'identifier': {'type': 'string', 'description': '', 'minLength': 1}})
+        for schema, valid, invalid in (
+            (mode, 'reference', ('automatic', None)), (prompt, 'summarize', ('', None)),
+            (destination, {'component': 'data', 'identifier': 'results'},
+             ({'component': 'data'}, {'identifier': 'results'}, {'component': '', 'identifier': 'results'},
+              {'component': 'data', 'identifier': 'results', 'future': True})),
+        ):
+            validator = Draft202012Validator(schema)
+            validator.validate(valid)
+            for value in invalid:
+                with self.subTest(value=value), self.assertRaises(ValidationError):
+                    validator.validate(value)
+
+    def test_current_project_policy_presence_and_limits_are_explicit(self):
+        schema = ProjectConfig.describe_policies()
+        self.assertEqual(set(schema['properties']), {'approval', 'context', 'output', 'run', 'tool_retry', 'tools', 'usage'})
+        self.assertIs(schema['additionalProperties'], False)
+        validator = Draft202012Validator(schema)
+        values = {'tools': {'allowed_tools': [], 'max_calls': None},
+                  'tool_retry': {'max_retries': 0, 'delay_seconds': None},
+                  'approval': {'enabled': False, 'rules': []}}
+        before = deepcopy(values)
+        validator.validate(values)
+        self.assertEqual(values, before)
+        for value in ({'retention': {}}, {'future': {}}, {'tools': {'max_calls': 0}},
+                      {'tools': {'max_calls': False}}, {'tools': {'max_calls': -1}},
+                      {'tool_retry': {'max_retries': False}}, {'tool_retry': {'max_retries': -1}}):
+            with self.subTest(value=value), self.assertRaises(ValidationError):
+                validator.validate(value)
+
 
     def test_persisted_config_domain_fields_and_workflow_unchanged(self):
         config = ProjectConfig.deserialize(json.dumps(self.before['project_config']))
@@ -126,27 +190,39 @@ class NamingContractTests(unittest.TestCase):
         graph = WorkflowGraph(entry='end', metadata={'title': 'Review'}).node('end', 'end').to_dict()
         self.assertEqual(graph, self.before['workflow'])
 
-    def test_binding_vocabulary_preserves_unchanged_fields(self):
+    def test_current_binding_vocabulary_and_complete_payload_are_explicit(self):
         config = ProjectConfig(self.before['project_config'])
         scope = ToolExecutionScope(ToolRuntime(revision='host-1'), policy={'max_calls': 5})
         context = EngineContext(NS(config=config, components=()), NS(config={}), NS(engine='loop'), (), tool_scope=scope)
         self.assertEqual(scope.binding(), self.before['scope_binding'])
         loop = LoopEngine()
         loop._configure({'completion': {'model': 'test/model', 'temperature': None}, 'max_iterations': 3})
-        # Provider substitution now participates in resume identity. Keep the
-        # historical naming fixture intact and verify the explicitly added field.
+        # Capture the complete current payload: do not strip the adapter field
+        # to compare against a historical digest.
         original_hash = hashlib.sha256
         with patch('llm.engines.loop.engine.hashlib.sha256', wraps=original_hash) as tracked:
-            loop._binding(context)
+            binding = loop.bind_execution(context)
         payload = json.loads(tracked.call_args.args[0])
-        self.assertEqual(payload.pop('adapter'), {
-            'type': 'llm.providers.litellm.LiteLLMCompletionAdapter', 'binding': None})
-        self.assertEqual(digest(payload), self.before['loop_binding'])
+        expected = {
+            'settings': {'engine': deepcopy(self.before['project_config']['parameters']['engines']['loop']),
+                         'parameters': deepcopy(self.before['project_config']['parameters']),
+                         'policies': {'tools': {'max_calls': 5}}, 'data': {}},
+            'completion': {'model': 'test/model', 'temperature': None},
+            'prompt': None, 'agent': {}, 'tools': [], 'tool_contracts': {},
+            'adapter': {'type': 'llm.providers.litellm.LiteLLMCompletionAdapter', 'binding': None},
+            'tool_policy': deepcopy(self.before['scope_binding']),
+        }
+        self.assertEqual(payload, expected)
+        self.assertEqual(binding, digest(expected))
         graph = GraphEngine(handlers={}, parameter_key='graph').for_request({'workflow': 'flow'})
-        expected = dict(self.before['graph_binding'])
-        # Agent catalogue identity was intentionally replaced by per-selection
-        # records. Other persisted names are still protected by this fixture.
-        self.assertEqual(expected.pop('agents'), [])
+        expected = {
+            'workflow': deepcopy(self.before['workflow']), 'workflow_id': 'flow', 'revision': '1',
+            'handler_bindings': [], 'nested_graphs': [], 'handlers': [],
+            'max_steps': None, 'max_parallelism': None, 'timeout_seconds': None,
+            'project_config': deepcopy(self.before['project_config']), 'session_config': {},
+            'components': [], 'tools': [], 'tool_contracts': {},
+            'tool_policy': deepcopy(self.before['scope_binding']),
+        }
         self.assertEqual(graph._binding(context, self.before['workflow'], []), expected)
 
     def test_parameter_key_only_selects_the_explicit_engine_path(self):
