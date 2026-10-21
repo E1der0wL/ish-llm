@@ -1,5 +1,6 @@
 """UI/Tool에서 사용하는 문서 API. 모델 준비는 잠금 밖, 공개/조회는 잠금 안에서 수행한다."""
 
+from .status import RAGJobStatus
 from copy import deepcopy
 from llm.core.configuration import require_config
 from uuid import uuid4
@@ -264,7 +265,7 @@ class RAGData(ComponentData):
             raise ValueError("limit must be positive")
         results = []
         for job in await self.ajobs():
-            if job["status"] != "queued" or job["resume_abandonment"] is not None:
+            if job["status"] != RAGJobStatus.QUEUED.value or job["resume_abandonment"] is not None:
                 continue
             try:
                 results.append(await self.arun_job(job["id"]))

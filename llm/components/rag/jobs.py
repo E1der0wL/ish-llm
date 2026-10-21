@@ -1,5 +1,6 @@
 """재시작 가능한 문서 색인 작업. 입력·준비 결과·공개 영수증을 별도로 저장한다."""
 
+from .status import RAGJobStatus
 import asyncio
 from contextlib import contextmanager
 import os
@@ -37,10 +38,10 @@ class RAGJobs:
         abandoned = job["resume_abandonment"] is not None
         common = [Diagnostic("active_worker", "Indexing worker is still alive; cancel and await it first", source=source)] if live else []
         abandon = list(common)
-        if abandoned or job["status"] in (JobStorage.COMPLETED, JobStorage.CANCELLED):
+        if abandoned or job["status"] in (RAGJobStatus.COMPLETED.value, RAGJobStatus.CANCELLED.value):
             abandon.append(Diagnostic("not_resumable", "Job is already terminal or abandoned", source=source))
         delete = list(common)
-        if not abandoned and job["status"] not in (JobStorage.COMPLETED, JobStorage.CANCELLED):
+        if not abandoned and job["status"] not in (RAGJobStatus.COMPLETED.value, RAGJobStatus.CANCELLED.value):
             delete.append(Diagnostic("resume_required", "Abandon the Job before deleting it", source=source))
         declarations = self._storage().inventory()[0]["jobs"][identifier]["checkpoints"]
         keys = sorted(declarations)
@@ -53,18 +54,18 @@ class RAGJobs:
         source = ResourceRef(JobStorage.KIND, identifier, project_id=project.id, component=self.data.name)
         root = self._path(identifier)
         blockers, reused = [], []
-        state = "not_created" if job["status"] == JobStorage.QUEUED else "available"
+        state = "not_created" if job["status"] == RAGJobStatus.QUEUED.value else "available"
         files = tree_snapshot(root, exclude=(JobStorage.LEASE,))
         def block(code, message):
             blockers.append(Diagnostic(code, message, source=source))
         if live:
             block("active_worker", "Cancel and await the active Job worker first")
-        if job["resume_abandonment"] is not None or job["cancel_requested"] or job["status"] in (JobStorage.COMPLETED, JobStorage.CANCELLED, JobStorage.QUEUED):
+        if job["resume_abandonment"] is not None or job["cancel_requested"] or job["status"] in (RAGJobStatus.COMPLETED.value, RAGJobStatus.CANCELLED.value, RAGJobStatus.QUEUED.value):
             block("not_resumable", "Only an inactive failed or interrupted Job can resume")
         try:
             self._storage().read_input(identifier, job)
             reused.extend(sorted(self._storage().checkpoints(identifier)[1]))
-            if job["status"] != JobStorage.QUEUED and job.get("configuration") != component._configuration_version:
+            if job["status"] != RAGJobStatus.QUEUED.value and job.get("configuration") != component._configuration_version:
                 state = "incompatible"
                 block("checkpoint_configuration", "RAG configuration differs from the Job's preparation")
         except FileNotFoundError as error:
@@ -107,8 +108,8 @@ class RAGJobs:
         return self._enqueue(job_id, payload, document_ids=[item["identifier"] for item in inputs])
 
     def _enqueue(self, identifier, payload, **documents):
-        job = {"id": identifier, **documents, "status": JobStorage.QUEUED, "created_at": now(),
-               "input_digest": revision_token(payload), "phase": JobStorage.QUEUED,
+        job = {"id": identifier, **documents, "status": RAGJobStatus.QUEUED.value, "created_at": now(),
+               "input_digest": revision_token(payload), "phase": RAGJobStatus.QUEUED.value,
                "cancel_requested": False, "resume_abandonment": None, "failures": [], "progress": {}, "ingestion": {}}
         self._storage().create(job, payload)
         return job
@@ -136,12 +137,12 @@ class RAGJobs:
     @workspace_locked
     def cancel(self, identifier):
         job = self.get(identifier)
-        if job["status"] in (JobStorage.COMPLETED, JobStorage.CANCELLED):
+        if job["status"] in (RAGJobStatus.COMPLETED.value, RAGJobStatus.CANCELLED.value):
             return job
         job["cancel_requested"] = True
-        if job["status"] != JobStorage.RUNNING:
-            job["status"] = JobStorage.CANCELLED
-            job["phase"] = JobStorage.CANCELLED
+        if job["status"] != RAGJobStatus.RUNNING.value:
+            job["status"] = RAGJobStatus.CANCELLED.value
+            job["phase"] = RAGJobStatus.CANCELLED.value
         self._storage().save(job)
         return job
 
@@ -251,15 +252,15 @@ class RAGJobs:
                 raise CheckpointError("checkpoint_protected", "Job resume is blocked", blockers=plan.blockers)
         if job["resume_abandonment"] is not None:
             raise ValueError("Job resume was abandoned")
-        if job["status"] == JobStorage.RUNNING:
+        if job["status"] == RAGJobStatus.RUNNING.value:
             if not retry:
                 raise ValueError("Interrupted indexing job requires explicit retry=True")
-        elif job["status"] != JobStorage.QUEUED and not (retry and job["status"] == JobStorage.FAILED):
+        elif job["status"] != RAGJobStatus.QUEUED.value and not (retry and job["status"] == RAGJobStatus.FAILED.value):
             raise ValueError("Job is not executable")
         if job["cancel_requested"]:
             raise ValueError("Job was cancelled")
         project, component = self.data._current()
-        if job["status"] != JobStorage.QUEUED and job.get("configuration") != component._configuration_version:
+        if job["status"] != RAGJobStatus.QUEUED.value and job.get("configuration") != component._configuration_version:
             raise CheckpointError("checkpoint_configuration", "RAG configuration changed; enqueue a new Job")
         maximum = component._options(project).get("ingestion", {}).get("max_active")
         if maximum is not None and (type(maximum) is not int or maximum < 1):
@@ -267,7 +268,7 @@ class RAGJobs:
         if maximum is not None:
             active = 0
             for item in self.list():
-                if item["id"] == identifier or item["status"] != JobStorage.RUNNING:
+                if item["id"] == identifier or item["status"] != RAGJobStatus.RUNNING.value:
                     continue
                 lease = self._lease(item["id"], probe=True)
                 if lease is None:
@@ -284,7 +285,7 @@ class RAGJobs:
             job["failures"].append({key: job[key] for key in JobStorage.FAILURE_FIELDS})
         for key in JobStorage.ERROR_FIELDS | {"ended_at"}:
             job.pop(key, None)
-        job.update(status=JobStorage.RUNNING, phase="preparing", progress={}, pid=os.getpid(), started_at=now(),
+        job.update(status=RAGJobStatus.RUNNING.value, phase="preparing", progress={}, pid=os.getpid(), started_at=now(),
                    configuration=component._configuration_version)
         self._storage().save(job)
         return payload
@@ -331,7 +332,7 @@ class RAGJobs:
             options = {"progress": lambda phase: self._telemetry(identifier, {"phase": phase})} if type(component).publish is RAGComponent.publish else {}
             component.publish(project, snapshot, documents, **options)
         job = self.get(identifier)
-        job.update(status=JobStorage.COMPLETED, phase=JobStorage.COMPLETED, progress={"completed": 1, "total": 1, "unit": "job"}, ended_at=now())
+        job.update(status=RAGJobStatus.COMPLETED.value, phase=RAGJobStatus.COMPLETED.value, progress={"completed": 1, "total": 1, "unit": "job"}, ended_at=now())
         self._storage().save(job)
         return job
 
@@ -343,7 +344,7 @@ class RAGJobs:
     @workspace_locked
     def _finish_error(self, identifier, error, cancelled):
         job = self.get(identifier)
-        if job["status"] != JobStorage.COMPLETED:
+        if job["status"] != RAGJobStatus.COMPLETED.value:
             from llm.errors import stable_error_code
             code = "rag_cancelled" if cancelled else stable_error_code(error) or "rag_failed"
             project, _ = self.data._current()
@@ -353,7 +354,7 @@ class RAGJobs:
                 diagnostic = Diagnostic(code, diagnostic.message, source=diagnostic.source,
                     details={**diagnostic.details, "observed_code": diagnostic.code})
             job["failed_phase"] = job["phase"]
-            job.update(status=JobStorage.CANCELLED if cancelled else JobStorage.FAILED, phase=JobStorage.CANCELLED if cancelled else JobStorage.FAILED,
+            job.update(status=RAGJobStatus.CANCELLED.value if cancelled else RAGJobStatus.FAILED.value, phase=RAGJobStatus.CANCELLED.value if cancelled else RAGJobStatus.FAILED.value,
                        error=code, diagnostic_code=code, diagnostic=diagnostic.to_dict(), ended_at=now())
             self._storage().save(job)
 

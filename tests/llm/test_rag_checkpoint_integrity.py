@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 
 from llm.llm import LargeLanguageModel
-from llm.components.rag import RAGComponent, EmbeddingModel
+from llm.components.rag import RAGJobStatus, RAGComponent, EmbeddingModel
 from llm.components.rag.jobs import RAGJobs
 from llm.components.rag.job_storage import JobStorage
 from llm.services.infrastructure.storage import revision_token
@@ -189,7 +189,7 @@ class CheckpointStorageTests(unittest.IsolatedAsyncioTestCase):
             raise OSError('cleanup failed after rename')
         with patch.object(job_storage, 'remove_named_tree', side_effect=fail_remove):
             result = await self.rag.arun_job(identifier)
-        self.assertEqual(result['status'], JobStorage.COMPLETED)
+        self.assertEqual(result['status'], RAGJobStatus.COMPLETED.value)
         self.assertTrue(self.storage.checkpoints(identifier)[1])
         generation = self.component.corpus_version(await self.project.aget_data())
         before = self.snapshot(identifier)
@@ -207,7 +207,7 @@ class CheckpointStorageTests(unittest.IsolatedAsyncioTestCase):
             await self.rag.arun_job(identifier, retry=True)
         self.jobs._cleanup(identifier)
         self.assertEqual(self.storage.checkpoints(identifier)[1], {})
-        self.assertEqual((await self.rag.ajob(identifier))['status'], JobStorage.COMPLETED)
+        self.assertEqual((await self.rag.ajob(identifier))['status'], RAGJobStatus.COMPLETED.value)
         self.assertEqual(self.effects.read_text(), 'called\n')
 
     async def test_process_death_preserves_checkpoint_and_cleanup_commit_boundaries(self):

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import math
 
 from llm.providers.runtime import diagnostic_scope
-from llm.llm import CheckpointError
+from llm.llm import RAGJobStatus, CheckpointError
 
 from ...errors.adapters import from_exception
 from ...errors.contracts import ErrorOrigin
@@ -27,7 +27,7 @@ class RAGManagement(DocumentManagement):
         key = self.project_id, identifier
         if key in self.active:
             raise OperationBlocked("hub_operation_busy", "RAG job is already active")
-        plan = await self.data.aresume_plan(identifier) if job["status"] != "queued" else None
+        plan = await self.data.aresume_plan(identifier) if job["status"] != RAGJobStatus.QUEUED.value else None
         if key in self.active:
             raise OperationBlocked("hub_operation_busy", "RAG job is already active")
         if plan is not None and not plan.can_resume:
@@ -79,7 +79,7 @@ class RAGManagement(DocumentManagement):
 
     async def _delete_job(self, identifier, revision):
         job = await self.data.ajob(identifier)
-        if job["status"] not in ("failed", "cancelled"):
+        if job["status"] not in (RAGJobStatus.FAILED.value, RAGJobStatus.CANCELLED.value):
             raise ValueError("Only failed or cancelled RAG jobs can be deleted")
         plan = await self.data.acheckpoint_plan(identifier)
         if plan.revision != revision:
@@ -125,7 +125,7 @@ class RAGManagement(DocumentManagement):
             pass
         else:
             raise FileExistsError(identifier)
-        if any(identifier in document_ids(job) and job["status"] in ("queued", "running", "failed")
+        if any(identifier in document_ids(job) and job["status"] in (RAGJobStatus.QUEUED.value, RAGJobStatus.RUNNING.value, RAGJobStatus.FAILED.value)
                and job["resume_abandonment"] is None and not job.get("cancel_requested")
                for job in await self.data.ajobs()):
             raise OperationBlocked("hub_existing_rag_job", "An unfinished RAG job already exists; select it and retry or delete it")
@@ -133,13 +133,13 @@ class RAGManagement(DocumentManagement):
     async def jobs(self, *, inspect=True):
         entries = []
         for job in await self.data.ajobs():
-            if job["status"] == "completed":
+            if job["status"] == RAGJobStatus.COMPLETED.value:
                 continue
             observer = self.active.get((self.project_id, job["id"]))
             if observer:
                 entries.append(observer.entry())
             else:
-                plan = await self.data.aresume_plan(job["id"]) if inspect and job["status"] in ("failed", "running") else None
+                plan = await self.data.aresume_plan(job["id"]) if inspect and job["status"] in (RAGJobStatus.FAILED.value, RAGJobStatus.RUNNING.value) else None
                 entries.append(job_entry(job, plan=plan))
         return entries
 

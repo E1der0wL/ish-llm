@@ -15,6 +15,64 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c26: RAG Job 상태 소유 선언 — c24–c26 묶음 Level 3
+
+RAGJobStatus가 기존 JobStorage의 다섯 상태를 소유하고 공개 API로 제공한다. 저장소의
+허용 집합·전이 표, RAGJobs·RAGData와 Hub의 관리/진행 표시가 이 선언을 참조한다.
+이전 JobStorage 상수/호환 alias는 남기지 않았다. 문자열 값·타입·전이·lease/CAS·retry
+허가·Reader/Writer와 원본 보존 계약은 같다. 수정한 기존 파일 9개는 참조를 원래 값으로
+복원하면 AST가 같고, 실제 허용 집합/전이 표도 같다. 기존 checkpoint 시험 두 곳은
+상수의 소유 참조만 바꿨으며 원래 효과/무결성 Assertion을 유지했다.
+
+첫 보조 AST 검사기는 tuple 대상이 모두 Name이라고 가정해 실패했다. 보조 코드와 실패를
+c26-before에 보존하고 검사기를 고쳐 통과했다. 제품 결함 재현으로 계산하지 않는다.
+과거 backend의 관련 RAG 코드 일부만 참고했으며 구형 저장 계약·코드·통과 증거는 이식하지 않았다.
+
+S3 후보 19건을 제거했다. Activity·Recovery·Retention의 공개 import 의존성 3건과
+RAG prepare 2건·공개 arun_job retry 인자 1건의 기존 review를 재검토했다. 각각 기존
+판정/다른 hash는 유지하고 새 소유 선언을 연결했다. 여섯 review의 구체적 시험 ID가
+이번 전체 실행에서 모두 통과했다. AST 검사 규칙이나 예외 범위를 넓히지 않았다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 68/68 | 68 | 0/0/0 | 53.014초 | 0 |
+| 집중 Hub | 18/18 | 18 | 0/0/0 | 27.214초 | 0 |
+| 전체 LLM | 2101/2101 | 2101 | 0/0/0 | 733.180초 | 0 |
+| 전체 Hub | 577/577 | 577 | 0/0/0 | 718.934초 | 0 |
+
+expected failure·unexpected success·missing·unexpected·duplicates도 각각 0이다.
+RAG 집중 검증 후 공개 상태/저장 소비자가 함께 바뀐 현재 통합 소스를 c24–c26 Level 3으로
+검증했다. 앞선 c24/c25의 Level 2 결과를 full로 합산하지 않았고 별도 c26 Level 2는 중복
+실행하지 않았다. 전체 실행은 공통 승인·예산·실제 효과·Resume/Checkpoint·RAG·삭제·
+트랜잭션/장애 주입과 Hub 소비자를 포함한다. R3 실제 효과 mutation True/outer exit 0,
+실제 LLM/Hub 환경 검사 ok/exit 0이다. 첫 보조 검사 출력은 보존했으며 종료 코드 기록의
+공백을 해소하기 위해 보조 검사만 다시 실행해 명령별 exit를 파일로 기록했다.
+
+정적 raw 267·reviewed 76·미해결 191(S3 173·S6 18), new/stale/review 오류와
+필수 S1/S2/S4/S5 미해결 0/exit 0이다. 문서 132개·Python fence 182개·상대 링크
+959개·anchor 34개, 오류 0이다. P1 최종 S1–S5 및 A–F는 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c26-focused/llm.json --modules tests.llm.test_rag_job_state_integrity tests.llm.test_rag_job_integrity tests.llm.test_rag_checkpoint_integrity tests.llm.test_rag_job_retention tests.llm.test_rag_retention_policy tests.llm.test_rag_retry_presence tests.llm.test_rag_input_integrity tests.llm.test_rag_batch_identity
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c26-focused/hub.json --modules tests.hub.test_rag_jobs tests.hub.test_rag_retention
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c24-c26-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c24-c26-level3/hub.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c24-c26-level3/aux-exit-capture/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c24-c26-level3/aux-exit-capture/docs.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c24-c26-level3/aux-exit-capture/env-llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c24-c26-level3/aux-exit-capture/env-hub.json
+```
+
+실행 HEAD `2d166bd109748dc0274b1f5c732be4a5e49763ae`에 c26 변경을 더한 상태다.
+704 Python 소스 hash `e25a3e87d653c144d007760576833c0b57c1b32beea1a882aea56e2991b94cd5`, 866 입력/환경 hash
+`71e0dae3294dd6a1258516a4172cefe9526c54b4b5352fcf65b7413cb4cf3d13`가 전체 실행 전후 동일하다.
+Python 3.12.14·136 의존성·env 5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 바이너리도
+기록했다. 집중 실행은 자체 전후 동일성을 별도로 확인했다. 전체 실행 중 소스·시험·Fixture·
+문서를 고정하고 전후 대조 후 문서를 먼저 갱신했다. 원시 명령·exit·개별 ID·로그·manifest는
+`/workspace/llm-clean-resume/p1/c24-c26-level3/`에 보존한다. 소스-커밋 동일성·staged diff 확인 후 작업 브랜치에
+묶음 Push한다. 원격 CI 실제 결과는 미확인이며 main·backend·Draft PR #1은 보호한다.
+
 ## P1-c25: Hub 임시 표시 상태·대기값 Presence — 로컬 Level 2
 
 기존 preparing·waiting_input·waiting_approval·retrying 표시값을 ChatMessage,

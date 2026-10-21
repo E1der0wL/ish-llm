@@ -220,14 +220,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "ac99bed27362b37e8e7e7b1c2a156a33138f9f8d7ae1dcfad4df337750139d27:1",
-      "rule": "S3",
-      "file": "llm/components/rag/data.py",
-      "symbol": "RAGData.arun_jobs",
-      "line": 260,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "827f0b31348ff6bb9f030b8613a11557d6e964a63146f3338eb950ef4c48a3ad:1",
       "rule": "S3",
       "file": "llm/components/rag/data.py",
@@ -1172,116 +1164,12 @@
       "detail": "inline domain field: version"
     },
     {
-      "id": "dfce2d23dd48d4e70601ae6f13fbe39641d438714e7ef1f3c8ed00b4204aa80e:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_management.py",
-      "symbol": "RAGManagement._run",
-      "line": 26,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "7d86ca158c67f5acd59bd6d6c2adc3d18287befcccda15d00f3ef5eff000f62a:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_management.py",
-      "symbol": "RAGManagement._delete_job",
-      "line": 78,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "2f63c4f03fd4a74b927c3b6e9f5f2ba6e7c0ba47a96236f00b4296fcd25962fd:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_management.py",
-      "symbol": "RAGManagement._require_new",
-      "line": 98,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "3676e01c02d74bf33bef814e89187fa041a9b65b39fa55fb5543a53f4048f52c:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_management.py",
-      "symbol": "RAGManagement.jobs",
-      "line": 106,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "52348f806a05ca9bca2ac5fa10c7ecad73cf605d764a8b4376588ed92a69aebd:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_management.py",
-      "symbol": "RAGManagement.jobs",
-      "line": 112,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "53f75f071b28a7c420bf7f27b2adcbc2a9a47d5497425501f5a335d4c4ab8fa9:1",
       "rule": "S3",
       "file": "hub/backend/project/rag_management.py",
       "symbol": "RAGManagement.execute",
       "line": 149,
       "detail": "inline domain comparison"
-    },
-    {
-      "id": "bc93ae4f7a73b5446c74239a0e6133a67d63dfca6216eb929d872805ab3b2c8c:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_progress.py",
-      "symbol": "job_entry",
-      "line": 19,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "77f150f86b5c5efaca8c30e4234e4576fc3665c0d18ccbabd060084e51857f66:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_progress.py",
-      "symbol": "job_entry",
-      "line": 25,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "02ed00b4435c036b28a609514ace0641ba78d90b99ffb935fb7bc90ef5ecc1cc:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_progress.py",
-      "symbol": "job_entry",
-      "line": 28,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "bc93ae4f7a73b5446c74239a0e6133a67d63dfca6216eb929d872805ab3b2c8c:2",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_progress.py",
-      "symbol": "job_entry",
-      "line": 29,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "77f150f86b5c5efaca8c30e4234e4576fc3665c0d18ccbabd060084e51857f66:2",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_progress.py",
-      "symbol": "job_entry",
-      "line": 31,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "05aa8890d1b23d56362c86b12b861cf8c40346ea4d09db115c240f1bd703f567:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_progress.py",
-      "symbol": "job_entry",
-      "line": 35,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "971aa2f6e7dae979526398645fd215e42372272b5809203a6b03e18d354b53f4:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_progress.py",
-      "symbol": "job_entry",
-      "line": 36,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "e18e0b308cdd90b80f43705677bc3db8e2b849a94f0de7fedb53ad18408f8d5c:1",
-      "rule": "S3",
-      "file": "hub/backend/project/rag_progress.py",
-      "symbol": "RegistrationProgress.entry",
-      "line": 76,
-      "detail": "inline domain field: status"
     },
     {
       "id": "55640383cac7752bd844dd22e4493eb745bfc257e8e3b012283f1b8247b35d00:1",
@@ -1636,51 +1524,11 @@
       "detail": "SDK-shaped field lookup outside Provider package"
     },
     {
-      "id": "cf0a2a073e4f2c53f16849c3575c20cddbeece585f030dff4a935a0f5b9b3623:1",
-      "rule": "S3",
-      "file": "hub/widget/forms/rag_manager.py",
-      "symbol": "RAGManager._phase",
-      "line": 33,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "dfeb9e4bf1cc994414f8ede7cb95a8ce94eb1f0bb422e86d9b2b097c80e7e404:1",
-      "rule": "S3",
-      "file": "hub/widget/forms/rag_manager.py",
-      "symbol": "RAGManager.items",
-      "line": 71,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "a0cf3dc06f3f85b3b36ebf44fea531b651f6437c3ac8afdfc44380784bc56447:1",
-      "rule": "S3",
-      "file": "hub/widget/forms/rag_manager.py",
-      "symbol": "RAGManager.observe",
-      "line": 113,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "aebac7bd56071082ce95141fbe2b58b18a715ce689bc32b069ff0aa55edacfa8:1",
       "rule": "S3",
       "file": "hub/widget/forms/rag_manager.py",
       "symbol": "RAGManager.call",
       "line": 125,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "497d44dc41800ca63b31efee27cbf1cb9118de20bad4c0af89cb25d352d0fe01:1",
-      "rule": "S3",
-      "file": "hub/widget/forms/rag_manager.py",
-      "symbol": "RAGManager.delete",
-      "line": 157,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "5cee4109ca7171852935c2bc98db8d9e12e5c4ff761618920bec73e28f73424d:1",
-      "rule": "S3",
-      "file": "hub/widget/forms/rag_manager.py",
-      "symbol": "RAGManager.cancel_job",
-      "line": 180,
       "detail": "inline domain comparison"
     },
     {

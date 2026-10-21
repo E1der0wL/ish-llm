@@ -33,6 +33,7 @@ Markdown 문서를 분할하고 임베딩과 관계를 추출하여 Chroma/BM25/
 | [ingestion.py](ingestion.py) | 청크별 bounded 임베딩, 중복 제거, 캐시·이전 벡터 재사용과 진행 전달입니다. |
 | [cache.py](cache.py) | 명시적인 용량 안에서 불변 세대의 코퍼스 읽기 사본을 보관합니다. |
 | [jobs.py](jobs.py) | 등록 Job, 청크·추출 checkpoint와 명시적 재개를 관리합니다. |
+| [status.py](status.py) | 저장과 공개 소비자가 공유하는 RAG Job 상태값의 단일 선언입니다. |
 | [job_storage.py](job_storage.py) | 필수 Job 목록·리비전·worker lease identity와 원자적 저장을 소유합니다. |
 | [files.py](files.py) | 세대 구성 시 파일 복사/reflink 등 Linux 파일 처리를 돕습니다. |
 | [indexing.py](indexing.py) | 문서 벡터를 Chroma 색인으로 구성합니다. |
@@ -237,6 +238,9 @@ identity가 있는 worker.lock을 함께 저장한다. 정확한 Job 집합·리
 유효한 Job 메타데이터 조회와 안전성이 확인된 명시 삭제는 기존 진단·삭제 계약을 따른다.
 
 Job은 생성 시 미취소 False·미포기 None·빈 실패 이력 []·진행/관찰 객체를 명시한다.
+다섯 상태값은 공개 `RAGJobStatus`가 선언하며 JobStorage의 허용 집합·전이 표와 RAGJobs,
+Data·Hub 소비자는 이 선언을 참조한다. 저장 문자열과 전이 의미는 그대로이며 공개 상태값은
+상태 변경·재개·삭제 권한을 부여하지 않는다. JobStorage는 필수 증거와 원자적 저장을 소유한다.
 필드 소실을 이 초기 상태로 복원하지 않는다. 실행한 Job은 시작 시각·worker PID·설정 증거,
 실패/실행 후 취소는 종료 시각과 완전한 진단을 요구한다. 실행 전 취소와 구분하며 기록·
 목록을 같은 transaction으로 확정한다. 취소와 포기는 조회·재시작·재시도로 철회할 수 없다.

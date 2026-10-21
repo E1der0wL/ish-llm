@@ -1,5 +1,6 @@
 """RAG-owned Job inventory and persistent worker lease identity."""
 
+from .status import RAGJobStatus
 from datetime import datetime
 from dataclasses import fields
 import fcntl
@@ -19,10 +20,9 @@ class JobStorage:
     MANIFEST = "jobs.manifest.json"
     DIRECTORY = "jobs"
     LEASE = "worker.lock"
-    QUEUED, RUNNING, COMPLETED, FAILED, CANCELLED = "queued", "running", "completed", "failed", "cancelled"
-    STATUSES = frozenset((QUEUED, RUNNING, COMPLETED, FAILED, CANCELLED))
-    TRANSITIONS = {QUEUED: (QUEUED, RUNNING, CANCELLED), RUNNING: (RUNNING, COMPLETED, FAILED, CANCELLED),
-                   FAILED: (FAILED, RUNNING, CANCELLED), COMPLETED: (COMPLETED,), CANCELLED: (CANCELLED,)}
+    STATUSES = frozenset(status.value for status in RAGJobStatus)
+    TRANSITIONS = {RAGJobStatus.QUEUED.value: (RAGJobStatus.QUEUED.value, RAGJobStatus.RUNNING.value, RAGJobStatus.CANCELLED.value), RAGJobStatus.RUNNING.value: (RAGJobStatus.RUNNING.value, RAGJobStatus.COMPLETED.value, RAGJobStatus.FAILED.value, RAGJobStatus.CANCELLED.value),
+                   RAGJobStatus.FAILED.value: (RAGJobStatus.FAILED.value, RAGJobStatus.RUNNING.value, RAGJobStatus.CANCELLED.value), RAGJobStatus.COMPLETED.value: (RAGJobStatus.COMPLETED.value,), RAGJobStatus.CANCELLED.value: (RAGJobStatus.CANCELLED.value,)}
     KIND = "rag_job"
     PREPARED = "prepared.json"
     BATCHES = "batches"
@@ -73,38 +73,38 @@ class JobStorage:
                     or not isinstance(job["configuration"], str)
                     or re.fullmatch(r"[a-f0-9]{64}", job["configuration"]) is None):
                 raise ValueError("Invalid RAG Job worker or configuration evidence")
-        elif status in (cls.RUNNING, cls.COMPLETED, cls.FAILED):
+        elif status in (RAGJobStatus.RUNNING.value, RAGJobStatus.COMPLETED.value, RAGJobStatus.FAILED.value):
             raise ValueError("RAG Job requires its stored attempt evidence")
-        terminal_failure = status == cls.FAILED or (status == cls.CANCELLED and attempted)
+        terminal_failure = status == RAGJobStatus.FAILED.value or (status == RAGJobStatus.CANCELLED.value and attempted)
         if terminal_failure:
             if not cls.ERROR_FIELDS <= present or "ended_at" not in job:
                 raise ValueError("RAG Job requires its stored failure evidence")
             cls._diagnostic(job)
         elif present & cls.ERROR_FIELDS:
             raise ValueError("RAG Job has failure evidence outside a failed attempt")
-        if status == cls.COMPLETED or terminal_failure:
+        if status == RAGJobStatus.COMPLETED.value or terminal_failure:
             if "ended_at" not in job:
                 raise ValueError("RAG Job requires its stored completion time")
             cls._time(job["ended_at"])
         elif "ended_at" in job:
             raise ValueError("RAG Job ended before a terminal attempt")
-        if status == cls.RUNNING:
+        if status == RAGJobStatus.RUNNING.value:
             if job["phase"] in cls.STATUSES:
                 raise ValueError("Running RAG Job requires an active phase")
         elif job["phase"] != status:
             raise ValueError("RAG Job status and phase disagree")
         if not attempted and (job["failures"] or job["progress"] or job["ingestion"]):
             raise ValueError("Unstarted RAG Job has attempt observations")
-        if status == cls.QUEUED and (attempted or job["cancel_requested"]):
+        if status == RAGJobStatus.QUEUED.value and (attempted or job["cancel_requested"]):
             raise ValueError("Queued RAG Job has execution or cancellation evidence")
-        if status == cls.CANCELLED and not attempted and not job["cancel_requested"]:
+        if status == RAGJobStatus.CANCELLED.value and not attempted and not job["cancel_requested"]:
             raise ValueError("Unstarted cancelled RAG Job requires its cancellation")
-        if status == cls.COMPLETED and (job["cancel_requested"] or
+        if status == RAGJobStatus.COMPLETED.value and (job["cancel_requested"] or
                 job["progress"] != {"completed": 1, "total": 1, "unit": "job"}):
             raise ValueError("Completed RAG Job requires its publication progress")
         for failure in job["failures"]:
             if (not isinstance(failure, dict) or failure.keys() != cls.FAILURE_FIELDS
-                    or failure["status"] != cls.FAILED):
+                    or failure["status"] != RAGJobStatus.FAILED.value):
                 raise ValueError("Invalid RAG Job failure history")
             cls._time(failure["started_at"])
             cls._time(failure["ended_at"])
@@ -353,7 +353,7 @@ class JobStorage:
 
     def clear_checkpoints(self, identifier):
         _, records = self.inventory()
-        if records[identifier]["status"] != self.COMPLETED:
+        if records[identifier]["status"] != RAGJobStatus.COMPLETED.value:
             raise ValueError("Only completed Job preparation copies can be cleared")
         manifest, values = self.checkpoints(identifier)
         from llm.services.infrastructure.storage import unlink_file

@@ -64,7 +64,7 @@ from llm.components.goals import GoalComponent, GoalData
 from llm.components.refinement import RefinementComponent, RefinementData
 from llm.components.prompts import PromptComponent
 from llm.components.mcp import MCPComponent
-from llm.components.rag import RAGComponent, EmbeddingModel, RerankModel
+from llm.components.rag import RAGJobStatus, RAGComponent, EmbeddingModel, RerankModel
 from llm.components.rag import TripleExtractor
 from llm.components.workflows import WorkflowComponent, WorkflowGraph
 from llm.components.memory import MemoryComponent, MemoryData, MemoryConflictError

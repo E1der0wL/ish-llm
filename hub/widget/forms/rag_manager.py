@@ -1,5 +1,6 @@
 """RAG document editing plus resumable registration jobs in one shared popup."""
 
+from llm.llm import RAGJobStatus
 import asyncio
 from pathlib import Path
 
@@ -30,7 +31,7 @@ class RAGManager(RecordManager):
         return next((item for item in self.entries if item["name"] == self.selected and item.get("kind") == "job"), None)
 
     def _phase(self, item):
-        if item.get("job_id") in self.cancel_pending and item["status"] in ("queued", "running"):
+        if item.get("job_id") in self.cancel_pending and item["status"] in (RAGJobStatus.QUEUED.value, RAGJobStatus.RUNNING.value):
             return self.view.t("rag_phase_cancelling")
         return self.view.t("rag_phase_" + item["phase"])
 
@@ -68,7 +69,7 @@ class RAGManager(RecordManager):
         rows = [SidebarItem(row.key, row.title + " · " + self._phase(jobs[row.key]), self._counts(jobs[row.key]))
                 if row.key in jobs else row for row in super().items()]
         if self.view._dialog is self and not self.busy and not self._polling and self._poll_timer is None:
-            if any(item["status"] == "running" for item in jobs.values()):
+            if any(item["status"] == RAGJobStatus.RUNNING.value for item in jobs.values()):
                 try:
                     loop = asyncio.get_running_loop()
                 except RuntimeError:
@@ -110,7 +111,7 @@ class RAGManager(RecordManager):
         first = self.last_job is None or self.last_job["job_id"] != item["job_id"]
         self.last_job = item
         self.entries = [entry for entry in self.entries if entry["name"] != item["name"]]
-        if item["status"] != "completed":
+        if item["status"] != RAGJobStatus.COMPLETED.value:
             self.entries.append(item)
         if first:
             self.selected = item["name"]
@@ -154,7 +155,7 @@ class RAGManager(RecordManager):
             return
         if self.busy:
             return
-        if item["status"] not in ("failed", "cancelled"):
+        if item["status"] not in (RAGJobStatus.FAILED.value, RAGJobStatus.CANCELLED.value):
             self.view.notice = self.view.t("rag_delete_unavailable")
             return
         def ready(plan):
@@ -177,7 +178,7 @@ class RAGManager(RecordManager):
 
     def cancel_job(self):
         item = self._selected_job()
-        if item is None or item["status"] not in ("queued", "running"):
+        if item is None or item["status"] not in (RAGJobStatus.QUEUED.value, RAGJobStatus.RUNNING.value):
             self.view.notice = self.view.t("rag_cancel_unavailable")
             return
         if item["job_id"] in self.cancel_pending:

@@ -2021,14 +2021,15 @@
         "docs/llm/revisions.md": "205b68c85574b75f892feec82351476bdb84c939b0a526fe1a39859f82c13aee",
         "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
         "llm/core/paths.py": "2917152a6299e2d11c11b6353eadff451ac37318d97a6b7ec584ff6080c48dc5",
-        "llm/llm.py": "2887948b2f758bf678ad42e04d0cbb35faa1191f7953ed17c7369b58d015f012",
+        "llm/llm.py": "52006ff8ff4d4a7eb7e08e15a5eb7d7b01df77cc58e8b242295ebaed2032f83a",
         "llm/services/infrastructure/activity.py": "92f5a4c2cb958d3d25c5e93b368d406f14f90cd64138bfbfa00052158c7240e4",
         "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
         "llm/services/lifecycle/projects.py": "e4d965188b9d2f7329ee7cd2590be55e1c08e94f2de0257dd2859d187e1d6da6",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_loop.py": "44a4539d8a15ee90d77909888c5d146dc6c7324bee8ba5c692ceb4eaae18e57c",
         "tests/llm/test_project_activity.py": "c27ddfb555bb3fc0ce8788851126a75cc87d804a8ac6900bbd9d11625ca6f472",
-        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7"
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8"
       },
       "tests": [
         "tests.llm.test_project_activity.ActivityStorageTests.test_contract_is_frozen_and_allowlisted",
@@ -2053,14 +2054,15 @@
         "docs/llm/revisions.md": "205b68c85574b75f892feec82351476bdb84c939b0a526fe1a39859f82c13aee",
         "docs/llm/storage-transactions.md": "ed27cbb6ece9605de8978b90d50f7b6c92a32e0030435e4c39605d8746e5f807",
         "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
-        "llm/llm.py": "2887948b2f758bf678ad42e04d0cbb35faa1191f7953ed17c7369b58d015f012",
+        "llm/llm.py": "52006ff8ff4d4a7eb7e08e15a5eb7d7b01df77cc58e8b242295ebaed2032f83a",
         "llm/services/history/recovery.py": "859208990e046cc4f29e301aeb11fa830387f1f4e2bdee9885dd72ca5a3767eb",
         "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
         "llm/services/lifecycle/projects.py": "e4d965188b9d2f7329ee7cd2590be55e1c08e94f2de0257dd2859d187e1d6da6",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_loop.py": "44a4539d8a15ee90d77909888c5d146dc6c7324bee8ba5c692ceb4eaae18e57c",
         "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611",
-        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7"
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8"
       },
       "tests": [
         "tests.llm.test_operations_schema.OperationsSchemaTests.test_recovery_rejects_changed_plan_and_does_not_guess_missing_history",
@@ -2084,7 +2086,7 @@
         "docs/llm/revisions.md": "205b68c85574b75f892feec82351476bdb84c939b0a526fe1a39859f82c13aee",
         "docs/llm/storage-transactions.md": "ed27cbb6ece9605de8978b90d50f7b6c92a32e0030435e4c39605d8746e5f807",
         "llm/core/contracts.py": "e57b15e93e27008bfb1ffd044daffda27ec0af1c9078dd5543bec62943170253",
-        "llm/llm.py": "2887948b2f758bf678ad42e04d0cbb35faa1191f7953ed17c7369b58d015f012",
+        "llm/llm.py": "52006ff8ff4d4a7eb7e08e15a5eb7d7b01df77cc58e8b242295ebaed2032f83a",
         "llm/services/history/retention.py": "c125a5c8664333c55b5b4eb563e0882af5f851cc96e6fd278e16edf114c25e42",
         "llm/services/infrastructure/storage.py": "75c192874b30a7bb4b8ea5fcb045ab53ed31450b37c6c091efdef9e09e1cec7b",
         "llm/services/lifecycle/projects.py": "e4d965188b9d2f7329ee7cd2590be55e1c08e94f2de0257dd2859d187e1d6da6",
@@ -2092,7 +2094,8 @@
         "tests/llm/test_history_retention_integrity.py": "137a607cf614f86366399e836a67ae73d99bd3b5c8a277f0c3a4202b121cabde",
         "tests/llm/test_loop.py": "44a4539d8a15ee90d77909888c5d146dc6c7324bee8ba5c692ceb4eaae18e57c",
         "tests/llm/test_operations_schema.py": "42b434a293f747ce5b58a30e9dc61ea8105a2099e6931925d73e464827b9d611",
-        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7"
+        "llm/core/models.py": "024934d4ea86dc600dac69c547205e2cac1b04c9e6fdd27897990d21aafd60c7",
+        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8"
       },
       "tests": [
         "tests.llm.test_history_retention_integrity.HistoryRetentionIntegrityTests.test_raw_source_change_cannot_reuse_plan_with_preserved_size_and_mtime",
@@ -2456,18 +2459,19 @@
       ],
       "sources": {
         "docs/llm/checkpoints.md": "7cc6883d128d5d64d7a056b55f7422ca561f06e1fda9debad9e04acb03da1854",
-        "llm/components/rag/README.md": "74adbf4698b17418d0299cc14b8320fc6c816cc0a0e076a6896e77beeac6ebe2",
+        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
         "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
-        "llm/components/rag/data.py": "4c9e04c22bf17c921344e1dcb63ee9d1da7f290c3b323436641a5b62cb9395f0",
+        "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
         "llm/components/rag/ingestion.py": "561a44e553ce32c556ecc32b1a7508e6ec1c160eb3bbca7341027391d06d0f18",
-        "llm/components/rag/jobs.py": "d45b02a1aac229ca45ab4f97f34b740ecd76085769f9cc136ec2db8da409a11d",
+        "llm/components/rag/jobs.py": "9fb9b7da98e72441a4dc4832c67dd27456c290ec59ed8e9e39e453edf011a8c9",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_rag_graph_checkpoint.py": "a5078fdc4801df11bd2d6ea9115152324ac039ca93dd4047c4423db8a075cf9a",
         "tests/llm/test_rag_optimization.py": "80079dfd0fe6fef2501aafacd7ca67990cf783227725b6f6ddbd8d270da2ea15",
         "tests/llm/test_rag_resilience.py": "2b5d865794ffd30428e96a2697e0d56e2d522a1dbfb0ac535893f730c3adb27b",
         "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
-        "tests/llm/test_rag_checkpoint_integrity.py": "af78bbc196e6c50888b0661c87e2528e545285d895bb59fb023e958a3b6d5e3e"
+        "tests/llm/test_rag_checkpoint_integrity.py": "0bc4dc24ab9e85cc9e0a95dd26fe9b92e71ef951abaf2d4d218a5e5910e61dd5",
+        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8"
       },
       "tests": [
         "tests.llm.test_rag_resilience.PersistentRAGTests.test_graph_policies_and_capability_schema",
@@ -2489,17 +2493,18 @@
       ],
       "sources": {
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
-        "llm/components/rag/README.md": "74adbf4698b17418d0299cc14b8320fc6c816cc0a0e076a6896e77beeac6ebe2",
+        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
         "llm/components/rag/component.py": "3bde60f7864982ec28830156e7c74b8f50e0957fccc176aab79a137b05b819e7",
-        "llm/components/rag/data.py": "4c9e04c22bf17c921344e1dcb63ee9d1da7f290c3b323436641a5b62cb9395f0",
+        "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
         "llm/components/rag/extraction.py": "e2e279618abcdf987826f22cab601d89c6bb82d8764b30add3ab66e762fb8b5a",
-        "llm/components/rag/jobs.py": "d45b02a1aac229ca45ab4f97f34b740ecd76085769f9cc136ec2db8da409a11d",
+        "llm/components/rag/jobs.py": "9fb9b7da98e72441a4dc4832c67dd27456c290ec59ed8e9e39e453edf011a8c9",
         "llm/providers/requests.py": "edcb54dd541f2452b814b03e26f61e2f0bc205a24af7d6977f660732557b2c0c",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_rag_extraction_repair.py": "1d0b627937592c0387877b268029bf993aa47ede4125cb0b6e7cb2a3c8aaa205",
         "tests/llm/test_rag_resilience.py": "2b5d865794ffd30428e96a2697e0d56e2d522a1dbfb0ac535893f730c3adb27b",
         "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03",
-        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385"
+        "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
+        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8"
       },
       "tests": [
         "tests.llm.test_rag_resilience.PersistentRAGTests.test_graph_policies_and_capability_schema",
@@ -2678,15 +2683,16 @@
       "sources": {
         "docs/llm/checkpoints.md": "7cc6883d128d5d64d7a056b55f7422ca561f06e1fda9debad9e04acb03da1854",
         "docs/llm/retry.md": "ab441bcf40c7e79e4af1fa7dce5399f0029ec6112003a1b47f935ace9fc87013",
-        "llm/components/rag/README.md": "74adbf4698b17418d0299cc14b8320fc6c816cc0a0e076a6896e77beeac6ebe2",
-        "llm/components/rag/data.py": "4c9e04c22bf17c921344e1dcb63ee9d1da7f290c3b323436641a5b62cb9395f0",
-        "llm/components/rag/job_storage.py": "180ad9b1345eefd85cb113a4d26af78f43872a98d16f1c2ca431babb66d1e58b",
-        "llm/components/rag/jobs.py": "d45b02a1aac229ca45ab4f97f34b740ecd76085769f9cc136ec2db8da409a11d",
+        "llm/components/rag/README.md": "f26040babe98bf4b135f975c0f6bb21fa849d1b3d3c0a7326469011e7c08f99e",
+        "llm/components/rag/data.py": "cc19dff1554df3f507152520addc70924e4bfe2ff835de1ebf2d071dd2a9abf1",
+        "llm/components/rag/job_storage.py": "49232e64f71fed8b610aac4e3b5998c843bd989380697f7d1eece4d5edc40477",
+        "llm/components/rag/jobs.py": "9fb9b7da98e72441a4dc4832c67dd27456c290ec59ed8e9e39e453edf011a8c9",
         "llm/providers/observations.py": "3c277cba31d5c2bec0981496e9e4bfd1787f095f0be8251dfa64cd3925e4107c",
         "tests/llm/configuration_fixtures.py": "f519dfd17e98185ec350d4ff0a632dab8d305ee97ea53e40eca27506c2a8c385",
         "tests/llm/dependencies-linux.lock": "6d1268af6b5397895739fe57e6cea5a2dbb6ad0539e97de32f35b124271cfe20",
         "tests/llm/test_rag_components.py": "b6f948095c55d52fe106340d939f20cfc8deb79dc936d1832290b91f9c503e03",
-        "tests/llm/test_rag_retry_presence.py": "9559286391124f0565bd1e9acc9c0bb8fc44e7f8fd534ac90e7f114e29361cda"
+        "tests/llm/test_rag_retry_presence.py": "9559286391124f0565bd1e9acc9c0bb8fc44e7f8fd534ac90e7f114e29361cda",
+        "llm/components/rag/status.py": "8e75f470ee9b25d10cc2010e2c8dce9502e5e98f1e6944c9baa35d3dfffab7b8"
       },
       "tests": [
         "tests.llm.test_rag_retry_presence.RAGRetryPresenceTests.test_invalid_flags_preserve_queued_job_and_all_project_files",
