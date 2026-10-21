@@ -290,13 +290,14 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             pass
         app, session, _ = await self.setup_app(act, [[chunk('done', finish='stop')]])
         project = app.projects.load(session.data.project_id)
-        await project.aconfigure_policies({'retention': {'unit': 'session', 'max_bytes': 1}})
+        from hub.backend.project.history_retention import HistoryRetention, HistoryRetentionPolicy
+        retention = HistoryRetention(project, HistoryRetentionPolicy(unit='session', max_bytes=1))
         await (await session.run.submit('go', engine='loop')).wait()
-        self.assertEqual((await project.aretention()).candidates, [])
+        self.assertEqual((await retention.preview()).candidates, [])
         await session.run.shutdown()
-        plan = await project.aretention()
+        plan = await retention.preview()
         self.assertEqual([r['session_id'] for r in plan.candidates], [session.id])
-        await project.aretention(apply=True, expected_version=plan.version)
+        await retention.apply(plan)
         self.assertEqual(await project.sessions.alist(), [])
 
     async def test_provider_retry_has_separate_usage_records(self):

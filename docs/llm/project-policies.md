@@ -11,7 +11,7 @@ ProjectConfig는 설정의 저장 원본이다. `policies`에는 서비스가 �
 | policies.run | 대기열·실행 기한·capability 확장 한도. RunPolicy/RunManager |
 | policies.approval, tools, tool_retry | 공통 승인, Tool 선택·호출 예산·인자 제약, 조건부 Tool 재시도. 기존 ToolExecutor 계약 |
 | policies.usage | Run/Project의 누적 호출·토큰 사용량. 입력 선택과 독립된 counter |
-| policies.retention | 현재 Backend의 보관·정리 정책 위치. 대상 선정·기간 정책은 Application 이관 대상 |
+| Application HistoryRetentionPolicy | History 대상 선정·기간/용량/토큰·최근 Run 보존. Backend는 retention_plan/prune_history의 적격 증거·명시 대상만 처리 |
 | policies.output | 서비스의 델타 저장 batching |
 | parameters.engines.&lt;이름&gt;.policy.completion | Loop가 해석하는 모델 입력 예산. CompletionPolicy |
 | parameters.engines.&lt;이름&gt;.policy.provider | Loop 스트리밍의 명시적 외부 시도/기한 |
@@ -23,8 +23,8 @@ ProjectConfig는 설정의 저장 원본이다. `policies`에는 서비스가 �
 
 보존 기간·자동 삭제 여부·대상 선정·시점은 Application이 소유하고 Backend는 안전한 삭제
 가능성 판단과 실행을 소유한다. [수명주기 계약](data-lifecycle.md)이 이 경계의 기준이며,
-현재 policies.retention 경로가 Backend 정책의 영구 유지나 새 자동 정리 구현을 허용하지 않는다.
-직접 이관 후 구 경로의 호환 wrapper·자동 migration을 만들지 않는다.
+History의 policies.retention은 제거했고 Application으로 직접 이관했다. 구 경로의 호환 wrapper·
+자동 migration은 없다. RAG Job 유지보수와 로그 정책의 이관은 후속 H4 범위다.
 
 ## 설정 예
 

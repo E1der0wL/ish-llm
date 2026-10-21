@@ -22,7 +22,7 @@ Backend가 소유하는 설정·정의는 해당 소유자의 닫힌 계약으�
 | TurnDeletionPlan | session.delete_turn_plan | source, message_ids, blockers, revision |
 | RecoveryPlan | project.recovery/arecovery(apply=False) | source, issues, repair_sessions, version |
 | RecoveryResult | project.recovery/arecovery(apply=True) | applied, journal, remaining |
-| RetentionPlan | project.retention/aretention | source, policy, candidates, protected, bytes_before/after, tokens_before/after, version, estimated |
+| RetentionPlan | project.retention_plan/aretention_plan | source, unit, candidates, protected, bytes, tokens, version, estimated. 후보는 적격 목록이며 보존 대상 선정은 Application 소유 |
 | OperationProgress | EngineEvent.progress, Step.progress, rag.job_progress/ajob_progress | source, phase, completed, total, unit, message |
 
 각 클래스에 `to_dict()`/`from_dict()`가 있다. JSON 필드 타입과 알 수 없는 최상위 키를
@@ -118,15 +118,19 @@ print(recovery.issues, recovery.repair_sessions)
 result = await project.arecovery(apply=True, expected_version=recovery.version)
 print(result.remaining.issues)
 
-retention = await project.aretention()
+retention = await project.aretention_plan("run")
 print(retention.candidates, retention.protected)
-# 영구 삭제 대상 검토 후에만 호출
-await project.aretention(apply=True, expected_version=retention.version)
+# Application이 검토한 명시 대상만 전달한다.
+selected = [{"session_id": row["session_id"], "run_id": row["run_id"]}
+            for row in retention.candidates]
+await project.aprune_history("run", selected, expected_version=retention.version)
 ```
 
 Resume/Recovery/Retention은 별도 클래스를 유지한다. 공통 `execute()`나 범용 Manager를
 추가하지 않는다. 복구·보관 적용 시 원본 버전을 다시 검사하고, 재개는 Engine/승인/체크포인트
-정합성을 다시 검사한다. 사용자가 계획 객체를 편집해도 실행 대상이나 권한이 바뀌지 않는다.
+정합성을 다시 검사한다. 계획 객체는 권한이 아니며 실행 경로가 최신 원본을 다시 확인한다.
+보존은 Application이 명시 대상 목록을 제출하며 Backend 적격 목록 밖의 자료를 삭제할 수 없다.
+Hub HistoryRetention.apply는 검토한 선택도 재검증하고 편집·정책·원본 변경 시 재선정 없이 거부한다.
 RecoveryPlan.issues의 복구 가능 여부는 `issue.details["repairable"]`에 표시된다.
 Retention 후보·보호 레코드는 Session/Run 단위별 정보가 달라 열린 dict로 유지한다.
 

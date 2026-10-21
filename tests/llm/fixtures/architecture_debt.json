@@ -1740,14 +1740,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "5e22aac32476235cfaa495ef649e57137879eb2b884e41d33368b9b46cb49dda:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention._run_plan",
-      "line": 51,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "36b0f957dfd6153f81d9a6f2caf37288eba0724dc5c46a6a9f74fadf89e6c41c:1",
       "rule": "S3",
       "file": "llm/services/history/retention.py",
@@ -1764,27 +1756,11 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "24d6e6bc5fb327c3c8bfe5defbbbbd234f6ddd75dfe6e055cd491c4aaa66342d:1",
-      "rule": "S2",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention._run_plan",
-      "line": 107,
-      "detail": "truthiness fallback involving configuration"
-    },
-    {
       "id": "c0f40fcc1db3e3bb7156a9af26fefcdcb69737611b9dbe4285d1e6589150caf9:1",
       "rule": "S3",
       "file": "llm/services/history/retention.py",
       "symbol": "HistoryRetention._finish",
       "line": 130,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "3db21b222575e791809b75a5c651e0701bec95c5a99ba4300c626ec8eb394f8e:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention.plan",
-      "line": 152,
       "detail": "inline domain comparison"
     },
     {
@@ -1826,14 +1802,6 @@
       "symbol": "HistoryRetention.apply",
       "line": 231,
       "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "f3d88e79e638be135c8b025f7991ebd0b13218a5f6887533c563359f6b7fa8c1:1",
-      "rule": "S3",
-      "file": "llm/services/history/retention.py",
-      "symbol": "HistoryRetention.apply",
-      "line": 233,
-      "detail": "inline domain comparison"
     },
     {
       "id": "0735734bfec9247e99e0f7cd6417cad192c73f1937ebfcec2d792b80b2ef2e7f:1",

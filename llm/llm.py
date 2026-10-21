@@ -40,7 +40,7 @@ from llm.core.contracts import Diagnostic, OperationProgress, ResourceRef, Proje
 from llm.core.diagnostics import ErrorClassification, classify_diagnostic
 from llm.core.checkpoints import CheckpointError
 from llm.core.views import SessionRuntimeView, RunView
-from llm.core.plans import ResumePlan, JobResumePlan, RecoveryPlan, RetentionPlan, RecoveryResult, TurnDeletionPlan
+from llm.core.plans import ResumePlan, JobResumePlan, RecoveryPlan, RetentionPlan, RetentionUnit, RecoveryResult, TurnDeletionPlan
 from llm.components.processing import CompletionRecovery, CompletionRepair
 from llm.core.results import EngineOutput, EngineDelta, ExecutionResult, CompletionResult, ResumeOutput
 from llm.core.interactions import InteractionRequest, InteractionOption, InteractionResponse, InteractionView
@@ -351,11 +351,12 @@ class LargeLanguageModel:
         snapshot = await project.components.workflows.asnapshot("flow")
         await project.components.workflows.asave("flow", snapshot["data"],
             expected_version=snapshot["version"])
-        plan = await project.aretention()  # 기본 삭제 없음; 적용은 별도 명시
+        plan = await project.aretention_plan("run")  # 기본 삭제 없음; 적용은 별도 명시
         job = await project.components.rag.aenqueue_document(title="설명서", content=markdown)
         await project.components.rag.arun_job(job["id"])
 
-    policies의 tool_retry/usage/retention과 각 Engine·Component의 provider 설정으로 조절한다.
+    policies의 tool_retry/usage와 각 Engine·Component의 provider 설정으로 실행을 조절한다.
+    보존 대상·기간·시점은 Application이 선택하고 project.aprune_history에 명시 대상과 version을 전달한다.
     정상 None Tool 결과는 재사용하고 불확실한 효과는 자동 재실행하지 않는다.
     Graph 안의 Loop는 노드 경계로 재개한다. docs/llm/long-running.md에 사용 조건을 설명한다.
 
@@ -388,7 +389,7 @@ class LargeLanguageModel:
         for issue in plan.blockers:               # Diagnostic
             print(issue.code, issue.message, issue.source)
         recovery = await project.arecovery()      # RecoveryPlan
-        retention = await project.aretention()    # RetentionPlan
+        retention = await project.aretention_plan("run")    # RetentionPlan
         deletion = await session.adelete_turn_plan(request_id)  # TurnDeletionPlan
         # deletion.blockers의 Run을 사용자에게 보여주고 모두 확인받은 뒤:
         await session.run.shutdown()
@@ -718,7 +719,7 @@ class LargeLanguageModel:
         # config_version/component_versions로 UI 편집 충돌을 검사한다.
         usage = await project.amodel_usage()  # Run + 독립 Component 모델 호출
         plan = await project.arecovery()     # 무결성/복구 미리보기; 자동 재실행 없음
-        retention = await project.aretention()  # Session 또는 Run 단위 후보/보호 이유
+        retention = await project.aretention_plan("run")  # Session 또는 Run 단위 후보/보호 이유
         maintenance = await project.amaintenance()  # Component 소유 자료의 정리 후보
         # 복구/보관: expected_version=plan.version / retention.version
         # Component maintenance는 열린 사전 계약: expected_version=maintenance["version"]

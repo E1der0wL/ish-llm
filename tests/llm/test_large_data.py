@@ -459,8 +459,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         pending = await self.request()
         source_id = pending['sources'][0]['id']
         await self.session.run.shutdown()
-        await self.project.aconfigure_policies({'retention': {'unit': 'run', 'max_bytes': 1, 'keep_runs': 0}})
-        plan = await self.project.aretention()
+        plan = await self.project.aretention_plan('run')
         self.assertTrue(any(source_id in row['message_ids'] and 'recent_or_referenced' in row['reasons']
                             for row in plan.protected))
         view = await self.memory.aget_context(self.session.id)
@@ -468,7 +467,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
             await self.memory.adelete_compaction(self.session.id, expected_revision=view['revision'])
         cancelled = await self.memory.acancel_compaction(self.session.id, expected_revision=view['revision'])
         await self.memory.adelete_compaction(self.session.id, expected_revision=cancelled['revision'])
-        self.assertTrue(any(source_id in row['message_ids'] for row in (await self.project.aretention()).candidates))
+        self.assertTrue(any(source_id in row['message_ids'] for row in (await self.project.aretention_plan('run')).candidates))
         await self.session.adelete_turn(source_id)
 
     async def test_logically_deleted_source_invalidates_pending_compaction(self):

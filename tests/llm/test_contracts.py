@@ -100,12 +100,12 @@ class RuntimeContractTests(unittest.IsolatedAsyncioTestCase):
         applied = await session.project.arecovery(apply=True, expected_version=recovery.version)
         self.assertIsInstance(applied, RecoveryResult)
         self.assertEqual(RecoveryResult.from_dict(json.loads(json.dumps(applied.to_dict()))), applied)
-        retention = await session.project.aretention()
+        retention = await session.project.aretention_plan('session')
         self.assertIsInstance(retention, RetentionPlan)
         self.assertEqual(RetentionPlan.from_dict(retention.to_dict()), retention)
-        await session.project.aconfigure_policies({"retention": {"unit": "session", "max_bytes": 1}})
+        await session.asave(title="Changed after review")
         with self.assertRaisesRegex(ValueError, "conflict"):
-            await session.project.aretention(apply=True, expected_version=retention.version)
+            await session.project.aprune_history('session', [{'session_id': session.id}], expected_version=retention.version)
         self.assertEqual(len(await session.project.sessions.alist()), 1)
 
     async def test_failure_diagnostic_and_interrupted_progress_survive_reload(self):

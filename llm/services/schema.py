@@ -51,10 +51,9 @@ def describe_project_config(app, components=None):
         engines[key] = {"allOf": [engines[key], spec]} if key in engines else spec
         engine_catalog[name] = {"configuration_key": key}
     policies = ProjectConfig.describe_policies()
-    for section in ("usage", "retention"):
-        names = sorted(getattr(app.policy_resolver, "token_counters", {}))
-        if names:
-            policies["properties"][section]["properties"]["counter"]["enum"] = names
+    names = sorted(getattr(app.policy_resolver, "token_counters", {}))
+    if names:
+        policies["properties"]["usage"]["properties"]["counter"]["enum"] = names
     # 비활성 컴포넌트의 설정도 보관할 수 있지만 선택 전에는 초기화/실행하지 않는다.
     project_components = {}
     for name in registry.names():

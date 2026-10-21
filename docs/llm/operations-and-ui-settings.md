@@ -15,7 +15,7 @@ settings = await project.adescribe_config()
 schema = settings["schema"]
 form_values = settings["values"]  # schema와 같은 구조
 fields = schema["properties"]["config"]["properties"]
-print(fields["policies"]["properties"]["retention"]["properties"]["max_bytes"])
+print(fields["policies"]["properties"]["usage"]["properties"]["project_max_calls"])
 # {"type": ["integer", "null"], "minimum": 1, ...}
 ```
 
@@ -58,7 +58,7 @@ Agent/Workflow/Skill/MCP의 **개별 레코드** 형식은 컴포넌트 공통 �
 from copy import deepcopy
 
 config = deepcopy(settings["values"]["config"])
-config["policies"]["retention"].update(unit="run", keep_runs=3, max_bytes=500_000_000)
+config["policies"]["usage"].update(project_max_calls=1000)
 await project.asave(config=config, expected_version=settings["config_version"])
 
 memory = deepcopy(settings["components"]["memory"]["configuration"])
@@ -133,29 +133,33 @@ Run/Step/대화 참조, 체크포인트, 저장 출력과 대화 본문, 컴포�
 
 ## 보관 정리
 
-기본은 무제한이며 자동 삭제를 예약하지 않는다. 기간·용량·토큰 상한을 설정한 뒤
-`aretention()`의 후보와 보호 이유를 검토하고 같은 version으로 적용한다.
+기간·용량·토큰 상한·최근 Run 보존 개수와 실행 시점은 Application이 소유한다. Backend의
+`aretention_plan(unit)`은 적격 목록·보호 이유·원본 version만 제공한다. `aprune_history`는
+명시 대상과 version을 받아 동일 소유권 아래 필수 증거·참조·quota를 재검증한다. 기존
+`policies.retention`과 `aretention(apply=...)`는 제거했으며 호환 해석이나 자동 이관은 없다.
+Hub Application의 HistoryRetention은 기본 자동 삭제를 예약하지 않고 아래처럼 명시 사용한다.
 
 ```python
-await project.aconfigure_policies({"retention": {
-    "unit": "run", "keep_runs": 3, "max_bytes": 500_000_000,
-    "max_age_seconds": None, "max_tokens": None,
-}})
-plan = await project.aretention()
-await project.aretention(apply=True, expected_version=plan.version)
+from hub.backend.project.history_retention import HistoryRetention, HistoryRetentionPolicy
+
+retention = HistoryRetention(project, HistoryRetentionPolicy(unit="run", keep_runs=3, max_bytes=500_000_000))
+review = await retention.preview()
+# candidates/protected와 예상 크기를 검토한 뒤 같은 선택을 명시 적용한다.
+await retention.apply(review)
 # 이전 정리 도중 종료되어 새 실행이 막힌 경우: 이미 기록된 삭제 의도만 완료
 await project.arecover_retention()
 ```
 
-Run 단위는 완료 Run과 그 메시지만 제거하며 Session을 유지한다. 최신 Run, 재개 원본,
-미완료 체크포인트의 대화, 활성 사용량, 외부 작업 원장, 컴포넌트의 `history_references()`를
-보호한다. Memory 요약은 원본 접두부 hash 검증이 필요하므로 해당 Session을 보호한다.
+Run 단위는 완료 Run과 그 메시지만 제거하며 Session을 유지한다. 최근 Run 보존 개수는
+Application의 선택이며 Backend는 재개 원본·미완료 체크포인트의 대화·활성 사용량·외부 작업
+원장·컴포넌트의 `history_references()`와 필수 Run/Step/승인/출력 증거를 보호한다. Memory 요약은 원본 접두부 hash 검증이 필요하므로 해당 Session을 보호한다.
 보호 기록 때문에 상한 아래로 정리되지 않을 수 있다. Run 용량은 대화 크기의 추정치를
 포함하며 전체 Project 디스크 사용량의 강제 상한이 아니다. 로그/컴포넌트 산출물은 별도다.
 
-`Session.state/maintenance/retention.json`에 의도를 먼저 기록한다. 대화 교체, 디렉토리 부분
-삭제, 감사 영수증 저장 중 실패해도 저널을 남기며 Session 실행을 차단한다.
-`arecover_retention()`이 승인된 정리를 끝낸 뒤 차단을 해제한다. 진행 중 스트리밍 JSONL은
+`Session.state/maintenance/retention.json`에 의도를 먼저 기록하고 대화·Run 삭제·완료 영수증을
+같은 트랜잭션으로 확정한다. 확정 전 실패/프로세스 종료는 원본으로 rollback하고 확정 후에는
+완전한 새 상태를 유지하며 GC를 마무리한다. 기존 확정 삭제 의도가 남은 경우 새 실행을 차단하고
+`arecover_retention()`으로 해당 기술적 복구만 완료한다. 진행 중 스트리밍 JSONL은
 재작성하지 않는다. 이 정리는 비활성 파일 저장 Session에만 적용한다.
 
 컴포넌트 자료는 소유 컴포넌트가 `maintenance()`로 정리 계획을 제공한다.

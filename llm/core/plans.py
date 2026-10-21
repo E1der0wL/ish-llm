@@ -92,16 +92,19 @@ class RecoveryPlan(JsonValue):
     version: str
 
 
+class RetentionUnit(StrEnum):
+    SESSION = "session"
+    RUN = "run"
+
+
 @dataclass(frozen=True, slots=True)
 class RetentionPlan(JsonValue):
     source: ResourceRef
-    policy: dict
+    unit: RetentionUnit
     candidates: list[dict]
     protected: list[dict]
-    bytes_before: int
-    bytes_after: int
-    tokens_before: int
-    tokens_after: int
+    bytes: int
+    tokens: int
     version: str
     estimated: bool = False
 

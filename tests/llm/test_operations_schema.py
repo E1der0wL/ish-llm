@@ -1,3 +1,4 @@
+from hub.backend.project.history_retention import HistoryRetention, HistoryRetentionPolicy
 from llm.core.schema import implementation_schema
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.configuration_fixtures import rag_project, rag_settings
@@ -193,26 +194,24 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         for unit in ("run", "session"):
             for params in ({}, {"model": "counter/model", "custom": 4}):
                 with self.subTest(unit=unit, params=params):
-                    config = (await project.aget_data()).config
-                    config.policies["retention"] = {"unit": unit, "max_tokens": 1,
-                        "counter": "retention", "counter_params": params}
-                    await project.asave(config=config)
-                    await project.aretention()
+                    retention = HistoryRetention(project, HistoryRetentionPolicy(unit=unit, max_tokens=1,
+                        counter_params=params), counter=app.policy_resolver.token_counters["retention"])
+                    await retention.preview()
                     request = calls[-1]
                     self.assertTrue(request["messages"])
                     self.assertEqual({key: value for key, value in request.items() if key != "messages"}, params)
         with self.assertRaises(ValueError):
-            ProjectConfig(policies={"retention": {"counter_params": {"messages": []}}})
+            HistoryRetentionPolicy(unit="run", counter_params={"messages": []})
 
     async def test_run_retention_keeps_session_latest_turn_and_cached_projection(self):
         app, _ = await self.app(responses=[[chunk(str(i), finish="stop")] for i in range(3)])
         project, session, runs = await self.completed(app, 3)
         store = app.project_manager.sessions.conversations(session.data)
         self.assertEqual(len(store.list()), 6)
-        await project.aconfigure_policies({"retention": {"unit": "run", "keep_runs": 1, "max_bytes": 1}})
-        plan = await project.aretention()
+        retention = HistoryRetention(project, HistoryRetentionPolicy(unit="run", keep_runs=1, max_bytes=1))
+        plan = await retention.preview()
         self.assertEqual({r["run_id"] for r in plan.candidates}, {r.id for r in runs[:2]})
-        await project.aretention(apply=True, expected_version=plan.version)
+        await retention.apply(plan)
         self.assertEqual([r.id for r in await session.run.alist()], [runs[2].id])
         self.assertEqual(len(store.list()), 2)
         self.assertEqual(session.data.id, session.id)
@@ -221,17 +220,17 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
     async def test_interrupted_retention_rolls_back_messages_and_runs(self):
         app, _ = await self.app(responses=[[chunk(str(i), finish="stop")] for i in range(3)])
         project, session, runs = await self.completed(app, 2)
-        await project.aconfigure_policies({"retention": {"unit": "run", "keep_runs": 1, "max_bytes": 1}})
-        plan = await project.aretention()
+        retention = HistoryRetention(project, HistoryRetentionPolicy(unit="run", keep_runs=1, max_bytes=1))
+        plan = await retention.preview()
         with patch.object(app.run_repository, "delete_history", side_effect=OSError("disk interruption")):
             with self.assertRaises(OSError):
-                await project.aretention(apply=True, expected_version=plan.version)
+                await retention.apply(plan)
         self.assertEqual({r.id for r in await session.run.alist()}, {r.id for r in runs})
         self.assertEqual(len(await session.aconversation()), 4)
         self.assertEqual((await project.arecovery()).issues, [])
         self.assertEqual(await project.arecover_retention(), [])
-        plan = await project.aretention()
-        await project.aretention(apply=True, expected_version=plan.version)
+        plan = await retention.preview()
+        await retention.apply(plan)
         self.assertEqual([r.id for r in await session.run.alist()], [runs[1].id])
         run = await (await session.run.submit("new", engine="custom")).wait()
         self.assertEqual(run.data.status, "completed", run.data.error)
@@ -248,11 +247,11 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         app, _ = await self.app(responses=[[chunk(str(i), finish="stop")] for i in range(2)], components=[Referencing()])
         project, session, runs = await self.completed(app, 2, ["refs"])
         await project.components.refs.aconfigure({'config': {'runs': [runs[0].id]}})
-        await project.aconfigure_policies({"retention": {"unit": "run", "keep_runs": 0, "max_bytes": 1}})
-        plan = await project.aretention()
+        retention = HistoryRetention(project, HistoryRetentionPolicy(unit="run", keep_runs=0, max_bytes=1))
+        plan = await retention.preview()
         self.assertEqual([r["run_id"] for r in plan.candidates], [runs[1].id])
         await project.aconfigure_policies({"usage": {"project_max_calls": 10}})
-        self.assertEqual((await project.aretention()).candidates, [])
+        self.assertEqual((await retention.preview()).candidates, [])
 
     async def test_component_maintenance_is_opt_in_and_preserves_failed_jobs(self):
         component = self.rag()
@@ -401,8 +400,8 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         import shutil
         app, _ = await self.app(responses=[[chunk(str(i), finish="stop")] for i in range(2)])
         project, session, runs = await self.completed(app, 2)
-        await project.aconfigure_policies({"retention": {"unit": "run", "keep_runs": 1, "max_bytes": 1}})
-        plan = await project.aretention()
+        retention = HistoryRetention(project, HistoryRetentionPolicy(unit="run", keep_runs=1, max_bytes=1))
+        plan = await retention.preview()
         original = shutil.rmtree
         def interrupted(path, *args, **kwargs):
             if Path(path).name.startswith("gc-"):
@@ -412,7 +411,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
             return original(path, *args, **kwargs)
         with patch("llm.services.infrastructure.storage.shutil.rmtree", interrupted):
             with self.assertWarnsRegex(RuntimeWarning, "cleanup"):
-                await project.aretention(apply=True, expected_version=plan.version)
+                await retention.apply(plan)
         self.assertEqual(await project.arecover_retention(), [])
         self.assertFalse(runs[0].session.paths.runs.joinpath(runs[0].id).exists())
         self.assertEqual([r.id for r in await session.run.alist()], [runs[1].id])

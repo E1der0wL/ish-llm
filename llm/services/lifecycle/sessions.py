@@ -353,8 +353,8 @@ class SessionManager:
         return self.repository.list(project, include_deleted=include_deleted)
 
     @workspace_locked
-    def validate_removal(self, session: Session, *, project_ending=False) -> Session:
-        """Parent deletion requires the same child-owner evidence as ordinary reads."""
+    def validate_history(self, session: Session):
+        """Validate inactive history through its bound child owners before any pruning."""
         current = self.require_inactive(session)
         if self.run_repository is None or self.step_repository is None:
             raise ValueError("Session deletion requires bound Run and Step evidence readers")
@@ -364,6 +364,12 @@ class SessionManager:
         runs = self.run_repository.read_backup(current)
         for run in runs:
             self.step_repository.read_backup(run)
+        return current, messages, runs
+
+    @workspace_locked
+    def validate_removal(self, session: Session, *, project_ending=False) -> Session:
+        """Parent deletion requires the same child-owner evidence as ordinary reads."""
+        current, messages, runs = self.validate_history(session)
         if not project_ending:
             if self.components is None:
                 raise ValueError("Session deletion requires bound Component reference readers")

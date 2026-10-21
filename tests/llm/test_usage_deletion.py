@@ -79,8 +79,7 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
             await project.aconfigure_policies({"usage": {"project_max_calls": None}})
             protected = {}
             for unit in ("session", "run"):
-                await project.aconfigure_policies({"retention": {"unit": unit, "max_bytes": 1, "keep_runs": 0}})
-                plan = await project.aretention()
+                plan = await project.aretention_plan(unit)
                 protected[unit] = any(row["session_id"] == session.id and
                     "active_usage_accounting" in row["reasons"] for row in plan.protected)
             rejected = False

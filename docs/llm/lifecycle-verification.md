@@ -9,6 +9,76 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H4-b History 보존 선택과 삭제 증거 — 로컬 Level 2
+
+기준 `6a0090836e60f17a3ef586d1a588c45238a7b62e` 뒤 History의 기간·용량·토큰·최근 Run 보존
+선택을 Application으로 직접 이관했다. H4 전체/원격 CI 완료는 아니며 RAG Job과 로그 정책은 남았다.
+
+- Backend HistoryRetention은 명시 unit의 적격 목록과 보호 이유만 제공한다. Project의 공개 API는
+  retention_plan/aretention_plan과 prune_history/aprune_history이며 고유한 명시 ID 목록과 현재
+  version이 필수다. RetentionUnit/RetentionPlan은 unit·적격 후보·보호 이유·측정 합계·version을
+  선언한다. 옛 policies.retention과 retention(apply=...)는 제거했으며 호환 해석은 없다.
+- ProjectManager의 같은 workspace 잠금에서 전체 현재 증거·참조·quota를 확인한 후 요청한
+  대상만 삭제한다. raw 파일 hash로 같은 크기/mtime의 원본 변경도 거부한다. 운영 로그는
+  삭제 판단 hash 밖이며 토큰 추정치는 삭제 권한을 만들지 않는다. counter는 명시 주입하고
+  counter_params의 messages override·잘못된 결과를 거부한다. Engine 설정으로 보충하지 않는다.
+- Hub HistoryRetentionPolicy/HistoryRetention이 기존 선택 알고리즘을 소유한다. 자동 실행이나
+  새 저장 형식을 추가하지 않았다. preview 후 apply는 현재 정책·원본·선택이 동일한지 확인하고
+  편집된 후보나 stale 검토를 재선정 없이 거부한다. Backend는 다시 최신 안전성을 검사한다.
+- 조사 중 완료 Run의 손상/소실 Step이 보존 정리로 실제 삭제되는 2개 failure를 재현했다.
+  SessionManager.validate_history로 기존 Conversation/Operation/Run/Step owner 검증을 공유했다.
+  직접/상위 삭제와 History 정리가 같은 필수 증거를 사용하며 참조 검사도 유지한다. 붙어 있는
+  runtime과 실행 중 Run은 보호하고 정상 비활성 기록만 owner의 백업 무결성 Reader로 검증한다.
+- 기존 정리 intent·완료 receipt·트랜잭션 commit/rollback과 기술적 GC를 유지했다. 새 LLM 10개는
+  손상 Step 보존, 명시 일부 삭제, raw CAS, 보호/중복/미확인 대상, counter 경계, 실패 rollback,
+  동시 요청, 취소 drain과 실제 child exit 77의 prune/두 remove/marker/commit 이후를 검증한다.
+  Hub 6개는 무선택 기본, 기간/용량/토큰/최근 Run 선택, 정책·원본·검토 변경과 falsey 검증을 포함한다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `b-integrity-baseline` llm | 2/2 | 0 | 2/0/0 | 0.478초 | 1 |
+| `b-integrity-focused` llm | 87/87 | 87 | 0/0/0 | 39.737초 | 0 |
+| `b-focused-1` llm | 89/89 | 85 | 1/3/0 | 36.402초 | 1 |
+| `b-focused-2` llm | 89/89 | 89 | 0/0/0 | 38.172초 | 0 |
+| `b-focused-2` hub | 5/5 | 5 | 0/0/0 | 1.720초 | 0 |
+| `b-focused-3` llm | 10/10 | 10 | 0/0/0 | 7.657초 | 0 |
+| `b-focused-4` hub | 6/6 | 6 | 0/0/0 | 2.211초 | 0 |
+| `b-level2` llm | 523/523 | 523 | 0/0/0 | 181.478초 | 0 |
+| `b-level2` hub | 48/48 | 48 | 0/0/0 | 81.787초 | 0 |
+
+두 초기 안전성 실패의 실제 관측은 rejected=False/preserved=False/model_calls=1이었다.
+수정 후 거부/원본 보존/호출 1회를 유지했다. `b-focused-1`의 3 error는 Project 스키마 소비자의
+옛 retention counter 경로였고 직접 제거했다. 1 failure는 읽기 중 추가되는 Run 운영 로그를
+원본에 포함한 새 시험 전제였다. 실제 변경이 logs/service.log뿐임을 확인하고 모든 도메인 원본의
+정확한 hash 검사를 유지했다. 초기 fixture와 실패 로그는 별도로 보존하며 기존 안전성 Assertion은
+제거하지 않았다. 모든 실행의 Skip·expected failure·unexpected success·누락·중복·unexpected는 0이다.
+
+Level 2는 38개 LLM 모듈의 History·Schema/설정·Memory/참조·재개 소비자와 승인·권한·예산·
+효과·Checkpoint·상위 삭제·트랜잭션, 9개 Hub 모듈의 실제 정책/설정/재시작 경로를 포함한다.
+History owner와 Project 설정/공개 API의 직접 소비자 범위를 검증했으며 공통 저장 트랜잭션·실행
+승인·예산 알고리즘은 바꾸지 않았다. 이번 소단계에서 전체 LLM/Hub는 실행하지 않았다.
+H4 상위 Level 3에서 현재 통합 소스의 전체 회귀를 통과한 뒤 묶어 Push한다.
+
+정적 감사 `b-static-3`은 new/stale/S1 미해결 0, 기존 debt 527, exit 0이다. 기준에서 제거한
+4개는 실제 사라진 옛 선택 분기의 S2 1개/S3 3개이며 새 면제는 없다. Application age 하한은
+선택 owner가 선언했다. R3 Mutation의 실제 효과 한도 누락 검출은 True, outer exit 0이며
+의도한 inner 실패도 보존한다. 현재 계약/예제 문서 검사는 131/180/954/34, 오류 0, exit 0이다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/h4/b-level2/llm.json --modules tests.llm.test_history_retention_integrity tests.llm.test_operations_schema tests.llm.test_contracts tests.llm.test_usage_deletion tests.llm.test_large_data tests.llm.test_long_running tests.llm.test_lifecycle_deletion_integrity tests.llm.test_data_quarantine tests.llm.test_transactions tests.llm.test_interaction_storage tests.llm.test_operation_integrity tests.llm.test_checkpoint_integrity tests.llm.test_checkpoint_lifecycle tests.llm.test_graph_checkpoints tests.llm.test_lifecycle_integrity tests.llm.test_service_extensions tests.llm.test_execution_boundaries tests.llm.test_conversation_turns tests.llm.test_memory_summary_integrity tests.llm.test_memory_compaction_integrity tests.llm.test_memory_consolidation_integrity tests.llm.test_memory_history_integrity tests.llm.test_memory_conversation tests.llm.test_project_conversation_storage tests.llm.test_project_authority tests.llm.test_project_policies tests.llm.test_policy_consumers tests.llm.test_policy_ownership tests.llm.test_schema_ownership tests.llm.test_settings_contract tests.llm.test_configuration_results tests.llm.test_extension_contracts tests.llm.test_current_contracts tests.llm.test_explicit_configuration tests.llm.test_configuration_workflow_example tests.llm.test_configuration_objects tests.llm.test_backend_contracts tests.llm.test_configuration_validation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/h4/b-level2/hub.json --modules tests.hub.test_history_retention tests.hub.test_project_authority tests.hub.test_settings tests.hub.test_usage_definitions_system tests.hub.test_settings_project_flow tests.hub.test_settings_json tests.hub.test_settings_editor tests.hub.test_settings_restart tests.hub.test_popup_settings_updates
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h4/b-static-3.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h4/b-docs.json
+```
+
+Level 2 전후 687개 Python 소스 hash는
+`45b6da364418a42d575b10abc894b73c9b602faa27f9ba32b91e15b68d1e92a2`, 846개 전체 입력/환경 hash는
+`6221e3b9cfce55e818fdfca245671a4637b376a5a8078dcb9a2a2ee9f6f677df`로 각각 동일했다. Python 3.12.14/136개 의존성,
+실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존 환경은 유지했다. 실행별 명령·exit·
+집계·실패와 원래 fixture는 `/workspace/llm-clean-resume/h4/`에 보존했다. 다른 실행의 성공을
+하나의 전체 실행으로 표현하지 않는다. H4-c의 RAG Job 선정, 로그 정책, H4 전체 게이트가 남았다.
+
 ## H4-a RAG 세대 보존의 Application 선택 — 로컬 Level 2
 
 기준 `a915191212eb4a79eddefffdc9e9187f8d3b5ac3` 뒤 RAG 세대 정리만 이관했다.

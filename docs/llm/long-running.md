@@ -237,14 +237,14 @@ Memory의 자동 요약은 기본적으로 꺼져 있다. 켜면 현재 작업�
 ## 보관·복구·UI 조회
 
 ```python
-await project.aconfigure_policies({"retention": {
-    "max_bytes": 5_000_000_000, "max_tokens": 2_000_000,
-    "unit": "session", "max_age_seconds": None, "counter": "model_default",
-    "counter_params": {"model": retention_model},
-}})
-plan = await project.aretention()
-# candidates/protected와 예상 용량을 검토한 뒤 명시적으로 적용한다.
-await project.aretention(apply=True, expected_version=plan.version)
+from hub.backend.project.history_retention import HistoryRetention, HistoryRetentionPolicy
+
+retention = HistoryRetention(project, HistoryRetentionPolicy(
+    unit="session", max_bytes=5_000_000_000, max_tokens=2_000_000,
+    counter_params={"model": retention_model}), counter=selected_counter)
+review = await retention.preview()
+# Application이 candidates/protected와 예상 용량을 검토한 뒤 명시 적용한다.
+await retention.apply(review)
 
 await session.run.shutdown()
 await run.areconcile_output()
@@ -252,7 +252,8 @@ await backend.projects.arecover_deletions()
 view = await run.aview(after=last_sequence, limit=200)
 ```
 
-기본 자동 삭제는 없다. 정리 한도를 사용할 때는 unit도 명시한다. 위 예제의 session 단위는
+기본 자동 삭제는 없다. 보존 한도와 시점은 Application이 소유하고 unit도 명시한다.
+Backend는 `aretention_plan(unit)`의 적격 대상과 원본 version을 다시 확인한 명시 삭제만 실행한다. 위 예제의 session 단위는
 완료된 비활성 Session 전체를 오래된 것부터
 기간/용량/대화 본문 토큰 조건을 평가한다. 토큰은 API 사용량과 다르다. Tool 작업 원장,
 대기/실행/실패/중단/일시정지 Run, retain 메타데이터, 비파일 대화, 현재 Project 사용량
@@ -262,7 +263,7 @@ Memory/RAG 등 프로젝트 컴포넌트 데이터는 이 API로 지우지 않�
 트랜잭션에 참여한다. 실패하면 rollback/recovery 후 계획과 저장 상태를 다시 확인한다.
 외부 효과까지 원자화하는 보장은 아니다. [저장 경계](storage-transactions.md)를 따른다.
 
-`retention.unit="run"`은 Session을 유지하고 완료 Run/대화만 정리한다. 이때 보관 삭제 저널이
+Application 정책의 `unit="run"`은 Session을 유지하고 완료 Run/대화만 정리한다. 이때 보관 삭제 저널이
 남으면 새 실행을 막고 `project.arecover_retention()`으로 이미 승인된 정리를 완료한다.
 컴포넌트별 자료 정리는 `project.amaintenance()`의 별도 계획을 사용한다.
 

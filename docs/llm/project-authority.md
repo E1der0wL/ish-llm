@@ -12,7 +12,7 @@ Backend는 Hub 프리셋의 이름·선택 규칙을 알지 못한다.
 
 | 범위 | PROJECT: 저장·해석되는 값 | HOST: 주입하는 구현/공유 자원 |
 | --- | --- | --- |
-| 서비스 | policies.context/run/approval/tools/tool_retry/usage/retention/output, conversation_storage | 저장소, Conversation factory, context builder, token counter, policy resolver, logger, events, backups, observability sink |
+| 서비스 | policies.context/run/approval/tools/tool_retry/usage/output, conversation_storage | 저장소, Conversation factory, context builder, token counter, policy resolver, logger, events, backups, observability sink |
 | Tool | allowed_tools, max_calls, timeout_seconds, max_output_chars, argument_constraints, retry 횟수/지연 | ToolRuntime.authorize/runner/operation_key/operation_probe/classify/retry_safe_tools/revision |
 | Loop | config.completion/system_prompt/buffer_size; policy.max_iterations/request_timeout/tool_timeout/max_tool_calls/max_argument_chars/max_output_chars/completion/provider | completion_fn, parameter_key |
 | Graph | workflow 선택; config.buffer_size/cleanup_timeout; policy.max_steps/max_parallelism/timeout_seconds/max_nested_depth | handlers, revision, config_keys, parameter_key |
@@ -21,7 +21,7 @@ Backend는 Hub 프리셋의 이름·선택 규칙을 알지 못한다.
 | 다른 Component | 각 describe_config의 config/policy, 정의 레코드 | OCR/backend/MCP connector/Tool dependency installer 등 선택 구현 |
 | BuiltinTools | Tool 인자로 전달하는 max_file_bytes, timeout_seconds, max_output_bytes 등; 정책 제약으로 고정/축소 가능 | 작업 root, shell, checks, 기능 가용성, 외부 adapters |
 | ProviderCalls | caller의 SDK/outer timeout/retry는 각 Project 구현 설정 | ProviderLimits.max_active/max_waiting/wait_seconds: Backend 전체 공유 슬롯 용량 |
-| 저장/출력 | 결과 의미를 제한하는 retention/output 정책 | OutputBuffer.batch_size/max_delay/max_chars는 flush 기준이며 출력 삭제·절단이 아님; cache/index stride |
+| 저장/출력 | output batching 정책. 보존 기간/대상 선택은 별도 Application HistoryRetentionPolicy 소유 | OutputBuffer.batch_size/max_delay/max_chars는 flush 기준이며 출력 삭제·절단이 아님; cache/index stride |
 | 프로세스 | Tool 시간 제한은 Project scope | interpreter, command/root, worker pool/IPC/memory 용량, OS 격리 구현 |
 
 `backend.describe_host()`은 서비스 자원의 읽기 전용 설명이다. callable/client/인증값을

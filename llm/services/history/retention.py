@@ -1,30 +1,63 @@
-"""프로젝트 보관 정책의 미리보기와 명시적 정리. 재개·외부 효과 기록은 자동 삭제하지 않는다."""
+"""History eligibility and explicit deletion; Application owns retention selection."""
 
 from datetime import datetime, timezone
 import json
 from llm.core.contracts import ResourceRef
-from llm.core.plans import RetentionPlan
-from llm.core.models import now, new_id
-from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, reject_links
+from llm.core.plans import RetentionPlan, RetentionUnit
+from llm.core.models import now, new_id, RunStatus, ProjectConfig
+from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, reject_links, tree_snapshot, child
 from llm.services.runtime.usage import project_usage_policies, protects_project_usage
 
 
 class HistoryRetention:
-    def __init__(self, manager, counter=None):
+    def __init__(self, manager, counter=None, *, counter_params=None):
         self.manager, self.counter = manager, counter
+        self.counter_params = {} if counter_params is None else counter_params
+        if not isinstance(self.counter_params, dict) or "messages" in self.counter_params:
+            raise ValueError("Retention counter parameters cannot override messages")
+        ProjectConfig.validate_json(self.counter_params)
+        if counter is not None and not callable(counter):
+            raise ValueError("Retention requires an explicitly selected callable counter")
+        if self.counter_params and counter is None:
+            raise ValueError("Retention counter parameters require a selected counter")
+
+    @staticmethod
+    def _stamps(root):
+        excluded = {str(path.relative_to(root)) for path in root.rglob("*")
+                    if "logs" in path.relative_to(root).parts}
+        return tree_snapshot(root, exclude=excluded)
+
+    @staticmethod
+    def _result(project, unit, candidates, protected, sources, size, tokens):
+        # Token estimates select Application targets, never grant deletion authority.
+        proof = {"unit": unit, "sources": sources, "candidates": [], "protected": []}
+        for destination, rows in ((proof["candidates"], candidates), (proof["protected"], protected)):
+            for row in rows:
+                evidence = dict(row)
+                evidence.pop("tokens")
+                destination.append(evidence)
+        return RetentionPlan(ResourceRef("project", project.id, project_id=project.id),
+            unit, candidates, protected, size, tokens, revision_token(proof), unit == RetentionUnit.RUN)
 
     def _references(self, project):
         return self.manager.components.history_references(project)
 
+    def _history(self, session):
+        runs = self.manager.sessions.run_repository.list(session)
+        messages = self.manager.sessions.conversations(session).list()
+        if (not self.manager.ownership.session_attached((session.project_id, session.id))
+                and not any(run.status in (RunStatus.PENDING, RunStatus.RUNNING) for run in runs)):
+            _, messages, runs = self.manager.sessions.validate_history(session)
+        return runs, messages
+
     def _run_plan(self, project):
-        policy, refs = project.config.policies.get("retention", {}), self._references(project)
+        refs = self._references(project)
         usage_policies = project_usage_policies(project, self.manager.sessions)
-        rows, protected, sources = [], [], []
+        rows, protected, sources = [], [], [record(project)]
         clock = datetime.now(timezone.utc)
         total_bytes = total_tokens = 0
         for session in self.manager.sessions.list(project, include_deleted=True):
-            runs = self.manager.sessions.run_repository.list(session)
-            messages = self.manager.sessions.conversations(session).list()
+            runs, messages = self._history(session)
             sources.extend([record(session), *[record(m) for m in messages]])
             reasons = []
             if self.manager.ownership.session_attached((project.id, session.id)) or session.current_run_id:
@@ -42,9 +75,6 @@ class HistoryRetention:
                 reasons.append("external_operation_history")
             keep = set(refs["run_ids"])
             protected_messages = set(refs["message_ids"])
-            completed = sorted((r for r in runs if r.status == "completed"),
-                               key=lambda r: (r.ended_at or r.created_at, r.id), reverse=True)
-            keep.update(r.id for r in completed[:policy.get("keep_runs", 0)])
             for run in runs:
                 sources.append(record(run))
                 source = run.metadata.get("resume", {}).get("run_id")
@@ -60,27 +90,19 @@ class HistoryRetention:
                             protected_messages.update(mid for _, value in instruction_records(checkpoint) for mid in value["message_ids"])
             keep.update(m.run_id for m in messages if m.id in protected_messages and m.run_id)
             for run in runs:
-                stamps = {}
-                for path in run.paths.root.rglob("*"):
-                    if path.is_symlink():
-                        raise ValueError("Retention cannot inspect linked files")
-                    relative = path.relative_to(run.paths.root)
-                    if path.is_file() and "logs" not in relative.parts:
-                        stat = path.stat()
-                        stamps[str(relative)] = [stat.st_ino, stat.st_size, stat.st_mtime_ns]
+                stamps = self._stamps(run.paths.root)
                 owned = [m for m in messages if m.run_id == run.id or m.id in (run.input_message_id, run.assistant_message_id)]
-                size = sum(s[1] for s in stamps.values()) + sum(len(json.dumps(record(m), ensure_ascii=False).encode("utf-8")) for m in owned)
+                size = sum(s["bytes"] for s in stamps.values()) + sum(len(json.dumps(record(m), ensure_ascii=False).encode("utf-8")) for m in owned)
                 tokens = 0
-                if policy.get("max_tokens") is not None:
-                    if self.counter is None:
-                        raise ValueError("Retention requires a registered token counter")
-                    tokens = self.counter({**policy.get("counter_params", {}),
+                if self.counter is not None:
+                    tokens = self.counter({**self.counter_params,
                         "messages": [{"role": m.role.value, "content": m.content} for m in owned]})
                     if type(tokens) is not int or tokens < 0:
                         raise ValueError("Retention counter requires nonnegative integer tokens")
                 total_bytes += size
                 total_tokens += tokens
-                row = {"session_id": session.id, "run_id": run.id, "message_ids": [m.id for m in owned],
+                row = {"session_id": session.id, "run_id": run.id, "status": run.status,
+                       "message_ids": [m.id for m in owned],
                        "message_revisions": {m.id: revision_token(record(m)) for m in owned},
                        "bytes": size, "tokens": tokens, "last_activity": run.ended_at or run.created_at,
                        "revision": revision_token(stamps), "record_revision": revision_token(record(run))}
@@ -92,17 +114,7 @@ class HistoryRetention:
                 if protects_project_usage(run.metadata.get("completions", []), usage_policies, at=clock):
                     blocked.append("active_usage_accounting")
                 (protected if blocked else rows).append({**row, **({"reasons": blocked} if blocked else {})})
-        left_bytes, left_tokens, selected = total_bytes, total_tokens, []
-        for row in sorted(rows, key=lambda r: (r["last_activity"], r["session_id"], r["run_id"])):
-            expired = policy.get("max_age_seconds") is not None and (clock - datetime.fromisoformat(row["last_activity"])).total_seconds() > policy.get("max_age_seconds")
-            if expired or policy.get("max_bytes") is not None and left_bytes > policy.get("max_bytes") or policy.get("max_tokens") is not None and left_tokens > policy.get("max_tokens"):
-                selected.append(row)
-                left_bytes -= row["bytes"]
-                left_tokens -= row["tokens"]
-        result = {"policy": policy, "candidates": selected, "protected": protected, "estimated": True,
-                  "bytes_before": total_bytes, "bytes_after": left_bytes, "tokens_before": total_tokens, "tokens_after": left_tokens}
-        return RetentionPlan(ResourceRef("project", project.id, project_id=project.id),
-                             **result, version=revision_token({**result, "sources": sources}))
+        return self._result(project, RetentionUnit.RUN, rows, protected, sources, total_bytes, total_tokens)
 
     def _finish(self, session, path):
         intent = read_json(reject_links(path))
@@ -136,37 +148,23 @@ class HistoryRetention:
         unlink_file(path)
         return intent["id"]
 
-    def plan(self, project) -> RetentionPlan:
-        policy = project.config.policies.get("retention", {})
-        if any(policy.get(k) is not None for k in ("max_age_seconds", "max_bytes", "max_tokens")) and "unit" not in policy:
-            raise ValueError("Retention requires an explicit unit")
-        if policy.get("unit") == "run":
+    def plan(self, project, *, unit) -> RetentionPlan:
+        unit = RetentionUnit(unit)
+        if unit == RetentionUnit.RUN:
             return self._run_plan(project)
-        policy = project.config.policies.get("retention", {})
         refs = self._references(project)
         usage_policies = project_usage_policies(project, self.manager.sessions)
-        items, protected = [], []
+        items, protected, sources = [], [], [record(project)]
         total_bytes = total_tokens = 0
         now = datetime.now(timezone.utc)
         for session in self.manager.sessions.list(project, include_deleted=True):
-            runs = self.manager.sessions.run_repository.list(session)
-            paths = list(session.paths.root.rglob("*"))
-            if any(p.is_symlink() for p in paths):
-                raise ValueError("Retention cannot inspect linked files")
-            # 조회 자체가 운영 로그를 쓰므로 정책 대상은 도메인 기록/산출물이다. 로그 회전은 logger 책임이다.
-            stamps = {}
-            for path in paths:
-                relative = path.relative_to(session.paths.root)
-                if path.is_file() and "logs" not in relative.parts:
-                    stat = path.stat()
-                    stamps[str(relative)] = [stat.st_ino, stat.st_size, stat.st_mtime_ns]
-            size = sum(stamp[1] for stamp in stamps.values())
-            messages = self.manager.sessions.conversations(session).list()
+            runs, messages = self._history(session)
+            sources.extend([record(session), *[record(run) for run in runs], *[record(m) for m in messages]])
+            stamps = self._stamps(session.paths.root)
+            size = sum(stamp["bytes"] for stamp in stamps.values())
             tokens = 0
-            if policy.get("max_tokens") is not None:
-                if self.counter is None:
-                    raise ValueError("Retention requires a registered token counter")
-                tokens = self.counter({**policy.get("counter_params", {}),
+            if self.counter is not None:
+                tokens = self.counter({**self.counter_params,
                     "messages": [{"role": m.role.value, "content": m.content} for m in messages]})
                 if type(tokens) is not int or tokens < 0:
                     raise ValueError("Retention counter requires nonnegative integer tokens")
@@ -200,28 +198,37 @@ class HistoryRetention:
                 protected.append({**row, "reasons": reasons})
             else:
                 items.append(row)
-        remaining_bytes, remaining_tokens, selected = total_bytes, total_tokens, []
-        for row in sorted(items, key=lambda r: (r["last_activity"], r["session_id"])):
-            expired = policy.get("max_age_seconds") is not None and (now - datetime.fromisoformat(row["last_activity"])).total_seconds() > policy.get("max_age_seconds")
-            oversize = policy.get("max_bytes") is not None and remaining_bytes > policy.get("max_bytes")
-            overtokens = policy.get("max_tokens") is not None and remaining_tokens > policy.get("max_tokens")
-            if expired or oversize or overtokens:
-                selected.append(row)
-                remaining_bytes -= row["bytes"]
-                remaining_tokens -= row["tokens"]
-        result = {"policy": policy, "candidates": selected, "protected": protected,
-                  "bytes_before": total_bytes, "bytes_after": remaining_bytes,
-                  "tokens_before": total_tokens, "tokens_after": remaining_tokens}
-        return RetentionPlan(ResourceRef("project", project.id, project_id=project.id),
-                             **result, version=revision_token(result))
+        return self._result(project, RetentionUnit.SESSION, items, protected, sources, total_bytes, total_tokens)
 
-    def apply(self, project, expected_version):
-        plan = self.plan(project)
+    def apply(self, project, *, unit, targets, expected_version):
+        unit = RetentionUnit(unit)
+        if not isinstance(targets, (list, tuple)):
+            raise ValueError("History pruning requires explicit targets")
+        fields = {"session_id", "run_id"} if unit == RetentionUnit.RUN else {"session_id"}
+        keys = []
+        for target in targets:
+            if not isinstance(target, dict) or target.keys() != fields:
+                raise ValueError("History target fields do not match the explicit unit")
+            if any(not isinstance(target[name], str) for name in fields):
+                raise ValueError("History targets require owned identifiers")
+            session_path = child(project.paths.sessions, target["session_id"])
+            if unit == RetentionUnit.RUN:
+                child(session_path / "runs", target["run_id"])
+            keys.append(tuple(target[name] for name in sorted(fields)))
+        if len(keys) != len(set(keys)):
+            raise ValueError("History targets must be unique")
+        if not isinstance(expected_version, str) or not expected_version:
+            raise ValueError("History pruning requires a reviewed plan version")
+        plan = self.plan(project, unit=unit)
         if not expected_version or expected_version != plan.version:
             raise ValueError("retention_conflict: review a fresh retention plan")
-        if plan.policy.get("unit") == "run":
+        eligible = {tuple(row[name] for name in sorted(fields)): row for row in plan.candidates}
+        if any(key not in eligible for key in keys):
+            raise ValueError("History pruning cannot delete protected or unknown records")
+        selected = [eligible[key] for key in keys]
+        if unit == RetentionUnit.RUN:
             grouped = {}
-            for row in plan.candidates:
+            for row in selected:
                 grouped.setdefault(row["session_id"], []).append(row)
             for identifier, rows in grouped.items():
                 session = self.manager.sessions.load(project, identifier)
@@ -230,11 +237,11 @@ class HistoryRetention:
                 atomic_json(path, {"id": new_id(), "kind": "run_retention", "session_id": session.id,
                                    "created_at": now(), "runs": rows})
                 self._finish(session, path)
-            return plan
-        for row in plan.candidates:
+            return selected
+        for row in selected:
             session = self.manager.sessions.load(project, row["session_id"])
             self.manager.sessions.delete(session, permanent=True)
-        return plan
+        return selected
 
     def recover(self, project):
         """이미 승인·기록된 삭제 의도만 완료한다. 새 보관 후보는 선택하지 않는다."""

@@ -248,12 +248,17 @@ class ProjectManager:
         return HistoryRetention(self).recover(self.access.require(project))
 
     @workspace_locked
-    def retention(self, project, *, counter=None, expected_version=None, apply=False):
-        """종료된 Session 단위로 보관 정책을 평가한다. 적용하려면 미리보기 version을 제출한다."""
+    def retention_plan(self, project, unit, *, counter=None, counter_params=None):
+        """Inspect eligible history; retention selection belongs to Application."""
         from llm.services.history.retention import HistoryRetention
         current = self.access.require(project)
-        service = HistoryRetention(self, counter)
-        return service.apply(current, expected_version) if apply else service.plan(current)
+        return HistoryRetention(self, counter, counter_params=counter_params).plan(current, unit=unit)
+
+    @workspace_locked
+    def prune_history(self, project, unit, targets, *, expected_version):
+        from llm.services.history.retention import HistoryRetention
+        current = self.access.require(project)
+        return HistoryRetention(self).apply(current, unit=unit, targets=targets, expected_version=expected_version)
 
     @workspace_locked
     def create(self, title: str, *, config: Optional[ProjectConfig] = None,

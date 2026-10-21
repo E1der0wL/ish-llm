@@ -159,15 +159,20 @@ class ProjectHandle(AsyncFacade):
 
     amodel_usage = async_method(model_usage)
 
-    def retention(self, *, apply=False, expected_version=None) -> RetentionPlan:
-        """보관 정책에 따른 정리 미리보기. apply=True는 검토한 Session 기록을 영구 삭제한다."""
+    def retention_plan(self, unit, *, counter=None, counter_params=None) -> RetentionPlan:
+        """Inspect eligible history without selecting or deleting any record."""
         self.app._check_open()
-        name = self.data.config.policies.get("retention", {}).get("counter")
-        counter = getattr(self.app.policy_resolver, "token_counters", {}).get(name)
-        return self.app.project_manager.retention(self._snapshot, counter=counter,
-                                                  apply=apply, expected_version=expected_version)
+        return self.app.project_manager.retention_plan(self._snapshot, unit, counter=counter,
+                                                        counter_params=counter_params)
 
-    aretention = async_method(retention)
+    aretention_plan = async_method(retention_plan)
+
+    def prune_history(self, unit, targets, *, expected_version):
+        """Delete only explicit eligible targets after revalidating the reviewed evidence."""
+        self.app._check_open()
+        return self.app.project_manager.prune_history(self._snapshot, unit, targets, expected_version=expected_version)
+
+    aprune_history = async_method(prune_history)
 
     def recover_retention(self):
         self.app._check_open()

@@ -49,7 +49,7 @@ foo/system_promt/instructions/permissions/resources2/future_option/ui도 거부�
 | document_kwargs/query_kwargs | 선택 Embedding client의 요청 계약. RAG는 객체를 그대로 전달 |
 | custom Workflow action fields | type으로 선택한 handler. describe_config 또는 validate(node, context)에서 검증 |
 | host browser action / external RAG options | 명시적 host adapter. 자체 인터페이스에서 검증/소비 |
-| retention.counter_params | 선택된 host token counter. 서비스가 소유한 messages override는 금지 |
+| Application HistoryRetentionPolicy.counter_params / retention_plan의 명시 측정 인자 | 선택된 host token counter. 서비스가 소유한 messages override는 금지; Backend 정책이나 Engine 설정에서 추론하지 않음 |
 | Refinement.patch / before | EDITABLE allow-list와 선택 target validator / 실제 target snapshot. lifecycle authority로 쓰지 않음 |
 | evaluation.results/regressions/improvements | 외부 evaluator의 결과 payload. envelope와 evidence 참조는 Backend 검증 |
 | input/output/resume JSON Schema | Workflow/Agent contract author. JSON Schema 검증 및 local reference만 허용 |
