@@ -11,7 +11,66 @@ P1-b와 P1-c의 첫 두 계약군은 검증·Push를 완료했다. P1-c에서 �
 실제 Tool 효과를 재현하여 기능 단계 진행을 중단한 뒤 H1 승인·RAG 포인터·삭제/예산을 보강했다.
 이 문서에는 원래 실패와 감사를 보존하며, 이후 결과는 [수명주기 검증](lifecycle-verification.md)을
 따른다. 세 번째 Provider 계약군은 별도 커밋으로 보존한다. A–F는 미착수이며 P1 전체 완료를 뜻하지 않는다.
-main·이전 backend 브랜치·Draft PR #1을 변경하거나 이전 구현을 가져오지 않는다.
+main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 완료 후 P1와 A–F에서는
+이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
+전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
+
+## P1-c9: Hub 표시·생성 선언 분류와 c7–c9 묶음 Level 3
+
+제품 코드·AST 검출 규칙·실행 정책은 변경하지 않았다. 개별 후보 33건을 실제 소유자와
+호출 경로에 따라 분류했다. 번역 MESSAGES의 24건은 설정 탭/설명·X11/실행 오류 안내·
+Component 명령 설명·관찰된 재시도 대상/횟수의 표시 문자열이다. Language와 실제 UI 소비자를
+통하며 제한값·오류 분류·재시도 권한을 생성하지 않는다. 생성 defaults의 9건은 provider_defaults,
+rag_defaults, create_project가 한 곳에서 소유하는 초기값이다. 명시값을 우선하여 새 Project에
+저장하고 기존 Project 선택은 생성 전에 반환한다. 이들은 현재 Hub 생성 계약에 명시된 선언이며,
+Backend의 Schema·승인·예산·효과 규칙을 대신하지 않는다.
+
+각 발생의 정확한 ID·개별 사유·계약·전체 후보 파일·필요한 소비자/검증기·시험/의존성 hash를
+고정했다. 파일 전체 면제나 자동 baseline 갱신은 없고 원본 후보 460건은 보고서에 남는다.
+reviewed 46·미해결 414, new/stale/review 오류/S1·S5 미해결 0, exit 0이다.
+미해결에는 S2 36·S3 351·S4 9·A에서 처리할 S6 18이 남아 있다. P1 최종 S1–S5 통과가 아니다.
+
+기존 c1의 생성 감사와 현재 계약을 재사용했다. 새 중복 시험 대신 현재 검사기의 엄격한 성공/
+실패 사례와 Hub 생성·설정·재열기·사용자 값 보존·backend 한도 거부·RAG 실제 검색·재시도 표시/
+권한·X11 실제 소비자 10개 모듈을 실행했다. 이후 c7·c8과 **같은 현재 통합 소스**에서 전체
+LLM/Hub를 각각 한 번 실행했으므로 별도 c9 Level 2를 반복하지 않았다. c7/c8의 과거 집중 결과를
+이번 전체 실행의 성공으로 합산하지 않는다.
+
+| 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| `c9-focused` llm | 23/23 | 23 | 0/0/0 | 4.012초 | 0 |
+| `c9-focused` hub | 72/72 | 72 | 0/0/0 | 108.398초 | 0 |
+| `c7-c9-level3` llm | 2086/2086 | 2086 | 0/0/0 | 731.456초 | 0 |
+| `c7-c9-level3` hub | 559/559 | 559 | 0/0/0 | 713.366초 | 0 |
+
+모든 실행의 expected failure·unexpected success·누락·중복·unexpected도 0이다.
+전체 게이트는 승인·누적 예산·실제 Tool 효과·중단/Resume·Checkpoint·RAG identity/원본·삭제·
+트랜잭션 장애 주입과 실제 host/X11/bwrap 필수 시험을 포함한다. R3 실제 효과 Mutation 검출
+True/outer exit 0, 실제 환경 검사 LLM·Hub 각각 exit 0, 문서 검사 132/182/959/34·오류 0/exit 0.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c9-focused/llm.json --modules tests.llm.test_architecture_checks tests.llm.test_architecture_reviews
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c9-focused/hub.json --modules tests.hub.test_creation_contracts tests.hub.test_defaults tests.hub.test_rag_defaults tests.hub.test_general_options tests.hub.test_settings tests.hub.test_response_reliability tests.hub.test_error_contract tests.hub.test_retry_ui tests.hub.test_component_managers tests.hub.test_x11_clipboard
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c7-c9-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c7-c9-level3/hub.json
+.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S5 --output /workspace/llm-clean-resume/p1/c9-static.json
+.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12
+.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12
+.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c9-docs-before.json
+```
+
+전체 실행 전후 696개 Python 소스 hash `15d3340325b0c57b61aa372de7133c9ea352689769b51cf64d7b8e336b5df1f0`,
+858개 입력/환경 hash `320572f5156f2a2c48e02b1fd072834cbbc0592a673b1561d16ac1d8dd7c7fe6`가 각각 동일했다.
+Python 3.12.14·136개 의존성·깨끗한 실제 host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와
+`TERM=xterm-256color`, `LITELLM_LOCAL_MODEL_COST_MAP=True`, `LITELLM_MODE=PRODUCTION`,
+`HUB_TEST_XVFB=/workspace/.setup/x11/usr/bin/Xvfb`, `HUB_TEST_XCLIP=/workspace/.setup/x11/usr/bin/xclip`
+환경을 사용했다. 명령·exit·discovery JSON·원본 로그·동일성 증거는
+`/workspace/llm-clean-resume/p1/c9-focused/`와 `c7-c9-level3/`에 보존했다.
+
+P1 나머지 owner·현재 Schema/Naming과 A–F는 미완료다. 이 묶음 전체 통과 뒤 문서를 먼저
+갱신하고 c7–c9를 작업 브랜치에 Push한다. 기존 원격 CI 조회의 403 차단이 해소되지 않았으므로
+원격 CI 통과를 선언하지 않는다. 이후 Push의 정확한 SHA도 기존 전체 필수 CI 대상이다.
 
 ## P1-c8: Workflow 현재 형식 선언 — 로컬 Level 2
 
