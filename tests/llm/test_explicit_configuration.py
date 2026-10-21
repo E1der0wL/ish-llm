@@ -336,7 +336,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         from types import SimpleNamespace
         client = EmbeddingModel(model="test").with_provider({"max_attempts": 3, "wall_timeout": 20})
         component = RAGComponent(embedding=client)
-        project = SimpleNamespace(id="one", paths=SimpleNamespace(root=Path("unused")), config=rag_project())
+        project = SimpleNamespace(id="one", paths=SimpleNamespace(root=Path("unused")), config=rag_project(),
+                                  initialized_components=())
         self.assertEqual(component.with_config(project).embedding.provider_options, {"max_attempts": 3, "wall_timeout": 20})
         project.config.parameters.setdefault("components", {})["rag"]['policy']['provider'] = {"wall_timeout": None}
         view = component.resolve_config(project)["model_providers"]["embedding"]

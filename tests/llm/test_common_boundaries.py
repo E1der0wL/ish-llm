@@ -169,11 +169,12 @@ class ModelObservationTests(unittest.IsolatedAsyncioTestCase):
                     entries[index] = deepcopy(entry)
             component = SimpleNamespace(name="custom", root=lambda p: Path(root),
                 model_usage=lambda p: list(entries), save_model_usage=save_usage)
-            project = SimpleNamespace(config=ProjectConfig(policies={"usage": {
+            project = SimpleNamespace(id="custom_project", config=ProjectConfig(policies={"usage": {
                 "project_max_tokens": 10, "counter": "custom"}}))
 
             class Data:
-                registry = SimpleNamespace(names=lambda: ("custom",), get=lambda n: component)
+                registry = SimpleNamespace(names=lambda: ("custom",), get=lambda n: component,
+                                           stored=lambda project: ("custom",))
                 def _current(self):
                     return project, component
                 async def _async_call(self, operation, *args):

@@ -5,6 +5,87 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-e Component 저장소 이력·사용량 영수증
+
+H2-d 커밋 `0085b7c47d7498e35b62a6b6f94f69c218c08917`에서 이어서 작업했다.
+사용량 파일 소실 후 같은 한도에서 추가 호출, 완료 종료 시각 누락 수락, 선택/비활성
+Memory 루트 소실 후 새 identity 발급의 4개 실패를 저장소 회귀에 편입했다.
+구현 전 4 failure, error·Skip 0, 0.271초, exit 1이었다.
+
+### 구현 경계
+
+- Project의 필수 initialized_components는 현재 선택과 별도로 기존 저장소 이력을 보존한다.
+  선택한 이름은 이 이력에 포함되어야 하며 일반 설정 저장으로 이력을 바꾸지 못한다.
+  Registry는 새 owner 초기화와 이력·선택을 같은 transaction으로 확정한다. 비활성화는
+  이력을 남기고 안전성 검사를 통과한 명시적 영구 삭제만 이를 제거한다.
+- 로컬 Component owner는 선언된 루트 소실을 생성으로 해석하지 않는다. Memory/RAG identity
+  생성도 이 경계를 따른다. 선언되지 않은 기존 디렉터리를 임의로 채택하지 않고 보존·거부한다.
+  Registry는 외부 owner의 내부 형식을 읽거나 로컬 디렉터리 유무로 사용량 조회를 생략하지 않는다.
+- Component 사용량은 생성 때 확정한 usage/manifest.json과 개별 영수증이 원본이다. manifest의
+  owner·버전·전체 파일 집합·리비전을 검증하며 파일/manifest/usage 디렉터리 소실을 빈 사용량으로
+  읽거나 재초기화하지 않는다. 자료가 한 번도 생성되지 않은 상태만 명시적으로 빈 결과다.
+- ModelUsageRecord가 현재 16개 필드·상태·manifest 형식을 소유한다. Project 소유권은 필수이고
+  Session/Run은 함께 명시하거나 함께 None이다. 시작/종료 시각, 토큰, 실패 진단과 상태를 검증한다.
+  새 영수증은 started 예약이며 현재 예약의 식별자·소유권·시각·예약량을 보존한 terminal 갱신만 허용한다.
+- 예약/완료의 영수증·manifest는 각각 기존 workspace transaction으로 확정한다. 외부 모델 효과와
+  로컬 저장의 분산 원자성을 주장하지 않는다. 불확실한 started는 재시작 뒤에도 quota를 차지한다.
+  비활성·미등록 owner를 집계에서 누락하지 않으며 백업도 보존된 비활성 owner의 scope/validator를 쓴다.
+  quota 합산을 생략하는 무제한 호출에서도 저장 owner의 기존 영수증 무결성 검사는 유지한다.
+
+### 집중 검증과 수정
+
+첫 57개에서 기존 디렉터리 자동 채택 기대값 1 error와 RuntimeTools 초기화 자료 1 failure를
+확인했다(4.301초). 미선언 원본은 보존·거부하고 정상 초기화 후 재선택의 사용자 파일 보존은
+별도로 유지한다. 수정 후 관련 137 pass(24.676초)였다.
+추가 114개에서는 Tool 루트가 비어 있다는 옛 기대값 4 failure와 새 Project 필드가 없는
+RAG 자료의 13 error를 확인했다(35.285초). 현재 생성 계약으로 자료를 수정한 뒤
+107 pass(34.519초), 마지막 무결성 15 pass(1.820초)였다. 성공 묶음의 failure·error·Skip은 0이다.
+
+첫 전체 LLM에서는 외부 owner 시험의 Project 자료에 새 이력 필드가 없는 1 error와 과거 naming
+필드 snapshot의 1 failure를 확인했다. 외부 owner는 보존된 이력을 명시하면서 실제 로컬 폴더
+없이도 조회됨을 유지했고 naming fixture 원본은 보존한 채 새 관리 필드 하나만 명시적으로 비교에
+포함했다. 나머지 필드·설정·Workflow 비교는 유지한다. 수정 후 37 pass(5.924초),
+failure·error·Skip 0을 확인하고 전체 LLM을 다시 실행했다.
+
+실제 자식 프로세스 exit 77은 예약 기록 저장 중, 예약 확정 후 효과 직전, 완료 기록 저장 후,
+완료 manifest 저장 후의 네 경계를 검증한다. 미확정 예약은 효과 없이 rollback하며 이미 확정된
+예약은 started로 유지한다. 실제 파일 효과와 추가 호출 거부를 확인하며 자동 재생하지 않는다.
+완료 manifest 저장 실패도 같은 예약·quota를 보존한다. 의미 필드 검증은 manifest 검증과 별도다.
+
+H2-d에서 빠진 성능 예제의 합성 출력 작성도 발견해 현재 OutputJournal 생성/추가 API로 옮겼다.
+소규모 CLI 실행은 32 deltas·2 Sessions·2 Graph nodes·1 repeat에서 2 Run 완료와 재열기를
+확인했다(exit 0). 이는 기능 smoke이며 대용량 성능 개선이나 실제 인증 모델 검증이 아니다.
+
+### 전체 회귀 — 2026-10-21
+
+| 검사 | 실제 결과 |
+|---|---|
+| 최초 전체 LLM | 1,795개 중 1,793 pass, failure 1, error 1, Skip 0, 546.443초, exit 1 |
+| 전체 LLM | 1,795 pass, failure·error·Skip 0, 533.289초, exit 0 |
+| 전체 Hub | 540 pass, failure·error·Skip 0, 685.027초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 미정리 후보 553개, exit 0 |
+| R3 mutation | 한도 전달 누락 시 두 번째 실제 파일 효과 검출, 검사 도구 exit 0 |
+| 문서 검사 | 130개 문서, Python fence 178개, 상대 링크 932개, anchor 34개, error 0 |
+
+발견/시작 ID의 누락·중복·예상 밖 ID는 0이다. 새 S4 후보는 버전/manifest 검증을 선언 owner로
+모아 해소했고 감사 검사를 약화하지 않았다. 상태 선언으로 해결한 기존 후보 4개만 제거했다.
+나머지 553개는 승인된 예외가 아니다. 실행 환경과 명령은 H2-a/b와 같다.
+최초 전체 실행 전후 Python 657개 manifest는
+`48a499a7cf1b7d48113a7fa23a7ce7e1ba045ac902028b985202a0a3aa9cc363`로 같다.
+Hub 통과 이후 변경은 test_execution_boundaries.py와 test_naming_contract.py 두 자료뿐이며,
+제품·Hub 소스와 Hub가 소비하는 자료는 같다. 전체 Hub는 반복하지 않았고 차이를
+source-change.json에 기록했다. 최종 LLM 실행 전후 Python 657개 manifest는
+`b1b99d9d72d7fabde9c020c01891341c4c5009f5e9de75dd4c059bcf6b598b5b`로 같다.
+로그·JSON·소스 manifest는 `/workspace/llm-clean-resume/h2-e/final/`에 보존한다.
+전체 통과 뒤 문서를 먼저 갱신하고 문서 검사 후 커밋·Push한다.
+
+### H2 잔여 항목
+
+별도 component-record-loss-probe.py는 2 failure, error·Skip 0, 0.143초, exit 1이다.
+일반 Component 개별 기록 소실을 빈 목록으로 읽고, 사라진 Memory 기록을 같은 ID의 새
+generation으로 다시 만드는 경로다. H2-e 성공에 합산하지 않는다. 개별 자료의 존재·필드·
+상태 계약과 H3–H5·P1 잔여 작업·A–F는 아직 완료하지 않았다.
+
 ## H2-d 출력 원본·필수 manifest·현재 출력 필드
 
 H2-c와 EOF 공백 정리 커밋 `25fd7c6868f0f09715eba1c877ad7d4efb063a85`에서 이어서 작업했다.
@@ -69,7 +150,8 @@ examples/llm/recovery_probe.py 하나이며 제품·Hub 소스는 같다. Hub가
 수락을 확인했다(0.098초). 저장소 probe는 선택/비활성 Memory 루트 소실 뒤 재선택이 새
 identity를 발급함을 확인했다(0.176초). 모두 error·Skip 0, exit 1이며 H2-d 성공에 합산하지
 않는다. 원본은 component-usage-loss-probe.py와 component-root-loss-probe.py 및 각 로그다.
-이 4개 실패와 나머지 Component/도메인 계약, H3–H5·P1 잔여 작업·A–F는 미완료다.
+이 4개 실패는 위 H2-e에서 보강·검증했다. 나머지 Component/도메인 계약과
+H3–H5·P1 잔여 작업·A–F는 미완료다.
 
 ## H2-c Checkpoint 개별 기록·manifest·Run 연결
 

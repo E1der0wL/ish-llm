@@ -177,12 +177,19 @@ Run Completion 기록과 `<component>/usage/<id>.json` 영수증을 함께 조�
 기록하여 해당 Run의 한도에도 포함한다. `project.amodel_usage()`는 호출 목록,
 call_count/known_tokens/reserved_tokens/unknown_calls를 반환한다.
 
-한도를 설정하지 않아도 호출 예약·완료·실패 영수증은 계속 저장한다. 제한 검사에 필요한
-과거 사용량 조회만 생략한다. Run 한도만 있으면 다른 Run의 Completion 이력은 읽지 않고,
+한도를 설정하지 않아도 호출 예약·완료·실패 영수증은 계속 저장한다. quota 합산은 생략하지만
+저장 owner의 필수 manifest·기존 영수증 무결성 검사는 유지한다. Run 한도만 있으면 다른 Run의 Completion 이력은 읽지 않고,
 Project 한도가 있으면 기존 Run/Component 이력을 함께 확인한다. 실행 중에는 Run 시작 시의
 정책 스냅샷을 사용한다. 나중에 한도를 설정해도 이전 영수증을 포함하며, 명시적인
 `project.amodel_usage()` 조회는 한도 유무와 관계없이 전체 사용량을 집계한다.
 새 누적 합계 파일이나 과거 자료 변환은 만들지 않는다.
+
+Component 생성 때 빈 `usage/manifest.json`을 확정하며 영수증 파일 집합·리비전을 원자적으로
+갱신한다. 필수 파일·필드·소유권·상태 증거 소실은 빈 사용량으로 바꾸지 않는다. 완료/실패는
+현재 started 예약에서만 전이하며 예약량과 Project/Session/Run 소유권을 바꾸지 않는다.
+독립 호출의 Session/Run과 미확정 종료/진단은 명시적인 None이다. 비활성 Component의 이력도
+집계·백업·삭제 보호에 포함하고 보존된 owner가 미등록이면 거부한다. 원본 검증의 누적 I/O
+비용은 별도 대용량 측정하지 않았다.
 
 호출 전 예약과 검사에는 같은 workspace 잠금을 사용한다. RAG의 EmbeddingModel,
 RerankModel, TripleExtractor는 공통 관찰 경계를 사용한다. 토큰 한도 사용 시 입력 계수기와

@@ -40,7 +40,8 @@ class PackageTests(unittest.TestCase):
         return self.component.resolve_tools(self.projects.load((project or self.project).id))
 
     def test_source_crud_is_static_and_transactional(self):
-        self.assertEqual(list(self.paths.root.iterdir()), [])
+        self.assertEqual(list(self.paths.root.iterdir()), [self.paths.root / "usage"])
+        self.assertEqual(self.data.list(), {})
         value = {"source": "raise AssertionError('CRUD must not import')", "requirements": "# none\n"}
         with self.assertRaises(ValueError):
             self.data.create(value)
@@ -137,7 +138,8 @@ class PackageTests(unittest.TestCase):
         self.data.save("search", {"source": SOURCE.replace('limit: int = 10', 'limit: int = 20')})
         self.assertEqual(asyncio.run(self.resolve().get("search").handler({"query": "a"}))["limit"], 20)
         self.assertFalse(list(self.paths.root.rglob("__pycache__")))
-        self.assertFalse(list(self.paths.root.rglob("*.json")))
+        self.assertEqual(list(self.paths.root.rglob("*.json")), [self.paths.root / "usage" / "manifest.json"])
+        self.assertEqual(self.component.model_usage(self.project), [])
 
     def test_prepare_validates_without_dependency_or_run(self):
         self.data.create({"source": SOURCE}, identifier="search")

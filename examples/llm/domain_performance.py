@@ -64,11 +64,10 @@ def microbenchmarks(args, root):
 
     # 읽기/투영만 분리 측정하기 위한 합성 저널. 실제 Run 경로를 수정하지 않는다.
     path = root / "outputs.jsonl"
-    with path.open("w", encoding="utf-8") as stream:
-        for number in range(1, args.deltas + 1):
-            value = EngineDelta("out", text, sequence=number)
-            stream.write(json.dumps({"type": "delta", "value": value.to_dict()}) + "\n")
     repository = RunRepository()
+    repository.output_journal.initialize(path)
+    repository.output_journal.append(path,
+        (EngineDelta("out", text, sequence=number) for number in range(1, args.deltas + 1)))
     run = SimpleNamespace(paths=SimpleNamespace(state=root))
 
     def conversation_append():

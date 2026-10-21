@@ -241,7 +241,7 @@ class MemoryComponent(Component):
 
     def initialize(self, project):
         root = self._checked(self.root(project))
-        if root.exists():
+        if self.name in project.initialized_components:
             self.identity(project)
             super().initialize(project)
             return
@@ -453,6 +453,7 @@ class MemoryComponent(Component):
         return [path.stem for path in MemoryConsolidation(self, project).pending()]
 
     def validate_backup(self, project):
+        self.model_usage(project)
         self.identity(project)
         self.get_config(project)
         list(self._all_records(project))

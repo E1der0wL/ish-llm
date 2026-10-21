@@ -70,6 +70,7 @@ class ComponentRegistry:
 
     def dependents(self, project, name, identifier=None, *, path=None):
         """비활성 Component의 보존된 정의도 삭제 보호에 포함한다."""
+        self.stored(project)
         result = []
         for owner, component in self._components.items():
             reader = getattr(component, "references", None)
@@ -107,13 +108,22 @@ class ComponentRegistry:
             raise ComponentDependencyError(missing, unavailable)
         return tuple(names)
 
+    def stored(self, project: Project) -> tuple[str, ...]:
+        """Unavailable retained owners cannot disappear from usage or backup."""
+        for name in project.initialized_components:
+            self.get(name)
+        return project.initialized_components
+
     def initialize(self, project: Project) -> None:
+        self.stored(project)
         self.validate_config(project)
         for name in self.validate(project.components):
             root = project.paths.root / self._components[name].directory
             if not root.exists():
                 prepare_create(root)
             self._components[name].initialize(deepcopy(project))
+            if name not in project.initialized_components:
+                project.initialized_components = (*project.initialized_components, name)
         log_event(project.paths.logs, "components.initialized", entity_id=project.id,
                   count=len(project.components))
 

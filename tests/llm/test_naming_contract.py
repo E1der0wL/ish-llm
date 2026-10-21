@@ -105,7 +105,11 @@ class NamingContractTests(unittest.TestCase):
         config = ProjectConfig.deserialize(json.dumps(self.before['project_config']))
         self.assertEqual(config.to_dict(), self.before['project_config'])
         for domain in (Project, Session, Run, Step):
-            self.assertEqual([item.name for item in fields(domain)], self.before['fields'][domain.__name__])
+            expected = list(self.before['fields'][domain.__name__])
+            if domain is Project:
+                # H2 adds managed storage lifetime without renaming existing fields.
+                expected.insert(expected.index('components') + 1, 'initialized_components')
+            self.assertEqual([item.name for item in fields(domain)], expected)
         graph = WorkflowGraph(entry='end', metadata={'title': 'Review'}).node('end', 'end').to_dict()
         self.assertEqual(graph, self.before['workflow'])
 

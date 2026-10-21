@@ -235,6 +235,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
             directory = "custom_data"
             broken = True
             def initialize(self, project):
+                super().initialize(project)
                 (project.paths.root / "custom_data" / "nested").mkdir(parents=True, exist_ok=True)
                 if self.broken:
                     raise ValueError("initialization failed")

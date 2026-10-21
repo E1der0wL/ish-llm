@@ -2,7 +2,6 @@ from llm.core.schema import implementation_schema
 """실행 정책 테스트용 Component capability 제공자. Project Tool 저장소를 사용하지 않는다."""
 from llm.components.base import Component
 from llm.components.tools import ToolRegistry, ToolData, ToolContract, ToolEffect, ToolIsolation
-from llm.services.infrastructure.storage import make_directory
 
 
 TEST_CONTRACT = ToolContract(
@@ -19,7 +18,7 @@ class RuntimeTools(Component):
         self.registry = registry if registry is not None else ToolRegistry()
 
     def initialize(self, project):
-        make_directory(self.root(project))
+        self._initialize_storage(project, records=False)
 
     def describe_config(self):
         return implementation_schema(config={'type': 'object', 'properties': {'enabled': {'type': 'array', 'items': {'type': 'string'}, 'uniqueItems': True, 'x-suggestions': list(self.registry.names())}}})

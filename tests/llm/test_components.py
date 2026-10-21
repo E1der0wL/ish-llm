@@ -169,13 +169,23 @@ class ComponentTests(unittest.TestCase):
         self.assertFalse((clone.paths.root / "knowledge" / "artifact.bin").exists())
 
     def test_component_initialization_preserves_unmanaged_files(self):
+        self.projects.set_components(self.project, ("notes", "workflows"))
         root = self.project.paths.root / "workflows"
-        root.mkdir()
         (root / "notes.txt").write_text('user notes', encoding="utf-8")
+        self.projects.set_components(self.project, ("notes",))
         self.projects.set_components(self.project, ("notes", "workflows"))
         graphs = self.projects.component(self.project, "workflows")
         self.assertEqual(graphs.list(), {})
         self.assertTrue((root / "notes.txt").exists())
+
+    def test_undeclared_component_directory_is_preserved_without_initialization(self):
+        root = self.project.paths.root / "workflows"
+        root.mkdir()
+        (root / "notes.txt").write_bytes(b'user notes')
+        with self.assertRaisesRegex(ValueError, "undeclared"):
+            self.projects.set_components(self.project, ("notes", "workflows"))
+        self.assertEqual({path.name: path.read_bytes() for path in root.iterdir()}, {"notes.txt": b'user notes'})
+        self.assertEqual(self.projects.load(self.project.id).components, ("notes",))
 
     def test_legacy_component_configuration_is_rejected_without_changes(self):
         self.projects.set_components(self.project, ("notes", "workflows"))

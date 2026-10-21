@@ -20,14 +20,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "94ce0fd568a0de62bcfac0546758c9297cebd354e05373fc35914f289fc6bbbb:1",
-      "rule": "S3",
-      "file": "llm/components/base.py",
-      "symbol": "Component._validate_model_usage",
-      "line": 144,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "2da12e28cb23997794e418b1db804258a21f0b67275aea3d900f3e52c95f8760:1",
       "rule": "S3",
       "file": "llm/components/goals/component.py",
@@ -2172,14 +2164,6 @@
       "detail": "verify exact version type and declaration reference"
     },
     {
-      "id": "e18b452b0ad77f6b36b2646f8ed5f9a59d8fd806c8c1a8fd9704cad44de1fffc:1",
-      "rule": "S3",
-      "file": "llm/services/lifecycle/projects.py",
-      "symbol": "ProjectManager.remove_component",
-      "line": 358,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "40c315cdfd928805a19c38e66ea8b0718103fefea548ef8897c3c5305677b31f:1",
       "rule": "S3",
       "file": "llm/services/lifecycle/sessions.py",
@@ -2740,28 +2724,12 @@
       "detail": "inline domain assignment: status"
     },
     {
-      "id": "c269a5d3d4a0da465dedc128492a64d40a58faaeeeeaa895c99122f77f8299a6:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/usage.py",
-      "symbol": "ComponentUsage._reserve",
-      "line": 110,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "d150c4dbfbb3c418df5c654cb8d627721374c6e51831a50092158589f4d532c5:1",
       "rule": "S2",
       "file": "llm/services/runtime/usage.py",
       "symbol": "ComponentUsage._reserve",
       "line": 116,
       "detail": "truthiness fallback involving configuration"
-    },
-    {
-      "id": "09c0315569b1611bd76a486446807aeb81e776272dff49284c000604679672de:1",
-      "rule": "S3",
-      "file": "llm/services/runtime/usage.py",
-      "symbol": "ComponentUsage._reserve",
-      "line": 129,
-      "detail": "inline domain field: status"
     },
     {
       "id": "8eb6e33888bbd57cb65772b60a287f722977727083babae5e9e92ce0f5c22277:1",

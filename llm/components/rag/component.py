@@ -87,7 +87,7 @@ class RAGComponent(DefinitionComponent):
 
     def initialize(self, project):
         root = self._checked(self.root(project))
-        if root.exists():
+        if self.name in project.initialized_components:
             # Reselecting/restoring existing data cannot manufacture missing proof.
             self.snapshot(project)
             super().initialize(project)

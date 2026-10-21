@@ -67,12 +67,16 @@ class Component:
         """자신이 소유한 데이터만 검증한다. ProjectManager는 내부 레이아웃을 모른다."""
         self.get_config(project)
         self.list(project)
+        self.model_usage(project)
 
     def root(self, project: Project) -> Path:
         directory = validate_name(self.directory)
         if directory.lower() in {"sessions", "logs", "state", "cache"}:
             raise ValueError("Component directory conflicts with core storage")
-        return self._checked(project.paths.root / directory)
+        root = self._checked(project.paths.root / directory)
+        if self.name in project.initialized_components and not root.is_dir():
+            raise ValueError("Initialized Component storage is missing")
+        return root
 
     @staticmethod
     def _checked(path: Path) -> Path:
@@ -127,41 +131,77 @@ class Component:
         """저장된 Component 참조. 소비자가 자기 정의를 해석하며 별도 원장은 만들지 않는다."""
         return []
 
-    def model_usage(self, project) -> list:
-        """독립 모델 호출 영수증의 원본은 호출을 소유한 컴포넌트 아래에 둔다."""
-        entries = []
-        for path in sorted(self._checked(self.root(project) / "usage").glob("*.json")):
-            value = self.deserialize(self._checked(path).read_text(encoding="utf-8"))
-            self._validate_model_usage(value)
-            if value["id"] != path.stem:
-                raise ValueError("Component model usage identity mismatch")
-            entries.append(value)
-        return entries
+    def _has_storage(self, project):
+        """A disabled Component retains its storage declaration."""
+        root = self.root(project)
+        if self.name not in project.initialized_components:
+            if root.exists():
+                raise ValueError("Undeclared Component storage exists")
+            return False
+        if not root.is_dir():
+            raise ValueError("Initialized Component storage is missing")
+        return True
 
-    def _validate_model_usage(self, value):
-        from datetime import datetime
-        validate_name(value.get("id"))
-        if value.get("component") != self.name or value.get("status") not in ("started", "completed", "failed"):
-            raise ValueError("Invalid component model usage owner/status")
-        if not isinstance(value.get("operation"), str) or not value["operation"]:
-            raise ValueError("Invalid component model operation")
-        if type(value.get("usage_complete")) is not bool or not isinstance(value.get("usage"), dict):
-            raise ValueError("Invalid component model usage")
-        for key in ("started_at", "ended_at"):
-            if key in value and datetime.fromisoformat(value[key]).utcoffset() is None:
-                raise ValueError("Model usage timestamps require a timezone")
-        if "started_at" not in value:
-            raise ValueError("Model usage requires started_at")
-        reserved, tokens = value.get("reserved_tokens"), value["usage"].get("total_tokens")
-        if reserved is not None and (type(reserved) is not int or reserved < 0):
-            raise ValueError("Invalid model token reservation")
-        if value["usage_complete"] and (type(tokens) is not int or tokens < 0):
-            raise ValueError("Invalid complete model usage")
+    def _model_usage_records(self, project):
+        from llm.components.usage import ModelUsageRecord
+        from llm.services.infrastructure.storage import read_json, revision_token
+        if not self._has_storage(project):
+            raise ValueError("Component model usage storage is not initialized")
+        root = self._checked(self.root(project) / ModelUsageRecord.DIRECTORY)
+        manifest = read_json(self._checked(root / ModelUsageRecord.MANIFEST))
+        ModelUsageRecord.validate_manifest(manifest, project_id=project.id, component=self.name)
+        actual = {self._checked(path).name for path in root.iterdir()}
+        if actual != {ModelUsageRecord.MANIFEST, *(identifier + ".json" for identifier in manifest["records"])}:
+            raise ValueError("Component model usage files are missing or undeclared")
+        records = {}
+        for identifier in sorted(manifest["records"]):
+            value = read_json(self._checked(root / (identifier + ".json")))
+            record = ModelUsageRecord.from_dict(value)
+            if (record.id != identifier or record.component != self.name or record.project_id != project.id
+                    or revision_token(value) != manifest["records"][identifier]):
+                raise ValueError("Component model usage owner or revision mismatch")
+            records[identifier] = record
+        return manifest, records
+
+    def model_usage(self, project) -> list:
+        """All retained receipts, including disabled Component storage."""
+        if not self._has_storage(project):
+            return []
+        return [record.to_dict() for record in self._model_usage_records(project)[1].values()]
 
     def save_model_usage(self, project, entry):
-        value = self.deserialize(self.serialize(entry))
-        self._validate_model_usage(value)
-        atomic_json(self._checked(self.root(project) / "usage" / (validate_name(value["id"]) + ".json")), value)
+        from llm.components.usage import ModelUsageRecord, ModelUsageStatus
+        from llm.services.infrastructure.storage import revision_token
+        record = ModelUsageRecord.from_dict(entry)
+        if record.component != self.name or record.project_id != project.id:
+            raise ValueError("Component model usage owner mismatch")
+        manifest, records = self._model_usage_records(project)
+        if record.id in records:
+            record.validate_update(records[record.id])
+        elif record.status != ModelUsageStatus.STARTED:
+            raise ValueError("New Component model usage requires a reservation")
+        root = self._checked(self.root(project) / ModelUsageRecord.DIRECTORY)
+        value = record.to_dict()
+        manifest["records"][record.id] = revision_token(value)
+        atomic_json(root / (record.id + ".json"), value)
+        atomic_json(root / ModelUsageRecord.MANIFEST, manifest)
+
+    def _initialize_storage(self, project, *, records=True):
+        from llm.components.usage import ModelUsageRecord
+        from llm.services.infrastructure.storage import make_directory
+        self.get_config(project)
+        root = self.root(project)
+        if self.name in project.initialized_components:
+            self._model_usage_records(project)
+            if records and not self._checked(root / "records").is_dir():
+                raise ValueError("Component records directory is missing")
+            return
+        if root.exists():
+            raise ValueError("Cannot initialize undeclared Component storage")
+        make_directory(root / "records" if records else root)
+        atomic_json(root / ModelUsageRecord.DIRECTORY / ModelUsageRecord.MANIFEST, {
+            "schema_version": ModelUsageRecord.SCHEMA_VERSION, "project_id": project.id,
+            "component": self.name, "records": {}})
 
     def resolve_runtime(self, project: Project, capability: str, *, data_factory):
         """필요한 경우 현재 프로젝트의 수명 검사 핸들로 실행 기능을 구성한다.
@@ -187,9 +227,7 @@ class Component:
         pass
 
     def initialize(self, project: Project) -> None:
-        from llm.services.infrastructure.storage import make_directory
-        self.get_config(project)
-        make_directory(self._checked(self.root(project) / "records"))
+        self._initialize_storage(project)
 
     def get_config(self, project: Project) -> dict:
         # 기존 파일은 무시해서 설정을 잃지 않도록 명시적으로 거부한다. 변환/삭제는 하지 않는다.

@@ -3,16 +3,17 @@
 from copy import deepcopy
 from typing import Sequence
 from llm.components.base import Component, validate_name
+from llm.components.usage import ModelUsageRecord
 from llm.core.parameters import ParameterLayout
-from llm.services.infrastructure.storage import make_directory, remove_named_tree
+from llm.services.infrastructure.storage import remove_named_tree
 from .registry import ToolRegistry
 from .data import ToolData
 from .packages import ToolPaths, read_package, write_package, load_tool
 
 
 class ToolComponent(Component):
-    name = "tools"
-    directory = "tools"
+    name = ToolPaths.COMPONENT
+    directory = ToolPaths.COMPONENT
     capabilities = ("tools",)
     data_class = ToolData
     parameter_layout = ParameterLayout(config=("enabled",))
@@ -44,7 +45,7 @@ class ToolComponent(Component):
 
     def initialize(self, project):
         self.get_config(project)
-        make_directory(ToolPaths.for_project(project).root)
+        self._initialize_storage(project, records=False)
 
     def enabled(self, project):
         return self._options(project).get("enabled", [])
@@ -62,7 +63,8 @@ class ToolComponent(Component):
 
     def list(self, project):
         root = ToolPaths.for_project(project).root
-        return {path.name: self.load(project, path.name) for path in sorted(root.iterdir())}
+        return {path.name: self.load(project, path.name) for path in sorted(root.iterdir())
+                if path.name != ModelUsageRecord.DIRECTORY}
 
     def save(self, project, identifier, data):
         self.load(project, identifier)

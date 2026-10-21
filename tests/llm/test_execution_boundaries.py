@@ -80,7 +80,8 @@ class ObservationTests(unittest.TestCase):
                 return [{"component": "data", "identifier": "source", "source": "remote-record"}]
         with tempfile.TemporaryDirectory() as root:
             registry = ComponentRegistry((External(),))
-            project = SimpleNamespace(paths=SimpleNamespace(root=Path(root)))
+            project = SimpleNamespace(paths=SimpleNamespace(root=Path(root)),
+                                      initialized_components=("remote",), components=())
             self.assertFalse((Path(root) / "remote").exists())
             self.assertEqual(component_usage(registry, project), [{"model": "remote-model"}])
             retention = HistoryRetention(SimpleNamespace(components=registry))

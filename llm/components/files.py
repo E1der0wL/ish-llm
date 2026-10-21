@@ -17,6 +17,7 @@ from llm.services.infrastructure.locking import workspace_locked
 from llm.services.infrastructure.storage import async_method
 from llm.services.lifecycle.components import ComponentData
 from .base import validate_name
+from .usage import ModelUsageRecord
 from .definitions import DefinitionComponent
 
 
@@ -43,7 +44,7 @@ class FileComponent(DefinitionComponent):
 
     def _package(self, project, identifier):
         identifier = validate_name(identifier)
-        if identifier in ("records", "usage"):
+        if identifier in ("records", ModelUsageRecord.DIRECTORY):
             raise ValueError("Reserved package identifier")
         return self._checked(self.root(project) / identifier)
 
@@ -128,7 +129,7 @@ class FileComponent(DefinitionComponent):
         root = self.root(project)
         if self._checked(root / "records").exists():
             raise ValueError("Legacy records directory is unsupported; explicitly re-register packages")
-        make_directory(root)
+        self._initialize_storage(project, records=False)
 
     def validate_record(self, identifier, data):
         super().validate_record(identifier, data)
@@ -156,7 +157,7 @@ class FileComponent(DefinitionComponent):
         if self._checked(root / "records").exists():
             raise ValueError("Legacy records directory is unsupported")
         return {p.name: self.load(project, p.name) for p in sorted(root.iterdir())
-                if p.name != "usage"} if root.exists() else {}
+                if p.name != ModelUsageRecord.DIRECTORY} if root.exists() else {}
 
     def save(self, project, identifier, data):
         old = self.load(project, identifier)

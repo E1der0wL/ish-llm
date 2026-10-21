@@ -27,7 +27,8 @@ class IngestionTests(unittest.IsolatedAsyncioTestCase):
         from types import SimpleNamespace
         return RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=call),
                             extractor=TripleExtractor(model="test", completion_fn=extract)).with_config(
-                                SimpleNamespace(id="fixture", config=rag_project(), paths=SimpleNamespace(root=Path(tempfile.gettempdir()) / "ish-rag-test-fixture")))
+                                SimpleNamespace(id="fixture", config=rag_project(), initialized_components=(),
+                                    paths=SimpleNamespace(root=Path(tempfile.gettempdir()) / "ish-rag-test-fixture")))
 
     async def test_bounded_workers_order_and_admission(self):
         from llm.providers.calls import ProviderCalls, ProviderLimits

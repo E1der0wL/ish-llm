@@ -125,8 +125,11 @@ class VersionContracts(unittest.TestCase):
             lambda: spaces._record(directory, "project", ready=True))
 
     def test_vision_current_writer_and_reader(self):
-        project = SimpleNamespace(paths=SimpleNamespace(root=self.root), config=ProjectConfig())
+        project = SimpleNamespace(id="fixture", paths=SimpleNamespace(root=self.root), config=ProjectConfig(),
+                                  initialized_components=())
         component = VisionComponent()
+        component.initialize(project)
+        project.initialized_components = (component.name,)
         raw = b"fixture-image"
         info = {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw),
                 "mime_type": "image/png", "width": 1, "height": 1}

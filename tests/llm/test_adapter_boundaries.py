@@ -177,10 +177,18 @@ class ResolverUsageTests(unittest.IsolatedAsyncioTestCase):
                 effects = []
                 class Engine(BaseEngine):
                     async def run(self, context):
-                        component.save_model_usage(context.project, {
+                        from llm.components.usage import ModelUsageRecord, ModelUsageStatus
+                        entry = {
+                            "schema_version": ModelUsageRecord.SCHEMA_VERSION,
                             "id": "receipt", "component": "auxiliary", "operation": "custom", "model": "custom",
-                            "started_at": now(), "status": "completed", "usage_complete": True,
-                            "usage": {"total_tokens": 4}, "reserved_tokens": 4, "run_id": context.run.id})
+                            "project_id": context.project.id, "session_id": context.session.id,
+                            "started_at": now(), "ended_at": None, "status": ModelUsageStatus.STARTED,
+                            "usage_complete": False, "usage": {}, "reserved_tokens": 4,
+                            "run_id": context.run.id, "error": None, "diagnostic_code": None}
+                        component.save_model_usage(context.project, entry)
+                        entry.update(status=ModelUsageStatus.COMPLETED, ended_at=now(),
+                                     usage_complete=True, usage={"total_tokens": 4})
+                        component.save_model_usage(context.project, entry)
                         yield EngineEvent(EngineEventType.COMPLETION, completion=CompletionResult(reserved_tokens=2))
                         effects.append("provider invoked")
                 component = Auxiliary()
@@ -188,7 +196,8 @@ class ResolverUsageTests(unittest.IsolatedAsyncioTestCase):
                     policy = {key: 1 if key.endswith("calls") else 5}
                     if key.endswith("tokens"):
                         policy["counter"] = "model_default"
-                    project = await app.projects.acreate(components=[], config=ProjectConfig(policies={"usage": policy}))
+                    project = await app.projects.acreate(components=["auxiliary"], config=ProjectConfig(policies={"usage": policy}))
+                    await project.components.aremove("auxiliary")
                     session = await project.sessions.acreate()
                     delegate = ComponentToolResolver(app.project_manager.components)
                     read = []

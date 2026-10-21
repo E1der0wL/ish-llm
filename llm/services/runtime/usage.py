@@ -9,6 +9,7 @@ from datetime import datetime, timezone, timedelta
 
 from llm.policies import ExecutionLimitError
 from llm.core.models import now, new_id, RunStatus, SessionStatus
+from llm.components.usage import ModelUsageRecord, ModelUsageStatus
 from llm.providers.observations import ModelCall
 
 _current = ContextVar("llm_usage_scope", default=None)
@@ -116,6 +117,7 @@ def protects_project_usage(entries, policies, *, at=None):
 def component_usage(registry, project):
     """비활성화해도 기존 영수증은 집계한다. 소유 컴포넌트만 자신의 경로를 해석한다."""
     entries = []
+    registry.stored(project)
     for name in registry.names():
         component = registry.get(name)
         reader = getattr(component, "model_usage", None)
@@ -140,11 +142,13 @@ class ComponentUsage:
         repository = self.sessions.run_repository
         run = None
         if source is not None:
+            if not isinstance(source, dict) or source.keys() != {"project_id", "session_id", "run_id"}:
+                raise ValueError("Component model call requires current source ownership fields")
             if source["project_id"] != project.id:
                 raise ValueError("Model usage cannot cross Project boundaries")
             session = self.sessions.load(project, source["session_id"])
             run = repository.load(session, source["run_id"])
-            if run.status != "running":
+            if run.status != RunStatus.RUNNING:
                 raise ValueError("Component model call requires an active owning Run")
             policies = run.metadata["policies"]
         policy = policies.get("usage", {})
@@ -162,9 +166,14 @@ class ComponentUsage:
             run = SimpleNamespace(metadata={"policies": policies}, id=None)
         owned = [e for e in auxiliary if run.id is not None and e.get("run_id") == run.id]
         check_admission(run, None, reservation, [*entries, *auxiliary], owned)
-        entry = {"id": new_id(), "operation": invocation.operation, "model": invocation.model,
-                 "component": component.name, "started_at": now(), "status": "started",
-                 "usage": {}, "usage_complete": False, "reserved_tokens": reservation, **(source or {})}
+        entry = ModelUsageRecord(schema_version=ModelUsageRecord.SCHEMA_VERSION,
+            id=new_id(), project_id=project.id, component=component.name,
+            operation=invocation.operation, model=invocation.model,
+            session_id=source["session_id"] if source is not None else None,
+            run_id=source["run_id"] if source is not None else None,
+            started_at=now(), ended_at=None, status=ModelUsageStatus.STARTED,
+            usage={}, usage_complete=False, reserved_tokens=reservation,
+            error=None, diagnostic_code=None).to_dict()
         component.save_model_usage(project, entry)
         return entry
 
@@ -174,9 +183,9 @@ class ComponentUsage:
         if not isinstance(usage, dict):
             raise TypeError("Model usage must be a normalized dictionary")
         valid = type(usage.get("total_tokens")) is int and usage["total_tokens"] >= 0
-        entry.update(ended_at=now(), status="failed" if error else "completed",
+        entry.update(ended_at=now(), status=ModelUsageStatus.FAILED if error is not None else ModelUsageStatus.COMPLETED,
                      usage=usage if valid else {}, usage_complete=valid)
-        if error:
+        if error is not None:
             # 공급자 예외의 원문에는 endpoint 응답/요청 내용이 섞일 수 있다.
             code = invocation.classify_error(error)
             if not isinstance(code, str) or not code:

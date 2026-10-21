@@ -303,3 +303,13 @@ operational-storage를 먼저 갱신했다. 과거 끝줄 무시 설명을 제�
 파생 인덱스를 재생성하도록 고쳤다. 원본 해시의 추가 I/O와 대용량 비용 미측정도 명시했다.
 첫 전체 실패와 ENOSPC 주입 경계 수정, Hub 이후 예제 하나만 바뀐 소스 증거를 보존했다.
 출력 3개 실패의 해결과 별도 Component 4개 실패·나머지 H2–H5 작업을 구분했다.
+
+## 2026-10-21 H2-e 검증 후 문서 우선 갱신
+
+Component 저장소 이력·사용량 영수증 보강의 전체 LLM/Hub 회귀가 통과한 뒤
+lifecycle-verification, data-lifecycle, clean-refactor, operations-and-ui-settings,
+storage-transactions와 Component README를 먼저 갱신했다. 선택 해제와 저장소 생성 이력을
+구분하고 비활성 owner의 백업·quota 보호, 필수 manifest와 현재 영수증 필드를 명시했다.
+무제한 호출에서도 수행하는 저장 원본 검증과 quota 합산 생략을 구분했다. 기존 테스트 자료의
+실패·수정과 성능 예제의 누락된 소비 경로도 보존하며 소규모 smoke를 성능 개선으로 주장하지 않는다.
+기존 4개 실패의 해결과 새 개별 Component 기록 소실 2개 실패·나머지 H2–H5 작업을 구분했다.

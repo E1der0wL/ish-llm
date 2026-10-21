@@ -111,9 +111,11 @@ class ProjectManager:
                           config=ProjectConfig() if config is None else ProjectConfig.from_dict(config), components=selected,
                           conversation_storage=storage)
         self._validate_config(project)
+        from llm.services.infrastructure.storage import make_directory
+        make_directory(project.paths.root)
+        self.components.initialize(project)
         self.repository.save(project)
         self.sessions.initialize(deepcopy(project))
-        self.components.initialize(project)
         log_event(project.paths.logs, "project.created", entity_id=project.id)
         return project
 
@@ -123,7 +125,7 @@ class ProjectManager:
             raise ValueError("Portable backup requires file conversation storage")
         self.components.validate(project.components)
         self._validate_config(project)
-        for name in project.components:
+        for name in self.components.stored(project):
             validator = getattr(self.components.get(name), "validate_backup", None)
             if validator is None:
                 raise ValueError("Component must implement validate_backup for portable backup")
@@ -280,7 +282,8 @@ class ProjectManager:
         check_revision(current.config.to_dict(), expected_version)
         if expected_components is not None and tuple(expected_components) != current.components:
             raise ValueError("Project components changed; reload configuration")
-        if project.deleted != current.deleted or project.components != current.components:
+        if (project.deleted != current.deleted or project.components != current.components
+                or project.initialized_components != current.initialized_components):
             raise ValueError("Use lifecycle or component APIs to change managed Project state")
         previous_components = current.components
         if components is not None:
@@ -309,6 +312,7 @@ class ProjectManager:
         self.components.initialize(current)
         self.repository.save(current)
         project.components = current.components
+        project.initialized_components = current.initialized_components
 
     @workspace_locked
     def configure_component(self, project: Project, name: str, configuration: dict) -> None:
@@ -341,9 +345,10 @@ class ProjectManager:
         self.components.validate(tuple(item for item in current.components if item != name))
         if permanent:
             from llm.services.runtime.usage import project_usage_policies, protects_project_usage
+            from llm.components.usage import ModelUsageStatus
             reader = getattr(component, "model_usage", None)
             receipts = reader(current) if reader else []
-            if any(r.get("status") == "started" for r in receipts):
+            if any(r["status"] == ModelUsageStatus.STARTED for r in receipts):
                 raise ValueError("Component has unfinished model usage reservations")
             if protects_project_usage(receipts, project_usage_policies(current, self.sessions)):
                 raise ValueError("Component usage receipts are required by the active quota period")
@@ -352,10 +357,12 @@ class ProjectManager:
         current.components = tuple(item for item in current.components if item != name)
         if permanent:
             current.config.parameters.get("components", {}).pop(name, None)
+            current.initialized_components = tuple(item for item in current.initialized_components if item != name)
         self.components.validate(current.components)
         # 선택 해제와 디렉토리 격리를 같은 트랜잭션으로 확정한다.
         self.repository.save(current)
         project.components = current.components
+        project.initialized_components = current.initialized_components
         if permanent:
             component.delete_directory(current)
         log_event(current.paths.logs, "component.removed", entity_id=current.id,
@@ -427,7 +434,7 @@ class ProjectManager:
             self.sessions.require_inactive(session)
         target = self._backup_destination(destination)
         with ExitStack() as stack:
-            for name in current.components:
+            for name in self.components.stored(current):
                 component = self.components.get(name)
                 scope = getattr(component, "backup_scope", None)
                 if scope is None:

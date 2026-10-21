@@ -35,6 +35,7 @@ DefinitionComponent는 기본 schema가 닫혀 있으며 열린 plugin record는
 | --- | --- |
 | [__init__.py](__init__.py) | 공통 Component와 Registry의 공개 import입니다. 개별 종류는 하위 패키지에서 가져옵니다. |
 | [base.py](base.py) | 이름·디렉터리·JSON 직렬화·공통 CRUD·초기화·복제 계약입니다. |
+| [usage.py](usage.py) | Component 모델 영수증의 현재 필드·상태·manifest 형식을 선언합니다. |
 | [registry.py](registry.py) | 이름·디렉터리 충돌을 검사하고 선택한 capability를 해석합니다. |
 | [definitions.py](definitions.py) | JSON schema를 가진 정의형 Component의 공통 검증·스냅샷 구현입니다. |
 | [files.py](files.py) | Skill/Data 파일 패키지, manifest 검증, 파일과 정의의 원자적 변경입니다. |
@@ -98,7 +99,9 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
 
 ```text
 <project>/
-  project.json                     # 선택 종류와 parameters.components
+  project.json                     # 선택·initialized_components 이력·parameters.components
+  <component>/usage/manifest.json   # 필수 영수증 파일 집합·리비전
+  <component>/usage/<id>.json       # 모델 호출 예약·종료 증거
   prompts/records/guide.json       # 공통 JSON 레코드
   agents/records/reviewer.json
   workflows/records/review.json
@@ -111,9 +114,19 @@ Tool, RAG, Memory는 전문 데이터 구조·수정 계약이 있으므로 해�
   rag/...                          # 문서·색인 세대·작업 체크포인트
 ```
 
-선택한 Component의 디렉터리만 초기화합니다. 초기화는 다시 호출해도 안전해야 하며 기본 records 구조를 사용하는 구현은 `super().initialize(project)`를 호출합니다. Component 내부 경로를 ProjectPaths에 추가하지 않습니다.
+새로 선택한 Component의 저장소만 생성합니다. Project의 관리 필드 `initialized_components`는
+현재 선택과 별개로 생성 이력을 보존합니다. 기본 records 구조는 `super().initialize(project)`를
+호출하며 반복 초기화는 기존 필수 자료를 검증합니다. 선언된 루트·사용량 manifest가 사라져도
+새 저장소로 만들지 않으며 미선언 기존 디렉터리도 임의로 채택하지 않습니다.
+초기화에 전달된 Project는 아직 공개되지 않은 생성 초안일 수 있으므로 전달된 설정·경로를
+사용합니다. 외부 저장소 구현은 자기 생성/검증 계약을 소유하며 Registry가 내부 형식을 추측하지
+않습니다. Component 내부 경로를 ProjectPaths에 추가하지 않습니다.
 
-비활성화와 영구 삭제는 다릅니다. `project.components.aremove(name)`은 데이터를 남기고, `permanent=True`는 전용 데이터도 제거합니다. 재선택은 남은 데이터를 사용합니다. 삭제·clone·backup은 Project 서비스의 수명 검사를 통과해야 합니다.
+비활성화와 영구 삭제는 다릅니다. `project.components.aremove(name)`은 자료와 저장소 이력을
+남기고, `permanent=True`는 안전성 검사를 통과한 뒤 전용 자료와 이력을 함께 제거합니다.
+재선택은 남은 자료를 검증합니다. 백업은 비활성 상태로 보존된 owner의 scope와 validator도
+호출하며 미등록 owner를 생략하지 않습니다. 삭제·clone·backup은 Project 서비스의 수명 검사를
+통과해야 합니다.
 
 별도 `component.json`이나 과거 형식의 자동 변환은 제공하지 않습니다. JSON 정의는 기본 복제로 복사되지만 색인·특수 파일을 가진 Component는 자신의 clone 계약을 구현해야 합니다.
 

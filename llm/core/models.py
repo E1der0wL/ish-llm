@@ -276,6 +276,8 @@ class Project:
     deleted: bool = False
     # Component identities only. Each component owns its configuration and paths.
     components: tuple[str, ...] = ()
+    # Managed storage lifetime, retained when a Component is disabled.
+    initialized_components: tuple[str, ...] = ()
     # None은 사용자 주입 대화 팩토리의 저장 방식을 따른다.
     conversation_storage: Optional[str] = None
     storage_version: int = DOMAIN_STORAGE_VERSION
@@ -289,14 +291,20 @@ class Project:
             raise ValueError("Stored Project configuration requires policies, parameters and data")
         if type(data["deleted"]) is not bool:
             raise ValueError("Project deleted must be a boolean")
-        if not isinstance(data["components"], list) or any(not isinstance(name, str) for name in data["components"]):
-            raise ValueError("Invalid Project component selection")
+        for key in ("components", "initialized_components"):
+            values = data[key]
+            if (not isinstance(values, list) or any(not isinstance(name, str) or not name for name in values)
+                    or len(set(values)) != len(values)):
+                raise ValueError("Invalid Project Component identities")
+        if not set(data["components"]) <= set(data["initialized_components"]):
+            raise ValueError("Selected Components require initialized storage")
         if not isinstance(data["title"], str) or not isinstance(data["created_at"], str):
             raise ValueError("Invalid Project title or creation time")
         created = datetime.fromisoformat(data["created_at"])
         if created.tzinfo is None:
             raise ValueError("Project creation time requires a timezone")
         return cls(**{**data, "paths": paths, "components": tuple(data["components"]),
+                      "initialized_components": tuple(data["initialized_components"]),
                       "config": ProjectConfig.from_dict(data["config"])})
 
     def __post_init__(self) -> None:

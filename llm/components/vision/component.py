@@ -170,6 +170,7 @@ class VisionComponent(Component):
         return record, raw
 
     def validate_backup(self, project):
+        self.model_usage(project)
         self.get_config(project)
         for path in self._checked(self.root(project) / "records").glob("*.json"):
             record = self._record(project, path.stem)

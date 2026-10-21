@@ -15,7 +15,9 @@ import sys
 from packaging.requirements import Requirement, InvalidRequirement
 from packaging.utils import canonicalize_name
 from dataclasses import dataclass
+from typing import ClassVar
 from llm.components.base import validate_name
+from llm.components.usage import ModelUsageRecord
 from llm.services.infrastructure.storage import (reject_links, make_directory, prepare_replace,
     temporary_file, sync_directory, unlink_file)
 from .process import inspect_tool
@@ -29,13 +31,19 @@ def _checked(path):
 
 @dataclass(frozen=True, slots=True)
 class ToolPaths:
+    COMPONENT: ClassVar[str] = "tools"
     root: Path
 
     @classmethod
     def for_project(cls, project):
-        return cls(_checked(project.paths.root / "tools"))
+        root = _checked(project.paths.root / cls.COMPONENT)
+        if cls.COMPONENT in project.initialized_components and not root.is_dir():
+            raise ValueError("Initialized Tool storage is missing")
+        return cls(root)
 
     def package(self, name):
+        if name == ModelUsageRecord.DIRECTORY:
+            raise ValueError("Reserved Tool package identifier")
         return _checked(self.root / validate_name(name))
 
     def source(self, name):
