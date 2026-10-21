@@ -294,3 +294,12 @@ lifecycle-verification, data-lifecycle, clean-refactor, checkpoints, graph-check
 storage-transactions를 먼저 갱신했다. 변경 노드만 쓰던 설명을 manifest/Run 리비전의
 원자 갱신으로 고쳤고 추가 I/O의 대용량 운영 비용은 미측정으로 남겼다. H2-b 때의
 Checkpoint 실패 기록은 보존하고, 출력 저널의 별도 실패 3개와 H2–H5 잔여 작업을 구분했다.
+
+## 2026-10-21 H2-d 검증 후 문서 우선 갱신
+
+출력 원본·필수 manifest·현재 출력 필드 보강의 집중/전체 회귀가 통과한 뒤
+lifecycle-verification, data-lifecycle, clean-refactor, engine-output, storage-transactions,
+operational-storage를 먼저 갱신했다. 과거 끝줄 무시 설명을 제거하고 검증된 원본에서만
+파생 인덱스를 재생성하도록 고쳤다. 원본 해시의 추가 I/O와 대용량 비용 미측정도 명시했다.
+첫 전체 실패와 ENOSPC 주입 경계 수정, Hub 이후 예제 하나만 바뀐 소스 증거를 보존했다.
+출력 3개 실패의 해결과 별도 Component 4개 실패·나머지 H2–H5 작업을 구분했다.

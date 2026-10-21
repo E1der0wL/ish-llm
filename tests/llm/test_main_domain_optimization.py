@@ -94,10 +94,9 @@ class OutputProjectionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "outputs.jsonl"
             values = [EngineDelta("out", str(i), sequence=i) for i in range(1, 34)]
-            path.write_text("".join(json.dumps({"type": "delta", "value": v.to_dict()}) + "\n" for v in values), encoding="utf-8")
-            with path.open("ab") as stream:
-                stream.write(b'{"type":')
             journal = OutputJournal(index_stride=3)
+            journal.initialize(path)
+            journal.append(path, values)
             for after in (0, 1, 2, 3, 6, 31, 33, 100):
                 for limit in (None, 0, 1, 5):
                     expected = values[after:] if limit is None else values[after:after + limit]
@@ -106,6 +105,14 @@ class OutputProjectionTests(unittest.TestCase):
             self.assertEqual(next(iterator), values[0])
             iterator.close()
             self.assertIsNone(iterator.gi_frame)
+            with path.open("ab") as stream:
+                stream.write(b'{"type":')
+            damaged = path.read_bytes()
+            for after in (0, 1, 33, 100):
+                for limit in (None, 0, 1):
+                    with self.assertRaises(ValueError):
+                        journal.read(path, after=after, limit=limit)
+            self.assertEqual(path.read_bytes(), damaged)
 
 
 class ReverseQueryTests(unittest.TestCase):

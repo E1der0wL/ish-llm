@@ -122,6 +122,7 @@ class IndexedJournalTests(unittest.TestCase):
         self.path = Path(self.temp.name) / "outputs.jsonl"
         self.journal = OutputJournal(index_stride=16)
         self.values = [EngineDelta("answer", str(i), sequence=i) for i in range(1, 1025)]
+        self.journal.initialize(self.path)
         self.journal.append(self.path, self.values)
 
     def test_cached_cursor_decodes_only_nearby_records(self):
@@ -130,7 +131,7 @@ class IndexedJournalTests(unittest.TestCase):
             self.assertEqual(self.journal.read(self.path, after=1000, limit=3), self.values[1000:1003])
         self.assertLessEqual(decode.call_count, 16 + 3)
 
-    def test_corrupt_missing_and_stale_index_rebuilds_and_tail_is_ignored(self):
+    def test_index_rebuild_requires_an_intact_source(self):
         self.journal.read(self.path, after=1000)
         cache = self.path.with_name("outputs.index.json")
         for corrupt in ("broken json", '{"index": {}, "checksum": "wrong"}'):
@@ -142,16 +143,22 @@ class IndexedJournalTests(unittest.TestCase):
         self.assertEqual(self.journal.read(self.path, after=1024), [extra])
         with self.path.open("ab") as stream:
             stream.write(b'{"incomplete"')
-        self.assertEqual(self.journal.read(self.path, after=1024), [extra])
+        damaged = self.path.read_bytes()
+        with self.assertRaises(ValueError):
+            self.journal.read(self.path, after=1024)
+        self.assertEqual(self.path.read_bytes(), damaged)
 
     def test_replacement_and_bad_sequence_are_not_hidden_by_index(self):
         self.journal.read(self.path, after=1000)
+        original = self.path.read_bytes()
         self.path.unlink()
-        self.journal.append(self.path, [EngineDelta("answer", "new", sequence=1)])
-        self.assertEqual(self.journal.read(self.path, after=1000), [])
-        self.journal.append(self.path, [EngineDelta("answer", "bad", sequence=8)])
+        with self.assertRaises(FileNotFoundError):
+            self.journal.append(self.path, [EngineDelta("answer", "new", sequence=1)])
+        self.assertFalse(self.path.exists())
+        self.path.write_bytes(original)
         with self.assertRaisesRegex(ValueError, "sequence"):
-            self.journal.read(self.path, after=1)
+            self.journal.append(self.path, [EngineDelta("answer", "bad", sequence=8)])
+        self.assertEqual(self.path.read_bytes(), original)
 
 
 class BatchTests(unittest.IsolatedAsyncioTestCase):

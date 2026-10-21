@@ -36,8 +36,8 @@ class EngineDelta:
 
     @classmethod
     def from_dict(cls, value: dict) -> "EngineDelta":
-        if not isinstance(value, dict) or "output_id" not in value:
-            raise ValueError("Stored delta requires output_id")
+        if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
+            raise ValueError("Stored delta requires all current fields, including output_id")
         return cls(**deepcopy(value))
 
 
@@ -84,8 +84,8 @@ class EngineOutput:
 
     @classmethod
     def from_dict(cls, value: dict) -> "EngineOutput":
-        if not isinstance(value, dict) or "output_id" not in value:
-            raise ValueError("Stored output requires output_id")
+        if not isinstance(value, dict) or value.keys() != {item.name for item in fields(cls)}:
+            raise ValueError("Stored output requires all current fields, including output_id")
         return cls(**deepcopy(value))
 
 

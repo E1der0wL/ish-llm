@@ -2020,30 +2020,6 @@
       "detail": "inline domain comparison"
     },
     {
-      "id": "c1e666c654d488fe248ca559bf13422b742d1f01732027b653f360c0006a089b:1",
-      "rule": "S4",
-      "file": "llm/services/infrastructure/journal.py",
-      "symbol": "OutputJournal._index",
-      "line": 38,
-      "detail": "verify exact version type and declaration reference"
-    },
-    {
-      "id": "ef6f49aaa7039fd397e1ce80f17efdd137c81d812bab43016c01214b743053ba:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/journal.py",
-      "symbol": "OutputJournal._index",
-      "line": 38,
-      "detail": "inline domain comparison"
-    },
-    {
-      "id": "a536e13bb304eb69d55ee2809c572f2cfdcb72bdcf2e667f4b95f8b7c8f47f63:1",
-      "rule": "S3",
-      "file": "llm/services/infrastructure/journal.py",
-      "symbol": "OutputJournal._index",
-      "line": 53,
-      "detail": "inline domain field: version"
-    },
-    {
       "id": "0735734bfec9247e99e0f7cd6417cad192c73f1937ebfcec2d792b80b2ef2e7f:1",
       "rule": "S3",
       "file": "llm/services/infrastructure/logging.py",

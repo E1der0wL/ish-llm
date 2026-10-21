@@ -167,7 +167,9 @@ async def disk_failure(root, spec):
 
         def sync(fd):
             path = Path(os.readlink(f"/proc/self/fd/{fd}"))
-            if stage == "output" and path.name == "outputs.jsonl" and not fired:
+            # New Runs now commit an empty mandatory output journal. Inject at
+            # the first actual delta, not that pre-execution initialization.
+            if stage == "output" and path.name == "outputs.jsonl" and os.fstat(fd).st_size > 0 and not fired:
                 fired.append(str(path))
                 raise OSError(errno.ENOSPC, "Injected test disk full", str(path))
             return original_sync(fd)

@@ -141,13 +141,17 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await run.aresponse()).content, "new")
         self.assertEqual((await run.aoutputs())[0].text, "new")
         path = run.data.paths.state / "outputs.jsonl"
-        with path.open("ab") as stream:
-            stream.write(b'{"type":')
         self.assertEqual(len(await run.aoutput_events()), 3)
-        self.assertFalse(self.session.data.paths.conversation.exists())
         for kwargs in ({"after": -1}, {"limit": -1}, {"after": True}):
             with self.assertRaises(ValueError):
                 await run.aoutput_events(**kwargs)
+        with path.open("ab") as stream:
+            stream.write(b'{"type":')
+        damaged = path.read_bytes()
+        with self.assertRaises(ValueError):
+            await run.aoutput_events()
+        self.assertEqual(path.read_bytes(), damaged)
+        self.assertFalse(self.session.data.paths.conversation.exists())
 
     async def test_base_typed_delta_persists_replace_and_reconstructs_final_text(self):
         async def work(context):

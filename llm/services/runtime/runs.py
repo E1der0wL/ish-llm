@@ -301,6 +301,7 @@ class RunRepository:
 
     def save(self, run: Run) -> None:
         path = run.paths.root / "run.json"
+        creating = not run.paths.root.exists()
         if path.exists():
             prior = Run.from_record(read_domain_record(path), run.paths)
             self.completion_records(prior.metadata)
@@ -315,7 +316,11 @@ class RunRepository:
         data = record(run)
         Run.from_record(data, run.paths)
         CheckpointRepository().names(run)
+        if not creating:
+            self.output_journal.validate(run.paths.state / "outputs.jsonl")
         atomic_domain_json(path, data)
+        if creating:
+            self.output_journal.initialize(run.paths.state / "outputs.jsonl")
         log_event(run.paths.logs, "run.saved", entity_id=run.id, status=run.status)
 
     def load(self, session: Session, run_id: str) -> Run:
@@ -329,6 +334,7 @@ class RunRepository:
         self.resume_abandoned(run)
         CheckpointRepository().deletion(run)
         CheckpointRepository().names(run)
+        self.output_journal.validate(run.paths.state / "outputs.jsonl")
         return run
 
     def record_output(self, run: Run, value: Union[EngineDelta, EngineOutput]) -> None:

@@ -63,8 +63,9 @@ EngineDelta/EngineOutput을 전달하고, 여러 Step이 필요하면 기존 ste
 context.output_visibility 또는 전달한 값이 internal이면 내부 출력으로 유지한다. 한 Step의
 스트리밍 도중 visibility를 바꾸면 실패한다. 다른 표시 범위는 별도 Step으로 분리한다.
 결과 검증 실패도 STEP_FAILED로 전달하며, 실패·취소 시 generator 정리와 큐 처리는 유지한다.
-새 객체 생성 시의 자동 ID와 저장된 값의 복원은 구분한다. from_dict()에서 output_id가
-누락되면 오류이며 임의 ID로 손상된 기록을 복원하지 않는다. 저장 순번이 있는 출력에는
+새 객체 생성 시의 자동 ID·초기값과 저장된 값의 복원은 구분한다. from_dict()는 모든
+현재 직렬화 필드를 요구한다. output_id·final 등 누락된 값을 생성 초기값으로 채우지 않는다.
+명시한 None·False·빈 텍스트·빈 metadata는 각 필드 계약대로 보존한다. 저장 순번이 있는 출력에는
 순번 0을 포함한 과거/중복 델타를 적용할 수 없다.
 
 Loop는 호출별 스트림을 서로 다른 LLM Step에 남기고 마지막 모델 응답만 Run 결과로 확정한다.
@@ -127,7 +128,9 @@ Run 완료 알림 또는 UI 재접속 시에도 재조회한다. 위 간단한 �
 
 ## 저장 및 변경점
 
-- Run/state/outputs.jsonl: 모든 출력 변경의 append-only 저널. 저장이 끝난 이벤트만 구독자에게 전달한다.
+- Run/state/outputs.jsonl: 모든 출력 변경의 append-only 원본. 저장이 끝난 이벤트만 구독자에게 전달한다.
+- Run/state/outputs.manifest.json: 원본의 필수 존재·바이트 수·최종 순번·SHA-256 증거.
+  새 Run에 빈 원본과 함께 생성하며 출력 추가·대화 변경과 같은 transaction으로 갱신한다.
 - Run/run.json의 metadata.output: 최상위 결과 스냅샷.
 - Step/step.json의 metadata.output: 해당 Step의 결과 스냅샷. 공개 조회에서는 step.output을 사용한다.
 - Session 대화: 사용자 표시용 델타를 기록하고, 텍스트 엔진 종료 시 최종 답변으로 본문을 확정한다.
@@ -135,8 +138,9 @@ Run 완료 알림 또는 UI 재접속 시에도 재조회한다. 위 간단한 �
 
 출력 저널과 최종 스냅샷은 **Run/Step 영속 기록**이다. conversation_storage="memory"여도 유지된다.
 메모리 대화의 재시작 복구나 Workflow 재개 조건은 바뀌지 않는다. 실패·중단·pause 시 아직 확정되지
-않은 출력은 final=False로 조회하며 실행을 자동 재시도하지 않는다. 불완전한 마지막 저널 줄은
-무시하고, 완전한 줄의 손상/잘못된 순번은 오류로 처리한다.
+않은 출력은 final=False로 조회하며 실행을 자동 재시도하지 않는다. 필수 원본·manifest의
+소실, 바이트/리비전 불일치, 불완전한 끝줄과 잘못된 순번은 원본을 보존하고 거부한다.
+읽기·append·재열기에서 빈 저널을 재생성하거나 끝줄을 절단하지 않는다.
 
 재조회는 after/limit 커서와 재생성 가능한 희소 위치 인덱스를 사용한다.
 기존 주입 RunRepository를 실행·조회가 공유하며, 다른 저장소는 record_output/output_events/

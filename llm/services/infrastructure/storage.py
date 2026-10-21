@@ -74,6 +74,13 @@ def sync_directory(path: Path) -> None:
 def atomic_json(path: Path, value: dict) -> None:
     # Serialize before touching the destination, including on invalid metadata.
     data = json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+    atomic_bytes(path, data)
+
+
+def atomic_bytes(path: Path, data: bytes) -> None:
+    """Replace owned bytes with the same transaction/fsync contract as JSON."""
+    if not isinstance(data, bytes):
+        raise TypeError("Atomic byte storage requires bytes")
     prepare_replace(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = temporary_file(path)

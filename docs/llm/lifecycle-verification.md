@@ -5,6 +5,72 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-d 출력 원본·필수 manifest·현재 출력 필드
+
+H2-c와 EOF 공백 정리 커밋 `25fd7c6868f0f09715eba1c877ad7d4efb063a85`에서 이어서 작업했다.
+출력 끝 newline 소실을 빈 출력으로 읽기, 손상 끝줄 뒤 append, 저장된 final 누락을 True로
+복원하던 3개 실패를 `tests.llm.test_output_integrity`에 편입했다. 구현 전 별도 probe는
+3 failure, error·Skip 0, 0.002초, exit 1이었다.
+
+### 구현 경계
+
+- EngineDelta/EngineOutput Reader는 모든 현재 직렬화 필드를 요구한다. 생성 초기값을
+  조회에서 적용하지 않으며 명시한 빈 텍스트·None·False는 각 필드 계약대로 보존한다.
+- 새 Run 생성 때만 빈 outputs.jsonl과 outputs.manifest.json을 함께 확정한다. 출력 owner의
+  필수 manifest는 정확한 버전·바이트 수·최종 순번·원본 SHA-256을 보유한다. 기존 파일·manifest
+  소실, 완전한 마지막 기록 소실, 끝 newline 소실, 변조는 조회·append·재열기·백업에서 거부한다.
+  원본을 자르거나 빈 출력으로 재초기화하지 않는다.
+- 출력 추가·manifest·Conversation 갱신은 기존 workspace transaction에 함께 참여한다.
+  atomic_bytes는 기존 atomic_json의 원자 파일 교체를 재사용한다. 입증된 미확정 append의
+  transaction undo는 유지하며 도메인 상태를 저장 인프라에서 추측하지 않는다.
+- outputs.index.json은 파생 캐시다. 검증된 원본에서만 사용·재생성하고 캐시 필드·순번·앵커·
+  prefix 전체 해시를 확인한다. 읽기 전 원본 전체 바이트를 해시하므로 커서의 JSON 디코딩 절감과
+  별개로 I/O가 추가된다. 대용량 누적 출력의 운영 비용은 별도 측정하지 않았다.
+
+### 집중 검증과 수정
+
+첫 관련 52개에서 과거의 끝줄 무시 기대값 1 error(9.531초)를 확인해 원본 보존·거부 계약으로
+수정했다. 이후 82 pass(13.498초), 추가 인덱스 검증 48 pass(6.383초)였다.
+새 13개 회귀는 필드/manifest 소실·타입, 완전한 tail 소실, 손상 prefix와 캐시, 새 Run 재열기와
+실제 자식 프로세스 exit 77을 포함한다. 두 번째 출력의 원본 쓰기 직후와 manifest 저장 직후
+종료 모두 재시작에서 마지막 확정 출력·대화만 유지하고 실행을 자동 재생하지 않는다.
+
+첫 전체 LLM의 실패는 recovery_probe의 ENOSPC 주입이 새 빈 출력 파일 초기화에 먼저 걸린
+경우다. 첫 실제 델타 쓰기에 주입하도록 예제를 수정했다. 실제 프로세스·원본 보존 assertion은
+유지했고 관련 52개가 19.188초에 통과한 뒤 전체 LLM을 다시 실행했다.
+
+### 전체 회귀 — 2026-10-21
+
+| 검사 | 실제 결과 |
+|---|---|
+| 최초 전체 LLM | 1,779개 중 1,778 pass, failure 1, error·Skip 0, 542.199초, exit 1 |
+| 최종 전체 LLM | 1,779 pass, failure·error·Skip 0, 535.788초, exit 0 |
+| 전체 Hub | 540 pass, failure·error·Skip 0, 683.761초, exit 0 |
+| 정적 감사 | new/stale/S1 0, 미정리 후보 557개, exit 0 |
+| R3 mutation | 한도 전달 누락 시 두 번째 실제 파일 효과 검출, 검사 도구 exit 0 |
+| 문서 검사 | 130개 문서, Python fence 178개, 상대 링크 931개, anchor 34개, 오류 0 |
+
+발견/시작 ID는 각각 1,779/540개이며 누락·중복·예상 밖 ID는 0이다. owner의 버전 선언으로
+해소한 정적 후보 3개만 제거했다. 남은 557개는 승인된 예외가 아니다. Hub 이후 변경된 Python은
+examples/llm/recovery_probe.py 하나이며 제품·Hub 소스는 같다. Hub가 해당 예제를 소비하지
+않음을 확인했고 전체 Hub는 반복하지 않았다. 차이는 source-change.json에 기록했다.
+
+실행 환경과 명령은 H2-a/b와 같다. 최초 전체 실행 전후 Python 655개 manifest는
+`aea803d073d6ed32fb0db5f610c31f2523d6c91af37600696bfcafe6eca2450b`로 같다.
+최종 LLM 실행 전후 같은 655개 manifest는
+`180602e75a48570ea4b119c39d1b2f6c6ffd3a84851a3e937a0cdbd6776ee94a`로 같다.
+로그·JSON·전후 manifest는 `/workspace/llm-clean-resume/h2-d/final/`에 보존한다.
+전체 검증 성공 후 아래 계약 문서를 먼저 갱신하고 문서 검사 뒤 커밋·Push한다.
+
+### H2 잔여 항목
+
+동일한 소스에서 별도 Component probe 두 묶음이 각각 2 failure였다. 사용량 probe는
+영수증 파일 소실 뒤 project_max_calls=1에서 두 번째 실제 파일 효과, 완료 종료 시각 누락
+수락을 확인했다(0.098초). 저장소 probe는 선택/비활성 Memory 루트 소실 뒤 재선택이 새
+identity를 발급함을 확인했다(0.176초). 모두 error·Skip 0, exit 1이며 H2-d 성공에 합산하지
+않는다. 원본은 component-usage-loss-probe.py와 component-root-loss-probe.py 및 각 로그다.
+이 4개 실패와 나머지 Component/도메인 계약, H3–H5·P1 잔여 작업·A–F는 미완료다.
+
 ## H2-c Checkpoint 개별 기록·manifest·Run 연결
 
 H2-b 커밋 `b2447472f6ba2e561ee91df2467e98c5f04f9a35`에서 이어서 작업했다.
@@ -75,8 +141,8 @@ Hub 전체를 반복하지 않았으며 이 차이는 `source-change.json`에 �
 별도 `output-integrity-probe.py`는 3 failure, error·Skip 0, 0.002초, exit 1이다.
 출력 JSONL 끝 newline 소실을 빈 출력으로 읽고, 손상 끝줄 뒤에 append하며, 저장된
 EngineOutput의 누락된 final을 True로 채우는 경로를 확인했다. 이 실패는 H2-c 전체 suite
-성공에 합산하지 않는다. 출력 저널·나머지 Component/도메인의 존재·필드·상태 계약,
-H3–H5·P1 잔여 작업·A–F는 아직 완료하지 않았다.
+성공에 합산하지 않는다. 이 출력 3개 실패는 위 H2-d에서 보강·검증했다. 나머지
+Component/도메인의 존재·필드·상태 계약과 H3–H5·P1 잔여 작업·A–F는 아직 완료하지 않았다.
 
 ## H2-b 외부 작업 원장의 필수 존재·상태 증거
 

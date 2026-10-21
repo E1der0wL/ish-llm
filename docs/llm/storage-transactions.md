@@ -14,9 +14,9 @@
 | 서비스 작업 | 함께 확정하는 원본 |
 | --- | --- |
 | 요청 제출·취소 | 선택된 Conversation의 메시지 상태·메타데이터; 큐 투입은 확정 후 |
-| Run 시작 | Run, 입력 COMMITTED/Run 연결, Assistant STREAMING, Session.current_run_id/status |
+| Run 시작 | Run, 새 빈 출력 원본/manifest, 입력 COMMITTED/Run 연결, Assistant STREAMING, Session.current_run_id/status |
 | Run 완료·실패·중단·일시정지 | 미완료 Step 상태, Assistant 상태, Run 상태·사용량 확정, Session 해제 |
-| 출력 델타 묶음 | outputs.jsonl 추가와 대화 JSONL 추가 |
+| 출력 델타 묶음 | outputs.jsonl 추가·필수 manifest 갱신·대화 JSONL 추가 |
 | 최종 출력·Step 완료 | 출력 저널과 Run 결과/대화 또는 Step 결과 |
 | Step 생성·시작·수정·종료 | 이벤트 하나에 대응하는 Step 기록 |
 | 체크포인트 초기화 | 체크포인트 원본과 Run.metadata.checkpoints/checkpoint_revisions 연결 |
@@ -68,7 +68,8 @@ JSONL은 이전 길이만 기록하고 입증된 미확정 쓰기를 되돌릴 �
 H2-a에서 ConversationStore의 근거 없는 끝줄 수리 경로를 제거했다. 끝 newline이 없는
 원본은 조회·append를 거부하고 그대로 보존하며, 재시작해도 자동 절단하지 않는다.
 [H2-a 검증](lifecycle-verification.md#h2-a-도메인-필수-기록사용량refinement)을 따른다.
-이 보강은 출력 저널 등 모든 JSONL owner의 감사 완료를 뜻하지 않는다.
+H2-d는 출력 저널에도 같은 원본 보존 경계를 적용하고 필수 manifest로 전체 바이트를 검증한다.
+모든 JSONL owner의 감사 완료를 뜻하지 않는다.
 스트리밍 중 전체 대화를 복사하거나 재작성하지 않는다.
 명시적 보관 prune의 원자 교체는 기존 파일 hard link로 보호한다. 삭제는 트리를
 저널로 rename한 뒤 확정하고 물리 삭제는 재시도 가능한 GC로 수행한다. GC 실패는
@@ -116,7 +117,7 @@ fsync 및 협력하는 workspace 잠금을 전제로 한다. 파일을 직접 �
 저장 중간 상태를 볼 수 있으므로 UI는 Facade를 사용한다. 저수준 Repository를 직접
 호출할 때는 `with projects.ownership.scope():`로 논리 작업 전체를 감싼다.
 
-확장 파일 저장소는 `atomic_json`, `append_bytes`, `make_directory`, `unlink_file`,
+확장 파일 저장소는 `atomic_json`, `atomic_bytes`, `append_bytes`, `make_directory`, `unlink_file`,
 `remove_named_tree` 또는 현재 Transaction의 참여 메서드를 사용한다. 새 디렉토리의
 사용자 초기화는 선언한 루트 아래에서 해야 한다. 기존 디렉토리를 수정하는 확장은
 공통 파일 함수를 사용해야 한다. 직접 `Path.write_text`, 외부 DB/네트워크 호출은
