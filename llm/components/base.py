@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Optional, Protocol
 
 from llm.core.models import Project, ProjectConfig, new_id
+from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.storage import atomic_json, remove_named_tree
 
 
@@ -74,7 +75,7 @@ class Component:
 
     def root(self, project: Project) -> Path:
         directory = validate_name(self.directory)
-        if directory.lower() in {"sessions", "logs", "state", "cache"}:
+        if directory.lower() in ProjectPaths.CORE_DIRECTORIES:
             raise ValueError("Component directory conflicts with core storage")
         root = self._checked(project.paths.root / directory)
         if self.name in project.initialized_components and not root.is_dir():

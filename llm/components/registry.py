@@ -7,6 +7,7 @@ from copy import deepcopy
 from typing import Any
 
 from llm.core.models import Project
+from llm.core.paths import ProjectPaths
 from llm.services.infrastructure.logging import log_event
 from llm.services.infrastructure.storage import prepare_create
 from .base import ProjectComponent, validate_name
@@ -43,7 +44,7 @@ class ComponentRegistry:
         if not re.fullmatch(r"[a-z][a-z0-9_]*", component.name) or component.name in self._components:
             raise ValueError("Invalid or duplicate component identity")
         directory = validate_name(getattr(component, "directory", None)).lower()
-        if directory in {"sessions", "logs", "state", "cache"} or any(
+        if directory in ProjectPaths.CORE_DIRECTORIES or any(
                 item.directory.lower() == directory for item in self._components.values()):
             raise ValueError("Component directory is reserved or already owned")
         capabilities = component.capabilities

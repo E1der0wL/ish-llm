@@ -12,14 +12,6 @@
   },
   "findings": [
     {
-      "id": "985fa8b312aeafd2d32a5ac3b34a2cdcde961bbeb9d46f580f6506723ae4cb3b:1",
-      "rule": "S3",
-      "file": "llm/components/base.py",
-      "symbol": "Component.root",
-      "line": 73,
-      "detail": "inline domain comparison"
-    },
-    {
       "id": "ebb41ecb42dea50b70f6d05720fc25c4693d739a3fba0a460dacdd46143274cd:1",
       "rule": "S6",
       "file": "llm/components/memory/processing.py",
@@ -130,14 +122,6 @@
       "symbol": "RAGJobs._resume_plan",
       "line": 76,
       "detail": "inline domain assignment: state"
-    },
-    {
-      "id": "66795f816e774847f943b3183f2f8f31016930086db80af2e52b17232fc22317:1",
-      "rule": "S3",
-      "file": "llm/components/registry.py",
-      "symbol": "ComponentRegistry.register",
-      "line": 46,
-      "detail": "inline domain comparison"
     },
     {
       "id": "22f6ba69525c8a12645a763c25698238acbf6d51eb5371c682c9fd2712dd3808:1",

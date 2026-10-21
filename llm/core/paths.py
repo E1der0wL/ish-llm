@@ -2,27 +2,34 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import ClassVar
 
 
 @dataclass(frozen=True, slots=True)
 class ProjectPaths:
+    SESSIONS: ClassVar[str] = "sessions"
+    STATE: ClassVar[str] = "state"
+    LOGS: ClassVar[str] = "logs"
+    CACHE: ClassVar[str] = "cache"
+    CORE_DIRECTORIES: ClassVar[frozenset[str]] = frozenset((SESSIONS, STATE, LOGS, CACHE))
+
     root: Path
 
     @property
     def sessions(self) -> Path:
-        return self.root / "sessions"
+        return self.root / ProjectPaths.SESSIONS
 
     @property
     def state(self) -> Path:
-        return self.root / "state"
+        return self.root / ProjectPaths.STATE
 
     @property
     def logs(self) -> Path:
-        return self.root / "logs"
+        return self.root / ProjectPaths.LOGS
 
     @property
     def cache(self) -> Path:
-        return self.root / "cache"
+        return self.root / ProjectPaths.CACHE
 
 
 @dataclass(frozen=True, slots=True)

@@ -15,6 +15,55 @@ main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다. H1–H5 �
 이전 backend 브랜치를 필요한 구현/시험의 읽기 전용 참고로만 사용하며 현재 계약에 맞춰 이식한다.
 전체 merge·무검증 cherry-pick·구형 형식/호환 계층 복원 및 과거 통과 결과 승계는 하지 않는다.
 
+## P1-c38: Project 핵심 경로 소유 선언 — c36–c38 묶음 Level 3
+
+ProjectPaths가 기존 sessions/state/logs/cache 자식 이름과 그 예약 집합을 소유한다.
+네 경로 property와 Component.root/Registry가 같은 선언을 참조한다. 대소문자 정규화,
+이름 검증·링크 거부·초기화된 저장소 필수 확인과 허용/거부 범위는 유지한다. 실제 네 Path,
+원시 문자열, 단일 dataclass 필드·타입·기본값·slots·직렬화가 같다. 세 파일은 새 선언/import/
+참조를 복원하면 원문이 같고 시험은 변경하지 않았다. 이전 backend의 경로 정의 부분만
+읽었으며 과거 agents 경로나 호환 계층을 복원하지 않았고 과거 검증도 승계하지 않았다.
+
+중복 S3 예약 집합 2건을 실제 제거했다. 기존 감사 12건은 정확한 원문 복원과 다른 모든
+source pin을 대조해 재검토했다. 사유·계약·시험은 유지하고 ProjectPaths 소유 선언을
+연결했다. 관련 정확한 시험 ID 23개가 현재 전체 실행에서 통과했다.
+
+| 실행 | 발견/시작/통과 | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중 LLM | 75/75/75 | 0/0/0 | 11.437초 | 0 |
+| 집중 HUB | 13/13/13 | 0/0/0 | 27.971초 | 0 |
+| 전체 LLM | 2101/2101/2101 | 0/0/0 | 733.520초 | 0 |
+| 전체 HUB | 577/577/577 | 0/0/0 | 720.620초 | 0 |
+
+각 실행의 expected failure·unexpected success·missing·unexpected·duplicates도 0이다.
+집중 검증은 Component 경로 충돌·보존/무결성·의존성·활동 기록·Skill 참조와 Hub 소비자다.
+공통 경로 선언과 c36 재시도 표시·c37 개별 감사의 통합 상태를 묶어 전체 검증했다.
+승인·예산·효과·Resume·RAG·삭제·필수 기록·원본 보존과 장애 주입을 포함하며 별도 c38
+Level2를 중복 실행하지 않았다. 각 full은 현재 소스의 단일 전체 실행이다.
+
+R3 mutation True/outer exit0, 실제 LLM/Hub 환경 각각 ok/exit0, 정적 raw203·reviewed141·
+미해결62(S3 44·S6 18), new/stale/review 오류·필수 S1/S2/S4/S5 미해결0/exit0,
+문서 오류0/exit0이다. P1 최종 S1–S5 및 A–F는 미완료다.
+
+```bash
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c38-focused/llm.json --modules tests.llm.test_components tests.llm.test_component_storage_integrity tests.llm.test_component_dependencies tests.llm.test_component_record_integrity tests.llm.test_project_activity tests.llm.test_skill_references
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c38-focused/hub.json --modules tests.hub.test_components tests.hub.test_question_tools
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite llm --output /workspace/llm-clean-resume/p1/c36-c38-level3/llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.run_regression --suite hub --output /workspace/llm-clean-resume/p1/c36-c38-level3/hub.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_budget_mutation
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_architecture --require S1 --require S2 --require S4 --require S5 --output /workspace/llm-clean-resume/p1/c36-c38-level3/aux/static.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_docs --output /workspace/llm-clean-resume/p1/c36-c38-level3/aux/docs.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite llm --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c36-c38-level3/aux/env-llm.json
+/workspace/ish-llm/.venv-linux312/bin/python -m tests.llm.check_environment --suite hub --host-revision d833790959a76ac457fdeea3f21a6bea1eecfe12 --output /workspace/llm-clean-resume/p1/c36-c38-level3/aux/env-hub.json
+```
+
+실행 HEAD `d710eaf970d5dc3e7e8ba49f542024c8d6739a82`에 c38 변경을 더했다. 소스704개 hash `96c0d6d1e0375aa4ec66f56f54679f0865b5616b7d35e5b0adab42e9bf6a9fd8`,
+입력/환경866개 hash `3c228ef496af09769a6b90649c447cfceb77d85acd196ff8d07444640146fedb`가 전체 실행 전후 같다. Python3.12.14·136 의존성·
+env5개·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 바이너리를 기록했다. 집중 실행도 자체 전후 동일성을 확인했다.
+원시 명령·exit·ID·log·manifest는 `/workspace/llm-clean-resume/p1/c36-c38-level3/`와 `c38-focused/`에 보존한다.
+결과 문서를 먼저 갱신하고 소스-커밋 동일성·staged diff 확인 후 작업 브랜치에 묶음 Push한다.
+원격 CI 실제 결과는 미확인이며 main·backend·Draft PR #1과 기존 실제 환경 검증 한계는 유지한다.
+
 ## P1-c37: boolean·표시 텍스트·관찰 선언의 개별 분류 — 로컬 Level 2
 
 제품·시험·원본 정적 findings는 변경하지 않고 23개 발생을 개별 근거로 분류했다.
