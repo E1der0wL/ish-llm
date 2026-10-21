@@ -171,18 +171,20 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
             calls = []
             view.on_submit = lambda *args: calls.append(args)
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+            async def candidates(prefix, minimum=1):
+                # PTK exposes an empty state before its threaded completer
+                # produces candidates, including for only part of the input.
+                await until(lambda: view.composer.text == prefix
+                            and (state := view.composer.buffer.complete_state) is not None
+                            and state.original_document.text_before_cursor == prefix
+                            and len(state.completions) >= minimum)
             try:
                 await until(lambda: app.is_running)
                 for prefix, expected in (("/eng", "/engine"), ("/engine r", "review"),
                                          ("Read @no", "notes.md")):
                     view.composer.text = ""
                     pipe.send_text(prefix)
-                    # PTK publishes an empty completion state before the threaded
-                    # completer yields candidates, including for partial input.
-                    await until(lambda: view.composer.text == prefix
-                                and (state := view.composer.buffer.complete_state) is not None
-                                and state.original_document.text_before_cursor == prefix
-                                and bool(state.completions))
+                    await candidates(prefix)
                     state = view.composer.buffer.complete_state
                     self.assertIn(expected, [item.text for item in state.completions])
                     self.assertIsNone(state.current_completion)
@@ -204,7 +206,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 # Multiple candidates: arrows choose, Tab accepts that exact item.
                 view.composer.text = ""
                 pipe.send_text("/")
-                await until(lambda: view.composer.buffer.complete_state is not None)
+                await candidates("/", minimum=2)
                 pipe.send_text("\x1b[B\x1b[B\x1b[A")
                 await until(lambda: view.composer.buffer.complete_state.complete_index == 0)
                 chosen = view.composer.text
@@ -214,18 +216,19 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 # Tab without an arrow selection accepts the first displayed item.
                 view.composer.text = ""
                 pipe.send_text("/eng")
-                await until(lambda: view.composer.buffer.complete_state is not None)
+                await candidates("/eng")
                 pipe.send_text("\t")
                 await until(lambda: view.composer.buffer.complete_state is None)
                 self.assertEqual(view.composer.text, "/engine")
                 # Newline cancels an unconfirmed suggestion and never sends a request.
                 view.composer.text = ""
                 pipe.send_text("/eng")
-                await until(lambda: view.composer.buffer.complete_state is not None)
+                await candidates("/eng")
                 pipe.send_text("\x1b[B")
                 await until(lambda: view.composer.buffer.complete_state.current_completion is not None)
                 pipe.send_text("\x00")
-                await until(lambda: view.composer.text == "/eng\n")
+                await until(lambda: view.composer.text == "/eng\n"
+                            and view.composer.buffer.complete_state is None)
                 self.assertIsNone(view.composer.buffer.complete_state)
                 view.composer.buffer.document = Document("firstsecond", cursor_position=5)
                 pipe.send_text("\x00")
