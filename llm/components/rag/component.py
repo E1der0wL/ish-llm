@@ -555,6 +555,25 @@ class RAGComponent(DefinitionComponent):
         identity, generation, _ = self._corpus_control(project)
         return identity, generation
 
+    def source_version(self, project):
+        """Bind a read snapshot across model calls without parsing the corpus again."""
+        identity, generation, control = self._corpus_control(project)
+        version = (identity, generation, control["corpus_revision"], control["catalog_revision"])
+        if generation is None:
+            return version
+        path = self._generation_path(project, generation)
+        for name in (self.CORPUS_FILE, self.CATALOG_FILE):
+            source = self._checked(path / name)
+            if not source.is_file():
+                raise FileNotFoundError(f"RAG source requires a regular file: {name}")
+            info = source.stat()
+            version += ((info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns),)
+        if not self._checked(path / "chroma").is_dir():
+            raise FileNotFoundError("RAG generation requires its vector index")
+        if not self._checked(path / "graph.kuzu").is_file():
+            raise FileNotFoundError("RAG generation requires graph.kuzu")
+        return version
+
     @classmethod
     def _catalog_rows(cls, documents):
         return [{key: doc[key] for key in (*sorted(cls.CATALOG_FIELDS), "description") if key in doc}

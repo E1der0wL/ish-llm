@@ -69,6 +69,7 @@ class RAGData(ComponentData):
         snapshot = component.snapshot(project)
         component._embedding_dimensions = (snapshot.get("profile") or {}).get("dimensions")
         return component, {**snapshot, "configuration_version": component._configuration_version,
+                           "source_version": component.source_version(project),
                            "search_options": deepcopy(component.search_options)}
 
     @workspace_locked
@@ -90,8 +91,11 @@ class RAGData(ComponentData):
         """저장 트랜잭션 안에서 수명과 세대를 검사하고 이미 읽은 스냅샷을 재사용한다."""
         from .component import RAGConflictError
         project, component = self._current()
-        if (snapshot["identity"], snapshot["generation"]) != component.corpus_version(project):
+        current = component.source_version(project)
+        if (snapshot["identity"], snapshot["generation"]) != current[:2]:
             raise RAGConflictError("Corpus changed during retrieval; retry explicitly")
+        if snapshot["source_version"] != current:
+            raise RAGConflictError("RAG source evidence changed during retrieval; retry explicitly")
         if snapshot.get("configuration_version") != component._configuration_version:
             raise RAGConflictError("RAG configuration changed during retrieval; retry explicitly")
         return project, component

@@ -9,6 +9,69 @@
 시작점은 `refactor/llm-clean`의 `df6b50813eba11776282a3feed8a1abb26d49a7a`와
 기존 P1-c Provider 변경이다. main·이전 backend 브랜치·Draft PR #1은 변경하지 않는다.
 
+## H2-t 모델 호출 전후 원본 증거 — 전체 실행과 후속 안전성 차단
+
+H2-s 로컬 커밋 `70dc3b8adadb2f1f9551d4a2b0dd4faca6df2698`에서 이어서 검색의 읽기 경계를 보강했다.
+이전 고정 소스의 외부 재현은 rerank 중 catalog 소실 뒤에도 신뢰한 검색 결과를 반환하는
+1 failure, error·Skip 0, 1.088초, exit 1이었다. 원래 Assertion을 `test_rag_query_evidence`에 편입했다.
+
+- RAGComponent.source_version은 현재 identity/세대·게시 corpus/catalog revision과 두 필수 원본의
+  device/inode/size/mtime/ctime을 묶는다. 필수 파일의 regular/link 상태와 vector/graph 색인 존재도
+  확인한다. 새 저장 형식이나 모델 호출·정책은 추가하지 않는다.
+- RAGData는 같은 ownership 범위에서 검증된 snapshot과 이 증거를 얻고, query 모델 호출 후 검색·
+  rerank 후 결과 반환·관계 결합 전에 현재 증거를 재검사한다. 변경·소실은 명시 거부하고 원본을
+  복원하거나 모델을 재실행하지 않는다. 기존 generation/configuration CAS와 결과 의미는 유지한다.
+- 새 5개 회귀는 원래 catalog 소실, query 호출 중 소실, 같은 크기의 원문 변조와 mtime 복원,
+  graph/vector 색인 소실, 게시 proof 변경을 실제 모델 파일 효과·원본 hash와 함께 검사한다.
+  기존 정상 조회 및 코퍼스 1회 파싱 Assertion도 유지한다. source stat은 협력하는 workspace
+  잠금 아래의 불변 snapshot 증거이며 임의 외부 writer와의 분산 트랜잭션 보장은 아니다.
+
+영향 범위는 RAGData 검색/모델 대기/재정렬/관계 결합과 Component 원본 owner다. H2-r/s와 묶는
+전체 게이트이므로 관련 집중 검증 후 전체 LLM/Hub를 새로 실행했다. 승인·예산·효과·Checkpoint·
+삭제·트랜잭션의 실제 중단/외부 효과 Assertion, 직접 Repository/Component/Engine/Application/Hub
+소비자를 포함하고 부분 Level 2를 중복 실행하지 않았다.
+
+| 현재 브랜치 실행 | discovered/started | pass | failure/error/Skip | 시간 | exit |
+|---|---:|---:|---:|---:|---:|
+| 집중, 5 modules | 77/77 | 77 | 0/0/0 | 26.159초 | 0 |
+| 전체 LLM | 1941/1941 | 1941 | 0/0/0 | 670.193초 | 0 |
+| 전체 Hub | 540/540 | 540 | 0/0/0 | 707.146초 | 0 |
+| 별도 U 필수 안전성 재현 | 1/1 | 0 | 1/0/0 | 1.395초 | 1 |
+
+runner들의 expected failure/unexpected success/미실행/미발견 실행/중복은 각각 0이다. 다만 아래 U
+안전성 실패가 별도로 발견됐으므로 **묶음 게이트는 미완료이고 Push하지 않는다**. 전체 runner의
+개별 통과를 이 실패까지 해결한 완료로 표현하거나 실패를 합계에서 제외해 게이트를 통과시키지 않는다.
+기존 계약으로 수정·재검증한 후에만 후속 묶음 Push와 상위 단계 진행을 허용한다.
+
+정적 감사 new/stale/S1 0, 기존 debt 531, exit 0이다. R3 Mutation은 실제 두 번째 파일 효과
+Assertion으로 호출 한도 누락을 검출했다(True, detector exit 0). 문서는 이 검증 후 로컬 커밋보다
+먼저 갱신했다. 문서 검사는 131 documents·178 Python fences·953 relative links·34 anchors,
+오류 0, exit 0이다. 별도 Git 메타데이터 없는 복사본의 초안 77 pass/26.957초/exit 0과 정적 통과는
+현재 결과로 승계하지 않았으며 위 실행은 현재 브랜치에서 수행했다.
+전후 Python 674개 hash는 `4c260867c6cf014708d2756539a09c38e4743776003532505d3010a69a39be6f`,
+전체 입력 833개/환경 hash는 `e02d83ef6eb279bde04d1bd6750302b633f546929d3201eeaa6cce3e0fa0c22b`로 각각 동일하다. Python 3.12.14·UID 1000·
+136 packages·host `d833790959a76ac457fdeea3f21a6bea1eecfe12`와 기존 bwrap/Xvfb/xclip·
+5개 환경 변수를 유지했다.
+
+전체 argv/요약/로그·원래 실패는 `/workspace/llm-clean-resume/h2-t/`에 있다.
+
+```bash
+python /workspace/llm-clean-resume/h2-q/run-focused.py llm /workspace/llm-clean-resume/h2-t/focused-1 tests.llm.test_rag_query_evidence tests.llm.test_optimized_queries tests.llm.test_rag_optimization tests.llm.test_rag_components tests.llm.test_unified_rag
+python /workspace/llm-clean-resume/h2-m/run-full.py llm /workspace/llm-clean-resume/h2-t/final
+python /workspace/llm-clean-resume/h2-m/run-full.py hub /workspace/llm-clean-resume/h2-t/final
+python -m tests.llm.check_architecture --require S1 --output /workspace/llm-clean-resume/h2-t/static-1.json
+python -m tests.llm.check_budget_mutation
+python -m tests.llm.check_docs --output /workspace/llm-clean-resume/h2-t/docs.json
+```
+
+U 재현은 미완료 Job의 완료 embedding_0 영수증을 embedding_99로 바꾸고 목록 key를 맞춘 뒤
+retry하는 경우다. 실제 효과 파일이 `first` 한 줄에서 `first/first/second` 세 줄로 늘었다.
+`/workspace/llm-clean-resume/h2-u/renamed-batch-probe.log`와 위 고정 소스에 증거를 보존했다.
+처음 외부 probe 스크립트의 괄호 오류는 renamed-batch-probe-syntax.log에 별도로 보존했고 실제
+실패 재현과 혼합하지 않는다. 저장 key와 파일명 연결을 owner가 검증하도록 수정하고 원래 실제
+중복 효과 Assertion을 유지한 후 현재 브랜치 전체 회귀를 새로 수행한다. H2 전체·원격 CI 완료가
+아니며 H3–H5·P1·A–F에는 진입하지 않는다. 원격 CI 결과도 아직 확인하지 못했다.
+
 ## H2-s 그래프 배치 필수 증거 — Level 2
 
 H2-r 로컬 커밋 `bb67fb5bc8b5d50eca26cc896e31d52ce198d184`에서 이어서 저장 그래프 배치를 보강했다.
