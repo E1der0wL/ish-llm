@@ -1,5 +1,7 @@
 """Real Loop recovery: no Tool replay, bounded analysis, preserved input and UI."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 from llm.llm import Diagnostic, CompletionRepair
 
 import asyncio
@@ -87,7 +89,7 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
         source = SourceTools()
         source.content = "large command output; records=120; errors=0\n" * 200
         runtime = HubRuntime(HubConfig(temp.name, model="test/model", auto_title=False,
-            engine_factories={"loop": lambda: HubLoopEngine(completion_fn=model)},
+            engine_factories={"loop": lambda: HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
             component_factories=(lambda: source, *components),
             project_config={"parameters": {"engines": {"loop": {"policy": {"provider": {"max_attempts": attempts}}}}}}))
         self.addAsyncCleanup(runtime.close)
@@ -126,8 +128,9 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
             else:
                 self.assertEqual(old, new)
         self.assertEqual(original["tools"], corrected["tools"])
-        self.assertEqual(observations[-1].request["messages"], corrected["messages"])
-        self.assertTrue(any("large command output" in str(m.get("content"))
+        from llm.providers.wire_codec import encode_message
+        self.assertEqual([encode_message(m) for m in observations[-1].request.messages], corrected["messages"])
+        self.assertTrue(any("large command output" in m.text
                             for m in observations[-1].original_messages))
         steps = await run.steps.alist()
         tool = next(step for step in steps if step.kind == "tool")
@@ -365,24 +368,24 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
             recovery.current.reset(token)
 
     async def test_input_selection_preserves_current_request_steering_and_tool_arguments(self):
-        history = [{"role": "user", "content": "old " * 100}, {"role": "assistant", "content": "answer " * 100}]
-        tail = [{"role": "user", "content": "current"},
-                {"role": "assistant", "content": "", "tool_calls": [{"id": "c", "function": {"name": "read", "arguments": "{}"}}]},
-                {"role": "tool", "tool_call_id": "c", "content": "source " * 100},
-                {"role": "user", "content": "steering"}]
-        request = {"messages": [{"role": "system", "content": "rules"}, *history, *tail]}
+        from llm.core.model_protocol import ModelRequest, ModelMessage, ToolCall, ToolResult
+        history = [ModelMessage("user", "old " * 100), ModelMessage("assistant", "answer " * 100)]
+        tail = [ModelMessage("user", "current"),
+                ModelMessage("assistant", "", calls=(ToolCall("c", "read", {}),)),
+                ModelMessage("tool", result=ToolResult("c", "source " * 100)),
+                ModelMessage("user", "steering")]
         client = threading.Lock()
-        request["client"] = client
+        request = ModelRequest([ModelMessage("system", "rules"), *history, *tail], {"client": client})
         failure = CompletionRecovery(Diagnostic("provider_invalid_request", "too long"), request, 1, (1, 2, 5))
         items = reductions(failure, 100)
         from llm.llm import CompletionRepair
         result = await CompletionPipeline.recover(request, failure.diagnostic, 1, current_index=3,
             decide=lambda _: CompletionRepair({item.index: "summary" for item in items}))
-        self.assertIs(result["client"], client)
-        self.assertEqual(result["messages"][0], request["messages"][0])
+        self.assertIs(result.parameters["client"], client)
+        self.assertEqual(result.messages[0], request.messages[0])
         for value in (tail[0], tail[1], tail[3]):
-            self.assertIn(value, result["messages"])
-        self.assertEqual(request["messages"][-2]["content"], "source " * 100)
+            self.assertIn(value, result.messages)
+        self.assertEqual(request.messages[-2].text, "source " * 100)
 
     def test_recovery_explanation_preserves_completion_validation_kind(self):
         diagnosis = from_diagnostic(Diagnostic("completion_invalid_response" or "execution_failed", "", details={"hub_recovery": {

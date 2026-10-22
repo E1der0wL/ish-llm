@@ -1,3 +1,5 @@
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
 from tests.llm.configuration_fixtures import memory_settings
 """실제 Facade/저장/Loop 경계에서 추가 지시와 기존 실행 계약을 검증한다."""
 
@@ -44,7 +46,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         app = LargeLanguageModel(Path(folder.name), components=components or [], services=services,
-            engines={"worker": LoopEngine(completion_fn=model)})
+            engines={"worker": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         if observer is not None:
             app.events.subscribe(observer, channel="engine")
         self.addAsyncCleanup(app.shutdown)
@@ -123,7 +125,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         root = session.project.paths.root.parent.parent
         project_id, session_id = session.project.id, session.id
         await app.shutdown()
-        reopened = LargeLanguageModel(root, components=[], engines={"worker": LoopEngine(completion_fn=model)})
+        reopened = LargeLanguageModel(root, components=[], engines={"worker": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         self.addAsyncCleanup(reopened.shutdown)
         restored = await (await reopened.projects.aload(project_id)).sessions.aload(session_id)
         resumed = await (await restored.run.resume(run.id, engine="worker")).wait(timeout=10)
@@ -152,7 +154,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_current_turn_cannot_be_trimmed_to_only_latest_instruction(self):
         model = Model([chunk("x" * 50, finish="stop")])
-        services = BackendServices(token_counters={"chars": lambda request: sum(len(m.get("content") or "") for m in request["messages"])})
+        services = BackendServices(token_counters={"chars": lambda request: sum(len(m.text) for m in request.messages)})
         _, session, request, run = await self.setup_backend(model, services=services,
             config={"parameters": {"engines": {"worker": {'policy': {'completion': {'max_tokens': 20, 'counter': 'chars'}}}}}})
         await session.run.steer(run.id, "new")
@@ -417,7 +419,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(failed.data.status, "failed")
         root, project_id, session_id = session.project.paths.root.parents[1], session.project.id, session.id
         await app.shutdown()
-        async with LargeLanguageModel(root, components=[], engines={"worker": LoopEngine(completion_fn=model)}) as reopened:
+        async with LargeLanguageModel(root, components=[], engines={"worker": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}) as reopened:
             restored = await (await reopened.projects.aload(project_id)).sessions.aload(session_id)
             self.assertEqual(await restored.aconversation(), [])
             completed = await (await restored.run.submit("fresh", engine="worker")).wait(timeout=10)
@@ -500,7 +502,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         def auxiliary(**request):
             summaries.append(json.loads(request["messages"][1]["content"]))
             yield chunk('{"summary":"first request and its correction"}', finish="stop")
-        component = MemoryComponent(completion_fn=auxiliary)
+        component = MemoryComponent(completion_adapter=LiteLLMCompletionAdapter(completion_fn=auxiliary))
         config = {"parameters": {"components": {"memory": memory_settings({'processing': memory_processing({'summarize': True, 'recall': False, 'keep_turns': 1, 'summary_after_chars': 1, 'completion': {'model': 'test/aux'}})})}}}
         model = Model([chunk("draft", finish="stop")], [chunk("answer", finish="stop")],
                       [chunk("second answer", finish="stop")], [chunk("third answer", finish="stop")])
@@ -520,7 +522,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         from tests.llm.configuration_fixtures import memory_processing
         def auxiliary(**request):
             yield chunk('{"summary":"completed work"}', finish="stop")
-        component = MemoryComponent(completion_fn=auxiliary)
+        component = MemoryComponent(completion_adapter=LiteLLMCompletionAdapter(completion_fn=auxiliary))
         config = {"parameters": {"components": {"memory": memory_settings({'processing': memory_processing({'summarize': True, 'recall': False, 'active_keep_iterations': 1, 'summary_after_chars': 1, 'completion': {'model': 'test/aux'}})})}}}
         effects = []
         async def act(arguments):
@@ -552,7 +554,7 @@ class LoopSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(model.requests), 1)
 
     async def test_completion_budget_removes_entire_prior_steered_turn(self):
-        counter = lambda r: sum(len(m.get("content") or "") for m in r["messages"])
+        counter = lambda r: sum(len(m.text) for m in r.messages)
         services = BackendServices(token_counters={"chars": counter})
         model = Model([chunk("draft", finish="stop")], [chunk("answer", finish="stop")],
                       [chunk("done", finish="stop")])

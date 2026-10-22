@@ -133,7 +133,7 @@ StorageIO의 commit 완료 계약을 따릅니다.
 결과는 text와 blocks를 포함하는 JSON이며 각 block은 text와 유효한 box를 가져야 합니다.
 confidence는 선택 사항이며 유한한 수여야 합니다. backend가 직접 취소를 지원해야 합니다.
 OCR 구현이나 실행 환경을 바꾸면 해당 backend.revision을 갱신하세요. 호스트가
-completion_fn 등 Vision 구현을 교체하면 VisionComponent(revision=...)도 갱신해
+operation adapter 등 Vision 구현을 교체하면 VisionComponent(revision=...)도 갱신해
 이전 승인·체크포인트에서 달라진 구현을 실행하지 않도록 합니다.
 PaddleOCR/EasyOCR 구현 및 자동 선택은 아직 포함하지 않습니다.
 

@@ -1,5 +1,7 @@
 """Graph의 미래 Agent 실행 예약. 실제 서비스/저장/체크포인트와 제어 가능한 모델을 사용한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from copy import deepcopy
 import unittest
@@ -33,7 +35,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         document["edges"].append({"source": "gate", "target": document["entry"]})
         document["entry"] = "gate"
         nodes = handlers or {"agent": AgentNode(engines={
-            name: LoopEngine(completion_fn=model) for name, model in models.items()})}
+            name: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)) for name, model in models.items()})}
         await self.setup_graph(models, document, graphs=graphs, profiles=profiles, handlers={**nodes, "gate": gate})
         async def release():
             self.gate_release.set()
@@ -59,7 +61,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             checkpoint_name = "loop"
             def for_agent(self, definition):
                 selected.append(definition["engine"])
-                return LoopEngine(completion_fn=model).for_agent(definition)
+                return LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent(definition)
             async def execute(self, context):
                 raise AssertionError("Only the bound Engine executes")
                 yield
@@ -80,7 +82,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         class Factory:
             required_capabilities = LoopEngine.required_capabilities
             def for_agent(self, definition):
-                return LoopEngine(completion_fn=model).for_agent(definition)
+                return LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent(definition)
             async def execute(self, context):
                 if False:
                     yield
@@ -105,7 +107,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             checkpoint_name = "loop"
             bound_mode = SteeringMode.CONSUME
             def for_agent(self, definition):
-                engine = LoopEngine(completion_fn=model).for_agent(definition)
+                engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent(definition)
                 engine.steering_mode = self.bound_mode
                 return engine
             async def execute(self, context):
@@ -142,7 +144,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             .connect("a", "end").connect("b", "end").to_dict())
         graph["initial_state"] = {"pick": "a"}
         routes = await self.gated({"a": model, "b": Model(gate=False)}, graph,
-            handlers={"agent": AgentNode(engines={"a": LoopEngine(completion_fn=model), "b": Unselected()})})
+            handlers={"agent": AgentNode(engines={"a": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)), "b": Unselected()})})
         self.assertEqual(routes, [SteeringRoute(("flow",), "a", "a")])
         self.gate_release.set()
         await self.completed()
@@ -212,7 +214,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_nested_graph_agent_exposes_only_leaf_reservations(self):
         model = Model([chunk("leaf", finish="stop")], gate=False)
-        leaf = AgentNode(engines={"writer": LoopEngine(completion_fn=model)})
+        leaf = AgentNode(engines={"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         outer = AgentNode(engines={"subgraph": GraphEngine(handlers={"agent": leaf})})
         profiles = {"writer": {"purpose": "write", "engine": "writer", "completion": {"model": "test"}},
             "coordinator": {"purpose": "delegate", "engine": "subgraph", "engine_options": {"workflow": "nested"}}}
@@ -396,7 +398,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
                 await release.wait()
                 return await super().__call__(node)
         model = Model([chunk("done", finish="stop")], gate=False)
-        handler = GatedAgent(engines={"writer": LoopEngine(completion_fn=model)})
+        handler = GatedAgent(engines={"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         await self.setup_graph({"writer": model}, handlers={"agent": handler})
         async def cleanup():
             release.set()

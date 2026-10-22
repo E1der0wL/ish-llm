@@ -1,5 +1,7 @@
 """Shared contracts work without selecting or interpreting a built-in owner."""
 
+from llm.core.model_protocol import ModelRequest, ModelMessage, ContentPart, ContentKind
+
 import tempfile
 import unittest
 from dataclasses import dataclass
@@ -149,12 +151,12 @@ class ConfigurationBoundaryTests(unittest.TestCase):
 class ModelObservationTests(unittest.IsolatedAsyncioTestCase):
     async def test_text_processing_rejects_unsupported_representation_before_callback(self):
         seen = []
-        message = CompletionMessage({"role": "user", "content": [{"type": "text", "text": "instruction"}]}, "current")
+        message = CompletionMessage(ModelMessage("user", (ContentPart(ContentKind.TEXT, "instruction"),)), "current")
         request = CompletionRequest({}, [message], 0)
         with self.assertRaisesRegex(ValueError, "string current instruction"):
-            CompletionPipeline._validate(request, [message], {}, "current")
+            CompletionPipeline._validate(request, [message], ModelRequest(), "current")
         with self.assertRaisesRegex(ValueError, "string current instruction"):
-            await CompletionPipeline.recover(request.to_kwargs(), Diagnostic("custom", "too large"), 1,
+            await CompletionPipeline.recover(request.to_model(), Diagnostic("custom", "too large"), 1,
                 current_index=0, decide=lambda repair: seen.append(repair))
         self.assertEqual(seen, [])
 

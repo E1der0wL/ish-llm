@@ -1,4 +1,6 @@
 """공통 출력 계약: 저장 후 알림, 재조회, 중단, 병렬 Agent 및 결과 소유권."""
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 import json
 import tempfile
@@ -283,8 +285,8 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(values[run.id].text, "abcd")
 
     async def test_parallel_agents_have_distinct_internal_streams_and_one_root_result(self):
-        engines = {name: LoopEngine(completion_fn=ScriptedCompletion(
-            [chunk(name + "1"), chunk(name + "2", finish="stop")])) for name in ("a", "b")}
+        engines = {name: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=ScriptedCompletion(
+            [chunk(name + "1"), chunk(name + "2", finish="stop")]))) for name in ("a", "b")}
         graph = (WorkflowGraph(entry="fork").node("fork", "parallel", join="join")
                  .node("a", "agent", agent="a").node("b", "agent", agent="b")
                  .node("join", "join").node("end", "end")

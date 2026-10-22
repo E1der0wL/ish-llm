@@ -1,4 +1,6 @@
 """Probe remaining RAG state contracts without changing frozen regression sources."""
+
+from llm.providers.operations import LiteLLMOperations
 import json
 from copy import deepcopy
 from pathlib import Path
@@ -25,7 +27,7 @@ class JobStateTests(unittest.IsolatedAsyncioTestCase):
             with self.effects.open('a') as stream:
                 stream.write('called\n')
             return await fake_embedding(**request)
-        self.component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=embedding), extractor=Extractor())
+        self.component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=embedding)), extractor=Extractor())
         self.app = LargeLanguageModel(self.root / 'workspace', engines={}, components=[self.component])
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate(components=['rag'], config=rag_project())

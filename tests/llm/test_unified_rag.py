@@ -1,4 +1,6 @@
 """Unified RAG evidence, required storage fields and atomic publication."""
+
+from llm.providers.operations import LiteLLMOperations
 from tests.llm.configuration_fixtures import rag_settings, rag_project
 
 import importlib.util
@@ -34,7 +36,7 @@ class UnifiedRAGTests(unittest.IsolatedAsyncioTestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.embedding = EmbeddingModel(model="test/embedding", embedding_fn=fake_embedding)
+        self.embedding = EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=fake_embedding))
         self.rag = RAGComponent(embedding=self.embedding, extractor=ChainExtractor())
         self.backend = LargeLanguageModel(self.root, engines={}, components=[self.rag])
         self.addAsyncCleanup(self.backend.shutdown)

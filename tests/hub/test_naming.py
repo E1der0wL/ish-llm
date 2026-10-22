@@ -1,5 +1,7 @@
 """Titles inherit the source provider without inheriting its response contract."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import tempfile
 import unittest
 
@@ -23,7 +25,7 @@ class NamingTests(unittest.IsolatedAsyncioTestCase):
             yield chunk(content="Fixed title", finish="stop")
         def factory(config):
             return LargeLanguageModel(config.workspace, engines={
-                "review": LoopEngine(completion_fn=answer), TITLE_ENGINE: TitleEngine(completion_fn=title)})
+                "review": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=answer)), TITLE_ENGINE: TitleEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=title))})
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, engine="review"), factory)
             try:
@@ -67,7 +69,7 @@ class NamingTests(unittest.IsolatedAsyncioTestCase):
             yield chunk(content="Title", finish="stop")
         def factory(config):
             return LargeLanguageModel(config.workspace, engines={
-                "loop": LoopEngine(completion_fn=completion), TITLE_ENGINE: TitleEngine(completion_fn=completion)})
+                "loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)), TITLE_ENGINE: TitleEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, project_config={"parameters": {"engines": {
                 "loop": {'config': {'completion': {'model': 'test/chat'}}},

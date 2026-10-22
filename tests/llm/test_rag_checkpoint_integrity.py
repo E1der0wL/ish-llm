@@ -1,4 +1,6 @@
 """Lost RAG preparation receipts must not become permission to repeat completed work."""
+
+from llm.providers.operations import LiteLLMOperations
 import asyncio
 import json
 from pathlib import Path
@@ -28,7 +30,7 @@ class PreparedLossTests(unittest.IsolatedAsyncioTestCase):
                 with effects.open('a') as stream:
                     stream.write('called\n')
                 return await fake_embedding(**request)
-            component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=embedding),
+            component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=embedding)),
                                      extractor=Extractor())
             async with LargeLanguageModel(root / 'workspace', engines={}, components=[component]) as app:
                 project = await app.projects.acreate('probe', components=['rag'], config=rag_project({
@@ -65,7 +67,7 @@ class CheckpointStorageTests(unittest.IsolatedAsyncioTestCase):
             with self.effects.open('a') as stream:
                 stream.write('called\n')
             return await fake_embedding(**request)
-        self.component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=embedding),
+        self.component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=embedding)),
                                       extractor=Extractor())
         self.app = LargeLanguageModel(self.root / 'workspace', engines={}, components=[self.component])
         self.addAsyncCleanup(self.app.shutdown)
@@ -214,6 +216,7 @@ class CheckpointStorageTests(unittest.IsolatedAsyncioTestCase):
         code = textwrap.dedent('''
             import asyncio, json, os, sys
             from pathlib import Path
+            from llm.providers.operations import LiteLLMOperations
             from unittest.mock import patch
             from llm.llm import LargeLanguageModel
             from llm.components.rag import RAGComponent, EmbeddingModel, job_storage
@@ -228,7 +231,7 @@ class CheckpointStorageTests(unittest.IsolatedAsyncioTestCase):
                     stream.write('called\\n')
                 return await fake_embedding(**request)
             async def main():
-                component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=embedding), extractor=Extractor())
+                component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=embedding)), extractor=Extractor())
                 async with LargeLanguageModel(root / 'workspace', engines={}, components=[component]) as app:
                     project = await app.projects.acreate('child', components=['rag'], config=rag_project())
                     rag = await project.components.aget('rag')
@@ -292,7 +295,7 @@ class CheckpointStorageTests(unittest.IsolatedAsyncioTestCase):
                         with (root / 'effects').open('a') as stream:
                             stream.write('unexpected replay\n')
                         raise AssertionError('Reopening cannot invoke a model')
-                    component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=forbidden),
+                    component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=forbidden)),
                                              extractor=Extractor())
                     async with LargeLanguageModel(root / 'workspace', engines={}, components=[component]) as app:
                         project = await app.projects.aload(context['project_id'])

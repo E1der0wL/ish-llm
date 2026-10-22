@@ -1,5 +1,9 @@
 """SDK formats, resolver identities and JSON instance data stay with their owners."""
 
+from llm.core.model_protocol import ModelMessage, ModelRequest
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import tempfile
 import unittest
 from copy import deepcopy
@@ -17,7 +21,8 @@ from llm.core.schema import checked_schema, implementation_schema, object_schema
 from llm.engines.base import BaseEngine, EngineEvent, EngineEventType
 from llm.engines.registry import EngineRegistry
 from llm.llm import LargeLanguageModel
-from llm.providers.streaming import CompletionUpdate, CompletionError
+from llm.providers.streaming import CompletionError
+from llm.core.model_protocol import CompletionUpdate, ModelResponse, StopReason
 from llm.services.runtime.runs import RunManager
 from llm.services.schema import describe_project_config
 
@@ -112,11 +117,11 @@ class StreamingBoundaryTests(unittest.IsolatedAsyncioTestCase):
                 yield CompletionUpdate(text=chunk[0], reasoning=chunk[1], usage={"total_tokens": 3},
                                        finish_reason="custom-done")
             def finish(self):
-                return {"custom_message": "preserved"}
-        engine = BaseEngine(completion_fn=lambda **kw: iter([("answer", "reason")]), completion_decoder=Decoder)
-        response = {}
-        events = [event async for event in engine.stream_completion({}, response=response, max_output_chars=20)]
-        self.assertEqual(response, {"custom_message": "preserved"})
+                return ModelResponse(ModelMessage("assistant", "answer", opaque={"custom_message": "preserved"}), StopReason.COMPLETE)
+        engine = BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=lambda **kw: iter([("answer", "reason")]), completion_decoder=Decoder))
+        response = []
+        events = [event async for event in engine.stream_completion(ModelRequest([], {}), response=response, max_output_chars=20)]
+        self.assertEqual(response[0].message.opaque, {"custom_message": "preserved"})
         self.assertEqual([item for item in events if isinstance(item, str)], ["answer"])
         result = [item.completion for item in events if isinstance(item, EngineEvent)][-1]
         self.assertEqual((result.status, result.reasoning_content, result.finish_reason),
@@ -137,13 +142,13 @@ class StreamingBoundaryTests(unittest.IsolatedAsyncioTestCase):
         def provider(**kw):
             calls.append(kw)
             yield object()
-        response, events = {"previous": "value"}, []
-        engine = BaseEngine(completion_fn=provider, completion_decoder=Decoder)
+        response, events = [ModelResponse(ModelMessage("assistant", "previous value"))], []
+        engine = BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider, completion_decoder=Decoder))
         with self.assertRaises(CompletionError):
-            async for event in engine.stream_completion({}, response=response, provider={"max_attempts": 3}):
+            async for event in engine.stream_completion(ModelRequest([], {}), response=response, provider={"max_attempts": 3}):
                 events.append(event)
         self.assertEqual(len(calls), 1)
-        self.assertEqual(response, {"previous": "value"})
+        self.assertEqual(response, [ModelResponse(ModelMessage("assistant", "previous value"))])
         self.assertEqual(events[-1].completion.status, "failed")
         self.assertEqual(events[-1].completion.reasoning_content, "partial")
 
@@ -160,12 +165,12 @@ class StreamingBoundaryTests(unittest.IsolatedAsyncioTestCase):
                         yield CompletionUpdate(text="partial")
                     def finish(self):
                         return message
-                engine = BaseEngine(completion_fn=lambda **kw: iter([object()]), completion_decoder=Decoder)
-                response = {"previous": "preserved"}
+                engine = BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=lambda **kw: iter([object()]), completion_decoder=Decoder))
+                response = [ModelResponse(ModelMessage("assistant", "previous preserved"))]
                 with self.assertRaises(TypeError):
-                    async for _ in engine.stream_completion({}, response=response):
+                    async for _ in engine.stream_completion(ModelRequest([], {}), response=response):
                         pass
-                self.assertEqual(response, {"previous": "preserved"})
+                self.assertEqual(response, [ModelResponse(ModelMessage("assistant", "previous preserved"))])
 
 
 class ResolverUsageTests(unittest.IsolatedAsyncioTestCase):

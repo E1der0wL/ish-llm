@@ -6,33 +6,37 @@ from collections.abc import Awaitable, Callable
 from typing import Any, Optional
 
 from ._client import ModelClient
-from llm.providers.embeddings import extract_single_embedding, validate_vectors
+from llm.core.model_protocol import EmbeddingResult, ModelOperation, copy_model
+from llm.core.embeddings import validate_vectors
 
 
 class EmbeddingModel(ModelClient):
-    operation = "aembedding"
-    enforced_configuration = {"caching": False, "cache": {"no-cache": True, "no-store": True}}
+    operation = ModelOperation.EMBEDDING
+
+    @property
+    def enforced_configuration(self):
+        return copy_model(self.adapter.embedding_enforced)
 
     def identity(self, **kwargs):
         return {**self.params, **kwargs}.get("model")
 
     def extract_vector(self, response, **kwargs):
         """모델 출력 계약은 클라이언트가 소유하고 코퍼스 차원 계약은 RAG가 소유한다."""
-        return extract_single_embedding(response, dimensions={**self.params, **kwargs}.get("dimensions"))
+        if not isinstance(response, EmbeddingResult):
+            raise TypeError("Embedding adapter must return EmbeddingResult")
+        return validate_vectors([response.vector], dimensions={**self.params, **kwargs}.get("dimensions"))[0]
 
     def validate_vectors(self, vectors, **kwargs):
         return validate_vectors(vectors, dimensions={**self.params, **kwargs}.get("dimensions"))
 
-    def __init__(self, *, embedding_fn: Optional[Callable[..., Awaitable[Any]]] = None,
-                 **params: Any) -> None:
-        super().__init__("aembedding", embedding_fn, params)
+    def __init__(self, *, adapter=None, **params) -> None:
+        super().__init__(params, adapter=adapter)
 
-    async def embed(self, input: Any, **kwargs: Any) -> Any:
-        """Return LiteLLM's native response, including vectors and reported usage.
-
-        Per-call kwargs override defaults. Provider-specific input formats and
-        model parameters are forwarded without an application allowlist.
-        """
-        # RAG 벡터 무결성 계약. 일반 ModelClient의 provider cache 인자는 변경하지 않는다.
-        kwargs.update(caching=False, cache={"no-cache": True, "no-store": True})
-        return await self._invoke(input=input, **kwargs)
+    async def embed(self, input: Any, **kwargs: Any) -> EmbeddingResult:
+        """Return one validated vector and usage; the adapter owns SDK cache options."""
+        result = await self.adapter.embed(copy_model(input),
+                                          {**copy_model(self.params), **copy_model(kwargs), **self.enforced_configuration},
+                                          self.provider_options, decide=self._retry_decider)
+        if not isinstance(result, EmbeddingResult):
+            raise TypeError("Embedding adapter must return EmbeddingResult")
+        return result

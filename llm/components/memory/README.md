@@ -32,9 +32,9 @@
 
 추출의 의미 지침은 Project의 `config.processing.extract_prompt_id`로 선택한 Prompt 레코드에서
 공급합니다. MemoryComponent 생성자는 모델·검색·토큰 계수기 구현만 주입받습니다.
-MemoryProcessor도 모델·계수기에 None 또는 callable만 받으며 falsey callable의 identity를
-보존합니다. completion_fn이 None일 때만 현재 Provider 기본 함수를 선택합니다. 잘못된 타입을
-기본 함수로 바꾸지 않습니다. 처리 우선순위는 정확한 int이고 명시한 0/음수도 보존합니다.
+MemoryProcessor는 `completion_adapter`와 callable 계수기를 받으며 falsey 구현의 identity를
+보존합니다. adapter가 None일 때만 기본 LiteLLM Adapter를 선택합니다. stream이 callable이
+아닌 잘못된 구현은 거부합니다. SDK callable은 실제 Adapter에 주입합니다. 처리 우선순위는 정확한 int이고 명시한 0/음수도 보존합니다.
 미설정 시 중립 정렬값은 MemoryProcessor가 선언하며, 활성 기능의 명시 priority 요구는 유지합니다.
 처리 옵션의 Schema·타입·범위·모드는 MemoryProcessor가 소유하고 Component 설정과 런타임이
 같은 선언을 사용합니다. 정수 옵션은 정확한 int만 허용하며 max_output_chars도 포함합니다.

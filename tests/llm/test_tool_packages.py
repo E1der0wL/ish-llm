@@ -1,4 +1,6 @@
 """Project Python Tool 패키지의 저장 경계, schema, 공용 dependency 준비를 검증한다."""
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 from contextlib import contextmanager
 from dataclasses import FrozenInstanceError
@@ -146,7 +148,7 @@ class PackageTests(unittest.TestCase):
         self.data.create({"source": SOURCE}, identifier="search")
         with patch.object(packages, "_host_target", side_effect=AssertionError("not needed")):
             definition = self.data.prepare("search")
-        self.assertEqual(definition["function"]["name"], "search")
+        self.assertEqual(definition.name, "search")
         self.assertEqual(self.projects.sessions.list(self.project), [])
         self.data.save("search", {"source": "# incomplete"})
         with self.assertRaisesRegex(ValueError, "async main"):
@@ -184,10 +186,10 @@ class FunctionTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             main.__tool_options__["strict"] = True
         item = function_tool("search", main)
-        self.assertNotIn("strict", item.definition["function"])
+        self.assertIsNone(item.definition.strict)
         self.assertEqual(item.contract.effect, "read_only")
         explicit = self.compile(SOURCE.replace("@tool(ToolContract(revision='2', effect=ToolEffect.READ_ONLY, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()))", '@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()), strict=False)'))
-        self.assertIs(explicit.definition["function"]["strict"], False)
+        self.assertIs(explicit.definition.strict, False)
 
     def test_supported_annotations_constraints_required_and_defaults(self):
         value = self.compile('''from typing import Annotated, Literal, Optional, Union
@@ -208,7 +210,7 @@ async def main(query: Annotated[str, Field(description="Query")],
         self.assertIs(schema["additionalProperties"], False)
         self.assertEqual(schema["properties"]["limit"], {"type": "integer", "minimum": 1, "maximum": 20, "default": 5})
         registry = ToolRegistry((value,))
-        for args in ('{"query":"x","limit":0}', '{"query":"x","unknown":1}', '{}'):
+        for args in ({'query': 'x', 'limit': 0}, {'query': 'x', 'unknown': 1}, {}):
             with self.assertRaises(ValueError):
                 registry.prepare("search", args)
         self.assertEqual(asyncio.run(value.handler({"query": "x"})), 5)
@@ -290,7 +292,7 @@ class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')],
             [chunk('done', finish='stop')]]))
         app = LargeLanguageModel(temporary.name, components=[ToolComponent()],
-            engines={"loop": LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=runtime))
+            engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=runtime))
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(config={"policies": policies or {}, "parameters": {"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}}, components=["tools"])
         await project.components.tools.acreate({"source": source}, identifier="act")

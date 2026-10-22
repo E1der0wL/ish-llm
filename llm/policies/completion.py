@@ -1,5 +1,7 @@
 """모델 입력 선택 알고리즘. 설정은 호출하는 구현체가 해석하며 저장소를 소유하지 않는다."""
 
+from llm.core.model_protocol import ModelRequest, ModelRole, copy_model
+
 from collections.abc import Callable
 from .errors import ExecutionLimitError
 
@@ -63,31 +65,32 @@ class CompletionPolicy:
         return cls(policy["max_tokens"], counter=counters[name],
                    **({"reserve_tokens": policy["reserve_tokens"]} if "reserve_tokens" in policy else {}))
 
-    def prepare(self, request: dict) -> dict:
+    def prepare(self, request: ModelRequest) -> ModelRequest:
         return self.prepare_turn(request)
 
-    def prepare_turn(self, request: dict, current_index=None, turn_starts=None) -> dict:
+    def prepare_turn(self, request: ModelRequest, current_index=None, turn_starts=None) -> ModelRequest:
         """provider 호출 직전에 사용한다. 반환 요청과 입력 요청은 독립적이다."""
-        from llm.providers.parameters import copy_params
-        result = copy_params(request)
-        messages = result.get("messages", [])
+        if not isinstance(request, ModelRequest):
+            raise TypeError("Completion policy requires ModelRequest")
+        result = copy_model(request)
+        messages = result.messages
         latest = (next((i for i in range(len(messages) - 1, -1, -1)
-                        if messages[i].get("role") == "user"), 0) if current_index is None else current_index)
+                        if messages[i].role == ModelRole.USER), 0) if current_index is None else current_index)
         if type(latest) is not int or latest < 0 or (messages and latest >= len(messages)):
             raise ValueError("Invalid current conversation boundary")
-        pinned = [item for item in messages[:latest] if item.get("role") in ("system", "developer")]
+        pinned = [item for item in messages[:latest] if item.role in (ModelRole.SYSTEM, ModelRole.DEVELOPER)]
         groups = []
         for index, item in enumerate(messages[:latest]):
-            if item.get("role") in ("system", "developer"):
+            if item.role in (ModelRole.SYSTEM, ModelRole.DEVELOPER):
                 continue
-            start = item.get("role") == "user" if turn_starts is None else index in turn_starts
+            start = item.role == ModelRole.USER if turn_starts is None else index in turn_starts
             if start or not groups:
                 groups.append([])
             groups[-1].append(item)
 
         def fits():
             # tokenizer가 요청을 변경해도 실제 전송할 요청에는 반영하지 않는다.
-            count = self.counter(copy_params(result))
+            count = self.counter(copy_model(result))
             if type(count) is not int or count < 0:
                 raise ValueError("Token counter must return a nonnegative integer")
             return count <= self.max_tokens - self.reserve_tokens
@@ -95,7 +98,7 @@ class CompletionPolicy:
         if fits():
             return result
         def select(index):
-            result["messages"] = pinned + [item for group in groups[index:] for item in group] + messages[latest:]
+            result.messages = pinned + [item for group in groups[index:] for item in group] + messages[latest:]
 
         select(len(groups))
         if not fits():

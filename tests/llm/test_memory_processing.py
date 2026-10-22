@@ -1,3 +1,7 @@
+
+from llm.core.model_protocol import ModelMessage, ToolCall, ToolResult
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
 from tests.llm.configuration_fixtures import memory_settings
 """Memory 중심의 장기 문맥 처리, Session 격리, 원본 보존과 오류/재시작 경계를 검증한다."""
 
@@ -65,7 +69,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
                 yield from answer('{"summary":"must not apply"}')
             finally:
                 closed.set()
-        self.component.completion_fn = slow
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=slow)
         task = asyncio.create_task(self.run_loop('continue'))
         self.assertTrue(await asyncio.to_thread(entered.wait, 5))
         await self.session.run.interrupt()
@@ -92,7 +96,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         from unittest.mock import patch
         from llm.components.memory.compaction import prepare_compaction
         async def edit(session, request):
-            request.messages[0].value['content'] = 'edited source'
+            request.messages[0] = request.messages[0].with_text('edited source')
             async for event in prepare_compaction(session, request):
                 yield event
         with patch('llm.components.memory.compaction.prepare_compaction', edit):
@@ -127,7 +131,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
     async def test_explicit_compaction_failure_keeps_original_and_does_not_retry(self):
         await self.configure()
         await self.build_history()
-        self.component.completion_fn = lambda **kwargs: iter(answer('{"summary":"too long"}'))
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=lambda **kwargs: iter(answer('{"summary":"too long"}')))
         view = await self.memory.aget_context(self.session.id)
         await self.memory.arequest_compaction(self.session.id,
             {"method": "summary", "keep_turns": 0, "model_input_chars": 10000, "max_summary_calls": 10, "summary_chars": 1, "prompt": "summarize", "completion": {"model": "test"}},
@@ -181,7 +185,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             calls.append(request)
             raise ConnectionError("auxiliary unavailable")
             yield
-        self.component.completion_fn = unavailable
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=unavailable)
         await self.configure(summarize=True, keep_turns=1, summary_after_chars=1)
         await configure_engine(self.project, "loop" + str(self.serial), provider={"max_attempts": 3})
         run, main = await self.run_loop()
@@ -197,7 +201,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             if len(calls) == 1:
                 raise ConnectionError("auxiliary unavailable")
             yield from self.aux(**request)
-        self.component.completion_fn = retry_once
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=retry_once)
         await self.configure(summarize=True, keep_turns=1, summary_after_chars=1,
                              provider={"max_attempts": 2})
         await configure_engine(self.project, "loop" + str(self.serial), provider={"max_attempts": 1})
@@ -212,7 +216,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
     async def test_active_work_compaction_preserves_original_tool_results(self):
         def summarize(**request):
             yield from answer(json.dumps({'summary': 'Completed lookups; continue remaining work.'}))
-        self.component.completion_fn = summarize
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=summarize)
         await self.configure(summarize=True, summary_after_chars=1, active_keep_iterations=1)
         await self.memory.acreate({'content': 'source data ' * 30}, identifier='source')
         model = ScriptedCompletion(*[
@@ -244,7 +248,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.aux = Auxiliary()
-        self.component = MemoryComponent(completion_fn=self.aux)
+        self.component = MemoryComponent(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.aux))
         self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, PromptComponent()], engines={})
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("Long work", components=["memory", "prompts"])
@@ -264,7 +268,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         model = model or ScriptedCompletion(answer())
         name = "loop" + str(self.serial)
         self.serial += 1
-        self.app.engines.register(name, LoopEngine(completion_fn=model))
+        self.app.engines.register(name, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         # 테스트가 생성하는 Engine별 Project 설정의 read-modify-save만 직렬화한다.
         async with self.config_lock:
             await configure_engine(self.project, name, completion={"model": "test/main"})
@@ -367,23 +371,22 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         submitted = []
         async def summarize(instruction, payload, result):
             self.assertLessEqual(len(json.dumps(payload, ensure_ascii=False)), 540)
-            submitted.extend(c['id'] for m in payload['exchanges'] for c in m.get('tool_calls', []))
+            submitted.extend(c['id'] for m in payload['exchanges'] for c in m['calls'])
             result['summary'] = 'completed'
             if False:
                 yield
         session._model = summarize
-        messages = [CompletionMessage({'role': 'user', 'content': 'work'}, 'input')]
+        messages = [CompletionMessage(ModelMessage('user', 'work'), 'input')]
         for index, size in enumerate((120, 120, 1000, 120)):
-            messages.extend([CompletionMessage({'role': 'assistant', 'content': None,
-                'tool_calls': [{'id': str(index), 'type': 'function', 'function': {'name': 'read', 'arguments': '{}'}}]}),
-                CompletionMessage({'role': 'tool', 'tool_call_id': str(index), 'content': 'x' * size})])
+            messages.extend([CompletionMessage(ModelMessage('assistant', calls=(ToolCall(str(index), 'read', {}),))),
+                CompletionMessage(ModelMessage('tool', result=ToolResult(str(index), 'x' * size)))])
         request = CompletionRequest({}, messages, 5)
         async for _ in session._compact_active(request, {}, {}):
             pass
         self.assertEqual(submitted, ['0', '1'])
         self.assertEqual(request.compacted_tool_calls, ('0', '1'))
-        self.assertEqual([m.value.get('tool_call_id') for m in request.messages if m.value['role'] == 'tool'], ['2', '3'])
-        self.assertEqual(request.messages[2].value['content'], 'x' * 1000)
+        self.assertEqual([m.message.result.call_id for m in request.messages if m.message.role == 'tool'], ['2', '3'])
+        self.assertEqual(request.messages[2].message.text, 'x' * 1000)
 
     async def test_restart_reuses_summary_and_does_not_import_other_session_history(self):
         await self.configure(summarize=True, keep_turns=1, summary_after_chars=1)
@@ -410,7 +413,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         def auxiliary(**request):
             requests.append(json.loads(request["messages"][1]["content"]))
             yield from answer('{"summary":"accumulated"}')
-        self.component.completion_fn = auxiliary
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=auxiliary)
         await self.configure(summarize=True, keep_turns=1, summary_after_chars=1,
                              model_input_chars=300, summary_chars=20, max_summary_calls=1)
         run, model = await self.run_loop("current")
@@ -451,10 +454,10 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             if False:
                 yield
         session._model = auxiliary
-        original = [CompletionMessage({'role': 'user', 'content': 'work'}, 'input')]
+        original = [CompletionMessage(ModelMessage('user', 'work'), 'input')]
         for identifier, content in (('old', 'x' * 900), ('latest', 'keep')):
-            original.extend([CompletionMessage({'role': 'assistant', 'tool_calls': [{'id': identifier}]}),
-                             CompletionMessage({'role': 'tool', 'tool_call_id': identifier, 'content': content})])
+            original.extend([CompletionMessage(ModelMessage('assistant', calls=(ToolCall(identifier, 'read', {}),))),
+                             CompletionMessage(ModelMessage('tool', result=ToolResult(identifier, content)))])
         for attempt in range(20):
             request = CompletionRequest({}, deepcopy(original), attempt)
             before = len(requests)
@@ -470,7 +473,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         else:
             self.fail('Explicit fragment budget never completed the exchange')
         fragments = [p['exchanges'][0] for p in requests]
-        self.assertEqual(''.join(p['fragment'] for p in fragments), json.dumps([m.value for m in original[1:3]], ensure_ascii=False))
+        self.assertEqual(''.join(p['fragment'] for p in fragments), json.dumps([m.message.to_dict() for m in original[1:3]], ensure_ascii=False))
         self.assertTrue(all(len(json.dumps(p, ensure_ascii=False)) <= 300 for p in requests))
         self.assertIsNone(session.active_partial)
 
@@ -571,7 +574,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         await self.app.shutdown()
         self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, PromptComponent()], engines={},
             services=BackendServices(token_counters={"test": lambda request: sum(
-                len(m.get("content") or "") for m in request["messages"])}))
+                len(m.text) for m in request.messages)}))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.aload(self.project.id)
         await configure_engine(self.project, "loop" + str(self.serial), input_policy={"max_tokens": 10, "counter": "test"})
@@ -596,7 +599,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
                  .node("end", "end").connect("read", "end"))
         await (await self.project.components.aget("workflows")).acreate(graph.to_dict(), identifier="g")
         model = ScriptedCompletion(answer())
-        self.app.engines.register("graph", GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})}))
+        self.app.engines.register("graph", GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})}))
         run = await (await self.session.run.submit("Python", engine="graph", engine_options={"workflow": "g"})).wait(timeout=20)
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertIn("Python guidelines", model.requests[0]["messages"][-1]["content"])
@@ -610,7 +613,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             def session(self, context):
                 class Session(CompletionSession):
                     async def prepare(self, request):
-                        request.messages[-1].value["content"] += " processed"
+                        request.messages[-1] = request.messages[-1].with_text(request.messages[-1].message.text + " processed")
                         if False:
                             yield
                 return Session()
@@ -642,9 +645,9 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             release.wait(10)
             yield from self.aux(**request)
-        self.component.completion_fn = slow
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=slow)
         model = ScriptedCompletion(answer())
-        self.app.engines.register("interrupt", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("interrupt", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
         request = await self.session.run.submit("third", engine="interrupt")
         try:
             self.assertTrue(await asyncio.to_thread(entered.wait, 5))
@@ -655,7 +658,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, RunStatus.INTERRUPTED)
         self.assertIsNone(await self.memory.asummary(self.session.id))
         self.assertEqual(model.requests, [])
-        self.component.completion_fn = self.aux
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=self.aux)
         next_run, _ = await self.run_loop("continue")
         self.assertEqual(next_run.data.status, RunStatus.COMPLETED, next_run.data.error)
 

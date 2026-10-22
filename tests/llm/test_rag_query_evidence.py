@@ -1,4 +1,6 @@
 """Model-call gaps cannot hide lost or changed RAG source evidence."""
+
+from llm.core.model_protocol import EmbeddingResult, RankedDocument, RerankResult
 from types import SimpleNamespace
 import json
 import os
@@ -20,7 +22,7 @@ class QueryEvidenceProbe(unittest.IsolatedAsyncioTestCase):
             with effects.open('a') as stream:stream.write('ranked\n')
             catalog.unlink()
             after_damage.update(self.snapshot_files())
-            return {'results':[{'index':0,'relevance_score':1.0}]}
+            return RerankResult((RankedDocument(0, 1.0),))
         self.component.reranker=SimpleNamespace(rerank=rerank)
         with self.assertRaises((ValueError,OSError,RuntimeError)):
             await self.rag.asearch('backup',method='bm25',rerank=True)
@@ -42,7 +44,7 @@ class QueryEvidenceProbe(unittest.IsolatedAsyncioTestCase):
             self.corpus.write_bytes(damaged)
             os.utime(self.corpus, ns=(info.st_atime_ns, info.st_mtime_ns))
             after_damage.update(self.snapshot_files())
-            return {'results': [{'index': 0, 'relevance_score': 1.0}]}
+            return RerankResult((RankedDocument(0, 1.0),))
         self.component.reranker = SimpleNamespace(rerank=rerank)
         with self.assertRaisesRegex(RuntimeError, 'source evidence changed'):
             await self.rag.asearch_documents('backup', method='bm25', rerank=True)
@@ -59,7 +61,7 @@ class QueryEvidenceProbe(unittest.IsolatedAsyncioTestCase):
             effects.write_text('queried\n')
             catalog.unlink()
             after_damage.update(self.snapshot_files())
-            return await fake_embedding(input=texts)
+            return EmbeddingResult(tuple((await fake_embedding(input=texts)).data[0]["embedding"]))
         with patch.object(self.component.embedding, 'embed', side_effect=embedding):
             with self.assertRaises((ValueError, OSError, RuntimeError)):
                 await self.rag.asearch_documents('backup', method='vector')
@@ -78,7 +80,7 @@ class QueryEvidenceProbe(unittest.IsolatedAsyncioTestCase):
                     effects.write_text('ranked\n')
                     path.rename(moved)
                     after_damage.update(self.snapshot_files())
-                    return {'results': [{'index': 0, 'relevance_score': 1.0}]}
+                    return RerankResult((RankedDocument(0, 1.0),))
                 self.component.reranker = SimpleNamespace(rerank=rerank)
                 try:
                     with self.assertRaises((ValueError, OSError, RuntimeError)):
@@ -99,7 +101,7 @@ class QueryEvidenceProbe(unittest.IsolatedAsyncioTestCase):
             value['corpus_revision'] = 'f' * 64
             control.write_text(json.dumps(value))
             after_damage.update(self.snapshot_files())
-            return {'results': [{'index': 0, 'relevance_score': 1.0}]}
+            return RerankResult((RankedDocument(0, 1.0),))
         self.component.reranker = SimpleNamespace(rerank=rerank)
         from llm.components.rag import component as owner
         with patch.object(owner, 'read_json', wraps=owner.read_json) as read:

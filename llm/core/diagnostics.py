@@ -3,6 +3,7 @@
 from llm.providers.codes import ProviderErrorCode
 from dataclasses import dataclass, field
 from .contracts import Diagnostic, JsonValue
+from .model_protocol import StopReason
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,8 +47,8 @@ def classify_diagnostic(value: Diagnostic) -> ErrorClassification:
         return ErrorClassification("unknown", "unknown", "unknown", {"code": value.code})
     category, reason = known[value.code]
     evidence = {"code": value.code}
-    if value.code == "completion_incomplete" and value.details.get("finish_reason") == "length":
-        return ErrorClassification("resource", "output", "explicit", {**evidence, "finish_reason": "length"})
+    if value.code == "completion_incomplete" and value.details.get("termination") == StopReason.OUTPUT_LIMIT:
+        return ErrorClassification("resource", "output", "explicit", {**evidence, "termination": StopReason.OUTPUT_LIMIT.value})
     if value.code == ProviderErrorCode.INVALID_REQUEST.value:
         # Only the provider adapter owns these normalized, cause-local hints.
         hint = value.details.get("request_failure")

@@ -1,5 +1,7 @@
 """Explicit caches and incremental ingestion preserve the RAG publication contract."""
 
+from llm.providers.operations import LiteLLMOperations
+
 import asyncio
 import json
 import tempfile
@@ -22,7 +24,7 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         self.calls = AsyncMock(side_effect=fake_embedding)
         self.extractor = Extractor()
-        self.component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", embedding_fn=self.calls),
+        self.component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=self.calls)),
                                       extractor=self.extractor)
         self.app = LargeLanguageModel(Path(self.temp.name), engines={}, components=[self.component])
         self.addAsyncCleanup(self.app.shutdown)
@@ -96,7 +98,7 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
         await self.configure(query_cache_max_bytes=8192)
         await self.rag.asearch_documents("Alice")
         replacement = AsyncMock(side_effect=fake_embedding)
-        self.component.embedding._call_fn = replacement
+        self.component.embedding.adapter.call = replacement
         await self.rag.asearch_documents("Alice")
         self.assertEqual(replacement.await_count, 1)
         other = await self.app.projects.acreate("other", components=["rag"], config=rag_project({"parameters": {
@@ -187,7 +189,7 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
     async def test_extraction_prompt_change_invalidates_reuse(self):
         from llm.components.rag import TripleExtractor
         calls = AsyncMock(return_value={"choices": [{"message": {"content": '{"entities": [], "relations": []}'}}]})
-        extractor = TripleExtractor(model="test/extract", completion_fn=calls)
+        extractor = TripleExtractor(model="test/extract", adapter=LiteLLMOperations(call=calls))
         self.component.extractor = extractor.with_extraction({}, {"messages": [{"role": "system", "content": "First"}]})
         await self.configure(extraction_batch_size=1)
         await self.add(content="one\n\ntwo")
@@ -353,7 +355,7 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(any("document_0" in key for key in plan.checkpoints))
         await self.app.shutdown()
         fresh_calls = AsyncMock(side_effect=fake_embedding)
-        fresh_component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", embedding_fn=fresh_calls), extractor=Extractor())
+        fresh_component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=fresh_calls)), extractor=Extractor())
         async with LargeLanguageModel(Path(self.temp.name), engines={}, components=[fresh_component]) as reopened:
             project = await reopened.projects.aload(self.project.id)
             rag = await project.components.aget("rag")

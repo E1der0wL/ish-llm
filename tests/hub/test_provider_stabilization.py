@@ -1,5 +1,11 @@
 """Hub consumes provider diagnostics without taking over execution or retry policy."""
 
+from llm.core.model_protocol import StopReason
+
+from llm.core.model_protocol import ModelMessage, ModelRequest
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from dataclasses import asdict
 from pathlib import Path
@@ -74,7 +80,7 @@ class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
                           provider_request_summary=True)
             PreferencesStore(anchor).save("general", values)
             config = HubConfig(anchor, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: HubLoopEngine(completion_fn=model)},
+                engine_factories={"loop": lambda: HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
                 project_config={"parameters": {"engines": {"loop": {"policy": {"provider": {"max_attempts": 1}}}}}})
             runtime = HubRuntime(config)
             try:
@@ -115,7 +121,7 @@ class ActualRetryTests(unittest.IsolatedAsyncioTestCase):
                 error.response = NS(headers={"Retry-After": "30"})
                 monitor = RetryMonitor()
                 monitor.set(("run", "recovery"), "run", RetrySummary(1, 3, kind="recovery", phase="retrying"))
-                engine = HubLoopEngine(completion_fn=ScriptedCompletion([error]))
+                engine = HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=ScriptedCompletion([error])))
                 engine.retry_monitor = monitor
                 ready, captured = asyncio.Event(), []
                 def observe(event):
@@ -126,7 +132,7 @@ class ActualRetryTests(unittest.IsolatedAsyncioTestCase):
                     token = monitor.run.set("run")
                     try:
                         with diagnostic_scope(observe):
-                            async for _ in engine.stream_completion({"model": "test/model"}, provider={
+                            async for _ in engine.stream_completion(ModelRequest([], {"model": "test/model"}), provider={
                                 "max_attempts": 3, "delay_seconds": 10, "max_delay_seconds": 60, **options}):
                                 pass
                     finally:
@@ -150,13 +156,13 @@ class ActualRetryTests(unittest.IsolatedAsyncioTestCase):
         error.response = NS(headers={"Retry-After": "30"})
         provider = ScriptedCompletion([error])
         monitor = RetryMonitor()
-        engine = HubLoopEngine(completion_fn=provider)
+        engine = HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))
         engine.retry_monitor = monitor
         observed = []
         token = monitor.run.set("run")
         try:
             with diagnostic_scope(observed.append), self.assertRaises(Exception):
-                async for _ in engine.stream_completion({"model": "test/model"}, provider={
+                async for _ in engine.stream_completion(ModelRequest([], {"model": "test/model"}), provider={
                     "max_attempts": 3, "max_delay_seconds": 10, "respect_retry_after": True}):
                     self.assertIsNone(monitor.view("run"))
         finally:
@@ -193,8 +199,8 @@ class StoredDiagnosisTests(unittest.IsolatedAsyncioTestCase):
                  ("completion_argument_limit", "", "completion_argument_limit"),
                  ("step_timeout", "", "step_timeout")]
         for code, finish, kind in cases:
-            diagnosis = from_diagnostic(Diagnostic(code or "execution_failed", "", details={"finish_reason": finish}))
-            self.assertEqual(diagnosis.reason, Diagnostic(code, "", details={"finish_reason": finish}).classification.reason)
+            diagnosis = from_diagnostic(Diagnostic(code or "execution_failed", "", details={"raw_finish_reason": finish, "termination": {"length": StopReason.OUTPUT_LIMIT, "content_filter": StopReason.BLOCKED}.get(finish, StopReason.UNKNOWN)}))
+            self.assertEqual(diagnosis.reason, Diagnostic(code, "", details={"raw_finish_reason": finish, "termination": {"length": StopReason.OUTPUT_LIMIT, "content_filter": StopReason.BLOCKED}.get(finish, StopReason.UNKNOWN)}).classification.reason)
             for language in ("ko", "en"):
                 t = Language(language)
                 rendered = present_message(ChatMessage("assistant", "partial", status="failed", failure=diagnosis), t)
@@ -205,7 +211,7 @@ class StoredDiagnosisTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn("finish_reason=" + finish, rendered.text)
 
     async def test_step_diagnostic_wins_without_reading_logs(self):
-        reader = self.reader([self.step("completion_incomplete", details={"finish_reason": "length"})],
+        reader = self.reader([self.step("completion_incomplete", details={"raw_finish_reason": "length", "termination": StopReason.OUTPUT_LIMIT})],
                              "completion_incomplete")
         with patch("hub.backend.observability.provider_logs.read_provider_logs", side_effect=AssertionError("No log lookup")):
             result = await reader.read("p", "s", ["r"])
@@ -224,7 +230,7 @@ class StoredDiagnosisTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(result.reason, "unknown")
 
     async def test_failed_graph_parent_is_not_hidden_by_a_later_cancelled_sibling(self):
-        parent = self.step("completion_incomplete", kind="graph_node", details={"finish_reason": "length"})
+        parent = self.step("completion_incomplete", kind="graph_node", details={"raw_finish_reason": "length", "termination": StopReason.OUTPUT_LIMIT})
         sibling = self.step("step_failed", stamp="2026-10-16T02:00:00+00:00", status="cancelled")
         with patch("hub.backend.observability.provider_logs.read_provider_logs", side_effect=AssertionError("No log lookup")):
             result = (await self.reader([parent, sibling], "completion_incomplete").read("p", "s", ["r"]))["r"]

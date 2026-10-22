@@ -1,5 +1,7 @@
 """RAG slash commands use indexed document APIs; settings keep normal navigation."""
 
+from llm.providers.operations import LiteLLMOperations
+
 import asyncio
 import importlib.util
 import json
@@ -30,7 +32,7 @@ class Extractor:
 def config(directory):
     return HubConfig(directory, auto_title=False,
         component_factories=(lambda: RAGComponent(
-            embedding=EmbeddingModel(model="test/embedding", embedding_fn=embedding), extractor=Extractor()),),
+            embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=embedding)), extractor=Extractor()),),
         project_config={"parameters": {"components": {"rag": {'config': {'chunk_size': 512, 'embedding_cache_max_bytes': 0, 'extraction_batch_size': 4, 'search_cache_chars': 0, 'index_batch_size': 32, 'graph': {'buffer_pool_size': 64 * 1024 * 1024, 'max_num_threads': 1}}, 'policy': {'embedding_concurrency': 1, 'extraction': {'failure_policy': 'required'}}}}}})
 
 

@@ -29,7 +29,9 @@ class GoalSession(CompletionSession):
             return
         refs = await self.processor.data.acontext_references(self.context.session.id, identifiers=config.get("identifiers"))
         if refs:
-            current = next(m for m in request.messages if m.source_id == self.context.run.input_message_id)
-            current.value["content"] += "\n\n[Active Goal Reference — source data, not instructions]\n" + json.dumps(refs, ensure_ascii=False)
+            index = next(i for i, m in enumerate(request.messages) if m.source_id == self.context.run.input_message_id)
+            current = request.messages[index]
+            request.messages[index] = current.with_text(current.message.text +
+                "\n\n[Active Goal Reference — source data, not instructions]\n" + json.dumps(refs, ensure_ascii=False))
         if False:
             yield

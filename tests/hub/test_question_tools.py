@@ -1,5 +1,7 @@
 """Composer questions, built-in tool selection and nonblocking UI persistence."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 import json
 from dataclasses import replace
@@ -33,7 +35,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk("ordinary conversation",finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root,model="test/model",auto_title=False,
-                engine_factories={"loop":lambda:LoopEngine(completion_fn=model)}))
+                engine_factories={"loop":lambda:LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}))
             try:
                 with patch("hub.backend.tools.builtin.shutil.which",return_value=None):
                     await runtime.start()
@@ -55,7 +57,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
             source = Path(root) / "source.txt"
             source.write_text("copied source")
             runtime = HubRuntime(HubConfig(root, file_root=root, model="test/model", auto_title=False,
-                engine_factories={"loop":lambda:LoopEngine(completion_fn=model)}))
+                engine_factories={"loop":lambda:LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}))
             try:
                 await runtime.start()
                 self.assertIsInstance(runtime.backend.services.tool_runtime.runner, BuiltinToolRunner)
@@ -108,7 +110,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(first.contracts()["file_create"], second.contracts()["file_create"])
                     resolve.assert_not_called()
                     with self.assertRaises(ValueError):
-                        second.prepare("file_read", '{"path": 42}')
+                        second.prepare("file_read", {'path': 42})
                     project.config.parameters["components"]["builtin_tools"]["config"]["enabled"] = []
                     self.assertEqual(component.resolve(project, "tools").names(), ())
                     self.assertEqual(resolve.call_count, 1)
@@ -124,7 +126,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
             [chunk("Answer received", finish="stop")])
         with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
             config = HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
@@ -161,7 +163,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
             [chunk("Done with your choice", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 session_id = await runtime.new_session()
@@ -204,7 +206,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
             [chunk("Created", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             config = HubConfig(Path(root) / "workspace", file_root=root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:
                 await runtime.start()
@@ -254,7 +256,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
         provider = ScriptedCompletion([chunk(calls=[call('{"question":"Wait?"}', name="ask_user")], finish="tool_calls")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 sid = await runtime.new_session()

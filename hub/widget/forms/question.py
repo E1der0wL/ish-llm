@@ -2,6 +2,7 @@
 
 import json
 from llm.core.interactions import InteractionOption
+from ...model import QuestionSource
 
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import ConditionalContainer, Window, HSplit
@@ -133,7 +134,7 @@ class QuestionComposer:
             return
         request = self.item["request"]
         if self.item["live"]:
-            choices = request.get("source", {}).get("choices", [])
+            choices = request.get("source", {}).get(QuestionSource.SUGGESTIONS.value, [])
             value = choices[int(text) - 1] if text.isdecimal() and 1 <= int(text) <= len(choices) else text
             option_id = "reply"
         else:

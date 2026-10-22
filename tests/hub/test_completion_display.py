@@ -1,5 +1,7 @@
 """Provider completion phases remain visible before and between text chunks."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from dataclasses import replace
 import tempfile
@@ -36,7 +38,7 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
                 yield {'choices': [{'index': 0, 'delta': delta, 'finish_reason': finish}]}
         def factory(config):
             return LargeLanguageModel(config.workspace, components=[ToolComponent()],
-                engines={'loop': LoopEngine(completion_fn=completion)})
+                engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})
         with tempfile.TemporaryDirectory() as directory:
             runtime = HubRuntime(HubConfig(directory, model='test/model', auto_title=False), factory)
             async def observe(predicate):

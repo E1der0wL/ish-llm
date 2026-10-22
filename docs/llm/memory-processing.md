@@ -48,7 +48,7 @@ run = await (await session.run.submit("작업을 계속해줘", engine="loop")).
 `configure`는 전체 설정 교체다. 생략한 동작 설정은 생성하지 않는다.
 `completion`에는 LiteLLM의 일반 인자를 전달할 수 있지만 messages/tools/stream/n은
 Memory의 보조 호출 계약을 따른다. 기본 보조 호출은 자동 재시도하지 않는다. 보조 모델은
-도구를 실행하지 않는다. `MemoryComponent(completion_fn=...)`로 모델 호출을 교체할 수 있다.
+도구를 실행하지 않는다. `MemoryComponent(completion_adapter=...)`로 모델 호출을 교체할 수 있다.
 
 ## 각 처리의 동작
 

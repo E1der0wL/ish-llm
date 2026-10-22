@@ -1,9 +1,9 @@
 """Normalized streaming observations; adapters own SDK chunks and final messages."""
 
-from dataclasses import dataclass
 from typing import Protocol, Iterator, AsyncIterator
 
 from llm.errors import CodedError
+from llm.core import model_protocol
 
 
 class CompletionError(CodedError, ValueError):
@@ -12,35 +12,6 @@ class CompletionError(CodedError, ValueError):
     def __init__(self, message, *, code="completion_invalid_response"):
         self.code = code
         super().__init__(message)
-
-
-@dataclass(frozen=True, slots=True)
-class CompletionUpdate:
-    text: str = ""
-    reasoning: str = ""
-    response_id: str | None = None
-    model: str | None = None
-    usage: dict | None = None
-    finish_reason: str | None = None
-
-    def __post_init__(self):
-        if not isinstance(self.text, str) or not isinstance(self.reasoning, str):
-            raise TypeError("Completion deltas must be text")
-        if any(value is not None and not isinstance(value, str)
-               for value in (self.response_id, self.model, self.finish_reason)):
-            raise TypeError("Completion identities and termination must be text or None")
-        if self.usage is not None:
-            def validate(value):
-                if not isinstance(value, dict):
-                    raise TypeError("Completion usage must be a normalized dictionary")
-                for key, item in value.items():
-                    if not isinstance(key, str):
-                        raise TypeError("Completion usage keys must be text")
-                    if isinstance(item, dict):
-                        validate(item)
-                    elif type(item) is not int or item < 0:
-                        raise ValueError("Completion usage must contain nonnegative integers")
-            validate(self.usage)
 
 
 class CompletionDecoder(Protocol):
@@ -53,8 +24,8 @@ class CompletionDecoder(Protocol):
     its protocol semantics; it must not invent limits or silently ignore them.
     """
 
-    def decode(self, chunk) -> Iterator[CompletionUpdate]: ...
-    def finish(self) -> dict: ...
+    def decode(self, chunk) -> Iterator[model_protocol.CompletionUpdate]: ...
+    def finish(self) -> model_protocol.ModelResponse: ...
 
 
 class CompletionAdapter(Protocol):
@@ -69,21 +40,25 @@ class CompletionAdapter(Protocol):
     A replaceable host adapter may expose JSON execution_binding; change it
     whenever its runtime semantics change, so durable approvals cannot outlive it.
 
-    Loop additionally requires describe_config() and validate_request(request,
-    require_model=False). Its canonical messages/tools/assistant protocol stays
-    explicit; an adapter for another SDK translates that protocol at this boundary.
+    Loop additionally requires describe_config() and validate_request(parameters,
+    require_model=False). SDK options belong to the adapter; message/Tool/response
+    meanings belong to the common model values.
     """
 
-    def prepare(self, request: dict) -> dict: ...
-    def describe_call(self, request: dict): ...
-    def describe_request(self, request: dict) -> dict: ...
-    def effective_attempts(self, request: dict, maximum: int) -> int: ...
+    def validate_input_ownership(self, parameters: dict, *, auxiliary=False) -> None: ...
+    def auxiliary_parameters(self, parameters: dict, *, preserve_retries=False, preserve_output_limits=True) -> dict:
+        """Detach adapter settings for a separate Tool-free analysis invocation."""
+        ...
+    def prepare(self, request: model_protocol.ModelRequest) -> model_protocol.ModelRequest: ...
+    def describe_call(self, request: model_protocol.ModelRequest): ...
+    def describe_request(self, request: model_protocol.ModelRequest) -> dict: ...
+    def effective_attempts(self, request: model_protocol.ModelRequest, maximum: int) -> int: ...
     def classify_error(self, error: Exception) -> str: ...
     def retryable(self, error: Exception) -> bool: ...
-    def retry_fields(self, request: dict) -> tuple[str, ...]: ...
-    def validate_retry(self, request: dict, *, original: dict) -> None: ...
+    def retry_fields(self, request: model_protocol.ModelRequest) -> tuple[str, ...]: ...
+    def validate_retry(self, request: model_protocol.ModelRequest, *, original: model_protocol.ModelRequest) -> None: ...
     def validate_processing(self, request: dict, *, original: dict) -> None:
         """Reject processor changes to adapter-owned retry/authority parameters."""
         ...
     def decoder(self, **limits) -> CompletionDecoder: ...
-    def stream(self, request: dict, *, buffer_size: int) -> AsyncIterator: ...
+    def stream(self, request: model_protocol.ModelRequest, *, buffer_size: int) -> AsyncIterator: ...

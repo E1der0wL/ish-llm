@@ -1,5 +1,9 @@
 """Public RAG/Vision APIs, safe cleanup and bounded completion context."""
 
+from llm.core.model_protocol import ModelMessage
+
+from llm.providers.operations import LiteLLMOperations
+
 import asyncio
 from dataclasses import replace
 import json
@@ -142,7 +146,7 @@ class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
                 Image.new("RGB", (4, 4), "white").save(root / (name + ".png"))
             config = settings(root, embedding)
             config = replace(config, component_factories=(*config.component_factories,
-                lambda: VisionComponent(ocr_backends={"test": OCR()}, completion_fn=completion)))
+                lambda: VisionComponent(ocr_backends={"test": OCR()}, adapter=LiteLLMOperations(call=completion))))
             config.project_config["parameters"]["components"]["vision"] = {
                 "config": {"ocr": {"backend": "test"}, "completion": {"model": "test/vision"}}}
             runtime = HubRuntime(config)
@@ -227,12 +231,12 @@ class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
             "description": "B" * 2000}], "next_cursor": {"after": "note"}}
         session = RAGCatalogSession(data, True)
         def request():
-            return CompletionRequest({}, [CompletionMessage({"role": "user", "content": "Question"}, "u")], 1)
+            return CompletionRequest({}, [CompletionMessage(ModelMessage("user", "Question"), "u")], 1)
         for _ in range(2):
             current = request()
             async for _ in session.prepare(current):
                 pass
-            text = current.messages[0].value["content"]
+            text = current.messages[0].message.text
             self.assertLess(len(text), 1600)
             self.assertIn('"more": true', text)
             self.assertIn("Skip retrieval", text)
@@ -248,5 +252,5 @@ class RAGExtensionTests(unittest.IsolatedAsyncioTestCase):
             current = request()
             async for _ in RAGCatalogSession(data, True).prepare(current):
                 pass
-            self.assertIn("unavailable", current.messages[0].value["content"])
+            self.assertIn("unavailable", current.messages[0].message.text)
             report.assert_called_once()

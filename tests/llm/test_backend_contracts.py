@@ -1,5 +1,9 @@
 """Backend handoff: diagnostics, protected recovery inputs and owner resume plans."""
 
+from llm.core.model_protocol import ModelMessage, ModelRequest, StopReason, ToolCall, ToolResult
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import tempfile
 import unittest
 import asyncio
@@ -119,7 +123,7 @@ class DiagnosticContracts(unittest.TestCase):
         copy.details["exceptions"].clear()
         self.assertEqual(len(value.details["exceptions"]), 1)
         self.assertEqual(Diagnostic("notice", "fine", severity="info").classification.category, "unknown")
-        limited = classify_diagnostic(Diagnostic("completion_incomplete", "limit", details={"finish_reason": "length"}))
+        limited = classify_diagnostic(Diagnostic("completion_incomplete", "limit", details={"raw_finish_reason": "length", "termination": StopReason.OUTPUT_LIMIT}))
         self.assertEqual((limited.category, limited.reason), ("resource", "output"))
         self.assertEqual(ErrorClassification.from_dict(limited.to_dict()), limited)
 
@@ -196,33 +200,33 @@ class DiagnosticContracts(unittest.TestCase):
 
 class CompletionRecoveryTests(unittest.IsolatedAsyncioTestCase):
     async def test_protected_instructions_parameters_and_reference_bodies(self):
-        request = {"model": "test", "messages": [{"role": "system", "content": "instructions"},
-            {"role": "user", "content": "old" * 100}, {"role": "assistant", "content": "old answer"},
-            {"role": "user", "content": "fix A; keep API"},
-            {"role": "assistant", "tool_calls": [{"id": "a", "function": {"name": "read", "arguments": "{}"}}]},
-            {"role": "tool", "tool_call_id": "a", "content": "log" * 100},
-            {"role": "user", "content": "also keep tests"}]}
+        request = ModelRequest([ModelMessage("system", "instructions"),
+            ModelMessage("user", "old" * 100), ModelMessage("assistant", "old answer"),
+            ModelMessage("user", "fix A; keep API"),
+            ModelMessage("assistant", calls=(ToolCall("a", "read", {}),)),
+            ModelMessage("tool", result=ToolResult("a", "log" * 100)),
+            ModelMessage("user", "also keep tests")], {"model": "test"})
         original = deepcopy(request)
         diagnostic = Diagnostic("provider_invalid_request", "context")
         result = await CompletionPipeline.recover(request, diagnostic, 1, current_index=3,
             decide=lambda failure: CompletionRepair({1: "old summary", 5: "log summary"}))
-        self.assertEqual(result["messages"][3:5], request["messages"][3:5])
-        self.assertEqual(result["messages"][6], request["messages"][6])
+        self.assertEqual(result.messages[3:5], request.messages[3:5])
+        self.assertEqual(result.messages[6], request.messages[6])
         self.assertEqual(request, original)
         for index in (0, 3, 4, 6, -1):
             with self.subTest(index=index), self.assertRaises(ValueError):
                 await CompletionPipeline.recover(request, diagnostic, 1, current_index=3,
                     decide=lambda failure: CompletionRepair({index: "replace"}))
         async def invalid_budget(candidate):
-            candidate["messages"] = candidate["messages"][:1]
+            candidate.messages = candidate.messages[:1]
             return candidate
         with self.assertRaisesRegex(ValueError, "current input"):
             await CompletionPipeline.recover(request, diagnostic, 1, current_index=3,
                 decide=lambda failure: CompletionRepair({1: "short"}), prepare=invalid_budget)
-        original = [CompletionMessage({"role": "user", "content": "request"}, "id")]
+        original = [CompletionMessage(ModelMessage("user", "request"), "id")]
         with self.assertRaisesRegex(ValueError, "instruction body"):
             CompletionPipeline._validate(CompletionRequest({}, [CompletionMessage(
-                {"role": "user", "content": ""}, "id")], 1), original, {}, "id")
+                ModelMessage("user", ""), "id")], 1), original, ModelRequest(), "id")
 
     async def execute(self, responses, decide, *, provider=None):
         temporary = tempfile.TemporaryDirectory()
@@ -234,7 +238,7 @@ class CompletionRecoveryTests(unittest.IsolatedAsyncioTestCase):
         tools = RuntimeTools(ToolRegistry([Tool("read", "Read", {"type": "object", "properties": {},
             "additionalProperties": False}, read, contract=TEST_CONTRACT)]))
         model = ScriptedCompletion(*responses)
-        backend = LargeLanguageModel(temporary.name, engines={"loop": LoopEngine(completion_fn=model,
+        backend = LargeLanguageModel(temporary.name, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model),
             recover_completion=decide)}, components=[tools])
         self.addAsyncCleanup(backend.shutdown)
         config = {"parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"},
@@ -341,7 +345,7 @@ class DiagnosticRuntimeContracts(unittest.IsolatedAsyncioTestCase):
                 tools = RuntimeTools(ToolRegistry([Tool("read", "Read", {"type": "object",
                     "properties": {}, "additionalProperties": False}, invoke, contract=TEST_CONTRACT)]))
                 model = ScriptedCompletion([chunk(calls=[call("{}", name="read")], finish="tool_calls")])
-                backend = LargeLanguageModel(root, engines={"loop": LoopEngine(completion_fn=model)}, components=[tools])
+                backend = LargeLanguageModel(root, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, components=[tools])
                 try:
                     project = await backend.projects.acreate(components=["tools"], config={"parameters": {
                         "engines": {"loop": {"config": {"completion": {"model": "test"}}}},
@@ -357,7 +361,7 @@ class DiagnosticRuntimeContracts(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(calls, [{}])  # Diagnostic is not permission to retry.
                 finally:
                     await backend.shutdown()
-                reopened = LargeLanguageModel(root, engines={"loop": LoopEngine(completion_fn=model)}, components=[tools])
+                reopened = LargeLanguageModel(root, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, components=[tools])
                 try:
                     loaded = await (await reopened.projects.aload(project.id)).sessions.aload(session.id)
                     stored = await (await loaded.run.aload(run.id)).aresult()
@@ -477,7 +481,7 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         model = ScriptedCompletion([chunk("done", finish="stop")])
-        app = LargeLanguageModel(temporary.name, engines={"loop": LoopEngine(completion_fn=model)})
+        app = LargeLanguageModel(temporary.name, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
             "loop": {"config": {"completion": {"model": "test"}}}}}})

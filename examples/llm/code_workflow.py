@@ -4,6 +4,8 @@
 --model을 지정하면 같은 경로에서 LiteLLM completion을 호출한다.
 """
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import argparse
 import ast
 import asyncio
@@ -156,7 +158,7 @@ async def report(node):
     return {}
 
 
-async def run_demo(workspace: Path, *, model=None, completion_fn=None, max_attempts=3, display=True):
+async def run_demo(workspace: Path, *, model=None, completion_adapter=None, max_attempts=3, display=True):
     """정의를 등록하고 디스크에서 다시 로드한 Workflow를 RunManager로 실행한다."""
     workspace = workspace.resolve()
     # 매번 고유한 작업 디렉토리를 만든다. 사용자 저장소나 이전 결과를 덮어쓰지 않는다.
@@ -164,8 +166,9 @@ async def run_demo(workspace: Path, *, model=None, completion_fn=None, max_attem
     workdir = workspace / "coding-artifacts" / uuid4().hex
     workdir.mkdir(parents=True)
     output = workdir / "solution.py"
-    fn = completion_fn or (completion if model else DemonstrationCompletion())
-    agent, checks = AgentNode(engines={"loop": LoopEngine(completion_fn=fn)}), CodeChecks(output)
+    adapter = completion_adapter if completion_adapter is not None else LiteLLMCompletionAdapter(
+        completion_fn=completion if model else DemonstrationCompletion())
+    agent, checks = AgentNode(engines={"loop": LoopEngine(completion_adapter=adapter)}), CodeChecks(output)
     engine = GraphEngine(handlers={"agent": agent, "persist_code": checks.write, "static_check": checks.static,
                                                   "test_code": checks.tests, "report": report})
 

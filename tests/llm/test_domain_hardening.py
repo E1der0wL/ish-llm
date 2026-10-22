@@ -1,4 +1,6 @@
 """승인 UI 상태, Graph 취소 경계, 기억 병합과 큰 문맥의 통합 회귀 검사."""
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 import json
 import unittest
@@ -371,7 +373,7 @@ class MemoryHardeningTests(unittest.IsolatedAsyncioTestCase):
         def summarize(**request):
             payloads.append(json.loads(request["messages"][1]["content"]))
             yield from answer(json.dumps({"summary": "Checked source; preserve unfinished work."}))
-        self.component.completion_fn = summarize
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=summarize)
         await self.configure(summarize=True, summary_after_chars=1, active_keep_iterations=1,
             model_input_chars=1400, summary_chars=100, max_summary_calls=2)
         await self.memory.acreate({"content": "reference " * 140}, identifier="source")
@@ -395,7 +397,7 @@ class MemoryHardeningTests(unittest.IsolatedAsyncioTestCase):
         def summarize(**request):
             payloads.append(json.loads(request["messages"][1]["content"]))
             yield from answer(json.dumps({"summary": "Preserve the original requirement; work remains."}))
-        self.component.completion_fn = summarize
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=summarize)
         await self.run_loop("LONG REQUIREMENT " * 250)
         await self.run_loop("recent")
         await self.configure(summarize=True, summary_after_chars=1, keep_turns=1,

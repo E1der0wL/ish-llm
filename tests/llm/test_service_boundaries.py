@@ -1,3 +1,5 @@
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import asyncio
 import json
 import tempfile
@@ -256,7 +258,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
     async def test_missing_component_registration_fails_before_provider_execution(self):
         self.projects.set_components(self.project, ("tools",))
         completion = Mock(side_effect=AssertionError("must not call provider"))
-        self.engines.register("loop", LoopEngine(completion_fn=completion))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
         manager = self.manager()  # no capability resolver registered in this process
         with self.assertRaises(ValueError):
             await manager.submit("test", engine="loop")
@@ -279,7 +281,7 @@ class BoundaryTests(unittest.IsolatedAsyncioTestCase):
                 delta, reason = {"tool_calls": [{"index": 0, "id": "call1", "type": "function",
                     "function": {"name": "add", "arguments": "{}"}}]}, "tool_calls"
             yield {"choices": [{"index": 0, "delta": delta, "finish_reason": reason}]}
-        self.engines.register("loop", LoopEngine(completion_fn=completion))
+        self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
         manager = self.manager(capabilities=self.components)
         await manager.submit("allowed", engine="loop")
         other_manager = self.manager(session=other_session, capabilities=self.components)

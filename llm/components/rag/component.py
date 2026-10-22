@@ -28,7 +28,7 @@ from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.parameters import ParameterLayout
 from llm.core.schema import object_schema, metadata_schema
 from llm.providers.requests import provider_schema, error_code
-from llm.providers.embeddings import extract_single_embedding
+from llm.core.model_protocol import EmbeddingResult
 from llm.providers.runtime import diagnostic, diagnostic_scope
 from .ingestion import VectorCache, prepare_vectors, vector_key, validate_chunk_checkpoint
 from .job_storage import JobStorage
@@ -221,7 +221,7 @@ class RAGComponent(DefinitionComponent):
                 or not isinstance(profile["model"], str) or not profile["model"]
                 or type(profile["dimensions"]) is not int or profile["dimensions"] < 1):
             raise ValueError("Invalid prepared RAG embedding profile")
-        from llm.providers.embeddings import validate_vectors
+        from llm.core.embeddings import validate_vectors
         vectors = validate_vectors(document["vectors"], dimensions=profile["dimensions"])
         if len(vectors) != len(chunks):
             raise ValueError("Prepared RAG chunk/vector count mismatch")
@@ -340,7 +340,7 @@ class RAGComponent(DefinitionComponent):
         layers = [("client", self.parameter_layout.pack(client_values)), *self.get_config_layers(project)]
         view = resolve_config(layers, schema=self.describe_config())
         from .embedding import EmbeddingModel
-        selected = EmbeddingModel if self.embedding is None else self.embedding
+        selected = EmbeddingModel() if self.embedding is None else self.embedding
         view["enforced"] = {"config": {"embedding_params": deepcopy(getattr(selected, "enforced_configuration", {}))}}
         view["model_providers"] = {name: resolve_config([
             ("client", getattr(getattr(self, name), "provider_options", {})),
@@ -400,7 +400,7 @@ class RAGComponent(DefinitionComponent):
         from .extraction import TripleExtractor
         from .rerank import RerankModel
         def child_schema(client, factory):
-            selected = factory if client is None else client
+            selected = factory() if client is None else client
             describe = getattr(selected, "describe_config", None)
             return describe() if describe else open_schema(type(selected).__qualname__ + ".with_config", category="implementation")
         embedding_schema = child_schema(self.embedding, EmbeddingModel)
@@ -443,7 +443,7 @@ class RAGComponent(DefinitionComponent):
         for client, factory, key in ((self.embedding, EmbeddingModel, "embedding_params"),
                                     (self.extractor, TripleExtractor, "extraction_params"),
                                     (self.reranker, RerankModel, "rerank_params")):
-            selected = factory if client is None else client
+            selected = factory() if client is None else client
             validate = getattr(selected, "validate_config", None)
             if validate is not None and key in data:
                 validate(deepcopy(data[key]))
@@ -631,8 +631,10 @@ class RAGComponent(DefinitionComponent):
         kwargs = self.query_kwargs if query else self.document_kwargs
         response = await self.embedding.embed(texts, **kwargs)
         extract = getattr(self.embedding, "extract_vector", None)
-        vector = extract(response, **kwargs) if extract else extract_single_embedding(response)
-        from llm.providers.embeddings import validate_vectors
+        if not isinstance(response, EmbeddingResult):
+            raise TypeError("Embedding model must return EmbeddingResult")
+        vector = extract(response, **kwargs) if extract else response.vector
+        from llm.core.embeddings import validate_vectors
         return validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))
 
     async def embed_query(self, query):
@@ -658,7 +660,7 @@ class RAGComponent(DefinitionComponent):
         validate = getattr(self.embedding, "validate_vectors", None)
         if validate is not None:
             vector = validate([vector], **self.query_kwargs)[0]
-        from llm.providers.embeddings import validate_vectors
+        from llm.core.embeddings import validate_vectors
         vector = validate_vectors([vector], dimensions=getattr(self, "_embedding_dimensions", None))[0]
         self.query_cache.put(key, vector, maximum)
         diagnostic("rag_query_embedding", cached=cached)
@@ -684,7 +686,7 @@ class RAGComponent(DefinitionComponent):
         if (previous is not None and previous["content"] == content
                 and previous.get("preparation_fingerprint") == fingerprint
                 and (previous["graph_complete"] or policy == ExtractionFailurePolicy.DISABLED.value)):
-            from llm.providers.embeddings import validate_vectors
+            from llm.core.embeddings import validate_vectors
             vectors = previous["vectors"]
             validate = getattr(self.embedding, "validate_vectors", None)
             if validate is not None:

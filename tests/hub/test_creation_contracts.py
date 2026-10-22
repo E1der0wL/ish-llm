@@ -1,5 +1,7 @@
 """Creation presets must become visible settings, never runtime authority."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 from copy import deepcopy
 from dataclasses import asdict
 import tempfile
@@ -29,7 +31,7 @@ class CreationContractTests(unittest.IsolatedAsyncioTestCase):
                     finish="tool_calls")])
                 config = HubConfig(Path(root) / "workspace", auto_title=False, file_root=root,
                                    model="test/model",
-                                   engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                                   engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
                 runtime = HubRuntime(config)
                 await runtime.start()
                 try:

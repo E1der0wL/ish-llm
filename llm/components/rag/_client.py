@@ -2,42 +2,38 @@
 
 Shared request mechanics; no scheduler, lifecycle events or domain writes."""
 
+from llm.core.model_protocol import ModelOperation, ModelRequest, ModelResponse, copy_model
+
 from copy import copy
 from collections.abc import Awaitable, Callable
 from typing import Any, Optional
 
-from llm.providers.parameters import copy_params, merge_params
+from llm.providers.parameters import merge_params
 
 
 class ModelClient:
     observes_model_calls = True
-    operation = "acompletion"
+    operation = ModelOperation.COMPLETION
 
-    def __init__(self, operation: str, call_fn: Optional[Callable[..., Awaitable[Any]]],
-                 params: dict[str, Any]) -> None:
-        if call_fn is not None and not callable(call_fn):
-            raise TypeError("Model call function must be callable")
-        self._operation = operation
-        self._call_fn = call_fn
-        self.params = copy_params(params)
-        from llm.providers.schema import validate_model_params
-        validate_model_params(self.params, operation=operation, json_contract=False)
+    def __init__(self, params: dict, *, adapter=None) -> None:
+        if {"completion_fn", "embedding_fn", "rerank_fn"}.intersection(params):
+            raise TypeError("Model clients require an operation adapter")
+        from llm.providers.operations import LiteLLMOperations
+        self.adapter = LiteLLMOperations() if adapter is None else adapter
+        self.params = copy_model(params)
+        self.adapter.validate_options(self.params, operation=self.operation, json_contract=False)
         self.provider_options = {}
         self._retry_decider = None
 
-    @classmethod
-    def describe_config(cls):
-        from llm.providers.schema import model_schema
-        return model_schema(cls.operation)
+    def describe_config(self):
+        return self.adapter.describe_config(self.operation)
 
-    @classmethod
-    def validate_config(cls, params):
-        from llm.providers.schema import validate_model_params
-        validate_model_params(params, operation=cls.operation)
+    def validate_config(self, params):
+        self.adapter.validate_options(params, operation=self.operation)
 
     def cache_identity(self):
         """프로세스 내 호출 구현의 정체성. 영속 fingerprint와 별도로 사용한다."""
-        return (id(self._call_fn), id(self.__dict__.get("embed", type(self))))
+        return (self.adapter.cache_identity(), id(self.__dict__.get("embed", type(self))))
 
     def with_provider(self, options):
         worker = copy(self)
@@ -59,12 +55,9 @@ class ModelClient:
         worker._retry_decider = decide
         return worker
 
-    async def _invoke(self, **kwargs: Any) -> Any:
-        request = copy_params(self.params)
-        request.update(copy_params(kwargs))
-        from llm.providers.requests import request_model
-        deadline = request.pop("_provider_deadline", None)
-        if request.pop("_without_response_format", False):
-            request.pop("response_format", None)
-        return await request_model(self._operation, request, self.provider_options, call=self._call_fn,
-                                   deadline=deadline, decide=self._retry_decider, changeable=("timeout",))
+    async def _complete(self, messages, *, output_format=None, deadline=None):
+        result = await self.adapter.complete(ModelRequest(messages, self.params), self.provider_options,
+            output_format=output_format, deadline=deadline, decide=self._retry_decider)
+        if not isinstance(result, ModelResponse):
+            raise TypeError("Operation adapter must return ModelResponse")
+        return result

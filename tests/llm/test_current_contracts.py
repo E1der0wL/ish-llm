@@ -1,5 +1,7 @@
 """Explicit object types and current storage/usage contracts; no compatibility readers."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 from copy import deepcopy
 import hashlib
 import json
@@ -268,7 +270,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                     [chunk(calls=[call("{}", name="effect")], finish="tool_calls")],
                     [chunk("done", finish="stop")])
                 component = RuntimeTools(ToolRegistry((Tool("effect", "effect", {"type": "object"}, effect, contract=TEST_CONTRACT),)))
-                engine = LoopEngine(completion_fn=model)
+                engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
                 services = BackendServices(tool_runtime=ToolRuntime(authorize=authorize))
                 async with LargeLanguageModel(root / "workspace", components=[component],
                                                engines={"loop": engine}, services=services) as app:
@@ -342,7 +344,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                     [chunk(calls=[call('{"value":"first"}', name="effect", call_id="first")], finish="tool_calls")],
                     [ConnectionError("stop after committed effect")], continuation)
                 component = RuntimeTools(ToolRegistry((Tool("effect", "effect", {"type": "object"}, effect, contract=TEST_CONTRACT),)))
-                engine = LoopEngine(completion_fn=model)
+                engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
                 async with LargeLanguageModel(root / "workspace", components=[component], engines={"loop": engine}) as app:
                     project = await app.projects.acreate(components=["tools"], config={
                         "policies": {"tools": {"max_calls": 1}},
@@ -396,7 +398,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                 [chunk(calls=[call('{"value":"second"}', name="effect", call_id="second")], finish="tool_calls")],
                 [chunk("done", finish="stop")])
             component = RuntimeTools(ToolRegistry((Tool("effect", "effect", {"type": "object"}, effect, contract=TEST_CONTRACT),)))
-            engine = LoopEngine(completion_fn=model)
+            engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
             async with LargeLanguageModel(root / "workspace", components=[component], engines={"loop": engine}) as app:
                 project = await app.projects.acreate(components=["tools"], config={
                     "policies": {"tools": {"max_calls": 1}},

@@ -10,6 +10,7 @@ from typing import Any, Optional
 
 from .contracts import Diagnostic, ResourceRef
 from .models import StepStatus, ProjectConfig, Run, RunStatus, Step, new_id, now
+from .model_protocol import StopReason
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,6 +142,7 @@ class CompletionResult:
     model: Optional[str] = None
     response_id: Optional[str] = None
     finish_reason: Optional[str] = None
+    termination: Optional[StopReason] = None
     status: RunStatus = RunStatus.RUNNING
     started_at: str = field(default_factory=now)
     ended_at: Optional[str] = None
@@ -181,10 +183,11 @@ class CompletionResult:
             raise ValueError("Invalid Completion duration")
         if not isinstance(data["reasoning_content"], str):
             raise ValueError("Invalid Completion reasoning content")
+        termination = None if data["termination"] is None else StopReason(data["termination"])
         status = RunStatus(data["status"])
         if (status not in Run.ACTIVE_STATES) != (data["ended_at"] is not None):
             raise ValueError("Completion state requires its original end evidence")
-        return cls(**{**deepcopy(data), "status": status})
+        return cls(**{**deepcopy(data), "status": status, "termination": termination})
 
     @classmethod
     def for_run(cls, data: dict, run: Run) -> "CompletionResult":

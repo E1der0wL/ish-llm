@@ -1,5 +1,7 @@
 """Deletion cannot free a live Project quota or an active Run's captured quota."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
@@ -19,7 +21,7 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(temporary.cleanup)
         model = ScriptedCompletion(*([[chunk("answer", finish="stop")]] * 4
                                     if responses is None else responses))
-        app = LargeLanguageModel(temporary.name, engines={"loop": LoopEngine(completion_fn=model)},
+        app = LargeLanguageModel(temporary.name, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
                                  components=[] if tools is None else [RuntimeTools(ToolRegistry(tools))])
         self.addAsyncCleanup(app.shutdown)
         parameters = {"engines": {"loop": {"config": {"completion": {"model": "test", "max_tokens": 5}}}}}

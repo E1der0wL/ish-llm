@@ -351,10 +351,80 @@ class ModelResponse:
         return cls(**value)
 
 
+class ModelOperation(StrEnum):
+    COMPLETION = "completion"
+    EMBEDDING = "embedding"
+    RERANK = "rerank"
+
+
+@dataclass(frozen=True, slots=True)
+class EmbeddingResult:
+    vector: tuple[float, ...]
+    usage: dict | None = None
+    opaque: dict = field(default_factory=dict)
+
+    def __post_init__(self):
+        from .embeddings import validate_vectors
+        object.__setattr__(self, "vector", tuple(validate_vectors([self.vector])[0]))
+        object.__setattr__(self, "usage", _usage(self.usage))
+        object.__setattr__(self, "opaque", _object(self.opaque))
+
+
+@dataclass(frozen=True, slots=True)
+class RankedDocument:
+    index: int
+    score: float
+
+    def __post_init__(self):
+        if (type(self.index) is not int or self.index < 0 or type(self.score) not in (int, float)
+                or not math.isfinite(self.score)):
+            raise ValueError("Ranking requires a nonnegative index and finite score")
+
+
+@dataclass(frozen=True, slots=True)
+class RerankResult:
+    rows: tuple[RankedDocument, ...]
+    usage: dict | None = None
+    opaque: dict = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not isinstance(self.rows, tuple) or any(not isinstance(row, RankedDocument) for row in self.rows):
+            raise TypeError("Ranking requires typed document rows")
+        if len({row.index for row in self.rows}) != len(self.rows):
+            raise ValueError("Duplicate ranking index")
+        object.__setattr__(self, "usage", _usage(self.usage))
+        object.__setattr__(self, "opaque", _object(self.opaque))
+
+
+@dataclass(frozen=True, slots=True)
+class CompletionUpdate:
+    """Normalized streaming observations; raw termination is evidence only."""
+
+    text: str = ""
+    reasoning: str = ""
+    response_id: str | None = None
+    model: str | None = None
+    usage: dict | None = None
+    finish_reason: str | None = None
+    termination: StopReason | None = None
+
+    def __post_init__(self):
+        if not isinstance(self.text, str) or not isinstance(self.reasoning, str):
+            raise TypeError("Completion deltas must be text")
+        if any(value is not None and not isinstance(value, str)
+               for value in (self.response_id, self.model, self.finish_reason)):
+            raise TypeError("Completion identities and raw termination must be text or None")
+        object.__setattr__(self, "usage", _usage(self.usage))
+        if self.termination is not None:
+            object.__setattr__(self, "termination", StopReason(self.termination))
+
+
 def copy_model(value):
     """Detach model/options containers while preserving runtime client identity."""
     if isinstance(value, ModelRequest):
         return ModelRequest(value.messages, value.parameters, value.tools, value.tool_mode)
+    if isinstance(value, (CompletionUpdate, EmbeddingResult, RankedDocument, RerankResult)):
+        return replace(value)
     if isinstance(value, (ModelMessage, ModelResponse, ContentPart, ToolCall, ToolResult, ToolDefinition)):
         return type(value).from_dict(value.to_dict())
     if isinstance(value, dict):

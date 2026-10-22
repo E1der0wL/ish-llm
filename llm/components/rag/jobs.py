@@ -322,7 +322,7 @@ class RAGJobs:
                 raise CheckpointError("checkpoint_configuration", "RAG configuration changed since preparation; enqueue a new job")
             if item["profile"]["model"] != component._identity():
                 raise CheckpointError("checkpoint_configuration", "Embedding model changed since the job was prepared")
-            from llm.providers.embeddings import validate_vectors
+            from llm.core.embeddings import validate_vectors
             from .extraction import validate_graph
             vectors = validate_vectors(item["vectors"], dimensions=item["profile"]["dimensions"])
             if len(vectors) != len(item["chunks"]):

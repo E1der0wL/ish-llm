@@ -1,5 +1,7 @@
 """승인/재개 값의 공통 해석. 형식 해석은 권한이나 새 응답 영수증을 만들지 않는다."""
 
+from llm.engines.loop import LoopEngine
+
 from copy import deepcopy
 from dataclasses import replace
 from types import SimpleNamespace
@@ -225,7 +227,7 @@ class EngineDecisionTests(unittest.TestCase):
     def scope(self, owner='["agent"]', records=None, request=None):
         scope = EngineCheckpointScope(owner, "loop", {} if records is None else records)
         scope.accepted(scope.wrap(EngineEvent(EngineEventType.CHECKPOINT, metadata={
-            "name": "loop", "operation": "initialize", "header": {"format": "loop-iterations-v1"}, "records": {}})))
+            "name": "loop", "operation": "initialize", "header": {"format": LoopEngine.CHECKPOINT_FORMAT}, "records": {}})))
         request = (request or approval_request("Review")).bind("loop", "tool:1:call")
         scope.accepted(scope.wrap(EngineEvent(EngineEventType.CHECKPOINT, metadata={
             "name": "loop", "operation": "record", "key": "tool:1:call",
@@ -282,7 +284,7 @@ class EngineDecisionTests(unittest.TestCase):
     def test_loop_retains_boolean_shape_and_validates_selected_option(self):
         request = replace(approval_request("Review"), options=(
             InteractionOption("no", "No", effect="deny", value=False),)).bind("loop", "key")
-        checkpoint = {"header": {"format": "loop-iterations-v1"}, "records": {
+        checkpoint = {"header": {"format": LoopEngine.CHECKPOINT_FORMAT}, "records": {
             "key": {"status": "waiting", "interaction": request.to_dict()}}}
         engine = LoopEngine()
         engine.validate_resume(checkpoint, decisions={"key": False})

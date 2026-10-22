@@ -12,6 +12,7 @@ from llm.components.tools.builtin import BuiltinTools, BuiltinToolComponent
 from .test_workspaces import HubTestWorkspaces
 
 from ..interactions.questions import QuestionBroker
+from ...model import QuestionSource
 from llm.components.tools import ToolEffect, ToolIsolation
 
 
@@ -70,7 +71,7 @@ class HubBuiltinTools(BuiltinToolComponent):
             "Use this instead of ending a response with a question when work needs user input. "
             "Choices are optional suggestions; free-text answers are always accepted.",
             {"type": "object", "properties": {"question": {"type": "string", "minLength": 1},
-                "description": {"type": "string"}, "choices": {"type": "array", "items": {"type": "string"}}},
+                "description": {"type": "string"}, QuestionSource.SUGGESTIONS.value: {"type": "array", "items": {"type": "string"}}},
              "required": ["question"], "additionalProperties": False},
             self.questions.ask, contract=ToolContract(
                 revision='1', effect=ToolEffect.READ_ONLY,
@@ -124,7 +125,7 @@ class HubBuiltinTools(BuiltinToolComponent):
         # Cache only our host-owned built-ins. Imported Tool packages still use
         # llm's live resolver so source changes and contracts cannot go stale.
         key = revision_token({"options": self._options(project),
-            "definitions": toolkit.registry.definitions(), "contracts": toolkit.registry.contracts()})
+            "definitions": [tool.to_dict() for tool in toolkit.registry.definitions()], "contracts": toolkit.registry.contracts()})
         with self._toolkit_lock:
             cached = self._resolved.get(project.id)
             if cached is None or cached[0] != key:

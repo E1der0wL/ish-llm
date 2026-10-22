@@ -132,7 +132,7 @@ def validate_config(config: ProjectConfig, *, require_rerank=False) -> None:
 
 
 async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, query=DEFAULT_QUERY,
-                   max_attempts=3, require_relations=False, completion_fn=None, rag_component=None,
+                   max_attempts=3, require_relations=False, completion_adapter=None, rag_component=None,
                    display=True, extraction_prompt=None, standalone_rerank=False) -> dict:
     """테스트 전용 Project를 생성한다. 주입 인자는 자동 회귀 검사에서만 사용한다."""
     validate_config(config, require_rerank=True)
@@ -140,7 +140,7 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
         raise ValueError("max_attempts must be positive")
     workspace = Path(workspace).expanduser().resolve()
     report_path = workspace / "reports" / f"graph-rag-{uuid4().hex}.json"
-    report = {"mode": "live" if completion_fn is None and rag_component is None else "injected",
+    report = {"mode": "live" if completion_adapter is None and rag_component is None else "injected",
               "status": "running", "stage": "read_document", "checks": {}, "timings": {},
               "report": str(report_path)}
     started = perf_counter()
@@ -210,7 +210,7 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
         if not content.strip():
             raise ValueError("Markdown document is empty")
         checks = AnswerChecks(content)
-        loop = LoopEngine(parameter_key="loop", **({"completion_fn": completion_fn} if completion_fn else {}))
+        loop = LoopEngine(parameter_key="loop", **({"completion_adapter": completion_adapter} if completion_adapter else {}))
         graph = GraphEngine(handlers={"agent": AgentNode(engines={"loop": loop}), "tool": ToolNode(),
             "validate_answer": checks.validate, "feedback": checks.feedback, "publish_answer": checks.publish})
         config = ProjectConfig(**config.to_dict())

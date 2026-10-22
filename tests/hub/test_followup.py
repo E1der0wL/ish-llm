@@ -1,5 +1,7 @@
 """Suggestion protocol, ghost input and explicit keyboard acceptance."""
 
+from llm.core.model_protocol import ModelMessage
+
 import asyncio
 from dataclasses import replace
 import unittest
@@ -47,14 +49,14 @@ class FollowupTests(unittest.IsolatedAsyncioTestCase):
     async def test_protocol_processor_preserves_original_ids_for_resume(self):
         from hub.backend.execution.completion import FollowupProcessor
         from llm.components.processing import CompletionMessage, CompletionRequest
-        request = CompletionRequest({}, [CompletionMessage({"role": "user", "content": "task"}, "u")], 0)
+        request = CompletionRequest({}, [CompletionMessage(ModelMessage("user", "task"), "u")], 0)
         async for _ in FollowupProcessor().session(None).prepare(request):
             pass
         from hub.backend.tools.advice import INSTRUCTION as RISK_INSTRUCTION
-        self.assertEqual(request.messages[0].value["content"], INSTRUCTION + "\n\n" + RISK_INSTRUCTION)
+        self.assertEqual(request.messages[0].message.text, INSTRUCTION + "\n\n" + RISK_INSTRUCTION)
         self.assertIsNone(request.messages[0].source_id)
         self.assertEqual(request.messages[1].source_id, "u")
-        self.assertEqual(request.messages[1].value["content"], "task")
+        self.assertEqual(request.messages[1].message.text, "task")
 
     async def test_right_accepts_without_sending_and_switch_discards_hint(self):
         view = LiveHubView()

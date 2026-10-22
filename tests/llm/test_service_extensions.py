@@ -1,5 +1,9 @@
 """서비스 확장 지점이 실제 실행/조회/종료 경로에 반영되는지 확인한다."""
 
+from llm.core.model_protocol import ModelMessage, ModelRequest
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from pathlib import Path
 import tempfile
@@ -153,14 +157,14 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
                 for index in range(2):
                     if index:
                         yield EngineEvent("custom.metadata")
-                    async for event in self.stream_completion({"model": "fixture", "messages": []}):
+                    async for event in self.stream_completion(ModelRequest([], {"model": "fixture"})):
                         yield event
         handlers = EventHandlers()
         async def inspect(context, event):
             with self.assertRaisesRegex(ValueError, "policies"):
                 await context.update_metadata({"policies": {}})
         handlers.register("custom.metadata", inspect)
-        _, project, session = await self.backend(engines={"twice": Twice(completion_fn=completion)},
+        _, project, session = await self.backend(engines={"twice": Twice(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))},
                                                  services=BackendServices(event_handlers=handlers))
         await project.aconfigure_policies({"usage": {"max_calls": 1}})
         run = await self.run_one(session, engine="twice")

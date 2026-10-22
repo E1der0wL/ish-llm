@@ -1,5 +1,9 @@
 """Owner boundaries remain valid for substituted engines, handlers and providers."""
 
+from llm.core.model_protocol import ModelMessage, ModelRequest
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import unittest
 import json
 import tempfile
@@ -96,7 +100,7 @@ class CheckpointBoundaryTests(unittest.TestCase):
 class ProviderBoundaryTests(unittest.IsolatedAsyncioTestCase):
     async def test_alternative_adapter_owns_request_and_retry_fields(self):
         from llm.providers.observations import ModelCall
-        from llm.providers.streaming import CompletionUpdate
+        from llm.core.model_protocol import CompletionUpdate, ModelResponse, StopReason
         from llm.policies.retry import RetryDecision
         requests = []
 
@@ -104,11 +108,11 @@ class ProviderBoundaryTests(unittest.IsolatedAsyncioTestCase):
             def decode(self, chunk):
                 yield CompletionUpdate(text=chunk)
             def finish(self):
-                return {"answer": "ok"}
+                return ModelResponse(ModelMessage("assistant", "ok"), StopReason.COMPLETE)
 
         class Adapter:
             def prepare(self, request):
-                self.assert_keys = set(request)
+                self.assert_keys = set(request.parameters)
                 return request
             def describe_call(self, request):
                 return ModelCall("custom", "custom-model", lambda c: 1, lambda r: {}, lambda e: "custom_transient")
@@ -123,7 +127,7 @@ class ProviderBoundaryTests(unittest.IsolatedAsyncioTestCase):
             def retry_fields(self, request):
                 return ("deadline",)
             def validate_retry(self, request, *, original):
-                if request.keys() != original.keys() or request["text"] != original["text"]:
+                if request.parameters.keys() != original.parameters.keys() or request.messages != original.messages:
                     raise ValueError("Changed input")
             def decoder(self, **limits):
                 return Decoder()
@@ -135,14 +139,15 @@ class ProviderBoundaryTests(unittest.IsolatedAsyncioTestCase):
 
         adapter = Adapter()
         engine = BaseEngine(completion_adapter=adapter)
-        response = {}
+        response = []
         async def decide(failure):
             return RetryDecision(changes={"deadline": 2})
-        events = [e async for e in engine.stream_completion({"text": "question", "deadline": 1},
+        events = [e async for e in engine.stream_completion(ModelRequest([ModelMessage("user", "question")], {"deadline": 1}),
             response=response, retry_decider=decide, provider={"max_attempts": 2})]
-        self.assertEqual(response, {"answer": "ok"})
+        self.assertEqual(response, [ModelResponse(ModelMessage("assistant", "ok"), StopReason.COMPLETE)])
         self.assertIn("ok", events)
-        self.assertEqual(requests, [{"text": "question", "deadline": 1}, {"text": "question", "deadline": 2}])
+        self.assertEqual(requests, [ModelRequest([ModelMessage("user", "question")], {"deadline": 1}),
+                                    ModelRequest([ModelMessage("user", "question")], {"deadline": 2})])
 
 
 class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
@@ -158,7 +163,7 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
         parent = ScriptedCompletion([chunk(calls=[call('{"agent_id":"graph-worker","input":{}}', name="agent_run")], finish="tool_calls")],
                                     [ConnectionError("after Graph completion")])
         leaf = ScriptedCompletion([chunk("leaf done", finish="stop")])
-        engines = {"parent": LoopEngine(completion_fn=parent), "leaf": LoopEngine(completion_fn=leaf)}
+        engines = {"parent": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=parent)), "leaf": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=leaf))}
         engines["graph"] = GraphEngine(handlers={"agent": AgentNode(engines=engines)})
         async with LargeLanguageModel(directory.name, engines=engines, components=[AgentComponent(engines=engines), WorkflowComponent()]) as app:
             project = await app.projects.acreate(components=["agents", "workflows"], config={"parameters": {"engines": {
@@ -355,7 +360,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         graph = (WorkflowGraph(entry="a").node("a", "agent", agent="a")
                  .node("b", "agent", agent="b").node("end", "end").connect("a", "b").connect("b", "end"))
         profile = {"purpose": "test", "engine": "loop", "completion": {"model": "test"}}
-        _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})},
+        _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             (Tool("write", "write", {"type": "object"}, write, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),),
             agents=(("a", {**profile, "tools": ["write"]}), ("b", profile)))
         run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
@@ -388,7 +393,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{"value":"second"}', name="echo")], finish="tool_calls")], [chunk("two", finish="stop")])
         graph = (WorkflowGraph(entry="a").node("a", "agent", agent="worker").node("b", "agent", agent="worker")
                  .node("end", "end").connect("a", "b").connect("b", "end"))
-        app, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})},
+        app, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             (Tool("echo", "echo", {"type": "object", "properties": {"value": {"type": "string"}}}, echo, contract=TEST_CONTRACT),),
             agents=(("worker", {"purpose": "echo", "engine": "loop", "completion": {"model": "test"}, "tools": ["echo"]}),))
         run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
@@ -412,7 +417,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
                  .node("b", "agent", agent="b", pause_before=True).node("end", "end")
                  .connect("a", "b").connect("b", "end"))
         profile = {"purpose": "test", "engine": "loop", "completion": {"model": "test"}}
-        _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})},
+        _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             agents=(("a", profile), ("b", profile)))
         run = await (await session.run.submit("go", engine="graph", engine_options={"workflow": "flow"})).wait()
         self.assertEqual(run.data.status, "paused", run.data.error)

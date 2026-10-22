@@ -1,5 +1,7 @@
 """Bounded, tool-free auxiliary calls observed inside the owning Run."""
 
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelRole
+
 from contextlib import aclosing
 from copy import deepcopy
 import json
@@ -27,24 +29,23 @@ def parse_object(text):
 
 async def model_events(engine, frame, request, instruction, payload, result, *, kind, maximum,
                        metadata=None, name=None):
-    params = BaseEngine.copy_params(request)
-    for key in ("messages", "tools", "tool_choice", "parallel_tool_calls", "functions", "function_call",
-                "response_format", "json_schema", "stop", "n", "num_retries", "max_retries"):
-        params.pop(key, None)
     # These are a different logical request, with no inherited SDK/provider retry.
-    params.update(num_retries=0, max_retries=0, messages=[
-        {"role": "system", "content": instruction},
-        {"role": "user", "content": json.dumps(payload, ensure_ascii=False, allow_nan=False)}])
-    response = {}
-    model = BaseEngine("Hub recovery", completion_fn=engine.completion_fn)
+    adapter = engine.completion_adapter
+    invocation = ModelRequest([ModelMessage(ModelRole.SYSTEM, instruction),
+        ModelMessage(ModelRole.USER, json.dumps(payload, ensure_ascii=False, allow_nan=False))],
+        adapter.auxiliary_parameters(request))
+    response = []
+    model = BaseEngine("Hub recovery", completion_adapter=adapter)
 
     async def complete(context):
-        async with aclosing(model.stream_completion(params, response=response, provider={},
+        async with aclosing(model.stream_completion(invocation, response=response, provider={},
                                                     max_output_chars=maximum)) as stream:
             async for event in stream:
                 if getattr(event, "type", None) == EngineEventType.COMPLETION:
                     yield event
-        result.update(parse_object(response.get("content") or ""))
+        if response[0].message.calls:
+            raise InvalidRecoveryResponse("Recovery model cannot request Tools")
+        result.update(parse_object(response[0].message.text))
         yield EngineOutput(data=deepcopy(result), visibility="internal")
 
     async with aclosing(model.step(frame.context, complete, name=name or "Hub " + kind, kind="llm",

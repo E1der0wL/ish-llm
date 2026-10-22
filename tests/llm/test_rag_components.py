@@ -1,4 +1,8 @@
 """Component 공개 API로 실제 Chroma/Kuzu CRUD·검색·수명·실패 원자성을 검증한다."""
+
+from llm.core.model_protocol import EmbeddingResult, RankedDocument, RerankResult
+
+from llm.providers.operations import LiteLLMOperations
 from tests.llm.configuration_fixtures import rag_settings, rag_project
 
 import asyncio
@@ -46,7 +50,7 @@ class ParsingTests(unittest.TestCase):
 
     def test_rag_model_import_is_lightweight(self):
         result = subprocess.run([sys.executable, "-c", "import sys; from llm.components.rag import EmbeddingModel; "
-            "assert not any(n in sys.modules for n in ('litellm','chromadb','kuzu','llm.services','llm.core'))"],
+            "assert not any(n in sys.modules for n in ('litellm','chromadb','kuzu','llm.services'))"],
             capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stderr)
 
@@ -54,7 +58,7 @@ class ParsingTests(unittest.TestCase):
 class ExtractionTests(unittest.IsolatedAsyncioTestCase):
     async def test_litellm_completion_contract(self):
         call = AsyncMock(return_value={"choices": [{"message": {"content": '{"entities": [], "relations": []}'}}]})
-        extractor = TripleExtractor(model="test", completion_fn=call)
+        extractor = TripleExtractor(model="test", adapter=LiteLLMOperations(call=call))
         self.assertEqual(await extractor.extract([{"id": "d:c1", "text": "untrusted"}]),
                          {"entities": [], "relations": []})
         request = call.call_args.kwargs
@@ -153,7 +157,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
             calls.append(texts)
             if len(calls) == 2:
                 raise ConnectionError('embedding interrupted')
-            return await fake_embedding(input=texts)
+            return EmbeddingResult(tuple((await fake_embedding(input=texts)).data[0]["embedding"]))
         with patch.object(self.embed, 'embed', embed):
             with self.assertRaises(ConnectionError):
                 await self.rag.arun_job(job['id'])
@@ -245,7 +249,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.embed = EmbeddingModel(model="test/embedding", embedding_fn=fake_embedding)
+        self.embed = EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=fake_embedding))
         self.rag_component = RAGComponent(embedding=self.embed, extractor=Extractor())
         self.graph_component = self.rag_component
         self.app = LargeLanguageModel(self.root, engines={}, components=[self.rag_component])
@@ -385,7 +389,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await release.wait()
             return await fake_embedding(**request)
-        with patch.object(self.embed, "_call_fn", block):
+        with patch.object(self.embed.adapter, "call", block):
             first = asyncio.create_task(self.add(identifier="slow"))
             await entered.wait()
         await self.add(identifier="fast")
@@ -415,7 +419,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.rag.alist_documents(), [])
 
     async def test_invalid_vectors_model_mismatch_and_paths(self):
-        with patch.object(self.embed, "embed", AsyncMock(return_value={"data": [{"index": 0, "embedding": [float("nan")]}]})):
+        with patch.object(self.embed.adapter, "call", AsyncMock(return_value={"data": [{"index": 0, "embedding": [float("nan")]}]})):
             with self.assertRaises(ValueError):
                 await self.rag.aadd_document(title="bad", content="bad")
         with self.assertRaises(ValueError):
@@ -438,7 +442,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
         from llm.components.rag import RerankModel
         await self.add(identifier="doc")
         call = AsyncMock(return_value={"results": [{"index": 1, "relevance_score": 0.9}]})
-        self.rag_component.reranker = RerankModel(model="test", rerank_fn=call)
+        self.rag_component.reranker = RerankModel(model="test", adapter=LiteLLMOperations(call=call))
         original = await self.rag.asearch_documents("backup", limit=3)
         ranked = await self.rag.asearch_documents("backup", limit=3, rerank=True)
         self.assertEqual(ranked[0]["id"], original[1]["id"])
@@ -488,7 +492,7 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
             provider_entered.set()
             await provider_release.wait()
             return await fake_embedding(**request)
-        with patch.object(self.embed, "_call_fn", block):
+        with patch.object(self.embed.adapter, "call", block):
             pending = asyncio.create_task(self.add(identifier="late"))
             await provider_entered.wait()
             await self.app.shutdown()

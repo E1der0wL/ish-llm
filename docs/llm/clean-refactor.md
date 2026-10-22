@@ -1,6 +1,6 @@
 # 클린 리팩터링 설계와 구현 게이트
 
-**현재 완료 상태와 증거: [P1 실행 기록](p1-verification.md) 및 [수명주기 검증](lifecycle-verification.md).** 기준은 main
+**현재 상태와 증거: [A Provider 검증](provider-refactor-verification.md), [P1 실행 기록](p1-verification.md), [수명주기 검증](lifecycle-verification.md).** 기준은 main
 `94229cb865374d99f20ec48c5e48269488041a4e`이며 `refactor/llm-clean`에서 시작한다.
 기존 `refactor/llm-backend`의 코드/커밋을 cherry-pick·merge하지 않는다. main과 기존 Draft PR #1은
 변경하지 않는다. [현행 구조](architecture.md)와 이 목표 구조를 구분한다.
@@ -29,6 +29,9 @@ H1–H5 완료 후 P1부터 A–F 각 단계에 필요한 `refactor/llm-backend`
 승인/예산/Resume 계약에 맞춰 이식하거나 재구현한다. 과거 완료/테스트 결과는 현재 증거로 승계하지
 않는다. R3 Agent Tool 호출 한도 누락·정책 합성 회귀와 기존 실제 효과/중단/재개 Assertion을 보호하고
 Level 1–3을 따른다. 차용한 설계/테스트와 채택하지 않은 구형 계약만 필요한 범위에서 기록한다.
+
+A Provider의 현재 로컬 Level 3는 전체 LLM 2137/Hub 577 및 S1–S6 통과다.
+원격 CI 상태와 남은 확인은 [A 검증 기록](provider-refactor-verification.md)을 따른다.
 
 ## 필수 원칙
 

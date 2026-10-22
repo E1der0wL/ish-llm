@@ -1,4 +1,6 @@
 """A stored batch name must stay bound to its completed model effect."""
+
+from llm.providers.operations import LiteLLMOperations
 import json
 import hashlib
 from copy import deepcopy
@@ -22,7 +24,7 @@ class RenamedBatchProbe(unittest.IsolatedAsyncioTestCase):
                 if text=='second' and failing:raise ConnectionError('injected second chunk failure')
                 with effects.open('a') as stream:stream.write(text+'\n')
                 return await fake_embedding(**request)
-            component=RAGComponent(embedding=EmbeddingModel(model='test/embedding',embedding_fn=embedding))
+            component=RAGComponent(embedding=EmbeddingModel(model='test/embedding',adapter=LiteLLMOperations(call=embedding)))
             async with LargeLanguageModel(root/'workspace',engines={},components=[component]) as app:
                 settings = {'config': {'embedding_cache_max_bytes': 0}, 'policy': {'embedding_concurrency': 1, 'extraction': {'failure_policy': 'disabled'}}}
                 project = await app.projects.acreate(components=['rag'], config=rag_project({'parameters': {'components': {'rag': settings}}}))

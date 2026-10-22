@@ -1,5 +1,7 @@
 """Hub의 삭제 영향 확인과 재개 포기: 취소는 무변경, 확인은 revision을 전달한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from types import SimpleNamespace as NS
 import tempfile
@@ -21,7 +23,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
         provider = ScriptedCompletion([RuntimeError("test provider failure")])
         with tempfile.TemporaryDirectory() as directory:
             runtime = HubRuntime(HubConfig(directory, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 sid = await runtime.new_session()

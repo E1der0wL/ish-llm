@@ -63,8 +63,9 @@ Project의 Component 호출 영수증 목록을 제공해야 한다. 비활성 C
 `providers.streaming.CompletionDecoder`는 시도마다 생성된다. `decode(chunk)`는 SDK
 chunk를 `CompletionUpdate`의 텍스트·추론 텍스트·identity·사용량·종료 정보로 변환한다.
 사용량은 비음수 정수 값의 중첩 dict다. decoder는 검증 중 실패 전까지 받은 관찰을 yield할
-수 있다. `finish()`는 정상 종료를 검증하고 어댑터가 소유한 최종 message dict를 반환한다.
-BaseEngine은 이 dict를 해석하지 않으며, 성공한 경우에만 호출자의 response에 적용한다.
+수 있다. `finish()`는 정상 종료를 검증하고 공통 `ModelResponse`를 반환한다.
+BaseEngine은 정규 usage/identity/종료 관찰을 기록하며 성공한 경우에만 호출자의
+`list[ModelResponse]` capture에 적용한다. 완전히 수신한 실제 사용량은 응답 검증 실패에도 보존한다.
 factory에는 `max_tool_calls`, `max_argument_chars`, `max_output_chars`가 전달된다.
 None은 추가 제한 없음이다. 명시된 상한은 decoder가 자신의 프로토콜 의미로 집행해야
 하며 무시하거나 다른 기본값으로 대체하면 안 된다.
@@ -168,11 +169,11 @@ Tool 권한을 생성하지 않는다. 없는 resolver/역량은 추측하지 �
 ### 모델 어댑터와 결과 참조
 
 `BaseEngine(completion_adapter=...)`는 기본 LiteLLM 어댑터를 교체하는 Host 경계다.
-기존 `completion_fn`/`completion_decoder`는 LiteLLM 어댑터 주입 경로이며 독립 어댑터와
-함께 지정할 수 없다. 어댑터는 provider admission·진단·취소에 참여하고 명시된 제한을
+`completion_fn`/`completion_decoder`는 실제 `LiteLLMCompletionAdapter`의 생성자에서만 받는다.
+공통 호출은 `ModelRequest`/`ModelResponse`이며 Engine에 구 SDK 인자를 직접 전달하는 경로는 없다. 어댑터는 provider admission·진단·취소에 참여하고 명시된 제한을
 집행해야 한다. 자체 SDK 오류를 Run code로 전달하려면 trusted CodedError로 정규화한다.
 Loop에서 사용하는 어댑터는 `describe_config`/`validate_request`/`validate_processing`도 제공하고 Loop의
-명시적 messages/tools/assistant 프로토콜을 지원해야 한다. 새로운 SDK 어댑터 구현 자체는
+공통 메시지/Tool 교환과 입력 소유권·보조 호출 옵션 계약을 지원해야 한다. 새로운 SDK 어댑터 구현 자체는
 이번 변경에 포함하지 않는다. 어댑터 타입과 선택적 `execution_binding`도 재개에 묶인다.
 동일 어댑터의 동작을 교체하면 Host가 binding/revision을 변경해야 한다.
 
@@ -182,7 +183,10 @@ Loop에서 사용하는 어댑터는 `describe_config`/`validate_request`/`valid
 Session 소유권, 완료된 tool Step, 실제 output을 확인한다. source identity만으로 권한을
 추가하지 않는다. Tool call ID는 모델 대화의 호출/결과 연결에만 계속 사용한다.
 
-승인·효과 원장·명시적 재개·CAS의 소유권은 유지한다. 저장/schema version은 변경하지 않는다.
+승인·효과 원장·명시적 재개·CAS의 소유권은 유지한다. 공통 응답을 담는 Loop의 현재
+Checkpoint 형식은 `LoopEngine.CHECKPOINT_FORMAT` (`loop-iterations-v2`)이다.
+`CompletionResult` Reader는 nullable `termination`도 필수 필드로 요구한다.
+구형·불완전 증거는 거부하며 원본을 자동 변환하거나 누락 필드를 복원하지 않는다.
 단 중첩 checkpoint key/decision과 선택 binding 형식이 바뀌었으므로 과거 실행 checkpoint의
 재개 호환을 보장하지 않는다. 자동 변환·호환 별칭은 없으며 변경 전 대기 실행은 새 요청으로
 시작해야 한다. 완료된 Tool을 새 요청에서 임의 재실행하지 않도록 기존 작업 결과를 확인한다.

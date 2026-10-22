@@ -1,3 +1,7 @@
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
+from llm.providers.operations import LiteLLMOperations
 from tests.llm.configuration_fixtures import rag_settings
 """예제의 공개 API 연결을 실제 로컬 색인과 고정 모델 응답으로 검증한다."""
 
@@ -71,11 +75,11 @@ class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
         # SDK 경계만 대체하여 실제 provider_request/retry 진단을 함께 검사한다.
         call = AsyncMock(side_effect=rerank_fn)
         self.rerank_call = call
-        rag = RAGComponent(embedding=EmbeddingModel(embedding_fn=fake_embedding),
-                           extractor=TripleExtractor(completion_fn=extraction),
+        rag = RAGComponent(embedding=EmbeddingModel(adapter=LiteLLMOperations(call=fake_embedding)),
+                           extractor=TripleExtractor(adapter=LiteLLMOperations(call=extraction)),
                            reranker=RerankModel())
         with patch("llm.providers.runtime.litellm_sdk", return_value=SimpleNamespace(arerank=call, cache=None)):
-            return await run_demo(Path(root), config or self.config(), completion_fn=model,
+            return await run_demo(Path(root), config or self.config(), completion_adapter=LiteLLMCompletionAdapter(completion_fn=model),
                                   rag_component=rag, display=False, **options)
 
     async def test_crud_search_graph_tool_repair_and_reopen(self):
@@ -207,9 +211,9 @@ class GraphRAGExampleTests(unittest.IsolatedAsyncioTestCase):
             raise RuntimeError("embedding endpoint unavailable")
 
         with tempfile.TemporaryDirectory() as root:
-            rag = RAGComponent(embedding=EmbeddingModel(embedding_fn=unavailable),
-                               extractor=TripleExtractor(completion_fn=extraction))
-            report = await run_demo(Path(root), self.config(), completion_fn=AnswerModel(),
+            rag = RAGComponent(embedding=EmbeddingModel(adapter=LiteLLMOperations(call=unavailable)),
+                               extractor=TripleExtractor(adapter=LiteLLMOperations(call=extraction)))
+            report = await run_demo(Path(root), self.config(), completion_adapter=LiteLLMCompletionAdapter(completion_fn=AnswerModel()),
                                     rag_component=rag, display=False)
             self.assertEqual(report["status"], "failed")
             self.assertEqual(report["stage"], "register_document")

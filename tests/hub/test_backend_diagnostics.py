@@ -1,5 +1,7 @@
 """Hub consumers read the same current diagnostics as llm's public APIs."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 from llm.llm import Diagnostic
 
 from pathlib import Path
@@ -23,7 +25,7 @@ class BackendDiagnosticTests(unittest.IsolatedAsyncioTestCase):
                                       [chunk("done", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             await runtime.start()
             try:
                 session = await runtime.project.sessions.acreate("resume")
@@ -51,7 +53,7 @@ class BackendDiagnosticTests(unittest.IsolatedAsyncioTestCase):
                                               finish="tool_calls")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)},
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
                 component_factories=(lambda: ExampleTools(handler),),
                 project_config={"policies": {"tool_retry": {"max_retries": 0}}}))
             await runtime.start()

@@ -1,5 +1,8 @@
 """같은 ID를 재사용해도 이전 generation/revision으로 새 자료를 변경하지 못한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
+
 import importlib.util
 import hashlib
 import json
@@ -145,7 +148,7 @@ class MemoryGenerationTests(unittest.IsolatedAsyncioTestCase):
         old = await self.create()
         model = ScriptedCompletion([chunk(calls=[call(json.dumps({"identifier": "item", **expected(old)}),
             name="memory_delete")], finish="tool_calls")], [chunk("done", finish="stop")])
-        self.app.engines.register("loop", LoopEngine(completion_fn=model))
+        self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await configure_engine(self.project, "loop", completion={"model": "test/model"})
         session = await self.project.sessions.acreate()
         paused = await (await session.run.submit("delete", engine="loop")).wait()
@@ -171,7 +174,7 @@ class RAGGenerationTests(unittest.IsolatedAsyncioTestCase):
         async def embed(**request):
             self.calls.append(request)
             return await fake_embedding(**request)
-        self.component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", embedding_fn=embed), extractor=Extractor())
+        self.component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=embed)), extractor=Extractor())
         self.app = LargeLanguageModel(self.root, engines={}, components=[self.component])
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate(components=["rag"], config=rag_project())

@@ -1,5 +1,7 @@
 """Memory runtime injection preserves explicit falsey callables and rejects invalid choices."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import unittest
 from unittest.mock import patch
 
@@ -22,14 +24,14 @@ class MemoryRuntimeChoiceTests(unittest.TestCase):
     def test_explicit_falsey_model_and_counter_keep_their_identity(self):
         model = FalseyCallable(lambda **kwargs: iter(()))
         counter = FalseyCallable(lambda text: 0)
-        processor = MemoryProcessor(None, completion_fn=model, token_counter=counter, priority=0)
-        self.assertIs(processor.completion_fn, model)
+        processor = MemoryProcessor(None, completion_adapter=LiteLLMCompletionAdapter(completion_fn=model), token_counter=counter, priority=0)
+        self.assertIs(processor.completion_adapter.completion_fn, model)
         self.assertIs(processor.token_counter, counter)
         self.assertEqual(processor.priority, 0)
 
     def test_wrong_runtime_choices_fail_at_the_owner_before_any_call(self):
         for value in (False, 0, '', [], {}, object()):
-            for field in ('completion_fn', 'token_counter'):
+            for field in ('completion_adapter', 'token_counter'):
                 with self.subTest(field=field, value=repr(value)), self.assertRaises(TypeError):
                     MemoryProcessor(None, **{field: value})
         for value in (None, False, True, 1.5, '0'):
@@ -39,9 +41,9 @@ class MemoryRuntimeChoiceTests(unittest.TestCase):
     def test_none_model_selects_default_and_explicit_integer_priority_is_preserved(self):
         def default(**kwargs):
             raise AssertionError('configuration must not invoke the model')
-        with patch('llm.components.memory.processing.completion', default):
-            processor = MemoryProcessor(None, completion_fn=None, priority=-1)
-        self.assertIs(processor.completion_fn, default)
+        with patch('llm.providers.litellm.completion', default):
+            processor = MemoryProcessor(None, completion_adapter=None, priority=-1)
+        self.assertIs(processor.completion_adapter.completion_fn, default)
         self.assertIsNone(processor.token_counter)
         self.assertEqual(processor.priority, -1)
 
@@ -62,10 +64,10 @@ class MemoryRuntimeConsumerTests(unittest.IsolatedAsyncioTestCase):
             with unexpected.open('a') as stream:
                 stream.write('unexpected default\n')
             yield from self.aux(**request)
-        self.component.completion_fn = FalseyCallable(injected)
+        self.component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=FalseyCallable(injected))
         await self.configure(extract=True)
         configuration = await self.memory.aget_config()
-        with patch('llm.components.memory.processing.completion', default):
+        with patch('llm.providers.litellm.completion', default):
             run, main = await self.run_loop()
         self.assertEqual(run.data.status, 'completed', run.data.error)
         self.assertEqual({'injected': intended.read_text() if intended.exists() else '',

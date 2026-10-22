@@ -167,11 +167,14 @@ class RAGData(ComponentData):
         if rerank and hits:
             await self._async_call(self.require_model_observation, component.reranker)
             response = await component.reranker.rerank(query, [hit["text"] for hit in hits])
-            rows = response["results"] if isinstance(response, dict) else response.results
-            order = [row["index"] for row in rows]
+            from llm.core.model_protocol import RerankResult
+            if not isinstance(response, RerankResult):
+                raise TypeError("Reranker must return RerankResult")
+            rows = response.rows
+            order = [row.index for row in rows]
             if len(set(order)) != len(order) or any(type(i) is not int or not 0 <= i < len(hits) for i in order):
                 raise ValueError("Invalid rerank indexes")
-            hits = [{**hits[row["index"]], "rerank_score": row["relevance_score"]} for row in rows]
+            hits = [{**hits[row.index], "rerank_score": row.score} for row in rows]
             # 모델 호출 중 프로젝트가 삭제/해제되었는지도 다시 확인한다.
             await self._async_call(self._current_snapshot, snapshot)
         return snapshot, hits

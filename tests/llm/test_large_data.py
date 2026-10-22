@@ -1,5 +1,7 @@
 """Public summary requests, durable chunk cursors and original Tool source ownership."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from contextlib import asynccontextmanager
 import json
@@ -46,7 +48,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.requests = []
-        self.memory_component = MemoryComponent(completion_fn=self.auxiliary)
+        self.memory_component = MemoryComponent(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.auxiliary))
         self.source = SourceTools()
         self.serial = 0
         await self.open()
@@ -68,7 +70,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
         model = model or ScriptedCompletion(answer())
         name = "loop" + str(self.serial)
         self.serial += 1
-        self.app.engines.register(name, LoopEngine(completion_fn=model))
+        self.app.engines.register(name, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await configure_engine(self.project, name, completion={"model": "test/main"})
         run = await (await self.session.run.submit(text, engine=name)).wait(timeout=20)
         return run, model
@@ -191,7 +193,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
             if len(attempts) == 2:
                 raise ConnectionError("second fragment fails")
             yield from self.auxiliary(**request)
-        self.memory_component.completion_fn = failing
+        self.memory_component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=failing)
         await self.request(max_summary_calls=30)
         await self.run_loop()
         view = await self.memory.aget_context(self.session.id)
@@ -212,7 +214,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
             if not release.wait(10):
                 raise TimeoutError("test did not release summary call")
             yield from answer('{"summary":"late result"}')
-        self.memory_component.completion_fn = slow
+        self.memory_component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=slow)
         await self.request(max_summary_calls=30)
         task = asyncio.create_task(self.run_loop())
         self.assertTrue(await asyncio.to_thread(entered.wait, 5))
@@ -373,7 +375,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
                     closed.set()
             else:
                 yield from self.auxiliary(**request)
-        self.memory_component.completion_fn = model
+        self.memory_component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=model)
         task = asyncio.create_task(self.run_loop())
         self.assertTrue(await asyncio.to_thread(entered.wait, 5))
         await self.session.run.interrupt()
@@ -532,7 +534,7 @@ class LargeDataTests(unittest.IsolatedAsyncioTestCase):
             payload = json.loads(request['messages'][1]['content'])
             self.assertEqual(payload['previous_summary'], 'valid summary')
             yield from answer('{"summary":"small"}')
-        self.memory_component.completion_fn = smaller
+        self.memory_component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=smaller)
         await self.request(summary_chars=5, model_input_chars=1000, max_summary_calls=30)
         run, model = await self.run_loop()
         self.assertEqual(run.data.status, 'completed', run.data.error)

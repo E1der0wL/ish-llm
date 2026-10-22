@@ -1,5 +1,7 @@
 """Select bounded argument repairs; llm owns eligibility, execution and approval."""
 
+from llm.core.model_protocol import copy_model
+
 import asyncio
 from contextlib import aclosing
 from contextvars import ContextVar
@@ -131,8 +133,8 @@ class ToolRetrySelector:
                 return None
             values = engine.resolve_config(frame.context.project.config, name,
                 session_config=frame.context.session.config).get("values", {})
-        params = BaseEngine.copy_params(values.get("config", {}).get("completion", {}))
-        if not params.get("model") or not hasattr(engine, "completion_fn"):
+        params = copy_model(values.get("config", {}).get("completion", {}))
+        if not params.get("model") or not hasattr(engine, "completion_adapter"):
             return None
         document = asdict(payload)
         # The selector receives full local evidence; the bounded model helper

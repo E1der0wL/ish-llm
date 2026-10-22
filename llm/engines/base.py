@@ -24,8 +24,8 @@ from llm.core.interactions import InteractionRequest
 from llm.core.configuration import UNSET
 from llm.core.steering import SteeringMode, SteeringRoute
 from llm.components.tools import ToolRegistry
-from llm.providers.streaming import CompletionError, CompletionUpdate, CompletionDecoder, CompletionAdapter
-from llm.providers.parameters import copy_params
+from llm.providers.streaming import CompletionError, CompletionAdapter
+from llm.core.model_protocol import CompletionUpdate, ModelRequest, ModelResponse, copy_model
 from llm.providers.runtime import diagnostic_context, diagnostic_failure
 from llm.services.runtime.usage import current_usage
 from llm.policies.errors import ExecutionLimitError
@@ -319,9 +319,7 @@ class BaseEngine:
                      Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]]] = None,
                  metadata: Optional[dict] = None,
                  error_message: str = "Step execution failed",
-                 completion_fn: Optional[Callable[..., Iterator[Any]]] = None,
                  buffer_size: int = 8,
-                 completion_decoder: Optional[Callable[..., CompletionDecoder]] = None,
                  completion_adapter: Optional[CompletionAdapter] = None) -> None:
         if not isinstance(name, str) or not name.strip() or not isinstance(kind, str) or not kind.strip():
             raise ValueError("Step requires a name and kind")
@@ -336,11 +334,9 @@ class BaseEngine:
         self.action = action
         self.metadata = deepcopy(metadata or {})
         self.error_message = error_message
-        if completion_adapter is not None and (completion_fn is not None or completion_decoder is not None):
-            raise ValueError("Choose a completion adapter or LiteLLM function/decoder")
         if completion_adapter is None:
             from llm.providers.litellm import LiteLLMCompletionAdapter
-            completion_adapter = LiteLLMCompletionAdapter(completion_fn=completion_fn, completion_decoder=completion_decoder)
+            completion_adapter = LiteLLMCompletionAdapter()
         self.completion_adapter = completion_adapter
         self.buffer_size = buffer_size
         if type(buffer_size) is not int or buffer_size < 1:
@@ -424,13 +420,9 @@ class BaseEngine:
         return EngineEvent(EngineEventType.STEP_COMPLETED, step_id=step_id, output=output,
                            metadata=deepcopy(metadata or {}))
 
-    @staticmethod
-    def copy_params(value: Any) -> Any:
-        """Copy builtin option containers, keeping live SDK clients/callbacks intact."""
-        return copy_params(value)
 
-    async def stream_completion(self, request: Mapping[str, Any], *,
-                                response: Optional[dict] = None,
+    async def stream_completion(self, request: ModelRequest, *,
+                                response: Optional[list[ModelResponse]] = None,
                                 include_events: bool = True,
                                 provider: Optional[dict] = None,
                                 retry_decider=None,
@@ -441,7 +433,7 @@ class BaseEngine:
         """Yield text and completion observations; inherited execute() routes both.
 
         include_events=False is for standalone text consumers without persistence.
-        response receives the assistant message on success only. Observations
+        response receives one common response on success only. Observations
         contain no prompts, tool arguments, headers, or arbitrary SDK payloads.
         provider contains only this caller's explicit outer retry/deadline options;
         no Run policy is implicitly inherited and SDK request options stay separate.
@@ -449,6 +441,10 @@ class BaseEngine:
         from llm.providers.retry import retry_delay
         from llm.providers.requests import resolve_provider_options, ProviderError
         from llm.policies.retry import RetryPolicy, RetryFailure, select_retry, change_arguments
+        if not isinstance(request, ModelRequest):
+            raise TypeError("Completion requires ModelRequest")
+        if response is not None and not isinstance(response, list):
+            raise TypeError("Completion response capture requires a list")
         # 호출자가 자신의 Project-owned 설정에서 해석한 제한만 이 호출에 전달한다.
         for value in (max_tool_calls, max_argument_chars, max_output_chars):
             if value is not None and (type(value) is not int or value < 1):
@@ -458,7 +454,7 @@ class BaseEngine:
         attempts = adapter.effective_attempts(request, RetryPolicy(policy.get("max_attempts")).attempts)
         retry = RetryPolicy(attempts, policy.get("delay_seconds"), policy.get("max_delay_seconds"),
                             RetryPolicy.end(policy.get("wall_timeout")), "exponential")
-        request = self.copy_params(dict(request))
+        request = copy_model(request)
         call_id = new_id()
 
         def remaining():
@@ -470,7 +466,7 @@ class BaseEngine:
         for attempt in range(attempts):
             call_details = {"call_id": call_id, "attempt": attempt + 1, **adapter.describe_request(request)}
             progress = {"received": False}
-            invocation = adapter.describe_call(self.copy_params(dict(request)))
+            invocation = adapter.describe_call(copy_model(request))
             result = CompletionResult(model=invocation.model)
             usage_scope = current_usage()
             if usage_scope is not None:
@@ -505,7 +501,8 @@ class BaseEngine:
                     error.diagnostic = diagnostic_failure(error, operation="completion",
                         stage="response_validation" if isinstance(error, CompletionError) else "deadline",
                         **call_details, response_received=progress["received"],
-                        finish_reason=result.finish_reason, response_id=result.response_id)
+                        raw_finish_reason=result.finish_reason, termination=result.termination,
+                        response_id=result.response_id)
                 result.status = RunStatus.FAILED
                 result.ended_at = now()
                 result.duration_seconds = time.monotonic() - started
@@ -517,7 +514,7 @@ class BaseEngine:
                 if recover_completion is not None and failure.classification.reason == "context":
                     try:
                         async with timeout(remaining()):
-                            repaired = await recover_completion(failure, self.copy_params(request), attempt + 1)
+                            repaired = await recover_completion(failure, copy_model(request), attempt + 1)
                     except asyncio.CancelledError:
                         raise
                     except Exception as recovery_error:
@@ -529,6 +526,8 @@ class BaseEngine:
                         raise error
                     if repaired is None:
                         raise
+                    if not isinstance(repaired, ModelRequest):
+                        raise TypeError("Completion recovery must return ModelRequest")
                     remaining()  # The callback cannot renew this invocation's deadline.
                     request = repaired
                     from llm.providers.runtime import diagnostic
@@ -538,7 +537,7 @@ class BaseEngine:
                     raise
                 try:
                     async with timeout(remaining()):
-                        selected = await select_retry(RetryFailure("completion", self.copy_params(request),
+                        selected = await select_retry(RetryFailure("completion", copy_model(request.parameters),
                                 adapter.classify_error(error), adapter.classify_error(error).replace("_", " "), attempt + 1, True,
                             adapter.retry_fields(request)), retry_decider)
                 except TimeoutError as timeout_error:
@@ -546,8 +545,10 @@ class BaseEngine:
                 if selected is None:
                     raise
                 # Transcript/Tool authority/input budget은 이미 준비됐다. transport만 수정한다.
-                request = change_arguments(request, selected, allowed=adapter.retry_fields(request), copy=self.copy_params,
-                    validate=lambda value: adapter.validate_retry(value, original=request))
+                parameters = change_arguments(request.parameters, selected,
+                    allowed=adapter.retry_fields(request), copy=copy_model,
+                    validate=lambda value: adapter.validate_retry(replace(request, parameters=value), original=request))
+                request = replace(request, parameters=parameters)
                 try:
                     delay = retry_delay(retry, attempt + 1, error, policy)
                     if delay is None:
@@ -574,12 +575,12 @@ class BaseEngine:
 
                 return
 
-    async def _stream_completion(self, request: Mapping[str, Any], response: Optional[dict],
+    async def _stream_completion(self, request: ModelRequest, response: Optional[list[ModelResponse]],
                                  result: CompletionResult, progress: dict,
                                  max_tool_calls, max_argument_chars, max_output_chars) -> AsyncIterator[Union[str, EngineEvent]]:
-        params = self.completion_adapter.prepare(self.copy_params(dict(request)))
-        if response is not None and not isinstance(response, dict):
-            raise TypeError("Completion response must be a dictionary")
+        params = self.completion_adapter.prepare(copy_model(request))
+        if not isinstance(params, ModelRequest):
+            raise TypeError("Completion adapter must prepare ModelRequest")
         decoder = self.completion_adapter.decoder(max_tool_calls=max_tool_calls,
             max_argument_chars=max_argument_chars, max_output_chars=max_output_chars)
         async with aclosing(self.completion_adapter.stream(
@@ -592,7 +593,7 @@ class BaseEngine:
                     if not isinstance(update, CompletionUpdate):
                         raise TypeError("Completion decoder must yield CompletionUpdate")
                     changed = False
-                    for key in ("response_id", "model", "finish_reason"):
+                    for key in ("response_id", "model", "finish_reason", "termination"):
                         value = getattr(update, key)
                         if value is not None and value != getattr(result, key):
                             setattr(result, key, value)
@@ -609,14 +610,24 @@ class BaseEngine:
                         yield EngineEvent(EngineEventType.COMPLETION, completion=deepcopy(result))
                     if update.text:
                         yield update.text
+        # A fully drained stream can report actual usage even when its final
+        # response is rejected. Interrupted streams never reach this boundary.
         result.usage_complete = bool(result.usage)
-        message = decoder.finish()
-        if not isinstance(message, dict):
-            raise TypeError("Completion decoder must return a message object")
+        answer = decoder.finish()
+        if not isinstance(answer, ModelResponse):
+            raise TypeError("Completion decoder must return ModelResponse")
+        # A decoder may provide final observations only at finish. Missing usage
+        # remains unknown and must never release a token reservation as zero.
+        if answer.usage is not None:
+            result.usage = {**result.usage, **copy_model(answer.usage)}
+        for target, value in (("response_id", answer.response_id), ("model", answer.model),
+                              ("finish_reason", answer.raw_finish_reason), ("termination", answer.stop)):
+            if value is not None:
+                setattr(result, target, value)
+        result.usage_complete = bool(result.usage)
         if response is not None:
-            message = deepcopy(message)
             response.clear()
-            response.update(message)
+            response.append(copy_model(answer))
 
     def run(self, context: EngineContext) -> Union[AsyncIterator[Union[str, EngineDelta, EngineEvent, EngineOutput]], Awaitable[Optional[EngineOutput]]]:
         """문자열/EngineDelta/마지막 EngineOutput을 yield하거나 EngineOutput/None을 반환한다."""

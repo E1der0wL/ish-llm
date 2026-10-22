@@ -1,5 +1,7 @@
 """Explicit Job retention must preserve its original input when publication proof is lost."""
 
+from llm.providers.operations import LiteLLMOperations
+
 import asyncio
 import json
 from pathlib import Path
@@ -178,7 +180,7 @@ class RAGJobRetentionTests(unittest.IsolatedAsyncioTestCase):
                 stream.write('unexpected extraction\n')
             raise AssertionError('exhausted quota cannot invoke extraction')
         component = RAGComponent(embedding=self.component.embedding,
-                                 extractor=TripleExtractor(model='test/extraction', completion_fn=extraction))
+                                 extractor=TripleExtractor(model='test/extraction', adapter=LiteLLMOperations(call=extraction)))
         async with LargeLanguageModel(self.root / 'workspace', engines={}, components=[component]) as reopened:
             project = await reopened.projects.aload(self.project.id)
             data = project.components.rag
@@ -193,6 +195,7 @@ class RAGJobRetentionTests(unittest.IsolatedAsyncioTestCase):
         code = textwrap.dedent('''
             import asyncio, json, os, sys
             from pathlib import Path
+            from llm.providers.operations import LiteLLMOperations
             from llm.llm import LargeLanguageModel
             from llm.components.rag import RAGComponent, EmbeddingModel
             from llm.components.rag.job_storage import JobStorage
@@ -206,7 +209,7 @@ class RAGJobRetentionTests(unittest.IsolatedAsyncioTestCase):
                     stream.write('called\\n')
                 return await fake_embedding(**request)
             async def main():
-                component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=embedding), extractor=Extractor())
+                component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=embedding)), extractor=Extractor())
                 async with LargeLanguageModel(root / 'workspace', engines={}, components=[component]) as app:
                     project = await app.projects.acreate(components=['rag'], config=rag_project())
                     data, jobs = project.components.rag, []

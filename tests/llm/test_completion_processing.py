@@ -1,5 +1,9 @@
 """여러 컴포넌트의 순서·출처·관찰 사본·자원 정리와 Memory 조합을 검사한다."""
 
+from llm.core.model_protocol import ModelMessage, ModelRequest, ToolCall, ToolResult
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from contextvars import ContextVar
 from types import SimpleNamespace
@@ -105,7 +109,7 @@ class ProcessingContractTests(unittest.IsolatedAsyncioTestCase):
                     closed.append("generator")
             async def aclose(self, error):
                 closed.append(type(error))
-        original = [CompletionMessage({"role": "user", "content": "q"}, "current")]
+        original = [CompletionMessage(ModelMessage("user", "q"), "current")]
         async def work():
             async with CompletionPipeline([Processor("p", lambda _: Session())], self.context) as chain:
                 await consume(chain.prepare(CompletionRequest({}, original, 1), original))
@@ -133,28 +137,28 @@ class ProcessingContractTests(unittest.IsolatedAsyncioTestCase):
                     yield
             async def aclose(self, error):
                 variable.reset(self.token)
-        original = [CompletionMessage({"role": "user", "content": "q"}, "current")]
+        original = [CompletionMessage(ModelMessage("user", "q"), "current")]
         async with CompletionPipeline([Processor("p", lambda _: Session())], self.context) as chain:
             await consume(chain.prepare(CompletionRequest({}, original, 1), original))
             self.assertEqual(variable.get(), "changed")
         self.assertEqual(variable.get(), "original")
 
     async def test_invalid_sources_and_active_transcript_changes_rejected(self):
-        original = [CompletionMessage({"role": "user", "content": "q"}, "current"),
-                    CompletionMessage({"role": "assistant", "tool_calls": [call("{}")]}),
-                    CompletionMessage({"role": "tool", "tool_call_id": "call_1", "content": "result"})]
+        original = [CompletionMessage(ModelMessage("user", "q"), "current"),
+                    CompletionMessage(ModelMessage("assistant", calls=(ToolCall("call_1", "add", {}),))),
+                    CompletionMessage(ModelMessage("tool", result=ToolResult("call_1", "result")))]
         for messages in ([*original, original[0]], original[1:],
-                         [CompletionMessage({"role": "user"}, "forged"), *original],
+                         [CompletionMessage(ModelMessage("user", None), "forged"), *original],
                          [original[0], original[2], original[1]]):
             with self.assertRaises(ValueError):
-                CompletionPipeline._validate(CompletionRequest({}, messages, 1), original, {}, "current")
+                CompletionPipeline._validate(CompletionRequest({}, messages, 1), original, ModelRequest(), "current")
 
     async def test_partial_history_turn_removal_is_rejected(self):
-        original = [CompletionMessage({"role": "user", "content": "old"}, "old"),
-                    CompletionMessage({"role": "assistant", "content": "answer"}, "answer"),
-                    CompletionMessage({"role": "user", "content": "q"}, "current")]
+        original = [CompletionMessage(ModelMessage("user", "old"), "old"),
+                    CompletionMessage(ModelMessage("assistant", "answer"), "answer"),
+                    CompletionMessage(ModelMessage("user", "q"), "current")]
         with self.assertRaisesRegex(ValueError, "whole prior turns"):
-            CompletionPipeline._validate(CompletionRequest({}, original[1:], 1), original, {}, "current")
+            CompletionPipeline._validate(CompletionRequest({}, original[1:], 1), original, ModelRequest(), "current")
 
 
 class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
@@ -171,7 +175,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.build_history()
         class Session(CompletionSession):
             async def prepare(self, request):
-                request.messages.insert(0, CompletionMessage({"role": "user", "content": "skill reference"}))
+                request.messages.insert(0, CompletionMessage(ModelMessage("user", "skill reference")))
                 if False:
                     yield
         for priority in (0, 200):
@@ -193,7 +197,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.build_history()
         class Session(CompletionSession):
             async def prepare(self, request):
-                request.messages[0].value["content"] = "edited by skill"
+                request.messages[0] = request.messages[0].with_text("edited by skill")
                 if False:
                     yield
         await self.add_feature("edit", lambda _: Session())
@@ -211,19 +215,20 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 self.name = name
             async def prepare(self, request):
                 trace.append((self.name, "prepare", request.iteration))
-                request.messages[0].value["content"] += " prepared"
+                request.messages[0] = request.messages[0].with_text(request.messages[0].message.text + " prepared")
                 if False:
                     yield
             async def after_completion(self, observation):
                 trace.append((self.name, "after", observation.iteration))
                 observations.append(observation.snapshot())
-                observation.response.clear()
-                observation.request.clear()
+                observation.response.message.opaque.clear()
+                observation.request.messages.clear()
+                observation.request.parameters.clear()
                 if False:
                     yield
             async def finish(self, observation):
                 trace.append((self.name, "finish", observation.iteration))
-                observation.response["content"] = "must not replace answer"
+                observation.response.message.opaque["content"] = "must not replace answer"
                 if False:
                     yield
             async def aclose(self, error):
@@ -240,9 +245,9 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([(n, k, i) for n, k, i in trace if k == "after"],
                          [("a", "after", 1), ("b", "after", 1), ("a", "after", 2), ("b", "after", 2)])
         self.assertEqual(trace[-2:], [("b", "close", None), ("a", "close", None)])
-        self.assertTrue(observations[1].response["tool_calls"])
-        self.assertEqual(observations[0].original_messages[0]["content"], "query")
-        self.assertEqual(observations[0].request["messages"][0]["content"], "query prepared prepared")
+        self.assertTrue(observations[1].response.message.calls)
+        self.assertEqual(observations[0].original_messages[0].text, "query")
+        self.assertEqual(observations[0].request.messages[0].text, "query prepared prepared")
         self.assertEqual(len([x for x in trace if x[1] == "finish"]), 2)
 
     async def test_after_completion_failure_prevents_tool_effect(self):
@@ -311,7 +316,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
                     yield
         feature = Feature("observe", Processor("observe", lambda _: Session()))
         self.app = LargeLanguageModel(self.root / "workspace", components=[self.component, feature, memory_tests.PromptComponent()], engines={},
-            services=BackendServices(token_counters={"test": lambda r: len(r["messages"])}))
+            services=BackendServices(token_counters={"test": lambda r: len(r.messages)}))
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.aload(self.project.id)
         await configure_engine(self.project, "loop" + str(self.serial), input_policy={"max_tokens": 1, "counter": "test"})
@@ -319,8 +324,9 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.project.components.aselect(["observe"])
         run, model = await self.run_loop("current")
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
-        self.assertEqual(observations[0].request["messages"], model.requests[0]["messages"])
-        self.assertEqual(len(observations[0].request["messages"]), 1)
+        from llm.providers.wire_codec import encode_message
+        self.assertEqual([encode_message(m) for m in observations[0].request.messages], model.requests[0]["messages"])
+        self.assertEqual(len(observations[0].request.messages), 1)
         self.assertEqual(len(observations[0].original_messages), 7)
 
     async def test_concurrent_sessions_have_separate_processor_sessions(self):
@@ -334,7 +340,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 if len(sessions) == 2:
                     ready.set()
                 await ready.wait()
-                request.messages[-1].value["content"] += self.session_id
+                request.messages[-1] = request.messages[-1].with_text(request.messages[-1].message.text + self.session_id)
                 if False:
                     yield
             async def aclose(self, error):
@@ -368,7 +374,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.add_feature("waiting", lambda _: Session())
         await self.project.components.aselect(["waiting"])
         model = ScriptedCompletion(memory_tests.answer())
-        self.app.engines.register("interruptible", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("interruptible", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
         request = await self.session.run.submit("stop", engine="interruptible")
         await asyncio.wait_for(entered.wait(), 5)
         await self.session.run.interrupt()

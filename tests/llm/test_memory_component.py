@@ -1,5 +1,7 @@
 """장기 기억 CRUD와 Loop/Graph Tool을 파일 저장 및 실행 서비스로 통합 검증한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 import json
 from pathlib import Path
@@ -43,7 +45,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
     async def run_tool(self, name, arguments, *, project=None):
         model = completion_for(name, arguments)
         engine = "test_" + str(len(self.app.engines.names()))
-        self.app.engines.register(engine, LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
+        self.app.engines.register(engine, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
         session = await (project or self.project).sessions.acreate()
         run = await (await session.run.submit("기억을 관리해줘", engine=engine)).wait(timeout=20)
         return run, model, session
@@ -252,7 +254,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         for args in ({"content": "x", "status": "confirmed"}, {"content": "x", "source": {"run_id": "fake"}},
                      {"content": "x", "path": "/elsewhere"}):
             with self.assertRaises(ValueError):
-                tools.prepare("memory_create", json.dumps(args))
+                tools.prepare("memory_create", args)
         with self.assertRaises(ValueError):
             await tools.get("memory_create").handler({"content": "no context"})
         self.assertEqual(await self.memory.alist(), {})
@@ -261,7 +263,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         async with LargeLanguageModel(self.root / "denied", components=[MemoryComponent()], engines={},
                                       services=BackendServices()) as app:
             model = completion_for("memory_create", {"content": "denied"})
-            app.engines.register("loop", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
+            app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})}))
             project = await app.projects.acreate(components=["memory"], config={"policies": {"tools": {"allowed_tools": ["memory_search"]}}})
             session = await project.sessions.acreate()
             run = await (await session.run.submit("save", engine="loop")).wait(timeout=20)
@@ -311,7 +313,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
                  .node("end", "end").connect("reader", "end").to_dict())
         await workflows.acreate(graph, identifier="agent_flow")
         self.app.engines.register("agent", GraphEngine(handlers={
-            "agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})}))
+            "agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})}))
         run = await (await session.run.submit("recall", engine="agent", engine_options={"workflow": "agent_flow"})).wait(timeout=20)
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual([t["function"]["name"] for t in model.requests[0]["tools"]], ["memory_get"])

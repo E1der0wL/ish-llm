@@ -1,5 +1,7 @@
 """저장 Agent 위임은 같은 Run/승인/도구 예산을 사용하는지 검사한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import json
 import tempfile
 import unittest
@@ -23,7 +25,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call(json.dumps({"agent_id": "worker", "input": {"task": "work"}}), name="agent_run")], finish="tool_calls")],
             [chunk("parent done", finish="stop")])
         child = ScriptedCompletion(*(child_responses or [[chunk("child done", finish="stop")]]))
-        engines = {"parent": LoopEngine(completion_fn=parent), "child": LoopEngine(completion_fn=child)}
+        engines = {"parent": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=parent)), "child": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=child))}
         components = [AgentComponent(engines=engines)]
         if registry:
             components.append(RuntimeTools(registry))
@@ -125,7 +127,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
             time.sleep(.1)
             yield chunk("late", finish="stop")
         app, session, _, _ = await self.setup(definition={"policy": {"timeout_seconds": .01}})
-        app.engines.get("child").completion_fn = slow
+        app.engines.get("child").completion_adapter = LiteLLMCompletionAdapter(completion_fn=slow)
         run = await (await session.run.submit("go", engine="parent")).wait(timeout=10)
         self.assertEqual(run.data.status, "failed")
         self.assertNotEqual(run.data.metadata.get("output", {}).get("text"), "late")
@@ -200,7 +202,7 @@ class AgentDelegationTests(unittest.IsolatedAsyncioTestCase):
         async def echo(node):
             effects.append(node.node_id)
             return {"done": True}
-        engines = {"parent": LoopEngine(completion_fn=parent), "graph": GraphEngine(handlers={"echo": echo})}
+        engines = {"parent": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=parent)), "graph": GraphEngine(handlers={"echo": echo})}
         async with LargeLanguageModel(directory.name, engines=engines,
                 components=[AgentComponent(engines=engines), WorkflowComponent()]) as app:
             project = await app.projects.acreate(components=["agents", "workflows"], config={"parameters": {

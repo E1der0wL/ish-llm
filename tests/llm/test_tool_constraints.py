@@ -1,4 +1,6 @@
 """Host 인자 제약의 schema/runtime/승인 binding을 공통 경계에서 검증한다."""
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
 import json
 import tempfile
 import unittest
@@ -44,24 +46,24 @@ class ConstraintSchemaTests(unittest.TestCase):
         before = self.registry.definitions()
         scope = ToolExecutionScope(ToolRuntime(), policy={"argument_constraints": {"rag_search": FIELDS}})
         constraints = scope.argument_constraints
-        effective = self.registry.definitions(constraints=constraints)[0]["function"]["parameters"]
+        effective = self.registry.definitions(constraints=constraints)[0].parameters
         for values in ({"query": "q", "limit": 5, "method": "hybrid"}, {"query": "q", "limit": 5, "method": "hybrid", "max_hops": 2},
                        {"query": "q", "limit": 1, "method": "hybrid"},
                        {"query": "q", "limit": 20, "method": "vector"}):
-            _, result = self.registry.prepare("rag_search", json.dumps(values), constraints=constraints)
+            _, result = self.registry.prepare("rag_search", values, constraints=constraints)
             self.assertEqual(result["max_hops"], 2)
             Draft202012Validator(effective).validate(result)
         for values in ({"max_hops": 3}, {"limit": 21}, {"limit": 0}, {"limit": True},
                        {"method": "bm25"}, {"mode": "fixed"}, {"limit": None}):
             with self.subTest(values=values), self.assertRaises(ValueError):
-                self.registry.prepare("rag_search", json.dumps({"query": "q", "limit": 5, "method": "hybrid", **values}), constraints=constraints)
+                self.registry.prepare("rag_search", {"query": "q", "limit": 5, "method": "hybrid", **values}, constraints=constraints)
         for omitted in ("limit", "method"):
             values = {"query": "q", "limit": 5, "method": "hybrid"}
             del values[omitted]
             with self.assertRaises(ValueError):
-                self.registry.prepare("rag_search", json.dumps(values), constraints=constraints)
+                self.registry.prepare("rag_search", values, constraints=constraints)
         self.assertEqual(before, self.registry.definitions())
-        self.registry.prepare("rag_search", '{"query":"q","limit":1000000000}')
+        self.registry.prepare("rag_search", {'query': 'q', 'limit': 1000000000})
         with_default = deepcopy(SCHEMA)
         with_default["properties"]["limit"]["default"] = 1000
         guarded = constrained_parameters(with_default, {"limit": FIELDS["limit"]})
@@ -182,7 +184,7 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
             model = ScriptedCompletion([chunk(calls=[call('{"query":"q","limit":5,"method":"hybrid"}', name="rag_search")], finish="tool_calls")],
                                        [chunk("done", finish="stop")])
             async with LargeLanguageModel(root, components=[RuntimeTools(registry)],
-                    engines={"loop": LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test"}})})},
+                    engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test"}})})},
                     services=BackendServices()) as app:
                 project = await app.projects.acreate("work", components=["tools"], config={"policies": {"tools": {"argument_constraints": {"rag_search": FIELDS}}}})
                 await project.components.tools.aenable("rag_search")

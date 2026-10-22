@@ -221,6 +221,7 @@ class RAGRetentionPolicyTests(unittest.IsolatedAsyncioTestCase):
         code = textwrap.dedent('''
             import asyncio, json, os, sys
             from pathlib import Path
+            from llm.providers.operations import LiteLLMOperations
             from llm.llm import LargeLanguageModel
             from llm.components.rag import RAGComponent, EmbeddingModel
             from llm.components.rag import component as owner
@@ -231,7 +232,7 @@ class RAGRetentionPolicyTests(unittest.IsolatedAsyncioTestCase):
             root, boundary = Path(sys.argv[1]), sys.argv[2]
             async def main():
                 component = RAGComponent(embedding=EmbeddingModel(model='test/embedding',
-                                         embedding_fn=fake_embedding), extractor=Extractor())
+                                         adapter=LiteLLMOperations(call=fake_embedding)), extractor=Extractor())
                 async with LargeLanguageModel(root / 'workspace', components=[component]) as app:
                     project = await app.projects.acreate(components=['rag'], config=rag_project())
                     data = project.components['rag']

@@ -1,5 +1,10 @@
 """실제 최종 인자·취소·무결성 경계를 검증한다. 외부 인증은 사용하지 않는다."""
 
+from llm.core.model_protocol import ModelMessage, ModelRequest, EmbeddingResult
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
+
 import asyncio
 from contextlib import redirect_stdout, redirect_stderr
 import io
@@ -17,7 +22,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from llm.components.rag import EmbeddingModel, TripleExtractor
 from llm.components.rag.prompts import default_prompt
-from llm.providers.embeddings import extract_single_embedding, EmbeddingIntegrityError
+from llm.providers.embeddings import extract_single_embedding
+from llm.core.embeddings import EmbeddingIntegrityError
 from llm.providers.requests import invoke, ProviderError, error_code
 from llm.providers.runtime import configure_logging, diagnostic_scope, litellm_sdk
 
@@ -35,14 +41,14 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_final_litellm_params_and_globals(self):
         sdk = await asyncio.to_thread(litellm_sdk)
-        original = response()
+        original = response((0,))
         with patch.object(sdk, "DEFAULT_MAX_RETRIES", 7), patch.object(sdk, "num_retries", 4), \
                 patch.object(sdk, "aembedding", AsyncMock(return_value=original)) as call:
             output = await EmbeddingModel(model="openai/test", num_retries=2, max_retries=3,
-                caching=True, cache={"no-store": False}).embed(["a", "b"])
+                caching=True, cache={"no-store": False}).embed(["a"])
             self.assertIs(litellm_sdk(), sdk)
             self.assertEqual((sdk.DEFAULT_MAX_RETRIES, sdk.num_retries), (0, 4))
-        self.assertIs(output, original)
+        self.assertEqual(output, EmbeddingResult((1., 2.)))
         request = call.call_args.kwargs
         self.assertEqual((request["num_retries"], request["max_retries"]), (2, 3))
         self.assertEqual(request["cache"], {"no-cache": True, "no-store": True})
@@ -86,19 +92,23 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(call.await_count, 3)
 
     async def test_sdk_defaults_and_plain_model_client_are_preserved(self):
-        from llm.components.rag._client import ModelClient
         from llm.components.rag import RerankModel
         from llm.providers.litellm import completion
         sdk = await asyncio.to_thread(litellm_sdk)
         for operation, model, invoke_model in (
-                ("aembedding", EmbeddingModel(model="test"), lambda m: m.embed(["a", "b"])),
+                ("aembedding", EmbeddingModel(model="test"), lambda m: m.embed(["a"])),
                 ("arerank", RerankModel(model="test"), lambda m: m.rerank("q", ["d"])),
-                ("acompletion", TripleExtractor(model="test"), lambda m: m._invoke(messages=[]))):
-            result = response() if operation == "aembedding" else {"choices": [{"message": {"content": "{}"}}]}
+                ("acompletion", TripleExtractor(model="test"), lambda m: m._complete([]))):
+            result = (response((0,)) if operation == "aembedding" else
+                      {"results": [{"index": 0, "relevance_score": 1}]} if operation == "arerank" else
+                      {"choices": [{"message": {"content": "{}"}}]})
             with patch.object(sdk, operation, AsyncMock(return_value=result)) as call:
                 await invoke_model(model)
-                self.assertNotIn("num_retries", call.call_args.kwargs)
-                self.assertNotIn("max_retries", call.call_args.kwargs)
+                self.assertNotIn("num_retries", model.params)
+                self.assertNotIn("max_retries", model.params)
+                self.assertEqual(call.call_args.kwargs["num_retries"], 0)
+                self.assertEqual(call.call_args.kwargs["max_retries"], 0)
+                self.assertEqual(model.provider_options, {})
                 await invoke_model(model.with_config({"num_retries": 2, "max_retries": 3}))
                 self.assertEqual(call.call_args.kwargs["num_retries"], 2)
                 self.assertEqual(call.call_args.kwargs["max_retries"], 3)
@@ -106,7 +116,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             completion(model="test", num_retries=2, max_retries=3)
             self.assertEqual(call.call_args.kwargs, {"model": "test", "num_retries": 2, "max_retries": 3})
             completion(model="test")
-            self.assertEqual(call.call_args.kwargs, {"model": "test"})
+            self.assertEqual(call.call_args.kwargs, {"model": "test", "num_retries": 0, "max_retries": 0})
         for default, attempts in ((2, 3), (0, 3)):
             with patch.object(sdk, "DEFAULT_MAX_RETRIES", default), patch.object(sdk, "num_retries", None), \
                     patch.object(sdk, "aembedding", AsyncMock(side_effect=TimeoutError())) as call:
@@ -114,9 +124,9 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                     await EmbeddingModel(model="test", num_retries=0, max_retries=0).with_provider(
                         {"max_attempts": 3, "delay_seconds": 0}).embed(["text"])
                 self.assertEqual(call.await_count, attempts)
-        call = AsyncMock(return_value=response())
-        await ModelClient("aembedding", call, {"model": "test", "caching": True,
-            "cache": {"no-store": False}})._invoke(input=["a", "b"])
+        call = AsyncMock(return_value=response((0,)))
+        await LiteLLMOperations(call=call).embed(["a"], {"model": "test", "caching": True,
+            "cache": {"no-store": False}}, {})
         self.assertTrue(call.call_args.kwargs["caching"])
         self.assertEqual(call.call_args.kwargs["cache"], {"no-store": False})
 
@@ -131,7 +141,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                     yield {"choices": [{"delta": {"content": "partial"}}]}
                 raise TimeoutError()
             with self.assertRaises(Exception):
-                async for _ in BaseEngine(completion_fn=stream).stream_completion({"model": "test", **params},
+                async for _ in BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=stream)).stream_completion(ModelRequest([], {"model": "test", **params}),
                         provider={"max_attempts": 3, "delay_seconds": 0}):
                     pass
             self.assertEqual(len(requests), expected)
@@ -462,7 +472,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         client = SimpleNamespace(max_retries=3)
         call = AsyncMock(side_effect=TimeoutError())
         with self.assertRaises(ProviderError):
-            await EmbeddingModel(model="test", client=client, embedding_fn=call).embed(["text"])
+            await EmbeddingModel(model="test", client=client, adapter=LiteLLMOperations(call=call)).embed(["text"])
         self.assertEqual(call.await_count, 1)
         self.assertIs(call.call_args.kwargs["client"], client)
         call = AsyncMock(return_value={"choices": []})
@@ -546,7 +556,7 @@ class EmbeddingTests(unittest.TestCase):
 
 class ExtractionModeTests(unittest.IsolatedAsyncioTestCase):
     def client(self, call, mode):
-        return TripleExtractor(model="test", completion_fn=call, response_format={"type": "json_object"}).with_provider(
+        return TripleExtractor(model="test", adapter=LiteLLMOperations(call=call), response_format={"type": "json_object"}).with_provider(
             {"max_attempts": 2, "delay_seconds": 0}).with_extraction({**{"repair_attempts": 2, "json_mode": "strict", "failure_policy": "required"}, "json_mode": mode}, default_prompt())
 
     async def test_modes_and_bounded_auto_fallback(self):

@@ -1,5 +1,7 @@
 """MCP 발견·호출·승인·취소·재시작을 실제 SDK/local transport로 검증한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from contextlib import asynccontextmanager
 import importlib.util
@@ -46,7 +48,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             [chunk("done", finish="stop")])
         app = LargeLanguageModel(self.root / "workspace", components=[MCPComponent(
             connector=self.connector if connector is None else connector, revision=revision)],
-            engines={"loop": LoopEngine(completion_fn=self.model)}, services=BackendServices(
+            engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.model))}, services=BackendServices(
                 logger=logger if logger is not None else DomainLogger(), tool_runtime=ToolRuntime(
                 classify=lambda call: ToolClassification("remote.call", "test", 1))))
         self.addAsyncCleanup(app.shutdown)
@@ -186,7 +188,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             project_id, session_id = project.id, session.id
             await app.shutdown()
             reopened = LargeLanguageModel(self.root / "workspace", components=[MCPComponent(connector=connector)],
-                engines={"loop": LoopEngine(completion_fn=self.model)}, services=BackendServices(tool_runtime=ToolRuntime(
+                engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.model))}, services=BackendServices(tool_runtime=ToolRuntime(
                     classify=lambda call: ToolClassification("remote.call", "test", 1))))
             try:
                 session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
@@ -214,7 +216,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             await app.shutdown()
             reopened = LargeLanguageModel(self.root / "workspace",
                 components=[MCPComponent(connector=connector)],
-                engines={"loop": LoopEngine(completion_fn=self.model)})
+                engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.model))})
             try:
                 session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
                 with self.assertRaisesRegex(Exception, "uncertain Tool"):
@@ -236,7 +238,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             await app.shutdown()
             reopened = LargeLanguageModel(self.root / "workspace",
                 components=[MCPComponent(connector=connector)],
-                engines={"loop": LoopEngine(completion_fn=self.model)})
+                engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=self.model))})
             try:
                 session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
                 with self.assertRaisesRegex(ValueError, "stale"):

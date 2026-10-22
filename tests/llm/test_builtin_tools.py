@@ -1,5 +1,7 @@
 """기본 Tool의 실제 파일/프로세스 동작, 연결 어댑터, 공통 실행 이력을 검증한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 import json
 import os
@@ -42,7 +44,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         for key, value in (("timeout_seconds", 5), ("max_output_bytes", 500)):
             if key in fields:
                 args.setdefault(key, value)
-        tool, values = self.tools.registry.prepare(name, json.dumps(args))
+        tool, values = self.tools.registry.prepare(name, args)
         return await tool.handler(values)
 
     async def test_effect_contracts_cover_mutations_but_not_read_only_tools(self):
@@ -71,7 +73,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                 runtime = ToolRuntime(classify=lambda call: ToolClassification("file.write", "test-v1", risk))
                 self.assertIsNone(runtime.authorize)
                 async with LargeLanguageModel(self.root / f"backend-{risk}-{change_environment}", components=[component],
-                        engines={"loop": LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=runtime)) as backend:
+                        engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=runtime)) as backend:
                     project = await backend.projects.acreate(components=["builtin"], config={
                         "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test/model"}}}},
                                        "components": {"builtin": {"config": {"enabled": ["file_create"]}}}},
@@ -150,7 +152,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_bounded_file_reads_and_paging(self):
         async with BuiltinTools(self.work) as limited:
-            handler, args = limited.registry.prepare("file_create", json.dumps({"path": "large", "content": "x" * 9, "max_file_bytes": 8}))
+            handler, args = limited.registry.prepare("file_create", {"path": "large", "content": "x" * 9, "max_file_bytes": 8})
             with self.assertRaises(ValueError):
                 await handler.handler(args)
         await self.invoke("file_create", path="lines", content="a\nb\nc\n")
@@ -269,12 +271,12 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         async with BuiltinTools(self.work, checks={"smoke": [sys.executable, "-c", "print('checked')"]}) as tools:
             self.assertNotIn("shell_execute", tools.registry.names())
             self.assertNotIn("process_start", tools.registry.names())
-            handler, args = tools.registry.prepare("test_run", '{"name":"smoke"}')
+            handler, args = tools.registry.prepare("test_run", {'name': 'smoke'})
             result = await handler.handler(args)
             self.assertEqual(result["returncode"], 0)
             self.assertIn("checked", result["stdout"])
             with self.assertRaises(ValueError):
-                tools.registry.prepare("test_run", '{"name":"unconfigured"}')
+                tools.registry.prepare("test_run", {'name': 'unconfigured'})
 
     async def test_process_output_limits_and_nonzero_exit(self):
         started = await self.invoke("process_start", argv=[sys.executable, "-c", "import sys; print('x'*5000); sys.exit(7)"])
@@ -444,10 +446,10 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         async with BuiltinTools(self.work, adapters={name: adapter for name in names}) as tools:
             for name, arguments in names.items():
                 self.assertNotIn(name, self.tools.registry.names())
-                tool, values = tools.registry.prepare(name, json.dumps(arguments))
+                tool, values = tools.registry.prepare(name, arguments)
                 self.assertEqual(await tool.handler(values), {"received": arguments})
             with self.assertRaises(ValueError):
-                tools.registry.prepare("web_fetch", '{"url":"file:///outside"}')
+                tools.registry.prepare("web_fetch", {'url': 'file:///outside'})
 
     async def test_legacy_search_adapter_names_require_explicit_migration(self):
         async def adapter(args):
@@ -478,7 +480,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         completion = ScriptedCompletion([chunk(calls=[call(json.dumps(arguments), name="file_create")]), chunk(finish="tool_calls")],
                                          [chunk("done"), chunk(finish="stop")])
         async with LargeLanguageModel(self.root / "backend", components=[RuntimeTools(self.tools.registry)],
-                                      engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "demo"}})})}) as backend:
+                                      engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "demo"}})})}) as backend:
             project = await backend.projects.acreate("tools", components=["tools"])
             selected = await project.components.aget("tools")
             await selected.aenable("file_create")
@@ -523,9 +525,9 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["returncode"], 0)
         await self.invoke("file_create", path="new.txt", content="untracked")
         async with BuiltinTools(self.work, git=True) as tools:
-            handler, args = tools.registry.prepare("git_status", "{}")
+            handler, args = tools.registry.prepare("git_status", {})
             self.assertIn("new.txt", (await handler.handler(args))["stdout"])
-            handler, args = tools.registry.prepare("git_diff", "{}")
+            handler, args = tools.registry.prepare("git_diff", {})
             self.assertEqual((await handler.handler(args))["returncode"], 0)
 
 

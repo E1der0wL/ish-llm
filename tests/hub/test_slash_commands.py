@@ -1,5 +1,7 @@
 """Only registered slash commands intercept a request before submission."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 import tempfile
 from types import SimpleNamespace
@@ -91,7 +93,7 @@ class SlashCommandTests(unittest.IsolatedAsyncioTestCase):
 
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             config = HubConfig(directory, model="openai/test", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)})
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))

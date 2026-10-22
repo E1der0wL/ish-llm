@@ -1,5 +1,7 @@
 """Generic component data, lifecycle, path safety and runtime tool adaptation."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 import inspect
 import os
@@ -260,10 +262,10 @@ class ToolDataTests(unittest.IsolatedAsyncioTestCase):
             project = projects.create("Test", components=("tools", "agents"),
                                       config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'openai/test'}}}}}))
             data = projects.component(project, "tools")
-            definition = {"type": "function", "function": {"name": "add", "description": "new",
-                          "parameters": {"type": "object", "properties": {"a": {"type": "number"}},
+            from llm.core.model_protocol import ToolDefinition
+            definition = ToolDefinition("add", "new", {"type": "object", "properties": {"a": {"type": "number"}},
                                          "required": ["a"], "additionalProperties": False},
-                          "strict": True}}
+                          strict=True)
             source = {"source": '''from llm.components.tools import tool, ToolContract, ToolEffect, ToolIsolation
 @tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=()), strict=True)
 async def main(a: float):
@@ -274,21 +276,22 @@ async def main(a: float):
             data.configure({'config': {'enabled': []}})
             data.enable("add")
             resolved = ComponentToolResolver(registry).resolve_tools(projects.load(project.id))
-            self.assertEqual(resolved.definitions(), [definition])
+            self.assertEqual(resolved.definitions(), (definition,))
             self.assertEqual(await resolved.get("add").handler({"a": 2}), "result")
             with self.assertRaises(ValueError):
-                resolved.prepare("add", '{"b": 1}')
+                resolved.prepare("add", {'b': 1})
             completion = ScriptedCompletion([chunk(calls=[call('{"a":2}')], finish="tool_calls")],
                                             [chunk("done", finish="stop")])
             engines = EngineRegistry()
-            engines.register("loop", LoopEngine(completion_fn=completion))
+            engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
             session = sessions.create(project, "Test")
             manager = RunManager(sessions, engines, session=session, capabilities=registry)
             try:
                 await manager.submit("request", engine="loop")
                 await manager.wait_idle()
                 self.assertEqual(completion.requests[1]["messages"][-1]["content"], "result")
-                self.assertEqual(completion.requests[0]["tools"], [definition])
+                from llm.providers.wire_codec import encode_tool_definition
+                self.assertEqual(completion.requests[0]["tools"], [encode_tool_definition(definition)])
                 self.assertEqual(manager.repository.list(session)[0].status, RunStatus.COMPLETED)
                 with self.assertRaises(ValueError):
                     projects.remove_component(project, "tools", permanent=True)

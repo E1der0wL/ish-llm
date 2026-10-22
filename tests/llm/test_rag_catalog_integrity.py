@@ -1,4 +1,6 @@
 """RAG publication evidence protects catalog reads, source preservation and recovery."""
+
+from llm.providers.operations import LiteLLMOperations
 import hashlib
 import json
 import os
@@ -233,6 +235,7 @@ class PublicationCrashTests(unittest.IsolatedAsyncioTestCase):
         code = textwrap.dedent('''
             import asyncio, hashlib, json, os, sys
             from pathlib import Path
+            from llm.providers.operations import LiteLLMOperations
             from unittest.mock import patch
             from llm.llm import LargeLanguageModel
             from llm.components.rag import RAGComponent, EmbeddingModel, component as owner
@@ -244,7 +247,7 @@ class PublicationCrashTests(unittest.IsolatedAsyncioTestCase):
                     stream.write('called\\n')
                 return await fake_embedding(**request)
             async def main():
-                component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=embedding), extractor=Extractor())
+                component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=embedding)), extractor=Extractor())
                 async with LargeLanguageModel(root / 'workspace', engines={}, components=[component]) as app:
                     project = await app.projects.acreate('child', components=['rag'], config=rag_project())
                     rag = project.components.rag
@@ -286,7 +289,7 @@ class PublicationCrashTests(unittest.IsolatedAsyncioTestCase):
                     with (root / 'effects').open('a') as stream:
                         stream.write('unexpected replay\n')
                     raise AssertionError('Reopening cannot invoke a model')
-                component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=forbidden), extractor=Extractor())
+                component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=forbidden)), extractor=Extractor())
                 async with LargeLanguageModel(root / 'workspace', engines={}, components=[component]) as app:
                     project = await app.projects.aload(context['project_id'])
                     rag = project.components.rag

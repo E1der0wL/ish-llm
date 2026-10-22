@@ -2,6 +2,7 @@
 
 from ..errors.adapters import from_exception
 from ..errors.contracts import ErrorInfo
+from llm.core.model_protocol import StopReason
 
 
 _GUIDANCE = {reason: "failure_" + reason for reason in (
@@ -89,7 +90,7 @@ _CODE_GUIDANCE = {
 def failure_text(error: ErrorInfo, t) -> str:
     key = _GUIDANCE.get(error.reason, "failure_unknown")
     if error.code == "completion_incomplete":
-        key = {"length": "failure_completion_length", "content_filter": "failure_completion_filtered"}.get(error.finish_reason, key)
+        key = {StopReason.OUTPUT_LIMIT: "failure_completion_length", StopReason.BLOCKED: "failure_completion_filtered"}.get(error.termination, key)
     elif error.code in _CODE_GUIDANCE:
         key = _CODE_GUIDANCE[error.code]
     text = t(key)
@@ -98,8 +99,8 @@ def failure_text(error: ErrorInfo, t) -> str:
         evidence.append(f"HTTP {error.http_status}")
     if error.exception_type:
         evidence.append(error.exception_type)
-    if error.finish_reason:
-        evidence.append(f"finish_reason={error.finish_reason}")
+    if error.raw_finish_reason:
+        evidence.append(f"finish_reason={error.raw_finish_reason}")
     if evidence:
         text += "\n\n" + t("failure_evidence", evidence=" · ".join(evidence))
     for title, value in (("failure_server_detail", error.detail), ("failure_model_analysis", error.explanation)):

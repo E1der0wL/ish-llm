@@ -54,10 +54,11 @@ RunPolicy를 공유하고, 개별 훅의 작업 기한/Step은 구현체가 Base
 | 필드 | 용도 |
 | --- | --- |
 | `parameters` | 공급자에 전달할 열린 설정 dict. messages는 별도 필드 사용 |
-| `messages` | `CompletionMessage(value, source_id, continuation)` 목록 |
+| `messages` | `CompletionMessage(message, source_id, continuation)` 목록 |
 | `iteration` | 현재 모델 호출 순번, 1부터 시작 |
+| `tools` / `tool_mode` | 등록된 공통 ToolDefinition과 선택 모드; 처리기가 권한을 추가하거나 바꿀 수 없음 |
 
-`CompletionMessage.value`는 공급자 메시지 dict이며 `source_id`는 원본 Conversation 메시지 ID다.
+`CompletionMessage.message`는 공통 `ModelMessage`이며 `source_id`는 원본 Conversation 메시지 ID다.
 추가 Skill/RAG 참고자료는 `source_id=None`으로 만든다. 출처 ID는 공급자 요청에 섞이지 않는다.
 `continuation=True`는 Loop의 실행 중 추가 지시처럼 같은 작업에 속한 user 메시지다.
 SDK에는 이 표시를 보내지 않는다. 과거 턴 선택·요약 시 원래 요청과 함께 유지하거나
@@ -89,10 +90,11 @@ Memory는 요약에 포함된 **원본 ID와 원본 내용이 그대로 남아 �
 request는 처리기와 CompletionPolicy을 거친 뒤 `BaseEngine.stream_completion`에 전달한 요청이다.
 공급자 어댑터가 내부에서 채우는 stream_options 기본값 등까지 포함한 HTTP wire 요청은 아니다.
 original_messages는 처리 전 대화와 현재 실행의 원본 Tool transcript이고 최종 응답은 response에
-별도로 있다. 공급자 설정에 살아 있는 SDK 클라이언트/콜백이 있으면 기존 copy_params 계약처럼
+별도로 있다. request/response는 `ModelRequest`/`ModelResponse`, original_messages는 공통 메시지다.
+`core.model_protocol.copy_model`은 공급자 설정의 살아 있는 SDK 클라이언트/콜백의
 객체 참조는 유지한다. 이 런타임 핸들을 수정하면 안 된다.
 
-각 관찰자는 독립적인 dict/list 사본을 받는다. 사본의 응답을 바꿔도 최종 답변이나 다음
+각 관찰자는 분리 복사한 공통 값과 dict/list를 받는다. 사본의 응답을 바꿔도 최종 답변이나 다음
 관찰자, 실행할 Tool에는 영향을 주지 않는다. 이 훅은 결과 변환/자동 재시도 API가 아니다.
 검증 실패 후 재수정은 명시적인 Engine/Workflow 제어 흐름에서 처리한다.
 처리기 동작의 Step/Completion 관찰은 기존 EngineEvent로 전달하며 영속 파일은 직접 쓰지 않는다.
@@ -102,13 +104,13 @@ original_messages는 처리 전 대화와 현재 실행의 원본 Tool transcrip
 ```python
 from llm.components.base import Component
 from llm.components.processing import CompletionMessage, CompletionSession
+from llm.core.model_protocol import ModelMessage
 
 
 class InstructionsSession(CompletionSession):
     async def prepare(self, request):
-        request.messages.insert(0, CompletionMessage({
-            "role": "system", "content": "설명을 작성할 때 프로젝트 용어를 사용하세요.",
-        }))
+        request.messages.insert(0, CompletionMessage(ModelMessage(
+            "system", "설명을 작성할 때 프로젝트 용어를 사용하세요.")))
         if False:
             yield  # 이 예제는 관찰 이벤트를 만들지 않는다.
 

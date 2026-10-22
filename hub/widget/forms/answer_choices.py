@@ -5,6 +5,7 @@ from prompt_toolkit.layout import ConditionalContainer, Window
 from prompt_toolkit.widgets import Frame
 
 from ..controls import RadioList
+from ...model import QuestionSource
 
 
 class AnswerChoices(RadioList):
@@ -25,7 +26,7 @@ class AnswerChoices(RadioList):
         if not self.question.item:
             return []
         request = self.question.item["request"]
-        return (request.get("source", {}).get("choices", []) if self.question.item["live"]
+        return (request.get("source", {}).get(QuestionSource.SUGGESTIONS.value, []) if self.question.item["live"]
                 else [option["label"] for option in request.get("options", [])])
 
     def __pt_container__(self):

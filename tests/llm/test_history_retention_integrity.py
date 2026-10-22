@@ -1,5 +1,7 @@
 """Retention must keep damaged child evidence, just like direct parent deletion."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 import json
 import os
@@ -187,6 +189,7 @@ class HistoryRetentionIntegrityTests(unittest.IsolatedAsyncioTestCase):
         code = textwrap.dedent('''
             import asyncio, json, os, sys
             from pathlib import Path
+            from llm.providers.litellm import LiteLLMCompletionAdapter
             from llm.llm import LargeLanguageModel, LoopEngine, ProjectConfig
             from llm.services.history.conversation import ConversationStore
             from llm.services.infrastructure import transactions
@@ -198,7 +201,7 @@ class HistoryRetentionIntegrityTests(unittest.IsolatedAsyncioTestCase):
                     stream.write('called\\n')
                 yield chunk('answer', finish='stop')
             async def main():
-                async with LargeLanguageModel(root / 'workspace', engines={'custom': LoopEngine(completion_fn=completion)}) as app:
+                async with LargeLanguageModel(root / 'workspace', engines={'custom': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))}) as app:
                     project = await app.projects.acreate(config=ProjectConfig(parameters={'engines': {
                         'custom': {'config': {'completion': {'model': 'test'}}}}}))
                     session = await project.sessions.acreate()
@@ -253,7 +256,7 @@ class HistoryRetentionIntegrityTests(unittest.IsolatedAsyncioTestCase):
                     with (root / 'effects').open('a') as stream:
                         stream.write('unexpected replay\n')
                     raise AssertionError('history recovery cannot invoke a model')
-                async with LargeLanguageModel(root / 'workspace', engines={'custom': LoopEngine(completion_fn=forbidden)}) as app:
+                async with LargeLanguageModel(root / 'workspace', engines={'custom': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=forbidden))}) as app:
                     project = await app.projects.aload(context['project_id'])
                     session = await project.sessions.aload(context['session_id'])
                     after = self.originals(session)

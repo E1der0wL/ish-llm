@@ -1,5 +1,7 @@
 """Model risk is persisted as classification without granting permission."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import json
 from pathlib import Path
 import tempfile
@@ -42,12 +44,12 @@ class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
             contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),)))
         bind_advice(toolkit)
         arguments = {"path": "file.txt", FIELD: {"level": "low", "reason": "Creates one new local file."}}
-        toolkit.registry.prepare("file_create", json.dumps(arguments))
+        toolkit.registry.prepare("file_create", arguments)
         await toolkit.registry.get("file_create").handler(arguments)
         operation.assert_awaited_once_with({"path": "file.txt"})
         self.assertIn(FIELD, arguments)
         with self.assertRaises(ValueError):
-            toolkit.registry.prepare("file_create", json.dumps({**arguments, FIELD: {"level": "safe", "reason": "x"}}))
+            toolkit.registry.prepare("file_create", {**arguments, FIELD: {"level": "safe", "reason": "x"}})
 
     async def test_low_model_advice_still_requires_approval_and_uses_no_extra_completion(self):
         advice = {"level": "low", "reason": "새 파일 한 개를 만들며 기존 파일을 덮어쓰지 않습니다."}
@@ -57,7 +59,7 @@ class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
             [chunk("Done", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(Path(root) / "data", file_root=root, auto_title=False,
-                model="test/model", engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)},
+                model="test/model", engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
                 project_config={"policies": {"approval": approval_preset(max_risk=100, categories=["tool.execute"])}}))
             try:
                 await runtime.start()

@@ -8,6 +8,12 @@ from typing import ClassVar
 from .errors.contracts import ErrorInfo
 
 
+class QuestionSource(StrEnum):
+    """Hub live-question presentation fields, shared by Tool input and widgets."""
+
+    SUGGESTIONS = "choices"
+
+
 class RAGAction(StrEnum):
     """Special RAG management commands shared by dispatch and UI."""
 

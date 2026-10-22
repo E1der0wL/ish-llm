@@ -1,5 +1,9 @@
 """공통 지시 계약과 실제 Graph/Agent 전달·저장·재개를 검사한다. 외부 모델은 호출하지 않는다."""
 
+from llm.engines.loop import LoopEngine
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from copy import deepcopy
 from contextlib import aclosing
@@ -40,7 +44,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         self.root = Path(folder.name)
-        engines = {name: LoopEngine(completion_fn=model) for name, model in models.items()}
+        engines = {name: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)) for name, model in models.items()}
         self.handler = AgentNode(engines=engines)
         self.engine = GraphEngine(handlers=handlers or {"agent": self.handler})
         self.events = []
@@ -158,7 +162,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_nested_graph_agent_exposes_forwarder_and_leaf(self):
         model = Model([chunk("draft", finish="stop")], [chunk("revised", finish="stop")])
-        leaf = AgentNode(engines={"writer": LoopEngine(completion_fn=model)})
+        leaf = AgentNode(engines={"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         outer = AgentNode(engines={"subgraph": GraphEngine(handlers={"agent": leaf})})
         profiles = {"writer": {"purpose": "write", "engine": "writer", "completion": {"model": "test/model"}},
                     "coordinator": {"purpose": "delegate", "engine": "subgraph", "engine_options": {"workflow": "nested"}}}
@@ -265,7 +269,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         # 같은 저장 Session을 일반 Loop로 열어도 노드 전용 지시는 사용자 공통 문맥이 아니다.
         ids = self.project.id, self.session.id
         await self.app.shutdown()
-        reopened = LargeLanguageModel(self.root, engines={"loop": LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})})
+        reopened = LargeLanguageModel(self.root, engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/model"}})})})
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(ids[0])).sessions.aload(ids[1])
         next_run = await (await session.run.submit("next", engine="loop")).wait(timeout=15)
@@ -337,7 +341,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(folder.cleanup)
         self.app = LargeLanguageModel(folder.name, components=[WorkflowComponent(), AgentComponent(), component],
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)),
-            engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})})})
+            engines={"graph": GraphEngine(handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})})})
         self.addAsyncCleanup(self.app.shutdown)
         self.addAsyncCleanup(self.release_model, model)
         self.project = await self.app.projects.acreate("approval", components=["workflows", "agents", "tools"])
@@ -382,7 +386,7 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
     async def test_standalone_loop_still_accepts_at_run_started_notification(self):
         model = Model([chunk("done", finish="stop")], gate=False)
         with tempfile.TemporaryDirectory() as directory:
-            async with LargeLanguageModel(directory, components=[], engines={"loop": LoopEngine(completion_fn=model)}) as app:
+            async with LargeLanguageModel(directory, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}) as app:
                 project = await app.projects.acreate("test", components=[], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
                 session = await project.sessions.acreate()
                 accepted = []
@@ -533,7 +537,7 @@ class InstructionDataTests(unittest.TestCase):
         # Loop만 자신의 local key를 안다. 공통 서비스에 옛 형식/엔진별 키 탐지를 넣지 않는다.
         for value in ({"status": "input", "message_ids": []}, {**valid, "target_scope": []}):
             with self.assertRaises(InstructionDataError):
-                LoopEngine().validate_resume({"header": {"format": "loop-iterations-v1"},
+                LoopEngine().validate_resume({"header": {"format": LoopEngine.CHECKPOINT_FORMAT},
                                               "records": {"steering:1": value}})
 
     def test_invalid_target_descriptors_have_a_stable_error(self):

@@ -1,5 +1,7 @@
 """Approval continues the saved tool call and never submits its answer as a prompt."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from concurrent.futures import Future
 from dataclasses import replace
@@ -64,7 +66,7 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
             name='file_create')], finish='tool_calls')])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(Path(root) / 'workspace', file_root=root, model='test/model',
-                auto_title=False, engine_factories={'loop': lambda: LoopEngine(completion_fn=provider)}))
+                auto_title=False, engine_factories={'loop': lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 sid = await runtime.new_session()
@@ -86,7 +88,7 @@ class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
             [chunk('Created.', finish='stop')])
         with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
             app, controller = create_application(HubConfig(Path(root) / 'workspace', file_root=root,
-                model='test/model', auto_title=False, engine_factories={'loop': lambda: LoopEngine(completion_fn=provider)}),
+                model='test/model', auto_title=False, engine_factories={'loop': lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}),
                 input=pipe, output=SizedOutput(columns=100, rows=28))
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))

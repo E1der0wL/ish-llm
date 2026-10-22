@@ -1,5 +1,7 @@
 """Only an explicit boolean retry command can claim a Job or repeat a model call."""
 
+from llm.providers.operations import LiteLLMOperations
+
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -34,7 +36,7 @@ class RAGRetryPresenceTests(unittest.IsolatedAsyncioTestCase):
         logger = DomainLogger(sink=lambda logs, event, fields:
             log_sink(self.root / 'diagnostics', event, fields))
         self.app = await self.enterAsyncContext(LargeLanguageModel(self.root / 'workspace',
-            components=[RAGComponent(embedding=EmbeddingModel(model='test', embedding_fn=embedding))],
+            components=[RAGComponent(embedding=EmbeddingModel(model='test', adapter=LiteLLMOperations(call=embedding)))],
             engines={}, services=BackendServices(logger=logger)))
         self.project = await self.app.projects.acreate(components=['rag'], config=rag_project({
             'parameters': {'components': {'rag': {'policy': {

@@ -8,7 +8,7 @@ import sys
 import re
 from collections import OrderedDict
 
-from llm.providers.embeddings import validate_vectors
+from llm.core.embeddings import validate_vectors
 from llm.providers.runtime import diagnostic, diagnostic_scope
 from llm.services.infrastructure.storage import revision_token
 

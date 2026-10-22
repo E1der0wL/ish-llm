@@ -7,6 +7,7 @@ from dataclasses import replace
 import traceback
 
 from llm.core.contracts import Diagnostic
+from llm.core.model_protocol import StopReason
 from .contracts import Confidence, ErrorCategory, ErrorInfo, ErrorOrigin
 
 
@@ -31,12 +32,14 @@ def from_diagnostic(value: Diagnostic, *, origin=ErrorOrigin.UNKNOWN, operation=
     references.update({key: details[key] for key in ("project_id", "session_id", "run_id", "step_id", "call_id")
                        if isinstance(details.get(key), str)})
     references.update(source or {})
+    termination = details.get("termination")
     return ErrorInfo(code=value.code, message=value.message, origin=origin,
         operation=str(details.get("operation") or operation), stage=str(details.get("stage") or ""),
         category=ErrorCategory(classification.category), reason=classification.reason,
         confidence=Confidence(classification.confidence), evidence=deepcopy(classification.evidence),
         http_status=entry.get("status_code"), exception_type=str(entry.get("type", "")).split(".")[-1],
-        finish_reason=details.get("finish_reason") if isinstance(details.get("finish_reason"), str) else "",
+        raw_finish_reason=details.get("raw_finish_reason") if isinstance(details.get("raw_finish_reason"), str) else "",
+        termination=StopReason(termination) if isinstance(termination, str) and termination in StopReason else StopReason.UNKNOWN,
         detail=detail or (value.message if status_entry is None else ""), details=details, source=references,
         explanation=recovery.get("explanation") if isinstance(recovery.get("explanation"), str) else "",
         recovery=recovery.get("outcome") if isinstance(recovery.get("outcome"), str) else "")

@@ -1,4 +1,6 @@
 """RAG Job record and lease loss must not erase work or authorize another effect."""
+
+from llm.providers.operations import LiteLLMOperations
 import asyncio
 import json
 import os
@@ -38,7 +40,7 @@ class JobLossTests(unittest.IsolatedAsyncioTestCase):
                 await self.release.wait()
             return await fake_embedding(**request)
 
-        component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=embedding),
+        component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=embedding)),
                                  extractor=Extractor())
         self.component = component
         self.app = LargeLanguageModel(self.root / 'workspace', engines={}, components=[component])
@@ -282,12 +284,13 @@ class JobLossTests(unittest.IsolatedAsyncioTestCase):
         code = textwrap.dedent('''
             import os, sys
             from pathlib import Path
+            from llm.providers.operations import LiteLLMOperations
             from llm.components.rag import RAGComponent, EmbeddingModel, job_storage
             from llm.services.lifecycle.projects import ProjectManager, ProjectRepository
             from tests.llm.configuration_fixtures import rag_project
             from tests.llm.test_rag_components import Extractor, fake_embedding
             root, operation, boundary, witness = sys.argv[1:]
-            component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', embedding_fn=fake_embedding), extractor=Extractor())
+            component = RAGComponent(embedding=EmbeddingModel(model='test/embedding', adapter=LiteLLMOperations(call=fake_embedding)), extractor=Extractor())
             projects = ProjectManager(ProjectRepository(Path(root)), components=[component])
             project = projects.create('child', components=['rag'], config=rag_project())
             data = projects.component(project, 'rag')

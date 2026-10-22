@@ -14,10 +14,10 @@ Backend는 Hub 프리셋의 이름·선택 규칙을 알지 못한다.
 | --- | --- | --- |
 | 서비스 | policies.context/run/approval/tools/tool_retry/usage/output, conversation_storage | 저장소, Conversation factory, context builder, token counter, policy resolver, logger, events, backups, observability sink |
 | Tool | allowed_tools, max_calls, timeout_seconds, max_output_chars, argument_constraints, retry 횟수/지연 | ToolRuntime.authorize/runner/operation_key/operation_probe/classify/retry_safe_tools/revision |
-| Loop | config.completion/system_prompt/buffer_size; policy.max_iterations/request_timeout/tool_timeout/max_tool_calls/max_argument_chars/max_output_chars/completion/provider | completion_fn, parameter_key |
+| Loop | config.completion/system_prompt/buffer_size; policy.max_iterations/request_timeout/tool_timeout/max_tool_calls/max_argument_chars/max_output_chars/completion/provider | completion_adapter, parameter_key |
 | Graph | workflow 선택; config.buffer_size/cleanup_timeout; policy.max_steps/max_parallelism/timeout_seconds/max_nested_depth | handlers, revision, config_keys, parameter_key |
 | RAG | chunk/search/extraction/ingestion/cache/index 값; model params, provider 정책 | embedding/reranker/extractor, schema/validator/factory 구현 |
-| Memory | 검색·처리·추출·보관 정책, config.processing.extract_prompt_id | completion_fn/token_counter/search_fn |
+| Memory | 검색·처리·추출·보관 정책, config.processing.extract_prompt_id | completion_adapter/token_counter/search_fn |
 | 다른 Component | 각 describe_config의 config/policy, 정의 레코드 | OCR/backend/MCP connector/Tool dependency installer 등 선택 구현 |
 | BuiltinTools | Tool 인자로 전달하는 max_file_bytes, timeout_seconds, max_output_bytes 등; 정책 제약으로 고정/축소 가능 | 작업 root, shell, checks, 기능 가용성, 외부 adapters |
 | ProviderCalls | caller의 SDK/outer timeout/retry는 각 Project 구현 설정 | ProviderLimits.max_active/max_waiting/wait_seconds: Backend 전체 공유 슬롯 용량 |

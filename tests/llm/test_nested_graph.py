@@ -1,5 +1,7 @@
 """중첩 Workflow/Graph Agent의 저장, 재개, 실행 한도와 LangGraph 스케줄링 통합 검사."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 import json
 import tempfile
@@ -39,7 +41,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{"value":"once"}', name='effect')], finish='tool_calls')],
             [chunk('nested unfinished text'), ConnectionError('offline')],
             [chunk('done', finish='stop')])
-        handler = AgentNode(engines={'loop': LoopEngine(completion_fn=model)})
+        handler = AgentNode(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         await self.setup({'main': action_graph('agent', agent='worker')}, handlers={'agent': handler})
         await self.agents.acreate({'purpose': 'work', 'engine': 'loop', 'completion': {'model': 'test'},
                                   'tools': ['effect']}, identifier='worker')
@@ -96,7 +98,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{"value":1}', name='effect', call_id='first')], finish='tool_calls')],
             [chunk(calls=[call('{"value":2}', name='effect', call_id='second')], finish='tool_calls')],
             [chunk('done', finish='stop')])
-        handler = AgentNode(engines={'loop': LoopEngine(completion_fn=model)})
+        handler = AgentNode(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         await self.setup({'main': action_graph('agent', agent='worker')}, handlers={'agent': handler},
                          services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         await self.agents.acreate({'purpose':'work', 'engine':'loop', 'completion':{'model':'test'},
@@ -150,7 +152,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             [ConnectionError("pause after first completed effect")],
             [chunk(calls=[call('{"value":"second"}', name="effect", call_id="second")], finish="tool_calls")],
             [chunk("done", finish="stop")])
-        handler = AgentNode(engines={"loop": LoopEngine(completion_fn=model)})
+        handler = AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         # No parent Tool cap: it must not mask a missing Agent limit.
         await self.setup({"main": action_graph("agent", agent="worker")}, handlers={"agent": handler})
         await self.agents.acreate({"purpose": "work", "engine": "loop", "completion": {"model": "test"},
@@ -233,7 +235,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         self.tools = ToolRegistry((Tool('effect', 'record', {'type':'object'}, effect, contract=TEST_CONTRACT),))
         model = ScriptedCompletion([chunk(calls=[call('{}', name='effect')], finish='tool_calls')],
                                    [chunk('done', finish='stop')])
-        handler = AgentNode(engines={'loop': LoopEngine(completion_fn=model)})
+        handler = AgentNode(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         await self.setup({'main': action_graph('workflow', workflow='child'),
                           'child': action_graph('agent', agent='worker')}, handlers={'agent': handler})
         await self.agents.acreate({'purpose':'work', 'engine':'loop', 'completion':{'model':'test'},
@@ -261,7 +263,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call('{}', name='effect')], finish='tool_calls')],
                                    [chunk('done', finish='stop')])
         await self.setup({'main': action_graph('agent', agent='worker')},
-            handlers={'agent': AgentNode(engines={'loop': LoopEngine(completion_fn=model)})},
+            handlers={'agent': AgentNode(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         await self.agents.acreate({'purpose': 'work', 'engine': 'loop', 'completion': {'model': 'test'},
                                   'tools': ['effect']}, identifier='worker')
@@ -289,7 +291,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         async def authorize(call):
             raise ToolApprovalRequired('review')
         model = ScriptedCompletion([chunk(calls=[call('{}', name='effect')], finish='tool_calls')])
-        handler = AgentNode(engines={'loop': LoopEngine(completion_fn=model)})
+        handler = AgentNode(engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         await self.setup({'main': action_graph('agent', agent='worker')}, handlers={'agent': handler},
                          services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
         await self.agents.acreate({'purpose':'work', 'engine':'loop', 'completion':{'model':'test'},
@@ -442,7 +444,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_graph_agent_child_loop_and_dynamic_skill_capability(self):
         model = ScriptedCompletion([chunk("answer"), chunk(finish="stop")])
-        leaf = AgentNode(engines={"loop": LoopEngine(completion_fn=model)})
+        leaf = AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         child_engine = GraphEngine(handlers={"agent": leaf})
         outer = AgentNode(engines={"graph_worker": child_engine})
         child = action_graph("agent", agent="writer", inputs={"request": "/request"}, outputs={"answer": "/text"})

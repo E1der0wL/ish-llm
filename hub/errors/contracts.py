@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
+from llm.core.model_protocol import StopReason
 
 
 class ErrorCategory(StrEnum):
@@ -52,7 +53,8 @@ class ErrorInfo:
     evidence: dict[str, Any] = field(default_factory=dict)
     http_status: int | None = None
     exception_type: str = ""
-    finish_reason: str = ""
+    raw_finish_reason: str = ""
+    termination: StopReason = StopReason.UNKNOWN
     detail: str = ""
     traceback: str = ""
     details: dict[str, Any] = field(default_factory=dict)

@@ -28,6 +28,7 @@ class LocalServer:
     def __init__(self):
         self.calls, self.fail, self.answers = [], False, 0
         self.empty_json_mode = False
+        self.partial_stream = False
         self.embedding_delay = 0.0
         owner = self
 
@@ -38,13 +39,13 @@ class LocalServer:
             def do_POST(self):
                 request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 owner.calls.append((self.path, request))
+                if owner.fail:
+                    self.send_response(503)
+                    self.end_headers()
+                    self.wfile.write(b'{"error":{"message":"temporarily unavailable","type":"server_error"}}')
+                    return
                 if self.path.endswith("embeddings"):
                     time.sleep(owner.embedding_delay)
-                    if owner.fail:
-                        self.send_response(503)
-                        self.end_headers()
-                        self.wfile.write(b'{"error":{"message":"temporarily unavailable","type":"server_error"}}')
-                        return
                     texts = request["input"]
                     if isinstance(texts, str):
                         texts = [texts]
@@ -70,6 +71,19 @@ class LocalServer:
                     if owner.empty_json_mode and request.get("response_format"):
                         result = None
                 else:
+                    if owner.partial_stream:
+                        event = {"id": "partial", "object": "chat.completion.chunk", "created": 1,
+                                 "model": request["model"], "choices": [{"index": 0,
+                                 "delta": {"content": "partial"}, "finish_reason": None}]}
+                        body = ("data: " + json.dumps(event) + "\n\n").encode()
+                        self.send_response(200)
+                        self.send_header("Content-Type", "text/event-stream")
+                        self.send_header("Content-Length", str(len(body) + 4096))
+                        self.end_headers()
+                        self.wfile.write(body)
+                        self.wfile.flush()
+                        self.close_connection = True  # interrupted HTTP body after a real delta
+                        return
                     self.send_response(200)
                     self.send_header("Content-Type", "text/event-stream")
                     self.end_headers()
@@ -123,7 +137,7 @@ async def probe(root):
         asynchronous = await async_client.embed(inputs)
         synchronous = await asyncio.to_thread(sdk.embedding, **server.params, input=inputs,
             num_retries=0, max_retries=0, caching=False, cache={"no-cache": True, "no-store": True})
-        output["sync_async_equal"] = extract_single_embedding(asynchronous) == extract_single_embedding(synchronous)
+        output["sync_async_equal"] = list(asynchronous.vector) == extract_single_embedding(synchronous)
         assert output["sync_async_equal"]
         # 호스트가 SDK 캐시를 사용하더라도 llm embedding은 읽기/쓰기에 참여하지 않는다.
         from litellm.caching.caching import Cache
@@ -160,20 +174,44 @@ async def probe(root):
         server.fail = False
         from llm.components.rag import TripleExtractor
         from llm.components.rag.prompts import default_prompt
-        server.empty_json_mode = True
+        # Genuine HTTP 503 keeps the original failure/attempt assertion. The
+        # current P1 contract separately classifies LiteLLM's synthetic 500 as
+        # invalid_response, eligible only for the explicitly selected auto mode.
+        server.fail = True
         before = len(server.calls)
         extractor = TripleExtractor(**server.params).with_provider({"max_attempts": 2, "delay_seconds": 0}).with_extraction(
-            {**{"repair_attempts": 2, "json_mode": "strict", "failure_policy": "required"}, "json_mode": "auto"}, default_prompt())
+            {"repair_attempts": 2, "json_mode": "auto", "failure_policy": "required"}, default_prompt())
         try:
             await extractor.extract([])
         except ProviderError as error:
-            # LiteLLM은 이 HTTP 응답을 status=500 예외로 바꾼다. 현재 5xx 계약상
-            # unavailable이며 JSON 형식 수리가 아닌 명시적 provider retry만 수행한다.
             assert error.code == "provider_unavailable"
         else:
             raise AssertionError("Invalid server response must fail")
         output["json_mode_5xx_http_attempts"] = len(server.calls) - before
         assert output["json_mode_5xx_http_attempts"] == 2
+        assert all(request.get("response_format") for _, request in server.calls[before:])
+        server.fail = False
+        server.empty_json_mode = True
+        before = len(server.calls)
+        strict = extractor.with_extraction(
+            {"repair_attempts": 2, "json_mode": "strict", "failure_policy": "required"}, default_prompt())
+        try:
+            await strict.extract([])
+        except ProviderError as error:
+            assert error.code == "provider_invalid_response"
+        else:
+            raise AssertionError("Strict mode must reject malformed SDK responses")
+        output["json_mode_invalid_http_attempts"] = len(server.calls) - before
+        assert output["json_mode_invalid_http_attempts"] == 2
+        before = len(server.calls)
+        recovered = await extractor.extract([])
+        output["json_mode_auto_http_attempts"] = len(server.calls) - before
+        assert output["json_mode_auto_http_attempts"] == 3
+        first, retry, fallback = [request for _, request in server.calls[before:]]
+        assert first.get("response_format") and retry.get("response_format")
+        assert "response_format" not in fallback
+        assert first["messages"] == retry["messages"] == fallback["messages"]
+        assert recovered["entities"] and recovered["relations"] == []
         server.empty_json_mode = False
         text = (Path(__file__).parents[2] / "examples/llm/data/graph_rag_165.md").read_text(encoding="utf-8")
         assert len(text.splitlines()) == 165

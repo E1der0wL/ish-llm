@@ -1,5 +1,7 @@
 """GraphEngine의 실제 Run/Step 저장, 분기/반복/병렬 및 코드 수정 예제를 검증한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from pathlib import Path
 import tempfile
@@ -232,7 +234,7 @@ class CodingWorkflowTests(unittest.IsolatedAsyncioTestCase):
     async def test_real_file_static_checks_failed_tests_repair_and_persistence(self):
         with tempfile.TemporaryDirectory() as root:
             completion = DemonstrationCompletion()
-            result = await run_demo(Path(root), completion_fn=completion, display=False)
+            result = await run_demo(Path(root), completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion), display=False)
             self.assertEqual(result["status"], "completed")
             self.assertEqual(result["mode"], "scripted")
             self.assertEqual(result["output"]["attempt"], 3)

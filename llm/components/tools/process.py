@@ -228,14 +228,15 @@ def inspect_tool(project, name, data, plugin_lib=None):
     if not isinstance(descriptor, dict) or set(descriptor) != {"name", "description", "parameters", "definition", "contract"} or descriptor["name"] != name:
         raise WorkerError("tool_worker_protocol", "Invalid Tool descriptor")
     if (not isinstance(descriptor["description"], str) or not descriptor["description"].strip()
-            or any(not isinstance(descriptor[key], dict) for key in ("parameters", "definition", "contract"))
-            or not isinstance(descriptor["definition"].get("function"), dict)):
+            or any(not isinstance(descriptor[key], dict) for key in ("parameters", "definition", "contract"))):
         raise WorkerError("tool_worker_protocol", "Invalid Tool descriptor fields")
     try:
+        from llm.core.model_protocol import ToolDefinition
+        definition = ToolDefinition.from_dict(descriptor["definition"])
         contract = ToolContract.from_dict(descriptor["contract"])
         request["descriptor_hash"] = descriptor_fingerprint(descriptor)
         tool = Tool(name, descriptor["description"], descriptor["parameters"],
-                    ProjectToolHandler(request), descriptor["definition"], contract=contract)
+                    ProjectToolHandler(request), definition, contract=contract)
         registry = ToolRegistry((tool,))
         return registry.get(name)
     except Exception as error:

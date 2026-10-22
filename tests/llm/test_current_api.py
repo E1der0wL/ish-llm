@@ -1,5 +1,7 @@
 """Current-only APIs and stored preferences; creation defaults remain owner-defined."""
 
+from llm.engines.loop import LoopEngine
+
 from dataclasses import asdict
 import inspect
 import tempfile
@@ -23,7 +25,7 @@ class CurrentAPITests(unittest.TestCase):
         for key in ("tool:1:call", "arbitrary-key"):
             for container in (False, True):
                 valid = {"status": "started", "container": container, "requires_retry": not container}
-                checkpoint = {"header": {"format": "loop-iterations-v1"}, "records": {key: valid}}
+                checkpoint = {"header": {"format": LoopEngine.CHECKPOINT_FORMAT}, "records": {key: valid}}
                 retry = () if container else (key,)
                 engine.validate_resume(checkpoint, retry_nodes=retry)
                 candidates = [
@@ -36,7 +38,7 @@ class CurrentAPITests(unittest.TestCase):
                         engine.validate_resume({**checkpoint, "records": {key: value}}, retry_nodes=retry)
         for value in (False, 0, [], ""):
             with self.subTest(decisions=value), self.assertRaises(TypeError):
-                engine.validate_resume({"header": {"format": "loop-iterations-v1"}, "records": {}},
+                engine.validate_resume({"header": {"format": LoopEngine.CHECKPOINT_FORMAT}, "records": {}},
                                        decisions=value)
 
     def test_only_subscription_observation_and_current_backup_api(self):

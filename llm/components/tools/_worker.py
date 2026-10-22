@@ -32,7 +32,7 @@ async def dispatch(request):
     try:
         tool = load(request)
         descriptor = {"name": tool.name, "description": tool.description, "parameters": tool.parameters,
-                      "definition": tool.definition, "contract": tool.contract.to_dict()}
+                      "definition": tool.definition.to_dict(), "contract": tool.contract.to_dict()}
         if request["operation"] == "inspect":
             value = descriptor
         elif request["operation"] == "execute":

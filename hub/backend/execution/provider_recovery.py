@@ -94,9 +94,9 @@ class ProviderRecovery:
         result = {}
         payload = {"code": diagnosis.code, "http_status": diagnosis.http_status, "detail": diagnosis.detail,
                    "reducible_characters": sum(len(item.source) for item in items),
-                   "message_count": len(request.get("messages", []))}
+                   "message_count": len(request.messages)}
         try:
-            await self._relay(model_events(engine, state.frame, request, ANALYZE.format(language=self.language),
+            await self._relay(model_events(engine, state.frame, request.parameters, ANALYZE.format(language=self.language),
                 payload, result, kind="error analysis", maximum=4000), state.frame)
         except InvalidRecoveryResponse as error:
             raise RecoveryUnavailable("invalid_analysis") from error
@@ -120,7 +120,7 @@ class ProviderRecovery:
                         "total_chars": total, "maximum": self.settings.recovery_summary_chars}
 
             async def invoke(prompt, document, answer):
-                async with aclosing(model_events(engine, state.frame, request, prompt, document, answer,
+                async with aclosing(model_events(engine, state.frame, request.parameters, prompt, document, answer,
                         kind="input summary", maximum=self.settings.recovery_summary_chars + 2000)) as events:
                     async for event in events:
                         yield event

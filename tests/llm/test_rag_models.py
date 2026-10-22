@@ -1,3 +1,5 @@
+
+from llm.providers.operations import LiteLLMOperations
 import asyncio
 import subprocess
 import sys
@@ -7,10 +9,11 @@ from typing import get_type_hints
 from unittest.mock import AsyncMock, patch
 
 from llm.components.rag import EmbeddingModel, RerankModel
+from llm.core.model_protocol import EmbeddingResult, RankedDocument, RerankResult
 
 
 class RAGModelTests(unittest.IsolatedAsyncioTestCase):
-    async def test_embedding_passes_open_kwargs_and_preserves_native_response(self):
+    async def test_embedding_passes_open_kwargs_and_returns_common_vector_usage(self):
         response = SimpleNamespace(data=[{"embedding": [0.1, 0.2]}], usage={"total_tokens": 2})
         client = object()
         async def embed(**request):
@@ -24,10 +27,10 @@ class RAGModelTests(unittest.IsolatedAsyncioTestCase):
             request["provider_option"]["modes"].clear()
             return response
         options = {"provider_option": {"modes": ["custom"]}}
-        model = EmbeddingModel(model="openai/test", embedding_fn=embed, client=client,
+        model = EmbeddingModel(model="openai/test", adapter=LiteLLMOperations(call=embed), client=client,
                                dimensions=100, **options)
         inputs = ["hello"]
-        self.assertIs(await model.embed(inputs, dimensions=2, timeout=12), response)
+        self.assertEqual(await model.embed(inputs, dimensions=2, timeout=12), EmbeddingResult((0.1, 0.2), {"total_tokens": 2}))
         self.assertEqual(inputs, ["hello"])
         self.assertEqual(options, {"provider_option": {"modes": ["custom"]}})
         self.assertEqual(model.params["provider_option"], options["provider_option"])
@@ -41,10 +44,11 @@ class RAGModelTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(request["return_documents"], True)
             request["documents"][0]["text"] = "changed"
             return response
-        model = RerankModel(model="cohere/default", rerank_fn=rerank, top_n=5)
+        model = RerankModel(model="cohere/default", adapter=LiteLLMOperations(call=rerank), top_n=5)
         documents = [{"text": "first"}, {"text": "second"}]
-        self.assertIs(await model.rerank("query", documents, model="cohere/override",
-                                        top_n=1, return_documents=True), response)
+        self.assertEqual(await model.rerank("query", documents, model="cohere/override",
+                                        top_n=1, return_documents=True),
+                         RerankResult((RankedDocument(1, 0.9),), opaque={"litellm": {"meta": {"billed_units": 1}}}))
         self.assertEqual(documents[0]["text"], "first")
 
     async def test_concurrent_calls_keep_inputs_separate(self):
@@ -56,11 +60,14 @@ class RAGModelTests(unittest.IsolatedAsyncioTestCase):
             if len(entered) == 2:
                 ready.set()
             await ready.wait()
-            return request["extra"]["values"]
-        model = EmbeddingModel(model="test", embedding_fn=embed, extra={"values": []})
+            return {"data": [{"embedding": [1 if request["input"] == "a" else 2]}],
+                    "observed": request["extra"]["values"]}
+        model = EmbeddingModel(model="test", adapter=LiteLLMOperations(call=embed), extra={"values": []})
         first, second = await asyncio.wait_for(asyncio.gather(model.embed("a"), model.embed("b")), 3)
-        self.assertEqual(first, ["a"])
-        self.assertEqual(second, ["b"])
+        self.assertEqual(first.vector, (1,))
+        self.assertEqual(first.opaque, {"litellm": {"observed": ["a"]}})
+        self.assertEqual(second.vector, (2,))
+        self.assertEqual(second.opaque, {"litellm": {"observed": ["b"]}})
         self.assertEqual(model.params["extra"], {"values": []})
 
     async def test_cancellation_propagates_to_async_provider(self):
@@ -71,7 +78,7 @@ class RAGModelTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             finally:
                 closed.set()
-        model = RerankModel(model="test", rerank_fn=rerank)
+        model = RerankModel(model="test", adapter=LiteLLMOperations(call=rerank))
         task = asyncio.create_task(model.rerank("query", ["doc"]))
         await started.wait()
         task.cancel()
@@ -82,12 +89,12 @@ class RAGModelTests(unittest.IsolatedAsyncioTestCase):
     async def test_missing_model_and_native_provider_error(self):
         call = AsyncMock()
         with self.assertRaises(ValueError):
-            await EmbeddingModel(embedding_fn=call).embed("text")
+            await EmbeddingModel(adapter=LiteLLMOperations(call=call)).embed("text")
         call.assert_not_called()
         failure = RuntimeError("provider diagnostic")
         call.side_effect = failure
         with self.assertRaises(RuntimeError) as raised:
-            await EmbeddingModel(model="test", embedding_fn=call).embed("text")
+            await EmbeddingModel(model="test", adapter=LiteLLMOperations(call=call)).embed("text")
         self.assertIs(raised.exception, failure)
 
     async def test_default_dispatch_uses_installed_litellm_async_entry_points(self):
@@ -106,18 +113,19 @@ class RAGModelTests(unittest.IsolatedAsyncioTestCase):
             sdk = await asyncio.to_thread(importlib.import_module, "litellm")
         self.assertTrue(callable(sdk.aembedding))
         self.assertTrue(callable(sdk.arerank))
-        response = object()
+        response = {"data": [{"embedding": [1, 2]}]}
         with patch.object(sdk, "aembedding", AsyncMock(return_value=response)) as embed:
-            self.assertIs(await EmbeddingModel(model="test").embed("text"), response)
+            self.assertEqual(await EmbeddingModel(model="test").embed("text"), EmbeddingResult((1, 2)))
             embed.assert_awaited_once_with(model="test", input="text",
-                caching=False, cache={"no-cache": True, "no-store": True})
-        with patch.object(sdk, "arerank", AsyncMock(return_value=response)) as rerank:
-            self.assertIs(await RerankModel(model="test").rerank("q", ["d"]), response)
-            rerank.assert_awaited_once_with(model="test", query="q", documents=["d"])
+                caching=False, cache={"no-cache": True, "no-store": True}, num_retries=0, max_retries=0)
+        with patch.object(sdk, "arerank", AsyncMock(return_value={"results": [{"index": 0, "relevance_score": 1}]})) as rerank:
+            self.assertEqual(await RerankModel(model="test").rerank("q", ["d"]), RerankResult((RankedDocument(0, 1),)))
+            rerank.assert_awaited_once_with(model="test", query="q", documents=["d"], num_retries=0, max_retries=0)
 
     def test_import_does_not_load_engines_services_or_sdk(self):
+        # Pure core model values are now an explicit dependency; no lifecycle or SDK import.
         code = ("import sys; from llm.components.rag import EmbeddingModel, RerankModel; "
-                "assert not any(n == 'litellm' or n.startswith(('llm.engines', 'llm.services', 'llm.core')) "
+                "assert not any(n == 'litellm' or n.startswith(('llm.engines', 'llm.services')) "
                 "for n in sys.modules)")
         result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=15)
         self.assertEqual(result.returncode, 0, result.stderr)

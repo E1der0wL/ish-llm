@@ -1,3 +1,7 @@
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
+from llm.providers.operations import LiteLLMOperations
 from llm.core.models import ProjectConfig
 from tests.llm.configuration_fixtures import rag_settings
 """사내 문법을 흉내 내지 않고 검색·수정·검증·승인 경계를 실제 서비스로 검사한다."""
@@ -26,8 +30,8 @@ async def extract(**request):
 
 
 def rag():
-    return RAGComponent(embedding=EmbeddingModel(embedding_fn=fake_embedding),
-                        extractor=TripleExtractor(completion_fn=extract))
+    return RAGComponent(embedding=EmbeddingModel(adapter=LiteLLMOperations(call=fake_embedding)),
+                        extractor=TripleExtractor(adapter=LiteLLMOperations(call=extract)))
 
 
 class ProposalModel:
@@ -75,7 +79,7 @@ class ConfigurationWorkflowTests(unittest.IsolatedAsyncioTestCase):
 
     async def plan(self, model=None, **kwargs):
         return await example.plan(self.root / "workspace", self.config, "Replace legacy with current",
-            completion_fn=model or ProposalModel(), rag_component=rag(), **kwargs)
+            completion_adapter=LiteLLMCompletionAdapter(completion_fn=model or ProposalModel()), rag_component=rag(), **kwargs)
 
     def package_hash(self, report):
         return example.digest(report["interactions"][0]["action"]["arguments"]["package"])
@@ -83,7 +87,7 @@ class ConfigurationWorkflowTests(unittest.IsolatedAsyncioTestCase):
     async def decide(self, report, decision="approve", **kwargs):
         return await example.decide(Path(report["bundle"]) / "report.json", self.config, decision,
             expected_package=kwargs.get("expected_package", self.package_hash(report)),
-            completion_fn=ProposalModel(), rag_component=rag())
+            completion_adapter=LiteLLMCompletionAdapter(completion_fn=ProposalModel()), rag_component=rag())
 
     async def test_rag_repair_pause_reopen_approval_and_apply(self):
         model = ProposalModel(bad_first=True)

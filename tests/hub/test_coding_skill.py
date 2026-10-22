@@ -1,5 +1,7 @@
 """Deterministic model, real approved tools, real failing/fixed sandbox tests."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import json
 from pathlib import Path
 import sys
@@ -37,7 +39,7 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
             (work / "keep.txt").write_text("user work", encoding="utf-8")
             runtime = HubRuntime(HubConfig(Path(root) / "storage", file_root=fallback,
                 model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 session = await runtime.project.sessions.acreate("File delivery")
@@ -102,7 +104,7 @@ class CodingSkillTests(unittest.IsolatedAsyncioTestCase):
             (source / "calculator.py").write_text(original)
             runtime = HubRuntime(HubConfig(Path(root) / "hub", file_root=source,
                 model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 skills = await runtime.project.components.aget("skills")

@@ -47,7 +47,7 @@ class ToolNode:
         if sum(key in definition for key in ("inputs", "arguments", "arguments_key")) > 1:
             raise ValueError("Choose inputs, arguments or arguments_key")
         if "arguments_key" not in definition and "inputs" not in definition:
-            context.tools.prepare(definition["tool"], json.dumps(definition.get("arguments", {})),
+            context.tools.prepare(definition["tool"], definition.get("arguments", {}),
                                   constraints=context.tool_scope.argument_constraints if context.tool_scope else None)
 
     async def __call__(self, node):
@@ -56,7 +56,7 @@ class ToolNode:
             arguments = node.inputs
         else:
             arguments = node.state[definition["arguments_key"]] if "arguments_key" in definition else definition.get("arguments", {})
-        tool, values = node.context.tools.prepare(definition["tool"], json.dumps(arguments),
+        tool, values = node.context.tools.prepare(definition["tool"], arguments,
             constraints=node.context.tool_scope.argument_constraints if node.context.tool_scope else None)
         result = {}
         # node.decision은 pause_before 확인일 수도 있다. Tool 승인만 공통 helper가

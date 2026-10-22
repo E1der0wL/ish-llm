@@ -1,5 +1,9 @@
 """공통 정책과 구현체별 입력/provider 설정의 책임·상속·재개 경계를 검증한다."""
 
+from llm.core.model_protocol import ModelMessage, ModelRequest
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from contextlib import aclosing
 from copy import deepcopy
@@ -74,7 +78,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_schema_and_shared_usage_counter_are_independent_of_input_policy(self):
         model = ScriptedCompletion([chunk("done", finish="stop")])
-        app, project, session = await self.backend({"writer": LoopEngine(completion_fn=model)},
+        app, project, session = await self.backend({"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
             counters={"input": lambda r: 1, "usage": lambda r: 5})
         await configure_engine(project, "writer", completion={"model": "test", "max_tokens": 2},
             input_policy={"max_tokens": 100, "counter": "input"})
@@ -102,7 +106,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_missing_counter_fails_only_selected_engine_before_model(self):
         model = ScriptedCompletion([chunk("done", finish="stop")])
-        _, project, session = await self.backend({"writer": LoopEngine(completion_fn=model)})
+        _, project, session = await self.backend({"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         await configure_engine(project, "writer", completion={"model": "test"},
             input_policy={"max_tokens": 10, "counter": "missing"})
         run = await (await session.run.submit("hello", engine="writer")).wait(timeout=10)
@@ -118,7 +122,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
                 async with aclosing(super()._execute(context)) as events:
                     async for event in events:
                         yield event
-        implementation = InspectLoop(completion_fn=model)
+        implementation = InspectLoop(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
         graph = GraphEngine(handlers={"agent": AgentNode(engines={"writer": implementation})})
         _, project, session = await self.backend({"graph": graph}, components=[AgentComponent(), WorkflowComponent()])
         await configure_engine(project, "writer", completion={"model": "test"},
@@ -138,7 +142,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
         def offline(**request):
             raise ConnectionError("offline")
             yield
-        _, project, session = await self.backend({"writer": LoopEngine(completion_fn=offline)})
+        _, project, session = await self.backend({"writer": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=offline))})
         await configure_engine(project, "writer", completion={"model": "test"},
             input_policy={"max_tokens": 100, "counter": "count"})
         for change in ({"input_policy": {"max_tokens": 200}}, {"provider": {"max_attempts": 2}}):
@@ -155,15 +159,15 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
             calls.append(request)
             raise ConnectionError("offline")
             yield
-        engine = BaseEngine(completion_fn=busy)
+        engine = BaseEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=busy))
         for provider, expected in ((None, 1), ({"max_attempts": 3}, 3)):
             calls.clear()
             with self.assertRaises(Exception):
-                async with aclosing(engine.stream_completion({"model": "test"}, provider=provider)) as events:
+                async with aclosing(engine.stream_completion(ModelRequest([], {"model": "test"}), provider=provider)) as events:
                     async for _ in events:
                         pass
             self.assertEqual(len(calls), expected)
-            self.assertEqual(calls[0], {"model": "test", "stream": True})
+            self.assertEqual(calls[0], {"model": "test", "messages": [], "stream": True})
 
     async def test_stream_wall_timeout_is_separate_and_does_not_cancel_event_storage(self):
         stored = []
@@ -171,7 +175,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
             async def _stream_completion(self, request, response, result, progress, *limits):
                 yield "first"
                 await asyncio.Event().wait()
-        async with aclosing(Stream().stream_completion({"model": "test"}, include_events=False,
+        async with aclosing(Stream().stream_completion(ModelRequest([], {"model": "test"}), include_events=False,
                 provider={"wall_timeout": .01})) as stream:
             self.assertEqual(await anext(stream), "first")
             await asyncio.sleep(.03)  # 소비자 저장이 진행 중일 때 timer가 소비자를 취소해서는 안 된다.
@@ -194,7 +198,7 @@ class PolicyOwnershipTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
 
         async def consume():
-            async with aclosing(Stream().stream_completion({"model": "test"},
+            async with aclosing(Stream().stream_completion(ModelRequest([], {"model": "test"}),
                     provider={"wall_timeout": .01})) as stream:
                 async for _ in stream:
                     pass

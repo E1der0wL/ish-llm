@@ -1,3 +1,5 @@
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
 from tests.llm.configuration_fixtures import memory_settings
 """프로젝트별 정책 저장·적용·동시 격리와 Run 사본을 실제 서비스 경로에서 검증한다."""
 
@@ -68,7 +70,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
                 yield "answer"
         self.engine = Inspect()
         self.app = LargeLanguageModel(self.root, components=[], engines={"inspect": self.engine},
-            services=BackendServices(token_counters={"length": lambda r: sum(len(m.get("content") or "") for m in r["messages"])}))
+            services=BackendServices(token_counters={"length": lambda r: sum(len(m.text) for m in r.messages)}))
         self.addAsyncCleanup(self.app.shutdown)
 
     async def create(self, policies=None):
@@ -128,7 +130,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         small, one = await self.create()
         large, two = await self.create()
         model = ScriptedCompletion([chunk("ok", finish="stop")])
-        self.app.engines.register("loop", LoopEngine(completion_fn=model).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
+        self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test/main"}})}))
         await configure_engine(small, "loop", input_policy={"max_tokens": 2, "counter": "length"})
         await configure_engine(large, "loop", input_policy={"max_tokens": 100, "counter": "length"})
         failed, passed = await asyncio.gather(self.execute(one, "hello", "loop"), self.execute(two, "hello", "loop"))
@@ -232,11 +234,13 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(completed.data.status, RunStatus.COMPLETED)
 
     async def test_default_counter_receives_model_messages_and_tools(self):
-        request = {"model": "openai/example", "messages": [{"role": "user", "content": "q"}],
-                   "tools": [{"type": "function", "function": {"name": "test"}}], "tool_choice": "auto"}
+        from llm.core.model_protocol import ModelRequest, ModelMessage, ToolDefinition, ToolMode
+        from llm.providers.wire_codec import encode_request
+        request = ModelRequest([ModelMessage("user", "q")], {"model": "openai/example"},
+            (ToolDefinition("test", "", {"type": "object"}),), ToolMode.AUTO)
         with patch("litellm.token_counter", return_value=17) as counter:
             self.assertEqual(model_token_count(request), 17)
-        counter.assert_called_once_with(**request)
+        counter.assert_called_once_with(**encode_request(request))
 
     async def test_completion_policy_name_has_no_legacy_alias(self):
         import llm.policies as module

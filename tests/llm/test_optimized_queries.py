@@ -1,4 +1,8 @@
 """중복 I/O·전체 결과 변환을 줄여도 수명/커서/세대 검사를 유지하는지 검증한다."""
+
+from llm.core.model_protocol import RankedDocument, RerankResult
+
+from llm.providers.operations import LiteLLMOperations
 from tests.llm.configuration_fixtures import rag_settings, rag_project
 
 import importlib.util
@@ -166,7 +170,7 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
         from tests.llm.test_rag_components import Extractor, fake_embedding
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
-        self.component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", embedding_fn=fake_embedding),
+        self.component = RAGComponent(embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=fake_embedding)),
                                       extractor=Extractor())
         self.app = LargeLanguageModel(Path(temp.name), engines={}, components=[self.component])
         self.addAsyncCleanup(self.app.shutdown)
@@ -176,8 +180,7 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_reranked_query_reads_corpus_and_searches_once(self):
         from llm.components.rag import component as implementation
-        self.component.reranker = SimpleNamespace(rerank=AsyncMock(return_value={
-            "results": [{"index": 0, "relevance_score": 0.9}]}))
+        self.component.reranker = SimpleNamespace(rerank=AsyncMock(return_value=RerankResult((RankedDocument(0, 0.9),))))
         for method in (self.data.asearch, self.data.asearch_documents):
             with patch.object(implementation, "read_json", wraps=implementation.read_json) as read, \
                  patch.object(self.component, "search", wraps=self.component.with_config(self.project.data).search) as search:
@@ -190,7 +193,7 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
         from llm.components.rag import RAGConflictError
         async def change(*args):
             await self.data.aupdate_document("manual", content="Alice owns Atlas. Updated.")
-            return {"results": [{"index": 0, "relevance_score": 1.0}]}
+            return RerankResult((RankedDocument(0, 1.0),))
         self.component.reranker = SimpleNamespace(rerank=change)
         for method in (self.data.asearch, self.data.asearch_documents):
             with patch.object(self.component, "search", wraps=self.component.with_config(self.project.data).search) as search:
@@ -201,7 +204,7 @@ class RAGReadTests(unittest.IsolatedAsyncioTestCase):
     async def test_reranking_rechecks_component_selection(self):
         async def remove(*args):
             await self.project.components.aremove("rag")
-            return {"results": [{"index": 0, "relevance_score": 1.0}]}
+            return RerankResult((RankedDocument(0, 1.0),))
         self.component.reranker = SimpleNamespace(rerank=remove)
         with self.assertRaisesRegex(ValueError, "not enabled"):
             await self.data.asearch("Alice", method="bm25", rerank=True)

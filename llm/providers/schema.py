@@ -1,5 +1,7 @@
 """Provider가 소유하는 요청 schema. 상위 Engine/Component는 옵션 이름을 복제하지 않는다."""
 
+from llm.core.model_protocol import copy_model
+
 from llm.core.schema import open_schema
 from jsonschema import Draft202012Validator
 from urllib.parse import urlsplit
@@ -52,14 +54,13 @@ def validate_model_params(params, *, operation="acompletion", require_model=Fals
 
 def validate_retry_params(params, *, original, operation):
     """SDK retry/실행 protocol은 수정안으로 바꾸지 않는다. SDK 중첩·권한 확대를 막는다."""
-    from .parameters import copy_params
     protected = ("stream", "n", "tools", "tool_choice", "functions", "function_call", "client",
                  "num_retries", "max_retries", "retry_policy", "caching", "cache")
     for key in protected:
         if (key in params) != (key in original) or (key in original and
                 (params[key] is not original[key] if key == "client" else params[key] != original[key])):
             raise ValueError(f"Retry cannot change provider contract: {key}")
-    validate_model_params(copy_params(params), operation=operation, json_contract=False)
+    validate_model_params(copy_model(params), operation=operation, json_contract=False)
     # 검증 대상은 수정한 값이다. 원래 runtime timeout/client 객체의 SDK 계약을 바꾸지 않는다.
     properties = model_schema(operation).get("properties", {})
     for key, spec in properties.items():

@@ -1,5 +1,7 @@
 """Owner-proven Data quarantine preserves damaged bytes and never reopens the package."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 import json
 import os
@@ -476,7 +478,7 @@ class DataQuarantineBudgetTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await project.amodel_usage())['call_count'], 1)
         await app.shutdown()
         async with LargeLanguageModel(project.paths.root.parent.parent, components=[DataComponent()],
-                                      engines={'loop': LoopEngine(completion_fn=model)}) as reopened:
+                                      engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}) as reopened:
             project = await reopened.projects.aload(project.id)
             other = await project.sessions.acreate()
             blocked = await UsageDeletionTests.run_once(self, other)

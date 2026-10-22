@@ -1,5 +1,7 @@
 """One retry projection for providers and Tools, including live header feedback."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from contextlib import aclosing
 import tempfile
@@ -119,7 +121,7 @@ class RetryObservationTests(unittest.IsolatedAsyncioTestCase):
             [chunk("Done", finish="stop")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: HubLoopEngine(completion_fn=provider)},
+                engine_factories={"loop": lambda: HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
                 component_factories=[lambda: ExampleTools(handler)], tool_retry_chooser=chooser,
                 project_config={"policies": {"tool_retry": {"max_retries": 2, "delay_seconds": .01}}}))
             try:
@@ -159,7 +161,7 @@ class RetryObservationTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call('{"format":"old","count":1}', name="convert")], finish="tool_calls")])
         with tempfile.TemporaryDirectory() as root:
             runtime = HubRuntime(HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: HubLoopEngine(completion_fn=provider)},
+                engine_factories={"loop": lambda: HubLoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
                 component_factories=[lambda: ExampleTools(handler)],
                 project_config={"policies": {"tool_retry": {"max_retries": 3, "delay_seconds": 30}}}))
             try:

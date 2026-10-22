@@ -1,5 +1,7 @@
 """메모리 대화의 상태 계약, 실행 공유, 수명과 파일 저장소 격리를 검증한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
@@ -82,7 +84,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
         completion = ScriptedCompletion([chunk("first answer", finish="stop")],
                                         [chunk("second answer", finish="stop")])
         app = LargeLanguageModel(self.root, conversation_storage="memory",
-                                engines={"loop": LoopEngine(completion_fn=completion).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test"}})})})
+                                engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'completion': {"model": "test"}})})})
         self.addAsyncCleanup(app.shutdown)
         project, session = await self.session(app)
         first = await session.run.submit("first", engine="loop")

@@ -72,11 +72,28 @@ LiteLLM import 전에 `os.environ["DEFAULT_MAX_RETRIES"] = "0"`을 강제로 적
 | max_retries=2 또는 num_retries=2 | 사용자 값 그대로 | 1회 |
 | num_retries=0, max_retries=0 | 0 | 명시된 provider.max_attempts, 없으면 최초 호출만 |
 
-요청 dict에는 retry 키를 자동 삽입하지 않는다. `effective_attempts()`가 중첩을 막는다.
+원본 요청·저장 설정에는 retry 키를 자동 삽입하지 않는다. 실제 SDK 전송 사본은
+`sdk_transport_request()`가 소유하며 생략된 SDK retry를 0으로 보장한다. 명시한 값은
+null/0/양수를 구별해 그대로 전달한다. SDK 전역 초기화만으로는 OpenAI completion의
+내부 기본 2회를 막지 못하므로 동기 스트림과 비스트리밍 실제 SDK 호출 모두 이 경계를 지난다.
+명시한 주입 client가 있으면 객체 identity와 그 client의 max_retries를 보존한다. LiteLLM이
+전송 인자를 client에 다시 쓰므로 생략된 max_retries에는 client의 기존 값을 사용하며,
+해당 속성이 없으면 null을 전달해 임의의 client 정책을 만들지 않는다.
+LiteLLM은 num_retries를 OpenAI max_retries로도 해석하므로 명시한 max_retries/client/retry_policy
+또는 호스트 SDK 정책 옆에 num_retries=0을 임의로 덧붙여 그 선택을 덮지 않는다.
+
+Backend의 `max_attempts`는 기존 `RetryPolicy.attempts`로만 해석한다. 생략은 최초 호출
+1회이며 별도 기본값을 선언하거나 영속 설정에 채워 넣지 않는다. 명시한 값은 Backend
+시도의 상한이다. `effective_attempts()`가 명시 SDK 재시도와 Backend 재시도의 중첩을 막는다.
 주입 client의 max_retries, retry_policy, 호스트가 별도로 설정한 sdk.num_retries가
 활성인 경우도 보수적으로 외부 1회만 호출한다. `provider_retry_delegated`로 이를 관찰한다.
 DEFAULT_MAX_RETRIES만 강제 0이며 명시적 설정이나 호스트의 client를 재작성하지 않는다.
 다른 코드가 호출 도중 SDK 전역값을 변경하는 경쟁까지 제어하지는 못한다.
+
+모든 재시도 설정을 생략한 요청은 실제 HTTP 1회, provider.max_attempts=2만 선택한 요청은
+최대 2회다. 명시 SDK 재시도를 선택한 경우 하위 HTTP 요청 총수는 그 SDK/client 계약을 따른다.
+이때 provider.max_attempts는 하위 HTTP 총수가 아닌 Backend 시도의 상한이다. 취소·부분 응답
+이후 재시도 금지와 승인·사용량 예약·Tool 효과·Checkpoint·Resume 계약은 그대로 유지한다.
 
 비스트리밍 호출은 명시된 경우에만 `requests.invoke`가 wall deadline과 outer retry를 적용한다. 누락 시 deadline/재시도 없이 최초 호출만 수행한다.
 llm 시도마다 공유 ProviderCalls의 admission과 기존 사용량 관찰자를 통과하므로 실패·재시도도 사용량 한도에 포함된다.
@@ -214,7 +231,8 @@ RAG의 embedding_concurrency는 양의 정수이며 문서 등록 시 명시해�
 VectorCache, 동일 텍스트 중복 제거, unchanged reuse, Job 청크 checkpoint는 유지한다.
 
 모든 기본 임베딩은 LiteLLM `aembedding`으로 전달한다. 모델 접두사와 클라이언트 수명은
-LiteLLM이 처리한다. 명시적으로 주입한 모델 함수는 기존 확장 계약대로 사용한다. 내장 ModelClient의
+LiteLLM이 처리한다. SDK 함수 교체는 `LiteLLMOperations(call=...)`를 사용하고,
+RAG/Vision은 선택 operation adapter의 공통 결과를 받는다. 내장 ModelClient의
 호출은 공통 정책을 적용하지만, 임의의 커스텀 embedding/extractor 클래스가 내부에서 직접
 호출하는 SDK까지 가로채지는 않는다. 같은 정책 바인딩을 제공하려면 `with_provider(options)`를
 구현하거나 ModelClient를 재사용한다.
@@ -225,6 +243,14 @@ Loop의 Completion processor는 선택 adapter의 `validate_processing(candidate
 검증을 통과해야 합니다. LiteLLM의 `num_retries`, `max_retries`, `retry_policy`, `client`
 보호는 LiteLLM adapter가 소유합니다. 다른 SDK는 자신의 필드를 검증하며 공통 처리기에
 SDK 필드 이름을 추가하지 않습니다. canonical Tool/message/stream 계약은 공통 계층이 유지합니다.
+
+CompletionAdapter는 `ModelRequest`를 받아 raw chunk를 전달하고, Decoder는 공통
+`CompletionUpdate`와 최종 `ModelResponse`를 만든다. `OperationAdapter`는 비스트리밍
+`ModelResponse`/`EmbeddingResult`/`RerankResult`를 반환한다. SDK 인자·응답·retry·보조 호출
+필터·실제 invocation 관찰은 Adapter 소유다. `SDK_RETRY_FIELDS`는 retry owner의 단일 선언이며
+보조 복구 호출의 중첩 SDK retry는 0, 제목/Memory의 명시적 retry 값은 기존 계약대로 유지한다.
+RAG의 강제 embedding cache-off와 일반 직접 Adapter 호출의 명시 cache 선택은 구분한다.
+순수 벡터 검증은 `core/embeddings.py`가 소유하고 SDK envelope 추출만 Provider에서 한다.
 
 ## 재현 검사
 

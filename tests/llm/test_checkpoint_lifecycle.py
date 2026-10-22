@@ -1,5 +1,7 @@
 """Run/RAG 공통 정리 계약: CAS, 승인 증거, 참조 보호, worker 경합과 원자적 삭제."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import asyncio
 import hashlib
 import subprocess
@@ -198,7 +200,7 @@ class RunCheckpointTests(unittest.IsolatedAsyncioTestCase):
         from tests.llm.test_loop import ScriptedCompletion
         provider = ScriptedCompletion([RuntimeError("offline")])
         with tempfile.TemporaryDirectory() as root:
-            async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_fn=provider)}) as app:
+            async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}) as app:
                 project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
                     "loop": {"config": {"completion": {"model": "test/model"}}}}}})
                 session = await project.sessions.acreate()

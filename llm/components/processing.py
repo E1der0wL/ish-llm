@@ -1,13 +1,14 @@
 """컴포넌트의 모델 입력 변환·응답 관찰 계약. 영속 도메인이나 특정 컴포넌트를 알지 않는다."""
 
+from llm.core.model_protocol import ModelMessage, ModelRequest, ModelResponse, ModelRole, ToolDefinition, ToolMode, copy_model
+
 import math
 import inspect
 from typing import AsyncIterator, Optional, Protocol, TYPE_CHECKING
 
 from contextlib import aclosing
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from asyncio import timeout
-from llm.providers.parameters import copy_params
 from llm.core.contracts import Diagnostic, ResourceRef
 
 
@@ -15,7 +16,7 @@ from llm.core.contracts import Diagnostic, ResourceRef
 class CompletionRecovery:
     """Application input-repair proposal boundary; editable indexes are not authority."""
     diagnostic: Diagnostic
-    request: dict
+    request: ModelRequest
     attempt: int
     editable: tuple[int, ...]
 
@@ -33,13 +34,21 @@ if TYPE_CHECKING:
 class CompletionMessage:
     """모델용 메시지와 원본 출처. 추가 참고자료는 source_id=None이며 ID는 공급자에게 보내지 않는다."""
 
-    value: dict
+    message: ModelMessage
     source_id: Optional[str] = None
     # 같은 작업에 추가된 USER 입력. provider kwargs에는 포함하지 않는다.
     continuation: bool = False
     # Completed result identity, excluded from provider kwargs. Call IDs are local
     # to an execution scope and cannot identify sibling Agent results in a Run.
     result_ref: Optional[ResourceRef] = None
+
+    def __post_init__(self):
+        if not isinstance(self.message, ModelMessage):
+            raise TypeError("CompletionMessage requires ModelMessage")
+        object.__setattr__(self, "message", copy_model(self.message))
+
+    def with_text(self, text):
+        return replace(self, message=self.message.with_text(text))
 
 
 @dataclass(slots=True)
@@ -58,8 +67,11 @@ class CompletionRequest:
     # 완료된 현재 작업의 접두 Tool 교환만 명시적으로 압축할 수 있다. 공급자 인자가 아니다.
     compacted_tool_calls: tuple[str, ...] = ()
 
-    def to_kwargs(self) -> dict:
-        return {**copy_params(self.parameters), "messages": [copy_params(m.value) for m in self.messages]}
+    tools: tuple[ToolDefinition, ...] = ()
+    tool_mode: ToolMode | None = None
+
+    def to_model(self) -> ModelRequest:
+        return ModelRequest([m.message for m in self.messages], self.parameters, self.tools, self.tool_mode)
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,13 +83,21 @@ class CompletionObservation:
     """
 
     iteration: int
-    request: dict
-    response: dict
-    original_messages: list[dict]
+    request: ModelRequest
+    response: ModelResponse
+    original_messages: list[ModelMessage]
+
+    def __post_init__(self):
+        if not isinstance(self.request, ModelRequest) or not isinstance(self.response, ModelResponse):
+            raise TypeError("Completion observation requires common request and response")
+        if any(not isinstance(message, ModelMessage) for message in self.original_messages):
+            raise TypeError("Completion observation requires common original messages")
+        for name in ("request", "response", "original_messages"):
+            object.__setattr__(self, name, copy_model(getattr(self, name)))
 
     def snapshot(self):
-        return CompletionObservation(self.iteration, copy_params(self.request),
-                                     copy_params(self.response), copy_params(self.original_messages))
+        return CompletionObservation(self.iteration, copy_model(self.request),
+                                     copy_model(self.response), copy_model(self.original_messages))
 
 
 class CompletionSession:
@@ -176,7 +196,7 @@ class CompletionPipeline:
 
     @staticmethod
     def _instruction_text(message):
-        content = message.get("content")
+        content = message.content
         if not isinstance(content, str):
             raise ValueError("Text completion processing requires a string current instruction")
         return content
@@ -189,74 +209,71 @@ class CompletionPipeline:
         reference boundary) stay whole. Earlier bodies and Tool result bodies can
         be shortened; call IDs/arguments/order and all other fields stay exact.
         """
-        original = copy_params(request)
-        messages = original["messages"]
-        if not 0 <= current_index < len(messages) or messages[current_index].get("role") != "user":
+        original = copy_model(request)
+        messages = original.messages
+        if not 0 <= current_index < len(messages) or messages[current_index].role != ModelRole.USER:
             raise ValueError("Recovery requires the current user input")
         CompletionPipeline._instruction_text(messages[current_index])
         editable = tuple(i for i, message in enumerate(messages)
-            if isinstance(message.get("content"), str)
-            and message.get("role") not in ("system", "developer")
-            and (i < current_index or message.get("role") == "tool"))
+            if (isinstance(message.content, str) or message.result is not None)
+            and message.role not in (ModelRole.SYSTEM, ModelRole.DEVELOPER)
+            and (i < current_index or message.role == ModelRole.TOOL))
         if not editable:
             return None
-        selected = decide(CompletionRecovery(Diagnostic.from_dict(diagnostic.to_dict()), copy_params(original), attempt, editable))
+        selected = decide(CompletionRecovery(Diagnostic.from_dict(diagnostic.to_dict()), copy_model(original), attempt, editable))
         if inspect.isawaitable(selected):
             selected = await selected
         if selected is None:
             return None
         if not isinstance(selected, CompletionRepair) or not isinstance(selected.replacements, dict):
             raise TypeError("Completion recovery requires CompletionRepair or None")
-        candidate = copy_params(original)
+        candidate = copy_model(original)
         for index, content in selected.replacements.items():
             if (type(index) is not int or index not in editable or not isinstance(content, str)
                     or not content.strip()):
                 raise ValueError("Recovery can only replace declared reference bodies")
-            candidate["messages"][index]["content"] = content
-        if sum(len(m.get("content") or "") for m in candidate["messages"] if isinstance(m.get("content"), str)) >= sum(
-                len(m.get("content") or "") for m in messages if isinstance(m.get("content"), str)):
+            candidate.messages[index] = candidate.messages[index].with_text(content)
+        if sum(len(m.text) for m in candidate.messages) >= sum(len(m.text) for m in messages):
             raise ValueError("Context repair must reduce reference content")
-        tail = copy_params(candidate["messages"][current_index:])
-        instructions = [m for m in messages if m.get("role") in ("system", "developer")]
+        tail = copy_model(candidate.messages[current_index:])
+        instructions = [m for m in messages if m.role in (ModelRole.SYSTEM, ModelRole.DEVELOPER)]
         if prepare is not None:
             candidate = await prepare(candidate)
         # Budget preparation may drop whole prior turns, never the protected tail.
-        if (candidate["messages"][-len(tail):] != tail or
-                [m for m in candidate["messages"] if m.get("role") in ("system", "developer")] != instructions or
-                {k: v for k, v in candidate.items() if k != "messages"} !=
-                {k: v for k, v in original.items() if k != "messages"}):
+        if (candidate.messages[-len(tail):] != tail or
+                [m for m in candidate.messages if m.role in (ModelRole.SYSTEM, ModelRole.DEVELOPER)] != instructions or
+                candidate.parameters != original.parameters or candidate.tools != original.tools or
+                candidate.tool_mode != original.tool_mode):
             raise ValueError("Recovery budget processing removed current input or Tool structure")
         return candidate
 
     @staticmethod
-    def _validate(request, original, parameters, current_id):
-        if not isinstance(request.parameters, dict) or "messages" in request.parameters:
-            raise ValueError("Completion messages must use CompletionRequest.messages")
-        # 처리기가 Tool 권한·반복 계약을 우회하거나 메인 모델 자동 재시도를 추가할 수 없다.
-        for key in ("tools", "tool_choice", "functions", "function_call", "stream", "n"):
-            if (key in request.parameters) != (key in parameters) or request.parameters.get(key) != parameters.get(key):
-                raise ValueError(f"Completion processor cannot change {key}")
-        originals = {m.source_id: m.value for m in original if m.source_id is not None}
+    def _validate(request, original, invocation, current_id):
+        current = request.to_model()
+        current.validate_exchanges()
+        if current.tools != invocation.tools or current.tool_mode != invocation.tool_mode:
+            raise ValueError("Completion processor cannot change Tool selection")
+        originals = {m.source_id: m.message for m in original if m.source_id is not None}
         seen = set()
         for message in request.messages:
-            if not isinstance(message, CompletionMessage) or not isinstance(message.value, dict):
+            if not isinstance(message, CompletionMessage) or not isinstance(message.message, ModelMessage):
                 raise TypeError("Completion messages require CompletionMessage values")
             if message.source_id is not None:
                 if message.source_id not in originals or message.source_id in seen:
                     raise ValueError("Unknown or duplicate completion message source")
                 seen.add(message.source_id)
-                if message.value.get("role") != originals[message.source_id].get("role"):
+                if message.message.role != originals[message.source_id].role:
                     raise ValueError("Completion processor cannot change an original message role")
         if current_id not in seen:
             raise ValueError("Completion processor must preserve the current user message")
-        current = next(m.value for m in request.messages if m.source_id == current_id)
+        current = next(m.message for m in request.messages if m.source_id == current_id)
         before = originals[current_id]
         # Existing processors can append explicitly configured reference context;
         # they cannot replace the original instruction with a summary or an ID.
         if not CompletionPipeline._instruction_text(current).startswith(CompletionPipeline._instruction_text(before)):
             raise ValueError("Completion processor must preserve the current instruction body")
-        protected = [m.value for m in original if m.value.get("role") in ("system", "developer")]
-        supplied = [m.value for m in request.messages if m.value.get("role") in ("system", "developer")]
+        protected = [m.message for m in original if m.message.role in (ModelRole.SYSTEM, ModelRole.DEVELOPER)]
+        supplied = [m.message for m in request.messages if m.message.role in (ModelRole.SYSTEM, ModelRole.DEVELOPER)]
         candidates = iter(supplied)
         if any(not any(value == candidate for candidate in candidates) for value in protected):
             raise ValueError("Completion processor must preserve applied instructions")
@@ -265,14 +282,14 @@ class CompletionPipeline:
             raise ValueError("Completion processor must preserve original message order")
         group = []
         for message in original:
-            if message.value.get("role") == "user" and not message.continuation:
+            if message.message.role == ModelRole.USER and not message.continuation:
                 kept = [m.source_id in seen for m in group]
                 if any(kept) and not all(kept):
                     raise ValueError("Completion processor must remove whole prior turns")
                 group = []
             if message.source_id == current_id:
                 break
-            if message.source_id is not None and message.value.get("role") not in ("system", "developer"):
+            if message.source_id is not None and message.message.role not in (ModelRole.SYSTEM, ModelRole.DEVELOPER):
                 group.append(message)
         # 현재 요청 이후의 Tool 호출/결과는 쌍과 순서를 유지한다. 결과 본문의 압축만 허용한다.
         index = next(i for i, m in enumerate(original) if m.source_id == current_id)
@@ -285,39 +302,39 @@ class CompletionPipeline:
                 raise ValueError("Compaction requires a removed transcript prefix")
             prefix, ids, pending = tail[:removed], [], set()
             for message in prefix:
-                value = message.value
-                if value.get("role") == "assistant" and value.get("tool_calls") and not pending:
-                    pending = {c["id"] for c in value["tool_calls"]}
-                    ids.extend(c["id"] for c in value["tool_calls"])
-                elif value.get("role") == "tool" and value.get("tool_call_id") in pending:
-                    pending.remove(value["tool_call_id"])
+                value = message.message
+                if value.role == ModelRole.ASSISTANT and value.calls and not pending:
+                    pending = {c.id for c in value.calls}
+                    ids.extend(c.id for c in value.calls)
+                elif value.result is not None and value.result.call_id in pending:
+                    pending.remove(value.result.call_id)
                 else:
                     raise ValueError("Compaction requires complete Tool exchanges")
             if pending or tuple(ids) != request.compacted_tool_calls:
                 raise ValueError("Compaction source IDs do not match completed exchanges")
-            if request.messages[request_index].value.get("content") == original[index].value.get("content"):
+            if request.messages[request_index].message.content == original[index].message.content:
                 raise ValueError("Compaction must preserve a summary in the current input")
             tail = tail[removed:]
         if len(tail) != len(actual):
             raise ValueError("Completion processor cannot alter the active tool transcript structure")
         for before, after in zip(tail, actual):
-            left, right = copy_params(before.value), copy_params(after.value)
-            if left.get("role") == "tool":
-                left.pop("content", None)
-                right.pop("content", None)
+            left, right = copy_model(before.message), copy_model(after.message)
+            if left.result is not None:
+                left = left.with_text("")
+                right = right.with_text("")
             if before.source_id != after.source_id or before.result_ref != after.result_ref or left != right:
                 raise ValueError("Completion processor cannot alter active tool calls or identifiers")
 
     async def prepare(self, request: CompletionRequest, original):
-        parameters = copy_params(request.parameters)
-        self._validate(request, original, parameters, self.context.run.input_message_id)
+        invocation = request.to_model()
+        self._validate(request, original, invocation, self.context.run.input_message_id)
         for _, session in self.sessions:
             async with aclosing(session.prepare(request)) as events:
                 async for event in events:
                     yield event
-            self._validate(request, original, parameters, self.context.run.input_message_id)
+            self._validate(request, original, invocation, self.context.run.input_message_id)
             if self.validate_parameters is not None:
-                self.validate_parameters(request.parameters, original=parameters)
+                self.validate_parameters(request.parameters, original=invocation.parameters)
 
     async def after_completion(self, observation: CompletionObservation):
         for _, session in self.sessions:

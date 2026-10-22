@@ -1,5 +1,7 @@
 """안전하게 반복 가능한 비스트리밍 추론 호출의 제한·오류 분류. Tool에는 적용하지 않는다."""
 
+from llm.core.model_protocol import copy_model
+
 from .codes import ProviderErrorCode
 import asyncio
 import time
@@ -7,7 +9,6 @@ import math
 from uuid import uuid4
 
 from .observations import observed_call
-from .parameters import copy_params
 from .runtime import diagnostic, diagnostic_failure, diagnostic_context, request_details
 from .retry import effective_attempts, retry_delay
 from llm.errors import CodedError, exception_chain, stable_error_code
@@ -118,7 +119,7 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
     attempts = effective_attempts(request, RetryPolicy(options.get("max_attempts")).attempts,
                                   sdk_defaults=sdk_defaults)
     policy = RetryPolicy(attempts, options.get("delay_seconds"), options.get("max_delay_seconds"), end, "exponential")
-    request = copy_params(request)
+    request = copy_model(request)
     call_id = call_id or uuid4().hex
     for attempt in range(attempts):
         details = {"call_id": call_id, **request_details(request)}
@@ -153,7 +154,7 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
                 return result
             with diagnostic_context(**details, attempt=attempt + 1):
                 from .litellm import describe_call
-                return await asyncio.wait_for(observed_call(describe_call(operation, request), copy_params(request), checked), remaining)
+                return await asyncio.wait_for(observed_call(describe_call(operation, request), copy_model(request), checked), remaining)
         except Exception as error:
             code = error_code(error)
             failure = diagnostic_failure(error, operation=operation, stage="invoke", attempt=attempt + 1,
@@ -166,11 +167,11 @@ async def invoke(operation, request, call, options, *, deadline=None, sdk_defaul
             try:
                 from .schema import validate_retry_params
                 async with asyncio.timeout(policy.remaining()):
-                    selected = await select_retry(RetryFailure(operation, copy_params(request), code,
+                    selected = await select_retry(RetryFailure(operation, copy_model(request), code,
                         code.replace("_", " "), attempt + 1, code in TRANSIENT, tuple(changeable)), decide)
                 if selected is None:
                     raise ProviderError(code, diagnostic=failure) from error
-                request = change_arguments(request, selected, allowed=changeable, copy=copy_params,
+                request = change_arguments(request, selected, allowed=changeable, copy=copy_model,
                     validate=lambda value: validate_retry_params(value, original=request, operation=operation))
                 delay = retry_delay(policy, attempt + 1, error, options)
                 if delay is None:

@@ -24,14 +24,16 @@ CompletionPolicy를 만들어 processor 문맥에 전달합니다. custom Engine
 `stream_completion(..., provider=명시한 설정)`으로 선택하며 중앙 정책을 자동 적용하지 않습니다.
 
 `BaseEngine(completion_adapter=...)`는 SDK 요청·재시도 인자·응답을 소유하는 Host 구현을
-선택합니다. 기본 연결은 LiteLLM입니다. 별도 어댑터와 `completion_fn`/`completion_decoder`를
-동시에 지정할 수 없습니다. Loop의 어댑터는 Loop 메시지/Tool 프로토콜과 설정 schema도
+선택합니다. 기본 연결은 LiteLLM입니다. SDK callable/decoder는 실제
+`LiteLLMCompletionAdapter(completion_fn=..., completion_decoder=...)`에만 주입합니다.
+Base/Loop의 호출 입력은 `ModelRequest`, 성공 결과는 `ModelResponse`입니다. Loop의 어댑터는 공통 메시지/Tool 프로토콜과 설정 schema도
 지원해야 합니다. [확장 계약](../../docs/llm/shared-contracts.md)을 참고하세요.
 
 기본 LiteLLM 연결의 `completion_decoder`는 시도마다 새 `CompletionDecoder`를 만드는 동기
 factory입니다. 기본은 Provider의 `LiteLLMCompletionDecoder`입니다. 다른 응답 형식은
 `decode(chunk)`에서 `CompletionUpdate`를 yield하고, `finish()`에서 종료를 검증한 뒤
-최종 message dict를 반환합니다. 기존 동기 `completion_fn` 연결 방식은 유지합니다.
+최종 `ModelResponse`를 반환합니다. 성공한 응답은 호출자가 준 `list[ModelResponse]`에 담으며
+실패한 시도는 기존 capture를 덮어쓰지 않습니다. SDK wire 해석은 실제 Adapter 안에서 수행합니다.
 decoder는 저장·Tool 실행·재시도를 하지 않습니다. BaseEngine은 관찰 이벤트를 전달하며,
 chunk를 한 번이라도 수신했다면 decoder 실패 후에도 요청을 자동 반복하지 않습니다.
 

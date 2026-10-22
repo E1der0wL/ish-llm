@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from llm.core.interactions import InteractionOption, InteractionRequest
 from llm.services.runtime.tools import current_tool_call
-from ...model import SessionSummary
+from ...model import QuestionSource, SessionSummary
 
 
 def waiting_status(questions):
@@ -35,7 +35,7 @@ class QuestionBroker:
         request = InteractionRequest(arguments["question"],
             (InteractionOption("reply", "Reply"),), kind=InteractionRequest.KIND_INPUT, category="hub.question",
             description=arguments.get("description", ""), input_schema={"type": "string", "minLength": 1},
-            source={"choices": arguments.get("choices", [])})
+            source={QuestionSource.SUGGESTIONS.value: arguments.get(QuestionSource.SUGGESTIONS.value, [])})
         future = asyncio.get_running_loop().create_future()
         self.pending[request.id] = WaitingQuestion(call.project_id, call.session_id, call.run_id, request, future)
         self.changed()

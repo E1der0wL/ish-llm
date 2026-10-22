@@ -1,5 +1,7 @@
 """재개 포기와 대화 삭제의 CAS, 영속성, 승인 및 rollback 경계."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 from dataclasses import replace
 import asyncio
 import subprocess
@@ -225,7 +227,7 @@ session.delete_turn(sys.argv[4], abandon_runs=[b.source.run_id for b in plan.blo
     async def test_failed_loop_can_be_abandoned_without_calling_provider_again(self):
         provider = ScriptedCompletion([RuntimeError("test provider failure")])
         with tempfile.TemporaryDirectory() as directory:
-            async with LargeLanguageModel(directory, components=[], engines={"loop": LoopEngine(completion_fn=provider)}) as app:
+            async with LargeLanguageModel(directory, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}) as app:
                 project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
                     "loop": {"config": {"completion": {"model": "test/model"}}}}}})
                 session = await project.sessions.acreate()

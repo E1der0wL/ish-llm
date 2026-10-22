@@ -1,3 +1,5 @@
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
 from tests.hub.support import minimize
 from hub.ui.presentation import present
 """Real LLM persistence and runtime integration, with deterministic model output."""
@@ -90,7 +92,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             yield {"choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]}
         def factory(config):
             return LargeLanguageModel(config.workspace, components=[ToolComponent()],
-                                      engines={"loop": LoopEngine(completion_fn=completion)})
+                                      engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})
         with tempfile.TemporaryDirectory() as directory:
             runtime = HubRuntime(HubConfig(directory, "loop", "openai/test", auto_title=False), factory)
             try:

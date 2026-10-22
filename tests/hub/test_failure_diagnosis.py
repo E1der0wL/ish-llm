@@ -1,5 +1,7 @@
 """Run-scoped explanations do not invoke a model or retry side effects."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 from llm.llm import Diagnostic
 
 from pathlib import Path
@@ -43,7 +45,7 @@ class DiagnosisTests(unittest.IsolatedAsyncioTestCase):
             yield
         with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
             config = HubConfig(root, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)},
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))},
                 project_config={"parameters": {"engines": {"loop": {"policy": {"provider": {"max_attempts": 1}}}}}})
             app, controller = create_application(config, input=pipe, output=SizedOutput())
             view = controller.view

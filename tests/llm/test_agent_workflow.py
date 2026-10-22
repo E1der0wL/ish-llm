@@ -1,3 +1,6 @@
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
 from tests.llm.support.runtime_tools import RuntimeTools
 from tests.llm.configuration_fixtures import rag_project
 """범용 Agent와 Workflow 바인딩을 실제 저장/Tool/RAG/검증 경로로 통합 검증한다."""
@@ -66,7 +69,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
     async def setup_graph(self, graph, completion, *, handlers=None, extra_components=()):
         components = [AgentComponent(), WorkflowComponent(), RuntimeTools(self.catalog), *extra_components]
         self.backend = LargeLanguageModel(self.root, components=components, engines={
-            "graph": GraphEngine(handlers=handlers or {"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=completion)})})})
+            "graph": GraphEngine(handlers=handlers or {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})})})
         self.addAsyncCleanup(self.backend.shutdown)
         self.project = await self.backend.projects.acreate("Workflow", components=[c.name for c in components], config=rag_project() if any(c.name == "rag" for c in components) else {})
         self.agents = await self.project.components.aget("agents")
@@ -143,7 +146,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         graph = (WorkflowGraph(entry="write").node("write", "write").node("agent", "agent", agent="writer")
                  .node("end", "end").connect("write", "agent").connect("agent", "end").to_dict())
         model = ScriptedCompletion()
-        await self.setup_graph(graph, model, handlers={"write": write, "agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)})})
+        await self.setup_graph(graph, model, handlers={"write": write, "agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})})
         run = await self.run_graph()
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(self.calls, ["write"])
@@ -484,7 +487,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
     @unittest.skipUnless(all(importlib.util.find_spec(n) for n in ("chromadb", "kuzu", "rank_bm25")),
                          "Optional RAG dependencies are not installed")
     async def test_rag_agent_code_validation_repair_full_integration(self):
-        rag = RAGComponent(embedding=EmbeddingModel(model="test/embed", embedding_fn=fake_embedding), extractor=Extractor())
+        rag = RAGComponent(embedding=EmbeddingModel(model="test/embed", adapter=LiteLLMOperations(call=fake_embedding)), extractor=Extractor())
         sources = ["def add(a, b)\n    return a + b\n", "def add(a, b):\n    return a - b\n",
                    "def add(a, b):\n    return a + b\n"]
         responses = []
@@ -498,7 +501,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         graph["outputs"] = {"code": "/code", "passed": "/passed", "history": "/history"}
         output = self.root / "solution.py"
         checks = CodeChecks(output)
-        await self.setup_graph(graph, model, handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_fn=model)}),
+        await self.setup_graph(graph, model, handlers={"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}),
             "persist_code": checks.write, "static_check": checks.static, "test_code": checks.tests,
             "report": report}, extra_components=[rag])
         await (await self.project.components.aget("rag")).aadd_document(

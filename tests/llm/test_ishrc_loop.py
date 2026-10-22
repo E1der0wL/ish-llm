@@ -1,5 +1,7 @@
 """ish 등록 계약과 기본 Project의 실제 Loop/대화/결과 저장 연결을 검증한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 from contextlib import redirect_stderr, redirect_stdout
 from functools import partial
 import io
@@ -22,7 +24,7 @@ from tests.llm.test_loop import ScriptedCompletion, chunk
 class IshrcLoopTests(unittest.TestCase):
     def invoke(self, root, provider, *args, key="test-api-key"):
         output, errors = io.StringIO(), io.StringIO()
-        with patch.object(ish_loop, "LoopEngine", partial(LoopEngine, completion_fn=provider)), \
+        with patch.object(ish_loop, "LoopEngine", partial(LoopEngine, completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))), \
                 patch.dict(os.environ, {"ISH_LLM_API_KEY": key}), \
                 redirect_stdout(output), redirect_stderr(errors), \
                 self.assertRaises(SystemExit) as exited:

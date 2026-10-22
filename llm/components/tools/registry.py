@@ -4,7 +4,7 @@ Explicitly registered async tools; no automatic shell or filesystem access."""
 
 import json
 import re
-from dataclasses import asdict, dataclass, field, fields
+from dataclasses import asdict, dataclass, field, fields, replace
 from enum import StrEnum
 from collections.abc import Awaitable, Callable
 from copy import deepcopy
@@ -12,6 +12,7 @@ from inspect import getattr_static
 from typing import Any, Optional
 
 from jsonschema import Draft202012Validator
+from llm.core.model_protocol import ToolDefinition, copy_model, json_copy
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,8 +83,8 @@ class Tool:
     description: str
     parameters: dict[str, Any]
     handler: Callable[[dict[str, Any]], Awaitable[Any]]
-    # Optional native definition preserves provider extensions such as strict.
-    definition: Optional[dict[str, Any]] = None
+    # Common model description is separate from the trusted execution contract.
+    definition: Optional[ToolDefinition] = None
     contract: ToolContract = field(kw_only=True)
     classification: Optional[ToolClassification] = None
 
@@ -119,14 +120,11 @@ class ToolRegistry:
         from llm.core.schema import validate_local_refs
         validate_local_refs(schema)
         Draft202012Validator.check_schema(schema)
-        definition = deepcopy(tool.definition)
+        definition = copy_model(tool.definition)
         if definition is not None:
-            function = definition.get("function", {})
-            if (definition.get("type") != "function" or function.get("name") != tool.name
-                    or function.get("parameters") != schema
-                    or function.get("description", "") != tool.description):
+            if (not isinstance(definition, ToolDefinition) or definition.name != tool.name
+                    or definition.parameters != schema or definition.description != tool.description):
                 raise ValueError("Tool definition does not match its runtime binding")
-            json.dumps(definition, allow_nan=False)
         self._tools[tool.name] = Tool(tool.name, tool.description, schema, tool.handler, definition,
                                      contract=tool.contract, classification=tool.classification)
 
@@ -158,17 +156,13 @@ class ToolRegistry:
                 validate(deepcopy(selected["arguments"]), context, request_key=record["request_key"],
                          checkpoint_name=record["checkpoint_name"])
 
-    def definitions(self, *, constraints=None) -> list[dict[str, Any]]:
+    def definitions(self, *, constraints=None) -> tuple[ToolDefinition, ...]:
         from .constraints import constrained_parameters
-        definitions = [deepcopy(tool.definition) if tool.definition is not None else {"type": "function", "function": {
-            "name": tool.name, "description": tool.description,
-            "parameters": deepcopy(tool.parameters),
-        }} for tool in self._tools.values()]
-        for definition in definitions:
-            function = definition["function"]
-            function["parameters"] = constrained_parameters(function["parameters"],
-                (constraints or {}).get(function["name"], {}))
-        return definitions
+        definitions = (copy_model(tool.definition) if tool.definition is not None else
+                       ToolDefinition(tool.name, tool.description, tool.parameters)
+                       for tool in self._tools.values())
+        return tuple(replace(definition, parameters=constrained_parameters(definition.parameters,
+                     (constraints or {}).get(definition.name, {}))) for definition in definitions)
 
     def names(self) -> tuple[str, ...]:
         return tuple(self._tools)
@@ -180,7 +174,7 @@ class ToolRegistry:
         except KeyError:
             raise ValueError("Tool handler is unavailable") from None
         return Tool(tool.name, tool.description, deepcopy(tool.parameters), tool.handler,
-                    deepcopy(tool.definition), contract=tool.contract, classification=tool.classification)
+                    copy_model(tool.definition), contract=tool.contract, classification=tool.classification)
 
     def select(self, names: tuple[str, ...]) -> "ToolRegistry":
         if len(set(names)) != len(names):
@@ -194,13 +188,11 @@ class ToolRegistry:
         for tool in other._tools.values():
             self.register(tool)
 
-    def prepare(self, name: str, arguments: str, *, constraints=None) -> tuple[Tool, dict[str, Any]]:
+    def prepare(self, name: str, arguments: dict, *, constraints=None) -> tuple[Tool, dict[str, Any]]:
         """Validate before executing any tool in a returned batch."""
         try:
             tool = self._tools[name]
-            def reject_constant(value: str) -> None:
-                raise ValueError("Non-finite JSON constant")
-            values = json.loads(arguments, parse_constant=reject_constant)
+            values = json_copy(arguments)
             if not isinstance(values, dict):
                 raise ValueError("Expected argument object")
             json.dumps(values, allow_nan=False)

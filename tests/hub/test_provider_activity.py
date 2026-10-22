@@ -1,5 +1,7 @@
 """Real provider failures must be discoverable at RunManager's log destination."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 import json
 from pathlib import Path
 import tempfile
@@ -25,7 +27,7 @@ class ProviderActivityTests(unittest.IsolatedAsyncioTestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             runtime = HubRuntime(HubConfig(directory, model="test/model", auto_title=False,
-                engine_factories={"loop": lambda: LoopEngine(completion_fn=provider)}))
+                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             try:
                 await runtime.start()
                 sid = await runtime.new_session()

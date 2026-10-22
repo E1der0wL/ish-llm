@@ -1,5 +1,7 @@
 """Explicit factory collections retain their registrations and effects."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 from pathlib import Path
 import tempfile
 import unittest
@@ -58,11 +60,11 @@ class FactoryConsumerTests(unittest.IsolatedAsyncioTestCase):
                     stream.write('model\n')
                 yield from default(**request)
             settings = HubConfig(root / 'data', model='test/model', auto_title=False,
-                engine_factories=FalseyDict(loop=lambda: LoopEngine(completion_fn=injected)))
+                engine_factories=FalseyDict(loop=lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=injected))))
             runtime = HubRuntime(settings)
             try:
                 with patch('hub.backend.execution.retries.HubLoopEngine',
-                           lambda: LoopEngine(completion_fn=fallback)):
+                           lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=fallback))):
                     await runtime.start()
                 identifier = await runtime.new_session()
                 await runtime.submit(identifier, 'use the explicit model')

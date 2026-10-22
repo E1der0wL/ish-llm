@@ -19,7 +19,7 @@ class Reduction:
 def reductions(failure, minimum):
     result = []
     for index in failure.editable:
-        content = failure.request["messages"][index].get("content")
+        content = failure.request.messages[index].text
         if isinstance(content, str) and len(content) > minimum:
             result.append(Reduction(index, content, hashlib.sha256(content.encode()).hexdigest()))
     return result

@@ -1,8 +1,9 @@
 # 공통 모델 호출 값
 
 [A Provider 단계](clean-refactor.md)의 공통 호출 계약은
-`llm/core/model_protocol.py`가 소유한다. 현재 A-a는 순수 값과 Reader/Writer 검증까지이며,
-기존 Adapter·Engine·Processor·RAG·Vision·Hub의 전환 완료를 뜻하지 않는다.
+`llm/core/model_protocol.py`가 소유한다. A-c에서 실제 Adapter·Engine·Processor·Memory·RAG·Vision·worker·Hub
+호출 경로에 연결했다. A 전체 완료와 원격 CI 통과는 [검증 기록](provider-refactor-verification.md)의
+별도 상위 게이트 결과를 기준으로 판단한다.
 
 ## 소유권과 값
 
@@ -19,6 +20,9 @@
 | ModelMessage | 명시 role, text/typed content parts/null, assistant 호출 묶음 또는 Tool 결과 |
 | ModelRequest | typed 메시지·Tool 정의, 선택 모드와 Adapter 소유 parameters |
 | ModelResponse | assistant 메시지, 정규 종료 의미, nullable 사용량/identity와 원래 종료 증거 |
+| CompletionUpdate | text/reasoning delta와 공통 usage/identity/종료 관찰 |
+| EmbeddingResult | 검증한 단일 벡터, nullable usage와 opaque SDK 증거 |
+| RankedDocument / RerankResult | 유한 score와 중복 없는 nonnegative index, nullable usage와 opaque 증거 |
 
 role/content kind/종료 의미/Tool 선택 모드는 각각 ModelRole·ContentKind·StopReason·ToolMode가
 단일 선언한다. SDK 필드나 signed/opaque 의미는 해석하지 않는다. Adapter가 미완성 조각을
@@ -52,14 +56,14 @@ opaque/인자/저장 parameters는 유한한 JSON이어야 한다. 비문자열 
 
 사용량 `None`, 빈 관찰 `{}`, 확인된 0은 구분한다. 알려지지 않은 사용량을 0으로 만들지
 않는다. 알려진 카운트는 중첩 object의 비음수 정수이며 bool·float·null 카운트는 거부한다.
-공통 값의 테스트 통과는 실제 Adapter 연결·Tool 효과·재개 안전성 완료 증거가 아니다.
-해당 전환은 이후 A 소단계와 상위 전체 게이트에서 별도로 검증한다.
+사용량과 예약의 확정은 기존 서비스 owner가 담당한다. Decoder가 finish에서만 제공한
+usage/identity/종료도 CompletionResult에 기록하고, 미상 사용량은 기존 예약을 유지한다.
 
 ## LiteLLM wire 변환
 
 `providers/wire_codec.py`는 실제 LiteLLM 경계의 message/Tool 정의/request 인코딩과 SDK
-message/Tool 정의 디코딩을 소유한다. 현재 A-b의 codec 검증은 기존 스트림 Adapter와
-Engine 연결 완료를 의미하지 않는다. SDK dict를 읽는 이 경로를 영속 공통 record의 Reader나
+message/Tool 정의 디코딩을 소유한다. 실제 LiteLLM 스트림·비스트리밍 Adapter가 이를 사용한다.
+SDK dict를 읽는 이 경로를 영속 공통 record의 Reader나
 구 API 호환 진입점으로 사용하지 않는다.
 
 SDK의 signed/opaque 확장, 원래 인자 문자열, multimodal part와 누락/null/빈 값의 차이를
@@ -75,3 +79,26 @@ container나 부분 문자열을 빈 호출로 바꾸지 않는다. 원래 인�
 Tool 선택의 공통 모드와 SDK tool_choice를 동시에 선언하면 거부한다. SDK별 retry·admission·
 토큰 예약·실행 권한과 스트림 완료 검증은 연결 단계에서도 기존 owner가 집행해야 한다.
 codec은 SDK 호출·Tool 실행·영속 쓰기를 수행하지 않는다.
+
+재시도 기본 해석은 기존 RetryPolicy를 재사용한다. Backend max_attempts가 생략되면 최초
+1회만 허용하고 명시하면 그 상한을 사용한다. 실제 SDK 전송 경계는 생략된 SDK 재시도를 0으로
+보장하되 원본 요청/저장 설정·명시한 SDK 설정·주입 client의 계약을 보존한다. 명시 SDK 재시도에
+Backend 재시도를 중첩하지 않는다. Backend 시도 수와 하위 HTTP 요청 수는 구별하며 실제 HTTP
+횟수 검증을 포함한다. SDK별 적용은 [Provider 계약](../../llm/providers/README.md)에 있다.
+
+
+## 실행·저장 경계
+
+ToolRegistry는 공통 ToolDefinition을 제공하고 완성된 argument object를 검증한다. ToolContract의
+승인·효과·operation key·retry_fields 선언은 별도이며 모델 제안으로 대체하지 않는다.
+Loop는 전체 호출 묶음을 먼저 검증하고 after_completion 뒤 RESPONDED 증거를 저장한다.
+공통 정의는 binding 계산 전에 명시적으로 직렬화하므로 객체 타입만으로 승인 identity가 합쳐지지 않는다.
+
+Loop Checkpoint는 `loop-iterations-v2`와 엄격한 ModelResponse record를 사용한다. 구 형식과
+필수 필드가 소실된 증거를 재개하지 않으며 기존 파일을 변환하지 않는다. CompletionResult의
+nullable termination도 현재 Reader의 필수 필드다. 다른 저장 owner의 버전과 합치지 않는다.
+Memory의 derived 요약 signature는 공통 메시지 직렬화를 사용하며 원본 transcript를 수정하지 않는다.
+
+토큰 계수기의 입력도 ModelRequest다. 기본 LiteLLM 계수기만 실제 SDK wire로 변환한다.
+Hub는 정규 StopReason으로 분류하고 raw_finish_reason은 증거로만 표시한다. QuestionSource는
+Hub 질문의 choices 필드를 소유하며 SDK choices와 관계없는 UI 계약이다.

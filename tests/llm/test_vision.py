@@ -1,5 +1,8 @@
 """Vision의 무효과 준비/저장 경계, 실제 OCR, provider 관찰과 Loop/RAG 연결을 검증한다."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
+
 import asyncio
 import base64
 from copy import deepcopy
@@ -104,7 +107,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
         self.root = Path(self.temp.name)
         self.ocr = OCR()
         self.complete = AsyncMock(return_value=response())
-        self.component = VisionComponent(ocr_backends={"first": self.ocr, "second": OCR()}, completion_fn=self.complete)
+        self.component = VisionComponent(ocr_backends={"first": self.ocr, "second": OCR()}, adapter=LiteLLMOperations(call=self.complete))
         self.app = await self.enterAsyncContext(LargeLanguageModel(self.root, components=[self.component]))
         self.project = await self.app.projects.acreate("Vision", components=["vision"])
         self.vision = self.project.components.vision
@@ -176,7 +179,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
         usage = await self.vision.amodel_usage()
         self.assertEqual(usage[-1]["usage"]["total_tokens"], 10)
         self.assertNotIn("base64", json.dumps(usage))
-        self.assertEqual((await self.vision.acompletion_content("probe"))["image_url"]["url"], url)
+        self.assertEqual((await self.vision.acompletion_content("probe")).value, url)
 
     async def test_ocr_cancellation_and_explicit_timeout(self):
         started = asyncio.Event()
@@ -223,7 +226,7 @@ class VisionTests(unittest.IsolatedAsyncioTestCase):
         from llm.components.vision.tools import vision_tools
         tools = vision_tools(self.vision, self.component.binding(self.project.data), ("first", "second"))
         with self.assertRaises(ValueError):
-            tools.prepare("image_ocr", '{"image_id":"probe"}')
+            tools.prepare("image_ocr", {'image_id': 'probe'})
         await self.vision.aconfigure({'config': {'ocr': {'backend': 'first'}}})
         with self.assertRaisesRegex(ValueError, "changed"):
             await tools.get("image_ocr").handler({"image_id": "probe", "backend": "first"})
@@ -328,7 +331,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 [chunk(calls=[call('{"image_id":"probe"}', name="image_ocr", call_id="ocr")]), chunk(finish="tool_calls")],
                 [chunk("Check the server."), chunk(finish="stop")])
             async with LargeLanguageModel(root, components=[VisionComponent(ocr_backends={"local": OCR()})],
-                    engines={"loop": LoopEngine(completion_fn=complete).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'max_iterations': 2})})}) as app:
+                    engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=complete)).for_agent({"engine": 'loop', "engine_options": LoopEngine.parameter_layout.pack({'max_iterations': 2})})}) as app:
                 project = await app.projects.acreate("Images", components=["vision"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"vision": {'config': {'ocr': {'backend': 'local'}}}}}))
                 await project.components.vision.aimport_image(picture(), title="Probe", identifier="probe")
                 session = await project.sessions.acreate()
@@ -347,7 +350,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_rag_registers_same_extracted_document_and_source(self):
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[VisionComponent(ocr_backends={"local": OCR()}),
-                    RAGComponent(embedding=EmbeddingModel(model="test", embedding_fn=fake_embedding))]) as app:
+                    RAGComponent(embedding=EmbeddingModel(model="test", adapter=LiteLLMOperations(call=fake_embedding)))]) as app:
                 project = await app.projects.acreate("RAG", components=["vision", "rag"], config=ProjectConfig(parameters={"components": {"vision": {'config': {'ocr': {'backend': 'local'}}},
                     "rag": rag_settings({'policy': {'extraction': {'failure_policy': 'disabled'}}})}}))
                 image = await project.components.vision.aimport_image(picture(), title="Probe")

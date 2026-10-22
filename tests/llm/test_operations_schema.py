@@ -1,3 +1,6 @@
+
+from llm.providers.litellm import LiteLLMCompletionAdapter
+from llm.providers.operations import LiteLLMOperations
 from hub.backend.project.history_retention import HistoryRetention, HistoryRetentionPolicy
 from llm.core.schema import implementation_schema
 from tests.llm.support.runtime_tools import RuntimeTools
@@ -46,7 +49,7 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(directory.cleanup)
         model = ScriptedCompletion(*(responses or [[chunk("answer", finish="stop")]]))
         app = LargeLanguageModel(directory.name, components=components,
-            engines={"custom": LoopEngine(completion_fn=model)}, services=BackendServices(tool_runtime=runtime or ToolRuntime()))
+            engines={"custom": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}, services=BackendServices(tool_runtime=runtime or ToolRuntime()))
         self.addAsyncCleanup(app.shutdown)
         return app, model
 
@@ -282,8 +285,8 @@ class OperationsSchemaTests(unittest.IsolatedAsyncioTestCase):
         async def extraction(**request):
             return {"choices": [{"message": {"content": '{"entities": [], "relations": []}'}}],
                     "usage": {"total_tokens": 7}}
-        return RAGComponent(embedding=EmbeddingModel(model="test/embedding", embedding_fn=embed or embedding),
-                            extractor=TripleExtractor(model="test/extract", completion_fn=extraction, max_tokens=20))
+        return RAGComponent(embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=embed or embedding)),
+                            extractor=TripleExtractor(model="test/extract", adapter=LiteLLMOperations(call=extraction), max_tokens=20))
 
     async def test_independent_rag_and_loop_share_project_call_quota(self):
         app, model = await self.app(components=[self.rag()])

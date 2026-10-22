@@ -1,5 +1,7 @@
 """A missing stored expiry must not reactivate approval or admit a new Run."""
 
+from llm.providers.litellm import LiteLLMCompletionAdapter
+
 from copy import deepcopy
 from dataclasses import replace
 import asyncio
@@ -333,7 +335,7 @@ class InteractionStorageTests(unittest.IsolatedAsyncioTestCase):
                 "effect", "effect", {"type": "object"}, effect, contract=TEST_CONTRACT),)))
             async with LargeLanguageModel(
                     root / "workspace", components=[component],
-                    engines={"loop": LoopEngine(completion_fn=model)},
+                    engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
                     services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize))) as app:
                 project = await app.projects.acreate(components=["tools"], config={
                     "parameters": {

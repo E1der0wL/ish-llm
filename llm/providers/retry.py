@@ -8,6 +8,27 @@ from email.utils import parsedate_to_datetime
 from llm.errors import exception_chain
 from llm.policies.retry import RetryPolicy
 
+SDK_RETRY_FIELDS = ("num_retries", "max_retries")
+
+
+def sdk_transport_request(request, sdk):
+    """Disable unselected SDK retries in a transport copy, preserving explicit policy."""
+    from llm.core.model_protocol import copy_model
+    result = copy_model(request)
+    # A host's explicit SDK policy remains SDK-owned, just like a request policy.
+    # LiteLLM also maps num_retries onto OpenAI's max_retries. Adding a zero
+    # beside an explicit max_retries/client policy would override that choice.
+    if ("num_retries" not in result and "max_retries" not in result
+            and result.get("client") is None and result.get("retry_policy") is None
+            and getattr(sdk, "num_retries", None) is None):
+        result["num_retries"] = 0
+    if "max_retries" not in result:
+        client = result.get("client")
+        # LiteLLM writes this argument back to injected OpenAI clients. Preserve
+        # their selected value; None leaves clients without this field untouched.
+        result["max_retries"] = 0 if client is None else getattr(client, "max_retries", None)
+    return result
+
 
 def retry_after(error):
     """SDK 응답의 Retry-After만 해석한다. 잘못된 값은 정책/기한을 변경하지 않는다."""
@@ -46,7 +67,7 @@ def sdk_retry_enabled(request, *, sdk_defaults=False):
     def enabled(value):
         return value is not None and (type(value) not in (int, float) or value > 0)
 
-    if any(enabled(request.get(key)) for key in ("num_retries", "max_retries")):
+    if any(enabled(request.get(key)) for key in SDK_RETRY_FIELDS):
         return True
     if request.get("retry_policy") is not None:
         return True  # 공급자별 예외 정책을 이 계층에서 다시 해석하지 않는다.
