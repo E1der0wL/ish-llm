@@ -80,9 +80,14 @@ class RepositoryTests(unittest.TestCase):
     def test_session_manager_lifecycle_uses_injected_repository_without_json(self) -> None:
         repository = Mock(spec=SessionRepository)
         repository.paths.side_effect = SessionRepository().paths
-        stored = {}
+        stored, ledgers = {}, {}
+        from llm.services.runtime.transfers import TransferLedger
         repository.save.side_effect = lambda session: stored.update({session.id: deepcopy(session)})
-        repository.create.side_effect = repository.save.side_effect
+        def create(session):
+            repository.save.side_effect(session)
+            ledgers[session.id] = TransferLedger.empty(session)
+        repository.create.side_effect = create
+        repository.read_transfers.side_effect = lambda session: deepcopy(ledgers[session.id])
         repository.reload.side_effect = lambda session: deepcopy(stored[session.id])
         repository.load.side_effect = lambda project, session_id: deepcopy(stored[session_id])
         repository.list.side_effect = lambda project, include_deleted=False: [
@@ -100,6 +105,12 @@ class RepositoryTests(unittest.TestCase):
         self.assertEqual(stored[session.id].status, SessionStatus.DELETED)
         manager.restore(session)
         self.assertEqual(stored[session.id].status, SessionStatus.IDLE)
+        self.assertFalse(session.paths.root.exists())
+        repository.read_transfers.assert_called()
+        del ledgers[session.id]
+        with self.assertRaises(KeyError):
+            manager.clone(session, self.project)
+        self.assertFalse(session.paths.root.exists())
         # The inactive guard must consult the repository, not a session.json path
         # or the caller's stale object. No file exists for this Session.
         stored[session.id].status = SessionStatus.RUNNING

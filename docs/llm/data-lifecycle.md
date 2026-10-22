@@ -127,6 +127,11 @@ D 전환의 Session·User·Run 자료는 기존 Owner의 범위 안에서 보강
 수신자의 원본 quota도 보호한다. 변경 항목의 실제 장애·효과 검증과 완료 여부는
 [D 검증 기록](multi-agent-verification.md)에 추가하며 38개 과거 감사 결과는 유지한다.
 
+E는 새 Session의 필수 transfer 원장과 양쪽 Receipt/admission/Run 증거를 추가한다.
+누락을 빈 원장으로 복원하지 않으며 clone·backup·복구·삭제·보관이 같은 소유 검증을 사용한다.
+새 데이터군과 기존 Session/Run 수명 변경은 [전송 계약](session-transfers.md)과
+[전송 검증](session-transfer-verification.md)에 별도 기록한다. 기존 38개 감사 결과는 변경하지 않는다.
+
 트랜잭션의 삭제용 임시 rename은 지속적인 손상 격리가 아니다. 이미 안전성 검증과 삭제
 확정을 마친 작업의 GC·중단 복구는 기존 결정의 기술적 완료다. 인프라는 새로운 대상을
 선정하지 않는다. 손상된 삭제 의도는 임의 정리하지 않는다. 확정 전 실패의 rollback과

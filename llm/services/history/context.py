@@ -132,6 +132,9 @@ class ConversationContextBuilder:
                     for message in snapshot]
         for message in snapshot:
             message.run_id = None
+            if "transfer" in message.metadata:
+                value = message.metadata.pop("transfer")
+                message.metadata["cloned_transfer"] = {"id": value["id"], "revision": value["revision"]}
             if message.status == MessageStatus.QUEUED:
                 message.status = MessageStatus.CANCELLED
                 if is_instruction(message):

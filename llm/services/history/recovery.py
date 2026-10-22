@@ -21,6 +21,7 @@ def recover_session(sessions, repository, steps, session, store):
     runs = repository.list(session)
     RequestAdmission.history(list(messages.values()), runs, project_id=session.project_id,
         session_id=session.id, persistent=sessions._owner(session).conversation_storage == "file")
+    sessions.transfers.validate_session(sessions._owner(session), session, list(messages.values()))
     # 모든 지시를 먼저 읽어 검증한다. 뒤쪽의 손상으로 앞선 Run/Step만 복구되지 않게 한다.
     from llm.services.runtime.steering import instruction_targets, instruction_records
     for message in messages.values():
@@ -107,6 +108,7 @@ class ProjectRecovery:
                         issue("invalid_input_reference", session=session.id, run=run.id)
                 RequestAdmission.history(list(messages.values()), runs, project_id=project.id,
                     session_id=session.id, persistent=True)
+                self.manager.sessions.transfers.validate_session(project, session, list(messages.values()))
                 identifiers = {r.id for r in runs}
                 signatures.extend(record(m) for m in messages.values())
                 signatures.extend(record(r) for r in runs)

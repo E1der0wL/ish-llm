@@ -260,3 +260,7 @@ await session.asave(config={"parameters": {"engines": {"loop": {'config': {'comp
 
 ComponentData에는 `bind_runtime(runner=..., access_check=...)` 계약이 추가되었다.
 Facade는 이 메서드로 실행기/수명 검사기를 연결하며 내부 속성을 직접 대입하지 않는다.
+
+
+`BackendServices.transfer_authorize`는 [전송 계약](session-transfers.md)의 동기 host 권한 hook이다.
+각 action마다 literal bool을 반환하며 Engine/Tool의 승인 callback을 대체하지 않는다.

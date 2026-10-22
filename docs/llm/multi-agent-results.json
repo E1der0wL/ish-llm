@@ -20656,5 +20656,62 @@
     "statement": "Separate selected-module executions; not a complete regression gate.",
     "environment_identical": true,
     "full_discovery_identical": true
+  },
+  "remote_ci": {
+    "sha": "4953efad4a31ca6acfc4cffd233d7518389f1ec6",
+    "checked_at": "20261022T103806Z",
+    "runs": [
+      {
+        "id": "39761311210",
+        "url": "https://github.com/E1der0wL/ish-llm/actions/runs/39761311210",
+        "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+        "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS",
+        "summaries": [
+          {
+            "discovered": 584,
+            "started": 584,
+            "passed": 584,
+            "failed": 0,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0,
+            "missing": 0,
+            "unexpected": 0,
+            "duplicates": 0,
+            "ok": true,
+            "suite": "hub",
+            "python": "3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]",
+            "seconds": 973.7116358340002,
+            "scope": "full",
+            "modules": null,
+            "available": 584
+          },
+          {
+            "discovered": 2209,
+            "started": 2209,
+            "passed": 2209,
+            "failed": 0,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "expected_failures": 0,
+            "unexpected_successes": 0,
+            "missing": 0,
+            "unexpected": 0,
+            "duplicates": 0,
+            "ok": true,
+            "suite": "llm",
+            "python": "3.12.14 (main, Aug 13 2026, 02:47:42) [GCC 13.3.0]",
+            "seconds": 1386.954923047,
+            "scope": "full",
+            "modules": null,
+            "available": 2209
+          }
+        ],
+        "failures": []
+      }
+    ]
   }
 }

@@ -246,6 +246,8 @@ class SessionHandle(AsyncFacade):
         self.app = project.app
         self._snapshot = deepcopy(model)
         self.run = Runs(self)
+        from llm.services.runtime.transfers import SessionExchange
+        self.exchange = SessionExchange(self)
         self.results = Results(self)
 
     @property

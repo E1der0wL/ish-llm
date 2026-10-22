@@ -71,6 +71,8 @@ class SessionRepository:
         session = Session.from_record(data, paths)
         from llm.services.runtime.operations import OperationRepository
         OperationRepository().has_records(session)
+        from llm.services.runtime.transfers import TransferLedger
+        TransferLedger.read(session)
         log_event(paths.logs, "session.loaded", entity_id=session_id)
         return session
 
@@ -91,8 +93,23 @@ class SessionRepository:
             ConversationStore(session.paths.conversation).list()
             from llm.services.runtime.operations import OperationRepository
             OperationRepository().validate_backup(session)
+            from llm.services.runtime.transfers import TransferLedger
+            TransferLedger.read(session)
             sessions.append(session)
         return sessions
+
+    def read_transfers(self, session):
+        """Required current ledger, owned by the selected Session Repository."""
+        from llm.services.runtime.transfers import TransferLedger
+        return TransferLedger.read(session)
+
+    def write_transfers(self, session, value):
+        """Replace under workspace transaction/CAS; never initialize on update."""
+        from llm.services.runtime.transfers import TransferLedger
+        current = self.read_transfers(session)
+        if value.get("revision") != current["revision"]:
+            raise ValueError("Transfer ledger changed; reload its original revision")
+        TransferLedger.write(session, value)
 
     # 공개 API
     def paths(self, project: Project, session_id: str) -> SessionPaths:
@@ -120,6 +137,8 @@ class SessionRepository:
         atomic_domain_json(session.paths.root / "session.json", data)
         if creating:
             operations.initialize(session)
+            from llm.services.runtime.transfers import TransferLedger
+            TransferLedger.initialize(session)
         log_event(session.paths.logs, "session.saved", entity_id=session.id, status=session.status)
 
     def load(self, project: Project, session_id: str) -> Session:
@@ -175,6 +194,8 @@ class SessionManager:
         self.components = None
         self.agents = None
         self.config_validator = None
+        from llm.services.runtime.transfers import TransferRecords
+        self.transfers = TransferRecords(self)
 
     def _validate_agents(self, project, identifiers):
         Session.validate_agents(identifiers)
@@ -216,6 +237,7 @@ class SessionManager:
             raise ValueError("Conversation turn does not exist")
         if self.run_repository is None:
             raise RuntimeError("Turn deletion requires the shared RunRepository")
+        self.transfers.require_unreferenced(self._owner(session), session)
         identifiers = {m.id for m in group}
         blockers, runs, snapshots = [], [], []
         for run, protected, digest in self.run_repository.resume_references(session):
@@ -397,6 +419,7 @@ class SessionManager:
         messages = self.conversations(current).list()
         from llm.services.runtime.operations import OperationRepository
         OperationRepository().validate_backup(current)
+        self.transfers.validate_session(self._owner(current, allow_deleted=True), current, messages)
         runs = self.run_repository.read_backup(current)
         from llm.services.runtime.requests import RequestAdmission
         RequestAdmission.history(messages, runs, project_id=current.project_id,
@@ -410,6 +433,7 @@ class SessionManager:
         """Parent deletion requires the same child-owner evidence as ordinary reads."""
         current, messages, runs = self.validate_history(session)
         if not project_ending:
+            self.transfers.require_unreferenced(self._owner(current, allow_deleted=True), current)
             if self.components is None:
                 raise ValueError("Session deletion requires bound Component reference readers")
             refs = self.components.history_references(self._owner(current, allow_deleted=True))
@@ -424,6 +448,7 @@ class SessionManager:
         if type(permanent) is not bool:
             raise TypeError("permanent must be a bool")
         current = self.require_inactive(session)
+        self.transfers.require_unreferenced(self._owner(current, allow_deleted=True), current)
         if permanent:
             self.validate_removal(current)
             from llm.services.runtime.usage import has_limit, project_usage_policies, protects_project_usage
@@ -467,6 +492,7 @@ class SessionManager:
         if self.config_validator is not None:
             self.config_validator(destination_project.config, session_config=source.config)
         messages = self.conversations(source).list()
+        self.transfers.validate_session(self._owner(source), source, messages)
         if through_message_id is not None:
             from llm.services.history.turns import through_turn
             messages = through_turn(messages, through_message_id)

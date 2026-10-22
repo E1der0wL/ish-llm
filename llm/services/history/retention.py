@@ -1,5 +1,7 @@
 """History eligibility and explicit deletion; Application owns retention selection."""
 
+from copy import deepcopy
+
 from datetime import datetime, timezone
 import json
 from llm.core.contracts import ResourceRef
@@ -43,6 +45,11 @@ class HistoryRetention:
     def _references(self, project):
         return self.manager.components.history_references(project)
 
+    def _owned_references(self, project):
+        refs = deepcopy(self._references(project))
+        refs["session_ids"].update(self.manager.sessions.transfers.protected(project))
+        return refs
+
     def _history(self, session):
         runs = self.manager.sessions.run_repository.list(session)
         messages = self.manager.sessions.conversations(session).list()
@@ -52,7 +59,7 @@ class HistoryRetention:
         return runs, messages
 
     def _run_plan(self, project):
-        refs = self._references(project)
+        refs = self._owned_references(project)
         usage_policies = project_usage_policies(project, self.manager.sessions)
         rows, protected, sources = [], [], [record(project)]
         clock = datetime.now(timezone.utc)
@@ -168,7 +175,7 @@ class HistoryRetention:
         unit = RetentionUnit(unit)
         if unit == RetentionUnit.RUN:
             return self._run_plan(project)
-        refs = self._references(project)
+        refs = self._owned_references(project)
         usage_policies = project_usage_policies(project, self.manager.sessions)
         items, protected, sources = [], [], [record(project)]
         total_bytes = total_tokens = 0

@@ -2,7 +2,16 @@
 
 기준은 B/C 통합 커밋 `975913e71b413618125b7b770802baaba0d88e52`다.
 현재 계약은 [clean-refactor](clean-refactor.md), [검증 정책](verification-policy.md),
-[저장 트랜잭션](storage-transactions.md)을 따른다. D1/D2의 로컬 상위 Level 3를 완료했다. 작업 브랜치 Push와 정확한 SHA의 원격 CI 확인은 아직 남아 있다.
+[저장 트랜잭션](storage-transactions.md)을 따른다. D1/D2의 로컬 상위 Level 3를 완료했다. 작업 브랜치에 Push했고 정확한 SHA의 원격 CI도 통과했다.
+
+
+## D 원격 완료
+
+커밋 `4953efad4a31ca6acfc4cffd233d7518389f1ec6`의 [필수 CI 39761311210](https://github.com/E1der0wL/ish-llm/actions/runs/39761311210)는
+2026-10-22 10:38:06 UTC에 실제 SUCCESS를 확인했다. LLM 2209/2209/2209(1386.954923초),
+Hub 584/584/584(973.711636초), Failure/Error/Skip/누락/중복/expected failure/unexpected success 모두 0이다.
+로컬 Python 3.12.14 Clang과 원격 Python 3.12.14 GCC 실행은 별도 증거로 보존한다.
+E/F의 통과 증거로 승계하지 않는다.
 
 ## D1/D2 로컬 상위 게이트 완료
 

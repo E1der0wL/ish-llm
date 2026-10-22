@@ -139,3 +139,7 @@ python -m tests.llm.check_docs
 실제 host는 `ish.platform/src/ish`에 준비하고 사용 SHA를 기록한다. `ish.platform/`은 외부 참조이며
 이 저장소에 커밋하지 않는다. Bubblewrap 격리 검사와 Xvfb/xclip 검사는 실제 환경에서 실행해야 한다.
 명령을 적어 두었다는 사실은 실행 성공 증거가 아니다. [검증 상태](documentation-review.md)를 참고한다.
+
+
+Session 간 durable 전송은 [Session 전송 계약](session-transfers.md)의 `session.exchange`를 사용한다.
+명시 수신자·idempotency key·target 자체 승인/예산과 기존 RunManager 접수 경계를 유지한다.

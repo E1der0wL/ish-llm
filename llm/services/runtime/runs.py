@@ -735,6 +735,7 @@ class RunRequestError(CodedError, ValueError):
 
 class RunEventType(StrEnum):
     STARTED = "started"
+    CANCELLED = "cancelled"
     COMPLETED = "completed"
     FAILED = "failed"
     INTERRUPTED = "interrupted"
@@ -968,6 +969,7 @@ class RunManager:
         messages, records = self._store(session).list(), self.repository.list(session)
         RequestAdmission.history(messages, records, project_id=project.id,
             session_id=session.id, persistent=project.conversation_storage == "file")
+        self.sessions.transfers.validate_session(project, session, messages)
         return messages, records
 
     def _validate_project_request(self, project):
@@ -1071,6 +1073,27 @@ class RunManager:
             runtime.queue.put_nowait(message.id)
             return message
 
+    async def submit_transfer(self, admission):
+        async def apply():
+            async with self._control_lock():
+                existing = await self._io.run(admission.existing)
+                if existing is not None:
+                    return existing
+                runtime = await self._runtime()
+                def persist():
+                    existing = admission.existing()
+                    if existing is not None:
+                        return existing, False
+                    bindings = self._validate_request(admission.recipients, UNSET)
+                    self._check_queue(runtime.session)
+                    message = self._admit(runtime, admission.content, bindings)
+                    return admission.persist(message), True
+                message, created = await self._io.run(persist)
+                if created:
+                    runtime.queue.put_nowait(message.id)
+                return message
+        return await drain_on_cancel(apply())
+
     def _check_queue(self, session):
         project = self.sessions._owner(session)
         maximum = project.config.policies.get("run", {}).get("max_queued")
@@ -1119,6 +1142,7 @@ class RunManager:
         project = self.sessions.require_project(runtime.project)
         binding = self._source_agent(project, runtime.session, source, agent_id, records=records)
         self._validate_project_request(project)
+        transport = self.sessions.transfers.continuation(project, runtime.session, source)
         if source.agent_id != agent_id or source.status not in (
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise ValueError("Resume requires a paused/interrupted/failed Run and its original Engine")
@@ -1151,7 +1175,7 @@ class RunManager:
         for response in receipts:
             self.repository.respond(runtime.session, source, response)
         return self._admit(runtime, store.get(source.input_message_id).content, {agent_id: binding},
-                           source.metadata.get("request_context", UNSET), metadata={"resume": descriptor})
+                           source.metadata.get("request_context", UNSET), metadata={"resume": descriptor, **transport})
 
     def _resume_plan(self, run_id, agent_id) -> ResumePlan:
         project, session = self._prepare()
@@ -1256,8 +1280,9 @@ class RunManager:
         self._check_queue(runtime.session)
         store = self._store(runtime.session)
         original = store.get(source.input_message_id)
+        transport = self.sessions.transfers.continuation(project, runtime.session, source)
         return self._admit(runtime, original.content, {agent_id: binding},
-            source.metadata.get("request_context", UNSET), metadata={"restart": {
+            source.metadata.get("request_context", UNSET), metadata={**transport, "restart": {
                 "run_id": run_id, "digest": revision_token({"run": record(source), "input": record(original)})}})
 
     def _restart_source(self, session, run):
@@ -1334,6 +1359,9 @@ class RunManager:
         # Service dispatch fact, not an effects guarantee after execution.
         # Records without this field remain unknown; never backfill them.
         run.metadata["execution_started"] = False
+        if "transfer" in message.metadata:
+            from llm.services.runtime.transfers import TransferReceipt
+            run.metadata["transfer"] = TransferReceipt.read(message.metadata["transfer"])
         if "restart" in message.metadata:
             run.metadata["restart"] = deepcopy(message.metadata["restart"])
         if "resume" in message.metadata:
@@ -1547,11 +1575,16 @@ class RunManager:
         self.repository.save(run)
 
     async def _consume_limited(self, runtime, run):
+        # Revalidate transport authority and absolute deadline before execution.
+        transport_seconds = await self._io.run(self.sessions.transfers.execution, runtime.project, runtime.session, run)
         # ACK before resolving capabilities or invoking an Engine implementation.
         await self._io.run(self._dispatch, run)
         from llm.providers.runtime import logging_scope as provider_logging_scope
         policies = self.policy_resolver.resolve(run.metadata["policies"])
-        guard = timeout(policies[1].timeout_seconds)
+        seconds = policies[1].timeout_seconds
+        if transport_seconds is not None:
+            seconds = transport_seconds if seconds is None else min(seconds, transport_seconds)
+        guard = timeout(seconds)
         try:
             async with guard:
                 counter = getattr(self.policy_resolver, "token_counters", {}).get(run.metadata["policies"].get("usage", {}).get("counter"))
@@ -1863,7 +1896,16 @@ class RunManager:
             control.finished.set()
             runtime.changed.set()
 
+    def _scheduling_lock(self):
+        if not hasattr(self, "_scheduling"):
+            self._scheduling = asyncio.Lock()
+        return self._scheduling
+
     async def _pump(self, runtime: SessionRuntime) -> None:
+        async with self._scheduling_lock():
+            await self._pump_scheduled(runtime)
+
+    async def _pump_scheduled(self, runtime: SessionRuntime) -> None:
         for identifier, control in tuple(runtime.executions.items()):
             if control.task.done():
                 control.task.result()
@@ -2059,6 +2101,48 @@ class RunManager:
         await asyncio.gather(*(control.finished.wait() for control in controls))
         await self._io.run(log_event, runtime.session.paths.logs, "runtime.interrupted", entity_id=runtime.session.id)
         return True
+
+    async def cancel_run(self, run_id):
+        """Cancel a dispatched recipient without starting it or affecting siblings."""
+        async def apply():
+            async with self._scheduling_lock():
+                runtime = self._active
+                if runtime is not None and run_id in runtime.executions:
+                    control = runtime.executions[run_id]
+                    if control.finished.is_set():
+                        return False
+                else:
+                    control = None
+                    def persist():
+                        project, session = self._prepare()
+                        run = self.repository.load(session, run_id)
+                        self._history(project, session)
+                        if run.status != RunStatus.PENDING:
+                            return False
+                        if run.metadata.get("execution_started") is not False or self.steps.list(run) or run.id in session.active_run_ids:
+                            raise ValueError("Pending cancellation requires proven unstarted execution")
+                        validate_run_transition(run.status, RunStatus.CANCELLED, reason="pending_cancel")
+                        run.status, run.ended_at, run.error_code = RunStatus.CANCELLED, now(), RunErrorCode.REQUEST_CANCELLED
+                        if "steering" in run.metadata:
+                            close_targets(run, RunErrorCode.REQUEST_CANCELLED)
+                        self._store(session).set_status(run.assistant_message_id, MessageStatus.CANCELLED)
+                        self.repository.save(run)
+                        return run
+                    changed = await self._io.run(persist)
+                    if changed and runtime is not None:
+                        for group in runtime.groups.values():
+                            for index, current in enumerate(group):
+                                if current.id == run_id:
+                                    group[index] = changed
+                        runtime.changed.set()
+                    if changed:
+                        self._notify_requests()
+                        await self._publish_run(changed)
+                    return bool(changed)
+            control.interrupt()
+            await control.finished.wait()
+            return True
+        return await drain_on_cancel(apply())
 
     async def wait_idle(self) -> None:
         runtime = await drain_on_cancel(self._start())

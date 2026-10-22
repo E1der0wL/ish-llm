@@ -39,7 +39,8 @@ B/C 독립 Agent와 root/nested 실행·Hub 소비자 전환은 통합 로컬 Le
 않는다. B/C 커밋 `975913e`의 원격 전체 CI도 실제 결과를 확인해 통과했으며,
 [D 요청 1:N·병렬 검증](multi-agent-verification.md)을 이어간다.
 D1/D2도 전체 LLM 2209/Hub 584와 R3·S1–S6·문서·실환경의 로컬 Level 3를 통과했다.
-D의 Push/원격 CI 상태는 해당 검증 기록에서 구분한다. E Session 전송과 F 최종 후보 검토는 남아 있다.
+D는 `4953efa`의 원격 CI 39761311210까지 통과했다. E Session 전송도 LLM 2235/Hub 584 및 R3·S1–S6·문서·실환경의 로컬 Level 3를 통과했으며
+[전송 계약](session-transfers.md)과 [검증 기록](session-transfer-verification.md)을 따른다. F 최종 후보 검토는 남아 있다.
 
 ## 필수 원칙
 

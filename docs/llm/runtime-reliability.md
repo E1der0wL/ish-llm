@@ -182,3 +182,8 @@ JSONL fsync 및 UI 통지 전 저장 순서는 유지한다. 첫 대용량 파�
 훈련이다. 자동 요약/압축, Loop 재개, 사용량 상한과 출력 인덱스는 현재 구현되어 있으며
 [장시간 실행](long-running.md), [저장 운영](operational-storage.md)에 사용 계약이 있다.
 기능 존재와 실제 배포 검증은 구분한다. [현재 검증 상태](documentation-review.md)를 참고한다.
+
+
+Session 전송은 [전송 계약](session-transfers.md)의 양쪽 필수 원장/접수를 한 트랜잭션으로 저장한다.
+fan-out 후 미시작 Run 취소는 `pending_cancel: PENDING → CANCELLED`를 사용한다.
+Dispatcher 등록과 같은 scheduling lock에서 실행 증거를 검사하며 Engine을 시작하지 않는다.

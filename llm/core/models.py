@@ -93,12 +93,13 @@ def validate_run_transition(current: RunStatus, target: RunStatus, *, reason: st
     """Run 상태 변경의 순수 검증. 저장·시각 생성·다른 도메인 변경은 하지 않는다.
 
     종료한 실행 시도는 다시 열지 않는다. resume는 서비스가 별도 Run을 생성한다.
-    CANCELLED는 기존 저장 enum으로 유지하되 새 실행 경로를 만들지 않는다.
-    대기 요청 취소는 Run 전이가 아니라 Message의 CANCELLED 전이다.
+    미접수 대기 요청 취소는 Message의 CANCELLED 전이다.
+    fan-out 후 미시작 Run은 pending_cancel로만 CANCELLED가 될 수 있다.
     """
     current, target = RunStatus(current), RunStatus(target)
     transitions = {
         "start": {(RunStatus.PENDING, RunStatus.RUNNING)},
+        "pending_cancel": {(RunStatus.PENDING, RunStatus.CANCELLED)},
         "finish": {(RunStatus.RUNNING, status) for status in (
             RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.INTERRUPTED, RunStatus.PAUSED)},
         "recovery": {(status, RunStatus.INTERRUPTED) for status in (RunStatus.PENDING, RunStatus.RUNNING)},

@@ -169,6 +169,7 @@ class ProjectManager:
                 self.config_validator(project.config, session_config=session.config)
             for run in self.sessions.run_repository.read_backup(session):
                 self.backup_steps.read_backup(run)
+        self.sessions.transfers.validate_project(project, archive=True)
         return project
 
     def _validate_components(self, project):

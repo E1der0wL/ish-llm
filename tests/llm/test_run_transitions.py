@@ -24,6 +24,7 @@ class TransitionRuleTests(unittest.TestCase):
     def test_only_documented_edges_are_allowed(self):
         allowed = {
             ('start', RunStatus.PENDING, RunStatus.RUNNING),
+            ('pending_cancel', RunStatus.PENDING, RunStatus.CANCELLED),
             ('finish', RunStatus.RUNNING, RunStatus.COMPLETED),
             ('finish', RunStatus.RUNNING, RunStatus.FAILED),
             ('finish', RunStatus.RUNNING, RunStatus.INTERRUPTED),
@@ -31,7 +32,7 @@ class TransitionRuleTests(unittest.TestCase):
             ('recovery', RunStatus.PENDING, RunStatus.INTERRUPTED),
             ('recovery', RunStatus.RUNNING, RunStatus.INTERRUPTED),
         }
-        for reason in ('start', 'finish', 'recovery', 'resume'):
+        for reason in ('start', 'pending_cancel', 'finish', 'recovery', 'resume'):
             for current in RunStatus:
                 for target in RunStatus:
                     with self.subTest(reason=reason, current=current, target=target):
