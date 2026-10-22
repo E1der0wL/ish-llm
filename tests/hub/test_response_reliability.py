@@ -56,12 +56,12 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 identifier = await runtime.new_session()
                 session = runtime.sessions[identifier]
-                request = await session.run.submit("Continue the task", agent_id="assistant")
+                request = await session.run.submit("Continue the task", recipients=["assistant"])
                 if interrupt:
                     await eventually(lambda: len(provider.requests) == 1)
                     await session.run.interrupt()
                 async with asyncio.timeout(10):
-                    handle = await request.wait()
+                    handle = (await request.wait())[0]
                 return await handle.aresult(), await session.aconversation(), await handle.steps.alist()
             finally:
                 await runtime.close()
@@ -134,13 +134,13 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 identifier = await runtime.new_session()
                 session = runtime.sessions[identifier]
-                handle = await (await session.run.submit("Run the sandbox test", agent_id="assistant")).wait()
+                handle = (await (await session.run.submit("Run the sandbox test", recipients=["assistant"])).wait())[0]
                 approvals = 0
                 while str(handle.data.status) == "paused" and approvals < 4:
                     interaction, = await handle.ainteractions()
                     await handle.arespond(interaction.respond("approve"))
                     approvals += 1
-                    handle = await (await session.run.resume(handle.id, agent_id="assistant")).wait()
+                    handle = (await (await session.run.resume(handle.id, agent_id="assistant")).wait())[0]
                 self.assertEqual(str(handle.data.status), "completed", handle.data.error)
                 self.assertEqual(len(requests), 4)
                 self.assertEqual(approvals, 3)

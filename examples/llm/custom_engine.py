@@ -28,8 +28,8 @@ async def main():
             backend.events.subscribe(display, channel="engine")
             project = await backend.projects.acreate("Example")
             await project.agents.acreate({"engine": "echo"}, identifier="echo-agent")
-            session = await project.sessions.acreate("Conversation")
-            request = await session.run.submit("hello", agent_id="echo-agent")
+            session = await project.sessions.acreate("Conversation", agent_ids=['echo-agent'])
+            request = await session.run.submit("hello", recipients=["echo-agent"])
             await request.wait()
             print()
 

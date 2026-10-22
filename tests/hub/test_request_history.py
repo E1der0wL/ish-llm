@@ -67,7 +67,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len(executions), 1)
                 self.assertEqual(len(await session.run.alist()), 1)
                 # A cancelled review can be explicitly reopened, without approval.
-                handle = await session.run.aload(original["run_id"])
+                handle = await session.run.aload(original["runs"][0]["run_id"])
                 request, = await handle.ainteractions(pending_only=True)
                 await handle.acancel_interaction(request)
                 await runtime.resume_latest(sid)
@@ -160,7 +160,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 await session.run.wait_idle()
                 first, = await runtime.turns(sid)
                 self.assertEqual(first["status"], "interrupted")
-                handle = await session.run.aload(first["run_id"])
+                handle = await session.run.aload(first["runs"][0]["run_id"])
                 self.assertEqual(await handle.steps.alist(), [])
                 with self.assertRaises(FileNotFoundError):
                     await handle.acheckpoint("loop")
@@ -173,15 +173,15 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 runtime = HubRuntime(replace(config, project_id=project_id, session_id=sid))
                 await runtime.start()
                 session = runtime.sessions[sid]
-                retry_id = await runtime.retry_turn(sid, original, first["run_id"])
+                retry_id = await runtime.retry_turn(sid, original, first["runs"][0]["run_id"])
                 await session.run.wait_idle()
                 rows = await runtime.turns(sid)
                 self.assertEqual([row["id"] for row in rows], [original, later])
                 self.assertEqual(rows[0]["status"], "completed")
                 self.assertEqual(rows[0]["response"], "fresh answer")
                 self.assertEqual(rows[0]["request_id"], retry_id)
-                self.assertNotEqual(rows[0]["run_id"], first["run_id"])
-                fresh = await (await session.run.aload(rows[0]["run_id"])).aget_data()
+                self.assertNotEqual(rows[0]["runs"][0]["run_id"], first["runs"][0]["run_id"])
+                fresh = await (await session.run.aload(rows[0]["runs"][0]["run_id"])).aget_data()
                 self.assertNotIn("resume", fresh.metadata)
                 self.assertEqual(fresh.metadata["request_context"][ENVIRONMENT_OPTION], options[ENVIRONMENT_OPTION])
                 self.assertEqual([m["content"] for m in provider.requests[-1]["messages"] if m["role"] == "user"],
@@ -189,7 +189,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 snapshot = await runtime.snapshot()
                 self.assertEqual([m.text for m in snapshot.messages if m.role == "user"], ["first request", "later request"])
                 with self.assertRaisesRegex(ValueError, "변경"):
-                    await runtime.retry_turn(sid, original, first["run_id"])
+                    await runtime.retry_turn(sid, original, first["runs"][0]["run_id"])
                 self.assertEqual(len(await session.run.alist()), 3)
             finally:
                 release.set()
@@ -198,19 +198,20 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
     async def test_backend_denial_cannot_be_overridden_by_empty_steps(self):
         from hub.backend.history import TurnHistory
         from hub.locales import Language
-        request = SimpleNamespace(id="u", role="user", run_id="r", metadata={},
+        request = SimpleNamespace(id="u", role="user", run_id=None, metadata={},
                                   status="committed", content="request", created_at="")
         run = SimpleNamespace(id="r", agent_id="assistant", engine="loop", status="failed", metadata={})
         handle = SimpleNamespace(aget_data=AsyncMock(return_value=run))
         plan = SimpleNamespace(can_resume=False, can_restart=False, blockers=[],
             restart_blockers=[Diagnostic("checkpoint_protected", "No durable proof of a pre-execution stop")])
         session = SimpleNamespace(aconversation=AsyncMock(return_value=[request]), run=SimpleNamespace(
-            astatus=AsyncMock(return_value=SimpleNamespace(active_run_id=None, queued_count=0)),
+            astatus=AsyncMock(return_value=SimpleNamespace(active_runs=[], queued_count=0)),
             aload=AsyncMock(return_value=handle), resume_plan=AsyncMock(return_value=plan),
             resume=AsyncMock(), restart=AsyncMock()))
         runtime = SimpleNamespace(sessions={"s": session}, namer=SimpleNamespace(tasks={}), t=Language(), submit=AsyncMock())
         with self.assertRaisesRegex(ValueError, "No durable proof"):
-            await TurnHistory(runtime).retry("s", "u", "r")
+            with patch.object(TurnHistory, "attempts", new=AsyncMock(return_value={"assistant": (request, run)})):
+                await TurnHistory(runtime).retry("s", "u", "r")
         runtime.submit.assert_not_awaited()
         session.run.resume.assert_not_awaited()
         session.run.restart.assert_not_awaited()
@@ -220,13 +221,13 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         from hub.locales import Language
         for action in ("resume", "restart"):
             with self.subTest(action=action):
-                request = SimpleNamespace(id="u", role="user", run_id="r", metadata={},
+                request = SimpleNamespace(id="u", role="user", run_id=None, metadata={},
                                           status="committed", content="request", created_at="")
                 run = SimpleNamespace(id="r", agent_id="assistant", engine="loop", status="failed", metadata={})
                 plan = SimpleNamespace(can_resume=action == "resume", can_restart=action == "restart",
                                        revision="reviewed", blockers=[], restart_blockers=[])
                 api = SimpleNamespace(
-                    astatus=AsyncMock(return_value=SimpleNamespace(active_run_id=None, queued_count=0)),
+                    astatus=AsyncMock(return_value=SimpleNamespace(active_runs=[], queued_count=0)),
                     aload=AsyncMock(return_value=SimpleNamespace(aget_data=AsyncMock(return_value=run))),
                     resume_plan=AsyncMock(return_value=plan), resume=AsyncMock(), restart=AsyncMock())
                 getattr(api, action).side_effect = CheckpointError("checkpoint_conflict", "changed")
@@ -234,7 +235,8 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                     aconversation=AsyncMock(return_value=[request]))}, namer=SimpleNamespace(tasks={}),
                     t=Language(), submit=AsyncMock())
                 with self.assertRaises(CheckpointError):
-                    await TurnHistory(runtime).retry("s", "u", "r")
+                    with patch.object(TurnHistory, "attempts", new=AsyncMock(return_value={"assistant": (request, run)})):
+                        await TurnHistory(runtime).retry("s", "u", "r")
                 kwargs = {"partial_output": True} if action == "resume" else {}
                 self.assertEqual(getattr(api, action).await_count, 2)
                 getattr(api, action).assert_awaited_with("r", agent_id="assistant", expected_revision="reviewed", **kwargs)
@@ -244,17 +246,18 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
     async def test_revision_conflict_replans_once_before_safe_admission(self):
         from hub.backend.history import TurnHistory
         from hub.locales import Language
-        request = SimpleNamespace(id="u", role="user", run_id="r", metadata={}, status="committed", content="work")
+        request = SimpleNamespace(id="u", role="user", run_id=None, metadata={}, status="committed", content="work")
         run = SimpleNamespace(id="r", agent_id="assistant", engine="loop", status="interrupted", metadata={})
         plans = [SimpleNamespace(can_resume=True, can_restart=False, blockers=[], revision=version) for version in ("old", "new")]
-        api = SimpleNamespace(astatus=AsyncMock(return_value=SimpleNamespace(active_run_id=None, queued_count=0)),
+        api = SimpleNamespace(astatus=AsyncMock(return_value=SimpleNamespace(active_runs=[], queued_count=0)),
             aload=AsyncMock(return_value=SimpleNamespace(aget_data=AsyncMock(return_value=run))),
             resume_plan=AsyncMock(side_effect=plans), resume=AsyncMock(side_effect=[
                 CheckpointError("checkpoint_conflict", "changed"), SimpleNamespace(id="new-request")]), restart=AsyncMock())
         runtime = SimpleNamespace(sessions={"s": SimpleNamespace(run=api, aconversation=AsyncMock(return_value=[request]))},
             namer=SimpleNamespace(tasks={}), t=Language(), submit=AsyncMock(),
             snapshot_reader=SimpleNamespace(invalidate=Mock()), dirty=asyncio.Event())
-        self.assertEqual(await TurnHistory(runtime).retry("s", "u", "r"), "new-request")
+        with patch.object(TurnHistory, "attempts", new=AsyncMock(return_value={"assistant": (request, run)})):
+            self.assertEqual(await TurnHistory(runtime).retry("s", "u", "r"), "new-request")
         self.assertEqual([call.kwargs["expected_revision"] for call in api.resume.await_args_list], ["old", "new"])
         api.restart.assert_not_awaited()
         runtime.submit.assert_not_awaited()
@@ -286,14 +289,29 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_queued_retry_keeps_queued_state_despite_previous_response(self):
         from hub.backend.history import TurnHistory
-        records = [SimpleNamespace(id="u1", role="user", run_id="r1", metadata={}, status="committed", content="request", created_at=""),
-                   SimpleNamespace(id="a1", role="assistant", run_id="r1", metadata={}, status="failed", content="partial"),
-                   SimpleNamespace(id="u2", role="user", run_id=None, metadata={"resume": {"run_id": "r1"}},
-                                   status="queued", content="request", created_at="")]
-        history = TurnHistory(SimpleNamespace(sessions={"s": SimpleNamespace(aconversation=AsyncMock(return_value=records))}))
+        from llm.core.models import Message, MessageRole, MessageStatus, new_id
+        from llm.core.agents import AgentBinding
+        from llm.services.runtime.requests import RequestAdmission
+        project_id, session_id, run_id = new_id(), new_id(), new_id()
+        binding = AgentBinding.create(project_id, "assistant", {"engine": "loop"})
+        first = Message(new_id(), MessageRole.USER, "request", MessageStatus.COMMITTED)
+        admission = RequestAdmission.create(project_id=project_id, session_id=session_id,
+            message_id=first.id, bindings={"assistant": binding})
+        first.metadata["admission"] = RequestAdmission.dispatch(admission,
+            run_ids={"assistant": run_id}, history=[first])
+        following = Message(new_id(), MessageRole.USER, "request", MessageStatus.QUEUED,
+                            metadata={"resume": {"run_id": run_id}})
+        following.metadata["admission"] = RequestAdmission.create(project_id=project_id, session_id=session_id,
+            message_id=following.id, bindings={"assistant": binding})
+        records = [first, Message(new_id(), MessageRole.ASSISTANT, "partial", MessageStatus.FAILED,
+                                 run_id=run_id), following]
+        session = SimpleNamespace(id=session_id, project=SimpleNamespace(id=project_id),
+            aconversation=AsyncMock(return_value=records), aget_data=AsyncMock(return_value=SimpleNamespace(metadata={})))
+        history = TurnHistory(SimpleNamespace(sessions={"s": session}))
+        history.attempts = AsyncMock(return_value={"assistant": (following, None)})
         row, = await history.rows("s")
-        self.assertEqual(row["id"], "u1")
-        self.assertEqual(row["request_id"], "u2")
+        self.assertEqual(row["id"], first.id)
+        self.assertEqual(row["request_id"], following.id)
         self.assertEqual(row["status"], "queued")
         self.assertEqual(row["response"], "partial")
 
@@ -314,14 +332,14 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                     await session.run.wait_idle()
                 first, second = await runtime.turns(sid)
                 self.assertEqual(first["status"], "failed")
-                await runtime.retry_turn(sid, first["id"], first["run_id"])
+                await runtime.retry_turn(sid, first["id"], first["runs"][0]["run_id"])
                 await session.run.wait_idle()
                 rows = await runtime.turns(sid)
                 self.assertEqual([row["id"] for row in rows], [first["id"], second["id"]])
                 self.assertEqual(rows[0]["status"], "completed")
-                self.assertNotEqual(rows[0]["run_id"], first["run_id"])
+                self.assertNotEqual(rows[0]["runs"][0]["run_id"], first["runs"][0]["run_id"])
                 with self.assertRaisesRegex(ValueError, "중단 혹은 실패"):
-                    await runtime.retry_turn(sid, second["id"], second["run_id"])
+                    await runtime.retry_turn(sid, second["id"], second["runs"][0]["run_id"])
                 with self.assertRaisesRegex(ValueError, "변경"):
                     await runtime.edit_turn(sid, first["id"], "stale", first["request_id"])
                 await runtime.edit_turn(sid, first["id"], "changed", rows[0]["request_id"])
@@ -369,9 +387,9 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 await session.run.wait_idle()
                 await runtime.submit(sid, "hold active")
                 async with asyncio.timeout(3):
-                    while not (await session.run.astatus()).active_run_id:
+                    while not (await session.run.astatus()).active_runs:
                         await asyncio.sleep(.01)
-                active = (await session.run.astatus()).active_run_id
+                active = (await session.run.astatus()).active_runs[0].run_id
                 queued = [await runtime.submit(sid, f"queued {i}") for i in range(2)]
                 plan = await runtime.delete_turns_plan(sid, [finished, *queued])
                 progress = []
@@ -380,11 +398,11 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(progress, [(0, 3), (1, 3), (2, 3), (3, 3)])
                 self.assertEqual(set(result["removed"]), set(queued))
                 self.assertTrue(result["errors"])
-                self.assertEqual((await session.run.astatus()).active_run_id, active)
+                self.assertEqual((await session.run.astatus()).active_runs[0].run_id, active)
                 self.assertEqual((await session.run.astatus()).queued_count, 0)
                 await runtime.interrupt(sid)
                 await session.run.wait_idle()
-                row = next(row for row in await runtime.turns(sid) if row["run_id"] == active)
+                row = next(row for row in await runtime.turns(sid) if row["runs"][0]["run_id"] == active)
                 with self.assertRaisesRegex(ValueError, "체크포인트"):
                     await runtime.retry_turn(sid, row["id"], active)
                 self.assertEqual(len(await session.run.alist()), 2)
@@ -407,7 +425,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
                 await session.run.wait_idle()
                 row, = await runtime.turns(sid)
                 self.assertEqual(row["status"], "failed")
-                await runtime.retry_turn(sid, row["id"], row["run_id"])
+                await runtime.retry_turn(sid, row["id"], row["runs"][0]["run_id"])
                 await session.run.wait_idle()
                 self.assertEqual((await runtime.turns(sid))[0]["status"], "completed")
                 steps = [step for run in await session.run.alist() for step in await run.steps.alist()]
@@ -425,7 +443,7 @@ class HistoryDialogTests(unittest.IsolatedAsyncioTestCase):
             app, view, _ = create_preview(input=pipe, output=SizedOutput())
             view.project_id = "project"
             sid = view.sessions[view.selected].id
-            rows = [{"id": f"u{i}", "request_id": f"u{i}", "run_id": f"r{i}", "text": f"request {i}",
+            rows = [{"id": f"u{i}", "request_id": f"u{i}", "runs": [{"run_id": f"r{i}", "agent_id": "assistant", "status": "failed" if i == 0 else "completed"}], "text": f"request {i}",
                      "response": f"response {i}", "status": "failed" if i == 0 else "completed",
                      "time": "", "engine": "loop", "elapsed": None, "error": ""} for i in range(2)]
             calls = []

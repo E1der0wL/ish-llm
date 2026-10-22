@@ -215,7 +215,7 @@ class HubRuntime:
                 raise ValueError(self.t("session_required"))
             source = self.sessions[source_id or self.selected_id]
             status = await source.run.astatus()
-            if status.active_run_id or status.queued_count or source.id in self.namer.tasks:
+            if status.active_runs or status.queued_count or source.id in self.namer.tasks:
                 raise ValueError(self.t("clone_busy"))
             await source.run.shutdown()
             try:
@@ -236,7 +236,9 @@ class HubRuntime:
             finally:
                 await source.run.start()
         elif mode == "new":
-            session = await self.project.sessions.acreate(title or self.t("new_session"))
+            participants = sorted(identifier for identifier in await self.project.agents.alist()
+                                  if not identifier.startswith("_hub_"))
+            session = await self.project.sessions.acreate(title or self.t("new_session"), agent_ids=participants)
         else:
             raise ValueError(f"Unknown session operation: {mode}")
         data = await session.aget_data()
@@ -279,7 +281,7 @@ class HubRuntime:
     async def delete_turn(self, session_id, request_id, abandon_runs=(), expected_revision=None):
         session = self.sessions[session_id]
         status = await session.run.astatus()
-        if status.active_run_id or status.queued_count or session_id in self.namer.tasks:
+        if status.active_runs or status.queued_count or session_id in self.namer.tasks:
             raise ValueError(self.t("history_busy"))
         await session.run.shutdown()
         try:
@@ -345,7 +347,7 @@ class HubRuntime:
     async def delete_session(self, session_id: str) -> str:
         session = self.sessions[session_id]
         status = await session.run.astatus()
-        if status.active_run_id or status.queued_count or session_id in self.namer.tasks:
+        if status.active_runs or status.queued_count or session_id in self.namer.tasks:
             raise ValueError(self.t("session_busy"))
         was_open = session_id in self._opened_sessions
         await session.run.shutdown()
@@ -383,20 +385,26 @@ class HubRuntime:
 
     async def submit(self, session_id: str, text: str, agent_id: str | None = None,
                      request_context=UNSET) -> str:
+        selected = self.config.agent_id if agent_id is None else agent_id
+        return await self._submit_recipients(session_id, text, [selected], request_context)
+
+    async def _submit_recipients(self, session_id, text, recipients, request_context):
+        """Application-selected recipients share one durable Backend admission."""
         if not text.strip():
             raise ValueError(self.t("empty_message"))
         if session_id not in self.sessions:
             raise ValueError(self.t("session_required"))
         session = self.sessions[session_id]
-        selected = self.config.agent_id if agent_id is None else agent_id
-        if selected.startswith("_hub_"):
-            raise ValueError("Internal Agent cannot receive conversation requests")
         project = await session.project.aget_data()
-        definition = await session.project.agents.aload(selected)
+        config = (await session.aget_data()).config
         from .execution.engine_selection import agent_model
-        if agent_model(self.backend.engines, project.config, definition, (await session.aget_data()).config)[1]:
-            raise ValueError(self.t("model_required"))
-        request = await session.run.submit(text, agent_id=selected, request_context=request_context)
+        for selected in recipients:
+            if selected.startswith("_hub_"):
+                raise ValueError("Internal Agent cannot receive conversation requests")
+            definition = await session.project.agents.aload(selected)
+            if agent_model(self.backend.engines, project.config, definition, config)[1]:
+                raise ValueError(self.t("model_required"))
+        request = await session.run.submit(text, recipients=recipients, request_context=request_context)
         self.snapshot_reader.invalidate(session_id)
         self.dirty.set()
         return request.id
@@ -407,7 +415,7 @@ class HubRuntime:
         from datetime import datetime, timezone
         timestamp = datetime.now(timezone.utc).isoformat()
         if check_running:
-            state = await self.submission_state(session_id)
+            state = await self.submission_state(session_id, agent_id)
             if state["run_id"]:
                 return SubmissionResult(run_id=state["run_id"])
         identifier = await self.submit(session_id, text, agent_id, request_context)
@@ -419,22 +427,25 @@ class HubRuntime:
         return SubmissionResult(message=ChatMessage("user", text, timestamp,
             status=MessageStatus.QUEUED.value, id=identifier, author=self.config.user_profile.display_name))
 
-    async def submission_state(self, session_id: str) -> dict:
+    async def submission_state(self, session_id: str, agent_id: str | None = None) -> dict:
         status = await self.sessions[session_id].run.astatus(queued_limit=0)
-        return {"run_id": status.active_run_id}
+        selected = self.config.agent_id if agent_id is None else agent_id
+        return {"run_id": next((run.run_id for run in status.active_runs if run.agent_id == selected), None)}
 
-    async def instruction_targets(self, session_id: str) -> tuple[str, tuple[tuple[str, str], ...]]:
+    async def instruction_targets(self, session_id: str, run_id: str | None = None) -> tuple[str, tuple[tuple[str, str], ...]]:
         session = self.sessions[session_id]
         status = await session.run.astatus()
-        if not status.active_run_id:
+        selected = next((run for run in status.active_runs if (
+            run.run_id == run_id if run_id is not None else run.agent_id == self.config.agent_id)), None)
+        if selected is None:
             raise ValueError(self.t("no_active_run"))
-        run = await session.run.aload(status.active_run_id)
+        run = await session.run.aload(selected.run_id)
         targets = tuple((target.id, target.node_path or target.node_id or target.engine)
                         for target in await run.ainstruction_targets()
                         if target.accepting and str(target.mode) == "consume")
         if not targets:
             raise ValueError(self.t("no_targets"))
-        return status.active_run_id, targets
+        return selected.run_id, targets
 
     async def steer(self, session_id: str, run_id: str, text: str, targets: list[str]) -> str:
         result = await self.sessions[session_id].run.steer(run_id, text, targets=targets)
@@ -455,14 +466,16 @@ class HubRuntime:
         from .execution.stopping import display_run
         await self.history.require_idle(session_id)
         index = await self.history.index(session_id)
-        if not index.turns or not index.turns[-1].latest.run_id:
+        if not index.turns:
             return None
         turn = index.turns[-1]
         session = self.sessions[session_id]
-        run = await (await session.run.aload(turn.latest.run_id)).aget_data()
-        if str(display_run(await session.aget_data(), run).status) != RunStatus.INTERRUPTED:
-            return None
-        return await self.history.retry(session_id, turn.id, run.id)
+        record = await session.aget_data()
+        candidates = [run for _, run in (await self.history.attempts(session, turn)).values()
+                      if run is not None and str(display_run(record, run).status) == RunStatus.INTERRUPTED]
+        if len(candidates) != 1:
+            return None  # History offers explicit Run selection for ambiguous retries.
+        return await self.history.retry(session_id, turn.id, candidates[0].id)
 
     async def approval_details(self, request_data):
         from .interactions.approval import review_text
@@ -503,7 +516,7 @@ class HubRuntime:
         for item in observations:
             identifier, record, runtime, run = item.session_id, item.record, item.runtime, item.run
             self.notifications.observe_session(project_id, identifier, record.title, run, item.questions)
-            if record.metadata.get("hub_auto_title") and not runtime.active_run_id:
+            if record.metadata.get("hub_auto_title") and not runtime.active_runs:
                 if run is not None and str(run.status) == RunStatus.COMPLETED:
                     self.namer.schedule(self.sessions[identifier], run.id)
                 elif run is None and record.metadata.get("hub_title_engine"):

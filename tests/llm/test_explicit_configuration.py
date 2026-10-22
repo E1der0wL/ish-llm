@@ -101,9 +101,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             with tempfile.TemporaryDirectory() as root:
                 async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=call))}) as app:
                     project = await app.projects.acreate(config=ProjectConfig(parameters={"engines": {"loop": {'policy': options, 'config': {'completion': {'model': 'test', **completion}}}}}))
-                    session = await project.sessions.acreate()
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                     await session.project.agents.acreate({'engine': 'loop'}, identifier="loop")
-                    run = await (await session.run.submit("hello", agent_id="loop")).wait(timeout=5)
+                    await session.asave(agent_ids=sorted(await project.agents.alist()))
+                    run = (await (await session.run.submit("hello", recipients=["loop"])).wait(timeout=5))[0]
                     self.assertEqual(run.data.status, "completed", run.data.error)
             self.assertEqual({k: captured[0][k] for k in ("timeout", "temperature", "max_tokens", "num_retries", "max_retries", "stream_options") if k in captured[0]}, completion)
             self.assertIs(captured[0]["stream"], True)
@@ -116,9 +117,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as root:
             async with LargeLanguageModel(root, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=call))}) as app:
                 project = await app.projects.acreate(config={"parameters": {"engines": {"loop": {'policy': {'request_timeout': .005}, 'config': {'completion': {'model': 'test'}}}}}})
-                session = await project.sessions.acreate()
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                 await session.project.agents.acreate({'engine': 'loop'}, identifier="loop")
-                run = await (await session.run.submit("hello", agent_id="loop")).wait(timeout=5)
+                await session.asave(agent_ids=sorted(await project.agents.alist()))
+                run = (await (await session.run.submit("hello", recipients=["loop"])).wait(timeout=5))[0]
                 self.assertEqual(run.data.status, "failed")
 
     async def test_stream_bridge_adds_no_deadline(self):
@@ -230,9 +232,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                         "parameters": {"engines": {"graph": GraphEngine.parameter_layout.pack(graph_options)}}})
                     graph = WorkflowGraph(entry="work").node("work", "slow", **node_options).node("end", "end").connect("work", "end")
                     await project.components.workflows.acreate(graph.to_dict(), identifier="flow")
-                    session = await project.sessions.acreate()
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                     await session.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier="graph")
-                    run = await (await session.run.submit("go", agent_id="graph")).wait(timeout=5)
+                    await session.asave(agent_ids=sorted(await project.agents.alist()))
+                    run = (await (await session.run.submit("go", recipients=["graph"])).wait(timeout=5))[0]
                     self.assertEqual(run.data.status, expected, run.data.error)
 
     async def test_native_library_options_are_omitted_and_explicit_values_pass_through(self):
@@ -303,9 +306,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                         .node("work", "agent", agent="worker", inputs={"request": "/request"}, outputs={"answer": "/text"})
                         .node("end", "end").connect("work", "end"))
                     await project.components.workflows.acreate(flow.to_dict(), identifier="flow")
-                    session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'top_p': 0.7}}}}}})
+                    session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'top_p': 0.7}}}}}}, agent_ids=sorted(await project.agents.alist()))
                     await session.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier="graph")
-                    run = await (await session.run.submit("hello", agent_id="graph")).wait(timeout=5)
+                    await session.asave(agent_ids=sorted(await project.agents.alist()))
+                    run = (await (await session.run.submit("hello", recipients=["graph"])).wait(timeout=5))[0]
                     self.assertEqual(run.data.status, "completed", run.data.error)
                     await project.agents.aupdate_prompt("worker", None, expected_revision=prompt_view["revision"])
                     self.assertIsNone((await project.agents.aprompt("worker"))["system_prompt"])
@@ -367,9 +371,10 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             with tempfile.TemporaryDirectory() as root:
                 async with LargeLanguageModel(root, components=[], engines={"inspect": Inspect()}, services=BackendServices(tool_runtime=ToolRuntime())) as app:
                     project = await app.projects.acreate(config={"policies": {"tool_retry": {"max_retries": expected}}})
-                    session = await project.sessions.acreate()
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                     await session.project.agents.acreate({'engine': 'inspect'}, identifier="inspect")
-                    run = await (await session.run.submit("go", agent_id="inspect")).wait(timeout=5)
+                    await session.asave(agent_ids=sorted(await project.agents.alist()))
+                    run = (await (await session.run.submit("go", recipients=["inspect"])).wait(timeout=5))[0]
                     self.assertEqual(run.data.status, "completed", run.data.error)
             self.assertEqual(observed, [expected])
 

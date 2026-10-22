@@ -189,8 +189,8 @@ class ConstraintRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 project = await app.projects.acreate("work", components=["tools"], config={"policies": {"tools": {"argument_constraints": {"rag_search": FIELDS}}}})
                 await project.components.tools.aenable("rag_search")
                 await project.agents.acreate({"engine": "loop", "completion": {"model": "test"}, "tools": ["rag_search"]}, identifier="loop")
-                session = await project.sessions.acreate()
-                run = await (await session.run.submit("find", agent_id="loop")).wait()
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                run = (await (await session.run.submit("find", recipients=["loop"])).wait())[0]
                 self.assertEqual(str(run.data.status), "completed", run.data.error)
                 schema = model.requests[0]["tools"][0]["function"]["parameters"]
                 Draft202012Validator(schema).validate(handler.await_args.args[0])

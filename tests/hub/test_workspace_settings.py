@@ -63,18 +63,18 @@ class WorkspaceSettingsTests(unittest.IsolatedAsyncioTestCase):
             try:
                 original_project = runtime.project.id
                 original_session = await runtime.new_session(title="Original history")
-                request = await runtime.sessions[original_session].run.submit("hold original request", agent_id="assistant")
+                request = await runtime.sessions[original_session].run.submit("hold original request", recipients=["assistant"])
                 async with asyncio.timeout(5):
-                    while not (await runtime.sessions[original_session].run.astatus()).active_run_id:
+                    while not (await runtime.sessions[original_session].run.astatus()).active_runs:
                         await asyncio.sleep(.01)
                 await runtime.settings_service.save_global("profile", {"display_name": "Shared profile"})
                 await runtime.settings_service.save_global("general", {"workspace_root": str(target), "editor": "nano"})
                 self.assertEqual(runtime.config.workspace, anchor)
                 self.assertEqual(runtime.project.id, original_project)
                 self.assertEqual(configured_workspace(runtime.config).workspace, anchor)
-                self.assertIsNotNone((await runtime.sessions[original_session].run.astatus()).active_run_id)
+                self.assertTrue((await runtime.sessions[original_session].run.astatus()).active_runs)
                 gate.set()
-                result = await request.wait()
+                result = (await request.wait())[0]
                 self.assertEqual(str((await result.aget_data()).status), "completed")
             finally:
                 await runtime.close()

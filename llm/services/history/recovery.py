@@ -8,6 +8,7 @@ from llm.services.infrastructure.storage import atomic_json, record, revision_to
 from llm.services.infrastructure.logging import log_event
 from llm.services.lifecycle.steps import StepManager
 from llm.core.steering import is_instruction, RunInstruction, InstructionDataError
+from llm.services.runtime.requests import RequestAdmission
 
 
 def recover_session(sessions, repository, steps, session, store):
@@ -18,6 +19,8 @@ def recover_session(sessions, repository, steps, session, store):
     recovered = []
     messages = {message.id: message for message in store.list()}
     runs = repository.list(session)
+    RequestAdmission.history(list(messages.values()), runs, project_id=session.project_id,
+        session_id=session.id, persistent=sessions._owner(session).conversation_storage == "file")
     # 모든 지시를 먼저 읽어 검증한다. 뒤쪽의 손상으로 앞선 Run/Step만 복구되지 않게 한다.
     from llm.services.runtime.steering import instruction_targets, instruction_records
     for message in messages.values():
@@ -45,17 +48,15 @@ def recover_session(sessions, repository, steps, session, store):
                 repository.reconcile_output(run, store)
             run.status, run.error_code, run.ended_at = RunStatus.INTERRUPTED, RunErrorCode.PROCESS_RESTART.value, now()
             repository.save(run)
+            assistant = messages.get(run.assistant_message_id)
+            if assistant is not None and assistant.status == MessageStatus.QUEUED:
+                store.set_status(assistant.id, MessageStatus.INTERRUPTED)
             log_event(run.paths.logs, "run.recovered", entity_id=run.id, status=run.status)
             recovered.append(deepcopy(run))
-        message = messages.get(run.input_message_id)
-        if message is not None and message.status == MessageStatus.QUEUED:
-            store.bind_run(message.id, run.id)
-            store.set_status(message.id, MessageStatus.COMMITTED)
-            message.status = MessageStatus.COMMITTED
     for message in messages.values():
         if message.role == MessageRole.ASSISTANT and message.status == MessageStatus.STREAMING:
             store.set_status(message.id, MessageStatus.INTERRUPTED)
-    session.current_run_id, session.status = None, SessionStatus.IDLE
+    session.active_run_ids, session.status = [], SessionStatus.IDLE
     sessions._save_runtime(session)
     return recovered
 
@@ -100,10 +101,16 @@ class ProjectRecovery:
                     if is_instruction(message):
                         RunInstruction.validate_message(message)
                 runs = self.runs.list(session)
+                for run in runs:
+                    source = messages.get(run.input_message_id)
+                    if source is None or source.role != MessageRole.USER:
+                        issue("invalid_input_reference", session=session.id, run=run.id)
+                RequestAdmission.history(list(messages.values()), runs, project_id=project.id,
+                    session_id=session.id, persistent=True)
                 identifiers = {r.id for r in runs}
                 signatures.extend(record(m) for m in messages.values())
                 signatures.extend(record(r) for r in runs)
-                if session.current_run_id or session.status == SessionStatus.RUNNING:
+                if session.active_run_ids or session.status == SessionStatus.RUNNING:
                     issue("stale_session", session=session.id, repairable=True)
                 if any(m.run_id and m.run_id not in identifiers for m in messages.values()):
                     issue("missing_run_reference", session=session.id)
@@ -114,10 +121,8 @@ class ProjectRecovery:
                     if stale:
                         issue("stale_run", session=session.id, run=run.id, repairable=True)
                     source, assistant = messages.get(run.input_message_id), messages.get(run.assistant_message_id)
-                    if source is None or source.role != MessageRole.USER or source.run_id not in (None, run.id):
+                    if source is None or run.id not in RequestAdmission.run_ids(source):
                         issue("invalid_input_reference", session=session.id, run=run.id)
-                    elif source.status == MessageStatus.QUEUED:
-                        issue("claimed_queue_gap", session=session.id, run=run.id, repairable=True)
                     if assistant is not None and (assistant.role != MessageRole.ASSISTANT or assistant.run_id != run.id):
                         issue("invalid_assistant_reference", session=session.id, run=run.id)
                     elif assistant is None and not (stale or run.error_code == RunErrorCode.PROCESS_RESTART.value):

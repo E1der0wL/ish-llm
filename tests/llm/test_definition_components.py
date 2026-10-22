@@ -245,9 +245,9 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
         await self.project.agents.acreate({"engine": "inspect"}, identifier="inspect")
         for name, definition in definitions().items():
             self.domain(name).create(definition, identifier="example")
-        session = await self.project.sessions.acreate("read definitions")
-        request = await session.run.submit("read", agent_id="inspect")
-        run = await asyncio.wait_for(request.wait(), 10)
+        session = await self.project.sessions.acreate("read definitions", agent_ids=sorted(await self.project.agents.alist()))
+        request = await session.run.submit("read", recipients=["inspect"])
+        run, = await asyncio.wait_for(request.wait(), 10)
         self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
         self.assertEqual((await run.aresponse()).content, "코드 검토")
         self.assertEqual(set(engine.context.capabilities), set(definitions()))
@@ -263,8 +263,8 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("read", Read())
         await self.project.agents.acreate({"engine": "read"}, identifier="read")
         atomic_json(self.project.paths.root / "workflows" / "records" / "invalid.json", {"nodes": []})
-        session = self.project.sessions.create()
-        run = await (await session.run.submit("read", agent_id="read")).wait()
+        session = self.project.sessions.create(agent_ids=sorted(self.project.agents.list()))
+        run = (await (await session.run.submit("read", recipients=["read"])).wait())[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED)
 
     async def test_requested_invalid_graph_fails_before_engine_execution(self):
@@ -276,8 +276,8 @@ class DefinitionTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("read", Read())
         await self.project.agents.acreate({"engine": "read"}, identifier="read")
         atomic_json(self.project.paths.root / "workflows" / "records" / "invalid.json", {"nodes": []})
-        session = self.project.sessions.create()
-        run = await (await session.run.submit("read", agent_id="read")).wait()
+        session = self.project.sessions.create(agent_ids=sorted(self.project.agents.list()))
+        run = (await (await session.run.submit("read", recipients=["read"])).wait())[0]
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(run.result.error_code, "capability_failed")
         self.assertEqual(run.steps.list(), [])

@@ -25,7 +25,7 @@ llm-test --project-id 출력된ProjectID --session-id 출력된SessionID "방금
 
 실제 처리 코드는 `examples/llm/ish_loop.py`의 `run_request()`다.
 ish worker → asyncio.run → LargeLanguageModel → projects.acreate/aload →
-sessions.acreate/aload → session.run.submit(agent_id="loop") → request.wait → aresult 순서다.
+sessions.acreate/aload → session.run.submit(recipients=["loop"]) → request.wait → aresult 순서다.
 응답은 TEXT_DELTA 이벤트로 즉시 출력하고, 완료 후 Run ID·상태·종료 이유·사용 토큰을
 표시한다. 모델이 사용량을 주지 않으면 토큰은 None이다.
 

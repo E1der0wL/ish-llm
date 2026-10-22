@@ -8,13 +8,19 @@ from .results import EngineDelta, EngineOutput
 
 
 @dataclass(frozen=True, slots=True)
+class ActiveRunView(JsonValue):
+    run_id: str
+    agent_id: str
+    engine: str
+    started_at: str
+
+
+@dataclass(frozen=True, slots=True)
 class SessionRuntimeView(JsonValue):
     session_id: str
     status: SessionStatus
     unfinished_work: int
-    active_run_id: Optional[str]
-    engine: Optional[str]
-    started_at: Optional[str]
+    active_runs: list[ActiveRunView]
     queued_count: int
     queued_request_ids: list[str]
 

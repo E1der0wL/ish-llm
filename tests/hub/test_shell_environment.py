@@ -182,16 +182,16 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                     .node("finish", "end").connect("hold", "read").connect("read", "finish"))
                 await (await runtime.project.components.aget("workflows")).acreate(workflow.to_dict(), identifier="reader")
                 await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "reader"}}, identifier="reader-agent")
-                session = await runtime.project.sessions.acreate("Queued environments")
-                one = await session.run.submit("first", agent_id="reader-agent", request_context={
+                session = await runtime.project.sessions.acreate("Queued environments", agent_ids=sorted(await runtime.project.agents.alist()))
+                one = await session.run.submit("first", recipients=["reader-agent"], request_context={
                     ENVIRONMENT_OPTION: snapshot(first, "A").to_dict()})
                 await asyncio.wait_for(started.wait(), 10)
                 options = {ENVIRONMENT_OPTION: snapshot(second, "B").to_dict()}
-                two = await session.run.submit("second", agent_id="reader-agent", request_context=options)
+                two = await session.run.submit("second", recipients=["reader-agent"], request_context=options)
                 options[ENVIRONMENT_OPTION]["cwd"] = str(first)
                 gate.set()
                 for request, expected in ((one, "first"), (two, "second")):
-                    result = await request.wait()
+                    result, = await request.wait()
                     self.assertEqual(str(result.data.status), "completed", result.data.error)
                     output = next(s for s in await result.steps.alist() if s.kind == "tool").output.data
                     self.assertIn(expected, json.dumps(output))
@@ -280,12 +280,12 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await runtime.start()
                 await runtime.project.agents.acreate({"engine": "loop", "tools": ["shell_execute"]}, identifier="shell-agent")
-                session = await runtime.project.sessions.acreate("Environment")
+                session = await runtime.project.sessions.acreate("Environment", agent_ids=sorted(await runtime.project.agents.alist()))
                 project_id, session_id = runtime.project.id, session.id
                 options = {ENVIRONMENT_OPTION: snapshot(work, "captured-secret-value").to_dict()}
-                queued = await session.run.submit("do the work", agent_id="shell-agent", request_context=options)
+                queued = await session.run.submit("do the work", recipients=["shell-agent"], request_context=options)
                 options[ENVIRONMENT_OPTION]["env"]["HUB_SHELL_TEST"] = "changed"
-                paused = await queued.wait()
+                paused = (await queued.wait())[0]
                 self.assertEqual(str(paused.data.status), "paused", paused.data.error)
                 request, = await paused.ainteractions()
                 self.assertEqual(request.action["arguments"]["cwd"], str(work))
@@ -296,7 +296,7 @@ class ShellExecutionTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 project = await runtime.backend.projects.aload(project_id)
                 session = await project.sessions.aload(session_id)
-                done = await (await session.run.resume(paused_id, agent_id="shell-agent")).wait()
+                done = (await (await session.run.resume(paused_id, agent_id="shell-agent")).wait())[0]
                 self.assertEqual(str(done.data.status), "completed", done.data.error)
                 output = next(s for s in await done.steps.alist() if s.kind == "tool").output.data
                 self.assertEqual(output["stdout"], f"{work}|captured-secret-value")

@@ -2,7 +2,7 @@
 
 Navigable service handles; these objects are never persisted domain models."""
 
-from llm.core.views import SessionRuntimeView, RunView
+from llm.core.views import SessionRuntimeView, RunView, ActiveRunView
 from llm.core.plans import ResumePlan, RecoveryPlan, RecoveryResult, RetentionPlan, TurnDeletionPlan
 
 from copy import deepcopy
@@ -353,10 +353,10 @@ class Runs(AsyncFacade):
     async def start(self) -> None:
         await self.session.app._manager(self.session._snapshot).start()
 
-    async def submit(self, content: str, *, agent_id: str, request_context=UNSET) -> "RequestHandle":
+    async def submit(self, content: str, *, recipients, request_context=UNSET) -> "RequestHandle":
         """Project Agent와 요청별 JSON 문맥을 저장한다."""
         message = await self.session.app._manager(self.session._snapshot).submit(
-            content, agent_id=agent_id, request_context=request_context)
+            content, recipients=recipients, request_context=request_context)
         return RequestHandle(self.session, message.id)
 
     async def steer(self, run_id: str, content: str, *, targets=None):
@@ -386,8 +386,8 @@ class Runs(AsyncFacade):
     async def wait_idle(self) -> None:
         await self.session.app._manager(self.session._snapshot).wait_idle()
 
-    async def interrupt(self) -> bool:
-        return await self.session.app._manager(self.session._snapshot).interrupt()
+    async def interrupt(self, run_id: Optional[str] = None) -> bool:
+        return await self.session.app._manager(self.session._snapshot).interrupt(run_id)
 
     async def shutdown(self) -> None:
         """Detach just this Session; a later submit creates a fresh manager."""
@@ -402,14 +402,29 @@ class Runs(AsyncFacade):
             session = self.session.data
             store = self.app.project_manager.sessions.conversations(session)
             from llm.core.steering import is_queued_request
-            requests = [m for m in store.list(query=Query(status=MessageStatus.QUEUED)) if is_queued_request(m)]
+            from llm.services.runtime.requests import RequestAdmission
+            records = self.app.run_repository.unfinished(session)
+            messages = {message.id: message for message in store.list(query=Query(status=MessageStatus.QUEUED))
+                        if is_queued_request(message)}
+            messages.update((run.input_message_id, store.get(run.input_message_id)) for run in records)
+            requests = []
+            for message in messages.values():
+                group = {run.id: run for run in records if run.input_message_id == message.id}
+                for identifier in RequestAdmission.run_ids(message):
+                    if identifier not in group:
+                        group[identifier] = self.app.run_repository.load(session, identifier)
+                runs = RequestAdmission.runs(message, list(group.values()),
+                    project_id=session.project_id, session_id=session.id)
+                if is_queued_request(message) or any(run.status == RunStatus.PENDING for run in runs):
+                    requests.append(message)
+            requests.sort(key=lambda message: (message.created_at, message.id))
             queued = requests if queued_limit is None else requests[:queued_limit]
-            active = self.app.run_repository.load(session, session.current_run_id) if session.current_run_id else None
+            active = [run for run in records if run.status == RunStatus.RUNNING]
+            if {run.id for run in active} != set(session.active_run_ids):
+                raise ValueError("Session active Run projection differs from its records")
             return SessionRuntimeView(**{"session_id": session.id, "status": session.status,
                     "unfinished_work": getattr(self.app._managers.get((session.project_id, session.id)), "pending_work", None).active if (session.project_id, session.id) in self.app._managers else 0,
-                    "active_run_id": active.id if active else None,
-                    "engine": active.engine if active else None,
-                    "started_at": active.started_at if active else None,
+                    "active_runs": [ActiveRunView(run.id, run.agent_id, run.engine, run.started_at) for run in active],
                     "queued_count": len(requests),
                     "queued_request_ids": [message.id for message in queued]})
 
@@ -693,21 +708,15 @@ class RequestHandle(AsyncFacade):
     def __init__(self, session: SessionHandle, message_id: str) -> None:
         self.session, self.app, self.id = session, session.app, message_id
 
-    def _load_run(self) -> Optional[Run]:
-        """한 트랜잭션에서 요청과 Run 연결을 검증한다. 조회 간 캐시는 두지 않는다."""
+    def _load_runs(self) -> list[Run]:
+        """Validate the complete recipient group under the owning workspace lock."""
+        from llm.services.runtime.requests import RequestAdmission
         self.app._check_open()
         with self.app.project_manager.ownership.scope():
             session = self.session.data
             message = self.app.project_manager.sessions.conversations(session).get(self.id)
-            from llm.core.steering import is_instruction
-            if message.role != MessageRole.USER or is_instruction(message):
-                raise ValueError("Request ID must identify a user message")
-            if message.run_id is None:
-                return None
-            run = self.app.run_repository.load(session, message.run_id)
-            if run.input_message_id != self.id:
-                raise ValueError("Request and Run ownership mismatch")
-            return run
+            return RequestAdmission.runs(message, self.app.run_repository.list(session),
+                project_id=session.project_id, session_id=session.id)
 
     # 공개 API
     @property
@@ -721,33 +730,38 @@ class RequestHandle(AsyncFacade):
             return message
 
     @property
-    def run(self) -> Optional[RunHandle]:
-        run = self._load_run()
-        return RunHandle(self.session, run.id) if run is not None else None
+    def recipients(self) -> list[str]:
+        from llm.services.runtime.requests import RequestAdmission
+        value = RequestAdmission.read(self.data, project_id=self.session.project.id, session_id=self.session.id)
+        return value["recipients"]
 
     @property
-    def result(self) -> Optional[ExecutionResult]:
-        run = self._load_run()
-        return ExecutionResult.from_run(self.session.project.id, run) if run is not None else None
+    def runs(self) -> list[RunHandle]:
+        return [RunHandle(self.session, run.id) for run in self._load_runs()]
 
-    async def wait(self, *, timeout: Optional[float] = None) -> RunHandle:
-        """Return this request's terminal Run, including failed/interrupted runs."""
+    @property
+    def results(self) -> list[ExecutionResult]:
+        return [ExecutionResult.from_run(self.session.project.id, run) for run in self._load_runs()]
+
+    async def wait(self, *, timeout: Optional[float] = None) -> list[RunHandle]:
+        """Return every recipient's terminal Run, with the same shape for one recipient."""
         manager = self.app._manager(self.session._snapshot)
-        run = await manager.wait_request(self.id, timeout=timeout)
-        return RunHandle(self.session, run.id)
+        runs = await manager.wait_request(self.id, timeout=timeout)
+        return [RunHandle(self.session, run.id) for run in runs]
 
     async def cancel(self) -> bool:
-        """실행 전 대기 요청만 취소한다. 실행 중인 Run은 중단하지 않는다."""
+        """Cancel only a request that has not dispatched any recipient."""
         return await self.app._manager(self.session._snapshot).cancel_request(self.id)
 
     async def aget_data(self) -> Message:
         return await self._async_call(lambda: self.data)
 
-    async def aget_run(self) -> Optional[RunHandle]:
-        return await self._async_call(lambda: self.run)
+    async def aget_runs(self) -> list[RunHandle]:
+        return await self._async_call(lambda: self.runs)
 
-    async def aresult(self) -> Optional[ExecutionResult]:
-        return await self._async_call(lambda: self.result)
+    async def aresults(self) -> list[ExecutionResult]:
+        return await self._async_call(lambda: self.results)
+
 
 
 class Results(AsyncFacade):

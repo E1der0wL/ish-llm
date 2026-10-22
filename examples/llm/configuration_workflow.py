@@ -427,9 +427,9 @@ async def plan(workspace, config, request, *, report_only=False, completion_adap
             await (await project.components.aget("workflows")).acreate(make_workflow(config["max_attempts"]),
                                                                        identifier="configuration-review")
             await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "configuration-review"}}, identifier="configuration-review-agent")
-            session = await project.sessions.acreate("Configuration change request")
+            session = await project.sessions.acreate("Configuration change request", agent_ids=['configuration-review-agent'])
             report["session_id"] = session.id
-            await describe_run(await (await session.run.submit(request, agent_id="configuration-review-agent")).wait(), report)
+            await describe_run((await (await session.run.submit(request, recipients=["configuration-review-agent"])).wait())[0], report)
     except Exception as error:
         report.update(status="failed", error=f"{type(error).__name__}: {error}")
     finally:
@@ -459,7 +459,7 @@ async def decide(report_path, config, decision, *, expected_package, completion_
             raise ValueError("Approval digest does not match the stored change package")
         await run.arespond(interaction.respond(decision))
         report["source_run_id"] = run.id
-        await describe_run(await (await session.run.resume(run.id, agent_id="configuration-review-agent")).wait(), report)
+        await describe_run((await (await session.run.resume(run.id, agent_id="configuration-review-agent")).wait())[0], report)
     atomic_json(Path(report_path), report)
     return report
 

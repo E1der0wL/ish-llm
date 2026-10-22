@@ -28,8 +28,8 @@ class BackendDiagnosticTests(unittest.IsolatedAsyncioTestCase):
                 engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))}))
             await runtime.start()
             try:
-                session = await runtime.project.sessions.acreate("resume")
-                first = await (await session.run.submit("original request", agent_id="assistant")).wait(timeout=10)
+                session = await runtime.project.sessions.acreate("resume", agent_ids=sorted(await runtime.project.agents.alist()))
+                first = (await (await session.run.submit("original request", recipients=["assistant"])).wait(timeout=10))[0]
                 self.assertEqual(str(first.data.status), "failed")
                 self.assertEqual(await first.acheckpoint(), await first.acheckpoint("loop"))
                 runtime.sessions[session.id] = session
@@ -58,8 +58,8 @@ class BackendDiagnosticTests(unittest.IsolatedAsyncioTestCase):
                 project_config={"policies": {"tool_retry": {"max_retries": 0}}}))
             await runtime.start()
             try:
-                session = await runtime.project.sessions.acreate("diagnostic")
-                run = await (await session.run.submit("convert", agent_id="assistant")).wait(timeout=10)
+                session = await runtime.project.sessions.acreate("diagnostic", agent_ids=sorted(await runtime.project.agents.alist()))
+                run = (await (await session.run.submit("convert", recipients=["assistant"])).wait(timeout=10))[0]
                 result = await run.aresult()
                 step, = [item for item in await run.steps.alist() if item.kind == "tool"]
                 self.assertEqual(str(result.status), "failed")

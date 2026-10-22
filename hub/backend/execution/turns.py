@@ -4,6 +4,7 @@ from llm.core.models import MessageStatus
 from dataclasses import dataclass, field, replace
 
 from llm.services.history.turns import conversation_turns
+from llm.services.runtime.requests import RequestAdmission
 from .continuations import continued_messages
 
 TURN_OPTION = "_hub_turn"
@@ -51,8 +52,8 @@ class TurnIndex:
                 self.turns.append(turn)
             turn.attempts.append(group)
             self.by_id[request.id] = turn
-            if request.run_id:
-                by_run[request.run_id] = turn
+            for run_id in RequestAdmission.run_ids(request):
+                by_run[run_id] = turn
 
     def display(self, messages):
         if not any(edit_source(m) or m.metadata.get("resume") or m.metadata.get("restart") for m in self.records):

@@ -172,11 +172,11 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.backend.shutdown)
         self.project = await self.backend.projects.acreate(components=[c.name for c in components])
         await self.project.agents.acreate(definition or {"engine": "test"}, identifier="test")
-        self.session = await self.project.sessions.acreate()
+        self.session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         return temporary.name
 
     async def run_request(self, session=None, **options):
-        return await (await (session or self.session).run.submit("SECRET-PROMPT", agent_id="test", **options)).wait(timeout=20)
+        return (await (await (session or self.session).run.submit("SECRET-PROMPT", recipients=["test"], **options)).wait(timeout=20))[0]
 
     async def test_success_many_steps_two_sessions_reopen_and_no_raw_content(self):
         async def action(context):
@@ -190,7 +190,7 @@ class ActivityRuntimeTests(unittest.IsolatedAsyncioTestCase):
                             yield event
         engine = Work()
         root = await self.setUpBackend(engine)
-        second = await self.project.sessions.acreate()
+        second = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         handles = await asyncio.gather(self.run_request(), self.run_request(second))
         events = await self.project.aactivity()
         self.assertEqual(len(events), 4)

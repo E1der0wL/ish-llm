@@ -47,7 +47,7 @@ LargeLanguageModel → api.py의 핸들
 
 미시작 Agent에는 `run.ainstruction_routes()`의 경로를 선택해 `session.run.reserve_instruction(run_id, text, targets=routes)`로 예약합니다. 경로별 다음 실행 한 번에만 결합하며 미사용 예약을 명시적 재개에 이전하지 않습니다. 적용한 예약은 기존 문맥만 복원합니다.
 
-RunManager는 종료 상태와 오류의 조합, Session의 current_run_id를 확인합니다. 늦은 종료가 다음 Run의 소유권을 해제하거나 이미 저장된 종료를 덮어쓰지 못하게 합니다. Step 정리 → Assistant 상태 → Run → Session 기록은 기존 트랜잭션 경계를 따르고 저장 성공 후 수명 알림을 전달합니다.
+RunManager는 종료 상태와 오류의 조합, Session의 active_run_ids에서 해당 Run의 소유권을 확인합니다. 늦은 종료가 다음 Run의 소유권을 해제하거나 이미 저장된 종료를 덮어쓰지 못하게 합니다. Step 정리 → Assistant 상태 → Run → Session 기록은 기존 트랜잭션 경계를 따르고 저장 성공 후 수명 알림을 전달합니다.
 
 ## 확장할 때
 

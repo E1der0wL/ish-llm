@@ -19,7 +19,7 @@ RunManager/Repository가 담당한다. 새 실행 도메인이나 별도 Policy 
 ## Loop 체크포인트와 명시적 재개
 
 ```python
-run = await (await session.run.submit("작업", agent_id="loop")).wait()
+run, = await (await session.run.submit("작업", recipients=["loop"])).wait()
 plan = await session.run.resume_plan(run.id, agent_id="loop")
 # blockers/효과 원장/체크포인트를 검토한다. 불확실한 Tool을 일괄 재실행하지 않는다.
 if plan.can_resume:

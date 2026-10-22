@@ -67,11 +67,11 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             name: {"engine": name} for name in (engines or {"echo": None})}
         for identifier, definition in definitions.items():
             await project.agents.acreate(definition, identifier=identifier)
-        return app, project, await project.sessions.acreate("test")
+        return app, project, await project.sessions.acreate("test", agent_ids=sorted(await project.agents.alist()))
 
     async def execute(self, session, agent_id="echo", text="hello", **options):
-        request = await session.run.submit(text, agent_id=agent_id, **options)
-        return await request.wait(timeout=15)
+        request = await session.run.submit(text, recipients=[agent_id], **options)
+        return (await request.wait(timeout=15))[0]
 
     def loop(self, *responses):
         completion = ScriptedCompletion(*responses)
@@ -84,21 +84,21 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             async def run(self, context):
                 entered.set()
                 await release.wait()
-                yield "done"
+                yield context.messages[-1].content
 
         app, _, session = await self.backend(engines={"slow": Slow(), "echo": Echo()},
                                          policies={"run": {"max_queued": 1}})
-        first = await session.run.submit("first", agent_id="slow")
+        first = await session.run.submit("first", recipients=["slow"])
         await asyncio.wait_for(entered.wait(), 5)
-        second = await session.run.submit("second", agent_id="echo")
+        second = await session.run.submit("second", recipients=["slow"])
         with self.assertRaises(RunRequestError) as raised:
-            await session.run.submit("overflow", agent_id="echo")
+            await session.run.submit("overflow", recipients=["slow"])
         self.assertEqual(raised.exception.code, "queue_full")
         with patch.object(app.run_repository, "list", side_effect=AssertionError("history scan")):
             status = await session.run.astatus(queued_limit=1)
         self.assertEqual(status.queued_request_ids, [second.id])
         self.assertEqual(status.queued_count, 1)
-        self.assertEqual(status.engine, "slow")
+        self.assertEqual([run.engine for run in status.active_runs], ["slow"])
         waiter = asyncio.create_task(second.wait())
         self.assertTrue(await second.cancel())
         with self.assertRaises(RunRequestError) as raised:
@@ -106,18 +106,21 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(raised.exception.code, "request_cancelled")
         self.assertFalse(await first.cancel())
         self.assertFalse(await second.cancel())
-        third = await session.run.submit("third", agent_id="echo")
+        third = await session.run.submit("third", recipients=["slow"])
         release.set()
-        self.assertEqual((await first.wait()).data.status, RunStatus.COMPLETED)
-        self.assertEqual((await (await third.wait()).aresponse()).content, "third")
+        self.assertEqual(((await first.wait())[0]).data.status, RunStatus.COMPLETED)
+        self.assertEqual((await ((await third.wait())[0]).aresponse()).content, "third")
         self.assertEqual(len(await session.run.alist()), 2)
         self.assertEqual((await session.run.astatus()).queued_count, 0)
 
     async def test_cancel_survives_file_restart_without_starting_runtime(self):
         app, project, session = await self.backend()
         store = app.project_manager.sessions.conversations(session.data)
+        from llm.services.lifecycle.sessions import SessionRuntime
+        manager = app._manager(session.data)
         with app.project_manager.ownership.scope():
-            message = store.create(MessageRole.USER, "cancel", MessageStatus.QUEUED, metadata={"agent_binding": AgentBinding.create(project.id, "echo", {"engine": "echo"})})
+            message = manager._admit(SessionRuntime(project.data, session.data), "cancel",
+                {"echo": AgentBinding.create(project.id, "echo", {"engine": "echo"})})
         request = await session.run.arequest(message.id)
         self.assertTrue(await request.cancel())
         await app.shutdown()
@@ -140,14 +143,14 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
         _, _, session = await self.backend(engines={"stuck": Stuck(), "echo": Echo()},
             policies={"run": {"timeout_seconds": 1}})
-        first = await session.run.submit("first", agent_id="stuck")
+        first = await session.run.submit("first", recipients=["stuck"])
         await asyncio.wait_for(entered.wait(), 5)
-        second = await session.run.submit("second", agent_id="echo")
-        failed = await first.wait(timeout=10)
+        second = await session.run.submit("second", recipients=["echo"])
+        failed = (await first.wait(timeout=10))[0]
         self.assertEqual(failed.result.error_code, "run_timeout")
         self.assertEqual(failed.response.content, "partial")
         self.assertTrue(all(step.status == StepStatus.FAILED for step in failed.steps.list()))
-        self.assertEqual((await second.wait()).data.status, RunStatus.COMPLETED)
+        self.assertEqual(((await second.wait())[0]).data.status, RunStatus.COMPLETED)
 
     async def test_loop_tool_denial_is_persisted_without_effects(self):
         loop, completion = self.loop([chunk(calls=[call("{}", name="act")], finish="tool_calls")])
@@ -198,13 +201,13 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
             agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}, "tools": ["act"]}},
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize, runner=runner)))
-        request = await session.run.submit("hello", agent_id="loop")
+        request = await session.run.submit("hello", recipients=["loop"])
         await asyncio.wait_for(entered.wait(), 5)
-        active = await request.aget_run()
+        active, = await request.aget_runs()
         steps = await active.steps.alist()
         self.assertEqual(next(item for item in steps if item.kind == "tool").metadata["phase"], "authorizing")
         release.set()
-        run = await request.wait(timeout=10)
+        run = (await request.wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED)
         self.assertEqual(self.effects, [])
         self.assertEqual(calls[0].session_id, session.id)
@@ -256,10 +259,10 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         _, _, session = await self.backend(engines={"loop": loop}, components=[self.tools],
             agent_definitions={"loop": {"engine": "loop", "completion": {"model": "test/model"}, "tools": ["act"]}},
             services=BackendServices(tool_runtime=ToolRuntime(authorize=authorize)))
-        request = await session.run.submit("hello", agent_id="loop")
+        request = await session.run.submit("hello", recipients=["loop"])
         await asyncio.wait_for(entered.wait(), 5)
         self.assertTrue(await session.run.interrupt())
-        run = await request.wait(timeout=5)
+        run = (await request.wait(timeout=5))[0]
         self.assertEqual(run.data.status, RunStatus.INTERRUPTED)
         step = next(item for item in await run.steps.alist() if item.kind == "tool")
         self.assertEqual(step.status, StepStatus.INTERRUPTED)
@@ -275,7 +278,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(store, "_apply", side_effect=AssertionError("unexpected replay")):
             self.assertEqual((await session.run.astatus()).queued_count, 0)
             self.assertEqual((await run.aresponse()).content, "hello")
-        other = await project.sessions.acreate("other")
+        other = await project.sessions.acreate("other", agent_ids=sorted(await project.agents.alist()))
         factory(other.data)
         reopened = factory(session.data)
         self.assertIsNot(store, reopened)
@@ -294,6 +297,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             policies={"tools": {"max_calls": 1}})
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
         await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
+        await session.asave(agent_ids=["graph"])
         run = await self.execute(session, "graph")
         self.assertEqual(run.result.error_code, "tool_budget_exceeded")
         self.assertLessEqual(len(self.effects), 1)
@@ -310,6 +314,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         graph = WorkflowGraph(entry="a").node("a", "agent", agent="worker").node("end", "end").connect("a", "end").to_dict()
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
         await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
+        await session.asave(agent_ids=["graph"])
         run = await self.execute(session, "graph")
         self.assertEqual(run.result.error_code, "tool_denied")
         self.assertEqual(self.effects, [])

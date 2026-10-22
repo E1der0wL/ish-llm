@@ -118,7 +118,7 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
             release.set()
         await app.events.flush()
         self.assertEqual([values[0]['status'] for values in seen], ['cancelled', 'answered'])
-        resumed = await (await session.run.resume(run.id, agent_id='loop')).wait()
+        resumed = (await (await session.run.resume(run.id, agent_id='loop')).wait())[0]
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         view, = await run.ainteraction_views()
         self.assertEqual((view.status, view.execution_status), ('submitted', 'completed'))
@@ -145,7 +145,7 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
         plan = await session.run.resume_plan(run.id, agent_id="loop")
         self.assertTrue(plan.can_resume, plan)
         self.assertEqual(len(await session.aconversation()), before)
-        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
+        resumed = (await (await session.run.resume(run.id, agent_id="loop")).wait())[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         view, = await run.ainteraction_views()
         self.assertEqual((view.status, view.execution_status), ("submitted", "completed"))
@@ -165,7 +165,7 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
         app.events.subscribe(observe, channel="engine")
         await run.arespond(renewed.respond("approve"))
         await asyncio.wait_for(notified.wait(), 3)
-        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
+        resumed = (await (await session.run.resume(run.id, agent_id="loop")).wait())[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
 
     async def test_auto_approval_requires_host_ceiling_and_explicit_resume(self):
@@ -181,14 +181,14 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
                 ToolRuntime(authorize=authorize, classify=lambda call: ToolClassification("file.read", "test", 10)))
             await session.project.aconfigure_policies({"approval": {"enabled": host_allows, "risk_scheme": "test", "rules": [
                 {"id": "read-only", "category": "file.read", "max_risk": 10}]}})
-            run = await (await session.run.submit("read", agent_id="loop")).wait()
+            run = (await (await session.run.submit("read", recipients=["loop"])).wait())[0]
             self.assertEqual(run.data.status, "paused", run.data.error)
             responses = await run.ainteraction_responses()
             self.assertEqual(len(responses), int(host_allows))
             self.assertEqual(effects, [])
             if host_allows:
                 self.assertEqual((responses[0].actor, responses[0].policy_id), ("policy", "read-only"))
-                resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
+                resumed = (await (await session.run.resume(run.id, agent_id="loop")).wait())[0]
                 self.assertEqual(resumed.data.status, "completed", resumed.data.error)
                 self.assertEqual(effects, [1])
 
@@ -198,7 +198,7 @@ class ApprovalHardeningTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(session.data.status, "idle")
         request, = await run.ainteractions()
         await run.arespond(request.respond("approve"))
-        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
+        resumed = (await (await session.run.resume(run.id, agent_id="loop")).wait())[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
 
 
@@ -225,18 +225,18 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
             return {}
         graph = WorkflowGraph(entry="work").node("work", "work").node("end", "end").connect("work", "end").to_dict()
         await self.setup_graph(graph, work, cleanup_timeout=0.05)
-        first = await self.session.run.submit("first", agent_id="graph")
+        first = await self.session.run.submit("first", recipients=["graph"])
         await asyncio.wait_for(started.wait(), 5)
-        second = await self.session.run.submit("second", agent_id="graph")
+        second = await self.session.run.submit("second", recipients=["graph"])
         try:
             await asyncio.wait_for(self.session.run.interrupt(), 3)
-            interrupted = await first.wait(timeout=3)
+            interrupted = (await first.wait(timeout=3))[0]
             self.assertEqual(interrupted.data.status, "interrupted")
             self.assertEqual((await self.session.run.astatus()).unfinished_work, 1)
             self.assertEqual(len(visits), 1)
         finally:
             release.set()
-        completed = await second.wait(timeout=10)
+        completed = (await second.wait(timeout=10))[0]
         self.assertEqual(completed.data.status, "completed", completed.data.error)
         self.assertEqual(late, ["tool_scope_closed"])
 
@@ -251,7 +251,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
             return {}
         graph = WorkflowGraph(entry="work").node("work", "work").node("end", "end").connect("work", "end").to_dict()
         await self.setup_graph(graph, work, cleanup_timeout=0.05)
-        await self.session.run.submit("first", agent_id="graph")
+        await self.session.run.submit("first", recipients=["graph"])
         await asyncio.wait_for(started.wait(), 5)
         from llm.llm import LargeLanguageModel
         other = LargeLanguageModel(self.root, engines={"graph": self.engine})
@@ -264,7 +264,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
             release.set()
         await asyncio.sleep(0.05)
         session = (await other.projects.aload(self.project.id)).sessions.load(self.session.id)
-        completed = await (await session.run.submit("after cleanup", agent_id="graph")).wait()
+        completed = (await (await session.run.submit("after cleanup", recipients=["graph"])).wait())[0]
         self.assertEqual(completed.data.status, "completed", completed.data.error)
 
     async def test_selected_config_binding_allows_ui_but_rejects_model_change(self):
@@ -299,7 +299,7 @@ class GraphHardeningTests(unittest.IsolatedAsyncioTestCase):
         request, = await failed.ainteractions()
         self.assertEqual(request.category, "execution.retry_uncertain")
         await failed.arespond(request.respond("approve"))
-        resumed = await (await self.session.run.resume(failed.id, agent_id="graph")).wait()
+        resumed = (await (await self.session.run.resume(failed.id, agent_id="graph")).wait())[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(len(calls), 2)
 

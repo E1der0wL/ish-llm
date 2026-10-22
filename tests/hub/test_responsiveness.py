@@ -164,12 +164,12 @@ class ResponsivenessTests(unittest.IsolatedAsyncioTestCase):
                 first = await runtime.submit(sid, "hold active")
                 session = runtime.sessions[sid]
                 async with asyncio.timeout(3):
-                    while not (await session.run.astatus()).active_run_id:
+                    while not (await session.run.astatus()).active_runs:
                         await asyncio.sleep(.01)
-                active = (await session.run.astatus()).active_run_id
+                active = (await session.run.astatus()).active_runs
                 queued = await runtime.submit(sid, "cancel this")
                 self.assertTrue(await runtime.cancel_request(sid, queued))
-                self.assertEqual((await session.run.astatus()).active_run_id, active)
+                self.assertEqual((await session.run.astatus()).active_runs, active)
                 self.assertEqual((await session.run.astatus()).queued_count, 0)
                 self.assertEqual(next(r for r in await runtime.turns(sid) if r["id"] == queued)["status"], "cancelled")
                 with self.assertRaises(ValueError) as error:

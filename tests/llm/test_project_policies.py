@@ -77,10 +77,10 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         project = await self.app.projects.acreate(config=ProjectConfig(policies=policies or {}))
         for name in self.app.engines.names():
             await project.agents.acreate({"engine": name}, identifier=name)
-        return project, await project.sessions.acreate()
+        return project, await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
 
     async def execute(self, session, text="q", agent_id="inspect"):
-        return await (await session.run.submit(text, agent_id=agent_id)).wait(timeout=10)
+        return (await (await session.run.submit(text, recipients=[agent_id])).wait(timeout=10))[0]
 
     async def test_defaults_schema_and_partial_update_preserve_other_settings(self):
         project, _ = await self.create()
@@ -113,7 +113,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
                 await project.aconfigure_policies(change)
             self.assertEqual((await project.aget_data()).config, before)
         with self.assertRaises(ValueError):
-            await project.sessions.acreate(config={"policies": {"run": {"max_queued": 100}}})
+            await project.sessions.acreate(config={"policies": {"run": {"max_queued": 100}}}, agent_ids=sorted(await project.agents.alist()))
 
     async def test_different_projects_select_their_own_context_without_deleting_history(self):
         recent, one = await self.create({"context": {"mode": "recent", "max_turns": 1}})
@@ -135,6 +135,8 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         for project in (small, large):
             await project.agents.acreate({"engine": "loop", "completion": {"model": "test/main"}}, identifier="loop")
+        await one.asave(agent_ids=sorted([*(await one.aget_data()).agent_ids, "loop"]))
+        await two.asave(agent_ids=sorted([*(await two.aget_data()).agent_ids, "loop"]))
         await configure_engine(small, "loop", input_policy={"max_tokens": 2, "counter": "length"})
         await configure_engine(large, "loop", input_policy={"max_tokens": 100, "counter": "length"})
         failed, passed = await asyncio.gather(self.execute(one, "hello", "loop"), self.execute(two, "hello", "loop"))
@@ -146,7 +148,7 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
     async def test_unknown_counter_is_rejected_before_queue_admission(self):
         project, session = await self.create({"usage": {"max_tokens": 10, "counter": "missing"}})
         with self.assertRaises(RunRequestError) as caught:
-            await session.run.submit("never queued", agent_id="inspect")
+            await session.run.submit("never queued", recipients=["inspect"])
         self.assertEqual(caught.exception.code, "policy_unavailable")
         self.assertEqual(await session.aconversation(), [])
         self.assertEqual(await session.run.alist(), [])
@@ -167,16 +169,17 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("hold", Hold())
         project, session = await self.create()
         await configure_engine(project, "hold", input_policy={"max_tokens": 100, "counter": "length"})
-        first = await session.run.submit("first", agent_id="hold")
+        first = await session.run.submit("first", recipients=["hold"])
         await asyncio.wait_for(entered.wait(), 5)
-        second = await session.run.submit("second", agent_id="hold")
+        second = await session.run.submit("second", recipients=["hold"])
         await configure_engine(project, "hold", input_policy={"max_tokens": 20})
         await project.aconfigure_policies({"run": {"max_queued": 1}})
         with self.assertRaises(RunRequestError) as caught:
-            await session.run.submit("overflow", agent_id="hold")
+            await session.run.submit("overflow", recipients=["hold"])
         self.assertEqual(caught.exception.code, "queue_full")
         release.set()
-        runs = await asyncio.gather(first.wait(), second.wait())
+        groups = await asyncio.gather(first.wait(), second.wait())
+        runs = [run for (run,) in groups]
         self.assertEqual(snapshots, [100, 100, 20, 20])
         self.assertTrue(all("completion" not in r.data.metadata["policies"] for r in runs))
 
@@ -214,13 +217,25 @@ class ProjectPolicyTests(unittest.IsolatedAsyncioTestCase):
                 yield "done"
         self.app.engines.register("hold", Hold())
         project, session = await self.create()
-        first = await session.run.submit("first", agent_id="hold")
+        first = await session.run.submit("first", recipients=["hold"])
         await asyncio.wait_for(entered.wait(), 5)
-        second = await session.run.submit("second", agent_id="inspect")
+        manager = self.app._manager(session.data)
+        pump, dispatch = manager._pump, asyncio.Event()
+        async def held(runtime):
+            await dispatch.wait()
+            await pump(runtime)
+        guard = patch.object(manager, "_pump", side_effect=held)
+        guard.start()
+        self.addCleanup(guard.stop)
+        self.addCleanup(dispatch.set)
+        self.addCleanup(release.set)
+        second = await session.run.submit("second", recipients=["inspect"])
+        self.assertEqual(second.data.status, "queued")
         await project.aconfigure_policies({"usage": {"max_tokens": 10, "counter": "missing"}})
+        dispatch.set()
         release.set()
-        self.assertEqual((await first.wait()).data.status, RunStatus.COMPLETED)
-        failed = await second.wait()
+        self.assertEqual(((await first.wait())[0]).data.status, RunStatus.COMPLETED)
+        failed = (await second.wait())[0]
         self.assertEqual((await failed.aresult()).error_code, "policy_unavailable")
         await project.aconfigure_policies({"usage": {"counter": "length"}})
         self.assertEqual((await self.execute(session)).data.status, RunStatus.COMPLETED)

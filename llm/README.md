@@ -1,7 +1,8 @@
 # ish-llm
 
-이 사용법은 main `94229cb865374d99f20ec48c5e48269488041a4e`의 API를 설명합니다.
-독립 Agent와 수신자 기반 실행은 [클린 리팩터링 목표](../docs/llm/clean-refactor.md)이며 아직 구현되지 않았습니다.
+이 사용법은 `refactor/llm-clean`의 현재 수신자 기반 API를 설명합니다.
+단계별 완료·미완료와 검증 증거는 [클린 리팩터링 상태](../docs/llm/clean-refactor.md)와
+[다중 Agent 검증](../docs/llm/multi-agent-verification.md)을 따릅니다.
 [현행 설계](../docs/llm/architecture.md)와 [검증 상태](../docs/llm/documentation-review.md)를 함께 확인하세요.
 
 Backend는 mechanism·contract·persistence를 제공하고 Application이 자원 한도·검색 전략·
@@ -44,7 +45,7 @@ Backend는 계약·저장·권한 불변식을 집행합니다. 새 구현은
 UI / ish 명령
   → LargeLanguageModel
   → Project 선택 → Session 선택
-  → submit(입력, agent_id="저장 ID")
+  → submit(입력, recipients=["저장 ID"])
   → 요청 저장(queued) → Run 생성 → Engine 실행
   → EngineEvent → 서비스가 응답·Step·체크포인트 저장
   → UI 이벤트 / 저장된 결과 조회
@@ -131,7 +132,7 @@ ish 명령용 함수를 직접 만든다면 import 가능한 모듈의 동기 �
 
 Graph 실행에서는 `GraphEngine(handlers=...)`을 등록하고
 `{"engine": "graph", "engine_options": {"workflow": "review"}}`를 실제 Agent로 저장합니다.
-예: `await session.run.submit("검토", agent_id="reviewer")`.
+예: `await session.run.submit("검토", recipients=["reviewer"])`.
 Agent 선택·정의·revision은 요청/Run에 저장되고 재개 시 원본 binding을 검증합니다. 정의가 변경됐다면
 새 요청으로 시작합니다. 등록·중첩 실행 예제는 [GraphEngine 안내](engines/graph/README.md)를 참고하세요.
 
@@ -176,9 +177,9 @@ async def main():
             conversation_storage="file",
         )
         await project.agents.acreate({"engine": "loop"}, identifier="loop")
-        session = await project.sessions.acreate("첫 대화")
-        request = await session.run.submit("안녕하세요.", agent_id="loop")
-        run = await request.wait()
+        session = await project.sessions.acreate("첫 대화", agent_ids=["loop"])
+        request = await session.run.submit("안녕하세요.", recipients=["loop"])
+        run, = await request.wait()
         result = await run.aresult()
 
         print()
@@ -195,7 +196,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-`submit()`의 결과는 **RequestHandle**입니다. `await request.wait()`가 요청의 종료를 기다려 **RunHandle**을 반환합니다. 완료 여부는 `ExecutionResult.status`로 확인합니다. Graph의 구조화된 최종 결과는 `result.output`의 `data`로 조회할 수 있습니다.
+`submit()`의 결과는 **RequestHandle**입니다. `await request.wait()`는 모든 수신자의 종료를 기다려 **RunHandle 목록**을 반환합니다. 수신자가 하나여도 목록이며, 예제의 `run, = ...`는 그 한 건을 꺼냅니다. 완료 여부는 `ExecutionResult.status`로 확인합니다. Graph의 구조화된 최종 결과는 `result.output`의 `data`로 조회할 수 있습니다.
 
 `ProjectConfig`의 최상위 계약은 `policies`, `parameters`, `data`로 닫혀 있습니다. 구현체 인자는 `parameters.engines`/`parameters.components`의 선택 구현체가 검증하고, Application 데이터는 `data`에 둡니다. 여기에 넣은 API 키도 Project 설정 JSON에 저장됩니다. 별도 비밀값 저장소는 없으며, 원한다면 키를 저장하지 않고 SDK의 환경변수 인증을 사용할 수 있습니다. [설정 소유권과 확장 경계](../docs/llm/schema-ownership.md)를 참고하세요.
 
@@ -213,11 +214,11 @@ Loop 입력 예산은 `parameters.engines[이름].policy.completion`, 모델 호
 ```python
 project = await backend.projects.aload(project_id)
 session = await project.sessions.aload(session_id)
-request = await session.run.submit("앞의 내용을 이어서 설명해줘.", agent_id="loop")
-run = await request.wait()
+request = await session.run.submit("앞의 내용을 이어서 설명해줘.", recipients=["loop"])
+run, = await request.wait()
 ```
 
-llm은 기본 Project·Session을 생성하거나 선택하지 않습니다. `acreate()`는 매번 새 Project를 만들고, `aload(id)`는 지정한 Project만 읽습니다. 첫 실행의 템플릿, 마지막 Project/Session 선택, UI의 Agent 선택은 hub 등 호출 애플리케이션이 담당합니다. llm의 `submit(..., agent_id="loop")`에는 실제 저장된 Agent ID를 항상 명시합니다.
+llm은 기본 Project·Session을 생성하거나 선택하지 않습니다. `acreate()`는 매번 새 Project를 만들고, `aload(id)`는 지정한 Project만 읽습니다. 첫 실행의 템플릿, 마지막 Project/Session 선택, UI의 Agent 선택은 hub 등 호출 애플리케이션이 담당합니다. llm의 `submit(..., recipients=["loop"])`에는 Session에 참여자로 저장한 Agent ID를 항상 명시합니다. `agent_ids`는 Session 생성·비활성 상태의 저장에서 설정하며, 생략한 수신자를 자동 선택하지 않습니다. `recipients="all"`만 참여자 전체를 접수 시점에 동결합니다. 같은 Agent는 FIFO, 서로 다른 Agent는 병렬입니다.
 
 ### 자주 쓰는 API
 
@@ -230,7 +231,7 @@ llm은 기본 Project·Session을 생성하거나 선택하지 않습니다. `ac
 | Session 생성·조회·목록 | `project.sessions.acreate(...)`, `aload(id)`, `alist()` |
 | Session 수정·복제·삭제 | `session.asave(...)`, `aclone(...)`, `adelete()` |
 | Agent 정의 | `project.agents.acreate(...)`, `asnapshot(id)`, `arevise(id, definition, expected_revision=...)` |
-| 요청·대기·중단 | `session.run.submit(..., agent_id=...)`, `wait_idle()`, `interrupt()` |
+| 요청·대기·중단 | `session.run.submit(..., recipients=[...])`, `wait_idle()`, `interrupt()` |
 | 실행 중인 Engine에 추가 지시 | `session.run.steer(run_id, text, targets=...)`, `run.ainstructions()`, `run.ainstruction_targets()` |
 | 미시작 Agent 실행에 한 번 예약 | `run.ainstruction_routes()`, `session.run.reserve_instruction(run_id, text, targets=selected_routes)` |
 | Run 조회·결과·Step | `session.run.aload(id)`, `run.aresult()`, `run.steps.alist()` |
@@ -303,7 +304,7 @@ class EchoEngine(BaseEngine):
         yield context.messages[-1].content
 ```
 
-`LargeLanguageModel(workspace, engines={"echo": EchoEngine()})`로 등록한 뒤 `project.agents.acreate({"engine": "echo"}, identifier="echo")`로 저장하고 `submit(..., agent_id="echo")`로 선택합니다. `BaseEngine`이 Step·출력 이벤트를 구성하고 서비스가 저장합니다.
+`LargeLanguageModel(workspace, engines={"echo": EchoEngine()})`로 등록한 뒤 `project.agents.acreate({"engine": "echo"}, identifier="echo")`로 저장하고 `submit(..., recipients=["echo"])`로 선택합니다. `BaseEngine`이 Step·출력 이벤트를 구성하고 서비스가 저장합니다.
 
 확장 계약은 다음과 같습니다.
 

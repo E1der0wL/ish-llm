@@ -556,7 +556,7 @@ class LiveController:
                 self.view.open_dialog(self.view.t("choose_target"), choices,
                     lambda: self._send("steer", session_id, text, run_id, text, [choices.current_value], draft=draft), choices,
                     on_cancel=lambda: draft and draft.restore(self.view))
-        self._call("instruction_targets", session_id, completed=ready)
+        self._call("instruction_targets", session_id, expected_run_id, completed=ready)
 
     def select(self, session_id: str):
         if session_id:

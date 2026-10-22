@@ -287,10 +287,10 @@ async def run_demo(workspace: Path, config: ProjectConfig, *, markdown=None, que
             await workflows.acreate(definition, identifier="rag-workflow")
             check("workflow_roundtrip", await workflows.aload("rag-workflow") == definition)
             await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "rag-workflow"}}, identifier="rag-workflow-agent")
-            session = await project.sessions.acreate("RAG-backed Graph request")
+            session = await project.sessions.acreate("RAG-backed Graph request", agent_ids=['rag-workflow-agent'])
             report["session_id"] = session.id
-            request = await session.run.submit(query, agent_id="rag-workflow-agent")
-            handle = await phase("graph_execution", request.wait())
+            request = await session.run.submit(query, recipients=["rag-workflow-agent"])
+            handle, = await phase("graph_execution", request.wait())
             report["run_id"] = handle.id
             result, steps = await handle.aresult(), await handle.steps.alist()
             report["run"] = {"status": result.status.value, "error": result.error, "error_code": result.error_code,

@@ -70,9 +70,10 @@ class RunStorageTests(unittest.TestCase):
 
     def begin(self):
         with self.projects.ownership.scope():
-            message = self.store.create(MessageRole.USER, 'request', MessageStatus.QUEUED,
-                                        metadata={'agent_binding': AgentBinding.create(self.project.id, 'fixture', {'engine': 'test'})})
-            return self.manager._begin(self.runtime, message)
+            message = self.manager._admit(self.runtime, 'request',
+                {'fixture': AgentBinding.create(self.project.id, 'fixture', {'engine': 'test'})})
+            run, = self.manager._dispatch_request(self.runtime, message)
+            return self.manager._begin(self.runtime, run)
 
     def snapshot(self):
         return {str(p): p.read_bytes() for p in self.project.paths.root.rglob('*') if p.is_file()}
@@ -113,7 +114,7 @@ class RunStorageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "current Run"):
             with self.projects.ownership.scope():
                 self.manager._finish(self.runtime, stale, RunStatus.FAILED, 'late finish')
-        self.assertEqual(self.runtime.session.current_run_id, current.id)
+        self.assertEqual(self.runtime.session.active_run_ids, [current.id])
         self.assertEqual(self.snapshot(), before)
 
     def test_repeated_recovery_preserves_terminal_run_times_and_errors(self):
@@ -172,14 +173,14 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
         projects = ProjectManager(ProjectRepository(Path(temporary.name) / 'projects'), engines=registry)
         project = projects.create('transition')
         projects.agents.create(project, {'engine': 'probe'}, identifier='probe')
-        session = projects.sessions.create(project, 'session')
+        session = projects.sessions.create(project, 'session', agent_ids=['probe'])
         def observe(event):
             persisted = manager.repository.load(session, event.run.id)
             # 알림은 Run 저장 성공 이후에만 전달된다.
             self.assertEqual(persisted.status, event.run.status)
             events.append(event)
             if cancel_before_execution and event.type == RunEventType.STARTED:
-                manager._active.interrupt_requested = True
+                manager._active.executions[event.run.id].interrupt_requested = True
         manager = RunManager(projects.sessions, registry, session=session)
         manager.subscriptions.subscribe(observe, channel="run")
         async def cleanup():
@@ -196,7 +197,7 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
         for mode in ('completed', 'failed', 'paused'):
             with self.subTest(mode=mode):
                 manager, session, _, events = await self.setup_runtime(mode)
-                await manager.submit('request', agent_id='probe')
+                await manager.submit('request', recipients=['probe'])
                 await asyncio.wait_for(manager.wait_idle(), 10)
                 run, = manager.repository.list(session)
                 self.assertEqual(run.status, mode)
@@ -206,7 +207,7 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_cancel_before_first_engine_instruction_still_finalizes(self):
         manager, session, engine, events = await self.setup_runtime(cancel_before_execution=True)
-        await manager.submit('request', agent_id='probe')
+        await manager.submit('request', recipients=['probe'])
         await asyncio.wait_for(manager.wait_idle(), 10)
         run, = manager.repository.list(session)
         self.assertEqual(engine.calls, 0)
@@ -217,7 +218,7 @@ class RunBoundaryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_finish_commit_failure_does_not_publish_terminal_event_or_metric(self):
         manager, session, engine, events = await self.setup_runtime('blocked')
-        await manager.submit('request', agent_id='probe')
+        await manager.submit('request', recipients=['probe'])
         await asyncio.wait_for(engine.entered.wait(), 10)
         with patch.object(manager.sessions, '_save_runtime', side_effect=OSError('disk full')):
             engine.release.set()

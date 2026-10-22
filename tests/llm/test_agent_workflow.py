@@ -92,10 +92,10 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         await self.workflows.acreate(graph, identifier="flow")
         await (await self.project.components.aget("tools")).aenable("echo", "forbidden")
         await self.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="flow-agent")
-        self.session = await self.project.sessions.acreate("Request")
+        self.session = await self.project.sessions.acreate("Request", agent_ids=sorted(await self.project.agents.alist()))
 
     async def run_graph(self, prompt="Please write"):
-        return await (await self.session.run.submit(prompt, agent_id="flow-agent")).wait(timeout=40)
+        return (await (await self.session.run.submit(prompt, recipients=["flow-agent"])).wait(timeout=40))[0]
 
     async def output(self, run):
         return next(s for s in await run.steps.alist() if s.kind == "graph").output.data
@@ -145,10 +145,10 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call('{"value":"x"}', name="echo")]), chunk(finish="tool_calls")],
                                    answer("next"))
         await self.setup_graph(agent_graph(), model)
-        first = await self.session.run.submit("first", agent_id="flow-agent")
-        second = await self.session.run.submit("second", agent_id="flow-agent")
-        self.assertEqual((await first.wait()).data.status, RunStatus.FAILED)
-        completed = await second.wait()
+        first = await self.session.run.submit("first", recipients=["flow-agent"])
+        second = await self.session.run.submit("second", recipients=["flow-agent"])
+        self.assertEqual(((await first.wait())[0]).data.status, RunStatus.FAILED)
+        completed = (await second.wait())[0]
         self.assertEqual(completed.data.status, RunStatus.COMPLETED)
         self.assertEqual(self.calls, [])
         self.assertEqual(json.loads(model.requests[1]["messages"][1]["content"]), {"request": "second"})
@@ -260,16 +260,16 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion([chunk(calls=[call('{}', name="echo")]), chunk(finish="tool_calls")],
                                    answer("next"))
         await self.setup_graph(agent_graph(), model)
-        first = await self.session.run.submit("first", agent_id="flow-agent")
+        first = await self.session.run.submit("first", recipients=["flow-agent"])
         await asyncio.wait_for(entered.wait(), 10)
-        second = await self.session.run.submit("second", agent_id="flow-agent")
+        second = await self.session.run.submit("second", recipients=["flow-agent"])
         await self.session.run.interrupt()
-        interrupted = await first.wait(timeout=10)
+        interrupted = (await first.wait(timeout=10))[0]
         self.assertEqual(interrupted.data.status, RunStatus.INTERRUPTED)
         self.assertTrue(closed.is_set())
         self.assertTrue(all(s.status not in (StepStatus.RUNNING, StepStatus.PENDING)
                             for s in await interrupted.steps.alist()))
-        self.assertEqual((await second.wait(timeout=10)).data.status, RunStatus.COMPLETED)
+        self.assertEqual(((await second.wait(timeout=10))[0]).data.status, RunStatus.COMPLETED)
 
     async def test_absent_allowlist_exposes_no_tools_and_project_model_is_overridden(self):
         self.profile.pop("tools")
@@ -340,7 +340,7 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
             await self.session.run.resume(paused.id, agent_id="flow-agent")
         self.assertEqual(model.requests, [])
         await skills.asave("review", {"instructions": "Check invariants."})
-        run = await (await self.session.run.resume(paused.id, agent_id="flow-agent")).wait()
+        run = (await (await self.session.run.resume(paused.id, agent_id="flow-agent")).wait())[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertIn("Skill review:\nCheck invariants.", model.requests[0]["messages"][0]["content"])
 
@@ -469,10 +469,10 @@ class AgentWorkflowTests(unittest.IsolatedAsyncioTestCase):
         await self.setup_graph(agent_graph(), model, extra_components=(MCPComponent(connector=connector),))
         await (await self.project.components.aget("mcp")).acreate(
             {"transport": "stdio", "command": "host-owned"}, identifier="local")
-        request = await self.session.run.submit("wait", agent_id="flow-agent")
+        request = await self.session.run.submit("wait", recipients=["flow-agent"])
         await asyncio.wait_for(entered.wait(), 10)
         await self.session.run.interrupt()
-        run = await request.wait()
+        run = (await request.wait())[0]
         self.assertEqual(run.data.status, RunStatus.INTERRUPTED)
         self.assertEqual(closed, ["tool", "session"])
 

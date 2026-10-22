@@ -1,4 +1,4 @@
-"""Session별 직렬 실행을 담당한다. 입력을 먼저 영속 큐에 저장하고 Engine 이벤트를 대화/Step/결과 저장으로 연결한다. 중단된 Run은 자동 재실행하지 않는다."""
+"""Session의 단일 Dispatcher로 같은 Agent는 FIFO, 다른 Agent는 병렬 실행한다. 입력을 영속 접수하고 Run별 이벤트 저장·취소·복구를 소유한다. 중단된 Run은 자동 재실행하지 않는다."""
 
 from llm.services.infrastructure.storage import read_domain_record, atomic_domain_json
 
@@ -26,6 +26,7 @@ from llm.core.paths import RunPaths
 from llm.core.configuration import UNSET
 from llm.core.agents import AgentBinding
 from llm.services.runtime.agents import RunAgentResolver
+from llm.services.runtime.requests import RequestAdmission
 from llm.core.interactions import InteractionActor, InteractionRequest, InteractionResponse, InteractionView
 from llm.engines.base import EngineContext, EngineEvent, EngineEventType, SteeringInbox, required_capabilities, steering_mode
 from llm.core.steering import InstructionStatus, RunInstruction, SteeringMode, SteeringRoute, is_instruction, is_queued_request
@@ -41,7 +42,7 @@ from llm.services.lifecycle.steps import StepEventRecorder, StepManager
 from llm.services.infrastructure.storage import (
     StorageIO, child, drain_on_cancel, record, revision_token,
 )
-from llm.services.lifecycle.sessions import SessionManager, SessionRuntime
+from llm.services.lifecycle.sessions import SessionManager, SessionRuntime, RunRuntime
 from llm.services.infrastructure.logging import log_event
 from llm.services.infrastructure.activity import activity_event
 from llm.services.results import RunResultQuery
@@ -237,16 +238,18 @@ class RunRepository:
             reject_links(directory)
             if directory.is_dir() and not directory.name.startswith("."):
                 paths[directory.name] = self.paths(session, directory.name).root / "run.json"
-        required = {session.current_run_id} if session.current_run_id is not None else set()
+        required = set(session.active_run_ids)
         # File conversations retain independent witnesses even if an entire Run tree is lost.
         # Memory conversations need not have this file; a missing optional file is not created.
         reject_links(session.paths.conversation)
         if session.paths.conversation.exists():
-            required.update(message.run_id for message in ConversationStore(session.paths.conversation).list()
-                            if message.run_id is not None)
+            required.update(run_id for message in ConversationStore(session.paths.conversation).list()
+                            for run_id in RequestAdmission.run_ids(message))
         if not required <= paths.keys():
             raise ValueError("Missing referenced Run record")
-        yield from paths.values()
+        # Directory restoration can change enumeration order without changing
+        # records. Reviewed retention/recovery revisions must stay deterministic.
+        yield from (paths[identifier] for identifier in sorted(paths))
 
     def delete_history(self, session, run_id):
         """보관 서비스가 승인한 완료 Run의 기록만 삭제한다. 재실행/상태 전이는 하지 않는다."""
@@ -545,7 +548,7 @@ class RunRepository:
         common = []
         def block(code, message):
             common.append(Diagnostic(code, message, source=source))
-        if attached or session.current_run_id or session.status == SessionStatus.RUNNING:
+        if attached or session.active_run_ids or session.status == SessionStatus.RUNNING:
             block("runtime_attached", "Shut down Session runtime before checkpoint maintenance")
         if run.status in (RunStatus.PENDING, RunStatus.RUNNING):
             block("active_run", "Run is still active; recover stale Runs before maintenance")
@@ -567,7 +570,7 @@ class RunRepository:
                     or other.status not in (RunStatus.COMPLETED, RunStatus.CANCELLED) and not self.resume_abandoned(other)):
                 block("resume_reference", f"Run {other.id} still requires its resume lineage")
         if any(m.metadata.get("resume", {}).get("run_id") == run.id
-               and m.status != MessageStatus.CANCELLED and m.run_id is None for m in messages):
+               and m.status != MessageStatus.CANCELLED and not RequestAdmission.run_ids(m) for m in messages):
             block("resume_reserved", "A resume request still references this Run")
         if deleted is not None or not names:
             block("no_checkpoints", "Run has no retained checkpoints")
@@ -656,6 +659,14 @@ class RunRepository:
         return select(sorted((self.load(session, path.parent.name)
                        for path in self.record_paths(session)),
                       key=lambda run: (run.created_at, run.id)), query)
+
+    def unfinished(self, session: Session) -> "list[Run]":
+        """Load active records through the shared catalog, not completed history."""
+        paths = tuple(self.record_paths(session))
+        identifiers = {identifier for status in Run.ACTIVE_STATES
+                       for identifier in self.catalog.select(paths, Query(status=status))}
+        return sorted((self.load(session, identifier) for identifier in identifiers),
+                      key=lambda run: (run.created_at, run.id))
 
     def list_results(self, sessions, *, include_running=False, query=None) -> "list[Run]":
         """결과 순서로 선택한 Run만 로드한다. 원본은 run.json이며 별도 결과 파일은 없다."""
@@ -859,11 +870,12 @@ class RunManager:
     def _accept_instruction(self, run_id, content, targets, reserved=False):
         _, session = self._prepare()
         run = self.repository.load(session, run_id)
-        if (run.status != RunStatus.RUNNING or session.current_run_id != run.id
+        if (run.status != RunStatus.RUNNING or run.id not in session.active_run_ids
                 or not run.metadata.get("steering", {}).get("accepting")):
             raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE,
                                   "Run does not accept live instructions")
-        if self._active is None or self._active.closed or self._active.interrupt_requested:
+        control = self._active.executions.get(run.id) if self._active is not None else None
+        if self._active is None or self._active.closed or control is None or control.interrupt_requested:
             raise RunRequestError(RunErrorCode.STEERING_UNAVAILABLE, "Run is stopping or owned by another runtime")
         available = run.metadata["steering"]["targets"]
         identifiers = () if reserved else targets if targets is not None else ("root",)
@@ -922,14 +934,41 @@ class RunManager:
             raise ValueError("Session is deleted")
         return project, current
 
-    def _validate_request(self, agent_id, request_context=UNSET):
-        if not isinstance(agent_id, str) or not agent_id.strip():
-            raise RunRequestError(RunErrorCode.AGENT_REQUIRED, "Specify an Agent for each request")
-        project, _ = self._prepare()
-        binding = self.agents.selected(project, agent_id)
-        self.agents.strategy(binding, request_context=request_context)
+    def _validate_request(self, recipients, request_context=UNSET):
+        project, session = self._prepare()
+        try:
+            selected = RequestAdmission.select(recipients, session.agent_ids)
+        except (TypeError, ValueError) as error:
+            raise RunRequestError(RunErrorCode.AGENT_REQUIRED, str(error)) from error
+        bindings = {}
+        for identifier in selected:
+            binding = self.agents.selected(project, identifier)
+            self.agents.strategy(binding, request_context=request_context)
+            bindings[identifier] = binding
         self._validate_project_request(project)
-        return binding
+        return bindings
+
+    def _admit(self, runtime, content, bindings, request_context=UNSET, *, metadata=None):
+        self._history(runtime.project, runtime.session)
+        message_id = new_id()
+        admission = RequestAdmission.create(project_id=runtime.project.id,
+            session_id=runtime.session.id, message_id=message_id, bindings=bindings)
+        values = {"admission": admission}
+        if request_context is not UNSET:
+            values["request_context"] = deepcopy(request_context)
+        if metadata is not None:
+            if values.keys() & metadata.keys():
+                raise ValueError("Request provenance cannot replace admission evidence")
+            values.update(deepcopy(metadata))
+        return self._store(runtime.session).create(MessageRole.USER, content, MessageStatus.QUEUED,
+            message_id=message_id, metadata=values)
+
+    def _history(self, project, session):
+        """Require complete history both before ACK and before frozen dispatch."""
+        messages, records = self._store(session).list(), self.repository.list(session)
+        RequestAdmission.history(messages, records, project_id=project.id,
+            session_id=session.id, persistent=project.conversation_storage == "file")
+        return messages, records
 
     def _validate_project_request(self, project):
         try:
@@ -943,7 +982,7 @@ class RunManager:
             except ValueError as error:
                 raise RunRequestError(RunErrorCode.COMPONENT_NOT_REGISTERED, str(error)) from error
 
-    def _source_agent(self, project, session, run, agent_id=None):
+    def _source_agent(self, project, session, run, agent_id=None, *, records=None):
         binding = self.agents.source(project, run)
         if agent_id is not None and binding["agent_id"] != agent_id:
             raise ValueError("Resume requires the original Agent")
@@ -951,14 +990,18 @@ class RunManager:
             original = self._store(session).get(run.input_message_id)
         except KeyError as error:
             raise ValueError("Original conversation is unavailable; memory-mode resume requires the original backend") from error
-        if self.agents.metadata(binding, run.metadata.get("request_context", UNSET)) != {
-                key: original.metadata[key] for key in ("agent_binding", "request_context")
-                if key in original.metadata}:
+        selected = RequestAdmission.runs(original, self.repository.list(session) if records is None else records,
+            project_id=project.id, session_id=session.id)
+        if not any(candidate.id == run.id for candidate in selected):
+            raise ValueError("Run is absent from its original request admission")
+        admission = RequestAdmission.read(original, project_id=project.id, session_id=session.id)
+        if self.agents.metadata(binding, run.metadata.get("request_context", UNSET)) != self.agents.metadata(
+                admission["bindings"][run.agent_id], original.metadata.get("request_context", UNSET)):
             raise ValueError("Run Agent binding or request context differs from its admitted input")
         return binding
 
-    def _source_strategy(self, project, session, run, agent_id=None):
-        binding = self._source_agent(project, session, run, agent_id)
+    def _source_strategy(self, project, session, run, agent_id=None, *, records=None):
+        binding = self._source_agent(project, session, run, agent_id, records=records)
         return self.agents.strategy(binding, request_context=run.metadata.get("request_context", UNSET))
 
     async def _runtime(self) -> SessionRuntime:
@@ -980,11 +1023,7 @@ class RunManager:
             # Missing admission evidence is corruption, not a request that can be
             # converted into a Run with a guessed identity. Check before recovery
             # changes any stale Run, conversation record or ownership attachment.
-            for message in self._store(fresh).list():
-                if is_queued_request(message):
-                    binding = AgentBinding.read(message.metadata.get("agent_binding"))
-                    if binding["project_id"] != owner.id:
-                        raise ValueError("Queued Agent binding belongs to another Project")
+            self._history(owner, fresh)
             self.sessions.attach_runtime(fresh)
             try:
                 recovered = self._recover(fresh)
@@ -1011,18 +1050,16 @@ class RunManager:
         async with self._control_lock():
             return await self._runtime()
 
-    async def _submit(self, content: str, agent_id: str, request_context) -> Message:
+    async def _submit(self, content: str, recipients, request_context) -> Message:
         async with self._control_lock():
             if self._closed:
                 raise RuntimeError("RunManager is shut down")
-            await self._io.run(self._validate_request, agent_id, request_context)
+            await self._io.run(self._validate_request, recipients, request_context)
             runtime = await self._runtime()
             def persist():
-                binding = self._validate_request(agent_id, request_context)
+                bindings = self._validate_request(recipients, request_context)
                 self._check_queue(runtime.session)
-                message = self._store(runtime.session).create(
-                    MessageRole.USER, content, MessageStatus.QUEUED,
-                    metadata=self.agents.metadata(binding, request_context))
+                message = self._admit(runtime, content, bindings, request_context)
                 log_event(runtime.session.paths.logs, "request.queued", entity_id=message.id,
                           related_id=runtime.session.id)
                 return message
@@ -1037,16 +1074,20 @@ class RunManager:
     def _check_queue(self, session):
         project = self.sessions._owner(session)
         maximum = project.config.policies.get("run", {}).get("max_queued")
-        if maximum is not None and sum(is_queued_request(m) for m in self._store(session).list(
-                query=Query(status=MessageStatus.QUEUED))) >= maximum:
-            raise RunRequestError(RunErrorCode.QUEUE_FULL, "Session request queue is full")
+        if maximum is not None:
+            waiting = {message.id for message in self._store(session).list(
+                query=Query(status=MessageStatus.QUEUED)) if is_queued_request(message)}
+            waiting.update(run.input_message_id for run in self.repository.unfinished(session)
+                           if run.status == RunStatus.PENDING)
+            if len(waiting) >= maximum:
+                raise RunRequestError(RunErrorCode.QUEUE_FULL, "Session request queue is full")
 
     def _cancel_queued(self, message_id):
-        _, session = self._prepare()
+        project, session = self._prepare()
         store = self._store(session)
         message = store.get(message_id)
-        if message.role != MessageRole.USER or is_instruction(message):
-            raise ValueError("Request ID must identify a user message")
+        RequestAdmission.runs(message, self.repository.list(session),
+                              project_id=project.id, session_id=session.id)
         if message.status != MessageStatus.QUEUED or message.run_id is not None:
             return False
         # 새 백엔드의 복구 이전에도 이미 Run으로 청구된 요청은 취소하지 않는다.
@@ -1065,7 +1106,7 @@ class RunManager:
             return cancelled
 
     def _resume_request(self, runtime, run_id, agent_id, retry_nodes, decisions, *, preview=False, partial_output=False,
-                        source=None, expected_revision=None, link=None):
+                        source=None, expected_revision=None, link=None, records=None):
         """소유권 잠금 안에서 중복 재개를 거부하고 요청을 먼저 영속 큐에 저장한다."""
         if self.pending_work.active:
             raise RunRequestError(RunErrorCode.RESUME_REJECTED, "Cancelled work is still finishing")
@@ -1076,12 +1117,12 @@ class RunManager:
         source = source or self.repository.load(runtime.session, run_id)
         self.repository.require_resume(source)
         project = self.sessions.require_project(runtime.project)
-        binding = self._source_agent(project, runtime.session, source, agent_id)
+        binding = self._source_agent(project, runtime.session, source, agent_id, records=records)
         self._validate_project_request(project)
         if source.agent_id != agent_id or source.status not in (
                 RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
             raise ValueError("Resume requires a paused/interrupted/failed Run and its original Engine")
-        strategy = self._source_strategy(project, runtime.session, source, agent_id)
+        strategy = self.agents.strategy(binding, request_context=source.metadata.get("request_context", UNSET))
         name = getattr(strategy, "checkpoint_name", None)
         if not name or not callable(getattr(strategy, "validate_resume", None)):
             raise ValueError("Engine does not support checkpoint resume")
@@ -1109,8 +1150,8 @@ class RunManager:
             return descriptor
         for response in receipts:
             self.repository.respond(runtime.session, source, response)
-        return store.create(MessageRole.USER, store.get(source.input_message_id).content, MessageStatus.QUEUED,
-                            metadata={**self.agents.metadata(binding, source.metadata.get("request_context", UNSET)), "resume": descriptor})
+        return self._admit(runtime, store.get(source.input_message_id).content, {agent_id: binding},
+                           source.metadata.get("request_context", UNSET), metadata={"resume": descriptor})
 
     def _resume_plan(self, run_id, agent_id) -> ResumePlan:
         project, session = self._prepare()
@@ -1125,7 +1166,7 @@ class RunManager:
         messages, runs = store.list(), self.repository.list(session)
         link = self.repository.resume_link(session, source, store, messages=messages, records=runs)
         try:
-            strategy = self._source_strategy(project, session, source, agent_id)
+            strategy = self._source_strategy(project, session, source, agent_id, records=runs)
             if CheckpointRepository().deletion(source) is not None:
                 state = ResumeState.DELETED
                 raise ValueError("Checkpoints were explicitly deleted")
@@ -1149,7 +1190,7 @@ class RunManager:
                     blockers.append(Diagnostic("interaction_required", "Resolve pending interactions before execution", source=ref))
                 else:
                     state = ResumeState.INCOMPATIBLE
-                    self._resume_request(SessionRuntime(project, session), run_id, agent_id, (), {}, preview=True, source=source, link=link)
+                    self._resume_request(SessionRuntime(project, session), run_id, agent_id, (), {}, preview=True, source=source, link=link, records=runs)
                     state, can_resume = ResumeState.VALID, True
         except ToolUsageError as error:
             state = ResumeState.CORRUPT
@@ -1179,7 +1220,8 @@ class RunManager:
         original = next((m for m in messages if m.id == source.input_message_id), None)
         if original is None or original.metadata.get("conversation_deleted"):
             restart_blockers.append(Diagnostic("input_unavailable", "Original input is unavailable", source=ref))
-        if session.current_run_id or self.pending_work.active:
+        if any(self.repository.load(session, identifier).agent_id == source.agent_id
+               for identifier in session.active_run_ids) or self.pending_work.active:
             restart_blockers.append(Diagnostic("active_run", "Session still has active work", source=ref))
         revision = revision_token({"run": record(source), "checkpoint": checkpoint, "views": [v.to_dict() for v in views],
             "project": project.config.to_dict(), "session": record(session), "messages": [record(m) for m in messages],
@@ -1214,8 +1256,8 @@ class RunManager:
         self._check_queue(runtime.session)
         store = self._store(runtime.session)
         original = store.get(source.input_message_id)
-        return store.create(MessageRole.USER, original.content, MessageStatus.QUEUED,
-            metadata={**self.agents.metadata(binding, source.metadata.get("request_context", UNSET)), "restart": {
+        return self._admit(runtime, original.content, {agent_id: binding},
+            source.metadata.get("request_context", UNSET), metadata={"restart": {
                 "run_id": run_id, "digest": revision_token({"run": record(source), "input": record(original)})}})
 
     def _restart_source(self, session, run):
@@ -1232,21 +1274,14 @@ class RunManager:
                 or revision_token({"run": record(source), "input": record(original)}) != descriptor["digest"]):
             raise CheckpointError("checkpoint_conflict", "Restart source changed after admission")
 
-    def _request_run(self, message_id: str) -> Optional[Run]:
-        _, session = self._prepare()
+    def _request_runs(self, message_id: str) -> list[Run]:
+        project, session = self._prepare()
         message = self._store(session).get(message_id)
-        if message.role != MessageRole.USER or is_instruction(message):
-            raise ValueError("Request ID must identify a user message")
-        if message.run_id is None:
-            if message.status == MessageStatus.CANCELLED:
-                raise RunRequestError(RunErrorCode.REQUEST_CANCELLED, "Request was cancelled before execution")
-            if message.status != MessageStatus.QUEUED:
-                raise ValueError("Message has no executable request")
-            return None
-        run = self.repository.load(session, message.run_id)
-        if run.input_message_id != message.id:
-            raise ValueError("Request and Run ownership mismatch")
-        return run
+        runs = RequestAdmission.runs(message, self.repository.list(session),
+            project_id=project.id, session_id=session.id)
+        if message.status == MessageStatus.CANCELLED:
+            raise RunRequestError(RunErrorCode.REQUEST_CANCELLED, "Request was cancelled before execution")
+        return runs
 
     async def _shutdown(self) -> None:
         async with self._control_lock():
@@ -1264,8 +1299,9 @@ class RunManager:
             return
         runtime.closed = True
         self.pending_work.wake()
-        if runtime.execution is not None:
-            runtime.execution.cancel()
+        for control in runtime.executions.values():
+            control.interrupt()
+        runtime.changed.set()
         runtime.queue.put_nowait(None)
         try:
             if runtime.worker is not None:
@@ -1285,23 +1321,14 @@ class RunManager:
         from llm.services.history.recovery import recover_session
         return recover_session(self.sessions, self.repository, self.steps, session, self._store(session))
 
-    def _begin(self, runtime: SessionRuntime, message: Message) -> Optional[Run]:
-        from llm.services.infrastructure.transactions import watch
-        watch(runtime.session)
-        runtime.project = self.sessions.require_project(runtime.project)
+    def _new_run(self, runtime, message, binding):
         session = runtime.session
-        store = self._store(session)
-        # cancel과 시작을 같은 소유권/I/O 직렬 경로에서 판정한다.
-        if not is_queued_request(store.get(message.id)):
-            return None
         run_id = new_id()
-        # The admitted identity is required evidence, never inferred from an Engine.
-        binding = AgentBinding.read(message.metadata.get("agent_binding"))
+        binding = AgentBinding.read(binding)
         if binding["project_id"] != runtime.project.id:
             raise ValueError("Queued Agent binding belongs to another Project")
         run = Run(run_id, session.id, message.id, new_id(), binding["engine"],
                   self.repository.paths(session, run_id), agent_id=binding["agent_id"])
-        validate_run_transition(run.status, RunStatus.RUNNING, reason="start")
         run.metadata["policies"] = deepcopy(runtime.project.config.policies)
         run.metadata.update(self.agents.metadata(binding, message.metadata.get("request_context", UNSET)))
         # Service dispatch fact, not an effects guarantee after execution.
@@ -1324,15 +1351,51 @@ class RunManager:
             run.metadata["steering"] = ({"accepting": False} if "resume" in run.metadata
                                         else initial_channel(run, steering_mode(strategy), message.id))
         self.repository.create(run)
-        store.bind_run(message.id, run.id)
+        return run
+
+    def _dispatch_request(self, runtime: SessionRuntime, message: Message) -> list[Run]:
+        from llm.services.infrastructure.transactions import watch
+        watch(runtime.session)
+        runtime.project = self.sessions.require_project(runtime.project)
+        session, store = runtime.session, self._store(runtime.session)
+        message = store.get(message.id)
+        messages, records = self._history(runtime.project, session)
+        existing = RequestAdmission.runs(message, records,
+            project_id=runtime.project.id, session_id=session.id)
+        if not is_queued_request(message):
+            return []
+        if existing:
+            raise ValueError("Queued request already has dispatched Runs")
+        admission = RequestAdmission.read(message, project_id=runtime.project.id, session_id=session.id)
+        runs = [self._new_run(runtime, message, admission["bindings"][identifier])
+                for identifier in admission["recipients"]]
+        # One transaction owns the whole group and its shared history. No child
+        # task or Provider can start before every recipient is durably linked.
+        history = self.context_builder.snapshot_for_run(messages, message.id)
+        history = tuple(replace(item, status=MessageStatus.COMMITTED)
+                        if item.id == message.id else item for item in history)
+        dispatched = RequestAdmission.dispatch(admission,
+            run_ids={run.agent_id: run.id for run in runs}, history=history)
+        store.update_metadata(message.id, {"admission": dispatched})
         store.set_status(message.id, MessageStatus.COMMITTED)
-        store.create(MessageRole.ASSISTANT, "", MessageStatus.STREAMING,
-                     message_id=run.assistant_message_id, run_id=run.id)
-        session.current_run_id = run.id
+        for run in runs:
+            store.create(MessageRole.ASSISTANT, "", MessageStatus.QUEUED,
+                         message_id=run.assistant_message_id, run_id=run.id)
+        return runs
+
+    def _begin(self, runtime: SessionRuntime, run: Run) -> Run:
+        from llm.services.infrastructure.transactions import watch
+        watch(runtime.session)
+        session, store = runtime.session, self._store(runtime.session)
+        current = self.repository.load(session, run.id)
+        validate_run_transition(current.status, RunStatus.RUNNING, reason="start")
+        if current.agent_id != run.agent_id or current.metadata != run.metadata:
+            raise ValueError("Pending Run changed before execution")
+        store.set_status(run.assistant_message_id, MessageStatus.STREAMING)
+        session.active_run_ids = sorted([*session.active_run_ids, run.id])
         session.status = SessionStatus.RUNNING
         self.sessions._save_runtime(session)
-        run.status = RunStatus.RUNNING
-        run.started_at = now()
+        run.status, run.started_at = RunStatus.RUNNING, now()
         self.repository.save(run)
         log_event(run.paths.logs, "run.started", entity_id=run.id,
                   related_id=session.id, status=run.status)
@@ -1398,7 +1461,13 @@ class RunManager:
             history = tuple(replace(item, id=run.input_message_id, run_id=run.id)
                             if item.id == header["input_message_id"] else item for item in history)
         else:
-            history = self.context_builder.for_run(store.list(), run.input_message_id, policy=context_policy)
+            message = store.get(run.input_message_id)
+            admission = RequestAdmission.read(message, project_id=runtime.project.id, session_id=runtime.session.id)
+            if admission["dispatch"] is None:
+                raise ValueError("Run requires its dispatched history snapshot")
+            history = self.context_builder.select_snapshot(
+                tuple(Message.from_record(value) for value in admission["dispatch"]["history"]),
+                policy=context_policy)
         # Copy domain state, but do not deepcopy Python handler closures or live
         # capabilities. The resolver returns a fresh registry for this Run.
         if engine is None:
@@ -1714,7 +1783,7 @@ class RunManager:
         # 변경 전 검증한다. 중복 종료로 시각/오류/Step을 덮거나 다음 Run의 Session을 해제하지 않는다.
         validate_run_transition(run.status, status, reason="finish")
         _RunOutcome(status, error, error_code)
-        if run.session_id != runtime.session.id or runtime.session.current_run_id != run.id:
+        if run.session_id != runtime.session.id or run.id not in runtime.session.active_run_ids:
             raise ValueError("Run finalization requires the Session's current Run")
         from llm.services.infrastructure.transactions import watch
         watch(runtime.session)
@@ -1738,87 +1807,152 @@ class RunManager:
         self.repository.save(run)
         log_event(run.paths.logs, f"run.{status.value}", entity_id=run.id,
                   status=status)
-        runtime.session.current_run_id = None
-        runtime.session.status = SessionStatus.IDLE
+        runtime.session.active_run_ids.remove(run.id)
+        runtime.session.status = SessionStatus.RUNNING if runtime.session.active_run_ids else SessionStatus.IDLE
         self.sessions._save_runtime(runtime.session)
         activity_event(runtime.project, run, f"run.{status.value}", time=run.ended_at,
                        status=run.status, code=run.error_code)
         return changed
 
-    async def _worker(self, runtime: SessionRuntime) -> None:
-        while not runtime.closed:
-            while self.pending_work.active and not runtime.closed:
-                await self.pending_work.wait()
-            if runtime.closed:
-                return
-            message_id = await runtime.queue.get()
+    async def _run_one(self, runtime: SessionRuntime, control: RunRuntime) -> None:
+        run = control.run
+        started = time.monotonic()
+        try:
+            await self._io.run(self._begin, runtime, run)
+            self.observability.record(ObservationKind.RUNS.value, ObservationStatus.STARTED.value,
+                run_id=run.id, project_id=runtime.project.id, session_id=runtime.session.id)
+            await self._publish_run(run)
+            control.execution = asyncio.create_task(self._consume_limited(runtime, run))
+            if runtime.closed or control.interrupt_requested:
+                control.execution.cancel()
+            outcome = _RunOutcome(RunStatus.COMPLETED)
             try:
-                if runtime.closed or message_id is None:
-                    return
-                runtime.preparing = True
-                runtime.interrupt_requested = False
-                runtime.finished = asyncio.Event()
-                message = await self._io.run(self._store(runtime.session).get, message_id)
-                if message.status != MessageStatus.QUEUED:
-                    continue
-                # Set up persistent state before creating the cancellable child.
-                # Finalization belongs to the worker, so cancellation before the
-                # child's first instruction still leaves a terminal Run.
-                if runtime.closed:
-                    return
-                run = await self._io.run(self._begin, runtime, message)
-                if run is None:
-                    continue
-                started = time.monotonic()
-                self.observability.record(ObservationKind.RUNS.value, ObservationStatus.STARTED.value, run_id=run.id,
-                    project_id=runtime.project.id, session_id=runtime.session.id)
-                await self._publish_run(run)
-                runtime.preparing = False
-                runtime.execution = asyncio.create_task(self._consume_limited(runtime, run))
-                if runtime.closed or runtime.interrupt_requested:
-                    runtime.execution.cancel()
-                outcome = _RunOutcome(RunStatus.COMPLETED)
-                try:
-                    await runtime.execution
-                except _RunPaused:
-                    outcome = _RunOutcome(RunStatus.PAUSED)
-                except asyncio.CancelledError:
-                    outcome = _RunOutcome(RunStatus.INTERRUPTED, error_code=RunErrorCode.INTERRUPTED)
-                except Exception as failure:
-                    outcome = _RunOutcome(RunStatus.FAILED, str(failure),
-                                          stable_error_code(failure) or RunErrorCode.ENGINE_FAILED)
-                    issue = Diagnostic.from_exception(failure, code=outcome.error_code,
-                        boundary="engine", source=ResourceRef("run", run.id, project_id=runtime.project.id,
-                        session_id=runtime.session.id, run_id=run.id))
-                    if issue.code != outcome.error_code:
-                        issue = replace(issue, code=outcome.error_code,
-                                        details={**issue.details, "observed_code": issue.code})
-                    run.metadata["diagnostic"] = issue.to_dict()
-                finally:
-                    try:
-                        changed = await self._io.run(self._finish, runtime, run,
-                                                     outcome.status, outcome.error, outcome.error_code)
-                        self.observability.record(ObservationKind.RUNS.value, outcome.status.value, code=outcome.error_code,
-                            duration_seconds=time.monotonic() - started, run_id=run.id,
-                            project_id=runtime.project.id, session_id=runtime.session.id)
-                        if outcome.status == RunStatus.PAUSED:
-                            try:
-                                # 선택적 자동 응답 실패가 이미 확정한 PAUSED를 되돌리지 않는다.
-                                await self._io.run(self.repository.apply_interaction_policy, runtime.session, run,
-                                                   run.metadata["policies"].get("approval", {}))
-                            except Exception:
-                                log_event(run.paths.logs, "interaction.policy_failed", entity_id=run.id,
-                                          status=RunManager.RESPONSE_WRITE_FAILED)
-                        await self._publish_run(run)
-                        if "steering" in run.metadata:
-                            await self._publish_instructions(run, changed)
-                    finally:
-                        runtime.execution = None
-                        runtime.finished.set()
+                await control.execution
+            except _RunPaused:
+                outcome = _RunOutcome(RunStatus.PAUSED)
+            except asyncio.CancelledError:
+                outcome = _RunOutcome(RunStatus.INTERRUPTED, error_code=RunErrorCode.INTERRUPTED)
+            except Exception as failure:
+                outcome = _RunOutcome(RunStatus.FAILED, str(failure),
+                                      stable_error_code(failure) or RunErrorCode.ENGINE_FAILED)
+                issue = Diagnostic.from_exception(failure, code=outcome.error_code,
+                    boundary="engine", source=ResourceRef("run", run.id, project_id=runtime.project.id,
+                                       session_id=runtime.session.id, run_id=run.id))
+                if issue.code != outcome.error_code:
+                    issue = replace(issue, code=outcome.error_code,
+                                    details={**issue.details, "observed_code": issue.code})
+                run.metadata["diagnostic"] = issue.to_dict()
             finally:
-                runtime.preparing = False
-                runtime.finished.set()
+                changed = await self._io.run(self._finish, runtime, run,
+                                             outcome.status, outcome.error, outcome.error_code)
+                self.observability.record(ObservationKind.RUNS.value, outcome.status.value,
+                    code=outcome.error_code, duration_seconds=time.monotonic() - started,
+                    run_id=run.id, project_id=runtime.project.id, session_id=runtime.session.id)
+                if outcome.status == RunStatus.PAUSED:
+                    try:
+                        await self._io.run(self.repository.apply_interaction_policy, runtime.session, run,
+                                           run.metadata["policies"].get("approval", {}))
+                    except Exception:
+                        log_event(run.paths.logs, "interaction.policy_failed", entity_id=run.id,
+                                  status=RunManager.RESPONSE_WRITE_FAILED)
+                await self._publish_run(run)
+                if "steering" in run.metadata:
+                    await self._publish_instructions(run, changed)
+        finally:
+            control.execution = None
+            control.finished.set()
+            runtime.changed.set()
+
+    async def _pump(self, runtime: SessionRuntime) -> None:
+        for identifier, control in tuple(runtime.executions.items()):
+            if control.task.done():
+                control.task.result()
+                del runtime.executions[identifier]
+        occupied = {control.run.agent_id for control in runtime.executions.values()}
+        for message_id in tuple(runtime.waiting):
+            runs = runtime.groups.get(message_id)
+            if runs is not None and all(run.status not in Run.ACTIVE_STATES for run in runs):
+                # Finalizers, including publication, must finish before the group
+                # releases its queue accounting or the next request's history.
+                if any(run.id in runtime.executions for run in runs):
+                    continue
+                runtime.waiting.remove(message_id)
+                del runtime.groups[message_id]
                 runtime.queue.task_done()
+                continue
+            if runs is None:
+                message = await self._io.run(self._store(runtime.session).get, message_id)
+                admission = RequestAdmission.read(message, project_id=runtime.project.id,
+                                                   session_id=runtime.session.id)
+                if message.status == MessageStatus.CANCELLED:
+                    runtime.waiting.remove(message_id)
+                    runtime.queue.task_done()
+                    continue
+                recipients = set(admission["recipients"])
+                if not runtime.closed and not self.pending_work.active and recipients - occupied:
+                    runs = await self._io.run(self._dispatch_request, runtime, message)
+                    runtime.groups[message_id] = runs
+                else:
+                    occupied.update(recipients)
+                    continue
+            for run in runs:
+                if run.status != RunStatus.PENDING:
+                    continue
+                if not runtime.closed and not self.pending_work.active and run.agent_id not in occupied:
+                    control = RunRuntime(run)
+                    # Register before any preparation await or observer can request
+                    # cancellation; the finalizer owns even a pre-consumer cancel.
+                    runtime.executions[run.id] = control
+                    control.task = asyncio.create_task(self._run_one(runtime, control),
+                                                       name=f"llm-run-{run.id}")
+                # Older pending recipients reserve FIFO position even when another
+                # recipient in this group can already execute in parallel.
+                occupied.add(run.agent_id)
+
+    async def _worker(self, runtime: SessionRuntime) -> None:
+        failure = None
+        try:
+            while not runtime.closed:
+                runtime.changed.clear()
+                await self._pump(runtime)
+                if runtime.closed:
+                    break
+                reader = asyncio.create_task(runtime.queue.get())
+                changed = asyncio.create_task(runtime.changed.wait())
+                quarantine = asyncio.create_task(self.pending_work.wait()) if self.pending_work.active else None
+                waiters = [reader, changed]
+                if quarantine is not None:
+                    waiters.append(quarantine)
+                try:
+                    await asyncio.wait(waiters, return_when=asyncio.FIRST_COMPLETED)
+                    if reader.done():
+                        identifier = reader.result()
+                        if identifier is None:
+                            runtime.queue.task_done()
+                        else:
+                            runtime.waiting.append(identifier)
+                        while not runtime.queue.empty():
+                            identifier = runtime.queue.get_nowait()
+                            if identifier is None:
+                                runtime.queue.task_done()
+                            else:
+                                runtime.waiting.append(identifier)
+                finally:
+                    for waiter in waiters:
+                        waiter.cancel()
+                    await asyncio.gather(*waiters, return_exceptions=True)
+        except BaseException as error:
+            failure = error
+            raise
+        finally:
+            controls = tuple(runtime.executions.values())
+            for control in controls:
+                control.interrupt()
+            results = await asyncio.gather(*(control.task for control in controls), return_exceptions=True)
+            if failure is None:
+                for result in results:
+                    if isinstance(result, BaseException):
+                        raise result
 
     # 공개 API
     @property
@@ -1829,7 +1963,7 @@ class RunManager:
         """Session을 복구하고 선택한 대화 저장소에 남아 있는 대기 요청만 예약한다."""
         await drain_on_cancel(self._start())
 
-    async def submit(self, content: str, *, agent_id: str, request_context=UNSET) -> Message:
+    async def submit(self, content: str, *, recipients, request_context=UNSET) -> Message:
         """Persist the selected Project Agent and the separate request context."""
         if request_context is not UNSET:
             from llm.core.models import ProjectConfig
@@ -1837,7 +1971,7 @@ class RunManager:
                 raise TypeError("request_context must be a JSON object")
             ProjectConfig.validate_json(request_context)
             request_context = deepcopy(request_context)
-        return await drain_on_cancel(self._submit(content, agent_id, request_context))
+        return await drain_on_cancel(self._submit(content, recipients, request_context))
 
     async def steer(self, run_id: str, content: str, *, targets=None) -> RunInstruction:
         """현재 Run에 추가 지시를 저장한다. 일반 요청 큐나 새 Run을 만들지 않는다."""
@@ -1881,7 +2015,7 @@ class RunManager:
         """대기 요청만 취소한다. 실행 중이면 False이며 interrupt로 명시적으로 중단한다."""
         return await drain_on_cancel(self._cancel_request(message_id))
 
-    async def wait_request(self, message_id: str, *, timeout: Optional[float] = None) -> Run:
+    async def wait_request(self, message_id: str, *, timeout: Optional[float] = None) -> list[Run]:
         """Wait for one stored request; timeout/caller cancellation never stops it.
 
         Completed history is read without attaching a runtime. Pending requests
@@ -1890,17 +2024,17 @@ class RunManager:
         survives (file queues are durable; owned memory ends at backend shutdown).
         """
         async def wait():
-            run = await self._io.run(self._request_run, message_id)
-            if run is not None and run.status not in (RunStatus.PENDING, RunStatus.RUNNING):
-                return run
+            runs = await self._io.run(self._request_runs, message_id)
+            if runs and all(run.status not in Run.ACTIVE_STATES for run in runs):
+                return runs
             runtime = await drain_on_cancel(self._start())
             while True:
                 if self._request_changed is None:
                     self._request_changed = asyncio.Event()
                 changed = self._request_changed
-                run = await self._io.run(self._request_run, message_id)
-                if run is not None and run.status not in (RunStatus.PENDING, RunStatus.RUNNING):
-                    return run
+                runs = await self._io.run(self._request_runs, message_id)
+                if runs and all(run.status not in Run.ACTIVE_STATES for run in runs):
+                    return runs
                 if runtime.worker.done():
                     runtime.worker.result()
                     raise RuntimeError("Session runtime stopped before this request finished")
@@ -1912,17 +2046,17 @@ class RunManager:
                     await asyncio.gather(notification, return_exceptions=True)
         return await asyncio.wait_for(wait(), timeout=timeout)
 
-    async def interrupt(self) -> bool:
+    async def interrupt(self, run_id=None) -> bool:
         runtime = self._active
         if runtime is None:
             return False
-        if not runtime.preparing and (runtime.execution is None or runtime.execution.done()):
+        controls = [control for identifier, control in runtime.executions.items()
+                    if (run_id is None or identifier == run_id) and not control.finished.is_set()]
+        if not controls:
             return False
-        finished = runtime.finished
-        runtime.interrupt_requested = True
-        if runtime.execution is not None:
-            runtime.execution.cancel()
-        await finished.wait()
+        for control in controls:
+            control.interrupt()
+        await asyncio.gather(*(control.finished.wait() for control in controls))
         await self._io.run(log_event, runtime.session.paths.logs, "runtime.interrupted", entity_id=runtime.session.id)
         return True
 

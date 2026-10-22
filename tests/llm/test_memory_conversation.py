@@ -66,7 +66,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate("memory")
         definition = {"engine": "test"} if definition is None else definition
         await project.agents.acreate(definition, identifier=definition["engine"])
-        return project, await project.sessions.acreate("conversation")
+        return project, await project.sessions.acreate("conversation", agent_ids=sorted(await project.agents.alist()))
 
     async def test_configuration_is_explicit_validated_and_does_not_mutate_services(self):
         services = BackendServices()
@@ -89,17 +89,17 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
                                 engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})
         self.addAsyncCleanup(app.shutdown)
         project, session = await self.session(app, definition={"engine": "loop", "completion": {"model": "test"}})
-        first = await session.run.submit("first", agent_id="loop")
-        run = await first.wait(timeout=10)
+        first = await session.run.submit("first", recipients=["loop"])
+        run = (await first.wait(timeout=10))[0]
         self.assertEqual((await run.aresponse()).content, "first answer")
         await session.run.shutdown()
         loaded = await project.sessions.aload(session.id)
-        second = await loaded.run.submit("second", agent_id="loop")
-        self.assertEqual((await (await second.wait(timeout=10)).aresponse()).content, "second answer")
+        second = await loaded.run.submit("second", recipients=["loop"])
+        self.assertEqual((await ((await second.wait(timeout=10))[0]).aresponse()).content, "second answer")
         self.assertEqual([item["content"] for item in completion.requests[1]["messages"]],
                          ["first", "first answer", "second"])
         self.assertEqual(len(await session.aconversation()), 4)
-        self.assertEqual((await (await loaded.run.arequest(first.id)).wait()).id, run.id)
+        self.assertEqual(((await (await loaded.run.arequest(first.id)).wait())[0]).id, run.id)
         self.assertFalse(session.paths.conversation.exists())
         self.assertTrue((run.data.paths.root / "run.json").exists())
         self.assertEqual(len(await run.steps.alist()), 1)
@@ -115,19 +115,19 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
             if event.type == "text_delta" and event.delta.text == "answer:held":
                 streaming.set()
         app.events.subscribe(observe, channel="engine")
-        first = await session.run.submit("held", agent_id="test")
+        first = await session.run.submit("held", recipients=["test"])
         await asyncio.wait_for(streaming.wait(), 10)
-        queued = await session.run.submit("next", agent_id="test")
+        queued = await session.run.submit("next", recipients=["test"])
         self.assertEqual((await queued.aget_data()).status, MessageStatus.QUEUED)
         self.assertEqual((await session.aconversation())[1].content, "answer:held")
-        other = await project.sessions.acreate("separate")
-        independent = await (await other.run.submit("independent", agent_id="test")).wait(timeout=10)
+        other = await project.sessions.acreate("separate", agent_ids=sorted(await project.agents.alist()))
+        independent = (await (await other.run.submit("independent", recipients=["test"])).wait(timeout=10))[0]
         self.assertEqual((await independent.aresponse()).content, "answer:independent")
         await session.run.interrupt()
-        interrupted = await first.wait(timeout=10)
+        interrupted = (await first.wait(timeout=10))[0]
         self.assertEqual(interrupted.data.status, RunStatus.INTERRUPTED)
         self.assertEqual((await interrupted.aresponse()).status, MessageStatus.INTERRUPTED)
-        self.assertEqual((await (await queued.wait(timeout=10)).aresponse()).content, "answer:next")
+        self.assertEqual((await ((await queued.wait(timeout=10))[0]).aresponse()).content, "answer:next")
         self.assertEqual(len(await other.aconversation()), 2)
         self.assertFalse(list(self.root.rglob("conversation.jsonl")))
 
@@ -137,9 +137,9 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
         project, session = await self.session(app)
         engine = app.engines.get("test")
         engine.gates["held"] = asyncio.Event()
-        await session.run.submit("held", agent_id="test")
+        await session.run.submit("held", recipients=["test"])
         await asyncio.wait_for(engine.entered["held"].wait(), 10)
-        await session.run.submit("never replay", agent_id="test")
+        await session.run.submit("never replay", recipients=["test"])
         store = app.project_manager.sessions.conversations(session.data)
         await app.shutdown()
         self.assertEqual(store.list(), [])
@@ -153,13 +153,13 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(old_run.data.status, RunStatus.INTERRUPTED)
         with self.assertRaises(KeyError):
             await old_run.aresponse()
-        new = await (await restored.run.submit("fresh", agent_id="test")).wait(timeout=10)
+        new = (await (await restored.run.submit("fresh", recipients=["test"])).wait(timeout=10))[0]
         self.assertEqual((await new.aresponse()).content, "answer:fresh")
 
     async def test_clone_soft_delete_restore_and_permanent_cleanup(self):
         app = self.backend(conversation_storage="memory")
         project, session = await self.session(app)
-        await (await session.run.submit("source", agent_id="test")).wait(timeout=10)
+        await (await session.run.submit("source", recipients=["test"])).wait(timeout=10)
         await session.run.shutdown()
         cloned = await session.aclone()
         self.assertEqual([m.content for m in await cloned.aconversation()], ["source", "answer:source"])
@@ -190,7 +190,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
             file_store.create(MessageRole.ASSISTANT, "answer:file history", MessageStatus.COMPLETED)
         original = session.paths.conversation.read_bytes()
         self.assertEqual(await session.aconversation(), [])
-        await (await session.run.submit("memory history", agent_id="test")).wait(timeout=10)
+        await (await session.run.submit("memory history", recipients=["test"])).wait(timeout=10)
         self.assertEqual([m.content for m in await session.aconversation()], ["memory history", "answer:memory history"])
         self.assertEqual(session.paths.conversation.read_bytes(), original)
         await memory_app.shutdown()
@@ -207,7 +207,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
         services = BackendServices(conversations=factory)
         app = self.backend(services=services)
         project, session = await self.session(app)
-        await (await session.run.submit("retained", agent_id="test")).wait(timeout=10)
+        await (await session.run.submit("retained", recipients=["test"])).wait(timeout=10)
         store = factory(session.data)
         await app.shutdown()
         self.assertEqual(len(store.list()), 2)
@@ -221,7 +221,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
     async def test_stale_runs_and_steps_recover_even_when_memory_history_is_gone(self):
         app = self.backend(conversation_storage="memory")
         project, session = await self.session(app)
-        run = await (await session.run.submit("old", agent_id="test")).wait(timeout=10)
+        run = (await (await session.run.submit("old", recipients=["test"])).wait(timeout=10))[0]
         run_path = run.data.paths.root / "run.json"
         step_path = (await run.steps.alist())[0].paths.root / "step.json"
         session_path = session.paths.root / "session.json"
@@ -231,7 +231,7 @@ class MemoryConversationTests(unittest.IsolatedAsyncioTestCase):
             data.update(status="running", ended_at=None)
             atomic_json(path, data)
         session_data = read_json(session_path)
-        session_data.update(status="running", current_run_id=run.id)
+        session_data.update(status="running", active_run_ids=[run.id])
         atomic_json(session_path, session_data)
         reopened = self.backend(conversation_storage="memory")
         loaded = await (await reopened.projects.aload(project.id)).sessions.aload(session.id)

@@ -127,7 +127,7 @@ class RetryObservationTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await runtime.start()
                 sid = await runtime.new_session()
-                request = await runtime.sessions[sid].run.submit("Convert", agent_id="assistant")
+                request = await runtime.sessions[sid].run.submit("Convert", recipients=["assistant"])
                 await asyncio.wait_for(choosing.wait(), 10)
                 snapshot = await runtime.snapshot()
                 self.assertEqual(snapshot.run.retry.phase, "repairing")
@@ -143,7 +143,7 @@ class RetryObservationTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("재시도 중 · Tool convert · 2/3번째 시도", header)
                 self.assertNotIn(message.text, header)
                 release_tool.set()
-                result = await request.wait()
+                result = (await request.wait())[0]
                 self.assertEqual(str(result.data.status), "completed", result.data.error)
                 self.assertIsNone((await runtime.snapshot()).run.retry)
                 monitor = runtime.backend.services.observability_sink
@@ -167,7 +167,7 @@ class RetryObservationTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await runtime.start()
                 sid = await runtime.new_session()
-                request = await runtime.sessions[sid].run.submit("Convert", agent_id="assistant")
+                request = await runtime.sessions[sid].run.submit("Convert", recipients=["assistant"])
                 monitor = runtime.backend.services.observability_sink
                 await eventually(lambda: bool(monitor.states))
                 state = (await runtime.snapshot()).run.retry

@@ -105,10 +105,10 @@ class CheckpointIntegrityTests(unittest.IsolatedAsyncioTestCase):
                     graph = WorkflowGraph(entry='work').node('work', 'work').node('end', 'end').connect('work', 'end').to_dict()
                     await (await project.components.aget('workflows')).acreate(graph, identifier='flow')
                     await project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier='graph')
-                    session = await project.sessions.acreate()
-                    await (await session.run.submit('effect', agent_id='graph')).wait()
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                    await (await session.run.submit('effect', recipients=['graph'])).wait()
             asyncio.run(main())
-        ''')
+''')
         for boundary in ('record', 'manifest'):
             with self.subTest(boundary=boundary):
                 root = self.root / boundary

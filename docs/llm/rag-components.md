@@ -118,7 +118,8 @@ Project가 `rag`를 선택하면 `rag_search` Tool 하나가 자동 제공된다
 
 ```python
 session = await project.sessions.acreate("설명서 질문")
-run = await (await session.run.submit("설명서를 검색해서 백업 정책을 설명해 줘", agent_id="loop")).wait()
+await session.asave(agent_ids=['loop'])
+run, = await (await session.run.submit("설명서를 검색해서 백업 정책을 설명해 줘", recipients=["loop"])).wait()
 steps = await run.steps.alist()
 response = await run.aresponse()
 ```

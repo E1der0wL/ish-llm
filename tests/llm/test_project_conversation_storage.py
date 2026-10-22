@@ -26,7 +26,10 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
     async def answer(self, session, text):
         if "test" not in await session.project.agents.alist():
             await session.project.agents.acreate({"engine": "test"}, identifier="test")
-        run = await (await session.run.submit(text, agent_id="test")).wait(timeout=15)
+        if "test" not in (await session.aget_data()).agent_ids:
+            await session.run.shutdown()
+            await session.asave(agent_ids=["test"])
+        run = (await (await session.run.submit(text, recipients=["test"])).wait(timeout=15))[0]
         self.assertEqual((await run.aresponse()).content, "answer:" + text)
         return run
 
@@ -34,7 +37,7 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
         app = self.backend()
         projects = [await app.projects.acreate(mode, conversation_storage=mode)
                     for mode in ("file", "memory")]
-        sessions = [await project.sessions.acreate("chat") for project in projects]
+        sessions = [await project.sessions.acreate("chat", agent_ids=sorted(await project.agents.alist())) for project in projects]
         await asyncio.gather(*(self.answer(session, mode) for session, mode in zip(sessions, ("file", "memory"))))
         for project, session, mode in zip(projects, sessions, ("file", "memory")):
             self.assertEqual(read_json(project.paths.root / "project.json")["conversation_storage"], mode)
@@ -66,7 +69,7 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
         await project.asave(conversation_storage="file", title="changed")
         self.assertEqual(project.data.conversation_storage, "file")
         # 오래된 ProjectHandle 내부 스냅샷도 새 Session의 저장 선택에 영향을 주지 않는다.
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         await self.answer(session, "file")
         self.assertTrue(session.paths.conversation.exists())
         await project.asave(title="renamed", config={"data": {"arbitrary": 1}}, conversation_storage="file")
@@ -96,6 +99,7 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([m.content for m in await cloned_session.aconversation()], ["source", "answer:source"])
         self.assertFalse(cloned_session.paths.conversation.exists())
         file_project = await app.projects.acreate("file")
+        await file_project.agents.acreate(await memory.agents.aload("test"), identifier="test")
         manager = app.project_manager.sessions
         file_session = manager.clone(session.data, file_project.data)
         self.assertTrue(file_session.paths.conversation.exists())
@@ -136,7 +140,7 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
             await app.projects.aload(project.id)
         data["conversation_storage"] = "file"
         atomic_json(path, data)
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         await app.shutdown()
         custom = self.backend(services=BackendServices(conversations=MemoryConversations()))
         for mode in ("file", "memory"):
@@ -154,7 +158,7 @@ class ProjectConversationStorageTests(unittest.IsolatedAsyncioTestCase):
     async def test_memory_project_cleanup_with_file_backend_default(self):
         app = self.backend()
         project = await app.projects.acreate(conversation_storage="memory")
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         await self.answer(session, "retained")
         store = app.project_manager.sessions.conversations(session.data)
         await session.run.shutdown()

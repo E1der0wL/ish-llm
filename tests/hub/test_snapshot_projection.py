@@ -56,11 +56,11 @@ class SnapshotProjectionTests(unittest.IsolatedAsyncioTestCase):
         record = NS(id="s", title="Session", config={}, metadata={"hub_auto_title": True})
         run = NS(id="r", session_id="s", status="running", engine="loop", started_at="2026-10-01T00:00:00+00:00",
                  ended_at=None, error=None, metadata={"completions": [{"status": "running", "reasoning_content": "Summary", "model": "test/model"}]})
-        handle = NS(aget_data=AsyncMock(return_value=run), steps=NS(alist=AsyncMock(return_value=[NS(name="LLM", status="running", kind="llm")])))
-        status = NS(status="running", queued_count=2, active_run_id="r")
+        handle = NS(id="r", aget_data=AsyncMock(return_value=run), steps=NS(alist=AsyncMock(return_value=[NS(name="LLM", status="running", kind="llm")])))
+        status = NS(status="running", queued_count=2, active_runs=[NS(run_id="r", agent_id="assistant")])
         message = NS(id="m", role="assistant", content="", status="streaming", created_at=run.started_at, run_id="r", metadata={})
         session = NS(aget_data=AsyncMock(return_value=record), aconversation=AsyncMock(return_value=[message]),
-                     run=NS(astatus=AsyncMock(return_value=status), alist=AsyncMock(return_value=[handle]), aload=AsyncMock()))
+                     run=NS(astatus=AsyncMock(return_value=status), alist=AsyncMock(side_effect=lambda *, query: [] if query.status == "paused" else [handle]), aload=AsyncMock()))
         project = NS(aget_data=AsyncMock(return_value=NS(id="p", title="Project", config={}, components=["tools"], conversation_storage="file")),
                      paths=NS(root="/workspace"), agents=NS(alist=AsyncMock(return_value={"assistant": {"engine": "loop"}})))
         engines = NS(names=lambda: ("loop",), resolve_agent=lambda _: NS(resolve_config=lambda *a, **kw: {"values": {"config": {"completion": {"model": "test/model"}}}}))

@@ -28,13 +28,13 @@ completed 저장이 실패하면 started로 남아 재실행 승인이 필요하
 ```python
 await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": workflow_id}},
                              identifier="coordinator")
-request = await session.run.submit("설정 파일을 검토해줘", agent_id="coordinator")
-run = await request.wait()  # completed / failed / interrupted / paused 중 하나
+request = await session.run.submit("설정 파일을 검토해줘", recipients=["coordinator"])
+run, = await request.wait()  # completed / failed / interrupted / paused 중 하나
 snapshot = await run.acheckpoint()
 
 # pause_before에서 기다린 노드는 별도 재시도 승인 없이 이어갈 수 있다.
 resumed_request = await session.run.resume(run.id, agent_id=run.agent_id)
-resumed_run = await resumed_request.wait()
+resumed_run, = await resumed_request.wait()
 ```
 
 `resume`은 이전 Run을 수정하지 않고 **새 요청과 새 Run**을 만든다. 새 Run의

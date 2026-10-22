@@ -509,9 +509,9 @@ class RAGTests(unittest.IsolatedAsyncioTestCase):
             yield json.dumps(await rag.asearch_documents("backup"))
         self.app.engines.register("retrieve", BaseEngine("Search", kind="retrieval", action=retrieve))
         await self.project.agents.acreate({"engine": "retrieve"}, identifier="retrieve")
-        session = await self.project.sessions.acreate("Question")
-        request = await session.run.submit("backup", agent_id="retrieve")
-        run = await request.wait(timeout=20)
+        session = await self.project.sessions.acreate("Question", agent_ids=sorted(await self.project.agents.alist()))
+        request = await session.run.submit("backup", recipients=["retrieve"])
+        run = (await request.wait(timeout=20))[0]
         self.assertEqual(str((await run.aresult()).status), "completed")
         self.assertIn("15 minutes", (await run.aresponse()).content)
         steps = await run.steps.alist()

@@ -49,7 +49,7 @@ effect와 category의 Application 확장은 유지하며 선택지 ID는 approve
 ## UI 사용
 
 ```python
-# paused_run은 request.wait()로 받은 RunHandle이다.
+# paused_run은 request.wait()의 목록에서 선택한 RunHandle이다.
 requests = await paused_run.ainteractions(pending_only=True)
 request = requests[0]
 
@@ -59,7 +59,7 @@ await paused_run.arespond(response)
 
 # 응답 저장만으로 Tool이나 Workflow를 실행하지 않는다.
 new_request = await session.run.resume(paused_run.id, agent_id=paused_run.agent_id)
-new_run = await new_request.wait()
+new_run, = await new_request.wait()
 ```
 
 엔진 이름은 계속 명시한다. UI는 Loop의 bool이나 Graph의 approved/state 형식을

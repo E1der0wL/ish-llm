@@ -47,7 +47,7 @@ class BootstrapTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await runtime.start()
                 session = await runtime.project.sessions.acreate(config={"parameters": {
-                    "engines": {"writer": {'config': {'completion': {'model': 'test/session'}}}}}})
+                    "engines": {"writer": {'config': {'completion': {'model': 'test/session'}}}}}}, agent_ids=sorted(await runtime.project.agents.alist()))
                 await runtime.activate_project(runtime.project, session_id=session.id)
                 view = await runtime.snapshot()
                 self.assertEqual(view.model, "test/session")

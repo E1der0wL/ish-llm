@@ -74,8 +74,9 @@ Memory를 선택하면 `tools` capability를 사용하는 Loop와 Graph에 아�
 
 ```python
 session = await project.sessions.acreate()
-request = await session.run.submit("내 응답 언어 선호를 기억에서 찾아줘.", agent_id="loop")
-run = await request.wait()
+await session.asave(agent_ids=['loop'])
+request = await session.run.submit("내 응답 언어 선호를 기억에서 찾아줘.", recipients=["loop"])
+run, = await request.wait()
 ```
 
 | Tool | 역할 |

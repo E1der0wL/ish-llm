@@ -381,7 +381,7 @@ class Compactions:
 
     def delete(self, expected_revision):
         state = self.recover()
-        if (self.session is not None and self.session.current_run_id is not None
+        if (self.session is not None and self.session.active_run_ids
                 or state.get("request", {}).get("status") in self.UNFINISHED_STATES):
             raise ValueError("Finish or cancel summary work before deleting its derived state")
         if revision_token(state) != expected_revision:

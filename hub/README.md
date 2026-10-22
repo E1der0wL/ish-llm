@@ -459,7 +459,7 @@ Agent는 Component 선택과 독립된 Project 도메인입니다. 등록한 Wor
 `/workflows config`에서 편집합니다. 필요한 Component 선택은 `project.components.aselect()`로 변경합니다.
 
 Hub 확장에서는 `view.choose_agent("coordinator")`로 선택합니다. 전송은
-`session.run.submit(text, agent_id=..., request_context=...)`를 사용합니다.
+`session.run.submit(text, recipients=[...], request_context=...)`를 사용합니다.
 셸 환경은 request_context에 별도로 보존하며 저장 Agent 정의에 합치지 않습니다.
 선택은 Project·Session별로 유지하고 접수된 요청은 Agent 정의·revision·Engine binding을 고정합니다.
 실행·재개 전 필수 증거를 검증하며 선택된 정의가 달라지면 실행을 거부합니다.

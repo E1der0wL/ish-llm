@@ -3,6 +3,7 @@
 import asyncio
 import tempfile
 import unittest
+from unittest.mock import patch
 from copy import copy
 from pathlib import Path
 
@@ -102,7 +103,7 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
         await self.workflows.acreate(graph("b"), identifier="b")
         for identifier in ("a", "b"):
             await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": identifier}}, identifier=identifier)
-        self.session = await self.project.sessions.acreate()
+        self.session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
 
     async def reopen(self):
         await self.app.shutdown()
@@ -120,7 +121,8 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
             await self.session.run.submit("go", engine="graph")
         self.assertEqual(await self.session.run.alist(), [])
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "missing"}}, identifier="missing")
-        run = await (await self.session.run.submit("go", agent_id="missing")).wait(timeout=10)
+        await self.session.asave(agent_ids=sorted(set((await self.session.aget_data()).agent_ids) | {"missing"}))
+        run = (await (await self.session.run.submit("go", recipients=["missing"])).wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(await run.steps.alist(), [])
         self.assertEqual(self.effects, [])
@@ -134,15 +136,17 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.wait_for(release.wait(), 5)
             return {"observed": node.state["tag"]}
         await self.setup_backend(work)
-        other = await self.project.sessions.acreate()
+        other = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         options = {"workflow": "a"}
         await self.project.agents.acreate({"engine": "graph", "engine_options": options}, identifier="first")
-        first = await self.session.run.submit("one", agent_id="first")
+        await self.session.asave(agent_ids=sorted(set((await self.session.aget_data()).agent_ids) | {"first"}))
+        first = await self.session.run.submit("one", recipients=["first"])
         options["workflow"] = "b"
         await self.project.agents.acreate({"engine": "graph", "engine_options": options}, identifier="second")
-        second = await other.run.submit("two", agent_id="second")
+        await other.asave(agent_ids=sorted(set((await other.aget_data()).agent_ids) | {"second"}))
+        second = await other.run.submit("two", recipients=["second"])
         runs = await asyncio.gather(first.wait(timeout=10), second.wait(timeout=10))
-        for run, expected in zip(runs, ("a", "b")):
+        for (run,), expected in zip(runs, ("a", "b")):
             self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
             self.assertEqual(run.data.metadata["agent_binding"]["definition"]["engine_options"], {"workflow": expected})
             self.assertEqual((await run.acheckpoint())["header"]["binding"]["workflow_id"], expected)
@@ -157,29 +161,45 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.Event().wait()
             return {}
         await self.setup_backend(work)
-        await self.session.run.submit("one", agent_id="a")
+        await self.session.run.submit("one", recipients=["a"])
         await asyncio.wait_for(entered.wait(), 5)
-        queued = await self.session.run.submit("two", agent_id="b")
-        self.assertEqual((await queued.aget_data()).metadata["agent_binding"]["definition"]["engine_options"], {"workflow": "b"})
+        manager = self.app._manager(self.session.data)
+        pump, release = manager._pump, asyncio.Event()
+        async def held(runtime):
+            await release.wait()
+            await pump(runtime)
+        guard = patch.object(manager, "_pump", side_effect=held)
+        guard.start()
+        self.addCleanup(guard.stop)
+        self.addCleanup(release.set)
+        queued = await self.session.run.submit("two", recipients=["b"])
+        self.assertEqual((await queued.aget_data()).metadata["admission"]["bindings"]["b"]["definition"]["engine_options"], {"workflow": "b"})
+        self.assertEqual(queued.data.status, "queued")
+        stopping = asyncio.create_task(self.app.shutdown())
+        async with asyncio.timeout(10):
+            while not manager._active.closed:
+                await asyncio.sleep(0)
+        release.set()
+        await stopping
         session = await self.reopen()
         await session.run.start()
-        run = await session.run.request(queued.id).wait(timeout=10)
+        run = (await session.run.request(queued.id).wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(self.effects, ["a", "b"])
 
     async def test_resume_restores_selection_and_rejects_changed_definition(self):
         await self.setup_backend()
         await self.workflows.asave("a", graph("a", pause=True))
-        paused = await (await self.session.run.submit("go", agent_id="a")).wait(timeout=10)
+        paused = (await (await self.session.run.submit("go", recipients=["a"])).wait(timeout=10))[0]
         self.assertEqual(paused.data.status, RunStatus.PAUSED)
         session = await self.reopen()
         with self.assertRaisesRegex(RunRequestError, "original Agent"):
             await session.run.resume(paused.id, agent_id="b")
-        resumed = await (await session.run.resume(paused.id, agent_id="a")).wait(timeout=10)
+        resumed = (await (await session.run.resume(paused.id, agent_id="a")).wait(timeout=10))[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(resumed.data.metadata["agent_binding"]["definition"]["engine_options"], {"workflow": "a"})
         self.assertEqual(self.effects, ["a"])
-        next_pause = await (await session.run.submit("again", agent_id="a")).wait(timeout=10)
+        next_pause = (await (await session.run.submit("again", recipients=["a"])).wait(timeout=10))[0]
         workflows = await session.project.components.aget("workflows")
         await workflows.asave("a", graph("changed", pause=True))
         with self.assertRaisesRegex(RunRequestError, "changed"):
@@ -195,12 +215,12 @@ class GraphRequestTests(unittest.IsolatedAsyncioTestCase):
             self.effects.append(node.state["tag"])
             return {}
         await self.setup_backend(work)
-        first = await self.session.run.submit("one", agent_id="a")
+        first = await self.session.run.submit("one", recipients=["a"])
         await asyncio.wait_for(entered.wait(), 5)
-        second = await self.session.run.submit("two", agent_id="b")
+        second = await self.session.run.submit("two", recipients=["b"])
         await self.workflows.asave("b", graph("updated"))
         release.set()
         await first.wait(timeout=10)
-        run = await second.wait(timeout=10)
+        run = (await second.wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(self.effects, ["a", "updated"])

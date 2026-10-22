@@ -24,41 +24,56 @@ from tests.hub.test_live import until
 from tests.llm.test_loop import ScriptedCompletion, chunk, call
 
 
+
+from tests.llm.support.admission import uid, admitted_message
+
 class ApprovalContinuationTests(unittest.IsolatedAsyncioTestCase):
     def test_resumed_reasoning_stays_above_one_response_until_completion(self):
         from hub.backend.execution.continuations import continued_messages
-        records = [NS(id='u1', role='user', run_id='r1', metadata={}),
-                   NS(id='a1', role='assistant', run_id='r1', metadata={}),
-                   NS(id='u2', role='user', run_id='r2', metadata={'resume': {'run_id': 'r1'}}),
-                   NS(id='a2', role='assistant', run_id='r2', metadata={})]
-        messages = (ChatMessage('user', 'Request', id='u1'),
-                    ChatMessage('reasoning', 'First thought', id='a1:reasoning',
+        records = [admitted_message(uid('u1'), 'user', 'committed', uid('r1')),
+                   admitted_message(uid('a1'), 'assistant', 'paused', uid('r1')),
+                   admitted_message(uid('u2'), 'user', 'committed', uid('r2'), {'resume': {'run_id': uid('r1')}}),
+                   admitted_message(uid('a2'), 'assistant', 'streaming', uid('r2'))]
+        messages = (ChatMessage('user', 'Request', id=uid('u1')),
+                    ChatMessage('reasoning', 'First thought', id=uid('a1') + ":reasoning",
                                 tools=(StepSummary('file_read', 'completed', 'tool', 't1'),)),
-                    ChatMessage('assistant', 'Before approval', id='a1', status='paused'),
-                    ChatMessage('user', 'Request', id='u2'),
-                    ChatMessage('reasoning', 'Second thought', id='a2:reasoning',
+                    ChatMessage('assistant', 'Before approval', id=uid('a1'), status='paused'),
+                    ChatMessage('user', 'Request', id=uid('u2')),
+                    ChatMessage('reasoning', 'Second thought', id=uid('a2') + ":reasoning",
                                 tools=(StepSummary('file_create', 'running', 'tool', 't2'),)),
-                    ChatMessage('assistant', 'After approval', id='a2', status='streaming'))
+                    ChatMessage('assistant', 'After approval', id=uid('a2'), status='streaming'))
         result = continued_messages(records, messages)
-        self.assertEqual([m.id for m in result], ['u1', 'a1:reasoning', 'a1'])
+        self.assertEqual([m.id for m in result], [uid('u1'), uid('a1') + ":reasoning", uid('a1')])
         self.assertEqual(result[1].text, 'First thought\n\nSecond thought')
         self.assertEqual([s.id for s in result[1].tools], ['t1', 't2'])
         self.assertEqual(result[2].text, 'Before approval\n\nAfter approval')
         done = continued_messages(records, (*messages[:-1], replace(messages[-1], status='completed')))
-        self.assertEqual([m.id for m in done], ['u1', 'a1'])
+        self.assertEqual([m.id for m in done], [uid('u1'), uid('a1')])
 
     def test_queued_and_repeated_resume_preserve_one_display_turn_with_steering(self):
         from hub.backend.execution.continuations import continued_messages
         def record(identifier, role, run_id, parent=None):
-            return NS(id=identifier, role=role, run_id=run_id, metadata={'resume': {'run_id': parent}} if parent else {})
-        records = [record('u1', 'user', 'r1'), record('a1', 'assistant', 'r1'),
-                   record('u2', 'user', 'r2', 'r1'), record('a2', 'assistant', 'r2'),
-                   record('steer', 'user', 'r2'), record('u3', 'user', 'r3', 'r2'),
-                   record('a3', 'assistant', 'r3'), record('queued', 'user', None, 'r3')]
-        messages = tuple(ChatMessage(r.role, {'a1': 'Before', 'a2': 'Middle', 'a3': 'After'}.get(r.id, r.id),
+            if identifier == uid('steer'):
+                from llm.core.models import Message, MessageRole, MessageStatus
+                from llm.core.steering import RunInstruction
+                application = {'run_id': run_id, 'boundary': 'completion', 'target_id': 'root',
+                               'time': '2026-01-01T00:00:00+00:00', 'step_id': None}
+                message = Message(identifier, MessageRole.USER, 'steer', MessageStatus.COMMITTED,
+                    run_id=run_id, metadata={'steering': {'run_id': run_id, 'input_message_id': uid('u2'),
+                        'status': 'applied', 'applications': [application], 'targets': [
+                            {'id': 'root', 'scope': None, 'status': 'applied', 'applications': [application]}]}})
+                RunInstruction.validate_message(message)
+                return message
+            return admitted_message(identifier, role, 'queued' if run_id is None else 'committed', run_id,
+                                    {'resume': {'run_id': parent}} if parent else {})
+        records = [record(uid('u1'), 'user', uid('r1')), record(uid('a1'), 'assistant', uid('r1')),
+                   record(uid('u2'), 'user', uid('r2'), uid('r1')), record(uid('a2'), 'assistant', uid('r2')),
+                   record(uid('steer'), 'user', uid('r2')), record(uid('u3'), 'user', uid('r3'), uid('r2')),
+                   record(uid('a3'), 'assistant', uid('r3')), record(uid('queued'), 'user', None, uid('r3'))]
+        messages = tuple(ChatMessage(r.role, {uid('a1'): 'Before', uid('a2'): 'Middle', uid('a3'): 'After'}.get(r.id, r.id),
                                      id=r.id, status='completed') for r in records)
         result = continued_messages(records, messages)
-        self.assertEqual([m.id for m in result], ['u1', 'a1', 'steer'])
+        self.assertEqual([m.id for m in result], [uid('u1'), uid('a1'), uid('steer')])
         self.assertEqual(result[1].text, 'Before\n\nMiddle\n\nAfter')
 
     async def test_deny_saves_answer_without_resuming_or_executing(self):

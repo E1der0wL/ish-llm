@@ -35,9 +35,16 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
         session = session or self.session
         if engine not in self.projects.agents.list(self.project):
             self.projects.agents.create(self.project, {"engine": engine}, identifier=engine)
+        if engine not in session.agent_ids:
+            if session.id == self.session.id:
+                await self.manager.shutdown()
+                self.manager = RunManager(self.sessions, self.engines, session=session)
+                self.addAsyncCleanup(self.manager.shutdown)
+            session.agent_ids = sorted([*session.agent_ids, engine])
+            self.sessions.save(session)
         manager = self.manager if session.id == self.session.id else RunManager(self.sessions, self.engines, session=session)
         try:
-            await manager.submit("hello", agent_id=engine)
+            await manager.submit("hello", recipients=[engine])
             await asyncio.wait_for(manager.wait_idle(), 15)
             return manager.repository.list(session)[-1]
         finally:
@@ -145,7 +152,9 @@ class ConfigurationResultTests(unittest.IsolatedAsyncioTestCase):
             yield chunk(finish="stop")
         self.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         self.projects.agents.create(self.project, {"engine": "loop"}, identifier="loop")
-        await self.manager.submit("hello", agent_id="loop")
+        self.session.agent_ids = ["loop"]
+        self.sessions.save(self.session)
+        await self.manager.submit("hello", recipients=["loop"])
         storage = StorageIO(self.projects.ownership)
         async def observed():
             while True:

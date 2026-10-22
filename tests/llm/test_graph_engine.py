@@ -42,10 +42,10 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
         self.workflows = await self.project.components.aget("workflows")
         await self.workflows.acreate(graph, identifier="flow")
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="flow-agent")
-        self.session = await self.project.sessions.acreate("session")
+        self.session = await self.project.sessions.acreate("session", agent_ids=sorted(await self.project.agents.alist()))
 
     async def run_graph(self):
-        return await asyncio.wait_for((await self.session.run.submit("request", agent_id="flow-agent")).wait(), 10)
+        return (await asyncio.wait_for((await self.session.run.submit("request", recipients=["flow-agent"])).wait(), 10))[0]
 
     async def output(self, run):
         root = next(step for step in await run.steps.alist() if step.kind == "graph")
@@ -165,12 +165,12 @@ class GraphTests(unittest.IsolatedAsyncioTestCase):
                     closed.set()
             return {"ok": True}
         await self.setup_graph(straight(), {"work": work})
-        first = await self.session.run.submit("first", agent_id="flow-agent")
+        first = await self.session.run.submit("first", recipients=["flow-agent"])
         await asyncio.wait_for(entered.wait(), 3)
-        second = await self.session.run.submit("second", agent_id="flow-agent")
+        second = await self.session.run.submit("second", recipients=["flow-agent"])
         await self.session.run.interrupt()
-        self.assertEqual((await first.wait()).data.status, RunStatus.INTERRUPTED)
-        self.assertEqual((await asyncio.wait_for(second.wait(), 5)).data.status, RunStatus.COMPLETED)
+        self.assertEqual(((await first.wait())[0]).data.status, RunStatus.INTERRUPTED)
+        self.assertEqual((await asyncio.wait_for(second.wait(), 5))[0].data.status, RunStatus.COMPLETED)
         self.assertTrue(closed.is_set())
 
     async def test_node_timeout_and_execution_budget_are_terminal(self):

@@ -48,7 +48,7 @@ from llm.engines.graph import GraphEngine
 engines = {"assistant": LoopEngine()}
 # LargeLanguageModel(..., engines=engines)
 # await project.agents.acreate({"engine": "assistant"}, identifier="assistant")
-# await session.run.submit("안녕하세요", agent_id="assistant")
+# await session.run.submit("안녕하세요", recipients=["assistant"])
 ```
 
 등록 이름이 설정 키입니다. Project 설정은 `parameters.engines.assistant`에 둡니다. 이름이나 파일 위치만으로 자동 발견하지 않으며, 등록한 Engine을 선택한 Agent를 저장하고 실제 Agent ID를 submit/resume에 전달합니다.

@@ -29,6 +29,8 @@ class PausedStopTests(unittest.IsolatedAsyncioTestCase):
                     .node("end", "end").connect("work", "end").to_dict(), identifier="pause")
                 await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "pause"}},
                                                      identifier="graph")
+                await runtime.sessions[sid].run.shutdown()
+                await runtime.sessions[sid].asave(agent_ids=["graph"])
                 await runtime.submit(sid, "Do work", "graph")
                 await runtime.sessions[sid].run.wait_idle()
                 self.assertEqual((await runtime.snapshot()).run.status, "paused")
@@ -36,7 +38,7 @@ class PausedStopTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(calls, [])
                 row, = await runtime.turns(sid)
                 self.assertEqual(row["status"], "interrupted")
-                await runtime.retry_turn(sid, row["id"], row["run_id"])
+                await runtime.retry_turn(sid, row["id"], row["runs"][0]["run_id"])
                 retried = await runtime.snapshot()
                 question = retried.questions[0]
                 self.assertEqual(calls, [])
@@ -87,7 +89,7 @@ class PausedStopTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(stopped.run.status, "interrupted")
                 self.assertFalse(stopped.questions)
                 row, = await runtime.turns(sid)
-                await runtime.retry_turn(sid, row["id"], row["run_id"])
+                await runtime.retry_turn(sid, row["id"], row["runs"][0]["run_id"])
                 retried = await runtime.snapshot()
                 self.assertEqual(retried.run.status, "paused")
                 self.assertTrue(retried.questions)

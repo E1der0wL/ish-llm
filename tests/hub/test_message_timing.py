@@ -11,14 +11,27 @@ from hub.backend.runtime import HubConfig, HubRuntime
 from hub.config.theme import HubTheme
 
 
+def admitted_user(created_at, *, content="Q", run_id=None):
+    from llm.core.agents import AgentBinding
+    from llm.core.models import Message, MessageRole, MessageStatus, new_id
+    from llm.services.runtime.requests import RequestAdmission
+    message = Message(new_id(), MessageRole.USER, content,
+        MessageStatus.COMMITTED if run_id else MessageStatus.QUEUED, created_at=created_at)
+    admission = RequestAdmission.create(project_id="a" * 32, session_id="b" * 32,
+        message_id=message.id, bindings={"fixture": AgentBinding.create("a" * 32, "fixture", {"engine": "test"})})
+    if run_id is not None:
+        admission = RequestAdmission.dispatch(admission, run_ids={"fixture": run_id}, history=[message])
+    message.metadata["admission"] = admission
+    return message
+
+
 class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
     async def test_failure_uses_run_end_without_changing_request_timestamp(self):
         runtime = HubRuntime(HubConfig("unused", auto_title=False))
-        run = SimpleNamespace(id="r", status="failed", started_at="2026-10-18T00:00:02+00:00",
+        run = SimpleNamespace(id="1" * 32, status="failed", started_at="2026-10-18T00:00:02+00:00",
                               ended_at="2026-10-18T00:00:08+00:00", metadata={})
-        request = SimpleNamespace(id="u", role="user", content="Q", status="failed", run_id="r",
-                                  created_at="2026-10-18T00:00:00+00:00", metadata={})
-        response = SimpleNamespace(id="a", role="assistant", content="", status="failed", run_id="r",
+        request = admitted_user("2026-10-18T00:00:00+00:00", run_id="1" * 32)
+        response = SimpleNamespace(id="a", role="assistant", content="", status="failed", run_id="1" * 32,
                                    created_at="2026-10-18T00:00:02+00:00", metadata={})
         for _ in range(2):
             messages = await runtime.snapshot_reader.messages(None, [request, response], latest=run)
@@ -27,15 +40,14 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_response_duration_includes_submission_and_admission_time(self):
         runtime = HubRuntime(HubConfig("unused", auto_title=False))
-        run = SimpleNamespace(id="r", status="completed", started_at="2026-10-11T00:00:04+00:00",
+        run = SimpleNamespace(id="1" * 32, status="completed", started_at="2026-10-11T00:00:04+00:00",
             ended_at="2026-10-11T00:00:06+00:00", metadata={})
-        request = SimpleNamespace(id="u", role="user", content="Q", status="committed", run_id="r",
-            created_at="2026-10-11T00:00:00+00:00", metadata={})
-        response = SimpleNamespace(id="a", role="assistant", content="A", status="completed", run_id="r", metadata={})
+        request = admitted_user("2026-10-11T00:00:00+00:00", run_id="1" * 32)
+        response = SimpleNamespace(id="a", role="assistant", content="A", status="completed", run_id="1" * 32, metadata={})
         messages = await runtime.snapshot_reader.messages(None, [request, response], latest=run)
         self.assertEqual(messages[-1].elapsed_seconds, 6)
         # Run execution timing stays independent of presentation timing.
-        self.assertEqual((await runtime.snapshot_reader.run_display(None, "r", run=run))[1], 2)
+        self.assertEqual((await runtime.snapshot_reader.run_display(None, "1" * 32, run=run))[1], 2)
 
     async def test_live_elapsed_and_terminal_duration_exclude_queue_time(self):
         runtime = HubRuntime(HubConfig("unused", model="test/model", auto_title=False))
@@ -44,8 +56,7 @@ class MessageTimingTests(unittest.IsolatedAsyncioTestCase):
         read = AsyncMock(return_value=run)
         session = SimpleNamespace(run=SimpleNamespace(aload=AsyncMock(
             return_value=SimpleNamespace(aget_data=read, steps=SimpleNamespace(alist=AsyncMock(return_value=[]))))))
-        request = SimpleNamespace(id="user", role="user", content="Question", status="queued",
-                                  created_at="2026-10-04T00:00:00+00:00", run_id=None, metadata={})
+        request = admitted_user("2026-10-04T00:00:00+00:00", content="Question")
         response = SimpleNamespace(id="assistant", role="assistant", content="Answer", status="streaming",
                                    created_at=request.created_at, run_id=run.id, metadata={})
         with patch("hub.backend.observability.snapshot.datetime", wraps=datetime) as clock:

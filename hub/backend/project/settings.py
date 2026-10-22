@@ -53,7 +53,7 @@ class SettingsService:
         sessions = await project.sessions.alist()
         for session in sessions:
             status = await session.run.astatus()
-            if status.active_run_id or status.queued_count or session.id in self.runtime.namer.tasks:
+            if status.active_runs or status.queued_count or session.id in self.runtime.namer.tasks:
                 raise ValueError(self.runtime.t("settings_project_busy"))
         return sessions
 

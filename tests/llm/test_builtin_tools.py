@@ -80,8 +80,8 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                         "policies": {"approval": {"enabled": True, "risk_scheme": "test-v1", "rules": [
                             {"id": "write", "category": "file.write", "max_risk": 20}]}}})
                     await project.agents.acreate({"engine": "loop", "tools": ["file_create"]}, identifier="loop")
-                    session = await project.sessions.acreate()
-                    run = await (await session.run.submit("create", agent_id="loop")).wait()
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                    run = (await (await session.run.submit("create", recipients=["loop"])).wait())[0]
                     self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
                     self.assertFalse((self.work / filename).exists())
                     responses = await run.ainteraction_responses()
@@ -102,7 +102,7 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
                         self.assertFalse((self.root / "changed-root" / filename).exists())
                         self.assertEqual(len(await session.run.alist()), 1)
                     else:
-                        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
+                        resumed = (await (await session.run.resume(run.id, agent_id="loop")).wait())[0]
                         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
                         self.assertEqual((self.work / filename).read_text(), "approved effect")
 
@@ -486,13 +486,13 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             selected = await project.components.aget("tools")
             await selected.aenable("file_create")
             await project.agents.acreate({"engine": "loop", "tools": ["file_create"], "completion": {"model": "demo"}}, identifier="loop")
-            session = await project.sessions.acreate()
-            run = await (await session.run.submit("create", agent_id="loop")).wait()
+            session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+            run = (await (await session.run.submit("create", recipients=["loop"])).wait())[0]
             self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
             self.assertFalse((self.work / "loop.txt").exists())
             request, = await run.ainteractions(pending_only=True)
             await run.arespond(request.respond("approve"))
-            run = await (await session.run.resume(run.id, agent_id="loop")).wait()
+            run = (await (await session.run.resume(run.id, agent_id="loop")).wait())[0]
             self.assertEqual(run.data.status, RunStatus.COMPLETED)
             step = next(step for step in await run.steps.alist() if step.kind == "tool")
             self.assertEqual(step.metadata["arguments"], arguments)
@@ -509,13 +509,13 @@ class BuiltinTests(unittest.IsolatedAsyncioTestCase):
             await (await project.components.aget("tools")).aenable("file_create")
             await (await project.components.aget("workflows")).acreate(graph, identifier="g")
             await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "g"}}, identifier="graph")
-            session = await project.sessions.acreate()
-            run = await (await session.run.submit("create", agent_id="graph")).wait()
+            session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+            run = (await (await session.run.submit("create", recipients=["graph"])).wait())[0]
             self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
             self.assertFalse((self.work / "graph.txt").exists())
             request, = await run.ainteractions(pending_only=True)
             await run.arespond(request.respond("approve"))
-            run = await (await session.run.resume(run.id, agent_id="graph")).wait()
+            run = (await (await session.run.resume(run.id, agent_id="graph")).wait())[0]
             self.assertEqual(run.data.status, RunStatus.COMPLETED)
             steps = await run.steps.alist()
             tool = next(step for step in steps if step.kind == "tool")

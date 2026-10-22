@@ -116,11 +116,11 @@ class PersistenceBoundaryTests(unittest.IsolatedAsyncioTestCase):
                 backend.events.subscribe(lambda run, event: observed.append((run.id, event.type)), channel="engine")
                 project = await backend.projects.acreate()
                 await project.agents.acreate({"engine": "echo"}, identifier="echo")
-                session = await project.sessions.acreate()
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                 with patch.object(backend.run_repository, "record_outputs", side_effect=OSError("disk full")):
-                    failed = await (await session.run.submit("fail", agent_id="echo")).wait(timeout=10)
+                    failed = (await (await session.run.submit("fail", recipients=["echo"])).wait(timeout=10))[0]
                 self.assertEqual((await failed.aget_data()).status, "failed")
                 self.assertNotIn((failed.id, EngineEventType.TEXT_DELTA), observed)
-                completed = await (await session.run.submit("next", agent_id="echo")).wait(timeout=10)
+                completed = (await (await session.run.submit("next", recipients=["echo"])).wait(timeout=10))[0]
                 self.assertEqual((await completed.aget_data()).status, "completed")
                 self.assertEqual((await completed.aresponse()).content, "ab")

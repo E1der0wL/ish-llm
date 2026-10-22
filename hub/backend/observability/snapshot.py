@@ -1,6 +1,7 @@
 """Read-only projection through llm services; no scheduling or localized strings."""
 
 from llm.core.models import RunStatus, MessageStatus
+from llm.services.runtime.requests import RequestAdmission
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -83,8 +84,15 @@ class SnapshotReader:
 
     async def messages(self, session, messages, author="", *, latest=None, latest_steps=(), stopped_runs=()):
         visible = []
-        requests = {message.run_id: self.submissions.get(message.id, message.created_at) for message in messages
-                    if str(message.role) == "user" and message.run_id and not message.metadata.get("steering")}
+        requests = {run_id: self.submissions.get(message.id, message.created_at) for message in messages
+                    if str(message.role) == "user" and not message.metadata.get("steering")
+                    for run_id in RequestAdmission.run_ids(message)}
+        authors = {}
+        for message in messages:
+            if "admission" in message.metadata:
+                admission = RequestAdmission.validate(message.metadata["admission"])
+                if admission["dispatch"] is not None:
+                    authors.update((identifier, agent) for agent, identifier in admission["dispatch"]["run_ids"].items())
         for message in messages:
             role = str(message.role)
             if role not in ("user", "assistant"):
@@ -130,7 +138,7 @@ class SnapshotReader:
                          (self.ended_times.get(message.run_id) or message.created_at) if status == MessageStatus.FAILED else "")
             visible.append(ChatMessage(role, message.content or "", timestamp,
                                        status=status, id=message.id,
-                                       author=author if role == "user" else "",
+                                       author=author if role == "user" else authors.get(message.run_id, ""),
                                        elapsed_seconds=elapsed, phase=phase, run_id=message.run_id or ""))
         from ..execution.turns import TurnIndex
         return TurnIndex(messages).display(visible)
@@ -151,21 +159,26 @@ class SnapshotReader:
                 run = display_run(record, await handle.aget_data()) if handle else None
                 question_handle = handle if run and str(run.status) == RunStatus.PAUSED else None
                 target = record.metadata.get(RESUME_INTERACTIONS)
-                if target and not runtime.active_run_id and not runtime.queued_count:
+                if target and not runtime.active_runs and not runtime.queued_count:
                     try:
                         candidate = handle if run and run.id == target else await session.run.aload(target)
                         if str((await candidate.aget_data()).status) in (RunStatus.PAUSED, RunStatus.INTERRUPTED, RunStatus.FAILED):
                             question_handle = candidate
                     except FileNotFoundError:
                         pass
-                pending = (tuple({"run_id": question_handle.id, "live": False, "request": request.to_dict()}
-                           for request in await question_handle.ainteractions(pending_only=True))
-                           if question_handle is not None else ())
+                paused = {handle.id: handle for handle in await session.run.alist(query=Query(status=RunStatus.PAUSED))}
+                if question_handle is not None:
+                    paused[question_handle.id] = question_handle
+                pending = []
+                for paused_handle in paused.values():
+                    pending.extend({"run_id": paused_handle.id, "live": False, "request": request.to_dict()}
+                                   for request in await paused_handle.ainteractions(pending_only=True))
+                pending = tuple(pending)
                 item = SessionObservation(identifier, record, runtime, run, handle, pending)
                 self.observations[identifier] = (monotonic(), item)
             observations.append(item)
             status = waiting_status(item.questions) if item.questions else str(item.runtime.status)
-            if not item.runtime.active_run_id and item.run and item.run.id in item.record.metadata.get(STOPPED, {}):
+            if not item.runtime.active_runs and item.run and item.run.id in item.record.metadata.get(STOPPED, {}):
                 status = str(item.run.status)
             summaries.append(SessionSummary(identifier, item.record.title, status, item.runtime.queued_count))
         selected = next((item for item in observations if item.session_id == selected_id), None)
@@ -182,7 +195,7 @@ class SnapshotReader:
                 questions = selected.questions
                 _, elapsed = await self.run_display(session, run.id, run=run)
                 summary = RunSummary(run.id, str(run.status), run.engine, elapsed,
-                    bool(selected.runtime.active_run_id),
+                    any(active.run_id == run.id for active in selected.runtime.active_runs),
                     display_steps(steps),
                     str(run.error) if run.error else "")
         definitions = {identifier: definition for identifier, definition in (await project.agents.alist()).items()

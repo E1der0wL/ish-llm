@@ -76,12 +76,12 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
             [chunk("applied", finish="stop")])
         self.app.engines.register(engine, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await self.create_agent(engine, "test/refiner")
-        paused = await (await self.session.run.submit("apply proposal", agent_id=engine)).wait()
+        paused = (await (await self.session.run.submit("apply proposal", recipients=[engine])).wait())[0]
         self.assertEqual(str(paused.data.status), "paused", paused.data.error)
         self.assertEqual((await self.refine.aload(identifier))["status"], "proposed")
         request, = await paused.ainteractions(pending_only=True)
         await paused.arespond(request.respond("approve"))
-        resumed = await (await self.session.run.resume(paused.id, agent_id=engine)).wait()
+        resumed = (await (await self.session.run.resume(paused.id, agent_id=engine)).wait())[0]
         self.assertEqual(str(resumed.data.status), "completed", resumed.data.error)
         return await self.refine.asnapshot(identifier)
 
@@ -212,7 +212,9 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         workflow["nodes"]["agent"]["agent"] = "guide"
         await self.project.components.workflows.acreate(workflow, identifier="flow")
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
-        first = await (await self.session.run.submit("work", agent_id="graph")).wait()
+        await self.session.run.shutdown()
+        await self.session.asave(agent_ids=sorted(set((await self.session.aget_data()).agent_ids) | {"graph"}))
+        first = (await (await self.session.run.submit("work", recipients=["graph"])).wait())[0]
         self.assertEqual(str(first.data.status), "failed")
         self.evidence = [{"session_id": self.session.id, "run_id": first.id}]
         old_steps = deepcopy(await first.steps.alist())
@@ -225,7 +227,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
         refiner = ScriptedCompletion([chunk(calls=[call(json.dumps(proposal), name="refinement_propose")], finish="tool_calls")], answer("Review proposal"))
         self.app.engines.register("refiner", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=refiner)))
         await self.create_agent("refiner", "test/refiner")
-        analysis = await (await self.session.run.submit("Analyze failure and propose a fork", agent_id="refiner")).wait()
+        analysis = (await (await self.session.run.submit("Analyze failure and propose a fork", recipients=["refiner"])).wait())[0]
         self.assertEqual(str(analysis.data.status), "completed", analysis.data.error)
         identifier, saved = next(iter((await self.refine.alist()).items()))
         self.assertEqual(saved["source"]["run_id"], analysis.id)
@@ -237,7 +239,7 @@ class EvolutionTests(unittest.IsolatedAsyncioTestCase):
             "expected_version": agent["revision"], "patch": {"skills": ["child"]}, "reason": "Use evaluated guide", "evidence": self.evidence})
         await self.evaluate(binding)
         await self.apply_tool(binding, "apply_binding")
-        second = await (await self.session.run.submit("work again", agent_id="graph")).wait()
+        second = (await (await self.session.run.submit("work again", recipients=["graph"])).wait())[0]
         self.assertEqual(str(second.data.status), "completed", second.data.error)
         self.assertEqual(await first.steps.alist(), old_steps)
         old = next(s for s in old_steps if s.kind == "agent")
@@ -313,7 +315,7 @@ class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
             "max_candidates": 2, "summary_chars": 2000}}))
         with patch.object(type(memory), "asearch", side_effect=AssertionError("retrieval must be independent")):
             for _ in range(2):
-                run = await (await self.session.run.submit("remember", agent_id="loop")).wait()
+                run = (await (await self.session.run.submit("remember", recipients=["loop"])).wait())[0]
                 self.assertEqual(str(run.data.status), "completed", run.data.error)
         self.assertEqual([[r["id"] for r in p["existing"]] for p in captured], [["a", "guide", "z"]] * 2)
 
@@ -326,12 +328,12 @@ class MemoryBoundaryTests(unittest.IsolatedAsyncioTestCase):
         self.memory_component.completion_adapter = LiteLLMCompletionAdapter(completion_fn=extract)
         options = memory_processing({"recall": False, "extract": True, "completion": {"model": "test/extract"}})
         await self.project.components.memory.aconfigure(memory_settings({"processing": options}))
-        failed = await (await self.session.run.submit("remember", agent_id="loop")).wait()
+        failed = (await (await self.session.run.submit("remember", recipients=["loop"])).wait())[0]
         self.assertEqual(str(failed.data.status), "failed")
         self.assertEqual(captured, [])
         options["extract_prompt_id"] = "guide"
         await self.project.components.memory.aconfigure(memory_settings({"processing": options}))
-        run = await (await self.session.run.submit("remember", agent_id="loop")).wait()
+        run = (await (await self.session.run.submit("remember", recipients=["loop"])).wait())[0]
         self.assertEqual(str(run.data.status), "completed", run.data.error)
         self.assertIn("Before", captured[0]["messages"][0]["content"])
         records = await self.project.components.memory.alist(session_id=self.session.id)

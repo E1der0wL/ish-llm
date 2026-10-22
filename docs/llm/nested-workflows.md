@@ -39,7 +39,7 @@ await workflows.acreate(child.to_dict(), identifier="write_flow")
 await workflows.acreate(parent.to_dict(), identifier="main")
 await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "main"}},
                              identifier="coordinator")
-run = await (await session.run.submit("문서를 바탕으로 코드를 작성해줘", agent_id="coordinator")).wait()
+run, = await (await session.run.submit("문서를 바탕으로 코드를 작성해줘", recipients=["coordinator"])).wait()
 steps = await run.steps.alist()
 output = (await run.aresult()).output.data
 ```

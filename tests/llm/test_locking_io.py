@@ -153,6 +153,8 @@ class RuntimeIOTests(unittest.IsolatedAsyncioTestCase):
         self.engine = FakeStreamingEngine()
         self.engines.register("fake", self.engine)
         self.projects.agents.create(self.project, {"engine": "fake"}, identifier="fake")
+        self.session.agent_ids = ["fake"]
+        self.sessions.save(self.session)
         self.manager = RunManager(self.sessions, self.engines, session=self.session)
         self.addAsyncCleanup(self.manager.shutdown)
 
@@ -260,7 +262,7 @@ class RuntimeIOTests(unittest.IsolatedAsyncioTestCase):
                 return super().create(role, *args, **kwargs)
 
         self.manager.conversations = lambda session: SlowStore(session.paths.conversation)
-        pending = asyncio.create_task(self.manager.submit("once", agent_id="fake"))
+        pending = asyncio.create_task(self.manager.submit("once", recipients=["fake"]))
         await self.until(entered.is_set)
         pending.cancel()
         await asyncio.sleep(0.02)
@@ -285,7 +287,7 @@ class RuntimeIOTests(unittest.IsolatedAsyncioTestCase):
                 return super().delta(*args)
 
         self.manager.conversations = lambda session: SlowStore(session.paths.conversation)
-        await self.manager.submit("slow", agent_id="fake")
+        await self.manager.submit("slow", recipients=["fake"])
         await self.until(entered.is_set)
         shutdown = asyncio.create_task(self.manager.shutdown())
         await asyncio.sleep(0.02)
@@ -302,7 +304,7 @@ class RuntimeIOTests(unittest.IsolatedAsyncioTestCase):
             pass
 
     async def test_concurrent_submissions_are_serial_and_preserve_all_inputs(self):
-        await asyncio.gather(*(self.manager.submit(str(i), agent_id="fake")
+        await asyncio.gather(*(self.manager.submit(str(i), recipients=["fake"])
                                for i in range(10)))
         await self.manager.wait_idle()
         self.assertEqual([context.messages[-1].content for context in self.engine.contexts],

@@ -139,6 +139,8 @@ class DefaultTests(unittest.IsolatedAsyncioTestCase):
                 await workflows.acreate(WorkflowGraph(entry="finish").node("finish", "end").to_dict(), identifier="done")
                 await runtime.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "done"}},
                                                      identifier="graph")
+                await session.run.shutdown()
+                await session.asave(agent_ids=["assistant", "graph"])
                 await runtime.submit(session.id, "finish", "graph")
                 await session.run.wait_idle()
                 run = (await session.run.alist())[-1]

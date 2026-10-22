@@ -31,10 +31,10 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
         self.workflows = await self.project.components.aget("workflows")
         await self.workflows.acreate(graph, identifier="flow")
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
-        self.session = await self.project.sessions.acreate()
+        self.session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
 
     async def run_graph(self, session=None):
-        return await (await (session or self.session).run.submit("go", agent_id="graph")).wait(timeout=30)
+        return (await (await (session or self.session).run.submit("go", recipients=["graph"])).wait(timeout=30))[0]
 
     async def output(self, run):
         return next(s for s in await run.steps.alist() if s.kind == "graph").output.data
@@ -240,13 +240,13 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(closed, {"a", "b"})
             return {}
         await self.setup_graph(parallel(), work)
-        first = await self.session.run.submit("first", agent_id="graph")
+        first = await self.session.run.submit("first", recipients=["graph"])
         await asyncio.wait_for(ready.wait(), 5)
-        second = await self.session.run.submit("second", agent_id="graph")
+        second = await self.session.run.submit("second", recipients=["graph"])
         await self.session.run.interrupt()
-        self.assertEqual((await first.wait(timeout=10)).data.status, RunStatus.INTERRUPTED)
+        self.assertEqual(((await first.wait(timeout=10))[0]).data.status, RunStatus.INTERRUPTED)
         self.assertEqual(closed, {"a", "b"})
-        self.assertEqual((await second.wait(timeout=10)).data.status, RunStatus.COMPLETED)
+        self.assertEqual(((await second.wait(timeout=10))[0]).data.status, RunStatus.COMPLETED)
 
     async def test_same_engine_concurrent_sessions_have_separate_budgets_and_state(self):
         entered, release = set(), asyncio.Event()
@@ -257,7 +257,7 @@ class LangGraphTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.wait_for(release.wait(), 5)
             return {"owner": node.context.session.id}
         await self.setup_graph(straight(), work, max_steps=2)
-        other = await self.project.sessions.acreate()
+        other = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         runs = await asyncio.gather(self.run_graph(), self.run_graph(other))
         for session, run in zip((self.session, other), runs):
             self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)

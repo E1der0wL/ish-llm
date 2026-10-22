@@ -33,7 +33,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                 row, = await runtime.turns(sid)
                 plan = await runtime.delete_turn_plan(sid, row["id"])
                 run_ids = [item["source"]["run_id"] for item in plan["blockers"]]
-                self.assertEqual(run_ids, [row["run_id"]])
+                self.assertEqual(run_ids, [row["runs"][0]["run_id"]])
                 with self.assertRaises(ValueError):
                     await runtime.delete_turn(sid, row["id"])
                 self.assertEqual(len(await runtime.turns(sid)), 1)
@@ -41,7 +41,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(await runtime.turns(sid))
                 self.assertEqual(len(await session.aconversation(include_deleted=True)), 2)
                 with self.assertRaisesRegex(ValueError, "abandoned"):
-                    await session.run.resume(row["run_id"], agent_id="assistant")
+                    await session.run.resume(row["runs"][0]["run_id"], agent_id="assistant")
                 self.assertEqual(len(provider.requests), 1)
             finally:
                 await runtime.close()

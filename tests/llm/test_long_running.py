@@ -31,7 +31,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
                 raise RuntimeError("receipt not completed")
             app, session, model = await self.setup_app(
                 act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]])
-            failed = await (await session.run.submit("go", agent_id="loop")).wait()
+            failed = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
             self.assertEqual(failed.data.status, "failed")
             self.assertEqual(effect.read_text(), "effect\n")
             candidates = []
@@ -71,10 +71,10 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
                     [chunk(calls=[call('{}', name='act')], finish='tool_calls')],
                     [chunk('unfinished reasoning text'), ConnectionError('offline')],
                     [chunk('final answer', finish='stop')]])
-                failed = await (await session.run.submit('go', agent_id='loop')).wait()
+                failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
                 self.assertEqual(failed.data.status, 'failed')
                 original = await failed.aoutputs()
-                resumed = await (await session.run.resume(failed.id, agent_id='loop', partial_output=include)).wait()
+                resumed = (await (await session.run.resume(failed.id, agent_id='loop', partial_output=include)).wait())[0]
                 self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
                 self.assertEqual(effects, [1])
                 self.assertEqual(len(model.requests), 3)
@@ -107,14 +107,15 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app.engines.register('partial', LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await configure_engine(session.project, 'partial', completion={'model': 'test/model'})
         await session.project.agents.acreate({'engine': 'partial', 'tools': ['act']}, identifier='partial')
-        handle = await session.run.submit('go', agent_id='partial')
+        await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"partial"}))
+        handle = await session.run.submit('go', recipients=['partial'])
         self.assertTrue(await asyncio.to_thread(started.wait, 5))
         await session.run.interrupt()
-        interrupted = await handle.wait()
+        interrupted = (await handle.wait())[0]
         self.assertEqual(interrupted.data.status, 'interrupted')
         release.set()
         self.assertTrue(await asyncio.to_thread(closed.wait, 5))
-        resumed = await (await session.run.resume(interrupted.id, agent_id='partial', partial_output=True)).wait()
+        resumed = (await (await session.run.resume(interrupted.id, agent_id='partial', partial_output=True)).wait())[0]
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertIn('user-visible partial', str(model.requests[-1]['messages']))
 
@@ -122,7 +123,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             pass
         app, session, _ = await self.setup_app(act, [[chunk('done', finish='stop')]])
-        run = await (await session.run.submit('go', agent_id='loop')).wait()
+        run = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         repository = app.run_repository
         first = repository.completion_history(session.data)
         with patch.object(repository, 'load', side_effect=AssertionError('no full Run load')):
@@ -142,7 +143,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app, session, _ = await self.setup_app(act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]],
             ToolRuntime(operation_key=lambda call: 'work', retry_safe_tools=('act',)),
             policies={"tool_retry": {"max_retries": 1, "delay_seconds": 0}})
-        failed = await (await session.run.submit('go', agent_id='loop')).wait()
+        failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual((await session.run.aoperation('work'))['status'], 'started')
         with self.assertRaisesRegex(Exception, 'uncertain Tool'):
             await session.run.resume(failed.id, agent_id='loop')
@@ -153,7 +154,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app, session, model = await self.setup_app(act, [
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')],
             [ConnectionError('offline')], [chunk('done', finish='stop')]])
-        failed = await (await session.run.submit('go', agent_id='loop')).wait()
+        failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         project = session.project
         root, project_id, session_id = project.data.paths.root.parent.parent, project.id, session.id
         await app.shutdown()
@@ -161,7 +162,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             Tool('act', 'action', {'type': 'object'}, act, contract=TEST_CONTRACT),)))], engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
         self.addAsyncCleanup(reopened.shutdown)
         session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
-        resumed = await (await session.run.resume(failed.id, agent_id='loop')).wait()
+        resumed = (await (await session.run.resume(failed.id, agent_id='loop')).wait())[0]
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertEqual(effects, [1])
         self.assertEqual(len(model.requests), 3)
@@ -173,7 +174,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             pass
         app, session, model = await self.setup_app(act, [[chunk('partial'), Busy('offline')]])
         await configure_engine(session.project, 'loop', provider={'max_attempts': 3, 'delay_seconds': 0})
-        run = await (await session.run.submit('go', agent_id='loop')).wait()
+        run = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual(run.data.status, 'failed')
         self.assertEqual(len(model.requests), 1)
 
@@ -184,7 +185,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             self.fail('Incomplete Tool call must not execute')
         app, session, model = await self.setup_app(act, [[chunk(calls=[call('{', name='act')]), Busy('offline')]])
         await configure_engine(session.project, 'loop', provider={'max_attempts': 3, 'delay_seconds': 0})
-        run = await (await session.run.submit('go', agent_id='loop')).wait()
+        run = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual(run.data.status, 'failed')
         self.assertEqual(len(model.requests), 1)
 
@@ -192,7 +193,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             raise ToolApprovalRequired('effect may already have happened')
         app, session, _ = await self.setup_app(act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]])
-        run = await (await session.run.submit('go', agent_id='loop')).wait()
+        run = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual(run.data.status, 'failed')
         with self.assertRaisesRegex(Exception, 'uncertain Tool'):
             await session.run.resume(run.id, agent_id='loop')
@@ -202,8 +203,8 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             pass
         app, session, _ = await self.setup_app(act, [[chunk('one', finish='stop')], [chunk('two', finish='stop')]])
-        first = await (await session.run.submit('one', agent_id='loop')).wait()
-        second = await (await session.run.submit('two', agent_id='loop')).wait()
+        first = (await (await session.run.submit('one', recipients=['loop'])).wait())[0]
+        second = (await (await session.run.submit('two', recipients=['loop'])).wait())[0]
         repository = app.run_repository
         with patch.object(repository, 'load', wraps=repository.load) as read:
             page = await session.run.alist(query=Query(limit=1, descending=True))
@@ -236,11 +237,11 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         graph = WorkflowGraph(entry='action').node('action', 'tool', tool='act').node('end', 'end').connect('action', 'end').to_dict()
         await project.components.workflows.acreate(graph, identifier='flow')
         await project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier='graph')
-        session = await project.sessions.acreate()
-        paused = await (await session.run.submit('go', agent_id='graph')).wait()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+        paused = (await (await session.run.submit('go', recipients=['graph'])).wait())[0]
         self.assertEqual(paused.data.status, 'paused', paused.data.error)
         self.assertEqual(effects, [])
-        resumed = await (await session.run.resume(paused.id, agent_id='graph', decisions={'["action"]': {'approved': True}})).wait()
+        resumed = (await (await session.run.resume(paused.id, agent_id='graph', decisions={'["action"]': {'approved': True}})).wait())[0]
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertEqual(effects, [1])
 
@@ -254,10 +255,10 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         config.parameters["engines"]["loop"]["config"]["completion"]['max_tokens'] = 5
         config.configure_policies({'usage': {'counter': 'fixed', 'max_tokens': 20, 'project_max_calls': 1}})
         await project.asave(config=config)
-        failed = await (await session.run.submit('go', agent_id='loop')).wait()
+        failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual((await failed.aresult()).error_code, 'usage_limit')
-        other = await project.sessions.acreate()
-        failed = await (await other.run.submit('go', agent_id='loop')).wait()
+        other = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+        failed = (await (await other.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual((await failed.aresult()).error_code, 'usage_limit')
         self.assertEqual(len(model.requests), 1)
 
@@ -265,7 +266,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             pass
         app, session, _ = await self.setup_app(act, [[chunk('answer', finish='stop')]])
-        run = await (await session.run.submit('go', agent_id='loop')).wait()
+        run = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         await session.run.shutdown()
         store = app.project_manager.sessions.conversations(session.data)
         # 출력 저널 기록 뒤 Conversation 쓰기가 누락된 장애를 재현한다.
@@ -298,7 +299,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         project = app.projects.load(session.data.project_id)
         from hub.backend.project.history_retention import HistoryRetention, HistoryRetentionPolicy
         retention = HistoryRetention(project, HistoryRetentionPolicy(unit='session', max_bytes=1))
-        await (await session.run.submit('go', agent_id='loop')).wait()
+        await (await session.run.submit('go', recipients=['loop'])).wait()
         self.assertEqual((await retention.preview()).candidates, [])
         await session.run.shutdown()
         plan = await retention.preview()
@@ -314,7 +315,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app, session, model = await self.setup_app(act, [[Busy('busy')], [chunk('done', finish='stop')]])
         project = app.projects.load(session.data.project_id)
         await configure_engine(project, 'loop', provider={'max_attempts': 2, 'delay_seconds': 0})
-        run = await (await session.run.submit('go', agent_id='loop')).wait()
+        run = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual(run.data.status, 'completed', run.data.error)
         self.assertEqual(len((await run.aresult()).completions), 2)
 
@@ -327,12 +328,12 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app, session, model = await self.setup_app(act, [
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]],
             ToolRuntime(authorize=authorize))
-        paused = await (await session.run.submit('go', agent_id='loop')).wait()
+        paused = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual(paused.data.status, 'paused')
         self.assertEqual(effects, [])
         with self.assertRaisesRegex(Exception, 'decisions required'):
             await session.run.resume(paused.id, agent_id='loop')
-        resumed = await (await session.run.resume(paused.id, agent_id='loop', decisions={'tool:1:call_1': True})).wait()
+        resumed = (await (await session.run.resume(paused.id, agent_id='loop', decisions={'tool:1:call_1': True})).wait())[0]
         self.assertEqual(resumed.data.status, 'completed')
         self.assertEqual(effects, [1])
         self.assertEqual(len(model.requests), 2)
@@ -343,7 +344,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app, session, model = await self.setup_app(act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]])
         project = app.projects.load(session.data.project_id)
         await project.aconfigure_policies({'usage': {'max_calls': 1}})
-        failed = await (await session.run.submit('go', agent_id='loop')).wait()
+        failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual((await failed.aresult()).error_code, 'usage_limit')
         self.assertEqual(len(model.requests), 1)
 
@@ -368,7 +369,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate("resume", config=ProjectConfig(policies=policies or {}, parameters={"engines": {"loop": {'config': {'completion': {'model': 'test/model'}}}}}), components=["tools"])
         project.components.tools.enable("act")
         await project.agents.acreate({"engine": "loop", "tools": ["act"]}, identifier="loop")
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         return app, session, model
 
     async def test_resume_reuses_none_result_and_does_not_repeat_completion(self):
@@ -378,9 +379,9 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app, session, model = await self.setup_app(act, [
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')],
             [ConnectionError('network')], [chunk('done', finish='stop')]])
-        failed = await (await session.run.submit('go', agent_id='loop')).wait()
+        failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual(failed.data.status, 'failed')
-        resumed = await (await session.run.resume(failed.id, agent_id='loop')).wait()
+        resumed = (await (await session.run.resume(failed.id, agent_id='loop')).wait())[0]
         self.assertEqual(resumed.data.status, 'completed')
         self.assertEqual(effects, [{}])
         self.assertEqual(len(model.requests), 3)
@@ -402,9 +403,9 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
         app, session, model = await self.setup_app(act, [
             [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]],
             ToolRuntime(operation_key=lambda call: 'same-work'))
-        failed = await (await session.run.submit('go', agent_id='loop')).wait()
+        failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual((await session.run.aoperation('same-work'))['status'], 'not_applied')
-        resumed = await (await session.run.resume(failed.id, agent_id='loop')).wait()
+        resumed = (await (await session.run.resume(failed.id, agent_id='loop')).wait())[0]
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         receipt = await session.run.aoperation('same-work')
         self.assertEqual(receipt['status'], 'completed')
@@ -417,7 +418,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             effects.append(1)
             raise RuntimeError('lost receipt')
         app, session, model = await self.setup_app(act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]])
-        failed = await (await session.run.submit('go', agent_id='loop')).wait()
+        failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         with self.assertRaisesRegex(Exception, 'uncertain Tool'):
             await session.run.resume(failed.id, agent_id='loop')
         self.assertEqual(effects, [1])
@@ -433,7 +434,7 @@ class LongRunningTests(unittest.IsolatedAsyncioTestCase):
             app, session, model = await self.setup_app(act, [
                 [chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]],
                 policies={"tool_retry": {"max_retries": 2}})
-            run = await (await session.run.submit('go', agent_id='loop')).wait()
+            run = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
             self.assertEqual(run.data.status, 'completed' if safe else 'failed')
             self.assertEqual(len(effects), 2 if safe else 1)
             await app.shutdown()

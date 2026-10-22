@@ -117,8 +117,8 @@ class FailureRuntimeTests(unittest.IsolatedAsyncioTestCase):
         if engine_options is not None:
             definition["engine_options"] = engine_options
         await project.agents.acreate(definition, identifier="test")
-        session = await project.sessions.acreate()
-        handle = await (await session.run.submit("request", agent_id="test")).wait(timeout=15)
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+        handle = (await (await session.run.submit("request", recipients=["test"])).wait(timeout=15))[0]
         result = await handle.aresult()
         steps = await handle.steps.alist()
         # Run 공개 투영과 디스크가 같은 결과를 보존한다.

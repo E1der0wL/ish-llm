@@ -81,7 +81,7 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
         self.project = await self.app.projects.acreate("test", components=["tools"])
         await (await self.project.components.aget("tools")).aenable("external")
         await self.project.agents.acreate({"engine": "tool", "tools": ["external"]}, identifier="tool")
-        self.session = await self.project.sessions.acreate()
+        self.session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
 
     def open(self):
         app = LargeLanguageModel(self.root, components=[self.tools], engines={"tool": self.engine}, services=self.services)
@@ -89,7 +89,7 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
         return app
 
     async def execute(self):
-        return await (await self.session.run.submit("perform", agent_id="tool")).wait(timeout=10)
+        return (await (await self.session.run.submit("perform", recipients=["tool"])).wait(timeout=10))[0]
 
     async def test_completed_operation_reused_after_backend_restart(self):
         first = await self.execute()
@@ -150,7 +150,8 @@ class OperationTests(unittest.IsolatedAsyncioTestCase):
         await (await self.project.components.aget("workflows")).acreate(graph, identifier="flow")
         self.app.engines.register("parallel", GraphEngine(handlers={"tool": ToolNode()}))
         await self.project.agents.acreate({"engine": "parallel", "engine_options": {"workflow": "flow"}}, identifier="parallel")
-        run = await (await self.session.run.submit("test", agent_id="parallel")).wait(timeout=10)
+        await self.session.asave(agent_ids=sorted(set((await self.session.aget_data()).agent_ids) | {"parallel"}))
+        run = (await (await self.session.run.submit("test", recipients=["parallel"])).wait(timeout=10))[0]
         self.assertEqual(run.result.error_code, "operation_uncertain")
         self.assertLessEqual(len(self.calls), 1)
 

@@ -50,12 +50,12 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate("test", components=[item.name for item in components])
         for name in (engines or {"echo": None}):
             await project.agents.acreate({"engine": name}, identifier=name)
-        session = await project.sessions.acreate("test")
+        session = await project.sessions.acreate("test", agent_ids=sorted(await project.agents.alist()))
         return app, project, session
 
     async def run_one(self, session, text="hello", engine="echo"):
-        request = await session.run.submit(text, agent_id=engine)
-        return await asyncio.wait_for(request.wait(), 5)
+        request = await session.run.submit(text, recipients=[engine])
+        return (await asyncio.wait_for(request.wait(), 5))[0]
 
     async def test_unused_tool_does_not_break_text_engine(self):
         app, project, session = await self.backend(components=[ToolComponent()])
@@ -269,10 +269,10 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.Event().wait()
         handlers.register("approval.request", approval)
         _, _, session = await self.backend(engines={"approval": AwaitApproval()}, services=BackendServices(event_handlers=handlers))
-        request = await session.run.submit("hello", agent_id="approval")
+        request = await session.run.submit("hello", recipients=["approval"])
         await asyncio.wait_for(entered.wait(), 5)
         await session.run.interrupt()
-        run = await request.wait()
+        run = (await request.wait())[0]
         self.assertEqual((await run.aresult()).status, RunStatus.INTERRUPTED)
 
     async def test_reserved_or_duplicate_event_handler_is_rejected(self):
@@ -325,7 +325,7 @@ class ExtensionTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await release.wait()
         _, _, session = await self.backend(engines={"held": BaseEngine("held", action=wait)})
-        request = await session.run.submit("hello", agent_id="held")
+        request = await session.run.submit("hello", recipients=["held"])
         await asyncio.wait_for(entered.wait(), 5)
         try:
             await session.asave(title="renamed", metadata={"label": "work"})
@@ -415,22 +415,33 @@ async def run_steps(run, query):
 
 class ContextPolicyTests(unittest.TestCase):
     def messages(self):
-        return [
-            Message("u1", MessageRole.USER, "one", MessageStatus.COMMITTED, run_id="r1"),
-            Message("a1", MessageRole.ASSISTANT, "ok", MessageStatus.COMPLETED, run_id="r1"),
-            Message("u2", MessageRole.USER, "two", MessageStatus.COMMITTED, run_id="r2"),
-            Message("a2", MessageRole.ASSISTANT, "partial", MessageStatus.FAILED, run_id="r2"),
-            Message("u3", MessageRole.USER, "now", MessageStatus.COMMITTED, run_id="r3"),
+        messages = [
+            Message("1" * 32, MessageRole.USER, "one", MessageStatus.COMMITTED, run_id="6" * 32),
+            Message("2" * 32, MessageRole.ASSISTANT, "ok", MessageStatus.COMPLETED, run_id="6" * 32),
+            Message("3" * 32, MessageRole.USER, "two", MessageStatus.COMMITTED, run_id="7" * 32),
+            Message("4" * 32, MessageRole.ASSISTANT, "partial", MessageStatus.FAILED, run_id="7" * 32),
+            Message("5" * 32, MessageRole.USER, "now", MessageStatus.COMMITTED, run_id="8" * 32),
         ]
+        from llm.core.agents import AgentBinding
+        from llm.services.runtime.requests import RequestAdmission
+        binding = AgentBinding.create("a" * 32, "fixture", {"engine": "test"})
+        for message in messages:
+            if message.role == MessageRole.USER:
+                run_id, message.run_id = message.run_id, None
+                admission = RequestAdmission.create(project_id="a" * 32, session_id="b" * 32,
+                    message_id=message.id, bindings={"fixture": binding})
+                message.metadata["admission"] = RequestAdmission.dispatch(admission,
+                    run_ids={"fixture": run_id}, history=[message])
+        return messages
 
     def test_full_completed_recent_and_budget_preserve_current_input(self):
         def ids(policy):
-            return [item.id for item in ConversationContextBuilder(policy).for_run(self.messages(), "u3")]
-        self.assertEqual(ids(ContextPolicy()), ["u1", "a1", "u2", "a2", "u3"])
-        self.assertEqual(ids(ContextPolicy("completed")), ["u1", "a1", "u3"])
-        self.assertEqual(ids(ContextPolicy("recent", max_turns=1)), ["u2", "a2", "u3"])
-        self.assertEqual(ids(ContextPolicy("recent_completed", max_turns=1)), ["u1", "a1", "u3"])
-        self.assertEqual(ids(ContextPolicy("budget", max_chars=3)), ["u3"])
+            return [item.id for item in ConversationContextBuilder(policy).for_run(self.messages(), "5" * 32)]
+        self.assertEqual(ids(ContextPolicy()), ["1" * 32, "2" * 32, "3" * 32, "4" * 32, "5" * 32])
+        self.assertEqual(ids(ContextPolicy("completed")), ["1" * 32, "2" * 32, "5" * 32])
+        self.assertEqual(ids(ContextPolicy("recent", max_turns=1)), ["3" * 32, "4" * 32, "5" * 32])
+        self.assertEqual(ids(ContextPolicy("recent_completed", max_turns=1)), ["1" * 32, "2" * 32, "5" * 32])
+        self.assertEqual(ids(ContextPolicy("budget", max_chars=3)), ["5" * 32])
         with self.assertRaises(ValueError):
             ids(ContextPolicy("budget", max_chars=2))
 

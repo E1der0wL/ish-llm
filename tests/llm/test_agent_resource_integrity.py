@@ -169,7 +169,7 @@ class AgentResourceConsumerTests(unittest.IsolatedAsyncioTestCase):
                 await action()
             self.assertEqual(source_bytes(self.project.paths.root), before)
             self.assertEqual(effect.read_text(), 'model\n')
-        self.session = await self.project.sessions.acreate('second request')
+        self.session = await self.project.sessions.acreate('second request', agent_ids=['flow-agent'])
         second = await self.run_graph()
         self.assertEqual(second.data.status, 'completed', second.data.error)
         self.assertEqual(model.requests[0]['messages'][0], model.requests[1]['messages'][0])

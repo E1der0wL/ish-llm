@@ -14,49 +14,50 @@ from llm.services.history.context import ContextPolicy
 from tests.llm.test_loop import ScriptedCompletion, chunk
 
 
-def message(identifier, role, status, run_id=None):
-    return Message(id=identifier, role=MessageRole(role), content=identifier,
-                   status=MessageStatus(status), run_id=run_id)
+
+from tests.llm.support.admission import uid, admitted_message
+
+message = admitted_message
 
 
 class ContextTests(unittest.IsolatedAsyncioTestCase):
     def test_filters_before_budget_and_retains_clone_records(self):
         builder = HubContextBuilder()
-        history = [message("good", "user", "committed", "r1"),
-                   message("answer", "assistant", "completed", "r1"),
-                   message("bad", "user", "committed", "r2"),
-                   message("partial", "assistant", "failed", "r2"),
-                   message("now", "user", "committed", "r3")]
+        history = [message(uid('good'), "user", "committed", uid('r1')),
+                   message(uid('answer'), "assistant", "completed", uid('r1')),
+                   message(uid('bad'), "user", "committed", uid('r2')),
+                   message(uid('partial'), "assistant", "failed", uid('r2')),
+                   message(uid('now'), "user", "committed", uid('r3'))]
         original = deepcopy(history)
         for data in (history, builder.for_clone(history)):
             for policy in (None, ContextPolicy(mode="recent", max_turns=1),
                            ContextPolicy(mode="budget", max_chars=13)):
-                self.assertEqual([m.id for m in builder.for_run(data, "now", policy=policy)],
-                                 ["good", "answer", "now"])
+                self.assertEqual([m.id for m in builder.for_run(data, uid('now'), policy=policy)],
+                                 [uid('good'), uid('answer'), uid('now')])
         self.assertEqual(history, original)
         self.assertEqual(len(builder.for_clone(history)), 5)
         for status in ("interrupted", "cancelled", "paused", "streaming", "queued", "committed"):
             history[3].status = MessageStatus(status)
-            self.assertEqual([m.id for m in builder.for_run(history, "now")], ["good", "answer", "now"])
-        self.assertEqual([m.id for m in builder.for_run([*history[:2], history[2], history[4]], "now")],
-                         ["good", "answer", "now"])
+            self.assertEqual([m.id for m in builder.for_run(history, uid('now'))], [uid('good'), uid('answer'), uid('now')])
+        self.assertEqual([m.id for m in builder.for_run([*history[:2], history[2], history[4]], uid('now'))],
+                         [uid('good'), uid('answer'), uid('now')])
 
     def test_completed_checkpoint_lineage_and_current_request_are_preserved(self):
         builder = HubContextBuilder()
-        history = [message("u1", "user", "committed", "r1"), message("a1", "assistant", "paused", "r1"),
-                   message("u2", "user", "committed", "r2"), message("a2", "assistant", "completed", "r2"),
-                   message("now", "user", "committed", "r3")]
-        history[2].metadata["resume"] = {"run_id": "r1"}
-        self.assertEqual([m.id for m in builder.for_run(history, "now")], [m.id for m in history])
+        history = [message(uid('u1'), "user", "committed", uid('r1')), message(uid('a1'), "assistant", "paused", uid('r1')),
+                   message(uid('u2'), "user", "committed", uid('r2')), message(uid('a2'), "assistant", "completed", uid('r2')),
+                   message(uid('now'), "user", "committed", uid('r3'))]
+        history[2].metadata["resume"] = {"run_id": uid('r1')}
+        self.assertEqual([m.id for m in builder.for_run(history, uid('now'))], [m.id for m in history])
         history[3].status = MessageStatus.INTERRUPTED
-        self.assertEqual([m.id for m in builder.for_run(history, "now")], ["now"])
-        self.assertEqual([m.id for m in builder.for_run(history, "u2")], ["u1", "a1", "u2"])
+        self.assertEqual([m.id for m in builder.for_run(history, uid('now'))], [uid('now')])
+        self.assertEqual([m.id for m in builder.for_run(history, uid('u2'))], [uid('u1'), uid('a1'), uid('u2')])
 
     def test_orders_queued_requests_before_grouping_failed_pairs(self):
-        data = [message("failed-user", "user", "committed", "r1"),
-                message("next-user", "user", "committed", "r2"),
-                message("partial", "assistant", "failed", "r1")]
-        self.assertEqual([m.id for m in HubContextBuilder().for_run(data, "next-user")], ["next-user"])
+        data = [message(uid('failed-user'), "user", "committed", uid('r1')),
+                message(uid('next-user'), "user", "committed", uid('r2')),
+                message(uid('partial'), "assistant", "failed", uid('r1'))]
+        self.assertEqual([m.id for m in HubContextBuilder().for_run(data, uid('next-user'))], [uid('next-user')])
 
     async def test_real_loop_failure_reopen_and_new_request(self):
         provider = ScriptedCompletion([chunk("keep", finish="stop")],

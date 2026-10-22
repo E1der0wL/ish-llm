@@ -79,23 +79,28 @@ class HistoryRetention:
                     sessions.setdefault(row['session_id'], []).append(row)
             for rows in sessions.values():
                 rows.sort(key=lambda row: (row['last_activity'], row['run_id']), reverse=True)
-                keep.update(row['run_id'] for row in rows[:policy.keep_runs])
+                keep.update(identifier for row in rows[:policy.keep_runs]
+                            for identifier in row['group_run_ids'])
         selected, protected = [], list(plan.protected)
         size, tokens = plan.bytes, plan.tokens
         clock = datetime.now(timezone.utc)
-        for row in sorted(plan.candidates,
-                          key=lambda row: (row['last_activity'], row['session_id'], row.get('run_id', ''))):
-            if policy.unit == RetentionUnit.RUN and row['run_id'] in keep:
-                protected.append({**row, 'reasons': ['application_keep_runs']})
+        groups = {}
+        for row in plan.candidates:
+            key = (row['session_id'], tuple(row['group_run_ids'])) if policy.unit == RetentionUnit.RUN else row['session_id']
+            groups.setdefault(key, []).append(row)
+        for group in sorted(groups.values(), key=lambda rows: (
+                max(row['last_activity'] for row in rows), rows[0]['session_id'], rows[0].get('run_id', ''))):
+            if policy.unit == RetentionUnit.RUN and any(row['run_id'] in keep for row in group):
+                protected.extend({**row, 'reasons': ['application_keep_runs']} for row in group)
                 continue
-            expired = policy.max_age_seconds is not None and (
-                clock - datetime.fromisoformat(row['last_activity'])).total_seconds() > policy.max_age_seconds
+            expired = policy.max_age_seconds is not None and all((
+                clock - datetime.fromisoformat(row['last_activity'])).total_seconds() > policy.max_age_seconds for row in group)
             oversize = policy.max_bytes is not None and size > policy.max_bytes
             overtokens = policy.max_tokens is not None and tokens > policy.max_tokens
             if expired or oversize or overtokens:
-                selected.append(row)
-                size -= row['bytes']
-                tokens -= row['tokens']
+                selected.extend(group)
+                size -= sum(row['bytes'] for row in group)
+                tokens -= sum(row['tokens'] for row in group)
         return HistoryRetentionReview(plan, policy, selected, protected, size, tokens)
 
     async def apply(self, review):

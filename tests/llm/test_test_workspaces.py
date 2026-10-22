@@ -366,7 +366,7 @@ asyncio.run(main())
                 "argv": self.python("import os; from pathlib import Path; p=Path('count'); p.write_text(p.read_text()+'x' if p.exists() else 'x'); print(os.environ['ISH_APPROVED_VALUE'])")}
         model.responses.extend([[chunk(calls=[call(json.dumps(args), name="test_workspace_execute")], finish="tool_calls")], [chunk("done", finish="stop")]])
         await project.agents.acreate({"engine": "loop", "tools": ['test_workspace_execute']}, identifier="loop")
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         original = ProcessToolRunner.execute
         invocations = []
         async def tracked(runner, *a, **kw):
@@ -374,7 +374,7 @@ asyncio.run(main())
             return await original(runner, *a, **kw)
         with patch.object(ProcessToolRunner, "execute", tracked), patch(
                 "llm.services.runtime.processes.asyncio.create_subprocess_exec", wraps=asyncio.create_subprocess_exec) as spawn:
-            paused = await (await session.run.submit("test", agent_id="loop")).wait()
+            paused = (await (await session.run.submit("test", recipients=["loop"])).wait())[0]
             self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
             self.assertEqual(invocations, [])
             self.assertEqual(spawn.call_count, 0)
@@ -388,7 +388,7 @@ asyncio.run(main())
             self.addAsyncCleanup(app.shutdown)
             session = await (await app.projects.aload(project.id)).sessions.aload(session.id)
             self.assertEqual(spawn.call_count, 0)
-            resumed = await (await session.run.resume(paused.id, agent_id="loop")).wait()
+            resumed = (await (await session.run.resume(paused.id, agent_id="loop")).wait())[0]
             self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
             self.assertEqual(len(invocations), 1)
             self.assertEqual(spawn.call_count, 1)
@@ -418,8 +418,8 @@ asyncio.run(main())
             .node("end", "end").connect("test","end").to_dict())
         await (await project.components.aget("workflows")).acreate(graph, identifier="test")
         await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "test"}}, identifier="graph")
-        session = await project.sessions.acreate()
-        paused = await (await session.run.submit("test",agent_id="graph")).wait()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+        paused = (await (await session.run.submit("test",recipients=["graph"])).wait())[0]
         self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
         self.assertEqual(await paused.ainteraction_responses(), [])
         request, = await paused.ainteractions()
@@ -429,7 +429,7 @@ asyncio.run(main())
         with self.assertRaisesRegex(ValueError, "changed"):
             await session.run.resume(paused.id, agent_id="graph")
         component.toolkit._execution_binding["test_workspaces"]["allow_network"] = original
-        resumed = await (await session.run.resume(paused.id, agent_id="graph")).wait()
+        resumed = (await (await session.run.resume(paused.id, agent_id="graph")).wait())[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
 
     async def test_create_and_delete_require_decisions_before_mutating_space(self):
@@ -440,19 +440,19 @@ asyncio.run(main())
                 "engines":{"loop":{"config":{"completion":{"model":"test/model"}}}},
                 "components":{"builtin":{"config":{"enabled":["test_workspace_create","test_workspace_delete"]}}}}})
             await project.agents.acreate({"engine": "loop", "tools": ['test_workspace_create', 'test_workspace_delete']}, identifier="loop")
-            session = await project.sessions.acreate()
+            session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
             identifier = None
             for name in ("test_workspace_create","test_workspace_delete"):
                 args = {"source_paths":[]} if identifier is None else {"workspace_id":identifier}
                 model.responses.extend([[chunk(calls=[call(json.dumps(args),name=name)],finish="tool_calls")],[chunk("done",finish="stop")]])
-                paused = await (await session.run.submit(name,agent_id="loop")).wait()
+                paused = (await (await session.run.submit(name,recipients=["loop"])).wait())[0]
                 self.assertEqual(paused.data.status,RunStatus.PAUSED,paused.data.error)
                 with self.owner(project.id):
                     rows = (await self.spaces.list({}))["workspaces"]
                 self.assertEqual(len(rows),0 if identifier is None else 1)
                 request, = await paused.ainteractions()
                 await paused.arespond(request.respond("approve"))
-                done = await (await session.run.resume(paused.id,agent_id="loop")).wait()
+                done = (await (await session.run.resume(paused.id,agent_id="loop")).wait())[0]
                 self.assertEqual(done.data.status,RunStatus.COMPLETED,done.data.error)
                 if identifier is None:
                     identifier = next(s for s in await done.steps.alist() if s.kind=="tool").output.data["workspace_id"]
@@ -471,8 +471,8 @@ asyncio.run(main())
             args = {"workspace_id":identifier,"argv":self.python("import pathlib,time; pathlib.Path('ready').touch(); time.sleep(2); pathlib.Path('orphan').touch(); time.sleep(60)")}
             model.responses.append([chunk(calls=[call(json.dumps(args),name="test_workspace_execute")],finish="tool_calls")])
             await project.agents.acreate({"engine": "loop", "tools": ['test_workspace_execute']}, identifier="loop")
-            session = await project.sessions.acreate()
-            paused = await (await session.run.submit("test",agent_id="loop")).wait()
+            session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+            paused = (await (await session.run.submit("test",recipients=["loop"])).wait())[0]
             self.assertEqual(paused.data.status,RunStatus.PAUSED,paused.data.error)
             request, = await paused.ainteractions()
             await paused.arespond(request.respond("approve"))
@@ -480,7 +480,7 @@ asyncio.run(main())
             pending = asyncio.create_task(handle.wait())
             await self.wait_file(self.files(identifier,project.id) / "ready",pending)
             await session.run.interrupt()
-            done = await asyncio.wait_for(pending,10)
+            done, = await asyncio.wait_for(pending,10)
             self.assertEqual(done.data.status,RunStatus.INTERRUPTED,done.data.error)
             await asyncio.sleep(2.1)
             self.assertFalse((self.files(identifier,project.id) / "orphan").exists())

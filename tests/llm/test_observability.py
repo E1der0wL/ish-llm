@@ -65,13 +65,13 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
         project, session, _ = await self.setup_runtime(source('return None', decorator='@tool(ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=()))'),
                                                        runtime=ToolRuntime(authorize=ask))
         app = project.app
-        paused = await (await session.run.submit("private prompt", agent_id="loop")).wait()
+        paused = (await (await session.run.submit("private prompt", recipients=["loop"])).wait())[0]
         pending = app.observability.snapshot()
         self.assertEqual(pending["tools"]["requests"], 1)
         self.assertEqual(pending["tools"]["executions"], 0)
         request, = await paused.ainteractions()
         await paused.arespond(request.respond("approve"))
-        resumed = await (await session.run.resume(paused.id, agent_id="loop")).wait()
+        resumed = (await (await session.run.resume(paused.id, agent_id="loop")).wait())[0]
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         value = app.observability.snapshot()
         self.assertEqual({k: value["tools"][k] for k in ("requests", "approval_required", "executions", "failed")},
@@ -83,7 +83,7 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_worker_crash_is_one_tool_failure(self):
         project, session, _ = await self.setup_runtime(source('os._exit(9)', 'import os'))
-        run = await (await session.run.submit("private prompt", agent_id="loop")).wait()
+        run = (await (await session.run.submit("private prompt", recipients=["loop"])).wait())[0]
         self.assertEqual(run.data.error_code, 'tool_worker_failed')
         value = project.app.observability.snapshot()
         self.assertEqual(value['workers']['failed'], 1)
@@ -174,7 +174,7 @@ class ObservabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(value['tools']['completed'], 1)
         project, session, _ = await self.setup_runtime(source('return None'))
         project.app._observability._sink = fail
-        run = await (await session.run.submit('prompt', agent_id='loop')).wait()
+        run = (await (await session.run.submit('prompt', recipients=['loop'])).wait())[0]
         self.assertEqual(run.data.status, 'completed', run.data.error)
 
     async def test_provider_common_boundary_counts_retries_and_streaming(self):

@@ -121,9 +121,9 @@ ToolCall 인자는 복사본이므로 승인 함수가 바꾸어도 실행 인�
 ## UI 상태, 취소, 느린 구독자
 
 ```python
-request = await session.run.submit("작업", agent_id="loop")
+request = await session.run.submit("작업", recipients=["loop"])
 status = await session.run.astatus(queued_limit=20)
-# session_id, status, active_run_id, engine, started_at,
+# session_id, status, active_runs(run_id/agent_id/engine/started_at),
 # queued_count, queued_request_ids
 cancelled = await request.cancel()  # QUEUED일 때만 True. 실행 중이면 False
 

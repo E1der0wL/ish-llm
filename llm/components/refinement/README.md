@@ -66,7 +66,7 @@ handle = await session.run.submit(
     "검증 순서 개선이 필요하면 refinement_propose로 제안만 저장하세요.",
     engine="loop",
 )
-analysis_run = await handle.wait()
+analysis_run, = await handle.wait()
 ```
 
 실제 적용 Tool이 필요하면 다음을 명시합니다.

@@ -75,7 +75,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.sessions[second].run.wait_idle()
                 self.assertEqual((await runtime.sessions[second].aconversation())[-1].content,
                                  "**reply**: parallel")
-                self.assertIsNotNone((await runtime.sessions[first].run.astatus()).active_run_id)
+                self.assertTrue((await runtime.sessions[first].run.astatus()).active_runs)
                 await runtime.select(first)
                 gate.set()
                 await runtime.sessions[first].run.wait_idle()

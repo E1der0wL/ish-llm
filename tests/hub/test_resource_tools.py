@@ -26,17 +26,17 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
                 embedding=EmbeddingModel(model="test/embedding", adapter=LiteLLMOperations(call=embedding)), extractor=Extractor()),)))
         await self.runtime.start()
         self.addAsyncCleanup(self.runtime.close)
-        self.session = await self.runtime.project.sessions.acreate("Resources")
+        self.session = await self.runtime.project.sessions.acreate("Resources", agent_ids=sorted(await self.runtime.project.agents.alist()))
 
     async def invoke(self, name, *, approve=True, **arguments):
         self.provider.responses.extend([
             [chunk(calls=[call(json.dumps(arguments), name=name)], finish="tool_calls")],
             [chunk("Verified", finish="stop")]])
-        result = await (await self.session.run.submit(name, agent_id="assistant")).wait()
+        result = (await (await self.session.run.submit(name, recipients=["assistant"])).wait())[0]
         if str(result.data.status) == "paused" and approve:
             request, = await result.ainteractions()
             await result.arespond(request.respond("approve"))
-            result = await (await self.session.run.resume(result.id, agent_id="assistant")).wait()
+            result = (await (await self.session.run.resume(result.id, agent_id="assistant")).wait())[0]
         if str(result.data.status) == "paused":
             return result
         self.assertEqual(str(result.data.status), "completed", result.data.error)
@@ -75,7 +75,7 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         memory = await self.invoke("memory_create", content="The project color is violet.", kind="fact", scope="project")
         self.assertIn("violet", json.dumps(memory))
         self.provider.responses.append([chunk("Recalled", finish="stop")])
-        result = await (await self.session.run.submit("What is the project color violet?", agent_id="assistant")).wait()
+        result = (await (await self.session.run.submit("What is the project color violet?", recipients=["assistant"])).wait())[0]
         self.assertEqual(str(result.data.status), "completed", result.data.error)
         steps = await result.steps.alist()
         recalled = [step for step in steps if "memory" in step.kind]
@@ -86,7 +86,7 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         updated = await self.invoke("goal_update_progress", identifier="verify", expected_version=goal["version"],
                                     changes={"progress": ["Guide stored"], "next_actions": ["Readback"]})
         self.provider.responses.append([chunk("Progress checked", finish="stop")])
-        await (await self.session.run.submit("Continue the work", agent_id="assistant")).wait()
+        await (await self.session.run.submit("Continue the work", recipients=["assistant"])).wait()
         self.assertIn("Active Goal Reference", json.dumps(self.provider.requests[-1]["messages"]))
         self.assertIn("Readback", json.dumps(self.provider.requests[-1]["messages"]))
         complete = await self.invoke("goal_complete", identifier="verify", expected_version=updated["version"])
@@ -107,7 +107,7 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await skills.aload("guide"))["instructions"], "Before")
         request, = await paused.ainteractions()
         await paused.arespond(request.respond("approve"))
-        resumed = await (await self.session.run.resume(paused.id, agent_id="assistant")).wait()
+        resumed = (await (await self.session.run.resume(paused.id, agent_id="assistant")).wait())[0]
         self.assertEqual(str(resumed.data.status), "completed", resumed.data.error)
         self.assertEqual((await skills.aload("guide"))["instructions"], "After: verify readback")
 
@@ -132,11 +132,11 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
             [chunk(calls=[call(json.dumps({"agent_id": "reviewer", "input": {"task": "Review"}}), name="agent_run")], finish="tool_calls")],
             [chunk("Agent checked the supplied text", finish="stop")],
             [chunk("Review finished", finish="stop")]])
-        result = await (await self.session.run.submit("Review this using reviewer", agent_id="assistant")).wait()
+        result = (await (await self.session.run.submit("Review this using reviewer", recipients=["assistant"])).wait())[0]
         if str(result.data.status) == "paused":
             request, = await result.ainteractions()
             await result.arespond(request.respond("approve"))
-            result = await (await self.session.run.resume(result.id, agent_id="assistant")).wait()
+            result = (await (await self.session.run.resume(result.id, agent_id="assistant")).wait())[0]
         self.assertEqual(str(result.data.status), "completed", result.data.error)
         outputs = [step.output.data for step in await result.steps.alist() if step.kind == "tool" and step.output]
         self.assertIn("Agent checked", json.dumps(outputs))
@@ -152,7 +152,9 @@ class ResourceToolTests(unittest.IsolatedAsyncioTestCase):
                 "finish": {"type": "end"}}, "edges": [{"source": "inventory", "target": "finish"}]})
         await self.invoke("agent_create", identifier="inventory-agent",
                           definition={"engine": "graph", "engine_options": {"workflow": "inventory"}})
-        result = await (await self.session.run.submit("List guides", agent_id="inventory-agent")).wait()
+        await self.session.run.shutdown()
+        await self.session.asave(agent_ids=["assistant", "inventory-agent"])
+        result = (await (await self.session.run.submit("List guides", recipients=["inventory-agent"])).wait())[0]
         self.assertEqual(str(result.data.status), "completed", result.data.error)
         outputs = [step.output.data for step in await result.steps.alist() if step.kind == "tool" and step.output]
         self.assertIn("hub-create-workflow", json.dumps(outputs))

@@ -7,6 +7,7 @@ from llm.core.plans import RetentionPlan, RetentionUnit
 from llm.core.models import MessageStatus, now, new_id, RunStatus, ProjectConfig
 from llm.services.infrastructure.storage import revision_token, atomic_json, read_json, record, reject_links, tree_snapshot, child
 from llm.services.runtime.usage import project_usage_policies, protects_project_usage
+from llm.services.runtime.requests import RequestAdmission
 
 
 class HistoryRetention:
@@ -60,7 +61,7 @@ class HistoryRetention:
             runs, messages = self._history(session)
             sources.extend([record(session), *[record(m) for m in messages]])
             reasons = []
-            if self.manager.ownership.session_attached((project.id, session.id)) or session.current_run_id:
+            if self.manager.ownership.session_attached((project.id, session.id)) or session.active_run_ids:
                 reasons.append("runtime_attached")
             if project.conversation_storage != "file":
                 reasons.append("non_file_conversation")
@@ -88,10 +89,19 @@ class HistoryRetention:
                         if "steering" in run.metadata:
                             from llm.services.runtime.steering import instruction_records
                             protected_messages.update(mid for _, value in instruction_records(checkpoint) for mid in value["message_ids"])
-            keep.update(m.run_id for m in messages if m.id in protected_messages and m.run_id)
+            keep.update(identifier for m in messages if m.id in protected_messages
+                        for identifier in RequestAdmission.run_ids(m))
+            groups = {}
+            for run in sorted(runs, key=lambda run: run.agent_id):
+                groups.setdefault(run.input_message_id, []).append(run.id)
+            session_rows = []
             for run in runs:
                 stamps = self._stamps(run.paths.root)
-                owned = [m for m in messages if m.run_id == run.id or m.id in (run.input_message_id, run.assistant_message_id)]
+                group_ids = groups[run.input_message_id]
+                # Shared User storage is measured once; deletion still requires
+                # all recipients, so the original complete map is never rewritten.
+                owned = [m for m in messages if m.run_id == run.id
+                         or m.id == run.input_message_id and group_ids[0] == run.id]
                 size = sum(s["bytes"] for s in stamps.values()) + sum(len(json.dumps(record(m), ensure_ascii=False).encode("utf-8")) for m in owned)
                 tokens = 0
                 if self.counter is not None:
@@ -102,6 +112,7 @@ class HistoryRetention:
                 total_bytes += size
                 total_tokens += tokens
                 row = {"session_id": session.id, "run_id": run.id, "status": run.status,
+                       "group_run_ids": group_ids,
                        "message_ids": [m.id for m in owned],
                        "message_revisions": {m.id: revision_token(record(m)) for m in owned},
                        "bytes": size, "tokens": tokens, "last_activity": run.ended_at or run.created_at,
@@ -113,7 +124,12 @@ class HistoryRetention:
                     blocked.append("recent_or_referenced")
                 if protects_project_usage(run.metadata.get("completions", []), usage_policies, at=clock):
                     blocked.append("active_usage_accounting")
-                (protected if blocked else rows).append({**row, **({"reasons": blocked} if blocked else {})})
+                session_rows.append({**row, **({"reasons": blocked} if blocked else {})})
+            blocked_ids = {row["run_id"] for row in session_rows if row.get("reasons")}
+            for row in session_rows:
+                if not row.get("reasons") and blocked_ids.intersection(row["group_run_ids"]):
+                    row["reasons"] = ["protected_request_group"]
+                (protected if row.get("reasons") else rows).append(row)
         return self._result(project, RetentionUnit.RUN, rows, protected, sources, total_bytes, total_tokens)
 
     def _finish(self, session, path):
@@ -177,10 +193,12 @@ class HistoryRetention:
                 reasons.append("pending_maintenance")
             if self.manager.ownership.session_attached((project.id, session.id)):
                 reasons.append("runtime_attached")
-            if session.current_run_id or any(r.status != RunStatus.COMPLETED for r in runs):
+            if session.active_run_ids or any(r.status != RunStatus.COMPLETED for r in runs):
                 reasons.append("unfinished_or_resumable_run")
             completed = {r.id for r in runs if r.status == RunStatus.COMPLETED}
-            if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING) or m.status == MessageStatus.COMMITTED and m.run_id not in completed for m in messages):
+            if any(m.status in (MessageStatus.QUEUED, MessageStatus.STREAMING)
+                   or m.status == MessageStatus.COMMITTED
+                   and not set(RequestAdmission.run_ids(m)) <= completed for m in messages):
                 reasons.append("pending_message")
             if self.manager.sessions.run_repository.has_tool_operations(session):
                 reasons.append("external_operation_history")
@@ -227,6 +245,10 @@ class HistoryRetention:
             raise ValueError("History pruning cannot delete protected or unknown records")
         selected = [eligible[key] for key in keys]
         if unit == RetentionUnit.RUN:
+            selected_ids = {(row["session_id"], row["run_id"]) for row in selected}
+            if any((row["session_id"], identifier) not in selected_ids
+                   for row in selected for identifier in row["group_run_ids"]):
+                raise ValueError("History pruning requires the complete recipient Run group")
             grouped = {}
             for row in selected:
                 grouped.setdefault(row["session_id"], []).append(row)

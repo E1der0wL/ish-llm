@@ -156,3 +156,46 @@ class RequestAdmission:
                     or run.metadata.get("request_context") != message.metadata.get("request_context")):
                 raise ValueError("Run differs from its original request context")
         return [by_agent[identifier] for identifier in admission["recipients"]]
+
+    @classmethod
+    def run_ids(cls, message):
+        """Read history links without granting authority from a self-declared owner."""
+        if message.role != MessageRole.USER or is_instruction(message):
+            return (message.run_id,) if message.run_id is not None else ()
+        if "admission" not in message.metadata:
+            if message.run_id is not None or message.status == MessageStatus.QUEUED:
+                raise ValueError("Executable User requires its original recipient admission")
+            return ()  # Explicitly imported/cloned observations carry no execution link.
+        value = cls.validate(message.metadata["admission"])
+        value = cls.read(message, project_id=value["project_id"], session_id=value["session_id"])
+        return tuple(value["dispatch"]["run_ids"].values()) if value["dispatch"] is not None else ()
+
+    @classmethod
+    def history(cls, messages, records, *, project_id, session_id, persistent):
+        """Validate complete dispatch witnesses before recovery or deletion writes."""
+        by_id = {message.id: message for message in messages}
+        for message in messages:
+            if "admission" in message.metadata or (message.role == MessageRole.USER
+                    and not is_instruction(message) and message.status == MessageStatus.QUEUED):
+                cls.runs(message, records, project_id=project_id, session_id=session_id)
+        for run in records:
+            source = by_id.get(run.input_message_id)
+            if source is None:
+                if persistent:
+                    raise ValueError("Run requires its original User admission")
+                continue  # Memory lifetime loss permits interruption, never replay.
+            cls.runs(source, records, project_id=project_id, session_id=session_id)
+            assistant = by_id.get(run.assistant_message_id)
+            if (assistant is None or assistant.role != MessageRole.ASSISTANT
+                    or assistant.run_id != run.id):
+                raise ValueError("Dispatched Run requires its original Assistant")
+
+    @classmethod
+    def clone_message(cls, message):
+        """Detach copied observations, retaining source identity without executable evidence."""
+        value = cls.validate(message.metadata["admission"])
+        result = deepcopy(message)
+        result.metadata.pop("admission")
+        result.metadata["cloned_request"] = {name: deepcopy(value[name]) for name in (
+            "project_id", "session_id", "message_id", "recipients")}
+        return result

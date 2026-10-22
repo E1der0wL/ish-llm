@@ -67,10 +67,10 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("outputs", conversation_storage=storage)
         await self.project.agents.acreate({"engine": "test"}, identifier="test")
-        self.session = await self.project.sessions.acreate("session")
+        self.session = await self.project.sessions.acreate("session", agent_ids=sorted(await self.project.agents.alist()))
 
     async def request(self, **options):
-        return await (await self.session.run.submit("go", agent_id="test", **options)).wait(timeout=20)
+        return (await (await self.session.run.submit("go", recipients=["test"], **options)).wait(timeout=20))[0]
 
     async def test_structured_base_output_final_query_and_reopen(self):
         async def work(context):
@@ -119,14 +119,14 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await release.wait()
             yield " finished"
         await self.backend(BaseEngine(action=work))
-        first = await self.session.run.submit("hold", agent_id="test")
+        first = await self.session.run.submit("hold", recipients=["test"])
         await asyncio.wait_for(ready.wait(), 10)
-        queued = await self.session.run.submit("next", agent_id="test")
+        queued = await self.session.run.submit("next", recipients=["test"])
         run = (await self.session.run.alist())[0]
         partial, = await run.aoutputs()
         self.assertEqual((partial.text, partial.final), ("partial", False))
         await self.session.run.interrupt()
-        first_run, second_run = await first.wait(timeout=10), await queued.wait(timeout=10)
+        first_run, second_run = (await first.wait(timeout=10))[0], (await queued.wait(timeout=10))[0]
         self.assertEqual((await first_run.aresult()).status, RunStatus.INTERRUPTED)
         self.assertIsNone((await first_run.aresult()).output)
         self.assertEqual((await first_run.aoutputs())[0], partial)
@@ -302,8 +302,9 @@ class OutputIntegrationTests(unittest.IsolatedAsyncioTestCase):
             await agents.acreate({"engine": name, "purpose": name, "completion": {"model": "test/model"},
                                   "tools": []}, identifier=name)
         await (await self.project.components.aget("workflows")).acreate(graph, identifier="flow")
-        self.session = await self.project.sessions.acreate("parallel")
+        self.session = await self.project.sessions.acreate("parallel", agent_ids=sorted(await self.project.agents.alist()))
         await self.project.agents.acreate({"engine": "test", "engine_options": {"workflow": "flow"}}, identifier="test")
+        await self.session.asave(agent_ids=["test"])
         run = await self.request()
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual((await run.aresponse()).content, "")

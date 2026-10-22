@@ -140,8 +140,8 @@ class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
         engine = LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))
         self.app.engines.register("read", engine)
         await self.project.agents.acreate({"engine": "read", "completion": {"model": "test/model"}, "tools": ["skill_read_resource"], "resources": {"skills": ["guide"]}}, identifier="read")
-        session = await self.project.sessions.acreate()
-        result = await (await session.run.submit("Read guide", agent_id="read")).wait()
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
+        result = (await (await session.run.submit("Read guide", recipients=["read"])).wait())[0]
         self.assertEqual(str(result.data.status), "completed", result.data.error)
         self.assertNotIn("helper", [tool["function"]["name"] for tool in model.requests[0]["tools"]])
         self.assertIn("Exact evidence", json.dumps([m for m in model.requests[-1]["messages"] if m["role"] == "tool"]))
@@ -182,13 +182,13 @@ class SkillReferenceTests(unittest.IsolatedAsyncioTestCase):
                  .node("end", "end").connect("read", "end").to_dict())
         await self.project.components.workflows.acreate(graph, identifier="read")
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "read"}}, identifier="graph")
-        session = await self.project.sessions.acreate()
-        paused = await (await session.run.submit("Read", agent_id="graph")).wait()
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
+        paused = (await (await session.run.submit("Read", recipients=["graph"])).wait())[0]
         self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
         changed = await self.data.awrite_file("manual", "reference.md", "Changed", expected_revision=self.refs[0]["revision"])
         with self.assertRaisesRegex(ValueError, "reference revision"):
             await session.run.resume(paused.id, agent_id="graph")
         self.assertEqual((await paused.aget_data()).status, RunStatus.PAUSED)
         await self.data.awrite_file("manual", "reference.md", "Exact evidence", expected_revision=changed["version"])
-        resumed = await (await session.run.resume(paused.id, agent_id="graph")).wait()
+        resumed = (await (await session.run.resume(paused.id, agent_id="graph")).wait())[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)

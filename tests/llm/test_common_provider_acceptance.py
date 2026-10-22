@@ -179,11 +179,11 @@ class IndependentProviderAcceptanceTests(unittest.IsolatedAsyncioTestCase):
             config['policies'] = {'usage': {**usage, 'counter': 'independent'}}
         project = await app.projects.acreate(components=[c.name for c in components], config=config)
         await project.agents.acreate({"engine": "loop", "tools": ["write_effect"]}, identifier="loop")
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         return app, project, session, adapter, effect
 
     async def run_once(self, session):
-        return await (await session.run.submit('write once, then answer', agent_id='loop')).wait(timeout=20)
+        return (await (await session.run.submit('write once, then answer', recipients=['loop'])).wait(timeout=20))[0]
 
     async def test_real_effect_opaque_pair_processor_and_checkpoint(self):
         seen = []
@@ -243,7 +243,7 @@ class IndependentProviderAcceptanceTests(unittest.IsolatedAsyncioTestCase):
             engines={'loop': LoopEngine(completion_adapter=adapter)}, components=[app.project_manager.components.get("tools")])
         self.addAsyncCleanup(reopened.shutdown)
         resumed_session = await (await reopened.projects.aload(project.id)).sessions.aload(session.id)
-        result = await (await resumed_session.run.resume(paused.id, agent_id='loop')).wait(timeout=20)
+        result = (await (await resumed_session.run.resume(paused.id, agent_id='loop')).wait(timeout=20))[0]
         self.assertEqual(result.data.status, 'completed', result.data.error)
         self.assertEqual((effect.read_text(), len(adapter.requests)), ('approved\n', 2))
 

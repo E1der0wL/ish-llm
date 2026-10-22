@@ -62,7 +62,7 @@ class RuntimeContractTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             return None
         app, session, _ = await self.setup_app(act, [[chunk('answer', finish='stop')]])
-        run = await (await session.run.submit("go", agent_id="loop")).wait()
+        run = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
         state = await session.run.astatus()
         self.assertIsInstance(state, SessionRuntimeView)
         self.assertEqual(SessionRuntimeView.from_dict(json.loads(json.dumps(state.to_dict()))), state)
@@ -85,14 +85,14 @@ class RuntimeContractTests(unittest.IsolatedAsyncioTestCase):
         await run.arespond(plan.interactions[0].request.respond("approve"))
         self.assertTrue((await session.run.resume_plan(run.id, agent_id="loop")).can_resume)
         self.assertEqual(self.effects, [])
-        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
+        resumed = (await (await session.run.resume(run.id, agent_id="loop")).wait())[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
 
     async def test_recovery_and_retention_keep_review_versions_and_json_journal(self):
         async def act(arguments):
             pass
         app, session, _ = await self.setup_app(act, [[chunk('done', finish='stop')]])
-        await (await session.run.submit("go", agent_id="loop")).wait()
+        await (await session.run.submit("go", recipients=["loop"])).wait()
         await session.run.shutdown()
         recovery = await session.project.arecovery()
         self.assertIsInstance(recovery, RecoveryPlan)
@@ -114,10 +114,10 @@ class RuntimeContractTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await release.wait()
         app, session, _ = await self.setup_app(act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]])
-        request = await session.run.submit("work", agent_id="loop")
+        request = await session.run.submit("work", recipients=["loop"])
         await asyncio.wait_for(entered.wait(), 5)
         await session.run.interrupt()
-        run = await request.wait()
+        run = (await request.wait())[0]
         self.assertEqual((await run.aresult()).diagnostic.source.run_id, run.id)
         steps = await run.steps.alist()
         self.assertTrue(any(step.status == "interrupted" for step in steps))
@@ -131,7 +131,7 @@ class RuntimeContractTests(unittest.IsolatedAsyncioTestCase):
             effects.append(1)
             raise ToolExecutionError("effect uncertain", effect="uncertain", retryable=True)
         app, session, _ = await self.setup_app(act, [[chunk(calls=[call('{}', name='act')], finish='tool_calls')]])
-        run = await (await session.run.submit("work", agent_id="loop")).wait()
+        run = (await (await session.run.submit("work", recipients=["loop"])).wait())[0]
         step = next(s for s in await run.steps.alist() if s.kind == "tool")
         self.assertEqual(step.diagnostic.details["effect"], "uncertain")
         self.assertEqual(step.diagnostic.source.run_id, run.id)
@@ -154,7 +154,8 @@ class RuntimeContractTests(unittest.IsolatedAsyncioTestCase):
                     progress=OperationProgress(ResourceRef("step", step_id), "completed", 5, 5, "documents"))
         app.engines.register("counted", Counted())
         await session.project.agents.acreate({"engine": "counted"}, identifier="counted")
-        run = await (await session.run.submit("index", agent_id="counted")).wait()
+        await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"counted"}))
+        run = (await (await session.run.submit("index", recipients=["counted"])).wait())[0]
         self.assertEqual(run.data.status, "completed", run.data.error)
         step = (await run.steps.alist())[0]
         restored = await run.steps.aload(step.id)
@@ -166,7 +167,7 @@ class RuntimeContractTests(unittest.IsolatedAsyncioTestCase):
         async def act(arguments):
             pass
         app, session, _ = await self.setup_app(act, [[chunk('done', finish='stop')]])
-        run = await (await session.run.submit("go", agent_id="loop")).wait()
+        run = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
         from llm.core.models import new_id
         step_id = new_id()
         event = EngineEvent(EngineEventType.STEP_STARTED, step_id=step_id,

@@ -109,7 +109,7 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
         project = await self.app.projects.acreate(components=["workflows"])
         await project.components.workflows.acreate(definition, identifier="flow")
         await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
-        self.session = await project.sessions.acreate()
+        self.session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
 
     async def test_pause_resume_plan_keeps_checkpoint_step_and_effect_order(self):
         trace, names, calls = [], {}, []
@@ -144,14 +144,14 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
             .connect("route", "yes", port="yes").connect("route", "no", port="no")
             .connect("yes", "end").connect("no", "end").to_dict())
         await self.setup_graph(graph, work, observer=observe)
-        paused = await (await self.session.run.submit("go", agent_id="graph")).wait(timeout=15)
+        paused = (await (await self.session.run.submit("go", recipients=["graph"])).wait(timeout=15))[0]
         self.assertEqual(paused.data.status, RunStatus.PAUSED)
         checkpoint = await paused.acheckpoint()
         self.assertEqual(trace, [("record", "first", "started"), ("start", "first"), ("effect", "first"),
             ("record", "first", "completed"), ("complete", "first"), ("record", "review", "waiting")])
         trace.clear()
-        resumed = await (await self.session.run.resume(paused.id, agent_id="graph",
-            decisions={'["review"]': {"state": {"choice": "yes"}}})).wait(timeout=15)
+        resumed = (await (await self.session.run.resume(paused.id, agent_id="graph",
+            decisions={'["review"]': {"state": {"choice": "yes"}}})).wait(timeout=15))[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(calls, ["first", "review", "yes"])
         self.assertEqual(trace, [("start", "first"), ("complete", "first"),
@@ -171,7 +171,7 @@ class DecisionBoundaryTests(unittest.IsolatedAsyncioTestCase):
             .connect("route", "action", port="yes").connect("route", "end", port="no")
             .connect("action", "end").to_dict())
         await self.setup_graph(graph, work)
-        failed = await (await self.session.run.submit("go", agent_id="graph")).wait(timeout=15)
+        failed = (await (await self.session.run.submit("go", recipients=["graph"])).wait(timeout=15))[0]
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         self.assertIn("Ordered comparison", failed.data.error)
         self.assertEqual(calls, [])

@@ -57,8 +57,8 @@ engines = {
 ```python
 await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "review"}},
                              identifier="coordinator")
-request = await session.run.submit("설정 파일을 검토해줘", agent_id="coordinator")
-run = await request.wait()
+request = await session.run.submit("설정 파일을 검토해줘", recipients=["coordinator"])
+run, = await request.wait()
 ```
 
 생성자는 Workflow를 받지 않습니다. Agent의 `engine_options.workflow`는 필수이며 기본값이나

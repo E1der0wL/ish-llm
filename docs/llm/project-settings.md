@@ -22,7 +22,8 @@ project = await backend.projects.acreate(
 session = await project.sessions.acreate("대화", config={
     "parameters": {"engines": {"loop": {'policy': {'request_timeout': 60}}}},
 })
-request = await session.run.submit("안녕하세요", agent_id="loop")
+await session.asave(agent_ids=['loop'])
+request = await session.run.submit("안녕하세요", recipients=["loop"])
 ```
 
 숫자와 모델은 예제의 명시적 선택이다. Session은 Project의 300초 제한을 60초로 좁힌다.
@@ -76,7 +77,7 @@ Session override까지 보고 싶으면 `session.adescribe_config()`을 사용�
 ## 애플리케이션의 생성·선택 정책
 
 llm은 기본 Project/Session, 최근 선택, UI 기본 엔진, 초기 설정 템플릿을 관리하지 않는다.
-일반 create/load/list/clone/delete와 명시적 `submit(agent_id=...)`만 사용한다.
+일반 create/load/list/clone/delete와 명시적 `submit(recipients=[...])`만 사용한다.
 Hub는 자기 `.hub/` 상태와 시작 잠금을 소유하고 공개 llm API로 첫 Project를 만든다.
 다른 플러그인은 Hub에 의존하지 않고 자신의 정책을 구현할 수 있다. title/id/components/
 conversation_storage는 그대로 Project의 수명 속성이며 parameters로 옮기지 않는다.

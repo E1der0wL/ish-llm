@@ -57,7 +57,7 @@ async def probe(args):
 
     async def request(session, text):
         before = time.monotonic()
-        run = await (await session.run.submit(text, agent_id='probe-agent')).wait(timeout=120)
+        run = (await (await session.run.submit(text, recipients=['probe-agent'])).wait(timeout=120))[0]
         data = await run.aget_data()
         if data.status != 'completed' or (await run.aresponse()).content != text:
             raise AssertionError(f'Incorrect persisted result: {data.id}, {data.status}')
@@ -68,7 +68,7 @@ async def probe(args):
         async with LargeLanguageModel(root, components=[], engines={'probe': ProbeEngine()}) as app:
             project = await app.projects.acreate('Operational probe')
             await project.agents.acreate({'engine': 'probe'}, identifier='probe-agent')
-            sessions = [await project.sessions.acreate(f'Session {i}') for i in range(args.sessions)]
+            sessions = [await project.sessions.acreate(f'Session {i}', agent_ids=['probe-agent']) for i in range(args.sessions)]
             samples.append(resources())
             while rounds == 0 or time.monotonic() - started < args.seconds:
                 text = f'round={rounds} ' + 'x' * args.payload_chars
@@ -88,7 +88,7 @@ async def probe(args):
                 latest = await session.run.alist(query=Query(descending=True, limit=1))
                 if not latest or (await latest[0].aresponse()).content != text:
                     raise AssertionError('Restart projection mismatch')
-                if (await session.run.astatus()).active_run_id is not None:
+                if bool((await session.run.astatus()).active_runs):
                     raise AssertionError('Completed request replayed after restart')
     finally:
         stop.set()

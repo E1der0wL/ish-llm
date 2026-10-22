@@ -44,13 +44,14 @@ async def main():
                 "completion": {"model": model_name}}}}}})
         await project.agents.acreate({"engine": "loop"}, identifier="loop")
         session = await project.sessions.acreate("대화 세션")
-        request = await session.run.submit("내 이름은 민수야.", agent_id="loop")
-        run = await request.wait()
+        await session.asave(agent_ids=['loop'])
+        request = await session.run.submit("내 이름은 민수야.", recipients=["loop"])
+        run, = await request.wait()
         print((await run.aresponse()).content)
 
         # 같은 Session의 다음 Run은 앞선 메시지를 문맥 정책에 따라 받는다.
-        request = await session.run.submit("내 이름이 뭐라고 했지?", agent_id="loop")
-        run = await request.wait()
+        request = await session.run.submit("내 이름이 뭐라고 했지?", recipients=["loop"])
+        run, = await request.wait()
         print((await run.aresponse()).content)
         history = await session.aconversation()
 ```

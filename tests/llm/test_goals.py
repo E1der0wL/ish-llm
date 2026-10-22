@@ -35,17 +35,17 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("goals", components=["goals"])
         await self.project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}}, identifier="loop")
-        self.session = await self.project.sessions.acreate("session")
+        self.session = await self.project.sessions.acreate("session", agent_ids=sorted(await self.project.agents.alist()))
         self.goals = self.project.components.goals
 
     async def test_crud_scopes_references_and_conflicts(self):
         first = await self.goals.acreate(goal())
         second = await self.goals.acreate(goal({"type": "session", "id": self.session.id}))
-        other = await self.project.sessions.acreate("other")
+        other = await self.project.sessions.acreate("other", agent_ids=sorted(await self.project.agents.alist()))
         self.assertNotIn(second, await self.goals.alist(session_id=other.id))
-        request = await self.session.run.submit("work", agent_id="loop")
+        request = await self.session.run.submit("work", recipients=["loop"])
         await request.wait()
-        result = await request.aresult()
+        result = (await request.aresults())[0]
         before = deepcopy(result)
         for identifier in (first, second):
             view = await self.goals.asnapshot(identifier)
@@ -57,7 +57,7 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
             resumed = await self.goals.aresume(identifier, expected_version=paused["version"])
             completed = await self.goals.acomplete(identifier, expected_version=resumed["version"])
             self.assertEqual(completed["data"]["status"], "completed")
-        self.assertEqual(await request.aresult(), before)
+        self.assertEqual((await request.aresults())[0], before)
         with self.assertRaises((ValueError, FileNotFoundError)):
             await self.goals.alink_run(first, self.session.id, "0" * 32, relation="missing",
                 expected_version=(await self.goals.asnapshot(first))["version"])
@@ -83,14 +83,14 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_opt_in_reference_is_not_system_prompt(self):
         await self.goals.acreate(goal())
-        handle = await self.session.run.submit("current", agent_id="loop")
+        handle = await self.session.run.submit("current", recipients=["loop"])
         await handle.wait()
-        self.assertEqual((await handle.aresult()).status, RunStatus.COMPLETED, (await handle.aresult()).error)
+        self.assertEqual((await handle.aresults())[0].status, RunStatus.COMPLETED, (await handle.aresults())[0].error)
         self.assertEqual(self.provider.requests[-1]["messages"][-1]["content"], "current")
         await self.goals.aconfigure({"config": {"priority": 10}, "policy": {"inject": True}})
-        handle = await self.session.run.submit("next", agent_id="loop")
+        handle = await self.session.run.submit("next", recipients=["loop"])
         await handle.wait()
-        self.assertEqual((await handle.aresult()).status, RunStatus.COMPLETED)
+        self.assertEqual((await handle.aresults())[0].status, RunStatus.COMPLETED)
         messages = self.provider.requests[-1]["messages"]
         self.assertIn("Active Goal Reference", messages[-1]["content"])
         self.assertFalse(any(m["role"] == "system" for m in messages))
@@ -112,9 +112,9 @@ class GoalTests(unittest.IsolatedAsyncioTestCase):
     async def test_unselected_component_keeps_plain_execution(self):
         project = await self.app.projects.acreate("plain", components=[])
         await project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}}, identifier="loop")
-        session = await project.sessions.acreate("plain")
-        handle = await session.run.submit("plain", agent_id="loop")
+        session = await project.sessions.acreate("plain", agent_ids=sorted(await project.agents.alist()))
+        handle = await session.run.submit("plain", recipients=["loop"])
         await handle.wait()
-        self.assertEqual((await handle.aresult()).status, RunStatus.COMPLETED)
+        self.assertEqual((await handle.aresults())[0].status, RunStatus.COMPLETED)
         self.assertNotIn("tools", self.provider.requests[-1])
         self.assertFalse((project.paths.root / "goals").exists())

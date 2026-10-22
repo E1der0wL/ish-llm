@@ -73,11 +73,11 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         self.project = self.app.projects.create("project")
         self.project.agents.create({"engine": "loop"}, identifier="loop")
-        self.session = self.project.sessions.create()
+        self.session = self.project.sessions.create(agent_ids=sorted(self.project.agents.list()))
 
     async def test_chain_reuses_runtime_and_exposes_run_step_history(self):
         loaded = self.app.projects.load(self.project.id).sessions.load(self.session.id)
-        await asyncio.gather(self.session.run.submit("one", agent_id="loop"), loaded.run.submit("two", agent_id="loop"))
+        await asyncio.gather(self.session.run.submit("one", recipients=["loop"]), loaded.run.submit("two", recipients=["loop"]))
         await loaded.run.wait_idle()
         self.assertEqual(len(self.app._managers), 1)
         self.assertEqual(self.engine.max_active, 1)
@@ -103,8 +103,8 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_multiple_sessions_execute_concurrently(self):
         self.engine.gate = asyncio.Event()
-        other = self.project.sessions.create("other")
-        await asyncio.gather(self.session.run.submit("one", agent_id="loop"), other.run.submit("two", agent_id="loop"))
+        other = self.project.sessions.create("other", agent_ids=sorted(self.project.agents.list()))
+        await asyncio.gather(self.session.run.submit("one", recipients=["loop"]), other.run.submit("two", recipients=["loop"]))
         async with asyncio.timeout(10):
             while self.engine.max_active < 2:
                 await asyncio.sleep(0.01)
@@ -155,10 +155,10 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
         clone.delete(permanent=True)
 
     async def test_read_history_checks_ownership(self):
-        await self.session.run.submit("one", agent_id="loop")
+        await self.session.run.submit("one", recipients=["loop"])
         await self.session.run.wait_idle()
         run = self.session.run.list()[0]
-        other = self.project.sessions.create()
+        other = self.project.sessions.create(agent_ids=sorted(self.project.agents.list()))
         with self.assertRaises(FileNotFoundError):
             other.run.load(run.id)
         with self.assertRaises(ValueError):
@@ -169,26 +169,26 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
             run.steps.list()
 
     async def test_shutdown_one_session_then_resume(self):
-        await self.session.run.submit("one", agent_id="loop")
+        await self.session.run.submit("one", recipients=["loop"])
         await self.session.run.wait_idle()
         with self.assertRaises(ValueError):
             self.session.delete()
         await self.session.run.shutdown()
         self.session.save(title="detached")
-        await self.project.sessions.load(self.session.id).run.submit("two", agent_id="loop")
+        await self.project.sessions.load(self.session.id).run.submit("two", recipients=["loop"])
         await self.session.run.wait_idle()
         self.assertEqual(len(self.session.run.list()), 2)
 
     async def test_shutdown_preserves_queue_for_new_backend(self):
         self.engine.gate = asyncio.Event()
-        await self.session.run.submit("active", agent_id="loop")
+        await self.session.run.submit("active", recipients=["loop"])
         async with asyncio.timeout(10):
             while not self.engine.active:
                 await asyncio.sleep(0.01)
-        await self.session.run.submit("queued", agent_id="loop")
+        await self.session.run.submit("queued", recipients=["loop"])
         await self.app.shutdown()
         with self.assertRaises(RuntimeError):
-            await self.session.run.submit("closed", agent_id="loop")
+            await self.session.run.submit("closed", recipients=["loop"])
         async with LargeLanguageModel(self.tmp.name, engines={"loop": FakeStreamingEngine()}) as fresh:
             session = fresh.projects.load(self.project.id).sessions.load(self.session.id)
             self.assertIn(MessageStatus.QUEUED, [m.status for m in session.conversation()])
@@ -199,7 +199,7 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_context_manager_closes_and_releases_ownership(self):
         async with self.app:
-            await self.session.run.submit("one", agent_id="loop")
+            await self.session.run.submit("one", recipients=["loop"])
             await self.session.run.wait_idle()
         with WorkspaceOwnership(Path(self.tmp.name) / "projects").scope():
             pass
@@ -207,7 +207,7 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
             self.app.projects.create()
 
     async def test_shutdown_attempts_all_managers_when_one_fails(self):
-        other = self.project.sessions.create()
+        other = self.project.sessions.create(agent_ids=sorted(self.project.agents.list()))
         await self.session.run.start()
         await other.run.start()
         first = self.app._managers[(self.project.id, self.session.id)]

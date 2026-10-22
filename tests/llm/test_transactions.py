@@ -253,15 +253,16 @@ class DomainTransactionTests(unittest.TestCase):
         self.runtime = SessionRuntime(self.project, self.session)
         self.store = self.manager._store(self.session)
         with self.projects.ownership.scope():
-            self.message = self.store.create(MessageRole.USER, "request", MessageStatus.QUEUED,
-                                             metadata={"agent_binding": AgentBinding.create(self.project.id, "fixture", {"engine": "explicit"})})
+            self.message = self.manager._admit(self.runtime, "request",
+                {"fixture": AgentBinding.create(self.project.id, "fixture", {"engine": "explicit"})})
 
     def begin(self):
         if not self.projects.ownership.session_attached((self.session.project_id, self.session.id)):
             self.sessions.attach_runtime(self.session)
             self.addCleanup(self.sessions.detach_runtime, self.session)
         with self.projects.ownership.scope():
-            return self.manager._begin(self.runtime, self.message)
+            run, = self.manager._dispatch_request(self.runtime, self.message)
+            return self.manager._begin(self.runtime, run)
 
     def test_run_begin_failure_leaves_request_queued_and_no_orphans(self):
         with patch.object(self.sessions, "_save_runtime", side_effect=OSError("disk full")):
@@ -271,9 +272,9 @@ class DomainTransactionTests(unittest.TestCase):
         self.assertEqual(self.store.get(self.message.id).status, MessageStatus.QUEUED)
         self.assertEqual(len(self.store.list()), 1)
         self.assertEqual(self.session.status, SessionStatus.IDLE)
-        self.assertIsNone(self.session.current_run_id)
+        self.assertEqual(self.session.active_run_ids, [])
         run = self.begin()
-        self.assertEqual(self.store.get(self.message.id).run_id, run.id)
+        self.assertEqual(self.store.get(self.message.id).metadata["admission"]["dispatch"]["run_ids"], {"fixture": run.id})
 
     def test_finish_failure_rolls_back_step_run_session_and_assistant(self):
         from llm.services.infrastructure.transactions import watch
@@ -371,7 +372,7 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate()
         await self.project.agents.acreate({"engine": "test"}, identifier="test")
-        self.session = await self.project.sessions.acreate()
+        self.session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
 
     async def test_delta_failure_rolls_back_journal_and_does_not_notify(self):
         original = ConversationStore.delta
@@ -379,7 +380,7 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
             original(store, *args, **kwargs)
             raise OSError("conversation fsync failed")
         with patch.object(ConversationStore, "delta", fail):
-            run = await (await self.session.run.submit("request", agent_id="test")).wait(timeout=10)
+            run = (await (await self.session.run.submit("request", recipients=["test"])).wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual((await run.aresponse()).content, "")
         self.assertEqual(await run.aoutput_events(), [])
@@ -392,7 +393,7 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
                 raise OSError("step completion failed")
             return original(step)
         with patch.object(self.app.step_manager, "save", fail):
-            run = await (await self.session.run.submit("request", agent_id="test")).wait(timeout=10)
+            run = (await (await self.session.run.submit("request", recipients=["test"])).wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.FAILED)
         outputs = await run.aoutput_events()
         self.assertEqual([o.sequence for o in outputs], [1])
@@ -411,7 +412,7 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(OSError):
                 await manager.start()
         self.assertEqual(self.app.project_manager.ownership.attached_sessions, ())
-        run = await (await self.session.run.submit("retry start", agent_id="test")).wait(timeout=10)
+        run = (await (await self.session.run.submit("retry start", recipients=["test"])).wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED)
 
     async def test_uncertain_commit_error_releases_runtime_claim_without_undoing_disk(self):
@@ -426,5 +427,5 @@ class AsyncTransactionTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(OSError):
                 await manager.start()
         self.assertEqual(self.app.project_manager.ownership.attached_sessions, ())
-        run = await (await self.session.run.submit("retry start", agent_id="test")).wait(timeout=10)
+        run = (await (await self.session.run.submit("retry start", recipients=["test"])).wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED)

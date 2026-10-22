@@ -204,8 +204,8 @@ class RunCheckpointTests(unittest.IsolatedAsyncioTestCase):
                 project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
                     "loop": {"config": {"completion": {"model": "test/model"}}}}}})
                 await project.agents.acreate({"engine": "loop"}, identifier="loop")
-                session = await project.sessions.acreate()
-                run = await (await session.run.submit("fail", agent_id="loop")).wait()
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                run = (await (await session.run.submit("fail", recipients=["loop"])).wait())[0]
                 await session.run.shutdown()
                 self.assertEqual(run.data.status, RunStatus.FAILED)
                 before = await session.aconversation()

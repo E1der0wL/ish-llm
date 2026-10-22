@@ -30,11 +30,11 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate(components=[] if tools is None else ["tools"],
                                             config={"policies": {"usage": usage}, "parameters": parameters})
         await project.agents.acreate({"engine": "loop", "tools": [] if tools is None else [tool.name for tool in tools]}, identifier="loop")
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         return app, project, session, model
 
     async def run_once(self, session):
-        return await (await session.run.submit("request", agent_id="loop")).wait()
+        return (await (await session.run.submit("request", recipients=["loop"])).wait())[0]
 
     async def test_permanent_delete_cannot_reset_project_call_quota(self):
         _, project, session, model = await self.create({"project_max_calls": 1})
@@ -51,7 +51,7 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
         except ValueError:
             rejected = True
         usage = await project.amodel_usage()
-        other = await project.sessions.acreate()
+        other = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         after = await self.run_once(other)
         # Observe the actual extra model call before asserting failure.
         self.assertEqual({
@@ -74,8 +74,8 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
         ])
         self.assertEqual((await self.run_once(session)).data.status, "completed")
         await session.run.shutdown()
-        other = await project.sessions.acreate()
-        pending = await other.run.submit("request", agent_id="loop")
+        other = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+        pending = await other.run.submit("request", recipients=["loop"])
         try:
             await asyncio.wait_for(entered.wait(), 5)
             self.assertEqual(len(model.requests), 2)
@@ -92,7 +92,7 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
                 rejected = True
         finally:
             release.set()
-        result = await pending.wait()
+        result = (await pending.wait())[0]
         self.assertEqual((protected, rejected, len(model.requests), result.data.error_code),
                          ({"session": True, "run": True}, True, 2, "usage_limit"))
 
@@ -104,7 +104,7 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await project.amodel_usage())["call_count"], 1)
         with self.assertRaisesRegex(ValueError, "quota"):
             await session.adelete(permanent=True)
-        other = await project.sessions.acreate()
+        other = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         self.assertEqual((await self.run_once(other)).data.error_code, "usage_limit")
         self.assertEqual(len(model.requests), 1)
 
@@ -119,7 +119,7 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "quota"):
             await session.adelete(permanent=True)
         self.assertEqual(path.read_bytes(), before)
-        other = await project.sessions.acreate()
+        other = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         self.assertEqual((await self.run_once(other)).data.error_code, "usage_unknown")
         self.assertEqual(len(model.requests), 1)
 
@@ -133,7 +133,7 @@ class UsageDeletionTests(unittest.IsolatedAsyncioTestCase):
             # Time-shift the fixture; normal updates cannot rewrite completed evidence.
             atomic_domain_json(run.paths.root / "run.json", record(run))
         self.assertEqual((await project.amodel_usage())["call_count"], 0)
-        other = await project.sessions.acreate()
+        other = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         self.assertEqual((await self.run_once(other)).data.status, "completed")
         root = session.paths.root
         await session.adelete(permanent=True)

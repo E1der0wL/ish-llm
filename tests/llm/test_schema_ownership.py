@@ -185,13 +185,13 @@ class OwnershipIntegrationTests(unittest.IsolatedAsyncioTestCase):
                     .node("end", "end").connect("a", "end").to_dict())
                 await project.components.workflows.acreate(workflow, identifier="test")
                 await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "test"}}, identifier="graph")
-                session = await project.sessions.acreate()
-                result = await (await session.run.submit("go", agent_id="graph")).wait()
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                result = (await (await session.run.submit("go", recipients=["graph"])).wait())[0]
                 self.assertEqual(result.data.status, RunStatus.COMPLETED, result.data.error)
                 self.assertEqual(seen, [7])
                 workflow["nodes"]["a"]["new_option"] = "bad"
                 await project.components.workflows.asave("test", workflow)
-                rejected = await (await session.run.submit("go", agent_id="graph")).wait()
+                rejected = (await (await session.run.submit("go", recipients=["graph"])).wait())[0]
                 self.assertEqual(rejected.data.status, RunStatus.FAILED)
                 self.assertIn("new_option", rejected.data.error)
                 self.assertEqual(seen, [7])

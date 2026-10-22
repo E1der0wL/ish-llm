@@ -43,8 +43,8 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                     registry = runtime.builtin_tools.resolve(project,"tools")
                     self.assertNotIn("test_workspace_execute",registry.names())
                     self.assertIn("test_workspace_execute",runtime.builtin_tools.toolkit.registry.names())
-                    session = await runtime.project.sessions.acreate("No sandbox runtime")
-                    result = await (await session.run.submit("hello",agent_id="assistant")).wait()
+                    session = await runtime.project.sessions.acreate("No sandbox runtime", agent_ids=sorted(await runtime.project.agents.alist()))
+                    result = (await (await session.run.submit("hello",recipients=["assistant"])).wait())[0]
                     self.assertEqual(str(result.data.status),"completed",result.data.error)
             finally:
                 await runtime.close()
@@ -62,7 +62,7 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 self.assertIsInstance(runtime.backend.services.tool_runtime.runner, BuiltinToolRunner)
                 self.assertFalse((Path(root) / ".hub/test-workspaces").exists())
-                session = await runtime.project.sessions.acreate("Sandbox")
+                session = await runtime.project.sessions.acreate("Sandbox", agent_ids=sorted(await runtime.project.agents.alist()))
                 identifier = None
                 for name in ("test_workspace_create", "test_workspace_execute", "test_workspace_delete"):
                     args = {"source_paths":[str(source)]} if identifier is None else {"workspace_id":identifier}
@@ -70,11 +70,11 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                         args["argv"] = ["/bin/sh","-c","printf isolated > result.txt; printf ok"]
                     model.responses.extend([[chunk(calls=[call(json.dumps(args),name=name)],finish="tool_calls")],
                                             [chunk("done",finish="stop")]])
-                    paused = await (await session.run.submit(name,agent_id="assistant")).wait()
+                    paused = (await (await session.run.submit(name,recipients=["assistant"])).wait())[0]
                     self.assertEqual(paused.data.status,RunStatus.PAUSED,paused.data.error)
                     request, = await paused.ainteractions()
                     await paused.arespond(request.respond("approve"))
-                    done = await (await session.run.resume(paused.id,agent_id="assistant")).wait()
+                    done = (await (await session.run.resume(paused.id,agent_id="assistant")).wait())[0]
                     self.assertEqual(done.data.status,RunStatus.COMPLETED,done.data.error)
                     output = next(s for s in await done.steps.alist() if s.kind=="tool").output.data
                     if name == "test_workspace_create":

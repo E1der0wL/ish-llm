@@ -174,8 +174,8 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
             await agents.acreate({"purpose": "graph", "engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph-worker")
             await agents.acreate({"purpose": "leaf", "engine": "leaf"}, identifier="leaf")
             await agents.acreate({"engine": "parent", "tools": ["agent_run"]}, identifier="parent-agent")
-            session = await project.sessions.acreate()
-            run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
+            session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+            run = (await (await session.run.submit("go", recipients=["parent-agent"])).wait())[0]
             self.assertEqual(run.data.status, "failed", run.data.error)
             self.assertEqual(len(leaf.requests), 1)
             snapshot = await agents.asnapshot("leaf")
@@ -206,7 +206,7 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
             await agents.acreate(invalid, identifier="unused")
         repository = session.project.app.project_manager.repository.agents
         repository.create(session.project.data, invalid, identifier="unused")
-        run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
+        run = (await (await session.run.submit("go", recipients=["parent-agent"])).wait())[0]
         self.assertEqual(run.data.status, "paused", run.data.error)
         snapshot = await agents.asnapshot("unused")
         changed = {**snapshot["definition"], "purpose": "changed"}
@@ -215,7 +215,7 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
         repository.save(session.project.data, "unused", changed, expected_revision=snapshot["revision"])
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond("approve"))
-        resumed = await (await session.run.resume(run.id, agent_id="parent-agent")).wait()
+        resumed = (await (await session.run.resume(run.id, agent_id="parent-agent")).wait())[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(effects, [{}])
         self.assertEqual((len(parent.requests), len(child.requests)), (2, 2))
@@ -236,7 +236,7 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
                         [chunk("done", finish="stop")]])
                 if not waiting:
                     parent.responses[1] = [ConnectionError("stop after child")]
-                run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
+                run = (await (await session.run.submit("go", recipients=["parent-agent"])).wait())[0]
                 self.assertIn(run.data.status, ("paused", "failed"), run.data.error)
                 if waiting:
                     request, = await run.ainteractions(pending_only=True)
@@ -257,7 +257,7 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
         agents = session.project.agents
         await agents.acreate({"purpose": "leaf", "engine": "child"}, identifier="leaf")
         parent.responses[1] = [ConnectionError("after completed children")]
-        run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
+        run = (await (await session.run.submit("go", recipients=["parent-agent"])).wait())[0]
         self.assertEqual(run.data.status, "failed", run.data.error)
         self.assertEqual(len(child.requests), 3)
         before = await agents.asnapshot("leaf")
@@ -274,7 +274,7 @@ class SelectedAgentTests(unittest.IsolatedAsyncioTestCase):
             raise ToolApprovalRequired()
         # Host mechanism requests approval before the selected child starts.
         app.services.tool_runtime = ToolRuntime(authorize=authorize)
-        run = await (await session.run.submit("go", agent_id="parent-agent")).wait()
+        run = (await (await session.run.submit("go", recipients=["parent-agent"])).wait())[0]
         self.assertEqual(run.data.status, "paused", run.data.error)
         self.assertEqual(child.requests, [])
         request, = await run.ainteractions(pending_only=True)
@@ -319,7 +319,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         for identifier, profile in agents:
             await project.agents.acreate(profile, identifier=identifier)
         await project.components.tools.aenable(*registry.names())
-        session = await project.sessions.acreate("test")
+        session = await project.sessions.acreate("test", agent_ids=sorted(await project.agents.alist()))
         return app, project, session
 
     async def test_engine_owns_instruction_composition_without_loop_config_layout(self):
@@ -344,7 +344,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"custom": Custom()})},
             components=(PromptComponent(),), agents=(("worker", {"purpose": "work", "engine": "custom", "resources": {"prompt": "guide"}}),))
         await project.components.prompts.acreate({"messages": [{"role": "system", "content": "resource guide"}]}, identifier="guide")
-        run = await (await session.run.submit("go", agent_id="graph")).wait()
+        run = (await (await session.run.submit("go", recipients=["graph"])).wait())[0]
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(seen, [("system: resource guide", "native guide")])
 
@@ -359,12 +359,12 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         graph = WorkflowGraph(entry="write").node("write", "execute", tool="write").node("end", "end").connect("write", "end")
         _, _, session = await self.setup_graph(graph.to_dict(), {"execute": ToolNode()}, (
             Tool("write", "write", {"type": "object"}, write, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),))
-        run = await (await session.run.submit("go", agent_id="graph")).wait()
+        run = (await (await session.run.submit("go", recipients=["graph"])).wait())[0]
         self.assertEqual(run.data.status, "paused", run.data.error)
         self.assertEqual(effects, [])
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond("approve"))
-        resumed = await (await session.run.resume(run.id, agent_id="graph")).wait()
+        resumed = (await (await session.run.resume(run.id, agent_id="graph")).wait())[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(effects, [{}])
 
@@ -386,7 +386,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             (Tool("write", "write", {"type": "object"}, write, contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=())),),
             agents=(("a", {**profile, "tools": ["write"]}), ("b", profile)))
-        run = await (await session.run.submit("go", agent_id="graph")).wait()
+        run = (await (await session.run.submit("go", recipients=["graph"])).wait())[0]
         self.assertEqual(run.data.status, "paused", run.data.error)
         agents = project.agents
         before = await agents.asnapshot("a")
@@ -399,7 +399,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         await agents.arevise("a", before["definition"], expected_revision=changed["revision"])
         future = await agents.asnapshot("b")
         await agents.arevise("b", {**future["definition"], "system_prompt": "new B instructions"}, expected_revision=future["revision"])
-        resumed = await (await session.run.resume(run.id, agent_id="graph")).wait()
+        resumed = (await (await session.run.resume(run.id, agent_id="graph")).wait())[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(effects, [1])
         self.assertEqual(model.requests[-1]["messages"][0]["content"], "new B instructions")
@@ -419,7 +419,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         app, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             (Tool("echo", "echo", {"type": "object", "properties": {"value": {"type": "string"}}}, echo, contract=TEST_CONTRACT),),
             agents=(("worker", {"purpose": "echo", "engine": "loop", "completion": {"model": "test"}, "tools": ["echo"]}),))
-        run = await (await session.run.submit("go", agent_id="graph")).wait()
+        run = (await (await session.run.submit("go", recipients=["graph"])).wait())[0]
         self.assertEqual(run.data.status, "completed", run.data.error)
         steps = [s for s in await run.steps.alist() if s.kind == "tool"]
         self.assertEqual([s.metadata["tool_call_id"] for s in steps], ["call_1", "call_1"])
@@ -442,7 +442,7 @@ class GraphBoundaryTests(unittest.IsolatedAsyncioTestCase):
         profile = {"purpose": "test", "engine": "loop", "completion": {"model": "test"}}
         _, project, session = await self.setup_graph(graph.to_dict(), {"agent": AgentNode(engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})},
             agents=(("a", profile), ("b", profile)))
-        run = await (await session.run.submit("go", agent_id="graph")).wait()
+        run = (await (await session.run.submit("go", recipients=["graph"])).wait())[0]
         self.assertEqual(run.data.status, "paused", run.data.error)
         self.assertEqual(len(model.requests), 1)
         request, = await run.ainteractions(pending_only=True)

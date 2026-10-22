@@ -91,7 +91,7 @@ class DiagnosticSettingsTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(options.request_summary)
                 self.assertEqual(options.max_detail_chars, 2000)
                 sid = await runtime.new_session()
-                handle = await (await runtime.sessions[sid].run.submit("private body", agent_id="assistant")).wait()
+                handle = (await (await runtime.sessions[sid].run.submit("private body", recipients=["assistant"])).wait())[0]
                 rows = await runtime.project_activity()
                 rendered = format_activity(rows, Language())
                 self.assertIn("unsupported option", rendered)

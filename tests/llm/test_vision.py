@@ -309,8 +309,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                         .node("end", "end").connect("read", "end").to_dict())
                     await project.components.workflows.acreate(flow, identifier="read-image")
                     await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "read-image"}}, identifier="graph")
-                    session = await project.sessions.acreate()
-                    paused = await (await session.run.submit("Read", agent_id="graph")).wait(timeout=20)
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                    paused = (await (await session.run.submit("Read", recipients=["graph"])).wait(timeout=20))[0]
                     self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
                     self.assertEqual(ocr.calls, [])
                     request, = await paused.ainteractions(pending_only=True)
@@ -319,7 +319,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                     with self.assertRaisesRegex(Exception, "changed"):
                         await session.run.resume(paused.id, agent_id="graph")
                     await project.components.vision.aconfigure({'config': {'ocr': {'backend': 'local'}}})
-                    resumed = await (await session.run.resume(paused.id, agent_id="graph")).wait(timeout=20)
+                    resumed = (await (await session.run.resume(paused.id, agent_id="graph")).wait(timeout=20))[0]
                     self.assertEqual(resumed.data.status, RunStatus.COMPLETED if approve else RunStatus.FAILED, resumed.data.error)
                     self.assertEqual(len(ocr.calls), 1 if approve else 0)
                     if approve:
@@ -336,8 +336,8 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 project = await app.projects.acreate("Images", components=["vision"], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}, "components": {"vision": {'config': {'ocr': {'backend': 'local'}}}}}))
                 await project.components.vision.aimport_image(picture(), title="Probe", identifier="probe")
                 await project.agents.acreate({"engine": "loop", "engine_options": {"policy": {"max_iterations": 2}}, "tools": ["image_ocr"]}, identifier="loop")
-                session = await project.sessions.acreate()
-                run = await (await session.run.submit("Read probe", agent_id="loop")).wait(timeout=20)
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                run = (await (await session.run.submit("Read probe", recipients=["loop"])).wait(timeout=20))[0]
                 self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
                 step = next(s for s in await run.steps.alist() if s.kind == "tool")
                 self.assertEqual(step.status, StepStatus.COMPLETED)

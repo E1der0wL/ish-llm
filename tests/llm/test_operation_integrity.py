@@ -155,9 +155,9 @@ class OperationIntegrityTests(unittest.IsolatedAsyncioTestCase):
                 async with LargeLanguageModel(root, components=[tools], engines={'tool': ToolEngine()},
                         services=BackendServices(tool_runtime=ToolRuntime(operation_key=lambda call: call.arguments['operation']))) as app:
                     session = await (await app.projects.aload(sys.argv[2])).sessions.aload(sys.argv[3])
-                    await (await session.run.submit('effect', agent_id='tool')).wait()
+                    await (await session.run.submit('effect', recipients=['tool'])).wait()
             asyncio.run(main())
-        ''')
+''')
         child = await asyncio.create_subprocess_exec(sys.executable, '-c', code, str(self.root), project_id, session_id,
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         _, error = await asyncio.wait_for(child.communicate(), 15)

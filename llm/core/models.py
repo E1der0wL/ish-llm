@@ -344,7 +344,7 @@ class Session:
     title: str
     paths: SessionPaths
     status: SessionStatus = SessionStatus.IDLE
-    current_run_id: Optional[str] = None
+    active_run_ids: list[str] = field(default_factory=list)
     created_at: str = field(default_factory=now)
     metadata: dict = field(default_factory=dict)
     config: dict = field(default_factory=dict)
@@ -367,10 +367,10 @@ class Session:
         ProjectConfig.validate_session(data["config"])
         cls.validate_agents(data["agent_ids"])
         status = SessionStatus(data["status"])
-        current = data["current_run_id"]
-        if ((status == SessionStatus.RUNNING) != (current is not None)
-                or (current is not None and not current.strip())):
-            raise ValueError("Session execution state requires its current Run declaration")
+        active = data["active_run_ids"]
+        if (not isinstance(active, list) or any(not isinstance(value, str) or not value.strip() for value in active)
+                or active != sorted(set(active)) or ((status == SessionStatus.RUNNING) != bool(active))):
+            raise ValueError("Session execution state requires its exact active Run declarations")
         return cls(**{**data, "status": status, "paths": paths})
 
 

@@ -88,7 +88,7 @@ class TurnDeletionTests(unittest.IsolatedAsyncioTestCase):
         first = await self.setup_graph()
         request_id = first.data.input_message_id
         old = await self.session.adelete_turn_plan(request_id)
-        later = await (await self.session.run.submit("another", agent_id="graph")).wait()
+        later = (await (await self.session.run.submit("another", recipients=["graph"])).wait())[0]
         plan = await self.session.adelete_turn_plan(request_id)
         self.assertEqual({b.source.run_id for b in plan.blockers}, {first.id, later.id})
         await self.session.run.shutdown()
@@ -231,8 +231,8 @@ session.delete_turn(sys.argv[4], abandon_runs=[b.source.run_id for b in plan.blo
                 project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
                     "loop": {"config": {"completion": {"model": "test/model"}}}}}})
                 await project.agents.acreate({"engine": "loop"}, identifier="loop")
-                session = await project.sessions.acreate()
-                run = await (await session.run.submit("fail", agent_id="loop")).wait()
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                run = (await (await session.run.submit("fail", recipients=["loop"])).wait())[0]
                 self.assertEqual(run.data.status, RunStatus.FAILED)
                 checkpoint = await run.acheckpoint("loop")
                 plan = await session.adelete_turn_plan(run.data.input_message_id)

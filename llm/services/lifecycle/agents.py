@@ -263,14 +263,12 @@ class AgentManager:
                         raise ValueError(f"Agent is referenced by {name}/{reference['source']}")
         checkpoints = CheckpointRepository()
         for session in self.sessions.list(project, include_deleted=True):
-            if identifier in session.agent_ids:
-                raise ValueError("Agent is referenced by Session participation")
-            from llm.core.agents import AgentBinding
+            from llm.services.runtime.requests import RequestAdmission
             from llm.core.steering import is_queued_request
             for message in self.sessions.conversations(session).list():
                 if is_queued_request(message):
-                    binding = AgentBinding.read(message.metadata.get("agent_binding"))
-                    if binding["agent_id"] == identifier:
+                    admission = RequestAdmission.read(message, project_id=project.id, session_id=session.id)
+                    if identifier in admission["recipients"]:
                         raise ValueError("Agent is referenced by a queued request")
             for run in self.sessions.run_repository.list(session):
                 if run.agent_id == identifier:
@@ -285,6 +283,8 @@ class AgentManager:
                     if any(identifier in AgentExecution.referenced_agents(record)
                            for record in checkpoint["records"].values()):
                         raise ValueError("Agent is referenced by a Checkpoint")
+            if identifier in session.agent_ids:
+                raise ValueError("Agent is referenced by Session participation")
 
     @workspace_locked
     def delete(self, project, identifier, *, expected_revision):

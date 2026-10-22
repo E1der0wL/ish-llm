@@ -53,16 +53,16 @@ class ResumeBoundaryTests(unittest.IsolatedAsyncioTestCase):
             app.engines.register("custom", CustomEngine())
             project = await app.projects.acreate("custom", components=[], conversation_storage="file")
             await project.agents.acreate({"engine": "custom"}, identifier="custom")
-            session = await project.sessions.acreate("custom")
+            session = await project.sessions.acreate("custom", agent_ids=sorted(await project.agents.alist()))
             try:
-                first = await (await session.run.submit("go", agent_id="custom")).wait()
+                first = (await (await session.run.submit("go", recipients=["custom"])).wait())[0]
                 self.assertEqual(first.data.status, "failed")
                 self.assertIn("interrupted custom work", first.data.error)
                 checkpoint = await first.acheckpoint()
                 self.assertEqual(checkpoint["engine"], "custom")
                 outputs = await first.aoutputs()
                 self.assertTrue(any(o.text == "unfinished" for o in outputs), outputs)
-                second = await (await session.run.resume(first.id, agent_id="custom", partial_output=True)).wait()
+                second = (await (await session.run.resume(first.id, agent_id="custom", partial_output=True)).wait())[0]
                 self.assertEqual(second.data.status, "completed", second.data.error)
                 self.assertEqual(len(received), 1)
                 item = received[0]

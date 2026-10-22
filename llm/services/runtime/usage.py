@@ -8,7 +8,7 @@ from contextvars import ContextVar
 from datetime import datetime, timezone, timedelta
 
 from llm.policies import ExecutionLimitError
-from llm.core.models import now, new_id, RunStatus, SessionStatus
+from llm.core.models import now, new_id, Run, RunStatus, SessionStatus
 from llm.components.usage import ModelUsageRecord, ModelUsageStatus
 from llm.providers.observations import ModelCall
 
@@ -94,16 +94,17 @@ def project_usage_policies(project, sessions):
     """Read current policy and active Run snapshots under workspace ownership."""
     policies = [project.config.policies.get("usage", {})]
     for session in sessions.list(project, include_deleted=True):
-        if session.current_run_id is None:
-            if session.status == SessionStatus.RUNNING:
-                raise ValueError("Active Session requires its Run for quota evidence")
-            continue
         if sessions.run_repository is None:
-            raise ValueError("Active quota evidence requires a Run repository")
-        run = sessions.run_repository.load(session, session.current_run_id)
-        if run.status not in (RunStatus.PENDING, RunStatus.RUNNING):
+            raise ValueError("Quota evidence requires a Run repository")
+        runs = sessions.run_repository.list(session)
+        by_id = {run.id: run for run in runs}
+        if any(identifier not in by_id or by_id[identifier].status != RunStatus.RUNNING
+               for identifier in session.active_run_ids):
             raise ValueError("Session quota owner is not an active Run")
-        policies.append(run.metadata["policies"].get("usage", {}))
+        # Dispatched recipients waiting behind their Agent's FIFO predecessor
+        # already own their admitted policy, even after a sibling has finished.
+        policies.extend(run.metadata["policies"].get("usage", {})
+                        for run in runs if run.status in Run.ACTIVE_STATES)
     return policies
 
 

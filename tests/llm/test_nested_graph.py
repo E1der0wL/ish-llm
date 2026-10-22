@@ -47,7 +47,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
                                   'tools': ['effect']}, identifier='worker')
         failed = await self.request()
         self.assertEqual(failed.data.status, RunStatus.FAILED, failed.data.error)
-        done = await (await self.session.run.resume(failed.id, agent_id='main-agent', partial_output=True)).wait()
+        done = (await (await self.session.run.resume(failed.id, agent_id='main-agent', partial_output=True)).wait())[0]
         self.assertEqual(done.data.status, RunStatus.COMPLETED, done.data.error)
         self.assertEqual(self.effects, [{'value': 'once'}])
         self.assertIn('nested unfinished text', str(model.requests[-1]['messages']))
@@ -91,10 +91,10 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         self.agents = self.project.agents
         await self.agents.acreate({"engine": "graph", "engine_options": {"workflow": "main"}}, identifier="main-agent")
         await (await self.project.components.aget("tools")).aenable("effect")
-        self.session = await self.project.sessions.acreate()
+        self.session = await self.project.sessions.acreate(agent_ids=["main-agent"])
 
     async def request(self):
-        return await (await self.session.run.submit("hello", agent_id="main-agent")).wait(timeout=25)
+        return (await (await self.session.run.submit("hello", recipients=["main-agent"])).wait(timeout=25))[0]
 
     async def output(self, run):
         return next(s.output.data for s in await run.steps.alist() if s.kind == "graph")
@@ -134,7 +134,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         interaction, = await paused.ainteractions()
         self.assertEqual(interaction.binding['key'], keys[0])
         await paused.arespond(interaction.respond('approve'))
-        resumed = await (await session.run.resume(run_id, agent_id='main-agent')).wait()
+        resumed = (await (await session.run.resume(run_id, agent_id='main-agent')).wait())[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(self.effects, [{'value':1},{'value':2}])
         self.assertEqual(len(model.requests), 3)
@@ -229,7 +229,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             for path, before in changed.items():
                 self.assertEqual(path.read_bytes(), before)
             return
-        resumed = await (await session.run.resume(failed.id, agent_id="main-agent")).wait()
+        resumed = (await (await session.run.resume(failed.id, agent_id="main-agent")).wait())[0]
         self.assertNotEqual(resumed.id, failed.id)
         # Assert the real external effect before status so dropped-limit mutation
         # fails for the safety consequence, not only for an error classification.
@@ -261,7 +261,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(keys), 1)
         with self.assertRaises(RunRequestError):
             await self.session.run.resume(failed.id, agent_id='main-agent')
-        resumed = await (await self.session.run.resume(failed.id, agent_id='main-agent', retry_nodes=keys)).wait()
+        resumed = (await (await self.session.run.resume(failed.id, agent_id='main-agent', retry_nodes=keys)).wait())[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(self.effects, [{}, {}])
         self.assertEqual(len(model.requests), 2)
@@ -292,7 +292,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
                 decisions={old.binding['key']: {'approved': True}})
         renewed = await paused.arenew_interaction(old)
         await paused.arespond(renewed.respond('approve'))
-        resumed = await (await self.session.run.resume(paused.id, agent_id='main-agent')).wait()
+        resumed = (await (await self.session.run.resume(paused.id, agent_id='main-agent')).wait())[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(self.effects, [{}])
         self.assertEqual(len(model.requests), 2)
@@ -316,7 +316,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             await self.session.run.resume(paused.id, agent_id='main-agent', decisions={keys[0]:{'approved':True, 'state':{}}})
         request, = await paused.ainteractions(pending_only=True)
         await paused.arespond(request.respond('deny'))
-        denied = await (await self.session.run.resume(paused.id, agent_id='main-agent')).wait()
+        denied = (await (await self.session.run.resume(paused.id, agent_id='main-agent')).wait())[0]
         self.assertEqual(denied.data.status, RunStatus.FAILED)
         self.assertEqual(self.effects, [])
         self.assertEqual(len(model.requests), 1)
@@ -353,7 +353,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         reopened = LargeLanguageModel(self.root, engines={"graph": self.engine})
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(self.project.id)).sessions.aload(self.session.id)
-        run = await (await session.run.resume(paused.id, agent_id="main-agent")).wait()
+        run = (await (await session.run.resume(paused.id, agent_id="main-agent")).wait())[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(len(self.effects), 2)
         self.assertEqual((await session.run.aload(paused.id)).data.status, RunStatus.PAUSED)
@@ -371,7 +371,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(RunRequestError):
             await self.session.run.resume(failed.id, agent_id="main-agent")
         key = '["work","workflow","child","work"]'
-        run = await (await self.session.run.resume(failed.id, agent_id="main-agent", retry_nodes=[key])).wait()
+        run = (await (await self.session.run.resume(failed.id, agent_id="main-agent", retry_nodes=[key])).wait())[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(self.effects, ["work", "work"])
 
@@ -490,7 +490,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         await self.agents.acreate({"purpose": "Coordinate", "engine": "graph", "engine_options": {"workflow": "child"}}, identifier="coordinator")
         paused = await self.request()
         self.assertEqual(paused.data.status, RunStatus.PAUSED, paused.data.error)
-        run = await (await self.session.run.resume(paused.id, agent_id="main-agent")).wait()
+        run = (await (await self.session.run.resume(paused.id, agent_id="main-agent")).wait())[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(len(self.effects), 1)
         step = next(s for s in await run.steps.alist() if s.kind == "agent")
@@ -530,13 +530,13 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
             return {"done": True}
         await self.setup({"main": action_graph("workflow", workflow="child"), "child": action_graph()},
                          handlers={"work": work}, max_parallelism=1)
-        first = await self.session.run.submit("first", agent_id="main-agent")
+        first = await self.session.run.submit("first", recipients=["main-agent"])
         await asyncio.wait_for(entered.wait(), 15)
-        second = await self.session.run.submit("second", agent_id="main-agent")
+        second = await self.session.run.submit("second", recipients=["main-agent"])
         await self.session.run.interrupt()
-        self.assertEqual((await first.wait()).data.status, RunStatus.INTERRUPTED)
+        self.assertEqual(((await first.wait())[0]).data.status, RunStatus.INTERRUPTED)
         self.assertTrue(closed.is_set())
-        self.assertEqual((await second.wait()).data.status, RunStatus.COMPLETED)
+        self.assertEqual(((await second.wait())[0]).data.status, RunStatus.COMPLETED)
 
     async def test_graph_agent_explicit_retry_uses_new_runs_parent_budget(self):
         async def uncertain(arguments):
@@ -552,7 +552,7 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
         failed = await self.request()
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         key = '["work","workflow","child","work"]'
-        run = await (await self.session.run.resume(failed.id, agent_id="main-agent", retry_nodes=[key])).wait()
+        run = (await (await self.session.run.resume(failed.id, agent_id="main-agent", retry_nodes=[key])).wait())[0]
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertEqual(self.effects, ["effect", "effect"])
         self.assertIn("uncertain remote result", run.data.error)
@@ -575,14 +575,14 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
                           'child': action_graph('tool', tool='effect', pause_before=True)},
                          handlers={'tool': ToolNode()}, services=BackendServices(tool_runtime=ToolRuntime(authorize=ask)))
         confirmation = await self.request()
-        paused = await (await self.session.run.resume(confirmation.id, agent_id='main-agent')).wait()
+        paused = (await (await self.session.run.resume(confirmation.id, agent_id='main-agent')).wait())[0]
         self.assertEqual(paused.data.status, 'paused', paused.data.error)
         request, = await paused.ainteractions(pending_only=True)
         self.assertEqual(request.kind, 'approval')
         self.assertEqual(request.binding['key'], '["work","workflow","child","work"]')
         self.assertEqual(self.effects, [])
         await paused.arespond(request.respond('approve'))
-        resumed = await (await self.session.run.resume(paused.id, agent_id='main-agent')).wait()
+        resumed = (await (await self.session.run.resume(paused.id, agent_id='main-agent')).wait())[0]
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertEqual(len(self.effects), 1)
         self.assertEqual(len(authorizations), 2)
@@ -618,9 +618,9 @@ class NestedGraphTests(unittest.IsolatedAsyncioTestCase):
                   max_iterations=2, on_limit="continue").node("end", "end").connect("repeat", "end").to_dict())
         await self.setup({"main": parent, "child": action_graph(pause_before=True)})
         first = await self.request()
-        second = await (await self.session.run.resume(first.id, agent_id="main-agent")).wait()
+        second = (await (await self.session.run.resume(first.id, agent_id="main-agent")).wait())[0]
         self.assertEqual(second.data.status, RunStatus.PAUSED, second.data.error)
-        final = await (await self.session.run.resume(second.id, agent_id="main-agent")).wait()
+        final = (await (await self.session.run.resume(second.id, agent_id="main-agent")).wait())[0]
         self.assertEqual(final.data.status, RunStatus.COMPLETED, final.data.error)
         self.assertEqual(len(self.effects), 2)
         keys = (await final.acheckpoint())["records"]
@@ -666,8 +666,8 @@ async def main():
                  .node("end", "end").connect("first", "second").connect("second", "end"))
         await workflows.acreate(child.to_dict(), identifier="child")
         await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "main"}}, identifier="main-agent")
-        session = await project.sessions.acreate()
-        await (await session.run.submit("crash", agent_id="main-agent")).wait()
+        session = await project.sessions.acreate(agent_ids=["main-agent"])
+        await (await session.run.submit("crash", recipients=["main-agent"])).wait()
 asyncio.run(main())
 '''
         result = await asyncio.to_thread(subprocess.run, [sys.executable, "-c", script, str(self.root)],
@@ -688,7 +688,7 @@ asyncio.run(main())
         self.assertEqual((self.root / "effects.txt").read_text().splitlines(), ["first", "second"])
         with self.assertRaises(RunRequestError):
             await session.run.resume(old.id, agent_id="main-agent")
-        run = await (await session.run.resume(old.id, agent_id="main-agent",
-            retry_nodes=['["work","workflow","child","second"]'])).wait()
+        run = (await (await session.run.resume(old.id, agent_id="main-agent",
+            retry_nodes=['["work","workflow","child","second"]'])).wait())[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual((self.root / "effects.txt").read_text().splitlines(), ["first", "second", "second"])

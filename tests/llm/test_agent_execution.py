@@ -41,9 +41,10 @@ class AgentExecutionTests(unittest.IsolatedAsyncioTestCase):
 
     async def create(self, definition=None, identifier='selected'):
         await self.project.agents.acreate(definition or {'engine': 'worker'}, identifier=identifier)
+        await self.session.asave(agent_ids=sorted([*self.session.data.agent_ids, identifier]))
 
     async def submit(self, identifier='selected', **kwargs):
-        return await (await self.session.run.submit('request', agent_id=identifier, **kwargs)).wait(timeout=15)
+        return (await (await self.session.run.submit('request', recipients=[identifier], **kwargs)).wait(timeout=15))[0]
 
     async def test_explicit_agent_binding_and_omission_are_persisted(self):
         async def action(context):
@@ -74,7 +75,7 @@ class AgentExecutionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.metadata['request_context'], value)
         self.assertEqual(await self.project.agents.aload('selected'), {'engine': 'worker'})
         with self.assertRaises(TypeError):
-            await self.session.run.submit('bad', agent_id='selected', request_context=None)
+            await self.session.run.submit('bad', recipients=['selected'], request_context=None)
 
     async def test_factory_and_context_cannot_drop_behavioral_limits_by_changing_mode(self):
         from llm.core.agents import AgentMode
@@ -108,7 +109,7 @@ class AgentExecutionTests(unittest.IsolatedAsyncioTestCase):
             yield 'done'
         await self.setup_app(BaseEngine(action=action))
         with self.assertRaises((ValueError, FileNotFoundError)):
-            await self.session.run.submit('request', agent_id='missing')
+            await self.session.run.submit('request', recipients=['missing'])
         self.assertEqual(calls, [])
         self.assertEqual(await self.project.agents.alist(), {})
 
@@ -116,18 +117,17 @@ class AgentExecutionTests(unittest.IsolatedAsyncioTestCase):
         started, release = asyncio.Event(), asyncio.Event()
         effects = self.root / 'effects.txt'
         async def action(context):
-            if context.run.agent_id == 'blocker':
+            if context.messages[-1].content == 'block':
                 started.set()
                 await release.wait()
             else:
                 effects.write_text('effect')
             yield 'done'
         await self.setup_app(BaseEngine(action=action))
-        await self.create(identifier='blocker')
         await self.create()
-        first = await self.session.run.submit('block', agent_id='blocker')
+        first = await self.session.run.submit('block', recipients=['selected'])
         await asyncio.wait_for(started.wait(), 10)
-        queued = await self.session.run.submit('request', agent_id='selected')
+        queued = await self.session.run.submit('request', recipients=['selected'])
         original = await self.project.agents.asnapshot('selected')
         with self.assertRaisesRegex(ValueError, 'queued request'):
             await self.project.agents.adelete('selected', expected_revision=original['revision'])
@@ -135,7 +135,7 @@ class AgentExecutionTests(unittest.IsolatedAsyncioTestCase):
                                          expected_revision=original['revision'])
         release.set()
         await first.wait(timeout=15)
-        run = await queued.wait(timeout=15)
+        run = (await queued.wait(timeout=15))[0]
         self.assertEqual(run.data.status, RunStatus.FAILED)
         self.assertIn('changed since request admission', run.data.error)
         self.assertFalse(effects.exists())
@@ -179,7 +179,7 @@ class AgentExecutionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.effect_file.read_text().splitlines(), ['first'])
         plan = await self.session.run.resume_plan(run.id, agent_id='selected')
         self.assertTrue(plan.can_resume, plan.blockers)
-        resumed = await (await self.session.run.resume(run.id, agent_id='selected')).wait(timeout=15)
+        resumed = (await (await self.session.run.resume(run.id, agent_id='selected')).wait(timeout=15))[0]
         self.assertEqual(self.effect_file.read_text().splitlines(), ['first'],
                          'new Tool effect escaped the resumed root Agent budget')
         self.assertEqual(resumed.data.status, RunStatus.FAILED, resumed.data.error)

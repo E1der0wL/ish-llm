@@ -76,11 +76,11 @@ async def hold_workspace(root, spec):
         app.events.subscribe(observe, channel="engine")
         project = await app.projects.acreate("Recovery probe", components=[])
         await project.agents.acreate({"engine": "probe"}, identifier="probe-agent")
-        session = await project.sessions.acreate()
-        first = await session.run.submit("blocked", agent_id="probe-agent")
+        session = await project.sessions.acreate(agent_ids=['probe-agent'])
+        first = await session.run.submit("blocked", recipients=["probe-agent"])
         await streamed.wait()
-        queued = await session.run.submit("queued", agent_id="probe-agent")
-        run = await first.aget_run()
+        queued = await session.run.submit("queued", recipients=["probe-agent"])
+        run = (await first.aget_runs())[0]
         check(run is not None, "Running request has no Run")
         check((await run.aresponse()).content == "partial", "Partial response was not persisted")
         check((await queued.aget_data()).status == "queued", "Second request is not durable QUEUED")
@@ -117,7 +117,7 @@ async def recover(root, spec):
         project = await app.projects.aload(ids["project"])
         session = await project.sessions.aload(ids["session"])
         await session.run.wait_idle()
-        first = await (await session.run.arequest(ids["first_request"])).wait()
+        first = (await (await session.run.arequest(ids["first_request"])).wait())[0]
         data, response = await first.aget_data(), await first.aresponse()
         expected = spec["expected_status"]
         check(data.status == expected, f"Expected {expected}, got {data.status}")
@@ -128,17 +128,17 @@ async def recover(root, spec):
         check(response.status == expected, "Run and Assistant state disagree")
         if spec["case"] in ("crash", "multiprocess"):
             check(response.content == "partial", "Partial output changed")
-            queued = await (await session.run.arequest(ids["queued_request"])).wait()
+            queued = (await (await session.run.arequest(ids["queued_request"])).wait())[0]
             check((await queued.aresult()).status == "completed", "Queued request was lost")
             check((await queued.aresponse()).content == "answer:queued", "Queued result is incorrect")
             check([e["prompt"] for e in effects(root)] == ["blocked", "queued"], "Effects repeated or queue order changed")
         else:
             check([e["prompt"] for e in effects(root)] == ["work"], "Failed request effect was repeated")
-            following = await (await session.run.submit("next", agent_id="probe-agent")).wait()
+            following = (await (await session.run.submit("next", recipients=["probe-agent"])).wait())[0]
             check((await following.aresult()).status == "completed", "Next request cannot run")
             check([e["prompt"] for e in effects(root)] == ["work", "next"], "Unexpected effect count")
         state = await session.run.astatus()
-        check(state.active_run_id is None and state.queued_count == 0, "Session did not become idle")
+        check(not state.active_runs and state.queued_count == 0, "Session did not become idle")
         run_count = len(await session.run.alist())
         check(run_count == 2, "Unexpected orphan/replayed Runs")
     return {"first_run_status": str(data.status), "step_statuses": [str(s.status) for s in steps],
@@ -155,12 +155,13 @@ async def disk_failure(root, spec):
     try:
         project = await app.projects.acreate("Disk failure probe", components=[])
         await project.agents.acreate({"engine": "probe"}, identifier="probe-agent")
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=['probe-agent'])
         await session.run.start()
 
+        # Admission dispatch owns the complete Run group before any Run starts.
         def replace(source, destination, *args, **kwargs):
             path = Path(destination)
-            target = (stage == "begin" and path.name == "session.json" or
+            target = (stage == "begin" and path.name == "run.json" and read(Path(source)).get("status") == "pending" or
                       stage == "finish" and path.name == "run.json" and read(Path(source)).get("status") == "completed")
             if target and not fired:
                 fired.append(str(path))
@@ -179,9 +180,9 @@ async def disk_failure(root, spec):
         # 전용 자식 프로세스에서만 교체한다. ish 호스트/다른 검사의 저장 함수는 건드리지 않는다.
         os.replace, os.fsync = replace, sync
         try:
-            request = await session.run.submit("work", agent_id="probe-agent")
+            request = await session.run.submit("work", recipients=["probe-agent"])
             try:
-                run = await request.wait()
+                run = (await request.wait())[0]
             except OSError as error:
                 check(error.errno == errno.ENOSPC and stage != "output", "Unexpected storage error")
             else:
@@ -194,7 +195,7 @@ async def disk_failure(root, spec):
         if stage == "begin":
             check(not runs and not effects(root), "Failed begin leaked a Run or executed work")
             check((await request.aget_data()).status == "queued", "Input lost after begin rollback")
-            check(data.current_run_id is None and data.status == "idle", "Session begin was partially committed")
+            check(not data.active_run_ids and data.status == "idle", "Session begin was partially committed")
         else:
             check(len(runs) == 1 and len(effects(root)) == 1, "Unexpected execution count")
             check((await runs[0].aget_data()).status == ("running" if stage == "finish" else "failed"),
@@ -285,11 +286,11 @@ async def connection_failure(root, spec):
         async with LargeLanguageModel(root / "workspace", components=[], engines={"loop": engine}) as app:
             project = await app.projects.acreate("Connection probe", config=config, components=[])
             await project.agents.acreate({"engine": "loop"}, identifier="connection-agent")
-            session = await project.sessions.acreate()
+            session = await project.sessions.acreate(agent_ids=['connection-agent'])
             for prompt in ("disconnect-before", "disconnect-mid"):
-                failed = await session.run.submit(prompt, agent_id="connection-agent")
-                next_request = await session.run.submit("continue", agent_id="connection-agent")
-                run = await failed.wait()
+                failed = await session.run.submit(prompt, recipients=["connection-agent"])
+                next_request = await session.run.submit("continue", recipients=["connection-agent"])
+                run = (await failed.wait())[0]
                 response, data = await run.aresponse(), await run.aget_data()
                 check(data.status == "failed", "Broken connection was treated as success")
                 check(prompt in disconnected and bool(data.error) and "timed out" not in data.error.lower(),
@@ -297,7 +298,7 @@ async def connection_failure(root, spec):
                 check(response.content == ("partial" if prompt == "disconnect-mid" else ""), "Partial response lost or duplicated")
                 steps = await run.steps.alist()
                 check(steps and all(s.status not in ("running", "pending") for s in steps), "Steps left active")
-                completed = await next_request.wait()
+                completed = (await next_request.wait())[0]
                 check((await completed.aresult()).status == "completed", "Queue stopped after connection loss")
                 check((await completed.aresponse()).content == "recovered", "Recovery response mismatch")
                 observed.append({"request": prompt, "run_id": run.id, "status": str(data.status),

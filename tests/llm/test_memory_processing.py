@@ -169,7 +169,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         before = await self.memory.alist(session_id=self.session.id)
         self.assertEqual(len(before), 1)
-        resumed = await (await self.session.run.resume(failed.id, agent_id=failed.data.agent_id)).wait()
+        resumed = (await (await self.session.run.resume(failed.id, agent_id=failed.data.agent_id)).wait())[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(await self.memory.alist(session_id=self.session.id), before)
         self.assertEqual(len(self.aux.requests), 1)
@@ -256,7 +256,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             "Retain reusable facts and preferences."}]}, identifier="extract")
         self.memory = await self.project.components.aget("memory")
         await self.configure(recall=True)
-        self.session = await self.project.sessions.acreate()
+        self.session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         self.serial = 0
         self.config_lock = asyncio.Lock()
 
@@ -284,7 +284,9 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         await self.project.agents.acreate({"engine": name,
             "tools": [*(await asyncio.to_thread(selected_tools)),
                 *(["memory_tool_result"] if "memory" in self.project.data.components else [])]}, identifier=name)
-        run = await (await (session or self.session).run.submit(prompt, agent_id=name)).wait(timeout=20)
+        await (session or self.session).run.shutdown()
+        await (session or self.session).asave(agent_ids=sorted(set((await (session or self.session).aget_data()).agent_ids) | {name}))
+        run = (await (await (session or self.session).run.submit(prompt, recipients=[name])).wait(timeout=20))[0]
         return run, model
 
     async def build_history(self):
@@ -293,7 +295,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
 
     async def test_automatic_recall_budget_and_session_scope(self):
-        other = await self.project.sessions.acreate()
+        other = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         for identifier, data in (("project", {"content": "Python project"}),
                                  ("mine", {"content": "Python mine", "scope": "session", "session_id": self.session.id}),
                                  ("other", {"content": "Python other", "scope": "session", "session_id": other.id}),
@@ -316,7 +318,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(model.requests[0]["messages"][-1]["content"], "Python")
 
     async def test_session_scope_crud_and_model_tools_cannot_cross_sessions(self):
-        other = await self.project.sessions.acreate()
+        other = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         await self.memory.acreate({"content": "private", "scope": "session", "session_id": other.id}, identifier="private")
         generation = (await self.memory.aload("private", session_id=other.id))["generation"]
         for operation in (lambda: self.memory.aload("private", session_id=self.session.id),
@@ -413,7 +415,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         payload = json.loads(self.aux.requests[-1]["messages"][1]["content"])
         self.assertEqual(payload["messages"][0]["content"], "second decision")
-        other = await self.project.sessions.acreate()
+        other = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         _, model = await self.run_loop("other session", session=other)
         self.assertEqual(model.requests[0]["messages"], [{"role": "user", "content": "other session"}])
 
@@ -593,7 +595,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         self.memory = await self.project.components.aget("memory")
         await self.configure(recall=True)
         await self.memory.aconfigure({})
-        self.session = await self.project.sessions.acreate()
+        self.session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         run, model = await self.run_loop("budget")
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual(model.requests[0]["messages"][-1]["content"], "budget")
@@ -615,7 +617,8 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         await (await self.project.components.aget("workflows")).acreate(graph.to_dict(), identifier="g")
         self.app.engines.register("graph", GraphEngine(handlers={"agent": AgentNode(engines={"loop": worker})}))
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "g"}}, identifier="graph")
-        run = await (await self.session.run.submit("Python", agent_id="graph")).wait(timeout=20)
+        await self.session.asave(agent_ids=sorted(set((await self.session.aget_data()).agent_ids) | {"graph"}))
+        run = (await (await self.session.run.submit("Python", recipients=["graph"])).wait(timeout=20))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertIn("Python guidelines", model.requests[0]["messages"][-1]["content"])
         self.assertEqual(self.aux.requests, [])
@@ -664,13 +667,15 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(answer())
         self.app.engines.register("interrupt", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await self.project.agents.acreate({"engine": "interrupt", "completion": {"model": "test/main"}}, identifier="interrupt")
-        request = await self.session.run.submit("third", agent_id="interrupt")
+        await self.session.run.shutdown()
+        await self.session.asave(agent_ids=sorted([*(await self.session.aget_data()).agent_ids, "interrupt"]))
+        request = await self.session.run.submit("third", recipients=["interrupt"])
         try:
             self.assertTrue(await asyncio.to_thread(entered.wait, 5))
             await self.session.run.interrupt()
         finally:
             release.set()
-        run = await request.wait(timeout=15)
+        run = (await request.wait(timeout=15))[0]
         self.assertEqual(run.data.status, RunStatus.INTERRUPTED)
         self.assertIsNone(await self.memory.asummary(self.session.id))
         self.assertEqual(model.requests, [])
@@ -690,7 +695,7 @@ class MemoryProcessingTests(unittest.IsolatedAsyncioTestCase):
     async def test_concurrent_session_extraction_has_independent_scope(self):
         await self.configure(extract=True)
         self.aux.candidates = [{"content": "same session note"}]
-        other = await self.project.sessions.acreate()
+        other = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         results = await asyncio.gather(self.run_loop("one"), self.run_loop("two", session=other))
         for (run, _), session in zip(results, (self.session, other)):
             self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)

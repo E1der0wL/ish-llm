@@ -62,25 +62,25 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("Reads")
         await self.project.agents.acreate({"engine": "test"}, identifier="test")
-        self.session = await self.project.sessions.acreate("Requests")
+        self.session = await self.project.sessions.acreate("Requests", agent_ids=sorted(await self.project.agents.alist()))
 
     async def test_request_result_loads_run_once_and_never_caches_state(self):
-        request = await self.session.run.submit("hello", agent_id="test")
-        run = await request.wait()
+        request = await self.session.run.submit("hello", recipients=["test"])
+        run = (await request.wait())[0]
         await self.session.run.shutdown()
         repository = self.app.run_repository
         with patch.object(repository, "load", wraps=repository.load) as load:
-            result = await request.aresult()
+            result = (await request.aresults())[0]
             self.assertEqual(result.run_id, run.id)
             self.assertEqual(load.call_count, 1)
         changed = await run.aget_data()
         changed.error = "updated observation"
         with self.app.project_manager.ownership.scope():
             repository.save(changed)
-        self.assertEqual((await request.aresult()).error, "updated observation")
+        self.assertEqual(((await request.aresults())[0]).error, "updated observation")
 
     async def test_response_loads_parent_session_once(self):
-        run = await (await self.session.run.submit("hello", agent_id="test")).wait()
+        run = (await (await self.session.run.submit("hello", recipients=["test"])).wait())[0]
         await self.session.run.shutdown()
         repository = self.app.project_manager.sessions.repository
         with patch.object(repository, "load", wraps=repository.load) as load:
@@ -90,7 +90,7 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
     async def test_result_page_converts_only_selected_runs(self):
         runs = []
         for text in ("one", "two", "three"):
-            runs.append(await (await self.session.run.submit(text, agent_id="test")).wait())
+            runs.append((await (await self.session.run.submit(text, recipients=["test"])).wait())[0])
         await self.session.run.shutdown()
         with patch.object(ExecutionResult, "from_run", wraps=ExecutionResult.from_run) as convert:
             page = await self.project.results.alist(query=Query(after=runs[0].id, limit=1))
@@ -109,7 +109,7 @@ class FacadeReadTests(unittest.IsolatedAsyncioTestCase):
     async def test_warm_result_page_reads_only_selected_runs_and_invalidates_changes(self):
         from llm.services.infrastructure import storage
         repository = self.app.run_repository
-        sessions = [await self.session.aget_data(), await (await self.project.sessions.acreate()).aget_data()]
+        sessions = [await self.session.aget_data(), await (await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))).aget_data()]
         runs = []
         with self.app.project_manager.ownership.scope():
             for index in range(12):

@@ -62,28 +62,28 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
         await data.aprepare("server")
         await data.aconfigure({"config": {"tools": {"remote_echo": {"server": "server", "tool": "echo"}}}})
         await project.agents.acreate({"engine": "loop", "tools": ["remote_echo"]}, identifier="loop")
-        return app, project, await project.sessions.acreate(), data
+        return app, project, await project.sessions.acreate(agent_ids=sorted(await project.agents.alist())), data
 
     async def test_approval_before_connection_and_explicit_resume_exactly_once(self):
         app, project, session, data = await self.setup_app()
         self.assertEqual(self.connections, ["open", "close"])
         self.assertEqual(len(await data.alist_tools("server")), 1)
-        paused = await (await session.run.submit("go", agent_id="loop")).wait()
+        paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
         self.assertEqual(paused.data.status, "paused", paused.data.error)
         self.assertEqual(self.connections, ["open", "close"])
         self.assertEqual(self.calls, [])
         self.assertEqual([r.actor for r in await paused.ainteraction_responses()], ["policy"])
-        done = await (await session.run.resume(paused.id, agent_id="loop")).wait()
+        done = (await (await session.run.resume(paused.id, agent_id="loop")).wait())[0]
         self.assertEqual(done.data.status, "completed", done.data.error)
         self.assertEqual(self.calls, [{"value": "hello"}])
         self.assertEqual(self.connections, ["open", "close", "open", "close"])
 
     async def test_changed_definition_or_schema_rejects_execution(self):
         app, project, session, data = await self.setup_app()
-        paused = await (await session.run.submit("go", agent_id="loop")).wait()
+        paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
         # 원격 schema 변경을 승인 후 발견해도 effects 이전에 거부한다.
         self.schema["properties"]["value"]["maxLength"] = 2
-        done = await (await session.run.resume(paused.id, agent_id="loop")).wait()
+        done = (await (await session.run.resume(paused.id, agent_id="loop")).wait())[0]
         self.assertEqual(done.data.status, "failed")
         self.assertEqual(self.calls, [])
         await data.aupdate("server", {"args": ["changed"]})
@@ -156,11 +156,11 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 closed.append("connection")
         app, project, session, _ = await self.setup_app(connector)
-        paused = await (await session.run.submit("go", agent_id="loop")).wait()
+        paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
         handle = await session.run.resume(paused.id, agent_id="loop")
         await asyncio.wait_for(entered.wait(), 5)
         await session.run.interrupt()
-        self.assertEqual((await handle.wait()).data.status, "interrupted")
+        self.assertEqual(((await handle.wait())[0]).data.status, "interrupted")
         self.assertEqual(closed, ["connection", "call", "connection"])
 
     @unittest.skipUnless(importlib.util.find_spec("mcp"), "optional MCP SDK is not installed")
@@ -169,8 +169,8 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             app, project, session, data = await self.setup_app(MCPConnector(errlog=errlog))
             await data.aconfigure({'config': {'tools': {'remote_echo': {'server': 'server', 'tool': 'fail'}}}})
             self.model.responses[0] = [chunk(calls=[call('{}', name='remote_echo')], finish='tool_calls')]
-            paused = await (await session.run.submit('go', agent_id='loop')).wait()
-            failed = await (await session.run.resume(paused.id, agent_id='loop')).wait()
+            paused = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
+            failed = (await (await session.run.resume(paused.id, agent_id='loop')).wait())[0]
             self.assertEqual(failed.data.status, 'failed')
             self.assertEqual(failed.data.error_code, 'mcp_tool_failed')
             with self.assertRaisesRegex(Exception, 'uncertain Tool'):
@@ -183,7 +183,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             app, project, session, data = await self.setup_app(connector)
             marker = self.root / "marker"
             self.assertEqual(marker.read_text().splitlines(), ["start"])
-            paused = await (await session.run.submit("go", agent_id="loop")).wait()
+            paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
             self.assertEqual(paused.data.status, "paused", paused.data.error)
             self.assertEqual(marker.read_text().splitlines(), ["start"])
             project_id, session_id = project.id, session.id
@@ -193,7 +193,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
                     classify=lambda call: ToolClassification("remote.call", "test", 1))))
             try:
                 session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
-                done = await (await session.run.resume(paused.id, agent_id="loop")).wait()
+                done = (await (await session.run.resume(paused.id, agent_id="loop")).wait())[0]
                 self.assertEqual(done.data.status, "completed", done.data.error)
                 self.assertEqual(marker.read_text().splitlines(), ["start", "start", "effect"])
             finally:
@@ -206,10 +206,10 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
             app, project, session, data = await self.setup_app(connector)
             await data.aconfigure({"config": {"tools": {"remote_echo": {"server": "server", "tool": "crash"}}}})
             self.model.responses[0] = [chunk(calls=[call("{}", name="remote_echo")], finish="tool_calls")]
-            paused = await (await session.run.submit("go", agent_id="loop")).wait()
+            paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
             marker = self.root / "marker"
             self.assertEqual(marker.read_text().splitlines(), ["start"])
-            failed = await (await session.run.resume(paused.id, agent_id="loop")).wait()
+            failed = (await (await session.run.resume(paused.id, agent_id="loop")).wait())[0]
             self.assertEqual(failed.data.status, "failed")
             self.assertEqual(failed.data.error_code, "mcp_tool_failed")
             self.assertEqual(marker.read_text().splitlines(), ["start", "start", "crash-effect"])
@@ -231,7 +231,7 @@ class MCPRuntimeTests(unittest.IsolatedAsyncioTestCase):
         with open("/dev/null", "w") as errlog:
             connector = MCPConnector(errlog=errlog)
             app, project, session, data = await self.setup_app(connector, revision="prior-implementation")
-            paused = await (await session.run.submit("go", agent_id="loop")).wait()
+            paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
             self.assertEqual(paused.data.status, "paused")
             marker = self.root / "marker"
             self.assertEqual(marker.read_text().splitlines(), ["start"])

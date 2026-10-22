@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 from collections.abc import Callable
 
-from llm.core.models import MessageStatus, Project, ProjectConfig, Session, SessionStatus, new_id
+from llm.core.models import MessageStatus, Project, ProjectConfig, Run, Session, SessionStatus, new_id
 from llm.core.configuration import UNSET
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.core.contracts import Diagnostic, ResourceRef
@@ -27,6 +27,24 @@ from llm.services.infrastructure.storage import atomic_json, child, read_json, r
 
 
 @dataclass(slots=True)
+class RunRuntime:
+    """One Run's preparation, cancellable consumer and mandatory finalizer."""
+
+    run: Run
+    task: Optional[asyncio.Task[None]] = None
+    execution: Optional[asyncio.Task[None]] = None
+    finished: asyncio.Event = field(default_factory=asyncio.Event)
+    interrupt_requested: bool = False
+
+    def interrupt(self):
+        """Deliver cancellation once; cleanup owns any still-running work."""
+        if not self.interrupt_requested:
+            self.interrupt_requested = True
+            if self.execution is not None:
+                self.execution.cancel()
+
+
+@dataclass(slots=True)
 class SessionRuntime:
     """Runtime-only state, owned and scheduled exclusively by RunManager."""
 
@@ -34,11 +52,11 @@ class SessionRuntime:
     session: Session
     queue: asyncio.Queue[Optional[str]] = field(default_factory=asyncio.Queue)
     worker: Optional[asyncio.Task[None]] = None
-    execution: Optional[asyncio.Task[None]] = None
-    finished: asyncio.Event = field(default_factory=asyncio.Event)
+    executions: dict[str, RunRuntime] = field(default_factory=dict)
+    waiting: list[str] = field(default_factory=list)
+    groups: dict[str, list[Run]] = field(default_factory=dict)
+    changed: asyncio.Event = field(default_factory=asyncio.Event)
     closed: bool = False
-    preparing: bool = False
-    interrupt_requested: bool = False
 
 
 # 프로젝트 아래의 Session 메타데이터를 읽고 쓴다.
@@ -68,7 +86,7 @@ class SessionRepository:
                 raise ValueError("Backup Session ownership mismatch")
             session = Session.from_record(data, SessionPaths(folder))
             ProjectConfig.validate_session(session.config)
-            if session.status == SessionStatus.RUNNING or session.current_run_id is not None:
+            if session.status == SessionStatus.RUNNING or session.active_run_ids:
                 raise ValueError("Backup contains an active Session")
             ConversationStore(session.paths.conversation).list()
             from llm.services.runtime.operations import OperationRepository
@@ -346,7 +364,7 @@ class SessionManager:
         current = self.require_inactive(session)
         if current.status == SessionStatus.DELETED:
             raise ValueError("Session is deleted")
-        if session.status != current.status or session.current_run_id != current.current_run_id:
+        if session.status != current.status or session.active_run_ids != current.active_run_ids:
             raise ValueError("Session execution state is managed by RunManager")
         current.title = session.title
         current.metadata = deepcopy(session.metadata)
@@ -380,6 +398,9 @@ class SessionManager:
         from llm.services.runtime.operations import OperationRepository
         OperationRepository().validate_backup(current)
         runs = self.run_repository.read_backup(current)
+        from llm.services.runtime.requests import RequestAdmission
+        RequestAdmission.history(messages, runs, project_id=current.project_id,
+            session_id=current.id, persistent=self._owner(current, allow_deleted=True).conversation_storage == "file")
         for run in runs:
             self.step_repository.read_backup(run)
         return current, messages, runs
@@ -530,6 +551,6 @@ class SessionManager:
             raise ValueError("Session runtime is attached; shut down RunManager first")
         # Reload to avoid trusting a stale handle held by a caller.
         current = self.repository.reload(session)
-        if current.status == SessionStatus.RUNNING or current.current_run_id is not None:
+        if current.status == SessionStatus.RUNNING or current.active_run_ids:
             raise ValueError("Session has an active Run")
         return current

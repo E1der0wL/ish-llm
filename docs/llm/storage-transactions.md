@@ -18,8 +18,9 @@
 | 서비스 작업 | 함께 확정하는 원본 |
 | --- | --- |
 | 요청 제출·취소 | 선택된 Conversation의 메시지 상태·메타데이터; 큐 투입은 확정 후 |
-| Run 시작 | Run, 새 빈 출력 원본/manifest, 입력 COMMITTED/Run 연결, Assistant STREAMING, Session.current_run_id/status |
-| Run 완료·실패·중단·일시정지 | 미완료 Step 상태, Assistant 상태, Run 상태·사용량 확정, Session 해제 |
+| 요청 dispatch | 모든 수신자의 PENDING Run·빈 출력 원본/manifest, 입력 COMMITTED·완전한 Run map·동일 history snapshot, 각 Assistant QUEUED |
+| Run 시작 | 해당 Run RUNNING, Assistant STREAMING, Session.active_run_ids/status |
+| Run 완료·실패·중단·일시정지 | 미완료 Step 상태, Assistant 상태, Run 상태·사용량 확정, Session 활성 집합에서 해당 Run 제거 |
 | 출력 델타 묶음 | outputs.jsonl 추가·필수 manifest 갱신·대화 JSONL 추가 |
 | 최종 출력·Step 완료 | 출력 저널과 Run 결과/대화 또는 Step 결과 |
 | Step 생성·시작·수정·종료 | 이벤트 하나에 대응하는 Step 기록 |

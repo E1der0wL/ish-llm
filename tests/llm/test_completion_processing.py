@@ -348,7 +348,7 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 self.closed = True
         await self.add_feature("parallel", Session)
         await self.project.components.aselect(["parallel"])
-        other = await self.project.sessions.acreate()
+        other = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         results = await asyncio.gather(self.run_loop("one"), self.run_loop("two", session=other))
         for (run, model), prefix, session in zip(results, ("one", "two"), (self.session, other)):
             self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
@@ -377,10 +377,11 @@ class ProcessingIntegrationTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(memory_tests.answer())
         self.app.engines.register("interruptible", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await self.project.agents.acreate({"engine": "interruptible", "completion": {"model": "test/main"}}, identifier="interruptible")
-        request = await self.session.run.submit("stop", agent_id="interruptible")
+        await self.session.asave(agent_ids=sorted(set((await self.session.aget_data()).agent_ids) | {"interruptible"}))
+        request = await self.session.run.submit("stop", recipients=["interruptible"])
         await asyncio.wait_for(entered.wait(), 5)
         await self.session.run.interrupt()
-        run = await request.wait(timeout=10)
+        run = (await request.wait(timeout=10))[0]
         self.assertEqual(run.data.status, RunStatus.INTERRUPTED)
         self.assertEqual(len(closed), 1)
         self.assertEqual(model.requests, [])

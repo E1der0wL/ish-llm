@@ -110,10 +110,6 @@ class HistoryUI:
                 return
             identifier = identifiers[0]
             row = popup.rows[identifier]
-            if operation == HistoryUI.RETRY_TURN and row["status"] not in (RunStatus.INTERRUPTED, RunStatus.FAILED):
-                view.close_dialog()
-                view.notice = t("history_retry_unavailable")
-                return
             text = popup.drafts[identifier]
             if operation == "edit_turn" and not text.strip():
                 view.notice = t("empty_message")
@@ -121,7 +117,18 @@ class HistoryUI:
             view.close_dialog()
             if operation == HistoryUI.RETRY_TURN:
                 from .resume import resume_turn
-                resume_turn(self.controller, session_id, row.get("run_id", ""), identifier)
+                candidates = [run for run in row["runs"] if run["run_id"]
+                              and run["status"] in (RunStatus.INTERRUPTED, RunStatus.FAILED)]
+                if not candidates:
+                    view.notice = t("history_retry_unavailable")
+                elif len(candidates) == 1:
+                    resume_turn(self.controller, session_id, candidates[0]["run_id"], identifier)
+                else:
+                    from ...widget.controls import RadioList
+                    choices = RadioList([(run["run_id"], run["agent_id"] + " · " + t.status(run["status"]))
+                                         for run in candidates], select_on_focus=True)
+                    view.open_dialog(t("choose_target"), choices,
+                        lambda: resume_turn(self.controller, session_id, choices.current_value, identifier), choices)
                 return
             args = (session_id, identifier, text, row.get("request_id", identifier))
             self.controller._call(operation, *args, completed=lambda result:

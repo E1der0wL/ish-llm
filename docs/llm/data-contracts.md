@@ -16,7 +16,7 @@ Backend가 소유하는 설정·정의는 해당 소유자의 닫힌 계약으�
 | ErrorClassification | Diagnostic.classification 또는 classify_diagnostic | category, reason, confidence, evidence; 저장 상태나 재실행 권한이 아닌 순수 투영 |
 | ResourceRef | 진단·계획·진행 정보의 source | kind, id, project_id, session_id, run_id, step_id, component, version |
 | ProjectActivityEvent | project.activity/aactivity의 확정된 실행 활동 | time, event, source, status, code |
-| SessionRuntimeView | session.run.status/astatus | session_id, status, active_run_id, engine, started_at, queued_count, queued_request_ids, unfinished_work |
+| SessionRuntimeView | session.run.status/astatus | session_id, status, active_runs(run_id/agent_id/engine/started_at), queued_count, queued_request_ids, unfinished_work |
 | RunView | run.view/aview | run, outputs, cursor, events |
 | ResumePlan | session.run.resume_plan | source, engine, can_resume, interactions, reused, retry_nodes, blockers, state, revision, can_restart, restart_blockers, active, abandoned |
 | JobResumePlan | rag.resume_plan/aresume_plan | source, state, can_resume, checkpoints, blockers, revision, active, abandoned |
@@ -52,7 +52,7 @@ if result.diagnostic is not None:
     print(result.diagnostic.code, result.diagnostic.message)
 
 try:
-    await session.run.submit("request", agent_id="missing")
+    await session.run.submit("request", recipients=["missing"])
 except Exception as error:
     issue = Diagnostic.from_exception(error)
     print(issue.to_dict())

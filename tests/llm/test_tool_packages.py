@@ -299,7 +299,7 @@ class PackageRuntimeTests(unittest.IsolatedAsyncioTestCase):
         await project.components.tools.aprepare("act")
         await project.components.tools.aenable("act")
         await project.agents.acreate({"engine": "loop", "tools": ["act"]}, identifier="loop")
-        return project, await project.sessions.acreate(), model
+        return project, await project.sessions.acreate(agent_ids=sorted(await project.agents.alist())), model
 
     async def test_file_tool_retry_step_and_normal_none_completion(self):
         from llm.services.runtime.tools import ToolRuntime
@@ -316,7 +316,7 @@ async def main():
     return None
 '''
         project, session, model = await self.setup_runtime(source, policies={"tool_retry": {"max_retries": 1}})
-        run = await (await session.run.submit("act", agent_id="loop")).wait()
+        run = (await (await session.run.submit("act", recipients=["loop"])).wait())[0]
         self.assertEqual(run.data.status, "completed", run.data.error)
         steps = [s for s in await run.steps.alist() if s.kind == "tool"]
         self.assertEqual(len(steps), 1)
@@ -334,7 +334,7 @@ async def main():
     raise ProviderError("provider_rate_limit")
 '''
         _, session, _ = await self.setup_runtime(source)
-        run = await (await session.run.submit("act", agent_id="loop")).wait()
+        run = (await (await session.run.submit("act", recipients=["loop"])).wait())[0]
         self.assertEqual(run.data.status, "failed")
         self.assertEqual(run.data.error_code, "provider_rate_limit")
         steps = [s for s in await run.steps.alist() if s.kind == "tool"]
@@ -354,11 +354,11 @@ async def main():
 '''
         _, session, _ = await self.setup_runtime(source, runtime=ToolRuntime(
             authorize=approve, operation_key=lambda call: "file-tool-operation"))
-        run = await (await session.run.submit("act", agent_id="loop")).wait()
+        run = (await (await session.run.submit("act", recipients=["loop"])).wait())[0]
         self.assertEqual(run.data.status, "paused", run.data.error)
         request, = await run.ainteractions(pending_only=True)
         await run.arespond(request.respond("approve"))
-        run = await (await session.run.resume(run.id, agent_id="loop")).wait()
+        run = (await (await session.run.resume(run.id, agent_id="loop")).wait())[0]
         self.assertEqual(run.data.status, "completed", run.data.error)
         self.assertEqual(len(approvals), 2)
         self.assertEqual(approvals[0].contract["approval_required"], True)
@@ -375,10 +375,10 @@ async def main():
 '''
         replies = [[chunk(calls=[call('{}', name='act')], finish='tool_calls')], [chunk('done', finish='stop')]]
         project, session, model = await self.setup_runtime(source, responses=replies + replies)
-        first = await (await session.run.submit("act", agent_id="loop")).wait()
+        first = (await (await session.run.submit("act", recipients=["loop"])).wait())[0]
         self.assertEqual(first.data.status, "completed")
         await project.components.tools.asave("act", {"source": source.replace('return "first"', 'return "second"')})
-        second = await (await session.run.submit("act again", agent_id="loop")).wait()
+        second = (await (await session.run.submit("act again", recipients=["loop"])).wait())[0]
         self.assertEqual(second.data.status, "completed", second.data.error)
         self.assertEqual(model.requests[1]["messages"][-1]["content"], "first")
         self.assertEqual(model.requests[3]["messages"][-1]["content"], "second")

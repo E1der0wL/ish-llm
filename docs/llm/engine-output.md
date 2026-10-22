@@ -81,8 +81,8 @@ outputs로 명시하거나 custom Engine의 명시적 Run output으로 확정한
 ## UI 조회 및 스트리밍
 
 ```python
-request = await session.run.submit("요청", agent_id="loop")
-run = await request.wait()
+request = await session.run.submit("요청", recipients=["loop"])
+run, = await request.wait()
 result = await run.aresult()
 if result.output is not None:
     print(result.output.text, result.output.data)

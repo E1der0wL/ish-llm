@@ -1,7 +1,7 @@
 # 현행 Backend API
 
 아래는 `refactor/llm-clean`의 독립 Agent API다. [B/C 검증 상태](agent-refactor-verification.md)와
-[클린 설계](clean-refactor.md)를 따른다. 다중 수신자·병렬 Dispatcher는 후속 D 단계다.
+[클린 설계](clean-refactor.md)를 따른다. 수신자·병렬 실행은 [D 검증 상태](multi-agent-verification.md)를 함께 따른다.
 이전 누적 안내는 [과거 기록](backend-api-history.md)에 보존했다.
 
 ## 소유권과 수명
@@ -34,8 +34,9 @@ async def example():
             project = await backend.projects.acreate("예제", components=[])
             await project.agents.acreate({"engine": "echo"}, identifier="echo")
             session = await project.sessions.acreate("대화")
-            request = await session.run.submit("hello", agent_id="echo")
-            run = await request.wait()
+            await session.asave(agent_ids=['echo'])
+            request = await session.run.submit("hello", recipients=["echo"])
+            run, = await request.wait()
             result = await run.aresult()
             assert result.status == RunStatus.COMPLETED
             assert (await run.aresponse()).content == "hello"
@@ -45,7 +46,10 @@ if __name__ == "__main__":
     asyncio.run(example())
 ```
 
-`submit`은 RequestHandle, `wait`는 RunHandle, `aresult`는 조회용 ExecutionResult를 반환한다.
+`submit`은 RequestHandle, `wait`는 수신자별 RunHandle 목록을 반환한다. 각 Run의 `aresult`는 조회용 ExecutionResult다.
+Session 참여자는 생성 또는 비활성 상태의 `asave(agent_ids=[...])`로 명시 저장한다. `recipients`는 필수이며
+명시한 `"all"`만 참여자 목록을 접수 때 동결한다. 같은 Agent는 FIFO, 다른 Agent는 병렬이다.
+`request.aget_runs()`와 `aresults()`는 dispatch 전 빈 목록이며 단일 수신자도 같은 API를 쓴다.
 완료 상태와 출력·진단을 함께 확인한다. 조회 view는 별도 실행 원본을 저장하지 않는다.
 일반적인 `wait` 취소가 이미 접수된 요청의 취소를 뜻하지는 않는다.
 
@@ -92,7 +96,7 @@ if plan.can_resume:
     continuation = await session.run.resume(
         paused_run.id, agent_id=paused_run.agent_id, expected_revision=plan.revision,
     )
-    resumed_run = await continuation.wait()
+    resumed_run, = await continuation.wait()
 ```
 
 선택지 ID를 항상 approve라고 가정하지 않는다. 불확실한 효과의 `retry_nodes`는 별도 명시 검토가

@@ -189,10 +189,10 @@ class OutputPersistenceIntegrityTests(unittest.IsolatedAsyncioTestCase):
                 async with LargeLanguageModel(root, engines={'test': BaseEngine(action=work)}) as app:
                     project = await app.projects.acreate()
                     await project.agents.acreate({'engine': 'test'}, identifier='test')
-                    session = await project.sessions.acreate()
-                    await (await session.run.submit('output', agent_id='test')).wait()
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                    await (await session.run.submit('output', recipients=['test'])).wait()
             asyncio.run(main())
-        ''')
+''')
         for boundary in ('source', 'manifest'):
             with self.subTest(boundary=boundary):
                 root = self.root / boundary

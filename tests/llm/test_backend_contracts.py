@@ -246,8 +246,8 @@ class CompletionRecoveryTests(unittest.IsolatedAsyncioTestCase):
             "components": {"tools": {"config": {"enabled": ["read"]}}}}}
         project = await backend.projects.acreate(config=config, components=["tools"])
         await project.agents.acreate({"engine": "loop", "tools": ["read"]}, identifier="loop")
-        session = await project.sessions.acreate()
-        handle = await (await session.run.submit("fix A; keep API", agent_id="loop")).wait(timeout=10)
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+        handle = (await (await session.run.submit("fix A; keep API", recipients=["loop"])).wait(timeout=10))[0]
         return await handle.aresult(), await handle.steps.alist(), model, effects, session
 
     @staticmethod
@@ -352,8 +352,8 @@ class DiagnosticRuntimeContracts(unittest.IsolatedAsyncioTestCase):
                         "engines": {"loop": {"config": {"completion": {"model": "test"}}}},
                         "components": {"tools": {"config": {"enabled": ["read"]}}}}})
                     await project.agents.acreate({"engine": "loop", "tools": ["read"]}, identifier="loop")
-                    session = await project.sessions.acreate()
-                    run = await (await session.run.submit("read", agent_id="loop")).wait(timeout=10)
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                    run = (await (await session.run.submit("read", recipients=["loop"])).wait(timeout=10))[0]
                     result = await run.aresult()
                     step, = [item for item in await run.steps.alist() if item.kind == "tool"]
                     self.assertEqual(result.status, RunStatus.FAILED)
@@ -387,8 +387,8 @@ class DiagnosticRuntimeContracts(unittest.IsolatedAsyncioTestCase):
             try:
                 project = await backend.projects.acreate(components=[])
                 await project.agents.acreate({"engine": "custom"}, identifier="custom")
-                session = await project.sessions.acreate()
-                run = await (await session.run.submit("run", agent_id="custom")).wait(timeout=10)
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                run = (await (await session.run.submit("run", recipients=["custom"])).wait(timeout=10))[0]
                 result = await run.aresult()
                 self.assertEqual(result.error_code, "engine_failed")
                 self.assertEqual(result.diagnostic.details["observed_code"], "custom_failure")
@@ -418,8 +418,8 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(listed.call_count, 1)
             self.assertEqual(checkpoints.call_count, 1)
         self.assertTrue(plan.can_resume, plan.blockers)
-        resumed = await (await self.session.run.resume(run.id, agent_id="graph",
-            expected_revision=plan.revision)).wait(timeout=10)
+        resumed = (await (await self.session.run.resume(run.id, agent_id="graph",
+            expected_revision=plan.revision)).wait(timeout=10))[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(self.effects, ["first", "second"])
 
@@ -464,8 +464,8 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(app.shutdown)
         project = await app.projects.acreate(components=[])
         await project.agents.acreate({"engine": "custom"}, identifier="custom")
-        session = await project.sessions.acreate()
-        run = await (await session.run.submit("work", agent_id="custom")).wait(timeout=10)
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+        run = (await (await session.run.submit("work", recipients=["custom"])).wait(timeout=10))[0]
         self.assertEqual(await run.steps.alist(), [])
         self.assertTrue(run.data.metadata["execution_started"])
         plan = await session.run.resume_plan(run.id, agent_id="custom")
@@ -490,15 +490,15 @@ class ResumeContracts(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate(components=[], config={"parameters": {"engines": {
             "loop": {"config": {"completion": {"model": "test"}}}}}})
         await project.agents.acreate({"engine": "loop"}, identifier="loop")
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         with patch.object(RunManager, "_consume_limited", AsyncMock(side_effect=asyncio.CancelledError())):
-            run = await (await session.run.submit("original", agent_id="loop")).wait(timeout=10)
+            run = (await (await session.run.submit("original", recipients=["loop"])).wait(timeout=10))[0]
         plan = await session.run.resume_plan(run.id, agent_id="loop")
         self.assertEqual(plan.state, "not_created")
         self.assertTrue(plan.can_restart, plan.restart_blockers)
         self.assertEqual(model.requests, [])
-        resumed = await (await session.run.restart(run.id, agent_id="loop",
-            expected_revision=plan.revision)).wait(timeout=10)
+        resumed = (await (await session.run.restart(run.id, agent_id="loop",
+            expected_revision=plan.revision)).wait(timeout=10))[0]
         self.assertEqual(resumed.data.status, RunStatus.COMPLETED, resumed.data.error)
         self.assertEqual(resumed.data.metadata["restart"]["run_id"], run.id)
         self.assertEqual(len(model.requests), 1)

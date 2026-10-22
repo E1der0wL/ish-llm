@@ -126,7 +126,7 @@ class MemoryGenerationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(path.read_bytes(), before)
 
     async def test_summary_clear_checks_generation_after_recreation(self):
-        session = await self.project.sessions.acreate()
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         async def publish(content):
             snapshot = await self.memory._async_call(self.memory._processing_snapshot, session.id)
             value = {"content": content, "metadata": {"coverage_count": 1, "coverage_hash": "fixture",
@@ -150,14 +150,15 @@ class MemoryGenerationTests(unittest.IsolatedAsyncioTestCase):
             name="memory_delete")], finish="tool_calls")], [chunk("done", finish="stop")])
         self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await configure_engine(self.project, "loop", completion={"model": "test/model"})
-        session = await self.project.sessions.acreate()
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         await self.project.agents.acreate({"engine": "loop", "tools": ["memory_delete"]}, identifier="loop")
-        paused = await (await session.run.submit("delete", agent_id="loop")).wait()
+        await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"loop"}))
+        paused = (await (await session.run.submit("delete", recipients=["loop"])).wait())[0]
         self.assertEqual(paused.data.status, "paused", paused.data.error)
         request, = await paused.ainteractions(pending_only=True)
         await paused.arespond(request.respond("approve"))
         new = await self.replace(old)
-        resumed = await (await session.run.resume(paused.id, agent_id="loop")).wait()
+        resumed = (await (await session.run.resume(paused.id, agent_id="loop")).wait())[0]
         self.assertEqual(resumed.data.status, "failed")
         self.assertEqual(resumed.data.error_code, "memory_conflict")
         self.assertEqual(await self.memory.aload("item"), new)

@@ -95,14 +95,15 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("writer", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)))
         config = ProjectConfig(parameters={"engines": {"writer": {'config': {'completion': {'model': 'test', 'temperature': 0.3}}, 'policy': {'request_timeout': 300}}}})
         project = await self.app.projects.acreate(config=config)
-        session = await project.sessions.acreate(config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 60}}}}})
+        session = await project.sessions.acreate(config={"parameters": {"engines": {"writer": {'policy': {'request_timeout': 60}}}}}, agent_ids=sorted(await project.agents.alist()))
         self.assertNotIn("completion", (await session.aget_data()).config["parameters"]["engines"]["writer"])
         await project.agents.acreate({"engine": "writer"}, identifier="writer")
-        first = await (await session.run.submit("one", agent_id="writer")).wait()
+        await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"writer"}))
+        first = (await (await session.run.submit("one", recipients=["writer"])).wait())[0]
         self.assertEqual(str((await first.aresult()).status), "completed")
         config.parameters["engines"]["writer"]["config"]["completion"]["temperature"] = .7
         await project.asave(config=config)
-        second = await (await session.run.submit("two", agent_id="writer")).wait()
+        second = (await (await session.run.submit("two", recipients=["writer"])).wait())[0]
         self.assertEqual(str((await second.aresult()).status), "completed")
         self.assertEqual([p["temperature"] for p in provider.requests], [.3, .7])
         self.assertTrue(all("timeout" not in p for p in provider.requests))
@@ -111,7 +112,7 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
         project = await self.app.projects.acreate()
         for config in ({"policies": {}}, {"parameters": {"components": {"notes": {}}}}):
             with self.assertRaises(ValueError):
-                await project.sessions.acreate(config=config)
+                await project.sessions.acreate(config=config, agent_ids=sorted(await project.agents.alist()))
         self.assertEqual(await project.sessions.alist(), [])
 
     async def test_target_parameters_are_not_broadcast_and_host_metadata_matches(self):
@@ -133,10 +134,12 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(effective["values"]["config"]["completion"]["temperature"])
         fields = view["schema"]["properties"]["config"]["properties"]["parameters"]["properties"]["engines"]["properties"]["writer"]["properties"]
         self.assertNotIn("x-host-override", fields["config"]["properties"]["system_prompt"])
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         for name in ("writer", "reviewer"):
             await project.agents.acreate({"engine": name}, identifier=name)
-            run = await (await session.run.submit(name, agent_id=name)).wait()
+            await session.run.shutdown()
+            await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {name}))
+            run = (await (await session.run.submit(name, recipients=[name])).wait())[0]
             self.assertEqual(str((await run.aresult()).status), "completed")
         self.assertEqual(first.requests[0]["model"], "test/writer")
         self.assertEqual(second.requests[0]["model"], "test/reviewer")
@@ -151,9 +154,10 @@ class ProjectCreationTests(unittest.IsolatedAsyncioTestCase):
         project = await self.app.projects.acreate(config=ProjectConfig(parameters={
             "engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
         self.assertEqual((await project.adescribe_config())["effective_engines"]["other"]["values"], {})
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         await project.agents.acreate({"engine": "other"}, identifier="other")
-        run = await (await session.run.submit("go", agent_id="other")).wait()
+        await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"other"}))
+        run = (await (await session.run.submit("go", recipients=["other"])).wait())[0]
         result = await run.aresult()
         self.assertEqual(str(result.status), "failed")
         self.assertIn("model is required", result.error)

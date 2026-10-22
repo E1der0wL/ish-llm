@@ -17,7 +17,7 @@ await agents.acreate({
     "engine_options": {"policy": {"max_iterations": 3}},
     "output_format": "text",
 }, identifier="reviewer")
-request = await session.run.submit("문서를 검토하세요.", agent_id="reviewer")
+request = await session.run.submit("문서를 검토하세요.", recipients=["reviewer"])
 ```
 
 선택 Engine은 Backend에 명시적으로 등록해야 한다. 저장 시 공통 정의와 선택 Engine의

@@ -64,7 +64,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(present(snapshot, runtime.t).messages[-1].phase, "thinking")
                 run_id, targets = await runtime.instruction_targets(identifier)
                 instruction = await runtime.steer(identifier, run_id, "additional direction", [targets[0][0]])
-                await runtime.submit(identifier, "second request", "review")
+                await runtime.submit(identifier, "second request", "chat")
                 self.assertEqual((await runtime.sessions[identifier].run.astatus()).queued_count, 1)
                 with self.assertRaisesRegex(ValueError, "복제"):
                     await runtime.new_session("clone", "blocked", identifier)
@@ -77,7 +77,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual((await run.aresponse()).content, "additional direction")
                 self.assertEqual((await run.aresult()).completions[0].reasoning_content, "**Consider** the request.")
                 runs = await runtime.sessions[identifier].run.alist()
-                self.assertEqual([(await r.aget_data()).engine for r in runs], ["chat", "review"])
+                self.assertEqual([(await r.aget_data()).engine for r in runs], ["chat", "chat"])
                 self.assertEqual(len(calls), 3)
                 self.assertFalse(any(m.role == "reasoning" for m in (await runtime.snapshot()).messages))
                 clone = await runtime.new_session("clone", "Named copy", identifier)
@@ -265,9 +265,10 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.wrap_future(controller.worker.call("manage_records", view.project_id,
                     "agents", "create", {"name": "review", "text": '{"engine":"review"}'}))
                 await until(lambda: "review" in view.agents)
-                if view.no_sessions:
-                    pipe.send_text("/new\r\r")
-                    await until(lambda: not view.no_sessions and view._dialog is None)
+                previous = None if view.no_sessions else view.sessions[view.selected].id
+                pipe.send_text("/new\r\r")
+                await until(lambda: not view.no_sessions and view._dialog is None
+                            and view.sessions[view.selected].id != previous)
                 pipe.send_text("start\r")
                 await until(lambda: any(m.role == "reasoning" for m in view.output.transcript.control.messages))
                 pipe.send_text("redirect\r")
@@ -282,16 +283,29 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\x1b[A\r")  # Select live instruction.
                 await until(lambda: any(m.text == "redirect" for m in view.output.transcript.control.messages))
                 await until(lambda: view.composer.text == "")
-                pipe.send_text("/agent review\r")
-                await until(lambda: view.engine == "review")
-                pipe.send_text("next request\r")
+                pipe.send_text("queued request\r")
                 await until(lambda: view._dialog is not None)
-                pipe.send_text("\r")  # Confirm follow-up.
+                pipe.send_text("\r")  # Confirm same-Agent follow-up.
                 await until(lambda: view.composer.text == "")
+                pipe.send_text("/agent review\r")
+                await until(lambda: view.engine == "review" and view.composer.text == ""
+                            and not controller._submitting and not controller._choosing_submission)
+                pipe.send_text("next request\r")
+                try:
+                    await until(lambda: any(m.role == "assistant" and m.text == "next request"
+                                            for m in view.output.transcript.control.messages))
+                except TimeoutError:
+                    self.fail(repr({"notice": view.notice, "agent": view.agent_id,
+                        "composer": view.composer.text, "dialog": view._dialog is not None,
+                        "calls": len(calls), "messages": [(m.role, m.text, m.status)
+                            for m in view.output.transcript.control.messages]}))
+                self.assertIsNone(view._dialog)  # Another Agent can run independently.
                 gate.set()
+                await until(lambda: any(m.role == "assistant" and m.text == "queued request"
+                                        for m in view.output.transcript.control.messages))
                 await until(lambda: any(m.role == "assistant" and m.text == "next request"
                                         for m in view.output.transcript.control.messages))
-                self.assertEqual(len(calls), 3)
+                self.assertEqual(len(calls), 4)
                 self.assertTrue(any(m.text == "redirect" and m.status == "applied"
                                     for m in view.output.transcript.control.messages))
                 await until(lambda: "Idle" in view.sessions[view.selected].status)
@@ -300,7 +314,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.composer.text == "keep instruction")
                 pipe.send_text("\x00")  # Process a later key before checking the removed binding.
                 await until(lambda: view.composer.text.endswith("\n"))
-                self.assertEqual(len(calls), 3)
+                self.assertEqual(len(calls), 4)
                 view.composer.text = view.composer.text.rstrip("\n")
                 self.assertEqual(view.composer.text, "keep instruction")
             finally:

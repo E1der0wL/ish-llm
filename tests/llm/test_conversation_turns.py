@@ -17,6 +17,7 @@ from llm.services.runtime.checkpoints import checkpoint_message_ids
 from tests.llm import test_loop_steering as steering_fixtures
 from tests.llm.test_loop_steering import Model
 from tests.llm.test_loop import chunk
+from tests.llm.support.admission import stored_request
 
 
 class ConversationTurnTests(unittest.IsolatedAsyncioTestCase):
@@ -28,17 +29,17 @@ class ConversationTurnTests(unittest.IsolatedAsyncioTestCase):
                     project = app.projects.create("P", components=[], conversation_storage=storage)
                     project.agents.create({"engine": "test"}, identifier="test")
                     binding = AgentBinding.create(project.id, "test", {"engine": "test"})
-                    session = project.sessions.create("S")
+                    session = project.sessions.create("S", agent_ids=sorted(project.agents.list()))
                     store = app.project_manager.sessions.conversations(session.data)
                     first_run, second_run = new_id(), new_id()
-                    first = store.create(Role.USER, "first", Status.COMMITTED, run_id=first_run)
-                    second = store.create(Role.USER, "second", Status.COMMITTED, run_id=second_run)
+                    first = stored_request(store, session.data, "first", binding, run_id=first_run)
+                    second = stored_request(store, session.data, "second", binding, run_id=second_run)
                     first_reply = store.create(Role.ASSISTANT, "first reply", Status.COMPLETED, run_id=first_run)
                     second_reply = store.create(Role.ASSISTANT, "second reply", Status.COMPLETED, run_id=second_run)
                     with app.project_manager.ownership.scope():
                         for source, reply in ((first, first_reply), (second, second_reply)):
-                            run = Run(source.run_id, session.id, source.id, reply.id, "test",
-                                      app.run_repository.paths(session.data, source.run_id),
+                            run = Run(reply.run_id, session.id, source.id, reply.id, "test",
+                                      app.run_repository.paths(session.data, reply.run_id),
                                       agent_id="test", metadata={"agent_binding": binding}, status=RunStatus.COMPLETED, created_at=source.created_at,
                                       started_at=source.created_at, ended_at=reply.created_at)
                             app.run_repository.create(run)
@@ -69,7 +70,7 @@ class ConversationTurnTests(unittest.IsolatedAsyncioTestCase):
             app = LargeLanguageModel(directory, components=[], engines={"test": BaseEngine()})
             try:
                 project = app.projects.create("P", components=[], conversation_storage="file")
-                session = project.sessions.create("S")
+                session = project.sessions.create("S", agent_ids=sorted(project.agents.list()))
                 store = app.project_manager.sessions.conversations(session.data)
                 user = store.create(Role.USER, "question", Status.COMMITTED)
                 store.create(Role.ASSISTANT, "answer", Status.COMPLETED)
@@ -113,12 +114,12 @@ class TurnResumeTests(unittest.IsolatedAsyncioTestCase):
                     .connect("first", "second").connect("second", "end").to_dict())
         await self.project.components.workflows.acreate(workflow, identifier="flow")
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
-        self.session = await self.project.sessions.acreate("S")
-        return await (await self.session.run.submit("original", agent_id="graph")).wait(timeout=10)
+        self.session = await self.project.sessions.acreate("S", agent_ids=sorted(await self.project.agents.alist()))
+        return (await (await self.session.run.submit("original", recipients=["graph"])).wait(timeout=10))[0]
 
     async def resume(self, run, node):
-        return await (await self.session.run.resume(run.id, agent_id="graph",
-                      decisions={'["' + node + '"]': {}})).wait(timeout=10)
+        return (await (await self.session.run.resume(run.id, agent_id="graph",
+                      decisions={'["' + node + '"]': {}})).wait(timeout=10))[0]
 
     async def test_completed_resume_allows_delete_without_changing_original_evidence(self):
         for storage in ("file", "memory"):
@@ -179,7 +180,7 @@ class TurnResumeTests(unittest.IsolatedAsyncioTestCase):
     async def test_another_unfinished_run_can_protect_a_completed_chain(self):
         original = await self.setup_graph()
         done = await self.resume(original, "first")
-        later = await (await self.session.run.submit("follow up", agent_id="graph")).wait(timeout=10)
+        later = (await (await self.session.run.submit("follow up", recipients=["graph"])).wait(timeout=10))[0]
         self.assertEqual(later.data.status, RunStatus.PAUSED)
         await self.session.run.shutdown()
         for run in (original, done):
@@ -219,7 +220,9 @@ class TurnResumeTests(unittest.IsolatedAsyncioTestCase):
                 yield
         self.app.engines.register("failure", Failure())
         await self.project.agents.acreate({"engine": "failure"}, identifier="failure")
-        failed = await (await self.session.run.submit("fail", agent_id="failure")).wait(timeout=10)
+        await self.session.run.shutdown()
+        await self.session.asave(agent_ids=["failure", "graph"])
+        failed = (await (await self.session.run.submit("fail", recipients=["failure"])).wait(timeout=10))[0]
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         await self.session.run.shutdown()
         await self.session.adelete_turn(failed.data.input_message_id)
@@ -306,7 +309,7 @@ class TurnInstructionTests(unittest.IsolatedAsyncioTestCase):
         app, session, request, run = await self.setup_backend(model)
         instruction = await session.run.steer(run.id, "correction")
         model.release.set()
-        failed = await request.wait(timeout=10)
+        failed, = await request.wait(timeout=10)
         self.assertEqual(failed.data.status, RunStatus.FAILED)
         checkpoint = await failed.acheckpoint("loop")
         self.assertNotIn(instruction.id, checkpoint["header"]["message_ids"])

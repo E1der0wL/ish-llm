@@ -279,8 +279,8 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                         "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"}}}},
                                        "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
                     await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
-                    session = await project.sessions.acreate()
-                    paused = await (await session.run.submit("go", agent_id="loop")).wait()
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                    paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                     self.assertEqual(paused.data.status, "paused", paused.data.error)
                     self.assertFalse(effects.exists())
                     saved = await paused.acheckpoint()
@@ -309,7 +309,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                             await session.run.resume(run_id, agent_id="loop", decisions=decisions)
                         self.assertEqual([run.id for run in await session.run.alist()], [run_id])
                     else:
-                        resumed = await (await session.run.resume(run_id, agent_id="loop", decisions=decisions)).wait()
+                        resumed = (await (await session.run.resume(run_id, agent_id="loop", decisions=decisions)).wait())[0]
                         if outcome == "approve":
                             self.assertEqual(resumed.data.status, "completed", resumed.data.error)
                             self.assertEqual(effects.read_text(), "effect\n")
@@ -352,8 +352,8 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                         "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"}}}},
                                        "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
                     await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
-                    session = await project.sessions.acreate()
-                    failed = await (await session.run.submit("go", agent_id="loop")).wait()
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                    failed = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                     self.assertEqual(failed.data.status, "failed")
                     self.assertEqual(effects.read_text(), "first\n")
                     project_id, session_id, run_id = project.id, session.id, failed.id
@@ -362,7 +362,7 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                     plan = await session.run.resume_plan(run_id, agent_id="loop")
                     self.assertTrue(plan.can_resume, plan.blockers)
                     self.assertEqual(plan.state, "valid")
-                    resumed = await (await session.run.resume(run_id, agent_id="loop")).wait()
+                    resumed = (await (await session.run.resume(run_id, agent_id="loop")).wait())[0]
                     self.assertEqual(effects.read_text(), "first\n")
                     self.assertEqual(len(model.requests), 3)
                     if request_another_tool:
@@ -407,8 +407,8 @@ class ResumeUsageContracts(unittest.IsolatedAsyncioTestCase):
                     "parameters": {"engines": {"loop": {"config": {"completion": {"model": "test"}}}},
                                    "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
                 await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
-                session = await project.sessions.acreate()
-                failed = await (await session.run.submit("go", agent_id="loop")).wait()
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                failed = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                 self.assertEqual(failed.data.status, "failed", failed.data.error)
                 self.assertEqual(effects.read_text(), "first\n")
                 self.assertEqual(len(model.requests), 2)

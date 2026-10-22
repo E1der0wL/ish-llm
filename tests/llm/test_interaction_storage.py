@@ -209,7 +209,7 @@ class InteractionIntegrityTests(unittest.IsolatedAsyncioTestCase):
         await run.acancel_interaction(request)
         replacement = await run.arenew_interaction(request)
         await run.arespond(replacement.respond("approve"))
-        resumed = await (await session.run.resume(run.id, agent_id="loop")).wait()
+        resumed = (await (await session.run.resume(run.id, agent_id="loop")).wait())[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(self.effects, [{}])
 
@@ -296,7 +296,7 @@ class InteractionAttemptTests(unittest.IsolatedAsyncioTestCase):
         first = await self.run_graph()
         original, = await first.ainteractions()
         saved = await first.arespond(original.respond("approve"))
-        second = await (await self.session.run.resume(first.id, agent_id="graph")).wait()
+        second = (await (await self.session.run.resume(first.id, agent_id="graph")).wait())[0]
         self.assertEqual(second.data.status, "failed")
         request, = await second.ainteractions()
         self.assertNotEqual(original.id, request.id)
@@ -307,7 +307,7 @@ class InteractionAttemptTests(unittest.IsolatedAsyncioTestCase):
             await self.session.run.resume(second.id, agent_id="graph")
         self.assertEqual(effect_path.read_text(), "effect\n" * 2)
         await second.arespond(request.respond("approve"))
-        third = await (await self.session.run.resume(second.id, agent_id="graph")).wait()
+        third = (await (await self.session.run.resume(second.id, agent_id="graph")).wait())[0]
         self.assertEqual(third.data.status, "completed", third.data.error)
         self.assertEqual(effect_path.read_text(), "effect\n" * 3)
         self.assertEqual(await first.ainteraction_responses(), [saved])
@@ -342,8 +342,8 @@ class InteractionStorageTests(unittest.IsolatedAsyncioTestCase):
                         "engines": {"loop": {"config": {"completion": {"model": "test"}}}},
                         "components": {"tools": {"config": {"enabled": ["effect"]}}}}})
                 await project.agents.acreate({"engine": "loop", "tools": ["effect"]}, identifier="loop")
-                session = await project.sessions.acreate()
-                paused = await (await session.run.submit("go", agent_id="loop")).wait()
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+                paused = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                 self.assertEqual(paused.data.status, "paused", paused.data.error)
                 request, = await paused.ainteractions()
                 self.assertTrue(request.expired)

@@ -100,7 +100,7 @@ class DataQuarantineTests(unittest.IsolatedAsyncioTestCase):
     async def test_attached_runtime_blocks_quarantine_and_explicit_delete(self):
         package = await self.damaged()
         plan = await self.data.ainspect_quarantine('samples')
-        session = await self.project.sessions.acreate()
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         await session.run.start()
         with self.assertRaisesRegex(ValueError, 'attached'):
             await self.data.aquarantine('samples', expected_revision=plan['version'])
@@ -182,7 +182,7 @@ class DataQuarantineTests(unittest.IsolatedAsyncioTestCase):
     async def test_unknown_session_evidence_refuses_quarantine_in_place(self):
         package = await self.damaged()
         plan = await self.data.ainspect_quarantine('samples')
-        session = await self.project.sessions.acreate()
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         record = session.paths.root / 'session.json'
         record.write_bytes(b'{lost execution state')
         with self.assertRaises(ValueError):
@@ -332,9 +332,10 @@ class DataQuarantineTests(unittest.IsolatedAsyncioTestCase):
         graph = (WorkflowGraph(entry='work').node('work', 'work', pause_before=True)
                  .node('end', 'end').connect('work', 'end').to_dict())
         await self.project.components.workflows.acreate(graph, identifier='flow')
-        session = await self.project.sessions.acreate()
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         await self.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier='graph')
-        run = await (await session.run.submit('work', agent_id='graph')).wait()
+        await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"graph"}))
+        run = (await (await session.run.submit('work', recipients=['graph'])).wait())[0]
         self.assertEqual(run.data.status, RunStatus.PAUSED, run.data.error)
         checkpoint = await run.acheckpoint()
         await session.run.shutdown()
@@ -481,7 +482,7 @@ class DataQuarantineBudgetTests(unittest.IsolatedAsyncioTestCase):
         async with LargeLanguageModel(project.paths.root.parent.parent, components=[DataComponent()],
                                       engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}) as reopened:
             project = await reopened.projects.aload(project.id)
-            other = await project.sessions.acreate()
+            other = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
             blocked = await UsageDeletionTests.run_once(self, other)
             self.assertEqual(blocked.data.error_code, 'usage_limit')
             self.assertEqual(len(model.requests), 1)

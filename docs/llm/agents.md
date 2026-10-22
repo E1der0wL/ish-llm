@@ -62,7 +62,8 @@ async with LargeLanguageModel(workspace, engines={"graph": graph_engine, "loop":
     await agents.acreate({"engine": "graph", "engine_options": {"workflow": "review"}},
                          identifier="coordinator")
     session = await project.sessions.acreate("Review request")
-    run = await (await session.run.submit("이 코드를 검토해줘: ...", agent_id="coordinator")).wait()
+    await session.asave(agent_ids=['coordinator'])
+    run, = await (await session.run.submit("이 코드를 검토해줘: ...", recipients=["coordinator"])).wait()
     response = await run.aresponse()
     steps = await run.steps.alist()
 ```

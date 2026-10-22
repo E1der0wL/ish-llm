@@ -34,13 +34,13 @@ async def run_request(args: argparse.Namespace, *, workspace: Path,
         if not args.project_id:
             await project.agents.acreate({"engine": "loop"}, identifier=args.agent_id)
         session = (await project.sessions.aload(args.session_id) if args.session_id
-                else await project.sessions.acreate("ish LoopEngine test"))
+                else await project.sessions.acreate("ish LoopEngine test", agent_ids=[args.agent_id]))
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
         print(f"Session: {session.id}", file=sys.stderr)
 
         # 저장된 실제 Agent를 요청마다 선택한다.
-        request = await session.run.submit(" ".join(args.prompt), agent_id=args.agent_id)
-        handle = await request.wait()
+        request = await session.run.submit(" ".join(args.prompt), recipients=[args.agent_id])
+        handle = (await request.wait())[0]
         result = await handle.aresult()
         print()
         print(f"Run: {handle.id} ({result.status.value})", file=sys.stderr)

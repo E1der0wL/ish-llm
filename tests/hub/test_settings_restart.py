@@ -121,7 +121,7 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                 session = await asyncio.wrap_future(worker.call("new_session", "new", "Running"))
                 await asyncio.wrap_future(worker.call("submit", session, "hold request", "assistant"))
                 async def active():
-                    return (await worker.runtime.sessions[session].run.astatus()).active_run_id
+                    return (await worker.runtime.sessions[session].run.astatus()).active_runs
                 await until(lambda: bool(worker.runtime.sessions))
                 async with asyncio.timeout(10):
                     while not await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(active(), worker.loop)):
@@ -132,7 +132,7 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
                 async def verify():
                     handle = worker.runtime.sessions[session]
                     state = await handle.run.astatus()
-                    self.assertIsNone(state.active_run_id)
+                    self.assertEqual(state.active_runs, [])
                     self.assertEqual(state.queued_count, 0)
                     runs = await handle.run.alist()
                     self.assertEqual(len(runs), 1)

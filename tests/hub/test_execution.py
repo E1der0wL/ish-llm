@@ -50,6 +50,8 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 options = {"workflow": "beta"}
                 await runtime.project.agents.acreate({"engine": "graph", "engine_options": options}, identifier="beta")
                 session = runtime.sessions[runtime.selected_id]
+                await session.run.shutdown()
+                await session.asave(agent_ids=["alpha", "beta"])
                 catalog = await runtime.execution_catalog(session.id)
                 self.assertEqual(catalog["agents"]["alpha"]["engine"], "graph")
                 self.assertEqual(set(catalog["agents"]), {"alpha", "beta"})
@@ -61,7 +63,7 @@ class ExecutionTests(unittest.IsolatedAsyncioTestCase):
                 second = await runtime.submit(session.id, "second", "beta")
                 options["workflow"] = "alpha"
                 queued = next(m for m in await session.aconversation() if m.id == second)
-                self.assertEqual(queued.metadata["agent_binding"]["definition"]["engine_options"], {"workflow": "beta"})
+                self.assertEqual(queued.metadata["admission"]["bindings"]["beta"]["definition"]["engine_options"], {"workflow": "beta"})
                 gate.set()
                 await session.run.wait_idle()
                 runs = [await run.aget_data() for run in await session.run.alist()]

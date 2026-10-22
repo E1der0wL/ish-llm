@@ -470,8 +470,12 @@ class MemorySession(CompletionSession):
         # 긴 대화의 파생 캐시에 전체 ID 목록을 다시 복제하지 않는다. 원본 메시지
         # 범위 양 끝 + coverage_count/hash로 정확한 범위를 재조회/검증할 수 있다.
         boundaries = [valid[0], valid[covered - 1]] if covered else []
+        # User owns a recipient group, not one representative Run. Keep the
+        # first/last observed Run in the covered range without copying every ID.
+        first_run = next((message.run_id for message in valid[:covered] if message.run_id), None)
+        last_run = next((message.run_id for message in reversed(valid[:covered]) if message.run_id), None)
         sources = provenance(messages=[m.id for m in boundaries],
-            run_ids=[m.run_id for m in boundaries if m.run_id],
+            run_ids=[identifier for identifier in (first_run, last_run) if identifier],
             checksum=digest(signatures[:covered]), goals=self.goal_references)
         sources["messages_are_range_boundaries"] = True
         # 부분 턴의 작업 상태는 완성된 요약으로 공개하지 않는다.

@@ -96,7 +96,7 @@ class HubLogRetentionTests(unittest.IsolatedAsyncioTestCase):
                 async with create_backend(HubConfig(Path(root) / name, auto_title=False, log_sink=sink)) as app:
                     project = await app.projects.acreate("original project")
                     for index in range(12):
-                        await project.sessions.acreate(str(index))
+                        await project.sessions.acreate(str(index), agent_ids=sorted(await project.agents.alist()))
                     self.assertEqual(len(list(project.paths.logs.glob("service.log*"))), expected)
                     self.assertEqual(len(await project.sessions.alist()), 12)
                     self.assertEqual((await project.aget_data()).title, "original project")

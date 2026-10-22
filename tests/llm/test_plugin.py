@@ -147,8 +147,8 @@ async def exercise_backend():
     async with LargeLanguageModel('backend-workspace', engines={'loop': Echo()}) as backend:
         project = backend.projects.create()
         project.agents.create({"engine": "loop"}, identifier="loop")
-        session = project.sessions.create()
-        await project.sessions.load(session.id).run.submit('hello', agent_id='loop')
+        session = project.sessions.create(agent_ids=sorted(project.agents.list()))
+        await project.sessions.load(session.id).run.submit('hello', recipients=['loop'])
         await session.run.wait_idle()
         assert session.run.list()[0].data.status.value == 'completed'
         assert session.conversation()[-1].content == 'plugin backend'

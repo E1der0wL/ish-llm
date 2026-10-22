@@ -17,7 +17,7 @@ metadata는 StepManager를 통해 기존 step.json에 반영된다.
 
 `GraphEngine(handlers=...)`은 실행 전략을 등록한다.
 `{"engine": "graph", "engine_options": {"workflow": workflow_id}}`를 Agent로 저장하고
-`await session.run.submit(prompt, agent_id="coordinator")`로 선택한다. LangGraph 타입을
+`await session.run.submit(prompt, recipients=["coordinator"])`로 선택한다. LangGraph 타입을
 프로젝트 설정이나 UI API에 노출하지 않는다. 공개 엔진과 내부 실행부는 모두 `engines/graph/engine.py`에 있다.
 
 Workflow ID는 필수이며 생성자나 기본 설정에서 가져오지 않는다. 선택은 대기 메시지와

@@ -5,6 +5,7 @@ import hashlib
 import json
 
 from llm.llm import CheckpointError
+from llm.services.runtime.requests import RequestAdmission
 
 from .execution.turns import TURN_OPTION, TurnIndex
 from .execution.stopping import display_run, reopen_questions
@@ -17,10 +18,27 @@ class TurnHistory:
     def __init__(self, runtime):
         self.runtime = runtime
 
-    async def _edit_request(self, session_id, request, run, text):
-        options = dict(run.metadata.get("request_context", {}))
+    DISPLAY_STATUS_PRIORITY = (RunStatus.RUNNING, RunStatus.PENDING, MessageStatus.QUEUED,
+        RunStatus.PAUSED, RunStatus.FAILED, RunStatus.INTERRUPTED, RunStatus.CANCELLED, RunStatus.COMPLETED)
+
+    async def attempts(self, session, turn):
+        """Latest admitted attempt per Agent, including a still-queued replacement."""
+        selected = {}
+        for group in turn.active:
+            message = group[0]
+            if "admission" not in message.metadata:
+                continue  # Cloned observations carry no executable request identity.
+            request = await session.run.arequest(message.id)
+            records = [await run.aget_data() for run in await request.aget_runs()]
+            runs = {run.agent_id: run for run in records}
+            for identifier in request.recipients:
+                selected[identifier] = (message, runs.get(identifier))
+        return dict(sorted(selected.items()))
+
+    async def _edit_request(self, session_id, request, recipients, text):
+        options = dict(request.metadata.get("request_context", {}))
         options[TURN_OPTION] = {"source": request.id}
-        return await self.runtime.submit(session_id, text, run.agent_id, options)
+        return await self.runtime._submit_recipients(session_id, text, recipients, options)
 
     async def index(self, session_id):
         return TurnIndex(await self.runtime.sessions[session_id].aconversation())
@@ -31,40 +49,47 @@ class TurnHistory:
         runtime, rows = self.runtime, []
         session = runtime.sessions[session_id]
         index = await self.index(session_id)
-        record = None
+        record = await session.aget_data()
         for turn in index.turns:
             request = turn.latest
-            run = await (await session.run.aload(request.run_id)).aget_data() if request.run_id else None
-            if run and str(run.status) == RunStatus.PAUSED:
-                record = record or await session.aget_data()
-                run = display_run(record, run)
-            records = [m for group in turn.active for m in group]
-            assistants = [m for m in records if m.role == "assistant"]
-            elapsed = (await runtime.snapshot_reader.run_display(session, run.id))[1] if run else None
-            status = request.status
-            if run:
-                status = run.status
-            elif assistants and str(status) not in (MessageStatus.QUEUED, MessageStatus.CANCELLED):
-                status = assistants[-1].status
+            attempts = await self.attempts(session, turn)
+            recipients = []
+            for identifier, (source, run) in attempts.items():
+                if run is not None:
+                    run = display_run(record, run)
+                    elapsed = (await runtime.snapshot_reader.run_display(session, run.id))[1]
+                    recipients.append({"agent_id": identifier, "run_id": run.id, "status": str(run.status),
+                        "engine": run.engine, "elapsed": elapsed, "error": str(run.error or "")})
+                else:
+                    admission = RequestAdmission.read(source, project_id=session.project.id, session_id=session.id)
+                    recipients.append({"agent_id": identifier, "run_id": "", "status": str(source.status),
+                        "engine": admission["bindings"][identifier]["engine"], "elapsed": None, "error": ""})
+            records = [message for group in turn.active for message in group]
+            assistants = [message for message in records if message.role == "assistant"]
+            fallback = assistants[-1].status if assistants else request.status
+            statuses = {item["status"] for item in recipients}
+            status = next((value for value in self.DISPLAY_STATUS_PRIORITY if value in statuses), fallback)
+            elapsed = [item["elapsed"] for item in recipients if item["elapsed"] is not None]
             rows.append({"id": turn.id, "request_id": request.id, "text": turn.active[0][0].content,
-                         "time": turn.attempts[0][0].created_at,
-                         "status": str(status),
-                         "agent_id": run.agent_id if run else request.metadata.get("agent_binding", {}).get("agent_id", ""),
-                         "engine": run.engine if run else request.metadata.get("agent_binding", {}).get("engine", ""), "elapsed": elapsed,
-                         "response": "\n\n".join(m.content for m in assistants),
-                         "run_id": request.run_id or "", "error": str(run.error or "") if run else ""})
+                         "time": turn.attempts[0][0].created_at, "status": str(status),
+                         "agent_id": ", ".join(attempts), "runs": recipients,
+                         "engine": ", ".join(dict.fromkeys(item["engine"] for item in recipients)),
+                         "elapsed": max(elapsed) if elapsed else None,
+                         "response": "\n\n".join(message.content for message in assistants),
+                         "error": "\n".join(item["error"] for item in recipients if item["error"])})
         return rows
 
     async def require_idle(self, session_id):
         state = await self.runtime.sessions[session_id].run.astatus()
-        if state.active_run_id or state.queued_count or session_id in self.runtime.namer.tasks:
+        if state.active_runs or state.queued_count or session_id in self.runtime.namer.tasks:
             raise OperationBlocked("hub_operation_busy", self.runtime.t("history_busy"))
 
     async def retry(self, session_id, request_id, expected_run_id):
         runtime, session = self.runtime, self.runtime.sessions[session_id]
         await self.require_idle(session_id)
         turn = (await self.index(session_id)).by_id[request_id]
-        if not expected_run_id or turn.latest.run_id != expected_run_id:
+        if not expected_run_id or expected_run_id not in {run.id for _, run in
+                (await self.attempts(session, turn)).values() if run is not None}:
             raise OperationBlocked("hub_operation_changed", runtime.t("history_changed"))
         handle = await session.run.aload(expected_run_id)
         run = await handle.aget_data()
@@ -114,18 +139,18 @@ class TurnHistory:
         latest = turn.latest
         if latest.id != expected_request_id:
             raise OperationBlocked("hub_operation_changed", runtime.t("history_changed"))
-        if not latest.run_id:
+        attempts = await self.attempts(session, turn)
+        if not attempts or any(run is None or str(run.status) not in (
+                RunStatus.COMPLETED, RunStatus.INTERRUPTED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.PAUSED)
+                for _, run in attempts.values()):
             raise OperationBlocked("hub_edit_unavailable", runtime.t("history_edit_unavailable"))
-        run = await (await session.run.aload(latest.run_id)).aget_data()
-        if str(run.status) not in (RunStatus.COMPLETED, RunStatus.INTERRUPTED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.PAUSED):
-            raise OperationBlocked("hub_edit_unavailable", runtime.t("history_edit_unavailable"))
-        return await self._edit_request(session_id, latest, run, text)
+        return await self._edit_request(session_id, latest, list(attempts), text)
 
     async def deletion_plan(self, session_id, identifiers):
         session = self.runtime.sessions[session_id]
         index = await self.index(session_id)
         state = await session.run.astatus()
-        busy = bool(state.active_run_id or state.queued_count)
+        busy = bool(state.active_runs or state.queued_count)
         items, blockers, seen = [], {}, set()
         for identifier in dict.fromkeys(identifiers):
             turn = index.by_id[identifier]
@@ -133,7 +158,7 @@ class TurnHistory:
                 continue
             seen.add(turn.id)
             # Queue cancellation only affects the selected queued attempt.
-            if str(turn.latest.status) == MessageStatus.QUEUED and not turn.latest.run_id:
+            if str(turn.latest.status) == MessageStatus.QUEUED and not RequestAdmission.run_ids(turn.latest):
                 items.append({"id": turn.latest.id, "queued": True})
                 continue
             for group in reversed(turn.attempts):

@@ -31,7 +31,11 @@ project = await backend.projects.acreate(config={
 사용자 policy_resolver의 `resolve(policies)`는 `(ContextPolicy 또는 None, RunPolicy)`를
 반환하고 `token_counters`에 등록된 계산기만 제공한다. 모델 입력 정책이나 Engine/Component
 재시도 객체를 만들어 반환하지 않는다. 기본 resolver도 같은 계약을 사용한다.
-주입 context_builder의 for_run은 keyword policy로 해당 Run의 프로젝트 정책을 받는다.
+주입 context_builder는 `snapshot_for_run(messages, input_message_id)`에서 수신자 공통 이력의
+순서·가시성을 고정하고, `select_snapshot(history, policy=...)`에서 각 Run에 저장된 프로젝트
+문맥 정책을 적용한다. `for_clone`은 복제 투영을 소유한다. 기본 ConversationContextBuilder의
+snapshot 메서드는 `for_run`을 전체 문맥 정책으로 호출하므로 기존 순서·가시성 확장을 재사용한다.
+예산 오류는 해당 Run의 실행 실패이며 다른 Agent나 Dispatcher를 종료하지 않는다.
 추가 지시는 원래 요청과 같은 턴이다. 사용자 context_builder도 Message.metadata.steering을
 구분하여 따로 새 턴으로 자르지 않아야 한다. 기본 CompletionPolicy는
 prepare_turn(request, current_index, turn_starts)로 활성 턴 전체를 보호한다. 주입한

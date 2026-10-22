@@ -290,11 +290,11 @@ async def main(a: float):
             completion = ScriptedCompletion([chunk(calls=[call('{"a":2}')], finish="tool_calls")],
                                             [chunk("done", finish="stop")])
             engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
-            session = sessions.create(project, "Test")
             projects.agents.create(project, {"engine": "loop", "tools": ["add"]}, identifier="loop")
+            session = sessions.create(project, "Test", agent_ids=["loop"])
             manager = RunManager(sessions, engines, session=session, capabilities=registry)
             try:
-                await manager.submit("request", agent_id="loop")
+                await manager.submit("request", recipients=["loop"])
                 await manager.wait_idle()
                 self.assertEqual(completion.requests[1]["messages"][-1]["content"], "result")
                 from llm.providers.wire_codec import encode_tool_definition

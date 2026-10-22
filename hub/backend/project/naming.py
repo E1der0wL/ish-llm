@@ -110,14 +110,14 @@ class SessionNamer:
             await session.asave(metadata={**record.metadata, "hub_title_attempt": attempt})
             if not params.get("model"):
                 raise ValueError(self.runtime.t("title_model_required"))
-            job = await session.project.sessions.acreate("Hub title", config={
+            from .agents import TITLE_AGENT
+            job = await session.project.sessions.acreate("Hub title", agent_ids=[TITLE_AGENT], config={
                 "parameters": {"engines": {TITLE_ENGINE: {'config': {'completion': params}}}}})
             await job.asave(metadata={"hub_internal": "title", "source_session": session.id})
             text = "\n\n".join(f"{m.role}: {m.content[:4000]}" for m in history[:6]
                                if str(m.role) in ("user", "assistant"))[:12000]
-            from .agents import TITLE_AGENT
-            request = await job.run.submit(text, agent_id=TITLE_AGENT)
-            handle = await request.wait()
+            request = await job.run.submit(text, recipients=[TITLE_AGENT])
+            handle, = await request.wait()
             result = await handle.aresult()
             if str(result.status) != RunStatus.COMPLETED:
                 raise RuntimeError(result.error or str(result.status))

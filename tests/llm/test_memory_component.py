@@ -49,8 +49,8 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         selected = project or self.project
         await selected.agents.acreate({"engine": engine, "completion": {"model": "test/model"},
             "tools": ["memory_search", "memory_get", "memory_create", "memory_update", "memory_delete", "memory_tool_result"]}, identifier=engine)
-        session = await selected.sessions.acreate()
-        run = await (await session.run.submit("기억을 관리해줘", agent_id=engine)).wait(timeout=20)
+        session = await selected.sessions.acreate(agent_ids=[engine])
+        run = (await (await session.run.submit("기억을 관리해줘", recipients=[engine])).wait(timeout=20))[0]
         return run, model, session
 
     async def test_crud_open_json_revision_and_history(self):
@@ -210,8 +210,8 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         await self.memory.acreate({"content": "한국어로 응답"})
         self.app.engines.register("recall", Recall())
         await self.project.agents.acreate({"engine": "recall"}, identifier="recall")
-        session = await self.project.sessions.acreate()
-        run = await (await session.run.submit("recall", agent_id="recall")).wait(timeout=20)
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
+        run = (await (await session.run.submit("recall", recipients=["recall"])).wait(timeout=20))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual((await run.aresponse()).content, "한국어로 응답")
 
@@ -272,13 +272,13 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
             app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
             project = await app.projects.acreate(components=["memory"], config={"policies": {"tools": {"allowed_tools": ["memory_search"]}}})
             await project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}, "tools": ["memory_create"]}, identifier="loop")
-            session = await project.sessions.acreate()
-            rejected = await (await session.run.submit("save", agent_id="loop")).wait(timeout=20)
+            session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+            rejected = (await (await session.run.submit("save", recipients=["loop"])).wait(timeout=20))[0]
             self.assertEqual(rejected.data.error_code, "tool_denied")
             self.assertEqual(model.requests, [])
             self.assertEqual(await project.components.memory.alist(), {})
             await project.aconfigure_policies({"tools": {"allowed_tools": ["memory_search", "memory_create"]}})
-            run = await (await session.run.submit("save", agent_id="loop")).wait(timeout=20)
+            run = (await (await session.run.submit("save", recipients=["loop"])).wait(timeout=20))[0]
             self.assertEqual(run.data.status, RunStatus.FAILED)
             self.assertEqual(await (await project.components.aget("memory")).alist(), {})
             step = next(s for s in await run.steps.alist() if s.kind == "tool")
@@ -312,8 +312,8 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         await workflows.acreate(graph, identifier="flow")
         self.app.engines.register("graph", GraphEngine(handlers={"tool": ToolNode()}))
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
-        session = await self.project.sessions.acreate()
-        run = await (await session.run.submit("remember", agent_id="graph")).wait(timeout=20)
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
+        run = (await (await session.run.submit("remember", recipients=["graph"])).wait(timeout=20))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         record = next(iter((await self.memory.alist()).values()))
         self.assertEqual(record["source"]["run_id"], run.id)
@@ -329,7 +329,9 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("agent", GraphEngine(handlers={
             "agent": AgentNode(engines={"loop": worker})}))
         await self.project.agents.acreate({"engine": "agent", "engine_options": {"workflow": "agent_flow"}}, identifier="agent")
-        run = await (await session.run.submit("recall", agent_id="agent")).wait(timeout=20)
+        await session.run.shutdown()
+        await session.asave(agent_ids=["agent", "graph"])
+        run = (await (await session.run.submit("recall", recipients=["agent"])).wait(timeout=20))[0]
         self.assertEqual(run.data.status, RunStatus.COMPLETED, run.data.error)
         self.assertEqual([t["function"]["name"] for t in model.requests[0]["tools"]], ["memory_get"])
         self.assertEqual(json.loads(model.requests[-1]["messages"][-1]["content"]), record)

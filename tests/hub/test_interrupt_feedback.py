@@ -100,7 +100,7 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
             ChatMessage("assistant", "later answer", id="a2", run_id="r2", status="completed"))
         snapshot = replace(self.base, messages=messages, run=replace(self.base.run, id="r2", status="completed", active=False))
         self.view.apply_snapshot(snapshot)
-        row = {"id": "u1", "request_id": "u1", "run_id": "r1", "status": "interrupted", "text": "first",
+        row = {"id": "u1", "request_id": "u1", "runs": [{"run_id": "r1", "agent_id": "assistant", "status": "interrupted", "engine": "loop"}], "status": "interrupted", "text": "first",
                "response": "partial", "time": "", "engine": "loop", "elapsed": None, "error": ""}
         history = HistoryUI(self.controller)
         with create_pipe_input() as pipe:

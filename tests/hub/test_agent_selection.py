@@ -31,7 +31,7 @@ class HubAgentSelectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await runtime.project.agents.aload('writer'), original)
         session_id = next(iter(runtime.sessions))
         request = await runtime.submit(session_id, 'hello', 'writer')
-        run = await runtime.sessions[session_id].run.request(request).wait(timeout=15)
+        run = (await runtime.sessions[session_id].run.request(request).wait(timeout=15))[0]
         self.assertEqual(run.data.status, 'completed', run.data.error)
         self.assertEqual(run.data.agent_id, 'writer')
         self.assertNotIn('request_context', run.data.metadata)
@@ -64,6 +64,9 @@ class HubAgentSelectionTests(unittest.IsolatedAsyncioTestCase):
         first = HubRuntime(config)
         await first.start()
         await first.new_session()
+        for session in first.sessions.values():
+            await session.run.shutdown()
+            await session.asave(agent_ids=[])
         snapshot = await first.project.agents.asnapshot('assistant')
         await first.project.agents.adelete('assistant', expected_revision=snapshot['revision'])
         project_id = first.project.id

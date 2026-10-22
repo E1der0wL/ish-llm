@@ -349,3 +349,15 @@ B/C 로컬 상위 게이트 완료이며 D1/D2·E·F는 미완료다. 원격 B/C
 미해결/새 후보/오래된 근거/검토 오류 0, 문서 135개·Python fence 183개·링크 993개·anchor 35개·
 오류 0, `git diff --check HEAD` exit 0을 확인했다. 전체 게이트 뒤의 현재 문서 정리와
 AST가 같은 공백 정리에 해당하며, 제품 기능 변경이나 새로운 전체 회귀 실행으로 보고하지 않는다.
+
+
+### B/C 정확한 Push SHA의 원격 CI 완료
+
+2026-10-22 06:29:27 UTC에 커밋 `975913e71b413618125b7b770802baaba0d88e52`의
+[GitHub Actions 39731609064](https://github.com/E1der0wL/ish-llm/actions/runs/39731609064)를
+직접 확인했다. workflow 완료/Success이며 LLM 2170/2170/2170(1108.514600초),
+Hub 581/581/581(1205.691608초), 두 suite 모두 Failure/Error/Skip/expected failure/
+unexpected success/누락/중복/예상 밖 실행 0이다. Python 3.12.14(GCC 13.3.0)의 원격
+필수 두 job 결과이며 로컬 Clang 환경 실행과 별도 증거다. run 페이지가 정확한 commit SHA를
+가리킴도 확인했다. 이 Push에는 B-a `4845e5b`와 B/C 통합 `975913e`가 포함되며,
+이후 로컬 D 소단계의 완료나 원격 검증을 뜻하지 않는다.

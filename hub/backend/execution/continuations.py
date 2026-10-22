@@ -3,13 +3,15 @@
 from dataclasses import replace
 from collections.abc import Sequence
 from llm.core.models import MessageStatus, Message
+from llm.services.runtime.requests import RequestAdmission
 from ...model import ChatMessage
 from .trace import merge_trace
 
 
 def continued_messages(records: Sequence[Message], messages: Sequence[ChatMessage]) -> tuple[ChatMessage, ...]:
-    parents = {m.run_id: m.metadata.get("resume", {}).get("run_id") for m in records
-               if str(m.role) == "user" and m.run_id and m.metadata.get("resume")}
+    parents = {run_id: m.metadata["resume"]["run_id"] for m in records
+               if str(m.role) == "user" and m.metadata.get("resume")
+               for run_id in RequestAdmission.run_ids(m)}
     assistants = {m.run_id: m.id for m in records if str(m.role) == "assistant" and m.run_id}
     sources, hidden = {}, set()
     for record in records:

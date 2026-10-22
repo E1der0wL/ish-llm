@@ -71,14 +71,15 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate(components=["workflows"], config={"parameters": {"engines": {"graph": {'policy': {'max_steps': 3, 'timeout_seconds': None}}}}})
         await (await project.components.aget("workflows")).acreate(
             WorkflowGraph(entry="a").node("a", "work").node("end", "end").connect("a", "end").to_dict(), identifier="flow")
-        first = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {"policy": {"max_steps": 1}}}}})
+        first = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {"policy": {"max_steps": 1}}}}}, agent_ids=sorted(await project.agents.alist()))
         await first.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier="graph")
-        failed = await (await first.run.submit("go", agent_id="graph")).wait()
+        await first.asave(agent_ids=sorted(set((await first.aget_data()).agent_ids) | {"graph"}))
+        failed = (await (await first.run.submit("go", recipients=["graph"])).wait())[0]
         self.assertEqual((await failed.aget_data()).status, "failed")
-        second = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {'policy': {'max_steps': 3}}}}})
+        second = await project.sessions.acreate(config={"parameters": {"engines": {"graph": {'policy': {'max_steps': 3}}}}}, agent_ids=sorted(await project.agents.alist()))
         view = await second.adescribe_config()
         self.assertEqual(view["effective_engines"]["graph"]["sources"]["/policy/max_steps"], "session")
-        done = await (await second.run.submit("go", agent_id="graph")).wait()
+        done = (await (await second.run.submit("go", recipients=["graph"])).wait())[0]
         self.assertEqual((await done.aget_data()).status, "completed")
         self.assertEqual(effects, ["a", "a"])
         self.assertIsNone(app.engines.get("graph").max_steps)
@@ -102,9 +103,10 @@ class SettingsTests(unittest.IsolatedAsyncioTestCase):
             "completion": {"model": "agent", "temperature": 0.3}}, identifier="writer")
         await (await project.components.aget("workflows")).acreate(WorkflowGraph(entry="a").node("a", "agent", agent="writer")
             .node("end", "end").connect("a", "end").to_dict(), identifier="flow")
-        session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'temperature': 0.5}}}}}})
+        session = await project.sessions.acreate(config={"parameters": {"engines": {"loop": {'config': {'completion': {'temperature': 0.5}}}}}}, agent_ids=sorted(await project.agents.alist()))
         await session.project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier="graph")
-        run = await (await session.run.submit("go", agent_id="graph")).wait()
+        await session.asave(agent_ids=sorted(set((await session.aget_data()).agent_ids) | {"graph"}))
+        run = (await (await session.run.submit("go", recipients=["graph"])).wait())[0]
         self.assertEqual((await run.aget_data()).status, "completed")
         self.assertEqual(provider.requests[0]["temperature"], 0.3)
         self.assertEqual(provider.requests[0]["model"], "agent")

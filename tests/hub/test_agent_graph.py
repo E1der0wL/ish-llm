@@ -38,10 +38,10 @@ class WrappedGraphAgentTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.project.components.workflows.acreate(workflow.to_dict(), identifier='write')
                 await runtime.project.agents.acreate({'engine': 'graph',
                     'engine_options': {'workflow': 'write'}}, identifier='writer')
-                session = await runtime.project.sessions.acreate()
+                session = await runtime.project.sessions.acreate(agent_ids=sorted(await runtime.project.agents.alist()))
                 project_id, session_id = runtime.project.id, session.id
-                paused = await (await session.run.submit('write once', agent_id=config.agent_id,
-                    request_context={ENVIRONMENT_OPTION: snapshot(work, 'captured').to_dict()})).wait()
+                paused = (await (await session.run.submit('write once', recipients=[config.agent_id],
+                    request_context={ENVIRONMENT_OPTION: snapshot(work, 'captured').to_dict()})).wait())[0]
                 self.assertEqual(str(paused.data.status), 'paused', paused.data.error)
                 self.assertFalse(effect.exists())
                 request, = await paused.ainteractions(pending_only=True)
@@ -51,7 +51,7 @@ class WrappedGraphAgentTests(unittest.IsolatedAsyncioTestCase):
                 await runtime.start()
                 project = await runtime.backend.projects.aload(project_id)
                 session = await project.sessions.aload(session_id)
-                done = await (await session.run.resume(paused.id, agent_id=config.agent_id)).wait()
+                done = (await (await session.run.resume(paused.id, agent_id=config.agent_id)).wait())[0]
                 self.assertEqual(str(done.data.status), 'completed', done.data.error)
                 self.assertEqual(effect.read_text().splitlines(), ['captured'])
                 self.assertEqual(len(model.requests), 2)

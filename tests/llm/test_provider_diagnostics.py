@@ -243,18 +243,18 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 {"id": "write", "category": "file.write", "max_risk": 10}]}}})
         await project.components.tools.aenable("act")
         await project.agents.acreate({"engine": "loop", "tools": ["act"]}, identifier="loop")
-        return app, await project.sessions.acreate(), model, effects
+        return app, await project.sessions.acreate(agent_ids=sorted(await project.agents.alist())), model, effects
 
     async def test_approval_retry_and_durable_resume_never_replay_effect(self):
         app, session, model, effects = await self.setup_backend([
             [chunk(calls=[call("{}", name="act")], finish="tool_calls")],
             [failure(503, retry_after_value="0")], [failure(503)], [chunk("done", finish="stop")]],
             provider={"max_attempts": 2, "jitter": True, "respect_retry_after": True}, approval=True)
-        paused = await (await session.run.submit("write", agent_id="loop")).wait()
+        paused = (await (await session.run.submit("write", recipients=["loop"])).wait())[0]
         self.assertEqual(paused.data.status, "paused")
         self.assertEqual([r.actor for r in await paused.ainteraction_responses()], ["policy"])
         self.assertEqual(effects, [])
-        failed = await (await session.run.resume(paused.id, agent_id="loop")).wait()
+        failed = (await (await session.run.resume(paused.id, agent_id="loop")).wait())[0]
         self.assertEqual(failed.data.error_code, "provider_unavailable")
         self.assertEqual(effects, [{}])
         # Run worker was created earlier: log files, not the submitting task's observer, are authoritative diagnostics.
@@ -265,7 +265,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(step.diagnostic.details["run_id"], failed.id)
         self.assertEqual(step.diagnostic.details["attempt"], 2)
         self.assertEqual(step.diagnostic.details["request_summary"]["unresolved_tool_calls"], 0)
-        completed = await (await session.run.resume(failed.id, agent_id="loop")).wait()
+        completed = (await (await session.run.resume(failed.id, agent_id="loop")).wait())[0]
         self.assertEqual(completed.data.status, "completed", completed.data.error)
         self.assertEqual(effects, [{}])
         self.assertEqual(len(model.requests), 4)
@@ -277,7 +277,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         _, session, model, effects = await self.setup_backend([
             [chunk(calls=[call("{}", name="act")], finish="tool_calls")], [failure(400)]],
             provider={"max_attempts": 4, "respect_retry_after": True, "jitter": True})
-        run = await (await session.run.submit("write", agent_id="loop")).wait()
+        run = (await (await session.run.submit("write", recipients=["loop"])).wait())[0]
         self.assertEqual(run.data.error_code, "provider_invalid_request")
         self.assertEqual((len(model.requests), effects), (2, [{}]))
 
@@ -288,7 +288,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                 ([{"choices": "invalid"}], {}, "completion_invalid_response")):
             with self.subTest(code=code):
                 _, session, model, effects = await self.setup_backend([response], provider={"max_attempts": 3}, limits=limits)
-                run = await (await session.run.submit("go", agent_id="loop")).wait()
+                run = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
                 self.assertEqual(run.data.error_code, code, run.data.error)
                 self.assertEqual(len(model.requests), 1)
                 self.assertEqual(effects, [])
@@ -326,5 +326,5 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
             yield chunk("late", finish="stop")
         # Host implementation is supplied before the Run is constructed.
         session.app.engines.get("loop").completion_adapter = LiteLLMCompletionAdapter(completion_fn=slow)
-        run = await (await session.run.submit("go", agent_id="loop")).wait()
+        run = (await (await session.run.submit("go", recipients=["loop"])).wait())[0]
         self.assertEqual(run.data.error_code, "step_timeout")

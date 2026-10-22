@@ -35,6 +35,14 @@ class ConversationContextBuilder:
     def __init__(self, policy: Optional[ContextPolicy] = None):
         self.policy = policy
 
+    def snapshot_for_run(self, messages, input_message_id):
+        """Freeze selected history before Run-local budgets can reject execution."""
+        return self.for_run(messages, input_message_id, policy=ContextPolicy(mode=ContextMode.FULL.value))
+
+    def select_snapshot(self, history, *, policy=None):
+        """Apply the saved Run policy to its already ordered, frozen history."""
+        return self._select(history, policy)
+
     def _select(self, history, policy=None):
         policy = policy if policy is not None else self.policy
         if policy is None:
@@ -67,8 +75,10 @@ class ConversationContextBuilder:
         return tuple(deepcopy([item for group in groups for item in group] + [current]))
 
     def _ordered(self, messages: list[Message]) -> list[Message]:
-        inputs = {message.run_id: index for index, message in enumerate(messages)
-                  if message.role == MessageRole.USER and message.run_id and not is_instruction(message)}
+        from llm.services.runtime.requests import RequestAdmission
+        inputs = {run_id: index for index, message in enumerate(messages)
+                  if message.role == MessageRole.USER and not is_instruction(message)
+                  for run_id in RequestAdmission.run_ids(message)}
         # 재개된 작업의 지시를 옛 실패 턴에만 남기면 recent 정책이 이를 버린다.
         # 각 지시는 자기 Run을 실제로 재개한 가장 최근 자손 턴에 연결한다.
         # 형제 재개 분기의 지시는 섞지 않으며 원본 Message/Run 연결은 수정하지 않는다.
@@ -90,8 +100,10 @@ class ConversationContextBuilder:
             if is_instruction(message):
                 RunInstruction.validate_message(message)
         history = []
-        committed = {message.run_id for message in messages
-                     if message.role == MessageRole.USER and message.status == MessageStatus.COMMITTED}
+        from llm.services.runtime.requests import RequestAdmission
+        committed = {run_id for message in messages
+                     if message.role == MessageRole.USER and message.status == MessageStatus.COMMITTED
+                     for run_id in RequestAdmission.run_ids(message)}
         for message in self._ordered(messages):
             # 노드 대상 지시는 그 실행의 체크포인트로만 복원한다. 다른 Agent/후속 Run에
             # 일반 사용자 지시처럼 흘러가지 않으며 대화 조회에는 원문이 그대로 남는다.
@@ -110,11 +122,14 @@ class ConversationContextBuilder:
         raise ValueError("Run input message is missing from the conversation")
 
     def for_clone(self, messages: list[Message]) -> list[Message]:
+        from llm.services.runtime.requests import RequestAdmission
         messages = [m for m in messages if not m.metadata.get("conversation_deleted")]
         for message in messages:
             if is_instruction(message):
                 RunInstruction.validate_message(message)
         snapshot = deepcopy(self._ordered(messages))
+        snapshot = [RequestAdmission.clone_message(message) if "admission" in message.metadata else message
+                    for message in snapshot]
         for message in snapshot:
             message.run_id = None
             if message.status == MessageStatus.QUEUED:

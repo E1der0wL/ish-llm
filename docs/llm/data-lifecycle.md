@@ -120,6 +120,13 @@ Workflow handler·Skill·Refinement의 저장 참조도 공개 Agent 도메인�
 변경된 자료군의 검증은 [B/C Agent 검증](agent-refactor-verification.md)에 기록하며, 아래 과거
 38개 데이터군 감사와 H1–H5 실행 결과를 새 구현의 증거로 덮어쓰지 않는다.
 
+D 전환의 Session·User·Run 자료는 기존 Owner의 범위 안에서 보강한다. Session 참여자와
+활성 Run 집합은 필수 저장 증거다. User의 RequestAdmission은 수신자·binding·완전한 Run map과
+동일 history snapshot을 소유한다. 부분 fan-out, 필수 User/Assistant/Run 소실은 실행·복구·삭제
+전에 거부하며 원본을 다시 채우지 않는다. Run 보관은 전체 수신자 그룹을 요구하고 PENDING
+수신자의 원본 quota도 보호한다. 변경 항목의 실제 장애·효과 검증과 완료 여부는
+[D 검증 기록](multi-agent-verification.md)에 추가하며 38개 과거 감사 결과는 유지한다.
+
 트랜잭션의 삭제용 임시 rename은 지속적인 손상 격리가 아니다. 이미 안전성 검증과 삭제
 확정을 마친 작업의 GC·중단 복구는 기존 결정의 기술적 완료다. 인프라는 새로운 대상을
 선정하지 않는다. 손상된 삭제 의도는 임의 정리하지 않는다. 확정 전 실패의 rollback과

@@ -51,33 +51,35 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.app.shutdown)
         self.project = await self.app.projects.acreate("test")
         await self.project.agents.acreate({"engine": "test"}, identifier="test")
-        self.session = await self.project.sessions.acreate("test")
+        self.session = await self.project.sessions.acreate("test", agent_ids=sorted(await self.project.agents.alist()))
 
     async def test_wait_returns_only_its_request_with_multiple_waiters(self):
         self.engine.gates = {name: asyncio.Event() for name in ("first", "second")}
-        first = await self.session.run.submit("first", agent_id="test")
-        second = await self.session.run.submit("second", agent_id="test")
+        first = await self.session.run.submit("first", recipients=["test"])
+        second = await self.session.run.submit("second", recipients=["test"])
         self.assertIsInstance(first, RequestHandle)
-        self.assertIsNone(await second.aresult())
-        self.assertIsNone(await second.aget_run())
+        self.assertEqual(await second.aresults(), [])
+        self.assertEqual(await second.aget_runs(), [])
         waiters = [asyncio.create_task(first.wait(timeout=5)) for _ in range(3)]
         self.engine.gates["first"].set()
-        runs = await asyncio.gather(*waiters)
+        groups = await asyncio.gather(*waiters)
+        self.assertTrue(all(len(group) == 1 for group in groups))
+        runs = [group[0] for group in groups]
         self.assertEqual(len({run.id for run in runs}), 1)
         run = runs[0]
         self.assertEqual((await run.aget_data()).input_message_id, first.id)
         self.assertEqual((await run.aresponse()).content, "answer:first")
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
         await asyncio.wait_for(self.engine.entered["second"].wait(), 5)
-        self.assertEqual((await second.aresult()).status, RunStatus.RUNNING)
+        self.assertEqual((await second.aresults())[0].status, RunStatus.RUNNING)
         self.engine.gates["second"].set()
-        self.assertNotEqual((await second.wait(timeout=5)).id, run.id)
+        self.assertNotEqual(((await second.wait(timeout=5))[0]).id, run.id)
         # Repeated waiting reads the same persisted result.
-        self.assertEqual((await first.wait()).id, run.id)
+        self.assertEqual(((await first.wait())[0]).id, run.id)
 
     async def test_timeout_and_cancelled_wait_do_not_cancel_execution(self):
         self.engine.gates["held"] = asyncio.Event()
-        request = await self.session.run.submit("held", agent_id="test")
+        request = await self.session.run.submit("held", recipients=["test"])
         await asyncio.wait_for(self.engine.entered["held"].wait(), 5)
         with self.assertRaises(asyncio.TimeoutError):
             await request.wait(timeout=0.01)
@@ -86,31 +88,31 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         waiting.cancel()
         with self.assertRaises(asyncio.CancelledError):
             await waiting
-        self.assertEqual((await request.aresult()).status, RunStatus.RUNNING)
+        self.assertEqual((await request.aresults())[0].status, RunStatus.RUNNING)
         self.engine.gates["held"].set()
-        run = await request.wait(timeout=5)
+        run = (await request.wait(timeout=5))[0]
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
 
     async def test_failures_and_interrupts_are_terminal_results(self):
-        failed = await self.session.run.submit("fail", agent_id="test")
-        run = await failed.wait(timeout=5)
+        failed = await self.session.run.submit("fail", recipients=["test"])
+        run = (await failed.wait(timeout=5))[0]
         self.assertEqual((await run.aresult()).status, RunStatus.FAILED)
         self.assertEqual((await run.aresponse()).content, "answer:fail")
         self.assertEqual((await run.aresult()).error_code, "engine_failed")
         self.engine.gates["held"] = asyncio.Event()
-        held = await self.session.run.submit("held", agent_id="test")
+        held = await self.session.run.submit("held", recipients=["test"])
         await asyncio.wait_for(self.engine.entered["held"].wait(), 5)
         waiting = asyncio.create_task(held.wait(timeout=5))
         self.assertTrue(await self.session.run.interrupt())
-        stopped = await waiting
+        stopped, = await waiting
         self.assertEqual((await stopped.aresult()).status, RunStatus.INTERRUPTED)
         self.assertEqual((await stopped.aresponse()).status, MessageStatus.INTERRUPTED)
 
     async def test_shutdown_releases_waiters_and_reopened_request_recovers_queue(self):
         self.engine.gates["held"] = asyncio.Event()
-        active = await self.session.run.submit("held", agent_id="test")
+        active = await self.session.run.submit("held", recipients=["test"])
         await asyncio.wait_for(self.engine.entered["held"].wait(), 5)
-        queued = await self.session.run.submit("second", agent_id="test")
+        queued = await self.session.run.submit("second", recipients=["test"])
         waiting = asyncio.create_task(queued.wait())
         async with asyncio.timeout(5):
             while self.app._manager(self.session._snapshot)._request_changed is None:
@@ -119,22 +121,22 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(RuntimeError, "stopped"):
             await asyncio.wait_for(waiting, 5)
         self.assertEqual((await queued.aget_data()).status, MessageStatus.QUEUED)
-        self.assertEqual((await active.aresult()).status, RunStatus.INTERRUPTED)
+        self.assertEqual((await active.aresults())[0].status, RunStatus.INTERRUPTED)
         await self.app.shutdown()
         async with LargeLanguageModel(self.root, engines={"test": ControlledEngine()}, components=[]) as fresh:
             project = await fresh.projects.aload(self.project.id)
             session = await project.sessions.aload(self.session.id)
             request = await session.run.arequest(queued.id)
-            run = await request.wait(timeout=5)
+            run = (await request.wait(timeout=5))[0]
             self.assertEqual((await run.aresponse()).content, "answer:second")
             self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
             past = await session.run.arequest(active.id)
-            self.assertEqual((await (await past.wait()).aresult()).status, RunStatus.INTERRUPTED)
+            self.assertEqual((await ((await past.wait())[0]).aresult()).status, RunStatus.INTERRUPTED)
 
     async def test_unknown_other_session_and_assistant_ids_are_rejected(self):
-        request = await self.session.run.submit("ok", agent_id="test")
-        run = await request.wait(timeout=5)
-        other = await self.project.sessions.acreate("other")
+        request = await self.session.run.submit("ok", recipients=["test"])
+        run = (await request.wait(timeout=5))[0]
+        other = await self.project.sessions.acreate("other", agent_ids=sorted(await self.project.agents.alist()))
         with self.assertRaises(KeyError):
             await other.run.arequest(request.id)
         with self.assertRaises(ValueError):
@@ -145,8 +147,8 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
             await other.results.aload(run.id)
 
     async def test_wait_recovers_stale_run_without_replaying_engine(self):
-        request = await self.session.run.submit("once", agent_id="test")
-        run = await request.wait(timeout=5)
+        request = await self.session.run.submit("once", recipients=["test"])
+        run = (await request.wait(timeout=5))[0]
         await self.session.run.shutdown()
         state = await run.aget_data()
         state.status = RunStatus.RUNNING
@@ -154,14 +156,14 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         with self.app.project_manager.ownership.scope():
             atomic_domain_json(state.paths.root / "run.json", record(state))
         with patch.object(self.engine, "execute", side_effect=AssertionError("must not replay")):
-            recovered = await request.wait(timeout=5)
+            recovered = (await request.wait(timeout=5))[0]
         self.assertEqual(recovered.id, run.id)
         self.assertEqual((await recovered.aresult()).status, RunStatus.INTERRUPTED)
         self.assertEqual((await recovered.aresult()).error_code, "process_restart")
 
     async def test_storage_failure_wakes_request_wait_without_success_claim(self):
         self.engine.gates["held"] = asyncio.Event()
-        request = await self.session.run.submit("held", agent_id="test")
+        request = await self.session.run.submit("held", recipients=["test"])
         await asyncio.wait_for(self.engine.entered["held"].wait(), 5)
         manager = self.app._manager(self.session._snapshot)
         with patch.object(manager, "_finish", side_effect=OSError("finalization failed")):
@@ -174,7 +176,7 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_result_queries_exclude_active_runs_unless_requested(self):
         self.engine.gates["held"] = asyncio.Event()
-        request = await self.session.run.submit("held", agent_id="test")
+        request = await self.session.run.submit("held", recipients=["test"])
         await asyncio.wait_for(self.engine.entered["held"].wait(), 5)
         self.assertEqual(await self.project.results.alist(), [])
         self.assertEqual((await self.session.results.alist(include_running=True))[0].status, RunStatus.RUNNING)
@@ -183,15 +185,17 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(await self.project.results.alist()), 1)
 
     async def test_fast_completions_have_no_lost_notifications(self):
-        requests = [await self.session.run.submit(str(i), agent_id="test") for i in range(8)]
-        runs = await asyncio.gather(*(request.wait(timeout=10) for request in requests))
+        requests = [await self.session.run.submit(str(i), recipients=["test"]) for i in range(8)]
+        groups = await asyncio.gather(*(request.wait(timeout=10) for request in requests))
+        self.assertEqual([len(group) for group in groups], [1] * 8)
+        runs = [group[0] for group in groups]
         self.assertEqual(len({run.id for run in runs}), 8)
         for index, run in enumerate(runs):
             self.assertEqual((await run.aresponse()).content, "answer:" + str(index))
 
     async def test_scoped_result_queries_and_steps_do_not_create_runtime(self):
-        request = await self.session.run.submit("ok", agent_id="test")
-        run = await request.wait(timeout=5)
+        request = await self.session.run.submit("ok", recipients=["test"])
+        run = (await request.wait(timeout=5))[0]
         self.assertEqual(run.result, await run.aresult())
         self.assertEqual((await self.project.results.aload(run.id)).run_id, run.id)
         self.assertEqual((await self.session.results.alist())[0].run_id, run.id)
@@ -289,11 +293,13 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register("beta", shared)
         await self.project.agents.acreate({"engine": "beta"}, identifier="beta")
         await self.project.asave(config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'project alpha', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 12}}, "beta": {'config': {'system_prompt': 'project beta', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 23}}, "loop": {'config': {'system_prompt': 'must not use', 'completion': {'model': 'openai/test'}}, 'policy': {'request_timeout': 99}}}}})
-        await self.session.asave(config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'session alpha'}}}}})
-        other = await self.project.sessions.acreate("other")
-        a, b = await asyncio.gather(self.session.run.submit("a", agent_id="alpha"),
-                                    other.run.submit("b", agent_id="beta"))
-        runs = await asyncio.gather(a.wait(timeout=5), b.wait(timeout=5))
+        await self.session.asave(agent_ids=["alpha", "test"], config={"parameters": {"engines": {"alpha": {'config': {'system_prompt': 'session alpha'}}}}})
+        other = await self.project.sessions.acreate("other", agent_ids=sorted(await self.project.agents.alist()))
+        a, b = await asyncio.gather(self.session.run.submit("a", recipients=["alpha"]),
+                                    other.run.submit("b", recipients=["beta"]))
+        groups = await asyncio.gather(a.wait(timeout=5), b.wait(timeout=5))
+        self.assertEqual([len(group) for group in groups], [1, 1])
+        runs = [group[0] for group in groups]
         self.assertEqual({r["messages"][0]["content"] for r in provider.requests},
                          {"session alpha", "project beta"})
         self.assertTrue(all("timeout" not in r for r in provider.requests))
@@ -311,7 +317,8 @@ class FacadeRequestTests(unittest.IsolatedAsyncioTestCase):
             'stage': {'config': {'system_prompt': 'inner', 'completion': {'model': 'openai/test'}}}}}})
         self.app.engines.register('explicit', LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider), parameter_key='stage'))
         await self.project.agents.acreate({"engine": "explicit"}, identifier="explicit")
-        run = await (await self.session.run.submit('go', agent_id='explicit')).wait(timeout=5)
+        await self.session.asave(agent_ids=["explicit", "test"])
+        run = (await (await self.session.run.submit('go', recipients=['explicit'])).wait(timeout=5))[0]
         self.assertEqual((await run.aresult()).status, RunStatus.COMPLETED)
         self.assertEqual(provider.requests[0]['messages'][0]['content'], 'inner')
         self.assertEqual([step.kind for step in await run.steps.alist()], ['llm'])

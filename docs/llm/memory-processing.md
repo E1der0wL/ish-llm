@@ -46,7 +46,8 @@ await memory.aconfigure({
         "max_summary_calls": 4, "max_candidates": 5, "timeout_seconds": 60, "failure_mode": "continue"}},
 })
 session = await project.sessions.acreate()
-run = await (await session.run.submit("작업을 계속해줘", agent_id="loop")).wait()
+await session.asave(agent_ids=['loop'])
+run, = await (await session.run.submit("작업을 계속해줘", recipients=["loop"])).wait()
 ```
 
 `configure`는 전체 설정 교체다. 생략한 동작 설정은 생성하지 않는다.
@@ -63,7 +64,7 @@ next_actions, unresolved, references를 기록한다. `metadata.summary_format_v
 
 출처는 모델이 생성하지 않는다. 코드가 `metadata.sources`에 대화 범위의 양 끝 메시지 ID,
 해당 Run ID, coverage hash를 기록한다. 전체 메시지 ID를 중복 저장하지 않고
-`messages_are_range_boundaries=true` 및 coverage_count로 원본 범위를 표시한다.
+`messages_are_range_boundaries=true` 및 coverage_count로 원본 범위를 표시한다. Run ID도 이 범위에서 실제 Run 연결이 있는 첫/마지막 메시지의 경계를 보존한다. User의 다중 수신자 중 대표 Run을 만들지 않으며, 모든 원본의 증거는 메시지 범위와 coverage hash로 검증한다.
 현재 실행의 완료 Tool 교환은 요약 Step에 tool_call_ids/Run ID/digest를 기록한다.
 상세 결과의 원본은 해당 Run의 Tool Step이며 요약으로 대신 읽은 것으로 간주하면 안 된다.
 

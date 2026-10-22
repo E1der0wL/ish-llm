@@ -84,8 +84,8 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
             else:
                 await agents.acreate(profile, identifier=name)
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
-        self.session = await self.project.sessions.acreate()
-        self.request = await self.session.run.submit("original", agent_id="graph")
+        self.session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
+        self.request = await self.session.run.submit("original", recipients=["graph"])
 
     async def release_model(self, model):
         model.release.set()
@@ -93,11 +93,11 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
     async def entered(self, *models):
         for model in models:
             self.assertTrue(await asyncio.to_thread(model.entered.wait, 10))
-        self.run = await self.request.aget_run()
+        self.run = (await self.request.aget_runs())[0]
         return await self.run.ainstruction_targets()
 
     async def completed(self):
-        run = await self.request.wait(timeout=15)
+        run = (await self.request.wait(timeout=15))[0]
         self.assertEqual(run.data.status, "completed", run.data.error)
         return run
 
@@ -203,14 +203,14 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         target, = await self.entered(model)
         instruction = await self.session.run.steer(self.run.id, "remember", targets=[target.id])
         model.release.set()
-        failed = await self.request.wait(timeout=15)
+        failed = (await self.request.wait(timeout=15))[0]
         self.assertEqual(failed.data.status, "failed")
         ids = self.project.id, self.session.id
         await self.app.shutdown()
         reopened = LargeLanguageModel(self.root, engines=self.registered_engines, components=[WorkflowComponent()])
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(ids[0])).sessions.aload(ids[1])
-        resumed = await (await session.run.resume(failed.id, agent_id="graph")).wait(timeout=15)
+        resumed = (await (await session.run.resume(failed.id, agent_id="graph")).wait(timeout=15))[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(len(model.requests), 3)
         self.assertEqual([m["content"] for m in model.requests[-1]["messages"]].count("remember"), 1)
@@ -225,7 +225,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         targets = await self.entered(a, b)
         await self.session.run.steer(self.run.id, "pending", targets=[t.id for t in targets])
         self.assertTrue(await self.session.run.interrupt())
-        run = await self.request.wait(timeout=15)
+        run = (await self.request.wait(timeout=15))[0]
         self.assertEqual(run.data.status, "interrupted")
         value, = await run.ainstructions()
         self.assertTrue(all(t["status"] == "unapplied" for t in value.targets))
@@ -294,7 +294,8 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(ids[0])).sessions.aload(ids[1])
         await session.project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}}, identifier="loop")
-        next_run = await (await session.run.submit("next", agent_id="loop")).wait(timeout=15)
+        await session.asave(agent_ids=sorted([*session.data.agent_ids, "loop"]))
+        next_run = (await (await session.run.submit("next", recipients=["loop"])).wait(timeout=15))[0]
         self.assertEqual(next_run.data.status, "completed", next_run.data.error)
         self.assertFalse(any(m.get("content") == "private to node" for m in model.requests[-1]["messages"]))
 
@@ -311,7 +312,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
                 raise OSError("checkpoint commit failed")
         with patch.object(self.app.run_repository, "record_checkpoint", side_effect=fail):
             model.release.set()
-            run = await self.request.wait(timeout=15)
+            run = (await self.request.wait(timeout=15))[0]
         self.assertEqual(run.data.status, "failed")
         self.assertEqual(len(model.requests), 1)
         value, = await run.ainstructions()
@@ -336,7 +337,7 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
             release.set()
         self.addAsyncCleanup(release_child)
         await asyncio.wait_for(started.wait(), 10)
-        run = await self.request.aget_run()
+        run = (await self.request.aget_runs())[0]
         target, = await run.ainstruction_targets()
         self.assertEqual((target.mode, target.accepting), ("unsupported", False))
         for targets in ([target.id], ["future-node"]):
@@ -373,19 +374,19 @@ class GraphSteeringTests(unittest.IsolatedAsyncioTestCase):
             "completion": {"model": "test"}, "tools": ["act"]}, identifier="writer")
         await (await self.project.components.aget("workflows")).acreate(agent_graph(), identifier="flow")
         await self.project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
-        self.session = await self.project.sessions.acreate()
-        self.request = await self.session.run.submit("original", agent_id="graph")
+        self.session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
+        self.request = await self.session.run.submit("original", recipients=["graph"])
         target, = await self.entered(model)
         await self.session.run.steer(self.run.id, "then act", targets=[target.id])
         model.release.set()
-        paused = await self.request.wait(timeout=15)
+        paused = (await self.request.wait(timeout=15))[0]
         self.assertEqual(paused.data.status, "paused", paused.data.error)
         self.assertEqual(effects, [])
         with self.assertRaises(RunRequestError):
             await self.session.run.steer(paused.id, "too late", targets=[target.id])
         interaction, = await paused.ainteractions()
         await paused.arespond(interaction.respond("approve"))
-        resumed = await (await self.session.run.resume(paused.id, agent_id="graph")).wait(timeout=15)
+        resumed = (await (await self.session.run.resume(paused.id, agent_id="graph")).wait(timeout=15))[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(effects, [1])
         self.assertEqual(len(model.requests), 3)
@@ -413,13 +414,13 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
             async with LargeLanguageModel(directory, components=[], engines={"loop": LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))}) as app:
                 project = await app.projects.acreate("test", components=[], config=ProjectConfig(parameters={"engines": {"loop": {'config': {'completion': {'model': 'test'}}}}}))
                 await project.agents.acreate({"engine": "loop"}, identifier="loop")
-                session = await project.sessions.acreate()
+                session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                 accepted = []
                 async def on_run(event):
                     if event.type == "started":
                         accepted.append(await session.run.steer(event.run.id, "at start"))
                 subscription = app.events.subscribe(on_run, channel="run")
-                run = await (await session.run.submit("original", agent_id="loop")).wait(timeout=10)
+                run = (await (await session.run.submit("original", recipients=["loop"])).wait(timeout=10))[0]
                 await subscription.aclose()
                 self.assertEqual(run.data.status, "completed", run.data.error)
                 self.assertEqual(len(accepted), 1)
@@ -438,7 +439,8 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
             async with LargeLanguageModel(directory, components=[], engines={"broken": Broken()}) as app:
                 session = await (await app.projects.acreate("test", components=[])).sessions.acreate()
                 await session.project.agents.acreate({"engine": "broken"}, identifier="broken")
-                run = await (await session.run.submit("original", agent_id="broken")).wait(timeout=10)
+                await session.asave(agent_ids=["broken"])
+                run = (await (await session.run.submit("original", recipients=["broken"])).wait(timeout=10))[0]
                 self.assertEqual(run.data.status, "failed")
                 self.assertIn("did not open", run.data.error)
 
@@ -488,12 +490,13 @@ class CommonSteeringTests(unittest.IsolatedAsyncioTestCase):
             async with LargeLanguageModel(directory, engines={"custom": Consumer()}, components=[]) as app:
                 session = await (await app.projects.acreate("test", components=[])).sessions.acreate()
                 await session.project.agents.acreate({"engine": "custom"}, identifier="custom")
-                request = await session.run.submit("original", agent_id="custom")
+                await session.asave(agent_ids=["custom"])
+                request = await session.run.submit("original", recipients=["custom"])
                 await asyncio.wait_for(entered.wait(), 10)
-                run = await request.aget_run()
+                run = (await request.aget_runs())[0]
                 await session.run.steer(run.id, "new input")
                 release.set()
-                run = await request.wait(timeout=10)
+                run = (await request.wait(timeout=10))[0]
                 self.assertEqual(run.data.status, "completed", run.data.error)
                 self.assertEqual(captured, ["new input"])
                 value, = await run.ainstructions()

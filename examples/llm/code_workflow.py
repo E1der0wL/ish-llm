@@ -192,9 +192,9 @@ async def run_demo(workspace: Path, *, model=None, completion_adapter=None, max_
         await workflows.acreate(coding_workflow(max_attempts), identifier="code-review")
         project = await backend.projects.aload(project.id)
         await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "code-review"}}, identifier="code-review-agent")
-        session = await project.sessions.acreate("Implement addition")
-        request = await session.run.submit("Implement add(a, b), returning the arithmetic sum of two numbers.", agent_id="code-review-agent")
-        run = await request.wait()
+        session = await project.sessions.acreate("Implement addition", agent_ids=['code-review-agent'])
+        request = await session.run.submit("Implement add(a, b), returning the arithmetic sum of two numbers.", recipients=["code-review-agent"])
+        run = (await request.wait())[0]
         data, steps = await run.aget_data(), await run.steps.alist()
         root = next((step for step in steps if step.kind == "graph"), None)
         summary = {"mode": "live" if model else "scripted", "status": str(data.status),

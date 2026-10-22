@@ -84,13 +84,15 @@ class DomainStateTests(unittest.TestCase):
         finally:
             path.write_bytes(original)
 
-    def test_running_session_requires_its_current_run_declaration(self):
+    def test_running_session_requires_its_active_run_declarations(self):
         for status, current in ((SessionStatus.RUNNING, None), (SessionStatus.RUNNING, ''),
-                                (SessionStatus.IDLE, self.run.id), (SessionStatus.DELETED, self.run.id)):
+                                (SessionStatus.RUNNING, []),
+                                (SessionStatus.RUNNING, [self.run.id, self.run.id]),
+                                (SessionStatus.IDLE, [self.run.id]), (SessionStatus.DELETED, [self.run.id])):
             with self.subTest(status=status, current=current):
                 self.assert_invalid_record(self.session, 'session.json',
                     lambda: self.session_repository.load(self.project, self.session.id),
-                    {'status': status, 'current_run_id': current})
+                    {'status': status, 'active_run_ids': current})
 
     def test_run_state_requires_its_start_and_terminal_evidence(self):
         stamp = self.run.created_at

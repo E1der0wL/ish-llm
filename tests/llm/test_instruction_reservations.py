@@ -41,7 +41,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             self.gate_release.set()
         self.addAsyncCleanup(release)
         await asyncio.wait_for(self.gate_entered.wait(), 10)
-        self.run = await self.request.aget_run()
+        self.run = (await self.request.aget_runs())[0]
         return await self.run.ainstruction_routes()
 
     @staticmethod
@@ -94,7 +94,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             handlers={"agent": AgentNode(engines={"writer": Factory()})}, stored_only=("writer",))
         self.assertEqual(routes, [])
         self.gate_release.set()
-        run = await self.request.wait(timeout=15)
+        run = (await self.request.wait(timeout=15))[0]
         self.assertEqual(run.data.status, "failed")
         self.assertIn("Agent binding must preserve Engine steering mode", run.data.error)
         self.assertEqual(await run.ainteractions(), [])
@@ -121,7 +121,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         await self.gated({"writer": model}, graph,
             handlers={"agent": AgentNode(engines={"writer": factory})})
         self.gate_release.set()
-        paused = await self.request.wait(timeout=15)
+        paused = (await self.request.wait(timeout=15))[0]
         self.assertEqual(paused.data.status, "paused", paused.data.error)
         interaction, = await paused.ainteractions()
         await paused.arespond(interaction.respond("approve"))
@@ -265,11 +265,11 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             return apply(*args, **kwargs)
         with patch.object(steering, "apply_instructions", side_effect=fail_b):
             self.gate_release.set()
-            failed = await self.request.wait(timeout=15)
+            failed = (await self.request.wait(timeout=15))[0]
         before, = await failed.ainstructions()
         self.assertEqual((failed.data.status, before.status), ("failed", "partially_applied"))
         self.assertEqual(b.requests, [])
-        resumed = await (await self.session.run.resume(failed.id, agent_id="graph")).wait(timeout=15)
+        resumed = (await (await self.session.run.resume(failed.id, agent_id="graph")).wait(timeout=15))[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(len(a.requests), 1)
         self.assertNotIn("one shot", self.contents(b))
@@ -307,13 +307,13 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         routes = await self.gated({"writer": model}, graph)
         await self.reserve(routes)
         self.gate_release.set()
-        paused = await self.request.wait(timeout=15)
+        paused = (await self.request.wait(timeout=15))[0]
         self.assertEqual(paused.data.status, "paused", paused.data.error)
         value, = await paused.ainstructions()
         self.assertEqual((value.status, value.reason), ("unapplied", "paused"))
         interaction, = await paused.ainteractions()
         await paused.arespond(interaction.respond("approve"))
-        resumed = await (await self.session.run.resume(paused.id, agent_id="graph")).wait(timeout=15)
+        resumed = (await (await self.session.run.resume(paused.id, agent_id="graph")).wait(timeout=15))[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertNotIn("one shot", self.contents(model))
         self.assertEqual(await resumed.ainstructions(), [])
@@ -327,14 +327,14 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             raise OSError("apply persistence failed")
         with patch.object(steering, "apply_instructions", side_effect=fail):
             self.gate_release.set()
-            failed = await self.request.wait(timeout=15)
+            failed = (await self.request.wait(timeout=15))[0]
         self.assertEqual(failed.data.status, "failed")
         self.assertEqual(model.requests, [])
         before = await failed.acheckpoint()
         self.assertTrue(any(r.get("payload", {}).get("message_ids") == [instruction.id] for r in before["records"].values()))
         value, = await failed.ainstructions()
         self.assertEqual(value.status, "unapplied")
-        resumed = await (await self.session.run.resume(failed.id, agent_id="graph")).wait(timeout=15)
+        resumed = (await (await self.session.run.resume(failed.id, agent_id="graph")).wait(timeout=15))[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertNotIn("one shot", self.contents(model))
         self.assertEqual(await resumed.ainstructions(), [])
@@ -345,7 +345,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         routes = await self.gated({"writer": model})
         await self.reserve(routes)
         self.gate_release.set()
-        failed = await self.request.wait(timeout=15)
+        failed = (await self.request.wait(timeout=15))[0]
         self.assertEqual(failed.data.status, "failed")
         before, = await failed.ainstructions()
         ids = self.project.id, self.session.id
@@ -353,7 +353,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         reopened = LargeLanguageModel(self.root, engines={"graph": self.engine}, components=[WorkflowComponent()])
         self.addAsyncCleanup(reopened.shutdown)
         session = await (await reopened.projects.aload(ids[0])).sessions.aload(ids[1])
-        resumed = await (await session.run.resume(failed.id, agent_id="graph")).wait(timeout=15)
+        resumed = (await (await session.run.resume(failed.id, agent_id="graph")).wait(timeout=15))[0]
         self.assertEqual(resumed.data.status, "completed", resumed.data.error)
         self.assertEqual(self.contents(model, 1).count("one shot"), 1)
         after, = await resumed.ainstructions()
@@ -365,12 +365,12 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
         routes = await self.gated({"writer": model})
         await self.reserve(routes)
         await self.session.run.interrupt()
-        stopped = await self.request.wait(timeout=15)
+        stopped = (await self.request.wait(timeout=15))[0]
         value, = await stopped.ainstructions()
         self.assertEqual(value.status, "unapplied")
         self.assertTrue(value.reason)
         self.gate_release.set()
-        fresh = await (await self.session.run.submit("restart", agent_id="graph")).wait(timeout=15)
+        fresh = (await (await self.session.run.submit("restart", recipients=["graph"])).wait(timeout=15))[0]
         self.assertEqual(fresh.data.status, "completed", fresh.data.error)
         self.assertNotIn("one shot", self.contents(model))
         self.assertEqual(await fresh.ainstructions(), [])
@@ -386,7 +386,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
                 raise OSError("binding commit failure")
         with patch.object(self.app.run_repository, "save", side_effect=fail):
             self.gate_release.set()
-            run = await self.request.wait(timeout=15)
+            run = (await self.request.wait(timeout=15))[0]
         self.assertEqual(run.data.status, "failed")
         self.assertEqual(model.requests, [])
         value, = await run.ainstructions()
@@ -406,7 +406,7 @@ class ReservationTests(unittest.IsolatedAsyncioTestCase):
             release.set()
         self.addAsyncCleanup(cleanup)
         await asyncio.wait_for(entered.wait(), 10)
-        self.run = await self.request.aget_run()
+        self.run = (await self.request.aget_runs())[0]
         self.assertEqual(await self.run.ainstruction_targets(), [])
         await self.reserve(await self.run.ainstruction_routes())
         release.set()

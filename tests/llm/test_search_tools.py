@@ -61,8 +61,8 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         self.app.engines.register(name, LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
         await project.agents.acreate({"engine": name, "completion": {"model": "test/model"}, "tools": ["rag_search", "rag_list_documents",
                 *((await project.components.tools.aenabled()) if "tools" in project.data.components else [])]}, identifier=name)
-        session = await project.sessions.acreate("Question")
-        return await (await session.run.submit("설명서에서 검색해 주세요.", agent_id=name)).wait(timeout=20)
+        session = await project.sessions.acreate("Question", agent_ids=sorted(await project.agents.alist()))
+        return (await (await session.run.submit("설명서에서 검색해 주세요.", recipients=[name])).wait(timeout=20))[0]
 
     async def test_rag_definition_result_transcript_and_persisted_steps(self):
         await self.rag.aadd_document(identifier="manual", title="운영 설명서",
@@ -133,15 +133,16 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_project_selection_controls_tools_on_subsequent_runs(self):
         project = await self.app.projects.acreate("Selection", components=[])
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
         model = ScriptedCompletion(*([chunk("done"), chunk(finish="stop")] for _ in range(4)))
         self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=model)))
         await project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}, "tools": []}, identifier="loop")
+        await session.asave(agent_ids=["loop"])
         for names in ([], ["rag"], ["rag"], []):
             await project.components.aselect(names)
             before = await project.agents.asnapshot("loop")
             await project.agents.aupdate("loop", {"tools": ["rag_search", "rag_list_documents"] if names else []}, expected_revision=before["revision"])
-            run = await (await session.run.submit("hello", agent_id="loop")).wait(timeout=20)
+            run = (await (await session.run.submit("hello", recipients=["loop"])).wait(timeout=20))[0]
             self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
         self.assertEqual([[item["function"]["name"] for item in req.get("tools", [])]
                           for req in model.requests],
@@ -223,8 +224,8 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
             rag = await project.components.aget("rag")
             self.assertTrue(await rag.asearch("backup", method="bm25"))
             await project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}, "tools": ["rag_search", "rag_list_documents"]}, identifier="loop")
-            session = await project.sessions.acreate()
-            run = await (await session.run.submit("search", agent_id="loop")).wait(timeout=20)
+            session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+            run = (await (await session.run.submit("search", recipients=["loop"])).wait(timeout=20))[0]
             self.assertEqual((await run.aget_data()).status, RunStatus.COMPLETED)
             self.assertTrue(json.loads(completion.requests[1]["messages"][-1]["content"])["documents"])
 
@@ -242,12 +243,12 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         completion = completion_for("rag_search", {"query": "backup"})
         self.app.engines.register("loop", LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion)))
         await self.project.agents.acreate({"engine": "loop", "completion": {"model": "test/model"}, "tools": ["rag_search", "rag_list_documents"]}, identifier="loop")
-        session = await self.project.sessions.acreate()
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         with patch.object(self.embedding.adapter, "call", blocked):
-            request = await session.run.submit("search", agent_id="loop")
+            request = await session.run.submit("search", recipients=["loop"])
             await asyncio.wait_for(entered.wait(), 10)
             await session.run.interrupt()
-            run = await request.wait(timeout=10)
+            run = (await request.wait(timeout=10))[0]
         self.assertTrue(cancelled.is_set())
         self.assertEqual((await run.aget_data()).status, RunStatus.INTERRUPTED)
         step = next(s for s in await run.steps.alist() if s.kind == "tool")
@@ -255,7 +256,7 @@ class SearchToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(completion.requests), 1)
 
     async def test_exported_tool_rechecks_component_selection_and_manager_lifetime(self):
-        session = await self.project.sessions.acreate()
+        session = await self.project.sessions.acreate(agent_ids=sorted(await self.project.agents.alist()))
         manager = self.app._manager(await session.aget_data())
         registry = await manager._io.run(manager.capabilities.resolve_tools, await self.project.aget_data())
         tool = registry.get("rag_search")

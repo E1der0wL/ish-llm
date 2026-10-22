@@ -36,7 +36,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
             try:
                 await runtime.start()
                 sid = await runtime.new_session()
-                request = await runtime.sessions[sid].run.submit("Try", agent_id="assistant")
+                request = await runtime.sessions[sid].run.submit("Try", recipients=["assistant"])
                 monitor = runtime.backend.services.observability_sink
                 await eventually(lambda: bool(monitor.states))
                 snapshot = await runtime.snapshot()

@@ -48,7 +48,8 @@ project = await backend.projects.acreate("개발 작업", config=ProjectConfig(
 ))
 await project.agents.acreate({"engine": "assistant"}, identifier="assistant")
 session = await project.sessions.acreate()
-run = await (await session.run.submit("작업해줘", agent_id="assistant")).wait()
+await session.asave(agent_ids=['assistant'])
+run, = await (await session.run.submit("작업해줘", recipients=["assistant"])).wait()
 ```
 
 숫자는 이 예제에서 명시한 선택이다. 빈 설정은 빈 상태로 유지된다. policy.completion의

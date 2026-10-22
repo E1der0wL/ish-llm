@@ -1,3 +1,4 @@
+from tests.llm.support.admission import stored_request
 
 from llm.core.agents import AgentBinding
 import json
@@ -96,7 +97,7 @@ class PersistenceTests(unittest.TestCase):
             self.sessions.load(self.project, "../outside")
 
     def test_soft_delete_restore_preserves_history(self) -> None:
-        user = self.store.create(MessageRole.USER, "queued", MessageStatus.QUEUED)
+        user = stored_request(self.store, self.session, "queued", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}))
         self.sessions.delete(self.session)
         self.assertEqual(self.sessions.list(self.project), [])
         self.assertEqual(len(self.sessions.list(self.project, include_deleted=True)), 1)
@@ -111,15 +112,15 @@ class PersistenceTests(unittest.TestCase):
 
     def test_clone_copies_configuration_and_history_without_replaying_queue(self) -> None:
         run_id = new_id()
-        user = self.store.create(MessageRole.USER, "done", MessageStatus.COMMITTED, run_id=run_id)
+        user = stored_request(self.store, self.session, "done", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}), run_id=run_id)
         self.store.create(MessageRole.ASSISTANT, "answer", MessageStatus.COMPLETED, run_id=run_id)
-        self.store.create(MessageRole.USER, "queued", MessageStatus.QUEUED)
+        stored_request(self.store, self.session, "queued", AgentBinding.create(self.project.id, "fixture", {"engine": "fake"}))
         cloned_project = self.projects.clone(self.project, title="Copy")
         cloned_session = self.sessions.list(cloned_project)[0]
         messages = ConversationStore(cloned_session.paths.conversation).list()
         self.assertNotEqual(cloned_session.id, self.session.id)
         self.assertEqual(cloned_session.project_id, cloned_project.id)
-        self.assertIsNone(cloned_session.current_run_id)
+        self.assertEqual(cloned_session.active_run_ids, [])
         self.assertEqual(cloned_session.status, SessionStatus.IDLE)
         self.assertEqual(RunRepository().list(cloned_session), [])
         self.assertEqual([message.content for message in messages], ["done", "answer", "queued"])
@@ -133,7 +134,7 @@ class PersistenceTests(unittest.TestCase):
     def test_active_session_lifecycle_changes_rejected_using_persisted_state(self) -> None:
         stale_handle = self.sessions.load(self.project, self.session.id)
         self.session.status = SessionStatus.RUNNING
-        self.session.current_run_id = new_id()
+        self.session.active_run_ids = [new_id()]
         self.sessions.repository.save(self.session)
         with self.assertRaises(ValueError):
             self.sessions.delete(stale_handle)

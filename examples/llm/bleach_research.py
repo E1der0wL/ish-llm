@@ -203,13 +203,13 @@ async def run_demo(output: Path, *, model: str = "", api_base: str = "") -> dict
                     if model else {"engine_options": {"workflow": "bleach-research"}})}
                 await project.agents.acreate(definition, identifier="research-agent")
                 session = await project.sessions.acreate("블리치 공식 웹페이지 조사와 파일 저장")
-                prompt = ("다음 공식 웹페이지 3개를 각각 web_fetch로 읽고 블리치(BLEACH)를 조사해 줘.\n"
+                prompt = ("다음 , agent_ids=['research-agent']공식 웹페이지 3개를 각각 web_fetch로 읽고 블리치(BLEACH)를 조사해 줘.\n"
                           + "\n".join(source["url"] for source in SOURCES)
                           + "\n작가, 원작 연재, 기본 줄거리, 주요 인물, 애니메이션과 천년혈전편의 관계를 "
                           "한국어로 요약하고 문단별 출처 링크와 조회일을 넣어줘. 확인되지 않은 사실은 "
                           "단정하지 말고 결말 스포일러는 피해줘. file_create로 bleach.md에 저장한 뒤 "
                           "file_read로 다시 읽어 저장을 확인해줘. 최종 답변은 파일 경로와 간단한 완료 안내만 해줘.")
-                run = await (await session.run.submit(prompt, agent_id="research-agent")).wait()
+                run = (await (await session.run.submit(prompt, recipients=["research-agent"])).wait())[0]
                 steps = await run.steps.alist()
                 result = {"mode": "live_llm_and_http" if model else "live_http_reviewed_template_no_llm",
                           "model": model or None, "project_id": project.data.id,

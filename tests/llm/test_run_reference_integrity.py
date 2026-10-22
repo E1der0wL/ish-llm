@@ -44,7 +44,7 @@ class RunReferenceIntegrityTests(unittest.IsolatedAsyncioTestCase):
             await project.amodel_usage()
         except (ValueError, OSError):
             rejected = True
-        other = await project.sessions.acreate()
+        other = await project.sessions.acreate(agent_ids=["loop"])
         try:
             await self.run_once(other)
         except (ValueError, OSError):
@@ -68,7 +68,7 @@ class RunReferenceIntegrityTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate(components=[], conversation_storage='memory',
                                             config=(await source.aget_data()).config)
         await project.agents.acreate(await source.agents.aload('loop'), identifier='loop')
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=["loop"])
         self.assertEqual((await self.run_once(session)).data.status, 'completed')
         await session.run.shutdown()
         self.assertFalse(session.paths.conversation.exists())
@@ -81,9 +81,9 @@ class RunReferenceIntegrityTests(unittest.IsolatedAsyncioTestCase):
         project = await app.projects.acreate(components=[], conversation_storage='memory',
                                             config=(await source.aget_data()).config)
         await project.agents.acreate(await source.agents.aload('loop'), identifier='loop')
-        session = await project.sessions.acreate()
+        session = await project.sessions.acreate(agent_ids=["loop"])
         data = await session.aget_data()
-        data.status, data.current_run_id = SessionStatus.RUNNING, '0' * 32
+        data.status, data.active_run_ids = SessionStatus.RUNNING, ['0' * 32]
         with app.project_manager.ownership.scope():
             app.project_manager.sessions.repository.save(data)
             path = data.paths.root / 'session.json'

@@ -100,7 +100,7 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
     async def execute(self, runtime, session):
         request_id = await runtime.submit(session.id, "Analyze the command output, preserve the actual result.")
         request = await session.run.arequest(request_id)
-        return await request.wait(timeout=20)
+        return (await request.wait(timeout=20))[0]
 
     async def test_context_recovery_preserves_run_tool_receipt_and_original_output(self):
         model = Model()
@@ -278,7 +278,7 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
                         raise bad_request("Conversation roles must alternate user/assistant")
                 yield from answer("Done")
         runtime, session, source = await self.runtime(provider)
-        first = await (await session.run.submit("source " * 1000, agent_id="assistant")).wait(timeout=20)
+        first = (await (await session.run.submit("source " * 1000, recipients=["assistant"])).wait(timeout=20))[0]
         self.assertEqual(str((await first.aget_data()).status), "completed")
         second = await self.execute(runtime, session)
         self.assertEqual(str((await second.aget_data()).status), "completed")
@@ -339,10 +339,10 @@ class ProviderRecoveryTests(unittest.IsolatedAsyncioTestCase):
         runtime, first, source = await self.runtime(provider)
         second_id = await runtime.new_session()
         second = runtime.sessions[second_id]
-        requests = await asyncio.gather(first.run.submit("first", agent_id="assistant"),
-                                        second.run.submit("second", agent_id="assistant"))
+        requests = await asyncio.gather(first.run.submit("first", recipients=["assistant"]),
+                                        second.run.submit("second", recipients=["assistant"]))
         runs = await asyncio.gather(*(request.wait(timeout=20) for request in requests))
-        records = await asyncio.gather(*(run.aget_data() for run in runs))
+        records = await asyncio.gather(*(run.aget_data() for (run,) in runs))
         self.assertTrue(all(str(record.status) == "completed" for record in records), records)
         self.assertEqual(calls, {"first": 3, "second": 3})
         self.assertEqual(source.calls, 2)

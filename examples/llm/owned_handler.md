@@ -31,8 +31,9 @@ async def run(workspace):
         session = await project.sessions.acreate()
         await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "review"}},
                                      identifier="coordinator")
-        handle = await session.run.submit("Review", agent_id="coordinator")
-        return await handle.wait()
+        await session.asave(agent_ids=["coordinator"])
+        handle = await session.run.submit("Review", recipients=["coordinator"])
+        return await handle.wait()  # 수신자별 RunHandle 목록
 ```
 
 `review_mode="unknown"`이나 `future_option=True`는 실행 준비에서 거부되며 handler를 실행하지 않는다.

@@ -205,10 +205,10 @@ class HistoryRetentionIntegrityTests(unittest.IsolatedAsyncioTestCase):
                     project = await app.projects.acreate(config=ProjectConfig(parameters={'engines': {
                         'custom': {'config': {'completion': {'model': 'test'}}}}}))
                     await project.agents.acreate({'engine': 'custom'}, identifier='custom')
-                    session = await project.sessions.acreate()
+                    session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
                     runs = []
                     for _ in range(3):
-                        run = await (await session.run.submit('work', agent_id='custom')).wait()
+                        run = (await (await session.run.submit('work', recipients=['custom'])).wait())[0]
                         assert run.data.status == 'completed', run.data.error
                         runs.append(run)
                     await session.run.shutdown()
@@ -242,7 +242,7 @@ class HistoryRetentionIntegrityTests(unittest.IsolatedAsyncioTestCase):
                     await project.aprune_history('run', targets, expected_version=plan.version)
                     crash('committed')
             asyncio.run(main())
-        ''')
+''')
         from llm.llm import LargeLanguageModel, LoopEngine
         for boundary in ('prune', 'remove1', 'remove2', 'marker', 'committed'):
             with self.subTest(boundary=boundary), tempfile.TemporaryDirectory() as directory:

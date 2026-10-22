@@ -24,8 +24,8 @@ async def main(root):
                  .node("end", "end").connect("first", "second").connect("second", "end").to_dict())
         await (await project.components.aget("workflows")).acreate(graph, identifier="flow")
         await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": "flow"}}, identifier="graph")
-        session = await project.sessions.acreate()
-        await (await session.run.submit("original", agent_id="graph")).wait()
+        session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+        await (await session.run.submit("original", recipients=["graph"])).wait()
 
 
 if __name__ == "__main__":

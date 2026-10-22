@@ -121,7 +121,7 @@ class LargeLanguageModel:
         response = request.respond("approve")  # 사용자의 실제 선택 후 생성
         await paused_run.arespond(response)    # 원자적 응답 저장, 아직 실행하지 않음
         resumed = await session.run.resume(paused_run.id, agent_id=paused_run.agent_id)
-        result = await resumed.wait()
+        resumed_runs = await resumed.wait()
 
     InteractionRequest/InteractionOption/InteractionResponse는 llm 플러그인의 공개 클래스다.
     EngineEvent.interaction으로 저장 완료된 요청을 실시간 관찰할 수 있으며, UI 재접속 시
@@ -166,9 +166,9 @@ class LargeLanguageModel:
                     conversation_storage="file",
                 )
                 await project.agents.acreate({"engine": "chat"}, identifier="chat")
-                session = await project.sessions.acreate("첫 대화")
-                request = await session.run.submit("안녕!", agent_id="chat")
-                run = await request.wait(timeout=60)
+                session = await project.sessions.acreate("첫 대화", agent_ids=["chat"])
+                request = await session.run.submit("안녕!", recipients=["chat"])
+                run, = await request.wait(timeout=60)
                 result = await run.aresult()
                 if result.status == RunStatus.COMPLETED:
                     print((await run.aresponse()).content)
@@ -242,7 +242,7 @@ class LargeLanguageModel:
 
     Session / Conversation — 독립 대화 세션 관리::
 
-        session = await project.sessions.acreate("코드 검토", config={"parameters": {"engines": {"loop": {"config": {"completion": {"temperature": 0}}}}}})
+        session = await project.sessions.acreate("코드 검토", agent_ids=["chat"], config={"parameters": {"engines": {"loop": {"config": {"completion": {"temperature": 0}}}}}})
         session = await project.sessions.aload(session.id)
         sessions = await project.sessions.alist(include_deleted=True, query=Query(limit=20))
         await session.asave(title="검토 세션", metadata={"language": "ko"})
@@ -261,12 +261,12 @@ class LargeLanguageModel:
 
     Request / Run — 요청 제출·한 건의 완료 대기·실행 제어::
 
-        request = await session.run.submit("이 코드를 검토해줘.", agent_id="chat")
+        request = await session.run.submit("이 코드를 검토해줘.", recipients=["chat"])
         request = await session.run.arequest(request.id)  # 사용자 Message ID로 요청 조회
         message = await request.aget_data()
-        pending_run = await request.aget_run()        # 아직 실행 전이면 None
-        pending_result = await request.aresult()      # Run이 없으면 None
-        run = await request.wait(timeout=60)          # 이 요청의 최종 RunHandle
+        pending_runs = await request.aget_runs()      # dispatch 전이면 []
+        pending_results = await request.aresults()   # dispatch 전이면 []
+        run, = await request.wait(timeout=60)          # 명시한 수신자가 하나인 예제; 반환은 항상 목록
         run = await session.run.aload(run.id)
         runs = await session.run.alist(query=Query(status="completed", limit=20))
         snapshot = await run.aget_data()
@@ -276,13 +276,14 @@ class LargeLanguageModel:
 
         await session.run.start()       # 저장된 대기 요청 복구; submit도 필요 시 시작한다.
         await session.run.wait_idle()   # 해당 Session의 전체 요청 큐가 비워질 때까지 대기
-        interrupted = await session.run.interrupt()  # 현재 Run만 중단; 대기 요청은 보존
+        interrupted = await session.run.interrupt(run.id)  # 이 Run만 중단; 다른 Run과 대기 요청은 보존
         await session.run.shutdown()    # 해당 Session 런타임 해제; 이후 submit으로 다시 시작
 
-    submit의 반환값은 Run이 아닌 RequestHandle이다. 같은 Session은 순차 실행하고 서로
-    다른 Session은 동시에 실행할 수 있다. request.wait()는 실패/중단한 Run도 반환하므로
-    result.status를 확인한다. 대기 timeout이나 대기 호출 취소가 Run을 중단하지는 않는다.
-    동기 조회는 request.data/run/result, run.data/engine/response/result를 사용한다.
+    submit은 RequestHandle을 반환한다. 같은 Session·같은 Agent는 FIFO로 실행하고
+    다른 Agent는 병렬 실행한다. recipients="all"은 명시한 경우에만 Session.agent_ids를
+    접수 시점에 동결한다. request.wait()는 모든 수신자의 종료 RunHandle 목록을 반환하며,
+    실패/중단한 Run도 포함하므로 각 result.status를 확인한다. 대기 timeout이나 대기 호출 취소가 Run을 중단하지는 않는다.
+    동기 조회는 request.data/runs/results, run.data/engine/response/result를 사용한다.
     memory 대화가 소멸하면 이전 Run 메타데이터는 남아도 응답 Message 조회는 KeyError다.
 
     실행 중 추가 지시 — UI가 Run 시작 알림에서 받은 ID로 호출한다::
@@ -432,7 +433,9 @@ class LargeLanguageModel:
         # 반복 한도는 Project parameters.engines.review.policy.max_iterations에 저장한다.
         names = backend.engines.names()
         engine = backend.engines.get("review")
-        request = await session.run.submit("검토해줘.", agent_id="review")
+        await project.agents.acreate({"engine": "review"}, identifier="review")
+        session = await project.sessions.acreate("검토", agent_ids=["review"])
+        request = await session.run.submit("검토해줘.", recipients=["review"])
 
     이름은 중복 등록할 수 없다. GraphEngine 등 개발자가 만든 Engine도 같은 방식으로
     등록한다. Engine 실행은 session.run.submit을 거쳐야 Run/Step/대화 기록과 연결된다.
@@ -622,11 +625,12 @@ class LargeLanguageModel:
 
         await project.agents.acreate({"engine": "graph", "engine_options": {"workflow": workflow_id}},
                                      identifier="coordinator")
-        request = await session.run.submit("작업", agent_id="coordinator")
-        run = await request.wait()  # pause_before 노드에서는 status == RunStatus.PAUSED
+        session = await project.sessions.acreate("Graph 실행", agent_ids=["coordinator"])
+        request = await session.run.submit("작업", recipients=["coordinator"])
+        run, = await request.wait()  # pause_before 노드에서는 status == RunStatus.PAUSED
         checkpoint = await run.acheckpoint()  # 헤더 + 노드별 started/completed/waiting
         resumed = await session.run.resume(run.id, agent_id=run.agent_id)
-        next_run = await resumed.wait()
+        next_run, = await resumed.wait()
 
     workflow는 저장된 Workflow ID이며 생성자 대신 매 submit에서 명시한다.
     engine_options는 QUEUED 요청과 Run에 저장된다. 정의는 Run 시작 시 읽고 실행 중 유지한다.
@@ -799,7 +803,8 @@ class LargeLanguageModel:
             runtime = manager._active
             unfinished += manager.pending_work.active
             if runtime is not None:
-                active += int(runtime.execution is not None and not runtime.execution.done())
+                active += sum(control.execution is not None and not control.execution.done()
+                              for control in runtime.executions.values())
                 queued += runtime.queue.qsize()
         return {"active_runs": active, "queued_requests": queued, "unfinished_work": unfinished}
 
@@ -987,7 +992,6 @@ async def run_request(args: argparse.Namespace) -> int:
             'policy': {key: value for key, value in {'max_iterations': args.max_iterations, 'request_timeout': args.timeout}.items() if value is not None},
             'config': {'completion': {key: value for key, value in {'model': args.model, 'temperature': args.temperature, 'api_base': args.api_base}.items() if value is not None}}}}}),
             components=["tools"] if args.with_tools else [])
-        session = await project.sessions.acreate("Streaming request")
         if args.with_tools:
             selected_tools = await project.components.aget("tools")
             await selected_tools.acreate({"source": ADD_TOOL_SOURCE}, identifier="add")
@@ -995,8 +999,9 @@ async def run_request(args: argparse.Namespace) -> int:
             await selected_tools.aenable("add")
         print(f"Project: {project.paths.root.resolve()}", file=sys.stderr)
         await project.agents.acreate({"engine": args.engine, "tools": ["add"] if args.with_tools else []}, identifier="demo")
-        request = await session.run.submit(args.prompt, agent_id="demo")
-        handle = await request.wait()
+        session = await project.sessions.acreate("Streaming request", agent_ids=["demo"])
+        request = await session.run.submit(args.prompt, recipients=["demo"])
+        handle, = await request.wait()
         run = await handle.aget_data()
         print()
         if run.status != RunStatus.COMPLETED:

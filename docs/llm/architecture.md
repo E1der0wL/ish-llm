@@ -53,13 +53,16 @@ Engine은 실행 전략이며 영속 소유 계층의 중간 객체가 아니다
 
 ## 현재 요청과 실행 수명
 
-`session.run.submit(content, agent_id=..., request_context=...)`는 durable QUEUED 입력을 저장하고
-RequestHandle을 반환한다. `wait()`는 종료된 RunHandle을 반환한다. 접수 ACK와 Run 생성·실행 시작은
+`session.run.submit(content, recipients=[...], request_context=...)`는 durable QUEUED 입력을 저장하고
+RequestHandle을 반환한다. `wait()`는 수신자별 종료 RunHandle 목록을 반환한다. 수신자가 하나여도 같은 목록 API다. 접수 ACK와 Run 생성·실행 시작은
 별개 경계다. 접수 때 Agent 정의·revision·Engine binding을 고정하고 실행 전에 다시 검증한다.
 request_context는 Host 환경이며 저장 정의에 합치지 않는다. 취소된 호출자가 같은 내용을 무조건 다시 제출하면 중복 요청이 될 수 있으므로
 저장된 요청을 조회한다.
 
-현재 Session은 한 Run을 실행하며 `current_run_id`를 사용한다. 서로 다른 Session은 병행할 수 있다.
+Session은 실제 저장한 `agent_ids`를 참여자로 보유한다. 명시한 `recipients="all"`만 이 목록을
+접수 시점에 확장한다. 각 요청은 하나의 User, 완전한 Agent→Run map과 동일한 history snapshot을
+원자적으로 저장한다. 같은 Session·Agent는 FIFO, 서로 다른 Agent는 병렬 실행한다.
+`active_run_ids`와 공개 `active_runs`는 실행 중인 모든 Run을 나타내며 임의 대표 Run을 선택하지 않는다.
 중첩 Agent/Workflow는 부모 Run의 Step·Tool scope·사용량·checkpoint 경계를 공유한다. 선택된 Agent의
 정의·참조·Engine identity를 승인/실행 전에 고정하고 실제 선택된 자식만 재개 binding에서 검증한다.
 미선택 Agent의 private 설정을 이유로 다른 분기 실행을 막지 않는다.

@@ -31,7 +31,7 @@ async def stop_paused(session):
         # the check, interaction cancellation and Session metadata update.
         with session.app.project_manager.ownership.scope():
             state = session.run.status(queued_limit=0)
-            if state.active_run_id or state.queued_count:
+            if state.active_runs or state.queued_count:
                 return False
             handles = session.run.list(query=Query(descending=True, limit=1))
             if not handles:
@@ -65,7 +65,7 @@ async def reopen_questions(session, handle, *, unavailable):
             if not actionable:
                 return False
             state = session.run.status(queued_limit=0)
-            if state.active_run_id or state.queued_count:
+            if state.active_runs or state.queued_count:
                 raise ValueError(unavailable)
             for view in actionable:
                 if view.status in (InteractionView.CANCELLED, InteractionView.EXPIRED):

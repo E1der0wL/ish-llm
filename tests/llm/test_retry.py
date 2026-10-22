@@ -282,19 +282,19 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             [test_loop.chunk('finished', finish='stop')]], ToolRuntime(decide_retry=choose),
             policies={'tool_retry': {'max_retries': 1}}, tool_schema=SCHEMA,
             tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=True, operation_key_required=False, retry_fields=('path',)))
-        initial = await (await session.run.submit('go', agent_id='loop')).wait()
+        initial = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual(initial.data.status, 'paused', initial.data.error)
         self.assertEqual(calls, [])
         request, = await initial.ainteractions(pending_only=True)
         await initial.arespond(request.respond('approve'))
-        repaired = await (await session.run.resume(initial.id, agent_id='loop')).wait()
+        repaired = (await (await session.run.resume(initial.id, agent_id='loop')).wait())[0]
         self.assertEqual(repaired.data.status, 'paused', repaired.data.error)
         self.assertEqual(calls, ['bad'])
         request, = await repaired.ainteractions(pending_only=True)
         self.assertEqual(request.action['arguments'], {'path': 'good'})
         self.assertEqual(choices, [1])
         await repaired.arespond(request.respond('approve'))
-        resumed = await (await session.run.resume(repaired.id, agent_id='loop')).wait()
+        resumed = (await (await session.run.resume(repaired.id, agent_id='loop')).wait())[0]
         self.assertEqual(resumed.data.status, 'completed', resumed.data.error)
         self.assertEqual(calls, ['bad', 'good'])
         self.assertEqual(choices, [1])
@@ -313,10 +313,10 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             ToolRuntime(decide_retry=lambda failure: RetryDecision({'path': 'next'})),
             policies={'tool_retry': {'max_retries': 1}}, tool_schema=SCHEMA,
             tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=False, retry_fields=('path',)))
-        failed = await (await session.run.submit('go', agent_id='loop')).wait()
+        failed = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
         self.assertEqual(failed.data.status, 'failed')
         self.assertEqual(calls, ['bad', 'next'])
-        resumed = await (await session.run.resume(failed.id, agent_id='loop')).wait()
+        resumed = (await (await session.run.resume(failed.id, agent_id='loop')).wait())[0]
         self.assertEqual(resumed.data.status, 'failed')
         self.assertIn('retry limit', resumed.data.error)
         self.assertEqual(calls, ['bad', 'next'])
@@ -377,12 +377,12 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
                 .node('end', 'end').connect('action', 'end').to_dict())
             await project.components.workflows.acreate(graph, identifier='flow')
             await project.agents.acreate({'engine': 'graph', 'engine_options': {'workflow': 'flow'}}, identifier='graph')
-            session = await project.sessions.acreate()
-            paused = await (await session.run.submit('go', agent_id='graph')).wait()
+            session = await project.sessions.acreate(agent_ids=sorted(await project.agents.alist()))
+            paused = (await (await session.run.submit('go', recipients=['graph'])).wait())[0]
             self.assertEqual(paused.data.status, 'paused', paused.data.error)
             request, = await paused.ainteractions(pending_only=True)
             await paused.arespond(request.respond('approve'))
-            repaired = await (await session.run.resume(paused.id, agent_id='graph')).wait()
+            repaired = (await (await session.run.resume(paused.id, agent_id='graph')).wait())[0]
             self.assertEqual(repaired.data.status, 'paused', repaired.data.error)
             request, = await repaired.ainteractions(pending_only=True)
             self.assertEqual(request.action['arguments'], {'path': 'good'})
@@ -392,7 +392,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
             reopened = backend(Path(directory))
             self.addAsyncCleanup(reopened.shutdown)
             session = (await reopened.projects.aload(project_id)).sessions.load(session_id)
-            complete = await (await session.run.resume(repaired.id, agent_id='graph')).wait()
+            complete = (await (await session.run.resume(repaired.id, agent_id='graph')).wait())[0]
             self.assertEqual(complete.data.status, 'completed', complete.data.error)
             self.assertEqual(calls, ['bad', 'good'])
             self.assertEqual(choices, [1])
@@ -413,7 +413,7 @@ class ToolRetryTests(unittest.IsolatedAsyncioTestCase):
                     decide_retry=lambda failure: RetryDecision({'path': 'good'})),
                 policies={'tool_retry': {'max_retries': 1}}, tool_schema=SCHEMA,
                 tool_contract=ToolContract(revision="1", effect=ToolEffect.UNKNOWN, isolation=ToolIsolation.NONE, approval_required=False, operation_key_required=True, retry_fields=('path',)))
-            run = await (await session.run.submit('go', agent_id='loop')).wait()
+            run = (await (await session.run.submit('go', recipients=['loop'])).wait())[0]
             receipt = await session.run.aoperation('work' if same_key else 'bad')
             self.assertEqual(receipt['status'], 'not_applied')
             if same_key:

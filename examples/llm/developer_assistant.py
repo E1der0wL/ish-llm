@@ -74,9 +74,9 @@ async def run_request(args):
                 selected = selection.get("config", {}).get("enabled", [])
                 await project.agents.acreate({"engine": "loop",
                     "tools": [*selected, "skill_list", "skill_read", "skill_read_resource"]}, identifier=args.agent_id)
-            session = await project.sessions.acreate("Programming / diagnosis")
+            session = await project.sessions.acreate("Programming / diagnosis", agent_ids=[args.agent_id])
             print(f"Project: {project.id}\nSession: {session.id}")
-            run = await (await session.run.submit(args.prompt, agent_id=args.agent_id)).wait()
+            run = (await (await session.run.submit(args.prompt, recipients=[args.agent_id])).wait())[0]
             result = await run.aresult()
             print(f"\nRun: {run.id} / {result.status.value}")
             if result.status != RunStatus.COMPLETED:
