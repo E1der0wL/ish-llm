@@ -348,12 +348,24 @@ class Session:
     created_at: str = field(default_factory=now)
     metadata: dict = field(default_factory=dict)
     config: dict = field(default_factory=dict)
+    agent_ids: list[str] = field(default_factory=list)
     storage_version: int = DOMAIN_STORAGE_VERSION
+
+    @staticmethod
+    def validate_agents(values):
+        from .agents import AgentDefinition
+        if not isinstance(values, list):
+            raise ValueError("Session agent_ids must be a list")
+        for identifier in values:
+            AgentDefinition.identifier(identifier)
+        if values != sorted(set(values)):
+            raise ValueError("Session agent_ids must be unique and canonical")
 
     @classmethod
     def from_record(cls, data, paths):
         _stored_fields(cls, data)
         ProjectConfig.validate_session(data["config"])
+        cls.validate_agents(data["agent_ids"])
         status = SessionStatus(data["status"])
         current = data["current_run_id"]
         if ((status == SessionStatus.RUNNING) != (current is not None)

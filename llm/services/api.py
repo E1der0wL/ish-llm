@@ -217,10 +217,10 @@ class Sessions(AsyncFacade):
         self.app = project.app
 
     def create(self, title: str = "Untitled session", *,
-               config: Optional[dict] = None) -> "SessionHandle":
+               config: Optional[dict] = None, agent_ids=UNSET) -> "SessionHandle":
         self.project.app._check_open()
         session = self.project.app.project_manager.sessions.create(
-            self.project._snapshot, title, config=config)
+            self.project._snapshot, title, config=config, agent_ids=agent_ids)
         return SessionHandle(self.project, session)
 
     def load(self, session_id: str) -> "SessionHandle":
@@ -262,9 +262,9 @@ class SessionHandle(AsyncFacade):
         return self._snapshot.paths
 
     def save(self, *, title: Optional[str] = None, config: Optional[dict] = None,
-             metadata: Optional[dict] = None) -> None:
+             metadata: Optional[dict] = None, agent_ids=UNSET) -> None:
         current = self.data
-        if config is None:
+        if config is None and agent_ids is UNSET:
             self.app.project_manager.sessions.update_details(current, title=title, metadata=metadata)
             return
         if metadata is not None:
@@ -273,6 +273,8 @@ class SessionHandle(AsyncFacade):
             current.title = title
         if config is not None:
             current.config = deepcopy(config)
+        if agent_ids is not UNSET:
+            current.agent_ids = deepcopy(agent_ids)
         self.app.project_manager.sessions.save(current)
 
     def delete(self, *, permanent: bool = False) -> None:

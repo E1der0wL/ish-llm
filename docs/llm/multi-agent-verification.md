@@ -56,3 +56,46 @@ D1-a Level 2의 `d-admission-aux-1`도 R3 Mutation·S1–S6·문서·LLM/Hub 실
 실행 전후 source는 위 집중 성공과 같고 input은
 `8f666e830c0eb58a3e7301725421081073ee00816a9ff228989cf65dc54aeb36`으로 동일하다.
 이 독립 소단계는 로컬 검증 완료이며 상위 D 완료·전체 회귀·원격 CI 성공을 뜻하지 않는다.
+
+## D1-b: Session 참여자·보존 참조
+
+Session이 필수 `agent_ids`를 소유하고 기존 Agent ID 검증을 재사용한다. 생성 시 생략은
+빈 목록이며 명시적 Null·중복·정렬되지 않은 목록은 거부한다. 공개 생성/편집은 실제 Project
+Agent 존재를 같은 잠금 아래 확인한다. 런타임이 붙은 Session의 참여자 변경은 거부하고,
+제목만 수정할 때는 목록을 덮어쓰지 않는다. Session soft delete는 Agent 삭제 보호를 해제하지
+않는다. clone·백업·독립 archive validator도 필수 목록과 Project Agent 참조를 검증한다.
+
+소유 구현체는 Session 모델, SessionManager/Repository, AgentManager의 삭제 참조와
+ProjectManager의 백업 검증이다. 공개 Sessions/SessionHandle이 해당 계약을 소비한다.
+기존 저장 형식 Reader에 기본값 주입이나 구형 field 변환을 추가하지 않았다. 현재 단일 실행
+경로를 다중 실행으로 보고하지 않으며 요청 접수·dispatcher 연결은 다음 작업이다.
+
+`d-membership-1`은 새 시험의 import 경로 오류로 discovery exit 2, 실행 미완료다.
+`d-membership-2`는 76개 실행 중 72 Pass, 4개 실패 ID(Failure 1/Error 7), exit 1이다.
+기존 AgentRepository가 내는 FileNotFoundError와 새 Session 필드를 시험의 기대값에 반영했다.
+원본 보존·실제 파일 효과 Assertion은 그대로 유지했다. `d-membership-3`은 76/76/76,
+exit 0(15.463016초), 관련 `d-membership-safety-1`은 82/82/82, exit 0(31.966508초),
+`d-membership-hub-1`은 24/24/24, exit 0(78.112897초)다. 각 성공 실행의 Failure/Error/
+Skip/expected failure/unexpected success/누락/중복/예상 밖 실행은 모두 0이다.
+
+세 성공 실행은 source `ce5c41393a3897b0f52510126a6a096da014eecf29e8d71564215e7a931d6681`,
+input `bec737d495d02d836259453d72e27e9ca145543077f578b1af43026706fd5a2a`가 각각 전후 동일하다.
+범위는 변경 owner의 저장·필수 기록·삭제·복제·백업·실제 파일 교체 후 rollback, Project 권한,
+승인·누적 예산·효과 원장·Checkpoint·RAG 안전성과 Hub 생성/기본값/설정/Agent 선택이다.
+쓰기 실패 주입에서 실제 새 목록 bytes에 도달한 뒤 원본 bytes가 복원됨도 확인했다.
+
+이후 새 Session 시험에 Project clone과 독립 archive validator의 손상 참조 거절 Assertion만
+추가했고 `d-membership-archive-1`의 해당 모듈 8/8/8, 모든 엄격 오류 집계 0, exit 0
+(2.476654초)을 확인했다. 제품·다른 시험·fixture·의존성·환경이 이전 세 성공 실행과 같음을
+소스/input manifest로 비교했다. 재사용 근거와 각 발견/실행 ID는 JSON에 보존하며, 서로 다른
+실행을 하나의 전체 회귀로 합산하지 않는다.
+
+최종 source `b41ab02710e1e716a0db9663bf2bb4f9a086a21ac273aa59fba432b9c2cdde13`,
+input `e165402e71618f2d7e3956f4eaa650c86679506fa772dcf03fd64e9e0e1f1efe`는 추가 시험과
+`d-membership-aux-1` 각각 전후 동일하다. 후자의 R3 Mutation·S1–S6·문서·LLM/Hub 실환경·
+오프라인 SDK 검사도 각각 exit 0이다. 기존 156개 정적 소유자 판정은 유지하고 검토한 변경
+근거 파일만 갱신했으며, 새 후보·미해결·오래된 근거·검토 오류는 0이다.
+
+D1-b는 Level 2 로컬 완료다. 이 단계의 영향은 명시적 참여자 저장/참조와 필수 필드 검증이며,
+기존 실행·권한·사용량·효과·재개 처리는 변경하지 않았다. 전체 회귀는 D 통합 게이트로 유예한다.
+기능 연결·실제 ACK/crash·단일/다중 결과 소비자·병렬/FIFO·공유 quota 검증은 여전히 남아 있다.

@@ -13,6 +13,7 @@ from copy import deepcopy
 from collections.abc import Callable
 
 from llm.core.models import MessageStatus, Project, ProjectConfig, Session, SessionStatus, new_id
+from llm.core.configuration import UNSET
 from llm.core.paths import ProjectPaths, SessionPaths
 from llm.core.contracts import Diagnostic, ResourceRef
 from llm.core.plans import TurnDeletionPlan
@@ -154,7 +155,15 @@ class SessionManager:
         self.run_repository = runs
         self.step_repository = None
         self.components = None
+        self.agents = None
         self.config_validator = None
+
+    def _validate_agents(self, project, identifiers):
+        Session.validate_agents(identifiers)
+        if identifiers and self.agents is None:
+            raise RuntimeError("Session participants require the Project Agent owner")
+        for identifier in identifiers:
+            self.agents.repository.load(project, identifier)
 
     def _conversation_storage(self, session: Session) -> Optional[str]:
         """오래된 핸들의 복사본 대신 소유 프로젝트의 현재 선택을 조회한다."""
@@ -311,8 +320,10 @@ class SessionManager:
 
     @workspace_locked
     def create(self, project: Project, title: str, *,
-               config: Optional[dict] = None) -> Session:
+               config: Optional[dict] = None, agent_ids=UNSET) -> Session:
         project = self.require_project(project)
+        identifiers = [] if agent_ids is UNSET else deepcopy(agent_ids)
+        self._validate_agents(project, identifiers)
         ProjectConfig.validate_session(config if config is not None else {})
         config = deepcopy(config) if config is not None else {}
         if self.config_validator is not None:
@@ -320,7 +331,7 @@ class SessionManager:
         self.initialize(project)
         session_id = new_id()
         session = Session(session_id, project.id, title, self.repository.paths(project, session_id),
-                    config=config)
+                    config=config, agent_ids=identifiers)
         self.repository.create(session)
         log_event(session.paths.logs, "session.created", entity_id=session.id,
                   related_id=project.id)
@@ -329,6 +340,7 @@ class SessionManager:
     @workspace_locked
     def save(self, session: Session) -> None:
         project = self._owner(session)
+        self._validate_agents(project, session.agent_ids)
         if self.config_validator is not None:
             self.config_validator(project.config, session_config=session.config)
         current = self.require_inactive(session)
@@ -339,18 +351,24 @@ class SessionManager:
         current.title = session.title
         current.metadata = deepcopy(session.metadata)
         current.config = deepcopy(session.config)
+        current.agent_ids = deepcopy(session.agent_ids)
         self.repository.save(current)
 
     @workspace_locked
     def load(self, project: Project, session_id: str) -> Session:
         project = self.require_project(project, allow_deleted=True)
-        return self.repository.load(project, session_id)
+        session = self.repository.load(project, session_id)
+        self._validate_agents(project, session.agent_ids)
+        return session
 
     @workspace_locked
     @queryable
     def list(self, project: Project, *, include_deleted: bool = False) -> list[Session]:
         project = self.require_project(project, allow_deleted=True)
-        return self.repository.list(project, include_deleted=include_deleted)
+        sessions = self.repository.list(project, include_deleted=include_deleted)
+        for session in sessions:
+            self._validate_agents(project, session.agent_ids)
+        return sessions
 
     @workspace_locked
     def validate_history(self, session: Session):
@@ -431,7 +449,8 @@ class SessionManager:
         if through_message_id is not None:
             from llm.services.history.turns import through_turn
             messages = through_turn(messages, through_message_id)
-        clone = self.create(project, title if title is not None else source.title)
+        clone = self.create(project, title if title is not None else source.title,
+                            agent_ids=source.agent_ids)
         clone.metadata = deepcopy(source.metadata)
         clone.config = deepcopy(source.config)
         destination = self.conversations(clone)

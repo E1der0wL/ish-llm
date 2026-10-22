@@ -11,6 +11,14 @@ agent_run은 저장 agent_id와 input만 받으며 inline 권한 override를 받
 
 ## 등록, 저장, 실행
 
+Session의 `agent_ids`는 Application이 명시적으로 저장하는 참여자 목록이다.
+`project.sessions.acreate(agent_ids=[...])`와 런타임이 분리된 Session의
+`session.asave(agent_ids=[...])`로 편집한다. Project에 저장된 ID의 중복 없는 정렬된 목록을
+사용하며 생성 시 생략은 빈 참여자 목록, 명시적 Null은 오류다. 읽기에서 필수 목록 소실을
+빈 목록으로 메우지 않는다. 참여 중인 Agent는 삭제할 수 없고, Session의 soft delete도
+그 참조를 해제하지 않는다. 복제·백업은 목록과 실제 Project Agent 참조를 함께 검증한다.
+요청 1:N·병렬 실행의 통합 진행 상태는 [D 검증 기록](multi-agent-verification.md)을 따른다.
+
 다음 예제의 `model`과 인증은 호출 환경에서 설정한다. 모델 API를 호출하는 실제 실행 예시다.
 `workspace`는 Linux 경로를 사용한다.
 

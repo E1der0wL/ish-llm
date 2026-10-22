@@ -161,7 +161,10 @@ class ProjectManager:
         self.components.validate(project.components)
         self._validate_config(project)
         self._validate_components(project)
+        agents = self.repository.agents.read_backup(project)
         for session in self.sessions.repository.read_backup(project):
+            if not set(session.agent_ids) <= set(agents):
+                raise ValueError("Backup Session references a missing Project Agent")
             if self.config_validator is not None:
                 self.config_validator(project.config, session_config=session.config)
             for run in self.sessions.run_repository.read_backup(session):

@@ -192,6 +192,9 @@ class NamingContractTests(unittest.TestCase):
             if domain is Run:
                 # B/C adds mandatory Agent identity without renaming existing fields.
                 expected.insert(expected.index('paths') + 1, 'agent_id')
+            if domain is Session:
+                # D adds explicit participation; existing field names remain required.
+                expected.insert(expected.index('config') + 1, 'agent_ids')
             self.assertEqual([item.name for item in fields(domain)], expected)
         graph = WorkflowGraph(entry='end', metadata={'title': 'Review'}).node('end', 'end').to_dict()
         self.assertEqual(graph, self.before['workflow'])

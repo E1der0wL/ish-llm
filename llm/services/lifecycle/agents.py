@@ -263,6 +263,8 @@ class AgentManager:
                         raise ValueError(f"Agent is referenced by {name}/{reference['source']}")
         checkpoints = CheckpointRepository()
         for session in self.sessions.list(project, include_deleted=True):
+            if identifier in session.agent_ids:
+                raise ValueError("Agent is referenced by Session participation")
             from llm.core.agents import AgentBinding
             from llm.core.steering import is_queued_request
             for message in self.sessions.conversations(session).list():
